@@ -5764,6 +5764,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut has_encrypt_opt = false;
     let mut selected_action: &str = "add";
     let mut literal = false;
+    let mut descriptors = false;
     let mut split_size = 0;
     let mut split_verbose = false;
     let mut split_pause = false;
@@ -5878,7 +5879,9 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let value = if let Some(v) = a.strip_prefix("--split-size=") { v }
                 else { i += 1; args.get(i).map_or("",String::as_str) };
             split_size = match zip_volumes::size(value) { Ok(s) => s, Err(e) => return zip_err(e) };
-        } else if a == "--split-pause" { split_pause = true;
+        } else if a == "--force-descriptors" { descriptors = true;
+        } else if a == "--force-descriptors-" { return zip_err("option fd is not negatable");
+        } else if a == "--split-pause" { split_pause = true; descriptors = true;
         } else if a == "--split-verbose" { split_verbose = true;
         } else if a == "--split-bell" {
         } else if a == "-P" || a == "--password" || a.starts_with("-P") || a.starts_with("--password=") {
@@ -5968,7 +5971,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 match ch {
                     's' => {
                         match flags.as_str().as_bytes().first() {
-                            Some(b'p') => split_pause = true,
+                            Some(b'p') => { split_pause = true; descriptors = true; }
                             Some(b'v') => split_verbose = true,
                             Some(b'b') => {},
                             _ => {
@@ -5994,6 +5997,11 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         selected_action = "copy";
                         copy_mode = true;
+                    }
+                    'f' if flags.as_str().starts_with('d') => {
+                        flags.next();
+                        if flags.as_str().starts_with('-') { return zip_err("option fd is not negatable"); }
+                        descriptors = true;
                     }
                     'f' => {
                         if selected_action != "add" && selected_action != "freshen" {
@@ -6168,13 +6176,13 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,false,&retained,|_,_,_,_| {}), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,false,&retained,|_,_,_,_| {}), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
@@ -6368,7 +6376,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let savings = |size: u64, stored: u64| if size == 0 { 0 } else {
         (100*(i128::from(size)-i128::from(stored)) + i128::from(size/2)).div_euclid(i128::from(size))
     };
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false, &retained,
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false, descriptors, &retained,
         |name,method,size,stored| {
             if quiet { return; }
             let (size,stored) = (size as u64,stored as u64);

@@ -3514,10 +3514,10 @@ pub(super) struct ZipRecord<'a> {
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, 0, &[], false, &ZipRecords::new(), |_,_,_,_| {})
+    encode_zip_members(entries, 0, &[], false, false, &ZipRecords::new(), |_,_,_,_| {})
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], level: u8, store_suffixes: &[&str], document: bool, retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], level: u8, store_suffixes: &[&str], document: bool, descriptors: bool, retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3573,9 +3573,11 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         let compress = level != 0 && !is_dir && !is_symlink && !payload.is_empty()
             && (level == 9 || !store_suffixes.iter().any(|suffix| clean_name.ends_with(suffix)));
         let compressed = if compress { deflate(payload, level, Vec::new(), |_| {}) } else { Vec::new() };
-        let (method, version, stored): (u16, u16, &[u8]) = if compress && compressed.len() < payload.len() {
+        let descriptor = descriptors && !is_dir;
+        let flags: u16 = if descriptor { 0x0808 } else { 0x0800 };
+        let (method, version, stored): (u16, u16, &[u8]) = if compress && (descriptor || compressed.len() < payload.len()) {
             (8, 20, &compressed)
-        } else { (0, 10, payload) };
+        } else { (0, if descriptor {20} else {10}, payload) };
         report(&e.name,method,payload.len(),stored.len());
         let text_attr = u16::from(!document && compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
             && payload.iter().any(|b| matches!(b, 9 | 10 | 13 | 32..=255)));
@@ -3591,18 +3593,28 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         let local_offset = out.len() as u32;
         out.extend_from_slice(&0x0403_4b50u32.to_le_bytes());
         out.extend_from_slice(&version.to_le_bytes());
-        out.extend_from_slice(&0x0800u16.to_le_bytes());
+        out.extend_from_slice(&flags.to_le_bytes());
         out.extend_from_slice(&method.to_le_bytes());
         out.extend_from_slice(&dos_time.to_le_bytes());
         out.extend_from_slice(&dos_date.to_le_bytes());
-        out.extend_from_slice(&crc.to_le_bytes());
-        out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
-        out.extend_from_slice(&sz.to_le_bytes());
+        if descriptor { out.extend_from_slice(&[0;12]); }
+        else {
+            out.extend_from_slice(&crc.to_le_bytes());
+            out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
+            out.extend_from_slice(&sz.to_le_bytes());
+        }
         out.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
         out.extend_from_slice(&(extra.len() as u16).to_le_bytes());
         out.extend_from_slice(name_bytes);
         out.extend_from_slice(&extra);
         out.extend_from_slice(stored);
+
+        if descriptor {
+            out.extend_from_slice(b"PK\x07\x08");
+            out.extend_from_slice(&crc.to_le_bytes());
+            out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
+            out.extend_from_slice(&sz.to_le_bytes());
+        }
 
         let unix_type = if is_dir {
             0o040000u32
@@ -3617,7 +3629,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         central.extend_from_slice(&0x0201_4b50u32.to_le_bytes());
         central.extend_from_slice(&0x031eu16.to_le_bytes());
         central.extend_from_slice(&version.to_le_bytes());
-        central.extend_from_slice(&0x0800u16.to_le_bytes());
+        central.extend_from_slice(&flags.to_le_bytes());
         central.extend_from_slice(&method.to_le_bytes());
         central.extend_from_slice(&dos_time.to_le_bytes());
         central.extend_from_slice(&dos_date.to_le_bytes());

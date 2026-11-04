@@ -57,7 +57,12 @@ fn partition(mut bytes: Vec<u8>, size: usize) -> Result<Vec<Vec<u8>>, String> {
             return Err("ZIP invalid local record".into());
         }
         headers.push((p, local));
-        local_headers.push((local, local + 30 + word(local + 26) + word(local + 28)));
+        let payload = local + 30 + word(local + 26) + word(local + 28);
+        local_headers.push((local,payload));
+        if word(local + 6) & 8 != 0 {
+            let descriptor = payload.checked_add(dword(p + 20)).ok_or("ZIP invalid descriptor offset")?;
+            local_headers.push((descriptor,descriptor.checked_add(16).ok_or("ZIP invalid descriptor offset")?));
+        }
         let next = p + 46 + word(p + 28) + word(p + 30) + word(p + 32);
         central_headers.push((p, next));
         p = next;

@@ -2040,6 +2040,35 @@ test("unzip validates disk numbers, local headers and record coverage before ext
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("zip writes signed descriptors for selected members and keeps them whole across split volumes",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    const run=async (sh,fs)=>{
+      await fs.mkdir("/dir"); await fs.utimes("/dir",1700000000000,1700000000000);
+      for(const [name,data] of [["a",Uint8Array.of(65)],["empty",new Uint8Array()],["big",new Uint8Array(65475).fill(66)]]) {
+        await fs.writeFile("/"+name,data); await fs.utimes("/"+name,1700000000000,1700000000000);
+      }
+      const outputs=[];
+      for(const [args,files] of [
+        ["-q0 plain.zip a",["plain.zip"]],
+        ["-qfd plain.zip empty dir",["plain.zip"]],
+        ["--force-descriptors -q def.zip a",["def.zip"]],
+        ["-sp -q sp.zip a",["sp.zip"]],
+        ["-q0 -fd -s64k split.zip big a",["split.z01","split.zip"]],
+        ["-qfd- invalid.zip a",[]],
+      ]) {
+        const r=await sh.exec("zip "+args);
+        assert.equal(r.exitCode,files.length?0:16,r.stderr||r.stdout);
+        outputs.push([r.stdout,r.stderr,...await Promise.all(files.map(f=>fs.readFile("/"+f)))]);
+      }
+      return outputs;
+    };
+    const expected=await run(js,ref);
+    assert.deepEqual(await run(rust,rust.fs),expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("split ZIP reserves all volumes before replacing files or removing move sources", async () => {
   const bash = new RustWasmBash({cwd:"/case", memoryFsOptions:{maxBytes:250000}});
   try {

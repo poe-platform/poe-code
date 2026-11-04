@@ -4,7 +4,7 @@ mod grep_stream;
 mod rg_ignore;
 mod rg_stream;
 mod rg_types;
-use fd_glob::{FdGlob, IgnoreFile, RuleError};
+use fd_glob::{FdGlob, GlobSyntax, IgnoreFile, RuleError};
 mod mdq_classes;
 mod mdq_class;
 pub(super) use expr_bre::expr_match;
@@ -2912,7 +2912,7 @@ fn cmd_rg(
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
     let mut context_separator: Option<String> = Some("--".to_string());
-    let mut globs: Vec<String> = Vec::new();
+    let mut globs = Vec::new();
     let mut types = rg_types::FileTypes::default();
     let mut patterns: Vec<String> = Vec::new();
     let mut pattern_files: Vec<String> = Vec::new();
@@ -3164,11 +3164,11 @@ fn cmd_rg(
                 }
                 "--glob" | "-g" if i + 1 < args.len() => {
                     i += 1;
-                    globs.push(args[i].clone());
+                    globs.push((args[i].as_str(), false));
                 }
                 "--iglob" if i + 1 < args.len() => {
                     i += 1;
-                    globs.push(format!("i:{}", args[i]));
+                    globs.push((args[i].as_str(), true));
                 }
                 "--regexp" if i + 1 < args.len() => {
                     i += 1;
@@ -3177,9 +3177,9 @@ fn cmd_rg(
                 }
                 _ => {
                     if let Some(g) = a.strip_prefix("--glob=") {
-                        globs.push(g.to_string());
+                        globs.push((g, false));
                     } else if let Some(ig) = a.strip_prefix("--iglob=") {
-                        globs.push(format!("i:{ig}"));
+                        globs.push((ig, true));
                     } else if let Some(cs) = a.strip_prefix("--context-separator=") {
                         context_separator = Some(cs.to_string());
                     } else if let Some(igf) = a.strip_prefix("--ignore-file=") {
@@ -3393,10 +3393,10 @@ fn cmd_rg(
                     'g' => {
                         let rest: String = chars[ci + 1..].iter().collect();
                         if !rest.is_empty() {
-                            globs.push(rest);
+                            globs.push((&a[a.len() - rest.len()..], false));
                         } else if i + 1 < args.len() {
                             i += 1;
-                            globs.push(args[i].clone());
+                            globs.push((args[i].as_str(), false));
                         }
                         break;
                     }
@@ -3478,6 +3478,14 @@ fn cmd_rg(
             patterns.extend(text.split_terminator('\n').map(|line| line.strip_suffix('\r').unwrap_or(line).to_owned()));
         }
     }
+    let mut overrides = Vec::with_capacity(globs.len());
+    for (source, insensitive) in globs {
+        let (pattern, include) = source.strip_prefix('!').map_or((source, true), |p| (p, false));
+        match FdGlob::compile(pattern, GlobSyntax::Override { insensitive }) {
+            Ok(glob) => overrides.push((glob, include)),
+            Err(e) => return BuiltinOutcome { stdout: String::new(), stderr: if no_messages { String::new() } else { format!("rg: {e}\n") }, exit_code: 2 },
+        }
+    }
     let mut explicit = rg_ignore::Rules::default();
     if use_ignore_files {
         for operand in custom_ignore_files {
@@ -3489,7 +3497,7 @@ fn cmd_rg(
             }
         }
     }
-    let files = RgFiles { list_files_only, follow, globs, types, show_hidden, respect_ignore,
+    let files = RgFiles { list_files_only, follow, globs: overrides, types, show_hidden, respect_ignore,
         no_ignore_vcs, no_ignore_dot, require_git, ignore_parent, explicit, max_depth, max_filesize };
     if list_files_only {
         let mut out = rg_stream::Output::new(write);
@@ -3676,43 +3684,10 @@ struct GrepConfig<'a> {
     stats: bool,
 }
 
-fn eval_cli_globs(globs: &[String], base: &str, target: &str) -> Option<bool> {
-    let mut result = None;
-    for g in globs {
-        let (icase, raw_g) = if let Some(rest) = g.strip_prefix("i:") {
-            (true, rest)
-        } else {
-            (false, g.as_str())
-        };
-        if let Some(neg) = raw_g.strip_prefix('!') {
-            let matched = if icase {
-                glob_match(&neg.to_ascii_lowercase(), &base.to_ascii_lowercase())
-                    || glob_match(&neg.to_ascii_lowercase(), &target.to_ascii_lowercase())
-            } else {
-                glob_match(neg, base) || glob_match(neg, target)
-            };
-            if matched {
-                result = Some(false);
-            }
-        } else {
-            let matched = if icase {
-                glob_match(&raw_g.to_ascii_lowercase(), &base.to_ascii_lowercase())
-                    || glob_match(&raw_g.to_ascii_lowercase(), &target.to_ascii_lowercase())
-            } else {
-                glob_match(raw_g, base) || glob_match(raw_g, target)
-            };
-            if matched {
-                result = Some(true);
-            }
-        }
-    }
-    result
-}
-
 struct RgFiles {
     list_files_only: bool,
     follow: bool,
-    globs: Vec<String>,
+    globs: Vec<(FdGlob, bool)>,
     types: rg_types::FileTypes,
     show_hidden: bool,
     respect_ignore: bool,
@@ -3738,7 +3713,7 @@ impl RgFiles {
             pending.push(Visit::Entry(if stdin { "-" } else { "." }.into(), 0, None, self.explicit.clone()));
         }
         let mut ancestors = BTreeMap::new();
-        let positive_glob = self.globs.iter().any(|p| !p.strip_prefix("i:").unwrap_or(p).starts_with('!'));
+        let positive_glob = self.globs.iter().any(|(_, include)| *include);
         std::iter::from_fn(move || loop {
             let (label, depth, mode, mut rules) = match pending.pop()? {
                 Visit::Error(e) => return Some(Ok(SearchInput::Error(format!("rg: {e}\n")))),
@@ -3791,7 +3766,18 @@ impl RgFiles {
                     return Some(Ok(SearchInput::Error(format!("rg: File system loop found: {label} points to an ancestor {ancestor}\n"))));
                 }
                 let base = label.rsplit('/').next().unwrap_or("");
-                match eval_cli_globs(&self.globs, base, label.strip_prefix("./").unwrap_or(&label)) {
+                let mut selected_glob = None;
+                if !self.globs.is_empty() {
+                    let relative = super::fs::relative_posix_path(cwd, &logical);
+                    for (glob, include) in &self.globs {
+                        match glob.matches_override(&relative, directory) {
+                            Ok(true) => selected_glob = Some(*include),
+                            Ok(false) => {}
+                            Err(e) => return Some(Err(e)),
+                        }
+                    }
+                }
+                match selected_glob {
                     Some(false) => continue,
                     Some(true) => {}
                     None => {
@@ -6307,7 +6293,7 @@ where
         let source = if fold_subject { source.to_lowercase() } else { source };
         let pattern = match mode {
             FdMode::Fixed => Ok(FdPattern::Fixed(source)),
-            FdMode::Glob => FdGlob::compile(&source, true).map(FdPattern::Glob),
+            FdMode::Glob => FdGlob::compile(&source, GlobSyntax::Search).map(FdPattern::Glob),
             FdMode::Regex => {
                 let (pattern, insensitive) = if let Some(p) = source.strip_prefix("(?i)") { (p, true) }
                     else if let Some(p) = source.strip_prefix("(?-i)") { (p, false) } else { (source.as_str(), ignore_case) };
@@ -6321,7 +6307,7 @@ where
             Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
         }
     }
-    let excludes = match excludes.iter().map(|pattern| FdGlob::compile(pattern, false)).collect::<Result<Vec<_>, _>>() {
+    let excludes = match excludes.iter().map(|pattern| FdGlob::compile(pattern, GlobSyntax::Ignore)).collect::<Result<Vec<_>, _>>() {
         Ok(globs) => globs,
         Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
     };

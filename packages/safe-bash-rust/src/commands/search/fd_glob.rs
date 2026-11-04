@@ -48,8 +48,13 @@ fn append_class(expression: &mut String, contents: &str, start: usize) -> Result
     Ok(())
 }
 
+#[derive(Clone, Copy)]
+pub(super) enum GlobSyntax { Search, Ignore, Override { insensitive: bool } }
+
 impl FdGlob {
-    pub(super) fn compile(source: &str, search_pattern: bool) -> Result<Self, String> {
+    pub(super) fn compile(source: &str, syntax: GlobSyntax) -> Result<Self, String> {
+        let search_pattern = matches!(syntax, GlobSyntax::Search);
+        if source.is_empty() && matches!(syntax, GlobSyntax::Override { .. }) { return Err("invalid glob: empty or excessive glob".into()); }
         let directory_only = source.ends_with('/');
         let pattern = source.strip_suffix('/').unwrap_or(source);
         let mut expression = if search_pattern || source.starts_with('/') || pattern.contains('/') { "^" } else { "(^|/)" }.to_owned();
@@ -77,7 +82,7 @@ impl FdGlob {
                         append_class(&mut expression, contents, len - escapes)?;
                         escapes += expression.len() - len - contents.len() - 2;
                         chars = tail[end + 1..].chars();
-                    } else if search_pattern { return Err("invalid glob: unclosed glob character class".into()); }
+                    } else if !matches!(syntax, GlobSyntax::Ignore) { return Err("invalid glob: unclosed glob character class".into()); }
                     else { expression.push_str(r"\["); escapes += 1; }
                 }
                 '{' => { braces += 1; expression.push('('); }
@@ -94,7 +99,16 @@ impl FdGlob {
         }
         if braces > 0 { return Err("invalid glob: unclosed glob brace".into()); }
         expression.push('$');
-        Ok(Self { expression: ZeroRegex::awk(&expression), directory_only })
+        let branches = super::parse_rx_branches(&expression, false, super::RxDialect::Awk).expect("permissive glob expression parser");
+        let insensitive = matches!(syntax, GlobSyntax::Override { insensitive: true });
+        Ok(Self { expression: ZeroRegex::from_branches([branches], insensitive, false, false), directory_only })
+    }
+
+    pub(super) fn matches_override(&self, path: &str, directory: bool) -> Result<bool, String> {
+        if self.expression.ignore_case && !path.is_ascii() {
+            return Err("rg: bounded regex unsupported: glob case folding supports ASCII paths only\n".into());
+        }
+        Ok(self.matches(path, directory, false))
     }
 
     pub(super) fn matches(&self, mut path: &str, directory: bool, ancestors: bool) -> bool {
@@ -137,7 +151,7 @@ impl IgnoreFile {
                 line = before;
             }
             let (pattern, include) = line.strip_prefix('!').map_or((line, false), |p| (p, true));
-            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern, false)?, include)); }
+            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern, GlobSyntax::Ignore)?, include)); }
         }
         Ok(Self { base: base.to_owned(), priority, rules })
     }

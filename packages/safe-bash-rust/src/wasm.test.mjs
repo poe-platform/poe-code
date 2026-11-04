@@ -12352,3 +12352,22 @@ test("recursive rg uses directory entry types and charges ignore lookups before 
     } finally { sh.dispose(); }
   }
 });
+
+test("rg CLI globs use cwd-relative path components and validate before visiting operands", async () => {
+  const sh = new RustWasmBash({cwd:"/w",files:{"/w/d/a.rs":"","/w/d/b.ts":"","/w/d/n/a.rs":"","/w/d/i:a":"","/outside/a.rs":""}});
+  try {
+    for (const [args,expected] of [
+      ["-g 'd/*.rs' /w/d","/w/d/a.rs\n"],["-g 'd/**/{a,b}.*' d","d/a.rs\nd/b.ts\nd/n/a.rs\n"],
+      ["-g 'i:a' d","d/i:a\n"],["-g '../outside/a.rs' /outside","/outside/a.rs\n"],
+      ["--iglob '/D/[A-B].RS' d","d/a.rs\n"]
+    ]) {
+      const r = await sh.exec("rg --files "+args);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,expected,""],args);
+    }
+    const bad = await sh.exec("rg --files -g '[a' d/a.rs");
+    assert.deepEqual([bad.exitCode,bad.stdout,bad.stderr],[2,"","rg: invalid glob: unclosed glob character class\n"]);
+    await sh.fs.writeFile("/w/d/λ",new Uint8Array());
+    const folded = await sh.exec("rg --files --iglob '*.ts' d");
+    assert.deepEqual([folded.exitCode,folded.stdout,folded.stderr],[2,"d/b.ts\n","rg: bounded regex unsupported: glob case folding supports ASCII paths only\n"]);
+  } finally { sh.dispose(); }
+});

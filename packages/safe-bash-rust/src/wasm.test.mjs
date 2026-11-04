@@ -1858,6 +1858,25 @@ test("ZIP archive comments preserve input bytes, line limits and prompt order",a
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("unzip renders binary archive comments only in modes that display them",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    await ref.writeFile("/f",Uint8Array.of(65));
+    assert.equal((await js.exec("zip -q0 sample.zip f")).exitCode,0);
+    const plain=Buffer.from(await ref.readFile("/sample.zip"));
+    for(const comment of [Buffer.from([255,13,10,19,27,65,0,66]),Buffer.from([13,19,0,65])]) {
+      const seed=Buffer.concat([plain,comment]); seed.writeUInt16LE(comment.length,plain.length-2);
+      for(const fs of [ref,rust.fs]) {await fs.writeFile("/sample.zip",seed); await fs.writeFile("/f",Uint8Array.of(65));}
+      for(const flags of ["-z","-qz","-t","-qt","-l","-c","-p","-Z1","-n","-qn"]) {
+        const cmd="unzip "+flags+" sample.zip", expected=await js.exec(cmd), actual=await rust.exec(cmd);
+        assert.equal(expected.exitCode,0,cmd);
+        assert.deepEqual([actual.exitCode,actual.stdoutBytes,actual.stderr],[expected.exitCode,expected.stdoutBytes,expected.stderr],cmd);
+      }
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("unzip contains extracted members and protects existing links and the input archive",async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});

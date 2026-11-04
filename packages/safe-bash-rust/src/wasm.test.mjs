@@ -8562,6 +8562,30 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk string functions address input bytes and change only ASCII case", async () => {
+  const sh = new RustWasmBash();
+  try {
+    const stdin = Buffer.from("61ff80620ac389410a", "hex");
+    const result = await sh.exec("awk '{c=substr($0,2,1); print length($0),index($0,c),index($0,\"b\"),c,tolower($0),toupper($0)}'", {stdin});
+    assert.deepEqual([result.exitCode, result.stderr, Buffer.from(result.stdoutBytes).toString("hex")],
+      [0, "", "342032203420ff2061ff80622041ff80420a3320322030208920c3896120c389410a"]);
+  } finally { sh.dispose(); }
+});
+
+test("awk splits fields on AWK whitespace or individual bytes for an empty separator", async () => {
+  const sh = new RustWasmBash();
+  try {
+    const stdin = Buffer.from("c389090d0a", "hex");
+    for (const [program, expected] of [
+      ['{print NF,$2,split($0,a," ",s),a[2],s[1]}', "32200d2032200d20090a"],
+      ['BEGIN{FS=""}{print NF,$1,$2,split($0,a),a[2]}', "3420c32089203420890a"],
+    ]) {
+      const r = await sh.exec("awk '" + program + "'", {stdin});
+      assert.deepEqual([r.exitCode, r.stderr, Buffer.from(r.stdoutBytes).toString("hex")], [0, "", expected]);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("awk evaluates numeric rule patterns once and retains zero-pattern input processing", async () => {
   const sh = new RustWasmBash();
   try {

@@ -1907,8 +1907,12 @@ impl<'a> AwkState<'a> {
 
     fn set_line(&mut self, line: &str) {
         self.line = line.to_string();
-        self.fields = if self.fs == " " {
-            line.split_whitespace().map(|s| s.to_string()).collect()
+        self.fields = if line.is_empty() {
+            Vec::new()
+        } else if self.fs == " " {
+            line.split([' ', '\t', '\n']).filter(|s| !s.is_empty()).map(str::to_owned).collect()
+        } else if self.fs.is_empty() {
+            awk_byte_fields(line)
         } else if self.fs.len() == 1 {
             line.split(&self.fs).map(|s| s.to_string()).collect()
         } else {
@@ -2480,6 +2484,10 @@ fn is_awk_truthy(val: &str) -> bool {
 
 fn parse_awk_f64(val: &str) -> f64 {
     crate::commands::coreutils::parse_leading_f64(val)
+}
+
+fn awk_byte_fields(text: &str) -> Vec<String> {
+    crate::vfs::stream_string_to_bytes(text).chunks(1).map(crate::vfs::bytes_to_stream_string).collect()
 }
 
 fn awk_prev_allows_regex(prefix: &str) -> bool {
@@ -3583,38 +3591,35 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             } else {
                 eval_awk_expr(&args[0], state)
             };
-            Some(target.len().to_string())
+            Some(crate::vfs::stream_byte_len(&target).to_string())
         }
         "tolower" => {
             let t = args
                 .first()
                 .map(|a| eval_awk_expr(a, state))
                 .unwrap_or_default();
-            Some(t.to_lowercase())
+            Some(t.to_ascii_lowercase())
         }
         "toupper" => {
             let t = args
                 .first()
                 .map(|a| eval_awk_expr(a, state))
                 .unwrap_or_default();
-            Some(t.to_uppercase())
+            Some(t.to_ascii_uppercase())
         }
         "substr" => {
             if args.len() < 2 {
                 return Some(String::new());
             }
             let text = eval_awk_expr(&args[0], state);
-            let start = eval_awk_expr(&args[1], state)
-                .parse::<usize>()
-                .unwrap_or(1)
-                .saturating_sub(1);
-            let bytes = text.as_bytes();
+            let start = (parse_awk_f64(&eval_awk_expr(&args[1], state)) as usize).saturating_sub(1);
+            let bytes = crate::vfs::stream_string_to_bytes(&text);
             if start >= bytes.len() {
                 return Some(String::new());
             }
             if args.len() >= 3 {
-                let len = eval_awk_expr(&args[2], state).parse::<usize>().unwrap_or(0);
-                let end = (start + len).min(bytes.len());
+                let len = parse_awk_f64(&eval_awk_expr(&args[2], state)) as usize;
+                let end = start.saturating_add(len).min(bytes.len());
                 Some(crate::vfs::bytes_to_stream_string(&bytes[start..end]))
             } else {
                 Some(crate::vfs::bytes_to_stream_string(&bytes[start..]))
@@ -3626,7 +3631,9 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             }
             let hay = eval_awk_expr(&args[0], state);
             let needle = eval_awk_expr(&args[1], state);
-            match hay.find(&needle) {
+            if needle.is_empty() { return Some("1".to_string()); }
+            let needle = crate::vfs::stream_string_to_bytes(&needle);
+            match crate::vfs::stream_string_to_bytes(&hay).windows(needle.len()).position(|s| s == needle) {
                 Some(byte_idx) => Some((byte_idx + 1).to_string()),
                 None => Some("0".to_string()),
             }
@@ -3689,17 +3696,17 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let (parts, seps): (Vec<String>, Vec<String>) = if text.is_empty() {
                 (Vec::new(), Vec::new())
             } else if sep.is_empty() {
-                (text.chars().map(|c| c.to_string()).collect(), Vec::new())
-            } else if sep == " " {
+                (awk_byte_fields(&text), Vec::new())
+            } else if !is_rx && sep == " " {
                 let mut p_vec = Vec::new();
                 let mut s_vec = Vec::new();
-                let trimmed = text.trim_matches(|c: char| c.is_ascii_whitespace());
+                let trimmed = text.trim_matches([' ', '\t', '\n']);
                 if !trimmed.is_empty() {
                     let mut cur_tok = String::new();
                     let mut cur_sep = String::new();
                     let mut in_ws = false;
                     for ch in trimmed.chars() {
-                        if ch.is_ascii_whitespace() {
+                        if matches!(ch, ' ' | '\t' | '\n') {
                             if !in_ws {
                                 p_vec.push(std::mem::take(&mut cur_tok));
                                 in_ws = true;

@@ -197,6 +197,8 @@ test("cat enforces its input quota per regular file, including later chunks", as
   }, symlinks: { "/alias": "/long" } });
   try {
     await assert.rejects(bash.exec("cat -n /alias", { limits: { maxInputBytes: 65536 } }), /maxInputBytes/);
+    await assert.rejects(bash.exec("cat /long >/out", { limits: { maxInputBytes: 65536 } }), {limit:"maxInputBytes"});
+    assert.equal((await bash.fs.readFile("/out")).length,65536);
     const r = await bash.exec("cat /one /secret /two", { limits: { maxInputBytes: 3 } });
     assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "abcdef", "cat: EACCES: permission denied, readStream '/secret'\n"]);
     assert.equal((await bash.exec("cat /long", { limits: { maxInputBytes: 65537 } })).stdoutBytes.length, 65537);
@@ -12298,4 +12300,21 @@ test("an exclusive exec descriptor reports a close conflict to its owning shell"
     const sub = await sh.exec("("+open+"false); echo end");
     assert.deepEqual([sub.exitCode,sub.stdout,sub.stderr],[0,"end\n","shell: line 1: EEXIST: file already exists, overlay '/f'\n"]);
   } finally { sh.dispose(); }
+});
+
+test("cat charges named reads in operand order for each filesystem profile", async () => {
+  for (const [profile,minimum] of [["wasm-only",2],["overlay-cow-fs",8],["strict-budgets-mount-dev",8]]) {
+    const sh = new RustWasmBash({profile,files:{"/f":"a"}});
+    try {
+      await assert.rejects(sh.exec("cat /f /f",{limits:{maxFileSystemOperations:minimum-1}}),{limit:"maxFileSystemOperations"});
+      const r = await sh.exec("cat /f /f",{limits:{maxFileSystemOperations:minimum}});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"aa",""],profile);
+      if (profile === "overlay-cow-fs") {
+        for (const [limit,visible] of [[11,""],[12,"a"]]) {
+          await assert.rejects(sh.exec("cat /f /missing /f >/out",{limits:{maxFileSystemOperations:limit}}),{limit:"maxFileSystemOperations"});
+          assert.equal(sh.readText("/out"),visible);
+        }
+      }
+    } finally { sh.dispose(); }
+  }
 });

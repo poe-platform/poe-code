@@ -545,6 +545,14 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
     let mut pending_cr = false;
     let mut out_bytes = Vec::new();
     if files.is_empty() { files.push("-".into()); }
+    let path_caps = |p: &str| fs.has_path_capabilities() || p == "/dev" || p.starts_with("/dev/");
+    // The command checks every named operand before it starts reading stdin or files.
+    let check_all = files.iter().any(|f| f != "-" && path_caps(&absolute_operand(cwd, f)));
+    if check_all {
+        for f in &files {
+            if f != "-" && !f.is_empty() && fs.command_descriptor_op().is_err() { return out; }
+        }
+    }
     for f in &files {
         let mut writable = true;
         let mut consume = |chunk: &[u8]| {
@@ -620,23 +628,34 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
             stdin.read_stdin(consume)
         } else {
             let p = absolute_operand(cwd, f);
-            fs.inspect_command_entry(&p, true, "capabilitiesFor").and_then(|(path, st)| {
-                if st.mode & 0o170000 != 0o100000 {
-                    consume(&fs.read_file(&path)?);
-                    return Ok(());
+            (|| {
+                if p.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+                let mut available = fs.max_input_bytes();
+                let mut read = |bytes: &[u8]| {
+                    available = available.checked_sub(bytes.len())
+                        .ok_or_else(|| fs.limit_error("maxInputBytes", fs.max_input_bytes()))?;
+                    Ok(consume(bytes))
+                };
+                if !path_caps(&p) && fs.supplies_single_chunk_input() {
+                    return fs.read_chunks(&p, &mut read);
                 }
-                // A named read ends at the size seen on open, even if stdout
-                // appends to the very same inode. Redirected stdin is a live fd.
+                // The input adapter checks requirements and then resolves the read capability.
+                let admitted = path_caps(&p) && fs.access_path(&p, true).is_ok();
+                let (path, st) = fs.inspect_command_entry(&p, true, "capabilitiesFor").inspect_err(|_| {
+                    // An absent final entry still gets as far as opening the read stream.
+                    if admitted { let _ = fs.command_descriptor_op(); }
+                })?;
+                if st.mode & 0o170000 != 0o100000 {
+                    return fs.read_chunks(&path, &mut read);
+                }
+                // Named regular files end at the size seen on open, even if stdout appends to them.
                 let mut left = st.size;
-                let limit = fs.max_input_bytes();
-                let mut available = limit;
                 fs.read_chunks(&path, &mut |chunk| {
                     let n = left.min(chunk.len());
-                    available = available.checked_sub(n).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
                     left -= n;
-                    Ok(consume(&chunk[..n]) && left != 0)
+                    Ok(read(&chunk[..n])? && left != 0)
                 })
-            }).map_err(|e| stream_file_error(e, "readStream", &p))
+            })().map_err(|e| stream_file_error(e, "readStream", &p))
         };
         if !writable { return out; }
         if let Err(e) = result {

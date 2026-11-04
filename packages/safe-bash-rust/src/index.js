@@ -183,7 +183,7 @@ function bindExternalFs(shell,fs,options) {
   const x=shell.exports, table=x.__indirect_function_table, top=x.__stack_pointer.value;
   const free=freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x,free);
-  const slot=free.pop() ?? table.grow(1), handles=new Map(), publications=new Map(), closeErrors=[];
+  const slot=free.pop() ?? table.grow(1), handles=new Map(), publications=new Map(), removalScopes=new Map(), closeErrors=[];
   let nextHandle=1;
   const discardTestStage=async obs=>{
     const stage=obs.testStage;
@@ -295,6 +295,39 @@ function bindExternalFs(shell,fs,options) {
             ...(caps?.timestamps!==false && Number.isFinite(atime) && {atimeMs:atime}),
             ...(caps?.timestamps!==false && Number.isFinite(mtime) && {mtimeMs:mtime})});
           obs.guard.destination=directory;result=statBytes(directory);return;
+        }
+        if(op==="retainRemoval"){
+          const caps=await fs.capabilitiesFor?.(path,settings)??fs.capabilities;
+          if(!caps?.atomicEntryRemoval || !fs.removeEntryConditional){
+            status=-1;result=encoder.encode("ZIP move requires atomic conditional source removal");return;
+          }
+          const parentPath=await fs.realpath(path.slice(0,path.lastIndexOf("/"))||"/",settings);
+          const canonical=(parentPath==="/"?"":parentPath)+path.slice(path.lastIndexOf("/"));
+          const parent=await fs.lstat(parentPath,settings),expected=await fs.lstat(canonical,settings);
+          if(parent.type!=="directory" || !Number.isSafeInteger(expected.revision) ||
+            [parent,expected].some(s=>(!s.identityScope || !["symbol","object"].includes(typeof s.identityScope)) ||
+              !Number.isSafeInteger(s.dev) || s.dev<0 || !Number.isSafeInteger(s.ino) || s.ino<0)){
+            status=-1;result=encoder.encode("ZIP move requires known source identity and revision");return;
+          }
+          const scope=s=>{
+            if(!removalScopes.has(s.identityScope))removalScopes.set(s.identityScope,removalScopes.size+1);
+            return removalScopes.get(s.identityScope);
+          };
+          const id=nextHandle++,p=statBytes(parent),e=statBytes(expected);
+          publications.set(id,{path:canonical,parent,expected});
+          result=new Uint8Array(12+p.length+e.length);const v=new DataView(result.buffer);
+          v.setUint32(0,id,true);v.setUint32(4,scope(parent),true);v.setUint32(8,scope(expected),true);
+          result.set(p,12);result.set(e,12+p.length);return;
+        }
+        if(op==="removeRetained"){
+          const {path:canonical,parent,expected}=publications.get(flags);
+          let entry=expected;
+          if(mode && Number.isSafeInteger(expected.revision+mode)){
+            const now=await fs.lstat(canonical,settings);
+            if(now.type===expected.type && now.dev===expected.dev && now.ino===expected.ino &&
+              now.identityScope===expected.identityScope && now.revision===expected.revision+mode)entry=now;
+          }
+          await fs.removeEntryConditional(canonical,{...settings,parent,expected:entry});return;
         }
         if(op==="removeExtraction"){
           const obs=publications.get(flags);

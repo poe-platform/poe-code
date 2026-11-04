@@ -5699,34 +5699,26 @@ fn zip_archive_comment(mut input: &[u8]) -> Option<Vec<u8>> {
     Some(comment)
 }
 
-struct ZipMove {
+struct ZipMove<'a> {
     path: String,
     source: String,
-    parent: crate::vfs::FileStat,
-    expected: crate::vfs::FileStat,
+    directory: bool,
+    receipt: crate::vfs::RemovalReceipt<'a>,
 }
 
 fn remove_zip_sources(fs: &dyn SafeBashFs, mut moves: Vec<ZipMove>, quiet: bool, output: &mut String) -> Result<(),String> {
-    use crate::vfs::VfsEntryKind::Directory;
-    moves.sort_by_cached_key(|m| (m.expected.kind == Directory,std::cmp::Reverse(m.path.bytes().filter(|&b| b == b'/').count())));
-    // Our successful unlinks advance the parent and every remaining alias exactly once.
-    // Other revisions must still fail the original conditional comparison.
+    moves.sort_by_cached_key(|m| (m.directory,std::cmp::Reverse(m.path.bytes().filter(|&b| b == b'/').count())));
+    // Only successful unlinks advance the source's parent and its remaining hard links.
     let mut advances = BTreeMap::<_,u64>::new();
-    for ZipMove {path,source,parent,mut expected} in moves {
-        let identity = expected.identity.clone().unwrap();
-        if let Some(delta) = advances.get(&identity)
-            && let Ok(current) = fs.lstat(&path)
-            && current.identity == expected.identity && current.kind == expected.kind
-            && current.revision == expected.revision.and_then(|rev| rev.checked_add(*delta)) {
-            expected = current;
-        }
-        match fs.remove_unchanged_entry(&path,&parent,&expected) {
+    for ZipMove {source,directory,receipt,..} in moves {
+        let advance=advances.get(&receipt.entry).copied().unwrap_or(0);
+        match (receipt.remove)(advance) {
             Ok(()) => {
-                *advances.entry(parent.identity.unwrap()).or_default() += 1;
-                *advances.entry(identity).or_default() += 1;
+                *advances.entry(receipt.parent).or_default() += 1;
+                *advances.entry(receipt.entry).or_default() += 1;
             }
             Err(e) if e.starts_with("Execution aborted:") => return Err(e),
-            Err(_) if !quiet && expected.kind != Directory => {
+            Err(_) if !quiet && !directory => {
                 output.push_str(&format!("\tzip warning: error deleting {}\n",zip_public_text(&source)));
                 if output.len() > fs.remaining_output_bytes() {
                     return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
@@ -6458,13 +6450,11 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             let prior = members.get(&e.name).and_then(|m|m.2);
             if freshen_mode && prior.is_none() { continue; }
             if let Some((parent,expected)) = receipt && moving_paths.insert(path.clone()) {
-                if !fs.supports_conditional_removal(&path) {
-                    return err_out("zip: ZIP move requires atomic conditional source removal\n",2);
-                }
-                if parent.identity.is_none() || expected.identity.is_none() || expected.revision.is_none() {
-                    return err_out("zip: ZIP move requires known source identity and revision\n",2);
-                }
-                moves.push(ZipMove {path:path.clone(),source:source.clone(),parent,expected});
+                let directory=expected.kind==crate::vfs::VfsEntryKind::Directory;
+                let receipt=match fs.retain_removal(&path,parent,expected) {
+                    Ok(r)=>r, Err(e)=>return err_out(&format!("zip: {e}\n"),2),
+                };
+                moves.push(ZipMove {path:path.clone(),source:source.clone(),directory,receipt});
             }
             if timed && prior.is_some_and(|mtime| e.mtime.floor() <= mtime.floor()) { continue; }
             let (index, selected, _) = members.entry(e.name.clone()).or_insert((entries.len(), None, None));
@@ -10774,8 +10764,8 @@ mod tests {
         fs.write_file("/file", b"before").unwrap();
         fs.symlink("file","/link").unwrap();
         let receipts = ["/dir/entry","/file","/link"].into_iter().map(|p| ZipMove {
-            path:p.into(), source:p[1..].into(), parent:fs.lstat(&crate::vfs::dirname_posix_path(p)).unwrap(),
-            expected:fs.lstat(p).unwrap(),
+            path:p.into(), source:p[1..].into(), directory:false,
+            receipt:fs.retain_removal(p,fs.lstat(&crate::vfs::dirname_posix_path(p)).unwrap(),fs.lstat(p).unwrap()).unwrap(),
         }).collect();
         fs.write_file("/file", b"edited").unwrap();
         fs.rename("/dir","/saved",false).unwrap();

@@ -6605,7 +6605,7 @@ test("zip -TT invokes the checker on a private readable archive before replacing
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
   for(const [sh,supplied] of [[new Shell({cwd:"/",fs:reference}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
-    const fs=supplied??sh.fs,run=script=>sh.exec(script,{fs}),move=!supplied || supplied===reference?"m":"";
+    const fs=supplied??sh.fs,run=script=>sh.exec(script,{fs});
     const calls=[];
     sh.register({name:"checkzip",async execute(ctx){
       const path=ctx.args.at(-1),data=await ctx.fs.readFile(path);
@@ -6617,7 +6617,7 @@ test("zip -TT invokes the checker on a private readable archive before replacing
       await fs.writeFile("/original",Uint8Array.of(8));await fs.writeFile("/src",Uint8Array.of(3));
       const seed=await run("zip -q work.zip original");assert.equal(seed.exitCode,0,seed.stderr);
       const old=await fs.readFile("/work.zip"),names=async()=>(await fs.readdir("/")).map(e=>e.name).sort(),before=await names();
-      const fail=await run("zip -qT"+move+" -TT 'checkzip fail' work.zip src");
+      const fail=await run("zip -qTm -TT 'checkzip fail' work.zip src");
       assert.deepEqual([fail.exitCode,fail.stdout,fail.stderr],[8,"\nzip error: Zip file invalid, could not spawn unzip, or wrong unzip (virtual test command failed; original files unmodified)\n",""]);
       assert.deepEqual(await fs.readFile("/work.zip"),old);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(3));
       const ok=await run(`zip -qT --unzip-command="checkzip 'a b' '' {}:{} {}" work.zip src`);
@@ -6646,7 +6646,7 @@ test("zip -T dispatches a replacement unzip and retains competing writes",async(
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
   for(const [sh,supplied] of [[new Shell({cwd:"/",fs:reference}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
-    const fs=supplied??sh.fs,run=script=>sh.exec(script,{fs}),move=!supplied || supplied===reference?"m":"";
+    const fs=supplied??sh.fs,run=script=>sh.exec(script,{fs});
     const competitor=Uint8Array.of(85);
     let target,staged;
     sh.register({name:"unzip",async execute(ctx){
@@ -6657,7 +6657,7 @@ test("zip -T dispatches a replacement unzip and retains competing writes",async(
     try{
       for(target of ["destination","stage"]){
         await fs.writeFile("/src",Uint8Array.of(4));
-        const r=await run("zip -qT"+move+" work.zip src");
+        const r=await run("zip -qTm work.zip src");
         assert.notEqual(r.exitCode,0,sh.constructor.name+" "+target+" "+staged);assert.ok(staged,sh.constructor.name+" "+r.stderr+" "+r.stdout);
         assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(4));
         if(target==="destination"){
@@ -6665,6 +6665,22 @@ test("zip -T dispatches a replacement unzip and retains competing writes",async(
           await fs.unlink("/work.zip");await assert.rejects(async()=>fs.readFile(staged));
         }else{await assert.rejects(async()=>fs.readFile("/work.zip"));assert.deepEqual(await fs.readFile(staged),competitor);}
       }
+    }finally{await sh.dispose();}
+  }
+});
+
+test("zip -m on a supplied filesystem removes owned aliases but preserves a changed source",async()=>{
+  const {Shell,archiveCommands,MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  for(const rust of [false,true]){
+    const fs=new MemoryFileSystem(),sh=rust?new RustWasmBash({cwd:"/"}):new Shell({fs,cwd:"/"}).use(archiveCommands());
+    try{
+      await fs.mkdir("/tree");await fs.writeFile("/tree/a",Uint8Array.of(4));await fs.link("/tree/a","/tree/b");
+      await fs.writeFile("/changed",Uint8Array.of(5));
+      sh.register({name:"edit",async execute(ctx){await ctx.fs.writeFile("/changed",Uint8Array.of(6));return {exitCode:0};}});
+      const r=await sh.exec("zip -rmT -TT edit work.zip tree changed",{fs});
+      assert.equal(r.exitCode,0,r.stderr);assert.match(r.stdout,/warning: error deleting changed/);
+      assert.deepEqual(await fs.readFile("/changed"),Uint8Array.of(6));await assert.rejects(fs.lstat("/tree"),{code:"ENOENT"});
+      for(const [name,c] of [["tree/a",4],["tree/b",4],["changed",5]])assert.deepEqual((await sh.exec("unzip -p work.zip "+name,{fs})).stdoutBytes,Uint8Array.of(c));
     }finally{await sh.dispose();}
   }
 });

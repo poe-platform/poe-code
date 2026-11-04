@@ -216,6 +216,12 @@ impl Drop for PublicationStamp {
     fn drop(&mut self) { if let Some(release)=self.release.take() {release();} }
 }
 
+pub struct RemovalReceipt<'a> {
+    pub parent: (u32, EntryIdentity),
+    pub entry: (u32, EntryIdentity),
+    pub remove: Box<dyn FnOnce(u64) -> Result<(), String> + 'a>,
+}
+
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
@@ -458,6 +464,19 @@ pub trait SafeBashFs: Send + Sync {
         self.replace_file_entry_with_mode(path, data, 0o600, version)
     }
     fn supports_conditional_removal(&self, _path: &str) -> bool { false }
+    fn retain_removal(&self, path: &str, parent: FileStat, mut expected: FileStat) -> Result<RemovalReceipt<'_>,String> {
+        if !self.supports_conditional_removal(path) { return Err("ZIP move requires atomic conditional source removal".into()); }
+        let Some((dir,entry))=parent.identity.clone().zip(expected.identity.clone()).filter(|_|expected.revision.is_some()) else {
+            return Err("ZIP move requires known source identity and revision".into());
+        };
+        let path=path.to_owned();
+        Ok(RemovalReceipt {parent:(0,dir),entry:(0,entry),remove:Box::new(move |advance|{
+            if advance!=0 && let Ok(current)=self.lstat(&path)
+                && current.identity==expected.identity && current.kind==expected.kind
+                && current.revision==expected.revision.and_then(|rev|rev.checked_add(advance)) { expected=current; }
+            self.remove_unchanged_entry(&path,&parent,&expected)
+        })})
+    }
     fn remove_unchanged_entry(&self, _path: &str, _parent: &FileStat, _expected: &FileStat) -> Result<(), String> {
         Err("ENOTSUP: atomic source removal unavailable (use -k or -c)".into())
     }

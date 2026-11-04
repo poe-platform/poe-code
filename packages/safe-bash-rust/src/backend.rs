@@ -319,6 +319,15 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     fn supports_conditional_removal(&self, path: &str) -> bool {
         self.inner.supports_conditional_removal(&host_text(path))
     }
+    fn retain_removal(&self,path:&str,parent:crate::vfs::FileStat,expected:crate::vfs::FileStat)->Result<crate::vfs::RemovalReceipt<'_>,String>{
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        let receipt=self.inner.retain_removal(&host_text(path),parent,expected).map_err(quote_host_text)?;
+        Ok(crate::vfs::RemovalReceipt {parent:receipt.parent,entry:receipt.entry,remove:Box::new(move |advance|{
+            self.budget.tick_fs_op()?;
+            (receipt.remove)(advance).map_err(quote_host_text)
+        })})
+    }
     fn remove_unchanged_entry(&self, path: &str, parent: &crate::vfs::FileStat, expected: &crate::vfs::FileStat) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

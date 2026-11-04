@@ -396,6 +396,25 @@ impl SafeBashFs for HostFs {
         );
         Ok(Some(std::rc::Rc::new(HostDescriptor { fs: *self, id })))
     }
+    fn retain_removal(&self,path:&str,parent:FileStat,expected:FileStat)->Result<crate::vfs::RemovalReceipt<'_>,String>{
+        self.mutable(path,false)?;
+        let data=self.request("retainRemoval",path,&[],0,0)?;
+        if data.len()!=12+2*128 { return Err("EIO: invalid removal receipt".into()); }
+        let stamp=self.own_stamp(data[..4].to_vec())?;
+        let observed_parent=Self::parse_stat(&data[12..140])?;
+        let observed=Self::parse_stat(&data[140..])?;
+        if parent.identity.is_none() || parent.identity!=observed_parent.identity || !expected.same_snapshot(&observed) {
+            return Err("EAGAIN: ZIP move source changed during selection".into());
+        }
+        let scope=|offset|u32::from_le_bytes(data[offset..offset+4].try_into().unwrap());
+        Ok(crate::vfs::RemovalReceipt { parent:(scope(4),parent.identity.unwrap()),entry:(scope(8),expected.identity.unwrap()),
+            remove:Box::new(move |advance|{
+                let receipt=stamp;
+                self.request("removeRetained","",&[],receipt.version as u32,advance.try_into().map_err(|_|"EOVERFLOW: removal count")?)?;
+                Ok(())
+            })
+        })
+    }
     fn validate_staged_file(&self, path: &str, bytes: &[u8], stamp: u64,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
         let file = self.request("stageForTest", path, bytes, stamp as u32, 0)?;

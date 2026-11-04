@@ -202,14 +202,12 @@ pub(super) fn cmd_mv(
         return err_out("mv: missing operand\n", 2);
     }
     let absolute = |path: &str| {
-        if path.starts_with('/') {
-            path.to_owned()
-        } else {
-            child_disp_path(cwd, path)
-        }
+        if path.is_empty() { return Err("mv: ENOENT: no such file or directory ''\n"); }
+        if path.contains('\0') { return Err("mv: EINVAL: paths must be strings without NUL bytes, resolve\n"); }
+        Ok(crate::vfs::path::absolute_operand(cwd,path))
     };
     let dst_raw = eff_operands.last().unwrap();
-    let dst_base = absolute(dst_raw);
+    let dst_base = match absolute(dst_raw) { Ok(p) => p, Err(e) => return err_out(e,1) };
     let inspect_dest = |follow| {
         let op = if follow { "stat" } else { "lstat" };
         fs.inspect_command_entry(&dst_base, follow, op)
@@ -268,14 +266,14 @@ pub(super) fn cmd_mv(
     let mut answers = PromptAnswers::new(stdin);
 
     let paths = |src_raw: &str| {
-        let src = absolute(src_raw);
+        let src = absolute(src_raw)?;
         let name = basename_posix_path(&src);
         let target = if dst_is_dir {
             child_disp_path(&dst_base, &name)
         } else {
             dst_base.clone()
         };
-        (src, name, target)
+        Ok::<_,&str>((src, name, target))
     };
     let plain = fs.link_free_memory();
     let sources = &eff_operands[..eff_operands.len() - 1];
@@ -328,7 +326,7 @@ pub(super) fn cmd_mv(
         admit_rename(fs, target)
     };
     for operand in sources {
-        let (src, _, target) = paths(operand);
+        let Ok((src, _, target)) = paths(operand) else { continue; };
         let check = || -> Result<(), String> {
             if !should_skip(&src, &target)? {
                 admit_pair(&src, &target)?;
@@ -347,7 +345,10 @@ pub(super) fn cmd_mv(
         }
     }
     for src_raw in sources {
-        let (src, name, target) = paths(src_raw);
+        let (src, name, target) = match paths(src_raw) {
+            Ok(paths) => paths,
+            Err(e) => { stderr.push_str(e); code = 1; continue; }
+        };
         let disp_target = if dst_is_dir {
             child_disp_path(dst_raw, &name)
         } else {

@@ -6236,6 +6236,25 @@ mod tests {
     }
 
     #[test]
+    fn mv_never_substitutes_the_working_directory_for_an_empty_operand() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/w/f", b"F").unwrap();
+        fs.write_file("/w/g", b"G").unwrap();
+        fs.mkdir_all("/target").unwrap();
+        for operands in [&["-T", "", "/out"][..], &["/w/f",""], &["-t","","/w/f"], &["-nT","","/target"]] {
+            let r = try_run_fs_command("mv",&args(operands),"","/w",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!((r.exit_code,r.stderr.as_str()),(1,"mv: ENOENT: no such file or directory ''\n"));
+            assert_eq!(fs.read_file("/w/f").unwrap(),b"F");
+            assert!(!fs.exists("/out"));
+        }
+        let r = try_run_fs_command("mv",&args(&["-v","g","","f","/target"]),"","/w",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!((r.exit_code,r.stderr.as_str()),(1,"mv: ENOENT: no such file or directory ''\n"));
+        assert_eq!(r.stdout,"renamed 'g' -> '/target/g'\nrenamed 'f' -> '/target/f'\n");
+        assert!(fs.is_dir("/w"));
+        assert_eq!(fs.read_file("/target/f").unwrap(),b"F");
+    }
+
+    #[test]
     fn mv_inspects_destination_components_before_interpreting_parent_paths() {
         let fs = MemoryVfs::new();
         fs.write_file("/src", b"keep").unwrap();

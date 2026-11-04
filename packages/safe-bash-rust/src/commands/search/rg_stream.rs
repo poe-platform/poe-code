@@ -31,6 +31,12 @@ impl<'a, 'b> Output<'a, 'b> {
         if self.flush() && !silent { self.writable = (self.write)(2, message, &mut self.result); }
     }
 
+    pub(super) fn abort(mut self, message: &str, silent: bool) -> BuiltinOutcome {
+        if !message.starts_with("rg: Execution aborted:") { self.report(message, silent); }
+        self.result.exit_code = 2;
+        self.result
+    }
+
     pub(super) fn put(&mut self, text: &str) -> bool {
         let len = stream_byte_len(text);
         self.total += len;
@@ -46,7 +52,7 @@ impl<'a, 'b> Output<'a, 'b> {
 }
 
 #[allow(clippy::too_many_arguments)]
-pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item = SearchInput>, multiple_files: bool,
+pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item = Result<SearchInput, String>>, multiple_files: bool,
     mut stdin: CommandInput, fs: &dyn SafeBashFs, cwd: &str, replacement: Option<&[RgReplacementPart]>,
     capture: bool, write: &mut CommandWriter) -> BuiltinOutcome {
     let mut out = Output::new(write);
@@ -61,6 +67,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item
     let (mut searches, mut matched_files, mut matched_lines, mut total_matches, mut total_searched, mut total_printed) = (0,0,0,0,0,0);
     let (mut found, mut failed) = (false, false);
     for input in inputs {
+        let input = match input { Ok(i) => i, Err(e) => return out.abort(&e, cfg.no_messages) };
         let (label, path, explicit) = match input {
             SearchInput::Stdin => ("<stdin>".to_owned(), None, true),
             SearchInput::File(label, path, explicit) => (label, Some(path), explicit),
@@ -189,7 +196,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item
                     .map_err(|e| super::super::coreutils::stream_file_error(e, "readFile", &search_path(cwd, &label)))
             } else {
                 (|| {
-                    let mut reader = super::super::coreutils::record_chunks(fs, path, search_path(cwd, &label))?;
+                    let mut reader = rg_record_chunks(fs, path, search_path(cwd, &label))?;
                     let mut chunk = Vec::new();
                     loop { reader(&mut chunk)?; if chunk.is_empty() || !consume(&chunk) { return Ok(()); } }
                 })()
@@ -198,6 +205,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item
         if read.is_ok() && !skipped && !pending.is_empty() { batch(&[Cow::Owned(pending)], false, binary_offset); }
         if !out.writable { break; }
         if let Err(e) = read {
+            if e.starts_with("Execution aborted:") { return out.abort(&format!("rg: {e}\n"), cfg.no_messages); }
             failed = true; out.report(&format!("rg: {e}\n"), cfg.no_messages);
             if !out.writable { break; }
             continue;

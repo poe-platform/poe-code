@@ -8977,6 +8977,32 @@ test("rg reports the ancestor that denied a path lookup", async () => {
   } finally { sh.dispose(); }
 });
 
+test("rg stops at a denied operand on mounted and overlay filesystems", async () => {
+  for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs"]) {
+    const sh = new RustWasmBash({profile,files:{"/locked/f":"a\nb\n","/ok":"a\nb\n"}});
+    try {
+      await sh.fs.chmod("/locked", 0o600);
+      const denied = "rg: EACCES: permission denied, "+(profile === "overlay-cow-fs" ? "overlay '/locked'" : "capabilitiesFor '/locked/f'")+"\n";
+      for (const [args,prior] of [["--stats a","/ok:a\n"],["-U --stats 'a\\nb'","/ok:a\n/ok:b\n"],["--files --stats","/ok\n"]]) {
+        const r = await sh.exec("rg "+args+" /ok /locked/f /ok >/out 2>&1");
+        assert.deepEqual([r.exitCode,sh.readText("/out")],[2,prior+denied],profile+" "+args);
+      }
+    } finally { sh.dispose(); }
+  }
+});
+
+test("rg charges metadata and read capability lookups on mounted and overlay filesystems", async () => {
+  for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs"]) {
+    const sh = new RustWasmBash({profile,files:{"/f":"a\nb\n"}});
+    try {
+      for (const [args,operations] of [["--files",2],["-c a",4],["-U 'a\\nb'",4]]) {
+        await assert.rejects(sh.exec("rg "+args+" /f", {limits:{maxFileSystemOperations:operations-1}}), {limit:"maxFileSystemOperations"});
+        assert.equal((await sh.exec("rg "+args+" /f", {limits:{maxFileSystemOperations:operations}})).exitCode,0);
+      }
+    } finally { sh.dispose(); }
+  }
+});
+
 test("rg admits explicit memory files once and charges the complete input in count mode", async () => {
   const sh = new RustWasmBash({files:{"/f":"a\nb\na\n","/out":"old"}});
   try {

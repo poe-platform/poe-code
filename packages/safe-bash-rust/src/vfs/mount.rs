@@ -51,6 +51,8 @@ impl MountVfs {
 }
 
 impl SafeBashFs for MountVfs {
+    fn has_path_capabilities(&self) -> bool { true }
+
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
         self.resolve(path, follow_final, WalkPurpose::Access)
     }

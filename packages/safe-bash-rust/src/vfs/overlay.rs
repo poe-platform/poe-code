@@ -349,6 +349,8 @@ impl OverlayVfs {
 }
 
 impl SafeBashFs for OverlayVfs {
+    fn has_path_capabilities(&self) -> bool { true }
+
     fn overlay_backend(&self) -> Option<&Self> { Some(self) }
     fn start_command_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
         match self.stat(entry) {

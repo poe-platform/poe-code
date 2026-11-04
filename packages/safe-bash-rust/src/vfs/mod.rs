@@ -219,6 +219,9 @@ pub trait SafeBashFs: Send + Sync {
         })
     }
 
+    /// Whether command capabilities depend on the operand’s filesystem location.
+    fn has_path_capabilities(&self) -> bool { false }
+
     /// Inspect a shell operand without collapsing unsearched ancestors or trailing slashes.
     fn inspect_command_entry(&self, path: &str, follow: bool, _syscall: &str) -> Result<(String, FileStat), String> {
         let entry = self.access_path(path, follow)?;

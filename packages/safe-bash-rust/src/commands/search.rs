@@ -3501,28 +3501,27 @@ fn cmd_rg(
     let files = RgFiles { list_files_only, follow, globs, types_include, types_exclude, show_hidden, respect_ignore,
         no_ignore_vcs, no_ignore_dot, custom_ignore_files, max_depth, max_filesize };
     if list_files_only {
-        let mut out = String::new();
-        let mut err = String::new();
+        let mut out = rg_stream::Output::new(write);
         let mut found = false;
         let mut failed = false;
         for input in files.inputs(&targets, cwd, fs, false) {
+            let input = match input { Ok(i) => i, Err(e) => return out.abort(&e, no_messages) };
             let label = match input {
                 SearchInput::Error(message) => {
                     failed = true;
-                    if !no_messages { err.push_str(&message); }
+                    out.report(&message, no_messages);
+                    if !out.writable { break; }
                     continue;
                 }
                 SearchInput::Stdin => "<stdin>".to_owned(),
                 SearchInput::File(label, _, _) => label,
             };
             found = true;
-            if quiet { break; }
-            out.push_str(&label);
-            out.push(if null_delim { '\0' } else { '\n' });
+            if quiet || !out.put(&format!("{label}{}", if null_delim { '\0' } else { '\n' })) { break; }
         }
-        if stats { out.push_str("\n0 matches\n0 matched lines\n0 files contained matches\n0 files searched\n0 bytes printed\n0 bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"); }
-        return BuiltinOutcome { stdout: out, stderr: err,
-            exit_code: if failed && !(found && quiet) { 2 } else { i32::from(!found) } };
+        if stats && out.writable { out.put(&rg_stats(0,0,0,0,0,0)); }
+        out.result.exit_code = if !out.writable || !out.flush() || failed && !(found && quiet) { 2 } else { i32::from(!found) };
+        return out.result;
     }
 
     if smart_case && !ignore_case {
@@ -3819,7 +3818,7 @@ enum SearchFiles<'a> { Grep(GrepFiles<'a>), Rg(RgFiles) }
 
 impl RgFiles {
     fn inputs<'a>(&'a self, targets: &[String], cwd: &'a str, fs: &'a dyn SafeBashFs, stdin: bool)
-        -> impl Iterator<Item = SearchInput> + 'a {
+        -> impl Iterator<Item = Result<SearchInput, String>> + 'a {
         use std::rc::Rc;
         enum Visit { Entry(String, usize, Rc<Vec<String>>), Leave(String) }
         let mut rules = Vec::new();
@@ -3844,15 +3843,23 @@ impl RgFiles {
                 Visit::Entry(label, depth, rules) => (label, depth, rules),
             };
             let explicit = depth == 0;
-            if explicit && label == "-" { return Some(SearchInput::Stdin); }
+            if explicit && label == "-" { return Some(Ok(SearchInput::Stdin)); }
             let path = search_path(cwd, &label);
+            if explicit && fs.has_path_capabilities()
+                && let Err(e) = fs.inspect_command_entry(&path, true, "capabilitiesFor")
+                && !(e.starts_with("ENOENT:") || e.starts_with("ENOTDIR:")) {
+                return Some(Err(format!("rg: {}\n", super::coreutils::stream_file_error(e, "capabilitiesFor", &path))));
+            }
             // The production walker can recognize a regular file from the direct
             // memory directory index. Only the subsequent read consumes an operation.
             if explicit && !self.list_files_only && !path.ends_with('/') && path != "/dev" && !path.starts_with("/dev/")
                 && fs.indexed_directory_entry(&path) == Some(true) && fs.lstat(&path).is_ok_and(|st| st.kind == VfsEntryKind::File) {
-                return Some(SearchInput::File(label, path, true));
+                return Some(Ok(SearchInput::File(label, path, true)));
             }
-            let report = |e, op| Some(SearchInput::Error(format!("rg: {}\n", super::coreutils::stream_file_error(e, op, &path))));
+            let report = |e, op| {
+                let message = format!("rg: {}\n", super::coreutils::stream_file_error(e, op, &path));
+                Some(if message.starts_with("rg: Execution aborted:") { Err(message) } else { Ok(SearchInput::Error(message)) })
+            };
             let (resolved, stat) = match fs.inspect_command_entry(&path, explicit || self.follow, "stat") {
                 Ok(entry) => entry,
                 Err(e) => return report(e, "stat"),
@@ -3861,7 +3868,7 @@ impl RgFiles {
             if !explicit {
                 if stat.kind == VfsEntryKind::Symlink { continue; }
                 if directory && let Some(ancestor) = ancestors.get(&resolved) {
-                    return Some(SearchInput::Error(format!("rg: File system loop found: {label} points to an ancestor {ancestor}\n")));
+                    return Some(Ok(SearchInput::Error(format!("rg: File system loop found: {label} points to an ancestor {ancestor}\n"))));
                 }
                 let base = label.rsplit('/').next().unwrap_or("");
                 match eval_cli_globs(&self.globs, base, label.strip_prefix("./").unwrap_or(&label)) {
@@ -3876,7 +3883,7 @@ impl RgFiles {
                 }
                 if !directory && self.max_filesize.is_some_and(|max| stat.size > max) { continue; }
             }
-            if !directory { return Some(SearchInput::File(label, resolved, explicit)); }
+            if !directory { return Some(Ok(SearchInput::File(label, resolved, explicit))); }
             if self.max_depth.is_some_and(|max| depth >= max) { continue; }
             let mut entries = match fs.read_dir(&resolved) {
                 Ok(entries) => entries,
@@ -3924,6 +3931,14 @@ fn search_fs_error(error: &str, op: &str, path: &str) -> String {
     if error.starts_with("ELOOP:") { return format!("ELOOP: too many symbolic links encountered '{path}'"); }
     let reason = error.split_once(", ").map_or(error, |(why, _)| why);
     format!("{reason}, {op} '{path}'")
+}
+
+fn rg_record_chunks<'a>(fs: &'a dyn SafeBashFs, entry: &str, path: String) -> Result<crate::vfs::ChunkReader<'a>, String> {
+    if fs.has_path_capabilities() {
+        super::coreutils::open_record_input(&path, "/", fs, false)
+    } else {
+        super::coreutils::record_chunks(fs, entry, path)
+    }
 }
 
 fn read_memory_search_file(fs: &dyn SafeBashFs, path: &str) -> Result<Vec<u8>, String> {
@@ -4122,8 +4137,8 @@ fn run_grep_engine(
     let mut had_error = false;
     let stdin_label = cfg.stdin_label.as_deref().unwrap_or(if is_rg { "<stdin>" } else { "(standard input)" });
     let multiple_files = targets.len() > 1;
-    let inputs: Box<dyn Iterator<Item = SearchInput> + '_> = match &cfg.files {
-        SearchFiles::Grep(files) => Box::new(files.inputs(&targets, cwd, fs)),
+    let inputs: Box<dyn Iterator<Item = Result<SearchInput, String>> + '_> = match &cfg.files {
+        SearchFiles::Grep(files) => Box::new(files.inputs(&targets, cwd, fs).map(Ok)),
         SearchFiles::Rg(files) => Box::new(files.inputs(&targets, cwd, fs, stdin.file.is_some() || !stdin.text.is_empty())),
     };
 
@@ -4152,6 +4167,7 @@ fn run_grep_engine(
         let mut read_failed = false;
         let mut chunk_ends = Vec::new();
         let output_start = stream.total;
+        let input = match input { Ok(i) => i, Err(e) => return stream.abort(&e, cfg.no_messages) };
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
                 let mut bytes = Vec::new();
@@ -4253,7 +4269,7 @@ fn run_grep_engine(
                     // Cross-line matching needs the complete operand. Use the same
                     // bounded streaming read as the record matcher.
                     let read = (|| {
-                        let mut reader = super::coreutils::record_chunks(fs, path, search_path(cwd, label))?;
+                        let mut reader = rg_record_chunks(fs, path, search_path(cwd, label))?;
                         let (mut bytes, mut chunk) = (Vec::new(), Vec::new());
                         loop {
                             reader(&mut chunk)?;
@@ -4277,7 +4293,6 @@ fn run_grep_engine(
             SearchInput::Error(message) => {
                 had_error = true;
                 if is_rg {
-                    if message.starts_with("rg: Execution aborted:") { stream.writable = false; break; }
                     stream.report(&message, cfg.no_messages);
                     if !stream.writable { break; }
                 } else if !cfg.no_messages { err.push_str(&message); }

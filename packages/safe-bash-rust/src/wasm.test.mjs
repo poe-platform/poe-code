@@ -752,6 +752,35 @@ test("checksum verification uses the last reporting option and validates records
   } finally { bash.dispose(); }
 });
 
+test("SHA3 combines the suffix and final padding bit in the last byte of a block", async () => {
+  const {createHash} = await import("node:crypto");
+  const bash = new RustWasmBash();
+  try {
+    for (const bits of [224,256,384,512]) {
+      const rate = 200 - bits / 4;
+      for (const length of [rate - 1, rate, 2 * rate - 1]) {
+        const data = Buffer.alloc(length, 0xa5);
+        const r = await bash.exec("cksum --raw -a sha3 -l " + bits, {stdin:data});
+        assert.deepEqual(Buffer.from(r.stdoutBytes), createHash("sha3-" + bits).update(data).digest());
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+test("checksum working memory stays bounded as the stdin stream grows", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash(), block = Buffer.alloc(16381, 0xb7);
+  const stdin = count => ({async *[Symbol.asyncIterator]() { for (let i = 0; i < count; i++) yield block; }});
+  try {
+    for (const algo of ["md5","sha1","sha224","sha256","sha384","sha512","sm3","sha3 -l 256","blake2b -l 256"]) {
+      const cmd = "cksum -a " + algo;
+      assert.equal((await bash.exec(cmd, {stdin:stdin(4)})).exitCode, 0);
+      const warm = bash.exports.memory.buffer.byteLength;
+      assert.equal((await bash.exec(cmd, {stdin:stdin(128)})).exitCode, 0);
+      assert.ok(bash.exports.memory.buffer.byteLength - warm < block.length * 16, algo);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
   const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];

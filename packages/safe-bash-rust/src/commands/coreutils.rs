@@ -38,6 +38,7 @@ pub(super) fn try_run_coreutil_with_input(
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
     if matches!(cmd, "less" | "more") { return Ok(Some(cmd_less_more(cmd, args, input, cwd, fs, write))); }
+    if cmd == "rev" { return Ok(Some(cmd_rev(args, input, cwd, env, fs, write))); }
     if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
     Ok(match coreutil(cmd, args, input, cwd, env, fs) {
         Ok(out) => out,
@@ -56,7 +57,6 @@ fn coreutil(
         "cut" => cmd_cut(args, input, cwd, env, fs),
         "nl" => cmd_nl(args, input, cwd, fs),
         "tac" => cmd_tac(args, input, cwd, fs),
-        "rev" => cmd_rev(args, input, cwd, env, fs),
         "paste" => cmd_paste(args, input, cwd, fs),
         "join" => cmd_join(args, input, cwd, fs),
         "comm" => cmd_comm(args, input, cwd, fs),
@@ -3530,6 +3530,7 @@ fn cmd_rev(
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
     let mut files = Vec::new();
     let mut opts_done = false;
@@ -3573,76 +3574,82 @@ fn cmd_rev(
         );
     }
 
-    let mut out_bytes = Vec::new();
-    let mut stderr = String::new();
-    let mut code = 0;
-    let mut reverse = |record: &[u8], terminated: bool| {
-        if utf8 {
-            let valid = std::str::from_utf8(record);
-            let text = valid.unwrap_or_else(|e| std::str::from_utf8(&record[..e.valid_up_to()]).unwrap());
-            for ch in text.chars().rev() {
-                out_bytes.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes());
-            }
-            if valid.is_err() {
-                if !text.is_empty() { out_bytes.push(b'\n'); }
-                return false;
-            }
-        } else {
-            out_bytes.extend(record.iter().rev());
-        }
-        if terminated { out_bytes.push(b'\n'); }
-        true
-    };
-
+    let mut out = ok_out("");
     let from_stdin = files.is_empty();
     if from_stdin { files.push("stdin".into()); }
-    for f in files {
+    for name in files {
         let mut pending = Vec::new();
-        let mut chunk = Vec::new();
-        if !from_stdin {
-            let path = absolute_operand(cwd, &f);
-            let bytes = fs.inspect_command_entry(&path, true, "stat")
-                .map_err(|e| stream_file_error(e, "stat", &path))
-                .and_then(|(entry, stat)| {
-                    if stat.kind == crate::vfs::VfsEntryKind::Directory {
-                        return Err(format!("EISDIR: illegal operation on a directory '{path}'"));
-                    }
-                    fs.read_file(&entry).map_err(|e| stream_file_error(e, "readStream", &path))
-                });
-            match bytes {
-                Ok(bytes) => chunk = bytes,
-                Err(error) => {
-                    stderr.push_str(&format!("rev: {error}\n"));
-                    code = 1;
-                    continue;
-                }
-            }
-        }
+        let mut output = Vec::new();
+        let mut writable = true;
         let mut valid = true;
-        loop {
-            if from_stdin && let Err(error) = stdin.next_stdin_chunk(&mut chunk) {
-                stderr.push_str(&format!("rev: {error}\n"));
-                code = 1;
-                break;
+        let mut consume = |chunk: &[u8], eof: bool| {
+            let mut reverse = |record: &[u8], terminated: bool| {
+                if utf8 {
+                    let text = match std::str::from_utf8(record) {
+                        Ok(text) => text,
+                        Err(e) => {
+                            valid = false;
+                            std::str::from_utf8(&record[..e.valid_up_to()]).unwrap()
+                        }
+                    };
+                    for ch in text.chars().rev() {
+                        output.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes());
+                    }
+                    if valid && terminated || !valid && !text.is_empty() { output.push(b'\n'); }
+                } else {
+                    output.extend(record.iter().rev());
+                    if terminated { output.push(b'\n'); }
+                }
+                let mut blocks = output.chunks_exact(16384);
+                for block in &mut blocks {
+                    writable = write(1, &crate::vfs::bytes_to_stream_string(block), &mut out);
+                    if !writable { return false; }
+                }
+                let rest = blocks.remainder().len();
+                if rest < output.len() {
+                    let start = output.len() - rest;
+                    output.copy_within(start.., 0);
+                    output.truncate(rest);
+                }
+                valid
+            };
+            if eof {
+                if !pending.is_empty() { reverse(&pending, false); }
+            } else {
+                visit_complete_records(chunk, |b| b == b'\n', &mut pending, |record| reverse(record, true));
             }
-            valid = visit_complete_records(&chunk, |b| b == b'\n', &mut pending, |record| reverse(record, true));
-            if !valid { break; }
-            if chunk.is_empty() || !from_stdin {
-                if !pending.is_empty() { valid = reverse(&pending, false); }
-                break;
+            if writable && !valid {
+                out.exit_code = 1;
+                writable = write(2, &format!("rev: {name}: Illegal byte sequence\n"), &mut out);
             }
-        }
-        if !valid {
-            stderr.push_str(&format!("rev: {f}: Illegal byte sequence\n"));
-            code = 1;
+            if writable && !output.is_empty() {
+                writable = write(1, &crate::vfs::bytes_to_stream_string(&output), &mut out);
+                output.clear();
+            }
+            writable && valid
+        };
+        let read = if from_stdin {
+            let mut more = true;
+            let read = stdin.read_stdin(|chunk| {
+                more = consume(chunk, false);
+                more
+            });
+            if more && read.is_ok() { consume(&[], true); }
+            read
+        } else {
+            record_input_path(&name, cwd, fs, true).and_then(|(path, entry)| {
+                let bytes = fs.read_file(&entry).map_err(|e| stream_file_error(e, "readStream", &path))?;
+                if bytes.chunks(65536).all(|chunk| consume(chunk, false)) { consume(&[], true); }
+                Ok(())
+            })
+        };
+        if !writable { break; }
+        if let Err(e) = read {
+            out.exit_code = 1;
+            if !write(2, &format!("rev: {e}\n"), &mut out) { break; }
         }
     }
-
-    BuiltinOutcome {
-        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        stderr,
-        exit_code: code,
-    }
+    out
 }
 
 fn parse_paste_delimiters(text: &str) -> Result<Vec<Vec<u8>>, String> {

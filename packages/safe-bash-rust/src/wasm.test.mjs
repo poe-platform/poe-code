@@ -543,6 +543,33 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("rev publishes completed lines before pulling stdin and stops on quota failure", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    const seen = [];
+    let closed = 0;
+    const stdin = { async *[Symbol.asyncIterator]() {
+      try {
+        for (const chunk of ["ab\nc", "d\n", "ef\n", "later"]) {
+          seen.push(bash.readText("/out"));
+          yield new TextEncoder().encode(chunk);
+        }
+      } finally { closed++; }
+    }};
+    await assert.rejects(bash.exec("rev >/out", { stdin, limits: { maxOutputBytes: 6 } }), { limit: "maxOutputBytes" });
+    assert.deepEqual([seen, closed, bash.readText("/out")], [["", "ba\n", "ba\ndc\n"], 1, "ba\ndc\n"]);
+  } finally { bash.dispose(); }
+});
+
+test("rev retains diagnostic order for invalid UTF-8 and continues to the next file", async () => {
+  const bash = new RustWasmBash({ files: { "/bad": Uint8Array.of(97,10,98,99,255,10), "/ok": "12" } });
+  try {
+    const r = await bash.exec("LC_ALL=UTF-8 rev /missing /bad /ok 2>&1");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1,
+      "rev: ENOENT: no such file or directory, stat '/missing'\nrev: /bad: Illegal byte sequence\na\ncb\n21", ""]);
+  } finally { bash.dispose(); }
+});
+
 test("rev requires a complete UTF-8 encoding name before reading input", async () => {
   const bash = new RustWasmBash();
   try {

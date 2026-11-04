@@ -1829,6 +1829,35 @@ test("a ZIP member named __ZIP_COMMENT__ remains distinct from the archive comme
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("ZIP archive comments preserve input bytes, line limits and prompt order",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    const run=async (sh,fs) => {
+      await fs.writeFile("/file",Uint8Array.of(1));
+      const rows=[];
+      for(const [command,stdin] of [
+        ["zip -z a.zip file","first\nsecond\n.\nignored"],
+        ["zip -z a.zip",Uint8Array.of(255,0,65,10,10,46)],
+        ["zip -qz a.zip","x".repeat(65535)],
+        ["zip -qz a.zip","x".repeat(65536)],
+        ["zip -qz a.zip","\n.\n"],
+      ]) {
+        const r=await sh.exec(command,{stdin});
+        const b=Buffer.from(await fs.readFile("/a.zip")), p=b.lastIndexOf(Buffer.from([80,75,5,6]));
+        const comment=b.subarray(p+22);
+        assert.equal(b.readUInt16LE(p+20),comment.length);
+        rows.push([r.exitCode,Buffer.from(r.stdoutBytes),r.stderr,comment.length,comment.subarray(0,32)]);
+      }
+      return rows;
+    };
+    const expected=await run(js,ref);
+    assert.deepEqual(expected.map(row=>row[0]),[0,0,0,2,0]);
+    assert.equal(expected[0][4].toString(),"first\r\nsecond");
+    assert.deepEqual(await run(rust,rust.fs),expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("ZIP update and freshen select newer members and leave a current archive untouched",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});

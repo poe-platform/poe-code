@@ -5665,6 +5665,24 @@ fn zip_public_text(value: &str) -> &str {
     else { value }
 }
 
+fn zip_archive_comment(mut input: &[u8]) -> Option<Vec<u8>> {
+    let mut comment = Vec::new();
+    while !input.is_empty() {
+        // Info-ZIP reads at most 65535 bytes, including the newline, per fgets call.
+        let window = &input[..input.len().min(65535)];
+        let n = window.iter().position(|&b| b == b'\n').map_or(window.len(),|i| i+1);
+        let line = window[..n].split(|&b| b == 0).next().unwrap();
+        input = &input[n..];
+        if line == b".\n" { break; }
+        let text = line.strip_suffix(b"\n").unwrap_or(line);
+        let separator = !comment.is_empty() || text.is_empty();
+        if comment.len()+text.len()+usize::from(separator)*2 > 65535 { return None; }
+        if separator { comment.extend_from_slice(b"\r\n"); }
+        comment.extend_from_slice(text);
+    }
+    Some(comment)
+}
+
 struct ZipMove {
     path: String,
     source: String,
@@ -6324,35 +6342,25 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if skipped_archive && unchanged && !read_comment {
         return BuiltinOutcome { stdout:format!("\nzip error: Nothing to do! ({})\n",zip_public_text(&arch_name)),stderr:String::new(),exit_code:12 };
     }
+    let mut prompt = String::new();
+    let mut comment_error = false;
     if read_comment {
-        let mut comment_lines: Vec<&str> = Vec::new();
-        for line in stdin.split('\n') {
-            if line == "." {
-                break;
+        let old = entries.iter().position(|e| e.typeflag == ZIP_COMMENT_TYPE).map(|i|entries.remove(i).content);
+        if !quiet {
+            if let Some(old) = old.filter(|c|!c.is_empty()) {
+                prompt.push_str("current zip file comment is:\n");
+                prompt.push_str(&crate::vfs::bytes_to_stream_string(&old));
+                prompt.push('\n');
             }
-            comment_lines.push(line.trim_end_matches('\r'));
+            prompt.push_str("enter new zip file comment (end with .):\n");
         }
-        while comment_lines.last() == Some(&"") {
-            comment_lines.pop();
+        match zip_archive_comment(&crate::vfs::stream_string_to_bytes(stdin)) {
+            Some(bytes) => entries.push(TarEntry {
+                name: "__ZIP_COMMENT__".into(), typeflag: ZIP_COMMENT_TYPE, mode: 0, mtime: 0.,
+                atime: None, uid: 0, gid: 0, linkname: String::new(), content: bytes,
+            }),
+            None => comment_error = true,
         }
-        let comment_str = if comment_lines.is_empty() {
-            String::new()
-        } else {
-            format!("{}\n", comment_lines.join("\n"))
-        };
-        let comment_bytes = comment_str.into_bytes();
-        entries.retain(|e| e.typeflag != ZIP_COMMENT_TYPE);
-        entries.push(TarEntry {
-            name: "__ZIP_COMMENT__".to_string(),
-            typeflag: ZIP_COMMENT_TYPE,
-            mode: 0o644,
-            mtime: 1700000000.,
-                atime: None,
-            uid: 0,
-            gid: 0,
-            linkname: String::new(),
-            content: comment_bytes,
-        });
     }
     use std::fmt::Write;
     let mut progress = String::new();
@@ -6378,11 +6386,23 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         });
     if verbose && !quiet { writeln!(progress,"total bytes={total}, compressed={compressed} -> {}% savings",savings(total,compressed)).unwrap(); }
+    if read_comment {
+        notices.push_str(&progress);
+        progress.clear();
+        notices.push_str(&prompt);
+        let written = crate::vfs::stream_byte_len(&notices);
+        if written > fs.remaining_output_bytes() || !comment_error && split_size == 0 && out_bytes.len() > fs.remaining_output_bytes()-written {
+            return err_out(&fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes),2);
+        }
+        if comment_error {
+            return BuiltinOutcome {stdout:notices,stderr:"zip: ZIP archive comment byte limit exceeded\n".into(),exit_code:2};
+        }
+    }
     let mut result = publish(out_bytes, &sources);
     result.stdout.insert_str(0,&notices);
     if result.exit_code == 0 {
         result.stdout.push_str(&progress);
-        if result.stdout.len() > fs.remaining_output_bytes() {
+        if crate::vfs::stream_byte_len(&result.stdout) > fs.remaining_output_bytes() {
             return err_out(&fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes),2);
         }
     }

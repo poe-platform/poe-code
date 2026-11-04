@@ -225,7 +225,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
 }
 
 // Resolve parents before interpreting "..", without following the entry being moved.
-pub(super) fn rename_entry(
+pub(super) fn resolve_mutation_entry(
     path: &str,
     max_hops: usize,
     parent_link: impl Fn(&str) -> Result<Option<String>, String>,
@@ -246,7 +246,6 @@ pub(super) fn rename_entry(
         }
         if part.len() > 255 { return Err("ENAMETOOLONG: name too long".into()); }
         match part.as_str() {
-            "." | ".." if parts.is_empty() => return Err("EINVAL: invalid argument".into()),
             "." => {}
             ".." => current = dirname_posix_path(&current),
             _ => {

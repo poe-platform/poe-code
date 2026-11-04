@@ -900,8 +900,18 @@ impl MemoryVfs {
         Ok(())
     }
 
+    fn terminal_dot(path: &str) -> bool {
+        matches!(path.trim_end_matches('/').rsplit('/').next(),Some("." | ".."))
+    }
+
     fn mutation_entry(state: &MemoryState, path: &str) -> Result<String, String> {
-        super::path::rename_entry(path, state.limits.max_symlink_hops, |parent| {
+        let entry = Self::resolve_mutation_entry(state,path)?;
+        if Self::terminal_dot(path) { return Err("EINVAL: invalid argument".into()); }
+        Ok(entry)
+    }
+
+    fn resolve_mutation_entry(state: &MemoryState, path: &str) -> Result<String, String> {
+        super::path::resolve_mutation_entry(path, state.limits.max_symlink_hops, |parent| {
             match state.nodes.get(parent) {
                 Some(MemoryNode::Directory { mode, .. }) if mode & 0o100 == 0 => Err("EACCES: permission denied".into()),
                 Some(MemoryNode::Directory { .. }) => Ok(None),
@@ -1361,7 +1371,7 @@ impl SafeBashFs for MemoryVfs {
             Self::check_device_rename_operand(&state,source)?;
             Self::check_device_rename_operand(&state,destination)?;
         }
-        let from = Self::mutation_entry(&state, source)?;
+        let from = Self::resolve_mutation_entry(&state, source)?;
         if state.devices == Devices::Mounted {
             return Err(if state.devices.entry(&from).is_some() { "ENOTSUP: operation not supported" }
                 else { "ENOENT: no such file or directory" }.into());
@@ -1372,15 +1382,19 @@ impl SafeBashFs for MemoryVfs {
         let node = state.nodes.get(&from).ok_or("ENOENT: no such file or directory")?;
         let is_dir = matches!(node, MemoryNode::Directory { .. });
         if source.ends_with('/') && !is_dir { return Err("ENOTDIR: not a directory".into()); }
-        let to = Self::mutation_entry(&state, destination)?;
+        let to = Self::resolve_mutation_entry(&state, destination)?;
+        let target = state.nodes.get(&to);
+        let target_dir = matches!(target, Some(MemoryNode::Directory { .. }));
+        if destination.ends_with('/') && target.is_some() && !target_dir {
+            return Err("ENOTDIR: not a directory".into());
+        }
+        // The backing store resolves both entries (including trailing slash
+        // requirements) before refusing dot names or the namespace root.
+        if Self::terminal_dot(source) || Self::terminal_dot(destination) { return Err("EINVAL: invalid argument".into()); }
         if from == "/" || to == "/" || state.devices.entry(&to).is_some() {
             return Err("EBUSY: resource busy or locked".into());
         }
-        let target = state.nodes.get(&to);
-        let target_dir = matches!(target, Some(MemoryNode::Directory { .. }));
-        if destination.ends_with('/') && (!is_dir || (target.is_some() && !target_dir)) {
-            return Err("ENOTDIR: not a directory".into());
-        }
+        if destination.ends_with('/') && !is_dir { return Err("ENOTDIR: not a directory".into()); }
         if no_replace && target.is_some() { return Err("EEXIST: file already exists".into()); }
         if from == to || target.is_some_and(|other| other.ino() == node.ino()) {
             return Ok(());
@@ -1795,6 +1809,24 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn rename_inspects_both_entries_before_rejecting_terminal_dots() {
+        let fs = MemoryVfs::new();
+        fs.set_devices(Devices::None);
+        fs.write_file("/d/file",b"keep").unwrap();
+        fs.mkdir_all("/locked").unwrap();
+        fs.chmod("/locked",0).unwrap();
+        fs.symlink("/d","/link").unwrap();
+        for (from,to,reason) in [
+            ("/.","/missing/child","ENOENT"), ("/d/.","/d/file/","ENOTDIR"),
+            ("/","/link/","ENOTDIR"), ("/d/.","/locked/..","EACCES"),
+            ("/d/.","/absent","EINVAL"), ("/d/file","/d/..","EINVAL"),
+        ] {
+            assert_eq!(fs.rename(from,to,false).unwrap_err().split(':').next(),Some(reason),"{from} -> {to}");
+        }
+        assert_eq!(fs.read_file("/d/file").unwrap(),b"keep");
+    }
 
     #[test]
     fn conditional_chmod_checks_receipts_and_modifies_the_symlink_inode() {

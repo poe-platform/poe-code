@@ -8584,6 +8584,25 @@ test("grep publishes literal matches before the next stdin pull and stops on wri
   } finally { bash.dispose(); }
 });
 
+test("grep charges one direct memory file read before checking its input bytes", async () => {
+  const sh = new RustWasmBash({files: {"/f":"abc\na\n"}});
+  try {
+    await sh.fs.symlink("/f", "/link");
+    for (const path of ["/f", "/link"]) {
+      await sh.fs.utimes("/f", 1, 1);
+      const cmd = "grep a " + path;
+      await assert.rejects(sh.exec(cmd, {limits: {maxFileSystemOperations:0, maxInputBytes:5}}), {limit:"maxFileSystemOperations"});
+      assert.equal((await sh.fs.stat("/f")).atimeMs, 1);
+      await assert.rejects(sh.exec(cmd, {limits: {maxFileSystemOperations:1, maxInputBytes:5}}), {limit:"maxInputBytes"});
+      assert.notEqual((await sh.fs.stat("/f")).atimeMs, 1);
+      const r = await sh.exec(cmd, {limits: {maxFileSystemOperations:1, maxInputBytes:6}});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [0,"abc\na\n",""]);
+    }
+    const missing = await sh.exec("grep a /missing", {limits: {maxFileSystemOperations:1}});
+    assert.deepEqual([missing.exitCode,missing.stderr], [2,"grep: ENOENT: no such file or directory, readFile '/missing'\n"]);
+  } finally { sh.dispose(); }
+});
+
 test("grep validates plain ASCII searches record by record and preserves earlier output", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});

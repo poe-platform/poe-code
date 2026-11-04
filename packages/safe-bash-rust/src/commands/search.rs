@@ -4098,7 +4098,13 @@ fn run_grep_engine(
                     if cfg.max_count == Some(0) && !label.is_empty() {
                         Vec::new()
                     } else {
-                        match read_search_file(fs, path, op) {
+                        let read = if fast && op == "readFile" && fs.supplies_single_chunk_input() {
+                            let limit = fs.max_input_bytes();
+                            fs.open_read_file(path, false).and_then(|file| file.read(0, limit.saturating_add(1)))
+                                .map_err(|e| search_fs_error(&e, op, path))
+                                .and_then(|bytes| if bytes.len() > limit { Err(fs.limit_error("maxInputBytes", limit)) } else { Ok(bytes) })
+                        } else { read_search_file(fs, path, op) };
+                        match read {
                             Ok(bytes) => bytes,
                             Err(e) => {
                                 had_error = true;

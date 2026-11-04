@@ -1580,6 +1580,35 @@ test("plugin command failures preserve public diagnostics and redact private err
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("plugin internal errors reach the selected hook without exposing private details", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const {PublicDiagnostic} = await import("safe-bash-contracts/diagnostics");
+  const run = async create => {
+    const events = [], reason = new Error("private detail");
+    const hook = which => e => { events.push([which, e === reason ? "original" : e.message]); throw new Error("hook failed"); };
+    const shellHook = hook("shell"), callHook = hook("call");
+    const sh = create(shellHook);
+    try {
+      sh.register({name:"failcmd", execute(ctx) {
+        events.push(ctx.onInternalError === shellHook ? "shell" : ctx.onInternalError === callHook ? "call" : "neither");
+        if (ctx.args[0] === "cause") throw new PublicDiagnostic("visible", {cause:reason});
+        if (ctx.args[0] === "public") throw new PublicDiagnostic("visible");
+        if (ctx.args[0] === "invalid") return {exitCode:-1};
+        throw reason;
+      }});
+      for (const arg of ["private","cause","public","invalid"]) for (const onInternalError of [undefined,callHook]) {
+        const result = await sh.exec("failcmd " + arg, {onInternalError});
+        events.push([result.exitCode,result.stderr]);
+      }
+      await assert.rejects(sh.exec("failcmd", {onInternalError:42}), {name:"TypeError",message:"onInternalError must be callable"});
+      return events;
+    } finally { await sh.dispose(); }
+  };
+  const expected = await run(onInternalError => new Shell({fs:new MemoryFileSystem(),onInternalError}));
+  assert.deepEqual(await run(onInternalError => new RustWasmBash({onInternalError})), expected);
+  assert.throws(() => new RustWasmBash({onInternalError:42}), {name:"TypeError",message:"onInternalError must be callable"});
+});
+
 test("plugin writes to a duplicated output descriptor retain their byte order", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, getCommandArguments} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

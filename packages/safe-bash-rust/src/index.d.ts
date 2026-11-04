@@ -9,6 +9,7 @@ export interface RustWasmFileInit {
 
 export interface RustWasmBashOptions {
   readonly hooks?: ShellSessionHooks;
+  readonly onInternalError?: ShellExecOptions["onInternalError"];
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly directories?: readonly string[];
@@ -116,7 +117,7 @@ export class WasmFileSystem {
   statfs(targetPath?: string): Promise<Record<string, number>>;
 }
 
-type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly fs: Pick<WasmFileSystem, "readFile" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir">};
+type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly fs: Pick<WasmFileSystem, "readFile" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir">};
 type StreamCommand = Omit<CommandDefinition, "execute"> & {
   readonly execute: (context: StreamCommandContext) => CommandResult | Promise<CommandResult>;
 };

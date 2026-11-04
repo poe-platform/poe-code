@@ -172,12 +172,13 @@ function streamHost(x) {
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
-function bindHostCommands(shell, definitions, createArguments, validatePath, diagnostics, fs, options) {
+function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, fs, options) {
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
   const slots = [], cleanupFailures = [], top = x.__stack_pointer.value;
   const signal = options.signal ?? new AbortController().signal;
+  const {onInternalError} = options;
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
     if (!signal.aborted && cleanupFailures.length) {
@@ -213,7 +214,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, dia
           const field = () => { const n = word(); offset += n; return packet.subarray(offset - n, offset); };
           const argc = word(), envc = word(), explicit = word(), cwd = decoder.decode(field());
           const argv0 = explicit ? decoder.decode(field()) : undefined;
-          const argumentValues = createArguments(Array.from({length:argc}, field));
+          const argumentValues = commandContract.createCommandArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
           const check = (open = active) => { signal.throwIfAborted(); if (!open) throw new Error("Command has finished"); };
           const admitPath = (path, settings) => {
@@ -261,17 +262,16 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, dia
             if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
             (cleanups ??= []).push(cleanup);
           };
-          const pending = definition.execute({registerCleanup, command:definition.name, argv0, args:argumentValues.args, argumentValues,
+          const pending = definition.execute({onInternalError, registerCleanup, command:definition.name, argv0, args:argumentValues.args, argumentValues,
             cwd, env, stdin, stdinIsDefault, fs:commandFs, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
           const result = await (options.signal ? untilAbort(pending, signal) : pending);
           if (code >= 0) {
-            if (!Number.isInteger(result?.exitCode) || result.exitCode < 0 || result.exitCode > 255) throw new RangeError("Invalid exit status");
-            code = result.exitCode;
+            code = commandContract.validateExitCode(result.exitCode);
           }
         } catch (error) {
           if (signal.aborted) code = -2;
           else if (code >= 0) {
-            const message = diagnostics.publicDiagnosticMessage(error);
+            const message = diagnostics.publicDiagnosticMessage(error, onInternalError);
             if (message === "internal error") code = -4;
             else { code = -6; streams.push([encoder.encode(message)]); }
           }
@@ -1109,8 +1109,9 @@ export class RustWasmBash extends WasmShell {
   #filesystems = new Map();
   #ready;
   #commands;
-  #createArguments;
+  #commandContract;
   #diagnostics;
+  #onInternalError;
   #validatePath;
   #plugins = [];
   #pluginLifetime;
@@ -1125,6 +1126,7 @@ export class RustWasmBash extends WasmShell {
     if (!this.#identityScopes.get(scope)?.deref()) this.#identityScopes.delete(scope);
   });
   constructor(options = {}) {
+    if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
       throw new TypeError("deviceView must be default or provided");
     }
@@ -1140,6 +1142,7 @@ export class RustWasmBash extends WasmShell {
     this._companionSyncPromise = null;
     this._history = [];
     this.hooks = options.hooks;
+    this.#onInternalError = options.onInternalError;
 
     const providedDevices = options.deviceView === "provided" || options.profile === "strict-budgets-mount-dev";
     if (providedDevices) {
@@ -1526,6 +1529,8 @@ export class RustWasmBash extends WasmShell {
 
   async exec(script, options = {}) {
     if (!this.sessionId) throw new Error("Shell is disposed");
+    if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
+    if (this.#onInternalError && options.onInternalError === undefined) options = {...options, onInternalError:this.#onInternalError};
     if (!this.#ready) return this.#exec(script, options);
     const signal = options.signal ? AbortSignal.any([options.signal, this.#pluginLifetime.signal]) : this.#pluginLifetime.signal;
     signal.throwIfAborted();
@@ -1611,7 +1616,7 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#createArguments, this.#validatePath, this.#diagnostics, this.fs, options);
+          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.fs, options);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
@@ -1725,11 +1730,11 @@ export class RustWasmBash extends WasmShell {
 
   #install(setup) {
     this.#pluginLifetime ??= new AbortController();
-    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path"), import("safe-bash-contracts/diagnostics")]).then(([{CommandRegistry, createCommandArguments}, {validatePath}, diagnostics]) => {
+    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path"), import("safe-bash-contracts/diagnostics")]).then(([commandContract, {validatePath}, diagnostics]) => {
       this.#validatePath = validatePath;
       this.#diagnostics = diagnostics;
-      this.#commands = new CommandRegistry();
-      this.#createArguments = createCommandArguments;
+      this.#commands = new commandContract.CommandRegistry();
+      this.#commandContract = commandContract;
     })).then(setup);
     this.#ready.catch(() => {});
   }

@@ -4044,6 +4044,12 @@ fn render_search_record(cfg: &GrepConfig, out: &mut String, line: &[u8], spans: 
     true
 }
 
+fn rg_stats(total_matches: usize, total_matched_lines: usize, searches_with_match: usize, searches: usize, bytes_printed: usize, bytes_searched: usize) -> String {
+    format!(
+        "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
+    )
+}
+
 fn run_grep_engine(
     rx: ZeroRegex,
     targets: Vec<String>,
@@ -4097,7 +4103,7 @@ fn run_grep_engine(
         let output_start = out.len();
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
-                if is_rg && targets.len() <= 1 && !multiline && !cfg.json_output && !cfg.stats
+                if is_rg && targets.len() <= 1 && !multiline && !cfg.json_output
                     && !(cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet) {
                     return rg_stream::lines(&cfg, &rx, stdin, replacement.as_deref(), capture, write);
                 }
@@ -4675,9 +4681,7 @@ fn run_grep_engine(
     } else if cfg.stats {
         let bytes_printed = if cfg.count_only || cfg.files_with_matches || cfg.files_without_match { 0 }
             else { stream_byte_len(&out) - failed_output_bytes };
-        out.push_str(&format!(
-            "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
-        ));
+        out.push_str(&rg_stats(total_matches, total_matched_lines, searches_with_match, searches, bytes_printed, bytes_searched));
     }
 
     let exit_code = if had_error && !(is_rg && cfg.quiet && any_match) {

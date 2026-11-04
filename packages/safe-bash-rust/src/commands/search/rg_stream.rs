@@ -7,6 +7,7 @@ const BUFFER: usize = 64 * 1024;
 struct Output<'a, 'b> {
     buffered: String,
     bytes: usize,
+    total: usize,
     write: &'a mut CommandWriter<'b>,
     result: BuiltinOutcome,
     writable: bool,
@@ -24,6 +25,7 @@ impl Output<'_, '_> {
 
     fn put(&mut self, text: &str) -> bool {
         let len = stream_byte_len(text);
+        self.total += len;
         if self.bytes + len > BUFFER && !self.flush() { return false; }
         if len >= BUFFER {
             self.writable = (self.write)(1, text, &mut self.result);
@@ -37,13 +39,14 @@ impl Output<'_, '_> {
 
 pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, replacement: Option<&[RgReplacementPart]>,
     capture: bool, write: &mut CommandWriter) -> BuiltinOutcome {
-    let mut out = Output { buffered: String::new(), bytes: 0, write, result: ok_out(""), writable: true };
+    let mut out = Output { buffered: String::new(), bytes: 0, total: 0, write, result: ok_out(""), writable: true };
     let term = if cfg.null_data { '\0' } else { '\n' };
     let detects_binary = !cfg.null_data && cfg.binary != RgBinary::Text;
     let delimiter = |&b: &u8| b == term as u8 || detects_binary && b == 0;
     let filename = cfg.with_filename && !cfg.no_filename;
     let limit = cfg.max_count.unwrap_or(usize::MAX);
     let (mut number, mut offset, mut count, mut after, mut last_printed) = (0, 0, 0, 0, 0);
+    let (mut matches, mut searched, mut last_selected_end) = (0, 0, 0);
     let mut before = VecDeque::<(Vec<u8>, Vec<(usize,usize)>, usize, usize)>::new();
     let mut pending = Vec::new();
     let mut binary_offset = None;
@@ -58,11 +61,14 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
             let subject = if cfg.crlf { row.strip_suffix(b"\r").unwrap_or(row) } else { row };
             let mut replacements = BTreeMap::new();
             let spans = match_spans(rx, subject, base, !terminated, true, capture, replacement, &mut replacements);
-            let selected = spans.is_empty() == cfg.invert || (cfg.invert && count >= limit && after != 0 && !terminated);
+            searched = offset;
+            let inverted_tail = cfg.invert && count >= limit && after != 0 && !terminated;
+            let selected = spans.is_empty() == cfg.invert || inverted_tail;
+            if selected { last_selected_end = offset; }
             if let Some(off) = binary {
                 if count > 0 || selected {
-                    count = count.max(1);
-                    if out.put(&format!("{}binary file matches (found \"\\0\" byte around offset {off})\n", if filename { "<stdin>: " } else { "" })) { out.flush(); }
+                    if count == 0 { count = 1; if !cfg.invert { matches += spans.len(); } }
+                    out.put(&format!("{}binary file matches (found \"\\0\" byte around offset {off})\n", if filename { "<stdin>: " } else { "" }));
                     return false;
                 }
                 if cfg.before_ctx != 0 { return false; }
@@ -84,19 +90,27 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
             };
             if selected && count < limit {
                 count += 1;
+                if !cfg.invert { matches += spans.len(); }
                 while let Some((prev, matches, n, off)) = before.pop_front() {
                     if !emit(&prev, &matches, n, off, false, 1) { return false; }
                 }
                 if !emit(row, &spans, number, base, true, usize::from(terminated)) { return false; }
                 after = cfg.after_ctx;
             } else if after > 0 {
+                if selected {
+                    count += 1;
+                    if !cfg.invert || inverted_tail { matches += spans.len(); }
+                }
                 if !emit(row, &spans, number, base, selected, usize::from(terminated)) { return false; }
                 after -= 1;
             } else if cfg.before_ctx > 0 {
                 if before.len() == cfg.before_ctx { before.pop_front(); }
                 before.push_back((row.to_vec(), spans, number, base));
             }
-            if count >= limit && after == 0 { out.flush(); return false; }
+            if count >= limit && after == 0 {
+                searched = last_selected_end.max(if cfg.invert || !terminated { base } else { 0 });
+                return false;
+            }
         }
         out.flush()
     };
@@ -124,9 +138,15 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
     });
     if read.is_ok() && !pending.is_empty() { batch(&[Cow::Owned(pending)], false, binary_offset); }
     if !out.writable { out.result.exit_code = 2; }
-    else if let Err(e) = read {
-        if !cfg.no_messages { (out.write)(2, &format!("rg: {e}\n"), &mut out.result); }
+    else if let Err(e) = &read {
+        if !cfg.no_messages { out.writable = (out.write)(2, &format!("rg: {e}\n"), &mut out.result); }
         out.result.exit_code = 2;
     } else { out.result.exit_code = i32::from(count == 0); }
+    if cfg.stats && out.writable {
+        let stats = if read.is_ok() { rg_stats(matches, count, usize::from(count != 0), 1, out.total, searched) }
+            else { rg_stats(0, 0, 0, 0, 0, 0) };
+        out.put(&stats);
+    }
+    if !out.flush() { out.result.exit_code = 2; }
     out.result
 }

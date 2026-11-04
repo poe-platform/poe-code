@@ -8785,6 +8785,24 @@ test("a filesystem quota rejects descriptor setup before truncation or the next 
   } finally { sh.dispose(); }
 });
 
+test("rg streams matches with statistics and discards the totals of a failed input", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    const seen = [];
+    const r = await sh.exec("rg --stats -n a >/out 2>&1", {stdin:{async *[Symbol.asyncIterator]() {
+      yield Buffer.from("aa\n");
+      seen.push(Buffer.from(await sh.fs.readFile("/out")).toString());
+      throw Error("input failed");
+    }}});
+    assert.deepEqual([r.exitCode, seen], [2, ["1:aa\n"]]);
+    assert.match(Buffer.from(await sh.fs.readFile("/out")).toString(),
+      /^1:aa\nrg: internal error\n\n0 matches\n0 matched lines\n0 files contained matches\n0 files searched\n0 bytes printed\n0 bytes searched\n/);
+    const limited = await sh.exec("rg --stats -m1 a >/out", {limits:{maxFileSystemOperations:5}, stdin:"a\na\n"});
+    assert.equal(limited.exitCode, 0);
+    assert.match(Buffer.from(await sh.fs.readFile("/out")).toString(), /^a\n\n1 matches\n1 matched lines\n/);
+  } finally { sh.dispose(); }
+});
+
 test("rg publishes line and context batches and closes stdin when output stops", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {

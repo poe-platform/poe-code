@@ -543,6 +543,45 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("shuf draws from host entropy in the same byte order as a named random source", async t => {
+  const bash = new RustWasmBash();
+  try {
+    const draws = [];
+    t.mock.method(globalThis.crypto, "getRandomValues", bytes => {
+      draws.push(bytes.length);
+      bytes.fill(2);
+      return bytes;
+    });
+    const r = await bash.exec("shuf -r -n4 -e A B");
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr,draws], [0,"A\nB\nA\nA\n","",[4096]]);
+  } finally { bash.dispose(); }
+});
+
+test("shuf samples a stream using the random source and charges only the selected input", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/rand":Uint8Array.of(23,157,48,17,81,202),"/empty":"","/i":"X\nX\n"}});
+  try {
+    for (const [args, limits, code, expected, err, pulls] of [
+      ["-n2 --random-source=/rand", {}, 0, "f\na\n", "", 6],
+      ["-n2 --random-source=/empty", {}, 1, "", "shuf: '/empty': end of file\n", 2],
+      ["-n1 --random-source=/missing", {}, 1, "", "shuf: /missing: No such file or directory\n", 0],
+      ["-n0 /missing", {}, 0, "", "", 0],
+      ["-e only", {maxInputBytes:0}, 0, "only\n", "", 0],
+      ["-n1", {maxInputBytes:3}, null, "", "", 2],
+      ["-n1 /i", {maxInputBytes:3}, null, "", "", 0],
+      ["-rn0 /missing", {maxInputBytes:3}, null, "", "", 2],
+    ]) {
+      let seen = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const x of ["a\n","b\n","c\n","d\n","e\n","f"]) { seen++; yield Buffer.from(x); }
+      }};
+      const run = bash.exec("shuf " + args, {stdin,limits});
+      if (code === null) await assert.rejects(run, {limit:"maxInputBytes"});
+      else { const r = await run; assert.deepEqual([r.exitCode,r.stdout,r.stderr], [code,expected,err], args); }
+      assert.equal(seen,pulls,args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("dd reads the opened input one record at a time when the output aliases it", async () => {
   for (const [args, expected, records] of [
     ["bs=1", "", "0+0"],

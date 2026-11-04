@@ -95,7 +95,7 @@ fn coreutil(
         "csplit" => cmd_csplit(args, input.buffered()?, cwd, fs),
         "pr" => cmd_pr(args, input.buffered()?, cwd, env, fs),
         "column" => cmd_column(args, input.buffered()?, cwd, fs),
-        "shuf" => cmd_shuf(args, input.buffered()?, cwd, env, fs),
+        "shuf" => cmd_shuf(args, input, cwd, env, fs),
         "split" => cmd_split(args, input.buffered()?, cwd, env, fs),
         "install" => cmd_install(args, cwd, env, fs),
         _ => return Ok(None),
@@ -16052,55 +16052,54 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 }
 
-struct ShufRng {
+fn shuf_file<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs) -> Result<(usize, crate::vfs::ChunkReader<'a>), String> {
+    let path = absolute_operand(cwd, name);
+    if path.is_empty() { return Err("ENOENT: empty path".into()); }
+    let (entry, st) = fs.inspect_command_entry(&path, true, "capabilitiesFor")?;
+    if st.kind == crate::vfs::VfsEntryKind::Directory { return Err("EISDIR: is a directory".into()); }
+    match fs.open_read_file(&entry, false) {
+        Ok(handle) => {
+            fs.command_descriptor_op()?;
+            let size = handle.stat()?.size;
+            let mut pos = 0;
+            Ok((size, Box::new(move |chunk| {
+                fs.command_descriptor_op()?;
+                *chunk = handle.read(pos, 65536)?;
+                pos += chunk.len() as u64;
+                Ok(())
+            })))
+        }
+        Err(e) if e.starts_with("ENOTSUP") => Ok((st.size, fs.open_chunks(&entry)?)),
+        Err(e) => Err(e),
+    }
+}
+
+struct ShufRng<'a> {
     value: u128,
     maximum: u128,
     bytes: Vec<u8>,
     offset: usize,
-    has_source: bool,
-    source_name: String,
-    fallback_state: u64,
+    source: Option<(String, crate::vfs::ChunkReader<'a>)>,
 }
 
-impl ShufRng {
-    fn new(random_bytes: Option<(String, Vec<u8>)>) -> Self {
-        match random_bytes {
-            Some((name, bytes)) => Self {
-                value: 0,
-                maximum: 0,
-                bytes,
-                offset: 0,
-                has_source: true,
-                source_name: name,
-                fallback_state: 0x9e37_79b9_7f4a_7c15,
-            },
-            None => Self {
-                value: 0,
-                maximum: 0,
-                bytes: Vec::new(),
-                offset: 0,
-                has_source: false,
-                source_name: String::new(),
-                fallback_state: 0x9e37_79b9_7f4a_7c15,
-            },
+impl ShufRng<'_> {
+    fn refill(&mut self) -> Result<(), String> {
+        if let Some((name, read)) = &mut self.source {
+            read(&mut self.bytes).map_err(|e| format!("shuf: {name}: read error: {}\n", install_reason(&e)))?;
+            if self.bytes.is_empty() { return Err(format!("shuf: {name}: end of file\n")); }
+        } else {
+            self.bytes.resize(4096, 0);
+            crate::vfs::memory::fill_random(&mut self.bytes).map_err(|e| format!("shuf: getrandom: {}\n", install_reason(&e)))?;
         }
+        self.offset = 0;
+        Ok(())
     }
 
     fn next_byte(&mut self) -> Result<u8, String> {
-        if self.has_source {
-            if self.offset >= self.bytes.len() {
-                return Err(format!("shuf: '{}': end of file\n", self.source_name));
-            }
-            let b = self.bytes[self.offset];
-            self.offset += 1;
-            Ok(b)
-        } else {
-            self.fallback_state = self
-                .fallback_state
-                .wrapping_mul(6364136223846793005)
-                .wrapping_add(1442695040888963407);
-            Ok((self.fallback_state >> 56) as u8)
-        }
+        if self.offset == self.bytes.len() { self.refill()?; }
+        let b = self.bytes[self.offset];
+        self.offset += 1;
+        Ok(b)
     }
 
     fn choose(&mut self, size: u64) -> Result<u64, String> {
@@ -16133,12 +16132,12 @@ impl ShufRng {
     }
 }
 
-fn cmd_shuf(
+fn cmd_shuf<'a>(
     args: &[String],
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
-    fs: &dyn SafeBashFs,
+    fs: &'a dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut echo_mode = false;
     let mut repeat = false;
@@ -16359,54 +16358,80 @@ fn cmd_shuf(
     }
 
     let sep = if zero_terminated { b'\0' } else { b'\n' };
+    let unicode = ["LC_ALL","LC_CTYPE","LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()))
+        .is_some_and(|s| { let s = s.to_ascii_lowercase(); s.ends_with("utf-8") || s.ends_with("utf8") });
+    let fail_open = |name: &str, e: &str| err_out(&format!("shuf: {}: {}\n", fmt_quote::filename(name, unicode), install_reason(e)), 1);
+    let mut rng = ShufRng { value: 0, maximum: 0, bytes: Vec::new(), offset: 0, source: None };
+    let open_random = |rng: &mut ShufRng<'a>, name: &str| -> Result<(), BuiltinOutcome> {
+        let (_, reader) = shuf_file(name, cwd, fs).map_err(|e| fail_open(name, &e))?;
+        rng.source = Some((fmt_quote::quote(name, false, unicode), reader));
+        Ok(())
+    };
     let mut records: Vec<Vec<u8>> = Vec::new();
-    let size: u64 = if let Some((_, len)) = range {
-        len
-    } else if echo_mode {
-        for op in &operands {
-            let mut rec = crate::vfs::stream_string_to_bytes(op);
-            rec.push(sep);
-            records.push(rec);
-        }
-        records.len() as u64
-    } else {
-        let raw = if operands.is_empty() || operands[0] == "-" {
-            crate::vfs::stream_string_to_bytes(stdin)
-        } else {
-            let p = resolve_posix_path(cwd, &operands[0]);
-            match fs.read_file(&p) {
-                Ok(b) => b,
-                Err(e) => return err_out(&format!("shuf: {}: {e}\n", operands[0]), 1),
-            }
-        };
-        if !raw.is_empty() {
-            let mut start = 0usize;
-            for (idx, &b) in raw.iter().enumerate() {
-                if b == sep {
-                    records.push(raw[start..=idx].to_vec());
-                    start = idx + 1;
-                }
-            }
-            if start < raw.len() {
-                let mut rec = raw[start..].to_vec();
+    let size = if let Some((_, len)) = range { len }
+    else if echo_mode {
+        if count != 0 {
+            for op in &operands {
+                let mut rec = stream_string_to_bytes(op);
                 rec.push(sep);
                 records.push(rec);
             }
         }
         records.len() as u64
+    } else if count == 0 && !repeat { 0 }
+    else {
+        let name = operands.first().filter(|s| count != 0 && s.as_str() != "-");
+        let mut file = match name {
+            Some(f) => match shuf_file(f, cwd, fs) {
+                Ok(input) => Some(input), Err(e) => return fail_open(f, &e),
+            },
+            None => None,
+        };
+        let reservoir = !repeat && count < u64::MAX && file.as_ref().is_none_or(|(size, _)| *size > 8 * 1024 * 1024);
+        if reservoir && let Some(rs) = &random_source && let Err(e) = open_random(&mut rng, rs) { return e; }
+        let mut seen = 0u64;
+        let mut pick = 0;
+        let mut error = None;
+        let mut accept = |line: &[u8]| {
+            if !reservoir || seen < count || pick < count {
+                let mut bytes = line.to_vec();
+                bytes.push(sep);
+                if reservoir && seen >= count { records[pick as usize] = bytes; }
+                else { records.push(bytes); }
+            }
+            seen += 1;
+            if reservoir && seen >= count {
+                match rng.choose(seen + 1) { Ok(v) => pick = v, Err(e) => { error = Some(e); return false; } }
+            }
+            true
+        };
+        let mut pending = Vec::new();
+        let mut available = fs.max_input_bytes();
+        let mut exceeded = false;
+        let mut consume = |chunk: &[u8]| {
+            let Some(left) = available.checked_sub(chunk.len()) else { exceeded = true; return false; };
+            available = left;
+            visit_complete_records(chunk, |b| b == sep, &mut pending, &mut accept)
+        };
+        let read = if let Some((_, next)) = &mut file {
+            let mut chunk = Vec::new();
+            loop {
+                if let Err(e) = next(&mut chunk) { break Err(e); }
+                if chunk.is_empty() || !consume(&chunk) { break Ok(()); }
+            }
+        } else { stdin.read_stdin(consume) };
+        if exceeded { return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1); }
+        if let Err(e) = read { return err_out(&format!("shuf: read error: {}\n", install_reason(&e)), 1); }
+        if !pending.is_empty() { accept(&pending); }
+        if let Some(e) = error { return err_out(&e, 1); }
+        records.len() as u64
     };
 
-    let rand_input = if let Some(ref rs) = random_source {
-        let p = resolve_posix_path(cwd, rs);
-        match fs.read_file(&p) {
-            Ok(b) => Some((rs.clone(), b)),
-            Err(e) => return err_out(&format!("shuf: '{rs}': {e}\n"), 1),
-        }
-    } else {
-        None
-    };
-
-    let mut rng = ShufRng::new(rand_input);
+    if repeat || count.min(size) != 0 {
+        if let Some(rs) = &random_source {
+            if rng.source.is_none() && let Err(e) = open_random(&mut rng, rs) { return e; }
+        } else if repeat && let Err(e) = rng.refill() { return err_out(&e, 1); }
+    }
     let ahead = if repeat || count < size { count } else { size };
 
     if repeat && count > 0 && size == 0 {

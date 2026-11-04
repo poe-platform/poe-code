@@ -1562,12 +1562,13 @@ test("plugin command failures preserve public diagnostics and redact private err
   const command = {name:"failcmd", async execute(ctx) {
     await ctx.stderr.write(Uint8Array.of(65));
     if (ctx.args[0] === "file") await ctx.fs.readFile("/missing");
+    if (ctx.args[0] === "empty") throw new PublicDiagnostic("");
     if (ctx.args[0] === "public") throw new PublicDiagnostic("malformed entry", {cause:new Error("private cause")});
     throw new Error("private message");
   }};
   try {
     for (const sh of [js,rust]) sh.register(command);
-    for (const kind of ["file","public","private"]) {
+    for (const kind of ["file","public","empty","private"]) {
       for (const redirect of ["","2>&1","2>/err"]) {
         const run = async (sh, store) => {
           const r = await sh.exec("true\nfailcmd " + kind + " " + redirect);
@@ -1880,7 +1881,7 @@ test("Wasm host commands inherit exported bindings and preserve bytes in native 
       v.setUint32(reply + index * 8, p, true);
       v.setUint32(reply + index * 8 + 4, out.length, true);
     }
-    return argv0 === "bad-status" ? 256 : 23;
+    return argv0 === "bad-status" ? 256 : argv0 === "internal" ? -4 : 23;
   }}}).exports.next);
   const name = bash._allocBytes(new TextEncoder().encode("probe"));
   try {
@@ -1908,6 +1909,8 @@ test("Wasm host commands inherit exported bindings and preserve bytes in native 
     bash.writeFile("/multibyte", Uint8Array.of(0xc3,0xa9,0xff));
     const split = await bash.exec("exec 3</multibyte; probe 1 <&3 >/dev/null; cat <&3");
     assert.deepEqual([...split.stdoutBytes], [0xa9,0xff]);
+    const internal = await bash.exec("true\nexec -a internal probe");
+    assert.deepEqual([...internal.stderrBytes], [254,...new TextEncoder().encode("shell: line 2: internal error\n")]);
     const invalidRead = await bash.exec("exec -a bad-count probe");
     assert.equal(invalidRead.exitCode, 1);
     assert.match(invalidRead.stderr, /consumed more than its stdin/);

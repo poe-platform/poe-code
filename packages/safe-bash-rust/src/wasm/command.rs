@@ -87,7 +87,8 @@ pub unsafe extern "C" fn safe_bash_register_command(
             -5 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxFileSystemOperations", ctx.budget.limits.max_filesystem_operations))),
             -2 => Some(CommandFailure::Abort("Execution aborted: cancelled".into())),
             -3 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxOutputBytes", ctx.budget.limits.max_output_bytes))),
-            -4 => Some(CommandFailure::Diagnostic(bytes_to_stream_string(&diagnostic))),
+            -4 => Some(CommandFailure::Diagnostic("internal error".into())),
+            -6 => Some(CommandFailure::Diagnostic(bytes_to_stream_string(&diagnostic))),
             0..=255 => None,
             _ => return Err("Exit status must be an integer between 0 and 255".into()),
         };

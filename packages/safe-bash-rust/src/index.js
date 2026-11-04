@@ -271,8 +271,9 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, dia
         } catch (error) {
           if (signal.aborted) code = -2;
           else if (code >= 0) {
-            code = -4;
-            streams.push([encoder.encode(diagnostics.publicDiagnosticMessage(error))]);
+            const message = diagnostics.publicDiagnosticMessage(error);
+            if (message === "internal error") code = -4;
+            else { code = -6; streams.push([encoder.encode(message)]); }
           }
         } finally {
           active = false;
@@ -281,7 +282,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, dia
               try { await cleanup(); } catch (error) { cleanupFailures.push(error); }
             }));
             // Stop the evaluator after routing accepted writes. The caller receives the original cleanup error.
-            if (cleanupFailures.length && (code >= 0 || code === -4)) code = -2;
+            if (cleanupFailures.length && (code >= 0 || code === -4 || code === -6)) code = -2;
             else if (code === -3 || code === -5) cleanupFailures.length = 0;
           }
           outputOpen = false;

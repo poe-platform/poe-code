@@ -843,6 +843,14 @@ impl MemoryVfs {
     /// The default device view protects reserved entries before delegating a mutation.
     /// A final link names the link itself; a trailing slash makes it an ancestor.
     fn check_device_mutation_operand(state: &MemoryState, path: &str) -> Result<(), String> {
+        let resolved = Self::device_operand(state, path, false)?;
+        if matches!(resolved.as_str(), "/" | "/dev" | "/dev/null") {
+            return Err(format!("EBUSY: resource busy or locked '{path}'"));
+        }
+        Ok(())
+    }
+
+    fn device_operand(state: &MemoryState, path: &str, follow_final: bool) -> Result<String, String> {
         if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
         let not_dir = || format!("ENOTDIR: not a directory '{path}'");
         // Device traversal rejects even a lexical /dev/null/.. before looking up links.
@@ -873,7 +881,7 @@ impl MemoryVfs {
             let parent_len = current.len();
             if current != "/" { current.push('/'); }
             current.push_str(part);
-            if pending.is_empty() || parent_len >= failed_at || matches!(current.as_str(),"/dev"|"/dev/null") { continue; }
+            if (!follow_final && pending.is_empty()) || parent_len >= failed_at || matches!(current.as_str(),"/dev"|"/dev/null") { continue; }
             let display = |p: &str| if absolute { p.to_owned() } else { p.trim_start_matches('/').to_owned() };
             if matches!(state.nodes.get(&current[..parent_len]),Some(MemoryNode::Directory {mode,..}) if mode & 0o100 == 0) {
                 return Err(format!("EACCES: permission denied, lstat '{}'",display(&current)));
@@ -888,6 +896,7 @@ impl MemoryVfs {
                     pending.extend(target.split('/').rev());
                 }
                 node => {
+                    if pending.is_empty() { continue; }
                     failed_at = current.len();
                     failure.get_or_insert_with(|| if node.is_some() { not_dir() } else {
                         format!("ENOENT: no such file or directory, lstat '{}'",display(&current))
@@ -895,10 +904,8 @@ impl MemoryVfs {
                 }
             }
         }
-        if matches!(current.as_str(),"/"|"/dev"|"/dev/null") {
-            return Err(failure.unwrap_or_else(|| format!("EBUSY: resource busy or locked '{path}'")));
-        }
-        Ok(())
+        if matches!(current.as_str(),"/"|"/dev"|"/dev/null") && let Some(error) = failure { return Err(error); }
+        Ok(current)
     }
 
     fn terminal_dot(path: &str) -> bool {
@@ -912,7 +919,8 @@ impl MemoryVfs {
     }
 
     fn resolve_mutation_entry(state: &MemoryState, path: &str) -> Result<String, String> {
-        super::path::resolve_mutation_entry(path, state.limits.max_symlink_hops, |parent| {
+        super::path::walk_memory_entry(path, state.limits.max_symlink_hops, false, |parent, last| {
+            if last { return Ok(None); }
             match state.nodes.get(parent) {
                 Some(MemoryNode::Directory { mode, .. }) if mode & 0o100 == 0 => Err("EACCES: permission denied".into()),
                 Some(MemoryNode::Directory { .. }) => Ok(None),
@@ -1471,6 +1479,50 @@ impl SafeBashFs for MemoryVfs {
         self.remove_entry(path, Some(publication))
     }
 
+    fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
+        let mut state = self.state.write().map_err(|_| ("EIO".into(), path.to_owned()))?;
+        if !matches!(state.devices, Devices::Null | Devices::None) {
+            drop(state);
+            return super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Direct, |p| (None, self, p.to_owned()));
+        }
+        if state.devices == Devices::Null {
+            let resolved = Self::device_operand(&state, path, true).map_err(|error| {
+                let failed = error.split_once(", lstat '").and_then(|(_, p)| p.strip_suffix('\'')).unwrap_or(path);
+                (error.split(':').next().unwrap().to_owned(), failed.to_owned())
+            })?;
+            if matches!(resolved.as_str(), "/" | "/dev" | "/dev/null") && !path.is_empty() {
+                return if recursive && resolved != "/dev/null" { Ok(()) } else { Err(("EEXIST".into(), path.to_owned())) };
+            }
+        }
+        if mode > 0o7777 { return Err(("EINVAL".into(), path.to_owned())); }
+        super::path::walk_memory_entry(path, state.limits.max_symlink_hops, recursive, |entry, last| {
+            match state.nodes.get(entry) {
+                Some(_) if last && !recursive => return Err("EEXIST".into()),
+                Some(MemoryNode::Symlink { target, .. }) => return Ok(Some(target.to_string())),
+                Some(MemoryNode::Directory { mode, .. }) => {
+                    if !last && mode & 0o100 == 0 { return Err("EACCES".into()); }
+                }
+                Some(_) => return Err(if last { "EEXIST" } else { "ENOTDIR" }.into()),
+                None if !recursive && !last => return Err("ENOENT".into()),
+                None => {
+                    let parent = crate::vfs::dirname_posix_path(entry);
+                    if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory {mode, ..}) if mode & 0o300 == 0o300) {
+                        return Err("EACCES".into());
+                    }
+                    if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC".into()); }
+                    state.create_directory(entry.to_owned(), 0o40000 | mode);
+                    self.bump_generation();
+                    if !last && mode & 0o100 == 0 { return Err("EACCES".into()); }
+                }
+            }
+            Ok(None)
+        }).map(|_| ()).map_err(|error| {
+            let code = error.split(':').next().unwrap();
+            let p = if !recursive && matches!(code, "ENOENT" | "ENOTDIR" | "ENAMETOOLONG" | "ELOOP") { path.trim_end_matches('/') } else { path };
+            (code.to_owned(), p.to_owned())
+        })
+    }
+
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         let path = Self::resolve_symlinks_locked(&state, path, false).map_err(|e| e.message)?;
@@ -1823,6 +1875,19 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn mkdir_below_virtual_dev_uses_the_backing_directory() {
+        let fs = MemoryVfs::new();
+        fs.set_devices(Devices::Null);
+        assert_eq!(fs.mkdir("/dev/../out", false, 0o755).unwrap_err().0, "ENOENT");
+        assert!(!fs.exists("/out"));
+        fs.mkdir("/dev/sub", true, 0o700).unwrap();
+        assert_eq!(fs.stat("/dev/sub").unwrap().mode & 0o777, 0o700);
+        assert_eq!(fs.stat("/dev").unwrap().mode & 0o777, 0o755);
+        fs.set_devices(Devices::None);
+        assert_eq!(fs.stat("/dev").unwrap().mode & 0o777, 0o700);
+    }
 
     #[test]
     fn rename_inspects_both_entries_before_rejecting_terminal_dots() {

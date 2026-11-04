@@ -224,26 +224,29 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     Ok(current)
 }
 
-// Resolve parents before interpreting "..", without following the entry being moved.
-pub(super) fn resolve_mutation_entry(
+// Inspect each physical entry before interpreting the next component.
+pub(super) fn walk_memory_entry(
     path: &str,
     max_hops: usize,
-    parent_link: impl Fn(&str) -> Result<Option<String>, String>,
+    trailing_directory: bool,
+    mut visit: impl FnMut(&str, bool) -> Result<Option<String>, String>,
 ) -> Result<String, String> {
     if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
     if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
     let mut parts: Vec<_> = path.split('/').filter(|s| !s.is_empty()).rev().map(str::to_owned).collect();
+    if trailing_directory && path.ends_with('/') { parts.insert(0, ".".into()); }
     let mut current = String::from("/");
     let mut hops = 0;
-    while let Some(part) = parts.pop() {
-        if let Some(target) = parent_link(&current)? {
+    loop {
+        if let Some(target) = visit(&current, parts.is_empty())? {
             hops += 1;
             if hops > max_hops { return Err("ELOOP: too many symbolic links encountered".into()); }
             current = if target.starts_with('/') { "/".into() } else { dirname_posix_path(&current) };
-            parts.push(part);
+            if trailing_directory && target.ends_with('/') { parts.push(".".into()); }
             parts.extend(target.split('/').filter(|s| !s.is_empty()).rev().map(str::to_owned));
             continue;
         }
+        let Some(part) = parts.pop() else { return Ok(current); };
         if part.len() > 255 { return Err("ENAMETOOLONG: name too long".into()); }
         match part.as_str() {
             "." => {}
@@ -254,7 +257,6 @@ pub(super) fn resolve_mutation_entry(
             }
         }
     }
-    Ok(current)
 }
 
 pub fn is_path_within(root: &str, candidate: &str) -> bool {

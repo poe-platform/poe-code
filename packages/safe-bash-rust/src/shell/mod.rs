@@ -198,7 +198,17 @@ impl Shell {
                 fs,
             )
         {
-            let res = native_res?;
+            let mut res = native_res?;
+            // A character may span writes. Decode the captured bytes together while
+            // preserving the shell representation for arbitrary bytes and private-use text.
+            for stream in [&mut res.stdout, &mut res.stderr] {
+                if let Ok(std::borrow::Cow::Owned(text)) = crate::vfs::stream_utf8(stream) {
+                    *stream = match crate::vfs::shell_text(&text) {
+                        std::borrow::Cow::Owned(quoted) => quoted,
+                        std::borrow::Cow::Borrowed(_) => text,
+                    };
+                }
+            }
             return Ok(ExecOutput {
                 stdout: res.stdout,
                 stderr: res.stderr,
@@ -253,6 +263,19 @@ mod tests {
         shell.set_limits(ShellLimits { max_input_bytes: 1, ..Default::default() });
         let err = shell.exec_with_stream("f", std::iter::once(Ok(vec![0, 1]))).unwrap_err();
         assert!(err.contains("maxInputBytes"), "{err}");
+    }
+
+    #[test]
+    fn captured_output_reassembles_text_split_across_writes_without_losing_raw_bytes() {
+        let (mut shell, _) = Shell::with_memory_fs();
+        for cmd in ["tee", "tee >&2"] {
+            for bytes in ["界".as_bytes(), "\u{e080}".as_bytes(), &[0xff, 0x80]] {
+                let pieces: Vec<_> = bytes.iter().map(|&b| Ok(vec![b])).collect();
+                let r = shell.exec_with_stream(cmd, pieces.into_iter()).unwrap();
+                let output = if cmd == "tee" { r.stdout } else { r.stderr };
+                assert_eq!(output, crate::vfs::bytes_to_stream_string(bytes));
+            }
+        }
     }
 
     #[test]

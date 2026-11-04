@@ -236,6 +236,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const argv0 = explicit ? decoder.decode(field()) : undefined;
           const argumentValues = commandContract.createCommandArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
+          const initialEnv = definition ? undefined : {...env};
           const check = (open = active) => { signal.throwIfAborted(); if (stopped) throw stopped; if (!open) throw new Error("Command has finished"); };
           const chargeFs = () => {
             if (fsOps >= remainingFsOps) { code = -5; throw new ShellLimitError("maxFileSystemOperations"); }
@@ -504,7 +505,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             if (settings.admittedHandles || settings.processSignals) throw new Error("Unsupported child process capabilities");
             const carrier = commandContract.getCommandArguments({args,argumentValues:settings.argumentValues});
             const entries = Object.entries(settings.env ?? {});
-            if (entries.some(([k,v])=>k.includes("\0") || k.includes("=") || typeof v !== "string" || v.includes("\0"))) throw new TypeError("Invalid invoke environment entry");
+            if (entries.some(([k,v])=>k.includes("\0") || k.includes("=") || typeof v !== "string" || v.includes("\0"))) throw new TypeError(proceed === undefined ? "Invalid invoke environment entry" : "Invalid middleware environment value");
             const inherited = settings.stdin === undefined || settings.stdin === stdin;
             children ??= new AbortController();
             const childSignal = AbortSignal.any([signal,children.signal,...(settings.signal ? [settings.signal] : [])]);
@@ -523,6 +524,13 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const field = v => { const b = typeof v === "string" ? encoder.encode(v) : v; word(b.length); parts.push(b); };
               if (proceed !== undefined) {
                 word(64); field(proceed);
+                word(settings.cwd !== cwd ? 1 : 0);
+                if (settings.cwd !== cwd) field(settings.cwd);
+                const changes = entries.filter(([key,value])=>!Object.hasOwn(initialEnv,key) || initialEnv[key]!==value);
+                const removed = Object.keys(initialEnv).filter(key=>!Object.hasOwn(settings.env,key));
+                word(changes.length); word(removed.length);
+                for (const [key,value] of changes) { field(key); field(value); }
+                for (const key of removed) field(key);
                 if (name !== command || carrier !== argumentValues) {
                   field(name);
                   for (let i=0;i<args.length;i++) field(carrier.bytes(i));
@@ -603,7 +611,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             : composeMiddleware(middleware,async forwarded=>{
               const {command:name,args,argumentValues:values,argv0} = forwarded;
               const handler = terminals.get(path.posix.basename(name));
-              const result = await invoke(name,args,{argumentValues:values},handler?.name ?? "");
+              const result = await invoke(name,args,{argumentValues:values,cwd:forwarded.cwd,env:forwarded.env},handler?.name ?? "");
               if (result !== undefined) return result;
               return handler.execute(handler.name===name ? forwarded : {...forwarded,command:handler.name,argv0:argv0 ?? name});
             })(context);

@@ -190,6 +190,8 @@ pub fn try_run_builtin(
     }
 }
 
+pub(super) const WATCH_STACK_CWD: &str = "\0watch_stack_cwd";
+
 fn builtin_cd(
     invoked: &str,
     args: &[String],
@@ -389,6 +391,9 @@ fn builtin_cd(
     env.insert("OLDPWD".to_string(), cwd.clone());
     env.remove("\0unexported__OLDPWD");
     *cwd = resolved.clone();
+    if matches!(invoked,"pushd" | "popd") && let Some(marker) = env.get_mut(WATCH_STACK_CWD) && marker.is_empty() {
+        marker.push('1');
+    }
     if env.get("\0attr__PWD").is_some_and(|a| a.contains('r')) {
         return BuiltinOutcome {
             stdout: String::new(),

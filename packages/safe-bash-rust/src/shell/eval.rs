@@ -48,7 +48,7 @@ pub(crate) trait CommandCaller {
     fn state(&self) -> &EvalState<'_>;
     fn take_flow(&mut self, status:i32, previous:Option<i32>) -> Option<MiddlewareFlow>;
     fn restore_flow(&mut self, flow:&MiddlewareFlow);
-    fn proceed(&mut self, stdin: &mut String, words:Option<&[String]>, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String>;
+    fn proceed(&mut self, stdin: &mut String, words:Option<&[String]>, cwd:Option<&str>, env:Vec<(String,Option<String>)>, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String>;
 }
 
 pub(crate) enum MiddlewareFlow {
@@ -86,11 +86,42 @@ impl CommandCaller for DispatchFrame<'_,'_> {
             MiddlewareFlow::Continue {levels,..} => self.state.continue_count=levels,
         }
     }
-    fn proceed(&mut self, stdin: &mut String, words:Option<&[String]>, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String> {
+    fn proceed(&mut self, stdin: &mut String, words:Option<&[String]>, cwd:Option<&str>, env:Vec<(String,Option<String>)>, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String> {
         let mode = self.next.take().ok_or("next() may only be called once per middleware")?;
         let state = &mut self.state;
         let prior = state.forwarded_output.take();
-        let result = state.dispatch_terminal(words.unwrap_or(self.words),stdin,mode,host_terminal);
+        let words = words.unwrap_or(self.words);
+        let indexed = |k:&str| state.env.contains_key(&format!("\0keys__{k}")) || state.env.contains_key(&format!("\0assoc__{k}"));
+        if env.iter().any(|(k,_)| indexed(k)) && env.iter().any(|(k,_)| state.env.get(&format!("\0attr__{k}")).is_some_and(|a| a.contains('r'))) {
+            return Err("indexed array: readonly environment collision".into());
+        }
+        let saved_cwd = cwd.map(|directory| (
+            std::mem::replace(state.cwd,resolve_posix_path("/",directory)),
+            state.env.insert(super::builtins::WATCH_STACK_CWD.into(),String::new()),
+        ));
+        let mut saved_env = Vec::new();
+        for (key,value) in env {
+            let indexed = state.env.contains_key(&format!("\0keys__{key}")) || state.env.contains_key(&format!("\0assoc__{key}"));
+            let binding = PrefixBinding::save(state.env,key.clone(),indexed);
+            for slot in binding.values.keys() { state.env.remove(slot); }
+            if let Some(v) = &value { state.env.insert(key,v.clone()); }
+            saved_env.push((binding,value));
+        }
+        let result = state.dispatch_terminal(words,stdin,mode,host_terminal);
+        for (mut binding,value) in saved_env {
+            if state.env.get(&binding.name) == value.as_ref()
+                && !state.env.contains_key(&format!("\0keys__{}",binding.name))
+                && !state.env.contains_key(&format!("\0assoc__{}",binding.name)) {
+                binding.exchange(state.env);
+            }
+        }
+        if let Some((saved,outer)) = saved_cwd {
+            let marker = state.env.remove(super::builtins::WATCH_STACK_CWD).unwrap_or_default();
+            if marker.is_empty() && words[0] != "cd" && Some(state.cwd.as_str()) == cwd { *state.cwd=saved; }
+            if let Some(prior) = outer {
+                state.env.insert(super::builtins::WATCH_STACK_CWD.into(),if marker.is_empty() {prior} else {marker});
+            }
+        }
         let credit = state.forwarded_output.replace(prior);
         result.and_then(|mut out| {
             for (fd,paid) in [(1,credit.0),(2,credit.1)] {
@@ -111,7 +142,13 @@ impl CommandCaller for DispatchFrame<'_,'_> {
 impl CommandContext<'_> {
     /// Continue the intercepted command in its original shell, at most once.
     pub fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome,String> {
-        let out = self.caller.proceed(stdin,None,None)?;
+        let current = self.caller.state();
+        let cwd = (self.cwd != current.cwd).then_some(self.cwd.as_str());
+        let env = self.env.iter().filter(|(k,v)| !k.contains('\0') && current.env.get(*k) != Some(v))
+            .map(|(k,v)|(k.clone(),Some(v.clone())))
+            .chain(current.env.keys().filter(|k| !k.contains('\0') && !self.env.contains_key(*k)).map(|k|(k.clone(),None)))
+            .collect();
+        let out = self.caller.proceed(stdin,None,cwd,env,None)?;
         self.forwarded = (stream_byte_len(&out.stdout),stream_byte_len(&out.stderr));
         self.unread_stdin = Some(stdin.clone());
         Ok(out)

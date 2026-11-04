@@ -1566,6 +1566,57 @@ test("middleware and the selected plugin handler share streams, cleanup and thro
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("middleware cwd and environment apply during lookup and restore around shell mutations",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(sh)=>{
+    sh.use((ctx,next)=>{
+      if(["inspect","change","tool","cd"].includes(ctx.command)){
+        ctx.cwd="/work";
+        if(ctx.command!=="cd"){
+          ctx.env={...ctx.env,MARK:"temporary",PATH:".",LOCAL:"visible"};
+          delete ctx.env.DROP;
+        }
+      }
+      return next();
+    });
+    const r=await sh.exec(`mkdir -p /work/next
+printf '#!/bin/bash\\npwd; echo "$MARK"\\n' > /work/tool; chmod +x /work/tool
+export MARK=old DROP=original; LOCAL=private
+inspect(){ pwd; echo "$MARK:\${DROP-absent}:$LOCAL"; }
+change(){ cd next; export MARK=committed; }
+inspect; tool; pwd; echo "$MARK:$DROP:$LOCAL"; change; pwd; echo "$MARK:$DROP:$LOCAL"`);
+    return [r.exitCode,r.stdout,r.stderr];
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const expected=await run(js);
+    assert.deepEqual(expected,[0,"/work\ntemporary:absent:visible\n/work\ntemporary\n/\nold:original:private\n/work/next\ncommitted:original:private\n",""]);
+    assert.deepEqual(await run(rust),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+test("middleware restores arrays, preserves replacements and honors directory stack changes",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(sh)=>{
+    const trace=[];
+    sh.use(async(ctx,next)=>{
+      if(ctx.command!=="f")return next();
+      ctx.cwd="/work";ctx.env.A="temp";
+      try{return await next();}catch(error){trace.push(error.message);return {exitCode:41};}
+    });
+    const results=[];
+    for(const script of [
+      'A=(one two); f(){ echo "${A[*]}"; }; f; echo "${A[*]}"',
+      'readonly -a A=(one two); f(){ echo unexpected; }; f; echo "${A[*]}"',
+      'A=(one two); f(){ A=(temp new); }; f; echo "${A[*]}"',
+      'mkdir -p /work; f(){ pushd /work; }; f; pwd'
+    ]){const r=await sh.exec(script);results.push([r.exitCode,r.stdout,r.stderr]);}
+    return [results,trace];
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{assert.deepEqual(await run(rust),await run(js));}finally{await js.dispose();await rust.dispose();}
+});
+
 test("middleware replacements reach builtins, functions and registered commands with literal byte arguments",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {createCommandArguments}=await import("safe-bash-contracts");

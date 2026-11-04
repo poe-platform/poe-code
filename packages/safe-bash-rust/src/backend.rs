@@ -977,6 +977,23 @@ mod tests {
     }
 
     #[test]
+    fn middleware_context_applies_to_functions_without_leaking_into_the_caller() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.mkdir_all("/work").unwrap();
+        shell.set_middleware(Arc::new(|ctx| {
+            if ctx.command == "probe" {
+                *ctx.cwd = "/work".into();
+                ctx.env.insert("LABEL".into(),"inner".into());
+            }
+            let mut input = ctx.stdin.to_owned();
+            let r = ctx.proceed(&mut input)?;
+            Ok(CommandResult {stdout:r.stdout,stderr:r.stderr,exit_code:r.exit_code,cwd:ctx.cwd.clone(),env:ctx.env.clone()})
+        }));
+        let r = shell.exec("export LABEL=outer; probe(){ pwd; echo $LABEL; }; probe; pwd; echo $LABEL").unwrap();
+        assert_eq!(r.stdout,"/work\ninner\n/\nouter\n");
+    }
+
+    #[test]
     fn registered_commands_override_executables_but_not_forced_shell_builtins() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for name in ["pwd", "true", "false", "kill", "echo", "cd", "cat"] {

@@ -59,6 +59,12 @@ fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middlew
     if flags == 64 {
         let input = middleware_input.as_mut().ok_or("No command to continue")?;
         let candidate = field(&mut request)?;
+        let cwd = (word(&mut request)? != 0).then(||field(&mut request)).transpose()?;
+        let changed = word(&mut request)? as usize;
+        let removed = word(&mut request)? as usize;
+        let mut env = Vec::new();
+        for _ in 0..changed { env.push((field(&mut request)?,Some(field(&mut request)?))); }
+        for _ in 0..removed { env.push((field(&mut request)?,None)); }
         let words = if request.is_empty() { None } else {
             let mut words = vec![field(&mut request)?];
             while !request.is_empty() { words.push(field(&mut request)?); }
@@ -67,7 +73,7 @@ fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middlew
         let name = words.as_ref().map_or(ctx.command, |w| w[0].as_str());
         let mut selected = false;
         let previous = matches!(name,"exit"|"return").then(||ctx.caller.state().last_exit);
-        let result = ctx.caller.proceed(input,words.as_deref(),Some((&candidate,&mut selected)))?;
+        let result = ctx.caller.proceed(input,words.as_deref(),cwd.as_deref(),env,Some((&candidate,&mut selected)))?;
         if selected { return Ok((256,Vec::new(),0)); }
         let (code,mut bytes,credit) = child_result(result,0);
         if let Some(flow) = ctx.caller.take_flow(code,previous) {

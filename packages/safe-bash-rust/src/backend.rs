@@ -27,7 +27,7 @@ pub struct CommandResult {
 }
 
 pub(crate) enum CommandFailure {
-    Internal,
+    Diagnostic(String),
     Abort(String),
 }
 

@@ -5109,9 +5109,10 @@ impl<'a> EvalState<'a> {
                     *self.env = res.env;
                     let mut out = BuiltinOutcome { stdout: res.stdout, stderr: res.stderr, exit_code: res.exit_code };
                     match failure {
-                        Some(CommandFailure::Internal) => {
+                        Some(CommandFailure::Diagnostic(message)) => {
                             out.stderr.push_str(&self.diag_prefix());
-                            out.stderr.push_str("internal error\n");
+                            out.stderr.push_str(&message);
+                            out.stderr.push('\n');
                         }
                         Some(CommandFailure::Abort(reason)) => {
                             // Redirect bytes accepted before the host stopped, while the budget is still open.

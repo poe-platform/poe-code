@@ -21,6 +21,7 @@ pub struct HostReply {
     max_path_components: usize,
     used_fs_ops: usize,
     creation_mode: u32,
+    diagnostic: HostBuffer,
 }
 
 impl HostBuffer {
@@ -73,6 +74,7 @@ pub unsafe extern "C" fn safe_bash_register_command(
         };
         let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
         let [stdout, stderr] = reply.streams.map(|buf| unsafe { buf.take() });
+        let diagnostic = unsafe { reply.diagnostic.take() };
         if reply.consumed != 0 {
             let unread = packet[input_start..].get(reply.consumed..).ok_or("Host command consumed more than its stdin")?;
             ctx.unread_stdin = Some(bytes_to_stream_string(unread));
@@ -82,7 +84,7 @@ pub unsafe extern "C" fn safe_bash_register_command(
             -5 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxFileSystemOperations", ctx.budget.limits.max_filesystem_operations))),
             -2 => Some(CommandFailure::Abort("Execution aborted: cancelled".into())),
             -3 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxOutputBytes", ctx.budget.limits.max_output_bytes))),
-            -4 => Some(CommandFailure::Internal),
+            -4 => Some(CommandFailure::Diagnostic(bytes_to_stream_string(&diagnostic))),
             0..=255 => None,
             _ => return Err("Exit status must be an integer between 0 and 255".into()),
         };

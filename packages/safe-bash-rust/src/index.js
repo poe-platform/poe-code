@@ -263,9 +263,13 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
             if (!Number.isInteger(result?.exitCode) || result.exitCode < 0 || result.exitCode > 255) throw new RangeError("Invalid exit status");
             code = result.exitCode;
           }
-        } catch {
+        } catch (error) {
           if (signal.aborted) code = -2;
-          else if (code >= 0) code = -4;
+          else if (code >= 0) {
+            code = -4;
+            const {publicDiagnosticMessage} = await import("safe-bash-contracts/diagnostics");
+            streams.push([encoder.encode(publicDiagnosticMessage(error))]);
+          }
         } finally {
           active = false;
           if (cleanups) {
@@ -290,7 +294,8 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
           let offset = 0;
           for (const chunk of chunks) { dest.set(chunk,offset); offset += chunk.length; }
           const v = new DataView(x.memory.buffer);
-          v.setUint32(reply + i * 8,p,true); v.setUint32(reply + i * 8 + 4,len,true);
+          const entry = reply + (i === 2 ? 44 : i * 8);
+          v.setUint32(entry,p,true); v.setUint32(entry + 4,len,true);
         }
         const view = new DataView(x.memory.buffer);
         view.setUint32(reply + 16,consumed,true);

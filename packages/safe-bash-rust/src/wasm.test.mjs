@@ -1498,6 +1498,30 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("plugin command failures preserve public diagnostics and redact private errors", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const {PublicDiagnostic} = await import("safe-bash-contracts/diagnostics");
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  const command = {name:"failcmd", async execute(ctx) {
+    await ctx.stderr.write(Uint8Array.of(65));
+    if (ctx.args[0] === "file") await ctx.fs.readFile("/missing");
+    if (ctx.args[0] === "public") throw new PublicDiagnostic("malformed entry", {cause:new Error("private cause")});
+    throw new Error("private message");
+  }};
+  try {
+    for (const sh of [js,rust]) sh.register(command);
+    for (const kind of ["file","public","private"]) {
+      for (const redirect of ["","2>&1","2>/err"]) {
+        const run = async (sh, store) => {
+          const r = await sh.exec("true\nfailcmd " + kind + " " + redirect);
+          return [r.exitCode,r.stdout,r.stderr,redirect === "2>/err" ? await store.readFile("/err") : null];
+        };
+        assert.deepEqual(await run(rust, rust.fs), await run(js, fs), kind + redirect);
+      }
+    }
+  } finally { await js.dispose(); await rust.dispose(); }
+});
+
 test("plugin writes to a duplicated output descriptor retain their byte order", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, getCommandArguments} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

@@ -6528,6 +6528,21 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip matches full member names and credits the first matching include",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await fs.mkdir("/dir");await fs.writeFile("/dir/Ä.txt",Uint8Array.of(7));
+    const seed=await js.exec("zip -q seed.zip dir/Ä.txt");assert.equal(seed.exitCode,0,seed.stderr);
+    await rust.fs.writeFile("/seed.zip",await fs.readFile("/seed.zip"));
+    for(const args of ["-Z -1 seed.zip -x Ä.txt","-Z -1 -C seed.zip -x 'DIR/ä.*'",
+      "-Z -1 seed.zip '*' 'dir/*'","-Z -1 -C seed.zip 'dir/ä.*'","-Z -1 seed.zip 'dir/@(Ä).txt'"]){
+      const command="unzip "+args,ref=await js.exec(command),actual=await rust.exec(command);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[ref.exitCode,ref.stdout,ref.stderr],command);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("unzip rejects absolute symlink target chains even inside the extraction root",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

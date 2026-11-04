@@ -6787,28 +6787,20 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         return BuiltinOutcome {stdout:out,stderr:format!("warning [{}]:  zipfile is empty\n",unzip_filtered(&arch)),exit_code:1};
     }
     let mut matched_patterns = vec![false; members.len()];
-    let mut check_member = |entry_name: &str| -> bool {
-        if members.is_empty() {
-            return true;
+    let fold = |name:&String| if case_insensitive { name.to_lowercase() } else { name.clone() };
+    let includes:Vec<_>=members.iter().map(fold).collect();
+    let excludes:Vec<_>=excludes.iter().map(fold).collect();
+    let selected:Vec<_>=entries.iter().filter(|entry| {
+        if includes.is_empty() && excludes.is_empty() {return true;}
+        let folded;
+        let name=if case_insensitive {folded=entry.name.to_lowercase();&folded} else {&entry.name};
+        let matches=|pattern:&String| crate::shell::expand::glob_match_full(pattern,name,false,false);
+        if !includes.is_empty() {
+            let Some(first)=includes.iter().position(matches) else {return false;};
+            matched_patterns[first]=true;
         }
-        let mut any = false;
-        for (idx, m) in members.iter().enumerate() {
-            let ok = if case_insensitive {
-                let ml = m.to_ascii_lowercase();
-                let nl = entry_name.to_ascii_lowercase();
-                ml == nl || crate::shell::expand::glob_match(&ml, &nl)
-            } else {
-                m == entry_name || crate::shell::expand::glob_match(m, entry_name)
-            };
-            if ok {
-                matched_patterns[idx] = true;
-                any = true;
-            }
-        }
-        any
-    };
-
-    let selected: Vec<_> = entries.iter().filter(|e| check_member(&e.name) && !tar_matches_exclude(&e.name,&excludes)).collect();
+        !excludes.iter().any(matches)
+    }).collect();
     let mut unmatched = String::new();
     for (pat,matched) in members.iter().zip(matched_patterns) {
         if !matched { unmatched.push_str(&format!("caution: filename not matched:  {}\n",unzip_filtered(pat))); }

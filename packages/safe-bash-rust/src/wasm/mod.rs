@@ -10,7 +10,14 @@ use std::sync::{Arc, Mutex, OnceLock};
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Profile { Memory, Overlay, Devices }
 
+struct PendingChmod {
+    receipts: Vec<crate::vfs::OverlayChmodReceipt>,
+    mode: u32,
+    file: Option<crate::vfs::memory::StagedFile>,
+}
+
 struct WasmSession {
+    pending_chmod: BTreeMap<usize, PendingChmod>,
     shell: Shell,
     memory_vfs: MemoryVfs,
     descriptors: BTreeMap<u32, descriptor::Descriptor>,
@@ -177,6 +184,7 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
         memory_vfs: vfs,
         descriptors: BTreeMap::new(),
         next_descriptor: 1,
+        pending_chmod: BTreeMap::new(),
         profile: Profile::Memory,
         last_output_buf: Vec::new(),
     })
@@ -191,6 +199,7 @@ pub extern "C" fn safe_bash_fork_session(parent_id: u32) -> u32 {
         memory_vfs: parent.memory_vfs.clone(),
         descriptors: BTreeMap::new(),
         next_descriptor: 1,
+        pending_chmod: BTreeMap::new(),
         profile: parent.profile,
         last_output_buf: Vec::new(),
     };
@@ -716,8 +725,19 @@ pub unsafe extern "C" fn safe_bash_overlay_chmod(
     let Ok(mut map) = sessions().lock() else { return -1 };
     let Some(sess) = map.get_mut(&id) else { return -1 };
     let res = (|| {
+        let key = ptr as usize;
+        // The loader keeps its receipt allocation live across all three guard calls.
+        // Nested chmod calls have their own allocation and cannot overwrite the stage.
+        if phase == 4 { sess.pending_chmod.remove(&key); return Ok(()); }
         let fs = sess.shell.fs.overlay_backend().ok_or("ENOTSUP: not an overlay")?;
         if mode.fract()!=0. || !(0.0..=4095.0).contains(&mode) {return Err("EINVAL: invalid mode".into());}
+        if phase == 3 {
+            let stage = sess.pending_chmod.remove(&key).ok_or("EINVAL: missing chmod stage")?;
+            if stage.mode != mode as u32 || stage.receipts.last().is_none_or(|r| r.path != path) {
+                return Err("EINVAL: wrong chmod stage".into());
+            }
+            return fs.finish_observed_chmod(path,stage.mode,&stage.receipts,stage.file);
+        }
         let dir=crate::vfs::dirname_posix_path(path);
         let paths=std::iter::once("/").chain(path.match_indices('/').skip(1).map(|(i,_)|&path[..i])).chain([dir.as_str(),path]);
         if paths.clone().count()*48 != len {return Err("EINVAL: invalid ancestry".into());}
@@ -727,7 +747,11 @@ pub unsafe extern "C" fn safe_bash_overlay_chmod(
         match phase {
             0 => fs.chmod_observed(path,mode as u32,&receipts,||Ok(())),
             1 => fs.check_observed_chmod(path,&receipts).map(|_|()),
-            2 | 3 => fs.apply_observed_chmod(path,mode as u32,&receipts,phase==2),
+            2 => {
+                let file = fs.stage_observed_chmod(path,mode as u32,&receipts)?;
+                sess.pending_chmod.insert(key,PendingChmod { receipts, mode: mode as u32, file });
+                Ok(())
+            }
             _ => Err("EINVAL: invalid chmod phase".into())
         }
     })();

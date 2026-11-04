@@ -1070,8 +1070,8 @@ export class RustWasmBash extends WasmShell {
     try {
       const receipt = this._allocBytes(new Uint8Array(packed.buffer));
       try {
+        const op = this.#overlay ? this.exports.safe_bash_overlay_chmod : this.exports.safe_bash_chmod_conditional;
         const apply = phase => {
-          const op = this.#overlay ? this.exports.safe_bash_overlay_chmod : this.exports.safe_bash_chmod_conditional;
           const rc = op(this.sessionId, p.ptr, p.len, mode === undefined ? 0 : typeof mode === "number" ? mode : NaN, receipt.ptr, receipt.len, phase);
           if (rc === -1) throw new Error("Wasm session unavailable");
           if (rc < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), -rc)));
@@ -1081,13 +1081,17 @@ export class RustWasmBash extends WasmShell {
           apply(0); return;
         }
         if (this.#overlay) {
-          for (const phase of [1,2,3]) {
-            const result = guard();
-            if (result !== true) { void Promise.resolve(result).catch(() => {}); throw fsOperationError("ENOTSUP",undefined,undefined); }
-            signal?.throwIfAborted();
-            apply(phase);
-            if (differentType) throw fsOperationError("EAGAIN",undefined,filePath);
-          }
+          let staged = false;
+          try {
+            for (const phase of [1,2,3]) {
+              const result = guard();
+              if (result !== true) { void Promise.resolve(result).catch(() => {}); throw fsOperationError("ENOTSUP",undefined,undefined); }
+              signal?.throwIfAborted();
+              apply(phase);
+              staged = phase === 2;
+              if (differentType) throw fsOperationError("EAGAIN",undefined,filePath);
+            }
+          } finally { if (staged && this.sessionId) apply(4); }
           return;
         }
         apply(1);

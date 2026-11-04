@@ -3497,6 +3497,25 @@ test("overlay guarded chmod preserves directory receipts and rejects unsafe repl
   } finally { bash.dispose(); }
 });
 
+test("a refused overlay chmod releases its staged copy and preserves a nested chmod", async () => {
+  const bash = new RustWasmBash({profile:"overlay-cow-fs",files:{"/outer":"a","/inner":"b"}});
+  try {
+    const fs = bash.fs, root = await fs.lstat("/"), ancestors = [{path:"/",stat:root}];
+    const outer = await fs.lstat("/outer"), inner = await fs.lstat("/inner");
+    let calls = 0, nestedCalls = 0;
+    await assert.rejects(fs.chmod("/outer",0o600,{expected:outer,parent:root,ancestors,commitGuard() {
+      if (++calls < 3) return true;
+      bash.chmodConditional("/inner",0o700,root,inner,ancestors,()=>!!++nestedCalls);
+      return false;
+    }}), {code:"ENOTSUP"});
+    assert.deepEqual([calls,nestedCalls],[3,3]);
+    assert.equal((await fs.lstat("/inner")).mode & 0o777,0o700);
+    assert.equal((await fs.lstat("/outer")).ino,outer.ino);
+    await fs.chmod("/outer",0o600,{expected:outer,parent:root,ancestors});
+    assert.equal((await fs.lstat("/outer")).mode & 0o777,0o600);
+  } finally { bash.dispose(); }
+});
+
 test("chmod forwards the original guard to the active companion", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

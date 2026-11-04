@@ -1,5 +1,7 @@
 mod descriptor;
 mod transfer;
+mod staged;
+pub(crate) use staged::StagedFile;
 use descriptor::DirectoryReadState;
 pub(crate) use descriptor::RetainedFile;
 
@@ -208,10 +210,20 @@ struct MemoryState {
     extra_links: HashMap<u64, LinkGroup>,
     child_dirs: HashMap<String, usize>,
     total_bytes: usize,
+    staged_entries: usize,
     limits: MemoryVfsLimits,
 }
 
 impl MemoryState {
+    fn entry_count(&self) -> usize { self.nodes.len() + self.staged_entries }
+
+    fn admit_new_file(&self, size: usize) -> Result<(), String> {
+        if self.entry_count() >= self.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+        if size > self.limits.max_file_bytes { return Err("EFBIG: file size budget exceeded".into()); }
+        if size > self.limits.max_total_bytes.saturating_sub(self.total_bytes) { return Err("ENOSPC: file system byte budget exceeded".into()); }
+        Ok(())
+    }
+
     fn allocate_ino(&mut self) -> u64 {
         let ino = self.next_ino;
         self.next_ino += 1;
@@ -321,7 +333,7 @@ impl MemoryVfs {
                 next_ino: 2, devices: Devices::Extended,
                 nodes,
                 files: HashMap::new(), extra_links: HashMap::new(), child_dirs: HashMap::new(),
-                total_bytes: 0,
+                total_bytes: 0, staged_entries: 0,
                 limits,
             })),
             generation: Arc::new(AtomicU64::new(1)),
@@ -496,9 +508,7 @@ impl MemoryVfs {
     fn replace_inode(state: &mut MemoryState, entry: String, after: &[u8], mode: u32) -> Result<u64, String> {
         // Reserve the new inode and its contents before detaching the old one. Open readers
         // retain the old file and its byte charge until they close their last descriptor.
-        if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
-        if after.len() > state.limits.max_file_bytes { return Err("EFBIG: file size budget exceeded".into()); }
-        if after.len() > state.limits.max_total_bytes.saturating_sub(state.total_bytes) { return Err("ENOSPC: file system byte budget exceeded".into()); }
+        state.admit_new_file(after.len())?;
         let mut data = Vec::new();
         data.try_reserve_exact(after.len()).map_err(|_| "ENOSPC: insufficient memory")?;
         data.extend_from_slice(after);
@@ -514,7 +524,7 @@ impl MemoryVfs {
             _ => None,
         };
         let old_len = existing.map_or(0, |ino| state.files[&ino].data.len());
-        if existing.is_none() && state.nodes.len() >= state.limits.max_entries {
+        if existing.is_none() && state.entry_count() >= state.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".into());
         }
         let new_len = if let Some(tail) = suffix {
@@ -552,7 +562,7 @@ impl MemoryVfs {
     fn link_node(state: &mut MemoryState, mut node: MemoryNode, dst: String) -> Result<(), String> {
         if matches!(node, MemoryNode::Directory { .. }) { return Err("EPERM: operation not permitted".into()); }
         if state.nodes.contains_key(&dst) || state.devices.entry(&dst).is_some() { return Err("EEXIST: file already exists".into()); }
-        if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+        if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
         let ino = node.ino();
         if let Some(file) = state.files.get_mut(&ino) { file.publication = None; }
         state.extra_links.entry(ino).or_insert_with(|| LinkGroup { extra: 0, snapshot_id: NEXT_LINK_GROUP.fetch_add(1, Ordering::Relaxed) }).extra += 1;
@@ -609,7 +619,7 @@ impl MemoryVfs {
         let publication = match operation { FileWrite::Publish { stamp, .. } => Some(stamp), _ => None };
         let (base, mut upper) = self.overlay_layers(lower, versions)?;
         let creating = !upper.nodes.contains_key(path);
-        if creating && parents.len() >= upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
+        if creating && parents.len() >= upper.limits.max_entries.saturating_sub(upper.entry_count()) {
             return Err("ENOSPC: inode limit exceeded".into());
         }
         if let FileWrite::Edit { original, before, in_place } = operation {
@@ -676,7 +686,7 @@ impl MemoryVfs {
             Some(MemoryNode::Directory { .. }) => None,
             _ => return Err(format!("ENOENT: no such file or directory, overlay '{path}'")),
         };
-        if directories.len() + usize::from(file.is_some()) > upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
+        if directories.len() + usize::from(file.is_some()) > upper.limits.max_entries.saturating_sub(upper.entry_count()) {
             return Err("ENOSPC: inode limit exceeded".into());
         }
         if let Some(file) = file {
@@ -886,7 +896,7 @@ impl MemoryVfs {
                     ));
                 }
                 None => {
-                    if state.nodes.len() >= state.limits.max_entries {
+                    if state.entry_count() >= state.limits.max_entries {
                         return Err(FsError::new(
                             FsErrorCode::NoSpace,
                             "ENOSPC: inode limit exceeded",
@@ -956,7 +966,7 @@ impl SafeBashFs for MemoryVfs {
             Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300 && state.devices != Devices::Mounted => {}
             _ => return Err("EACCES: permission denied".into()),
         }
-        if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+        if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
         let ino = state.allocate_ino();
         let now = super::now_ms();
         state.files.insert(ino, MemoryFile { revision: 0, data: Vec::new(), publication: None, mode: 0o100600,
@@ -1163,7 +1173,7 @@ impl SafeBashFs for MemoryVfs {
             }
             if parent_mode & 0o300 != 0o300 { return Err(format!("EACCES: {path}")); }
             let needed = missing.len() + usize::from(!state.nodes.contains_key(&dest));
-            if needed > state.limits.max_entries.saturating_sub(state.nodes.len()) {
+            if needed > state.limits.max_entries.saturating_sub(state.entry_count()) {
                 return Err("ENOSPC: inode limit exceeded".into());
             }
             Self::store_file(&mut state, dest, data, 0o100666, None, None)?;
@@ -1321,7 +1331,7 @@ impl SafeBashFs for MemoryVfs {
             Some(_) => return Err("ENOTDIR: not a directory".into()),
             None => return Err("ENOENT: no such file or directory".into()),
         }
-        if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+        if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
         state.create_directory(path, 0o40000 | (mode & 0o7777));
         self.bump_generation();
         Ok(())
@@ -1342,7 +1352,7 @@ impl SafeBashFs for MemoryVfs {
                 return Err(format!("EEXIST: file already exists, mkdir '{norm}'"));
             }
             None => {
-                if guard.nodes.len() >= guard.limits.max_entries {
+                if guard.entry_count() >= guard.limits.max_entries {
                     return Err("ENOSPC: inode limit exceeded".to_string());
                 }
                 guard.create_directory(resolved, 0o40777);
@@ -1455,7 +1465,7 @@ impl SafeBashFs for MemoryVfs {
         if guard.nodes.contains_key(&resolved) {
             return Err(format!("EEXIST: file already exists, symlink '{norm}'"));
         }
-        if guard.nodes.len() >= guard.limits.max_entries {
+        if guard.entry_count() >= guard.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".to_string());
         }
         let now = super::now_ms();
@@ -1582,7 +1592,7 @@ impl SafeBashFs for MemoryVfs {
         let mut current = self.state.write().map_err(|e| e.to_string())?;
         let retained_bytes = current.files.values().filter(|f| f.opens != 0).map(|f| f.data.len()).sum();
         let mut guard = MemoryState { next_ino: current.next_ino, devices: current.devices, nodes: BTreeMap::new(), files: HashMap::new(), extra_links: HashMap::new(), child_dirs: HashMap::new(),
-            total_bytes: retained_bytes, limits: current.limits.clone() };
+            total_bytes: retained_bytes, staged_entries: current.staged_entries, limits: current.limits.clone() };
         let root_ino = guard.allocate_ino();
         guard.insert_directory(
             "/".to_string(),

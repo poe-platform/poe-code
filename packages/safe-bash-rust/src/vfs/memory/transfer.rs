@@ -90,10 +90,10 @@ impl MemoryVfs {
             files: HashMap::new(),
             extra_links: HashMap::new(), child_dirs: HashMap::new(),
             devices: Devices::None,
-            total_bytes: dst.total_bytes,
+            total_bytes: dst.total_bytes, staged_entries: 0,
             limits: dst.limits.clone(),
         };
-        let available = dst.limits.max_entries.saturating_sub(dst.nodes.len())
+        let available = dst.limits.max_entries.saturating_sub(dst.entry_count())
             + usize::from(existing.is_some());
         let mut removals = Vec::new();
         let prefix = format!("{from}/");

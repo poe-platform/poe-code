@@ -5814,6 +5814,10 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 in_include = false;
                 output_archive = Some(out.trim_start_matches('=').to_string());
             }
+        } else if a == "--move" {
+            in_exclude = false;
+            in_include = false;
+            move_mode = true;
         } else if a == "--quiet" || a == "--verbose" {
             quiet = a == "--quiet";
             verbose |= !quiet;
@@ -5986,6 +5990,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         selected_action = "update";
                         update_mode = true;
                     }
+                    'm' if flags.as_str().starts_with('m') => return zip_err("unsupported option: -mm"),
                     'm' => move_mode = true,
                     'j' => junk_paths = true,
                     'D' => omit_dirs = true,

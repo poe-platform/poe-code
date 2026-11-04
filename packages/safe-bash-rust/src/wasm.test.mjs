@@ -1725,6 +1725,29 @@ test("ZIP progress reports entry updates, encoded sizes and move warnings in ord
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("ZIP rejects reserved move switches before replacing an archive or deleting a source", async () => {
+  const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
+  const ref = new MemoryFileSystem(), js = new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});
+  try {
+    const run = async (sh,fs) => {
+      await fs.writeFile("/original",Uint8Array.of(1));
+      await sh.exec("zip -q out.zip original");
+      const before = await fs.readFile("/out.zip");
+      await fs.writeFile("/input",Uint8Array.of(2));
+      for (const option of ["-mm","-qmmt","-qmm"]) {
+        const r = await sh.exec("zip "+option+" out.zip input");
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[16,"\nzip error: Invalid command arguments (unsupported option: -mm)\n",""]);
+        assert.deepEqual(await fs.readFile("/out.zip"),before);
+        assert.deepEqual([...await fs.readFile("/input")],[2]);
+      }
+      const r=await sh.exec("zip --move -q out.zip input");
+      assert.equal(r.exitCode,0,r.stderr || r.stdout);
+      await assert.rejects(fs.lstat("/input"),{code:"ENOENT"});
+    };
+    await run(js,ref); await run(rust,rust.fs);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("native zip splits at record boundaries and preserves occupied volume destinations on failure", async () => {
   const {Shell, MemoryFileSystem, archiveCommands} = await import("@poe-platform/safe-bash");
   for (const [size, flags, obstacle] of [

@@ -30,6 +30,7 @@ pub struct CommandContext<'a> {
     pub argv0: Option<&'a str>,
     pub args: &'a [String],
     pub stdin: &'a str,
+    pub(crate) unread_stdin: Option<String>,
     pub cwd: &'a mut String,
     pub env: &'a mut BTreeMap<String, String>,
     pub fs: &'a dyn SafeBashFs,

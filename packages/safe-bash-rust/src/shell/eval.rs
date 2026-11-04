@@ -5075,6 +5075,7 @@ impl<'a> EvalState<'a> {
         {
             self.refresh_file_input(0, stdin)?;
             let mut ctx = CommandContext {
+                unread_stdin: None,
                 argv0: custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),
                 args,
                 stdin,
@@ -5082,7 +5083,9 @@ impl<'a> EvalState<'a> {
                 env: self.env,
                 fs: self.fs,
             };
-            return match custom(&mut ctx) {
+            let result = custom(&mut ctx);
+            if let Some(unread) = ctx.unread_stdin { *stdin = unread; }
+            return match result {
                 Ok(res) => {
                     *self.cwd = res.cwd;
                     *self.env = res.env;

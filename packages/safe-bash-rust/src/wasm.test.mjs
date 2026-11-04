@@ -1457,6 +1457,8 @@ test("Wasm host commands inherit exported bindings and preserve bytes in native 
     const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(bytes()),decoder.decode(bytes())]));
     const input = new Uint8Array(x.memory.buffer, ptr, end - ptr).slice();
     seen.push({cwd, argv0, args, env, input:[...input]});
+    const consumed = args[0]?.[0] === 49 ? Math.min(1, input.length) : input.length;
+    new DataView(x.memory.buffer).setUint32(reply + 16, argv0 === "bad-count" ? input.length + 1 : consumed, true);
     for (const [index, out] of [input, Uint8Array.of(254)].entries()) {
       const p = out.length ? x.safe_bash_alloc(out.length) : 0;
       new Uint8Array(x.memory.buffer,p,out.length).set(out);
@@ -1487,6 +1489,14 @@ test("Wasm host commands inherit exported bindings and preserve bytes in native 
     assert.equal(seen.at(-1).argv0, "");
     await assert.rejects(bash.exec("probe </data; touch /late", {limits:{maxOutputBytes:2}}), {limit:"maxOutputBytes"});
     await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
+    const shared = await bash.exec("{ probe >/dev/null; cat; } </data");
+    assert.deepEqual([...shared.stdoutBytes], []);
+    bash.writeFile("/multibyte", Uint8Array.of(0xc3,0xa9,0xff));
+    const split = await bash.exec("exec 3</multibyte; probe 1 <&3 >/dev/null; cat <&3");
+    assert.deepEqual([...split.stdoutBytes], [0xa9,0xff]);
+    const invalidRead = await bash.exec("exec -a bad-count probe");
+    assert.equal(invalidRead.exitCode, 1);
+    assert.match(invalidRead.stderr, /consumed more than its stdin/);
     const invalid = await bash.exec("exec -a bad-status probe");
     assert.equal(invalid.exitCode, 1);
     assert.match(invalid.stderr, /Exit status must be an integer between 0 and 255/);

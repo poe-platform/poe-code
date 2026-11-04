@@ -5,9 +5,16 @@ use std::sync::Arc;
 
 #[repr(C)]
 #[derive(Default)]
-pub struct HostBuffer {
+struct HostBuffer {
     ptr: *mut u8,
     len: usize,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct HostReply {
+    streams: [HostBuffer; 2],
+    consumed: usize,
 }
 
 impl HostBuffer {
@@ -26,7 +33,7 @@ impl HostBuffer {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_register_command(
     id: u32, name: *const u8, len: usize,
-    invoke: unsafe extern "C" fn(*const u8, usize, *mut [HostBuffer; 2]) -> i32,
+    invoke: unsafe extern "C" fn(*const u8, usize, *mut HostReply) -> i32,
 ) -> i32 {
     let Ok(name) = std::str::from_utf8(unsafe { slice_from_raw(name, len) }) else { return -1 };
     if name.is_empty() || name.contains(|c: char| c.is_whitespace() || matches!(c, '/' | '\0' | '\u{feff}')) { return -1; }
@@ -50,10 +57,15 @@ pub unsafe extern "C" fn safe_bash_register_command(
             if crate::shell::is_exported_scalar(ctx.env, key) { field(key); field(value); envc += 1; }
         }
         packet[4..8].copy_from_slice(&envc.to_le_bytes());
+        let input_start = packet.len();
         packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin));
         let mut reply = Default::default();
         let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
-        let [stdout, stderr] = reply.map(|buf| unsafe { buf.take() });
+        let [stdout, stderr] = reply.streams.map(|buf| unsafe { buf.take() });
+        if reply.consumed != 0 {
+            let unread = packet[input_start..].get(reply.consumed..).ok_or("Host command consumed more than its stdin")?;
+            ctx.unread_stdin = Some(bytes_to_stream_string(unread));
+        }
         if !(0..=255).contains(&code) { return Err("Exit status must be an integer between 0 and 255".into()); }
         Ok(CommandResult {
             exit_code: code, stdout: bytes_to_stream_string(&stdout), stderr: bytes_to_stream_string(&stderr),

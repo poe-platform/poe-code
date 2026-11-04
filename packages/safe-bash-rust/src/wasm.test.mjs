@@ -8623,6 +8623,15 @@ test("awk splits fields on AWK whitespace or individual bytes for an empty separ
   } finally { sh.dispose(); }
 });
 
+test("awk integer formats retain big signed values and wrap unsigned values to 32 bits", async () => {
+  const sh = new RustWasmBash();
+  try {
+    const r = await sh.exec(`awk '{printf "%+d %u %#x %#o %X\\n",$0,$0,$0,$0,$0}'`, {stdin:"-1\n18446744073709551616\n4294967297\n-0.25\n"});
+    assert.deepEqual([r.exitCode,r.stderr,r.stdout], [0,"",
+      "-1 4294967295 0xffffffff 037777777777 FFFFFFFF\n+18446744073709551616 0 0x0 00 0\n+4294967297 1 0x1 01 1\n0 0 0x0 00 0\n"]);
+  } finally { sh.dispose(); }
+});
+
 test("awk printf and sprintf measure string width and precision in input bytes", async () => {
   const sh = new RustWasmBash();
   try {

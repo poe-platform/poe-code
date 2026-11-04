@@ -4349,12 +4349,24 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
             arg_idx += 1;
             let (raw_body, is_num, allow_sign) = match conv {
                 'd' | 'i' => {
-                    let n = parse_awk_f64(&val) as i64;
-                    (n.to_string(), true, true)
+                    let n = parse_awk_f64(&val);
+                    let integer = n.trunc();
+                    let text = if integer == 0.0 { "0".into() } else { format!("{integer:.0}") };
+                    (text, true, n >= 0.0)
                 }
-                'u' => {
-                    let n = (parse_awk_f64(&val) as i64) as u64;
-                    (n.to_string(), true, false)
+                'u' | 'x' | 'X' | 'o' => {
+                    let n = parse_awk_f64(&val);
+                    let unsigned = (n.trunc() % 4294967296.0) as i64 as u32;
+                    let mut text = match conv {
+                        'x' => format!("{unsigned:x}"),
+                        'X' => format!("{unsigned:X}"),
+                        'o' => format!("{unsigned:o}"),
+                        _ => unsigned.to_string(),
+                    };
+                    if alt_form && n != 0.0 {
+                        text.insert_str(0, match conv { 'x' => "0x", 'X' => "0X", 'o' => "0", _ => "" });
+                    }
+                    (text, true, false)
                 }
                 'f' | 'F' => {
                     let n = parse_awk_f64(&val);
@@ -4405,26 +4417,6 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
                         fx
                     };
                     (s, true, true)
-                }
-                'x' | 'X' => {
-                    let n = (parse_awk_f64(&val) as i64) as u64;
-                    let hex = if conv == 'X' { format!("{n:X}") } else { format!("{n:x}") };
-                    let s = if alt_form && n != 0 {
-                        if conv == 'X' { format!("0X{hex}") } else { format!("0x{hex}") }
-                    } else {
-                        hex
-                    };
-                    (s, true, false)
-                }
-                'o' => {
-                    let n = (parse_awk_f64(&val) as i64) as u64;
-                    let oct = format!("{n:o}");
-                    let s = if alt_form && !oct.starts_with('0') {
-                        format!("0{oct}")
-                    } else {
-                        oct
-                    };
-                    (s, true, false)
                 }
                 'c' => {
                     let ch_str = if let Ok(n) = val.parse::<u32>() {

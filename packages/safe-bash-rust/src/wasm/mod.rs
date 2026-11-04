@@ -59,6 +59,18 @@ impl WasmSession {
         -(self.last_output_buf.len() as i32)
     }
 
+    fn memory_mutation_error(&mut self, error: &str, operation: &str, path: &str) -> i32 {
+        if error.ends_with(", resolve") {
+            return self.read_error(error, "resolve", "", None, Some("paths must be strings without NUL bytes"));
+        }
+        if let Some((reason, operand)) = error.split_once(" '")
+            && let Some(operand) = operand.strip_suffix('\'') {
+            let syscall = reason.split_once(", ").map_or("", |(_, syscall)| syscall);
+            return self.read_error(reason, syscall, operand, None, None);
+        }
+        self.read_error(error, operation, path, None, None)
+    }
+
     // The session lock covers validation and publication, including exclusive creates.
     fn write_target(&self, operation: &str, destination: &str, to: String, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
         let fs = &self.shell.fs;
@@ -541,11 +553,7 @@ pub unsafe extern "C" fn safe_bash_rename(
     let Some(sess) = map.get_mut(&id) else { return -1 };
     match sess.shell.fs.rename(source, destination, no_replace) {
         Ok(()) => 0,
-        Err(error) if sess.profile == Profile::Memory && error.ends_with(", resolve") =>
-            sess.read_error(&error,"resolve","",None,Some("paths must be strings without NUL bytes")),
-        Err(ref error) if sess.profile == Profile::Memory && let Some((reason,operand)) = error.split_once(" '")
-            && let Some(operand) = operand.strip_suffix('\'') =>
-            sess.read_error(reason,if reason.ends_with(", lstat") { "lstat" } else { "" },operand,None,None),
+        Err(error) if sess.profile == Profile::Memory => sess.memory_mutation_error(&error, "rename", source),
         Err(error) => sess.read_error(&error,"rename",source,None,None),
     }
 }
@@ -600,12 +608,18 @@ pub unsafe extern "C" fn safe_bash_symlink(
     };
     let Ok(mut map) = sessions().lock() else { return -1 };
     let Some(sess) = map.get_mut(&id) else { return -1 };
+    if sess.profile == Profile::Memory {
+        return match sess.shell.fs.symlink(target, path) {
+            Ok(()) => 0,
+            Err(e) => sess.memory_mutation_error(&e, "symlink", path),
+        };
+    }
     if target.is_empty() || target.contains('\0') {
-        if sess.profile == Profile::Overlay && target.contains('\0') {
+        if sess.profile == Profile::Overlay {
+            if target.is_empty() { return sess.read_error("ENOENT:", "overlay", path, Some(path), None); }
             return sess.read_error("EINVAL:", "resolve", "", None, Some("paths must be strings without NUL bytes"));
         }
-        let operand = if sess.profile == Profile::Memory { target } else { path };
-        return sess.read_error(if target.is_empty() { "ENOENT:" } else { "EINVAL:" }, "symlink", operand, None, None);
+        return sess.read_error(if target.is_empty() { "ENOENT:" } else { "EINVAL:" }, "symlink", path, None, None);
     }
     match sess.shell.fs.access_path(path, false).and_then(|to| sess.write_target("symlink", path, to, true, None)).and_then(|(to, _)| sess.shell.fs.symlink(target, &to)) {
         Ok(()) => 0,

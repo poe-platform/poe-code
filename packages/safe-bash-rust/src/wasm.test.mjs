@@ -2708,6 +2708,35 @@ test("symbolic links validate the parent before mutation and report the failing 
   } finally { bash.dispose(); }
 });
 
+test("symbolic links check protected device paths before link text, including dot aliases", async () => {
+  const bash = new RustWasmBash({ directories: ["/dir"] });
+  try {
+    for (const [target, dest, code, syscall, path] of [
+      ["", "/dir/..", "EBUSY", undefined, "/dir/.."],
+      ["bad\0text", "/dev/null", "EBUSY", undefined, "/dev/null"],
+      ["", "/dev/null/..", "ENOTDIR", undefined, "/dev/null/.."],
+      ["", "bad\0name", "EINVAL", "resolve", undefined],
+      ["text", "/dev/../new", "ENOENT", "symlink", "/dev/../new"],
+      ["", "/missing/new", "ENOENT", "symlink", ""],
+    ]) {
+      await assert.rejects(bash.fs.symlink(target, dest), error => {
+        assert.deepEqual([error.code, error.syscall, error.path], [code, syscall, path]);
+        return true;
+      });
+    }
+    await assert.rejects(bash.fs.lstat("/new"), { code: "ENOENT" });
+  } finally { bash.dispose(); }
+});
+
+test("an empty overlay link target reports the original destination before traversal", async () => {
+  const bash = new RustWasmBash({ profile: "overlay-cow-fs", directories: ["/dir"] });
+  try {
+    for (const path of ["/dir/../link", "/dir/", "bad\0name"]) {
+      await assert.rejects(bash.fs.symlink("", path), {code: "ENOENT", syscall: "overlay", path});
+    }
+  } finally { bash.dispose(); }
+});
+
 test("gzip compresses repeated bytes and interoperates with an independent decoder", () => {
   const payload = Buffer.from("a repeatable log message\n".repeat(4096));
   const bash = new RustWasmBash({ files: { "/input": payload } });

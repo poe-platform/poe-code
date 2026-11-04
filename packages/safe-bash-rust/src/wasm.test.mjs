@@ -3860,6 +3860,24 @@ test("single-entry removal preserves unseen descendants", async () => {
   }
 });
 
+test("device metadata follows virtual traversal without granting access to backing directories", async () => {
+  const bash = new RustWasmBash({directories:["/locked","/keep"]});
+  try {
+    await bash.fs.chmod("/locked", 0);
+    for (const op of ["stat", "lstat"]) {
+      for (const path of ["/dev", "/dev/null"]) {
+        const expected = await bash.fs[op](path);
+        assert.equal((await bash.fs[op]("/locked/.." + path)).ino, expected.ino);
+      }
+      await assert.rejects(bash.fs[op]("/locked/../keep"), {code:"EACCES"});
+    }
+    const result = await bash.exec("rmdir -v /keep /locked/../dev");
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /ENOTSUP/);
+    assert.equal((await bash.fs.stat("/keep")).type, "directory");
+  } finally { bash.dispose(); }
+});
+
 test("mounted removal requires a searchable directory before crossing a trailing slash", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/locked"]});
   try {

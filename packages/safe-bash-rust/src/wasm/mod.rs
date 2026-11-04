@@ -924,10 +924,12 @@ pub unsafe extern "C" fn safe_bash_stat(
         return -1;
     };
     let fs = &sess.shell.fs;
-    let res = fs.access_path(path, follow != 0).and_then(|p| match fs.overlay_backend() {
-        Some(overlay) => overlay.observe_chmod(&p).map(|(st,r)|(st,Some(r))),
-        None => fs.lstat(&p).map(|st|(st,None)),
-    });
+    let syscall = if follow != 0 { "stat" } else { "lstat" };
+    let res = if let Some(overlay) = fs.overlay_backend() {
+        fs.access_path(path, follow != 0).and_then(|p| overlay.observe_chmod(&p).map(|(st,r)|(st,Some(r))))
+    } else {
+        fs.inspect_command_entry(path, follow != 0, syscall).map(|(_,st)|(st,None))
+    };
     match res {
         Ok((st,receipt)) => {
             sess.last_output_buf = stat_bytes(st);
@@ -940,7 +942,7 @@ pub unsafe extern "C" fn safe_bash_stat(
             }
             sess.last_output_buf.len() as i32
         }
-        Err(e) => sess.read_error(&e, if follow != 0 { "stat" } else { "lstat" }, path, None, None),
+        Err(e) => sess.read_error(&e, syscall, path, None, None),
     }
 }
 

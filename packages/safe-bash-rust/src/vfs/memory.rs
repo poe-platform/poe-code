@@ -1764,6 +1764,21 @@ impl SafeBashFs for MemoryVfs {
         Ok(String::from_utf8_lossy(&bytes).into_owned())
     }
 
+    fn inspect_command_entry(&self, path: &str, follow: bool, _syscall: &str) -> Result<(String, FileStat), String> {
+        let entry = self.access_path(path, follow).or_else(|error| {
+            if error.starts_with("EACCES:") {
+                let state = self.state.read().map_err(|e| e.to_string())?;
+                if state.devices == Devices::Null {
+                    // Device lookup can resolve a virtual entry without traversing the backing directory's "..".
+                    let device = Self::device_operand(&state, path, follow)?;
+                    if matches!(device.as_str(), "/dev" | "/dev/null") { return Ok(device); }
+                }
+            }
+            Err(error)
+        })?;
+        self.lstat(&entry).map(|st| (entry, st))
+    }
+
     fn stat(&self, path: &str) -> Result<FileStat, String> {
         self.metadata(path, true)
     }

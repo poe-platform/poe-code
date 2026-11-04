@@ -3275,6 +3275,9 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     if s.is_empty() {
         return String::new();
     }
+    if s.starts_with(|c: char| c.is_ascii_digit() || c == '.') && let Ok(n) = s.parse::<f64>() {
+        return n.to_string();
+    }
     if is_single_awk_string_literal(s) {
         return unescape_sed_text(&s[1..s.len() - 1]);
     }
@@ -3322,47 +3325,6 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
             }
             return final_val;
         }
-    }
-
-    if let Some(var) = s.strip_suffix("++") {
-        let v = var.trim();
-        let old_val = parse_awk_f64(&eval_awk_expr(v, state));
-        assign_awk_lvalue(v, format_awk_num(old_val + 1.0), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return format_awk_num(old_val);
-    }
-    if let Some(var) = s.strip_prefix("++") {
-        let v = var.trim();
-        let new_val = parse_awk_f64(&eval_awk_expr(v, state)) + 1.0;
-        let formatted = format_awk_num(new_val);
-        assign_awk_lvalue(v, formatted.clone(), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return formatted;
-    }
-    if let Some(var) = s.strip_suffix("--") {
-        let v = var.trim();
-        let old_val = parse_awk_f64(&eval_awk_expr(v, state));
-        assign_awk_lvalue(v, format_awk_num(old_val - 1.0), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return format_awk_num(old_val);
-    }
-    if let Some(var) = s.strip_prefix("--")
-        && !var.starts_with('-')
-    {
-        let v = var.trim();
-        let new_val = parse_awk_f64(&eval_awk_expr(v, state)) - 1.0;
-        let formatted = format_awk_num(new_val);
-        assign_awk_lvalue(v, formatted.clone(), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return formatted;
     }
 
     if let Some((cond_part, branches)) = split_awk_binary_once(s, "?") {
@@ -3468,46 +3430,71 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
         return joined;
     }
 
-    for op in ["+", "-"] {
-        if let Some((lhs, rhs)) = split_awk_binary_right(s, op) {
-            if !lhs.trim().is_empty() {
-                let ln = parse_awk_f64(&eval_awk_expr(&lhs, state));
-                let rn = parse_awk_f64(&eval_awk_expr(&rhs, state));
-                let res = if op == "+" { ln + rn } else { ln - rn };
-                return format_awk_num(res);
-            }
+    if let Some((lhs, op, rhs)) = split_awk_arithmetic(s) {
+        let left = parse_awk_f64(&eval_awk_expr(lhs, state));
+        let right = parse_awk_f64(&eval_awk_expr(rhs, state));
+        if matches!(op, b'/' | b'%') && right == 0.0 {
+            state.runtime_err = Some("awk: division by zero\n".into());
+            return "0".into();
         }
+        return format_awk_num(match op {
+            b'+' => left + right,
+            b'-' => left - right,
+            b'*' => left * right,
+            b'/' => left / right,
+            b'%' => left % right,
+            b'^' => left.powf(right),
+            _ => unreachable!(),
+        });
     }
 
-    for op in ["*", "/", "%"] {
-        if let Some((lhs, rhs)) = split_awk_binary_right(s, op) {
-            let ln = parse_awk_f64(&eval_awk_expr(&lhs, state));
-            let rn = parse_awk_f64(&eval_awk_expr(&rhs, state));
-            if (op == "/" || op == "%") && rn == 0.0 {
-                state.runtime_err = Some("awk: division by zero\n".to_string());
-                return "0".to_string();
-            }
-            let res = match op {
-                "*" => ln * rn,
-                "/" => ln / rn,
-                "%" => ln % rn,
-                _ => 0.0,
-            };
-            return format_awk_num(res);
+    if let Some(var) = s.strip_suffix("++") {
+        let v = var.trim();
+        let old_val = parse_awk_f64(&eval_awk_expr(v, state));
+        assign_awk_lvalue(v, format_awk_num(old_val + 1.0), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
         }
+        return format_awk_num(old_val);
     }
-    if let Some((lhs, rhs)) = split_awk_binary_once(s, "^") {
-        let ln = parse_awk_f64(&eval_awk_expr(&lhs, state));
-        let rn = parse_awk_f64(&eval_awk_expr(&rhs, state));
-        return format_awk_num(ln.powf(rn));
+    if let Some(var) = s.strip_prefix("++") {
+        let v = var.trim();
+        let new_val = parse_awk_f64(&eval_awk_expr(v, state)) + 1.0;
+        let formatted = format_awk_num(new_val);
+        assign_awk_lvalue(v, formatted.clone(), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
+        }
+        return formatted;
+    }
+    if let Some(var) = s.strip_suffix("--") {
+        let v = var.trim();
+        let old_val = parse_awk_f64(&eval_awk_expr(v, state));
+        assign_awk_lvalue(v, format_awk_num(old_val - 1.0), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
+        }
+        return format_awk_num(old_val);
+    }
+    if let Some(var) = s.strip_prefix("--")
+        && !var.starts_with('-')
+    {
+        let v = var.trim();
+        let new_val = parse_awk_f64(&eval_awk_expr(v, state)) - 1.0;
+        let formatted = format_awk_num(new_val);
+        assign_awk_lvalue(v, formatted.clone(), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
+        }
+        return formatted;
     }
 
     if let Some(inner) = s.strip_prefix('!') {
-        return if is_awk_truthy(&eval_awk_expr(inner, state)) {
-            "0".to_string()
-        } else {
-            "1".to_string()
-        };
+        return if is_awk_truthy(&eval_awk_expr(inner, state)) { "0".into() } else { "1".into() };
+    }
+    if let Some(inner) = s.strip_prefix(['+', '-']) {
+        let n = parse_awk_f64(&eval_awk_expr(inner, state));
+        return format_awk_num(if s.starts_with('-') { -n } else { n });
     }
 
     if s.starts_with('(') && s.ends_with(')') && is_awk_outer_parens(s) {
@@ -3537,10 +3524,6 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
                 .cloned()
                 .unwrap_or_default();
         }
-    }
-
-    if s.parse::<f64>().is_ok() {
-        return s.to_string();
     }
 
     state.get_var(s)
@@ -4143,58 +4126,57 @@ fn split_awk_binary_once(s: &str, op: &str) -> Option<(String, String)> {
     None
 }
 
-fn split_awk_binary_right(s: &str, op: &str) -> Option<(String, String)> {
-    let chars: Vec<char> = s.chars().collect();
-    let op_chars: Vec<char> = op.chars().collect();
-    let mut quote = false;
-    let mut in_rx = false;
-    let mut paren = 0i32;
-    let mut bracket = 0i32;
-    let mut last_match = None;
-    let mut i = 0usize;
-
-    while i + op_chars.len() <= chars.len() {
-        let c = chars[i];
-        if c == '\\' {
-            i += 2;
+fn split_awk_arithmetic(s: &str) -> Option<(&str, u8, &str)> {
+    let bytes = s.as_bytes();
+    let mut at = 0;
+    let mut depth = 0usize;
+    let mut operand = false;
+    let mut split = None;
+    let mut rank = u8::MAX;
+    while at < bytes.len() {
+        let c = bytes[at];
+        if c == b'"' || c == b'/' && !operand {
+            at += 1;
+            while at < bytes.len() {
+                let ch = bytes[at];
+                at += 1;
+                if ch == c { break; }
+                if ch == b'\\' { at += 1; }
+            }
+            operand = true;
             continue;
         }
-        if c == '"' && !in_rx {
-            quote = !quote;
-            i += 1;
-            continue;
-        }
-        if !quote && c == '/' {
-            if in_rx {
-                in_rx = false;
-                i += 1;
-                continue;
-            } else if awk_chars_allow_regex(&chars, i) {
-                in_rx = true;
-                i += 1;
+        match c {
+            b'0'..=b'9' | b'.' => {
+                at += awk_decimal_len(&bytes[at..]).max(1);
+                operand = true;
                 continue;
             }
-        }
-        if !quote && !in_rx {
-            match c {
-                '(' => paren += 1,
-                ')' => paren -= 1,
-                '[' => bracket += 1,
-                ']' => bracket -= 1,
-                _ => {}
+            b'a'..=b'z' | b'A'..=b'Z' | b'_' => {
+                at += 1;
+                while at < bytes.len() && (bytes[at].is_ascii_alphanumeric() || bytes[at] == b'_') { at += 1; }
+                operand = true;
+                continue;
             }
-            if paren == 0 && bracket == 0 && chars[i..i + op_chars.len()] == op_chars[..] {
-                if i > 0 {
-                    last_match = Some(i);
+            b'(' | b'[' => { depth += 1; operand = false; }
+            b')' | b']' => { depth = depth.saturating_sub(1); operand = true; }
+            b'+' | b'-' if bytes.get(at + 1) == Some(&c) => { at += 1; }
+            b'+' | b'-' | b'*' | b'/' | b'%' | b'^' => {
+                let priority = match c { b'+' | b'-' => 1, b'^' => 3, _ => 2 };
+                if depth == 0 && operand && (priority < rank || priority == rank && c != b'^') {
+                    rank = priority;
+                    split = Some(at);
                 }
+                operand = false;
             }
+            _ if c.is_ascii_whitespace() => {}
+            _ => operand = false,
         }
-        i += 1;
+        at += 1;
     }
-    let idx = last_match?;
-    let lhs: String = chars[..idx].iter().collect();
-    let rhs: String = chars[idx + op_chars.len()..].iter().collect();
-    Some((lhs, rhs))
+    // A leading unary operator encloses exponentiation, but binds before multiplication.
+    if rank == 3 && s.starts_with(['+', '-', '!']) && !s.starts_with("++") && !s.starts_with("--") { return None; }
+    split.map(|i| (&s[..i], bytes[i], &s[i + 1..]))
 }
 
 fn split_awk_concat(s: &str) -> Option<Vec<String>> {

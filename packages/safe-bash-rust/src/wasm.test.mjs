@@ -6587,6 +6587,20 @@ for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lz
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip validates literal -TT arguments even without an integrity test",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    for(const view of [fs,rust.fs])await view.writeFile("/src",Uint8Array.of(42));
+    for(const [flags,code] of [["-TT 'a;b'",16],["-qTT='a|b'",16],["--unzip-command='a{}'",16],
+      ["-TT \"a 'open\"",16],["-TT 'a "+String.fromCharCode(92)+"'",16],["-TT ''",16],
+      ["--unzip-command='false' -q",0],["-qTT=false",0]]){
+      const cmd="zip "+flags+" work.zip src",ref=await js.exec(cmd),actual=await rust.exec(cmd);
+      assert.equal(ref.exitCode,code,cmd);assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[code,ref.stdout,ref.stderr],cmd);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("zip -T verifies the resulting members before publication and before moving sources",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(37)}})),rust=new RustWasmBash({cwd:"/"});

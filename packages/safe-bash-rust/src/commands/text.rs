@@ -4323,7 +4323,7 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
                     i += 1;
                     let p_val = vals.get(arg_idx).map(|s| parse_awk_f64(s) as i64).unwrap_or(0);
                     arg_idx += 1;
-                    Some(p_val.max(0) as usize)
+                    usize::try_from(p_val).ok()
                 } else {
                     let mut p_str = String::new();
                     while i < chars.len() && chars[i].is_ascii_digit() {
@@ -4435,8 +4435,9 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
                     (ch_str, false, false)
                 }
                 _ => {
-                    let truncated = if let Some(p) = prec {
-                        val.chars().take(p).collect::<String>()
+                    let truncated = if let Some(p) = prec && p < crate::vfs::stream_byte_len(&val) {
+                        let bytes = crate::vfs::stream_string_to_bytes(&val);
+                        crate::vfs::bytes_to_stream_string(&bytes[..p])
                     } else {
                         val
                     };
@@ -4454,7 +4455,7 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
             } else {
                 raw_body
             };
-            let len = signed_val.chars().count();
+            let len = crate::vfs::stream_byte_len(&signed_val);
             if width <= len {
                 out.push_str(&signed_val);
             } else {

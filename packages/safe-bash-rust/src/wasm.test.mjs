@@ -8623,6 +8623,17 @@ test("awk splits fields on AWK whitespace or individual bytes for an empty separ
   } finally { sh.dispose(); }
 });
 
+test("awk printf and sprintf measure string width and precision in input bytes", async () => {
+  const sh = new RustWasmBash();
+  try {
+    const script = `awk '{printf "[%4.2s][%-4.1s][%.*s]\\n",$0,$0,-1,$0;print sprintf("[%4s]",$0)}'`;
+    const r = await sh.exec(script, {stdin:Buffer.from("c3a9610aff80610a","hex")});
+    const expected = "5b2020c3a95d5bc32020205d5bc3a9615d0a5b20c3a9615d0a"
+      + "5b2020ff805d5bff2020205d5bff80615d0a5b20ff80615d0a";
+    assert.deepEqual([r.exitCode,r.stderr,Buffer.from(r.stdoutBytes).toString("hex")], [0,"",expected]);
+  } finally { sh.dispose(); }
+});
+
 test("awk rejects non-finite arithmetic and math functions before subsequent writes", async () => {
   const sh = new RustWasmBash();
   try {

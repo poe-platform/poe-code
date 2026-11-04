@@ -437,7 +437,7 @@ export class WasmFileSystem {
         const code = text.slice(1, sep), syscall = text.slice(sep + 1, end), path = text.slice(end + 1);
         const detail = syscall === "resolve" ? "paths must be strings without NUL bytes"
           : code === "ENOTSUP" ? (syscall === "overlay" ? "recursive creation through symlinks cannot be verified before mutation" : "operation not supported") : undefined;
-        failure = fsOperationError(code, syscall, syscall === "resolve" ? undefined : path === operand ? dirPath : path, undefined, detail);
+        failure = fsOperationError(code, syscall || undefined, syscall === "resolve" ? undefined : path === operand ? dirPath : path, undefined, detail);
         if (text[0] === "0") throw failure;
       }
     } finally { bash._freeBytes(encoded); }

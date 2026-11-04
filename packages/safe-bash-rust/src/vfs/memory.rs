@@ -1480,21 +1480,30 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
-        let mut state = self.state.write().map_err(|_| ("EIO".into(), path.to_owned()))?;
+        self.mkdir_with_operation(path, recursive, mode).map_err(|(code, _, at)| (code, at))
+    }
+
+    fn default_device_view(&self) -> bool {
+        self.state.read().is_ok_and(|s| s.devices == Devices::Null)
+    }
+
+    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {
+        let mut state = self.state.write().map_err(|_| ("EIO".into(), "mkdir", path.to_owned()))?;
         if !matches!(state.devices, Devices::Null | Devices::None) {
             drop(state);
-            return super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Direct, |p| (None, self, p.to_owned()));
+            return super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Direct, |p| (None, self, p.to_owned()))
+                .map_err(|(code, at)| (code, "mkdir", at));
         }
         if state.devices == Devices::Null {
             let resolved = Self::device_operand(&state, path, true).map_err(|error| {
-                let failed = error.split_once(", lstat '").and_then(|(_, p)| p.strip_suffix('\'')).unwrap_or(path);
-                (error.split(':').next().unwrap().to_owned(), failed.to_owned())
+                let failed = error.split_once(", lstat '").and_then(|(_, p)| p.strip_suffix('\''));
+                (error.split(':').next().unwrap().to_owned(), if failed.is_some() { "lstat" } else { "" }, failed.unwrap_or(path).to_owned())
             })?;
             if matches!(resolved.as_str(), "/" | "/dev" | "/dev/null") && !path.is_empty() {
-                return if recursive && resolved != "/dev/null" { Ok(()) } else { Err(("EEXIST".into(), path.to_owned())) };
+                return if recursive && resolved != "/dev/null" { Ok(()) } else { Err(("EEXIST".into(), "", path.to_owned())) };
             }
         }
-        if mode > 0o7777 { return Err(("EINVAL".into(), path.to_owned())); }
+        if mode > 0o7777 { return Err(("EINVAL".into(), "mkdir", path.to_owned())); }
         super::path::walk_memory_entry(path, state.limits.max_symlink_hops, recursive, |entry, last| {
             match state.nodes.get(entry) {
                 Some(_) if last && !recursive => return Err("EEXIST".into()),
@@ -1519,7 +1528,7 @@ impl SafeBashFs for MemoryVfs {
         }).map(|_| ()).map_err(|error| {
             let code = error.split(':').next().unwrap();
             let p = if !recursive && matches!(code, "ENOENT" | "ENOTDIR" | "ENAMETOOLONG" | "ELOOP") { path.trim_end_matches('/') } else { path };
-            (code.to_owned(), p.to_owned())
+            (code.to_owned(), "mkdir", p.to_owned())
         })
     }
 

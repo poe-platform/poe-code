@@ -106,7 +106,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     let mut links = 0;
     if purpose != WalkPurpose::AllowMissingParents && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
     if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
-    if access && path.ends_with('/') { pending.insert(0, ".".into()); }
+    if access && path.ends_with('/') { pending.insert(0, if purpose == WalkPurpose::CommandCreate { "" } else { "." }.into()); }
     while let Some(part) = pending.pop() {
         if purpose != WalkPurpose::AllowMissingParents {
             let (mount, backend, local) = location(&current);
@@ -138,7 +138,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
                 return Err("EINVAL: invalid argument".into());
             }
         }
-        if part == "." {
+        if part.is_empty() || part == "." {
             continue;
         }
         if part == ".." {
@@ -155,6 +155,9 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
         }
         if boundary.is_some() && boundary != prefix {
             return Err("EACCES: Permission denied".into());
+        }
+        if purpose == WalkPurpose::CommandCreate && pending.len() == 1 && pending[0].is_empty() {
+            return Err(format!("EISDIR: illegal operation on a directory '{path}'"));
         }
         if !follow_final && pending.is_empty() {
             current = candidate;

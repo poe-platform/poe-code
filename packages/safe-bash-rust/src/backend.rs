@@ -327,9 +327,16 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
+        self.mkdir_with_operation(path, recursive, mode).map_err(|(code, _, at)| (code, at))
+    }
+
+    fn default_device_view(&self) -> bool { self.inner.default_device_view() }
+
+    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {
         self.budget.limits.check_path(path).and_then(|()| self.budget.tick_fs_op())
-            .map_err(|error| (error, path.to_owned()))?;
-        self.inner.mkdir(&host_text(path), recursive, mode).map_err(|(code, p)| (code, quote_host_text(p)))
+            .map_err(|error| (error, "mkdir", path.to_owned()))?;
+        self.inner.mkdir_with_operation(&host_text(path), recursive, mode)
+            .map_err(|(code, op, at)| (code, op, quote_host_text(at)))
     }
 
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {

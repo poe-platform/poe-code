@@ -461,6 +461,14 @@ pub trait SafeBashFs: Send + Sync {
         mkdir::mkdir(path, recursive, mode, mkdir::Namespace::Direct, |p| (None, self, p.to_owned()))
     }
 
+    /// Preserve the failing operation for device lookups and routed filesystems.
+    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {
+        let syscall = if self.overlay_backend().is_some() { "overlay" } else { "mkdir" };
+        self.mkdir(path, recursive, mode).map_err(|(code, at)| (code, syscall, at))
+    }
+
+    fn default_device_view(&self) -> bool { false }
+
     /// Create one new directory. Never change an existing entry's permissions.
     fn mkdir_one(&self, _path: &str, _mode: u32) -> Result<(), String> {
         Err("ENOTSUP: operation not supported".into())

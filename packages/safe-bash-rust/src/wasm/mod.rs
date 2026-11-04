@@ -300,16 +300,12 @@ pub unsafe extern "C" fn safe_bash_fs_mkdir(id: u32, ptr: *const u8, len: usize,
     let invalid = string_path == 0 || operand.contains('\0');
     let result = if invalid {
         let path = if sess.profile == Profile::Devices && !operand.starts_with('/') { format!("/{operand}") } else { operand.to_owned() };
-        Err(("EINVAL".to_owned(), path))
-    } else { sess.shell.fs.mkdir(operand, recursive != 0, mode) };
+        let syscall = if sess.profile == Profile::Overlay && mode <= 0o7777 { "resolve" } else if sess.profile == Profile::Overlay { "overlay" } else { "mkdir" };
+        Err(("EINVAL".to_owned(), syscall, path))
+    } else { sess.shell.fs.mkdir_with_operation(operand, recursive != 0, mode) };
     match result {
         Ok(()) => 0,
-        Err((code, path)) => {
-            let syscall = match sess.profile {
-                Profile::Overlay if invalid && mode <= 0o7777 => "resolve",
-                Profile::Overlay => "overlay",
-                _ => "mkdir",
-            };
+        Err((code, syscall, path)) => {
             let changed = u8::from(revision != sess.shell.fs.generation());
             sess.last_output_buf = format!("{changed}{code}:{syscall}:{path}").into_bytes();
             -(sess.last_output_buf.len() as i32)

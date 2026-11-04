@@ -3698,6 +3698,20 @@ test("fs.mkdir creates only requested entries, respects search permissions and p
   }
 });
 
+test("mkdir reports which device lookup failed before creating a directory", async () => {
+  const bash = new RustWasmBash({deviceView:"default", symlinks:{"/alias":"/dev"}});
+  try {
+    for (const [path, recursive, code, syscall, failed] of [
+      ["/missing/..", true, "ENOENT", "lstat", "/missing"],
+      ["/alias/null/../x", true, "ENOTDIR", undefined, "/alias/null/../x"],
+      ["/alias", false, "EEXIST", undefined, "/alias"],
+    ]) {
+      await assert.rejects(bash.fs.mkdir(path, {recursive}), {code, syscall, path:failed});
+      await assert.rejects(bash.fs.stat("/missing"), {code:"ENOENT"});
+    }
+  } finally { bash.dispose(); }
+});
+
 test("mkdir replay retains parents created before a recursive failure", async () => {
   const companion = new RustWasmBash();
   const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});

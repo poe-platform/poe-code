@@ -610,6 +610,7 @@ fn cmd_mkdir(
             let p = absolute_operand(cwd, a);
             p != "/dev" && !p.starts_with("/dev/")
         }) && fs.link_free_memory();
+    let device_view = fs.default_device_view();
     let stat = |path: &str, follow: bool| {
         let op = if follow { "stat" } else { "lstat" };
         match fs.inspect_command_entry(path, follow, op) {
@@ -618,10 +619,11 @@ fn cmd_mkdir(
             Err(e) if follow && (e.starts_with("ELOOP:") || e.starts_with("ENOTDIR:"))
                 && fs.inspect_command_entry(path, false, "lstat").is_ok_and(|(_, st)| st.kind == VfsEntryKind::Symlink) => Ok(None),
             Err(e) if e.starts_with("ENOTDIR: not a directory '") => Err(e),
+            Err(e) if !device_view && e.starts_with("ELOOP:") => Err(format!("ELOOP: too many symbolic links encountered, {op} '{path}'")),
             Err(e) => Err(copy_error(&e, op, path)),
         }
     };
-    let mkdir = |path: &str, parents, mode| fs.mkdir(path, parents, mode).map_err(|(code, path)| {
+    let mkdir = |path: &str, parents, mode| fs.mkdir_with_operation(path, parents, mode).map_err(|(code, op, path)| {
         let reason = match code.as_str() {
             "ENOENT" => "no such file or directory", "EEXIST" => "file already exists",
             "ENOTDIR" => "not a directory", "EACCES" => "permission denied",
@@ -630,7 +632,7 @@ fn cmd_mkdir(
             "ENOTSUP" => "operation not supported", "EINVAL" => "invalid argument",
             "EROFS" => "read-only file system", _ => return code,
         };
-        format!("{code}: {reason}, mkdir '{path}'")
+        if op.is_empty() { format!("{code}: {reason} '{path}'") } else { format!("{code}: {reason}, {op} '{path}'") }
     });
     let mut create = |operand: &str| -> Result<(), String> {
         let path = command_operand(cwd, operand)?;
@@ -656,6 +658,19 @@ fn cmd_mkdir(
         }
         if recursive && (explicit_mode.is_some() || umask_val & 0o300 != 0) {
             mkdir(&crate::vfs::dirname_posix_path(&path), true, default_mode | 0o300)?;
+        }
+        if !direct && explicit_mode.is_none() && device_view {
+            let mut candidate = path.as_str();
+            loop {
+                // The creation-mask adapter queries each parent until it can supply a mode.
+                match fs.command_create_path(candidate) {
+                    Err(e) if recursive && e.starts_with("ENOENT:") && candidate != "/" => {
+                        candidate = candidate.trim_end_matches('/').rsplit_once('/').map_or("/", |(p, _)| if p.is_empty() { "/" } else { p });
+                    }
+                    Err(e) => return Err(e),
+                    Ok(_) => break,
+                }
+            }
         }
         mkdir(&path, recursive, explicit_mode.unwrap_or(default_mode))?;
         for d in created { stdout.push_str(&format!("mkdir: created directory {}\n", display_operand(d))); }
@@ -7293,6 +7308,21 @@ mod tests {
         let result = cmd_du(&args(&["-B1", "Cargo.toml"]), "/", &Default::default(), &fs);
         assert_eq!(result.exit_code, 0);
         assert_eq!(result.stdout, format!("{allocated}\tCargo.toml\n"));
+    }
+
+    #[test]
+    fn mkdir_queries_the_default_device_view_before_creating_with_an_implicit_mode() {
+        let fs = MemoryVfs::new();
+        fs.set_devices(crate::vfs::memory::Devices::Null);
+        fs.symlink("/nowhere", "/alias").unwrap();
+        let run = |a: &[&str]| cmd_mkdir(&args(a), "/", &BTreeMap::new(), &fs);
+        assert_eq!(run(&["/missing/child"]).stderr, "mkdir: ENOENT: no such file or directory, lstat '/missing'\n");
+        assert_eq!(run(&["-p", "/new//child"]).stderr, "mkdir: EISDIR: illegal operation on a directory '/new/'\n");
+        assert!(!fs.exists("/new"));
+        assert_eq!(run(&["-pm", "700", "/missing/../out"]).stderr, "mkdir: ENOENT: no such file or directory, lstat '/missing'\n");
+        assert!(!fs.exists("/missing"));
+        assert_eq!(run(&["-pm", "700", "/new//child"]).exit_code, 0);
+        assert!(fs.is_dir("/new/child"));
     }
 
     #[test]

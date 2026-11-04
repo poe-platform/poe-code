@@ -1066,6 +1066,11 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
+        self.open_chunks_sized(path, std::num::NonZeroUsize::new(65536).unwrap())
+    }
+
+    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
+        let size = size.get().min(65536);
         let (resolved, devices) = {
             let state = self.state.read().map_err(|e| e.to_string())?;
             (Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?, state.devices)
@@ -1075,7 +1080,7 @@ impl SafeBashFs for MemoryVfs {
             Some(name @ ("zero" | "random" | "urandom")) => {
                 let random = name != "zero";
                 Ok(Box::new(move |chunk| {
-                    chunk.resize(65536, 0);
+                    chunk.resize(size, 0);
                     if random { fill_random(chunk)?; } else { chunk.fill(0); }
                     Ok(())
                 }))
@@ -1086,7 +1091,7 @@ impl SafeBashFs for MemoryVfs {
                 if file.stat().mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
                 let mut offset = 0;
                 Ok(Box::new(move |chunk| {
-                    *chunk = file.read(offset, 65536);
+                    *chunk = file.read(offset, size);
                     offset += chunk.len() as u64;
                     Ok(())
                 }))

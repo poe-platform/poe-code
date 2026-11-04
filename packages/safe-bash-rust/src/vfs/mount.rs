@@ -108,6 +108,11 @@ impl SafeBashFs for MountVfs {
         fs.open_chunks(&path)
     }
 
+    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
+        let (fs, path) = self.route(path, true)?;
+        fs.open_chunks_sized(&path, size)
+    }
+
     fn commit_file_edit(&self, path: &str, original: &FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
         let (_, fs, entry) = self.location(&self.resolve(path, false, WalkPurpose::Access)?);
         fs.commit_file_edit(&entry, original, before, after, in_place)

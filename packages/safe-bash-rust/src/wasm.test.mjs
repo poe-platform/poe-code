@@ -9231,6 +9231,18 @@ test("pr writes completed rows before pulling more input and stops at output and
   } finally { bash.dispose(); }
 });
 
+test("pr commits complete rows at named-file read boundaries", async () => {
+  for (const profile of ["memory-fs", "overlay-cow-fs"]) {
+    const bash = new RustWasmBash({cwd:"/", ...(profile === "memory-fs" ? {} : {profile})});
+    try {
+      const line = "123456\n";
+      await bash.fs.writeFile("/rows", line.repeat(10000));
+      await assert.rejects(bash.exec("pr -t /rows >/out", {limits:{maxOutputBytes:16384}}), {limit:"maxOutputBytes"});
+      assert.equal(bash.readText("/out"), line.repeat(Math.floor(16384 / line.length)));
+    } finally { bash.dispose(); }
+  }
+});
+
 test("pr keeps the completed prefix and reports redirected input errors in order", async () => {
   const bash = new RustWasmBash({cwd:"/", files:{"/f":"abc\n123\n"}});
   try {

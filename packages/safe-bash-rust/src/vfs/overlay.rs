@@ -421,6 +421,11 @@ impl SafeBashFs for OverlayVfs {
         fs.open_chunks(&path)
     }
 
+    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
+        let (fs, path) = self.read_source(path)?;
+        fs.open_chunks_sized(&path, size)
+    }
+
     fn commit_file_edit(&self, path: &str, original: &FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
         self.write_entry(path, after, FileWrite::Edit { original, before, in_place })
     }

@@ -357,6 +357,20 @@ pub trait SafeBashFs: Send + Sync {
             Ok(())
         }))
     }
+    /// Read chunks of at most `size` bytes, including on backends with a fixed block size.
+    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<ChunkReader<'_>, String> {
+        let mut next = self.open_chunks(path)?;
+        let mut block = Vec::new();
+        let mut pos = 0;
+        Ok(Box::new(move |chunk| {
+            if pos == block.len() { next(&mut block)?; pos = 0; }
+            let end = pos + (block.len() - pos).min(size.get());
+            chunk.clear();
+            chunk.extend_from_slice(&block[pos..end]);
+            pos = end;
+            Ok(())
+        }))
+    }
     /// Deliver successive file chunks until EOF or the consumer returns false.
     fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
         let mut next = self.open_chunks(path)?;

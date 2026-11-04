@@ -14294,7 +14294,7 @@ fn cmd_pr(
                     let detail = |e: String| format!("pr: {label}: {}\n", pr_fs_reason(&e));
                     let reader = match &mut next {
                         Some(reader) => reader,
-                        None => next.insert(fs.open_chunks(&path).map_err(detail)?),
+                        None => next.insert(fs.open_chunks_sized(&path, std::num::NonZeroUsize::new(16384).unwrap()).map_err(detail)?),
                     };
                     reader(chunk).map_err(detail)
                 })));

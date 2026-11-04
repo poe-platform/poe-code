@@ -191,6 +191,16 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         }))
     }
 
+    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<crate::vfs::ChunkReader<'_>, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        let mut next = self.inner.open_chunks_sized(&host_text(path), size).map_err(quote_host_text)?;
+        Ok(Box::new(move |chunk| {
+            self.budget.check_cancelled()?;
+            next(chunk)
+        }))
+    }
+
     fn commit_file_edit(&self, path: &str, original: &crate::vfs::FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

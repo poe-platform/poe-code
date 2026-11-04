@@ -275,11 +275,16 @@ impl SafeBashFs for RealVfs {
     }
 
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
+        self.open_chunks_sized(path, std::num::NonZeroUsize::new(65536).unwrap())
+    }
+
+    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
+        let size = size.get().min(65536);
         use std::io::Read;
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
         let mut file = std::fs::File::open(host).map_err(mutation_error)?;
         Ok(Box::new(move |chunk| {
-            chunk.resize(65536, 0);
+            chunk.resize(size, 0);
             let count = file.read(chunk).map_err(mutation_error)?;
             chunk.truncate(count);
             Ok(())

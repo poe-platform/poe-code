@@ -17176,6 +17176,50 @@ fn parse_dd_number(text: &str, warnings: &mut Vec<String>) -> Result<usize, Stri
     Ok(product)
 }
 
+type DdFileReader<'a> = Box<dyn FnMut(usize, usize) -> Result<Vec<u8>, String> + 'a>;
+
+fn dd_input<'a>(
+    fs: &'a dyn SafeBashFs, cwd: &str, name: &str, nofollow: bool,
+) -> Result<(Option<usize>, DdFileReader<'a>), String> {
+    use crate::vfs::{RedirectAccess, VfsEntryKind};
+    let path = absolute_operand(cwd, name);
+    if path.is_empty() { return Err("ENOENT: empty path".into()); }
+    let entry = fs.access_path(&path, !nofollow)?;
+    let descriptor = fs.supports_command_descriptor(&entry);
+    if nofollow && !descriptor { return Err("ENOTSUP: operation not supported".into()); }
+    let st = if descriptor && !nofollow {
+        fs.inspect_command_entry(&entry, true, "stat")?.1
+    } else { fs.lstat(&entry)? };
+    if nofollow && st.kind == VfsEntryKind::Symlink { return Err("ELOOP: too many symbolic links".into()); }
+    if descriptor && (nofollow || st.kind != VfsEntryKind::Directory) {
+        if !nofollow { fs.access_path(&entry, true)?; } // openCommandFile checks capabilities.
+        if let Some(file) = fs.open_redirect_file(&entry, RedirectAccess::Read, None)? {
+            fs.command_descriptor_op()?; // fstat
+            return Ok(((!file.is_stream()).then_some(st.size), Box::new(move |pos, size| {
+                fs.command_descriptor_op()?;
+                file.read_at(pos, size)
+            })));
+        }
+    }
+    // The stream adapter checks stat, read permission and capabilities at open,
+    // but doesn't start the underlying file stream until the first read.
+    fs.inspect_command_entry(&entry, true, "stat")?;
+    fs.command_descriptor_op()?;
+    if st.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+    fs.command_descriptor_op()?;
+    if st.kind == VfsEntryKind::Directory {
+        return Ok((None, Box::new(|_, _| Err("EISDIR: is a directory".into()))));
+    }
+    let mut file: Option<Box<dyn crate::vfs::FileReadHandle>> = None;
+    Ok((Some(st.size), Box::new(move |pos, size| {
+        if file.is_none() {
+            fs.command_descriptor_op()?; // readFileStream capability query
+            file = Some(fs.open_read_file(&entry, false)?);
+        }
+        file.as_ref().unwrap().read(pos as u64, size)
+    })))
+}
+
 fn dd_output<'a>(
     fs: &'a dyn SafeBashFs, cwd: &str, name: &str, flags: &[&str], conv: &BTreeSet<String>,
     start: usize, mode: u32,
@@ -17426,6 +17470,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
         }
     }
 
+    let two_buffers = bs_opt.is_none() || ["ascii","ebcdic","ibm","block","unblock","swab","lcase","ucase"].iter().any(|f| conv_set.contains(*f));
     if let Some(b) = bs_opt {
         ibs = b;
         obs = b;
@@ -17480,34 +17525,23 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
     if let Some(error) = check_flags(&iflags, false) { return error; }
 
     let skip_offset = if skip_bytes { skip } else { skip.saturating_mul(ibs) };
-    let file_input = if let Some(ref inf) = in_file {
-        Some(if inf == "/dev/null" {
-            Vec::new()
-        } else if inf == "/dev/zero" {
-            let cnt_len = match count {
-                Some(c) => {
-                    if count_bytes {
-                        c
-                    } else {
-                        c.saturating_mul(ibs)
-                    }
-                }
-                None => 0,
-            };
-            vec![0u8; skip_offset.saturating_add(cnt_len).min(16 * 1024 * 1024)]
+    let mut file_input = None;
+    let mut input_size = None;
+    if let Some(name) = in_file.as_deref() {
+        let reader: DdFileReader = if name == "/dev/null" {
+            Box::new(|_, _| Ok(Vec::new()))
+        } else if name == "/dev/zero" {
+            let length = count.map_or(0, |n| if count_bytes { n } else { n.saturating_mul(ibs) });
+            let end = skip_offset.saturating_add(length).min(16 * 1024 * 1024);
+            Box::new(move |pos, size| Ok(vec![0; end.saturating_sub(pos).min(size)]))
         } else {
-            let full = resolve_posix_path(cwd, inf);
-            match fs.read_file(&full) {
-                Ok(b) => b,
-                Err(e) => {
-                    return err_out(
-                        &format!("{}dd: failed to open '{inf}': {}\n", warnings.concat(), install_reason(&e)),
-                        1,
-                    );
-                }
+            match dd_input(fs, cwd, name, iflags.contains(&"nofollow")) {
+                Ok((size, reader)) => { input_size = size; reader }
+                Err(e) => return err_out(&format!("{}dd: failed to open '{name}': {}\n", warnings.concat(), install_reason(&e)), 1),
             }
-        })
-    } else { None };
+        };
+        file_input = Some(reader);
+    }
 
     if let Some(error) = check_flags(&oflags, out_file.is_some()) { return error; }
     if out_file.is_none() {
@@ -17573,7 +17607,9 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
     let mut result = ok_out("");
     let mut output_record = Vec::new();
     let mut total_b = 0u64;
-    let two_buffers = bs_opt.is_none() || ["ascii","ebcdic","ibm","block","unblock","swab","lcase","ucase"].iter().any(|f| conv_set.contains(*f));
+    let mut output_full = 0usize;
+    let mut output_partial = 0usize;
+    let sync = conv_set.contains("sync");
     let mut write_record = |record: &[u8]| {
         if out_file.is_none() {
             if !write(1, &crate::vfs::bytes_to_stream_string(record), &mut result) { return false; }
@@ -17583,10 +17619,12 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
             result.exit_code = 1;
             return false;
         }
+        if record.len() == obs { output_full += 1; } else { output_partial += 1; }
         total_b += record.len() as u64;
         true
     };
     let mut emit = |mut bytes: &[u8]| -> Result<(), ()> {
+        if !two_buffers && !sync { return write_record(bytes).then_some(()).ok_or(()); }
         while !bytes.is_empty() {
             if output_record.is_empty() && bytes.len() >= obs {
                 if !write_record(&bytes[..obs]) { return Err(()); }
@@ -17632,7 +17670,6 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
 
     let mut input_full = 0usize;
     let mut input_partial = 0usize;
-    let sync = conv_set.contains("sync");
     let sync_fill = if do_block || do_unblock { b' ' } else { 0 };
     let translate = ["ascii", "ebcdic", "ibm", "lcase", "ucase"].iter().any(|name| conv_set.contains(*name));
     let plain = !translate && !do_block && !do_unblock && !do_swab;
@@ -17660,68 +17697,107 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
         Ok(())
     };
 
-    // Without a seekable input, count=0 still skips whole 512-byte records.
-    let mut skip_left = if in_file.is_none() && count == Some(0)
-        && stdin.file.is_some_and(|s| matches!(s.source, super::InputSource::Chunks(_))) {
-        let records = if skip_bytes { skip / ibs } else { skip };
-        records.saturating_mul(512).saturating_add(if skip_bytes { skip % ibs } else { 0 })
-    } else { skip_offset };
-    let maximum = count.map_or(usize::MAX, |n| skip_left.saturating_add(if count_bytes { n } else { n.saturating_mul(ibs) }));
-    let mut partial = Vec::new();
     let mut writable = true;
-    let mut consume = |chunk: &[u8], _: bool| {
-        let skipped = skip_left.min(chunk.len());
-        skip_left -= skipped;
-        let mut used = skipped;
-        while used < chunk.len() {
-            let n = (ibs - partial.len()).min(chunk.len() - used);
-            let bytes = &chunk[used..used + n];
-            used += n;
-            if partial.is_empty() && n == ibs {
-                writable = record(bytes).is_ok();
-            } else {
-                partial.extend_from_slice(bytes);
-                if partial.len() == ibs {
-                    writable = record(&partial).is_ok();
-                    partial.clear();
+    let mut read_error = None;
+    if let Some(mut read) = file_input {
+        let mut pos = skip_offset;
+        let mut records = count.map_or(usize::MAX, |n| if count_bytes { n / ibs } else { n });
+        let mut tail = if count_bytes { count.unwrap_or(0) % ibs } else { 0 };
+        let fullblock = iflags.contains(&"fullblock");
+        let mut previous_short = 0;
+        let mut warned = false;
+        while records != 0 || tail != 0 {
+            let wanted = if records != 0 { records -= 1; ibs } else { std::mem::take(&mut tail) };
+            let mut bytes = match read(pos, wanted) {
+                Ok(bytes) if bytes.is_empty() => break,
+                Ok(bytes) => bytes,
+                Err(e) => { read_error = Some(e); break; }
+            };
+            pos = pos.saturating_add(bytes.len());
+            while fullblock && bytes.len() < wanted {
+                match read(pos, wanted - bytes.len()) {
+                    Ok(next) if next.is_empty() => break,
+                    Ok(next) => { pos = pos.saturating_add(next.len()); bytes.extend(next); }
+                    Err(e) => { read_error = Some(e); break; }
                 }
             }
+            if read_error.is_some() { break; }
+            if previous_short != 0 && !warned && !two_buffers && !fullblock
+                && (skip != 0 || count.is_some()) && status_level != "none" {
+                warnings.push(format!("dd: warning: partial read ({previous_short} byte{}); suggest iflag=fullblock\n",
+                    if previous_short == 1 { "" } else { "s" }));
+                warned = true;
+            }
+            previous_short = if bytes.len() < ibs { bytes.len() } else { 0 };
+            writable = record(&bytes).is_ok();
             if !writable { break; }
         }
-        Ok((writable, used))
-    };
-    if maximum != 0 {
-        let read = if let Some(bytes) = file_input {
-            consume(&bytes[..bytes.len().min(maximum)], false).map(|_| ())
-        } else if let Some(source) = stdin.file {
-            source.admit_bounded_read().and_then(|()| source.read(stdin.text, maximum, consume))
-        } else {
-            let bytes = stream_string_to_bytes(stdin.text);
-            if bytes.len() > fs.max_input_bytes() {
-                return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1);
+    } else {
+        // Without a seekable input, count=0 still skips whole 512-byte records.
+        let mut skip_left = if count == Some(0)
+            && stdin.file.is_some_and(|s| matches!(s.source, super::InputSource::Chunks(_))) {
+            let records = if skip_bytes { skip / ibs } else { skip };
+            records.saturating_mul(512).saturating_add(if skip_bytes { skip % ibs } else { 0 })
+        } else { skip_offset };
+        let maximum = count.map_or(usize::MAX, |n| skip_left.saturating_add(if count_bytes { n } else { n.saturating_mul(ibs) }));
+        let mut partial = Vec::new();
+        let mut consume = |chunk: &[u8], _: bool| {
+            let skipped = skip_left.min(chunk.len());
+            skip_left -= skipped;
+            let mut used = skipped;
+            while used < chunk.len() {
+                let n = (ibs - partial.len()).min(chunk.len() - used);
+                let bytes = &chunk[used..used + n];
+                used += n;
+                if partial.is_empty() && n == ibs {
+                    writable = record(bytes).is_ok();
+                } else {
+                    partial.extend_from_slice(bytes);
+                    if partial.len() == ibs {
+                        writable = record(&partial).is_ok();
+                        partial.clear();
+                    }
+                }
+                if !writable { break; }
             }
-            consume(&bytes[..bytes.len().min(maximum)], false).map(|(_, used)| {
-                *stdin.text = crate::vfs::bytes_to_stream_string(&bytes[used..]);
-            })
+            Ok((writable, used))
         };
-        if let Err(e) = read {
-            result.stderr.push_str(&format!("dd: error reading 'standard input': {e}\n"));
-            result.exit_code = 1;
-            return result;
+        if maximum != 0 {
+            let read = if let Some(source) = stdin.file {
+                source.admit_bounded_read().and_then(|()| source.read(stdin.text, maximum, consume))
+            } else {
+                let bytes = stream_string_to_bytes(stdin.text);
+                if bytes.len() > fs.max_input_bytes() {
+                    return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1);
+                }
+                consume(&bytes[..bytes.len().min(maximum)], false).map(|(_, used)| {
+                    *stdin.text = crate::vfs::bytes_to_stream_string(&bytes[used..]);
+                })
+            };
+            if let Err(e) = read {
+                result.stderr.push_str(&format!("dd: error reading 'standard input': {e}\n"));
+                result.exit_code = 1;
+                return result;
+            }
         }
+        if writable && !partial.is_empty() { writable = record(&partial).is_ok(); }
     }
-    if writable && !partial.is_empty() { writable = record(&partial).is_ok(); }
     if writable && let Some(prev) = saved { writable = record_byte(prev, &mut emit).is_ok(); }
     if writable && do_block && column > 0 {
         while writable && column < cbs { writable = emit(&[space_byte]).is_ok(); column += 1; }
     }
     if writable && do_unblock && column > 0 { writable = emit(&[newline_byte]).is_ok(); }
     if writable && !output_record.is_empty() { writable = write_record(&output_record); }
-    let output_full = total_b / obs as u64;
-    let output_partial = usize::from(!total_b.is_multiple_of(obs as u64));
 
     let mut stderr = warnings.concat();
+    if let Some(e) = read_error {
+        stderr.push_str(&format!("dd: error reading '{}': {}\n", in_file.as_deref().unwrap(), install_reason(&e)));
+        result.exit_code = 1;
+    }
     if status_level != "none" {
+        if input_size.is_some_and(|n| n < skip_offset) {
+            stderr.push_str(&format!("dd: '{}': cannot skip to specified offset\n", in_file.as_deref().unwrap()));
+        }
         stderr.push_str(&format!(
             "{input_full}+{input_partial} records in\n{output_full}+{output_partial} records out\n"
         ));

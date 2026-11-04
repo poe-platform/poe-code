@@ -543,6 +543,22 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("dd reads the opened input one record at a time when the output aliases it", async () => {
+  for (const [args, expected, records] of [
+    ["bs=1", "", "0+0"],
+    ["bs=1 seek=1 conv=notrunc count=4", "111116", "4+0"],
+    ["ibs=2 obs=1 seek=1 count=2", "111", "0+2"],
+    ["bs=2 seek=1B count=3B", "111", "0+2"],
+    ["ibs=2 obs=1 seek=1 conv=notrunc count=2", "112246", "2+0"],
+  ]) {
+    const bash = new RustWasmBash({files:{"/i":"123456"}});
+    try {
+      const r = await bash.exec("ln /i /o; dd if=/i of=/o status=noxfer " + args);
+      assert.deepEqual([r.exitCode, r.stderr.split("\n").find(line => line.endsWith(" records in")), bash.readText("/i")], [0, records + " records in", expected], args);
+    } finally { bash.dispose(); }
+  }
+});
+
 test("dd opens named output before stdin and publishes completed records according to the filesystem", {skip: !WebAssembly.Suspending}, async () => {
   for (const overlay of [false,true]) {
     const bash = new RustWasmBash({...(overlay ? {profile:"overlay-cow-fs"} : {}),files:{"/o":"old"}});

@@ -8977,6 +8977,19 @@ test("rg reports the ancestor that denied a path lookup", async () => {
   } finally { sh.dispose(); }
 });
 
+test("overlay redirections share file contents but keep independent offsets", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs"});
+  try {
+    const script = "exec 3>/out 4>/out; printf abc >&3; printf XX >&4; printf z >&3";
+    await assert.rejects(sh.exec(script,{limits:{maxOutputBytes:5}}),{limit:"maxOutputBytes"});
+    assert.equal(sh.readText("/out"),"XXc");
+    assert.equal((await sh.exec(script,{limits:{maxOutputBytes:6,maxFileSystemOperations:13}})).exitCode,0);
+    assert.equal(sh.readText("/out"),"XXcz");
+    const r = await sh.exec("exec 3>/out; printf abc >&3; mv /out /old; printf z >&3");
+    assert.deepEqual([r.exitCode,sh.readText("/old"),sh.readText("/out")],[0,"abc","abcz"]);
+  } finally { sh.dispose(); }
+});
+
 test("overlay output redirection charges access before it creates, appends or truncates", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/f":"keep","/readonly":{content:"keep",mode:0o400}}});
   try {

@@ -94,6 +94,41 @@ impl PartialEq for StdinStream {
 }
 impl Eq for StdinStream {}
 
+// The pathname output adapter shares its last written contents across opens of
+// the same name. Each independent open retains its own position.
+#[derive(Debug, PartialEq, Eq)]
+pub struct PathOutput {
+    key: String,
+    data: RefCell<Option<Vec<u8>>>,
+}
+
+impl PathOutput {
+    fn write(&self, fs: &dyn SafeBashFs, path: &str, offset: Option<usize>, bytes: &[u8], credited: usize) -> Result<(), String> {
+        let mut data = self.data.borrow_mut();
+        let append = match offset {
+            None => true,
+            Some(pos) if data.as_ref().is_some_and(|old| old.len() == pos) => {
+                fs.command_descriptor_op()?;
+                fs.stat(path).is_ok_and(|st| st.size == pos)
+            }
+            Some(_) => false,
+        };
+        if append {
+            fs.write_redirect_path(path, bytes, true, crate::vfs::RedirectCharge(credited))?;
+            if let Some(old) = data.as_mut() { old.extend_from_slice(bytes); }
+        } else {
+            let pos = offset.unwrap();
+            let mut next = data.clone().unwrap_or_default();
+            if next.len() < pos + bytes.len() { next.resize(pos + bytes.len(), 0); }
+            next[pos..pos + bytes.len()].copy_from_slice(bytes);
+            let credit = next.len() - bytes.len() + credited;
+            fs.write_redirect_path(path, &next, false, crate::vfs::RedirectCharge(credit))?;
+            *data = Some(next);
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FdTarget {
     Stdout,
@@ -101,7 +136,7 @@ pub enum FdTarget {
     SavedStdout { data: Rc<RefCell<String>>, pipe_peer_retired: Option<bool> },
     Stderr,
     SavedStderr(Rc<RefCell<String>>),
-    File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>> },
+    File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>>, image: Option<Rc<PathOutput>> },
     InputFile {
         writable: bool,
         path: String,
@@ -170,7 +205,7 @@ impl FdWriter<'_> {
             FdTarget::InputFile { path, writable: true, .. } if !self.provided_devices && path == "/dev/null" => {
                 let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
             }
-            FdTarget::File { path, file, offset } => {
+            FdTarget::File { path, file, offset, image } => {
                 let null = !self.provided_devices && path == "/dev/null";
                 let bytes = (!null).then(|| stream_string_to_bytes(data));
                 let len = bytes.as_ref().map_or_else(|| stream_byte_len(data), Vec::len);
@@ -183,6 +218,7 @@ impl FdWriter<'_> {
                     let charge = || self.budget.tick_fs_op().and_then(|_| self.budget.add_output_bytes(size - credit));
                     let result = match (&bytes, file) {
                         (Some(bytes), Some(file)) => charge().and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes[start..end])),
+                        (Some(bytes), None) if let Some(image) = image => image.write(self.fs, path, offset.as_ref().map(|p| p.get()), &bytes[start..end], credit),
                         (Some(bytes), None) => self.fs.write_redirect_path(path, &bytes[start..end], true, crate::vfs::RedirectCharge(credit)),
                         (None, _) => charge(),
                     };
@@ -244,6 +280,7 @@ pub struct EvalState<'a> {
     pub current_line: usize,
     pub local_scopes: Vec<BTreeMap<String, Option<String>>>,
     pub fd_table: BTreeMap<u32, FdTarget>,
+    path_outputs: Rc<RefCell<Vec<std::rc::Weak<PathOutput>>>>,
     pub in_fds: BTreeMap<u32, InputCursor>,
     pub in_fd_aliases: BTreeMap<u32, u32>,
     pub mapfile_callback_depth: usize,
@@ -353,6 +390,7 @@ impl<'a> EvalState<'a> {
             current_line: 1,
             local_scopes: Vec::new(),
             fd_table,
+            path_outputs: Rc::default(),
             in_fds: BTreeMap::new(),
             in_fd_aliases: BTreeMap::new(),
             mapfile_callback_depth: 0,
@@ -504,6 +542,7 @@ impl<'a> EvalState<'a> {
             current_line: self.current_line,
             local_scopes: Vec::new(),
             fd_table: self.fd_table.clone(),
+            path_outputs: self.path_outputs.clone(),
             in_fds: self.in_fds.clone(),
             in_fd_aliases: self.in_fd_aliases.clone(),
             mapfile_callback_depth: 0,
@@ -5148,6 +5187,7 @@ impl<'a> EvalState<'a> {
                     current_line: 1,
                     local_scopes: Vec::new(),
                     fd_table,
+                    path_outputs: self.path_outputs.clone(),
                     in_fds: inherited_inputs.clone(),
                     in_fd_aliases: inherited_aliases.clone(),
                     mapfile_callback_depth: 0,
@@ -9664,7 +9704,20 @@ impl<'a> EvalState<'a> {
                     }
                     self.fs.write_command_path(&entry, b"", append, mode)?;
                 }
-                Ok(FdTarget::File { path: entry, file: None, offset: None })
+                let (offset, image) = if exclusive { (None, None) } else {
+                    let key = resolve_posix_path(self.cwd, operand);
+                    let mut open = self.path_outputs.borrow_mut();
+                    open.retain(|file| file.strong_count() != 0);
+                    let file = open.iter().filter_map(std::rc::Weak::upgrade).find(|file| file.key == key)
+                        .unwrap_or_else(|| {
+                            let file = Rc::new(PathOutput { key, data: RefCell::default() });
+                            open.push(Rc::downgrade(&file));
+                            file
+                        });
+                    if !append { *file.data.borrow_mut() = Some(Vec::new()); }
+                    ((!append).then(|| Rc::new(Cell::new(0))), Some(file))
+                };
+                Ok(FdTarget::File { path: entry, file: None, offset, image })
             })();
             return opened.map_err(error);
         }
@@ -9704,7 +9757,7 @@ impl<'a> EvalState<'a> {
             file
         };
         let offset = (file.is_some() && !append).then(|| Rc::new(Cell::new(0)));
-        Ok(FdTarget::File { path, file, offset })
+        Ok(FdTarget::File { path, file, offset, image: None })
     }
 
     fn is_default_null(&self, path: &str) -> bool {

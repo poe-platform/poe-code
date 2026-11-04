@@ -1766,6 +1766,7 @@ struct AwkState<'a> {
     argument: usize,
     saw_file: bool,
     operand_assignments: bool,
+    finite_input_quota: bool,
     error_status: i32,
     redirect_written: BTreeMap<String, bool>,
 }
@@ -1814,7 +1815,7 @@ impl<'a> AwkState<'a> {
             cwd: cwd.to_string(),
             vfs,
             getline_files: BTreeMap::new(),
-            stdin, reader: None, argument: 1, saw_file: false, operand_assignments: true, error_status: 2,
+            stdin, reader: None, argument: 1, saw_file: false, operand_assignments: true, finite_input_quota: true, error_status: 2,
             redirect_written: BTreeMap::new(),
         }
     }
@@ -2228,7 +2229,8 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     let (mut rules, funcs) = parse_awk_rules(&prog_str);
     let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output);
     state.operand_assignments = operand_assignments;
-    state.arrays.insert("ENVIRON".to_string(), env.clone());
+    state.finite_input_quota = !cfg!(target_arch = "wasm32") || env.contains_key("\0has_finite_input_quota");
+    state.arrays.insert("ENVIRON".to_string(), env.iter().filter(|(k,_)| !k.starts_with('\0')).map(|(k,v)| (k.clone(),v.clone())).collect());
     state.set_var("ARGC", (files.len() + 1).to_string());
     let mut argv_map = BTreeMap::new();
     argv_map.insert("0".to_string(), "awk".to_string());

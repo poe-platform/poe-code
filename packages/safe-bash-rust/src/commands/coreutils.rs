@@ -370,9 +370,13 @@ fn record_input_path(name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: boo
 
 pub(super) fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_first: bool) -> Result<crate::vfs::ChunkReader<'a>, String> {
     let (path, entry) = record_input_path(name, cwd, fs, stat_first)?;
+    record_chunks(fs, &entry, path)
+}
+
+pub(super) fn record_chunks<'a>(fs: &'a dyn SafeBashFs, entry: &str, path: String) -> Result<crate::vfs::ChunkReader<'a>, String> {
     let limit = fs.max_input_bytes();
     let mut available = limit;
-    let mut next = fs.open_chunks(&entry).map_err(|e| stream_file_error(e, "readStream", &path))?;
+    let mut next = fs.open_chunks(entry).map_err(|e| stream_file_error(e, "readStream", &path))?;
     Ok(Box::new(move |chunk| {
         next(chunk).map_err(|e| stream_file_error(e, "readStream", &path))?;
         available = available.checked_sub(chunk.len()).ok_or_else(|| stream_file_error(fs.limit_error("maxInputBytes", limit), "readStream", &path))?;

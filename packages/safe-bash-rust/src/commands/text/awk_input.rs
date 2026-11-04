@@ -4,7 +4,8 @@ use crate::vfs::{ChunkReader, bytes_to_stream_string};
 enum Source<'a> {
     Stdin,
     File(ChunkReader<'a>),
-    Snapshot,
+    Named(String),
+    Buffered,
 }
 
 pub(super) struct Reader<'a> {
@@ -13,20 +14,30 @@ pub(super) struct Reader<'a> {
     at: usize,
 }
 
-impl Reader<'_> {
-    fn record(&mut self, rs: Option<u8>, stdin: &mut super::super::CommandInput, output: &mut super::AwkOutput) -> Result<Option<String>, String> {
+impl<'a> Reader<'a> {
+    fn record(&mut self, rs: Option<u8>, stdin: &mut super::super::CommandInput, output: &mut super::AwkOutput, fs: &'a dyn super::SafeBashFs) -> Result<Option<String>, String> {
         let mut partial = Vec::new();
         let mut newlines = 0;
         loop {
             if self.at == self.chunk.len() {
-                if !matches!(self.source, Source::Snapshot) && !output.flush() { return Err(String::new()); }
+                if !matches!(self.source, Source::Buffered) && !output.flush() { return Err(String::new()); }
                 match &mut self.source {
                     Source::Stdin => stdin.next_stdin_chunk(&mut self.chunk)?,
+                    Source::Named(path) => {
+                        let mut next = if fs.supplies_single_chunk_input() && path != "/dev" && !path.starts_with("/dev/") {
+                            super::super::coreutils::record_chunks(fs, path, path.clone())?
+                        } else {
+                            super::super::coreutils::open_record_input(path, "/", fs, false)?
+                        };
+                        next(&mut self.chunk)?;
+                        self.source = Source::File(next);
+                    }
                     Source::File(next) => next(&mut self.chunk)?,
-                    Source::Snapshot => self.chunk.clear(),
+                    Source::Buffered => self.chunk.clear(),
                 }
                 self.at = 0;
                 if self.chunk.is_empty() {
+                    self.source = Source::Buffered;
                     if partial.is_empty() { return Ok(None); }
                     if rs.is_none() { partial.truncate(partial.len() - newlines); }
                     return Ok(Some(bytes_to_stream_string(&partial)));
@@ -80,13 +91,12 @@ impl AwkState<'_> {
                 let path = crate::vfs::path::absolute_operand(&self.cwd, &name);
                 let reader = if name == "-" || name == "/dev/stdin" {
                     Ok(Reader { source: Source::Stdin, chunk: Vec::new(), at: 0 })
-                } else if record_phase_start && self.vfs.supplies_single_chunk_input() && path != "/dev" && !path.starts_with("/dev/") {
+                } else if (record_phase_start || !self.finite_input_quota) && self.vfs.supplies_single_chunk_input() && path != "/dev" && !path.starts_with("/dev/") {
                     self.vfs.read_single_chunk_input(&path, None)
-                        .map(|chunk| Reader { source: Source::Snapshot, chunk, at: 0 })
+                        .map(|chunk| Reader { source: Source::Buffered, chunk, at: 0 })
                         .map_err(|e| super::super::coreutils::stream_file_error(e, "readStream", &path))
                 } else {
-                    super::super::coreutils::open_record_input(&name, &self.cwd, self.vfs, false)
-                        .map(|next| Reader { source: Source::File(next), chunk: Vec::new(), at: 0 })
+                    Ok(Reader { source: Source::Named(path), chunk: Vec::new(), at: 0 })
                 };
                 match reader {
                     Ok(reader) => self.reader = Some(reader),
@@ -101,7 +111,7 @@ impl AwkState<'_> {
                 self.runtime_err = Some("awk: RS must be one byte or empty for paragraph records\n".into());
                 return None;
             }
-            match self.reader.as_mut().unwrap().record(rs.first().copied(), &mut self.stdin, &mut self.output) {
+            match self.reader.as_mut().unwrap().record(rs.first().copied(), &mut self.stdin, &mut self.output, self.vfs) {
                 Ok(Some(line)) => { self.nr += 1; self.fnr += 1; return Some(line); }
                 Ok(None) => self.reader = None,
                 Err(e) => { self.runtime_err = Some(format!("awk: {e}\n")); self.error_status = 1; return None; }

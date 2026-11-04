@@ -1029,7 +1029,10 @@ pub unsafe extern "C" fn safe_bash_set_limit(
         "maxMemoryBytes" => lim.max_memory_bytes = val,
         "maxRedirects" => lim.max_redirects = val,
         "maxPathnameComponents" => lim.max_pathname_components = val,
-        "maxInputBytes" => lim.max_input_bytes = val,
+        "maxInputBytes" => {
+            lim.max_input_bytes = val;
+            sess.shell.set_binding("\0has_finite_input_quota", "1");
+        }
         "maxParseUnits" => lim.max_parse_units = val,
         "maxSourceBytes" => lim.max_source_bytes = val,
         "maxVfsBytes" | "maxBytes" => {

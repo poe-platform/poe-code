@@ -8562,6 +8562,29 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk charges each streamed memory operand once and flushes before getline opens it", async () => {
+  const sh = new RustWasmBash({files:{"/f":"a\nb\n"}});
+  try {
+    for (const [args, cost, stdout] of [["'BEGIN{getline;print}' /f",1,"a\n"], ["1 /f /f",2,"a\nb\na\nb\n"]]) {
+      await assert.rejects(sh.exec("awk "+args,{limits:{maxFileSystemOperations:cost-1}}),{limit:"maxFileSystemOperations"});
+      const r = await sh.exec("awk "+args,{limits:{maxFileSystemOperations:cost}});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,stdout,""]);
+    }
+    for (const [ops, limit] of [[0,"maxFileSystemOperations"],[1,"maxInputBytes"]]) {
+      await assert.rejects(sh.exec("awk 'BEGIN{getline;print}' /f",{limits:{maxFileSystemOperations:ops,maxInputBytes:3}}),{limit});
+    }
+    for (const [limits,length] of [[{},0],[{maxInputBytes:100},3]]) {
+      const r = await sh.exec("awk 'BEGIN{print 123;getline;print length($0)}' /o >/o",{limits});
+      assert.equal(r.exitCode,0); assert.equal(Buffer.from(await sh.fs.readFile("/o")).toString(),"123\n"+length+"\n");
+    }
+    for (const [limits,output] of [[{}, "x\ny\nx\n"], [{maxInputBytes:100},"x\ny\nx\ny\n"]]) {
+      const stdin = {async *[Symbol.asyncIterator]() { yield Buffer.from("x\ny"); }};
+      const r = await sh.exec("awk 1 - /o >/o",{limits,stdin});
+      assert.equal(r.exitCode,0); assert.equal(Buffer.from(await sh.fs.readFile("/o")).toString(),output);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("awk admits a direct memory operand before charging the read at the start of record processing", async () => {
   const sh = new RustWasmBash({files:{"/f":"abc\ndef\n"}});
   try {

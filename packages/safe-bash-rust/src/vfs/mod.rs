@@ -462,7 +462,7 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     /// Preserve the failing operation for device lookups and routed filesystems.
-    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {
+    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32, _try_backing: bool) -> Result<(), (String, &'static str, String)> {
         let syscall = if self.overlay_backend().is_some() { "overlay" } else { "mkdir" };
         self.mkdir(path, recursive, mode).map_err(|(code, at)| (code, syscall, at))
     }

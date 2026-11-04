@@ -302,7 +302,7 @@ pub unsafe extern "C" fn safe_bash_fs_mkdir(id: u32, ptr: *const u8, len: usize,
         let path = if sess.profile == Profile::Devices && !operand.starts_with('/') { format!("/{operand}") } else { operand.to_owned() };
         let syscall = if sess.profile == Profile::Overlay && mode <= 0o7777 { "resolve" } else if sess.profile == Profile::Overlay { "overlay" } else { "mkdir" };
         Err(("EINVAL".to_owned(), syscall, path))
-    } else { sess.shell.fs.mkdir_with_operation(operand, recursive != 0, mode) };
+    } else { sess.shell.fs.mkdir_with_operation(operand, recursive != 0, mode, false) };
     match result {
         Ok(()) => 0,
         Err((code, syscall, path)) => {
@@ -1041,7 +1041,10 @@ pub unsafe extern "C" fn safe_bash_set_limit(
         "maxLoopIterations" => lim.max_loop_iterations = val,
         "maxCommands" => lim.max_commands = val,
         "maxOutputBytes" => lim.max_output_bytes = val,
-        "maxFileSystemOperations" => lim.max_filesystem_operations = val,
+        "maxFileSystemOperations" => {
+            lim.max_filesystem_operations = val;
+            sess.shell.set_binding("\0has_finite_fs_quota", "1");
+        }
         "maxPipelineStages" => lim.max_pipeline_stages = val,
         "maxSubstitutionDepth" => lim.max_substitution_depth = val,
         "maxFunctionDepth" => lim.max_function_depth = val,

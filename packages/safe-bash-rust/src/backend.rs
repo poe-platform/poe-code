@@ -327,7 +327,7 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
-        self.mkdir_with_operation(path, recursive, mode).map_err(|(code, _, at)| (code, at))
+        self.mkdir_with_operation(path, recursive, mode, false).map_err(|(code, _, at)| (code, at))
     }
 
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
@@ -337,10 +337,10 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
 
     fn default_device_view(&self) -> bool { self.inner.default_device_view() }
 
-    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {
+    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32, try_backing: bool) -> Result<(), (String, &'static str, String)> {
         self.budget.limits.check_path(path).and_then(|()| self.budget.tick_fs_op())
             .map_err(|error| (error, "mkdir", path.to_owned()))?;
-        self.inner.mkdir_with_operation(&host_text(path), recursive, mode)
+        self.inner.mkdir_with_operation(&host_text(path), recursive, mode, try_backing)
             .map_err(|(code, op, at)| (code, op, quote_host_text(at)))
     }
 

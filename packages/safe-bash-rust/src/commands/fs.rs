@@ -612,6 +612,10 @@ fn cmd_mkdir(
             p != "/dev" && !p.starts_with("/dev/")
         }) && link_free;
     let device_view = fs.default_device_view();
+    let try_backing = direct && device_view && operands.len() == 1 && !env.contains_key("\0has_finite_fs_quota")
+        && fs.shell_limits().max_filesystem_operations == crate::ShellLimits::default().max_filesystem_operations
+        && absolute_operand(cwd, &operands[0]).len() <= 512
+        && args.iter().take_while(|a| a.as_str() != "--").all(|a| !a.starts_with('-') || matches!(a.as_str(), "-" | "-p" | "--parents"));
     let stat = |path: &str, follow: bool| {
         if link_free && path != "/" && path != "/dev" && !path.starts_with("/dev/") && fs.indexed_directory_entry(path) == Some(false) {
             fs.command_descriptor_op()?;
@@ -628,7 +632,7 @@ fn cmd_mkdir(
             Err(e) => Err(copy_error(&e, op, path)),
         }
     };
-    let mkdir = |path: &str, parents, mode| fs.mkdir_with_operation(path, parents, mode).map_err(|(code, op, path)| {
+    let mkdir = |path: &str, parents, mode| fs.mkdir_with_operation(path, parents, mode, try_backing).map_err(|(code, op, path)| {
         let reason = match code.as_str() {
             "ENOENT" => "no such file or directory", "EEXIST" => "file already exists",
             "ENOTDIR" => "not a directory", "EACCES" => "permission denied",

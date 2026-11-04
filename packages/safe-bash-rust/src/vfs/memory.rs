@@ -908,6 +908,36 @@ impl MemoryVfs {
         Ok(current)
     }
 
+    fn mkdir_nodes(&self, state: &mut MemoryState, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {
+        if mode > 0o7777 { return Err(("EINVAL".into(), "mkdir", path.to_owned())); }
+        super::path::walk_memory_entry(path, state.limits.max_symlink_hops, recursive, |entry, last| {
+            match state.nodes.get(entry) {
+                Some(_) if last && !recursive => return Err("EEXIST".into()),
+                Some(MemoryNode::Symlink { target, .. }) => return Ok(Some(target.to_string())),
+                Some(MemoryNode::Directory { mode, .. }) => {
+                    if !last && mode & 0o100 == 0 { return Err("EACCES".into()); }
+                }
+                Some(_) => return Err(if last { "EEXIST" } else { "ENOTDIR" }.into()),
+                None if !recursive && !last => return Err("ENOENT".into()),
+                None => {
+                    let parent = crate::vfs::dirname_posix_path(entry);
+                    if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory {mode, ..}) if mode & 0o300 == 0o300) {
+                        return Err("EACCES".into());
+                    }
+                    if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC".into()); }
+                    state.create_directory(entry.to_owned(), 0o40000 | mode);
+                    self.bump_generation();
+                    if !last && mode & 0o100 == 0 { return Err("EACCES".into()); }
+                }
+            }
+            Ok(None)
+        }).map(|_| ()).map_err(|error| {
+            let code = error.split(':').next().unwrap();
+            let p = if !recursive && matches!(code, "ENOENT" | "ENOTDIR" | "ENAMETOOLONG" | "ELOOP") { path.trim_end_matches('/') } else { path };
+            (code.to_owned(), "mkdir", p.to_owned())
+        })
+    }
+
     fn terminal_dot(path: &str) -> bool {
         matches!(path.trim_end_matches('/').rsplit('/').next(),Some("." | ".."))
     }
@@ -1480,14 +1510,14 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
-        self.mkdir_with_operation(path, recursive, mode).map_err(|(code, _, at)| (code, at))
+        self.mkdir_with_operation(path, recursive, mode, false).map_err(|(code, _, at)| (code, at))
     }
 
     fn default_device_view(&self) -> bool {
         self.state.read().is_ok_and(|s| s.devices == Devices::Null)
     }
 
-    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {
+    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32, try_backing: bool) -> Result<(), (String, &'static str, String)> {
         let mut state = self.state.write().map_err(|_| ("EIO".into(), "mkdir", path.to_owned()))?;
         if !matches!(state.devices, Devices::Null | Devices::None) {
             drop(state);
@@ -1495,6 +1525,11 @@ impl SafeBashFs for MemoryVfs {
                 .map_err(|(code, at)| (code, "mkdir", at));
         }
         if state.devices == Devices::Null {
+            // The shell can use stock, link-free memory directly for a single plain mkdir.
+            // A failed attempt falls through with any parents already created.
+            if try_backing && path != "/dev" && !path.starts_with("/dev/")
+                && !state.nodes.values().any(|n| matches!(n, MemoryNode::Symlink { .. }))
+                && self.mkdir_nodes(&mut state, path, recursive, mode).is_ok() { return Ok(()); }
             let resolved = Self::device_operand(&state, path, true).map_err(|error| {
                 let failed = error.split_once(" '").filter(|(reason, _)| reason.ends_with(", lstat")).and_then(|(_, p)| p.strip_suffix('\''));
                 (error.split(':').next().unwrap().to_owned(), if failed.is_some() { "lstat" } else { "" }, failed.unwrap_or(path).to_owned())
@@ -1503,33 +1538,7 @@ impl SafeBashFs for MemoryVfs {
                 return if recursive && resolved != "/dev/null" { Ok(()) } else { Err(("EEXIST".into(), "", path.to_owned())) };
             }
         }
-        if mode > 0o7777 { return Err(("EINVAL".into(), "mkdir", path.to_owned())); }
-        super::path::walk_memory_entry(path, state.limits.max_symlink_hops, recursive, |entry, last| {
-            match state.nodes.get(entry) {
-                Some(_) if last && !recursive => return Err("EEXIST".into()),
-                Some(MemoryNode::Symlink { target, .. }) => return Ok(Some(target.to_string())),
-                Some(MemoryNode::Directory { mode, .. }) => {
-                    if !last && mode & 0o100 == 0 { return Err("EACCES".into()); }
-                }
-                Some(_) => return Err(if last { "EEXIST" } else { "ENOTDIR" }.into()),
-                None if !recursive && !last => return Err("ENOENT".into()),
-                None => {
-                    let parent = crate::vfs::dirname_posix_path(entry);
-                    if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory {mode, ..}) if mode & 0o300 == 0o300) {
-                        return Err("EACCES".into());
-                    }
-                    if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC".into()); }
-                    state.create_directory(entry.to_owned(), 0o40000 | mode);
-                    self.bump_generation();
-                    if !last && mode & 0o100 == 0 { return Err("EACCES".into()); }
-                }
-            }
-            Ok(None)
-        }).map(|_| ()).map_err(|error| {
-            let code = error.split(':').next().unwrap();
-            let p = if !recursive && matches!(code, "ENOENT" | "ENOTDIR" | "ENAMETOOLONG" | "ELOOP") { path.trim_end_matches('/') } else { path };
-            (code.to_owned(), "mkdir", p.to_owned())
-        })
+        self.mkdir_nodes(&mut state, path, recursive, mode)
     }
 
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {

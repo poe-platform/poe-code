@@ -3698,6 +3698,17 @@ test("fs.mkdir creates only requested entries, respects search permissions and p
   }
 });
 
+test("link-free mkdir uses backing memory only when the shell has no explicit operation limit", async () => {
+  for (const limits of [undefined, {maxFileSystemOperations: 100000}]) {
+    const bash = new RustWasmBash({deviceView:"default", cwd:"/", limits});
+    try {
+      const result = await bash.exec("mkdir -p /new/..");
+      assert.equal(result.exitCode, limits ? 1 : 0);
+      assert.equal(await bash.fs.stat("/new").then(() => true, () => false), !limits);
+    } finally { bash.dispose(); }
+  }
+});
+
 test("mkdir checks all operands against the operation limit before creating directories", async () => {
   for (const [view, ops] of [["provided", 6], ["default", 10]]) {
     for (const limit of [1, ops - 1, ops]) {

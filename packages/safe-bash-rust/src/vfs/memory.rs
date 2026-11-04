@@ -1096,7 +1096,10 @@ impl SafeBashFs for MemoryVfs {
         let entry = if exclusive { Self::mutation_entry(&state, path)? } else {
             Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?
         };
-        if let Some(name) = state.devices.entry(&entry).filter(|name| !name.is_empty()) {
+        if let Some(name) = state.devices.entry(&entry) {
+            if name.is_empty() {
+                return Err(if exclusive { "EEXIST: file already exists" } else { "EISDIR: illegal operation on a directory" }.into());
+            }
             if matches!(access, super::RedirectAccess::Read | super::RedirectAccess::ReadWrite)
                 && matches!(name, "zero" | "random" | "urandom")
             {

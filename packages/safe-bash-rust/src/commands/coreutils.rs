@@ -21168,7 +21168,15 @@ fn cmd_truncate(
         let label = fmt_quote::quote(&f, true, unicode);
         let result = (|| -> Result<(), String> {
             let open = super::fs::command_operand(cwd, &f).map_err(str::to_owned)
-                .and_then(|path| fs.access_path(&path, true))
+                .and_then(|path| {
+                    let entry = path.trim_end_matches('/');
+                    if !no_create && entry.len() < path.len()
+                        && !matches!(entry.rsplit('/').next(), Some("" | "." | "..")) {
+                        fs.access_path(entry, false)?;
+                        return Err("EISDIR: illegal operation on a directory".into());
+                    }
+                    fs.access_path(&path, true)
+                })
                 .and_then(|path| fs.open_redirect_file(&path, crate::vfs::RedirectAccess::Write, (!no_create).then_some(mode)));
             let handle = match open {
                 Ok(file) => file,
@@ -21334,6 +21342,26 @@ mod tests {
         let r = cmd_truncate(&args(&["-s1", "", "missing/../f"]), "/", &BTreeMap::new(), &fs);
         assert_eq!(r.stderr, "truncate: cannot open '' for writing: No such file or directory\ntruncate: cannot open 'missing/../f' for writing: No such file or directory\n");
         assert_eq!(fs.read_file("/f").unwrap(), b"ABC\0");
+    }
+
+    #[test]
+    fn truncate_creation_rejects_directory_spellings_before_creating_an_inode() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/f", b"keep").unwrap();
+        for (operands, reason) in [
+            (vec!["-s0", "/dev"], "Is a directory"),
+            (vec!["-s0", "new/"], "Is a directory"),
+            (vec!["-s0", "f/"], "Is a directory"),
+            (vec!["-cs0", "f/"], "Not a directory"),
+            (vec!["-s0", "missing/../f/"], "No such file or directory"),
+            (vec!["-s0", "f/child/"], "Not a directory"),
+        ] {
+            let r = cmd_truncate(&args(&operands), "/", &BTreeMap::new(), &fs);
+            assert_eq!(r.exit_code, 1, "{operands:?}");
+            assert_eq!(r.stderr, format!("truncate: cannot open '{}' for writing: {reason}\n", operands[1]));
+            assert!(!fs.exists("/new"));
+            assert_eq!(fs.read_file("/f").unwrap(), b"keep");
+        }
     }
 
     #[test]

@@ -665,6 +665,48 @@ impl MemoryVfs {
         Ok((base, upper))
     }
 
+    pub(super) fn install_overlay_batch(&self, lower: &Self, versions: (u64,u64), files: Vec<(String,Vec<u8>,u32)>, parents: Vec<(String,FileStat)>) -> Result<(),String> {
+        let (_base, mut upper) = self.overlay_layers(lower,versions)?;
+        self.install_file_batch(&mut upper,files,parents)
+    }
+
+    fn install_file_batch(&self, state: &mut MemoryState, files: Vec<(String,Vec<u8>,u32)>, parents: Vec<(String,FileStat)>) -> Result<(),String> {
+        if files.len().saturating_add(parents.len()) > state.limits.max_entries.saturating_sub(state.entry_count()) { return Err("ENOSPC: inode limit exceeded".into()); }
+        let mut remaining = state.limits.max_total_bytes.saturating_sub(state.total_bytes);
+        let mut seen = std::collections::HashSet::new();
+        for (path, bytes, mode) in &files {
+            let safe = match state.nodes.get(path) {
+                None => true,
+                Some(MemoryNode::File { ino }) => !state.extra_links.contains_key(ino),
+                _ => false,
+            };
+            if !safe || !seen.insert(path.clone()) || state.devices == Devices::Mounted || state.devices.entry(path).is_some() {
+                return Err("ZIP split destination is not a safe regular file".into());
+            }
+            let parent = super::dirname_posix_path(path);
+            if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300)
+                && !parents.iter().any(|(p, st)| p == &parent && st.mode & 0o300 == 0o300) {
+                return Err("EACCES: permission denied".into());
+            }
+            if *mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+            if bytes.len() > state.limits.max_file_bytes { return Err("EFBIG: file size budget exceeded".into()); }
+            remaining = remaining.checked_sub(bytes.len()).ok_or("ENOSPC: file system byte budget exceeded")?;
+        }
+        for (path, st) in parents.into_iter().rev() {
+            let mut node = MemoryNode::directory(state.allocate_ino(), st.mode, st.mtime_ms);
+            if let MemoryNode::Directory { atime_ms, .. } = &mut node { *atime_ms = st.atime_ms; }
+            state.parent_changed(&path, super::now_ms());
+            state.insert_directory(path, node);
+        }
+        for (path, bytes, mode) in files {
+            Self::unlink_locked(state, &path);
+            state.total_bytes += bytes.len();
+            state.insert_new_file(path, bytes, 0o100000 | mode, None);
+        }
+        self.bump_generation();
+        Ok(())
+    }
+
     pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>, operation: super::overlay::FileWrite<'_>) -> Result<(), String> {
         use super::overlay::FileWrite;
         let append = matches!(operation, FileWrite::Append);
@@ -1376,33 +1418,8 @@ impl SafeBashFs for MemoryVfs {
     fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
-        if files.len() > state.limits.max_entries.saturating_sub(state.entry_count()) { return Err("ENOSPC: inode limit exceeded".into()); }
-        let mut remaining = state.limits.max_total_bytes.saturating_sub(state.total_bytes);
-        let mut seen = std::collections::HashSet::new();
-        for (path, bytes, mode) in &mut files {
-            *path = Self::mutation_entry(&state, path)?;
-            let safe = match state.nodes.get(path) {
-                None => true,
-                Some(MemoryNode::File { ino }) => !state.extra_links.contains_key(ino),
-                _ => false,
-            };
-            if !safe || !seen.insert(path.clone()) || state.devices == Devices::Mounted || state.devices.entry(path).is_some() {
-                return Err("ZIP split destination is not a safe regular file".into());
-            }
-            if !matches!(state.nodes.get(&super::dirname_posix_path(path)), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
-                return Err("EACCES: permission denied".into());
-            }
-            if *mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-            if bytes.len() > state.limits.max_file_bytes { return Err("EFBIG: file size budget exceeded".into()); }
-            remaining = remaining.checked_sub(bytes.len()).ok_or("ENOSPC: file system byte budget exceeded")?;
-        }
-        for (path, bytes, mode) in files {
-            Self::unlink_locked(&mut state, &path);
-            state.total_bytes += bytes.len();
-            state.insert_new_file(path, bytes, 0o100000 | mode, None);
-        }
-        self.bump_generation();
-        Ok(())
+        for (path, _, _) in &mut files { *path = Self::mutation_entry(&state,path)?; }
+        self.install_file_batch(&mut state, files, Vec::new())
     }
 
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {

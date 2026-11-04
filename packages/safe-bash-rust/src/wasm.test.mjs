@@ -1547,6 +1547,25 @@ test("split ZIP reserves all volumes before replacing files or removing move sou
   } finally { await bash.dispose(); }
 });
 
+test("split ZIP publishes in mounted and overlay directories and opens with the JavaScript volume resolver", async () => {
+  const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
+  const input = Uint8Array.from({length:145000},(_,i)=>i%223);
+  for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs"]) {
+    const rust = new RustWasmBash({profile,files:{"/src":input,"/dest/sub/out.z02":{content:"old",mode:0o751}}});
+    const fs = new MemoryFileSystem();
+    const js = new Shell({fs,cwd:"/"}).use(archiveCommands({zipHost:{volume:({disk})=>"/out.z"+String(disk+1).padStart(2,"0")}}));
+    try {
+      const r = await rust.exec("cd /; zip -q0 -s64k /dest/sub/out.zip src");
+      assert.equal(r.exitCode,0,profile+": "+r.stderr);
+      assert.equal((await rust.fs.stat("/dest/sub/out.z02")).mode & 0o777,0o751);
+      for (const ext of ["z01","z02","zip"]) await fs.writeFile("/out."+ext,await rust.fs.readFile("/dest/sub/out."+ext));
+      const result = await js.exec("unzip -q out.zip");
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.deepEqual(await fs.readFile("/src"),input);
+    } finally { await js.dispose(); await rust.dispose(); }
+  }
+});
+
 test("plugin stdin reports the source of the current descriptor", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()), rust = new RustWasmBash({cwd:"/"});

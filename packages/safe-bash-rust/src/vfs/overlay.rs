@@ -530,6 +530,37 @@ impl SafeBashFs for OverlayVfs {
         self.write_entry(path, data, FileWrite::Append)
     }
 
+    fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(),String> {
+        let Some((first, _, _)) = files.first() else { return Ok(()); };
+        let (lower,upper) = self.lower.memory_backend().zip(self.upper.memory_backend()).ok_or("ZIP split publication requires atomic owned staging")?;
+        let versions = (lower.generation(),upper.generation());
+        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        let parent = super::dirname_posix_path(&self.access_path(first,false)?);
+        for (path, _, _) in &mut files {
+            *path = self.access_path(path,false)?;
+            if super::dirname_posix_path(path) != parent { return Err("EXDEV: split destinations in different directories".into()); }
+            match self.lstat(path) {
+                Ok(st) if st.kind == VfsEntryKind::File && st.nlink == Some(1) => {}
+                Ok(_) => return Err("ZIP split destination is not a safe regular file".into()),
+                Err(e) if e.starts_with("ENOENT:") => {}
+                Err(e) => return Err(e),
+            }
+        }
+        let mut parents = Vec::new();
+        let mut dir = parent.clone();
+        loop {
+            let st = self.stat(&dir)?;
+            if st.kind != VfsEntryKind::Directory || st.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+            if upper.exists(&dir) { break; }
+            parents.push((dir.clone(),st));
+            dir = super::dirname_posix_path(&dir);
+        }
+        let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
+        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
+        self.copy_up_directories(&parent, || upper.install_overlay_batch(lower,versions,files,parents))
+    }
+
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
         if [times.0, times.1].into_iter().flatten().any(|t| !t.is_finite()) { return Err("EINVAL: invalid file timestamp".into()); }

@@ -1,4 +1,4 @@
-use super::{AwkState, is_valid_awk_ident, parse_awk_f64, unescape_sed_text};
+use super::{AwkState, is_valid_awk_ident, Scalar, unescape_sed_text};
 use crate::vfs::{ChunkReader, bytes_to_stream_string};
 
 enum Source<'a> {
@@ -79,19 +79,19 @@ impl<'a> Reader<'a> {
 }
 
 impl AwkState<'_> {
-    pub(super) fn read_getline_from_file(&mut self, name: &str, into_var: Option<&str>) -> String {
+    pub(super) fn read_getline_from_file(&mut self, name: &str, into_var: Option<&str>) -> Scalar {
         if name.is_empty() {
             self.runtime_err = Some("awk: getline requires a nonempty filename\n".into());
-            return "-1".into();
+            return Scalar::Number(-1.0);
         }
         if name.contains('\0') {
-            self.set_var("ERRNO", format!("EINVAL: invalid argument '{name}'"));
-            return "-1".into();
+            self.set_var("ERRNO", Scalar::Text(format!("EINVAL: invalid argument '{name}'")));
+            return Scalar::Number(-1.0);
         }
         let rs = crate::vfs::stream_string_to_bytes(&self.rs);
         if rs.len() > 1 {
             self.runtime_err = Some("awk: RS must be one byte or empty for paragraph records\n".into());
-            return "-1".into();
+            return Scalar::Number(-1.0);
         }
         let path = crate::vfs::path::absolute_operand(&self.cwd, name);
         let stdin = matches!(name, "-" | "/dev/stdin");
@@ -101,19 +101,19 @@ impl AwkState<'_> {
         });
         match reader.record(rs.first().copied(), &mut self.stdin, &mut self.output, self.vfs) {
             Ok(Some(line)) => {
-                if let Some(var) = into_var { self.set_var(var, line); } else { self.set_line(&line); }
-                "1".into()
+                if let Some(var) = into_var { self.set_var(var, Scalar::input(line)); } else { self.set_line(&line); }
+                Scalar::Number(1.0)
             }
-            Ok(None) => "0".into(),
+            Ok(None) => Scalar::Number(0.0),
             Err(e) => {
                 self.getline_files.remove(&path);
                 if e.is_empty() || stdin {
                     self.runtime_err = Some(if e.is_empty() { e } else { format!("awk: {e}\n") });
                     self.error_status = 1;
                 } else {
-                    self.set_var("ERRNO", e);
+                    self.set_var("ERRNO", Scalar::Text(e));
                 }
-                "-1".into()
+                Scalar::Number(-1.0)
             }
         }
     }
@@ -122,15 +122,16 @@ impl AwkState<'_> {
         loop {
             if self.reader.is_none() {
                 let name = loop {
-                    if self.argument as f64 >= parse_awk_f64(&self.get_var("ARGC")) {
+                    if self.argument as f64 >= self.get_var("ARGC").number() {
                         if self.saw_file { return None; }
                         break "-".to_owned();
                     }
                     let next = self.arrays.get("ARGV").and_then(|a| a.get(&self.argument.to_string())).cloned().unwrap_or_default();
+                    let next = self.formatted(next.text(Some(&self.convfmt)));
                     self.argument += 1;
                     if next.is_empty() { continue; }
                     if self.operand_assignments && let Some((k,v)) = next.split_once('=') && is_valid_awk_ident(k) {
-                        self.set_var(k, unescape_sed_text(v));
+                        self.set_var(k, Scalar::input(unescape_sed_text(v)));
                         continue;
                     }
                     break next;
@@ -150,7 +151,7 @@ impl AwkState<'_> {
                     Ok(reader) => self.reader = Some(reader),
                     Err(e) => { self.runtime_err = Some(format!("awk: {e}\n")); self.error_status = 1; return None; }
                 }
-                self.set_var("FILENAME", name);
+                self.set_var("FILENAME", Scalar::Text(name));
                 self.fnr = 0;
             }
             record_phase_start = false;

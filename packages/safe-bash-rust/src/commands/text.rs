@@ -1,5 +1,7 @@
 mod awk_input;
 mod awk_float;
+mod awk_value;
+use awk_value::Scalar;
 type StagedPatchWrites = Vec<(String, Option<Vec<u8>>)>;
 use crate::commands::search::{ZeroRegex, replace_regex_in_text};
 use crate::shell::builtins::BuiltinOutcome;
@@ -1735,12 +1737,12 @@ impl AwkOutput<'_> {
 }
 
 struct AwkState<'a> {
-    vars: BTreeMap<String, String>,
-    numeric_vars: std::collections::BTreeSet<String>,
-    arrays: BTreeMap<String, BTreeMap<String, String>>,
+    vars: BTreeMap<String, Scalar>,
+    arrays: BTreeMap<String, BTreeMap<String, Scalar>>,
     funcs: AwkFuncMap,
-    fields: Vec<String>,
+    fields: Vec<Scalar>,
     line: String,
+    record_value: Option<Scalar>,
     nr: usize,
     fnr: usize,
     fs: String,
@@ -1754,7 +1756,7 @@ struct AwkState<'a> {
     nextfile_requested: bool,
     break_requested: bool,
     continue_requested: bool,
-    return_val: Option<String>,
+    return_val: Option<Scalar>,
     exit_requested: bool,
     exit_status: i32,
     runtime_err: Option<String>,
@@ -1791,8 +1793,8 @@ impl<'a> AwkState<'a> {
         let convfmt = vars.get("CONVFMT").cloned().unwrap_or_else(|| "%.6g".to_string());
         vars.entry("SUBSEP".to_string()).or_insert_with(|| "\x1c".to_string());
         Self {
-            vars,
-            numeric_vars: std::collections::BTreeSet::new(),
+            vars: vars.into_iter().map(|(k,v)| (k, Scalar::input(v))).collect(),
+            record_value: None,
             arrays: BTreeMap::new(),
             funcs,
             fields: Vec::new(),
@@ -1842,7 +1844,7 @@ impl<'a> AwkState<'a> {
         })
     }
 
-    fn arithmetic(&mut self, op: u8, left: f64, right: f64) -> String {
+    fn arithmetic(&mut self, op: u8, left: f64, right: f64) -> Scalar {
         if self.runtime_err.is_none() {
             if matches!(op, b'/' | b'%') && right == 0.0 {
                 self.runtime_err = Some("awk: division by zero\n".into());
@@ -1856,11 +1858,11 @@ impl<'a> AwkState<'a> {
                     b'^' => left.powf(right),
                     _ => unreachable!(),
                 };
-                if value.is_finite() { return format_awk_num(value); }
+                if value.is_finite() { return Scalar::Number(value); }
                 self.runtime_err = Some("awk: non-finite arithmetic result\n".into());
             }
         }
-        String::new()
+        Scalar::Unset
     }
 
     fn finish(self) -> BuiltinOutcome {
@@ -1871,18 +1873,18 @@ impl<'a> AwkState<'a> {
         }
     }
 
-    fn read_getline_from_stream(&mut self, into_var: Option<&str>) -> String {
+    fn read_getline_from_stream(&mut self, into_var: Option<&str>) -> Scalar {
         if let Some(l) = self.read_main(false) {
             if let Some(vn) = into_var
                 && !vn.is_empty()
             {
-                self.set_var(vn, l);
+                self.set_var(vn, Scalar::input(l));
             } else {
                 self.set_line(&l);
             }
-            "1".to_string()
+            Scalar::Number(1.0)
         } else {
-            "0".to_string()
+            Scalar::Number(0.0)
         }
     }
 
@@ -1917,7 +1919,8 @@ impl<'a> AwkState<'a> {
 
     fn set_line(&mut self, line: &str) {
         self.line = line.to_string();
-        self.fields = if line.is_empty() {
+        self.record_value = None;
+        let fields = if line.is_empty() {
             Vec::new()
         } else if self.fs == " " {
             line.split([' ', '\t', '\n']).filter(|s| !s.is_empty()).map(str::to_owned).collect()
@@ -1943,39 +1946,47 @@ impl<'a> AwkState<'a> {
                 parts
             }
         };
+        self.fields = fields.into_iter().map(Scalar::input).collect();
     }
 
     fn rebuild_line_from_fields(&mut self) {
-        self.line = self.fields.join(&self.ofs);
+        let parts = self.fields.iter().map(|v| v.text(Some(&self.convfmt))).collect::<Result<Vec<_>, _>>();
+        self.line = self.formatted(parts.map(|parts| parts.join(&self.ofs)));
+        self.record_value = Some(Scalar::Text(self.line.clone()));
     }
 
-    fn get_var(&self, name: &str) -> String {
+    fn get_var(&self, name: &str) -> Scalar {
         match name {
-            "NF" => self.fields.len().to_string(),
-            "NR" => self.nr.to_string(),
-            "FNR" => self.fnr.to_string(),
-            "FS" => self.fs.clone(),
-            "RS" => self.rs.clone(),
-            "OFS" => self.ofs.clone(),
-            "ORS" => self.ors.clone(),
-            "OFMT" => self.ofmt.clone(),
-            "CONVFMT" => self.convfmt.clone(),
+            "NF" => Scalar::Number(self.fields.len() as f64),
+            "NR" => Scalar::Number(self.nr as f64),
+            "FNR" => Scalar::Number(self.fnr as f64),
+            "FS" => Scalar::Text(self.fs.clone()),
+            "RS" => Scalar::Text(self.rs.clone()),
+            "OFS" => Scalar::Text(self.ofs.clone()),
+            "ORS" => Scalar::Text(self.ors.clone()),
+            "OFMT" => Scalar::Text(self.ofmt.clone()),
+            "CONVFMT" => Scalar::Text(self.convfmt.clone()),
             _ => self.vars.get(name).cloned().unwrap_or_default(),
         }
     }
 
-    fn set_var(&mut self, name: &str, val: String) {
-        self.numeric_vars.remove(name);
+    fn set_var(&mut self, name: &str, val: Scalar) {
         match name {
-            "FS" => self.fs = val,
-            "RS" => self.rs = val,
-            "OFS" => self.ofs = val,
-            "ORS" => self.ors = val,
-            "OFMT" => self.ofmt = val,
-            "CONVFMT" => self.convfmt = val,
+            "FS" => self.fs = self.formatted(val.text(Some(&self.convfmt))),
+            "RS" => self.rs = self.formatted(val.text(Some(&self.convfmt))),
+            "OFS" => self.ofs = self.formatted(val.text(Some(&self.convfmt))),
+            "ORS" => self.ors = self.formatted(val.text(Some(&self.convfmt))),
+            "OFMT" => self.ofmt = self.formatted(val.text(Some(&self.convfmt))),
+            "CONVFMT" => self.convfmt = self.formatted(val.text(Some(&self.convfmt))),
             "NF" => {
-                let new_nf = val.trim().parse::<usize>().unwrap_or(0);
-                self.fields.resize(new_nf, String::new());
+                let n = val.number().trunc();
+                if !(0.0..=9_007_199_254_740_991.0).contains(&n) || n > usize::MAX as f64
+                    || self.fields.try_reserve((n as usize).saturating_sub(self.fields.len())).is_err() {
+                    self.runtime_err = Some("awk: invalid or excessive NF\n".into());
+                    return;
+                }
+                let new_nf = n as usize;
+                self.fields.resize(new_nf, Scalar::Unset);
                 self.rebuild_line_from_fields();
             }
             _ => {
@@ -1984,20 +1995,22 @@ impl<'a> AwkState<'a> {
         }
     }
 
-    fn get_field(&self, idx: usize) -> String {
+    fn get_field(&self, idx: usize) -> Scalar {
         if idx == 0 {
-            self.line.clone()
+            self.record_value.clone().unwrap_or_else(|| Scalar::input(self.line.clone()))
         } else {
             self.fields.get(idx - 1).cloned().unwrap_or_default()
         }
     }
 
-    fn set_field(&mut self, idx: usize, val: String) {
+    fn set_field(&mut self, idx: usize, val: Scalar) {
         if idx == 0 {
-            self.set_line(&val);
+            let line = self.formatted(val.text(Some(&self.convfmt)));
+            self.set_line(&line);
+            self.record_value = Some(val);
         } else {
             while self.fields.len() < idx {
-                self.fields.push(String::new());
+                self.fields.push(Scalar::Unset);
             }
             self.fields[idx - 1] = val;
             self.rebuild_line_from_fields();
@@ -2245,12 +2258,12 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output, mode);
     state.operand_assignments = operand_assignments;
     state.finite_input_quota = !cfg!(target_arch = "wasm32") || env.contains_key("\0has_finite_input_quota");
-    state.arrays.insert("ENVIRON".to_string(), env.iter().filter(|(k,_)| !k.starts_with('\0')).map(|(k,v)| (k.clone(),v.clone())).collect());
-    state.set_var("ARGC", (files.len() + 1).to_string());
+    state.arrays.insert("ENVIRON".to_string(), env.iter().filter(|(k,_)| !k.starts_with('\0')).map(|(k,v)| (k.clone(),Scalar::input(v.clone()))).collect());
+    state.set_var("ARGC", Scalar::Number((files.len() + 1) as f64));
     let mut argv_map = BTreeMap::new();
-    argv_map.insert("0".to_string(), "awk".to_string());
+    argv_map.insert("0".to_string(), Scalar::Text("awk".into()));
     for (idx, f) in files.iter().enumerate() {
-        argv_map.insert((idx + 1).to_string(), f.clone());
+        argv_map.insert((idx + 1).to_string(), Scalar::input(f.clone()));
     }
     state.arrays.insert("ARGV".to_string(), argv_map);
 
@@ -2479,18 +2492,7 @@ fn eval_awk_cond(expr: &str, state: &mut AwkState) -> bool {
         return ZeroRegex::awk(&pat)
             .is_match(&state.line);
     }
-    let val = eval_awk_expr(e, state);
-    is_awk_truthy(&val)
-}
-
-fn is_awk_truthy(val: &str) -> bool {
-    if val.is_empty() {
-        return false;
-    }
-    if let Ok(n) = val.trim().parse::<f64>() {
-        return n != 0.0;
-    }
-    true
+    eval_awk_value(e, state).truth()
 }
 
 fn parse_awk_f64(val: &str) -> f64 {
@@ -2662,13 +2664,13 @@ fn eval_awk_array_key(key_expr: &str, state: &mut AwkState) -> String {
     };
     let parts = split_awk_top_args(inner);
     if parts.len() <= 1 {
-        eval_awk_expr(inner, state)
+        eval_awk_text(inner, state)
     } else {
         let subsep = {
-            let s = state.get_var("SUBSEP");
+            let s = state.formatted(state.get_var("SUBSEP").text(Some(&state.convfmt)));
             if s.is_empty() { "\x1c".to_string() } else { s }
         };
-        let vals: Vec<String> = parts.iter().map(|p| eval_awk_expr(p, state)).collect();
+        let vals: Vec<String> = parts.iter().map(|p| eval_awk_text(p, state)).collect();
         vals.join(&subsep)
     }
 }
@@ -2773,29 +2775,6 @@ fn is_awk_outer_parens(s: &str) -> bool {
     depth == 0
 }
 
-fn is_awk_numeric_expr(expr: &str, val: &str, state: &AwkState) -> bool {
-    let e = expr.trim();
-    if val.trim().parse::<f64>().is_err() {
-        return false;
-    }
-    if is_single_awk_string_literal(e) || split_awk_concat(e).is_some() {
-        return false;
-    }
-    if let Some(open) = e.find('(') && e.ends_with(')') {
-        let fn_name = e[..open].trim();
-        if matches!(fn_name, "sprintf" | "substr" | "tolower" | "toupper" | "gensub" | "chr") {
-            return false;
-        }
-    }
-    if is_valid_awk_ident(e) {
-        return state.numeric_vars.contains(e);
-    }
-    if e.starts_with('$') || e.contains('[') {
-        return false;
-    }
-    true
-}
-
 fn exec_awk_block(block: &str, state: &mut AwkState) {
     exec_awk_statements(&split_awk_statements(block), state);
 }
@@ -2853,19 +2832,14 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
         }
         if stmt == "return" || stmt.starts_with("return ") || stmt.starts_with("return(") {
             let rest = stmt.strip_prefix("return").unwrap_or("").trim();
-            let val = if rest.is_empty() {
-                String::new()
-            } else {
-                eval_awk_expr(rest, state)
-            };
+            let val = eval_awk_value(rest, state);
             state.return_val = Some(val);
             return;
         }
         if stmt == "exit" || stmt.starts_with("exit ") || stmt.starts_with("exit(") {
             let code_str = stmt.strip_prefix("exit").unwrap_or("").trim();
             if !code_str.is_empty() {
-                let evaluated = eval_awk_expr(code_str, state);
-                state.exit_status = parse_awk_f64(&evaluated) as i32;
+                state.exit_status = eval_awk_value(code_str, state).number() as i32;
             }
             state.exit_requested = true;
             return;
@@ -2909,22 +2883,14 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
                 let args = split_awk_top_args(expr_trim);
                 let mut vals = Vec::with_capacity(args.len());
                 for a in &args {
-                    let v = eval_awk_expr(a, state);
-                    if is_awk_numeric_expr(a, &v, state)
-                        && let Ok(num) = v.trim().parse::<f64>()
-                        && num.fract() != 0.0
-                        && state.ofmt != "%.6g"
-                    {
-                        vals.push(state.formatted(format_awk_printf(&state.ofmt, &[v])));
-                    } else {
-                        vals.push(v);
-                    }
+                    let value = eval_awk_value(a, state);
+                    vals.push(state.formatted(value.text(Some(&state.ofmt))));
                 }
                 line_out.push_str(&vals.join(&state.ofs));
                 line_out.push_str(&state.ors);
             }
             if let Some((append, target_expr)) = redir {
-                let target_path = eval_awk_expr(&target_expr, state);
+                let target_path = eval_awk_text(&target_expr, state);
                 state.write_redirect(&target_path, append, &line_out);
             } else {
                 state.print(&line_out);
@@ -2943,11 +2909,11 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
             };
             let args = split_awk_top_args(inner);
             if !args.is_empty() {
-                let fmt_str = eval_awk_expr(&args[0], state);
-                let vals: Vec<String> = args[1..].iter().map(|a| eval_awk_expr(a, state)).collect();
-                let formatted = state.formatted(format_awk_printf(&fmt_str, &vals));
+                let fmt_str = eval_awk_text(&args[0], state);
+                let vals: Vec<_> = args[1..].iter().map(|a| eval_awk_value(a, state)).collect();
+                let formatted = state.formatted(format_awk_printf(&fmt_str, &vals, Some(&state.convfmt)));
                 if let Some((append, target_expr)) = redir {
-                    let target_path = eval_awk_expr(&target_expr, state);
+                    let target_path = eval_awk_text(&target_expr, state);
                     state.write_redirect(&target_path, append, &formatted);
                 } else {
                     state.print(&formatted);
@@ -2957,7 +2923,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
             continue;
         }
 
-        let _ = eval_awk_expr(stmt, state);
+        let _ = eval_awk_value(stmt, state);
         idx += 1;
     }
 }
@@ -3167,7 +3133,7 @@ fn exec_awk_for(stmt: &str, state: &mut AwkState) {
                 .map(|m| m.keys().cloned().collect())
                 .unwrap_or_default();
             for k in keys {
-                state.set_var(&var_name, k);
+                state.set_var(&var_name, Scalar::Text(k));
                 exec_awk_block(&body, state);
                 if state.break_requested {
                     state.break_requested = false;
@@ -3188,7 +3154,7 @@ fn exec_awk_for(stmt: &str, state: &mut AwkState) {
         } else {
             let parts: Vec<&str> = header.split(';').collect();
             if parts.len() == 3 {
-                let _ = eval_awk_expr(parts[0], state);
+                let _ = eval_awk_value(parts[0], state);
                 let mut guard = 0usize;
                 while eval_awk_cond(parts[1], state) && guard < 50_000 {
                     exec_awk_block(&body, state);
@@ -3207,7 +3173,7 @@ fn exec_awk_for(stmt: &str, state: &mut AwkState) {
                     {
                         break;
                     }
-                    let _ = eval_awk_expr(parts[2], state);
+                    let _ = eval_awk_value(parts[2], state);
                     guard += 1;
                 }
             }
@@ -3302,22 +3268,27 @@ fn is_single_awk_regex_literal(s: &str) -> bool {
     true
 }
 
-fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
-    if state.runtime_err.is_some() { return String::new(); }
+fn eval_awk_text(expr: &str, state: &mut AwkState) -> String {
+    let value = eval_awk_value(expr, state);
+    state.formatted(value.text(Some(&state.convfmt)))
+}
+
+fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
+    if state.runtime_err.is_some() { return Scalar::Unset; }
     let s = expr.trim();
     if s.is_empty() {
-        return String::new();
+        return Scalar::Unset;
     }
     if s.starts_with(|c: char| c.is_ascii_digit() || c == '.') && let Ok(n) = s.parse::<f64>() {
-        return n.to_string();
+        return Scalar::Number(n);
     }
     if is_single_awk_string_literal(s) {
-        return unescape_sed_text(&s[1..s.len() - 1]);
+        return Scalar::Text(unescape_sed_text(&s[1..s.len() - 1]));
     }
     if is_single_awk_regex_literal(s) {
         let pat = s[1..s.len() - 1].replace("\\/", "/");
         let matched = ZeroRegex::awk(&pat).is_match(&state.line);
-        return if matched { "1".to_string() } else { "0".to_string() };
+        return Scalar::Number(f64::from(matched));
     }
 
     for op in ["+=", "-=", "*=", "/=", "%=", "^=", "="] {
@@ -3325,24 +3296,15 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
             if op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=')) {
                 continue;
             }
-            let rval = eval_awk_expr(&rhs, state);
-            let is_num_rhs = if op == "=" {
-                is_awk_numeric_expr(&rhs, &rval, state)
-            } else {
-                true
-            };
+            let rval = eval_awk_value(&rhs, state);
             let final_val = if op == "=" {
                 rval
             } else {
-                let lnum = parse_awk_f64(&eval_awk_expr(&lhs, state));
-                let rnum = parse_awk_f64(&rval);
+                let lnum = eval_awk_value(&lhs, state).number();
+                let rnum = rval.number();
                 state.arithmetic(op.as_bytes()[0], lnum, rnum)
             };
             assign_awk_lvalue(&lhs, final_val.clone(), state);
-            let lv_trim = lhs.trim();
-            if is_num_rhs && is_valid_awk_ident(lv_trim) {
-                state.numeric_vars.insert(lv_trim.to_string());
-            }
             return final_val;
         }
     }
@@ -3350,33 +3312,25 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     if let Some((cond_part, branches)) = split_awk_binary_once(s, "?") {
         if let Some((t_branch, f_branch)) = split_awk_binary_once(&branches, ":") {
             return if eval_awk_cond(&cond_part, state) {
-                eval_awk_expr(&t_branch, state)
+                eval_awk_value(&t_branch, state)
             } else {
-                eval_awk_expr(&f_branch, state)
+                eval_awk_value(&f_branch, state)
             };
         }
     }
 
     if let Some((a, b)) = split_awk_binary_once(s, "||") {
-        return if eval_awk_cond(&a, state) || eval_awk_cond(&b, state) {
-            "1".to_string()
-        } else {
-            "0".to_string()
-        };
+        return Scalar::Number(f64::from(eval_awk_cond(&a, state) || eval_awk_cond(&b, state)));
     }
     if let Some((a, b)) = split_awk_binary_once(s, "&&") {
-        return if eval_awk_cond(&a, state) && eval_awk_cond(&b, state) {
-            "1".to_string()
-        } else {
-            "0".to_string()
-        };
+        return Scalar::Number(f64::from(eval_awk_cond(&a, state) && eval_awk_cond(&b, state)));
     }
 
     if let Some(gl_rest) = s.strip_prefix("getline")
         && (gl_rest.is_empty() || gl_rest.starts_with(' ') || gl_rest.starts_with('<'))
     {
         if let Some((var_part, file_expr)) = gl_rest.split_once('<') {
-            let path = eval_awk_expr(file_expr.trim(), state);
+            let path = eval_awk_text(file_expr.trim(), state);
             let var_name = var_part.trim();
             return state.read_getline_from_file(
                 &path,
@@ -3393,22 +3347,23 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
 
     for cmp_op in ["==", "!=", "<=", ">=", "!~", "~", "<", ">"] {
         if let Some((lhs, rhs)) = split_awk_binary_once(s, cmp_op) {
-            let lv = eval_awk_expr(&lhs, state);
+            let lv = eval_awk_value(&lhs, state);
             if cmp_op == "~" || cmp_op == "!~" {
                 let raw_pat = rhs.trim();
                 let pat_owned = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
                     raw_pat[1..raw_pat.len() - 1].replace("\\/", "/")
                 } else {
-                    eval_awk_expr(raw_pat, state)
+                    eval_awk_text(raw_pat, state)
                 };
-                let matched = ZeroRegex::awk(&pat_owned).is_match(&lv);
+                let subject = state.formatted(lv.text(Some(&state.convfmt)));
+                let matched = ZeroRegex::awk(&pat_owned).is_match(&subject);
                 let ok = if cmp_op == "~" { matched } else { !matched };
-                return if ok { "1".to_string() } else { "0".to_string() };
+                return Scalar::Number(f64::from(ok));
             }
-            let rv = eval_awk_expr(&rhs, state);
-            let cmp = match (lv.trim().parse::<f64>(), rv.trim().parse::<f64>()) {
-                (Ok(ln), Ok(rn)) => ln.partial_cmp(&rn).unwrap_or(std::cmp::Ordering::Equal),
-                _ => lv.cmp(&rv),
+            let rv = eval_awk_value(&rhs, state);
+            let cmp = match lv.compare(&rv, &state.convfmt) {
+                Ok(cmp) => cmp,
+                Err(e) => { state.formatted(Err(e)); return Scalar::Unset; }
             };
             let ok = match cmp_op {
                 "==" => cmp == std::cmp::Ordering::Equal,
@@ -3419,7 +3374,7 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
                 ">" => cmp == std::cmp::Ordering::Greater,
                 _ => false,
             };
-            return if ok { "1".to_string() } else { "0".to_string() };
+            return Scalar::Number(f64::from(ok));
         }
     }
 
@@ -3430,83 +3385,60 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
             .arrays
             .get(arr_name)
             .is_some_and(|m| m.contains_key(&key));
-        return if present { "1".to_string() } else { "0".to_string() };
+        return Scalar::Number(f64::from(present));
     }
 
     if let Some(parts) = split_awk_concat(s) {
         let mut joined = String::new();
         for p in parts {
-            let v = eval_awk_expr(&p, state);
-            if is_awk_numeric_expr(&p, &v, state)
-                && let Ok(num) = v.trim().parse::<f64>()
-                && num.fract() != 0.0
-                && state.convfmt != "%.6g"
-            {
-                joined.push_str(&state.formatted(format_awk_printf(&state.convfmt, &[v])));
-            } else {
-                joined.push_str(&v);
-            }
+            joined.push_str(&eval_awk_text(&p, state));
         }
-        return joined;
+        return Scalar::Text(joined);
     }
 
     if let Some((lhs, op, rhs)) = split_awk_arithmetic(s) {
-        let left = parse_awk_f64(&eval_awk_expr(lhs, state));
-        let right = parse_awk_f64(&eval_awk_expr(rhs, state));
+        let left = eval_awk_value(lhs, state).number();
+        let right = eval_awk_value(rhs, state).number();
         return state.arithmetic(op, left, right);
     }
 
     if let Some(var) = s.strip_suffix("++") {
         let v = var.trim();
-        let old_val = parse_awk_f64(&eval_awk_expr(v, state));
-        assign_awk_lvalue(v, format_awk_num(old_val + 1.0), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return format_awk_num(old_val);
+        let old_val = eval_awk_value(v, state).number();
+        assign_awk_lvalue(v, Scalar::Number(old_val + 1.0), state);
+        return Scalar::Number(old_val);
     }
     if let Some(var) = s.strip_prefix("++") {
         let v = var.trim();
-        let new_val = parse_awk_f64(&eval_awk_expr(v, state)) + 1.0;
-        let formatted = format_awk_num(new_val);
-        assign_awk_lvalue(v, formatted.clone(), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return formatted;
+        let new_val = eval_awk_value(v, state).number() + 1.0;
+        assign_awk_lvalue(v, Scalar::Number(new_val), state);
+        return Scalar::Number(new_val);
     }
     if let Some(var) = s.strip_suffix("--") {
         let v = var.trim();
-        let old_val = parse_awk_f64(&eval_awk_expr(v, state));
-        assign_awk_lvalue(v, format_awk_num(old_val - 1.0), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return format_awk_num(old_val);
+        let old_val = eval_awk_value(v, state).number();
+        assign_awk_lvalue(v, Scalar::Number(old_val - 1.0), state);
+        return Scalar::Number(old_val);
     }
     if let Some(var) = s.strip_prefix("--")
         && !var.starts_with('-')
     {
         let v = var.trim();
-        let new_val = parse_awk_f64(&eval_awk_expr(v, state)) - 1.0;
-        let formatted = format_awk_num(new_val);
-        assign_awk_lvalue(v, formatted.clone(), state);
-        if is_valid_awk_ident(v) {
-            state.numeric_vars.insert(v.to_string());
-        }
-        return formatted;
+        let new_val = eval_awk_value(v, state).number() - 1.0;
+        assign_awk_lvalue(v, Scalar::Number(new_val), state);
+        return Scalar::Number(new_val);
     }
 
     if let Some(inner) = s.strip_prefix('!') {
-        return if is_awk_truthy(&eval_awk_expr(inner, state)) { "0".into() } else { "1".into() };
+        return Scalar::Number(f64::from(!eval_awk_value(inner, state).truth()));
     }
     if let Some(inner) = s.strip_prefix(['+', '-']) {
-        let n = parse_awk_f64(&eval_awk_expr(inner, state));
-        return format_awk_num(if s.starts_with('-') { -n } else { n });
+        let n = eval_awk_value(inner, state).number();
+        return Scalar::Number(if s.starts_with('-') { -n } else { n });
     }
 
     if s.starts_with('(') && s.ends_with(')') && is_awk_outer_parens(s) {
-        return eval_awk_expr(&s[1..s.len() - 1], state);
+        return eval_awk_value(&s[1..s.len() - 1], state);
     }
 
     if let Some(func_res) = try_eval_awk_func(s, state) {
@@ -3514,7 +3446,7 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     }
 
     if let Some(field_expr) = s.strip_prefix('$') {
-        let idx = eval_awk_expr(field_expr, state)
+        let idx = eval_awk_text(field_expr, state)
             .parse::<usize>()
             .unwrap_or(0);
         return state.get_field(idx);
@@ -3537,10 +3469,10 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     state.get_var(s)
 }
 
-fn assign_awk_lvalue(lval: &str, val: String, state: &mut AwkState) {
+fn assign_awk_lvalue(lval: &str, val: Scalar, state: &mut AwkState) {
     let lv = lval.trim();
     if let Some(f) = lv.strip_prefix('$') {
-        let idx = eval_awk_expr(f, state).parse::<usize>().unwrap_or(0);
+        let idx = eval_awk_text(f, state).parse::<usize>().unwrap_or(0);
         state.set_field(idx, val);
         return;
     }
@@ -3555,7 +3487,7 @@ fn assign_awk_lvalue(lval: &str, val: String, state: &mut AwkState) {
     state.set_var(lv, val);
 }
 
-fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
+fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
     let open = s.find('(')?;
     if !s.ends_with(')') {
         return None;
@@ -3575,73 +3507,73 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             if let Some(first) = args.first() {
                 let trimmed = first.trim();
                 if let Some(arr) = state.arrays.get(trimmed) {
-                    return Some(arr.len().to_string());
+                    return Some(Scalar::Number(arr.len() as f64));
                 }
             }
             let target = if args.is_empty() {
                 state.line.clone()
             } else {
-                eval_awk_expr(&args[0], state)
+                eval_awk_text(&args[0], state)
             };
-            Some(crate::vfs::stream_byte_len(&target).to_string())
+            Some(Scalar::Number(crate::vfs::stream_byte_len(&target) as f64))
         }
         "tolower" => {
             let t = args
                 .first()
-                .map(|a| eval_awk_expr(a, state))
+                .map(|a| eval_awk_text(a, state))
                 .unwrap_or_default();
-            Some(t.to_ascii_lowercase())
+            Some(Scalar::Text(t.to_ascii_lowercase()))
         }
         "toupper" => {
             let t = args
                 .first()
-                .map(|a| eval_awk_expr(a, state))
+                .map(|a| eval_awk_text(a, state))
                 .unwrap_or_default();
-            Some(t.to_ascii_uppercase())
+            Some(Scalar::Text(t.to_ascii_uppercase()))
         }
         "substr" => {
             if args.len() < 2 {
-                return Some(String::new());
+                return Some(Scalar::Text(String::new()));
             }
-            let text = eval_awk_expr(&args[0], state);
-            let start = (parse_awk_f64(&eval_awk_expr(&args[1], state)) as usize).saturating_sub(1);
+            let text = eval_awk_text(&args[0], state);
+            let start = (eval_awk_value(&args[1], state).number() as usize).saturating_sub(1);
             let bytes = crate::vfs::stream_string_to_bytes(&text);
             if start >= bytes.len() {
-                return Some(String::new());
+                return Some(Scalar::Text(String::new()));
             }
             if args.len() >= 3 {
-                let len = parse_awk_f64(&eval_awk_expr(&args[2], state)) as usize;
+                let len = eval_awk_value(&args[2], state).number() as usize;
                 let end = start.saturating_add(len).min(bytes.len());
-                Some(crate::vfs::bytes_to_stream_string(&bytes[start..end]))
+                Some(Scalar::Text(crate::vfs::bytes_to_stream_string(&bytes[start..end])))
             } else {
-                Some(crate::vfs::bytes_to_stream_string(&bytes[start..]))
+                Some(Scalar::Text(crate::vfs::bytes_to_stream_string(&bytes[start..])))
             }
         }
         "index" => {
             if args.len() < 2 {
-                return Some("0".to_string());
+                return Some(Scalar::Number(0.0));
             }
-            let hay = eval_awk_expr(&args[0], state);
-            let needle = eval_awk_expr(&args[1], state);
-            if needle.is_empty() { return Some("1".to_string()); }
+            let hay = eval_awk_text(&args[0], state);
+            let needle = eval_awk_text(&args[1], state);
+            if needle.is_empty() { return Some(Scalar::Number(1.0)); }
             let needle = crate::vfs::stream_string_to_bytes(&needle);
             match crate::vfs::stream_string_to_bytes(&hay).windows(needle.len()).position(|s| s == needle) {
-                Some(byte_idx) => Some((byte_idx + 1).to_string()),
-                None => Some("0".to_string()),
+                Some(byte_idx) => Some(Scalar::Number((byte_idx + 1) as f64)),
+                None => Some(Scalar::Number(0.0)),
             }
         }
         "match" => {
             if args.len() < 2 {
-                state.set_var("RSTART", "0".to_string());
-                state.set_var("RLENGTH", "-1".to_string());
-                return Some("0".to_string());
+                state.set_var("RSTART", Scalar::Number(0.0));
+                state.set_var("RLENGTH", Scalar::Number(-1.0));
+                return Some(Scalar::Number(0.0));
             }
-            let hay = eval_awk_expr(&args[0], state);
+            let hay = eval_awk_text(&args[0], state);
             let raw_pat = args[1].trim();
             let pat = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
                 raw_pat[1..raw_pat.len() - 1].to_string()
             } else {
-                eval_awk_expr(raw_pat, state)
+                eval_awk_text(raw_pat, state)
             };
             if let Some(arr_arg) = args.get(2) {
                 state.arrays.entry(arr_arg.trim().to_string()).or_default().clear();
@@ -3654,30 +3586,30 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 length = (end - start) as isize;
                 if let Some(name) = array {
                     let map = state.arrays.entry(name.to_owned()).or_default();
-                    map.insert("0".into(), hay[start..end].to_owned());
+                    map.insert("0".into(), Scalar::Text(hay[start..end].to_owned()));
                     for (i, cap) in caps.iter().enumerate() {
                         if let Some((lo, hi)) = cap {
-                            map.insert((i + 1).to_string(), hay[*lo..*hi].to_owned());
+                            map.insert((i + 1).to_string(), Scalar::Text(hay[*lo..*hi].to_owned()));
                         }
                     }
                 }
                 false
             });
-            state.set_var("RSTART", position.to_string());
-            state.set_var("RLENGTH", length.to_string());
-            Some(position.to_string())
+            state.set_var("RSTART", Scalar::Number(position as f64));
+            state.set_var("RLENGTH", Scalar::Number(length as f64));
+            Some(Scalar::Number(position as f64))
         }
         "split" => {
             if args.len() < 2 {
-                return Some("0".to_string());
+                return Some(Scalar::Number(0.0));
             }
-            let text = eval_awk_expr(&args[0], state);
+            let text = eval_awk_text(&args[0], state);
             let arr_name = args[1].trim().to_string();
             let raw_sep = args.get(2).map(|a| a.trim()).unwrap_or("");
             let (sep, is_rx) = if raw_sep.starts_with('/') && raw_sep.ends_with('/') && raw_sep.len() >= 2 {
                 (raw_sep[1..raw_sep.len() - 1].to_string(), true)
             } else if args.len() >= 3 {
-                let v = eval_awk_expr(&args[2], state);
+                let v = eval_awk_text(&args[2], state);
                 let rx = v.len() > 1;
                 (v, rx)
             } else {
@@ -3742,34 +3674,34 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let map = state.arrays.entry(arr_name).or_default();
             map.clear();
             for (i, p) in parts.iter().enumerate() {
-                map.insert((i + 1).to_string(), p.clone());
+                map.insert((i + 1).to_string(), Scalar::input(p.clone()));
             }
             if let Some(seps_arg) = args.get(3) {
                 let seps_name = seps_arg.trim().to_string();
                 let seps_map = state.arrays.entry(seps_name).or_default();
                 seps_map.clear();
                 for (i, s) in seps.iter().enumerate() {
-                    seps_map.insert((i + 1).to_string(), s.clone());
+                    seps_map.insert((i + 1).to_string(), Scalar::Text(s.clone()));
                 }
             }
-            Some(parts.len().to_string())
+            Some(Scalar::Number(parts.len() as f64))
         }
         "gensub" => {
             if args.len() < 3 {
-                return Some(String::new());
+                return Some(Scalar::Text(String::new()));
             }
             let raw_pat = args[0].trim();
             let pat = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
                 raw_pat[1..raw_pat.len() - 1].to_string()
             } else {
-                eval_awk_expr(raw_pat, state)
+                eval_awk_text(raw_pat, state)
             };
-            let repl = eval_awk_expr(&args[1], state);
-            let how = eval_awk_expr(&args[2], state);
+            let repl = eval_awk_text(&args[1], state);
+            let how = eval_awk_text(&args[2], state);
             let target = args
                 .get(3)
-                .map(|a| eval_awk_expr(a, state))
-                .unwrap_or_else(|| state.get_field(0));
+                .map(|a| eval_awk_text(a, state))
+                .unwrap_or_else(|| state.line.clone());
             let global = how.starts_with('g') || how.starts_with('G');
             let nth = if global {
                 None
@@ -3777,12 +3709,12 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 Some((parse_awk_f64(&how) as isize).max(1) as usize)
             };
             let (updated, _) = ZeroRegex::awk(&pat).replace_count(&target, &repl, global, nth);
-            Some(updated)
+            Some(Scalar::Text(updated))
         }
         "strtonum" => {
             let s = args
                 .first()
-                .map(|a| eval_awk_expr(a, state))
+                .map(|a| eval_awk_text(a, state))
                 .unwrap_or_default();
             let trimmed = s.trim_start();
             let (sign, rest) = if let Some(r) = trimmed.strip_prefix('-') {
@@ -3801,11 +3733,11 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             } else {
                 parse_awk_f64(trimmed)
             };
-            Some(format_awk_num(val))
+            Some(Scalar::Number(val))
         }
         "asort" | "asorti" => {
             if args.is_empty() {
-                return Some("0".to_string());
+                return Some(Scalar::Number(0.0));
             }
             let src_name = args[0].trim().to_string();
             let dst_name = args
@@ -3813,23 +3745,22 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 .map(|a| a.trim().to_string())
                 .filter(|s| !s.is_empty())
                 .unwrap_or_else(|| src_name.clone());
-            let mut items: Vec<String> = state
+            let mut items: Vec<Scalar> = state
                 .arrays
                 .get(&src_name)
                 .map(|m| {
                     if fn_name == "asorti" {
-                        m.keys().cloned().collect()
+                        m.keys().cloned().map(Scalar::Text).collect()
                     } else {
                         m.values().cloned().collect()
                     }
                 })
                 .unwrap_or_default();
-            items.sort_by(|a, b| match (a.trim().parse::<f64>(), b.trim().parse::<f64>()) {
-                (Ok(na), Ok(nb)) => na
-                    .partial_cmp(&nb)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-                    .then_with(|| a.cmp(b)),
-                _ => a.cmp(b),
+            items.sort_by(|a, b| match (a,b) {
+                (Scalar::Text(a), Scalar::Text(b)) => a.cmp(b),
+                (Scalar::Text(_), _) => std::cmp::Ordering::Greater,
+                (_, Scalar::Text(_)) => std::cmp::Ordering::Less,
+                _ => a.number().partial_cmp(&b.number()).unwrap_or(std::cmp::Ordering::Equal),
             });
             let n = items.len();
             let dst = state.arrays.entry(dst_name).or_default();
@@ -3837,140 +3768,140 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             for (i, item) in items.into_iter().enumerate() {
                 dst.insert((i + 1).to_string(), item);
             }
-            Some(n.to_string())
+            Some(Scalar::Number(n as f64))
         }
         "and" => {
             if args.is_empty() {
-                return Some("0".to_string());
+                return Some(Scalar::Number(0.0));
             }
-            let mut acc = parse_awk_f64(&eval_awk_expr(&args[0], state)) as u64;
+            let mut acc = eval_awk_value(&args[0], state).number() as u64;
             for a in &args[1..] {
-                acc &= parse_awk_f64(&eval_awk_expr(a, state)) as u64;
+                acc &= eval_awk_value(a, state).number() as u64;
             }
-            Some(acc.to_string())
+            Some(Scalar::Number(acc as f64))
         }
         "or" => {
             let mut acc = 0u64;
             for a in &args {
-                acc |= parse_awk_f64(&eval_awk_expr(a, state)) as u64;
+                acc |= eval_awk_value(a, state).number() as u64;
             }
-            Some(acc.to_string())
+            Some(Scalar::Number(acc as f64))
         }
         "xor" => {
             let mut acc = 0u64;
             for a in &args {
-                acc ^= parse_awk_f64(&eval_awk_expr(a, state)) as u64;
+                acc ^= eval_awk_value(a, state).number() as u64;
             }
-            Some(acc.to_string())
+            Some(Scalar::Number(acc as f64))
         }
         "lshift" => {
-            let v = args.first().map(|a| parse_awk_f64(&eval_awk_expr(a, state)) as u64).unwrap_or(0);
-            let sh = args.get(1).map(|a| parse_awk_f64(&eval_awk_expr(a, state)) as u32).unwrap_or(0);
-            Some(v.wrapping_shl(sh).to_string())
+            let v = args.first().map(|a| eval_awk_value(a, state).number() as u64).unwrap_or(0);
+            let sh = args.get(1).map(|a| eval_awk_value(a, state).number() as u32).unwrap_or(0);
+            Some(Scalar::Number(v.wrapping_shl(sh) as f64))
         }
         "rshift" => {
-            let v = args.first().map(|a| parse_awk_f64(&eval_awk_expr(a, state)) as u64).unwrap_or(0);
-            let sh = args.get(1).map(|a| parse_awk_f64(&eval_awk_expr(a, state)) as u32).unwrap_or(0);
-            Some(v.wrapping_shr(sh).to_string())
+            let v = args.first().map(|a| eval_awk_value(a, state).number() as u64).unwrap_or(0);
+            let sh = args.get(1).map(|a| eval_awk_value(a, state).number() as u32).unwrap_or(0);
+            Some(Scalar::Number(v.wrapping_shr(sh) as f64))
         }
         "compl" => {
-            let v = args.first().map(|a| parse_awk_f64(&eval_awk_expr(a, state)) as u64).unwrap_or(0);
-            Some(((!v) & ((1u64 << 53) - 1)).to_string())
+            let v = args.first().map(|a| eval_awk_value(a, state).number() as u64).unwrap_or(0);
+            Some(Scalar::Number(((!v) & ((1u64 << 53) - 1)) as f64))
         }
         "sub" | "gsub" => {
             if args.len() < 2 {
-                return Some("0".to_string());
+                return Some(Scalar::Number(0.0));
             }
             let raw_pat = args[0].trim();
             let pat = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
                 raw_pat[1..raw_pat.len() - 1].replace("\\/", "/")
             } else {
-                eval_awk_expr(raw_pat, state)
+                eval_awk_text(raw_pat, state)
             };
-            let repl = eval_awk_expr(&args[1], state);
+            let repl = eval_awk_text(&args[1], state);
             let target_lval = args.get(2).map(|s| s.as_str()).unwrap_or("$0");
-            let current = eval_awk_expr(target_lval, state);
+            let current = eval_awk_text(target_lval, state);
             let (updated, count) =
                 ZeroRegex::awk(&pat).replace_count(&current, &repl, fn_name == "gsub", None);
-            assign_awk_lvalue(target_lval, updated, state);
-            Some(count.to_string())
+            if count != 0 { assign_awk_lvalue(target_lval, Scalar::Text(updated), state); }
+            Some(Scalar::Number(count as f64))
         }
         "int" => {
             let n = args
                 .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
+                .map(|a| eval_awk_value(a, state).number())
                 .unwrap_or(0.0);
-            Some((n as i64).to_string())
+            Some(Scalar::Number(n.trunc()))
         }
         "sqrt" | "sin" | "cos" | "atan2" | "exp" | "log" => {
-            let n = args.first().map(|a| parse_awk_f64(&eval_awk_expr(a, state))).unwrap_or(0.0);
+            let n = args.first().map(|a| eval_awk_value(a, state).number()).unwrap_or(0.0);
             let value = match fn_name {
                 "sqrt" => n.sqrt(),
                 "sin" => n.sin(),
                 "cos" => n.cos(),
                 "exp" => n.exp(),
                 "log" => n.ln(),
-                _ => n.atan2(args.get(1).map(|a| parse_awk_f64(&eval_awk_expr(a, state))).unwrap_or(0.0)),
+                _ => n.atan2(args.get(1).map(|a| eval_awk_value(a, state).number()).unwrap_or(0.0)),
             };
-            if value.is_finite() { Some(format_awk_num(value)) } else {
+            if value.is_finite() { Some(Scalar::Number(value)) } else {
                 state.runtime_err.get_or_insert_with(|| format!("awk: invalid mathematical result in '{fn_name}'\n"));
-                Some(String::new())
+                Some(Scalar::Text(String::new()))
             }
         }
         "srand" => {
             let old_seed = state.rng_state;
             let new_seed = if let Some(first) = args.first() {
-                parse_awk_f64(&eval_awk_expr(first, state)) as i64 as u32
+                eval_awk_value(first, state).number() as i64 as u32
             } else {
                 1
             };
             state.rng_state = if new_seed == 0 { 1 } else { new_seed };
-            Some(old_seed.to_string())
+            Some(Scalar::Number(old_seed as f64))
         }
         "rand" => {
             state.rng_state = state.rng_state.wrapping_mul(1664525).wrapping_add(1013904223);
             let val = (state.rng_state as f64) / 4294967296.0;
-            Some(format_awk_num(val))
+            Some(Scalar::Number(val))
         }
         "fflush" => {
-            let name = args.first().map(|a| eval_awk_expr(a, state)).unwrap_or_default();
+            let name = args.first().map(|a| eval_awk_text(a, state)).unwrap_or_default();
             if name.is_empty() || name == "/dev/stdout" {
                 if !state.output.flush() { state.runtime_err = Some(String::new()); }
             } else if name != "/dev/stderr" && !state.redirect_written.contains(&absolute_operand(&state.cwd, &name)) {
-                return Some("-1".to_string());
+                return Some(Scalar::Number(-1.0));
             }
-            Some("0".to_string())
+            Some(Scalar::Number(0.0))
         }
         "close" => {
             if let Some(arg) = args.first() {
-                let path = eval_awk_expr(arg, state);
+                let path = eval_awk_text(arg, state);
                 let full = absolute_operand(&state.cwd, &path);
                 let input = state.getline_files.remove(&full).is_some();
                 let output = state.redirect_written.remove(&full);
-                if input || output { return Some("0".to_string()); }
+                if input || output { return Some(Scalar::Number(0.0)); }
             }
-            Some("-1".to_string())
+            Some(Scalar::Number(-1.0))
         }
         "ord" => {
-            let s = args.first().map(|a| eval_awk_expr(a, state)).unwrap_or_default();
+            let s = args.first().map(|a| eval_awk_text(a, state)).unwrap_or_default();
             let code = s.chars().next().map(|c| c as u32).unwrap_or(0);
-            Some(code.to_string())
+            Some(Scalar::Number(code as f64))
         }
         "chr" => {
             let n = args
                 .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)) as u32)
+                .map(|a| eval_awk_value(a, state).number() as u32)
                 .unwrap_or(0);
             let ch = char::from_u32(n).map(|c| c.to_string()).unwrap_or_default();
-            Some(ch)
+            Some(Scalar::Text(ch))
         }
         "sprintf" => {
             if args.is_empty() {
-                return Some(String::new());
+                return Some(Scalar::Text(String::new()));
             }
-            let fmt_str = eval_awk_expr(&args[0], state);
-            let vals: Vec<String> = args[1..].iter().map(|a| eval_awk_expr(a, state)).collect();
-            Some(state.formatted(format_awk_printf(&fmt_str, &vals)))
+            let fmt_str = eval_awk_text(&args[0], state);
+            let vals: Vec<_> = args[1..].iter().map(|a| eval_awk_value(a, state)).collect();
+            Some(Scalar::Text(state.formatted(format_awk_printf(&fmt_str, &vals, Some(&state.convfmt)))))
         }
         _ => {
             if let Some((params, body)) = state.funcs.get(fn_name).cloned() {
@@ -3986,14 +3917,13 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                             .map(|s| s.to_string())
                     })
                     .collect();
-                let passed_arrays: Vec<Option<BTreeMap<String, String>>> = caller_idents
+                let passed_arrays: Vec<Option<BTreeMap<String, Scalar>>> = caller_idents
                     .iter()
                     .map(|ci_opt| ci_opt.as_ref().and_then(|ci| state.arrays.get(ci).cloned()))
                     .collect();
-                let arg_vals: Vec<String> =
-                    args.iter().map(|a| eval_awk_expr(a, state)).collect();
-                let mut saved_vars: Vec<(String, Option<String>)> = Vec::new();
-                let mut saved_arrays: Vec<(String, Option<BTreeMap<String, String>>)> = Vec::new();
+                let arg_vals: Vec<_> = args.iter().map(|a| eval_awk_value(a, state)).collect();
+                let mut saved_vars: Vec<(String, Option<Scalar>)> = Vec::new();
+                let mut saved_arrays: Vec<(String, Option<BTreeMap<String, Scalar>>)> = Vec::new();
                 for (idx, p) in params.iter().enumerate() {
                     saved_vars.push((p.clone(), state.vars.get(p).cloned()));
                     saved_arrays.push((p.clone(), state.arrays.remove(p)));
@@ -4007,7 +3937,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 exec_awk_block(&body, state);
                 let ret = state.return_val.take().unwrap_or_default();
                 state.return_val = prev_ret;
-                let mut writeback_arrays: Vec<(String, BTreeMap<String, String>)> = Vec::new();
+                let mut writeback_arrays: Vec<(String, BTreeMap<String, Scalar>)> = Vec::new();
                 for (idx, p) in params.iter().enumerate() {
                     if let Some(Some(ci)) = caller_idents.get(idx)
                         && let Some(mod_arr) = state.arrays.remove(p)
@@ -4243,18 +4173,7 @@ fn split_awk_concat(s: &str) -> Option<Vec<String>> {
     if merged.len() > 1 { Some(merged) } else { None }
 }
 
-fn format_awk_num(n: f64) -> String {
-    if n.fract() == 0.0 && n.abs() < 1e15 {
-        format!("{}", n as i64)
-    } else {
-        format!("{n:.6}")
-            .trim_end_matches('0')
-            .trim_end_matches('.')
-            .to_string()
-    }
-}
-
-fn format_awk_printf(fmt_str: &str, vals: &[String]) -> Result<String, (i32, &'static str)> {
+fn format_awk_printf(fmt_str: &str, vals: &[Scalar], convfmt: Option<&str>) -> Result<String, (i32, &'static str)> {
     let mut out = String::new();
     let chars: Vec<char> = fmt_str.chars().collect();
     let mut i = 0usize;
@@ -4286,7 +4205,7 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> Result<String, (i32, &'s
             }
             let width: usize = if i < chars.len() && chars[i] == '*' {
                 i += 1;
-                let w_val = vals.get(arg_idx).map(|s| parse_awk_f64(s) as i64).unwrap_or(0);
+                let w_val = vals.get(arg_idx).map(|s| s.number() as i64).unwrap_or(0);
                 arg_idx += 1;
                 if w_val < 0 {
                     left_align = true;
@@ -4306,7 +4225,7 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> Result<String, (i32, &'s
                 i += 1;
                 if i < chars.len() && chars[i] == '*' {
                     i += 1;
-                    let p_val = vals.get(arg_idx).map(|s| parse_awk_f64(s) as i64).unwrap_or(0);
+                    let p_val = vals.get(arg_idx).map(|s| s.number() as i64).unwrap_or(0);
                     arg_idx += 1;
                     usize::try_from(p_val).ok()
                 } else {
@@ -4330,17 +4249,17 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> Result<String, (i32, &'s
             } else {
                 's'
             };
-            let val = vals.get(arg_idx).cloned().unwrap_or_default();
+            let val = vals.get(arg_idx).unwrap_or(&Scalar::Unset);
             arg_idx += 1;
             let (raw_body, is_num, allow_sign) = match conv {
                 'd' | 'i' => {
-                    let n = parse_awk_f64(&val);
+                    let n = val.number();
                     let integer = n.trunc();
                     let text = if integer == 0.0 { "0".into() } else { format!("{integer:.0}") };
                     (text, true, n >= 0.0)
                 }
                 'u' | 'x' | 'X' | 'o' => {
-                    let n = parse_awk_f64(&val);
+                    let n = val.number();
                     let unsigned = (n.trunc() % 4294967296.0) as i64 as u32;
                     let mut text = match conv {
                         'x' => format!("{unsigned:x}"),
@@ -4354,17 +4273,17 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> Result<String, (i32, &'s
                     (text, true, false)
                 }
                 'f' | 'F' | 'e' | 'E' | 'g' | 'G' => {
-                    (awk_float::format(parse_awk_f64(&val), conv, prec.unwrap_or(6), alt_form)?, true, true)
+                    (awk_float::format(val.number(), conv, prec.unwrap_or(6), alt_form)?, true, true)
                 }
                 'c' => {
-                    let ch_str = if let Ok(n) = val.parse::<u32>() {
-                        char::from_u32(n).map(|c| c.to_string()).unwrap_or_default()
-                    } else {
-                        val.chars().next().map(|c| c.to_string()).unwrap_or_default()
+                    let byte = match val {
+                        Scalar::Text(s) => crate::vfs::stream_string_to_bytes(s).first().copied().unwrap_or(0),
+                        v => (v.number().trunc() % 256.0) as i32 as u8,
                     };
-                    (ch_str, false, false)
+                    (crate::vfs::bytes_to_stream_string(&[byte]), false, false)
                 }
                 _ => {
+                    let val = val.text(convfmt)?;
                     let truncated = if let Some(p) = prec && p < crate::vfs::stream_byte_len(&val) {
                         let bytes = crate::vfs::stream_string_to_bytes(&val);
                         crate::vfs::bytes_to_stream_string(&bytes[..p])
@@ -9620,6 +9539,27 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn awk_keeps_numbers_through_variables_arrays_fields_and_function_calls() {
+        let program = r#"function f(x) { return x } {
+            x=1/3; a[1]=x; $1=x; OFMT="%.3f"; CONVFMT="%.4f";
+            printf "%.12f %.12f %.12f\n", x,a[1],f($1);
+            print x*3, a[1]*3, f($1)*3, x, a[1], $1;
+            print "x="x, length(x), sprintf("%s",f(x)), $0
+        }"#;
+        let out = try_run_text_command("awk", &args(&[program]), "a b\n", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        assert_eq!((out.exit_code, out.stderr.as_str()), (0, ""));
+        assert_eq!(out.stdout, "0.333333333333 0.333333333333 0.333333333333\n1 1 1 0.333 0.333 0.333\nx=0.3333 6 0.3333 0.333333 b\n");
+    }
+
+    #[test]
+    fn awk_keeps_input_number_spelling_and_distinguishes_literal_strings() {
+        let program = r#"{ x="0"; print $1, x?1:0, $2?1:0, $1==3, "003"==3; printf "%c%c%c", "65", $1, "é" }"#;
+        let out = try_run_text_command("awk", &args(&[program]), "003 0\n", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(crate::vfs::stream_string_to_bytes(&out.stdout), b"003 1 0 1 0\n6\x03\xc3");
     }
 
     #[test]

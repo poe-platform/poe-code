@@ -6191,6 +6191,22 @@ test("a supplied filesystem keeps redirected descriptors on the opened file afte
   }finally{await bash.dispose();}
 });
 
+test("command output on a supplied filesystem preserves creation and existing modes",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(sh)=>{
+    const fs=new MemoryFileSystem();
+    await fs.writeFile("/keepaa",Uint8Array.of(65),{mode:0o600});
+    const r=await sh.exec("printf 'a\nb\n' | split -l 1 - /keep",{fs});
+    assert.deepEqual([r.exitCode,r.stderr],[0,""]);
+    return Promise.all(["/keepaa","/keepab"].map(async p=>(await fs.stat(p)).mode & 0o777));
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});
+  try{
+    const expected=await run(js);assert.deepEqual(expected,[0o600,0o644]);
+    assert.deepEqual(await run(rust),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("explicitly selecting the native filesystem uses the current Wasm files", async () => {
   const bash = new RustWasmBash({ files: { "/file": "original" }, companionFactory() { throw new Error("unexpected companion"); } });
   try {

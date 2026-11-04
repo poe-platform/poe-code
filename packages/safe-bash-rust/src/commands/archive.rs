@@ -42,7 +42,7 @@ pub fn try_run_archive_command(
             Some(result)
         }
         "zip" => Some(cmd_zip(args, stdin, cwd, fs)),
-        "unzip" => Some(cmd_unzip(args, cwd, fs)),
+        "unzip" => Some(cmd_unzip(args, stdin, cwd, fs)),
         "openssl" => Some(cmd_openssl(args, stdin, cwd, env, fs)),
         "gpg" => Some(cmd_gpg(args, stdin, cwd, fs)),
         "ssh" => Some(cmd_ssh(args)),
@@ -6410,7 +6410,16 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     result
 }
 
-fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn unzip_filtered(name: &str) -> String {
+    let mut out = String::new();
+    for c in name.chars() {
+        if (c as u32) < 32 { out.push('^'); out.push((c as u8 + 64) as char); }
+        else { out.push(c); }
+    }
+    out
+}
+
+fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut names_only = false;
     let mut list_table = false;
     let mut verbose_list = false;
@@ -6497,7 +6506,6 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 in_exclude = false;
             }
             "-o" => {
-                never_overwrite = false;
                 explicit_overwrite = true;
                 in_exclude = false;
             }
@@ -6562,10 +6570,7 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                         'c' => pipe_headers = true,
                         'q' => quiet = true,
                         'n' => never_overwrite = true,
-                        'o' => {
-                            never_overwrite = false;
-                            explicit_overwrite = true;
-                        }
+                        'o' => explicit_overwrite = true,
                         'C' => case_insensitive = true,
                         'z' => show_comment = true,
                         'u' | 'f' => {}
@@ -6642,7 +6647,7 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         );
     };
     let heading = !quiet && !names_only && !pipe_to_stdout;
-    let mut out = if heading { format!("Archive:  {arch}\n") } else { String::new() };
+    let mut out = if heading { format!("Archive:  {}\n",unzip_filtered(&arch)) } else { String::new() };
     let failure = |stdout: String,message: &str| BuiltinOutcome { stdout, stderr: format!("unzip: {}\n",tar_format::display(message)), exit_code: 2 };
     let mut entries = match crate::commands::codecs::parse_zip_archive(&bytes) {
         Ok(entries) => entries,
@@ -6821,49 +6826,117 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             Some(d) if !d.starts_with('/') => format!("{cwd}/{d}"),
             other => other.unwrap_or(cwd).to_owned(),
         };
-        let out_dir = match directory(&raw) { Ok(path) => path, Err(e) => return failure(out,&e) };
-        let input = match fs.stat(&full) { Ok(stat) => stat, Err(e) => return failure(out,&e) };
-        for entry in &entries {
-            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) { continue; }
-            if !check_member(&entry.name) { continue; }
-            let is_dir = entry.typeflag == b'5';
-            if junk_paths && is_dir { continue; }
-            let dest = if junk_paths { resolve_posix_path(&out_dir,&crate::vfs::basename_posix_path(&entry.name)) }
-                else { resolve_posix_path(&out_dir,&entry.name) };
-            if let Err(e) = directory(&crate::vfs::dirname_posix_path(&dest)) { return failure(out,&e); }
-            let version = fs.generation();
-            let existing = match fs.lstat(&dest) {
-                Ok(stat) => Some(stat),
-                Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
-                Err(e) => return failure(out,&e),
-            };
-            let result = if is_dir {
-                match &existing {
-                    Some(st) if st.kind == Directory => Ok(()),
-                    Some(_) => return failure(out,"directory destination is not a directory"),
-                    None => fs.mkdir_one(&dest,0o755),
-                }
-            } else {
-                if dest == full || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity) {
-                    return failure(out,"entry would overwrite input archive");
-                }
-                if let Some(st) = &existing {
-                    if st.kind != File { return failure(out,&format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
-                    if st.identity.is_none() || input.identity.is_none() { return failure(out,"cannot overwrite file with unknown input-archive backing identity"); }
-                    if never_overwrite { continue; }
-                }
-                if entry.typeflag == b'2' {
-                    if let Err(e) = check_tar_symlink(fs,&out_dir,&dest,&entry.linkname) { return failure(out,&e); }
-                    fs.symlink(&entry.linkname,&dest)
-                } else {
-                    let time = Some(entry.mtime*1000.);
-                    fs.replace_file_entry_with_metadata(&dest,&entry.content,entry.mode & 0o777,(time,time),version)
-                }
-            };
-            if let Err(e) = result { return failure(out,&e); }
-        }
         let mut stderr = String::new();
         let mut exit_code = 0;
+        let answers = crate::vfs::stream_string_to_bytes(stdin);
+        let mut remaining = answers.as_slice();
+        let mut read_answer = |max: usize| {
+            if remaining.is_empty() { return None; }
+            let window = &remaining[..max.min(remaining.len())];
+            let n = window.iter().position(|&b| b == b'\n').map_or(window.len(),|i| i+1);
+            let (line,rest) = remaining.split_at(n);
+            remaining = rest;
+            Some(String::from_utf8_lossy(line))
+        };
+        let mut prompt_bytes = crate::vfs::stream_byte_len(&out);
+        let mut extract = || -> Result<(),String> {
+            let out_dir = directory(&raw)?;
+            let input = fs.stat(&full)?;
+            'member: for entry in &entries {
+                if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) { continue; }
+                if !check_member(&entry.name) { continue; }
+                let is_dir = entry.typeflag == b'5';
+                if junk_paths && is_dir { continue; }
+                let mut name = if junk_paths { crate::vfs::basename_posix_path(&entry.name) } else { entry.name.clone() };
+                'destination: loop {
+                    let dest = resolve_posix_path(&out_dir,&name);
+                    if !is_dir && dest == out_dir { return Err("entry would replace extraction root".into()); }
+                    directory(&crate::vfs::dirname_posix_path(&dest))?;
+                    let version = fs.generation();
+                    let existing = match fs.lstat(&dest) {
+                        Ok(stat) => Some(stat),
+                        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+                        Err(e) => return Err(e),
+                    };
+                    if is_dir {
+                        match existing {
+                            Some(st) if st.kind == Directory => (),
+                            Some(_) => return Err("directory destination is not a directory".into()),
+                            None => fs.mkdir_one(&dest,0o755)?,
+                        }
+                        continue 'member;
+                    }
+                    if dest == full || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity) {
+                        return Err("entry would overwrite input archive".into());
+                    }
+                    if let Some(st) = existing {
+                        if st.kind != File { return Err(format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
+                        if st.identity.is_none() || input.identity.is_none() { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
+                        if never_overwrite { continue 'member; }
+                        let shown = match &dest_dir {
+                            Some(d) => format!("{d}{}{name}",if d.ends_with('/') { "" } else { "/" }),
+                            None => name.clone(),
+                        };
+                        let mut prompt = |text: &str| -> Result<(),String> {
+                            prompt_bytes += crate::vfs::stream_byte_len(text);
+                            if prompt_bytes > fs.remaining_output_bytes() {
+                                return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
+                            }
+                            stderr.push_str(text);
+                            Ok(())
+                        };
+                        while !explicit_overwrite {
+                            prompt(&format!("replace {}? [y]es, [n]o, [A]ll, [N]one, [r]ename: ",unzip_filtered(&shown)))?;
+                            let Some(answer) = read_answer(9) else {
+                                prompt(" NULL\n(EOF or read error, treating as \"[N]one\" ...)\n")?;
+                                never_overwrite = true;
+                                exit_code = 1;
+                                continue 'member;
+                            };
+                            match answer.as_bytes()[0] {
+                                b'A' => { explicit_overwrite = true; break; }
+                                b'y' | b'Y' => break,
+                                b'n' => continue 'member,
+                                b'N' => { never_overwrite = true; continue 'member; }
+                                b'r' | b'R' => {
+                                    name = loop {
+                                        prompt("new name: ")?;
+                                        let value = read_answer(usize::MAX).ok_or("EOF while reading replacement name")?;
+                                        let new_name = value.strip_suffix('\n').unwrap_or(&value);
+                                        if !new_name.is_empty() { break new_name.to_owned(); }
+                                    };
+                                    if name.contains('\0') { return Err("invalid empty, NUL, or non-Unicode path".into()); }
+                                    if name.starts_with('/') || name.split('/').any(|s| s == "..") {
+                                        return Err(format!("unsafe archive member: {}",tar_format::display(&name)));
+                                    }
+                                    continue 'destination;
+                                }
+                                first => {
+                                    let response = if matches!(first,b'\n'|b'\r') { "{ENTER}" } else { answer.strip_suffix('\n').unwrap_or(&answer) };
+                                    prompt(&format!("error:  invalid response [{response}]\n"))?;
+                                }
+                            }
+                        }
+                    }
+                    if entry.typeflag == b'2' {
+                        check_tar_symlink(fs,&out_dir,&dest,&entry.linkname)?;
+                        fs.symlink(&entry.linkname,&dest)?;
+                    } else {
+                        if entry.content.len() > fs.remaining_output_bytes().saturating_sub(prompt_bytes) {
+                            return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
+                        }
+                        let time = Some(entry.mtime*1000.);
+                        fs.replace_file_entry_with_metadata(&dest,&entry.content,entry.mode & 0o777,(time,time),version)?;
+                    }
+                    break;
+                }
+            }
+            Ok(())
+        };
+        if let Err(e) = extract() {
+            stderr.push_str(&format!("unzip: {}\n",tar_format::display(&e)));
+            return BuiltinOutcome { stdout: out,stderr,exit_code:2 };
+        }
         for (idx, &m) in matched_patterns.iter().enumerate() {
             if !m {
                 stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));

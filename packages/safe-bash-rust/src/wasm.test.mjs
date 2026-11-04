@@ -1877,6 +1877,30 @@ test("unzip renders binary archive comments only in modes that display them",asy
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("unzip preserves existing files unless overwrite is selected and checks renamed destinations",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    assert.equal((await js.exec("echo first > a; echo second > b; zip -q seed.zip a b")).exitCode,0);
+    await rust.fs.writeFile("/seed.zip",await ref.readFile("/seed.zip"));
+    for(const [flags,stdin] of [["",""],["","n\ny\n"],["","A\n"],["","N\n"],["-no",""],["","invalid!!yes\nn\n"],["","r\n\nsub/new\ny\n"],["","r\n../outside\n"],["","r\n"],["","r\nb\nN\n"]]) {
+      const run=async sh=>{
+        assert.equal((await sh.exec("rm -rf box; mkdir box; echo old-a > box/a; echo old-b > box/b")).exitCode,0);
+        const r=await sh.exec("unzip -q "+flags+" -d box seed.zip",{stdin});
+        const contents=await sh.exec("cat box/a box/b; test ! -e box/sub/new || cat box/sub/new; test ! -e outside");
+        return [r.exitCode,r.stdout,r.stderr,contents.stdout,contents.exitCode];
+      };
+      const expected=await run(js); assert.deepEqual(await run(rust),expected,JSON.stringify([flags,stdin]));
+    }
+    const prompt="replace box/a? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
+    for(const [sh,fs] of [[js,ref],[rust,rust.fs]]) {
+      await fs.writeFile("/box/a",Uint8Array.of(90));
+      await assert.rejects(sh.exec("unzip -q -d box seed.zip a",{stdin:"y\n",limits:{maxOutputBytes:prompt.length+1}}),/maxOutputBytes/);
+      assert.deepEqual(await fs.readFile("/box/a"),Uint8Array.of(90));
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("unzip contains extracted members and protects existing links and the input archive",async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});

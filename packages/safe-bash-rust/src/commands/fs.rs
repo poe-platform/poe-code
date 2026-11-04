@@ -3797,7 +3797,7 @@ fn cmd_du(
 
     for xf in &exclude_files {
         let p = absolute_operand(cwd, xf);
-        let bytes = match fs.access_path(&p, true).and_then(|path| fs.read_file(&path)) {
+        let bytes = match fs.read_file(&p) {
             Ok(bytes) => bytes,
             Err(e) => {
                 if p.is_empty() { return err_out("du: no such file or directory ''\n", 1); }
@@ -3924,7 +3924,7 @@ fn cmd_du(
                         continue;
                     }
                     if is_dir {
-                        match fs.list_dir(&resolved) {
+                        match fs.command_descriptor_op().and_then(|_| fs.list_dir(&resolved)) {
                             Ok(mut names) => {
                                 names.sort();
                                 if let Some(id) = &stat.identity { ancestors.insert(id.clone()); }
@@ -7334,6 +7334,21 @@ mod tests {
                 "inode/chardevice\n",
             )
         );
+    }
+
+    #[test]
+    fn du_charges_one_operation_per_metadata_lookup_listing_and_exclusion_read() {
+        let (mut shell, fs) = crate::Shell::with_memory_fs();
+        fs.mkdir_all("/d").unwrap();
+        fs.write_file("/d/f", b"abc").unwrap();
+        fs.write_file("/exclude", b"absent").unwrap();
+        fs.symlink("/d", "/link").unwrap();
+        for (script, required) in [("du -b /d/f", 1), ("du -Lab /link", 4), ("du -b -X /exclude /d/f", 2)] {
+            shell.set_limits(crate::ShellLimits { max_filesystem_operations: required - 1, ..Default::default() });
+            assert!(shell.exec(script).unwrap_err().contains("maxFileSystemOperations"), "{script}");
+            shell.set_limits(crate::ShellLimits { max_filesystem_operations: required, ..Default::default() });
+            assert_eq!(shell.exec(script).unwrap().exit_code, 0, "{script}");
+        }
     }
 
     #[test]

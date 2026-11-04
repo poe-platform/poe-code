@@ -25,6 +25,9 @@ pub struct HostReply {
     stdin_is_default: u32,
     stream_access: u32,
     directory_mode: u32,
+    child_packet: *const u8,
+    child_len: usize,
+    child_status: i32,
 }
 
 impl HostBuffer {
@@ -32,6 +35,41 @@ impl HostBuffer {
     unsafe fn take(self) -> Vec<u8> {
         if self.len == 0 { Vec::new() } else { unsafe { Vec::from_raw_parts(self.ptr, self.len, self.len) } }
     }
+}
+
+fn word(packet: &mut &[u8]) -> Result<u32, String> {
+    Ok(u32::from_le_bytes(packet.split_off(..4).ok_or("Truncated child request")?.try_into().unwrap()))
+}
+
+fn field(packet: &mut &[u8]) -> Result<String, String> {
+    let n = word(packet)? as usize;
+    Ok(bytes_to_stream_string(packet.split_off(..n).ok_or("Truncated child field")?))
+}
+
+fn invoke_child(ctx: &crate::CommandContext<'_>, mut request: &[u8]) -> Result<(i32, Vec<u8>), String> {
+    let flags = word(&mut request)?;
+    let argc = word(&mut request)? as usize;
+    let envc = word(&mut request)? as usize;
+    if flags & !31 != 0 || argc > request.len()/4 || envc > request.len()/8 {
+        return Err("Invalid child request".into());
+    }
+    let name = field(&mut request)?;
+    let cwd = (flags & 1 != 0).then(|| field(&mut request)).transpose()?;
+    let argv0 = (flags & 2 != 0).then(|| field(&mut request)).transpose()?;
+    let args = (0..argc).map(|_| field(&mut request)).collect::<Result<Vec<_>,_>>()?;
+    let env = (0..envc).map(|_| Ok((field(&mut request)?,field(&mut request)?))).collect::<Result<_,String>>()?;
+    let mut stdin = field(&mut request)?;
+    if !request.is_empty() { return Err("Trailing child request bytes".into()); }
+    let result = ctx.invoke(&name,&args,crate::InvokeOptions {
+        cwd:cwd.as_deref(), argv0:argv0.as_deref(), env, replace_env:flags & 4 != 0,
+        external_invocation:flags & 8 != 0, stdin_is_default:flags & 16 != 0,
+    }, &mut stdin)?;
+    let mut response = (crate::vfs::stream_byte_len(&stdin) as u32).to_le_bytes().to_vec();
+    for stream in [result.stdout,result.stderr] {
+        response.extend_from_slice(&(crate::vfs::stream_byte_len(&stream) as u32).to_le_bytes());
+        response.extend_from_slice(&stream_string_to_bytes(&stream));
+    }
+    Ok((result.exit_code,response))
 }
 
 /// Register a Wasm host function with the Rust evaluator. Forks inherit the registration.
@@ -70,14 +108,33 @@ pub unsafe extern "C" fn safe_bash_register_command(
         let input_start = packet.len();
         packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin));
         let umask = ctx.env.get("\0umask").and_then(|mask| u32::from_str_radix(mask, 8).ok()).unwrap_or(0o022);
-        let mut reply = HostReply {
-            remaining_output: ctx.budget.remaining_output_bytes(), shared_output: u32::from(ctx.shared_output),
-            stdin_is_default: u32::from(ctx.stdin_is_default), stream_access: ctx.stream_access,
-            remaining_fs_ops: ctx.budget.remaining_fs_ops(), max_path_components: ctx.budget.limits.max_pathname_components,
-            creation_mode: 0o666 & !umask, directory_mode: 0o777 & !umask,
-            ..Default::default()
+        let mut child_status = -1;
+        let mut response = Vec::new();
+        let (code,reply) = loop {
+            let mut reply = HostReply {
+                child_status, child_packet: response.as_ptr(), child_len: response.len(),
+                remaining_output: ctx.budget.remaining_output_bytes(), shared_output: u32::from(ctx.shared_output),
+                stdin_is_default: u32::from(ctx.stdin_is_default), stream_access: ctx.stream_access,
+                remaining_fs_ops: ctx.budget.remaining_fs_ops(), max_path_components: ctx.budget.limits.max_pathname_components,
+                creation_mode: 0o666 & !umask, directory_mode: 0o777 & !umask,
+                ..Default::default()
+            };
+            let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
+            if code != -7 { break (code,reply); }
+            let request = unsafe { reply.diagnostic.take() };
+            let streams = reply.streams.map(|b| unsafe { b.take() });
+            if streams.iter().any(|b| !b.is_empty()) || reply.consumed != 0 {
+                return Err("Returning streams or consuming caller stdin requires a final host reply".into());
+            }
+            if child_status == -2 && ctx.budget.check_cancelled().is_err() {
+                return Err("Cannot invoke after the execution has stopped".into());
+            }
+            (child_status,response) = match ctx.budget.charge_fs_ops(reply.used_fs_ops)
+                .and_then(|()| invoke_child(ctx,&request)) {
+                Ok(result) => result,
+                Err(e) => (-2,e.into_bytes()),
+            };
         };
-        let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
         let [stdout, stderr] = reply.streams.map(|buf| unsafe { buf.take() });
         let diagnostic = unsafe { reply.diagnostic.take() };
         if reply.consumed != 0 {

@@ -2204,6 +2204,42 @@ test("disposal waits for queued plugin setup before releasing the shell", async 
   assert.deepEqual(trace, ["setup","disposed"]);
 });
 
+test("Wasm host commands can yield a literal child call and resume with binary output and status", async () => {
+  const bash = new RustWasmBash({cwd:"/"}), x = bash.exports;
+  const table = x.__indirect_function_table, slot = table.grow(1);
+  const adapter = new WebAssembly.Module(Uint8Array.of(
+    0,97,115,109,1,0,0,0, 1,8,1,96,3,127,127,127,1,127,
+    2,9,1,0,4,110,101,120,116,0,0, 7,8,1,4,110,101,120,116,0,0,
+  ));
+  const word = n => { const b = Buffer.alloc(4); b.writeUInt32LE(n); return b; };
+  const field = v => { const b = Buffer.from(v); return Buffer.concat([word(b.length),b]); };
+  const request = Buffer.concat([word(0),word(2),word(0),field("printf"),field("%s"),field([255,36,40,41]),field([])]);
+  let calls = 0, received;
+  table.set(slot,new WebAssembly.Instance(adapter,{"":{next(_ptr,_len,reply) {
+    const header = new DataView(x.memory.buffer);
+    if (calls++ === 0) {
+      const p = bash._allocBytes(request), view = new DataView(x.memory.buffer);
+      view.setUint32(reply+44,p.ptr,true); view.setUint32(reply+48,p.len,true);
+      return -7;
+    }
+    const status = header.getInt32(reply+72,true);
+    const ptr = header.getUint32(reply+64,true), len = header.getUint32(reply+68,true);
+    received = [status,Buffer.from(new Uint8Array(x.memory.buffer,ptr,len))];
+    return 19;
+  }}}).exports.next);
+  const name = bash._allocBytes(Buffer.from("requestchild"));
+  try {
+    assert.equal(x.safe_bash_register_command(bash.sessionId,name.ptr,name.len,slot),0);
+    const result = await bash.exec("requestchild");
+    assert.equal(result.exitCode,19,result.stderr);
+    assert.deepEqual(received,[0,Buffer.concat([word(0),field([255,36,40,41]),field([])])]);
+    calls = 0;
+    await assert.rejects(bash.exec("requestchild; touch /late",{limits:{maxCommands:1}}),{limit:"maxCommands"});
+    assert.equal(received[0],-2);
+    await assert.rejects(bash.fs.stat("/late"),{code:"ENOENT"});
+  } finally { bash._freeBytes(name); table.set(slot,null); await bash.dispose(); }
+});
+
 test("Wasm host commands inherit exported bindings and preserve bytes in native pipelines", async () => {
   const bash = new RustWasmBash({cwd:"/", env:{BASE:"initial"}});
   const x = bash.exports, table = x.__indirect_function_table, slot = table.grow(1);

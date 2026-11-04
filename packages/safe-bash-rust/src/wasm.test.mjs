@@ -6528,6 +6528,48 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip authenticates WinZip AES members before output or replacement",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(17)}})),rust=new RustWasmBash({cwd:"/"});
+  const body=new Uint8Array(1001).fill(21),sentinel=Uint8Array.of(9);
+  try{
+    await fs.writeFile("/member",body);
+    for(const strength of [128,192,256])for(const version of [1,2]){
+      const name="aes"+strength+"v"+version+".zip",profile="aes-"+strength+"-ae"+version;
+      const write=await js.exec("zip -q"+(version===1?"0":"9")+" -P secret --encryption "+profile+" "+name+" member");
+      assert.equal(write.exitCode,0,write.stderr);
+      const bytes=await fs.readFile("/"+name);await rust.fs.writeFile("/"+name,bytes);
+      for(const opt of ["-pPsecret","-tPwrong","-v"]){
+        const cmd="unzip "+opt+" "+name,ref=await js.exec(cmd),r=await rust.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stderr],[ref.exitCode,ref.stderr],cmd);assert.deepEqual(r.stdoutBytes,ref.stdoutBytes,cmd);
+      }
+      const h=new DataView(bytes.buffer,bytes.byteOffset),start=30+h.getUint16(26,true)+h.getUint16(28,true);
+      if(strength===128 && version===2){
+        const central=h.getUint32(bytes.length-6,true);
+        const localExtra=30+h.getUint16(26,true),centralExtra=central+46+h.getUint16(central+28,true);
+        const aesOffset=begin=>{for(let i=begin;i<bytes.length;i+=4+h.getUint16(i+2,true))if(h.getUint16(i,true)===0x9901)return i;throw new Error("AES extra absent");};
+        for(const [offset,value,diagnostic] of [[aesOffset(localExtra)+8,2,"ZIP central/local AES metadata mismatch"],
+          [aesOffset(centralExtra)+8,4,"ZIP unsupported AES strength"],[central+16,1,"ZIP AE-2 CRC must be zero"]]){
+          const changed=bytes.slice();changed[offset]=value;
+          for(const [sh,view] of [[js,fs],[rust,rust.fs]]){
+            await view.writeFile("/bad-meta.zip",changed);const r=await sh.exec("unzip -Z1 bad-meta.zip");
+            assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"","unzip: "+diagnostic+"\n"]);
+          }
+        }
+      }
+      bytes[start+strength/16+2]^=1;
+      for(const [sh,view] of [[js,fs],[rust,rust.fs]]){
+        await view.writeFile("/damaged.zip",bytes);await view.mkdir("/out",{recursive:true});await view.writeFile("/out/member",sentinel);
+        for(const opts of ["-p","-oq -d out"]){
+          const cmd="unzip "+opts+" -P secret damaged.zip",r=await sh.exec(cmd);
+          assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"","unzip: ZIP AES authentication failed\n"],cmd);
+          assert.deepEqual(await view.readFile("/out/member"),sentinel);
+        }
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("unzip verifies traditional ZIP passwords before releasing member bytes",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(17)}})),rust=new RustWasmBash({cwd:"/"});

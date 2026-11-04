@@ -3675,10 +3675,75 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
     read_zip_members(data, None)
 }
 
+#[derive(Clone,Copy,PartialEq)]
+struct ZipAes {
+    version:u16,
+    key_bytes:usize,
+    method:u16,
+}
+
+fn zip_extra(mut extra:&[u8])->Result<(Option<u64>,Option<ZipAes>),String> {
+    let mut modified=None;
+    let mut aes=None;
+    while !extra.is_empty(){
+        let header=extra.get(..4).ok_or("ZIP truncated extra field")?;
+        let id=u16::from_le_bytes([header[0],header[1]]);
+        let len=u16::from_le_bytes([header[2],header[3]]) as usize;
+        let field=extra.get(4..4+len).ok_or("ZIP truncated extra field payload")?;
+        match id {
+            0x9901=>{
+                if aes.is_some(){return Err("ZIP duplicate extra field".into());}
+                if len!=7 || &field[2..4]!=b"AE"{return Err("ZIP invalid AES extra field".into());}
+                let version=u16::from_le_bytes([field[0],field[1]]);
+                if !matches!(version,1|2){return Err("ZIP unsupported AES version".into());}
+                let key_bytes=match field[4] {1=>16,2=>24,3=>32,_=>return Err("ZIP unsupported AES strength".into())};
+                let method=u16::from_le_bytes([field[5],field[6]]);
+                if !matches!(method,0|8|12){return Err("ZIP unsupported AES compression method".into());}
+                aes=Some(ZipAes {version,key_bytes,method});
+            }
+            0x0017..=0x0019=>return Err("ZIP encryption is unsupported".into()),
+            0x5455 if len>=5 && field[0]&1!=0=>{
+                modified=u64::try_from(i32::from_le_bytes(field[1..5].try_into().unwrap())).ok();
+            }
+            _=>{}
+        }
+        extra=&extra[4+len..];
+    }
+    Ok((modified,aes))
+}
+
+impl ZipAes {
+    fn decrypt(self,mut wire:Vec<u8>,password:&[u8])->Result<Vec<u8>,String> {
+        use super::archive::{aes_encrypt_block,aes_expand_key,openssl_hmac,pbkdf2_hmac};
+        let n=self.key_bytes;
+        let salt_len=n/2;
+        let header=salt_len+2;
+        let end=wire.len().checked_sub(10).filter(|&end|end>=header).ok_or("ZIP truncated AES payload")?;
+        let mut keys=pbkdf2_hmac("sha1",password,&wire[..salt_len],1000,2*n+2);
+        if keys[2*n..]!=wire[salt_len..header]{keys.fill(0);return Err("ZIP incorrect password".into());}
+        let tag=openssl_hmac("sha1",&keys[n..2*n],&wire[header..end]);
+        if tag[..10].iter().zip(&wire[end..]).fold(0,|diff,(a,b)|diff|(a^b))!=0 {
+            keys.fill(0);
+            return Err("ZIP AES authentication failed".into());
+        }
+        let (mut schedule,rounds)=aes_expand_key(&keys[..n]);
+        keys.fill(0);
+        for (i,chunk) in wire[header..end].chunks_mut(16).enumerate(){
+            let block=aes_encrypt_block(&(i as u128+1).to_le_bytes(),&schedule,rounds);
+            for (byte,key) in chunk.iter_mut().zip(block){*byte^=key;}
+        }
+        schedule.fill([0;16]);
+        wire.copy_within(header..end,0);
+        wire.truncate(end-header);
+        Ok(wire)
+    }
+}
+
 pub(super) struct ZipMember {
     central: std::ops::Range<usize>,
     local_start: usize,
     verifier: Option<u8>,
+    aes: Option<ZipAes>,
     pub name: String,
     pub method: u16,
     pub size: usize,
@@ -3693,9 +3758,10 @@ pub(super) struct ZipMember {
 impl ZipMember {
     pub fn decode<'a>(&self, payload: std::borrow::Cow<'a,[u8]>, password:Option<&[u8]>) -> Result<std::borrow::Cow<'a,[u8]>,String> {
         use std::borrow::Cow;
-        let payload=if let Some(verifier)=self.verifier {
+        let payload=if let Some(aes)=self.aes {
+            Cow::Owned(aes.decrypt(payload.into_owned(),password.ok_or("ZIP no-echo password capability is unavailable")?)?)
+        }else if let Some(verifier)=self.verifier {
             let password=password.ok_or("ZIP no-echo password capability is unavailable")?;
-            if self.method==99 {return Err("ZIP unsupported encryption method".into());}
             let update=|(a,b,c):(u32,u32,u32),byte:u8|{
                 let a=crc32_byte(a,byte);
                 let b=b.wrapping_add(a&255).wrapping_mul(134775813).wrapping_add(1);
@@ -3712,7 +3778,7 @@ impl ZipMember {
             data.drain(..12);
             Cow::Owned(data)
         }else{payload};
-        let decoded = match self.method {
+        let decoded = match self.aes.map_or(self.method,|a|a.method) {
             0 => payload,
             8 => {
                 let (data,used) = inflate_raw_bounded(&payload,self.size).map_err(|e| if e == "inflated data exceeds input limit" { "ZIP uncompressed size mismatch".into() } else { e })?;
@@ -3723,7 +3789,7 @@ impl ZipMember {
             _ => return Err("ZIP unsupported compression method".into()),
         };
         if decoded.len() != self.size { return Err("ZIP uncompressed size mismatch".into()); }
-        if crc32_ieee(&decoded) != self.crc { return Err("ZIP CRC32 mismatch".into()); }
+        if !self.aes.is_some_and(|a|a.version==2) && crc32_ieee(&decoded) != self.crc { return Err("ZIP CRC32 mismatch".into()); }
         Ok(decoded)
     }
 }
@@ -3829,24 +3895,17 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         let central_extra = &data[pos + 46 + name_len..pos + 46 + name_len + extra_len];
         pos += 46 + name_len + extra_len + entry_cmt_len;
 
-        let mut mtime = dos_to_unix_secs(dos_date, dos_time);
-        let mut ex_pos = 0usize;
-        while ex_pos + 4 <= central_extra.len() {
-            let id = u16::from_le_bytes([central_extra[ex_pos], central_extra[ex_pos + 1]]);
-            let len = u16::from_le_bytes([central_extra[ex_pos + 2], central_extra[ex_pos + 3]]) as usize;
-            ex_pos += 4;
-            if ex_pos + len > central_extra.len() {
-                break;
-            }
-            if id == 0x5455 && len >= 5 && (central_extra[ex_pos] & 1) != 0 {
-                let ts = i32::from_le_bytes(central_extra[ex_pos + 1..ex_pos + 5].try_into().unwrap());
-                if ts >= 0 {
-                    mtime = ts as u64;
-                }
-            }
-            ex_pos += len;
+        let (modified,aes)=zip_extra(central_extra)?;
+        let flags=u16::from_le_bytes([data[central_start+8],data[central_start+9]]);
+        if flags & (64|0x2000)!=0{return Err("ZIP encryption is unsupported".into());}
+        if method==99 && (flags&1==0 || flags & !0x80f!=0 || data[central_start+6..central_start+8]!=[51,0]){
+            return Err("ZIP invalid AES flags or extraction version".into());
         }
-
+        if aes.is_some()!=(method==99){return Err("ZIP inconsistent AES method and extra field".into());}
+        if let Some(a)=aes {
+            if a.method!=8 && flags&6!=0{return Err("ZIP unsupported AES compression flags".into());}
+            if a.version==2 && crc!=0{return Err("ZIP AE-2 CRC must be zero".into());}
+        }
         if local_off.checked_add(30).is_none_or(|end| end > central_offset) { return Err("invalid local header".into()); }
         let local = read(local_off..local_off+30)?;
         if !local.starts_with(b"PK\x03\x04") { return Err("invalid local header".into()); }
@@ -3858,10 +3917,16 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         }
         let central = &data[central_start..pos];
         if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
-        if read(local_off+30..local_off+30+l_name_len)?.as_ref() != &central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
+        let local_fields=read(local_off+30..payload_start)?;
+        if local_fields[..l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
+        let (local_modified,local_aes)=zip_extra(&local_fields[l_name_len..])?;
+        if local_aes!=aes{return Err("ZIP central/local AES metadata mismatch".into());}
+        let mtime=modified.or(local_modified).unwrap_or_else(||dos_to_unix_secs(dos_date,dos_time));
         if !matches!(method,0|8|12|14|99) { return Err("ZIP unsupported compression method".into()); }
         let encrypted=central[8]&1!=0;
-        if encrypted && comp_size<12 {return Err("ZIP truncated encryption header".into());}
+        let overhead=aes.map_or(12,|a|a.key_bytes/2+12);
+        if encrypted && comp_size<overhead {return Err("ZIP truncated encryption header".into());}
+        if aes.is_some_and(|a|a.method==0) && comp_size-overhead!=uncomp_size{return Err("ZIP AES stored size mismatch".into());}
         if method == 0 && comp_size-usize::from(encrypted)*12 != uncomp_size { return Err("ZIP stored size mismatch".into()); }
         let descriptor = central[8] & 8 != 0;
         if local[14..26].chunks_exact(4).zip(central[16..28].chunks_exact(4))
@@ -3896,7 +3961,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
             0o644
         };
 
-        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
+        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
             payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
             typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
         });

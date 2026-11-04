@@ -7373,17 +7373,17 @@ pub(super) fn openssl_hmac(name: &str, key: &[u8], data: &[u8]) -> Vec<u8> {
     openssl_hash(name, &opad)
 }
 
-fn pbkdf2_hmac_sha256(password: &[u8], salt: &[u8], iterations: u32, dk_len: usize) -> Vec<u8> {
+pub(super) fn pbkdf2_hmac(digest:&str, password: &[u8], salt: &[u8], iterations: u32, dk_len: usize) -> Vec<u8> {
     let mut out = Vec::with_capacity(dk_len);
     let mut block_num = 1u32;
     while out.len() < dk_len {
         let mut salt_block = Vec::with_capacity(salt.len() + 4);
         salt_block.extend_from_slice(salt);
         salt_block.extend_from_slice(&block_num.to_be_bytes());
-        let mut u = openssl_hmac("sha256", password, &salt_block);
+        let mut u = openssl_hmac(digest, password, &salt_block);
         let mut t = u.clone();
         for _ in 1..iterations {
-            u = openssl_hmac("sha256", password, &u);
+            u = openssl_hmac(digest, password, &u);
             for (ti, ui) in t.iter_mut().zip(u.iter()) {
                 *ti ^= *ui;
             }
@@ -7449,9 +7449,9 @@ fn aes_gmul(mut a: u8, mut b: u8) -> u8 {
     p
 }
 
-fn aes_expand_key(key: &[u8]) -> (Vec<[u8; 16]>, usize) {
+pub(super) fn aes_expand_key(key: &[u8]) -> (Vec<[u8; 16]>, usize) {
     let nk = key.len() / 4;
-    let nr = if nk == 4 { 10 } else { 14 };
+    let nr = nk + 6;
     let nb_words = 4 * (nr + 1);
     let mut w = vec![[0u8; 4]; nb_words];
     for i in 0..nk {
@@ -7494,7 +7494,7 @@ fn aes_expand_key(key: &[u8]) -> (Vec<[u8; 16]>, usize) {
     (round_keys, nr)
 }
 
-fn aes_encrypt_block(block: &[u8; 16], round_keys: &[[u8; 16]], nr: usize) -> [u8; 16] {
+pub(super) fn aes_encrypt_block(block: &[u8; 16], round_keys: &[[u8; 16]], nr: usize) -> [u8; 16] {
     let mut s = *block;
     for i in 0..16 {
         s[i] ^= round_keys[0][i];
@@ -8374,7 +8374,7 @@ fn cmd_openssl(
             } else {
                 let pw = password.ok_or_else(|| "password required: use -k or -pass".to_string())?;
                 let derived = if pbkdf2 || iter_opt.is_some() {
-                    pbkdf2_hmac_sha256(pw.as_bytes(), &salt, iterations, key_len + 16)
+                    pbkdf2_hmac("sha256", pw.as_bytes(), &salt, iterations, key_len + 16)
                 } else {
                     let mut blocks = Vec::new();
                     let mut prev = Vec::new();
@@ -9201,7 +9201,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         };
         let salt = b"0123456789abcdef";
         let iv = b"1234567890123456";
-        let key = pbkdf2_hmac_sha256(secret.as_bytes(), salt, 10000, 32);
+        let key = pbkdf2_hmac("sha256", secret.as_bytes(), salt, 10000, 32);
         let (rk, nr) = aes_expand_key(&key);
         let mut ctr = [0u8; 16];
         ctr.copy_from_slice(iv);
@@ -9276,7 +9276,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let cipher_len = cipher_and_tag.len() - 16;
         let cipher = &cipher_and_tag[..cipher_len];
         let tag = &cipher_and_tag[cipher_len..];
-        let key = pbkdf2_hmac_sha256(secret.as_bytes(), salt, 10000, 32);
+        let key = pbkdf2_hmac("sha256", secret.as_bytes(), salt, 10000, 32);
         let expected_tag = openssl_hmac("sha256", &key, cipher);
         if tag != &expected_tag[..16] {
             return err_out("gpg: decryption failed: Bad session key\n", 2);

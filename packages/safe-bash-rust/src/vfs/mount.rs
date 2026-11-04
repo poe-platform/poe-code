@@ -312,23 +312,38 @@ impl SafeBashFs for MountVfs {
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
-        let reason = |e: String| e.split_once(", ").map_or(e.as_str(), |(code, _)| code).to_owned();
-        let from = self.resolve(source, false, WalkPurpose::Rename).map_err(reason)?;
-        let to = self.resolve(destination, false, WalkPurpose::Rename).map_err(reason)?;
-        if self.mounts.keys().any(|m| [from.as_str(), to.as_str()].iter().any(|p| crate::vfs::is_path_within(p, m))) {
-            return Err("EBUSY: resource busy or locked".into());
+        use super::VfsEntryKind::Directory;
+        let protected = |p: &str| p == "/" || self.mounts.keys().any(|m| super::is_path_within(p, m));
+        let reason = |e: String| match e.split_once(", ").map_or(e.as_str(), |(code, _)| code) {
+            "EACCES: Permission denied" => "EACCES: permission denied".into(),
+            "ELOOP: too many symbolic links" => "ELOOP: too many symbolic links encountered".into(),
+            s => s.to_owned(),
+        };
+        let inspect = |path: &str, allow_missing: bool, missing_directory: bool| {
+            // A trailing slash requires a directory but does not follow a final symlink.
+            let trimmed = path.trim_end_matches('/');
+            let entry = self.resolve(if trimmed.is_empty() && !path.is_empty() { "/" } else { trimmed }, false, WalkPurpose::Access).map_err(reason)?;
+            let (mount, fs, local) = self.location(&entry);
+            let directory = if protected(&entry) { true } else {
+                match fs.lstat(&local) {
+                    Ok(st) => {
+                        if path.ends_with('/') && st.kind != Directory { return Err("ENOTDIR: not a directory".to_owned()); }
+                        if path.ends_with('/') && st.mode & 0o100 == 0 { return Err("EACCES: permission denied".to_owned()); }
+                        st.kind == Directory
+                    }
+                    Err(e) if allow_missing && e.starts_with("ENOENT:") && (!path.ends_with('/') || missing_directory) => false,
+                    Err(e) => return Err(reason(e)),
+                }
+            };
+            Ok((entry, mount, fs, local, directory))
+        };
+        let (from, mount, fs, src, directory) = inspect(source, false, false)?;
+        let (to, other, _, dest, _) = inspect(destination, true, directory)?;
+        if protected(&from) || protected(&to) { return Err("EBUSY: resource busy or locked".into()); }
+        if mount != other { return Err("EXDEV: cross-device link not permitted".into()); }
+        if [source, destination].iter().any(|p| matches!(p.trim_end_matches('/').rsplit('/').next(), Some("." | ".."))) {
+            return Err("EINVAL: invalid argument".into());
         }
-        let (mount, fs, mut src) = self.location(&from);
-        let (other, _, mut dest) = self.location(&to);
-        if mount != other {
-            let st = fs.lstat(&src).map_err(reason)?;
-            if source.ends_with('/') && st.kind != crate::vfs::VfsEntryKind::Directory {
-                return Err("ENOTDIR: not a directory".into());
-            }
-            return Err("EXDEV: cross-device link not permitted".into());
-        }
-        if source.ends_with('/') { src.push('/'); }
-        if destination.ends_with('/') { dest.push('/'); }
         fs.rename(&src, &dest, no_replace)
     }
 
@@ -533,6 +548,25 @@ impl SafeBashFs for MountVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn rename_checks_mounted_operands_before_rejecting_protected_entries() {
+        let root = Arc::new(MemoryVfs::new());
+        root.write_file("/w/file", b"keep").unwrap();
+        root.symlink("/", "/rootlink").unwrap();
+        let fs = MountVfs::new(root.clone()).with_mount("/dev", Arc::new(MemoryVfs::new()));
+        for (src, dst, expected) in [
+            ("/missing", "/", "ENOENT"), ("/w/file/", "/", "ENOTDIR"),
+            ("/", "/rootlink/", "ENOTDIR"), ("/", "/missing/", "EBUSY"),
+            ("/w/file", "/missing/", "ENOENT"), ("/w/file", "/w/..", "EBUSY"),
+            ("/w/.", "/dev/sub", "EXDEV"), ("/rootlink/..", "/w", "EACCES"),
+            ("/w/.", "/w/other", "EINVAL"),
+        ] {
+            let err = fs.rename(src,dst,false).unwrap_err();
+            assert_eq!(err.split(':').next().unwrap(),expected,"{src} -> {dst}");
+        }
+        assert_eq!(root.read_file("/w/file").unwrap(), b"keep");
+    }
 
     #[test]
     fn separate_filesystems_allocate_inodes_locally_and_snapshot_links_stay_separate() {

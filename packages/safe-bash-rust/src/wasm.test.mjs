@@ -3698,6 +3698,20 @@ test("fs.mkdir creates only requested entries, respects search permissions and p
   }
 });
 
+test("mkdir checks all operands against the operation limit before creating directories", async () => {
+  for (const [view, ops] of [["provided", 6], ["default", 10]]) {
+    for (const limit of [1, ops - 1, ops]) {
+      const bash = new RustWasmBash({deviceView:view, cwd:"/", symlinks:{"/alias":"/other"}, limits:{maxFileSystemOperations:limit}});
+      try {
+        if (limit === ops) assert.equal((await bash.exec("mkdir -v /x /y")).exitCode, 0);
+        else await assert.rejects(bash.exec("mkdir -v /x /y"), /maxFileSystemOperations/);
+        assert.equal(await bash.fs.stat("/x").then(() => true, () => false), limit > 1);
+        assert.equal(await bash.fs.stat("/y").then(() => true, () => false), limit === ops);
+      } finally { bash.dispose(); }
+    }
+  }
+});
+
 test("mkdir reports which device lookup failed before creating a directory", async () => {
   const bash = new RustWasmBash({deviceView:"default", symlinks:{"/alias":"/dev"}});
   try {

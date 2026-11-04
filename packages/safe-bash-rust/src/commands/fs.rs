@@ -605,13 +605,18 @@ fn cmd_mkdir(
         None => None,
     };
 
+    let link_free = fs.link_free_memory();
     let direct = !verbose && explicit_mode.is_none() && umask_val & 0o300 == 0
         && operands.iter().all(|a| {
             let p = absolute_operand(cwd, a);
             p != "/dev" && !p.starts_with("/dev/")
-        }) && fs.link_free_memory();
+        }) && link_free;
     let device_view = fs.default_device_view();
     let stat = |path: &str, follow: bool| {
+        if link_free && path != "/" && path != "/dev" && !path.starts_with("/dev/") && fs.indexed_directory_entry(path) == Some(false) {
+            fs.command_descriptor_op()?;
+            return Ok(None);
+        }
         let op = if follow { "stat" } else { "lstat" };
         match fs.inspect_command_entry(path, follow, op) {
             Ok((_, st)) => Ok(Some(st)),
@@ -634,12 +639,20 @@ fn cmd_mkdir(
         };
         if op.is_empty() { format!("{code}: {reason} '{path}'") } else { format!("{code}: {reason}, {op} '{path}'") }
     });
-    let mut create = |operand: &str| -> Result<(), String> {
+    let mut create = |operand: &str, preflight: bool| -> Result<(), String> {
         let path = command_operand(cwd, operand)?;
         if !direct && let Some(st) = stat(&path, recursive)? {
-            if recursive && st.kind == VfsEntryKind::Directory { return Ok(()); }
+            if recursive && st.kind == VfsEntryKind::Directory {
+                if device_view || fs.has_path_capabilities() { fs.command_descriptor_op()?; }
+                return Ok(());
+            }
             return Err(format!("EEXIST: file already exists, mkdir '{path}'"));
         }
+        if !direct && (fs.has_path_capabilities() || device_view
+            && (!link_free || path == "/dev" || path.starts_with("/dev/") || normalize_posix_path(&path) != path)) {
+            fs.command_descriptor_op()?;
+        }
+        if preflight { return Ok(()); }
         let mut created = Vec::new();
         if verbose {
             if recursive {
@@ -660,24 +673,21 @@ fn cmd_mkdir(
             mkdir(&crate::vfs::dirname_posix_path(&path), true, default_mode | 0o300)?;
         }
         if !direct && explicit_mode.is_none() && device_view {
-            let mut candidate = path.as_str();
-            loop {
-                // The creation-mask adapter queries each parent until it can supply a mode.
-                match fs.command_create_path(candidate) {
-                    Err(e) if recursive && e.starts_with("ENOENT:") && candidate != "/" => {
-                        candidate = candidate.trim_end_matches('/').rsplit_once('/').map_or("/", |(p, _)| if p.is_empty() { "/" } else { p });
-                    }
-                    Err(e) => return Err(e),
-                    Ok(_) => break,
-                }
-            }
+            fs.check_mkdir_creation_mode(&path, recursive)?;
         }
         mkdir(&path, recursive, explicit_mode.unwrap_or(default_mode))?;
         for d in created { stdout.push_str(&format!("mkdir: created directory {}\n", display_operand(d))); }
         Ok(())
     };
+    if !direct {
+        for a in &operands {
+            if let Err(e) = create(a, true) && (e.starts_with("ENOTSUP:") || e.starts_with("EROFS:") || e.starts_with("Execution aborted:")) {
+                return err_out(&format!("mkdir: {e}\n"), 1);
+            }
+        }
+    }
     for a in &operands {
-        if let Err(e) = create(a) {
+        if let Err(e) = create(a, false) {
             stderr.push_str(&format!("mkdir: {e}\n"));
             code = 1;
         }
@@ -7308,6 +7318,15 @@ mod tests {
         let result = cmd_du(&args(&["-B1", "Cargo.toml"]), "/", &Default::default(), &fs);
         assert_eq!(result.exit_code, 0);
         assert_eq!(result.stdout, format!("{allocated}\tCargo.toml\n"));
+    }
+
+    #[test]
+    fn mkdir_verbose_uses_the_memory_directory_index_for_dot_operands() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/dir").unwrap();
+        let out = cmd_mkdir(&args(&["-pv", "/dir/."]), "/", &BTreeMap::new(), &fs);
+        assert_eq!(out.stdout, "mkdir: created directory '/dir/.'\n");
+        assert_eq!(out.exit_code, 0);
     }
 
     #[test]

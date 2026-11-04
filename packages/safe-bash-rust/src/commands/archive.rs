@@ -24,8 +24,7 @@ pub fn try_run_archive_command(
         "md5sum" => Some(cmd_hash("md5", args, stdin, cwd, fs)),
         "b2sum" => Some(cmd_hash("blake2b", args, stdin, cwd, fs)),
         "cksum" => Some(cmd_cksum(args, stdin, cwd, fs)),
-        "base64" => Some(cmd_base64(args, stdin, cwd, fs)),
-        "base32" => Some(cmd_base32(args, stdin, cwd, fs)),
+        "base64" | "base32" => Some(run_base_cmd(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
         "xxd" => Some(cmd_xxd(args, stdin, cwd, fs)),
         "strings" => Some(cmd_strings(args, stdin, cwd, fs)),
         "od" => Some(cmd_od(args, stdin, cwd, fs)),
@@ -1960,60 +1959,39 @@ fn decode_base_quantum(
     valid_tail
 }
 
-fn decode_base_stream(
-    data: &[u8],
-    alphabet: &[u8],
-    a_bits: u32,
-    a_quantum: usize,
-    valid_lengths: &[usize],
-    ignore_garbage: bool,
-) -> (Vec<u8>, bool) {
+fn base_decoder(
+    alphabet: &[u8], a_bits: u32, a_quantum: usize, valid_lengths: &'static [usize], ignore_garbage: bool,
+) -> impl FnMut(&[u8], bool, &mut Vec<u8>) -> bool {
     let mut lookup = [-2i16; 256];
-    for (idx, &b) in alphabet.iter().enumerate() {
-        lookup[b as usize] = idx as i16;
-    }
+    for (idx, &b) in alphabet.iter().enumerate() { lookup[b as usize] = idx as i16; }
     lookup[b'=' as usize] = -1;
     let mut quantum = [0i16; 8];
-    let mut q_len = 0usize;
-    let mut last_byte: Option<u8> = None;
-    let mut out = Vec::new();
-    for &byte in data {
-        let symbol = lookup[byte as usize];
-        if ignore_garbage && symbol == -2 {
-            continue;
-        }
-        if byte == b'\n' || byte == b'\r' {
-            continue;
-        }
-        last_byte = Some(byte);
-        quantum[q_len] = symbol;
-        q_len += 1;
-        if q_len == a_quantum {
-            let valid = decode_base_quantum(&quantum, q_len, a_bits, a_quantum, valid_lengths, &mut out);
-            q_len = 0;
-            if !valid {
-                return (out, false);
+    let mut q_len = 0;
+    move |data, eof, out| {
+        for &byte in data {
+            let symbol = lookup[byte as usize];
+            if (ignore_garbage && symbol == -2) || matches!(byte, 10 | 13) { continue; }
+            quantum[q_len] = symbol;
+            q_len += 1;
+            if q_len == a_quantum {
+                q_len = 0;
+                if !decode_base_quantum(&quantum, a_quantum, a_bits, a_quantum, valid_lengths, out) { return false; }
             }
         }
-    }
-    if q_len > 0 {
-        if last_byte != Some(b'=') {
-            while q_len < a_quantum {
-                quantum[q_len] = -1;
-                q_len += 1;
+        if eof && q_len != 0 {
+            if quantum[q_len - 1] != -1 {
+                quantum[q_len..a_quantum].fill(-1);
+                q_len = a_quantum;
             }
+            return decode_base_quantum(&quantum, q_len, a_bits, a_quantum, valid_lengths, out);
         }
-        let valid = decode_base_quantum(&quantum, q_len, a_bits, a_quantum, valid_lengths, &mut out);
-        if !valid {
-            return (out, false);
-        }
+        true
     }
-    (out, true)
 }
 
 fn base64_decode_strict(input: &str) -> Result<Vec<u8>, ()> {
-    let (out, valid) = decode_base_stream(input.as_bytes(), B64_CHARS, 6, 4, &[2, 3, 4], false);
-    if valid { Ok(out) } else { Err(()) }
+    let mut out = Vec::new();
+    base_decoder(B64_CHARS, 6, 4, &[2, 3, 4], false)(input.as_bytes(), true, &mut out).then_some(out).ok_or(())
 }
 
 pub fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
@@ -2042,17 +2020,15 @@ pub fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn run_base_cmd(
-    name: &str,
-    alphabet: &[u8],
-    a_bits: u32,
-    a_quantum: usize,
-    valid_lengths: &[usize],
-    args: &[String],
-    stdin: &str,
-    cwd: &str,
-    fs: &dyn SafeBashFs,
+pub(super) fn run_base_cmd(
+    name: &str, args: &[String], mut stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
+    let (alphabet, a_bits, a_quantum, lengths): (&[u8], u32, usize, &[usize]) = if name == "base32" {
+        (B32_CHARS, 5, 8, &[2, 4, 5, 7, 8])
+    } else {
+        (B64_CHARS, 6, 4, &[2, 3, 4])
+    };
     let mut decode = false;
     let mut ignore_garbage = false;
     let mut wrap_cols: usize = 76;
@@ -2152,91 +2128,81 @@ fn run_base_cmd(
     if files.len() > 1 {
         return err_out(&format!("{name}: extra operand '{}'\n", files[1]), 2);
     }
-    let data = if files.is_empty() || files[0] == "-" {
-        crate::vfs::stream_string_to_bytes(stdin)
-    } else {
-        let full = resolve_posix_path(cwd, &files[0]);
-        if fs.is_dir(&full) {
-            return err_out(
-                &format!("{name}: EISDIR: illegal operation on a directory, readStream '{full}'\n"),
-                1,
-            );
-        }
-        match fs.read_file(&full) {
-            Ok(b) => b,
-            Err(_) => {
-                return err_out(
-                    &format!("{name}: ENOENT: no such file or directory, readStream '{full}'\n"),
-                    1,
-                )
+    let limit = fs.max_input_bytes();
+    let mut left = limit;
+    let mut result = ok_out("");
+    let mut bytes = Vec::new();
+    let mut decoder = base_decoder(alphabet, a_bits, a_quantum, lengths, ignore_garbage);
+    let (mut bits, mut carry, mut symbols, mut column) = (0u32, 0u32, 0usize, 0usize);
+    let mask = (1 << a_bits) - 1;
+    let mut valid = true;
+    let mut writable = true;
+    let mut convert = |data: &[u8], eof: bool| {
+        let mut flush = |bytes: &mut Vec<u8>| {
+            if !bytes.is_empty() {
+                writable = write(1, &crate::vfs::bytes_to_stream_string(bytes), &mut result);
+                bytes.clear();
             }
-        }
-    };
-
-    if decode {
-        let (bytes, valid) =
-            decode_base_stream(&data, alphabet, a_bits, a_quantum, valid_lengths, ignore_garbage);
-        let stdout = crate::vfs::bytes_to_stream_string(&bytes);
-        if valid {
-            ok_out(&stdout)
-        } else {
-            BuiltinOutcome {
-                stdout,
-                stderr: format!("{name}: invalid input\n"),
-                exit_code: 1,
-            }
-        }
-    } else {
-        if data.is_empty() {
-            return ok_out("");
-        }
-        let mut carry = 0u32;
-        let mut bits = 0u32;
-        let mut symbols = 0usize;
-        let mut column = 0usize;
-        let mask = (1u32 << a_bits) - 1;
-        let mut out: Vec<u8> = Vec::new();
-        let emit_byte = |byte: u8, out: &mut Vec<u8>, symbols: &mut usize, column: &mut usize| {
-            out.push(byte);
-            *symbols = (*symbols + 1) % a_quantum;
-            if wrap_cols > 0 {
-                *column += 1;
-                if *column == wrap_cols {
-                    out.push(b'\n');
-                    *column = 0;
-                }
-            }
+            writable
         };
-        for &b in &data {
-            carry = (carry << 8) | (b as u32);
-            bits += 8;
-            while bits >= a_bits {
-                bits -= a_bits;
-                let idx = ((carry >> bits) & mask) as usize;
-                emit_byte(alphabet[idx], &mut out, &mut symbols, &mut column);
+        if decode {
+            valid = decoder(data, eof, &mut bytes);
+        } else {
+            let emit = |byte, bytes: &mut Vec<u8>, symbols: &mut usize, column: &mut usize| {
+                bytes.push(byte);
+                *symbols = (*symbols + 1) % a_quantum;
+                *column += 1;
+                if *column == wrap_cols { bytes.push(10); *column = 0; }
+            };
+            for &byte in data {
+                carry = (carry << 8) | u32::from(byte);
+                bits += 8;
+                while bits >= a_bits {
+                    bits -= a_bits;
+                    emit(alphabet[((carry >> bits) & mask) as usize], &mut bytes, &mut symbols, &mut column);
+                }
+                carry &= (1 << bits) - 1;
+                if bytes.len() >= 16000 && !flush(&mut bytes) { return false; }
             }
-            carry &= (1 << bits) - 1;
+            if eof {
+                if bits != 0 { emit(alphabet[(carry << (a_bits - bits)) as usize], &mut bytes, &mut symbols, &mut column); }
+                while symbols != 0 { emit(b'=', &mut bytes, &mut symbols, &mut column); }
+                if wrap_cols != 0 && column != 0 { bytes.push(10); }
+            }
         }
-        if bits > 0 {
-            let idx = ((carry << (a_bits - bits)) & mask) as usize;
-            emit_byte(alphabet[idx], &mut out, &mut symbols, &mut column);
-        }
-        while symbols != 0 {
-            emit_byte(b'=', &mut out, &mut symbols, &mut column);
-        }
-        if wrap_cols > 0 && column > 0 {
-            out.push(b'\n');
-        }
-        ok_out(&crate::vfs::bytes_to_stream_string(&out))
+        flush(&mut bytes) && valid
+    };
+    let mut stopped = false;
+    let mut feed = |chunk: &[u8]| -> Result<bool, String> {
+        left = left.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+        stopped = !chunk.chunks(8192).all(|part| convert(part, false));
+        Ok(!stopped)
+    };
+    let read = if files.first().is_none_or(|f| f == "-") {
+        let mut admission = Ok(true);
+        stdin.read_stdin(|chunk| {
+            admission = feed(chunk);
+            matches!(admission, Ok(true))
+        }).and(admission.map(|_| ()))
+    } else {
+        let path = crate::vfs::path::absolute_operand(cwd, &files[0]);
+        fs.inspect_command_entry(&path, true, "capabilitiesFor").and_then(|(entry, stat)| {
+            if stat.kind == crate::vfs::VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
+            let mut remaining = if stat.mode & 0o170000 == 0o100000 { stat.size } else { usize::MAX };
+            fs.read_chunks(&entry, &mut |chunk| {
+                let n = remaining.min(chunk.len());
+                remaining -= n;
+                for part in chunk[..n].chunks(8192) { if !feed(part)? { return Ok(false); } }
+                Ok(remaining != 0)
+            })
+        }).map_err(|e| super::coreutils::stream_file_error(e, "readStream", &path))
+    };
+    if read.is_ok() && !stopped { convert(&[], true); }
+    if writable && let Some(message) = read.err().or_else(|| (!valid).then(|| "invalid input".into())) {
+        result.exit_code = 1;
+        write(2, &format!("{name}: {message}\n"), &mut result);
     }
-}
-
-fn cmd_base64(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    run_base_cmd("base64", B64_CHARS, 6, 4, &[2, 3, 4], args, stdin, cwd, fs)
-}
-
-fn cmd_base32(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    run_base_cmd("base32", B32_CHARS, 5, 8, &[2, 4, 5, 7, 8], args, stdin, cwd, fs)
+    result
 }
 
 fn parse_xxd_num(text: &str) -> Result<usize, String> {

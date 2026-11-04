@@ -636,6 +636,29 @@ test("cat and tr publish each chunk before pulling more stdin", {skip: !WebAssem
   } finally { bash.dispose(); }
 });
 
+test("base encoders admit stdin chunks before writing and stop decoding invalid input", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({ files: { "/src": "f" } });
+  try {
+    for (const [cmd, encoded, prefix] of [["base64", "Zg==", "Z"], ["base32", "MY======", "M"]]) {
+      let pulls = 0;
+      const input = (...chunks) => ({async *[Symbol.asyncIterator]() {
+        for (const chunk of chunks) { pulls++; yield new TextEncoder().encode(chunk); }
+      }});
+      await assert.rejects(bash.exec(cmd + " >/copy", {
+        stdin: input("f", "oo", "bar"), limits: { maxInputBytes: 2 }
+      }), { limit: "maxInputBytes" });
+      assert.equal(bash.readText("/copy"), prefix);
+      assert.equal(pulls, 2);
+      pulls = 0;
+      const file = await bash.exec(cmd + " /src", { stdin: input("unused") });
+      assert.equal(file.stdout, encoded + "\n");
+      assert.equal(pulls, 0);
+      const invalid = await bash.exec(cmd + " -d", { stdin: input(encoded, "!".repeat(encoded.length), "unread") });
+      assert.deepEqual([invalid.stdout, invalid.stderr, invalid.exitCode, pulls], ["f", cmd + ": invalid input\n", 1, 2]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
   const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];

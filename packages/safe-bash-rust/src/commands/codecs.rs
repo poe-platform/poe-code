@@ -3713,6 +3713,10 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
             return Err("truncated central directory entry".into());
         }
         let name = String::from_utf8_lossy(&data[pos + 46..pos + 46 + name_len]).to_string();
+        if name.is_empty() || name.contains('\0') { return Err("ZIP invalid or unsafe path".into()); }
+        if name.strip_suffix('/').unwrap_or(&name).split('/').any(|part| matches!(part, "" | "." | "..")) {
+            return Err("ZIP unsafe traversal or absolute path".into());
+        }
         let central_extra = &data[pos + 46 + name_len..pos + 46 + name_len + extra_len];
         pos += 46 + name_len + extra_len + entry_cmt_len;
 

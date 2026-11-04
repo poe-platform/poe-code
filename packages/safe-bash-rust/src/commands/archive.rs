@@ -6641,10 +6641,12 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             9,
         );
     };
-    let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
-    if !bytes.is_empty() && !bytes.iter().all(|&b| b == 0) && entries.is_empty() {
-        return err_out(&format!("unzip: {arch}: End-of-central-directory signature not found\n"), 9);
-    }
+    let archive_header = || if quiet || names_only || pipe_to_stdout && !pipe_headers { String::new() } else { format!("Archive:  {arch}\n") };
+    let fail = |message: &str| BuiltinOutcome { stdout: archive_header(), stderr: format!("unzip: {}\n",tar_format::display(message)), exit_code: 2 };
+    let mut entries = match crate::commands::codecs::parse_zip_archive(&bytes) {
+        Ok(entries) => entries,
+        Err(e) => return fail(&e),
+    };
     let mut comment_text = entries.pop_if(|e|e.typeflag == ZIP_COMMENT_TYPE)
         .map(|e|String::from_utf8_lossy(&e.content).into_owned()).unwrap_or_default();
     if !comment_text.is_empty() && !comment_text.ends_with('\n') { comment_text.push('\n'); }
@@ -6806,43 +6808,64 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         };
     }
     {
-        let out_dir = dest_dir
-            .as_deref()
-            .map(|d| resolve_posix_path(cwd, d))
-            .unwrap_or_else(|| cwd.to_string());
-        let _ = fs.mkdir_all(&out_dir);
+        use crate::vfs::VfsEntryKind::{Directory, File};
+        let directory = |raw: &str| -> Result<String,String> {
+            let mut path = String::from("/");
+            for component in raw.split('/').filter(|c| !c.is_empty() && *c != ".") {
+                path = resolve_posix_path(&path,component);
+                match fs.lstat(&path) {
+                    Ok(stat) if stat.kind == Directory => (),
+                    Ok(_) => return Err(format!("unsafe non-directory or symlink ancestor: {}",tar_format::display(&path))),
+                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => fs.mkdir_one(&path,0o755)?,
+                    Err(e) => return Err(e),
+                }
+            }
+            Ok(path)
+        };
+        let raw = match dest_dir.as_deref() {
+            Some(d) if !d.starts_with('/') => format!("{cwd}/{d}"),
+            other => other.unwrap_or(cwd).to_owned(),
+        };
+        let out_dir = match directory(&raw) { Ok(path) => path, Err(e) => return fail(&e) };
+        let input = match fs.stat(&full) { Ok(stat) => stat, Err(e) => return fail(&e) };
         for entry in &entries {
-            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
-                continue;
-            }
-            if !check_member(&entry.name) {
-                continue;
-            }
-            if junk_paths {
-                if entry.typeflag != b'0' {
-                    continue;
+            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) { continue; }
+            if !check_member(&entry.name) { continue; }
+            let is_dir = entry.typeflag == b'5';
+            if junk_paths && is_dir { continue; }
+            let dest = if junk_paths { resolve_posix_path(&out_dir,&crate::vfs::basename_posix_path(&entry.name)) }
+                else { resolve_posix_path(&out_dir,&entry.name) };
+            if let Err(e) = directory(&crate::vfs::dirname_posix_path(&dest)) { return fail(&e); }
+            let version = fs.generation();
+            let existing = match fs.lstat(&dest) {
+                Ok(stat) => Some(stat),
+                Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+                Err(e) => return fail(&e),
+            };
+            let result = if is_dir {
+                match &existing {
+                    Some(st) if st.kind == Directory => Ok(()),
+                    Some(_) => return fail("directory destination is not a directory"),
+                    None => fs.mkdir_one(&dest,0o755),
                 }
-                let base = crate::vfs::basename_posix_path(&entry.name);
-                let dest = resolve_posix_path(&out_dir, &base);
-                if never_overwrite && fs.exists(&dest) {
-                    continue;
-                }
-                let _ = fs.write_file(&dest, &entry.content);
             } else {
-                let dest = resolve_posix_path(&out_dir, entry.name.trim_start_matches('/'));
-                if entry.typeflag == b'5' || entry.name.ends_with('/') {
-                    let _ = fs.mkdir_all(&dest);
-                } else if entry.typeflag == b'2' {
-                    let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
-                    let _ = fs.symlink(&entry.linkname, &dest);
-                } else {
-                    if never_overwrite && fs.exists(&dest) {
-                        continue;
-                    }
-                    let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
-                    let _ = fs.write_file(&dest, &entry.content);
+                if dest == full || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity) {
+                    return fail("entry would overwrite input archive");
                 }
-            }
+                if let Some(st) = &existing {
+                    if st.kind != File { return fail(&format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
+                    if st.identity.is_none() || input.identity.is_none() { return fail("cannot overwrite file with unknown input-archive backing identity"); }
+                    if never_overwrite { continue; }
+                }
+                if entry.typeflag == b'2' {
+                    if let Err(e) = check_tar_symlink(fs,&out_dir,&dest,&entry.linkname) { return fail(&e); }
+                    fs.symlink(&entry.linkname,&dest)
+                } else {
+                    let time = Some(entry.mtime*1000.);
+                    fs.replace_file_entry_with_metadata(&dest,&entry.content,entry.mode & 0o777,(time,time),version)
+                }
+            };
+            if let Err(e) = result { return fail(&e); }
         }
         let mut stderr = String::new();
         let mut exit_code = 0;

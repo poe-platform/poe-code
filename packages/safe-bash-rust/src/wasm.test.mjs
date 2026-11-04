@@ -1858,6 +1858,40 @@ test("ZIP archive comments preserve input bytes, line limits and prompt order",a
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("unzip contains extracted members and protects existing links and the input archive",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    const cases=[
+      ["../outside","-d box"],["../outside","-j -d box"],["/outside","-d box"],
+      ["dir/../outside","-d box"],[".","-d box"],["through/file","-d box"],
+      ["leaf","-d box"],["file","-d box/through"],["file","-d box/through/../new"],
+      ["input.zip",""],["alias.zip",""],["hard","-d box"],
+    ];
+    for(const [name,opts] of cases) {
+      const placeholder="x".repeat(name.length);
+      await ref.writeFile("/"+placeholder,Uint8Array.of(90));
+      assert.equal((await js.exec("zip -0q - "+placeholder+" > fixture")).exitCode,0);
+      const seed=Buffer.from(await ref.readFile("/fixture"));
+      seed.write(name,30,"ascii");
+      seed.write(name,seed.lastIndexOf(Buffer.from([80,75,1,2]))+46,"ascii");
+      const run=async (sh,fs) => {
+        const setup=await sh.exec("rm -rf box elsewhere outside input.zip alias.zip; mkdir box elsewhere; echo intact > outside; ln -s /elsewhere box/through; ln -s /outside box/leaf; ln outside box/hard");
+        assert.equal(setup.exitCode,0,setup.stderr);
+        await fs.writeFile("/input.zip",seed);
+        assert.equal((await sh.exec("ln input.zip alias.zip")).exitCode,0);
+        const result=await sh.exec("unzip -qo input.zip "+opts);
+        assert.deepEqual(Buffer.from(await fs.readFile("/input.zip")),seed,name);
+        const effects=await sh.exec("cat outside; ls -A elsewhere; ls -A box; cat box/hard");
+        return [result.exitCode,result.stderr,effects.stdout];
+      };
+      const expected=await run(js,ref);
+      assert.equal(expected[0],name==="hard"?0:2,name+" "+opts);
+      assert.deepEqual(await run(rust,rust.fs),expected,name+" "+opts);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("ZIP update and freshen select newer members and leave a current archive untouched",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});

@@ -265,6 +265,15 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.add_output_bytes(data.len())?;
         self.inner.replace_file_entry_with_mode(&host_text(path), data, mode, version).map_err(quote_host_text)
     }
+    fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
+        for (path, bytes, _) in &mut files {
+            self.budget.limits.check_path(path)?;
+            self.budget.tick_fs_op()?;
+            self.budget.add_output_bytes(bytes.len())?;
+            if let std::borrow::Cow::Owned(p) = host_text(path) { *path = p; }
+        }
+        self.inner.replace_file_batch(files, version).map_err(quote_host_text)
+    }
     fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

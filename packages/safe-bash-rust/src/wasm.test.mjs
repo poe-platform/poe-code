@@ -1498,6 +1498,55 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("native zip splits at record boundaries and preserves occupied volume destinations on failure", async () => {
+  const {Shell, MemoryFileSystem, archiveCommands} = await import("@poe-platform/safe-bash");
+  for (const [size, flags, obstacle] of [
+    [157000,"-s 64k"], [25,"--split-size=64k"], [65420,"-sv -s64K"], [65491,"-s 65536"],
+    [157000,"-qs=64k","hardlink"], [157000,"--split-size 64K","replace"], [157000,"-m -s 64k"],
+    [157000,"-s 12k"], [157000,"-s 0"], [25,"-sp -s 64k"],
+    [157000,"-m -s 64k","symlink"], [157000,"-s 64k","directory"], [157000,"-s 64k","input"],
+  ]) {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/case");
+    const js = new Shell({fs,cwd:"/case"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/case"});
+    const run = async (sh, store) => {
+      for (const [p,n] of [["/case/first",size],["/case/last",5]]) {
+        await store.writeFile(p,Uint8Array.from({length:n}, (_,i) => i % 197));
+        await store.utimes(p, 1700000000000, 1700000000000);
+      }
+      if (obstacle === "symlink") await store.symlink("last","/case/a.z02");
+      else if (obstacle === "directory") await store.mkdir("/case/a.z02");
+      else if (obstacle === "input") await store.writeFile("/case/a.z02", Uint8Array.of(67));
+      if (obstacle === "hardlink") await store.link("/case/last", "/case/a.z02");
+      if (obstacle === "replace") await store.writeFile("/case/a.z02", Uint8Array.of(22), {mode:0o751});
+      const r = await sh.exec("zip -q -0 " + flags + " a.zip first last" + (obstacle === "input" ? " a.z02" : ""));
+      const entries = [];
+      for (const {name} of (await store.readdir("/case")).sort((a,b) => a.name.localeCompare(b.name))) {
+        const st = await store.lstat("/case/"+name);
+        const data = st.type === "file" ? await store.readFile("/case/"+name) : new Uint8Array();
+        entries.push([name,st.type,st.mode & 0o777,data.length,Buffer.from(await crypto.subtle.digest("SHA-256",data)).toString("hex")]);
+      }
+      return [r.exitCode,r.stdout,r.stderr,entries];
+    };
+    try { assert.deepEqual(await run(rust,rust.fs),await run(js,fs),[size,flags,obstacle].join(" ")); }
+    finally { await rust.dispose(); await js.dispose(); }
+  }
+});
+
+test("split ZIP reserves all volumes before replacing files or removing move sources", async () => {
+  const bash = new RustWasmBash({cwd:"/case", memoryFsOptions:{maxBytes:250000}});
+  try {
+    const original = new Uint8Array(150000);
+    await bash.fs.writeFile("/case/input",original);
+    await bash.fs.writeFile("/case/out.z01","keep");
+    const result = await bash.exec("zip -qm0 -s64k out.zip input");
+    assert.notEqual(result.exitCode,0);
+    assert.deepEqual(await bash.fs.readFile("/case/input"),original);
+    assert.deepEqual(await bash.fs.readFile("/case/out.z01"),new TextEncoder().encode("keep"));
+    assert.deepEqual((await bash.fs.readdir("/case")).map(e=>e.name).sort(),["input","out.z01"]);
+  } finally { await bash.dispose(); }
+});
+
 test("plugin stdin reports the source of the current descriptor", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()), rust = new RustWasmBash({cwd:"/"});

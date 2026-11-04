@@ -1373,6 +1373,38 @@ impl SafeBashFs for MemoryVfs {
         Ok(self.generation())
     }
 
+    fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        if files.len() > state.limits.max_entries.saturating_sub(state.entry_count()) { return Err("ENOSPC: inode limit exceeded".into()); }
+        let mut remaining = state.limits.max_total_bytes.saturating_sub(state.total_bytes);
+        let mut seen = std::collections::HashSet::new();
+        for (path, bytes, mode) in &mut files {
+            *path = Self::mutation_entry(&state, path)?;
+            let safe = match state.nodes.get(path) {
+                None => true,
+                Some(MemoryNode::File { ino }) => !state.extra_links.contains_key(ino),
+                _ => false,
+            };
+            if !safe || !seen.insert(path.clone()) || state.devices == Devices::Mounted || state.devices.entry(path).is_some() {
+                return Err("ZIP split destination is not a safe regular file".into());
+            }
+            if !matches!(state.nodes.get(&super::dirname_posix_path(path)), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+                return Err("EACCES: permission denied".into());
+            }
+            if *mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+            if bytes.len() > state.limits.max_file_bytes { return Err("EFBIG: file size budget exceeded".into()); }
+            remaining = remaining.checked_sub(bytes.len()).ok_or("ENOSPC: file system byte budget exceeded")?;
+        }
+        for (path, bytes, mode) in files {
+            Self::unlink_locked(&mut state, &path);
+            state.total_bytes += bytes.len();
+            state.insert_new_file(path, bytes, 0o100000 | mode, None);
+        }
+        self.bump_generation();
+        Ok(())
+    }
+
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }

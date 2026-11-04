@@ -2736,6 +2736,7 @@ pub struct TarEntry {
 
 #[path = "tar_format.rs"]
 mod tar_format;
+mod zip_volumes;
 
 #[derive(Clone, Debug)]
 struct TarOperand {
@@ -5693,7 +5694,9 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut has_encrypt_opt = false;
     let mut selected_action: &str = "add";
     let mut literal = false;
-    let mut split_size: Option<usize> = None;
+    let mut split_size = 0;
+    let mut split_verbose = false;
+    let mut split_pause = false;
     let mut output_archive: Option<String> = None;
     let mut excludes = Vec::new();
     let mut includes = Vec::new();
@@ -5794,16 +5797,13 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 return zip_err("Option -Z (--compression-method):  unknown method");
             }
             use_deflate = "deflate".starts_with(&lower);
-        } else if a == "-s" || a == "--split-size" {
-            if i + 1 >= args.len() {
-                return zip_err("split size requires a value");
-            }
-            if a == "-s" {
-                let sz_str = args[i + 1].trim_end_matches(['k', 'K']);
-                split_size = sz_str.parse::<usize>().ok().map(|n| n * 1024);
-            }
-            i += 2;
-            continue;
+        } else if a == "--split-size" || a.starts_with("--split-size=") {
+            let value = if let Some(v) = a.strip_prefix("--split-size=") { v }
+                else { i += 1; args.get(i).map_or("",String::as_str) };
+            split_size = match zip_volumes::size(value) { Ok(s) => s, Err(e) => return zip_err(e) };
+        } else if a == "--split-pause" { split_pause = true;
+        } else if a == "--split-verbose" { split_verbose = true;
+        } else if a == "--split-bell" {
         } else if a == "-P" || a == "--password" || a.starts_with("-P") || a.starts_with("--password=") {
             let val = if a == "-P" || a == "--password" {
                 if i + 1 >= args.len() {
@@ -5886,8 +5886,22 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else if a.starts_with('-') && !a.starts_with("--") {
             in_exclude = false;
             in_include = false;
-            for ch in a[1..].chars() {
+            let mut flags = a[1..].chars();
+            while let Some(ch) = flags.next() {
                 match ch {
+                    's' => {
+                        match flags.as_str().as_bytes().first() {
+                            Some(b'p') => split_pause = true,
+                            Some(b'v') => split_verbose = true,
+                            Some(b'b') => {},
+                            _ => {
+                                let value = if flags.as_str().is_empty() { i += 1; args.get(i).map_or("",String::as_str) } else { flags.as_str() };
+                                split_size = match zip_volumes::size(value.strip_prefix('=').unwrap_or(value)) { Ok(s) => s, Err(e) => return zip_err(e) };
+                                break;
+                            }
+                        }
+                        flags.next();
+                    }
                     'h' => return ok_out(ZIP_HELP_TEXT),
                     'L' => return ok_out(ZIP_LICENSE_TEXT),
                     'd' => {
@@ -5996,6 +6010,13 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         }
     }
+    if split_pause && split_size != 0 { return zip_err("split pause requires an explicit volume prompt capability"); }
+    let mut sources = Vec::new();
+    if arch_full != dest_full && let Ok(st) = fs.stat(&arch_full) { sources.push((arch_full.clone(),st.identity)); }
+    let publish = |bytes, sources: &[_]| match zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources) {
+        Ok(report) => ok_out(&report),
+        Err(e) => err_out(&format!("zip: {e}\n"),2),
+    };
     let mut entries = match fs.read_file(&arch_full) {
         Ok(bytes) => match crate::commands::codecs::parse_zip_archive(&bytes) {
             Ok(entries) => entries,
@@ -6029,15 +6050,13 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        let _ = fs.write_file(&dest_full, &crate::commands::codecs::serialize_zip_archive(&entries));
-        return ok_out("");
+        return publish(crate::commands::codecs::serialize_zip_archive(&entries), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.name == "__ZIP_COMMENT__" || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        let _ = fs.write_file(&dest_full, &crate::commands::codecs::serialize_zip_archive(&entries));
-        return ok_out("");
+        return publish(crate::commands::codecs::serialize_zip_archive(&entries), &sources);
     }
     if freshen_mode {
         for e in &mut entries {
@@ -6047,12 +6066,12 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
                 let disk_path = resolve_posix_path(cwd, &e.name);
                 if let Ok(new_bytes) = fs.read_file(&disk_path) {
+                    if let Ok(st) = fs.stat(&disk_path) { sources.push((disk_path, st.identity)); }
                     e.content = new_bytes;
                 }
             }
         }
-        let _ = fs.write_file(&dest_full, &crate::commands::codecs::serialize_zip_archive(&entries));
-        return ok_out("");
+        return publish(crate::commands::codecs::serialize_zip_archive(&entries), &sources);
     }
     if filesync_mode { entries.clear(); }
     let effective_targets: Vec<String> = if recursive_patterns {
@@ -6061,25 +6080,27 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         operands.clone()
     };
     let _ = update_mode;
+    let mut moves = Vec::new();
     for t in &effective_targets {
         let mut raw_entries = Vec::new();
-        let _ = visit_archive_sources(
+        let visit = visit_archive_sources(
             t.trim_start_matches('/'),
             &resolve_posix_path(cwd, t),
             &excludes,
             false,
             !store_symlinks,
             false,
-            true,
+            recursive || recursive_patterns,
             fs,
             &mut Vec::new(),
-            &mut |_, path, mut entry, _| {
+            &mut |stat, path, mut entry, _| {
                 if entry.typeflag == b'0' { entry.content = fs.read_file(&path)?; }
-                raw_entries.push(entry);
+                raw_entries.push((path,stat.identity.clone(),entry));
                 Ok(true)
             },
         );
-        for mut e in raw_entries {
+        if let Err(e) = visit && !e.starts_with("ENOENT:") { return err_out(&format!("zip: {e}\n"),2); }
+        for (path,id,mut e) in raw_entries {
             e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();
             if e.name.is_empty() || e.name == "." || e.name == "./" {
                 continue;
@@ -6135,15 +6156,13 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     e.content = converted;
                 }
             }
+            if move_mode { moves.push((path.clone(), e.typeflag == b'5')); }
+            if split_size != 0 { sources.push((path,id)); }
             if let Some(ex) = entries.iter_mut().find(|x| x.name == e.name) {
                 *ex = e;
             } else {
                 entries.push(e);
             }
-        }
-        if move_mode && !recursive_patterns {
-            let t_full = resolve_posix_path(cwd, t);
-            let _ = fs.remove(&t_full, true);
         }
     }
     if read_comment {
@@ -6178,14 +6197,15 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
     let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false);
-    if let Some(sz) = split_size
-        && out_bytes.len() > sz
-    {
-        let z01 = format!("{}.z01", dest_full.trim_end_matches(".zip"));
-        let _ = fs.write_file(&z01, &out_bytes[..sz]);
+    let result = publish(out_bytes, &sources);
+    if result.exit_code == 0 {
+        for (path,dir) in moves.into_iter().rev() {
+            if let Err(e) = fs.remove_one(&path,dir) && !e.starts_with("ENOTEMPTY:") {
+                return err_out(&format!("zip: {e}\n"),2);
+            }
+        }
     }
-    let _ = fs.write_file(&dest_full, &out_bytes);
-    ok_out("")
+    result
 }
 
 fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

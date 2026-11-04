@@ -420,6 +420,10 @@ pub trait SafeBashFs: Send + Sync {
     fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
         self.replace_file_entry_with_metadata(path, data, mode, (None, None), version)
     }
+    /// Install prepared regular files together, after admitting the complete batch.
+    fn replace_file_batch(&self, _files: Vec<(String, Vec<u8>, u32)>, _version: u64) -> Result<(), String> {
+        Err("ZIP split publication requires atomic owned staging".into())
+    }
     /// Publish command-private staging bytes without charging them to stdout.
     fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.replace_file_entry_with_mode(path, data, 0o600, version)

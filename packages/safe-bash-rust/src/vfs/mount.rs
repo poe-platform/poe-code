@@ -330,6 +330,18 @@ impl SafeBashFs for MountVfs {
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         fs.replace_file_entry(&rel, data, local_version)
     }
+    fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
+        let Some((first, _, _)) = files.first() else { return Ok(()); };
+        let (backend, _) = self.route(first, false)?;
+        let local_version = backend.generation();
+        for (path, _, _) in &mut files {
+            let (fs, local) = self.route(path, false)?;
+            if !std::ptr::eq(fs, backend) { return Err("EXDEV: split destinations on different mounts".into()); }
+            *path = local;
+        }
+        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        backend.replace_file_batch(files, local_version)
+    }
     fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
         let (fs, rel) = self.route(path, false)?;
         let local_version = fs.generation();

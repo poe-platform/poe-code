@@ -5,6 +5,7 @@ enum Source<'a> {
     Stdin,
     File(ChunkReader<'a>),
     Named(String),
+    Getline(String),
     Buffered,
 }
 
@@ -23,6 +24,14 @@ impl<'a> Reader<'a> {
                 if !matches!(self.source, Source::Buffered) && !output.flush() { return Err(String::new()); }
                 match &mut self.source {
                     Source::Stdin => stdin.next_stdin_chunk(&mut self.chunk)?,
+                    Source::Getline(path) => {
+                        let entry = fs.access_path(path, true)
+                            .map_err(|e| super::super::coreutils::stream_file_error(e, "capabilitiesFor", path))?;
+                        let mut next = fs.open_chunks(&entry)
+                            .map_err(|e| super::super::coreutils::stream_file_error(e, "readStream", path))?;
+                        next(&mut self.chunk).map_err(|e| super::super::coreutils::stream_file_error(e, "readStream", path))?;
+                        self.source = Source::File(next);
+                    }
                     Source::Named(path) => {
                         let mut next = if fs.supplies_single_chunk_input() && path != "/dev" && !path.starts_with("/dev/") {
                             super::super::coreutils::record_chunks(fs, path, path.clone())?
@@ -70,6 +79,41 @@ impl<'a> Reader<'a> {
 }
 
 impl AwkState<'_> {
+    pub(super) fn read_getline_from_file(&mut self, name: &str, into_var: Option<&str>) -> String {
+        if name.is_empty() {
+            self.runtime_err = Some("awk: getline requires a nonempty filename\n".into());
+            return "-1".into();
+        }
+        let rs = crate::vfs::stream_string_to_bytes(&self.rs);
+        if rs.len() > 1 {
+            self.runtime_err = Some("awk: RS must be one byte or empty for paragraph records\n".into());
+            return "-1".into();
+        }
+        let path = crate::vfs::resolve_posix_path(&self.cwd, name);
+        let stdin = matches!(name, "-" | "/dev/stdin");
+        let reader = self.getline_files.entry(path.clone()).or_insert_with(|| Reader {
+            source: if stdin { Source::Stdin } else { Source::Getline(path.clone()) },
+            chunk: Vec::new(), at: 0,
+        });
+        match reader.record(rs.first().copied(), &mut self.stdin, &mut self.output, self.vfs) {
+            Ok(Some(line)) => {
+                if let Some(var) = into_var { self.set_var(var, line); } else { self.set_line(&line); }
+                "1".into()
+            }
+            Ok(None) => "0".into(),
+            Err(e) => {
+                self.getline_files.remove(&path);
+                if e.is_empty() || stdin {
+                    self.runtime_err = Some(if e.is_empty() { e } else { format!("awk: {e}\n") });
+                    self.error_status = 1;
+                } else {
+                    self.set_var("ERRNO", e);
+                }
+                "-1".into()
+            }
+        }
+    }
+
     pub(super) fn read_main(&mut self, mut record_phase_start: bool) -> Option<String> {
         loop {
             if self.reader.is_none() {

@@ -8562,6 +8562,19 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk named getline keeps a byte cursor across separator changes and exposes read errors", async () => {
+  const sh = new RustWasmBash({files:{"/f":Buffer.from([255,13,10,58,98,58,10])}});
+  try {
+    const r = await sh.exec(`awk 'BEGIN{getline x < "/f";RS=":";getline y < "/f";getline z < "/f";print x,y,z,NR;print (getline a < "/dev/stdin"),a;print (getline b < "/missing"),ERRNO,close("/missing")}'`, {stdin:"hi:there:"});
+    assert.deepEqual([r.exitCode,r.stderr,Buffer.from(r.stdoutBytes)], [0,"",Buffer.concat([
+      Buffer.from([255,13]),Buffer.from("  b 0\n1 hi\n-1 ENOENT: no such file or directory, readStream '/missing' -1\n"),
+    ])]);
+    const script = `awk 'BEGIN{getline x < "/f";print length(x)}'`;
+    await assert.rejects(sh.exec(script, {limits:{maxFileSystemOperations:1}}), {limit:"maxFileSystemOperations"});
+    assert.equal((await sh.exec(script, {limits:{maxInputBytes:0, maxFileSystemOperations:2}})).stdout, "2\n");
+  } finally { sh.dispose(); }
+});
+
 test("awk file and descriptor redirections preserve bytes and close releases the filename", async () => {
   const sh = new RustWasmBash({files:{"/f":"prefix"}});
   try {

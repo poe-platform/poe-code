@@ -1760,7 +1760,7 @@ struct AwkState<'a> {
     rng_state: u32,
     cwd: String,
     vfs: &'a dyn SafeBashFs,
-    getline_files: BTreeMap<String, (Vec<String>, usize)>,
+    getline_files: BTreeMap<String, awk_input::Reader<'a>>,
     stdin: super::CommandInput<'a>,
     reader: Option<awk_input::Reader<'a>>,
     argument: usize,
@@ -1874,45 +1874,6 @@ impl<'a> AwkState<'a> {
                 self.runtime_err = Some(format!("awk: {message}\n"));
                 self.error_status = 1;
             }
-        }
-    }
-
-    fn read_getline_from_file(&mut self, raw_path: &str, into_var: Option<&str>) -> String {
-        let full = resolve_posix_path(&self.cwd, raw_path);
-        if !self.getline_files.contains_key(&full) {
-            match self.vfs.read_file(&full) {
-                Ok(b) => {
-                    let lines: Vec<String> = String::from_utf8_lossy(&b)
-                        .lines()
-                        .map(|s| s.to_string())
-                        .collect();
-                    self.getline_files.insert(full.clone(), (lines, 0));
-                }
-                Err(_) => return "-1".to_string(),
-            }
-        }
-        let next_line = if let Some((lines, cur)) = self.getline_files.get_mut(&full) {
-            if *cur < lines.len() {
-                let l = lines[*cur].clone();
-                *cur += 1;
-                Some(l)
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-        if let Some(l) = next_line {
-            if let Some(vn) = into_var
-                && !vn.is_empty()
-            {
-                self.set_var(vn, l);
-            } else {
-                self.set_line(&l);
-            }
-            "1".to_string()
-        } else {
-            "0".to_string()
         }
     }
 

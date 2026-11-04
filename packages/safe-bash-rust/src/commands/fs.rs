@@ -6670,6 +6670,7 @@ mod tests {
         let lower = MemoryVfs::new();
         lower.write_file("/src/below/data", b"lower").unwrap();
         let upper = MemoryVfs::new();
+        upper.mkdir_all("/src").unwrap();
         upper.symlink("below", "/src/a").unwrap();
         let fs = crate::vfs::OverlayVfs::new(std::sync::Arc::new(lower), std::sync::Arc::new(upper));
         let r = try_run_fs_command("cp", &args(&["-RL", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
@@ -6912,6 +6913,7 @@ mod tests {
         for argv in [["-P", "/src/item", "/dst"], ["-RT", "/src", "/dst"]] {
             let fs = MemoryVfs::new();
             fs.write_file("/dst/item/child", b"KEEP").unwrap();
+            fs.mkdir_all("/src").unwrap();
             fs.symlink("target", "/src/item").unwrap();
             let result = try_run_fs_command("cp", &args(&argv), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(fs.read_file("/dst/item/child").unwrap(), b"KEEP");

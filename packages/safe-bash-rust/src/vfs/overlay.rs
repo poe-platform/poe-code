@@ -178,6 +178,20 @@ impl OverlayVfs {
         Ok(())
     }
 
+    fn prepare_parent(&self, path: &str) -> Result<(), String> {
+        let mut parent = crate::vfs::dirname_posix_path(path);
+        let st = self.stat(&parent)?;
+        if st.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        let mut missing = Vec::new();
+        while !self.upper.exists(&parent) {
+            let mode = self.stat(&parent)?.mode;
+            missing.push((parent.clone(), mode));
+            parent = crate::vfs::dirname_posix_path(&parent);
+        }
+        for (dir, mode) in missing.into_iter().rev() { self.copy_up_directories(&dir, || self.upper.mkdir_one(&dir, mode & 0o7777))?; }
+        Ok(())
+    }
+
     fn movable_link(layer: &dyn SafeBashFs, path: &str) -> Result<String, String> {
         let target = layer.readlink(path)?;
         let canonical = layer.access_path(path,true).and_then(|p| layer.lstat(&p).map(|_| p))
@@ -621,6 +635,7 @@ impl SafeBashFs for OverlayVfs {
                 let layer = if lower { &self.lower } else { &self.upper };
                 let target = Self::movable_link(layer.as_ref(),&path)?;
                 if lower {
+                    self.prepare_parent(&path)?;
                     self.upper.symlink(&target,&path)?;
                     self.copied_links.lock().unwrap().insert(path.clone());
                 }
@@ -676,16 +691,7 @@ impl SafeBashFs for OverlayVfs {
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         let path = self.access_path(path, false)?;
         if self.lstat(&path).is_ok() { return Err("EEXIST: file already exists".into()); }
-        let mut parent = crate::vfs::dirname_posix_path(&path);
-        let st = self.stat(&parent)?;
-        if st.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
-        let mut missing = Vec::new();
-        while !self.upper.exists(&parent) {
-            let mode = self.stat(&parent)?.mode;
-            missing.push((parent.clone(), mode));
-            parent = crate::vfs::dirname_posix_path(&parent);
-        }
-        for (dir, mode) in missing.into_iter().rev() { self.copy_up_directories(&dir, || self.upper.mkdir_one(&dir, mode & 0o7777))?; }
+        self.prepare_parent(&path)?;
         self.upper.mkdir_one(&path, mode)
     }
 
@@ -757,8 +763,16 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
-        let norm = normalize_posix_path(path);
-        self.copy_up_directories(&crate::vfs::dirname_posix_path(&norm), || self.upper.symlink(target, &norm))
+        if target.is_empty() { return Err(format!("ENOENT: no such file or directory, overlay '{path}'")); }
+        if target.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
+        let entry = self.access_path(path, false)?;
+        match self.lstat(&entry) {
+            Ok(_) => return Err(format!("EEXIST: file already exists, overlay '{path}'")),
+            Err(e) if e.starts_with("ENOENT:") => {}
+            Err(e) => return Err(e),
+        }
+        self.prepare_parent(&entry)?;
+        self.upper.symlink(target, &entry)
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
@@ -1118,6 +1132,25 @@ mod tests {
         overlay.remove_path("/app/keep.txt").unwrap();
         assert!(!overlay.exists("/app/keep.txt"));
         assert!(lower.exists("/app/keep.txt"));
+    }
+
+    #[test]
+    fn symlink_copies_only_existing_lower_parents_and_preserves_collisions() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/private/shared/taken", b"keep").unwrap();
+        lower.chmod("/private", 0o700).unwrap();
+        lower.symlink("/private/shared/taken", "/private/shared/old").unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        let fs = OverlayVfs::new(lower, upper.clone());
+        assert!(fs.symlink("x", "/missing/x").unwrap_err().starts_with("ENOENT:"));
+        assert!(fs.symlink("x", "/private/shared/taken").unwrap_err().starts_with("EEXIST:"));
+        assert!(!upper.exists("/missing"));
+        assert!(!upper.exists("/private"));
+        fs.rename("/private/shared/old", "/moved", false).unwrap();
+        fs.symlink("taken", "/private/shared/link").unwrap();
+        assert_eq!(fs.readlink("/private/shared/link").unwrap(), "taken");
+        assert_eq!(upper.stat("/private").unwrap().mode & 0o777, 0o700);
+        assert_eq!(fs.read_file("/private/shared/taken").unwrap(), b"keep");
     }
 
     #[test]

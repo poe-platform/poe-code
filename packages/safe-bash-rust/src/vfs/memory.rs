@@ -840,9 +840,9 @@ impl MemoryVfs {
         self.bump_generation();
         Ok(())
     }
-    /// The default device view checks both operands before delegating a rename.
+    /// The default device view protects reserved entries before delegating a mutation.
     /// A final link names the link itself; a trailing slash makes it an ancestor.
-    fn check_device_rename_operand(state: &MemoryState, path: &str) -> Result<(), String> {
+    fn check_device_mutation_operand(state: &MemoryState, path: &str) -> Result<(), String> {
         if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
         let not_dir = || format!("ENOTDIR: not a directory '{path}'");
         // Device traversal rejects even a lexical /dev/null/.. before looking up links.
@@ -1372,8 +1372,8 @@ impl SafeBashFs for MemoryVfs {
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         if matches!(state.devices, Devices::Null | Devices::Extended) {
-            Self::check_device_rename_operand(&state,source)?;
-            Self::check_device_rename_operand(&state,destination)?;
+            Self::check_device_mutation_operand(&state,source)?;
+            Self::check_device_mutation_operand(&state,destination)?;
         }
         let from = Self::resolve_mutation_entry(&state, source)?;
         if state.devices == Devices::Mounted {
@@ -1621,15 +1621,19 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        if guard.devices == Devices::Null { Self::check_device_mutation_operand(&guard, path)?; }
         if target.is_empty() { return Err("ENOENT: no such file or directory, symlink ''".into()); }
         if target.contains('\0') { return Err(format!("EINVAL: invalid argument, symlink '{target}'")); }
-        let norm = normalize_posix_path(path);
-        let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        if guard.devices == Devices::Mounted { return Err(format!("EROFS: read-only device directory '{norm}'")); }
-        Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
-        if guard.nodes.contains_key(&resolved) {
-            return Err(format!("EEXIST: file already exists, symlink '{norm}'"));
+        if guard.devices == Devices::Mounted { return Err(format!("EROFS: read-only device directory '{path}'")); }
+        let directory;
+        let operand = if path.ends_with('/') { directory = format!("{path}."); &directory } else { path };
+        let resolved = Self::resolve_mutation_entry(&guard, operand).map_err(|e| format!("{e}, symlink '{path}'"))?;
+        if guard.nodes.contains_key(&resolved) || guard.devices.entry(&resolved).is_some() {
+            return Err(format!("EEXIST: file already exists, symlink '{path}'"));
+        }
+        if !matches!(guard.nodes.get(&super::dirname_posix_path(&resolved)), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+            return Err(format!("EACCES: permission denied, symlink '{path}'"));
         }
         if guard.entry_count() >= guard.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".to_string());
@@ -1861,6 +1865,32 @@ mod tests {
         let target = fs.stat("/d/target").unwrap();
         assert!(fs.chmod_conditional("/d/target",0o777,&chain,&dir,&target).unwrap_err().starts_with("EAGAIN:"));
         assert_eq!(fs.stat("/d/target").unwrap().mode,0o100644);
+    }
+
+    #[test]
+    fn symlink_requires_an_existing_writable_parent_before_publishing() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/real/child").unwrap();
+        fs.symlink("/real/child", "/alias").unwrap();
+        fs.write_file("/real/file", b"x").unwrap();
+        fs.chmod("/real", 0o555).unwrap();
+        let generation = fs.generation();
+        for (path, reason) in [
+            ("/missing/dir/link", "ENOENT: no such file or directory"),
+            ("/missing/../link", "ENOENT: no such file or directory"),
+            ("/alias/../link", "EACCES: permission denied"),
+            ("/alias/../file", "EEXIST: file already exists"),
+            ("/real/file/", "ENOTDIR: not a directory"),
+            ("/new/", "ENOENT: no such file or directory"),
+        ] {
+            assert_eq!(fs.symlink("text", path), Err(format!("{reason}, symlink '{path}'")));
+            assert_eq!(fs.generation(), generation);
+        }
+        assert!(!fs.exists("/missing"));
+        assert!(fs.lstat("/link").is_err());
+        fs.chmod("/real", 0o755).unwrap();
+        fs.symlink("text", "/alias/../link").unwrap();
+        assert_eq!(fs.readlink("/real/link").unwrap(), "text");
     }
 
     #[test]

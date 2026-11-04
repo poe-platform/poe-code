@@ -524,7 +524,7 @@ function bindExternalFs(shell,fs,options) {
       }
       result=undefined;return status;
     }));
-    if(x.safe_bash_bind_fs(shell.sessionId,slot,namespace!==undefined)!==0)throw new Error("Could not bind the execution filesystem");
+    if(x.safe_bash_bind_fs(shell.sessionId,slot,namespace!==undefined,typeof fs.symlink!=="function" || fs.capabilities?.symlinks===false)!==0)throw new Error("Could not bind the execution filesystem");
     return release;
   }catch(error){void release();throw error;}
 }

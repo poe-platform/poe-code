@@ -6577,6 +6577,22 @@ test("unzip defers guarded symlinks until regular entries finish",{skip:!WebAsse
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip stops before later files when the host cannot create symlinks",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const src=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:src}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await src.symlink("later","/link");await src.writeFile("/later",Uint8Array.of(7));
+    const seed=await js.exec("zip -yq seed.zip link later");assert.equal(seed.exitCode,0,seed.stderr);
+    const archive=await src.readFile("/seed.zip");
+    for(const sh of [js,rust]){
+      const fs=new MemoryFileSystem();fs.symlink=undefined;await fs.writeFile("/seed.zip",archive);
+      const r=await sh.exec("unzip -o seed.zip",{fs});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"Archive:  seed.zip\n","unzip: filesystem does not support symlinks\n"]);
+      assert.deepEqual((await fs.readdir("/")).map(e=>e.name),["seed.zip"]);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 for(const format of ["zip","tar"])test(format+" refuses an implicit extraction parent replaced during its creation",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

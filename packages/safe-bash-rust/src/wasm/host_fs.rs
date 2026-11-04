@@ -42,6 +42,7 @@ struct HostFs {
     max_input: usize,
     devices: bool,
     namespaced: bool,
+    no_symlinks: bool,
 }
 impl HostFs {
     fn request(
@@ -683,6 +684,7 @@ impl SafeBashFs for HostFs {
         }
         Ok(entries)
     }
+    fn supports_symbolic_links(&self, _entry: &str) -> bool { !self.no_symlinks }
     fn supports_hard_links(&self, path: &str) -> bool {
         self.reserved_device(path, false)
             .is_ok_and(|entry| entry.is_none())
@@ -736,7 +738,7 @@ impl SafeBashFs for HostFs {
 
 // Only a private execution fork is bound; the original shell retains its filesystem.
 #[unsafe(no_mangle)]
-pub extern "C" fn safe_bash_bind_fs(id: u32, call: Callback, namespaced: bool) -> i32 {
+pub extern "C" fn safe_bash_bind_fs(id: u32, call: Callback, namespaced: bool, no_symlinks: bool) -> i32 {
     let mut sessions = super::sessions().lock().unwrap();
     let Some(session) = sessions.get_mut(&id) else {
         return -1;
@@ -746,6 +748,7 @@ pub extern "C" fn safe_bash_bind_fs(id: u32, call: Callback, namespaced: bool) -
         max_input: session.shell.limits().max_input_bytes,
         devices: !session.shell.backend.provided_devices,
         namespaced,
+        no_symlinks,
     });
     0
 }

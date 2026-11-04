@@ -7010,6 +7010,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         if target.is_empty() || target.contains('\0'){return Err("invalid empty, NUL, or non-Unicode path".into());}
                         let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
                         check_archive_symlink(fs,&out_dir,&dest,target,true)?;
+                        if !fs.supports_symbolic_links(&dest){return Err("filesystem does not support symlinks".into());}
                         if !quiet { progress(&mut out,&mut prompt_bytes,&format!("    linking: {}  -> {} \n",padded(&shown),unzip_filtered(target)))?; }
                         links.push((dest,shown,target.to_owned(),parent,existing,stamp));
                     } else {

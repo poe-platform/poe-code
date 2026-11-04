@@ -1523,6 +1523,25 @@ test("plugin writes to a duplicated output descriptor retain their byte order", 
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("aborting a plugin preserves completed redirect writes and stops the script", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  for (const reason of ["limit","cancel"]) {
+    const bash = new RustWasmBash({cwd:"/"});
+    const controller = new AbortController(), stopped = new Error("stop");
+    bash.register({name:"emit", async execute(ctx) {
+      await ctx.stdout.write(Uint8Array.of(255));
+      if (reason === "cancel") controller.abort(stopped);
+      await ctx.stdout.write(Uint8Array.of(0));
+      return {exitCode:0};
+    }});
+    try {
+      await assert.rejects(bash.exec("emit >/out; touch /late", {signal:controller.signal, limits:{maxOutputBytes:1}}),
+        e => reason === "cancel" ? e === stopped : e.limit === "maxOutputBytes");
+      assert.deepEqual([...bash.readFile("/out")], [255], reason);
+      await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
+    } finally { await bash.dispose(); }
+  }
+});
+
 test("disposing a plugin shell cancels suspended handlers and attempts every plugin cleanup", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash();
   const trace = [], failure = new Error("cleanup failed");

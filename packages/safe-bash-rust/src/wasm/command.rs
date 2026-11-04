@@ -1,5 +1,5 @@
 use super::{sessions, slice_from_raw};
-use crate::backend::CommandResult;
+use crate::backend::{CommandFailure, CommandResult};
 use crate::vfs::{bytes_to_stream_string, stream_string_to_bytes};
 use std::sync::Arc;
 
@@ -70,11 +70,14 @@ pub unsafe extern "C" fn safe_bash_register_command(
             let unread = packet[input_start..].get(reply.consumed..).ok_or("Host command consumed more than its stdin")?;
             ctx.unread_stdin = Some(bytes_to_stream_string(unread));
         }
-        if code == -2 { return Err(ctx.budget.record_exceeded("Execution aborted: cancelled".into())); }
-        if code == -3 { return Err(ctx.fs.limit_error("maxOutputBytes", ctx.budget.limits.max_output_bytes)); }
-        ctx.internal_error = code == -4;
-        let code = if ctx.internal_error { 1 } else { code };
-        if !(0..=255).contains(&code) { return Err("Exit status must be an integer between 0 and 255".into()); }
+        ctx.failure = match code {
+            -2 => Some(CommandFailure::Abort("Execution aborted: cancelled".into())),
+            -3 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxOutputBytes", ctx.budget.limits.max_output_bytes))),
+            -4 => Some(CommandFailure::Internal),
+            0..=255 => None,
+            _ => return Err("Exit status must be an integer between 0 and 255".into()),
+        };
+        let code = if ctx.failure.is_some() { 1 } else { code };
         Ok(CommandResult {
             exit_code: code, stdout: bytes_to_stream_string(&stdout), stderr: bytes_to_stream_string(&stderr),
             cwd: ctx.cwd.clone(), env: ctx.env.clone(),

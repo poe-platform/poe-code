@@ -1,4 +1,4 @@
-use crate::backend::{BackendMode, CommandContext, CommandResult, HybridBackend, RustCommand};
+use crate::backend::{BackendMode, CommandContext, CommandFailure, CommandResult, HybridBackend, RustCommand};
 use crate::budget::ExecutionBudget;
 use crate::commands::{ChildIo, CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input};
 use crate::shell::builtins::{
@@ -5090,7 +5090,7 @@ impl<'a> EvalState<'a> {
             self.refresh_file_input(0, stdin)?;
             let mut ctx = CommandContext {
                 shared_output: self.fd_table.get(&1).zip(self.fd_table.get(&2)).is_some_and(|(a, b)| a.shares_output(b)),
-                internal_error: false,
+                failure: None,
                 unread_stdin: None,
                 budget: self.budget,
                 argv0: custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),
@@ -5101,21 +5101,28 @@ impl<'a> EvalState<'a> {
                 fs: self.fs,
             };
             let result = custom(&mut ctx);
-            let internal_error = ctx.internal_error;
+            let failure = ctx.failure;
             if let Some(unread) = ctx.unread_stdin { *stdin = unread; }
             return match result {
-                Ok(mut res) => {
-                    if internal_error {
-                        res.stderr.push_str(&self.diag_prefix());
-                        res.stderr.push_str("internal error\n");
-                    }
+                Ok(res) => {
                     *self.cwd = res.cwd;
                     *self.env = res.env;
-                    Ok(BuiltinOutcome {
-                        stdout: res.stdout,
-                        stderr: res.stderr,
-                        exit_code: res.exit_code,
-                    })
+                    let mut out = BuiltinOutcome { stdout: res.stdout, stderr: res.stderr, exit_code: res.exit_code };
+                    match failure {
+                        Some(CommandFailure::Internal) => {
+                            out.stderr.push_str(&self.diag_prefix());
+                            out.stderr.push_str("internal error\n");
+                        }
+                        Some(CommandFailure::Abort(reason)) => {
+                            // Redirect bytes accepted before the host stopped, while the budget is still open.
+                            self.route_outcome(&mut out);
+                            self.budget.record_exceeded(reason);
+                            out.stdout.clear();
+                            out.stderr.clear();
+                        }
+                        None => {}
+                    }
+                    Ok(out)
                 }
                 Err(msg) => Ok(BuiltinOutcome {
                     stdout: String::new(),

@@ -5693,6 +5693,9 @@ fn remove_zip_sources(fs: &dyn SafeBashFs, mut moves: Vec<ZipMove>, quiet: bool,
             Err(e) if e.starts_with("Execution aborted:") => return Err(e),
             Err(_) if !quiet && expected.kind != Directory => {
                 output.push_str(&format!("\tzip warning: error deleting {}\n",zip_public_text(&source)));
+                if output.len() > fs.remaining_output_bytes() {
+                    return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
+                }
             }
             Err(_) => {}
         }
@@ -5725,6 +5728,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut filesync_mode = false;
     let mut move_mode = false;
     let mut quiet = false;
+    let mut verbose = false;
     let mut level = 6;
     let mut use_deflate = true;
     let mut suffixes = ".Z:.zip:.zoo:.arc:.lzh:.arj";
@@ -5812,6 +5816,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         } else if a == "--quiet" || a == "--verbose" {
             quiet = a == "--quiet";
+            verbose |= !quiet;
         } else if a == "--store" {
             level = 0;
             use_deflate = false;
@@ -6009,7 +6014,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         level = ch as u8 - b'0';
                         if level == 0 { use_deflate = false; }
                     }
-                    'q' | 'v' => quiet = ch == 'q',
+                    'q' => quiet = true,
+                    'v' => { quiet = false; verbose = true; }
                     'c' | 'o' | 'X' | 'T' | 'k' | 'g' | 'J' | 'A'
                     | 'F' | 'p' => {}
                     other => return zip_err(&format!("unsupported option: -{other}")),
@@ -6171,6 +6177,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
     let mut skipped_archive = false;
     // Keep the original source spelling separate from the name stored in the ZIP.
+    let original_count = entries.len();
     let mut members: BTreeMap<_,_> = entries.iter().enumerate()
         .map(|(index,e)| (e.name.clone(), (index,None::<String>))).collect();
     for t in &effective_targets {
@@ -6330,8 +6337,35 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             content: comment_bytes,
         });
     }
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false);
+    use std::fmt::Write;
+    let mut progress = String::new();
+    let (mut total,mut compressed) = (0u64,0u64);
+    let savings = |size: u64, stored: u64| if size == 0 { 0 } else { (100*(size-stored) + size/2)/size };
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false,
+        |name,method,size,stored| {
+            if quiet { return; }
+            let (size,stored) = (size as u64,stored as u64);
+            total += size;
+            compressed += stored;
+            if let Some((index,Some(_))) = members.get(name) {
+                progress.push_str(if *index < original_count { "updating: " } else { "  adding: " });
+                super::fs::write_display_name(&mut progress,zip_public_text(name),false);
+                if verbose {
+                    if method != 0 { progress.push(' '); }
+                    write!(progress,"\t(in={size}) (out={stored})").unwrap();
+                }
+                if method == 8 { writeln!(progress," (deflated {}%)",savings(size,stored)).unwrap(); }
+                else { progress.push_str(" (stored 0%)\n"); }
+            }
+        });
+    if verbose && !quiet { writeln!(progress,"total bytes={total}, compressed={compressed} -> {}% savings",savings(total,compressed)).unwrap(); }
     let mut result = publish(out_bytes, &sources);
+    if result.exit_code == 0 {
+        result.stdout.push_str(&progress);
+        if result.stdout.len() > fs.remaining_output_bytes() {
+            return err_out(&fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes),2);
+        }
+    }
     if result.exit_code == 0 && let Err(e) = remove_zip_sources(fs,moves,quiet,&mut result.stdout) { return err_out(&e,2); }
     result
 }

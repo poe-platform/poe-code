@@ -1703,6 +1703,28 @@ test("zip -m keeps protected inputs after publication and removes writable sourc
   } finally {await js.dispose(); await rust.dispose();}
 });
 
+test("ZIP progress reports entry updates, encoded sizes and move warnings in order",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
+  const reference = new MemoryFileSystem(), js = new Shell({fs:reference,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});
+  try {
+    const run = async (sh,fs) => {
+      await fs.mkdir("/keep"); await fs.writeFile("/keep/file",Uint8Array.of(1)); await fs.chmod("/keep",0o500);
+      await fs.writeFile("/compress",new Uint8Array(1024).fill(65));
+      await fs.writeFile("/é",Uint8Array.of(255));
+      await fs.writeFile("/token=test",Uint8Array.of(1));
+      const rows = [];
+      for (const command of ["zip out.zip keep/file", "zip -m out.zip keep/file", "zip -v out.zip compress é token=test"]) {
+        const r=await sh.exec(command); rows.push([r.exitCode,r.stdout,r.stderr]);
+      }
+      return rows;
+    };
+    const expected=await run(js,reference);
+    assert.equal(expected[1][1],"updating: keep/file (stored 0%)\n\tzip warning: error deleting keep/file\n");
+    assert.match(expected[2][1],/deflated 99%/);
+    assert.deepEqual(await run(rust,rust.fs),expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("native zip splits at record boundaries and preserves occupied volume destinations on failure", async () => {
   const {Shell, MemoryFileSystem, archiveCommands} = await import("@poe-platform/safe-bash");
   for (const [size, flags, obstacle] of [

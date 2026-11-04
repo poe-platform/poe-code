@@ -160,6 +160,20 @@ pub enum FdTarget {
 }
 
 impl FdTarget {
+    fn shares_output(&self, other: &Self) -> bool {
+        use FdTarget::*;
+        match (self, other) {
+            (Stdout | PipeStdout { .. }, Stdout | PipeStdout { .. }) | (Stderr, Stderr) => true,
+            (SavedStdout { data: a, .. }, SavedStdout { data: b, .. }) | (SavedStderr(a), SavedStderr(b)) => Rc::ptr_eq(a, b),
+            (Exclusive { output: a, .. }, Exclusive { output: b, .. }) => Rc::ptr_eq(a, b),
+            (File { offset: Some(a), .. }, File { offset: Some(b), .. }) => Rc::ptr_eq(a, b),
+            (File { file: Some(a), .. }, File { file: Some(b), .. }) => Rc::ptr_eq(a, b),
+            (File { path: a, file: None, offset: None, .. }, File { path: b, file: None, offset: None, .. }) => a == b,
+            (InputFile { position: a, writable: true, .. }, InputFile { position: b, writable: true, .. }) => Rc::ptr_eq(a, b),
+            _ => false,
+        }
+    }
+
     pub(crate) fn input_stream(next: impl FnMut(&ExecutionBudget) -> Option<Result<Vec<u8>, String>> + 'static) -> Self {
         Self::InputStream {
             reader: StdinStream(Rc::new(RefCell::new(next))),
@@ -5075,6 +5089,7 @@ impl<'a> EvalState<'a> {
         {
             self.refresh_file_input(0, stdin)?;
             let mut ctx = CommandContext {
+                shared_output: self.fd_table.get(&1).zip(self.fd_table.get(&2)).is_some_and(|(a, b)| a.shares_output(b)),
                 internal_error: false,
                 unread_stdin: None,
                 budget: self.budget,

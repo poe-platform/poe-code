@@ -1498,6 +1498,31 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("plugin writes to a duplicated output descriptor retain their byte order", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem, getCommandArguments} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({fs, cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  const cmd = {name:"ordered", async execute(ctx) {
+    await ctx.stderr.write(Uint8Array.of(69));
+    await ctx.stdout.write(getCommandArguments(ctx).bytes(0));
+    await ctx.stderr.write(Uint8Array.of(70));
+    return {exitCode:17};
+  }};
+  try {
+    for (const sh of [js,rust]) sh.register(cmd);
+    for (const redirects of ["2>&1", "1>&2", "> /out 2>&1", "2>/err >/out"]) {
+      const script = "ordered $'\\377' " + redirects;
+      const result = [];
+      for (const [sh, store] of [[js, fs], [rust, rust.fs]]) {
+        const r = await sh.exec(script);
+        result.push([r.exitCode, r.stdoutBytes, r.stderrBytes, ...await Promise.all(
+          ["/out", "/err"].map(path => store.readFile(path).catch(() => null)))]);
+      }
+      assert.deepEqual(result[1], result[0], redirects);
+    }
+  } finally { await js.dispose(); await rust.dispose(); }
+});
+
 test("disposing a plugin shell cancels suspended handlers and attempts every plugin cleanup", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash();
   const trace = [], failure = new Error("cleanup failed");

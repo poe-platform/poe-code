@@ -30,6 +30,7 @@ pub struct CommandContext<'a> {
     pub argv0: Option<&'a str>,
     pub args: &'a [String],
     pub stdin: &'a str,
+    pub(crate) shared_output: bool,
     pub(crate) internal_error: bool,
     pub(crate) unread_stdin: Option<String>,
     pub(crate) budget: &'a ExecutionBudget,

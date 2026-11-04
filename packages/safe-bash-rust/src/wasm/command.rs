@@ -16,6 +16,7 @@ pub struct HostReply {
     streams: [HostBuffer; 2],
     consumed: usize,
     remaining_output: usize,
+    shared_output: u32,
 }
 
 impl HostBuffer {
@@ -60,7 +61,9 @@ pub unsafe extern "C" fn safe_bash_register_command(
         packet[4..8].copy_from_slice(&envc.to_le_bytes());
         let input_start = packet.len();
         packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin));
-        let mut reply = HostReply { remaining_output: ctx.budget.remaining_output_bytes(), ..Default::default() };
+        let mut reply = HostReply {
+            remaining_output: ctx.budget.remaining_output_bytes(), shared_output: u32::from(ctx.shared_output), ..Default::default()
+        };
         let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
         let [stdout, stderr] = reply.streams.map(|buf| unsafe { buf.take() });
         if reply.consumed != 0 {

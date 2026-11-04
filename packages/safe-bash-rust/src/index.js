@@ -188,7 +188,9 @@ function bindHostCommands(shell, definitions, createArguments, options) {
       slots.push(slot);
       table.set(slot, suspendingCallback(async (ptr, len, reply) => {
         const packet = new Uint8Array(x.memory.buffer, ptr, len).slice();
-        let remaining = new DataView(x.memory.buffer).getUint32(reply + 20, true);
+        const header = new DataView(x.memory.buffer);
+        let remaining = header.getUint32(reply + 20, true);
+        const sharedOutput = header.getUint32(reply + 24, true) !== 0;
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
         x.__stack_pointer.value = top;
@@ -213,7 +215,7 @@ function bindHostCommands(shell, definitions, createArguments, options) {
             if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
             if (code === -3 || bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
             remaining -= bytes.length;
-            if (bytes.length) streams[index].push(new Uint8Array(bytes));
+            if (bytes.length) streams[sharedOutput ? 0 : index].push(new Uint8Array(bytes));
           }});
           check();
           const pending = definition.execute({command:definition.name, argv0, args:argumentValues.args, argumentValues,

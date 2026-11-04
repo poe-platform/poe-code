@@ -1437,6 +1437,10 @@ impl SafeBashFs for MemoryVfs {
         self.stat(path).is_ok_and(|st| st.kind == VfsEntryKind::Directory)
     }
 
+    fn link_free_memory(&self) -> bool {
+        self.state.read().is_ok_and(|s| !s.nodes.values().any(|n| matches!(n, MemoryNode::Symlink { .. })))
+    }
+
     fn indexed_directory_entry(&self, path: &str) -> Option<bool> {
         let (prefix, _) = path.trim_end_matches('/').rsplit_once('/')?;
         if prefix.ends_with('/') { return None; }

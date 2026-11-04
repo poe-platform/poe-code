@@ -345,6 +345,8 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.limits.check_path(path).is_ok() && self.inner.is_dir(&host_text(path))
     }
 
+    fn link_free_memory(&self) -> bool { self.inner.link_free_memory() }
+
     fn indexed_directory_entry(&self, path: &str) -> Option<bool> {
         self.inner.indexed_directory_entry(&host_text(path))
     }

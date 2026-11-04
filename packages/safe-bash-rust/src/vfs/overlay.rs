@@ -342,7 +342,8 @@ impl OverlayVfs {
         let entry = self.access_path(if recursive { path } else { trimmed }, false)?;
         if entry == "/" { return Err("EBUSY: resource busy or locked".into()); }
         let st = self.lstat(&entry)?;
-        let parent = self.stat(&crate::vfs::dirname_posix_path(&entry))?;
+        let parent_path = crate::vfs::dirname_posix_path(&entry);
+        let parent = self.stat(&parent_path)?;
         if let Some((dir, file)) = expected
             && (entry != path || parent.identity.is_none() || parent.identity != dir.identity || !st.same_snapshot(file)) {
             return Err(format!("EBUSY: input changed; input retained '{path}'"));
@@ -352,7 +353,7 @@ impl OverlayVfs {
         }
         let is_dir = st.kind == VfsEntryKind::Directory;
         if !is_dir && (directory || path.ends_with('/')) { return Err("ENOTDIR: not a directory".into()); }
-        if parent.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        if parent.mode & 0o300 != 0o300 { return Err(format!("EACCES: permission denied, overlay '{parent_path}'")); }
         if is_dir && !recursive {
             if !directory { return Err("EISDIR: illegal operation on a directory".into()); }
             if !self.list_dir(&entry)?.is_empty() { return Err("ENOTEMPTY: directory not empty".into()); }

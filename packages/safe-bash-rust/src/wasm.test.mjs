@@ -12403,3 +12403,25 @@ test("rm on direct memory removes one file per admitted operation", async () => 
     assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"removed '/w/b'\nremoved '/w/missing'\n",""]);
   } finally { sh.dispose(); }
 });
+
+test("rm checks all operands before deleting, then charges each guarded removal", async () => {
+  for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs","warm-memory-fastpath"]) {
+    const sh = new RustWasmBash({profile, files:{"/w/a":"a","/w/b":"b"}});
+    try {
+      if (profile === "warm-memory-fastpath") await sh.exec("ln -s /w/a /link");
+      for (const [limit, first, second] of [[9,true,true],[10,false,true],[15,false,true],[16,false,false]]) {
+        await sh.exec("echo a >/w/a; echo b >/w/b");
+        const run = sh.exec("rm /w/a /w/b",{limits:{maxFileSystemOperations:limit}});
+        if (limit < 16) await assert.rejects(run,/maxFileSystemOperations/);
+        else assert.equal((await run).exitCode,0);
+        for (const [file,present] of [["/w/a",first],["/w/b",second]]) {
+          assert.equal((await sh.exec("test -e "+file)).exitCode,present ? 0 : 1, profile+" "+limit+" "+file);
+        }
+      }
+      await sh.exec("echo keep >/w/a");
+      const denied = await sh.exec("rm /w/a /dev/null");
+      assert.deepEqual([denied.exitCode,denied.stdout,denied.stderr],[1,"","rm: ENOTSUP: operation not supported, rm '/dev/null'\n"]);
+      assert.equal((await sh.exec("cat /w/a")).stdout,"keep\n");
+    } finally { sh.dispose(); }
+  }
+});

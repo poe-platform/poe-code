@@ -6528,6 +6528,22 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip rejects absolute symlink target chains even inside the extraction root",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await fs.symlink("hop","/link");
+    const create=await js.exec("zip -yq seed.zip link");assert.equal(create.exitCode,0,create.stderr);
+    const seed=await fs.readFile("/seed.zip");
+    for(const [sh,dest] of [[js,new MemoryFileSystem()],[rust,rust.fs],[rust,new MemoryFileSystem()]]){
+      await dest.writeFile("/seed.zip",seed);await dest.symlink("/target","/hop");
+      const r=await sh.exec("unzip -oq seed.zip",dest===rust.fs?{}:{fs:dest});
+      assert.deepEqual([r.exitCode,r.stderr],[2,"unzip: absolute symlink target chain is unsafe\n"]);
+      assert.equal((await dest.readdir("/")).some(entry=>entry.name==="link"),false);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 for(const format of ["zip","tar"])test(format+" refuses an implicit extraction parent replaced during its creation",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

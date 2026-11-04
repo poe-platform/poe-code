@@ -2850,9 +2850,9 @@ fn tar_strip_components(name: &str, strip: usize, is_dir: bool) -> Option<String
     }
 }
 
-fn check_tar_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &str) -> Result<(), String> {
+fn check_archive_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &str, zip: bool) -> Result<(), String> {
     use std::collections::VecDeque;
-    let escape = || format!("symlink target escapes extraction root: {}", tar_format::display(path));
+    let escape = || if zip { "symlink target escapes extraction root".to_owned() } else { format!("symlink target escapes extraction root: {}", tar_format::display(path)) };
     if target.starts_with('/') { return Err(escape()); }
 
     let mut pending = VecDeque::<String>::new();
@@ -2862,6 +2862,7 @@ fn check_tar_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &str) 
             match part {
                 "" | "." => continue,
                 ".." => parent_seen = true,
+                _ if parent_seen && zip => return Err("unsafe non-leading parent in symlink target".into()),
                 _ if parent_seen => return Err("symlink targets with non-leading '..' components are unsafe under later link replacement".into()),
                 _ => {}
             }
@@ -2885,6 +2886,7 @@ fn check_tar_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &str) 
                 if hops > 40 { return Err("symlink target chain cannot be safely resolved".into()); }
                 let link = fs.readlink(&next)?;
                 if let Some(absolute) = link.strip_prefix('/') {
+                    if zip { return Err("absolute symlink target chain is unsafe".into()); }
                     let relative = if root == "/" { absolute } else if link == root { "" }
                         else { link.strip_prefix(root).and_then(|s| s.strip_prefix('/')).ok_or("symlink target chain escapes extraction root")? };
                     current = root.to_owned();
@@ -4364,7 +4366,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let link = link.as_deref().unwrap_or(entry.linkname);
             if entry.typeflag == b'2' {
                 if link.is_empty() || link.contains('\0') { return Err("invalid empty, NUL, or non-Unicode path".into()); }
-                check_tar_symlink(fs, &entry_root, &dest, link)?;
+                check_archive_symlink(fs, &entry_root, &dest, link, false)?;
             }
             let hard_target = if entry.typeflag == b'1' {
                 if link.split('/').any(|s| s == "..") { return Err(format!("unsafe parent component in member: {}", tar_format::display(link))); }
@@ -7000,7 +7002,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     let data = decode(entry)?;
                     if entry.typeflag == b'2' {
                         let target = std::str::from_utf8(&data).map_err(|_| "invalid UTF-8 archive name or metadata")?;
-                        check_tar_symlink(fs,&out_dir,&dest,target)?;
+                        check_archive_symlink(fs,&out_dir,&dest,target,true)?;
                         fs.symlink(target,&dest)?;
                     } else {
                         let time = Some(entry.mtime*1000.);

@@ -1525,6 +1525,36 @@ test("plugin stdin reports the source of the current descriptor", {skip: typeof 
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("plugin reads and writes reject closed or incompatible descriptors on use", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const {PublicDiagnostic} = await import("safe-bash-contracts/diagnostics");
+  const js = new Shell({fs:new MemoryFileSystem(),cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  const run = async (sh, redirect) => {
+    const events = [];
+    sh.register({name:"probe", async execute(ctx) {
+      const iterator = ctx.stdin[Symbol.asyncIterator]();
+      for (const op of [() => iterator.next(), () => iterator.next(), () => ctx.stdout.write(Uint8Array.of(65)), () => ctx.stderr.write(new Uint8Array())]) {
+        try { events.push((await op())?.done ?? "wrote"); }
+        catch (e) { events.push([e instanceof PublicDiagnostic, e.code, e.message]); }
+      }
+      return {exitCode:0};
+    }}, {replace:true});
+    const result = await sh.exec("probe " + redirect);
+    return [events,result.stdout,result.stderr,result.exitCode];
+  };
+  try {
+    for (const redirect of ["", "<&-", ">&-", "2>&-", "0>&1", "1<&0", "1</dev/null", "2<&0", "0>/out", "<>/out", "7<&0 1<&7", "2>&1"]) {
+      assert.deepEqual(await run(rust, redirect), await run(js, redirect), redirect);
+    }
+    const write = {name:"emit", async execute(ctx) { await ctx.stdout.write(Uint8Array.of(65)); return {exitCode:0}; }};
+    for (const sh of [js,rust]) sh.register(write);
+    for (const redirect of [">&-", ">&- 2>&-", "2<&0 >&-"]) for (const maxOutputBytes of [0,200]) {
+      const result = sh => sh.exec("emit " + redirect, {limits:{maxOutputBytes}}).then(r => [r.exitCode,r.stderr], e => e.limit ?? e.message);
+      assert.deepEqual(await result(rust), await result(js), redirect);
+    }
+  } finally { await js.dispose(); await rust.dispose(); }
+});
+
 test("plugin command failures preserve public diagnostics and redact private errors", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const {PublicDiagnostic} = await import("safe-bash-contracts/diagnostics");

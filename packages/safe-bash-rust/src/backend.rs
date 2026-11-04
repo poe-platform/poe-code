@@ -37,6 +37,7 @@ pub struct CommandContext<'a> {
     pub stdin: &'a str,
     pub stdin_is_default: bool,
     pub(crate) shared_output: bool,
+    pub(crate) stream_access: u32,
     pub(crate) failure: Option<CommandFailure>,
     pub(crate) unread_stdin: Option<String>,
     pub(crate) budget: &'a ExecutionBudget,

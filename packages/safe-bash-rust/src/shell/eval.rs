@@ -5113,6 +5113,8 @@ impl<'a> EvalState<'a> {
             self.refresh_file_input(0, stdin)?;
             let mut ctx = CommandContext {
                 stdin_is_default: self.default_input_fds.contains(&0),
+                stream_access: u32::from(self.is_fd_readable(0))
+                    | u32::from(self.is_fd_writable(1)) << 1 | u32::from(self.is_fd_writable(2)) << 2,
                 shared_output: self.fd_table.get(&1).zip(self.fd_table.get(&2)).is_some_and(|(a, b)| a.shares_output(b)),
                 failure: None,
                 unread_stdin: None,
@@ -5133,7 +5135,7 @@ impl<'a> EvalState<'a> {
                     *self.env = res.env;
                     let mut out = BuiltinOutcome { stdout: res.stdout, stderr: res.stderr, exit_code: res.exit_code };
                     match failure {
-                        Some(CommandFailure::Diagnostic(message)) => {
+                        Some(CommandFailure::Diagnostic(message)) if self.is_fd_writable(2) => {
                             out.stderr.push_str(&self.diag_prefix());
                             out.stderr.push_str(&message);
                             out.stderr.push('\n');
@@ -5145,7 +5147,7 @@ impl<'a> EvalState<'a> {
                             out.stdout.clear();
                             out.stderr.clear();
                         }
-                        None => {}
+                        None | Some(CommandFailure::Diagnostic(_)) => {}
                     }
                     Ok(out)
                 }

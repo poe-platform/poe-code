@@ -172,7 +172,7 @@ function streamHost(x) {
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
-function bindHostCommands(shell, definitions, createArguments, validatePath, fs, options) {
+function bindHostCommands(shell, definitions, createArguments, validatePath, diagnostics, fs, options) {
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
@@ -198,6 +198,8 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
         const remainingFsOps = header.getUint32(reply + 28, true), maxComponents = header.getUint32(reply + 32, true);
         const creationMode = header.getUint32(reply + 40, true);
         const stdinIsDefault = header.getUint32(reply + 52, true) !== 0;
+        const access = header.getUint32(reply + 56, true);
+        const badDescriptor = () => Object.assign(new diagnostics.PublicDiagnostic("Bad file descriptor"), {code:"EBADF"});
         fsOps = 0;
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
@@ -241,10 +243,12 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
           }
           const stdin = {async *[Symbol.asyncIterator]() {
             check();
+            if (!(access & 1)) throw badDescriptor();
             if (!consumed && offset < packet.length) { consumed = packet.length - offset; yield packet.subarray(offset); }
           }};
           const sink = index => ({async write(bytes) {
             check(outputOpen);
+            if (!(access & (2 << index))) throw badDescriptor();
             if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
             if (code === -5) throw new ShellLimitError("maxFileSystemOperations");
             if (code === -3 || bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
@@ -268,8 +272,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
           if (signal.aborted) code = -2;
           else if (code >= 0) {
             code = -4;
-            const {publicDiagnosticMessage} = await import("safe-bash-contracts/diagnostics");
-            streams.push([encoder.encode(publicDiagnosticMessage(error))]);
+            streams.push([encoder.encode(diagnostics.publicDiagnosticMessage(error))]);
           }
         } finally {
           active = false;
@@ -1106,6 +1109,7 @@ export class RustWasmBash extends WasmShell {
   #ready;
   #commands;
   #createArguments;
+  #diagnostics;
   #validatePath;
   #plugins = [];
   #pluginLifetime;
@@ -1606,7 +1610,7 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#createArguments, this.#validatePath, this.fs, options);
+          releaseCommands = bindHostCommands(shell, definitions, this.#createArguments, this.#validatePath, this.#diagnostics, this.fs, options);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
@@ -1720,8 +1724,9 @@ export class RustWasmBash extends WasmShell {
 
   #install(setup) {
     this.#pluginLifetime ??= new AbortController();
-    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path")]).then(([{CommandRegistry, createCommandArguments}, {validatePath}]) => {
+    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path"), import("safe-bash-contracts/diagnostics")]).then(([{CommandRegistry, createCommandArguments}, {validatePath}, diagnostics]) => {
       this.#validatePath = validatePath;
+      this.#diagnostics = diagnostics;
       this.#commands = new CommandRegistry();
       this.#createArguments = createCommandArguments;
     })).then(setup);

@@ -4130,6 +4130,7 @@ fn run_grep_engine(
     if is_rg && !cfg.multiline {
         return rg_stream::lines(&cfg, &rx, inputs, multiple_files, stdin, fs, cwd, replacement.as_deref(), capture, write);
     }
+    let mut stream = rg_stream::Output::new(write);
     let mut out = String::new();
     let mut any_match = false;
     let mut total_matches = 0usize;
@@ -4141,17 +4142,16 @@ fn run_grep_engine(
     let mut searches = 0;
     let mut bytes_searched = 0;
     let mut json_bytes_printed = 0;
-    let mut failed_output_bytes = 0;
     let mut failed_batch = false;
     let mut last_label = None::<String>;
     let mut last_line = 0;
     let mut headings = std::collections::BTreeSet::new();
-    for input in inputs {
+    'inputs: for input in inputs {
         if failed_batch { break; }
         let mut matched_count = 0usize;
         let mut read_failed = false;
         let mut chunk_ends = Vec::new();
-        let output_start = out.len();
+        let output_start = stream.total;
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
                 let mut bytes = Vec::new();
@@ -4216,9 +4216,12 @@ fn run_grep_engine(
                 if failed_batch { had_error = true; break; }
                 if let Err(e) = result {
                     had_error = true;
-                    if !cfg.no_messages {
-                        let name = match &cfg.files { SearchFiles::Grep(g) => g.name, SearchFiles::Rg(_) => "rg" };
-                        err.push_str(&format!("{name}: {e}\n"));
+                    if is_rg {
+                        if e.starts_with("Execution aborted:") { stream.writable = false; break; }
+                        stream.report(&format!("rg: {e}\n"), cfg.no_messages);
+                        if !stream.writable { break; }
+                    } else if let SearchFiles::Grep(g) = &cfg.files && !cfg.no_messages {
+                        err.push_str(&format!("{}: {e}\n", g.name));
                     }
                     if cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet || multiline { continue; }
                     read_failed = true;
@@ -4261,9 +4264,10 @@ fn run_grep_engine(
                     match read {
                         Ok(bytes) => bytes,
                         Err(e) => {
-                            if e.starts_with("Execution aborted:") { return BuiltinOutcome { exit_code: 2, ..ok_out("") }; }
+                            if e.starts_with("Execution aborted:") { stream.writable = false; break; }
                             had_error = true;
-                            if !cfg.no_messages { err.push_str(&format!("rg: {e}\n")); }
+                            stream.report(&format!("rg: {e}\n"), cfg.no_messages);
+                            if !stream.writable { break; }
                             continue;
                         }
                     }
@@ -4272,7 +4276,11 @@ fn run_grep_engine(
             }
             SearchInput::Error(message) => {
                 had_error = true;
-                if !cfg.no_messages { err.push_str(&message); }
+                if is_rg {
+                    if message.starts_with("rg: Execution aborted:") { stream.writable = false; break; }
+                    stream.report(&message, cfg.no_messages);
+                    if !stream.writable { break; }
+                } else if !cfg.no_messages { err.push_str(&message); }
                 continue;
             }
         };
@@ -4434,6 +4442,7 @@ fn run_grep_engine(
         if failed_batch && (cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet) { break; }
         if skipped_binary { matched_count = 0; }
         if cfg.quiet && !cfg.stats && !cfg.json_output {
+            if found && is_rg { break; }
             if found { return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 }; }
             continue;
         }
@@ -4460,7 +4469,7 @@ fn run_grep_engine(
             if matched_count == 0 || cfg.quiet { continue; }
             let path_text = fname.unwrap_or("<stdin>");
             let escaped_path = json_escape_str(path_text);
-            out.push_str(&rg_json_begin(&escaped_path));
+            if !stream.put(&rg_json_begin(&escaped_path)) { break; }
             let mut printed = vec![false; lines.len()];
             for (idx, _) in &match_indices {
                 let start = idx.saturating_sub(cfg.before_ctx);
@@ -4480,42 +4489,34 @@ fn run_grep_engine(
                 let spans = match_map.get(&idx).copied().or_else(|| context_matches.get(&idx)).map_or(&[][..], Vec::as_slice);
                 let line = lines[idx];
                 let ending = (end - line_offsets[idx] > line.len()).then_some(rec_term as u8);
-                out.push_str(&rg_json_record(&escaped_path, line, ending, idx + 1, line_offsets[idx], selected, spans));
+                if !stream.put(&rg_json_record(&escaped_path, line, ending, idx + 1, line_offsets[idx], selected, spans)) { break 'inputs; }
             }
             if read_failed { continue; }
-            let file_printed = stream_byte_len(&out[output_start..]);
+            let file_printed = stream.total - output_start;
             json_bytes_printed += file_printed;
-            out.push_str(&rg_json_end(&escaped_path, nul_off, file_searched, file_printed, matched_count, file_submatch_count));
+            if !stream.put(&rg_json_end(&escaped_path, nul_off, file_searched, file_printed, matched_count, file_submatch_count)) { break; }
             continue;
         }
 
         if cfg.quiet { continue; }
-        let binary_notice = |out: &mut String, off: usize| {
-            if show_filename && let Some(f) = fname { out.push_str(f); out.push_str(": "); }
-            out.push_str(&format!("binary file matches (found \"\\0\" byte around offset {off})\n"));
-        };
         if let Some(off) = nul_off && !cfg.files_with_matches && !cfg.files_without_match && !cfg.count_only {
-            if matched_count > 0 { binary_notice(&mut out, off); }
-            if cfg.stats && read_failed { failed_output_bytes += stream_byte_len(&out[output_start..]); }
+            let prefix = fname.filter(|_| show_filename).map(|f| format!("{f}: ")).unwrap_or_default();
+            if matched_count > 0 && !stream.put(&format!("{prefix}binary file matches (found \"\\0\" byte around offset {off})\n")) { break; }
             continue;
         }
 
         let file_sep = if cfg.null_delim { '\0' } else { '\n' };
-        if cfg.files_with_matches {
-            if matched_count > 0 {
-                if let Some(f) = fname {
-                    out.push_str(f);
-                    out.push(file_sep);
-                }
-            }
-            continue;
-        }
-        if cfg.files_without_match {
-            if matched_count == 0 {
-                if let Some(f) = fname {
-                    out.push_str(f);
-                    out.push(file_sep);
-                }
+        let finish_piece = |piece: &mut String, stream: &mut rg_stream::Output| {
+            if !is_rg { return true; }
+            let writable = stream.put(piece);
+            piece.clear();
+            writable
+        };
+        if cfg.files_with_matches || cfg.files_without_match {
+            if (matched_count > 0) == cfg.files_with_matches && let Some(f) = fname {
+                out.push_str(f);
+                out.push(file_sep);
+                if !finish_piece(&mut out, &mut stream) { break; }
             }
             continue;
         }
@@ -4533,10 +4534,12 @@ fn run_grep_engine(
                 if let Some(f) = fname {
                     let fsep = if cfg.null_delim { '\0' } else { ':' };
                     out.push_str(&format!("{f}{fsep}{count_val}{count_end}"));
+                    if !finish_piece(&mut out, &mut stream) { break; }
                     continue;
                 }
             }
             out.push_str(&format!("{count_val}{count_end}"));
+            if !finish_piece(&mut out, &mut stream) { break; }
             continue;
         }
 
@@ -4544,22 +4547,28 @@ fn run_grep_engine(
         let context = cfg.before_ctx > 0 || cfg.after_ctx > 0;
         let label = fname.unwrap_or(stdin_label);
         let mut first_record = true;
-        let mut start_record = |out: &mut String, first: usize, last: usize| {
-            if !context && !use_heading { return; }
+        let mut start_record = |out: &mut String, stream: &mut rg_stream::Output, first: usize, last: usize| {
+            if !context && !use_heading { return true; }
             if first_record && use_heading && !headings.contains(label) {
-                if !headings.is_empty() { out.push('\n'); }
+                if !headings.is_empty() {
+                    out.push('\n');
+                    if !finish_piece(out, stream) { return false; }
+                }
                 out.push_str(label);
                 out.push(if cfg.null_delim { '\0' } else { '\n' });
+                if !finish_piece(out, stream) { return false; }
                 headings.insert(label.to_owned());
             } else if context && last_label.as_deref().is_some_and(|previous|
                 previous != label || (!is_rg && first_record) || first > last_line + 1)
                 && let Some(sep) = &cfg.context_separator {
                 out.push_str(sep);
                 out.push(if is_rg { '\n' } else { rec_term });
+                if !finish_piece(out, stream) { return false; }
             }
             if first_record && last_label.as_deref() != Some(label) { last_label = Some(label.to_owned()); }
             first_record = false;
             last_line = last;
+            true
         };
         let line_show_filename = show_filename && !use_heading;
 
@@ -4590,7 +4599,7 @@ fn run_grep_engine(
                     idx += 1;
                     continue;
                 }
-                start_record(&mut out, idx, last);
+                if !start_record(&mut out, &mut stream, idx, last) { break 'inputs; }
                 let base = line_offsets[idx];
                 let sep = if selected { ':' } else { '-' };
                 let mut emit = |chunk: &[u8], line, column, byte, ending: usize| {
@@ -4602,9 +4611,10 @@ fn run_grep_engine(
                     if cfg.byte_offset { out.push_str(&format!("{byte}{sep}")); }
                     if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
                     emit_text(&mut out, chunk, selected, spans.len(), ending);
+                    finish_piece(&mut out, &mut stream)
                 };
                 if !selected {
-                    emit(lines[idx], idx + 1, 0, base, 1);
+                    if !emit(lines[idx], idx + 1, 0, base, 1) { break 'inputs; }
                 } else if cfg.only_matching {
                     let mut cursor = base;
                     let mut expanded_offset = 0;
@@ -4615,7 +4625,7 @@ fn run_grep_engine(
                         let rendered = &replacements[&s];
                         for chunk in rendered.split_inclusive(|&b| b == rec_term as u8) {
                             let text = chunk.strip_suffix(&[rec_term as u8]).unwrap_or(chunk);
-                            if !text.is_empty() { emit(text, number, expanded_offset + 1, base + expanded_offset, 0); }
+                            if !text.is_empty() && !emit(text, number, expanded_offset + 1, base + expanded_offset, 0) { break 'inputs; }
                             number += usize::from(chunk.ends_with(&[rec_term as u8]));
                         }
                         cursor = e;
@@ -4627,10 +4637,10 @@ fn run_grep_engine(
                     let rendered = apply_rg_line_replace(&content[base..end], base, &relative, &replacements);
                     let column = relative[0].0 + 1;
                     let mut byte = base;
-                    if rendered.is_empty() { emit(b"", idx + 1, column, base, 0); }
+                    if rendered.is_empty() && !emit(b"", idx + 1, column, base, 0) { break 'inputs; }
                     for (i, chunk) in rendered.split_inclusive(|&b| b == rec_term as u8).enumerate() {
                         let text = chunk.strip_suffix(&[rec_term as u8]).unwrap_or(chunk);
-                        emit(text, idx + 1 + i, column, byte, chunk.len() - text.len());
+                        if !emit(text, idx + 1 + i, column, byte, chunk.len() - text.len()) { break 'inputs; }
                         byte += chunk.len();
                     }
                 }
@@ -4646,7 +4656,7 @@ fn run_grep_engine(
                 let number = fl + 1 + if is_rg && cfg.null_data {
                     line_offsets.partition_point(|&off| off <= s) - line_offsets.partition_point(|&off| off <= line_start)
                 } else { 0 };
-                start_record(&mut out, number - 1, number - 1 + ll - fl);
+                if !start_record(&mut out, &mut stream, number - 1, number - 1 + ll - fl) { break 'inputs; }
                 for (chunk_idx, chunk) in rendered.split(|&b| b == rec_term as u8).enumerate() {
                     if chunk.is_empty() {
                         continue;
@@ -4668,8 +4678,10 @@ fn run_grep_engine(
                         out.push('\t');
                     }
                     emit_text(&mut out, chunk, true, 1, 0);
+                    if !finish_piece(&mut out, &mut stream) { break 'inputs; }
                 }
             }
+            if whole_matches && is_rg && !stream.flush() { break; }
             continue;
         }
 
@@ -4681,23 +4693,22 @@ fn run_grep_engine(
             if matched.is_some() { previous_match = Some(idx); }
             else if !context || !(previous_match.is_some_and(|i| idx - i <= cfg.after_ctx)
                 || selected.peek().is_some_and(|(i, _)| i - idx <= cfg.before_ctx)) { continue; }
-            start_record(&mut out, idx, idx);
+            if !start_record(&mut out, &mut stream, idx, idx) { break 'inputs; }
             if !is_rg && cfg.only_matching && matched.is_none() { continue; }
             let spans = matched.map(|(_, spans)| spans).or_else(|| context_matches.get(&idx)).map_or(&[][..], Vec::as_slice);
             let base = line_offsets[idx];
             let ending = line_offsets.get(idx + 1).copied().unwrap_or(content.len()) - base - line.len();
-            render_search_record(&cfg, &mut out, line, spans, base, idx + 1, ending, matched.is_some(), fname.filter(|_| line_show_filename),
-                is_rg, replacement.is_some(), &replacements, rec_term, |_| true);
+            if !render_search_record(&cfg, &mut out, line, spans, base, idx + 1, ending, matched.is_some(), fname.filter(|_| line_show_filename),
+                is_rg, replacement.is_some(), &replacements, rec_term, |piece| finish_piece(piece, &mut stream)) { break 'inputs; }
         }
-        if cfg.stats && read_failed { failed_output_bytes += stream_byte_len(&out[output_start..]); }
     }
 
-    if cfg.json_output {
-        out.push_str(&rg_json_summary(json_bytes_printed, bytes_searched, total_matched_lines, total_matches, searches, searches_with_match));
-    } else if cfg.stats {
+    if stream.writable && cfg.json_output {
+        stream.put(&rg_json_summary(json_bytes_printed, bytes_searched, total_matched_lines, total_matches, searches, searches_with_match));
+    } else if stream.writable && cfg.stats {
         let bytes_printed = if cfg.count_only || cfg.files_with_matches || cfg.files_without_match { 0 }
-            else { stream_byte_len(&out) - failed_output_bytes };
-        out.push_str(&rg_stats(total_matches, total_matched_lines, searches_with_match, searches, bytes_printed, bytes_searched));
+            else { stream.total };
+        stream.put(&rg_stats(total_matches, total_matched_lines, searches_with_match, searches, bytes_printed, bytes_searched));
     }
 
     let exit_code = if had_error && !(is_rg && cfg.quiet && any_match) {
@@ -4708,6 +4719,10 @@ fn run_grep_engine(
         1
     };
 
+    if is_rg {
+        stream.result.exit_code = if stream.writable && stream.flush() { exit_code } else { 2 };
+        return stream.result;
+    }
     BuiltinOutcome {
         stdout: out,
         stderr: err,

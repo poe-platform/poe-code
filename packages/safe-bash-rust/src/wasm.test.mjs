@@ -8940,6 +8940,32 @@ test("rg publishes matches and read errors in operand order", {skip: !WebAssembl
   } finally { sh.dispose(); }
 });
 
+test("rg publishes multiline output at diagnostics and whole-match boundaries", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash({files:{"/f":"ab\nb\n"}});
+  try {
+    const contents = async () => Buffer.from(await sh.fs.readFile("/out")).toString();
+    for (const [flags, before, after] of [
+      ["", "", "/f:ab\n/f:b\n"], ["-o", "/f:b\n/f:b\n", "/f:b\n/f:b\n"],
+    ]) {
+      let seen;
+      const r = await sh.exec("rg -U "+flags+" 'b\\nb' /f - /f >/out 2>&1", {stdin:{async *[Symbol.asyncIterator]() {
+        seen = await contents();
+        yield Buffer.from("ab\nb\n");
+        throw Error("input failed");
+      }}});
+      assert.deepEqual([seen,r.exitCode,await contents()], [before,2,after+"rg: internal error\n"+after],flags);
+    }
+  } finally { sh.dispose(); }
+});
+
+test("rg multiline keeps a published heading when the next output write exceeds the limit", async () => {
+  const sh = new RustWasmBash({files:{"/f":"λ"+"x".repeat(65533)+"b\nb\n"}});
+  try {
+    await assert.rejects(sh.exec("rg --heading -H -U 'b\\nb' /f >/out", {limits:{maxOutputBytes:65535}}), {limit:"maxOutputBytes"});
+    assert.equal(Buffer.from(await sh.fs.readFile("/out")).toString(), "/f\n");
+  } finally { sh.dispose(); }
+});
+
 test("rg admits explicit memory files once and charges the complete input in count mode", async () => {
   const sh = new RustWasmBash({files:{"/f":"a\nb\na\n","/out":"old"}});
   try {

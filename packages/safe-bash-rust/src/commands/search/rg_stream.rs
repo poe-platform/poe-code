@@ -4,17 +4,21 @@ use std::collections::VecDeque;
 
 const BUFFER: usize = 64 * 1024;
 
-struct Output<'a, 'b> {
+pub(super) struct Output<'a, 'b> {
     buffered: String,
     bytes: usize,
-    total: usize,
+    pub(super) total: usize,
     write: &'a mut CommandWriter<'b>,
-    result: BuiltinOutcome,
-    writable: bool,
+    pub(super) result: BuiltinOutcome,
+    pub(super) writable: bool,
 }
 
-impl Output<'_, '_> {
-    fn flush(&mut self) -> bool {
+impl<'a, 'b> Output<'a, 'b> {
+    pub(super) fn new(write: &'a mut CommandWriter<'b>) -> Self {
+        Self { buffered: String::new(), bytes: 0, total: 0, write, result: ok_out(""), writable: true }
+    }
+
+    pub(super) fn flush(&mut self) -> bool {
         if !self.buffered.is_empty() {
             self.writable = (self.write)(1, &self.buffered, &mut self.result);
             self.buffered.clear();
@@ -23,11 +27,11 @@ impl Output<'_, '_> {
         self.writable
     }
 
-    fn report(&mut self, message: &str, silent: bool) {
+    pub(super) fn report(&mut self, message: &str, silent: bool) {
         if self.flush() && !silent { self.writable = (self.write)(2, message, &mut self.result); }
     }
 
-    fn put(&mut self, text: &str) -> bool {
+    pub(super) fn put(&mut self, text: &str) -> bool {
         let len = stream_byte_len(text);
         self.total += len;
         if self.bytes + len > BUFFER && !self.flush() { return false; }
@@ -45,7 +49,7 @@ impl Output<'_, '_> {
 pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item = SearchInput>, multiple_files: bool,
     mut stdin: CommandInput, fs: &dyn SafeBashFs, cwd: &str, replacement: Option<&[RgReplacementPart]>,
     capture: bool, write: &mut CommandWriter) -> BuiltinOutcome {
-    let mut out = Output { buffered: String::new(), bytes: 0, total: 0, write, result: ok_out(""), writable: true };
+    let mut out = Output::new(write);
     let term = if cfg.null_data { '\0' } else { '\n' };
     let detects_binary = !cfg.null_data && cfg.binary != RgBinary::Text;
     let delimiter = |&b: &u8| b == term as u8 || detects_binary && b == 0;

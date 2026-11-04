@@ -3668,7 +3668,64 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
     read_zip_members(data, None)
 }
 
+pub(super) struct ZipMember<'a> {
+    record: ZipRecord<'a>,
+    pub name: String,
+    pub method: u16,
+    pub size: usize,
+    pub crc: u32,
+    pub payload: &'a [u8],
+    pub comment: &'a [u8],
+    pub typeflag: u8,
+    pub mode: u32,
+    pub mtime: f64,
+}
+
+impl<'a> ZipMember<'a> {
+    pub fn decode(&self) -> Result<std::borrow::Cow<'a,[u8]>,String> {
+        use std::borrow::Cow;
+        if self.record.central[8] & 1 != 0 { return Err("ZIP encrypted member requires a password".into()); }
+        let decoded = match self.method {
+            0 => Cow::Borrowed(self.payload),
+            8 => {
+                let (data,used) = inflate_raw_bounded(self.payload,self.size).map_err(|e| if e == "inflated data exceeds input limit" { "ZIP uncompressed size mismatch".into() } else { e })?;
+                if used != self.payload.len() { return Err("ZIP trailing compressed data".into()); }
+                Cow::Owned(data)
+            }
+            12 => Cow::Owned(bzip2_decompress(self.payload)?),
+            _ => return Err("ZIP unsupported compression method".into()),
+        };
+        if decoded.len() != self.size { return Err("ZIP uncompressed size mismatch".into()); }
+        if crc32_ieee(&decoded) != self.crc { return Err("ZIP CRC32 mismatch".into()); }
+        Ok(decoded)
+    }
+}
+
 pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut ZipRecords<'a>>) -> Result<Vec<crate::commands::archive::TarEntry>, String> {
+    let (members,comment) = zip_directory(data)?;
+    let mut out = Vec::with_capacity(members.len() + usize::from(!comment.is_empty()));
+    for member in members {
+        let decoded = member.decode()?;
+        let (linkname,content) = if let Some(records) = retained.as_deref_mut() {
+            if records.insert(member.name.clone(),member.record).is_some() { return Err("ZIP duplicate member name".into()); }
+            (String::new(),Vec::new())
+        } else if member.typeflag == b'2' { (String::from_utf8_lossy(&decoded).into_owned(),Vec::new()) }
+        else { (String::new(),decoded.into_owned()) };
+        out.push(crate::commands::archive::TarEntry {
+            name: member.name,typeflag: member.typeflag,mode: member.mode,mtime: member.mtime,
+            atime: None,uid: 0,gid: 0,linkname,content,
+        });
+    }
+    if !comment.is_empty() {
+        out.push(crate::commands::archive::TarEntry {
+            name: "__ZIP_COMMENT__".to_owned(),typeflag: ZIP_COMMENT_TYPE,mode: 0o644,mtime: 1700000000.,
+            atime: None,uid: 0,gid: 0,linkname: String::new(),content: comment.to_vec(),
+        });
+    }
+    Ok(out)
+}
+
+pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),String> {
     if data.len() < 22 {
         return Err("ZIP missing end record".into());
     }
@@ -3775,7 +3832,8 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
         let local = &data[local_off..payload_start+comp_size];
         if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
         if local[30..30+l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
-        if retained.is_some() && central[8] & 1 != 0 { return Err("ZIP encrypted member requires a password".into()); }
+        if !matches!(method,0|8|12|14|99) { return Err("ZIP unsupported compression method".into()); }
+        if method == 0 && central[8] & 1 == 0 && comp_size != uncomp_size { return Err("ZIP stored size mismatch".into()); }
         let descriptor = central[8] & 8 != 0;
         if local[14..26].chunks_exact(4).zip(central[16..28].chunks_exact(4))
             .any(|(a,b)| a != b && !(descriptor && a == [0;4])) {
@@ -3793,22 +3851,6 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
         if spans.range(..=local_off).next_back().is_some_and(|(_,end)| *end > local_off)
             || spans.range(local_off..stop).next().is_some() { return Err(overlap.into()); }
         spans.insert(local_off,stop);
-        let raw_payload = &data[payload_start..payload_start + comp_size];
-        let decoded = match method {
-            0 => raw_payload.to_vec(),
-            8 => inflate_raw(raw_payload)?.0,
-            12 => bzip2_decompress(raw_payload)?,
-            _ => return Err("unsupported compression method".into()),
-        };
-        if decoded.len() != uncomp_size || crc32_ieee(&decoded) != crc {
-            return Err("CRC or size mismatch".into());
-        }
-
-        if let Some(records) = retained.as_deref_mut()
-            && records.insert(name.clone(),ZipRecord {local,central}).is_some() {
-            return Err("ZIP duplicate member name".into());
-        }
-
         let host = version_made_by >> 8;
         let unix_mode = if host == 3 || host == 19 {
             ext_attr >> 16
@@ -3825,26 +3867,9 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
             0o644
         };
 
-        out.push(crate::commands::archive::TarEntry {
-            name,
-            typeflag: if is_dir {
-                b'5'
-            } else if is_symlink {
-                b'2'
-            } else {
-                b'0'
-            },
-            mode,
-            mtime: mtime as f64,
-            atime: None,
-            uid: 0,
-            gid: 0,
-            linkname: if is_symlink {
-                String::from_utf8_lossy(&decoded).to_string()
-            } else {
-                String::new()
-            },
-            content: if is_symlink { Vec::new() } else { decoded },
+        out.push(ZipMember { name,method,size:uncomp_size,crc,record:ZipRecord {local,central},
+            payload:&data[payload_start..payload_start+comp_size],comment:&central[central.len()-entry_cmt_len..],
+            typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
         });
     }
 
@@ -3857,19 +3882,5 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     if pos != eocd {
         return Err("ZIP central directory size or member count mismatch".into());
     }
-    if cmt_len > 0 {
-        out.push(crate::commands::archive::TarEntry {
-            name: "__ZIP_COMMENT__".to_string(),
-            typeflag: ZIP_COMMENT_TYPE,
-            mode: 0o644,
-            mtime: 1700000000.,
-            atime: None,
-            uid: 0,
-            gid: 0,
-            linkname: String::new(),
-            content: data[eocd + 22..eocd + 22 + cmt_len].to_vec(),
-        });
-    }
-
-    Ok(out)
+    Ok((out,&data[eocd+22..eocd+22+cmt_len]))
 }

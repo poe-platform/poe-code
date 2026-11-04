@@ -2002,6 +2002,25 @@ test("native zip splits at record boundaries and preserves occupied volume desti
   }
 });
 
+test("unzip lists metadata without inflating unselected payloads and tests only selected members",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    await ref.writeFile("/bad",Uint8Array.of(66));
+    await ref.writeFile("/good",new Uint8Array(4096).fill(65));
+    assert.equal((await js.exec("zip -q seed.zip bad good")).exitCode,0);
+    const b=Buffer.from(await ref.readFile("/seed.zip"));
+    b[30+b.readUInt16LE(26)+b.readUInt16LE(28)]^=1;
+    for(const fs of [ref,rust.fs]) await fs.writeFile("/split.zip",b);
+    for(const args of ["-v split.zip","-l split.zip good","-Z1 split.zip","-z split.zip","-t split.zip good","-qqt split.zip good",
+      "-t split.zip -x bad","-t split.zip absent","-t split.zip bad","-c split.zip good","-p split.zip good","-o split.zip good -d dest"]) {
+      const cmd="unzip "+args,expected=await js.exec(cmd),actual=await rust.exec(cmd);
+      assert.deepEqual([actual.exitCode,actual.stderr,actual.stdoutBytes],[expected.exitCode,expected.stderr,expected.stdoutBytes],cmd);
+    }
+    assert.deepEqual(await rust.fs.readFile("/dest/good"),await ref.readFile("/dest/good"));
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("unzip validates disk numbers, local headers and record coverage before extraction",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});

@@ -6436,7 +6436,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut junk_paths = false;
     let mut pipe_to_stdout = false;
     let mut pipe_headers = false;
-    let mut quiet = false;
+    let mut quiet_level = 0;
     let mut never_overwrite = false;
     let mut explicit_overwrite = false;
     let mut has_password = false;
@@ -6506,7 +6506,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 in_exclude = false;
             }
             "-q" | "-qq" => {
-                quiet = true;
+                quiet_level += args[i].len()-1;
                 in_exclude = false;
             }
             "-n" => {
@@ -6576,7 +6576,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         'j' => junk_paths = true,
                         'p' => pipe_to_stdout = true,
                         'c' => pipe_headers = true,
-                        'q' => quiet = true,
+                        'q' => quiet_level += 1,
                         'n' => never_overwrite = true,
                         'o' => explicit_overwrite = true,
                         'C' => case_insensitive = true,
@@ -6654,16 +6654,17 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             9,
         );
     };
+    let quiet = quiet_level != 0;
     let heading = !quiet && !names_only && !pipe_to_stdout;
     let mut out = if heading { format!("Archive:  {}\n",unzip_filtered(&arch)) } else { String::new() };
     let failure = |stdout: String,message: &str| BuiltinOutcome { stdout, stderr: format!("unzip: {}\n",tar_format::display(message)), exit_code: 2 };
-    let mut entries = match crate::commands::codecs::parse_zip_archive(&bytes) {
-        Ok(entries) => entries,
+    let (entries,comment) = match crate::commands::codecs::zip_directory(&bytes) {
+        Ok(index) => index,
         Err(e) => return failure(out,&e),
     };
-    if let Some(comment) = entries.pop_if(|e|e.typeflag == ZIP_COMMENT_TYPE) && (heading || show_comment) {
+    let render_comment = |comment: &[u8]| {
         let mut bytes = Vec::new();
-        for b in comment.content {
+        for &b in comment {
             match b {
                 0 => break,
                 13 | 19 => (),
@@ -6672,19 +6673,12 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             }
         }
         if !bytes.is_empty() && !bytes.ends_with(b"\n") { bytes.push(b'\n'); }
-        out.push_str(&crate::vfs::bytes_to_stream_string(&bytes));
-    }
+        crate::vfs::bytes_to_stream_string(&bytes)
+    };
+    if heading || show_comment { out.push_str(&render_comment(comment)); }
     if show_comment { return ok_out(&out); }
-    if test_only {
-        if !quiet {
-            for entry in &entries {
-                let pad_len = 22usize.saturating_sub(entry.name.len());
-                let padded = format!("{}{}", entry.name, " ".repeat(pad_len));
-                out.push_str(&format!("    testing: {padded} OK\n"));
-            }
-        }
-        out.push_str(&format!("No errors detected in compressed data of {arch}.\n"));
-        return ok_out(&out);
+    if entries.is_empty() {
+        return BuiltinOutcome {stdout:out,stderr:format!("warning [{}]:  zipfile is empty\n",unzip_filtered(&arch)),exit_code:1};
     }
     let mut matched_patterns = vec![false; members.len()];
     let mut check_member = |entry_name: &str| -> bool {
@@ -6708,112 +6702,60 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         any
     };
 
-    if pipe_to_stdout || pipe_headers {
-        for entry in &entries {
-            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
-                continue;
-            }
-            if check_member(&entry.name) && entry.typeflag == b'0' {
-                if pipe_headers && !pipe_to_stdout && !quiet {
-                    let pad = " ".repeat(22usize.saturating_sub(entry.name.len()));
-                    out.push_str(&format!(" extracting: {}{pad}  \n", entry.name));
-                }
-                out.push_str(&crate::vfs::bytes_to_stream_string(&entry.content));
-                if pipe_headers && !pipe_to_stdout && !quiet {
-                    out.push('\n');
-                }
-            }
-        }
-        let mut stderr = String::new();
-        let mut exit_code = 0;
-        for (idx, &m) in matched_patterns.iter().enumerate() {
-            if !m {
-                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
-                exit_code = 11;
-            }
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr,
-            exit_code,
-        };
+    let selected: Vec<_> = entries.iter().filter(|e| check_member(&e.name) && !tar_matches_exclude(&e.name,&excludes)).collect();
+    let mut unmatched = String::new();
+    for (pat,matched) in members.iter().zip(matched_patterns) {
+        if !matched { unmatched.push_str(&format!("caution: filename not matched:  {}\n",unzip_filtered(pat))); }
     }
-    if names_only {
-        for entry in &entries {
-            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
-                continue;
-            }
-            if !check_member(&entry.name) {
-                continue;
-            }
-            out.push_str(&format!("{}\n", entry.name));
+    let selection_status = if selected.is_empty() || !unmatched.is_empty() { 11 } else { 0 };
+    let padded = |s: &str| { let s = unzip_filtered(s); let n = 22usize.saturating_sub(s.len()); format!("{s}{}"," ".repeat(n)) };
+    let action = |method: u16| if method == 0 { " extracting" } else { "  inflating" };
+    if test_only || effective_pipe || names_only || list_table {
+        use std::fmt::Write;
+        let list = list_table && !effective_pipe && !test_only;
+        if list {
+            out.push_str(if verbose_list { " Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n" }
+                else { "  Length      Date    Time    Name\n---------  ---------- -----   ----\n" });
         }
-        let mut stderr = String::new();
-        let mut exit_code = 0;
-        for (idx, &m) in matched_patterns.iter().enumerate() {
-            if !m {
-                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
-                exit_code = 11;
-            }
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr,
-            exit_code,
-        };
-    }
-    if list_table {
-        if verbose_list {
-            out.push_str(" Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n");
-        } else {
-            out.push_str("  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
-        }
-        let mut total_len = 0usize;
-        let mut selected_count = 0usize;
-        for entry in &entries {
-            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
-                continue;
-            }
-            if !check_member(&entry.name) {
-                continue;
-            }
-            let sz = entry.content.len();
-            total_len += sz;
-            selected_count += 1;
-            let dt = format_tar_mtime(entry.mtime, false, true);
-            if verbose_list {
-                let crc = crc32_ieee(&entry.content);
-                out.push_str(&format!(
-                    "{sz:>8}  Stored {sz:>8}   0% {dt} {crc:08x}  {}\n",
-                    entry.name
-                ));
+        let ratio = |size:u64,compressed:u64| if size == 0 { 0 } else { (100.0*(size as f64-compressed as f64)/size as f64+0.5).floor() as i64 };
+        let (mut total,mut stored) = (0u64,0u64);
+        for entry in &selected {
+            if names_only { writeln!(out,"{}",unzip_filtered(&entry.name)).unwrap(); }
+            else if list {
+                let size = entry.size as u64;
+                let compressed = entry.payload.len() as u64;
+                total += size; stored += compressed;
+                let date = format_tar_mtime(entry.mtime,false,true);
+                let name = unzip_filtered(&entry.name);
+                if verbose_list {
+                    let method = match entry.method { 0=>"Stored".into(),8=>"Defl:N".into(),12=>"BZip2".into(),14=>"LZMA".into(),n=>format!("m{n}") };
+                    writeln!(out,"{size:>8}  {method:<6} {compressed:>8} {:>3}% {date} {:08x}  {name}",ratio(size,compressed),entry.crc).unwrap();
+                } else { writeln!(out,"{size:>9}  {date}   {name}").unwrap(); }
+                out.push_str(&render_comment(entry.comment));
             } else {
-                out.push_str(&format!("{sz:>9}  {dt}   {}\n", entry.name));
+                if !test_only && pipe_headers && !pipe_to_stdout && !quiet {
+                    writeln!(out,"{}: {}  ",action(entry.method),padded(&entry.name)).unwrap();
+                }
+                let data = match entry.decode() { Ok(bytes)=>bytes,Err(e)=>return failure(out,&e) };
+                if test_only {
+                    if !quiet { writeln!(out,"    testing: {} OK",padded(&entry.name)).unwrap(); }
+                } else {
+                    out.push_str(&crate::vfs::bytes_to_stream_string(&data));
+                    if pipe_headers && !pipe_to_stdout && !quiet {out.push('\n');}
+                }
             }
         }
-        let files_label = if selected_count == 1 { "file" } else { "files" };
-        if verbose_list {
-            out.push_str(&format!(
-                "--------          -------  ---                            -------\n{total_len:>8}         {total_len:>8}   0%                            {selected_count} {files_label}\n"
-            ));
-        } else {
-            out.push_str(&format!(
-                "---------                     -------\n{total_len:>9}                     {selected_count} {files_label}\n"
-            ));
+        if list {
+            let count = selected.len(); let label = if count == 1 {"file"} else {"files"};
+            if verbose_list {
+                writeln!(out,"--------          -------  ---                            -------\n{total:>8}         {stored:>8} {:>3}%                            {count} {label}",ratio(total,stored)).unwrap();
+            } else { writeln!(out,"---------                     -------\n{total:>9}                     {count} {label}").unwrap(); }
         }
-        let mut stderr = String::new();
-        let mut exit_code = 0;
-        for (idx, &m) in matched_patterns.iter().enumerate() {
-            if !m {
-                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
-                exit_code = 11;
-            }
+        if test_only && quiet_level < 2 {
+            if selection_status != 0 { writeln!(out,"At least one error was detected in {}.",unzip_filtered(&arch)).unwrap(); }
+            else { writeln!(out,"No errors detected in compressed data of {}.",unzip_filtered(&arch)).unwrap(); }
         }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr,
-            exit_code,
-        };
+        return BuiltinOutcome {stdout:out,stderr:unmatched,exit_code:selection_status};
     }
     {
         use crate::vfs::VfsEntryKind::{Directory, File};
@@ -6847,12 +6789,10 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             Some(String::from_utf8_lossy(line))
         };
         let mut prompt_bytes = crate::vfs::stream_byte_len(&out);
-        let mut extract = || -> Result<(),String> {
+        let extract = || -> Result<(),String> {
             let out_dir = directory(&raw)?;
             let input = fs.stat(&full)?;
-            'member: for entry in &entries {
-                if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) { continue; }
-                if !check_member(&entry.name) { continue; }
+            'member: for entry in selected {
                 let is_dir = entry.typeflag == b'5';
                 if junk_paths && is_dir { continue; }
                 let mut name = if junk_paths { crate::vfs::basename_posix_path(&entry.name) } else { entry.name.clone() };
@@ -6867,6 +6807,8 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         Err(e) => return Err(e),
                     };
                     if is_dir {
+                        if entry.size != 0 { return Err("directory has nonempty payload".into()); }
+                        entry.decode()?;
                         match existing {
                             Some(st) if st.kind == Directory => (),
                             Some(_) => return Err("directory destination is not a directory".into()),
@@ -6877,14 +6819,14 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     if dest == full || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity) {
                         return Err("entry would overwrite input archive".into());
                     }
+                    let shown = match &dest_dir {
+                        Some(d) => format!("{d}{}{name}",if d.ends_with('/') { "" } else { "/" }),
+                        None => name.clone(),
+                    };
                     if let Some(st) = existing {
                         if st.kind != File { return Err(format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
                         if st.identity.is_none() || input.identity.is_none() { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
                         if never_overwrite { continue 'member; }
-                        let shown = match &dest_dir {
-                            Some(d) => format!("{d}{}{name}",if d.ends_with('/') { "" } else { "/" }),
-                            None => name.clone(),
-                        };
                         let mut prompt = |text: &str| -> Result<(),String> {
                             prompt_bytes += crate::vfs::stream_byte_len(text);
                             if prompt_bytes > fs.remaining_output_bytes() {
@@ -6926,15 +6868,23 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                             }
                         }
                     }
+                    if entry.size > fs.remaining_output_bytes().saturating_sub(prompt_bytes) {
+                        return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
+                    }
+                    let data = entry.decode()?;
                     if entry.typeflag == b'2' {
-                        check_tar_symlink(fs,&out_dir,&dest,&entry.linkname)?;
-                        fs.symlink(&entry.linkname,&dest)?;
+                        let target = std::str::from_utf8(&data).map_err(|_| "invalid UTF-8 archive name or metadata")?;
+                        check_tar_symlink(fs,&out_dir,&dest,target)?;
+                        fs.symlink(target,&dest)?;
                     } else {
-                        if entry.content.len() > fs.remaining_output_bytes().saturating_sub(prompt_bytes) {
-                            return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
-                        }
                         let time = Some(entry.mtime*1000.);
-                        fs.replace_file_entry_with_metadata(&dest,&entry.content,entry.mode & 0o777,(time,time),version)?;
+                        fs.replace_file_entry_with_metadata(&dest,&data,entry.mode & 0o777,(time,time),version)?;
+                        if !quiet {
+                            let progress = format!("{}: {}  \n",action(entry.method),padded(&shown));
+                            prompt_bytes += crate::vfs::stream_byte_len(&progress);
+                            out.push_str(&progress);
+                            if prompt_bytes > fs.remaining_output_bytes() { return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes)); }
+                        }
                     }
                     break;
                 }
@@ -6945,12 +6895,8 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             stderr.push_str(&format!("unzip: {}\n",tar_format::display(&e)));
             return BuiltinOutcome { stdout: out,stderr,exit_code:2 };
         }
-        for (idx, &m) in matched_patterns.iter().enumerate() {
-            if !m {
-                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
-                exit_code = 11;
-            }
-        }
+        stderr.push_str(&unmatched);
+        if selection_status != 0 { exit_code = selection_status; }
         BuiltinOutcome {
             stdout: out,
             stderr,

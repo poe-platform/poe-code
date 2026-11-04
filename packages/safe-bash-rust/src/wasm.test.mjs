@@ -1540,6 +1540,32 @@ test("middleware pulls stdin only when read and next sees the remaining chunks",
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("middleware and the selected plugin handler share streams, cleanup and thrown errors",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const run=async sh=>{
+    const trace=[]; let context, pulls=0;
+    sh.use(async(ctx,next)=>{
+      context=ctx;
+      ctx.registerCleanup(()=>trace.push("outer cleanup"));
+      try{const r=await next();trace.push("after");return r;}
+      catch(e){trace.push(e.message);return {exitCode:42};}
+    });
+    sh.register({name:"probe",async execute(ctx){
+      trace.push([ctx.command,ctx.argv0,ctx.stdin===context.stdin,pulls]);
+      ctx.registerCleanup(()=>trace.push("handler cleanup"));
+      if(ctx.args.length) throw new Error("from handler");
+      return {exitCode:0};
+    }});
+    const input=()=> (async function*(){pulls++;yield Uint8Array.of(1);})();
+    const a=await sh.exec("probe",{stdin:input()});
+    const b=await sh.exec("/bin/probe fail",{stdin:input()});
+    return [a.exitCode,b.exitCode,b.stderr,trace];
+  };
+  const js=new Shell({fs:new MemoryFileSystem(),cwd:"/"}),rust=new RustWasmBash({cwd:"/"});
+  try{const expected=await run(js);assert.equal(expected[1],42);assert.deepEqual(await run(rust),expected);}
+  finally{await js.dispose();await rust.dispose();}
+});
+
 test("plugin-provided capabilities reach nested commands and explicit invocation settings win",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem}=await import("@poe-platform/safe-bash");
   for(const sh of [new Shell({fs:new MemoryFileSystem(),cwd:"/"}),new RustWasmBash({cwd:"/"})]){

@@ -57,8 +57,10 @@ fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middlew
     }
     if flags == 64 {
         let input = middleware_input.as_mut().ok_or("No command to continue")?;
-        let result = ctx.proceed(input)?;
-        return Ok(child_result(result,0));
+        let candidate = field(&mut request)?;
+        let mut selected = false;
+        let result = ctx.caller.proceed(input,Some((&candidate,&mut selected)))?;
+        return Ok(if selected { (256,Vec::new(),0) } else { child_result(result,0) });
     }
     if (128..=131).contains(&flags) {
         let data = bytes_to_stream_string(request);

@@ -179,6 +179,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const slots = [], cleanupFailures = [], top = x.__stack_pointer.value;
   const executionSignal = options.signal ?? new AbortController().signal, childSignals = [];
   const {onInternalError} = options;
+  const terminals = middleware.length ? new Map(definitions.map(d=>[d.name,d])) : undefined;
   const backing = fs.capabilities;
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
     ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation", "atomicDirectoryMetadata", "atomicFileStaging", "atomicStagingAncestry", "retainedStagingWrite", "retainedStagingCleanup"].map(key => [key, backing[key]]))});
@@ -494,7 +495,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             await call;
           };
           const sinks = [0,1].map(i=>({write:bytes=>writeSink(i,bytes,false)}));
-          const invoke = async (name,args,settings={},proceed=false) => {
+          const invoke = async (name,args,settings={},proceed) => {
             check();
             settings.signal?.throwIfAborted();
             if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || args.some(a=>typeof a !== "string" || a.includes("\0")))
@@ -520,7 +521,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const size = input.length;
               const parts = [], word = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0,n,true); parts.push(b); };
               const field = v => { const b = typeof v === "string" ? encoder.encode(v) : v; word(b.length); parts.push(b); };
-              if (proceed) word(64);
+              if (proceed !== undefined) { word(64); field(proceed); }
               else {
                 word((!definition && inherited?256:0) | (settings.cwd!==undefined?1:0) | (settings.argv0!==undefined?2:0) | (settings.replaceEnv?4:0) | (settings.externalInvocation?8:0)
                   | ((settings.stdin===undefined?stdinIsDefault:settings.stdinIsDefault)?16:0)
@@ -533,6 +534,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
                 field(input);
               }
               const {status,bytes} = await exchange(parts,childSignal);
+              if (status === 256) return {bytes,status};
               const view = new DataView(bytes.buffer);
               const left = view.getUint32(0,true);
               if (definition && inherited) consumed += size-left;
@@ -540,6 +542,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             });
             tail = call.catch(()=>{});
             const {bytes,status} = await call;
+            if (status === 256) return;
             const view = new DataView(bytes.buffer);
             let pos = 4;
             for (const sink of [stdout,stderr]) {
@@ -585,7 +588,12 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const context = {onInternalError, registerCleanup, command, argv0, args:argumentValues.args, argumentValues,
             cwd, env, stdin, stdinIsDefault, invoke:(name,args,settings)=>invoke(name,args,settings), fs:commandFs, stdout:sinks[0], stderr:sinks[1], signal, capabilities:options.capabilities};
           const pending = definition ? definition.execute(context)
-            : composeMiddleware(middleware,()=>invoke("",[],{},true))(context);
+            : composeMiddleware(middleware,async ()=>{
+              const handler = terminals.get(path.posix.basename(command));
+              const result = await invoke("",[],{},handler?.name ?? "");
+              if (result !== undefined) return result;
+              return handler.execute(handler.name===command ? context : {...context,command:handler.name,argv0:argv0 ?? command});
+            })(context);
           const result = await (options.signal || childSignals.length ? untilAbort(pending, signal) : pending);
           if (code >= 0) {
             code = commandContract.validateExitCode(result.exitCode);

@@ -46,7 +46,7 @@ enum DispatchMode { Shell, BypassFunctions, Builtin, EnvShebang }
 
 pub(crate) trait CommandCaller {
     fn state(&self) -> &EvalState<'_>;
-    fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome, String>;
+    fn proceed(&mut self, stdin: &mut String, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String>;
 }
 
 struct DispatchFrame<'a,'b> {
@@ -57,11 +57,11 @@ struct DispatchFrame<'a,'b> {
 
 impl CommandCaller for DispatchFrame<'_,'_> {
     fn state(&self) -> &EvalState<'_> { self.state }
-    fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome, String> {
+    fn proceed(&mut self, stdin: &mut String, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String> {
         let mode = self.next.take().ok_or("next() may only be called once per middleware")?;
         let state = &mut self.state;
         let prior = state.forwarded_output.take();
-        let result = state.dispatch_terminal(self.words,stdin,mode);
+        let result = state.dispatch_terminal(self.words,stdin,mode,host_terminal);
         let credit = state.forwarded_output.replace(prior);
         result.and_then(|mut out| {
             for (fd,paid) in [(1,credit.0),(2,credit.1)] {
@@ -82,7 +82,7 @@ impl CommandCaller for DispatchFrame<'_,'_> {
 impl CommandContext<'_> {
     /// Continue the intercepted command in its original shell, at most once.
     pub fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome,String> {
-        let out = self.caller.proceed(stdin)?;
+        let out = self.caller.proceed(stdin,None)?;
         self.forwarded = (stream_byte_len(&out.stdout),stream_byte_len(&out.stderr));
         self.unread_stdin = Some(stdin.clone());
         Ok(out)
@@ -4260,7 +4260,7 @@ impl<'a> EvalState<'a> {
             let argv0 = self.env.get("\0argv0").cloned();
             return self.dispatch_host(handler,words,stdin,argv0.as_deref(),Some(mode));
         }
-        self.dispatch_terminal(words,stdin,mode)
+        self.dispatch_terminal(words,stdin,mode,None)
     }
 
     fn dispatch_terminal(
@@ -4268,6 +4268,7 @@ impl<'a> EvalState<'a> {
         words: &[String],
         stdin: &mut String,
         mode: DispatchMode,
+        host_terminal: Option<(&str,&mut bool)>,
     ) -> Result<BuiltinOutcome, EvalError> {
         let bypass_functions = mode != DispatchMode::Shell;
         let Some(cmd) = words.first() else {
@@ -5313,6 +5314,12 @@ impl<'a> EvalState<'a> {
             && (virtual_name.is_some() || !Self::is_implemented_builtin_name(effective_cmd)
                 || matches!(effective_cmd, "true" | "false" | "pwd"))
         {
+            // Let the JS host call its selected handler inside the middleware's own
+            // context. Functions and forced builtins have already won lookup above.
+            if let Some((candidate, selected)) = host_terminal && candidate == effective_cmd {
+                *selected = true;
+                return Ok(BuiltinOutcome {stdout:String::new(),stderr:String::new(),exit_code:0});
+            }
             return self.dispatch_host(custom,words,stdin,custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),None);
         }
 

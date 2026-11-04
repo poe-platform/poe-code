@@ -38,6 +38,8 @@ pub(super) fn try_run_coreutil_with_input(
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
     if matches!(cmd, "less" | "more") { return Ok(Some(cmd_less_more(cmd, args, input, cwd, fs, write))); }
+    if cmd == "expand" { return Ok(Some(cmd_expand(args, input, cwd, fs, write))); }
+    if cmd == "unexpand" { return Ok(Some(cmd_unexpand(args, input, cwd, fs, write))); }
     if cmd == "rev" { return Ok(Some(cmd_rev(args, input, cwd, env, fs, write))); }
     if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
     Ok(match coreutil(cmd, args, input, cwd, env, fs) {
@@ -85,8 +87,6 @@ fn coreutil(
         "id" => cmd_id(args, env, fs),
         "sleep" => cmd_sleep(args, env),
         "factor" => cmd_factor(args, input, env.contains_key("POSIXLY_CORRECT")),
-        "expand" => cmd_expand(args, input, cwd, fs),
-        "unexpand" => cmd_unexpand(args, input, cwd, fs),
         "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
         "truncate" => cmd_truncate(args, cwd, env, fs),
         "fold" => cmd_fold(args, input, cwd, env, fs),
@@ -14572,19 +14572,57 @@ impl ParsedTabs {
 
 fn read_tab_inputs(
     mut files: Vec<String>, mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs,
-    command: &str, mut consume: impl FnMut(&[u8]),
-) -> String {
+    command: &str, write: &mut super::CommandWriter,
+    mut convert: impl FnMut(&[u8], bool, &mut dyn FnMut(u8, usize) -> bool) -> bool,
+) -> BuiltinOutcome {
     if files.is_empty() { files.push("-".into()); }
-    let mut errors = String::new();
-    for name in files {
-        if let Err(e) = stdin.read_operand(&name, cwd, fs, true, |chunk| { consume(chunk); true }) {
-            errors.push_str(&format!("{command}: {e}\n"));
+    let mut out = ok_out("");
+    let mut bytes = Vec::new();
+    let mut writable = true;
+    for name in files.iter().map(Some).chain(std::iter::once(None)) {
+        let mut consume = |chunk: &[u8]| {
+            writable = convert(chunk, name.is_none(), &mut |byte, mut count| {
+                while count != 0 {
+                    let n = count.min(16384 - bytes.len());
+                    bytes.resize(bytes.len() + n, byte);
+                    count -= n;
+                    if bytes.len() == 16384 {
+                        if !write(1, &crate::vfs::bytes_to_stream_string(&bytes), &mut out) { return false; }
+                        bytes.clear();
+                    }
+                }
+                true
+            });
+            if writable && !bytes.is_empty() {
+                writable = write(1, &crate::vfs::bytes_to_stream_string(&bytes), &mut out);
+                bytes.clear();
+            }
+            writable
+        };
+        let read = match name.map(String::as_str) {
+            None => { consume(&[]); Ok(()) }
+            Some("-") => stdin.read_stdin(consume),
+            Some(name) => record_input_path(name, cwd, fs, true).and_then(|(path, entry)| {
+                if fs.supplies_single_chunk_input() && !entry.starts_with("/dev/") {
+                    // Memory readStream retains the version opened even if stdout appends to it.
+                    let data = fs.read_file(&entry).map_err(|e| stream_file_error(e, "readStream", &path))?;
+                    for chunk in data.chunks(65536) { if !consume(chunk) { break; } }
+                    Ok(())
+                } else {
+                    fs.read_chunks(&entry, &mut |chunk| Ok(consume(chunk))).map_err(|e| stream_file_error(e, "readStream", &path))
+                }
+            }),
+        };
+        if !writable { break; }
+        if let Err(e) = read {
+            out.exit_code = 1;
+            if !write(2, &format!("{command}: {e}\n"), &mut out) { break; }
         }
     }
-    errors
+    out
 }
 
-fn cmd_expand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_expand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut tab_specs: Vec<String> = Vec::new();
     let mut initial_only = false;
     let mut files = Vec::new();
@@ -14677,19 +14715,16 @@ fn cmd_expand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
         Ok(t) => t,
         Err(msg) => return err_out(&msg, 1),
     };
-    let mut out_bytes: Vec<u8> = Vec::new();
     let mut column = 0usize;
     let mut initial = true;
-    let errors = read_tab_inputs(files, stdin, cwd, fs, "expand", |chunk| {
+    read_tab_inputs(files, stdin, cwd, fs, "expand", write, |chunk, _, emit| {
         for &b in chunk {
             if b == b'\t' && (!initial_only || initial) {
                 let stop = tabs.next_stop(column, true).unwrap_or(column + 1);
-                while column < stop {
-                    out_bytes.push(b' ');
-                    column += 1;
-                }
+                if !emit(b' ', stop - column) { return false; }
+                column = stop;
             } else {
-                out_bytes.push(b);
+                if !emit(b, 1) { return false; }
                 if b == b'\n' {
                     column = 0;
                     initial = true;
@@ -14705,15 +14740,11 @@ fn cmd_expand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
                 }
             }
         }
-    });
-    BuiltinOutcome {
-        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        exit_code: i32::from(!errors.is_empty()),
-        stderr: errors,
-    }
+        true
+    })
 }
 
-fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut tab_specs: Vec<String> = Vec::new();
     let mut all_flag = false;
     let mut has_t = false;
@@ -14823,7 +14854,6 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
         Err(msg) => return err_out(&msg, 1),
     };
     let all = !first_only && (all_flag || has_t);
-    let mut out_bytes: Vec<u8> = Vec::new();
     let mut column = 0usize;
     let mut initial = true;
     let mut active = true;
@@ -14831,34 +14861,25 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
     let mut pending_count = 0usize;
     let mut pending_tab = false;
 
-    let flush_blanks = |out: &mut Vec<u8>,
-                        pending_start: usize,
-                        column: usize,
-                        initial: bool,
-                        pending_count: &mut usize,
-                        pending_tab: &mut bool| {
-        if *pending_count == 0 {
-            return;
-        }
-        let convert_single = initial || *pending_count > 1 || *pending_tab;
-        let mut pos = pending_start;
-        while pos < column {
-            if let Some(stop) = tabs.next_stop(pos, false)
-                && stop <= column
-                && (stop - pos > 1 || convert_single)
-            {
-                out.push(b'\t');
-                pos = stop;
-            } else {
-                out.push(b' ');
-                pos += 1;
+    read_tab_inputs(files, stdin, cwd, fs, "unexpand", write, |chunk, eof, emit| {
+        let flush_blanks = |column, initial, pending_start, pending_count: &mut usize, pending_tab: &mut bool, emit: &mut dyn FnMut(u8, usize) -> bool| {
+            let convert_single = initial || *pending_count > 1 || *pending_tab;
+            let mut pos = pending_start;
+            while *pending_count != 0 && pos < column {
+                if let Some(stop) = tabs.next_stop(pos, false)
+                    && stop <= column && (stop - pos > 1 || convert_single)
+                {
+                    if !emit(b'\t', 1) { return false; }
+                    pos = stop;
+                } else {
+                    if !emit(b' ', 1) { return false; }
+                    pos += 1;
+                }
             }
-        }
-        *pending_count = 0;
-        *pending_tab = false;
-    };
-
-    let errors = read_tab_inputs(files, stdin, cwd, fs, "unexpand", |chunk| {
+            *pending_count = 0;
+            *pending_tab = false;
+            true
+        };
         for &b in chunk {
             if active && (b == b' ' || b == b'\t') {
                 if let Some(stop) = tabs.next_stop(column, false) {
@@ -14874,26 +14895,12 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
                     }
                     continue;
                 }
-                flush_blanks(
-                    &mut out_bytes,
-                    pending_start,
-                    column,
-                    initial,
-                    &mut pending_count,
-                    &mut pending_tab,
-                );
+                if !flush_blanks(column, initial, pending_start, &mut pending_count, &mut pending_tab, emit) { return false; }
                 active = false;
             } else if pending_count > 0 {
-                flush_blanks(
-                    &mut out_bytes,
-                    pending_start,
-                    column,
-                    initial,
-                    &mut pending_count,
-                    &mut pending_tab,
-                );
+                if !flush_blanks(column, initial, pending_start, &mut pending_count, &mut pending_tab, emit) { return false; }
             }
-            out_bytes.push(b);
+            if !emit(b, 1) { return false; }
             if b == b'\n' {
                 column = 0;
                 initial = true;
@@ -14910,20 +14917,8 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
                 }
             }
         }
-    });
-    flush_blanks(
-        &mut out_bytes,
-        pending_start,
-        column,
-        initial,
-        &mut pending_count,
-        &mut pending_tab,
-    );
-    BuiltinOutcome {
-        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        exit_code: i32::from(!errors.is_empty()),
-        stderr: errors,
-    }
+        !eof || flush_blanks(column, initial, pending_start, &mut pending_count, &mut pending_tab, emit)
+    })
 }
 
 #[derive(Clone)]

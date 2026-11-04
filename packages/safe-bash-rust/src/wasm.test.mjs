@@ -543,6 +543,39 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("tab conversion commits each input chunk and stops reading on output failure", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd, chunks, expected] of [
+      ["expand -t4", ["a\t", "b\n", "\t", "later"], ["", "a   ", "a   b\n"]],
+      ["unexpand -a -t4", ["a   ", "b\n", "    c\n", "later"], ["", "a", "a\tb\n"]],
+    ]) {
+      const seen = [];
+      const stdin = { async *[Symbol.asyncIterator]() {
+        for (const chunk of chunks) {
+          seen.push(bash.readText("/out"));
+          yield new TextEncoder().encode(chunk);
+        }
+      }};
+      await assert.rejects(bash.exec(cmd + " >/out", { stdin, limits: { maxOutputBytes: 6 } }), { limit: "maxOutputBytes" });
+      assert.deepEqual([seen, bash.readText("/out")], [expected, expected.at(-1)], cmd);
+    }
+    await assert.rejects(bash.exec("expand -t65536 >/out", { stdin: "\t", limits: { maxOutputBytes: 17000 } }), { limit: "maxOutputBytes" });
+    assert.equal(bash.readText("/out"), " ".repeat(16384));
+  } finally { bash.dispose(); }
+});
+
+test("tab conversion maintains columns across named inputs and interleaves file diagnostics", async () => {
+  const bash = new RustWasmBash({ files: { "/prefix": "ab", "/tail": "\tX" } });
+  try {
+    for (const [cmd, tail] of [["expand", "      X"], ["unexpand", "\tX"]]) {
+      const r = await bash.exec(cmd + " /prefix /missing /tail 2>&1", { limits: { maxInputBytes: 1 } });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1,
+        `ab${cmd}: ENOENT: no such file or directory, stat '/missing'\n${tail}`, ""]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("rev publishes completed lines before pulling stdin and stops on quota failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

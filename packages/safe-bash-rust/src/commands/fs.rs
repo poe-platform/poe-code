@@ -787,11 +787,10 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 return Err(format!("{reason}, rmdir '{path}'"));
             }
             if !preflight {
-                if entry.as_deref() == Some("/") && device_view {
-                    return Err(format!("EBUSY: resource busy or locked '{path}'"));
-                }
                 if let Err(e) = fs.remove_one(&path, true) {
                     if ignore_non_empty && e.starts_with("ENOTEMPTY:") { return Ok(()); }
+                    if e.starts_with("EBUSY: resource busy or locked '") || e.starts_with("ENOTDIR: not a directory '")
+                        || e.starts_with("ENOENT: no such file or directory, lstat '") { return Err(e); }
                     let reason = e.split_once(", ").map_or(e.as_str(), |(r, _)| r);
                     return Err(format!("{reason}, rmdir '{path}'"));
                 }

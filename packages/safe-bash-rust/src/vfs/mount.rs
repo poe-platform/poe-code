@@ -59,6 +59,19 @@ impl MountVfs {
         }, |parent| self.mounts.keys().any(|m| m.strip_prefix(parent).is_some_and(|tail| tail.starts_with('/'))))
     }
 
+    fn removal_entry(&self, path: &str) -> Result<(&dyn SafeBashFs, String), String> {
+        let trimmed = path.trim_end_matches('/');
+        let operand = if trimmed.is_empty() && !path.is_empty() { "/" } else { trimmed };
+        let entry = self.resolve(operand, false, WalkPurpose::Access)?;
+        if entry == "/" || self.mounts.keys().any(|m| super::is_path_within(&entry, m)) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let (_, fs, mut local) = self.location(&entry);
+        if matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
+        if path.ends_with('/') { local.push('/'); }
+        Ok((fs, local))
+    }
+
     fn route(&self, path: &str, follow_final: bool) -> Result<(&dyn SafeBashFs, String), String> {
         let (_, fs, local) = self.location(&self.resolve(path, follow_final, WalkPurpose::AllowMissingParents)?);
         Ok((fs, local))
@@ -434,27 +447,13 @@ impl SafeBashFs for MountVfs {
     }
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
-        let entry = self.resolve(path, false, WalkPurpose::Rename)?;
-        if self.mounts.keys().any(|m| crate::vfs::is_path_within(&entry, m)) {
-            return Err("EBUSY: resource busy or locked".into());
-        }
-        let (_, fs, mut local) = self.location(&entry);
-        if path.ends_with('/') { local.push('/'); }
+        let (fs, local) = self.removal_entry(path)?;
         fs.remove_one(&local, directory)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let resolved = self.resolve(path, false, WalkPurpose::Rename)?;
-        if self
-            .mounts
-            .keys()
-            .any(|m| crate::vfs::is_path_within(&resolved, m))
-        {
-            return Err("EBUSY: cannot remove a mount or its parent".into());
-        }
-        let (_, fs, mut rel) = self.location(&resolved);
-        if path.ends_with('/') { rel.push('/'); }
-        fs.remove_path(&rel)
+        let (fs, local) = self.removal_entry(path)?;
+        fs.remove_path(&local)
     }
 
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {

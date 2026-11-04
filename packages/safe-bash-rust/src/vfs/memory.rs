@@ -976,6 +976,7 @@ impl MemoryVfs {
 
     fn remove_entry(&self, path: &str, publication: Option<u64>) -> Result<bool, String> {
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        if publication.is_none() && guard.devices == Devices::Null { Self::check_device_mutation_operand(&guard, path)?; }
         let resolved = Self::mutation_entry(&guard, path)?;
         if guard.devices == Devices::Mounted && resolved != "/" && guard.devices.entry(&resolved).is_some() {
             return Err("ENOTSUP: operation not supported".into());
@@ -1493,6 +1494,13 @@ impl SafeBashFs for MemoryVfs {
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if state.devices == Devices::Null {
+            let entry = Self::device_operand(&state, path, false)?;
+            if directory && entry == "/dev/null" { return Err(format!("ENOTDIR: not a directory '{path}'")); }
+            if matches!(entry.as_str(), "/" | "/dev" | "/dev/null") {
+                return Err(format!("EBUSY: resource busy or locked '{path}'"));
+            }
+        }
         Self::remove_one_locked(&mut state, path, directory)?;
         self.bump_generation();
         Ok(())

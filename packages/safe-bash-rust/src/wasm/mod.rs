@@ -577,12 +577,18 @@ pub unsafe extern "C" fn safe_bash_remove_path(
     };
     match result {
         Ok(()) => 0,
-        Err(e) if force && e.starts_with("ENOENT:") => 0,
+        Err(e) if force && e.starts_with("ENOENT:") && !e.starts_with("ENOENT: no such file or directory, lstat '") => 0,
         Err(e) => {
             let op = if operation == 2 { "rmdir" } else if operation == 1 && sess.profile == Profile::Devices { "unlink" } else { "rm" };
+            if sess.profile == Profile::Memory {
+                let at = if e == "ENOENT: no such file or directory" { path.trim_end_matches('/') } else { path };
+                return sess.memory_mutation_error(&e, op, at);
+            }
             if sess.profile == Profile::Overlay && matches!(operation, 1 | 2) {
                 sess.last_output_buf = format!("{}:{op}::{path}", e.split(':').next().unwrap_or("EIO")).into_bytes();
                 -(sess.last_output_buf.len() as i32)
+            } else if sess.profile == Profile::Overlay && e.starts_with("EBUSY:") {
+                sess.read_error(&e, op, path, Some(path), None)
             } else { sess.read_error(&e, op, path, None, None) }
         }
     }

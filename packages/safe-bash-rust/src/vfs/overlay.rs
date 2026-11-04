@@ -399,11 +399,11 @@ impl OverlayVfs {
         if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
         let trimmed = path.trim_end_matches('/');
         let rm = matches!(operation, Removal::Rm { .. });
-        if !rm && matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
         if trimmed.is_empty() { return Err("EBUSY: resource busy or locked".into()); }
         let entry = self.access_path(if rm { path } else { trimmed }, false)?;
-        if entry == "/" { return Err("EBUSY: resource busy or locked".into()); }
         let st = self.lstat(&entry)?;
+        if !rm && matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
+        if entry == "/" { return Err("EBUSY: resource busy or locked".into()); }
         let parent_path = crate::vfs::dirname_posix_path(&entry);
         let parent = self.stat(&parent_path)?;
         if let Some((dir, file)) = expected

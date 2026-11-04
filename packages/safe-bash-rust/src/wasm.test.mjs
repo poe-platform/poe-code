@@ -3860,6 +3860,23 @@ test("single-entry removal preserves unseen descendants", async () => {
   }
 });
 
+test("removal checks device traversal and mounted roots before rejecting a terminal dot", async () => {
+  for (const [profile, path, method, code, syscall, failed] of [
+    [undefined, "/missing/../dev", "rmdir", "ENOENT", "lstat", "/missing"],
+    [undefined, "/dev/null", "rmdir", "ENOTDIR", undefined, "/dev/null"],
+    [undefined, "/dev/null", "unlink", "EBUSY", undefined, "/dev/null"],
+    [undefined, "/missing/../dev", "rm", "ENOENT", "lstat", "/missing"],
+    ["strict-budgets-mount-dev", "/empty/..", "rmdir", "EBUSY", "rmdir", "/empty/.."],
+    ["overlay-cow-fs", "/missing/.", "rmdir", "ENOENT", "rmdir", "/missing/."],
+  ]) {
+    const bash = new RustWasmBash({profile, directories:["/empty"]});
+    try {
+      await assert.rejects(bash.fs[method](path, {recursive:true, force:true}), {code, syscall, path:failed});
+      assert.equal((await bash.fs.stat("/empty")).type, "directory");
+    } finally { bash.dispose(); }
+  }
+});
+
 test("rmdir checks every operand's removal capability before deleting earlier directories", async () => {
   for (const [profile, ignore, code, removed] of [
     [undefined, false, "ENOTSUP", false], [undefined, true, "ENOTSUP", false],

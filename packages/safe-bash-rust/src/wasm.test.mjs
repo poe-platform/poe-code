@@ -1542,6 +1542,27 @@ test("aborting a plugin preserves completed redirect writes and stops the script
   }
 });
 
+test("plugin file reads share the script's filesystem quota and obey path and size limits", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const bash = new RustWasmBash({cwd:"/", files:{"/input":Uint8Array.of(255,0)}});
+  let captured, seen;
+  bash.register({name:"inspect", async execute(ctx) {
+    captured = ctx.fs;
+    try { seen.push([...await ctx.fs.readFile(ctx.args[0], ctx.args[1] ? {maxBytes:1} : {})]); }
+    catch (error) { seen.push(error.limit ?? error.code ?? error.name); }
+    return {exitCode:0};
+  }});
+  try {
+    seen = [];
+    await assert.rejects(bash.exec("inspect /input; inspect /input; touch /late", {limits:{maxFileSystemOperations:1}}), {limit:"maxFileSystemOperations"});
+    assert.deepEqual(seen, [[255,0],"maxFileSystemOperations"]);
+    await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
+    seen = [];
+    await bash.exec("inspect /input short; inspect /a/b; inspect /input", {limits:{maxPathnameComponents:1}});
+    assert.deepEqual(seen, ["EFBIG","ENAMETOOLONG",[255,0]]);
+    await assert.rejects(captured.readFile("/input"), /finished/);
+  } finally { await bash.dispose(); }
+});
+
 test("disposing a plugin shell cancels suspended handlers and attempts every plugin cleanup", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash();
   const trace = [], failure = new Error("cleanup failed");

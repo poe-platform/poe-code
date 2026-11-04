@@ -172,7 +172,7 @@ function streamHost(x) {
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
-function bindHostCommands(shell, definitions, createArguments, options) {
+function bindHostCommands(shell, definitions, createArguments, validatePath, fs, options) {
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
@@ -183,7 +183,7 @@ function bindHostCommands(shell, definitions, createArguments, options) {
   };
   try {
     for (const definition of definitions) {
-      let sp, stack, streams, consumed, code;
+      let sp, stack, streams, consumed, fsOps, code;
       const slot = free.pop() ?? table.grow(1);
       slots.push(slot);
       table.set(slot, suspendingCallback(async (ptr, len, reply) => {
@@ -191,6 +191,8 @@ function bindHostCommands(shell, definitions, createArguments, options) {
         const header = new DataView(x.memory.buffer);
         let remaining = header.getUint32(reply + 20, true);
         const sharedOutput = header.getUint32(reply + 24, true) !== 0;
+        const remainingFsOps = header.getUint32(reply + 28, true), maxComponents = header.getUint32(reply + 32, true);
+        fsOps = 0;
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
         x.__stack_pointer.value = top;
@@ -206,6 +208,15 @@ function bindHostCommands(shell, definitions, createArguments, options) {
           const argumentValues = createArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
           const check = () => { signal.throwIfAborted(); if (!active) throw new Error("Command has finished"); };
+          const commandFs = {async readFile(path, settings) {
+            check();
+            settings?.signal?.throwIfAborted();
+            if (code === -3) throw new ShellLimitError("maxOutputBytes");
+            if (fsOps >= remainingFsOps) { code = -5; throw new ShellLimitError("maxFileSystemOperations"); }
+            fsOps++;
+            validatePath(path, maxComponents);
+            return fs.readFile(path, settings);
+          }};
           const stdin = {async *[Symbol.asyncIterator]() {
             check();
             if (!consumed && offset < packet.length) { consumed = packet.length - offset; yield packet.subarray(offset); }
@@ -213,21 +224,22 @@ function bindHostCommands(shell, definitions, createArguments, options) {
           const sink = index => ({async write(bytes) {
             check();
             if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
+            if (code === -5) throw new ShellLimitError("maxFileSystemOperations");
             if (code === -3 || bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
             remaining -= bytes.length;
             if (bytes.length) streams[sharedOutput ? 0 : index].push(new Uint8Array(bytes));
           }});
           check();
           const pending = definition.execute({command:definition.name, argv0, args:argumentValues.args, argumentValues,
-            cwd, env, stdin, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
+            cwd, env, stdin, fs:commandFs, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
           const result = await (options.signal ? untilAbort(pending, signal) : pending);
-          if (code !== -3) {
+          if (code >= 0) {
             if (!Number.isInteger(result?.exitCode) || result.exitCode < 0 || result.exitCode > 255) throw new RangeError("Invalid exit status");
             code = result.exitCode;
           }
         } catch {
           if (signal.aborted) code = -2;
-          else if (code !== -3) code = -4;
+          else if (code >= 0) code = -4;
         } finally { active = false; }
       }, (_ptr, _len, reply) => {
         new Uint8Array(x.memory.buffer, sp, stack.length).set(stack);
@@ -243,7 +255,9 @@ function bindHostCommands(shell, definitions, createArguments, options) {
           const v = new DataView(x.memory.buffer);
           v.setUint32(reply + i * 8,p,true); v.setUint32(reply + i * 8 + 4,len,true);
         }
-        new DataView(x.memory.buffer).setUint32(reply + 16,consumed,true);
+        const view = new DataView(x.memory.buffer);
+        view.setUint32(reply + 16,consumed,true);
+        view.setUint32(reply + 36,fsOps,true);
         streams = undefined;
         return signal.aborted ? -2 : code;
       }));
@@ -1049,6 +1063,7 @@ export class RustWasmBash extends WasmShell {
   #ready;
   #commands;
   #createArguments;
+  #validatePath;
   #plugins = [];
   #pluginLifetime;
   #activePlugins = new Set();
@@ -1548,7 +1563,7 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#createArguments, options);
+          releaseCommands = bindHostCommands(shell, definitions, this.#createArguments, this.#validatePath, this.fs, options);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
@@ -1661,7 +1676,8 @@ export class RustWasmBash extends WasmShell {
 
   #install(setup) {
     this.#pluginLifetime ??= new AbortController();
-    this.#ready = (this.#ready ?? import("safe-bash-contracts/command").then(({CommandRegistry, createCommandArguments}) => {
+    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path")]).then(([{CommandRegistry, createCommandArguments}, {validatePath}]) => {
+      this.#validatePath = validatePath;
       this.#commands = new CommandRegistry();
       this.#createArguments = createCommandArguments;
     })).then(setup);

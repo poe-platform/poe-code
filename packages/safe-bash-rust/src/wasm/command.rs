@@ -17,6 +17,9 @@ pub struct HostReply {
     consumed: usize,
     remaining_output: usize,
     shared_output: u32,
+    remaining_fs_ops: usize,
+    max_path_components: usize,
+    used_fs_ops: usize,
 }
 
 impl HostBuffer {
@@ -62,7 +65,9 @@ pub unsafe extern "C" fn safe_bash_register_command(
         let input_start = packet.len();
         packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin));
         let mut reply = HostReply {
-            remaining_output: ctx.budget.remaining_output_bytes(), shared_output: u32::from(ctx.shared_output), ..Default::default()
+            remaining_output: ctx.budget.remaining_output_bytes(), shared_output: u32::from(ctx.shared_output),
+            remaining_fs_ops: ctx.budget.remaining_fs_ops(), max_path_components: ctx.budget.limits.max_pathname_components,
+            ..Default::default()
         };
         let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
         let [stdout, stderr] = reply.streams.map(|buf| unsafe { buf.take() });
@@ -70,7 +75,9 @@ pub unsafe extern "C" fn safe_bash_register_command(
             let unread = packet[input_start..].get(reply.consumed..).ok_or("Host command consumed more than its stdin")?;
             ctx.unread_stdin = Some(bytes_to_stream_string(unread));
         }
+        if reply.used_fs_ops != 0 { ctx.budget.charge_fs_ops(reply.used_fs_ops)?; }
         ctx.failure = match code {
+            -5 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxFileSystemOperations", ctx.budget.limits.max_filesystem_operations))),
             -2 => Some(CommandFailure::Abort("Execution aborted: cancelled".into())),
             -3 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxOutputBytes", ctx.budget.limits.max_output_bytes))),
             -4 => Some(CommandFailure::Internal),

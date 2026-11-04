@@ -266,8 +266,16 @@ impl ExecutionBudget {
     }
 
     pub fn tick_fs_op(&self) -> Result<(), String> {
-        let prev = self.fs_ops.fetch_add(1, Ordering::Relaxed);
-        if prev + 1 > self.limits.max_filesystem_operations {
+        self.charge_fs_ops(1)
+    }
+
+    pub(crate) fn remaining_fs_ops(&self) -> usize {
+        self.limits.max_filesystem_operations.saturating_sub(self.fs_ops.load(Ordering::Relaxed))
+    }
+
+    pub(crate) fn charge_fs_ops(&self, count: usize) -> Result<(), String> {
+        let prev = self.fs_ops.fetch_add(count, Ordering::Relaxed);
+        if count > self.limits.max_filesystem_operations.saturating_sub(prev) {
             return Err(self.record_exceeded(format!(
                 "Execution aborted: Shell limit exceeded: maxFileSystemOperations ({})",
                 self.limits.max_filesystem_operations

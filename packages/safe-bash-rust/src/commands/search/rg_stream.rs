@@ -69,7 +69,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item
         let filename = !cfg.no_filename && (cfg.with_filename || multiple_files || !explicit);
         let escaped = if cfg.json_output { json_escape_str(&label) } else { String::new() };
         let fast = !display && !cfg.json_output && cfg.before_ctx == 0 && cfg.after_ctx == 0
-            && path.as_deref().is_some_and(|p| fs.supplies_single_chunk_input() && p != "/dev" && !p.starts_with("/dev/"));
+            && path.as_deref().is_some_and(|p| p != "/dev" && !p.starts_with("/dev/") && fs.indexed_directory_entry(&search_path(cwd, &label)) == Some(true));
         let output_start = out.total;
         let (mut number, mut offset, mut count, mut after, mut last_printed) = (0, 0, 0, 0, 0);
         let (mut matches, mut searched, mut last_selected_end) = (0, 0, 0);
@@ -181,7 +181,8 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, inputs: impl Iterator<Item
         };
         let read = if let Some(path) = &path {
             if fast {
-                fs.read_file(path).map(|bytes| { consume(&bytes); }).map_err(|e| search_fs_error(&e, "readFile", &search_path(cwd, &label)))
+                read_memory_search_file(fs, path).map(|bytes| { consume(&bytes); })
+                    .map_err(|e| super::super::coreutils::stream_file_error(e, "readFile", &search_path(cwd, &label)))
             } else {
                 (|| {
                     let mut reader = super::super::coreutils::record_chunks(fs, path, search_path(cwd, &label))?;

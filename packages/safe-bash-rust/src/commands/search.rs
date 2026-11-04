@@ -3498,7 +3498,7 @@ fn cmd_rg(
     }
 
 
-    let files = RgFiles { follow, globs, types_include, types_exclude, show_hidden, respect_ignore,
+    let files = RgFiles { list_files_only, follow, globs, types_include, types_exclude, show_hidden, respect_ignore,
         no_ignore_vcs, no_ignore_dot, custom_ignore_files, max_depth, max_filesize };
     if list_files_only {
         let mut out = String::new();
@@ -3801,6 +3801,7 @@ fn eval_cli_globs(globs: &[String], base: &str, target: &str) -> Option<bool> {
 }
 
 struct RgFiles {
+    list_files_only: bool,
     follow: bool,
     globs: Vec<String>,
     types_include: Vec<String>,
@@ -3845,6 +3846,12 @@ impl RgFiles {
             let explicit = depth == 0;
             if explicit && label == "-" { return Some(SearchInput::Stdin); }
             let path = search_path(cwd, &label);
+            // The production walker can recognize a regular file from the direct
+            // memory directory index. Only the subsequent read consumes an operation.
+            if explicit && !self.list_files_only && !path.ends_with('/') && path != "/dev" && !path.starts_with("/dev/")
+                && fs.indexed_directory_entry(&path) == Some(true) && fs.lstat(&path).is_ok_and(|st| st.kind == VfsEntryKind::File) {
+                return Some(SearchInput::File(label, path, true));
+            }
             let report = |e: &str, op| Some(SearchInput::Error(format!("rg: {}\n", search_fs_error(e, op, &path))));
             let (resolved, stat) = match fs.inspect_command_entry(&path, explicit || self.follow, "stat") {
                 Ok(entry) => entry,
@@ -3917,6 +3924,13 @@ fn search_fs_error(error: &str, op: &str, path: &str) -> String {
     if error.starts_with("ELOOP:") { return format!("ELOOP: too many symbolic links encountered '{path}'"); }
     let reason = error.split_once(", ").map_or(error, |(why, _)| why);
     format!("{reason}, {op} '{path}'")
+}
+
+fn read_memory_search_file(fs: &dyn SafeBashFs, path: &str) -> Result<Vec<u8>, String> {
+    let limit = fs.max_input_bytes();
+    let bytes = fs.open_read_file(path, false)?.read(0, limit.saturating_add(1))?;
+    if bytes.len() > limit { return Err(fs.limit_error("maxInputBytes", limit)); }
+    Ok(bytes)
 }
 
 fn read_search_file(fs: &dyn SafeBashFs, path: &str, op: &str) -> Result<Vec<u8>, String> {
@@ -4221,10 +4235,7 @@ fn run_grep_engine(
                         Vec::new()
                     } else {
                         let read = if fast && op == "readFile" && fs.supplies_single_chunk_input() {
-                            let limit = fs.max_input_bytes();
-                            fs.open_read_file(path, false).and_then(|file| file.read(0, limit.saturating_add(1)))
-                                .map_err(|e| search_fs_error(&e, op, path))
-                                .and_then(|bytes| if bytes.len() > limit { Err(fs.limit_error("maxInputBytes", limit)) } else { Ok(bytes) })
+                            read_memory_search_file(fs, path).map_err(|e| search_fs_error(&e, op, path))
                         } else { read_search_file(fs, path, op) };
                         match read {
                             Ok(bytes) => bytes,
@@ -4236,13 +4247,23 @@ fn run_grep_engine(
                         }
                     }
                 } else {
-                    match fs.read_file(path) {
+                    // Cross-line matching needs the complete operand. Use the same
+                    // bounded streaming read as the record matcher.
+                    let read = (|| {
+                        let mut reader = super::coreutils::record_chunks(fs, path, search_path(cwd, label))?;
+                        let (mut bytes, mut chunk) = (Vec::new(), Vec::new());
+                        loop {
+                            reader(&mut chunk)?;
+                            if chunk.is_empty() { return Ok::<_,String>(bytes); }
+                            bytes.extend_from_slice(&chunk);
+                        }
+                    })();
+                    match read {
                         Ok(bytes) => bytes,
                         Err(e) => {
+                            if e.starts_with("Execution aborted:") { return BuiltinOutcome { exit_code: 2, ..ok_out("") }; }
                             had_error = true;
-                            if !cfg.no_messages {
-                                err.push_str(&format!("rg: {}\n", search_fs_error(&e, "readStream", &search_path(cwd, label))));
-                            }
+                            if !cfg.no_messages { err.push_str(&format!("rg: {e}\n")); }
                             continue;
                         }
                     }

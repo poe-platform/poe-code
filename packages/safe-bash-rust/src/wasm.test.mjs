@@ -8940,6 +8940,24 @@ test("rg publishes matches and read errors in operand order", {skip: !WebAssembl
   } finally { sh.dispose(); }
 });
 
+test("rg admits explicit memory files once and charges the complete input in count mode", async () => {
+  const sh = new RustWasmBash({files:{"/f":"a\nb\na\n","/out":"old"}});
+  try {
+    const read = async () => Buffer.from(await sh.fs.readFile("/out")).toString();
+    for (const [args,expected] of [["a","a\na\n"],["-c a","2\n"],["-l a","/f\n"]]) {
+      const r = await sh.exec("rg "+args+" /f >/out 2>&1",{limits:{maxFileSystemOperations:6}});
+      assert.deepEqual([r.exitCode,await read()],[0,expected],args);
+      await assert.rejects(sh.exec("rg "+args+" /f >/out 2>&1",{limits:{maxInputBytes:5}}), {limit:"maxInputBytes"});
+      assert.equal(await read(),"");
+    }
+    await assert.rejects(sh.exec("rg -U 'a\\nb' /f >/out 2>&1",{limits:{maxInputBytes:5}}),{limit:"maxInputBytes"});
+    assert.equal(await read(),"");
+    await sh.fs.symlink("/f","/link");
+    await assert.rejects(sh.exec("rg -c a /link >/out 2>&1",{limits:{maxFileSystemOperations:6}}),{limit:"maxFileSystemOperations"});
+    assert.equal(await read(),"");
+  } finally { sh.dispose(); }
+});
+
 test("rg keeps earlier directory matches when a later file chunk contains a NUL", async () => {
   const sh = new RustWasmBash({files:{"/d/f":"a\n"+"b".repeat(65536)+"\na\0b\n"}});
   try {

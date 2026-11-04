@@ -8623,6 +8623,14 @@ test("awk splits fields on AWK whitespace or individual bytes for an empty separ
   } finally { sh.dispose(); }
 });
 
+test("awk coerces decimal exponents, incomplete exponents and signed hexadecimal input prefixes", async () => {
+  const sh = new RustWasmBash();
+  try {
+    const result = await sh.exec("awk '{print $0+0}'", {stdin:"1.5e2units\n-.25E+2\n+.5e-1end\n2e+\n2.3.4\n-0X20rest\n0x\n"});
+    assert.deepEqual([result.exitCode,result.stdout,result.stderr], [0,"150\n-25\n0.05\n2\n2.3\n-32\n0\n",""]);
+  } finally { sh.dispose(); }
+});
+
 test("awk evaluates numeric rule patterns once and retains zero-pattern input processing", async () => {
   const sh = new RustWasmBash();
   try {

@@ -2462,7 +2462,29 @@ fn is_awk_truthy(val: &str) -> bool {
 }
 
 fn parse_awk_f64(val: &str) -> f64 {
-    crate::commands::coreutils::parse_leading_f64(val)
+    let val = val.trim_start_matches([' ', '\t', '\r', '\n']);
+    let sign = usize::from(val.starts_with(['+', '-']));
+    let tail = &val[sign..];
+    if let Some(hex) = tail.strip_prefix("0x").or_else(|| tail.strip_prefix("0X")) {
+        let end = hex.bytes().take_while(u8::is_ascii_hexdigit).count();
+        return super::parse_hex_float(&val[..sign], &hex[..end], "", 0);
+    }
+    val[..sign + awk_decimal_len(tail.as_bytes())].parse().unwrap_or(0.0)
+}
+
+fn awk_decimal_len(bytes: &[u8]) -> usize {
+    let mut end = bytes.iter().take_while(|b| b.is_ascii_digit()).count();
+    if bytes.get(end) == Some(&b'.') {
+        let frac = bytes[end + 1..].iter().take_while(|b| b.is_ascii_digit()).count();
+        if end == 0 && frac == 0 { return 0; }
+        end += 1 + frac;
+    }
+    if end > 0 && matches!(bytes.get(end), Some(b'e' | b'E')) {
+        let exp = end + 1 + usize::from(matches!(bytes.get(end + 1), Some(b'+' | b'-')));
+        let digits = bytes[exp..].iter().take_while(|b| b.is_ascii_digit()).count();
+        if digits > 0 { end = exp + digits; }
+    }
+    end
 }
 
 fn awk_byte_fields(text: &str) -> Vec<String> {

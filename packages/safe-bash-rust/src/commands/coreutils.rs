@@ -1392,23 +1392,6 @@ fn cmd_wc(
     }
 }
 
-pub(crate) fn parse_leading_f64(s: &str) -> f64 {
-    let trimmed = s.trim();
-    let mut num_end = 0usize;
-    for (idx, ch) in trimmed.char_indices() {
-        if ch.is_ascii_digit() || ch == '.' || (idx == 0 && (ch == '+' || ch == '-')) {
-            num_end = idx + ch.len_utf8();
-        } else {
-            break;
-        }
-    }
-    if num_end == 0 {
-        0.0
-    } else {
-        trimmed[..num_end].parse::<f64>().unwrap_or(0.0)
-    }
-}
-
 #[derive(Clone, Debug)]
 struct SortKey {
     start: usize,

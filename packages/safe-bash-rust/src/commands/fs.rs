@@ -1070,6 +1070,21 @@ fn cmd_rm(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) 
     }
 
     for t in targets {
+        let raw = absolute_operand(cwd, &t);
+        // Stock memory rm checks traversal, permissions and file type in the
+        // removal itself. A separate lookup changes which operands survive a limit.
+        if interactive == "never" && !recursive && !dir_mode && raw != "/" && raw != "/dev"
+            && resolve_posix_path(cwd, &t) == raw && fs.indexed_directory_entry(&raw).is_some() {
+            match fs.remove_one(&raw, false) {
+                Err(e) if !(force && e.starts_with("ENOENT:")) => {
+                    stderr.push_str(&format!("rm: {e}, rm '{raw}'\n"));
+                    code = 1;
+                }
+                _ if verbose => stdout.push_str(&format!("removed '{t}'\n")),
+                _ => {}
+            }
+            continue;
+        }
         let _ = remove_operand(
             &t,
             cwd,

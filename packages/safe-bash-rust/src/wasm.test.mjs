@@ -12392,3 +12392,14 @@ test("rg opens pattern and ignore files through the operand's actual ancestors",
     } finally { sh.dispose(); }
   }
 });
+
+test("rm on direct memory removes one file per admitted operation", async () => {
+  const sh = new RustWasmBash({files:{"/w/a":"a","/w/b":"b"}});
+  try {
+    await assert.rejects(sh.exec("rm /w/a /w/b",{limits:{maxFileSystemOperations:1}}), /maxFileSystemOperations/);
+    assert.equal((await sh.exec("test -e /w/a")).exitCode,1);
+    assert.equal((await sh.exec("cat /w/b")).stdout,"b");
+    const r = await sh.exec("rm -fv /w/b /w/missing",{limits:{maxFileSystemOperations:2}});
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"removed '/w/b'\nremoved '/w/missing'\n",""]);
+  } finally { sh.dispose(); }
+});

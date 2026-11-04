@@ -267,6 +267,21 @@ struct MemoryState {
 }
 
 impl MemoryState {
+    fn insert_symlink(&mut self,resolved:String,target:&str) {
+        let now = super::now_ms();
+        self.parent_changed(&resolved, now);
+        let ino = self.allocate_ino();
+        self.insert_node(
+            resolved,
+            MemoryNode::Symlink {
+                ino,
+                target: Arc::from(target),
+                status: SymlinkStatus::new(0o120777, now),
+                atime_ms: now, mtime_ms: now, birthtime_ms: now,
+            },
+        );
+    }
+
     fn insert_node(&mut self, path: String, node: MemoryNode) {
         self.symlink_entries += usize::from(matches!(node, MemoryNode::Symlink { .. }));
         if matches!(self.nodes.insert(path, node), Some(MemoryNode::Symlink { .. })) { self.symlink_entries -= 1; }
@@ -391,18 +406,7 @@ impl MemoryVfs {
         } else if guard.entry_count() >= guard.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".to_string());
         }
-        let now = super::now_ms();
-        guard.parent_changed(&resolved, now);
-        let ino = guard.allocate_ino();
-        guard.insert_node(
-            resolved,
-            MemoryNode::Symlink {
-                ino,
-                target: Arc::from(target),
-                status: SymlinkStatus::new(0o120777, now),
-                atime_ms: now, mtime_ms: now, birthtime_ms: now,
-            },
-        );
+        guard.insert_symlink(resolved,target);
         self.bump_generation();
         Ok(())
     }
@@ -810,14 +814,19 @@ impl MemoryVfs {
             self.bump_generation();
             return Ok(());
         }
-        let initial = if append && creating && atime.is_some() {
-            let Some(MemoryNode::File { ino }) = base.nodes.get(path) else { return Err("EBUSY: lower file changed".into()); };
-            base.files[ino].data.as_slice()
-        } else if append { &[] } else { data };
-        Self::store_file(&mut upper, path.to_owned(), initial, 0o100000 | mode, publication, append.then_some(data))?;
-        if let FileWrite::Install { times, .. } = operation {
-            let ino = upper.nodes[path].ino();
-            upper.files.get_mut(&ino).unwrap().set_times(times);
+        if let FileWrite::Symlink {target,..}=operation {
+            Self::unlink_locked(&mut upper,path);
+            upper.insert_symlink(path.to_owned(),target);
+        } else {
+            let initial = if append && creating && atime.is_some() {
+                let Some(MemoryNode::File { ino }) = base.nodes.get(path) else { return Err("EBUSY: lower file changed".into()); };
+                base.files[ino].data.as_slice()
+            } else if append { &[] } else { data };
+            Self::store_file(&mut upper, path.to_owned(), initial, 0o100000 | mode, publication, append.then_some(data))?;
+            if let FileWrite::Install { times, .. } = operation {
+                let ino = upper.nodes[path].ino();
+                upper.files.get_mut(&ino).unwrap().set_times(times);
+            }
         }
         if creating {
             let now = super::now_ms();

@@ -17,6 +17,7 @@ struct DirectoryObservation {
 #[derive(Clone, Copy)]
 pub(super) enum FileWrite<'a> {
     Create(u32), Install { mode: u32, times: (Option<f64>, Option<f64>), version: u64 }, Replace, Append,
+    Symlink { target: &'a str, parent: &'a FileStat, expected: Option<&'a FileStat> },
     Edit { original: &'a FileStat, before: &'a [u8], in_place: bool },
     Publish { inputs: &'a [String], version: u64, stamp: u64 },
 }
@@ -312,6 +313,15 @@ impl OverlayVfs {
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
+        if let FileWrite::Symlink {parent,expected,..}=operation {
+            if memory_layers.is_none() {return Err("ENOTSUP: guarded overlay symlink publication unavailable".into());}
+            if target!=path || parent.identity.is_none() || self.lstat(&super::dirname_posix_path(path))?.identity!=parent.identity ||
+                !match (existing.as_ref(),expected) {
+                    (None,None)=>true,
+                    (Some(now),Some(old))=>now.same_snapshot(old),
+                    _=>false,
+                } {return Err(format!("EAGAIN: extraction destination changed: {path}"));}
+        }
         if let FileWrite::Edit { in_place, .. } = operation {
             if existing.is_none() { return Err(format!("EAGAIN: resource temporarily unavailable, fileStaging '{path}'")); }
             if !in_place && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300 {
@@ -342,7 +352,7 @@ impl OverlayVfs {
                 }
             }
         }
-        let install_mode = match operation { FileWrite::Install { mode, .. } => Some(mode), _ => None };
+        let install_mode = match operation { FileWrite::Install { mode, .. } => Some(mode), FileWrite::Symlink {..} => Some(0o777), _ => None };
         if install_mode.is_some() && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300 {
             return Err("EACCES: permission denied".into());
         }
@@ -821,6 +831,11 @@ impl SafeBashFs for OverlayVfs {
         self.upper.symlink(target, &entry)
     }
 
+    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,_stamp:u64)->Result<(),String> {
+        if target.is_empty() || target.contains('\0'){return Err("EINVAL: invalid symlink target".into());}
+        self.write_entry(path,&[],FileWrite::Symlink {target,parent,expected})
+    }
+
     fn readlink(&self, path: &str) -> Result<String, String> {
         let norm = normalize_posix_path(path);
         if self.upper.lstat(&norm).is_ok() {
@@ -897,6 +912,26 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn deferred_symlink_rechecks_the_overlay_entry_across_copy_up() {
+        for upper_file in [false,true] {
+            let lower=Arc::new(MemoryVfs::new());
+            let upper=Arc::new(MemoryVfs::new());
+            let backing=if upper_file {&upper} else {&lower};
+            backing.write_file("/dir/file",b"old").unwrap();
+            backing.hard_link("/dir/file","/alias").unwrap();
+            let fs=OverlayVfs::new(lower.clone(),upper.clone());
+            let parent=fs.lstat("/dir").unwrap();
+            let existing=fs.lstat("/dir/file").unwrap();
+            fs.write_file("/dir/later",b"new").unwrap();
+            fs.publish_extraction_symlink("/dir/file","later",&parent,Some(&existing),0).unwrap();
+            assert_eq!(fs.read_file("/alias").unwrap(),b"old");
+            assert_eq!(fs.read_file("/dir/file").unwrap(),b"new");
+            assert!(fs.publish_extraction_symlink("/dir/file","alias",&parent,Some(&existing),0).is_err());
+            assert_eq!(fs.readlink("/dir/file").unwrap(),"later");
+        }
+    }
 
     #[test]
     fn rename_cannot_separate_one_name_from_a_lower_hardlink_group() {

@@ -8711,6 +8711,23 @@ test("awk ordchr reads and writes bytes, including through redirection", async (
   } finally { sh.dispose(); }
 });
 
+test("awk calendar uses the shell zone, UTC override and formatter flags", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [zone, expr, expected] of [
+      ["America/New_York", 'mktime("2024 11 03 01 30 00 0"), mktime("2024 11 03 01 30 00 1")', "1730615400 1730611800"],
+      ["GMT-5:45:30", 'strftime("%T %::z %Z",0)', "05:45:30 +05:45:30 GMT"],
+      ["Bad/Zone", 'strftime("%F",0)', null],
+      ["Bad/Zone", 'strftime("%D|%_D|%-D|%g|%y",-62198755200,1)', "01/01/01|01/01/ 1|01/01/1|02|01"],
+      ["UTC", 'length(strftime("x%-17000000N",0)),mktime("2000 1 1 0 0 0 999999999999999999999")', "2 946684800"],
+    ]) {
+      const r = await sh.exec(`TZ=${zone} awk 'BEGIN { print 1; print ${expr} }'`);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], expected === null
+        ? [1,"1\n","awk: internal error\n"] : [0,"1\n" + expected + "\n",""], expr);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("awk systime returns whole seconds on either side of the Unix epoch", async t => {
   let ms = 0;
   t.mock.method(Date, "now", () => ms);

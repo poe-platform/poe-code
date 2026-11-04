@@ -1737,7 +1737,10 @@ impl AwkOutput<'_> {
     }
 }
 
+mod awk_time;
+
 struct AwkState<'a> {
+    timezone: String,
     vars: BTreeMap<String, Scalar>,
     arrays: BTreeMap<String, BTreeMap<String, Scalar>>,
     funcs: AwkFuncMap,
@@ -1796,6 +1799,7 @@ impl<'a> AwkState<'a> {
         Self {
             vars: vars.into_iter().map(|(k,v)| (k, Scalar::input(v))).collect(),
             record_value: None,
+            timezone: String::new(),
             arrays: BTreeMap::new(),
             funcs,
             fields: Vec::new(),
@@ -2277,6 +2281,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     }
     let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
     let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output, mode);
+    state.timezone = env.get("TZ").cloned().unwrap_or_default();
     state.operand_assignments = operand_assignments;
     state.finite_input_quota = !cfg!(target_arch = "wasm32") || env.contains_key("\0has_finite_input_quota");
     state.arrays.insert("ENVIRON".to_string(), env.iter().filter(|(k,_)| !k.starts_with('\0')).map(|(k,v)| (k.clone(),Scalar::input(v.clone()))).collect());
@@ -3355,6 +3360,14 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
     let args = split_awk_top_args(args_str);
 
     match fn_name {
+        "strftime" | "mktime" => {
+            let values: Vec<_> = args.iter().map(|arg| eval_awk_value(arg,state)).collect();
+            let result = awk_time::evaluate(fn_name,&values,state);
+            Some(result.unwrap_or_else(|| {
+                if state.runtime_err.is_none() { state.error_status = 1; state.runtime_err = Some("awk: internal error\n".into()); }
+                Scalar::Unset
+            }))
+        }
         "systime" => Some(Scalar::Number((crate::vfs::now_ms() / 1000.0).floor())),
         "length" => {
             if let Some(first) = args.first() {
@@ -9432,6 +9445,15 @@ mod tests {
         let program = r#"{ print match($0,/z/),RSTART,RLENGTH; print match($0,/a(.)/,m),RLENGTH,ord(m[1]); print match($0,/$/),RLENGTH }"#;
         let out = try_run_text_command("awk", &args(&["-lordchr",program]), &stdin, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
         assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (0,"3 3 1\n1 2 255\n4 0\n",""));
+    }
+
+    #[test]
+    fn awk_calendar_obeys_the_virtual_zone_and_dst_selection() {
+        let env = BTreeMap::from([("TZ".into(),"america/new_york".into())]);
+        let program = r#"BEGIN { ENVIRON["TZ"]="UTC"; print strftime("%F %T %z %Z",0); print mktime("2024 03 10 02 30 00"),mktime("2024 11 03 01 30 00"); print mktime("1970 01 01 00 00 60",1),mktime("invalid",1) }"#;
+        let result = try_run_text_command("awk",&args(&[program]),"","/",&env,&MemoryVfs::new()).unwrap();
+        assert_eq!(result.stdout,"1969-12-31 19:00:00 -0500 EST\n1710055800 1730611800\n60 -1\n");
+        assert_eq!(result.exit_code,0,"{}",result.stderr);
     }
 
     #[test]

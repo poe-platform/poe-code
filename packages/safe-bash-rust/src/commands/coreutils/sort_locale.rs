@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::BTreeMap};
 
-pub(super) struct Collator(crate::collation::Collator);
+pub(super) struct Collator(crate::intl::Collator);
 
 impl Collator {
     pub fn from_env(env: &BTreeMap<String, String>) -> Result<Option<Self>, String> {
@@ -13,7 +13,7 @@ impl Collator {
         }
         let language = locale.split('.').next().unwrap().replace('_', "-");
         if !locale.contains('@')
-            && let Some(collator) = crate::collation::Collator::open(&language, true)
+            && let Some(collator) = crate::intl::Collator::open(&language, true)
         {
             return Ok(Some(Self(collator)));
         }

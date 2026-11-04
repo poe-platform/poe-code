@@ -37,9 +37,35 @@ function createWasmInstance() {
     compiledWasmModule = new WebAssembly.Module(bytes);
   }
   const collators = new Map();
+  let zoneName, zoneFormatter;
   const instance = new WebAssembly.Instance(compiledWasmModule, {
     safe_bash: {
       wall_clock_ms: () => Date.now(),
+      timezone_fields(ptr, len, seconds, offsetPtr, labelPtr, capacity) {
+        const memory = instance.exports.memory.buffer;
+        const name = decoder.decode(new Uint8Array(memory, ptr >>> 0, len >>> 0));
+        try {
+          if (zoneName !== name) {
+            zoneFormatter = new Intl.DateTimeFormat("en-US-u-ca-gregory-nu-latn", {
+              timeZone: name, year: "numeric", month: "2-digit", day: "2-digit", era: "short",
+              hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23", timeZoneName: "short",
+            });
+            zoneName = name;
+          }
+          const fields = Object.fromEntries(zoneFormatter.formatToParts(seconds * 1000).map(p => [p.type,p.value]));
+          const wall = new Date(0);
+          wall.setUTCFullYear(fields.era === "BC" ? 1 - Number(fields.year) : Number(fields.year), Number(fields.month)-1, Number(fields.day));
+          wall.setUTCHours(Number(fields.hour),Number(fields.minute),Number(fields.second),0);
+          const label = encoder.encode(fields.timeZoneName);
+          if (label.length > capacity || !Number.isFinite(wall.getTime())) return -1;
+          new DataView(memory).setInt32(offsetPtr >>> 0,wall.getTime()/1000-seconds,true);
+          new Uint8Array(memory,labelPtr >>> 0,label.length).set(label);
+          return label.length;
+        } catch (e) {
+          if (e instanceof RangeError) return -1;
+          throw e;
+        }
+      },
       collator_open(ptr, len, lowerFirst) {
         const tag = decoder.decode(new Uint8Array(instance.exports.memory.buffer, ptr >>> 0, len >>> 0));
         try {

@@ -11102,7 +11102,7 @@ impl<'a> EvalState<'a> {
                     Some(left.cmp(&right))
                 } else if is_utf8_loc(&collation) {
                     let tag = collation.split('.').next().unwrap().replace('_', "-");
-                    crate::collation::Collator::open(&tag, false)
+                    crate::intl::Collator::open(&tag, false)
                         .and_then(|collator| collator.compare(&left, &right).ok())
                 } else {
                     None

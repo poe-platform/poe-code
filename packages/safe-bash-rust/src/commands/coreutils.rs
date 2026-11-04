@@ -5177,7 +5177,7 @@ impl ExprLocale<'_> {
         let error = || ("expr: string comparison requires C/POSIX or a supported UTF-8 collation locale\n".to_string(), 2);
         let language = Self::utf8_language(self.collate).ok_or_else(error)?;
         if language.is_empty() { return Ok(a.cmp(&b)); }
-        let collator = crate::collation::Collator::open(&language.replace('_', "-"), true).ok_or_else(error)?;
+        let collator = crate::intl::Collator::open(&language.replace('_', "-"), true).ok_or_else(error)?;
         let a = String::from_utf8_lossy(a.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(&a));
         let b = String::from_utf8_lossy(b.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(&b));
         collator.compare(&a, &b).map_err(|_| error())
@@ -8036,7 +8036,7 @@ fn format_date_offset(offset: i64, colons: usize) -> (String, usize) {
     }
 }
 
-fn render_date_format(
+pub(super) fn render_date_format(
     fmt: &str,
     epoch_sec: i64,
     ns: u32,
@@ -8107,7 +8107,7 @@ fn render_date_format(
             i += 1;
         }
         let width: Option<usize> = if i > w_start {
-            fmt[w_start..i].parse::<usize>().ok()
+            Some(fmt[w_start..i].parse::<usize>().unwrap_or(usize::MAX))
         } else {
             None
         };
@@ -8116,9 +8116,8 @@ fn render_date_format(
             colons += 1;
             i += 1;
         }
-        if i < bytes.len() && (bytes[i] == b'E' || bytes[i] == b'O') {
-            i += 1;
-        }
+        let modifier = bytes.get(i).copied().filter(|c| matches!(c, b'E' | b'O'));
+        if modifier.is_some() { i += 1; }
         if i >= bytes.len() {
             return Err("date: unsupported date format directive\n".to_string());
         }
@@ -8126,6 +8125,17 @@ fn render_date_format(
         i += code.len_utf8();
         if colons > 3 || (colons > 0 && code != 'z') {
             return Err("date: unsupported date format directive\n".to_string());
+        }
+        if code == '%' && (pad_override.is_some() || upper || swap || width.is_some() || modifier.is_some()) {
+            return Err("date: only an unmodified %% literal is supported\n".into());
+        }
+        if let Some(m) = modifier && !(if m == b'E' { "cCxXyY" } else { "deHImMSuUVwWy" }).contains(code) {
+            return Err(format!("date: unsupported date format modifier: %{}{code}\n",m as char));
+        }
+        // Check the size of generated padding before allocating it. An unpadded
+        // conversion can accept a large width without generating a large string.
+        if pad_override != Some("") && width.is_some_and(|w| w > (1usize << 29).saturating_sub(24 + out.len())) {
+            return Err("date: format width limit exceeded\n".into());
         }
         if code == '%' {
             out.push('%');
@@ -8198,12 +8208,16 @@ fn render_date_format(
                 day.to_string()
             }
             'D' | 'x' => {
-                let yy = year.rem_euclid(100);
-                format!("{month:02}/{day:02}/{yy:02}")
+                let yy = (year % 100).abs();
+                match (code, pad_override) {
+                    ('D', Some("")) => format!("{month:02}/{day:02}/{yy}"),
+                    ('D', Some(" ")) => format!("{month:02}/{day:02}/{yy:2}"),
+                    _ => format!("{month:02}/{day:02}/{yy:02}"),
+                }
             }
             'g' => {
                 def_width = 2;
-                iso_year.rem_euclid(100).to_string()
+                (iso_year % 100).abs().to_string()
             }
             'G' => {
                 def_width = 4;
@@ -8280,7 +8294,7 @@ fn render_date_format(
             }
             'y' => {
                 def_width = 2;
-                year.rem_euclid(100).to_string()
+                (year % 100).abs().to_string()
             }
             'Y' => {
                 def_width = 4;
@@ -8309,13 +8323,17 @@ fn render_date_format(
         if !fill.is_empty() && min_w > val.len() {
             let pad_ch = fill.chars().next().unwrap_or(' ');
             let pad_count = min_w - val.len();
-            let pad_s: String = std::iter::repeat_n(pad_ch, pad_count).collect();
+
             if (val.starts_with('+') || val.starts_with('-')) && pad_ch == '0' {
                 let sign_ch = val.chars().next().unwrap();
-                val = format!("{sign_ch}{pad_s}{}", &val[1..]);
+                out.push(sign_ch);
+                out.extend(std::iter::repeat_n(pad_ch, pad_count));
+                out.push_str(&val[1..]);
             } else {
-                val = format!("{pad_s}{val}");
+                out.extend(std::iter::repeat_n(pad_ch, pad_count));
+                out.push_str(&val);
             }
+            continue;
         }
         out.push_str(&val);
     }

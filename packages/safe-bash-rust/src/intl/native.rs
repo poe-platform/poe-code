@@ -1,4 +1,4 @@
-// Bind ICU's stable C API only when a native sort requests a locale.
+// Bind ICU's stable C API when a native command requests locale or time zone data.
 // Keep the library loaded for the lifetime of the cached function pointers.
 use super::Ordering;
 use std::{
@@ -24,6 +24,12 @@ macro_rules! icu_api {
     }
 }
 icu_api! {
+    zone_ids: ucal_openTimeZones => unsafe extern "C" fn(*mut i32)->Ptr,
+    enum_next: uenum_next => unsafe extern "C" fn(Ptr,*mut i32,*mut i32)->*const c_char,
+    enum_close: uenum_close => unsafe extern "C" fn(Ptr),
+    date_open: udat_open => unsafe extern "C" fn(i32,i32,*const c_char,*const u16,i32,*const u16,i32,*mut i32)->Ptr,
+    date_close: udat_close => unsafe extern "C" fn(Ptr),
+    date_format: udat_format => unsafe extern "C" fn(Ptr,f64,*mut u16,i32,Ptr,*mut i32)->i32,
     from_tag: uloc_forLanguageTag => unsafe extern "C" fn(*const c_char,*mut c_char,i32,*mut i32,*mut i32)->i32,
     count: ucol_countAvailable => unsafe extern "C" fn()->i32,
     available: ucol_getAvailable => unsafe extern "C" fn(i32)->*const c_char,
@@ -205,7 +211,6 @@ pub(crate) struct Collator {
 
 impl Collator {
     pub fn open(tag: &str, lower_first: bool) -> Option<Self> {
-        static ICU: OnceLock<Option<Icu>> = OnceLock::new();
         let icu = ICU.get_or_init(Icu::load).as_ref()?;
         // ICU accepts some grandfathered and extlang tags that ECMA-402
         // rejects. Check the Unicode language identifier before its extensions.
@@ -352,4 +357,101 @@ impl Drop for Collator {
     fn drop(&mut self) {
         unsafe { (self.icu.close)(self.coll.as_ptr()) };
     }
+}
+
+static ICU: OnceLock<Option<Icu>> = OnceLock::new();
+
+struct ZoneFormatter {
+    name: String,
+    fmt: NonNull<c_void>,
+    icu: &'static Icu,
+}
+
+impl Drop for ZoneFormatter {
+    fn drop(&mut self) {
+        unsafe { (self.icu.date_close)(self.fmt.as_ptr()) };
+    }
+}
+
+impl ZoneFormatter {
+    fn open(name: &str) -> Option<Self> {
+        let icu = ICU.get_or_init(Icu::load).as_ref()?;
+        let mut status = 0;
+        // ICU silently falls back to GMT for unknown IDs. Match a real ID
+        // case-insensitively, like Intl.DateTimeFormat, before opening it.
+        let ids = NonNull::new(unsafe { (icu.zone_ids)(&mut status) })?;
+        let mut zone = None;
+        while status <= 0 {
+            let mut len = 0;
+            let id = unsafe { (icu.enum_next)(ids.as_ptr(), &mut len, &mut status) };
+            if id.is_null() {
+                break;
+            }
+            // The enumeration owns the NUL-terminated ID until the next call.
+            let id = unsafe { CStr::from_ptr(id) }.to_bytes();
+            if id.eq_ignore_ascii_case(name.as_bytes()) {
+                zone = Some(id.iter().map(|&c| u16::from(c)).collect::<Vec<_>>());
+                break;
+            }
+        }
+        unsafe { (icu.enum_close)(ids.as_ptr()) };
+        let zone = zone?;
+        let pattern: Vec<_> = "xxxxx'|'z".encode_utf16().collect();
+        let fmt = NonNull::new(unsafe {
+            (icu.date_open)(
+                -2,
+                -2,
+                c"en_US".as_ptr(),
+                zone.as_ptr(),
+                zone.len() as i32,
+                pattern.as_ptr(),
+                pattern.len() as i32,
+                &mut status,
+            )
+        })?;
+        let result = Self {
+            name: name.to_owned(),
+            fmt,
+            icu,
+        };
+        (status <= 0).then_some(result)
+    }
+
+    fn fields(&self, seconds: i64) -> Option<(i64, String)> {
+        let mut text = [0u16; 128];
+        let mut status = 0;
+        let n = unsafe {
+            (self.icu.date_format)(
+                self.fmt.as_ptr(),
+                seconds as f64 * 1000.0,
+                text.as_mut_ptr(),
+                text.len() as i32,
+                std::ptr::null_mut(),
+                &mut status,
+            )
+        };
+        if status > 0 {
+            return None;
+        }
+        let value = String::from_utf16(text.get(..usize::try_from(n).ok()?)?).ok()?;
+        let (offset, label) = value.split_once('|')?;
+        let mut parts = offset.get(1..)?.split(':');
+        let h = parts.next()?.parse::<i64>().ok()?;
+        let m = parts.next()?.parse::<i64>().ok()?;
+        let s = parts.next().unwrap_or("0").parse::<i64>().ok()?;
+        Some((
+            (3600 * h + 60 * m + s) * if offset.starts_with('-') { -1 } else { 1 },
+            label.to_owned(),
+        ))
+    }
+}
+
+pub(crate) fn zone_fields(name: &str, seconds: i64) -> Option<(i64, String)> {
+    thread_local! { static FORMATTER: std::cell::RefCell<Option<ZoneFormatter>> = const { std::cell::RefCell::new(None) }; }
+    FORMATTER.with_borrow_mut(|cached| {
+        if !cached.as_ref().is_some_and(|f| f.name == name) {
+            *cached = Some(ZoneFormatter::open(name)?);
+        }
+        cached.as_ref()?.fields(seconds)
+    })
 }

@@ -117,6 +117,7 @@ impl MemoryVfs {
         mode: u32,
         times: [Option<f64>; 2],
     ) -> Result<[(String, FileStat); 3], String> {
+        if name.len() > 255 { return Err("ENAMETOOLONG: name too long".into()); }
         if name.is_empty()
             || matches!(name, "." | "..")
             || name.contains(['/', '\0'])

@@ -20,6 +20,7 @@ struct PendingChmod {
 
 struct WasmSession {
     pending_chmod: BTreeMap<usize, PendingChmod>,
+    retained_stages: BTreeMap<u64, crate::vfs::memory::RetainedFile>,
     shell: Shell,
     memory_vfs: MemoryVfs,
     descriptors: BTreeMap<u32, descriptor::Descriptor>,
@@ -199,6 +200,7 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
         descriptors: BTreeMap::new(),
         next_descriptor: 1,
         pending_chmod: BTreeMap::new(),
+        retained_stages: BTreeMap::new(),
         profile: Profile::Memory,
         last_output_buf: Vec::new(),
     })
@@ -214,6 +216,7 @@ pub extern "C" fn safe_bash_fork_session(parent_id: u32) -> u32 {
         descriptors: BTreeMap::new(),
         next_descriptor: 1,
         pending_chmod: BTreeMap::new(),
+        retained_stages: BTreeMap::new(),
         profile: parent.profile,
         last_output_buf: Vec::new(),
     };

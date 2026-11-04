@@ -53,6 +53,10 @@ pub unsafe extern "C" fn safe_bash_owned_stage(
             } else {
                 StageContent::Symlink(std::str::from_utf8(data).map_err(|_| invalid)?)
             };
+            let pin = flags & 8 != 0 && matches!(content, StageContent::File(_));
+            if pin && sess.retained_stages.len() >= fs.max_entries() {
+                return Err("ENOSPC: staging handle limit exceeded".into());
+            }
             let receipt = fs.create_owned_stage(
                 dir,
                 name,
@@ -64,6 +68,14 @@ pub unsafe extern "C" fn safe_bash_owned_stage(
                     (flags & 4 != 0).then_some(mtime),
                 ],
             )?;
+            if pin {
+                let (path, stat) = &receipt[2];
+                let Some(crate::vfs::EntryIdentity::Memory(_, ino)) = stat.identity else {
+                    unreachable!()
+                };
+                // No other Wasm call can change the session namespace before this pin.
+                sess.retained_stages.insert(ino, fs.retain_file(path)?);
+            }
             let mut out = Vec::new();
             for (path, stat) in receipt {
                 for field in [path.into_bytes(), stat_bytes(stat)] {
@@ -128,5 +140,14 @@ pub unsafe extern "C" fn safe_bash_owned_stage(
             sess.last_output_buf.len() as i32
         }
         Err(e) => sess.read_error(&e, "fileStaging", paths[0], None, None),
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_close_stage(id: u32, ino: u64) {
+    if let Ok(mut map) = sessions().lock()
+        && let Some(sess) = map.get_mut(&id)
+    {
+        sess.retained_stages.remove(&ino);
     }
 }

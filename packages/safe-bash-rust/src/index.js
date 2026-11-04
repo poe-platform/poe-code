@@ -1743,7 +1743,7 @@ export class RustWasmBash extends WasmShell {
       payload = link ? encoder.encode(content.target) : content.data;
       mode = options.mode === undefined ? link ? 0o777 : 0o666 : options.mode;
       atime = options.atimeMs; mtime = options.mtimeMs;
-      flags = Number(link) | (atime !== undefined ? 2 : 0) | (mtime !== undefined ? 4 : 0);
+      flags = Number(link) | (atime !== undefined ? 2 : 0) | (mtime !== undefined ? 4 : 0) | (retainCleanup ? 8 : 0);
     } else {
       const [receipt,destination] = args;
       for (const key of ["parent","directory","file"]) entry(receipt[key]);
@@ -1779,15 +1779,20 @@ export class RustWasmBash extends WasmShell {
         }
         if (!retainCleanup) return Object.freeze(receipt);
         let current = receipt, writing = true, closed = false, removing;
+        const release = () => {
+          if (!current) return;
+          current = undefined;
+          if (receipt.file.stat.type === "file") this.exports.safe_bash_close_stage(this.sessionId,BigInt(receipt.file.stat.ino));
+        };
         const cleanup = Object.freeze({
           remove: (settings={}) => {
             if (removing) return removing;
             if (closed) return Promise.reject(fsOperationError("EBADF","removeStagedFile",receipt.directory.path));
             closed = true;
-            removing = Promise.resolve().then(()=>this.#nativeStage(5,[current],settings));
+            removing = Promise.resolve().then(()=>this.#nativeStage(5,[current],settings)).finally(release);
             return removing;
           },
-          close: async () => { closed = true; await removing?.catch(()=>{}); },
+          close: async () => { closed = true; if (removing) await removing.catch(()=>{}); else release(); },
         });
         const update = (op,data,settings) => {
           settings.signal?.throwIfAborted();

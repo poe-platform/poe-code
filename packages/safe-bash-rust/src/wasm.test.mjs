@@ -2205,6 +2205,32 @@ test("retained staging writers serialize appends and cleanup follows the origina
   }finally{await sh.dispose();}
 });
 
+test("an oversized staged filename leaves no private directory",async()=>{
+  const sh=new RustWasmBash({cwd:"/"}),fs=sh.fs;
+  try{
+    const parent=await fs.lstat("/");
+    for(const retainCleanup of [false,true]){
+      await assert.rejects(fs.createStagedFile("/.stage","é".repeat(128),{type:"file",data:Uint8Array.of(1)},{parent,retainCleanup}),{code:"ENAMETOOLONG"});
+      await assert.rejects(fs.lstat("/.stage"),{code:"ENOENT"});
+    }
+  }finally{await sh.dispose();}
+});
+
+test("unlinked retained staging bytes count against the memory budget until cleanup closes",async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const sh=new RustWasmBash({cwd:"/",memoryFsOptions:{maxBytes:8}});
+  try{
+    for(const fs of [new MemoryFileSystem({maxBytes:8}),sh.fs]){
+      const stage=await fs.createStagedFile("/.stage","file",{type:"file",data:new Uint8Array(8)},{parent:await fs.lstat("/"),retainCleanup:true});
+      await fs.unlink(stage.file.path);
+      await assert.rejects(fs.writeFile("/new",Uint8Array.of(9)),{code:"ENOSPC"});
+      await stage.cleanup.close();
+      await fs.writeFile("/new",Uint8Array.of(9));
+      assert.deepEqual(await fs.readFile("/new"),Uint8Array.of(9));
+    }
+  }finally{await sh.dispose();}
+});
+
 test("split ZIP plugins stage complete volumes and extract through checked ancestors",{skip:typeof WebAssembly.Suspending!=="function"},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const bytes=Uint8Array.from({length:145000},(_,i)=>i%223),fs=new MemoryFileSystem(),plugin=()=>archiveCommands({zipHost:{volume:({disk})=>"/out.z"+String(disk+1).padStart(2,"0")}});

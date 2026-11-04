@@ -949,6 +949,9 @@ where
     if let Some(out) = fs::try_run_fs_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
         return Ok(Some(out));
     }
+    if matches!(cmd, "awk" | "gawk" | "mawk") {
+        return Ok(Some(text::cmd_awk(args, CommandInput { text: stdin, file }, cwd, env, fs)));
+    }
     if cmd == "jq" {
         return structured::cmd_jq(args, CommandInput { text: stdin, file }, cwd, env, fs, write).map(Some);
     }

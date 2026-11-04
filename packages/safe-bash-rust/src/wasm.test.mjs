@@ -8562,6 +8562,30 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk reads only selected operands and shares the main reader with getline and END", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash({files: {"/f": "first\n"}});
+  try {
+    for (const [args, output, reads] of [
+      ["'BEGIN{print 1}'", "1\n", 0], ["1 /f", "first\n", 0],
+      ["'BEGIN{getline a; print FILENAME,NR,a; exit}' /f", "/f 1 first\n", 0],
+      ["'{print;exit} END{getline a;print a}'", "a\nb\n", 1],
+      ["'BEGIN{RS=\":\"}{print;RS=\"\\n\";getline a;print a;exit}'", "a\nb\n\nc\n", 2],
+      ["'BEGIN{RS=\"\"} {print;exit}'", "a\nb\n:c\n", 3],
+      ["1 - -", "a\nb\n:c\n\nd\n", 3],
+    ]) {
+      let pulls = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const chunk of ["a\nb\n", ":c\n", "\nd"]) { pulls++; yield Buffer.from(chunk); }
+      }};
+      const r = await sh.exec("awk " + args, {stdin});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr,pulls],[0,output,"",reads],args);
+    }
+    let touched = false;
+    const help = await sh.exec("awk --help", {stdin:{async *[Symbol.asyncIterator]() { touched = true; throw Error(); }}});
+    assert.equal(help.exitCode,0); assert.equal(touched,false);
+  } finally { sh.dispose(); }
+});
+
 test("grep publishes literal matches before the next stdin pull and stops on write or validation failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

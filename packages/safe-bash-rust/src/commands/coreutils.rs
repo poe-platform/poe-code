@@ -368,7 +368,7 @@ fn record_input_path(name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: boo
     Ok((path, entry))
 }
 
-fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_first: bool) -> Result<crate::vfs::ChunkReader<'a>, String> {
+pub(super) fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_first: bool) -> Result<crate::vfs::ChunkReader<'a>, String> {
     let (path, entry) = record_input_path(name, cwd, fs, stat_first)?;
     let limit = fs.max_input_bytes();
     let mut available = limit;

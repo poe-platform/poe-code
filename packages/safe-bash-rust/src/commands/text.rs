@@ -1,3 +1,4 @@
+mod awk_input;
 type StagedPatchWrites = Vec<(String, Option<Vec<u8>>)>;
 use crate::commands::search::{ZeroRegex, replace_regex_in_text};
 use crate::shell::builtins::BuiltinOutcome;
@@ -14,7 +15,7 @@ pub fn try_run_text_command(
 ) -> Option<BuiltinOutcome> {
     match cmd {
         "sed" => Some(cmd_sed(args, stdin, cwd, fs)),
-        "awk" | "gawk" | "mawk" => Some(cmd_awk(args, stdin, cwd, env, fs)),
+        "awk" | "gawk" | "mawk" => Some(cmd_awk(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)),
         "diff" => Some(cmd_diff(args, stdin, cwd, fs)),
         "diff3" => Some(cmd_diff3(args, stdin, cwd, fs)),
         "patch" => Some(cmd_patch(args, stdin, cwd, fs)),
@@ -1747,8 +1748,12 @@ struct AwkState<'a> {
     cwd: String,
     vfs: &'a dyn SafeBashFs,
     getline_files: BTreeMap<String, (Vec<String>, usize)>,
-    stream_lines: Vec<String>,
-    stream_idx: usize,
+    stdin: super::CommandInput<'a>,
+    reader: Option<awk_input::Reader<'a>>,
+    argument: usize,
+    saw_file: bool,
+    operand_assignments: bool,
+    error_status: i32,
     redirect_written: BTreeMap<String, bool>,
 }
 
@@ -1759,6 +1764,8 @@ impl<'a> AwkState<'a> {
         funcs: AwkFuncMap,
         cwd: &str,
         vfs: &'a dyn SafeBashFs,
+        stdin: super::CommandInput<'a>,
+        operand_assignments: bool,
     ) -> Self {
         let ofs = vars.get("OFS").cloned().unwrap_or_else(|| " ".to_string());
         let ors = vars.get("ORS").cloned().unwrap_or_else(|| "\n".to_string());
@@ -1794,18 +1801,13 @@ impl<'a> AwkState<'a> {
             cwd: cwd.to_string(),
             vfs,
             getline_files: BTreeMap::new(),
-            stream_lines: Vec::new(),
-            stream_idx: 0,
+            stdin, reader: None, argument: 1, saw_file: false, operand_assignments, error_status: 2,
             redirect_written: BTreeMap::new(),
         }
     }
 
     fn read_getline_from_stream(&mut self, into_var: Option<&str>) -> String {
-        if self.stream_idx < self.stream_lines.len() {
-            let l = self.stream_lines[self.stream_idx].clone();
-            self.stream_idx += 1;
-            self.nr += 1;
-            self.fnr += 1;
+        if let Some(l) = self.read_main() {
             if let Some(vn) = into_var
                 && !vn.is_empty()
             {
@@ -1963,7 +1965,7 @@ fn is_valid_awk_ident(name: &str) -> bool {
         && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
-fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut field_sep = " ".to_string();
     let mut vars = BTreeMap::new();
     let mut program_parts: Vec<String> = Vec::new();
@@ -2184,7 +2186,7 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     let prog_str = program_parts.join("\n");
 
     let (mut rules, funcs) = parse_awk_rules(&prog_str);
-    let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs);
+    let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, operand_assignments);
     state.arrays.insert("ENVIRON".to_string(), env.clone());
     state.set_var("ARGC", (files.len() + 1).to_string());
     let mut argv_map = BTreeMap::new();
@@ -2198,7 +2200,7 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         if matches!(r.cond, AwkCond::Begin) {
             exec_awk_block(&r.body, &mut state);
             if let Some(err) = &state.runtime_err {
-                return err_out(err, 2);
+                return err_out(err, state.error_status);
             }
             if state.exit_requested {
                 break;
@@ -2210,142 +2212,56 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         && rules.iter().any(|r| !matches!(r.cond, AwkCond::Begin));
 
     if needs_input {
-        let mut arg_idx = 1usize;
-        let initial_argc = parse_awk_f64(&state.get_var("ARGC")).max(0.0) as usize;
-        let use_stdin_only = files.is_empty() && initial_argc <= 1;
-        let mut stdin_done = false;
+        'input_loop: while let Some(line) = state.read_main() {
+            state.set_line(&line);
+            state.next_requested = false;
 
-        'input_loop: loop {
-            let (fname, content) = if use_stdin_only {
-                if stdin_done {
-                    break;
-                }
-                stdin_done = true;
-                ("".to_string(), stdin.to_string())
-            } else {
-                let cur_argc = parse_awk_f64(&state.get_var("ARGC")).max(0.0) as usize;
-                if arg_idx >= cur_argc {
-                    break;
-                }
-                let f = state
-                    .arrays
-                    .get("ARGV")
-                    .and_then(|m| m.get(&arg_idx.to_string()))
-                    .cloned()
-                    .unwrap_or_default();
-                arg_idx += 1;
-                if f.is_empty() {
-                    continue 'input_loop;
-                }
-                if f == "-" {
-                    ("-".to_string(), stdin.to_string())
-                } else if operand_assignments
-                    && let Some((k, v)) = f.split_once('=')
-                    && is_valid_awk_ident(k)
-                    && !f.contains('/')
-                    && !fs.exists(&resolve_posix_path(cwd, &f))
-                {
-                    state.set_var(k, unescape_sed_text(v));
-                    continue 'input_loop;
-                } else {
-                    let full = resolve_posix_path(cwd, &f);
-                    match fs.read_file(&full) {
-                        Ok(b) => (f, String::from_utf8_lossy(&b).into_owned()),
-                        Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
+            for r in &mut rules {
+                match &r.cond {
+                    AwkCond::Begin | AwkCond::End => continue,
+                    AwkCond::Always => {
+                        exec_awk_block(&r.body, &mut state);
                     }
-                }
-            };
-
-            state.set_var("FILENAME", fname);
-            state.fnr = 0;
-            state.nextfile_requested = false;
-            if state.rs.len() > 1 {
-                return err_out("awk: RS must be one byte or empty for paragraph records\n", 2);
-            }
-            state.stream_lines = if state.rs.is_empty() {
-                let mut recs = Vec::new();
-                let mut cur_par = Vec::new();
-                for l in content.lines() {
-                    if l.is_empty() {
-                        if !cur_par.is_empty() {
-                            recs.push(cur_par.join("\n"));
-                            cur_par.clear();
-                        }
-                    } else {
-                        cur_par.push(l.to_string());
-                    }
-                }
-                if !cur_par.is_empty() {
-                    recs.push(cur_par.join("\n"));
-                }
-                recs
-            } else if state.rs != "\n" {
-                let mut recs: Vec<String> = content.split(&state.rs).map(|s| s.to_string()).collect();
-                if recs.last().is_some_and(|s| s.is_empty()) {
-                    recs.pop();
-                }
-                recs
-            } else {
-                content.lines().map(|l| l.to_string()).collect()
-            };
-            state.stream_idx = 0;
-            while state.stream_idx < state.stream_lines.len() {
-                let line = state.stream_lines[state.stream_idx].clone();
-                state.stream_idx += 1;
-                state.nr += 1;
-                state.fnr += 1;
-                state.set_line(&line);
-                state.next_requested = false;
-
-                for r in &mut rules {
-                    match &r.cond {
-                        AwkCond::Begin | AwkCond::End => continue,
-                        AwkCond::Always => {
+                    AwkCond::Expr(expr) => {
+                        if eval_awk_cond(expr, &mut state) {
                             exec_awk_block(&r.body, &mut state);
                         }
-                        AwkCond::Expr(expr) => {
-                            if eval_awk_cond(expr, &mut state) {
-                                exec_awk_block(&r.body, &mut state);
-                            }
-                        }
-                        AwkCond::Range(start_e, end_e) => {
-                            let active = if !r.in_range {
-                                if eval_awk_cond(start_e, &mut state) {
-                                    r.in_range = true;
-                                    true
-                                } else {
-                                    false
-                                }
-                            } else {
-                                if eval_awk_cond(end_e, &mut state) {
-                                    r.in_range = false;
-                                }
+                    }
+                    AwkCond::Range(start_e, end_e) => {
+                        let active = if !r.in_range {
+                            if eval_awk_cond(start_e, &mut state) {
+                                r.in_range = true;
                                 true
-                            };
-                            if active {
-                                exec_awk_block(&r.body, &mut state);
+                            } else {
+                                false
                             }
+                        } else {
+                            if eval_awk_cond(end_e, &mut state) {
+                                r.in_range = false;
+                            }
+                            true
+                        };
+                        if active {
+                            exec_awk_block(&r.body, &mut state);
                         }
-                    }
-                    if let Some(err) = &state.runtime_err {
-                        return err_out(err, 2);
-                    }
-                    if state.exit_requested {
-                        break 'input_loop;
-                    }
-                    if state.nextfile_requested || state.next_requested {
-                        break;
                     }
                 }
                 if let Some(err) = &state.runtime_err {
-                    return err_out(err, 2);
+                    return err_out(err, state.error_status);
                 }
-                if state.nextfile_requested {
-                    state.nextfile_requested = false;
+                if state.exit_requested {
+                    break 'input_loop;
+                }
+                if state.nextfile_requested || state.next_requested {
                     break;
                 }
             }
+            if let Some(err) = &state.runtime_err {
+                return err_out(err, state.error_status);
+            }
+            if state.nextfile_requested { state.reader = None; state.nextfile_requested = false; }
         }
+        if let Some(err) = &state.runtime_err { return err_out(err, state.error_status); }
     }
 
     state.next_requested = false;
@@ -2355,7 +2271,7 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         if matches!(r.cond, AwkCond::End) {
             exec_awk_block(&r.body, &mut state);
             if let Some(err) = &state.runtime_err {
-                return err_out(err, 2);
+                return err_out(err, state.error_status);
             }
             if state.exit_requested {
                 break;

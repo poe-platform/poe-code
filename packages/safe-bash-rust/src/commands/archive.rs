@@ -6512,6 +6512,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut pipe_to_stdout = false;
     let mut pipe_headers = false;
     let mut quiet_level = 0;
+    let mut update_mode = None;
     let mut never_overwrite = false;
     let mut explicit_overwrite = false;
     let mut has_password = false;
@@ -6656,7 +6657,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         'o' => explicit_overwrite = true,
                         'C' => case_insensitive = true,
                         'z' => show_comment = true,
-                        'u' | 'f' => {}
+                        mode @ ('u' | 'f') => update_mode = Some(mode),
                         other => {
                             return err_out(&format!("unzip: unsupported option: -{other}\n"), 2);
                         }
@@ -6881,9 +6882,15 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 let is_dir = entry.typeflag == b'5';
                 if junk_paths && is_dir { continue; }
                 let mut name = if junk_paths { crate::vfs::basename_posix_path(&entry.name) } else { entry.name.clone() };
+                let mut renamed = false;
                 'destination: loop {
                     let dest = resolve_posix_path(&out_dir,&name);
                     if !is_dir && dest == out_dir { return Err("entry would replace extraction root".into()); }
+                    let freshen = !renamed && update_mode == Some('f');
+                    if freshen && let Err(e) = fs.lstat(&dest) {
+                        if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { continue 'member; }
+                        return Err(e);
+                    }
                     directory(&crate::vfs::dirname_posix_path(&dest))?;
                     let version = fs.generation();
                     let existing = match fs.lstat(&dest) {
@@ -6891,6 +6898,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
                         Err(e) => return Err(e),
                     };
+                    if freshen && existing.is_none() { continue 'member; }
                     if is_dir {
                         if entry.size != 0 { return Err("directory has nonempty payload".into()); }
                         decode(entry)?;
@@ -6911,7 +6919,10 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     if let Some(st) = existing {
                         if st.kind != File { return Err(format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
                         if st.identity.is_none() || input.identity.is_none() { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
-                        if never_overwrite { continue 'member; }
+                        // ZIP compares the destination rounded up to the next DOS two-second tick.
+                        if never_overwrite || !renamed && update_mode.is_some() && ((st.mtime_ms / 1000.).floor() / 2.).ceil() * 2. >= entry.mtime {
+                            continue 'member;
+                        }
                         let mut prompt = |text: &str| -> Result<(),String> {
                             prompt_bytes += crate::vfs::stream_byte_len(text);
                             if prompt_bytes > fs.remaining_output_bytes() {
@@ -6944,6 +6955,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                                     if name.starts_with('/') || name.split('/').any(|s| s == "..") {
                                         return Err(format!("unsafe archive member: {}",tar_format::display(&name)));
                                     }
+                                    renamed = true;
                                     continue 'destination;
                                 }
                                 first => {

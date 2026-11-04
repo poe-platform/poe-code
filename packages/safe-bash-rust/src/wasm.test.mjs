@@ -2173,6 +2173,34 @@ test("unzip preserves existing files unless overwrite is selected and checks ren
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("unzip update and freshen compare DOS timestamps before prompting and skip absent freshen paths",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  const base=1700000000000;
+  try {
+    await ref.mkdir("/nested");
+    for(const name of ["rounded","old","new","nested/missing"]){
+      await ref.writeFile("/"+name,Uint8Array.of(65));await ref.utimes("/"+name,base,base);
+    }
+    const zip=await js.exec("zip -0q seed.zip rounded old new nested/missing");assert.equal(zip.exitCode,0,zip.stderr);
+    await rust.fs.writeFile("/seed.zip",await ref.readFile("/seed.zip"));
+    for(const [sh,fs] of [[js,ref],[rust,rust.fs]])for(const [flags,missing] of [["uf",false],["fu",true]]) {
+      const dest="/"+flags;
+      await fs.mkdir(dest);
+      for(const [name,delta] of [["rounded",-1],["old",-2000],["new",2000]]) {
+        await fs.writeFile(dest+"/"+name,Uint8Array.of(66));await fs.utimes(dest+"/"+name,base+delta,base+delta);
+      }
+      const result=await sh.exec("unzip -q"+flags+" -d "+flags+" seed.zip",{stdin:"r\nrenamed\n"});
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.equal(result.stderr,"replace "+flags+"/old? [y]es, [n]o, [A]ll, [N]one, [r]ename: new name: ");
+      for(const name of ["rounded","old","new"])assert.deepEqual(await fs.readFile(dest+"/"+name),Uint8Array.of(66));
+      assert.deepEqual(await fs.readFile(dest+"/renamed"),Uint8Array.of(65));
+      if(missing)assert.deepEqual(await fs.readFile(dest+"/nested/missing"),Uint8Array.of(65));
+      else await assert.rejects(fs.stat(dest+"/nested"),{code:"ENOENT"});
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("unzip contains extracted members and protects existing links and the input archive",async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});

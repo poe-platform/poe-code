@@ -5653,6 +5653,17 @@ fn zip_matches_pattern(pat: &str, name: &str) -> bool {
         || crate::shell::expand::glob_match(pat, &base)
 }
 
+fn zip_public_text(value: &str) -> &str {
+    let lower = value.to_ascii_lowercase();
+    let password_arg = if let Some(long) = value.strip_prefix("--") {
+        let name = long.split('=').next().unwrap_or("");
+        name.len() >= 3 && "password".starts_with(name)
+    } else { value.starts_with('-') && value.contains('P') };
+    if password_arg || ["password","token=","secret="].iter().any(|key| lower.contains(key)) { "[redacted]" }
+    else if value.contains("://") || ["http:","https:","ftp:","ws:","wss:"].iter().any(|scheme| lower.contains(scheme)) { "[redacted URL]" }
+    else { value }
+}
+
 fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const ZIP_HELP_TEXT: &str = "safe-bash zip\nUsage: zip [options] archive [file ...]\n       zip [options] - [file ...]       write an archive to stdout\n       zip [options] archive -          read a member from stdin\n\n  -r          recurse into directories\n  -j          store basenames, discarding directory paths\n  -q          suppress progress messages\n  -0          store without compression\n  -1 .. -9    select compression effort\n  -Z METHOD   select store, deflate, bzip2, or lzma compression\n  --encryption PROFILE  select zipcrypto or aes-{128,192,256}-ae{1,2}\n  -n SUFFIXES store matching suffixes (colon-separated)\n  -u / -f     update / freshen existing members\n  -d / -U     delete / copy selected archive members\n  -FS         synchronize selected members with filesystem sources\n  -O FILE     write to a separate output archive\n  -A          adjust validated SFX offsets, retaining the inert prefix\n  -F / -FF    repair from central / local records (requires -O FILE)\n  -s SIZE     split into .z01/.z02/.../.zip volumes (minimum 64k; 0 recombines)\n  -sp         approve volume transitions using an explicit host prompt\n  -sv / -sb   report split volumes / ring before a split-pause prompt\n  -m          remove archived sources after successful publication\n  -D / -y     omit directory entries / store symlinks\n  -i / -x     include / exclude matching names\n  -RE         enable bracket-list glob matching (already enabled on Unix)\n  -k          convert new source names to portable ASCII DOS 8.3 names\n  -FI / -FI-  enable / disable explicit VFS FIFO byte sources\n  -@          read filenames from stdin\n  -t / -tt    select files from / before a date\n  -T          test archive integrity before replacement\n  -P PASSWORD encrypt new members with a supplied password\n  -e          request and confirm a password through a no-echo host capability\n  -z / -c     read archive / entry comments from stdin\n  -o          set archive time to the latest member time\n  -l          convert text LF line endings to CRLF\n  -ll         convert text CRLF line endings to LF (--from-crlf)\n  -X          strip optional metadata\n  -fz / -fz-  force / disable ZIP64 output\n  -fd         force data descriptors\n  -v          verbose operation (a lone -v shows implementation information)\n  --version   show implementation information and exit\n  -L          show this implementation's license\n  -sf / -sf-  list selected files / totals only, without creating an archive\n  -sc         show processed arguments and exit with status 9\n  -so         show implemented options and exit\n  -sd         show virtual archive processing steps\n  -db / -dc   display byte / entry counters\n  -du / -dv   display entry size / single-volume numbers\n  -dd / -dg   display dots per entry / globally for output bytes\n  -ds SIZE    dot interval (kmgt units; default MB; 0 disables dots)\n  -h          show this help\n\nUse -- after the archive name to pass filenames beginning with '-'.\nLong option equivalents are accepted, for example --junk-paths and\n--compression-method=bzip2. All filesystem operations use the virtual filesystem.\n";
     const ZIP_EXTENDED_HELP_SUFFIX: &str = "\nSelection\n  -RE / --regex means bracket lists, not general regular expressions.\n  -k / --DOS-names converts components after selection and -j; collisions fail.\n  DOS conversion is restricted to printable ASCII. Filters parsed after -k\n  are DOS-converted before matching original case-sensitive source names.\n  -FI / --fifo requires a VFS-reported FIFO and explicit streamingRead capability.\n  FIFO payloads are bounded and cancellation-aware; producer failure aborts output.\n  -r traverses listed directories; -R recursively searches matching names.\n  Do not combine -r and -R. -D omits directory records without stopping traversal.\n  -i patterns and -x patterns accept lists ending at another option or at @.\n  Quote patterns to prevent the shell expanding them before zip receives them.\n  Exclusions take precedence over inclusions. -j flattens selected source names;\n  duplicate basenames fail before the archive is replaced.\n  -nw disables wildcard interpretation; -ws prevents wildcards crossing '/'.\n  -MM makes missing input matches fatal. -t includes files from a date; -tt\n  selects files before a date. Dates accept mmddyyyy or yyyy-mm-dd.\n\nOperations and publication\n  Default add mode updates existing members and appends new selected members.\n  -u updates only older members and appends new ones; -f updates existing\n  members without adding new names. -FS also deletes unselected archive entries.\n  -d deletes selected archive entries without reading filesystem sources.\n  -U copies selected entries; without -O it requires -sf.\n  -DF writes only new or changed filesystem entries to -O.\n  -g grows an existing single-volume archive in place without -u, -f, -d or -U.\n  -b DIR stages temporary archives in DIR before replacing the destination.\n  -J strips a leading self-extracting stub; -A adjusts SFX entry offsets.\n  -F and -FF recover readable entries into a separate -O archive.\n  -s splits output into .z01, .z02, ... and final .zip volumes.\n  -s 0 recombines an existing split archive into a single -O archive.\n  -sp pauses before each split volume through the host volumePrompt capability;\n  -sv reports volume numbers and -sb rings the terminal bell before prompts.\n\nEncryption\n  -P supplies a password on the command line (redacted from diagnostics/logs).\n  -e prompts and confirms through the host password capability without echo.\n  --encryption selects zipcrypto (default) or WinZip AE-1/AE-2 AES profiles:\n  aes-128-ae1, aes-128-ae2, aes-192-ae1, aes-192-ae2, aes-256-ae1, aes-256-ae2.\n  Encryption requires the host entropy capability and never uses fallback RNGs.\n\nIntegrity, comments and metadata\n  -T validates the staged archive before replacing the destination.\n  -TT CMD runs CMD in the virtual shell with {} replaced by the staged archive\n  (or appends the staged archive path when {} is absent). No host process is spawned.\n  With stdout output -T is ignored.\n  -z reads an archive comment; -c reads selected member comments in archive order.\n  -X strips optional metadata; -X- preserves available metadata.\n  -o sets the archive timestamp to the newest resulting member timestamp.\n\nLogging\n  -lf path writes a VFS log (a missing extension becomes .log).\n  -la appends; -li includes progress in addition to warnings/errors.\n  Logs require atomic conditional byte writes and cannot alias selected inputs.\n  Logs are bounded by maxTextBytes; supplied password bytes are redacted.\n  Completed log/publication effects remain if a later write fails.\n\nCompression and format\n  -Z selects store, deflate, bzip2, or lzma; method names accept unique prefixes.\n  -1 through -9 select effort. Store selection remains through later levels.\n  -n .jpg:.png stores matching suffixes; -9 overrides suffix-based storage.\n  Compression may fall back to STORE for regular files when it expands data.\n  -l converts text LF to CRLF, leaving detected binary input unchanged.\n  -fz forces ZIP64; -fz- disables it. -fd forces signed data descriptors.\n  BZIP2 members use extraction version 4.6, including with ZIP64 records.\n  LZMA is a ZIP format extension (not native Info-ZIP Zip 3.0).\n  LZMA uses version 6.3, a bounded 1 MiB encoder dictionary, and EOS.\n  Readers admit dictionaries up to 8 MiB and SDK 9.4 properties only.\n\nStreaming\n  A '-' input filename reads one member from stdin, named '-'.\n  A '-' archive name writes binary archive bytes to stdout and progress to stderr.\n  With no archive or file operands, zip acts as a stdin-to-stdout filter.\n  Streamed members retain compression even if it expands their data.\n  -@ instead reads newline-separated input filenames; it cannot also read a '-'\n  payload from the same stdin. Empty filename lines are ignored.\n  Complete the output stream before using the resulting archive.\n\nArguments and ZIPOPT\n  Long options accept unique abbreviations and --option=value where appropriate.\n  Use -- after the archive name for literal filenames beginning with '-'.\n  ZIPOPT supplies default arguments before the command arguments. Double quotes\n  group words inside ZIPOPT; shell expansion is not performed on these defaults.\n  -h and -h2 print basic and extended help as soon as they are encountered.\n  --version and -L also exit immediately. Only a lone short -v shows information;\n  --verbose and grouped -v perform an archive operation. Later -q or -v wins.\n  -sc and -so validate all arguments before exiting; -sc returns status 9.\n\nDisplays\n  -sf lists selected names and totals without reading source payloads or writing\n  archives. -sf- and -q suppress names; totals remain visible. With no file\n  operands, -sf lists the input archive. -sd reports only virtual processing steps.\n  Command and diagnostic displays redact credential-shaped arguments and URLs.\n  Display counters accept a trailing '-' to negate them. -ds accepts up to eight\n  characters: digits with an optional k, m, g or t suffix (case-insensitive).\n  Values below 1024 imply MB; nonzero intervals from 1 KB to below 32 KB fail.\n  Empty -ds values restore 10 MB; 0 disables dots. Sizes must be safe integers.\n  Dots use byte intervals, so counts can differ from native codec buffer dots.\n  Per-entry progress appears after bounded preparation; global output dots stay\n  visible with -q. Timed scanning dots and split-volume displays are unavailable.\n";
@@ -5677,6 +5688,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut update_mode = false;
     let mut filesync_mode = false;
     let mut move_mode = false;
+    let mut quiet = false;
     let mut level = 6;
     let mut use_deflate = true;
     let mut suffixes = ".Z:.zip:.zoo:.arc:.lzh:.arj";
@@ -5763,6 +5775,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 in_include = false;
                 output_archive = Some(out.trim_start_matches('=').to_string());
             }
+        } else if a == "--quiet" || a == "--verbose" {
+            quiet = a == "--quiet";
         } else if a == "--store" {
             level = 0;
             use_deflate = false;
@@ -5956,7 +5970,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         level = ch as u8 - b'0';
                         if level == 0 { use_deflate = false; }
                     }
-                    'q' | 'v' | 'c' | 'o' | 'X' | 'T' | 'k' | 'g' | 'J' | 'A'
+                    'q' | 'v' => quiet = ch == 'q',
+                    'c' | 'o' | 'X' | 'T' | 'k' | 'g' | 'J' | 'A'
                     | 'F' | 'p' => {}
                     other => return zip_err(&format!("unsupported option: -{other}")),
                 }
@@ -6081,6 +6096,9 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
     let _ = update_mode;
     let mut moves = Vec::new();
+    // Keep the original source spelling separate from the name stored in the ZIP.
+    let mut members: BTreeMap<_,_> = entries.iter().enumerate()
+        .map(|(index,e)| (e.name.clone(), (index,None::<String>))).collect();
     for t in &effective_targets {
         let mut raw_entries = Vec::new();
         let visit = visit_archive_sources(
@@ -6093,14 +6111,19 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             recursive || recursive_patterns,
             fs,
             &mut Vec::new(),
-            &mut |stat, path, mut entry, _| {
+            &mut |stat, path, mut entry, root| {
                 if entry.typeflag == b'0' { entry.content = fs.read_file(&path)?; }
-                raw_entries.push((path,stat.identity.clone(),entry));
+                let source = if root { t.clone() } else {
+                    let name = entry.name.trim_end_matches('/');
+                    if t == "." { name.strip_prefix("./").unwrap_or(name).into() }
+                    else { format!("{}{name}", &t[..t.len()-t.trim_start_matches('/').len()]) }
+                };
+                raw_entries.push((path,stat.identity.clone(),source,entry));
                 Ok(true)
             },
         );
         if let Err(e) = visit && !e.starts_with("ENOENT:") { return err_out(&format!("zip: {e}\n"),2); }
-        for (path,id,mut e) in raw_entries {
+        for (path,id,source,mut e) in raw_entries {
             e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();
             if e.name.is_empty() || e.name == "." || e.name == "./" {
                 continue;
@@ -6135,6 +6158,17 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
                 e.name = base;
             }
+            let (index, selected) = members.entry(e.name.clone()).or_insert((entries.len(), None));
+            if let Some(first) = selected {
+                if first == &source { continue; }
+                let mut result = zip_err("cannot repeat names in zip file");
+                if !quiet {
+                    result.stdout.insert_str(0,&format!("\tzip warning:   first full name: {}\n                      second full name: {}\n                     name in zip file repeated: {}\n",
+                        zip_public_text(first), zip_public_text(&source), zip_public_text(&e.name)));
+                }
+                return result;
+            }
+            *selected = Some(source);
             if e.typeflag == b'0' {
                 if lf_to_crlf {
                     let mut converted = Vec::with_capacity(e.content.len() + 16);
@@ -6158,7 +6192,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             if move_mode { moves.push((path.clone(), e.typeflag == b'5')); }
             if split_size != 0 { sources.push((path,id)); }
-            if let Some(ex) = entries.iter_mut().find(|x| x.name == e.name) {
+            if let Some(ex) = entries.get_mut(*index) {
                 *ex = e;
             } else {
                 entries.push(e);
@@ -10404,6 +10438,50 @@ mod tests {
             assert_eq!(crate::commands::codecs::parse_zip_archive(&bytes).unwrap()[0].content, data);
             vfs.remove_path("/out.zip").unwrap();
         }
+    }
+
+    #[test]
+    fn zip_member_collisions_preserve_the_archive_and_every_move_source() {
+        for (operands, conflict) in [
+            (vec!["one/x","two/x"],true), (vec!["one/x","./one/x"],true),
+            (vec!["one/x","/one/x"],true), (vec!["one","two"],true), (vec!["one/x","one/x"],false),
+        ] {
+            let fs = MemoryVfs::new();
+            for (dir, bytes) in [("one", b"first".as_slice()), ("two", b"second")] {
+                fs.mkdir_all(&format!("/{dir}")).unwrap();
+                fs.write_file(&format!("/{dir}/x"),bytes).unwrap();
+            }
+            fs.write_file("/keep",b"old member").unwrap();
+            assert_eq!(cmd_zip(&args(&["-q","out.zip","keep"]),"","/",&fs).exit_code,0);
+            let original = fs.read_file("/out.zip").unwrap();
+            let mut argv = args(&["-qrmj","out.zip"]);
+            argv.extend(args(&operands));
+            let result = cmd_zip(&argv,"","/",&fs);
+            if conflict {
+                assert_eq!(result.exit_code,16,"{operands:?}");
+                assert_eq!(result.stdout,"\nzip error: Invalid command arguments (cannot repeat names in zip file)\n");
+                assert_eq!(fs.read_file("/out.zip").unwrap(),original);
+                assert_eq!(fs.read_file("/one/x").unwrap(),b"first");
+            } else {
+                assert_eq!(result.exit_code,0,"{}",result.stderr);
+                assert!(!fs.exists("/one/x"));
+                let entries = crate::commands::codecs::parse_zip_archive(&fs.read_file("/out.zip").unwrap()).unwrap();
+                assert_eq!(entries.iter().map(|e|e.name.as_str()).collect::<Vec<_>>(),["keep","x"]);
+            }
+            assert_eq!(fs.read_file("/two/x").unwrap(),b"second");
+        }
+    }
+
+    #[test]
+    fn zip_collision_warnings_identify_the_sources_without_printing_credentials() {
+        let fs = MemoryVfs::new();
+        for p in ["one", "token=private"] {
+            fs.mkdir_all(&format!("/{p}")).unwrap();
+            fs.write_file(&format!("/{p}/name"),b"input").unwrap();
+        }
+        let r = cmd_zip(&args(&["-qvj","out.zip","one/name","token=private/name"]),"","/",&fs);
+        assert_eq!(r.stdout,"\tzip warning:   first full name: one/name\n                      second full name: [redacted]\n                     name in zip file repeated: name\n\nzip error: Invalid command arguments (cannot repeat names in zip file)\n");
+        assert!(!fs.exists("/out.zip"));
     }
 
     #[test]

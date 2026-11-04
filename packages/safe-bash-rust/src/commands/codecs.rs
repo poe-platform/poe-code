@@ -3521,10 +3521,10 @@ pub(super) struct ZipRecord<'a> {
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, 0, &[], false, false, &ZipRecords::new(), |_,_,_,_| {})
+    encode_zip_members(entries, (0,0), &[], false, false, &ZipRecords::new(), |_,_,_,_| {})
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], level: u8, store_suffixes: &[&str], document: bool, descriptors: bool, retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, descriptors: bool, retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3581,14 +3581,24 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         } else {
             &e.content
         };
-        let compress = level != 0 && !is_dir && !is_symlink && !payload.is_empty()
+        let compress = compression!=0 && level != 0 && !is_dir && !is_symlink && !payload.is_empty()
             && (level == 9 || !store_suffixes.iter().any(|suffix| clean_name.ends_with(suffix)));
-        let compressed = if compress { deflate(payload, level, Vec::new(), |_| {}) } else { Vec::new() };
+        let compressed = if compress {
+            match compression {
+                12=>bzip2_compress(payload,level),
+                14=>{
+                    let mut wire=vec![9,4,5,0,0x5d,0,0,16,0];
+                    wire.extend_from_slice(&encode_lzma_chunk(payload,1<<20,true).0);
+                    wire
+                }
+                _=>deflate(payload,level,Vec::new(),|_|{}),
+            }
+        }else{Vec::new()};
         let descriptor = descriptors && !is_dir;
-        let flags: u16 = if descriptor { 0x0808 } else { 0x0800 };
         let (method, version, stored): (u16, u16, &[u8]) = if compress && (descriptor || compressed.len() < payload.len()) {
-            (8, 20, &compressed)
+            (compression,match compression {12=>46,14=>63,_=>20}, &compressed)
         } else { (0, if descriptor {20} else {10}, payload) };
+        let flags:u16=0x800 | if descriptor {8} else {0} | if method==14 {2} else {0};
         report(&e.name,method,payload.len(),stored.len());
         let text_attr = u16::from(!document && compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
             && payload.iter().any(|b| matches!(b, 9 | 10 | 13 | 32..=255)));
@@ -3608,7 +3618,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         out.extend_from_slice(&method.to_le_bytes());
         out.extend_from_slice(&dos_time.to_le_bytes());
         out.extend_from_slice(&dos_date.to_le_bytes());
-        if descriptor { out.extend_from_slice(&[0;12]); }
+        if descriptor && !matches!(method,12|14) { out.extend_from_slice(&[0;12]); }
         else {
             out.extend_from_slice(&crc.to_le_bytes());
             out.extend_from_slice(&(stored.len() as u32).to_le_bytes());

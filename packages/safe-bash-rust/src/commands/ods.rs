@@ -231,7 +231,7 @@ pub(super) fn write(sheets: &[WorkbookSheet], limit: usize) -> Option<Vec<u8>> {
             content: content.into_bytes(),
         });
     }
-    Some(encode_zip_members(&entries, 6, &["mimetype"], true, false, &Default::default(), |_,_,_,_| {}))
+    Some(encode_zip_members(&entries, (8,6), &["mimetype"], true, false, &Default::default(), |_,_,_,_| {}))
 }
 
 use super::{extract_xml_attr, read_office_archive, unescape_xml_entities};

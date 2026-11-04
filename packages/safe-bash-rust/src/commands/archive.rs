@@ -5833,7 +5833,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut quiet = false;
     let mut verbose = false;
     let mut level = 6;
-    let mut use_deflate = true;
+    let mut compression=8;
     let mut suffixes = ".Z:.zip:.zoo:.arc:.lzh:.arj";
     let mut junk_paths = false;
     let mut omit_dirs = false;
@@ -5929,7 +5929,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             verbose |= !quiet;
         } else if a == "--store" {
             level = 0;
-            use_deflate = false;
+            compression=0;
         } else if a == "-n" || a == "--suffixes" || a.starts_with("-n") || a.starts_with("--suffixes=") {
             let value = if a == "-n" || a == "--suffixes" {
                 i += 1;
@@ -5960,7 +5960,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if lower.is_empty() || matches_cnt != 1 {
                 return zip_err("Option -Z (--compression-method):  unknown method");
             }
-            use_deflate = "deflate".starts_with(&lower);
+            compression=if "deflate".starts_with(&lower){8}else if "bzip2".starts_with(&lower){12}else if "lzma".starts_with(&lower){14}else{0};
         } else if a == "--split-size" || a.starts_with("--split-size=") {
             let value = if let Some(v) = a.strip_prefix("--split-size=") { v }
                 else { i += 1; args.get(i).map_or("",String::as_str) };
@@ -6130,7 +6130,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     'e' => has_encrypt_opt = true,
                     '0'..='9' => {
                         level = ch as u8 - b'0';
-                        if level == 0 { use_deflate = false; }
+                        if level == 0 { compression=0; }
                     }
                     'q' => quiet = true,
                     'v' => { quiet = false; verbose = true; }
@@ -6278,13 +6278,13 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,false,&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,false,&retained,|_,_,_,_| {}), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,false,&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,false,&retained,|_,_,_,_| {}), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
@@ -6408,7 +6408,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 e.content = match zip_read_file(fs,&path,&stat) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
             }
             if e.typeflag == b'0' && let Some(from) = from_crlf {
-                let store = !use_deflate || level == 0 || level != 9 && suffixes.iter().any(|s| e.name.ends_with(s));
+                let store = compression==0 || level == 0 || level != 9 && suffixes.iter().any(|s| e.name.ends_with(s));
+                if from && compression==12 && !store {return err_out("zip: from-crlf BZIP2 native read profile unsupported\n",2);}
                 let window = match (from, store) {
                     (false,true) => 8192, (false,false) => 32768,
                     (true,true) => 16383, (true,false) => 65535,
@@ -6478,7 +6479,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let savings = |size: u64, stored: u64| if size == 0 { 0 } else {
         (100*(i128::from(size)-i128::from(stored)) + i128::from(size/2)).div_euclid(i128::from(size))
     };
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false, descriptors, &retained,
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, descriptors, &retained,
         |name,method,size,stored| {
             if quiet { return; }
             let (size,stored) = (size as u64,stored as u64);
@@ -6491,7 +6492,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     if method != 0 { progress.push(' '); }
                     write!(progress,"\t(in={size}) (out={stored})").unwrap();
                 }
-                if method == 8 { writeln!(progress," (deflated {}%)",savings(size,stored)).unwrap(); }
+                if method != 0 { writeln!(progress," ({} {}%)",match method {12=>"bzipped",14=>"lzma",_=>"deflated"},savings(size,stored)).unwrap(); }
                 else { progress.push_str(" (stored 0%)\n"); }
             }
         });

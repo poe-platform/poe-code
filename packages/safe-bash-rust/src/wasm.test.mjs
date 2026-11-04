@@ -6528,6 +6528,27 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lzma","LZMA"]])test("zip writes "+method+" members and honors store fallback and descriptors",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const body=new Uint8Array(24000).fill(65),tiny=Uint8Array.of(1,2);
+    for(const view of [fs,rust.fs]){await view.writeFile("/large",body);await view.writeFile("/tiny",tiny);}
+    for(const [flags,file] of [["-Z"+method[0],"compact"],["--compression-method="+method+" -fd","stream"]]){
+      const cmd="zip "+flags+" "+file+".zip large tiny";
+      const ref=await js.exec(cmd),r=await rust.exec(cmd);assert.equal(ref.exitCode,0,ref.stderr);assert.equal(r.exitCode,0,r.stderr);
+      assert.ok(r.stdout.includes("adding: large ("+description+" "),r.stdout);
+      const listing=await js.exec("unzip -v "+file+".zip");
+      const output=await rust.fs.readFile("/"+file+".zip");await fs.writeFile("/read.zip",output);
+      const other=await js.exec("unzip -v read.zip");assert.equal(other.exitCode,0,other.stderr);
+      assert.ok(listing.stdout.includes(label));assert.deepEqual(other.stdout.match(/BZip2|LZMA|Stored/g),listing.stdout.match(/BZip2|LZMA|Stored/g));
+      for(const [name,bytes] of [["large",body],["tiny",tiny]]){
+        const check=await js.exec("unzip -p read.zip "+name);assert.equal(check.exitCode,0,check.stderr);assert.deepEqual(check.stdoutBytes,bytes);
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("zip -T verifies the resulting members before publication and before moving sources",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(37)}})),rust=new RustWasmBash({cwd:"/"});

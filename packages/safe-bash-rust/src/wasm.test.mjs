@@ -543,6 +543,27 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("od accepts safe integer ranges, including hexadecimal quantities with suffixes", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, code, stdout, stderr] of [
+      ["-N4294967296", 0, "0000000 000101\n0000002\n", ""],
+      ["-N9007199254740991", 0, "0000000 000101\n0000002\n", ""],
+      ["-N0x1K", 0, "0000000 000101\n0000002\n", ""],
+      ["-j4294967296", 1, "", "od: cannot skip past end of input\n"],
+      ["-S4294967296", 0, "", ""],
+      ["-N0x+1", 2, "", "od: invalid number '0x+1'\n"],
+      ["-j0x20000000000000", 2, "", "od: number out of range '0x20000000000000'\n"],
+      ["-N8796093022208KiB", 2, "", "od: number out of range '8796093022208KiB'\n"],
+      ["-w9007199254740991 -tx4", 0, "0000000 00000041\n0000002\n", "od: warning: invalid width 9007199254740991; using 4 instead\n"],
+      ["-S1 -w9007199254740991 -tx1", 0, "0000000 A\n", ""],
+    ]) {
+      const result = await bash.exec("od " + args, {stdin:Uint8Array.of(65,0)});
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr], [code,stdout,stderr], args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("od formats single and double precision at fixed and exponential boundaries", async () => {
   const bash = new RustWasmBash();
   try {

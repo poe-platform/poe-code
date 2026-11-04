@@ -2042,42 +2042,37 @@ struct OdFormat {
     printable: bool,
 }
 
-fn parse_od_numeric(text: &str, allow_suffixes: bool) -> Result<usize, String> {
-    let mut num_text = text;
-    let mut multiplier = 1usize;
-    let is_hex = text.starts_with("0x") || text.starts_with("0X");
-    if allow_suffixes && !is_hex {
-        for (sfx, mult) in [
-            ("KiB", 1024usize),
-            ("MiB", 1_048_576),
-            ("GiB", 1_073_741_824),
-            ("KB", 1000),
-            ("MB", 1_000_000),
-            ("GB", 1_000_000_000),
-            ("b", 512),
-            ("k", 1024),
-            ("K", 1024),
-            ("m", 1_048_576),
-            ("M", 1_048_576),
-            ("G", 1_073_741_824),
+fn parse_od_numeric(text: &str, allow_suffixes: bool) -> Result<u64, String> {
+    let hex_digits = |s: &str| s.strip_prefix("0x").or_else(|| s.strip_prefix("0X"))
+        .is_some_and(|d| !d.is_empty() && d.bytes().all(|b| b.is_ascii_hexdigit()));
+    let mut number = text;
+    let mut multiplier = 1u64;
+    // A trailing b in a hexadecimal literal is a digit. Other suffixes can
+    // multiply hexadecimal values just as they multiply octal or decimal ones.
+    if allow_suffixes && !hex_digits(text) {
+        for (suffix, scale) in [
+            ("KiB", 1024), ("MiB", 1_048_576), ("GiB", 1_073_741_824),
+            ("KB", 1000), ("MB", 1_000_000), ("GB", 1_000_000_000),
+            ("b", 512), ("k", 1024), ("K", 1024), ("m", 1_048_576), ("M", 1_048_576), ("G", 1_073_741_824),
         ] {
-            if let Some(prefix) = text.strip_suffix(sfx) {
-                num_text = if prefix.is_empty() { "1" } else { prefix };
-                multiplier = mult;
+            if let Some(prefix) = text.strip_suffix(suffix) {
+                number = if prefix.is_empty() { "1" } else { prefix };
+                multiplier = scale;
                 break;
             }
         }
     }
-    let parsed = if let Some(hex) = num_text.strip_prefix("0x").or_else(|| num_text.strip_prefix("0X")) {
-        usize::from_str_radix(hex, 16).map_err(|_| format!("invalid number '{text}'"))?
-    } else if num_text.starts_with('0') && num_text.chars().all(|c| ('0'..='7').contains(&c)) {
-        usize::from_str_radix(num_text, 8).map_err(|_| format!("invalid number '{text}'"))?
-    } else if !num_text.starts_with('0') && num_text.chars().all(|c| c.is_ascii_digit()) {
-        num_text.parse::<usize>().map_err(|_| format!("invalid number '{text}'"))?
+    let (digits, radix) = if hex_digits(number) {
+        (&number[2..], 16)
+    } else if number.starts_with('0') && number.bytes().all(|b| (b'0'..=b'7').contains(&b)) {
+        (number, 8)
+    } else if !number.is_empty() && !number.starts_with('0') && number.bytes().all(|b| b.is_ascii_digit()) {
+        (number, 10)
     } else {
         return Err(format!("invalid number '{text}'"));
     };
-    Ok(parsed.saturating_mul(multiplier))
+    u64::from_str_radix(digits, radix).ok().and_then(|n| n.checked_mul(multiplier))
+        .filter(|&n| n < (1u64 << 53)).ok_or_else(|| format!("number out of range '{text}'"))
 }
 
 fn parse_od_formats(text: &str) -> Result<Vec<OdFormat>, String> {
@@ -2342,10 +2337,10 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
     let mut addr_radix = 'o';
     let mut big_endian = false;
     let mut verbose = false;
-    let mut requested_width: usize = 16;
-    let mut skip_bytes: usize = 0;
-    let mut max_len: Option<usize> = None;
-    let mut strings_min: Option<usize> = None;
+    let mut requested_width: u64 = 16;
+    let mut skip_bytes: u64 = 0;
+    let mut max_len: Option<u64> = None;
+    let mut strings_min: Option<u64> = None;
     let mut type_specs: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
 
@@ -2573,7 +2568,7 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
         }
     }
 
-    let fmt_addr = |addr: usize| -> String {
+    let fmt_addr = |addr: u64| -> String {
         match addr_radix {
             'n' => String::new(),
             'x' => format!("{addr:06x}"),
@@ -2582,7 +2577,7 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
         }
     };
 
-    let alignment = selected.iter().map(|f| f.size).max().unwrap_or(1);
+    let alignment = selected.iter().map(|f| f.size as u64).max().unwrap_or(1);
     let width = if requested_width % alignment == 0 {
         requested_width
     } else {
@@ -2597,7 +2592,7 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
     if width != requested_width && !write(2, &format!("od: warning: invalid width {requested_width}; using {width} instead\n"), &mut out) {
         return out;
     }
-    let mut left = max_len.unwrap_or(usize::MAX);
+    let mut left = max_len.unwrap_or(u64::MAX);
     if skip_bytes == 0 && left == 0 && let Some(file) = files.first().filter(|f| !f.is_empty() && *f != "-") {
         let path = crate::vfs::path::absolute_operand(cwd, file);
         if let Err(e) = fs.inspect_command_entry(&path, true, "stat") {
@@ -2608,11 +2603,20 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
         }
     }
 
+    let width = match usize::try_from(width) {
+        Ok(width) => width,
+        Err(_) if strings_min.is_some() => 1, // String mode has no row buffer.
+        Err(_) => {
+            out.exit_code = 1;
+            write(2, "od: internal error\n", &mut out);
+            return out;
+        }
+    };
     let mut first = true;
     let mut previous = Vec::new();
     let mut suppressed = false;
     let mut formatted = String::new();
-    let mut emit_rows = |batch: &[u8], offset: &mut usize, out: &mut BuiltinOutcome, write: &mut super::CommandWriter| {
+    let mut emit_rows = |batch: &[u8], offset: &mut u64, out: &mut BuiltinOutcome, write: &mut super::CommandWriter| {
         for row in batch.chunks(width) {
             if !verbose && previous == row {
                 if !suppressed { formatted.push_str("*\n"); }
@@ -2628,7 +2632,7 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
                 previous.extend_from_slice(row);
                 suppressed = false;
             }
-            *offset += row.len();
+            *offset += row.len() as u64;
             if first || formatted.len() >= 16384 {
                 first = false;
                 if !write(1, &formatted, out) { return false; }
@@ -2660,17 +2664,17 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
             };
             available = remaining;
             for block in chunk.chunks(8192) {
-                let discard = skip.min(block.len());
-                skip -= discard;
-                let take = left.min(block.len() - discard);
-                left -= take;
+                let discard = skip.min(block.len() as u64) as usize;
+                skip -= discard as u64;
+                let take = left.min((block.len() - discard) as u64) as usize;
+                left -= take as u64;
                 let mut bytes = &block[discard..discard + take];
                 if let Some(minimum) = strings_min {
                     for &b in bytes {
                         if (32..=126).contains(&b) { text.push(b as char); }
                         else {
-                            if b == 0 && text.len() >= minimum {
-                                let addr = fmt_addr(offset - text.len());
+                            if b == 0 && text.len() as u64 >= minimum {
+                                let addr = fmt_addr(offset - text.len() as u64);
                                 if !addr.is_empty() { text.insert(0, ' '); text.insert_str(0, &addr); }
                                 text.push('\n');
                                 if !write(1, &text, &mut out) { writable = false; return false; }

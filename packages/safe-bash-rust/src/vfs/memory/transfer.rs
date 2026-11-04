@@ -218,7 +218,7 @@ impl MemoryVfs {
                             if consumed > b.limits.max_input_bytes {
                                 return Err(b.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", b.limits.max_input_bytes)));
                             }
-                            b.add_output_bytes(chunk.len())?;
+                            b.check_cancelled()?;
                         }
                         match device {
                             Some("full") => return Err(format!("ENOSPC: no space left on device, writeStream '{target_name}'")),

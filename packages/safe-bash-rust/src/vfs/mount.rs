@@ -594,6 +594,32 @@ mod tests {
     use crate::vfs::MemoryVfs;
 
     #[test]
+    fn cross_mount_file_copy_charges_input_without_emitting_shell_output() {
+        for existing in [false, true] {
+            for input_limit in [0, 1] {
+                let root = Arc::new(MemoryVfs::new());
+                root.write_file("/source",b"A").unwrap();
+                let dst = Arc::new(MemoryVfs::new());
+                if existing { dst.write_file("/out",b"old").unwrap(); }
+                let fs = MountVfs::new(root.clone()).with_mount("/m",dst.clone());
+                let budget = crate::ExecutionBudget::new(crate::ShellLimits {
+                    max_input_bytes: input_limit, max_output_bytes: 0, ..Default::default()
+                },None);
+                let result = fs.move_across_devices("/source","/m/out",Some(&budget));
+                if input_limit == 0 {
+                    assert!(result.unwrap_err().contains("maxInputBytes"));
+                    assert_eq!(root.read_file("/source").unwrap(),b"A");
+                    assert_eq!(dst.read_file("/out").unwrap(),if existing { &b"old"[..] } else { &[][..] });
+                } else {
+                    result.unwrap();
+                    assert!(!root.exists("/source"));
+                    assert_eq!(dst.read_file("/out").unwrap(),b"A");
+                }
+            }
+        }
+    }
+
+    #[test]
     fn cross_mount_move_uses_the_inspected_destination_for_each_child() {
         for alternate in ["missing", "occupied", "readonly"] {
             let root = Arc::new(MemoryVfs::new());

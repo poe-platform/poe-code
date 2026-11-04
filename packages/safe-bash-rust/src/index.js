@@ -181,7 +181,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const {onInternalError} = options;
   const backing = fs.capabilities;
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
-    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation", "atomicDirectoryMetadata", "atomicFileStaging", "atomicStagingAncestry"].map(key => [key, backing[key]]))});
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation", "atomicDirectoryMetadata", "atomicFileStaging", "atomicStagingAncestry", "retainedStagingWrite", "retainedStagingCleanup"].map(key => [key, backing[key]]))});
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
@@ -235,12 +235,15 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const argumentValues = commandContract.createCommandArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
           const check = (open = active) => { signal.throwIfAborted(); if (stopped) throw stopped; if (!open) throw new Error("Command has finished"); };
+          const chargeFs = () => {
+            if (fsOps >= remainingFsOps) { code = -5; throw new ShellLimitError("maxFileSystemOperations"); }
+            fsOps++;
+          };
           const admitPath = (path, settings) => {
             check();
             settings?.signal?.throwIfAborted();
             if (code === -3) throw new ShellLimitError("maxOutputBytes");
-            if (fsOps >= remainingFsOps) { code = -5; throw new ShellLimitError("maxFileSystemOperations"); }
-            fsOps++;
+            chargeFs();
             validatePath(path, maxComponents);
           };
           const write = async (operation, path, data, settings) => {
@@ -301,6 +304,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const kind = pathProfile(path, settings);
               const directory = kind === 2, regular = kind === 0;
               return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
+                retainedStagingWrite:regular && capabilities.retainedStagingWrite, retainedStagingCleanup:regular && capabilities.retainedStagingCleanup,
                 atomicFileStaging:regular && capabilities.atomicFileStaging, atomicStagingAncestry:regular && capabilities.atomicStagingAncestry,
                 atomicFileMutation:regular && capabilities.atomicFileMutation, atomicDirectoryMetadata:regular && capabilities.atomicDirectoryMetadata, open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
                 mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
@@ -338,7 +342,35 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               validatePath(directory + "/" + name, maxComponents);
               const receipt = await fs.createStagedFile(directory, name, content, settings);
               (stages ??= new Set()).add(receipt);
-              return receipt;
+              if (!receipt.cleanup) return receipt;
+              let removal;
+              const cleanup = Object.freeze({
+                remove: settings => removal ??= (async () => {
+                  try {
+                    settings?.signal?.throwIfAborted();
+                    if (!stages.has(receipt)) throw fsOperationError("EBADF","removeStagedFile",directory);
+                    chargeFs();
+                    await receipt.cleanup.remove(settings);
+                  } finally {
+                    stages.delete(receipt);
+                    await receipt.cleanup.close();
+                  }
+                })(),
+                close: async () => { stages.delete(receipt); await receipt.cleanup.close(); },
+              });
+              const writer = receipt.writer && Object.freeze({
+                write: async (data,settings) => {
+                  if (busy) await busy;
+                  admitPath(receipt.file.path,settings);
+                  await receipt.writer.write(data,settings);
+                },
+                finish: async settings => {
+                  if (busy) await busy;
+                  admitPath(receipt.file.path,settings);
+                  return receipt.writer.finish(settings);
+                },
+              });
+              return Object.freeze({...receipt,cleanup,...(writer && {writer})});
             },
             async publishStagedFile(receipt, path, settings) {
               admitPath(path, settings);
@@ -538,8 +570,13 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             if (cleanupFailures.length && (code >= 0 || code === -4 || code === -6)) code = -2;
             else if (code === -3 || code === -5) cleanupFailures.length = 0;
           }
-          if (stages && (signal.aborted || code < 0)) for (const stage of stages) {
-            try { await fs.removeStagedFile(stage); }
+          if (stages) for (const stage of Array.from(stages).reverse()) {
+            try {
+              if (signal.aborted || code < 0) {
+                if (stage.cleanup) await stage.cleanup.remove();
+                else await fs.removeStagedFile(stage);
+              } else await stage.cleanup?.close();
+            }
             catch (e) { if (!["EAGAIN","ENOTEMPTY","ENOENT"].includes(e.code)) cleanupFailures.push(e); }
           }
           outputOpen = false;
@@ -761,7 +798,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
 
 const wasmCapabilities = Object.freeze({
   write: true, append: true, exclusiveCreate: true, read: true, retainedRead: true, streamingRead: true, stat: true, readdir: true, realpath: true, access: true,
-  conditionalChmod: true, atomicFileMutation:true, atomicDirectoryMetadata:true, atomicFileStaging:true, atomicStagingAncestry:true, permissions: true, readlink: true, symlinks: true,
+  conditionalChmod: true, atomicFileMutation:true, atomicDirectoryMetadata:true, atomicFileStaging:true, atomicStagingAncestry:true, retainedStagingWrite:true, retainedStagingCleanup:true, permissions: true, readlink: true, symlinks: true,
 });
 
 export class WasmFileSystem {
@@ -773,7 +810,7 @@ export class WasmFileSystem {
     const backing = this.bash._companion?.fs;
     if (!backing) {
       const memory = !!this.bash.exports.safe_bash_supports_file_mutation(this.bash.sessionId);
-      return Object.freeze({...wasmCapabilities,atomicFileMutation:memory,atomicDirectoryMetadata:memory,atomicFileStaging:memory,atomicStagingAncestry:memory,
+      return Object.freeze({...wasmCapabilities,atomicFileMutation:memory,atomicDirectoryMetadata:memory,atomicFileStaging:memory,atomicStagingAncestry:memory,retainedStagingWrite:memory,retainedStagingCleanup:memory,
         conditionalChmod:!!this.bash.exports.safe_bash_supports_conditional_chmod(this.bash.sessionId)});
     }
     return Object.freeze(Object.fromEntries(Object.keys(wasmCapabilities)
@@ -1675,12 +1712,19 @@ export class RustWasmBash extends WasmShell {
       if (!fs[operation]) throw fsOperationError("ENOTSUP",operation);
       return fs[operation](...args);
     }
+    return this.#nativeStage(create ? 0 : publish ? 1 : 2, args, options);
+  }
+
+  #nativeStage(op, args, options) {
+    const create = op === 0, publish = op === 1;
+    const operation = ["createStagedFile","publishStagedFile","removeStagedFile","stagedWrite","stagedWrite","removeStagedFile"][op];
+    const {signal,retainCleanup} = options;
     const paths = [], rows = [];
     let flags = 0, mode = 0, atime, mtime, payload = new Uint8Array();
     const entry = ({path,stat}) => { paths.push(path); rows.push(...this.#memoryReceipt(stat)); };
     if (create) {
       const [directory,name,content] = args;
-      if (options.retainCleanup) throw fsOperationError("ENOTSUP",operation,directory);
+      if (retainCleanup !== undefined && typeof retainCleanup !== "boolean") throw fsOperationError("EINVAL",operation,directory);
       paths.push(directory,name);
       rows.push(...this.#memoryReceipt(options.parent));
       const link = content.type === "symlink";
@@ -1692,6 +1736,10 @@ export class RustWasmBash extends WasmShell {
     } else {
       const [receipt,destination] = args;
       for (const key of ["parent","directory","file"]) entry(receipt[key]);
+      if (op === 3) {
+        if (!(args[1] instanceof Uint8Array)) throw new TypeError("Staged writes require Uint8Array data");
+        payload = args[1];
+      } else if (op === 4) { atime = args[1].atimeMs; mtime = args[1].mtimeMs; }
       if (publish) {
         if (options.preserveIdentity || options.commitGuard !== undefined) throw fsOperationError("ENOTSUP",operation,destination);
         paths.push(destination); rows.push(...this.#memoryReceipt(options.parent));
@@ -1704,7 +1752,7 @@ export class RustWasmBash extends WasmShell {
     const buffers = [];
     try {
       for (const data of [encoder.encode(paths.join("\0")),new Uint8Array(new Float64Array(rows).buffer),payload]) buffers.push(this._allocBytes(data));
-      const n = this.exports.safe_bash_owned_stage(this.sessionId,...buffers.flatMap(b=>[b.ptr,b.len]),create ? 0 : publish ? 1 : 2,flags,
+      const n = this.exports.safe_bash_owned_stage(this.sessionId,...buffers.flatMap(b=>[b.ptr,b.len]),op,flags,
         typeof mode === "number" ? mode : NaN, typeof atime === "number" ? atime : NaN, typeof mtime === "number" ? mtime : NaN);
       if (n === -1) throw new Error("Wasm session unavailable");
       let ptr = this.exports.safe_bash_output_ptr(this.sessionId);
@@ -1718,8 +1766,32 @@ export class RustWasmBash extends WasmShell {
           const size = view.getUint32(ptr,true); ptr += 4;
           receipt[key] = Object.freeze({path,stat:Object.freeze(this._decodeStat(ptr,size))}); ptr += size;
         }
-        return Object.freeze(receipt);
+        if (!retainCleanup) return Object.freeze(receipt);
+        let current = receipt, writing = true, closed = false, removing;
+        const cleanup = Object.freeze({
+          remove: (settings={}) => {
+            if (removing) return removing;
+            if (closed) return Promise.reject(fsOperationError("EBADF","removeStagedFile",receipt.directory.path));
+            closed = true;
+            removing = Promise.resolve().then(()=>this.#nativeStage(5,[current],settings));
+            return removing;
+          },
+          close: async () => { closed = true; await removing?.catch(()=>{}); },
+        });
+        const update = (op,data,settings) => {
+          settings.signal?.throwIfAborted();
+          if (closed || !writing) throw fsOperationError("EBADF","stagedWrite",receipt.file.path);
+          const stat = this.#nativeStage(op,[current,data],settings);
+          current = {...receipt,file:{path:receipt.file.path,stat}};
+          return stat;
+        };
+        const writer = receipt.file.stat.type === "file" && Object.freeze({
+          write: async (bytes,settings={}) => { update(3,bytes,settings); },
+          finish: async (settings={}) => { const stat=update(4,receipt.file.stat,settings); writing=false; return stat; },
+        });
+        return Object.freeze({...receipt,cleanup,...(writer && {writer})});
       }
+      if (n) return Object.freeze(this._decodeStat(ptr,n));
     } finally { for (const buffer of buffers) this._freeBytes(buffer); }
   }
 

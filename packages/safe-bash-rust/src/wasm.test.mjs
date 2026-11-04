@@ -2160,6 +2160,25 @@ test("aborting plugin staging cleans only the original unchanged entries",{skip:
   }
 });
 
+test("retained staging writers serialize appends and cleanup follows the original parent",async()=>{
+  const sh=new RustWasmBash({cwd:"/",directories:["/parent"]}), fs=sh.fs;
+  try{
+    const parent=await fs.lstat("/parent");
+    const stage=await fs.createStagedFile("/parent/.stage","f",{type:"file",data:Uint8Array.of(1)},{parent,retainCleanup:true,mode:0o400,mtimeMs:123});
+    await Promise.all([stage.writer.write(Uint8Array.of(2)),stage.writer.write(Uint8Array.of(3))]);
+    const before=await fs.lstat(stage.file.path), stat=await stage.writer.finish();
+    assert.notEqual(stat.revision,before.revision);assert.equal(stat.mtimeMs,123);
+    assert.deepEqual(await fs.readFile(stage.file.path),Uint8Array.of(1,2,3));
+    await assert.rejects(stage.writer.write(Uint8Array.of(4)),{code:"EBADF"});
+    await fs.rename("/parent","/moved");
+    await fs.mkdir("/parent/.stage",{recursive:true});
+    await fs.writeFile("/parent/.stage/f",Uint8Array.of(9));
+    await stage.cleanup.remove();await stage.cleanup.remove();await stage.cleanup.close();
+    assert.deepEqual(await fs.readdir("/moved"),[]);
+    assert.deepEqual(await fs.readFile(stage.file.path),Uint8Array.of(9));
+  }finally{await sh.dispose();}
+});
+
 test("split ZIP plugins stage complete volumes and extract through checked ancestors",{skip:typeof WebAssembly.Suspending!=="function"},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const bytes=Uint8Array.from({length:145000},(_,i)=>i%223),fs=new MemoryFileSystem(),plugin=()=>archiveCommands({zipHost:{volume:({disk})=>"/out.z"+String(disk+1).padStart(2,"0")}});
@@ -2167,7 +2186,7 @@ test("split ZIP plugins stage complete volumes and extract through checked ances
   try {
     const run=async(sh,fs)=>{
       await fs.writeFile("/source",bytes);await fs.utimes("/source",1700000000000,1700000000000);
-      const write=await sh.exec("zip -q0 -fd -s64k out.zip source");assert.equal(write.exitCode,0,write.stderr);
+      const write=await sh.exec("zip -q0 -s64k out.zip source");assert.equal(write.exitCode,0,write.stderr);
       const unpack=await sh.exec("unzip -qo out.zip -d dest");assert.equal(unpack.exitCode,0,unpack.stderr);
       assert.deepEqual(await fs.readFile("/dest/source"),bytes);
       assert.deepEqual((await fs.readdir("/dest")).map(e=>e.name),["source"]);

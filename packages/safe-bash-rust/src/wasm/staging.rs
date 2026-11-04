@@ -1,5 +1,5 @@
 use super::*;
-use crate::vfs::memory::{StageContent, StageDestination};
+use crate::vfs::memory::{StageAction, StageContent, StageDestination};
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_owned_stage(
@@ -97,7 +97,7 @@ pub unsafe extern "C" fn safe_bash_owned_stage(
                     .collect::<Vec<_>>();
                 fs.finish_owned_stage(
                     entries,
-                    Some(StageDestination {
+                    StageAction::Publish(StageDestination {
                         path: paths[3],
                         parent: &stats[3],
                         expected: (flags & 1 != 0).then(|| &stats[4]),
@@ -105,7 +105,19 @@ pub unsafe extern "C" fn safe_bash_owned_stage(
                     }),
                 )?;
             }
-            2 if paths.len() == 3 && stats.len() == 3 => fs.finish_owned_stage(entries, None)?,
+            2..=5 if paths.len() == 3 && stats.len() == 3 => {
+                let action = match op {
+                    2 | 5 => StageAction::Remove { retained: op == 5 },
+                    3 => StageAction::Append(unsafe { slice_from_raw(data_ptr, data_len) }),
+                    _ if atime.is_finite() && mtime.is_finite() => {
+                        StageAction::Finish { atime, mtime }
+                    }
+                    _ => return Err(invalid.into()),
+                };
+                if let Some(stat) = fs.finish_owned_stage(entries, action)? {
+                    return Ok(stat_bytes(stat));
+                }
+            }
             _ => return Err(invalid.into()),
         }
         Ok(Vec::new())

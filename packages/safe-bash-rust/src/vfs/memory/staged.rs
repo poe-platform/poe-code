@@ -95,6 +95,13 @@ pub struct StageDestination<'a> {
     pub ancestors: Option<&'a [(&'a str, FileStat)]>,
 }
 
+pub enum StageAction<'a> {
+    Publish(StageDestination<'a>),
+    Remove { retained: bool },
+    Append(&'a [u8]),
+    Finish { atime: f64, mtime: f64 },
+}
+
 pub enum StageContent<'a> {
     File(&'a [u8]),
     Symlink(&'a str),
@@ -188,8 +195,8 @@ impl MemoryVfs {
     pub fn finish_owned_stage(
         &self,
         entries: [(&str, &FileStat); 3],
-        destination: Option<StageDestination<'_>>,
-    ) -> Result<(), String> {
+        action: StageAction<'_>,
+    ) -> Result<Option<FileStat>, String> {
         let [(parent, pst), (dir, dst), (file, fst)] = entries;
         let changed = "EAGAIN: staging entry changed";
         let dirname = crate::vfs::dirname_posix_path;
@@ -207,8 +214,39 @@ impl MemoryVfs {
         {
             return Err(changed.into());
         }
+        // An inode number is never reused by this store. A retained cleanup may
+        // follow its original parent after a rename, but never a replacement.
+        let retained = matches!(action, StageAction::Remove { retained: true });
+        let moved;
+        let (parent, dir, file) = if retained
+            && !self
+                .resolved_metadata(&state, parent)
+                .is_some_and(|s| s.identity == pst.identity)
+        {
+            let Some(EntryIdentity::Memory(store, ino)) = pst.identity else {
+                return Err(changed.into());
+            };
+            if store != self.id {
+                return Err(changed.into());
+            }
+            let (found, _) = state
+                .nodes
+                .iter()
+                .find(|(_, n)| matches!(n,MemoryNode::Directory{ino:id,..} if *id==ino))
+                .ok_or(changed)?;
+            let child = format!(
+                "{}/{}",
+                found.trim_end_matches('/'),
+                dir.rsplit('/').next().unwrap()
+            );
+            let leaf = format!("{}/{}", child, file.rsplit('/').next().unwrap());
+            moved = (found.clone(), child, leaf);
+            (moved.0.as_str(), moved.1.as_str(), moved.2.as_str())
+        } else {
+            (parent, dir, file)
+        };
         for (p, st) in [(parent, pst), (dir, dst)] {
-            if Self::resolve_mutation_entry(&state, p)? != p {
+            if !retained && Self::resolve_mutation_entry(&state, p)? != p {
                 return Err(changed.into());
             }
             let actual = self.resolved_metadata(&state, p).ok_or(changed)?;
@@ -224,70 +262,95 @@ impl MemoryVfs {
         if let Some(st) = &staged {
             st.check_receipt(fst, true, file)?;
         }
-        if let Some(target) = destination {
-            let source = staged.ok_or(changed)?;
-            if let Some(chain) = target.ancestors {
-                crate::vfs::validate_chmod_ancestry(target.path, 0, chain)?;
-                for (p, st) in chain {
-                    self.check_chmod_receipt(&state, p, st, false, true)?;
+        match action {
+            StageAction::Publish(target) => {
+                let source = staged.ok_or(changed)?;
+                if let Some(chain) = target.ancestors {
+                    crate::vfs::validate_chmod_ancestry(target.path, 0, chain)?;
+                    for (p, st) in chain {
+                        self.check_chmod_receipt(&state, p, st, false, true)?;
+                    }
                 }
+                let to = Self::mutation_entry(&state, target.path)?;
+                if state.devices.entry(&to).is_some() || to == "/" {
+                    return Err("EBUSY: resource busy or locked".into());
+                }
+                if target.path.ends_with('/') {
+                    return Err("ENOTDIR: not a directory".into());
+                }
+                let parent_path = dirname(&to);
+                let parent = self
+                    .resolved_metadata(&state, &parent_path)
+                    .ok_or(changed)?;
+                parent.check_receipt(target.parent, false, target.path)?;
+                if parent.mode & 0o300 != 0o300 {
+                    return Err("EACCES: permission denied".into());
+                }
+                let existing = self.resolved_metadata(&state, &to);
+                match (&existing, target.expected) {
+                    (None, None) => (),
+                    (Some(actual), Some(expected)) => actual.check_receipt(expected, true, &to)?,
+                    _ => return Err(changed.into()),
+                }
+                if parent_path == dir
+                    || to == dir
+                    || existing
+                        .as_ref()
+                        .is_some_and(|s| s.identity == source.identity)
+                {
+                    return Err("EINVAL: invalid staging destination".into());
+                }
+                if existing.is_some_and(|s| s.kind != VfsEntryKind::File) {
+                    return Err(changed.into());
+                }
+                Self::unlink_locked(&mut state, &to);
+                let mut node = state.take_node(file).unwrap();
+                let now = crate::vfs::now_ms();
+                node.status_changed(&mut state.files, now);
+                state.parent_changed(file, now);
+                state.parent_changed(&to, now);
+                state.insert_node(to, node);
             }
-            let to = Self::mutation_entry(&state, target.path)?;
-            if state.devices.entry(&to).is_some() || to == "/" {
-                return Err("EBUSY: resource busy or locked".into());
+            StageAction::Remove { .. } => {
+                let prefix = format!("{dir}/");
+                if state
+                    .nodes
+                    .range(prefix.clone()..)
+                    .take_while(|(p, _)| p.starts_with(&prefix))
+                    .any(|(p, _)| p != file)
+                {
+                    return Err("ENOTEMPTY: directory not empty".into());
+                }
+                if self.resolved_metadata(&state, parent).unwrap().mode & 0o300 != 0o300 {
+                    return Err("EACCES: permission denied".into());
+                }
+                Self::unlink_locked(&mut state, file);
+                Self::unlink_locked(&mut state, dir);
             }
-            if target.path.ends_with('/') {
-                return Err("ENOTDIR: not a directory".into());
+            StageAction::Append(_) | StageAction::Finish { .. } => {
+                if staged.is_none() || fst.kind != VfsEntryKind::File {
+                    return Err(changed.into());
+                }
+                if self.resolved_metadata(&state, parent).unwrap().mode & 0o300 != 0o300 {
+                    return Err("EACCES: permission denied".into());
+                }
+                match action {
+                    StageAction::Append(bytes) => {
+                        Self::store_file(&mut state, file.into(), &[], 0, None, Some(bytes))?
+                    }
+                    StageAction::Finish { atime, mtime } => {
+                        let ino = state.nodes[file].ino();
+                        let node = state.files.get_mut(&ino).unwrap();
+                        node.status_changed(crate::vfs::now_ms());
+                        node.set_times((Some(atime), Some(mtime)));
+                    }
+                    _ => unreachable!(),
+                }
+                self.bump_generation();
+                return Ok(self.resolved_metadata(&state, file));
             }
-            let parent_path = dirname(&to);
-            let parent = self
-                .resolved_metadata(&state, &parent_path)
-                .ok_or(changed)?;
-            parent.check_receipt(target.parent, false, target.path)?;
-            if parent.mode & 0o300 != 0o300 {
-                return Err("EACCES: permission denied".into());
-            }
-            let existing = self.resolved_metadata(&state, &to);
-            match (&existing, target.expected) {
-                (None, None) => (),
-                (Some(actual), Some(expected)) => actual.check_receipt(expected, true, &to)?,
-                _ => return Err(changed.into()),
-            }
-            if parent_path == dir
-                || to == dir
-                || existing
-                    .as_ref()
-                    .is_some_and(|s| s.identity == source.identity)
-            {
-                return Err("EINVAL: invalid staging destination".into());
-            }
-            if existing.is_some_and(|s| s.kind != VfsEntryKind::File) {
-                return Err(changed.into());
-            }
-            Self::unlink_locked(&mut state, &to);
-            let mut node = state.take_node(file).unwrap();
-            let now = crate::vfs::now_ms();
-            node.status_changed(&mut state.files, now);
-            state.parent_changed(file, now);
-            state.parent_changed(&to, now);
-            state.insert_node(to, node);
-        } else {
-            let prefix = format!("{dir}/");
-            if state
-                .nodes
-                .range(prefix.clone()..)
-                .take_while(|(p, _)| p.starts_with(&prefix))
-                .any(|(p, _)| p != file)
-            {
-                return Err("ENOTEMPTY: directory not empty".into());
-            }
-            if self.resolved_metadata(&state, parent).unwrap().mode & 0o300 != 0o300 {
-                return Err("EACCES: permission denied".into());
-            }
-            Self::unlink_locked(&mut state, file);
-            Self::unlink_locked(&mut state, dir);
         }
         self.bump_generation();
-        Ok(())
+        Ok(None)
     }
 }

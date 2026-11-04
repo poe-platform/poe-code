@@ -2,7 +2,7 @@ mod descriptor;
 mod transfer;
 mod staged;
 pub(crate) use staged::StagedFile;
-pub use staged::{StageContent, StageDestination};
+pub use staged::{StageAction, StageContent, StageDestination};
 use descriptor::DirectoryReadState;
 pub(crate) use descriptor::RetainedFile;
 

@@ -2174,11 +2174,42 @@ fn format_od_float(value: f64, size: usize) -> String {
     if value == 0.0 && value.is_sign_negative() {
         return "-0".to_string();
     }
-    if size == 4 {
-        format!("{}", value as f32)
-    } else {
-        format!("{value}")
+    if value == 0.0 { return "0".into(); }
+    let magnitude = value.abs();
+    let (min_normal, min_precision, max_precision) = if size == 4 { (f32::MIN_POSITIVE as f64, 6, 9) } else { (f64::MIN_POSITIVE, 15, 17) };
+    let mut precision = if magnitude < min_normal { 1 } else { min_precision };
+    // toPrecision rounds decimal ties away from zero. Keep the exact leading
+    // digits of the binary value (even a subnormal has at most 1074 places).
+    let exact = format!("{magnitude:.1074e}");
+    let (significand, exponent) = exact.split_once('e').unwrap();
+    let exponent: i32 = exponent.parse().unwrap();
+    let digits: Vec<_> = significand.bytes().filter(|&b| b != b'.').take(max_precision + 1).collect();
+    let mut coefficient = digits[..precision].iter().fold(0u64, |n, b| n * 10 + u64::from(b - b'0'));
+    let rounded = loop {
+        let nearest = coefficient + u64::from(digits[precision] >= b'5');
+        let decimal = format!("{nearest}e{}", exponent - precision as i32 + 1).parse::<f64>().unwrap();
+        if precision == max_precision || (if size == 4 { (decimal as f32) as f64 } else { decimal }) == magnitude {
+            break decimal.copysign(value);
+        }
+        coefficient = coefficient * 10 + u64::from(digits[precision] - b'0');
+        precision += 1;
+    };
+    let js = mcp_protocol_rust::numbers::format(rounded);
+    let power = rounded.abs().log10().floor() as i32;
+    if (-4..precision as i32).contains(&power) { return js; }
+    if let Some((mantissa, exp)) = js.split_once('e') {
+        return format!("{mantissa}e{:+03}", exp.parse::<i32>().unwrap());
     }
+    let unsigned = js.trim_start_matches('-');
+    let integer_len = unsigned.find('.').unwrap_or(unsigned.len());
+    let digits: String = unsigned.chars().filter(|&c| c != '.').collect();
+    let significant = digits.trim_start_matches('0');
+    let exp = integer_len as i32 - (digits.len() - significant.len()) as i32 - 1;
+    let significant = significant.trim_end_matches('0');
+    let mut mantissa = significant.to_string();
+    if mantissa.len() > 1 { mantissa.insert(1, '.'); }
+    if rounded.is_sign_negative() { mantissa.insert(0, '-'); }
+    format!("{mantissa}e{exp:+03}")
 }
 
 fn format_od_row(

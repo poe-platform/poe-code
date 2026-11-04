@@ -543,6 +543,24 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("od formats single and double precision at fixed and exponential boundaries", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [size, expected] of [
+      [4, ["1e-05","0.0001","1e+06","1.0000001","1e-45","-0","inf","nan"]],
+      [8, ["1e-05","0.0001","1000000","1.0000001192092896","5e-324","-0","inf","nan"]],
+    ]) {
+      const bytes = new Uint8Array(size * expected.length);
+      const view = new DataView(bytes.buffer);
+      [1e-5,1e-4,1e6,1.0000001192092896,size === 4 ? 2 ** -149 : Number.MIN_VALUE,-0,Infinity,NaN].forEach((n,i) => {
+        if (size === 4) view.setFloat32(i*size,n,true); else view.setFloat64(i*size,n,true);
+      });
+      const r = await bash.exec("od -An -v -w" + size + " -tf" + size, {stdin:bytes});
+      assert.deepEqual([r.exitCode, r.stdout.trimEnd().split("\n").map(line => line.trim())], [0,expected]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("od admits whole chunks but stops reading as soon as its range or output ends", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

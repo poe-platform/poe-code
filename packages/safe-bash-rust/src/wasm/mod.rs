@@ -704,7 +704,7 @@ pub unsafe extern "C" fn safe_bash_chmod_conditional(
                 revision: count(3), size: count(4).and_then(|n|usize::try_from(n).ok()).unwrap_or(usize::MAX),
                 mode: count(5).and_then(|n|u32::try_from(n).ok()).unwrap_or(u32::MAX), nlink: count(6).and_then(|n|usize::try_from(n).ok()),
                 mtime_ms: n(7), ctime_ms: Some(n(8)), atime_ms: 0., birthtime_ms: None,
-                uid:None, gid:None, allocated_bytes:None, io_block_size:None, filesystem_type:None,
+                uid:None, gid:None, allocated_bytes:None, io_block_size:None, preferred_io_block_size:None, filesystem_type:None,
             })
         });
         let ancestors = paths.map(|p| Ok::<_,String>((p,stats.next().unwrap()?))).collect::<Result<Vec<_>,_>>()?;
@@ -821,7 +821,8 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
     buf.extend_from_slice(&st.ctime_ms.unwrap_or(f64::NAN).to_le_bytes());
     buf.extend_from_slice(&st.birthtime_ms.unwrap_or(f64::NAN).to_le_bytes());
     let fields = u32::from(st.uid.is_some()) | (u32::from(st.gid.is_some()) << 1)
-        | (u32::from(st.nlink.is_some()) << 2) | (u32::from(st.filesystem_type == Some("memory")) << 3) | (u32::from(st.revision.is_some()) << 4);
+        | (u32::from(st.nlink.is_some()) << 2) | (u32::from(st.filesystem_type == Some("memory")) << 3) | (u32::from(st.revision.is_some()) << 4)
+        | (u32::from(st.preferred_io_block_size.is_some()) << 6);
     buf.extend_from_slice(&fields.to_le_bytes());
     buf.extend_from_slice(&st.uid.unwrap_or(0).to_le_bytes());
     buf.extend_from_slice(&st.gid.unwrap_or(0).to_le_bytes());
@@ -835,6 +836,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
         if let Some(EntryIdentity::OverlayDirectory { scope, .. }) = st.identity { buf.extend_from_slice(&scope.to_le_bytes()); }
     }
     if let Some(revision) = st.revision { buf.extend_from_slice(&revision.to_le_bytes()); }
+    if let Some(size) = st.preferred_io_block_size { buf.extend_from_slice(&size.to_le_bytes()); }
     buf
 }
 

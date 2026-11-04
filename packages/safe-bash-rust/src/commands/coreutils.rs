@@ -13011,7 +13011,7 @@ fn pr_fs_reason(error: &str) -> &str {
     match error.split(':').next() {
         Some("ENAMETOOLONG") => "File name too long",
         Some("ENOTSUP") => "Operation not supported",
-        Some("ENOENT" | "EACCES" | "EPERM" | "EISDIR" | "ENOTDIR" | "EIO" | "ELOOP") => install_reason(error),
+        Some("ENOENT" | "EACCES" | "EPERM" | "EISDIR" | "ENOTDIR" | "EIO" | "ELOOP") => file_error_reason(error),
         _ => error,
     }
 }
@@ -16159,11 +16159,11 @@ struct ShufRng<'a> {
 impl ShufRng<'_> {
     fn refill(&mut self) -> Result<(), String> {
         if let Some((name, read)) = &mut self.source {
-            read(&mut self.bytes).map_err(|e| format!("shuf: {name}: read error: {}\n", install_reason(&e)))?;
+            read(&mut self.bytes).map_err(|e| format!("shuf: {name}: read error: {}\n", file_error_reason(&e)))?;
             if self.bytes.is_empty() { return Err(format!("shuf: {name}: end of file\n")); }
         } else {
             self.bytes.resize(4096, 0);
-            crate::vfs::memory::fill_random(&mut self.bytes).map_err(|e| format!("shuf: getrandom: {}\n", install_reason(&e)))?;
+            crate::vfs::memory::fill_random(&mut self.bytes).map_err(|e| format!("shuf: getrandom: {}\n", file_error_reason(&e)))?;
         }
         self.offset = 0;
         Ok(())
@@ -16435,7 +16435,7 @@ fn cmd_shuf<'a>(
     let sep = if zero_terminated { b'\0' } else { b'\n' };
     let unicode = ["LC_ALL","LC_CTYPE","LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()))
         .is_some_and(|s| { let s = s.to_ascii_lowercase(); s.ends_with("utf-8") || s.ends_with("utf8") });
-    let fail_open = |name: &str, e: &str| err_out(&format!("shuf: {}: {}\n", fmt_quote::filename(name, unicode), install_reason(e)), 1);
+    let fail_open = |name: &str, e: &str| err_out(&format!("shuf: {}: {}\n", fmt_quote::filename(name, unicode), file_error_reason(e)), 1);
     let mut rng = ShufRng { value: 0, maximum: 0, bytes: Vec::new(), offset: 0, source: None };
     let open_random = |rng: &mut ShufRng<'a>, name: &str| -> Result<(), BuiltinOutcome> {
         let (_, reader) = shuf_file(name, cwd, fs).map_err(|e| fail_open(name, &e))?;
@@ -16496,7 +16496,7 @@ fn cmd_shuf<'a>(
             }
         } else { stdin.read_stdin(consume) };
         if exceeded { return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1); }
-        if let Err(e) = read { return err_out(&format!("shuf: read error: {}\n", install_reason(&e)), 1); }
+        if let Err(e) = read { return err_out(&format!("shuf: read error: {}\n", file_error_reason(&e)), 1); }
         if !pending.is_empty() { accept(&pending); }
         if let Some(e) = error { return err_out(&e, 1); }
         records.len() as u64
@@ -16547,7 +16547,7 @@ fn cmd_shuf<'a>(
         if let Some(sink) = &mut target {
             if let Err(e) = sink(Some(bytes)) {
                 out.exit_code = 1;
-                out.stderr.push_str(&format!("shuf: write error: {}\n", install_reason(&e)));
+                out.stderr.push_str(&format!("shuf: write error: {}\n", file_error_reason(&e)));
                 return false;
             }
         } else if !write(1, &crate::vfs::bytes_to_stream_string(bytes), out) { return false; }
@@ -16590,7 +16590,7 @@ fn cmd_shuf<'a>(
     if !batch.is_empty() && !flush(&batch, &mut out) { return out; }
     if let Some(mut sink) = target && let Err(e) = sink(None) {
         out.exit_code = 1;
-        out.stderr.push_str(&format!("shuf: write error: {}\n", install_reason(&e)));
+        out.stderr.push_str(&format!("shuf: write error: {}\n", file_error_reason(&e)));
     }
     out
 }
@@ -17360,7 +17360,7 @@ fn dd_output<'a>(
     start: usize, mode: u32,
 ) -> Result<crate::vfs::ChunkWriter<'a>, String> {
     use crate::vfs::RedirectAccess;
-    let failed = |e: String| format!("failed to open '{name}': {}", install_reason(&e));
+    let failed = |e: String| format!("failed to open '{name}': {}", file_error_reason(&e));
     let unsupported = |what: &str| format!("{what}: Operation not supported by the filesystem stream adapter");
     let path = absolute_operand(cwd, name);
     if path.is_empty() { return Err(failed("ENOENT: empty path".into())); }
@@ -17388,7 +17388,7 @@ fn dd_output<'a>(
     let Some(handle) = handle else { return fs.open_command_stream(&path, append, false, mode, None).map_err(failed); };
     fs.command_descriptor_op().map_err(failed)?; // fstat on the opened descriptor
     if !keep && start != 0 {
-        fs.command_descriptor_op().and_then(|()| handle.truncate_to(start)).map_err(|e| format!("'{name}': cannot seek: {}", install_reason(&e)))?;
+        fs.command_descriptor_op().and_then(|()| handle.truncate_to(start)).map_err(|e| format!("'{name}': cannot seek: {}", file_error_reason(&e)))?;
     }
     let mut offset = start;
     Ok(Box::new(move |chunk| {
@@ -17672,7 +17672,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
         } else {
             match dd_input(fs, cwd, name, iflags.contains(&"nofollow")) {
                 Ok((size, reader)) => { input_size = size; reader }
-                Err(e) => return err_out(&format!("{}dd: failed to open '{name}': {}\n", warnings.concat(), install_reason(&e)), 1),
+                Err(e) => return err_out(&format!("{}dd: failed to open '{name}': {}\n", warnings.concat(), file_error_reason(&e)), 1),
             }
         };
         file_input = Some(reader);
@@ -17750,7 +17750,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
             if !write(1, &crate::vfs::bytes_to_stream_string(record), &mut result) { return false; }
         } else if let Some(target) = &mut target && let Err(e) = target(Some(record)) {
             let stage = if two_buffers && record.len() == obs { "writing to" } else { "error writing" };
-            result.stderr.push_str(&format!("dd: {stage} '{}': {}\n", out_file.as_deref().unwrap(), install_reason(&e)));
+            result.stderr.push_str(&format!("dd: {stage} '{}': {}\n", out_file.as_deref().unwrap(), file_error_reason(&e)));
             result.exit_code = 1;
             return false;
         }
@@ -17926,7 +17926,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
 
     let mut stderr = warnings.concat();
     if let Some(e) = read_error {
-        stderr.push_str(&format!("dd: error reading '{}': {}\n", in_file.as_deref().unwrap(), install_reason(&e)));
+        stderr.push_str(&format!("dd: error reading '{}': {}\n", in_file.as_deref().unwrap(), file_error_reason(&e)));
         result.exit_code = 1;
     }
     if status_level != "none" {
@@ -17951,7 +17951,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String
     }
 
     if writable && let Some(mut target) = target && let Err(e) = target(None) {
-        result.stderr.push_str(&format!("dd: closing output file '{}': {}\n", out_file.as_deref().unwrap(), install_reason(&e)));
+        result.stderr.push_str(&format!("dd: closing output file '{}': {}\n", out_file.as_deref().unwrap(), file_error_reason(&e)));
         result.exit_code = 1;
     }
     result.stderr.push_str(&stderr);
@@ -17982,7 +17982,7 @@ fn ensure_install_dirs(
         }
         current.push_str(part);
         let label = fmt_quote::quote(&current, true, false);
-        let fail = |e: String| format!("cannot create directory {label}: {}", install_reason(&e));
+        let fail = |e: String| format!("cannot create directory {label}: {}", file_error_reason(&e));
         let operand = absolute_operand(cwd, &current);
         let mode = final_mode.filter(|_| parts.peek().is_none());
         match fs.inspect_command_entry(&operand, true, "stat") {
@@ -17996,13 +17996,13 @@ fn ensure_install_dirs(
                         fs.chmod(&path, wanted).map_err(|e| {
                             format!(
                                 "cannot change permissions of {label}: {}",
-                                install_reason(&e)
+                                file_error_reason(&e)
                             )
                         })?;
                     }
                 }
             }
-            Err(e) if install_reason(&e) == "No such file or directory" => {
+            Err(e) if file_error_reason(&e) == "No such file or directory" => {
                 let path = fs.access_path(&operand, false).map_err(fail)?;
                 fs.mkdir_one(&path, mode.map_or(0o755, |(bits, _)| bits))
                     .map_err(fail)?;
@@ -18018,7 +18018,7 @@ fn ensure_install_dirs(
     }
 }
 
-fn install_reason(error: &str) -> &str {
+fn file_error_reason(error: &str) -> &str {
     if error.ends_with("(os error 2)") {
         return "No such file or directory";
     }
@@ -18311,7 +18311,7 @@ fn cmd_install(
         } else {
             match fs.inspect_command_entry(&absolute_operand(cwd, target), true, "stat") {
                 Ok((_, stat)) => Some(stat.kind),
-                Err(e) => match install_reason(&e) {
+                Err(e) => match file_error_reason(&e) {
                     "No such file or directory" => None,
                     "Not a directory" | "Too many levels of symbolic links" if !explicit => None,
                     reason if explicit => return err_out(&format!("install: failed to access {target_label}: {reason}\n"), 1),
@@ -18447,7 +18447,7 @@ fn cmd_install(
             }
             let (src, source) = fs
                 .inspect_command_entry(&absolute_operand(cwd, src_arg), true, "stat")
-                .map_err(|e| format!("cannot stat {src_label}: {}", install_reason(&e)))?;
+                .map_err(|e| format!("cannot stat {src_label}: {}", file_error_reason(&e)))?;
             let directory_error =
                 || format!("cannot overwrite directory {dst_label} with non-directory {src_label}");
             if source.kind == VfsEntryKind::Directory {
@@ -18459,13 +18459,13 @@ fn cmd_install(
             let create_error = |e: String| {
                 format!(
                     "cannot create regular file {dst_label}: {}",
-                    install_reason(&e)
+                    file_error_reason(&e)
                 )
             };
             let operand = absolute_operand(cwd, &display);
             let dst = match fs.access_path(&operand, false) {
                 Ok(path) => path,
-                Err(e) if install_reason(&e) == "No such file or directory" => {
+                Err(e) if file_error_reason(&e) == "No such file or directory" => {
                     if verbose {
                         out_buf.push_str(&format!("{src_label} -> {dst_label}\n"));
                     }
@@ -18475,7 +18475,7 @@ fn cmd_install(
             };
             let target = match fs.lstat(&dst) {
                 Ok(st) => Some(st),
-                Err(e) if install_reason(&e) == "No such file or directory" => None,
+                Err(e) if file_error_reason(&e) == "No such file or directory" => None,
                 Err(e) => return Err(create_error(e)),
             };
             let mut backup = None;
@@ -18514,14 +18514,14 @@ fn cmd_install(
             if let Some(st) = target {
                 if backup_mode == BackupMode::None {
                     fs.remove_one(&dst, false).map_err(|e| {
-                        format!("cannot remove {dst_label}: {}", install_reason(&e))
+                        format!("cannot remove {dst_label}: {}", file_error_reason(&e))
                     })?;
                     if verbose {
                         out_buf.push_str(&format!("removed {dst_label}\n"));
                     }
                 } else {
                     let backup_error =
-                        |e: String| format!("cannot backup {dst_label}: {}", install_reason(&e));
+                        |e: String| format!("cannot backup {dst_label}: {}", file_error_reason(&e));
                     let (path, numbered) = super::fs::backup_path(&dst, backup_mode, &suffix, fs)
                         .map_err(backup_error)?;
                     let label =
@@ -18539,7 +18539,7 @@ fn cmd_install(
                                 "cannot safely replace backup {label}: Operation not supported (unknown identity)"
                             ));
                         }
-                        Err(e) if install_reason(&e) != "No such file or directory" => {
+                        Err(e) if file_error_reason(&e) != "No such file or directory" => {
                             return Err(backup_error(e));
                         }
                         _ => {}
@@ -18572,7 +18572,7 @@ fn cmd_install(
             if preserve_ts {
                 fs.set_times(&dst, Some(source.atime_ms), Some(source.mtime_ms))
                     .map_err(|e| {
-                        format!("preserving times for {dst_label}: {}", install_reason(&e))
+                        format!("preserving times for {dst_label}: {}", file_error_reason(&e))
                     })?;
             }
             if sources.len() > 1 {
@@ -20889,7 +20889,7 @@ fn cmd_tsort(
     }
 }
 
-fn parse_truncate_size(spec: &str, prev_op: char) -> Result<(usize, char), String> {
+fn parse_truncate_size(spec: &str, prev_op: char, unicode: bool) -> Result<(u64, char), String> {
     let trimmed = spec.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
     let mut op = prev_op;
     let mut rest = trimmed;
@@ -20897,10 +20897,12 @@ fn parse_truncate_size(spec: &str, prev_op: char) -> Result<(usize, char), Strin
         op = rest.chars().next().unwrap();
         rest = r.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
     }
+    let number = rest;
+    let invalid = || format!("truncate: Invalid number: {}\n", fmt_quote::quote(number, false, unicode));
     let mut signed = false;
     if rest.starts_with('+') || rest.starts_with('-') {
         if op != '=' {
-            return Err("truncate: multiple relative modifiers specified\n".to_string());
+            return Err("truncate: multiple relative modifiers specified\nTry 'truncate --help' for more information.\n".to_string());
         }
         op = rest.chars().next().unwrap();
         signed = true;
@@ -20910,16 +20912,15 @@ fn parse_truncate_size(spec: &str, prev_op: char) -> Result<(usize, char), Strin
     let unit = &rest[num_len..];
     let base_num = if num_len == 0 {
         if signed || unit.is_empty() {
-            return Err(format!("truncate: Invalid number: '{spec}'\n"));
+            return Err(invalid());
         }
-        1usize
+        1u128
     } else {
         rest[..num_len]
-            .parse::<usize>()
-            .map_err(|_| format!("truncate: Invalid number: '{spec}'\n"))?
+            .parse::<u128>().unwrap_or(u128::MAX)
     };
     let mult = if unit.is_empty() {
-        1usize
+        1u128
     } else {
         let first = unit.chars().next().unwrap_or('\0');
         let tail = &unit[first.len_utf8()..];
@@ -20934,23 +20935,26 @@ fn parse_truncate_size(spec: &str, prev_op: char) -> Result<(usize, char), Strin
             'Y' => 8u32,
             'R' => 9u32,
             'Q' => 10u32,
-            _ => return Err(format!("truncate: Invalid number: '{spec}'\n")),
+            _ => return Err(invalid()),
         };
         if !matches!(tail, "" | "B" | "D" | "iB") {
-            return Err(format!("truncate: Invalid number: '{spec}'\n"));
+            return Err(invalid());
         }
         let base = if tail == "B" || tail == "D" {
-            1000usize
+            1000u128
         } else {
-            1024usize
+            1024u128
         };
         base.saturating_pow(power)
     };
     let delta = base_num.saturating_mul(mult);
+    if delta > (i64::MAX as u128) + u128::from(number.starts_with('-')) {
+        return Err(format!("truncate: Invalid number: {}: Value too large for defined data type\n", fmt_quote::quote(number, false, unicode)));
+    }
     if (op == '/' || op == '%') && delta == 0 {
         return Err("truncate: division by zero\n".to_string());
     }
-    Ok((delta, op))
+    Ok((delta as u64, if prev_op == '-' && !signed && op == '-' { '+' } else { op }))
 }
 
 fn cmd_truncate(
@@ -20961,13 +20965,15 @@ fn cmd_truncate(
 ) -> BuiltinOutcome {
     let mut has_size = false;
     let mut op = '=';
-    let mut delta = 0usize;
+    let mut delta = 0u64;
     let mut ref_file: Option<String> = None;
     let mut no_create = false;
     let mut io_blocks = false;
     let mut ended = false;
     let mut files = Vec::new();
     let posix = env.contains_key("POSIXLY_CORRECT");
+    let unicode = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()))
+        .is_some_and(|s| { let s = s.to_ascii_lowercase(); s.ends_with("utf-8") || s.ends_with("utf8") });
 
     let long_opts = [
         ("no-create", "c"),
@@ -21062,7 +21068,7 @@ fn cmd_truncate(
             if key == "r" {
                 ref_file = Some(val);
             } else {
-                match parse_truncate_size(&val, op) {
+                match parse_truncate_size(&val, op, unicode) {
                     Ok((d, new_op)) => {
                         delta = d;
                         op = new_op;
@@ -21097,7 +21103,7 @@ fn cmd_truncate(
                     if key == 'r' {
                         ref_file = Some(val);
                     } else {
-                        match parse_truncate_size(&val, op) {
+                        match parse_truncate_size(&val, op, unicode) {
                             Ok((d, new_op)) => {
                                 delta = d;
                                 op = new_op;
@@ -21141,55 +21147,63 @@ fn cmd_truncate(
     }
 
     let ref_len = if let Some(rf) = &ref_file {
-        let rp = resolve_posix_path(cwd, rf);
-        match fs.stat(&rp) {
-            Ok(st) => Some(st.size),
-            Err(_) => {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("truncate: cannot stat '{rf}': No such file or directory\n"),
-                    exit_code: 1,
-                };
+        let stat = super::fs::command_operand(cwd, rf).map_err(str::to_owned)
+            .and_then(|path| fs.inspect_command_entry(&path, true, "stat"));
+        match stat {
+            Ok((path, st)) if st.kind == crate::vfs::VfsEntryKind::Directory => {
+                match fs.open_read_file(&path, true).and_then(|handle| handle.seek_end()) {
+                    Ok(end) => Some(end),
+                    Err(e) => return err_out(&format!("truncate: cannot get the size of {}: {}\n", fmt_quote::quote(rf, true, unicode), file_error_reason(&e)), 1),
+                }
             }
+            Ok((_, st)) => Some(st.size as u64),
+            Err(e) => return err_out(&format!("truncate: cannot stat {}: {}\n", fmt_quote::quote(rf, true, unicode), file_error_reason(&e)), 1),
         }
-    } else {
-        None
-    };
+    } else { None };
 
+    let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
     let mut stderr = String::new();
     let mut exit_code = 0;
     for f in files {
-        let full = resolve_posix_path(cwd, &f);
-        if fs.is_dir(&full) {
-            stderr.push_str(&format!(
-                "truncate: cannot open '{f}' for writing: Is a directory\n"
-            ));
-            exit_code = 1;
-            continue;
-        }
-        if no_create && !fs.exists(&full) {
-            continue;
-        }
-        let mut bytes = fs.read_file(&full).unwrap_or_default();
-        let base = ref_len.unwrap_or(bytes.len());
-        let target_len = if !has_size {
-            base
-        } else {
-            match op {
-                '+' => base.saturating_add(delta),
-                '-' => base.saturating_sub(delta),
-                '<' => base.min(delta),
-                '>' => base.max(delta),
-                '/' => (base / delta) * delta,
-                '%' => base.div_ceil(delta) * delta,
-                _ => delta,
+        let label = fmt_quote::quote(&f, true, unicode);
+        let result = (|| -> Result<(), String> {
+            let open = super::fs::command_operand(cwd, &f).map_err(str::to_owned)
+                .and_then(|path| fs.access_path(&path, true))
+                .and_then(|path| fs.open_redirect_file(&path, crate::vfs::RedirectAccess::Write, (!no_create).then_some(mode)));
+            let handle = match open {
+                Ok(file) => file,
+                Err(e) if no_create && file_error_reason(&e) == "No such file or directory" => return Ok(()),
+                Err(e) => return Err(format!("cannot open {label} for writing: {}", file_error_reason(&e))),
+            };
+            let stat = if io_blocks || op != '=' && ref_len.is_none() {
+                match &handle {
+                    Some(file) => Some(file.stat().map_err(|e| format!("cannot fstat {label}: {}", file_error_reason(&e)))?),
+                    None => Some(fs.stat(&absolute_operand(cwd, &f)).map_err(|e| format!("cannot fstat {label}: {}", file_error_reason(&e)))?),
+                }
+            } else { None };
+            let base = ref_len.unwrap_or_else(|| stat.as_ref().map_or(0, |s| s.size as u64));
+            let mut size = if has_size { delta } else { base };
+            if io_blocks {
+                let block = stat.as_ref().and_then(|s| s.io_block_size.or(s.preferred_io_block_size)).filter(|b| *b > 0)
+                    .ok_or_else(|| format!("cannot get the I/O block size of {label}: Operation not supported"))?;
+                size = size.checked_mul(block).filter(|s| *s <= i64::MAX as u64 + u64::from(op == '-'))
+                    .ok_or_else(|| format!("overflow in {} * {block} byte blocks for file {label}", if op == '-' { -(size as i128) } else { size as i128 }))?;
             }
-        };
-        bytes.resize(target_len, 0u8);
-        if let Err(e) = fs.write_file(&full, &bytes) {
-            stderr.push_str(&format!("truncate: cannot open '{f}' for writing: {e}\n"));
-            exit_code = 1;
-        }
+            let target = match op {
+                '+' => base.checked_add(size).filter(|s| *s <= i64::MAX as u64).ok_or_else(|| format!("overflow extending size of file {label}"))?,
+                '-' => base.saturating_sub(size),
+                '<' => base.min(size),
+                '>' => base.max(size),
+                '/' => base / size * size,
+                '%' => base.div_ceil(size).checked_mul(size).filter(|s| *s <= i64::MAX as u64).ok_or_else(|| format!("overflow rounding up size of file {label}"))?,
+                _ => size,
+            };
+            let resized = usize::try_from(target).ok().filter(|_| target < 1 << 53)
+                .ok_or_else(|| "EFBIG: file too large".to_owned())
+                .and_then(|len| handle.as_ref().ok_or_else(|| "EINVAL: invalid argument".to_owned())?.truncate_to(len));
+            resized.map_err(|e| format!("failed to truncate {label} at {target} bytes: {}", file_error_reason(&e)))
+        })();
+        if let Err(e) = result { stderr.push_str(&format!("truncate: {e}\n")); exit_code = 1; }
     }
     BuiltinOutcome {
         stdout: String::new(),
@@ -21300,6 +21314,45 @@ mod tests {
         }
         let r = cmd_install(&args(&["f", "f", "missing/.."]), "/w", &BTreeMap::new(), &fs);
         assert_eq!(r.stderr, "install: target 'missing/..': No such file or directory\n");
+    }
+
+    #[test]
+    fn truncate_retains_write_only_bytes_and_applies_limits_after_opening() {
+        let fs = MemoryVfs::new();
+        fs.set_max_file_bytes(4);
+        fs.write_file("/f", b"ABC").unwrap();
+        fs.hard_link("/f", "/alias").unwrap();
+        fs.chmod("/f", 0o200).unwrap();
+        let r = cmd_truncate(&args(&["-s+1", "f"]), "/", &BTreeMap::new(), &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        fs.chmod("/f", 0o600).unwrap();
+        assert_eq!(fs.read_file("/alias").unwrap(), b"ABC\0");
+        let r = cmd_truncate(&args(&["-s5", "new", "f"]), "/", &BTreeMap::new(), &fs);
+        assert_eq!(fs.stat("/new").unwrap().size, 0);
+        assert_eq!(fs.read_file("/f").unwrap(), b"ABC\0");
+        assert_eq!(r.stderr, "truncate: failed to truncate 'new' at 5 bytes: File too large\ntruncate: failed to truncate 'f' at 5 bytes: File too large\n");
+        let r = cmd_truncate(&args(&["-s1", "", "missing/../f"]), "/", &BTreeMap::new(), &fs);
+        assert_eq!(r.stderr, "truncate: cannot open '' for writing: No such file or directory\ntruncate: cannot open 'missing/../f' for writing: No such file or directory\n");
+        assert_eq!(fs.read_file("/f").unwrap(), b"ABC\0");
+    }
+
+    #[test]
+    fn truncate_uses_descriptor_block_size_and_checks_large_offsets_before_resize() {
+        let fs = MemoryVfs::new();
+        fs.set_max_file_bytes(4);
+        let env = BTreeMap::from([("\0umask".into(), "077".into())]);
+        for (operands, diagnostic) in [
+            (vec!["-os1", "f"], "failed to truncate 'f' at 65536 bytes: File too large"),
+            (vec!["-r", "/", "f"], "failed to truncate 'f' at 9223372036854775807 bytes: File too large"),
+            (vec!["-s9007199254740992", "f"], "failed to truncate 'f' at 9007199254740992 bytes: File too large"),
+            (vec!["-s1Q", "f"], "Invalid number: '1Q': Value too large for defined data type"),
+        ] {
+            let r = cmd_truncate(&args(&operands), "/", &env, &fs);
+            assert_eq!(r.exit_code, 1);
+            assert_eq!(r.stderr, format!("truncate: {diagnostic}\n"));
+            let stat = fs.stat("/f").unwrap();
+            assert_eq!((stat.size, stat.mode & 0o777), (0, 0o600));
+        }
     }
 
     #[test]

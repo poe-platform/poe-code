@@ -4476,6 +4476,18 @@ test("du validates options before traversal and formats explicit block sizes lik
   } finally { wasm.dispose(); }
 });
 
+test("truncate uses the preferred block size when the default null device has no I/O block size", async () => {
+  const bash = new RustWasmBash({ files: { "/f": "abc" }, symlinks: { "/alias": "/dev/null" } });
+  try {
+    const file = await bash.fs.stat("/f"), device = await bash.fs.stat("/alias");
+    assert.deepEqual([file.ioBlockSize, file.preferredIoBlockSize], [65536, 4096]);
+    assert.deepEqual([device.ioBlockSize, device.preferredIoBlockSize], [undefined, 4096]);
+    const result = await bash.exec("truncate -os2 /alias");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "truncate: failed to truncate '/alias' at 8192 bytes: Invalid argument\n");
+  } finally { bash.dispose(); }
+});
+
 test("install validates modes, accounts and host operations before changing files", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { installCommands } = await import("@poe-platform/safe-bash/commands/install");

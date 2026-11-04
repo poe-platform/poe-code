@@ -62,6 +62,7 @@ pub struct FileStat {
     pub uid: Option<u32>,
     pub gid: Option<u32>,
     pub io_block_size: Option<u64>,
+    pub preferred_io_block_size: Option<u64>,
     pub filesystem_type: Option<&'static str>,
     pub allocated_bytes: Option<u64>,
     pub identity: Option<EntryIdentity>,
@@ -172,6 +173,7 @@ pub trait OpenRedirectFile: std::fmt::Debug {
     fn revision(&self) -> Option<u64> { None }
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String>;
     fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String>;
+    fn stat(&self) -> Result<FileStat, String> { Err("ENOTSUP: operation not supported".into()) }
     fn truncate_to(&self, _len: usize) -> Result<(), String> { Err("ENOTSUP: operation not supported".into()) }
 }
 
@@ -189,6 +191,7 @@ pub type ChunkWriter<'a> = Box<dyn FnMut(Option<&[u8]>) -> Result<(), String> + 
 /// Positioned reads and metadata on the same opened object, even after unlink.
 pub trait FileReadHandle: Send + Sync {
     fn stat(&self) -> Result<FileStat, String>;
+    fn seek_end(&self) -> Result<u64, String> { Err("ENOTSUP: operation not supported".into()) }
     fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String>;
 }
 
@@ -527,7 +530,7 @@ pub trait SafeBashFs: Send + Sync {
         if self.is_dir(&norm) {
             return Ok(FileStat {
                 revision: None,
-                nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
+                nlink: None, uid: None, gid: None, io_block_size: None, preferred_io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Directory,
@@ -541,7 +544,7 @@ pub trait SafeBashFs: Send + Sync {
         if let Ok(data) = self.read_file(&norm) {
             return Ok(FileStat {
                 revision: None,
-                nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
+                nlink: None, uid: None, gid: None, io_block_size: None, preferred_io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::File,
@@ -560,7 +563,7 @@ pub trait SafeBashFs: Send + Sync {
         if let Ok(target) = self.readlink(&norm) {
             return Ok(FileStat {
                 revision: None,
-                nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
+                nlink: None, uid: None, gid: None, io_block_size: None, preferred_io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Symlink,

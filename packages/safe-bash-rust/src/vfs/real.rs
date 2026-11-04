@@ -141,6 +141,10 @@ impl RealVfs {
     fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
         let host = self.walk(&self.root, path, if follow { Walk::Follow } else { Walk::Entry }, false)?;
         let meta = std::fs::symlink_metadata(host).map_err(|e| e.to_string())?;
+        Self::file_stat(meta)
+    }
+
+    fn file_stat(meta: std::fs::Metadata) -> Result<FileStat, String> {
         let kind = if meta.is_file() {
             VfsEntryKind::File
         } else if meta.is_dir() {
@@ -175,7 +179,7 @@ impl RealVfs {
         };
         Ok(FileStat {
             revision: None,
-            nlink, uid, gid, io_block_size, filesystem_type: None,
+            nlink, uid, gid, io_block_size, preferred_io_block_size: io_block_size, filesystem_type: None,
             identity,
             allocated_bytes,
             kind,
@@ -196,6 +200,8 @@ impl RealVfs {
 }
 
 impl super::OpenRedirectFile for std::fs::File {
+    fn stat(&self) -> Result<FileStat, String> { RealVfs::file_stat(self.metadata().map_err(mutation_error)?) }
+
     fn truncate_to(&self, len: usize) -> Result<(), String> { self.set_len(len as u64).map_err(mutation_error) }
 
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {

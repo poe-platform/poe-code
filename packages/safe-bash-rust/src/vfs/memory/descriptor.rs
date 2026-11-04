@@ -22,6 +22,8 @@ impl crate::vfs::FileReadHandle for RetainedDirectory {
             None => Ok(handle.stat.clone()),
         }
     }
+    // Memory directories use the same end offset as the production ext4 directory model.
+    fn seek_end(&self) -> Result<u64, String> { Ok(i64::MAX as u64) }
     fn read(&self, _: u64, _: usize) -> Result<Vec<u8>, String> {
         Err("EISDIR".into())
     }
@@ -63,6 +65,8 @@ impl std::fmt::Debug for RetainedFile {
 impl crate::vfs::OpenRedirectFile for RetainedFile {
     fn revision(&self) -> Option<u64> { Some(self.fs.generation()) }
 
+    fn stat(&self) -> Result<FileStat, String> { Ok(self.stat()) }
+
     fn truncate_to(&self, len: usize) -> Result<(), String> {
         if self.access == crate::vfs::RedirectAccess::Read { return Err("EBADF: bad file descriptor".into()); }
         self.truncate(len as u64)
@@ -95,6 +99,7 @@ impl MemoryVfs {
 
 impl crate::vfs::FileReadHandle for RetainedFile {
     fn stat(&self) -> Result<FileStat, String> { Ok(self.stat()) }
+    fn seek_end(&self) -> Result<u64, String> { Ok(self.stat().size as u64) }
     fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> { Ok(self.read(offset, maximum)) }
 }
 
@@ -105,7 +110,7 @@ impl RetainedFile {
         FileStat {
             revision: Some(file.revision),
             nlink: Some(usize::from(file.linked) + state.extra_links.get(&self.ino).map_or(0, |g| g.extra)),
-            uid: Some(0), gid: Some(0), io_block_size: Some(65536), filesystem_type: Some("memory"),
+            uid: Some(0), gid: Some(0), io_block_size: Some(65536), preferred_io_block_size: Some(4096), filesystem_type: Some("memory"),
             identity: Some(EntryIdentity::Memory(self.fs.id, self.ino)),
             allocated_bytes: None,
             kind: VfsEntryKind::File,

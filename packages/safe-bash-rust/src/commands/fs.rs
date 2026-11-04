@@ -64,7 +64,7 @@ fn err_out(stderr: &str, exit_code: i32) -> BuiltinOutcome {
     }
 }
 
-fn command_operand(cwd: &str, path: &str) -> Result<String,&'static str> {
+pub(super) fn command_operand(cwd: &str, path: &str) -> Result<String,&'static str> {
     if path.is_empty() { return Err("ENOENT: no such file or directory ''"); }
     if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve"); }
     Ok(absolute_operand(cwd,path))

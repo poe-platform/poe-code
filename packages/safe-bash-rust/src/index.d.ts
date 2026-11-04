@@ -43,6 +43,7 @@ export interface WasmFileStat {
   readonly gid?: number;
   readonly allocatedBytes?: number;
   readonly ioBlockSize?: number;
+  readonly preferredIoBlockSize?: number;
   readonly filesystemType?: string;
   readonly dev?: number;
   readonly ino?: number;

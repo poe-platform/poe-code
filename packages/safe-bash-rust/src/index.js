@@ -1291,6 +1291,8 @@ export class RustWasmBash extends WasmShell {
       });
     }
     const allocatedBytes = view.getFloat64(60, true), ioBlockSize = view.getFloat64(68, true);
+    if (fields & 64) len -= 8;
+    const preferredIoBlockSize = fields & 64 ? Number(view.getBigUint64(len, true)) : undefined;
     const revision = fields & 16 ? Number(view.getBigUint64(len - 8, true)) : undefined;
     const identityLength = len - (fields & 16 ? 8 : 0);
     const ino = identityLength >= 92 ? Number(view.getBigUint64(84, true)) : undefined;
@@ -1316,6 +1318,7 @@ export class RustWasmBash extends WasmShell {
       ...(fields & 8 ? {filesystemType: "memory"} : {}),
       ...(Number.isFinite(allocatedBytes) ? {allocatedBytes} : {}),
       ...(Number.isFinite(ioBlockSize) ? {ioBlockSize} : {}),
+      ...(preferredIoBlockSize !== undefined ? {preferredIoBlockSize} : {}),
       ...(identityScope ? { dev: 0, ino, identityScope } : {}),
       type,
       size,

@@ -86,3 +86,208 @@ impl Drop for StagedFile {
         }
     }
 }
+
+/// Conditions for publishing a visible staging entry into its destination.
+pub struct StageDestination<'a> {
+    pub path: &'a str,
+    pub parent: &'a FileStat,
+    pub expected: Option<&'a FileStat>,
+    pub ancestors: Option<&'a [(&'a str, FileStat)]>,
+}
+
+pub enum StageContent<'a> {
+    File(&'a [u8]),
+    Symlink(&'a str),
+}
+
+impl MemoryVfs {
+    pub fn create_owned_stage(
+        &self,
+        directory: &str,
+        name: &str,
+        content: StageContent<'_>,
+        parent: &FileStat,
+        mode: u32,
+        times: [Option<f64>; 2],
+    ) -> Result<[(String, FileStat); 3], String> {
+        if name.is_empty()
+            || matches!(name, "." | "..")
+            || name.contains(['/', '\0'])
+            || mode > 0o7777
+            || times.iter().flatten().any(|v| !v.is_finite())
+        {
+            return Err("EINVAL: invalid staging entry".into());
+        }
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        let dir = Self::mutation_entry(&state, directory)?;
+        if state.devices == Devices::Mounted {
+            return Err("ENOTSUP: device filesystem".into());
+        }
+        if state.nodes.contains_key(&dir) || state.devices.entry(&dir).is_some() {
+            return Err("EEXIST: file already exists".into());
+        }
+        let parent_path = super::super::dirname_posix_path(&dir);
+        let observed = self
+            .resolved_metadata(&state, &parent_path)
+            .ok_or("ENOENT: parent not found")?;
+        observed.check_receipt(parent, false, &parent_path)?;
+        if observed.mode & 0o300 != 0o300 {
+            return Err("EACCES: permission denied".into());
+        }
+        if state.limits.max_entries.saturating_sub(state.entry_count()) < 2 {
+            return Err("ENOSPC: inode limit exceeded".into());
+        }
+        let file = format!("{dir}/{name}");
+        let [atime, mtime] = times;
+        match content {
+            StageContent::File(bytes) => {
+                state.admit_new_file(bytes.len())?;
+                let mut data = Vec::new();
+                data.try_reserve_exact(bytes.len())
+                    .map_err(|_| "ENOSPC: staging allocation failed")?;
+                data.extend_from_slice(bytes);
+                state.create_directory(dir.clone(), 0o40700);
+                state.total_bytes += data.len();
+                let ino = state.insert_new_file(file.clone(), data, 0o100000 | mode, None);
+                let node = state.files.get_mut(&ino).unwrap();
+                if let Some(time) = atime {
+                    node.atime_ms = time;
+                }
+                if let Some(time) = mtime {
+                    node.mtime_ms = time;
+                }
+            }
+            StageContent::Symlink(target) => {
+                if target.contains('\0') {
+                    return Err("EINVAL: invalid symlink target".into());
+                }
+                state.create_directory(dir.clone(), 0o40700);
+                let now = crate::vfs::now_ms();
+                let ino = state.allocate_ino();
+                state.insert_node(
+                    file.clone(),
+                    MemoryNode::Symlink {
+                        ino,
+                        target: target.into(),
+                        status: SymlinkStatus::new(0o120000 | mode, now),
+                        atime_ms: atime.unwrap_or(now),
+                        mtime_ms: mtime.unwrap_or(now),
+                        birthtime_ms: now,
+                    },
+                );
+                state.parent_changed(&file, now);
+            }
+        }
+        self.bump_generation();
+        Ok([parent_path, dir, file].map(|path| {
+            let stat = self.resolved_metadata(&state, &path).unwrap();
+            (path, stat)
+        }))
+    }
+
+    pub fn finish_owned_stage(
+        &self,
+        entries: [(&str, &FileStat); 3],
+        destination: Option<StageDestination<'_>>,
+    ) -> Result<(), String> {
+        let [(parent, pst), (dir, dst), (file, fst)] = entries;
+        let changed = "EAGAIN: staging entry changed";
+        let dirname = crate::vfs::dirname_posix_path;
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if state.devices == Devices::Mounted {
+            return Err("ENOTSUP: device filesystem".into());
+        }
+        if dir == "/"
+            || file == "/"
+            || dirname(dir) != parent
+            || dirname(file) != dir
+            || entries
+                .iter()
+                .any(|(p, _)| normalize_posix_path(p) != *p || p.contains('\0'))
+        {
+            return Err(changed.into());
+        }
+        for (p, st) in [(parent, pst), (dir, dst)] {
+            if Self::resolve_mutation_entry(&state, p)? != p {
+                return Err(changed.into());
+            }
+            let actual = self.resolved_metadata(&state, p).ok_or(changed)?;
+            actual.check_receipt(st, false, p)?;
+            if actual.kind != VfsEntryKind::Directory || p == dir && actual.mode & 0o777 != 0o700 {
+                return Err(changed.into());
+            }
+        }
+        if !matches!(fst.kind, VfsEntryKind::File | VfsEntryKind::Symlink) {
+            return Err(changed.into());
+        }
+        let staged = self.resolved_metadata(&state, file);
+        if let Some(st) = &staged {
+            st.check_receipt(fst, true, file)?;
+        }
+        if let Some(target) = destination {
+            let source = staged.ok_or(changed)?;
+            if let Some(chain) = target.ancestors {
+                crate::vfs::validate_chmod_ancestry(target.path, 0, chain)?;
+                for (p, st) in chain {
+                    self.check_chmod_receipt(&state, p, st, false, true)?;
+                }
+            }
+            let to = Self::mutation_entry(&state, target.path)?;
+            if state.devices.entry(&to).is_some() || to == "/" {
+                return Err("EBUSY: resource busy or locked".into());
+            }
+            if target.path.ends_with('/') {
+                return Err("ENOTDIR: not a directory".into());
+            }
+            let parent_path = dirname(&to);
+            let parent = self
+                .resolved_metadata(&state, &parent_path)
+                .ok_or(changed)?;
+            parent.check_receipt(target.parent, false, target.path)?;
+            if parent.mode & 0o300 != 0o300 {
+                return Err("EACCES: permission denied".into());
+            }
+            let existing = self.resolved_metadata(&state, &to);
+            match (&existing, target.expected) {
+                (None, None) => (),
+                (Some(actual), Some(expected)) => actual.check_receipt(expected, true, &to)?,
+                _ => return Err(changed.into()),
+            }
+            if parent_path == dir
+                || to == dir
+                || existing
+                    .as_ref()
+                    .is_some_and(|s| s.identity == source.identity)
+            {
+                return Err("EINVAL: invalid staging destination".into());
+            }
+            if existing.is_some_and(|s| s.kind != VfsEntryKind::File) {
+                return Err(changed.into());
+            }
+            Self::unlink_locked(&mut state, &to);
+            let mut node = state.take_node(file).unwrap();
+            let now = crate::vfs::now_ms();
+            node.status_changed(&mut state.files, now);
+            state.parent_changed(file, now);
+            state.parent_changed(&to, now);
+            state.insert_node(to, node);
+        } else {
+            let prefix = format!("{dir}/");
+            if state
+                .nodes
+                .range(prefix.clone()..)
+                .take_while(|(p, _)| p.starts_with(&prefix))
+                .any(|(p, _)| p != file)
+            {
+                return Err("ENOTEMPTY: directory not empty".into());
+            }
+            if self.resolved_metadata(&state, parent).unwrap().mode & 0o300 != 0o300 {
+                return Err("EACCES: permission denied".into());
+            }
+            Self::unlink_locked(&mut state, file);
+            Self::unlink_locked(&mut state, dir);
+        }
+        self.bump_generation();
+        Ok(())
+    }
+}

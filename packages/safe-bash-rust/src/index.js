@@ -181,7 +181,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const {onInternalError} = options;
   const backing = fs.capabilities;
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
-    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation", "atomicDirectoryMetadata"].map(key => [key, backing[key]]))});
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation", "atomicDirectoryMetadata", "atomicFileStaging", "atomicStagingAncestry"].map(key => [key, backing[key]]))});
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
@@ -221,7 +221,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         const access = header.getUint32(reply + 56, true);
         const directoryMode = header.getUint32(reply + 60, true);
         const badDescriptor = () => Object.assign(new diagnostics.PublicDiagnostic("Bad file descriptor"), {code:"EBADF"});
-        let active = true, outputOpen = true, cleanups, handles, fsOps = 0, consumed = 0, code = 1;
+        let active = true, outputOpen = true, cleanups, handles, stages, fsOps = 0, consumed = 0, code = 1;
         let fileOutput = 0;
         const streams = [[], []], credits = [0,0], unpaid = [0,0];
         let tail = Promise.resolve(), busy, children, stopped;
@@ -301,6 +301,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const kind = pathProfile(path, settings);
               const directory = kind === 2, regular = kind === 0;
               return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
+                atomicFileStaging:regular && capabilities.atomicFileStaging, atomicStagingAncestry:regular && capabilities.atomicStagingAncestry,
                 atomicFileMutation:regular && capabilities.atomicFileMutation, atomicDirectoryMetadata:regular && capabilities.atomicDirectoryMetadata, open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
                 mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
                 rename:regular, atomicRename:regular, atomicRenameNoReplace:regular, symlinks:regular});
@@ -331,6 +332,26 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               if (options.mode === undefined) options.mode = directoryMode;
               check();
               return fs.mkdir(path, options);
+            },
+            async createStagedFile(directory, name, content, settings) {
+              admitPath(directory, settings);
+              validatePath(directory + "/" + name, maxComponents);
+              const receipt = await fs.createStagedFile(directory, name, content, settings);
+              (stages ??= new Set()).add(receipt);
+              return receipt;
+            },
+            async publishStagedFile(receipt, path, settings) {
+              admitPath(path, settings);
+              for (const key of ["parent","directory","file"]) validatePath(receipt[key].path, maxComponents);
+              for (const entry of settings.ancestors ?? []) validatePath(entry.path, maxComponents);
+              return fs.publishStagedFile(receipt, path, settings);
+            },
+            async removeStagedFile(receipt, settings) {
+              admitPath(receipt.directory.path, settings);
+              validatePath(receipt.parent.path, maxComponents);
+              validatePath(receipt.file.path, maxComponents);
+              await fs.removeStagedFile(receipt, settings);
+              stages?.delete(receipt);
             },
             async writeFileConditional(path, data, settings) {
               admitPath(path,settings);
@@ -516,6 +537,10 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             // Stop the evaluator after routing accepted writes. The caller receives the original cleanup error.
             if (cleanupFailures.length && (code >= 0 || code === -4 || code === -6)) code = -2;
             else if (code === -3 || code === -5) cleanupFailures.length = 0;
+          }
+          if (stages && (signal.aborted || code < 0)) for (const stage of stages) {
+            try { await fs.removeStagedFile(stage); }
+            catch (e) { if (!["EAGAIN","ENOTEMPTY","ENOENT"].includes(e.code)) cleanupFailures.push(e); }
           }
           outputOpen = false;
         }
@@ -736,7 +761,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
 
 const wasmCapabilities = Object.freeze({
   write: true, append: true, exclusiveCreate: true, read: true, retainedRead: true, streamingRead: true, stat: true, readdir: true, realpath: true, access: true,
-  conditionalChmod: true, atomicFileMutation:true, atomicDirectoryMetadata:true, permissions: true, readlink: true, symlinks: true,
+  conditionalChmod: true, atomicFileMutation:true, atomicDirectoryMetadata:true, atomicFileStaging:true, atomicStagingAncestry:true, permissions: true, readlink: true, symlinks: true,
 });
 
 export class WasmFileSystem {
@@ -748,7 +773,7 @@ export class WasmFileSystem {
     const backing = this.bash._companion?.fs;
     if (!backing) {
       const memory = !!this.bash.exports.safe_bash_supports_file_mutation(this.bash.sessionId);
-      return Object.freeze({...wasmCapabilities,atomicFileMutation:memory,atomicDirectoryMetadata:memory,
+      return Object.freeze({...wasmCapabilities,atomicFileMutation:memory,atomicDirectoryMetadata:memory,atomicFileStaging:memory,atomicStagingAncestry:memory,
         conditionalChmod:!!this.bash.exports.safe_bash_supports_conditional_chmod(this.bash.sessionId)});
     }
     return Object.freeze(Object.fromEntries(Object.keys(wasmCapabilities)
@@ -762,6 +787,10 @@ export class WasmFileSystem {
   removeFileConditional(filePath, options) {
     return this.bash._mutateConditional("removeFileConditional",filePath,undefined,options);
   }
+
+  createStagedFile(...args) { return this.bash._ownedStage("createStagedFile", args); }
+  publishStagedFile(...args) { return this.bash._ownedStage("publishStagedFile", args); }
+  removeStagedFile(...args) { return this.bash._ownedStage("removeStagedFile", args); }
 
   prepareDirectory(filePath, options) {
     return this.bash._mutateConditional("prepareDirectory",filePath,undefined,options);
@@ -1632,6 +1661,66 @@ export class RustWasmBash extends WasmShell {
     const scope = !complete ? NaN : key === undefined || key >= 0n ? -1 : Number(~key);
     return [scope, s?.dev === 0 ? s.ino : -1, ["file","directory","symlink","character"].indexOf(s?.type),
       ...[s?.revision,s?.size,s?.mode,s?.nlink,s?.mtimeMs,s?.ctimeMs].map(n => typeof n === "number" ? n : NaN)];
+  }
+
+  async _ownedStage(operation, args) {
+    const create = operation === "createStagedFile", publish = operation === "publishStagedFile";
+    const options = args[create ? 3 : publish ? 2 : 1] ?? {};
+    const {signal} = options;
+    signal?.throwIfAborted();
+    if (this._companion || this.companionFactory && !this.forceNative) {
+      await this._ensureCompanionSynced();
+      signal?.throwIfAborted();
+      const fs = this._companion.fs;
+      if (!fs[operation]) throw fsOperationError("ENOTSUP",operation);
+      return fs[operation](...args);
+    }
+    const paths = [], rows = [];
+    let flags = 0, mode = 0, atime, mtime, payload = new Uint8Array();
+    const entry = ({path,stat}) => { paths.push(path); rows.push(...this.#memoryReceipt(stat)); };
+    if (create) {
+      const [directory,name,content] = args;
+      if (options.retainCleanup) throw fsOperationError("ENOTSUP",operation,directory);
+      paths.push(directory,name);
+      rows.push(...this.#memoryReceipt(options.parent));
+      const link = content.type === "symlink";
+      if (link ? typeof content.target !== "string" : content.type !== "file" || !(content.data instanceof Uint8Array)) throw new TypeError("Invalid staged file content");
+      payload = link ? encoder.encode(content.target) : content.data;
+      mode = options.mode === undefined ? link ? 0o777 : 0o666 : options.mode;
+      atime = options.atimeMs; mtime = options.mtimeMs;
+      flags = Number(link) | (atime !== undefined ? 2 : 0) | (mtime !== undefined ? 4 : 0);
+    } else {
+      const [receipt,destination] = args;
+      for (const key of ["parent","directory","file"]) entry(receipt[key]);
+      if (publish) {
+        if (options.preserveIdentity || options.commitGuard !== undefined) throw fsOperationError("ENOTSUP",operation,destination);
+        paths.push(destination); rows.push(...this.#memoryReceipt(options.parent));
+        if (options.destination !== null) { flags |= 1; rows.push(...this.#memoryReceipt(options.destination)); }
+        if (options.ancestors !== undefined) { flags |= 2; for (const ancestor of options.ancestors) entry(ancestor); }
+      }
+    }
+    if (paths.some(p => typeof p !== "string" || p.includes("\0"))) throw fsOperationError("EINVAL",operation);
+    signal?.throwIfAborted();
+    const buffers = [];
+    try {
+      for (const data of [encoder.encode(paths.join("\0")),new Uint8Array(new Float64Array(rows).buffer),payload]) buffers.push(this._allocBytes(data));
+      const n = this.exports.safe_bash_owned_stage(this.sessionId,...buffers.flatMap(b=>[b.ptr,b.len]),create ? 0 : publish ? 1 : 2,flags,
+        typeof mode === "number" ? mode : NaN, typeof atime === "number" ? atime : NaN, typeof mtime === "number" ? mtime : NaN);
+      if (n === -1) throw new Error("Wasm session unavailable");
+      let ptr = this.exports.safe_bash_output_ptr(this.sessionId);
+      const memory = this.exports.memory.buffer;
+      if (n < 0) throw readOperationError(decoder.decode(new Uint8Array(memory,ptr,-n)));
+      if (create) {
+        const receipt = {}, view = new DataView(memory);
+        for (const key of ["parent","directory","file"]) {
+          const len = view.getUint32(ptr,true); ptr += 4;
+          const path = decoder.decode(new Uint8Array(memory,ptr,len)); ptr += len;
+          const size = view.getUint32(ptr,true); ptr += 4;
+          receipt[key] = Object.freeze({path,stat:Object.freeze(this._decodeStat(ptr,size))}); ptr += size;
+        }
+        return Object.freeze(receipt);
+      }
+    } finally { for (const buffer of buffers) this._freeBytes(buffer); }
   }
 
   async _mutateConditional(name, filePath, data, options) {

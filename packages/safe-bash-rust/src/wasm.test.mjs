@@ -2121,6 +2121,63 @@ test("split ZIP publishes in mounted and overlay directories and opens with the 
   }
 });
 
+test("Rust owned staging satisfies the shared atomic filesystem contract",async t=>{
+  const {createAtomicFileSystemConformance}=await import("@poe-code/safe-fs/testing/atomic");
+  for(const c of createAtomicFileSystemConformance({includeSymlinks:true,async createFixture(){
+    const sh=new RustWasmBash({cwd:"/root",deviceView:"provided"});
+    return {fs:sh.fs,root:"/root",dispose:()=>sh.dispose()};
+  }})) await t.test(c.name,()=>c.run());
+});
+
+test("Rust owned staging rejects a replaced ancestor even when the destination parent survives",async()=>{
+  const sh=new RustWasmBash({cwd:"/",directories:["/tree/leaf"]}), fs=sh.fs;
+  try {
+    const root=await fs.lstat("/"), leaf=await fs.lstat("/tree/leaf");
+    const ancestors=[{path:"/",stat:root},{path:"/tree",stat:await fs.lstat("/tree")},{path:"/tree/leaf",stat:leaf}];
+    const staging=await fs.createStagedFile("/.stage","entry",{type:"file",data:Uint8Array.of(7)},{parent:root});
+    await fs.rename("/tree","/old");await fs.mkdir("/tree");await fs.rename("/old/leaf","/tree/leaf");
+    await assert.rejects(fs.publishStagedFile(staging,"/tree/leaf/output",{parent:leaf,destination:null,ancestors}),{code:"EAGAIN"});
+    assert.deepEqual(await fs.readdir("/tree/leaf"),[]);
+    assert.deepEqual(await fs.readFile(staging.file.path),Uint8Array.of(7));
+    await fs.removeStagedFile(staging);
+  } finally {await sh.dispose();}
+});
+
+test("aborting plugin staging cleans only the original unchanged entries",{skip:!WebAssembly.Suspending},async()=>{
+  for(const replace of [false,true]){
+    const sh=new RustWasmBash({cwd:"/"}), ctrl=new AbortController(), reason=new Error("stop");
+    sh.register({name:"stage",async execute({fs}){
+      const stage=await fs.createStagedFile("/.stage","entry",{type:"file",data:Uint8Array.of(1)},{parent:await fs.lstat("/")});
+      if(replace) await fs.writeFile(stage.file.path,Uint8Array.of(2));
+      ctrl.abort(reason);
+      return {exitCode:0};
+    }});
+    try{
+      await assert.rejects(sh.exec("stage",{signal:ctrl.signal}),e=>e===reason);
+      if(replace) assert.deepEqual(await sh.fs.readFile("/.stage/entry"),Uint8Array.of(2));
+      else await assert.rejects(sh.fs.lstat("/.stage"),{code:"ENOENT"});
+    }finally{await sh.dispose();}
+  }
+});
+
+test("split ZIP plugins stage complete volumes and extract through checked ancestors",{skip:typeof WebAssembly.Suspending!=="function"},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const bytes=Uint8Array.from({length:145000},(_,i)=>i%223),fs=new MemoryFileSystem(),plugin=()=>archiveCommands({zipHost:{volume:({disk})=>"/out.z"+String(disk+1).padStart(2,"0")}});
+  const js=new Shell({fs,cwd:"/"}).use(plugin()),rust=new RustWasmBash({cwd:"/"}).use(plugin());
+  try {
+    const run=async(sh,fs)=>{
+      await fs.writeFile("/source",bytes);await fs.utimes("/source",1700000000000,1700000000000);
+      const write=await sh.exec("zip -q0 -fd -s64k out.zip source");assert.equal(write.exitCode,0,write.stderr);
+      const unpack=await sh.exec("unzip -qo out.zip -d dest");assert.equal(unpack.exitCode,0,unpack.stderr);
+      assert.deepEqual(await fs.readFile("/dest/source"),bytes);
+      assert.deepEqual((await fs.readdir("/dest")).map(e=>e.name),["source"]);
+      assert.ok(!(await fs.readdir("/")).some(e=>e.name.startsWith(".zip")));
+      return Promise.all(["/out.zip","/out.z01","/out.z02"].map(p=>fs.readFile(p)));
+    };
+    assert.deepEqual(await run(rust,rust.fs),await run(js,fs));
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("Rust plugin directories support conditional creation and metadata restoration", {skip:typeof WebAssembly.Suspending!=="function"}, async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});

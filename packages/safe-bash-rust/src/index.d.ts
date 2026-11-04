@@ -89,6 +89,9 @@ export class WasmFileSystem {
   readStream(filePath: string, options?: { start?: number; endExclusive?: number; chunkSize?: number; signal?: AbortSignal }): AsyncIterable<Uint8Array>;
   writeFile(filePath: string, data: string | Uint8Array, options?: { flag?: "w" | "wx" | "a" | "ax"; mode?: number; signal?: AbortSignal }): Promise<void>;
   writeFileConditional(filePath: string, data: Uint8Array, options: { parent: WasmFileStat; expected: WasmFileStat | null; append?: boolean; mode?: number; atimeMs?: number; mtimeMs?: number; signal?: AbortSignal }): Promise<WasmFileStat>;
+  readonly createStagedFile: NonNullable<FileSystem["createStagedFile"]>;
+  readonly publishStagedFile: NonNullable<FileSystem["publishStagedFile"]>;
+  readonly removeStagedFile: NonNullable<FileSystem["removeStagedFile"]>;
   prepareDirectory(filePath: string, options: { parent: WasmFileStat; expected: WasmFileStat | null; mode?: number; atimeMs?: number; mtimeMs?: number; signal?: AbortSignal }): Promise<WasmFileStat>;
   removeFileConditional(filePath: string, options: { parent: WasmFileStat; expected: WasmFileStat; signal?: AbortSignal }): Promise<void>;
   appendFile(filePath: string, data: string | Uint8Array, options?: { mode?: number; signal?: AbortSignal }): Promise<void>;
@@ -121,7 +124,7 @@ export class WasmFileSystem {
   statfs(targetPath?: string): Promise<Record<string, number>>;
 }
 
-type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly invoke: NonNullable<CommandContext["invoke"]>; readonly fs: Required<Pick<FileSystem, "capabilitiesFor">> & Pick<WasmFileSystem, "readFile" | "readStream" | "writeFileConditional" | "prepareDirectory" | "removeFileConditional" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm" | "capabilities" | "openReadFile" | "open" | "access" | "chmod" | "readlink" | "realpath" | "rename" | "symlink" | "unlink">};
+type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly invoke: NonNullable<CommandContext["invoke"]>; readonly fs: Required<Pick<FileSystem, "capabilitiesFor">> & Pick<WasmFileSystem, "readFile" | "readStream" | "writeFileConditional" | "createStagedFile" | "publishStagedFile" | "removeStagedFile" | "prepareDirectory" | "removeFileConditional" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm" | "capabilities" | "openReadFile" | "open" | "access" | "chmod" | "readlink" | "realpath" | "rename" | "symlink" | "unlink">};
 type StreamCommand = Omit<CommandDefinition, "execute"> & {
   readonly execute: (context: StreamCommandContext) => CommandResult | Promise<CommandResult>;
 };

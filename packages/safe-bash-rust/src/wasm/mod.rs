@@ -1,5 +1,6 @@
 mod command;
 mod descriptor;
+mod staging;
 use crate::backend::BackendMode;
 use crate::budget::ShellLimits;
 use crate::fs::{FileStat, MemoryVfs, MountVfs, OverlayVfs, SafeBashFs, VfsEntryKind};

@@ -2,6 +2,7 @@ mod expr_bre;
 mod fd_glob;
 mod grep_stream;
 mod rg_stream;
+mod rg_types;
 use fd_glob::{FdGlob, IgnoreFile, RuleError};
 mod mdq_classes;
 mod mdq_class;
@@ -2909,8 +2910,7 @@ fn cmd_rg(
     let mut after_ctx = 0usize;
     let mut context_separator: Option<String> = Some("--".to_string());
     let mut globs: Vec<String> = Vec::new();
-    let mut types_include: Vec<String> = Vec::new();
-    let mut types_exclude: Vec<String> = Vec::new();
+    let mut types = rg_types::FileTypes::default();
     let mut patterns: Vec<String> = Vec::new();
     let mut pattern_files: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
@@ -3138,25 +3138,23 @@ fn cmd_rg(
                 }
                 "--type" if i + 1 < args.len() => {
                     i += 1;
-                    if !is_valid_rg_type(&args[i]) {
+                    if !types.select(&args[i], true) {
                         return BuiltinOutcome {
                             stdout: String::new(),
                             stderr: format!("rg: unrecognized file type: {}\n", args[i]),
                             exit_code: 2,
                         };
                     }
-                    types_include.push(args[i].clone());
                 }
                 "--type-not" if i + 1 < args.len() => {
                     i += 1;
-                    if !is_valid_rg_type(&args[i]) {
+                    if !types.select(&args[i], false) {
                         return BuiltinOutcome {
                             stdout: String::new(),
                             stderr: format!("rg: unrecognized file type: {}\n", args[i]),
                             exit_code: 2,
                         };
                     }
-                    types_exclude.push(args[i].clone());
                 }
                 "--glob" | "-g" if i + 1 < args.len() => {
                     i += 1;
@@ -3205,23 +3203,21 @@ fn cmd_rg(
                         has_explicit_pattern = true;
                         pattern_files.push(f.to_string());
                     } else if let Some(t) = a.strip_prefix("--type=") {
-                        if !is_valid_rg_type(t) {
+                        if !types.select(t, true) {
                             return BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("rg: unrecognized file type: {t}\n"),
                                 exit_code: 2,
                             };
                         }
-                        types_include.push(t.to_string());
                     } else if let Some(t) = a.strip_prefix("--type-not=") {
-                        if !is_valid_rg_type(t) {
+                        if !types.select(t, false) {
                             return BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("rg: unrecognized file type: {t}\n"),
                                 exit_code: 2,
                             };
                         }
-                        types_exclude.push(t.to_string());
                     } else {
                         return BuiltinOutcome {
                             stdout: String::new(),
@@ -3327,14 +3323,13 @@ fn cmd_rg(
                                 exit_code: 2,
                             };
                         };
-                        if !is_valid_rg_type(&val) {
+                        if !types.select(&val, true) {
                             return BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("rg: unrecognized file type: {val}\n"),
                                 exit_code: 2,
                             };
                         }
-                        types_include.push(val);
                         break;
                     }
                     'U' => multiline = true,
@@ -3352,14 +3347,13 @@ fn cmd_rg(
                                 exit_code: 2,
                             };
                         };
-                        if !is_valid_rg_type(&val) {
+                        if !types.select(&val, false) {
                             return BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("rg: unrecognized file type: {val}\n"),
                                 exit_code: 2,
                             };
                         }
-                        types_exclude.push(val);
                         break;
                     }
                     'f' => {
@@ -3498,7 +3492,7 @@ fn cmd_rg(
     }
 
 
-    let files = RgFiles { list_files_only, follow, globs, types_include, types_exclude, show_hidden, respect_ignore,
+    let files = RgFiles { list_files_only, follow, globs, types, show_hidden, respect_ignore,
         no_ignore_vcs, no_ignore_dot, custom_ignore_files, max_depth, max_filesize };
     if list_files_only {
         let mut out = rg_stream::Output::new(write);
@@ -3685,61 +3679,6 @@ struct GrepConfig<'a> {
     stats: bool,
 }
 
-fn is_valid_rg_type(t: &str) -> bool {
-    matches!(
-        t,
-        "all"
-            | "ada" | "agda" | "aidl" | "alire" | "amake" | "asciidoc" | "asm" | "asp" | "ats"
-            | "avro" | "awk" | "bat" | "batch" | "bazel" | "bitbake" | "boxlang" | "brotli"
-            | "buildstream" | "bzip2" | "c" | "cabal" | "candid" | "carp" | "cbor" | "ceylon"
-            | "cfml" | "clojure" | "cmake" | "cmd" | "cml" | "coffeescript" | "config"
-            | "container" | "coq" | "cpp" | "creole" | "crystal" | "cs" | "csharp" | "cshtml"
-            | "csproj" | "css" | "csv" | "cuda" | "cython" | "d" | "dart" | "devicetree"
-            | "dhall" | "diff" | "dita" | "docker" | "dockercompose" | "dts" | "dvc" | "ebuild"
-            | "edn" | "elisp" | "elixir" | "elm" | "erb" | "erlang" | "fennel" | "fidl" | "fish"
-            | "flatbuffers" | "fortran" | "fsharp" | "fut" | "gap" | "gdscript" | "gleam" | "gn"
-            | "go" | "gprbuild" | "gradle" | "graphql" | "groovy" | "gzip" | "h" | "haml" | "hare"
-            | "haskell" | "hbs" | "hs" | "html" | "hurl" | "hy" | "idris" | "janet" | "java"
-            | "jinja" | "jl" | "js" | "json" | "jsonl" | "julia" | "jupyter" | "k" | "kconfig"
-            | "kotlin" | "lean" | "less" | "license" | "lilypond" | "lisp" | "llvm" | "lock"
-            | "log" | "lua" | "lz4" | "lzma" | "m4" | "make" | "mako" | "man" | "markdown"
-            | "matlab" | "md" | "meson" | "minified" | "mint" | "mk" | "ml" | "mojo" | "motoko"
-            | "msbuild" | "nim" | "nix" | "objc" | "objcpp" | "ocaml" | "org" | "pants" | "pascal"
-            | "pdf" | "perl" | "php" | "pkgbuild" | "po" | "pod" | "postscript" | "prolog"
-            | "proto" | "protobuf" | "ps" | "puppet" | "purs" | "py" | "python" | "qmake" | "qml"
-            | "qrc" | "qui" | "r" | "racket" | "raku" | "rdoc" | "readme" | "reasonml" | "red"
-            | "rescript" | "robot" | "rocq" | "rst" | "ruby" | "rust" | "sass" | "scala"
-            | "scdoc" | "seed7" | "sh" | "slim" | "smarty" | "sml" | "solidity" | "soy" | "spark"
-            | "spec" | "sql" | "ssa" | "stylus" | "sv" | "svelte" | "svg" | "swift" | "swig"
-            | "systemd" | "taskpaper" | "tcl" | "tex" | "texinfo" | "textile" | "tf" | "thrift"
-            | "toml" | "ts" | "twig" | "txt" | "typescript" | "typoscript" | "typst" | "usd"
-            | "v" | "vala" | "vb" | "vcl" | "verilog" | "vhdl" | "vim" | "vimscript" | "vue"
-            | "webidl" | "wgsl" | "wiki" | "xml" | "xz" | "yacc" | "yaml" | "yang" | "z"
-            | "zig" | "zsh" | "zstd"
-    )
-}
-
-fn file_matches_rg_type(base: &str, t: &str) -> bool {
-    match t {
-        "ts" | "typescript" => base.ends_with(".ts") || base.ends_with(".tsx"),
-        "js" | "javascript" => {
-            base.ends_with(".js")
-                || base.ends_with(".jsx")
-                || base.ends_with(".mjs")
-                || base.ends_with(".cjs")
-        }
-        "py" | "python" => base.ends_with(".py"),
-        "rs" | "rust" => base.ends_with(".rs"),
-        "md" | "markdown" => base.ends_with(".md"),
-        "json" => base.ends_with(".json"),
-        "yaml" | "yml" => base.ends_with(".yaml") || base.ends_with(".yml"),
-        "sh" => base.ends_with(".sh") || base.ends_with(".bash"),
-        "css" => base.ends_with(".css"),
-        "html" => base.ends_with(".html") || base.ends_with(".htm"),
-        other => base.ends_with(&format!(".{other}")),
-    }
-}
-
 fn is_ignored_by_rules(name: &str, is_dir: bool, rules: &[String]) -> bool {
     let mut ignored = false;
     for rule in rules {
@@ -3803,8 +3742,7 @@ struct RgFiles {
     list_files_only: bool,
     follow: bool,
     globs: Vec<String>,
-    types_include: Vec<String>,
-    types_exclude: Vec<String>,
+    types: rg_types::FileTypes,
     show_hidden: bool,
     respect_ignore: bool,
     max_depth: Option<usize>,
@@ -3875,10 +3813,9 @@ impl RgFiles {
                     Some(false) => continue,
                     Some(true) => {}
                     None => {
-                        if !self.show_hidden && base.starts_with('.') || !directory && positive_glob
-                            || self.respect_ignore && is_ignored_by_rules(base, directory, &rules) { continue; }
-                        if !directory && ((!self.types_include.is_empty() && !self.types_include.iter().any(|t| file_matches_rg_type(base, t)))
-                            || self.types_exclude.iter().any(|t| file_matches_rg_type(base, t))) { continue; }
+                        if !directory && positive_glob || self.respect_ignore && is_ignored_by_rules(base, directory, &rules) { continue; }
+                        let selected = (!directory).then(|| self.types.selected(base)).flatten();
+                        if !selected.unwrap_or_else(|| self.show_hidden || !base.starts_with('.')) { continue; }
                     }
                 }
                 if !directory && self.max_filesize.is_some_and(|max| stat.size > max) { continue; }

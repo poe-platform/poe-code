@@ -9005,6 +9005,20 @@ test("overlay output redirection charges access before it creates, appends or tr
   } finally { sh.dispose(); }
 });
 
+test("rg selects files by the built-in type globs in argument order", async () => {
+  const sh = new RustWasmBash({files:Object.fromEntries([".bashrc",".other","CMakeLists.txt","Dockerfile.prod","x.h","x.mts","x.vue","unknown.xyz"].map(name => ["/d/"+name,"value"]))});
+  try {
+    for (const [args,names] of [
+      ["-tall",[".bashrc","CMakeLists.txt","Dockerfile.prod","x.h","x.mts","x.vue"]],
+      ["-Tall",["unknown.xyz"]],["-tc -Th",[]],["-Th -tc",["x.h"]],["--type-not=js --type=js",["x.vue"]],
+      ["-tdocker",["Dockerfile.prod"]],["-tsh",[".bashrc"]],["-tts",["x.mts"]],
+    ]) {
+      const r = await sh.exec("rg --files "+args+" /d");
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[names.length ? 0 : 1,names.map(name=>"/d/"+name+"\n").join(""),""],args);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("rg stops at a denied operand on mounted and overlay filesystems", async () => {
   for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs"]) {
     const sh = new RustWasmBash({profile,files:{"/locked/f":"a\nb\n","/ok":"a\nb\n"}});

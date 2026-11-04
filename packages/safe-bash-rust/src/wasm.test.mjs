@@ -8623,6 +8623,20 @@ test("awk splits fields on AWK whitespace or individual bytes for an empty separ
   } finally { sh.dispose(); }
 });
 
+test("awk rejects non-finite arithmetic and math functions before subsequent writes", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [expr, error] of [
+      ["2^1024","non-finite arithmetic result"], ["x=1e308; x*=10","non-finite arithmetic result"],
+      ["(-1)^0.5","non-finite arithmetic result"], ["sqrt(-1)","invalid mathematical result in 'sqrt'"],
+      ["log(0)","invalid mathematical result in 'log'"], ["exp(1000)","invalid mathematical result in 'exp'"],
+    ]) {
+      const r = await sh.exec("awk 'BEGIN{print 1;"+expr+";print 2}END{print 3}'");
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"1\n","awk: "+error+"\n"],expr);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("awk distinguishes signed exponents and prefix operators from binary arithmetic", async () => {
   const sh = new RustWasmBash();
   try {

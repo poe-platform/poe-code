@@ -1831,6 +1831,27 @@ impl<'a> AwkState<'a> {
         }
     }
 
+    fn arithmetic(&mut self, op: u8, left: f64, right: f64) -> String {
+        if self.runtime_err.is_none() {
+            if matches!(op, b'/' | b'%') && right == 0.0 {
+                self.runtime_err = Some("awk: division by zero\n".into());
+            } else {
+                let value = match op {
+                    b'+' => left + right,
+                    b'-' => left - right,
+                    b'*' => left * right,
+                    b'/' => left / right,
+                    b'%' => left % right,
+                    b'^' => left.powf(right),
+                    _ => unreachable!(),
+                };
+                if value.is_finite() { return format_awk_num(value); }
+                self.runtime_err = Some("awk: non-finite arithmetic result\n".into());
+            }
+        }
+        String::new()
+    }
+
     fn finish(self) -> BuiltinOutcome {
         BuiltinOutcome {
             stdout: self.output.pending,
@@ -3271,6 +3292,7 @@ fn is_single_awk_regex_literal(s: &str) -> bool {
 }
 
 fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
+    if state.runtime_err.is_some() { return String::new(); }
     let s = expr.trim();
     if s.is_empty() {
         return String::new();
@@ -3303,20 +3325,7 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
             } else {
                 let lnum = parse_awk_f64(&eval_awk_expr(&lhs, state));
                 let rnum = parse_awk_f64(&rval);
-                if (op == "/=" || op == "%=") && rnum == 0.0 {
-                    state.runtime_err = Some("awk: division by zero\n".to_string());
-                    return "0".to_string();
-                }
-                let res = match op {
-                    "+=" => lnum + rnum,
-                    "-=" => lnum - rnum,
-                    "*=" => lnum * rnum,
-                    "/=" => lnum / rnum,
-                    "%=" => lnum % rnum,
-                    "^=" => lnum.powf(rnum),
-                    _ => rnum,
-                };
-                format_awk_num(res)
+                state.arithmetic(op.as_bytes()[0], lnum, rnum)
             };
             assign_awk_lvalue(&lhs, final_val.clone(), state);
             let lv_trim = lhs.trim();
@@ -3433,19 +3442,7 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     if let Some((lhs, op, rhs)) = split_awk_arithmetic(s) {
         let left = parse_awk_f64(&eval_awk_expr(lhs, state));
         let right = parse_awk_f64(&eval_awk_expr(rhs, state));
-        if matches!(op, b'/' | b'%') && right == 0.0 {
-            state.runtime_err = Some("awk: division by zero\n".into());
-            return "0".into();
-        }
-        return format_awk_num(match op {
-            b'+' => left + right,
-            b'-' => left - right,
-            b'*' => left * right,
-            b'/' => left / right,
-            b'%' => left % right,
-            b'^' => left.powf(right),
-            _ => unreachable!(),
-        });
+        return state.arithmetic(op, left, right);
     }
 
     if let Some(var) = s.strip_suffix("++") {
@@ -3894,51 +3891,20 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 .unwrap_or(0.0);
             Some((n as i64).to_string())
         }
-        "sqrt" => {
-            let n = args
-                .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
-                .unwrap_or(0.0);
-            Some(format_awk_num(n.sqrt()))
-        }
-        "sin" => {
-            let n = args
-                .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
-                .unwrap_or(0.0);
-            Some(format_awk_num(n.sin()))
-        }
-        "cos" => {
-            let n = args
-                .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
-                .unwrap_or(0.0);
-            Some(format_awk_num(n.cos()))
-        }
-        "atan2" => {
-            let y = args
-                .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
-                .unwrap_or(0.0);
-            let x = args
-                .get(1)
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
-                .unwrap_or(0.0);
-            Some(format_awk_num(y.atan2(x)))
-        }
-        "exp" => {
-            let n = args
-                .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
-                .unwrap_or(0.0);
-            Some(format_awk_num(n.exp()))
-        }
-        "log" => {
-            let n = args
-                .first()
-                .map(|a| parse_awk_f64(&eval_awk_expr(a, state)))
-                .unwrap_or(0.0);
-            Some(format_awk_num(n.ln()))
+        "sqrt" | "sin" | "cos" | "atan2" | "exp" | "log" => {
+            let n = args.first().map(|a| parse_awk_f64(&eval_awk_expr(a, state))).unwrap_or(0.0);
+            let value = match fn_name {
+                "sqrt" => n.sqrt(),
+                "sin" => n.sin(),
+                "cos" => n.cos(),
+                "exp" => n.exp(),
+                "log" => n.ln(),
+                _ => n.atan2(args.get(1).map(|a| parse_awk_f64(&eval_awk_expr(a, state))).unwrap_or(0.0)),
+            };
+            if value.is_finite() { Some(format_awk_num(value)) } else {
+                state.runtime_err.get_or_insert_with(|| format!("awk: invalid mathematical result in '{fn_name}'\n"));
+                Some(String::new())
+            }
         }
         "srand" => {
             let old_seed = state.rng_state;

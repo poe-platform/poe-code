@@ -20,6 +20,9 @@ pub fn try_run_archive_command(
     if let Some(algorithm) = checksum_algorithm(cmd) {
         return Some(run_checksum(algorithm, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write));
     }
+    if is_compression_command(cmd) {
+        return Some(cmd_gzip(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs));
+    }
     match cmd {
         "base64" | "base32" => Some(run_base_cmd(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
         "xxd" => Some(cmd_xxd(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)),
@@ -28,7 +31,7 @@ pub fn try_run_archive_command(
         "hexdump" => Some(cmd_hexdump(args, stdin, cwd, fs, false)),
         "hd" => Some(cmd_hexdump(args, stdin, cwd, fs, true)),
         "tar" => Some(cmd_tar(args, stdin, cwd, fs)),
-        "gzip" | "gunzip" | "zcat" | "zstd" | "unzstd" | "zstdcat" | "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" | "bzip2" | "bunzip2" | "bzcat" => Some(cmd_gzip(cmd, args, stdin, cwd, fs)),
+
         "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf" | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts" | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo" | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox" | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "composite" | "montage" | "compare" | "sips" | "exiftool" | "identify" => {
             let mut result = cmd_media_doc(cmd, args, stdin, cwd, fs);
             if result.exit_code == 1 && result.stderr == "shell: line 1: internal error\n"
@@ -4717,10 +4720,15 @@ fn decompress_for_invoked(
     }
 }
 
-fn cmd_gzip(
+pub(super) fn is_compression_command(cmd: &str) -> bool {
+    matches!(cmd, "gzip" | "gunzip" | "zcat" | "zstd" | "unzstd" | "zstdcat" | "xz" | "unxz" | "xzcat"
+        | "lzma" | "unlzma" | "lzcat" | "bzip2" | "bunzip2" | "bzcat")
+}
+
+pub(super) fn cmd_gzip(
     invoked: &str,
     args: &[String],
-    stdin: &str,
+    mut stdin: super::CommandInput,
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
@@ -4848,8 +4856,7 @@ fn cmd_gzip(
                     if !is_gzip && !is_xz {
                         return err_out(&format!("{invoked}: invalid option -- 'l'\n"), 2);
                     }
-                    list_mode = true;
-                    test_mode = false;
+                    if is_xz { list_mode = true; test_mode = false; }
                 }
                 "--robot" => {
                     if !is_xz {
@@ -5141,8 +5148,7 @@ fn cmd_gzip(
                                 if !is_gzip && !is_xz {
                                     return err_out(&format!("{invoked}: invalid option -- 'l'\n"), 2);
                                 }
-                                list_mode = true;
-                                test_mode = false;
+                                if is_xz { list_mode = true; test_mode = false; }
                             }
                             't' => test_mode = true,
                             'r' => {
@@ -5314,6 +5320,29 @@ fn cmd_gzip(
         return ok_out(&text);
     }
 
+    // Admission is cumulative across operands, including named files and later stdin.
+    let mut remaining = fs.max_input_bytes();
+    let mut read = |path: Option<&str>| -> Result<Vec<u8>, BuiltinOutcome> {
+        let mut data = Vec::new();
+        let mut exceeded = false;
+        let mut accept = |chunk: &[u8]| {
+            let Some(left) = remaining.checked_sub(chunk.len()) else { exceeded = true; return false; };
+            remaining = left;
+            data.extend_from_slice(chunk);
+            true
+        };
+        let read = if let Some(path) = path {
+            fs.open_chunks(path).and_then(|mut next| {
+                let mut chunk = Vec::new();
+                loop {
+                    next(&mut chunk)?;
+                    if chunk.is_empty() || !accept(&chunk) { return Ok(()); }
+                }
+            })
+        } else { stdin.read_stdin(accept) };
+        if exceeded { return Err(err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1)); }
+        read.map(|_| data).map_err(|e| err_out(&format!("{invoked}: {e}\n"), 1))
+    };
     if list_mode {
         let mut out = String::new();
         let mut totals = crate::commands::codecs::XzInspectInfo::default();
@@ -5323,9 +5352,7 @@ fn cmd_gzip(
         }
         for f in &files {
             let full = resolve_posix_path(cwd, f);
-            let Ok(data) = fs.read_file(&full) else {
-                return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
-            };
+            let data = match read(Some(&full)) { Ok(data) => data, Err(e) => return e };
             let info = match crate::commands::codecs::inspect_xz_bytes(&data) {
                 Ok(inf) => inf,
                 Err(_) => {
@@ -5433,14 +5460,8 @@ fn cmd_gzip(
     }
     if test_mode {
         for f in &files {
-            let data = if f == "-" {
-                crate::vfs::stream_string_to_bytes(stdin)
-            } else {
-                let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, f)) else {
-                    return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
-                };
-                bytes
-            };
+            let path = (f != "-").then(|| resolve_posix_path(cwd, f));
+            let data = match read(path.as_deref()) { Ok(data) => data, Err(e) => return e };
             if let Err(e) = decode(&data) {
                 return decode_error(&e);
             }
@@ -5487,7 +5508,7 @@ fn cmd_gzip(
     ];
     for f in &files {
         if f == "-" {
-            let data = crate::vfs::stream_string_to_bytes(stdin);
+            let data = match read(None) { Ok(data) => data, Err(e) => return e };
             if decompress {
                 match decode(&data) {
                     Ok(out) => stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&out)),
@@ -5509,9 +5530,7 @@ fn cmd_gzip(
                 full = cand;
             }
         }
-        let Ok(data) = fs.read_file(&full) else {
-            return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
-        };
+        let data = match read(Some(&full)) { Ok(data) => data, Err(e) => return e };
         if decompress {
             let dec = match decode(&data) {
                 Ok(d) => d,

@@ -952,6 +952,9 @@ where
     if cmd == "xq" {
         return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
     }
+    if archive::is_compression_command(cmd) {
+        return Ok(Some(archive::cmd_gzip(cmd, args, CommandInput { text: stdin, file }, cwd, fs)));
+    }
     if let Some(algorithm) = archive::checksum_algorithm(cmd) {
         return Ok(Some(archive::run_checksum(algorithm, args, CommandInput { text: stdin, file }, cwd, fs, write)));
     }

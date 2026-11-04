@@ -9060,6 +9060,26 @@ test("cal and ncal select the current UTC month or the supplied epoch", async (t
   } finally { rs.dispose(); }
 });
 
+test("compression commands charge only their selected inputs and stop pulling at the shared limit", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/a":"abc\n","/b":"def\n"}});
+  try {
+    for (const cmd of ["gzip","bzip2","xz","lzma","zstd"]) {
+      for (const [args, limited, pulls] of [["-c",true,2],["-c /a -",true,1],["-c /a /b",true,0],["-c /a",false,0],["--help",false,0]]) {
+        let seen = 0;
+        const stdin = {async *[Symbol.asyncIterator]() {
+          for (let i = 0; i < 3; i++) { seen++; yield Buffer.from("abc\n"); }
+        }};
+        const run = bash.exec(cmd + " " + args, {stdin,limits:{maxInputBytes:6}});
+        if (limited) await assert.rejects(run, {limit:"maxInputBytes"});
+        else assert.equal((await run).exitCode,0);
+        assert.equal(seen,pulls,cmd + " " + args);
+      }
+    }
+    const twice = await bash.exec("gzip -c - - | gunzip -c", {stdin:"once"});
+    assert.deepEqual([twice.exitCode,twice.stdout,twice.stderr],[0,"once",""]);
+  } finally { bash.dispose(); }
+});
+
 test("gunzip checks each member's optional header and trailer", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

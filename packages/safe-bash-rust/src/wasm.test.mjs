@@ -8562,6 +8562,16 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk file and descriptor redirections preserve bytes and close releases the filename", async () => {
+  const sh = new RustWasmBash({files:{"/f":"prefix"}});
+  try {
+    const r = await sh.exec(`awk '{print >> "/f"; print > "/dev/stderr"; print close("/f") > "/dev/stdout"; print > "/f"}'`, {stdin:Buffer.from([255,10,128,10])});
+    assert.deepEqual([r.exitCode,r.stdout,[...r.stderrBytes],[...await sh.fs.readFile("/f")]], [0,"0\n0\n",[255,10,128,10],[128,10]]);
+    const missing = await sh.exec(`awk 'BEGIN{print "before";print 1 > "/missing/f"; print "after"}'`);
+    assert.deepEqual([missing.exitCode,missing.stdout,missing.stderr], [1,"before\n","awk: ENOENT: no such file or directory, writeFile '/missing/f'\n"]);
+  } finally { sh.dispose(); }
+});
+
 test("awk string functions address input bytes and change only ASCII case", async () => {
   const sh = new RustWasmBash();
   try {

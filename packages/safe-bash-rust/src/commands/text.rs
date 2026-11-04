@@ -1722,12 +1722,12 @@ type AwkFuncMap = BTreeMap<String, (Vec<String>, String)>;
 
 struct AwkOutput<'a> {
     pending: String,
-    send: &'a mut dyn FnMut(&str) -> bool,
+    send: &'a mut dyn FnMut(u32, &str) -> bool,
 }
 
 impl AwkOutput<'_> {
     fn flush(&mut self) -> bool {
-        let ok = self.pending.is_empty() || (self.send)(&self.pending);
+        let ok = self.pending.is_empty() || (self.send)(1, &self.pending);
         self.pending.clear();
         ok
     }
@@ -1768,7 +1768,8 @@ struct AwkState<'a> {
     operand_assignments: bool,
     finite_input_quota: bool,
     error_status: i32,
-    redirect_written: BTreeMap<String, bool>,
+    redirect_written: std::collections::BTreeSet<String>,
+    create_mode: u32,
 }
 
 impl<'a> AwkState<'a> {
@@ -1780,6 +1781,7 @@ impl<'a> AwkState<'a> {
         vfs: &'a dyn SafeBashFs,
         stdin: super::CommandInput<'a>,
         output: AwkOutput<'a>,
+        create_mode: u32,
     ) -> Self {
         let ofs = vars.get("OFS").cloned().unwrap_or_else(|| " ".to_string());
         let ors = vars.get("ORS").cloned().unwrap_or_else(|| "\n".to_string());
@@ -1816,7 +1818,8 @@ impl<'a> AwkState<'a> {
             vfs,
             getline_files: BTreeMap::new(),
             stdin, reader: None, argument: 1, saw_file: false, operand_assignments: true, finite_input_quota: true, error_status: 2,
-            redirect_written: BTreeMap::new(),
+            redirect_written: Default::default(),
+            create_mode,
         }
     }
 
@@ -1852,17 +1855,25 @@ impl<'a> AwkState<'a> {
     }
 
     fn write_redirect(&mut self, raw_path: &str, append: bool, data: &str) {
-        let full = resolve_posix_path(&self.cwd, raw_path);
         if self.runtime_err.is_some() { return; }
+        if raw_path == "/dev/stdout" { self.print(data); return; }
         if !self.output.flush() { self.runtime_err = Some(String::new()); return; }
-        let should_append = append || self.redirect_written.get(&full).copied().unwrap_or(false);
-        self.redirect_written.insert(full.clone(), true);
-        if should_append {
-            let mut cur = self.vfs.read_file(&full).unwrap_or_default();
-            cur.extend_from_slice(data.as_bytes());
-            let _ = self.vfs.write_file(&full, &cur);
-        } else {
-            let _ = self.vfs.write_file(&full, data.as_bytes());
+        if raw_path == "/dev/stderr" {
+            if !(self.output.send)(2, data) { self.runtime_err = Some(String::new()); }
+            return;
+        }
+        let full = resolve_posix_path(&self.cwd, raw_path);
+        let bytes = crate::vfs::stream_string_to_bytes(data);
+        let open = self.redirect_written.contains(&full);
+        let result = self.vfs.write_command_path(&full, &bytes, open || append, self.create_mode);
+        match result {
+            Ok(()) => { self.redirect_written.insert(full); }
+            Err(e) => {
+                let message = if full == "/" && e.starts_with("EISDIR:") { "EISDIR: illegal operation on a directory '/'".into() }
+                    else { super::coreutils::stream_file_error(e, if open { "appendFile" } else { "writeFile" }, &full) };
+                self.runtime_err = Some(format!("awk: {message}\n"));
+                self.error_status = 1;
+            }
         }
     }
 
@@ -2003,7 +2014,7 @@ fn is_valid_awk_ident(name: &str) -> bool {
 
 pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut result = ok_out("");
-    let tail = run_awk(args, stdin, cwd, env, fs, AwkOutput { pending: String::new(), send: &mut |s| write(1, s, &mut result) });
+    let tail = run_awk(args, stdin, cwd, env, fs, AwkOutput { pending: String::new(), send: &mut |fd,s| write(fd, s, &mut result) });
     if result.exit_code == 0 && write(1, &tail.stdout, &mut result) && write(2, &tail.stderr, &mut result) {
         result.exit_code = tail.exit_code;
     }
@@ -2231,7 +2242,8 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     let prog_str = program_parts.join("\n");
 
     let (mut rules, funcs) = parse_awk_rules(&prog_str);
-    let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output);
+    let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+    let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output, mode);
     state.operand_assignments = operand_assignments;
     state.finite_input_quota = !cfg!(target_arch = "wasm32") || env.contains_key("\0has_finite_input_quota");
     state.arrays.insert("ENVIRON".to_string(), env.iter().filter(|(k,_)| !k.starts_with('\0')).map(|(k,v)| (k.clone(),v.clone())).collect());
@@ -3975,7 +3987,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let name = args.first().map(|a| eval_awk_expr(a, state)).unwrap_or_default();
             if name.is_empty() || name == "/dev/stdout" {
                 if !state.output.flush() { state.runtime_err = Some(String::new()); }
-            } else if name != "/dev/stderr" && !state.redirect_written.contains_key(&resolve_posix_path(&state.cwd, &name)) {
+            } else if name != "/dev/stderr" && !state.redirect_written.contains(&resolve_posix_path(&state.cwd, &name)) {
                 return Some("-1".to_string());
             }
             Some("0".to_string())
@@ -3984,9 +3996,11 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             if let Some(arg) = args.first() {
                 let path = eval_awk_expr(arg, state);
                 let full = resolve_posix_path(&state.cwd, &path);
-                state.getline_files.remove(&full);
+                let input = state.getline_files.remove(&full).is_some();
+                let output = state.redirect_written.remove(&full);
+                if input || output { return Some("0".to_string()); }
             }
-            Some("0".to_string())
+            Some("-1".to_string())
         }
         "ord" => {
             let s = args.first().map(|a| eval_awk_expr(a, state)).unwrap_or_default();

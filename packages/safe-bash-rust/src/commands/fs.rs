@@ -3851,7 +3851,12 @@ fn cmd_du(
         };
     };
     for operand in targets {
-        let mut pending = vec![Visit::Entry(resolve_posix_path(cwd, &operand), operand)];
+        if operand.is_empty() {
+            stderr.push_str("du: invalid zero-length file name\n");
+            total = None;
+            continue;
+        }
+        let mut pending = vec![Visit::Entry(absolute_operand(cwd, &operand), operand)];
         let mut ancestors = std::collections::BTreeSet::new();
         let mut dirs: Vec<(Option<u64>, Option<u64>)> = Vec::new(); // recursive total and direct children
         let mut root_device = None;
@@ -3865,16 +3870,18 @@ fn cmd_du(
                 Visit::Entry(full, disp) => {
                     if du_matches_excludes(&disp, &excludes) { continue; }
                     let depth = dirs.len();
-                    let stat = fs.lstat(&full).and_then(|stat| {
-                        if stat.kind == crate::vfs::VfsEntryKind::Symlink &&
+                    let inspect = |follow, syscall| fs.inspect_command_entry(&full, follow, syscall)
+                        .map_err(|e| copy_error(&e, syscall, &full));
+                    let stat = inspect(false, "lstat").and_then(|entry| {
+                        if entry.1.kind == crate::vfs::VfsEntryKind::Symlink &&
                             (deref_mode == 'L' || deref_mode == 'H' && depth == 0) {
-                            fs.stat(&full)
-                        } else { Ok(stat) }
+                            inspect(true, "stat")
+                        } else { Ok(entry) }
                     });
                     let mut failure = |message: &str| {
                         stderr.push_str(&format!("du: {}: {message}\n", tree_json_escape(&disp)));
                     };
-                    let stat = match stat {
+                    let (resolved, stat) = match stat {
                         Ok(s) => s,
                         Err(err) => {
                             failure(err.split_once(": ").map_or(err.as_str(), |(_, msg)| msg));
@@ -3917,7 +3924,7 @@ fn cmd_du(
                         continue;
                     }
                     if is_dir {
-                        match fs.list_dir(&full) {
+                        match fs.list_dir(&resolved) {
                             Ok(mut names) => {
                                 names.sort();
                                 if let Some(id) = &stat.identity { ancestors.insert(id.clone()); }
@@ -7327,6 +7334,20 @@ mod tests {
                 "inode/chardevice\n",
             )
         );
+    }
+
+    #[test]
+    fn du_resolves_operands_in_order_and_skips_empty_names() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/t/d").unwrap();
+        fs.write_file("/t/data", b"abc").unwrap();
+        fs.symlink("/t/d", "/s").unwrap();
+        let result = cmd_du(&args(&["-abc", "", "/missing/../t/data", "/t/data/", "/s/../data"]), "/", &Default::default(), &fs);
+        assert_eq!(result.exit_code, 1);
+        assert_eq!(result.stdout, "3\t/s/../data\n");
+        assert_eq!(result.stderr, concat!("du: invalid zero-length file name\n",
+            "du: \"/missing/../t/data\": no such file or directory, lstat '/missing/../t/data'\n",
+            "du: \"/t/data/\": not a directory, lstat '/t/data/'\n"));
     }
 
     #[test]

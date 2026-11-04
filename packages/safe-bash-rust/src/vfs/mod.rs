@@ -472,6 +472,11 @@ pub trait SafeBashFs: Send + Sync {
         mkdir::creation_mode(path, recursive, |candidate| self.command_create_path(candidate))
     }
 
+    /// A missing rmdir capability stops the operand batch before its first mutation.
+    fn rmdir_capability_error(&self, entry: &str) -> Option<&'static str> {
+        (entry == "/dev" && self.default_device_view()).then_some("ENOTSUP: operation not supported")
+    }
+
     fn default_device_view(&self) -> bool { false }
 
     /// Create one new directory. Never change an existing entry's permissions.

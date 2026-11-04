@@ -3860,6 +3860,22 @@ test("single-entry removal preserves unseen descendants", async () => {
   }
 });
 
+test("rmdir checks every operand's removal capability before deleting earlier directories", async () => {
+  for (const [profile, ignore, code, removed] of [
+    [undefined, false, "ENOTSUP", false], [undefined, true, "ENOTSUP", false],
+    ["strict-budgets-mount-dev", false, "ENOTEMPTY", false], ["strict-budgets-mount-dev", true, "", true],
+  ]) {
+    const bash = new RustWasmBash({profile, directories:["/empty"]});
+    try {
+      const r = await bash.exec("rmdir -v " + (ignore ? "--ignore-fail-on-non-empty " : "") + "/empty /dev");
+      assert.equal(r.exitCode, code ? 1 : 0);
+      assert.equal(r.stdout, removed ? "rmdir: removing directory, '/empty'\n" : "");
+      assert.equal(r.stderr, code ? "rmdir: " + code + (code === "ENOTSUP" ? ": operation not supported" : ": directory not empty") + ", rmdir '/dev'\n" : "");
+      assert.equal(await bash.fs.stat("/empty").then(() => false, () => true), removed);
+    } finally { bash.dispose(); }
+  }
+});
+
 test("rmdir checks the parent and removes empty unreadable directories", async () => {
   const bash = new RustWasmBash({files:{"/guard/keep":"data"},symlinks:{"/alias":"/guard"}});
   try {

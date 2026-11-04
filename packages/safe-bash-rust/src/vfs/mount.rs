@@ -184,6 +184,11 @@ impl MountVfs {
 }
 
 impl SafeBashFs for MountVfs {
+    fn rmdir_capability_error(&self, entry: &str) -> Option<&'static str> {
+        let (_, fs, local) = self.location(entry);
+        fs.rmdir_capability_error(&local)
+    }
+
     fn has_path_capabilities(&self) -> bool { true }
 
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {

@@ -1525,6 +1525,14 @@ impl SafeBashFs for MemoryVfs {
         self.mkdir_with_operation(path, recursive, mode, false).map_err(|(code, _, at)| (code, at))
     }
 
+    fn rmdir_capability_error(&self, entry: &str) -> Option<&'static str> {
+        match (self.state.read().ok()?.devices, entry) {
+            (Devices::Null | Devices::Extended, "/dev") => Some("ENOTSUP: operation not supported"),
+            (Devices::Mounted, "/") => Some("ENOTEMPTY: directory not empty"),
+            _ => None,
+        }
+    }
+
     fn default_device_view(&self) -> bool {
         self.state.read().is_ok_and(|s| s.devices == Devices::Null)
     }

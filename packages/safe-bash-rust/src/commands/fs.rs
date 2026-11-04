@@ -746,56 +746,70 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     if operands.is_empty() {
         return err_out("rmdir: missing operand\n", 2);
     }
-    for a in &operands {
-        let mut cur_p = match command_operand(cwd,a) {
-            Ok(p) => p, Err(e) => { stderr.push_str(&format!("rmdir: {e}\n")); code = 1; continue; }
-        };
-        let stop = if a.starts_with('/') {
-            "/".to_string()
-        } else {
-            let first_seg = a
-                .split('/')
-                .find(|s| !s.is_empty() && *s != ".")
-                .unwrap_or(a.as_str());
-            crate::vfs::dirname_posix_path(&resolve_posix_path(cwd, first_seg))
-        };
-        let mut cur_disp = a.clone();
-        loop {
-            if cur_p == "/" {
-                stderr.push_str(&format!(
-                    "rmdir: failed to remove '{cur_disp}': Device or resource busy\n"
-                ));
-                code = 1;
-                break;
-            }
-            if let Err(e) = fs.remove_one(&cur_p, true) {
-                if !ignore_non_empty || !e.starts_with("ENOTEMPTY:") {
-                    stderr.push_str(&format!("rmdir: {e}, rmdir '{cur_p}'\n"));
-                    code = 1;
-                }
-                break;
-            }
-            if verbose {
-                stdout.push_str(&format!("rmdir: removing directory, {}\n", display_operand(&cur_disp)));
-            }
-            if !parents {
-                break;
-            }
-            cur_p = crate::vfs::dirname_posix_path(&cur_p);
-            if cur_p == "/" || cur_p == stop {
-                break;
-            }
-            let trimmed = cur_disp.trim_end_matches('/');
-            if let Some((parent_disp, _)) = trimmed.rsplit_once('/') {
-                cur_disp = if parent_disp.is_empty() {
-                    "/".to_string()
-                } else {
-                    parent_disp.to_string()
-                };
-            } else {
-                break;
-            }
+    let parent = |s: &str| {
+        let stripped = s.trim_end_matches('/');
+        match stripped.rfind('/') {
+            Some(0) => "/".to_owned(),
+            Some(1) if s.starts_with("//") => "//".to_owned(),
+            Some(i) => s[..i].to_owned(),
+            None if s.starts_with('/') => "/".to_owned(),
+            None => ".".to_owned(),
         }
+    };
+    let device_view = fs.default_device_view();
+    let link_free = fs.link_free_memory();
+    let mut visit = |operand: &str, preflight: bool| -> Result<(), String> {
+        let mut path = command_operand(cwd, operand)?;
+        let stop = if operand.starts_with('/') { "/".into() } else {
+            parent(&absolute_operand(cwd, operand.split('/').find(|p| !p.is_empty() && *p != ".").unwrap_or(operand)))
+        };
+        let mut display = operand.to_owned();
+        loop {
+            if !preflight && path == "/" { return Err("EBUSY: resource busy or locked '/'".into()); }
+            let entry = match fs.inspect_command_entry(&path, false, "lstat") {
+                Ok((_, st)) if st.kind != VfsEntryKind::Directory => return Err(format!("ENOTDIR: not a directory, rmdir '{path}'")),
+                Ok((entry, _)) => Some(entry),
+                Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+                Err(e) if e.starts_with("ENOTDIR: not a directory '") || e.starts_with("EACCES: permission denied, lstat '") => return Err(e),
+                Err(e) if e.starts_with("ELOOP:") && !device_view && !e.starts_with("ELOOP: too many symbolic links encountered, overlay '") =>
+                    return Err(format!("ELOOP: too many symbolic links encountered, lstat '{path}'")),
+                Err(e) => return Err(copy_error(&e, "lstat", &path)),
+            };
+            if fs.has_path_capabilities() || device_view && (!link_free || path == "/" || path == "/dev" || path.starts_with("/dev/") || normalize_posix_path(&path) != path) {
+                fs.command_descriptor_op()?;
+            }
+            if let Some(reason) = entry.as_deref().and_then(|p| fs.rmdir_capability_error(p)) {
+                fs.command_descriptor_op()?;
+                if reason.starts_with("ENOTEMPTY:") {
+                    fs.command_descriptor_op()?;
+                    if ignore_non_empty { return Ok(()); }
+                }
+                return Err(format!("{reason}, rmdir '{path}'"));
+            }
+            if !preflight {
+                if entry.as_deref() == Some("/") && device_view {
+                    return Err(format!("EBUSY: resource busy or locked '{path}'"));
+                }
+                if let Err(e) = fs.remove_one(&path, true) {
+                    if ignore_non_empty && e.starts_with("ENOTEMPTY:") { return Ok(()); }
+                    let reason = e.split_once(", ").map_or(e.as_str(), |(r, _)| r);
+                    return Err(format!("{reason}, rmdir '{path}'"));
+                }
+                if verbose { stdout.push_str(&format!("rmdir: removing directory, {}\n", display_operand(&display))); }
+            }
+            if !parents { return Ok(()); }
+            path = parent(&path);
+            if path == "/" || path == stop { return Ok(()); }
+            display = parent(&display);
+        }
+    };
+    for a in &operands {
+        if let Err(e) = visit(a, true) && (e.starts_with("ENOTSUP:") || e.starts_with("ENOTEMPTY:") || e.starts_with("EROFS:") || e.starts_with("Execution aborted:")) {
+            return err_out(&format!("rmdir: {e}\n"), 1);
+        }
+    }
+    for a in &operands {
+        if let Err(e) = visit(a, false) { stderr.push_str(&format!("rmdir: {e}\n")); code = 1; }
     }
     BuiltinOutcome {
         stdout,

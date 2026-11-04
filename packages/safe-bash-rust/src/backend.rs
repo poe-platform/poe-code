@@ -335,6 +335,10 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.check_mkdir_creation_mode(&host_text(path), recursive).map_err(quote_host_text)
     }
 
+    fn rmdir_capability_error(&self, entry: &str) -> Option<&'static str> {
+        self.inner.rmdir_capability_error(&host_text(entry))
+    }
+
     fn default_device_view(&self) -> bool { self.inner.default_device_view() }
 
     fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32, try_backing: bool) -> Result<(), (String, &'static str, String)> {

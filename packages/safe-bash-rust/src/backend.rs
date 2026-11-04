@@ -898,6 +898,28 @@ mod tests {
     }
 
     #[test]
+    fn registered_commands_override_executables_but_not_forced_shell_builtins() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for name in ["pwd", "true", "false", "kill", "echo", "cd", "cat"] {
+            shell.register_command(name, Arc::new(|ctx| Ok(CommandResult {
+                stdout: "extension\n".into(), stderr: String::new(), exit_code: 23,
+                cwd: ctx.cwd.clone(), env: ctx.env.clone(),
+            })));
+        }
+        for (script, code, out) in [
+            ("pwd", 23, "extension\n"), ("command true", 23, "extension\n"),
+            ("/usr/bin/false", 23, "extension\n"), ("/bin/kill", 23, "extension\n"),
+            ("builtin pwd", 0, "/\n"), ("builtin false", 1, ""),
+            ("builtin echo test", 23, "extension\n"), ("cd /", 0, ""),
+            ("/bin/cd", 23, "extension\n"), ("pwd() { return 7; }; pwd", 7, ""),
+            ("command pwd", 23, "extension\n"), ("cat", 23, "extension\n"),
+        ] {
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str()), (code, out), "{script}");
+        }
+    }
+
+    #[test]
     fn registered_command_discovery_uses_which_options_and_the_callers_path() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         shell.register_command("probe", Arc::new(|_| panic!("discovery executed the command")));

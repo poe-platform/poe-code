@@ -4915,7 +4915,8 @@ impl<'a> EvalState<'a> {
                 self.budget
                     .enter_substitution()
                     .map_err(EvalError::Budget)?;
-                if let Some(b_out) =
+                if !(matches!(target.as_str(), "echo" | "printf" | "test" | "[") && self.custom_commands.contains_key(target))
+                    && let Some(b_out) =
                     try_run_builtin(target, &args[idx + 1..], stdin, self.cwd, self.env, self.fs)
                 {
                     self.budget.leave_substitution();
@@ -5068,6 +5069,36 @@ impl<'a> EvalState<'a> {
         };
         let effective_cmd = virtual_name.as_deref().unwrap_or(cmd.as_str());
 
+        if let Some(custom) = self.custom_commands.get(effective_cmd)
+            && (virtual_name.is_some() || !Self::is_implemented_builtin_name(effective_cmd)
+                || matches!(effective_cmd, "true" | "false" | "pwd"))
+        {
+            self.refresh_file_input(0, stdin)?;
+            let mut ctx = CommandContext {
+                args,
+                stdin,
+                cwd: self.cwd,
+                env: self.env,
+                fs: self.fs,
+            };
+            return match custom(&mut ctx) {
+                Ok(res) => {
+                    *self.cwd = res.cwd;
+                    *self.env = res.env;
+                    Ok(BuiltinOutcome {
+                        stdout: res.stdout,
+                        stderr: res.stderr,
+                        exit_code: res.exit_code,
+                    })
+                }
+                Err(msg) => Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{msg}\n"),
+                    exit_code: 1,
+                }),
+            };
+        }
+
         if virtual_name.is_some() {
             match effective_cmd {
                 "true" => {
@@ -5098,33 +5129,6 @@ impl<'a> EvalState<'a> {
                 }
                 _ => {}
             }
-        }
-
-        if let Some(custom) = self.custom_commands.get(effective_cmd) {
-            self.refresh_file_input(0, stdin)?;
-            let mut ctx = CommandContext {
-                args,
-                stdin,
-                cwd: self.cwd,
-                env: self.env,
-                fs: self.fs,
-            };
-            return match custom(&mut ctx) {
-                Ok(res) => {
-                    *self.cwd = res.cwd;
-                    *self.env = res.env;
-                    Ok(BuiltinOutcome {
-                        stdout: res.stdout,
-                        stderr: res.stderr,
-                        exit_code: res.exit_code,
-                    })
-                }
-                Err(msg) => Ok(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{msg}\n"),
-                    exit_code: 1,
-                }),
-            };
         }
 
         if effective_cmd == "which" && !self.custom_commands.is_empty() {

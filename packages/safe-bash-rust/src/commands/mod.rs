@@ -952,6 +952,9 @@ where
     if cmd == "xq" {
         return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
     }
+    if let Some(algorithm) = archive::checksum_algorithm(cmd) {
+        return Ok(Some(archive::run_checksum(algorithm, args, CommandInput { text: stdin, file }, cwd, fs, write)));
+    }
     if matches!(cmd, "base64" | "base32") {
         return Ok(Some(archive::run_base_cmd(cmd, args, CommandInput { text: stdin, file }, cwd, fs, write)));
     }

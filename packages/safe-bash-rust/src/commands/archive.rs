@@ -15,15 +15,10 @@ pub fn try_run_archive_command(
     {
         return Some(info);
     }
+    if let Some(algorithm) = checksum_algorithm(cmd) {
+        return Some(run_checksum(algorithm, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write));
+    }
     match cmd {
-        "sha256sum" => Some(cmd_hash("sha256", args, stdin, cwd, fs)),
-        "sha224sum" => Some(cmd_hash("sha224", args, stdin, cwd, fs)),
-        "sha384sum" => Some(cmd_hash("sha384", args, stdin, cwd, fs)),
-        "sha512sum" => Some(cmd_hash("sha512", args, stdin, cwd, fs)),
-        "sha1sum" => Some(cmd_hash("sha1", args, stdin, cwd, fs)),
-        "md5sum" => Some(cmd_hash("md5", args, stdin, cwd, fs)),
-        "b2sum" => Some(cmd_hash("blake2b", args, stdin, cwd, fs)),
-        "cksum" => Some(cmd_cksum(args, stdin, cwd, fs)),
         "base64" | "base32" => Some(run_base_cmd(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
         "xxd" => Some(cmd_xxd(args, stdin, cwd, fs)),
         "strings" => Some(cmd_strings(args, stdin, cwd, fs)),
@@ -706,13 +701,108 @@ fn compute_digest_hex_bits(algo: &str, data: &[u8], bits: usize) -> String {
     }
 }
 
-fn cmd_hash(
-    algo: &str,
-    args: &[String],
-    stdin: &str,
-    cwd: &str,
-    fs: &dyn SafeBashFs,
-) -> BuiltinOutcome {
+pub(super) fn checksum_algorithm(cmd: &str) -> Option<&str> {
+    match cmd {
+        "md5sum" | "sha1sum" | "sha224sum" | "sha256sum" | "sha384sum" | "sha512sum" => cmd.strip_suffix("sum"),
+        "b2sum" => Some("blake2b"),
+        "cksum" => Some("crc"),
+        _ => None,
+    }
+}
+
+struct ChecksumInputs<'a, 'b> {
+    stdin: super::CommandInput<'a>,
+    cwd: &'b str,
+    fs: &'b dyn SafeBashFs,
+    left: usize,
+    stdin_used: bool,
+}
+
+impl ChecksumInputs<'_, '_> {
+    fn read(&mut self, file: &str, mut consume: impl FnMut(&[u8])) -> Result<(), String> {
+        if file == "-" && std::mem::replace(&mut self.stdin_used, true) { return Ok(()); }
+        if file.is_empty() || file.contains('\0') || crate::vfs::stream_utf8(file).is_err() {
+            return Err("EINVAL: filename must be nonempty, NUL-free, valid Unicode".into());
+        }
+        if crate::vfs::stream_byte_len(file) > 16384 { return Err("ENAMETOOLONG: filename exceeds 16384 UTF-8 bytes".into()); }
+        let mut exceeded = false;
+        self.stdin.read_operand(file, self.cwd, self.fs, false, |chunk| {
+            let Some(left) = self.left.checked_sub(chunk.len()) else { exceeded = true; return false };
+            self.left = left;
+            consume(chunk);
+            true
+        }).map_err(|e| {
+            if e.starts_with("EISDIR:") {
+                format!("{}: Is a directory", file.replace('\\', "\\\\").replace('\n', "\\n").replace('\r', "\\r"))
+            } else { e }
+        })?;
+        if exceeded { return Err(self.fs.limit_error("maxInputBytes", self.fs.max_input_bytes())); }
+        Ok(())
+    }
+
+    fn manifest(&mut self, file: &str) -> Result<String, String> {
+        let mut bytes = Vec::new();
+        self.read(file, |chunk| bytes.extend_from_slice(chunk))?;
+        Ok(crate::vfs::shell_text(&String::from_utf8_lossy(&bytes)).into_owned())
+    }
+
+    fn digest(&mut self, file: &str, algo: &str, bits: usize) -> Result<(String, u64), String> {
+        let mut len = 0u64;
+        let mut crc = if algo == "crc32b" { u32::MAX } else { 0 };
+        let mut bytes = Vec::new();
+        self.read(file, |chunk| {
+            len += chunk.len() as u64;
+            match algo {
+                "crc" => for &b in chunk { crc = posix_crc_byte(crc, b); },
+                "crc32b" => for &b in chunk {
+                    crc ^= u32::from(b);
+                    for _ in 0..8 { crc = (crc >> 1) ^ (0xedb8_8320 & 0u32.wrapping_sub(crc & 1)); }
+                },
+                "bsd" => for &b in chunk { crc = u32::from((crc as u16).rotate_right(1).wrapping_add(u16::from(b))); },
+                "sysv" => for &b in chunk { crc = crc.wrapping_add(u32::from(b)); },
+                _ => bytes.extend_from_slice(chunk),
+            }
+        })?;
+        let value = match algo {
+            "crc" => {
+                let mut size = len;
+                while size != 0 { crc = posix_crc_byte(crc, size as u8); size >>= 8; }
+                (!crc).to_string()
+            }
+            "crc32b" => (!crc).to_string(),
+            "bsd" => format!("{crc:05}"),
+            "sysv" => {
+                let sum = (crc & 0xffff) + (crc >> 16);
+                ((sum & 0xffff) + (sum >> 16)).to_string()
+            }
+            _ => compute_digest_hex_bits(algo, &bytes, bits),
+        };
+        Ok((value, len))
+    }
+}
+
+fn posix_crc_byte(crc: u32, byte: u8) -> u32 {
+    const TABLE: [u32; 256] = {
+        let mut table = [0; 256];
+        let mut i = 0;
+        while i < 256 {
+            let mut r = (i as u32) << 24;
+            let mut bit = 0;
+            while bit < 8 { r = (r << 1) ^ (0x04c1_1db7 & 0u32.wrapping_sub(r >> 31)); bit += 1; }
+            table[i] = r;
+            i += 1;
+        }
+        table
+    };
+    (crc << 8) ^ TABLE[((crc >> 24) as u8 ^ byte) as usize]
+}
+
+pub(super) fn run_checksum(algo: &str, args: &[String], stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+    let mut inputs = ChecksumInputs { stdin, cwd, fs, left: fs.max_input_bytes(), stdin_used: false };
+    if algo == "crc" { cmd_cksum(args, &mut inputs, write) } else { cmd_hash(algo, args, &mut inputs, write) }
+}
+
+fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let cmd_name = if algo == "blake2b" {
         "b2sum".to_string()
     } else {
@@ -935,32 +1025,14 @@ fn cmd_hash(
         let mut out = String::new();
         let mut err = String::new();
         let mut overall_ok = true;
-        let mut stdin_used = false;
         for manifest in &manifests {
-            let content = if manifest == "-" {
-                if stdin_used {
-                    String::new()
-                } else {
-                    stdin_used = true;
-                    stdin.to_string()
-                }
-            } else {
-                let full = resolve_posix_path(cwd, manifest);
-                if fs.is_dir(&full) {
-                    let (_, disp_m) = escape_fname(manifest);
-                    err.push_str(&format!("{cmd_name}: {disp_m}: Is a directory\n"));
+            let (_, disp_m) = escape_fname(manifest);
+            let content = match inputs.manifest(manifest) {
+                Ok(text) => text,
+                Err(e) => {
+                    err.push_str(&format!("{cmd_name}: {e}\n"));
                     overall_ok = false;
                     continue;
-                }
-                match fs.read_file(&full) {
-                    Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-                    Err(_) => {
-                        err.push_str(&format!(
-                            "{cmd_name}: ENOENT: no such file or directory, readStream '{full}'\n"
-                        ));
-                        overall_ok = false;
-                        continue;
-                    }
                 }
             };
             let mut malformed = 0usize;
@@ -1057,7 +1129,6 @@ fn cmd_hash(
                 let Some((line_bits, fname, expected_hex)) = validated else {
                     malformed += 1;
                     if warn_mode {
-                        let (_, disp_m) = escape_fname(manifest);
                         err.push_str(&format!(
                             "{cmd_name}: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
                         ));
@@ -1068,31 +1139,8 @@ fn cmd_hash(
                 valid = true;
                 let (needs_esc, disp_fname) = escape_fname(&fname);
                 let disp_prefix = if needs_esc { "\\" } else { "" };
-                let read_res = if fname == "-" {
-                    if stdin_used {
-                        Ok(Vec::new())
-                    } else {
-                        stdin_used = true;
-                        Ok(crate::vfs::stream_string_to_bytes(stdin))
-                    }
-                } else {
-                    let full = resolve_posix_path(cwd, &fname);
-                    if fs.is_dir(&full) {
-                        Err((true, format!("{cmd_name}: {disp_fname}: Is a directory\n")))
-                    } else {
-                        fs.read_file(&full).map_err(|_| {
-                            (
-                                false,
-                                format!(
-                                    "{cmd_name}: ENOENT: no such file or directory, readStream '{full}'\n"
-                                ),
-                            )
-                        })
-                    }
-                };
-                match read_res {
-                    Ok(bytes) => {
-                        let actual = compute_digest_hex_bits(algo, &bytes, line_bits);
+                match inputs.digest(&fname, algo, line_bits) {
+                    Ok((actual, _)) => {
                         if actual.eq_ignore_ascii_case(&expected_hex) {
                             matched = true;
                             if !quiet && !status_only {
@@ -1105,19 +1153,16 @@ fn cmd_hash(
                             }
                         }
                     }
-                    Err((is_dir_err, diag_msg)) => {
-                        if ignore_missing && fname != "-" && !is_dir_err {
-                            continue;
-                        }
+                    Err(e) => {
+                        if ignore_missing && fname != "-" && e.starts_with("ENOENT:") { continue; }
                         failures += 1;
-                        err.push_str(&diag_msg);
+                        err.push_str(&format!("{cmd_name}: {e}\n"));
                         if !status_only {
                             out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
                         }
                     }
                 }
             }
-            let (_, disp_m) = escape_fname(manifest);
             if !valid {
                 err.push_str(&format!(
                     "{cmd_name}: {disp_m}: no properly formatted checksum lines found\n"
@@ -1181,83 +1226,19 @@ fn cmd_hash(
         }
     };
 
-    if files.is_empty() {
-        let hex = compute_digest_hex_bits(algo, &crate::vfs::stream_string_to_bytes(stdin), bits);
-        return ok_out(&format_entry(&hex, "-"));
+    if files.is_empty() { files.push("-".into()); }
+    let mut result = ok_out("");
+    for file in &files {
+        let (fd, message) = match inputs.digest(file, algo, bits) {
+            Ok((hex, _)) => (1, format_entry(&hex, file)),
+            Err(e) => { result.exit_code = 1; (2, format!("{cmd_name}: {e}\n")) }
+        };
+        if !write(fd, &message, &mut result) { break; }
     }
-
-    let mut out = String::new();
-    let mut err = String::new();
-    let mut code = 0;
-    let mut stdin_used = false;
-    for f in &files {
-        if f == "-" {
-            let in_bytes = if stdin_used {
-                Vec::new()
-            } else {
-                stdin_used = true;
-                crate::vfs::stream_string_to_bytes(stdin)
-            };
-            let hex = compute_digest_hex_bits(algo, &in_bytes, bits);
-            out.push_str(&format_entry(&hex, "-"));
-        } else {
-            let full = resolve_posix_path(cwd, f);
-            if fs.is_dir(&full) {
-                let (_, disp_f) = escape_fname(f);
-                err.push_str(&format!("{cmd_name}: {disp_f}: Is a directory\n"));
-                code = 1;
-                continue;
-            }
-            match fs.read_file(&full) {
-                Ok(b) => {
-                    let hex = compute_digest_hex_bits(algo, &b, bits);
-                    out.push_str(&format_entry(&hex, f));
-                }
-                Err(_) => {
-                    err.push_str(&format!(
-                        "{cmd_name}: ENOENT: no such file or directory, readStream '{full}'\n"
-                    ));
-                    code = 1;
-                }
-            }
-        }
-    }
-    BuiltinOutcome {
-        stdout: out,
-        stderr: err,
-        exit_code: code,
-    }
+    result
 }
 
-fn posix_crc32(data: &[u8]) -> u32 {
-    let mut crc: u32 = 0;
-    for &b in data {
-        crc ^= (b as u32) << 24;
-        for _ in 0..8 {
-            if (crc & 0x8000_0000) != 0 {
-                crc = (crc << 1) ^ 0x04c1_1db7;
-            } else {
-                crc <<= 1;
-            }
-        }
-    }
-    let mut len = data.len();
-    while len > 0 {
-        let b = (len & 0xff) as u8;
-        len >>= 8;
-        crc ^= (b as u32) << 24;
-        for _ in 0..8 {
-            if (crc & 0x8000_0000) != 0 {
-                crc = (crc << 1) ^ 0x04c1_1db7;
-            } else {
-                crc <<= 1;
-            }
-        }
-    }
-    !crc
-}
-
-fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut algo = "crc".to_string();
     let mut requested_len: Option<String> = None;
     let mut last_tag: Option<bool> = None;
@@ -1505,32 +1486,14 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         let mut out = String::new();
         let mut err = String::new();
         let mut overall_ok = true;
-        let mut stdin_used = false;
         for manifest in &manifests {
             let (_, disp_m) = escape_fname(manifest);
-            let content = if manifest == "-" {
-                if stdin_used {
-                    String::new()
-                } else {
-                    stdin_used = true;
-                    stdin.to_string()
-                }
-            } else {
-                let full = resolve_posix_path(cwd, manifest);
-                if fs.is_dir(&full) {
-                    err.push_str(&format!("cksum: {disp_m}: Is a directory\n"));
+            let content = match inputs.manifest(manifest) {
+                Ok(text) => text,
+                Err(e) => {
+                    err.push_str(&format!("cksum: {e}\n"));
                     overall_ok = false;
                     continue;
-                }
-                match fs.read_file(&full) {
-                    Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-                    Err(_) => {
-                        err.push_str(&format!(
-                            "cksum: ENOENT: no such file or directory, readStream '{full}'\n"
-                        ));
-                        overall_ok = false;
-                        continue;
-                    }
                 }
             };
             let mut malformed = 0usize;
@@ -1675,31 +1638,8 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 valid = true;
                 let (needs_esc, disp_fname) = escape_fname(&fname);
                 let disp_prefix = if needs_esc { "\\" } else { "" };
-                let read_res = if fname == "-" {
-                    if stdin_used {
-                        Ok(Vec::new())
-                    } else {
-                        stdin_used = true;
-                        Ok(crate::vfs::stream_string_to_bytes(stdin))
-                    }
-                } else {
-                    let full = resolve_posix_path(cwd, &fname);
-                    if fs.is_dir(&full) {
-                        Err((true, format!("cksum: {disp_fname}: Is a directory\n")))
-                    } else {
-                        fs.read_file(&full).map_err(|_| {
-                            (
-                                false,
-                                format!(
-                                    "cksum: ENOENT: no such file or directory, readStream '{full}'\n"
-                                ),
-                            )
-                        })
-                    }
-                };
-                match read_res {
-                    Ok(bytes) => {
-                        let actual = compute_digest_hex_bits(&line_algo, &bytes, line_bits);
+                match inputs.digest(&fname, &line_algo, line_bits) {
+                    Ok((actual, _)) => {
                         if actual.eq_ignore_ascii_case(&expected_hex) {
                             matched = true;
                             if !quiet && !status_only {
@@ -1712,12 +1652,10 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                             }
                         }
                     }
-                    Err((is_dir_err, diag_msg)) => {
-                        if ignore_missing && fname != "-" && !is_dir_err {
-                            continue;
-                        }
+                    Err(e) => {
+                        if ignore_missing && fname != "-" && e.starts_with("ENOENT:") { continue; }
                         failures += 1;
-                        err.push_str(&diag_msg);
+                        err.push_str(&format!("cksum: {e}\n"));
                         if !status_only {
                             out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
                         }
@@ -1763,53 +1701,20 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
 
     let term = if zero_delim { "\0" } else { "\n" };
-    let format_for_bytes = |b: &[u8], fname: Option<&str>| -> String {
+    let format_entry = |hex: String, len: u64, fname: Option<&str>| -> String {
         match algo.as_str() {
-            "crc" => match fname {
-                Some(f) => format!("{} {} {f}{term}", posix_crc32(b), b.len()),
-                None => format!("{} {}{term}", posix_crc32(b), b.len()),
-            },
-            "bsd" => {
-                let mut crc: u32 = 0;
-                for &byte in b {
-                    crc = (((crc >> 1) | ((crc & 1) << 15)) + (byte as u32)) & 0xffff;
-                }
-                let blocks = (b.len() + 1023) / 1024;
+            "crc" | "bsd" | "sysv" | "crc32b" => {
+                let size = match algo.as_str() {
+                    "bsd" => format!("{:>5}", len.div_ceil(1024)),
+                    "sysv" => len.div_ceil(512).to_string(),
+                    _ => len.to_string(),
+                };
                 match fname {
-                    Some(f) => format!("{crc:05} {blocks:>5} {f}{term}"),
-                    None => format!("{crc:05} {blocks:>5}{term}"),
-                }
-            }
-            "sysv" => {
-                let sum: u32 = b.iter().map(|&x| x as u32).sum();
-                let r = (sum & 0xffff) + (sum >> 16);
-                let crc = (r & 0xffff) + (r >> 16);
-                let blocks = (b.len() + 511) / 512;
-                match fname {
-                    Some(f) => format!("{crc} {blocks} {f}{term}"),
-                    None => format!("{crc} {blocks}{term}"),
-                }
-            }
-            "crc32b" => {
-                let mut crc: u32 = 0xffff_ffff;
-                for &byte in b {
-                    crc ^= byte as u32;
-                    for _ in 0..8 {
-                        if (crc & 1) != 0 {
-                            crc = (crc >> 1) ^ 0xedb8_8320;
-                        } else {
-                            crc >>= 1;
-                        }
-                    }
-                }
-                let final_crc = !crc;
-                match fname {
-                    Some(f) => format!("{final_crc} {} {f}{term}", b.len()),
-                    None => format!("{final_crc} {}{term}", b.len()),
+                    Some(f) => format!("{hex} {size} {f}{term}"),
+                    None => format!("{hex} {size}{term}"),
                 }
             }
             _ => {
-                let hex = compute_digest_hex_bits(&algo, b, resolved_bits);
                 let mut raw = Vec::with_capacity(hex.len() / 2);
                 let chs: Vec<char> = hex.chars().collect();
                 for pair in chs.chunks(2) {
@@ -1854,46 +1759,17 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         }
     };
 
-    if files.is_empty() {
-        let bytes = crate::vfs::stream_string_to_bytes(stdin);
-        return ok_out(&format_for_bytes(&bytes, None));
+    let explicit = !files.is_empty();
+    if !explicit { files.push("-".into()); }
+    let mut result = ok_out("");
+    for file in &files {
+        let (fd, message) = match inputs.digest(file, &algo, resolved_bits) {
+            Ok((hex, len)) => (1, format_entry(hex, len, explicit.then_some(file))),
+            Err(e) => { result.exit_code = 1; (2, format!("cksum: {e}\n")) }
+        };
+        if !write(fd, &message, &mut result) { break; }
     }
-    let mut out = String::new();
-    let mut err = String::new();
-    let mut code = 0;
-    let mut stdin_used = false;
-    for f in &files {
-        if f == "-" {
-            let bytes = if stdin_used {
-                Vec::new()
-            } else {
-                stdin_used = true;
-                crate::vfs::stream_string_to_bytes(stdin)
-            };
-            out.push_str(&format_for_bytes(&bytes, Some("-")));
-        } else {
-            let full = resolve_posix_path(cwd, f);
-            if fs.is_dir(&full) {
-                let (_, disp_f) = escape_fname(f);
-                err.push_str(&format!("cksum: {disp_f}: Is a directory\n"));
-                code = 1;
-                continue;
-            }
-            if let Ok(b) = fs.read_file(&full) {
-                out.push_str(&format_for_bytes(&b, Some(f)));
-            } else {
-                err.push_str(&format!(
-                    "cksum: ENOENT: no such file or directory, readStream '{full}'\n"
-                ));
-                code = 1;
-            }
-        }
-    }
-    BuiltinOutcome {
-        stdout: out,
-        stderr: err,
-        exit_code: code,
-    }
+    result
 }
 
 const B64_CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

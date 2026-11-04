@@ -702,6 +702,24 @@ test("pager searches validate extended expressions and preserve quoted operators
   } finally { bash.dispose(); }
 });
 
+test("checksum commands charge operands together and publish results before pulling stdin", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/f":"abc"}});
+  try {
+    for (const cmd of ["sha224sum","sha256sum","sha384sum","sha512sum","sha1sum","md5sum","b2sum","cksum"]) {
+      const expected = await bash.exec(cmd + " /f");
+      let pulls = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const chunk of ["a","bb","unread"]) { pulls++; yield new TextEncoder().encode(chunk); }
+      }};
+      await assert.rejects(bash.exec(cmd + " /f - >/o 2>&1", {stdin,limits:{maxInputBytes:5}}), {limit:"maxInputBytes"});
+      assert.equal(pulls, 2, cmd);
+      assert.equal(bash.readText("/o"), expected.stdout, cmd);
+      assert.equal((await bash.exec(cmd + " --invalid", {stdin})).exitCode, 2);
+      assert.equal(pulls, 2);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
   const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];

@@ -5084,6 +5084,7 @@ impl<'a> EvalState<'a> {
             self.env,
             fs_ref,
             &mut |fd, data, out| {
+                if budget_ref.check_exceeded().is_err() { out.exit_code = 1; return false; }
                 if data.is_empty() { return true; }
                 let target = inherited_targets.get(&fd).unwrap_or(if fd == 1 { &FdTarget::Stdout } else { &FdTarget::Stderr });
                 if matches!(target, FdTarget::Closed | FdTarget::InputFile { writable: false, .. } | FdTarget::InputStream { .. }) {

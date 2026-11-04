@@ -41,6 +41,7 @@ pub(super) fn try_run_coreutil_with_input(
     if cmd == "expand" { return Ok(Some(cmd_expand(args, input, cwd, fs, write))); }
     if cmd == "unexpand" { return Ok(Some(cmd_unexpand(args, input, cwd, fs, write))); }
     if cmd == "rev" { return Ok(Some(cmd_rev(args, input, cwd, env, fs, write))); }
+    if cmd == "nl" { return Ok(Some(cmd_nl(args, input, cwd, fs, write))); }
     if cmd == "tee" { return Ok(Some(cmd_tee(args, input, cwd, env, fs, write))); }
     if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
     Ok(match coreutil(cmd, args, input, cwd, env, fs) {
@@ -58,7 +59,6 @@ fn coreutil(
         "sort" => cmd_sort(args, input, cwd, env, fs),
         "uniq" => cmd_uniq(args, input, cwd, env, fs),
         "cut" => cmd_cut(args, input, cwd, env, fs),
-        "nl" => cmd_nl(args, input, cwd, fs),
         "tac" => cmd_tac(args, input, cwd, fs),
         "paste" => cmd_paste(args, input, cwd, fs),
         "join" => cmd_join(args, input, cwd, fs),
@@ -3078,7 +3078,7 @@ fn parse_nl_positive_usize(s: &str) -> Result<usize, String> {
     }
 }
 
-fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut header_style = "n".to_string();
     let mut body_style = "t".to_string();
     let mut footer_style = "n".to_string();
@@ -3296,106 +3296,91 @@ fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
         files
     };
     let sep_bytes = crate::vfs::stream_string_to_bytes(&sep);
-    let pad_unnumbered = " ".repeat(width + sep_bytes.len());
-    let d1 = delim_bytes.clone();
-    let d2 = [delim_bytes.as_slice(), delim_bytes.as_slice()].concat();
-    let d3 = [delim_bytes.as_slice(), delim_bytes.as_slice(), delim_bytes.as_slice()].concat();
-
-    let mut current_style = body_style.clone();
-    let mut n = start_num;
+    let d1 = delim_bytes.as_slice();
+    let d2 = delim_bytes.repeat(2);
+    let d3 = delim_bytes.repeat(3);
+    let mut style = &body_style;
+    let mut n = Some(start_num);
     let mut blanks = 0usize;
-    let mut out = String::new();
-    let mut stderr = String::new();
-    let mut code = 0;
-
-    for f in &targets {
-        let result = stdin.read_records(f, cwd, fs, true, b'\n', |line_bytes| {
-            if !d1.is_empty() {
-                if line_bytes == d3 {
-                    current_style = header_style.clone();
-                    if !no_renumber {
-                        n = start_num;
-                    }
-                    blanks = 0;
-                    out.push('\n');
-                    return Ok(());
-                } else if line_bytes == d2 {
-                    current_style = body_style.clone();
-                    if !no_renumber {
-                        n = start_num;
-                    }
-                    blanks = 0;
-                    out.push('\n');
-                    return Ok(());
-                } else if line_bytes == d1 {
-                    current_style = footer_style.clone();
-                    if !no_renumber {
-                        n = start_num;
-                    }
-                    blanks = 0;
-                    out.push('\n');
-                    return Ok(());
-                }
-            }
-
-            let line = crate::vfs::bytes_to_stream_string(line_bytes);
-            let should_num = match current_style.as_str() {
-                "a" => {
-                    if !line.is_empty() {
-                        blanks = 0;
-                        true
-                    } else {
-                        blanks += 1;
-                        if blanks == join_blanks || join_blanks == 1 {
-                            blanks = 0;
-                            true
-                        } else {
-                            false
-                        }
-                    }
-                }
-                "t" => !line.is_empty(),
-                "n" => false,
-                s if s.starts_with('p') => {
-                    let pat = &s[1..];
-                    crate::commands::search::ZeroRegex::new(vec![pat.to_string()], false, false, false, false)
-                        .is_match(&line)
-                }
-                _ => !line.is_empty(),
+    let mut out = ok_out("");
+    let mut first = true;
+    for name in &targets {
+        let mut pending = Vec::new();
+        let mut batch = Vec::new();
+        let mut writable = true;
+        let mut overflow = false;
+        let mut consume = |chunk: &[u8], eof: bool| {
+            let mut flush = |batch: &mut Vec<u8>| {
+                let ok = batch.is_empty() || write(1, &crate::vfs::bytes_to_stream_string(batch), &mut out);
+                batch.clear();
+                ok
             };
-
-            if !should_num {
-                out.push_str(&pad_unnumbered);
-                out.push_str(&line);
-                out.push('\n');
-            } else {
-                let label = n.to_string();
-                let pad = width.saturating_sub(label.len());
-                let formatted_num = match num_fmt.as_str() {
-                    "ln" => format!("{label}{}", " ".repeat(pad)),
-                    "rz" if n < 0 => format!("-{}{}", "0".repeat(pad), &label[1..]),
-                    "rz" => format!("{}{label}", "0".repeat(pad)),
-                    _ => format!("{}{label}", " ".repeat(pad)),
-                };
-                out.push_str(&formatted_num);
-                out.push_str(&sep);
-                out.push_str(&line);
-                out.push('\n');
-                n = n.wrapping_add(incr);
-            }
-            Ok(())
-        });
-        if let Err(e) = result {
-            code = 1;
-            stderr.push_str(&format!("nl: {e}\n"));
+            let mut emit = |line: &[u8]| {
+                let next = if d1.is_empty() { None } else if line == d3 { Some(&header_style) }
+                    else if line == d2 { Some(&body_style) } else if line == d1 { Some(&footer_style) } else { None };
+                if let Some(next) = next {
+                    style = next;
+                    if !no_renumber { n = Some(start_num); }
+                } else {
+                    let numbered = match style.as_str() {
+                        "a" => {
+                            if line.is_empty() { blanks += 1; }
+                            let number = !line.is_empty() || blanks == join_blanks;
+                            if number { blanks = 0; }
+                            number
+                        }
+                        "t" => !line.is_empty(),
+                        "n" => false,
+                        pattern => crate::commands::search::ZeroRegex::new(vec![pattern[1..].into()], false, false, false, false)
+                            .is_match(&crate::vfs::bytes_to_stream_string(line)),
+                    };
+                    let mut label = String::new();
+                    if numbered {
+                        let Some(value) = n else { overflow = true; return false; };
+                        label = value.to_string();
+                        n = value.checked_add(incr);
+                    }
+                    let mut padding = if numbered { width.saturating_sub(label.len()) } else { width.saturating_add(sep_bytes.len()) };
+                    let pad_byte = if numbered && num_fmt == "rz" { b'0' } else { b' ' };
+                    let mut label = label.as_bytes();
+                    if numbered && num_fmt == "ln" { batch.extend_from_slice(label); label = &[]; }
+                    if pad_byte == b'0' && label.starts_with(b"-") { batch.push(b'-'); label = &label[1..]; }
+                    while padding > 0 {
+                        let count = padding.min(16384 - batch.len());
+                        batch.resize(batch.len() + count, pad_byte);
+                        padding -= count;
+                        if batch.len() == 16384 && !flush(&mut batch) { writable = false; return false; }
+                    }
+                    batch.extend_from_slice(label);
+                    if numbered { batch.extend_from_slice(&sep_bytes); }
+                    batch.extend_from_slice(line);
+                }
+                batch.push(b'\n');
+                if first || batch.len() >= 8192 {
+                    first = false;
+                    writable = flush(&mut batch);
+                }
+                writable
+            };
+            let more = if eof { pending.is_empty() || emit(&pending) }
+                else { visit_complete_records(chunk, |b| b == b'\n', &mut pending, &mut emit) };
+            if writable { writable = flush(&mut batch); }
+            more && writable
+        };
+        let read = stdin.read_operand(name, cwd, fs, true, |chunk| consume(chunk, false));
+        if read.is_ok() { consume(&[], true); }
+        if !writable { break; }
+        if overflow {
+            out.exit_code = 1;
+            write(2, "nl: line number overflow\n", &mut out);
+            break;
+        }
+        if let Err(e) = read {
+            out.exit_code = 1;
+            if !write(2, &format!("nl: {e}\n"), &mut out) { break; }
         }
     }
-
-    BuiltinOutcome {
-        stdout: out,
-        stderr,
-        exit_code: code,
-    }
+    out
 }
 
 fn cmd_tac(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

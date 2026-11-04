@@ -543,6 +543,33 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("nl stops pulling stdin on output failure and closes it on line number overflow", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd, limit, expectedPulls] of [["nl",6,1], ["nl",19,3], ["nl -v9223372036854775807",100,2]]) {
+      let pulls = 0, closes = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        try { for (let i = 0; i < 5; i++) { pulls++; yield Uint8Array.of(97,10); } } finally { closes++; }
+      }};
+      const run = bash.exec(cmd, {stdin, limits:{maxOutputBytes:limit}});
+      if (limit < 100) await assert.rejects(run, {limit:"maxOutputBytes"});
+      else {
+        const r = await run;
+        assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "9223372036854775807\ta\n", "nl: line number overflow\n"]);
+      }
+      assert.deepEqual([pulls, closes], [expectedPulls, 1]);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("nl writes diagnostics in operand order and carries blank groups across page boundaries", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const r = await bash.exec("nl -ba -l2 /missing - 2>&1", {stdin:"\n\\:\\:\n\n"});
+    assert.deepEqual([r.exitCode, r.stdout], [1, "nl: ENOENT: no such file or directory, stat '/missing'\n       \n\n     1\t\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("tee admits targets before reading and keeps each accepted chunk on quota failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

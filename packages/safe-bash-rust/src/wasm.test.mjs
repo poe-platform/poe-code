@@ -1591,6 +1591,23 @@ test("plugin writes share quotas, apply umask on creation, and stop after the ha
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("native du validates a whole directory before reporting sorted children", async () => {
+  const {Shell, MemoryFileSystem, duCommands} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}).use(duCommands()), rust = new RustWasmBash({cwd:"/"});
+  try {
+    for (const store of [fs,rust.fs]) {
+      for (const path of ["/order","/invalid","/denied"]) await store.mkdir(path);
+      for (const path of ["/order/𐀀","/order/\ue000","/invalid/a","/invalid/z\\x"]) await store.writeFile(path, Uint8Array.of(1));
+      await store.chmod("/denied", 0o100);
+    }
+    for (const operand of ["/order//","/invalid","/denied//"]) {
+      const script = "du -abc " + operand;
+      const expected = await js.exec(script), actual = await rust.exec(script);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr], [expected.exitCode,expected.stdout,expected.stderr], operand);
+    }
+  } finally { await js.dispose(); rust.dispose(); }
+});
+
 test("the du plugin walks directories and follows symlinks through scoped Wasm metadata", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, createDuCommand} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});

@@ -3924,19 +3924,29 @@ fn cmd_du(
                         continue;
                     }
                     if is_dir {
-                        match fs.command_descriptor_op().and_then(|_| fs.list_dir(&resolved)) {
-                            Ok(mut names) => {
-                                names.sort();
+                        let listing = fs.command_descriptor_op().and_then(|_| fs.list_dir(&resolved))
+                            .map_err(|e| copy_error(&e, "readdir", &full))
+                            .and_then(|mut names| {
+                                names.sort_unstable_by(|a,b| crate::vfs::host_text(a).encode_utf16().cmp(crate::vfs::host_text(b).encode_utf16()));
+                                if names.iter().any(|n| matches!(n.as_str(), "" | "." | "..") || n.contains(['/', '\\', '\0']))
+                                    || names.windows(2).any(|pair| pair[0] == pair[1]) {
+                                    return Err("invalid or duplicate directory entry name".into());
+                                }
+                                Ok(names)
+                            });
+                        match listing {
+                            Ok(names) => {
                                 if let Some(id) = &stat.identity { ancestors.insert(id.clone()); }
                                 pending.push(Visit::Finish(disp.clone(), stat.identity));
                                 dirs.push((amount, amount));
                                 for name in names.into_iter().rev() {
-                                    pending.push(Visit::Entry(child_disp_path(&full, &name), child_disp_path(&disp, &name)));
+                                    let child = |parent: &str| format!("{parent}{}{name}", if parent.ends_with('/') { "" } else { "/" });
+                                    pending.push(Visit::Entry(child(&full), child(&disp)));
                                 }
                                 continue;
                             }
                             Err(err) => {
-                                failure(&err);
+                                failure(err.split_once(": ").map_or(err.as_str(), |(_, msg)| msg));
                                 if let Some((amount, _)) = dirs.last_mut() { *amount = None; }
                                 total = None;
                                 continue;

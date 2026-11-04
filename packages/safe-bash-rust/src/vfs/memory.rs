@@ -839,6 +839,67 @@ impl MemoryVfs {
         self.bump_generation();
         Ok(())
     }
+    /// The default device view checks both operands before delegating a rename.
+    /// A final link names the link itself; a trailing slash makes it an ancestor.
+    fn check_device_rename_operand(state: &MemoryState, path: &str) -> Result<(), String> {
+        if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
+        let not_dir = || format!("ENOTDIR: not a directory '{path}'");
+        // Device traversal rejects even a lexical /dev/null/.. before looking up links.
+        if path.contains("null/") {
+            let mut parts = Vec::new();
+            for part in path.split('/') {
+                if parts.as_slice() == ["dev","null"] { return Err(not_dir()); }
+                match part { "" | "." => {}, ".." => { parts.pop(); }, _ => parts.push(part) }
+            }
+        }
+        let mut pending: Vec<_> = path.split('/').rev().collect();
+        let mut current = String::from("/");
+        let mut failure = None;
+        let mut failed_at = usize::MAX;
+        let mut links = 0;
+        let mut absolute = path.starts_with('/');
+        while let Some(part) = pending.pop() {
+            if current == "/dev/null" { return Err(not_dir()); }
+            match part {
+                "" | "." => continue,
+                ".." => {
+                    current.truncate(current.rfind('/').unwrap_or(0).max(1));
+                    if current.len() < failed_at { failed_at = usize::MAX; }
+                    continue;
+                }
+                _ => {}
+            }
+            let parent_len = current.len();
+            if current != "/" { current.push('/'); }
+            current.push_str(part);
+            if pending.is_empty() || parent_len >= failed_at || matches!(current.as_str(),"/dev"|"/dev/null") { continue; }
+            let display = |p: &str| if absolute { p.to_owned() } else { p.trim_start_matches('/').to_owned() };
+            if matches!(state.nodes.get(&current[..parent_len]),Some(MemoryNode::Directory {mode,..}) if mode & 0o100 == 0) {
+                return Err(format!("EACCES: permission denied, lstat '{}'",display(&current)));
+            }
+            match state.nodes.get(&current) {
+                Some(MemoryNode::Directory { .. }) => {}
+                Some(MemoryNode::Symlink { target,.. }) => {
+                    links += 1;
+                    if links > state.limits.max_symlink_hops { return Err(format!("ELOOP: too many symbolic links encountered '{path}'")); }
+                    if target.starts_with('/') { current.truncate(1); absolute = true; failed_at = usize::MAX; }
+                    else { current.truncate(parent_len); }
+                    pending.extend(target.split('/').rev());
+                }
+                node => {
+                    failed_at = current.len();
+                    failure.get_or_insert_with(|| if node.is_some() { not_dir() } else {
+                        format!("ENOENT: no such file or directory, lstat '{}'",display(&current))
+                    });
+                }
+            }
+        }
+        if matches!(current.as_str(),"/"|"/dev"|"/dev/null") {
+            return Err(failure.unwrap_or_else(|| format!("EBUSY: resource busy or locked '{path}'")));
+        }
+        Ok(())
+    }
+
     fn mutation_entry(state: &MemoryState, path: &str) -> Result<String, String> {
         super::path::rename_entry(path, state.limits.max_symlink_hops, |parent| {
             match state.nodes.get(parent) {
@@ -1296,6 +1357,10 @@ impl SafeBashFs for MemoryVfs {
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if matches!(state.devices, Devices::Null | Devices::Extended) {
+            Self::check_device_rename_operand(&state,source)?;
+            Self::check_device_rename_operand(&state,destination)?;
+        }
         let from = Self::mutation_entry(&state, source)?;
         if state.devices == Devices::Mounted {
             return Err(if state.devices.entry(&from).is_some() { "ENOTSUP: operation not supported" }

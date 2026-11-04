@@ -541,6 +541,11 @@ pub unsafe extern "C" fn safe_bash_rename(
     let Some(sess) = map.get_mut(&id) else { return -1 };
     match sess.shell.fs.rename(source, destination, no_replace) {
         Ok(()) => 0,
+        Err(error) if sess.profile == Profile::Memory && error.ends_with(", resolve") =>
+            sess.read_error(&error,"resolve","",None,Some("paths must be strings without NUL bytes")),
+        Err(ref error) if sess.profile == Profile::Memory && let Some((reason,operand)) = error.split_once(" '")
+            && let Some(operand) = operand.strip_suffix('\'') =>
+            sess.read_error(reason,if reason.ends_with(", lstat") { "lstat" } else { "" },operand,None,None),
         Err(error) => sess.read_error(&error,"rename",source,None,None),
     }
 }

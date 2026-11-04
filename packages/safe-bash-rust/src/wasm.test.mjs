@@ -12605,3 +12605,26 @@ test("overlay refuses to redirect a copied lower link when its parent changes", 
     assert.equal(await sh.fs.readlink("/w/d/l"),"a");
   } finally { sh.dispose(); }
 });
+
+test("rename checks protected device-view operands before the backing rename", async () => {
+  const bash = new RustWasmBash({ cwd: "/", files: { "/file": "keep" }, directories: ["/d"], symlinks: { "/alias": "/d", "/root": "/", "/loop": "/loop" } });
+  try {
+    for (const [from,to,code,syscall,path] of [
+      ["/","/dev/new","EBUSY",undefined,"/"], ["/alias/..","/out","EBUSY",undefined,"/alias/.."],
+      ["/root/","/out","EBUSY",undefined,"/root/"], ["/missing","/dev/null","EBUSY",undefined,"/dev/null"],
+      ["alias/../lost/..","/out","ENOENT","lstat","/lost"],
+      ["/lost/..","/","ENOENT","lstat","/lost"], ["/file/..","/","ENOTDIR",undefined,"/file/.."],
+      ["/dev/null/child","/out","ENOTDIR",undefined,"/dev/null/child"], ["/loop/x","/file","ELOOP",undefined,"/loop/x"],
+      ["","/out","EBUSY",undefined,""], ["bad\0path","/","EINVAL","resolve",undefined],
+    ]) {
+      await assert.rejects(bash.fs.rename(from,to), e => {
+        assert.deepEqual([e.code,e.syscall,e.path,e.dest],[code,syscall,path,undefined]); return true;
+      });
+    }
+    const move = await bash.exec("mv -T / /dev/new");
+    assert.deepEqual([move.exitCode,move.stderr],[1,"mv: EBUSY: resource busy or locked '/'\n"]);
+    await bash.fs.rename("/root","/out");
+    assert.equal(await bash.fs.readlink("/out"),"/");
+    assert.equal(new TextDecoder().decode(await bash.fs.readFile("/file")),"keep");
+  } finally { bash.dispose(); }
+});

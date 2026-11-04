@@ -1591,6 +1591,22 @@ test("plugin writes share quotas, apply umask on creation, and stop after the ha
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("native du exclusions match UTF-16 units and literal extended-glob syntax", async () => {
+  const {Shell, MemoryFileSystem, duCommands} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}).use(duCommands()), rust = new RustWasmBash({cwd:"/"});
+  try {
+    for (const store of [fs,rust.fs]) {
+      await store.mkdir("/sample");
+      for (const n of ["𐀀", "x", "5", "[]", "*", "@(x|5)", "a-b"]) await store.writeFile("/sample/"+n, Uint8Array.of(1));
+    }
+    for (const pat of ["?", "??", "[!5]", "[*]", "@(x|5)", "[[:digit:]]", "sample/?", "a\\-b"]) {
+      const cmd = "du -abc --exclude='" + pat + "' /sample";
+      const expected = await js.exec(cmd), got = await rust.exec(cmd);
+      assert.deepEqual([got.exitCode,got.stdout,got.stderr], [expected.exitCode,expected.stdout,expected.stderr], pat);
+    }
+  } finally { await js.dispose(); rust.dispose(); }
+});
+
 test("native du validates a whole directory before reporting sorted children", async () => {
   const {Shell, MemoryFileSystem, duCommands} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}).use(duCommands()), rust = new RustWasmBash({cwd:"/"});

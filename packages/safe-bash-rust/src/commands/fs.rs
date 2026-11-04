@@ -3641,27 +3641,7 @@ fn format_du_amount(bytes: u64, format: &DuFormat) -> String {
     format!("{number}{}", symbols[exp - 1] as char)
 }
 
-fn du_matches_excludes(path_or_disp: &str, excludes: &[String]) -> bool {
-    if excludes.is_empty() {
-        return false;
-    }
-    let base = basename_posix_path(path_or_disp);
-    for ex in excludes {
-        if crate::shell::expand::glob_match(ex, &base)
-            || crate::shell::expand::glob_match(ex, path_or_disp)
-        {
-            return true;
-        }
-        for (idx, ch) in path_or_disp.char_indices() {
-            if ch == '/' && idx + 1 < path_or_disp.len() {
-                if crate::shell::expand::glob_match(ex, &path_or_disp[idx + 1..]) {
-                    return true;
-                }
-            }
-        }
-    }
-    false
-}
+mod du_exclude;
 
 fn cmd_du(
     args: &[String],
@@ -3809,6 +3789,7 @@ fn cmd_du(
         excludes.extend(text.split_terminator('\n').map(str::to_owned));
     }
 
+    let excludes: Vec<_> = excludes.iter().map(|s| du_exclude::Pattern::new(&crate::vfs::host_text(s))).collect();
     if targets.is_empty() {
         targets.push(".".to_string());
     }
@@ -3868,7 +3849,10 @@ fn cmd_du(
                     (disp, amount, own, true)
                 }
                 Visit::Entry(full, disp) => {
-                    if du_matches_excludes(&disp, &excludes) { continue; }
+                    if !excludes.is_empty() {
+                        let units: Vec<_> = crate::vfs::host_text(&disp).encode_utf16().collect();
+                        if excludes.iter().any(|pat| pat.matches(&units)) { continue; }
+                    }
                     let depth = dirs.len();
                     let inspect = |follow, syscall| fs.inspect_command_entry(&full, follow, syscall)
                         .map_err(|e| copy_error(&e, syscall, &full));

@@ -464,6 +464,7 @@ impl SafeBashFs for HostFs {
     fn inspect_extraction(
         &self,
         path: &str,
+        allow_trusted_ancestry: bool,
     ) -> Result<(Option<FileStat>, crate::vfs::PublicationStamp), String> {
         if let Some(device) = self.reserved_device(path, false)? {
             return Ok((
@@ -471,7 +472,13 @@ impl SafeBashFs for HostFs {
                 crate::vfs::PublicationStamp::new(0, None),
             ));
         }
-        let mut bytes = self.request("inspectExtraction", path, &[], 0, 0)?;
+        let mut bytes = self.request(
+            "inspectExtraction",
+            path,
+            &[],
+            u32::from(allow_trusted_ancestry),
+            0,
+        )?;
         if bytes.len() < 4 {
             return Err("EIO: invalid extraction receipt".into());
         }
@@ -482,6 +489,16 @@ impl SafeBashFs for HostFs {
         };
         bytes.truncate(4);
         Ok((stat, self.own_stamp(bytes)?))
+    }
+    fn remove_extraction_entry(
+        &self,
+        path: &str,
+        _expected: &FileStat,
+        version: u64,
+    ) -> Result<(), String> {
+        self.mutable(path, false)?;
+        self.request("removeExtraction", path, &[], version as u32, 0)
+            .map(drop)
     }
     fn replace_file_entry_with_metadata(
         &self,

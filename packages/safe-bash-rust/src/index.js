@@ -262,19 +262,31 @@ function bindExternalFs(shell,fs,options) {
           let destination=null;
           try{destination=await fs.lstat(path,settings);}catch(error){if(error?.code!=="ENOENT")throw error;}
           const id=nextHandle++, guard={ancestors,parent:ancestors.at(-1).stat,destination};
-          publications.set(id,{path,guard,caps,retainedWriter:caps?.retainedStagingWrite===true});
+          publications.set(id,{path,guard,caps,allowTrusted:!!flags,retainedWriter:caps?.retainedStagingWrite===true && (!flags || caps.retainedStagingCleanup===true)});
           const bytes=destination && statBytes(destination);
           result=new Uint8Array(4+(bytes?.length??0));new DataView(result.buffer).setUint32(0,id,true);
           if(bytes)result.set(bytes,4);
           return;
         }
+        if(op==="removeExtraction"){
+          const obs=publications.get(flags);
+          if(!obs?.guard?.destination || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
+          const {destination:expected,parent}=obs.guard;
+          const remove=expected.type==="file"?"removeFileConditional":"removeEntryConditional";
+          if(!fs[remove]){status=-1;result=encoder.encode("extraction requires conditional "+(expected.type==="file"?"file":"entry")+" removal");return;}
+          await fs[remove](path,{...settings,expected,parent});return;
+        }
         if(op==="extractEntry"){
           if(!obs?.guard || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
           const {caps,guard}=obs;
-          if(!(caps?.atomicFileStaging || caps?.trustedOwnedStaging) || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile){
+          const staging=!!(caps?.atomicFileStaging || caps?.trustedOwnedStaging) && fs.createStagedFile && fs.publishStagedFile && fs.removeStagedFile;
+          if(obs.allowTrusted && (!staging || !(caps.atomicStagingAncestry || caps.trustedOwnedStaging && caps.trustedStagingAncestry))){
+            status=-1;result=encoder.encode("extraction requires atomic staging and ancestry verification");return;
+          }
+          if(!staging){
             status=-1;result=encoder.encode("extraction requires atomic owned file staging");return;
           }
-          if(!caps.atomicStagingAncestry){status=-1;result=encoder.encode("extraction requires atomic staging ancestry verification");return;}
+          if(!obs.allowTrusted && !caps.atomicStagingAncestry){status=-1;result=encoder.encode("extraction requires atomic staging ancestry verification");return;}
           const atime=view.getFloat64(ptr+32,true),mtime=view.getFloat64(ptr+40,true);
           await stageOutput(fs,path,chunked?undefined:data,guard,{retainCleanup:caps.retainedStagingCleanup===true,
             ...(caps.permissions!==false && {mode}),...(caps.timestamps!==false && {

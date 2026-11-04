@@ -460,7 +460,7 @@ pub trait SafeBashFs: Send + Sync {
         self.remove_unchanged_entry(path,parent,expected)
     }
     /// Inspect the extraction destination and bind its replacement to that observation.
-    fn inspect_extraction(&self, path: &str) -> Result<(Option<FileStat>,PublicationStamp),String> {
+    fn inspect_extraction(&self, path: &str, _allow_trusted_ancestry: bool) -> Result<(Option<FileStat>,PublicationStamp),String> {
         let version = self.generation();
         let existing = match self.lstat(path) {
             Ok(stat) => Some(stat),
@@ -468,6 +468,15 @@ pub trait SafeBashFs: Send + Sync {
             Err(e) => return Err(e),
         };
         Ok((existing,PublicationStamp::new(version,None)))
+    }
+    fn remove_extraction_entry(&self,path:&str,expected:&FileStat,version:u64)->Result<(),String> {
+        if self.generation()!=version {return Err(format!("EAGAIN: extraction destination changed: {path}"));}
+        if self.supports_conditional_removal(path) {
+            let parent=self.lstat(&dirname_posix_path(path))?;
+            self.remove_unchanged_entry(path,&parent,expected)
+        } else {
+            self.remove_one(path,expected.kind==VfsEntryKind::Directory)
+        }
     }
     /// Install mode and optional access/modification times (milliseconds) on the new inode before publication.
     fn replace_file_entry_with_metadata(&self, _path: &str, _data: &[u8], _mode: u32, _times: (Option<f64>, Option<f64>), _version: u64) -> Result<(), String> {

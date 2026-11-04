@@ -4368,12 +4368,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             } else { None };
             if !delay_directories { restore_directories(&mut directories, Some(&dest))?; }
             for parent in parents { fs.mkdir_one(parent, 0o700)?; }
-            let mut revision = fs.generation();
-            let existing = match fs.lstat(&dest) {
-                Ok(st) => Some(st),
-                Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
-                Err(e) => return Err(e),
-            };
+            let (existing,mut stamp) = fs.inspect_extraction(&dest,true)?;
             if input_path.as_deref() == Some(&dest) || input_identity.is_some() && existing.as_ref().is_some_and(|s| s.identity == input_identity) {
                 return Err("entry would overwrite the input archive".into());
             }
@@ -4385,9 +4380,14 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     }
                     return Ok(());
                 }
+                if st.kind == File && input_path.is_some() && (st.identity.is_none() || input_identity.is_none()) {
+                    return Err("cannot replace an existing file with unknown input-archive/destination backing identity".into());
+                }
                 if st.kind != File || entry.typeflag != b'0' {
-                    fs.remove_one(&dest, st.kind == Directory)?;
-                    revision = fs.generation();
+                    fs.remove_extraction_entry(&dest,st,stamp.version)?;
+                    let (after,next) = fs.inspect_extraction(&dest,true)?;
+                    if after.is_some() { return Err(format!("EAGAIN: extraction destination changed: {dest}")); }
+                    stamp = next;
                 }
             }
             let times = if touch { (None, None) } else { (entry.atime.map(|t| t * 1000.), entry.mtime.map(|t| t * 1000.)) };
@@ -4402,11 +4402,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 fs.hard_link(&target, &dest)?;
             } else {
                 if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
-                if times == (None, None) {
-                    fs.replace_file_entry_with_mode(&dest, entry.content, entry.mode & permission_mask, revision)?;
-                } else {
-                    fs.replace_file_entry_with_metadata(&dest, entry.content, entry.mode & permission_mask, times, revision)?;
-                }
+                fs.replace_file_entry_with_metadata(&dest, entry.content, entry.mode & permission_mask, times, stamp.version)?;
             }
             if matches!(entry.typeflag, b'0' | b'1') {
                 let identity = fs.lstat(&dest)?.identity;
@@ -6897,7 +6893,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         return Err(e);
                     }
                     directory(&crate::vfs::dirname_posix_path(&dest))?;
-                    let (existing,stamp) = fs.inspect_extraction(&dest)?;
+                    let (existing,stamp) = fs.inspect_extraction(&dest,false)?;
                     if freshen && existing.is_none() { continue 'member; }
                     if is_dir {
                         if entry.size != 0 { return Err("directory has nonempty payload".into()); }

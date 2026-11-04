@@ -324,10 +324,15 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.remove_unchanged_file(&host_text(path), parent, expected).map_err(quote_host_text)
     }
 
-    fn inspect_extraction(&self,path:&str)->Result<(Option<FileStat>,crate::vfs::PublicationStamp),String> {
+    fn inspect_extraction(&self,path:&str,allow_trusted_ancestry:bool)->Result<(Option<FileStat>,crate::vfs::PublicationStamp),String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.inspect_extraction(&host_text(path)).map_err(quote_host_text)
+        self.inner.inspect_extraction(&host_text(path),allow_trusted_ancestry).map_err(quote_host_text)
+    }
+    fn remove_extraction_entry(&self,path:&str,expected:&FileStat,version:u64)->Result<(),String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.remove_extraction_entry(&host_text(path),expected,version).map_err(quote_host_text)
     }
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         self.budget.limits.check_path(path)?;

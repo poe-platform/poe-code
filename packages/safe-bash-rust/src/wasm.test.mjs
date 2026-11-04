@@ -6528,17 +6528,26 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
-test("unzip stages host files with archive metadata and rejects changes to the destination or its parent",{skip:!WebAssembly.Suspending},async()=>{
+for(const format of ["zip","tar"])test(format+" extraction stages host files with archive metadata and rejects changes to the destination or its parent",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
   const bytes=new Uint8Array(170000).fill(77),time=1700000000000;
   try{
     await ref.writeFile("/item",bytes,{mode:0o640});await ref.utimes("/item",time,time);
-    assert.equal((await js.exec("zip -0q seed.zip item")).exitCode,0);
-    const archive=await ref.readFile("/seed.zip");
-    for(const sh of [js,rust])for(const race of ["none","file","parent","buffered","unguarded"]){
-      const fs=new MemoryFileSystem();await fs.writeFile("/seed.zip",archive);await fs.mkdir("/box");
+    const input="/seed."+format;
+    assert.equal((await js.exec(format==="zip"?"zip -0q seed.zip item":"tar -cf seed.tar item")).exitCode,0);
+    const archive=await ref.readFile(input);
+    for(const sh of [js,rust])for(const race of ["none","file","parent","buffered","unguarded",...(format==="tar"?["unknown"]:[])]){
+      const fs=new MemoryFileSystem();await fs.writeFile(input,archive);await fs.mkdir("/box");
       await fs.writeFile("/box/item",Uint8Array.of(65));await fs.link("/box/item","/alias");
+      if(race==="unknown"){
+        fs.capabilitiesFor=async()=>({...fs.capabilities,retainedRead:false});
+        const lstat=fs.lstat.bind(fs);
+        fs.lstat=async(path,opts)=>{
+          const value=await lstat(path,opts);
+          return path==="/box/item"?{...value,dev:undefined,ino:undefined,identityScope:undefined,opaqueIdentity:undefined}:value;
+        };
+      }
       if(race==="buffered" || race==="unguarded"){
         fs.capabilitiesFor=async()=>({...fs.capabilities,...(race==="buffered"
           ? {retainedStagingWrite:false,retainedStagingCleanup:false}:{atomicStagingAncestry:false})});
@@ -6560,9 +6569,13 @@ test("unzip stages host files with archive metadata and rejects changes to the d
         }
         return publish(stage,path,options);
       };
-      const r=await sh.exec("unzip -oq seed.zip -d box",{fs});
+      const r=await sh.exec(format==="zip"?"unzip -oq seed.zip -d box":"tar -xf seed.tar -C box",{fs});
+      if(race==="unknown"){
+        assert.equal(r.exitCode,2);assert.match(r.stderr,/unknown input-archive\/destination backing identity/);assert.equal(sawPublication,false);
+        assert.deepEqual(await fs.readFile("/box/item"),Uint8Array.of(65));continue;
+      }
       if(race==="unguarded"){
-        assert.equal(r.exitCode,2);assert.match(r.stderr,/extraction requires atomic staging ancestry verification/);
+        assert.equal(r.exitCode,2);assert.match(r.stderr,/extraction requires atomic (staging ancestry|staging and ancestry) verification/);
         assert.equal(sawPublication,false);assert.deepEqual(sizes,[]);assert.deepEqual(await fs.readFile("/box/item"),Uint8Array.of(65));
         continue;
       }
@@ -6577,6 +6590,27 @@ test("unzip stages host files with archive metadata and rejects changes to the d
         if(race==="parent")assert.deepEqual((await fs.readdir("/saved")).map(e=>e.name),["item"]);
       }
       assert.deepEqual((await fs.readdir("/box")).map(e=>e.name),["item"]);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+test("tar guards removal of a non-file destination before extracting a regular file",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await ref.writeFile("/item",Uint8Array.of(70));assert.equal((await js.exec("tar -cf seed.tar item")).exitCode,0);
+    for(const sh of [js,rust])for(const race of [false,true]){
+      const fs=new MemoryFileSystem();await fs.writeFile("/seed.tar",await ref.readFile("/seed.tar"));
+      await fs.writeFile("/target",Uint8Array.of(65));await fs.symlink("target","/item");
+      const remove=fs.removeEntryConditional.bind(fs);let seen=false;
+      fs.removeEntryConditional=async(path,opts)=>{
+        if(path==="/item"){seen=true;if(race){await fs.unlink(path);await fs.writeFile(path,Uint8Array.of(66));}}
+        return remove(path,opts);
+      };
+      const r=await sh.exec("tar -xm -f seed.tar",{fs});
+      assert.equal(seen,true,r.stderr);assert.equal(r.exitCode===0,!race,r.stderr);
+      assert.deepEqual(await fs.readFile("/item"),Uint8Array.of(race?66:70));
+      assert.deepEqual(await fs.readFile("/target"),Uint8Array.of(65));
     }
   }finally{await js.dispose();await rust.dispose();}
 });

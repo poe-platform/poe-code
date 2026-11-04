@@ -1674,6 +1674,32 @@ test("plugin file reads share the script's filesystem quota and obey path and si
   } finally { await bash.dispose(); }
 });
 
+test("plugin directory creation and removal honor umask and share the execution quota", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const run = async (sh, fs, maxFileSystemOperations) => {
+    let scoped;
+    sh.register({name:"editdirs", async execute(ctx) {
+      scoped = ctx.fs;
+      await scoped.mkdir("/a/b",{recursive:true});
+      await scoped.mkdir("/keep", {mode:0o751});
+      await scoped.rm("/absent", {force:true});
+      await scoped.rm("/a/b", {recursive:true});
+      return {exitCode:0};
+    }});
+    try {
+      const outcome = await sh.exec("umask 073; editdirs", {limits:{maxFileSystemOperations}}).then(
+        r => [r.exitCode,r.stderr], e => e.limit ?? e.message);
+      const modes = await Promise.all(["/a","/a/b","/keep"].map(p => fs.stat(p).then(s => s.mode & 0o777, () => null)));
+      const late = await Promise.resolve().then(() => scoped.rm("/keep")).then(() => "removed", () => "rejected");
+      return [outcome,modes,late];
+    } finally { await sh.dispose(); }
+  };
+  for (const operations of [0,1,2,3,4,5]) {
+    const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+    assert.deepEqual(await run(rust,rust.fs,operations), await run(js,fs,operations), "quota " + operations);
+  }
+});
+
 test("plugin writes share quotas, apply umask on creation, and stop after the handler", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});

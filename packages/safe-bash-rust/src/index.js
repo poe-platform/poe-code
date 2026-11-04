@@ -200,6 +200,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         const creationMode = header.getUint32(reply + 40, true);
         const stdinIsDefault = header.getUint32(reply + 52, true) !== 0;
         const access = header.getUint32(reply + 56, true);
+        const directoryMode = header.getUint32(reply + 60, true);
         const badDescriptor = () => Object.assign(new diagnostics.PublicDiagnostic("Bad file descriptor"), {code:"EBADF"});
         fsOps = 0;
         sp = x.__stack_pointer.value;
@@ -233,10 +234,17 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             return fs[operation](path, data, options);
           };
           const commandFs = {
+            async mkdir(path, settings) {
+              admitPath(path, settings);
+              const options = {...settings};
+              if (options.mode === undefined) options.mode = directoryMode;
+              check();
+              return fs.mkdir(path, options);
+            },
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
             appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
           };
-          for (const operation of ["readFile", "stat", "lstat", "readdir"]) {
+          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm"]) {
             commandFs[operation] = async (path, settings) => {
               admitPath(path, settings);
               return fs[operation](path, settings);

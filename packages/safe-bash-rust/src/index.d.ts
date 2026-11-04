@@ -117,7 +117,7 @@ export class WasmFileSystem {
   statfs(targetPath?: string): Promise<Record<string, number>>;
 }
 
-type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly fs: Pick<WasmFileSystem, "readFile" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir">};
+type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly fs: Pick<WasmFileSystem, "readFile" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm">};
 type StreamCommand = Omit<CommandDefinition, "execute"> & {
   readonly execute: (context: StreamCommandContext) => CommandResult | Promise<CommandResult>;
 };

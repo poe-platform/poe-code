@@ -44,6 +44,7 @@ pub(super) fn try_run_coreutil_with_input(
     if cmd == "unexpand" { return Ok(Some(cmd_unexpand(args, input, cwd, fs, write))); }
     if cmd == "rev" { return Ok(Some(cmd_rev(args, input, cwd, env, fs, write))); }
     if cmd == "fold" { return Ok(Some(cmd_fold(args, input, cwd, env, fs, write))); }
+    if cmd == "pr" { return Ok(Some(cmd_pr(args, input, cwd, env, fs, write))); }
     if cmd == "nl" { return Ok(Some(cmd_nl(args, input, cwd, fs, write))); }
     if cmd == "tee" { return Ok(Some(cmd_tee(args, input, cwd, env, fs, write))); }
     if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
@@ -94,7 +95,6 @@ fn coreutil(
         "truncate" => cmd_truncate(args, cwd, env, fs),
         "fmt" => cmd_fmt(args, input, cwd, env, fs),
         "csplit" => cmd_csplit(args, input.buffered()?, cwd, fs),
-        "pr" => cmd_pr(args, input.buffered()?, cwd, env, fs),
         "column" => cmd_column(args, input.buffered()?, cwd, fs),
         "split" => cmd_split(args, input.buffered()?, cwd, env, fs),
         "install" => cmd_install(args, cwd, env, fs),
@@ -12970,36 +12970,70 @@ fn parse_pr_pages(val: &str, opts: &mut PrOptions) -> Result<(), String> {
     Ok(())
 }
 
-struct PrReader {
+struct PrReader<'a> {
+    next: Option<crate::vfs::ChunkReader<'a>>,
     data: Vec<u8>,
     pos: usize,
     pushed: Option<i32>,
 }
 
-impl PrReader {
-    fn new(data: Vec<u8>) -> Self {
-        Self {
-            data,
-            pos: 0,
-            pushed: None,
-        }
+impl<'a> PrReader<'a> {
+    fn new(next: crate::vfs::ChunkReader<'a>) -> Self {
+        Self { next: Some(next), data: Vec::new(), pos: 0, pushed: None }
     }
-    fn get(&mut self) -> i32 {
-        if let Some(b) = self.pushed.take() {
-            return b;
-        }
-        if self.pos < self.data.len() {
-            let b = self.data[self.pos] as i32;
-            self.pos += 1;
-            b
-        } else {
-            -1
-        }
+}
+
+fn pr_fs_reason(error: &str) -> &str {
+    match error.split(':').next() {
+        Some("ENAMETOOLONG") => "File name too long",
+        Some("ENOTSUP") => "Operation not supported",
+        Some("ENOENT" | "EACCES" | "EPERM" | "EISDIR" | "ENOTDIR" | "EIO" | "ELOOP") => install_reason(error),
+        _ => error,
     }
-    fn unget(&mut self, b: i32) {
-        if b >= 0 {
-            self.pushed = Some(b);
+}
+
+enum PrStop {
+    Read(String),
+    Write,
+}
+
+struct PrIo<'a, 'b> {
+    readers: Vec<PrReader<'a>>,
+    pending: Vec<u8>,
+    write: &'b mut dyn FnMut(u32, &str) -> bool,
+}
+
+impl PrIo<'_, '_> {
+    fn flush(&mut self) -> Result<(), PrStop> {
+        if !self.pending.is_empty() {
+            let ok = (self.write)(1, &crate::vfs::bytes_to_stream_string(&self.pending));
+            self.pending.clear();
+            if !ok { return Err(PrStop::Write); }
         }
+        Ok(())
+    }
+
+    fn row(&mut self, rendered: &mut Vec<u8>) -> Result<(), PrStop> {
+        self.pending.append(rendered);
+        if self.pending.len() >= 16384 { self.flush()?; }
+        Ok(())
+    }
+
+    fn get(&mut self, index: usize) -> Result<i32, PrStop> {
+        let r = &mut self.readers[index];
+        if let Some(b) = r.pushed.take() { return Ok(b); }
+        if r.pos == r.data.len() {
+            if r.next.is_none() { return Ok(-1); }
+            self.flush()?;
+            let r = &mut self.readers[index];
+            (r.next.as_mut().unwrap())(&mut r.data).map_err(PrStop::Read)?;
+            r.pos = 0;
+            if r.data.is_empty() { r.next = None; return Ok(-1); }
+        }
+        let r = &mut self.readers[index];
+        let byte = r.data[r.pos];
+        r.pos += 1;
+        Ok(i32::from(byte))
     }
 }
 
@@ -13050,7 +13084,7 @@ struct PrFormatter {
     need_header: bool,
     storing: bool,
     stored: String,
-    rendered: String,
+    rendered: Vec<u8>,
 }
 
 impl PrFormatter {
@@ -13124,7 +13158,7 @@ impl PrFormatter {
             need_header: false,
             storing: false,
             stored: String::new(),
-            rendered: String::new(),
+            rendered: Vec::new(),
         })
     }
 
@@ -13132,7 +13166,7 @@ impl PrFormatter {
         if self.page_number < self.opts.first_page {
             return;
         }
-        self.rendered.push_str(val);
+        self.rendered.extend_from_slice(val.as_bytes());
     }
 
     fn white(&mut self) {
@@ -13215,8 +13249,7 @@ impl PrFormatter {
                 self.output_position = self.output_position.saturating_sub(1);
             }
         }
-        let s = ch.to_string();
-        self.append(&s);
+        if self.page_number >= self.opts.first_page { self.rendered.push(ch as u8); }
     }
 
     fn number(&mut self, col_idx: usize) {
@@ -13336,32 +13369,31 @@ impl PrFormatter {
         self.columns[col_idx].remaining = 0;
     }
 
-    fn feed_col(&mut self, col_idx: usize, readers: &mut [PrReader]) {
+    fn feed_col(&mut self, col_idx: usize, io: &mut PrIo<'_, '_>) -> Result<(), PrStop> {
         let r_idx = self.columns[col_idx].reader_idx;
-        let next = readers[r_idx].get();
-        if next != 10 {
-            readers[r_idx].unget(next);
-        }
+        let next = io.get(r_idx)?;
+        if next >= 0 && next != 10 { io.readers[r_idx].pushed = Some(next); }
         self.hold_col(col_idx);
+        Ok(())
     }
 
-    fn rest_col(&mut self, col_idx: usize, readers: &mut [PrReader]) {
+    fn rest_col(&mut self, col_idx: usize, io: &mut PrIo<'_, '_>) -> Result<(), PrStop> {
         let r_idx = self.columns[col_idx].reader_idx;
         loop {
-            let r = readers[r_idx].get();
+            let r = io.get(r_idx)?;
             if r == 10 {
-                return;
+                return Ok(());
             }
             if r == 12 {
-                self.feed_col(col_idx, readers);
+                self.feed_col(col_idx, io)?;
                 if self.opts.keep_ff {
                     self.print_feed = true;
                 }
-                return;
+                return Ok(());
             }
             if r < 0 {
                 self.close_col(col_idx);
-                return;
+                return Ok(());
             }
         }
     }
@@ -13386,18 +13418,18 @@ impl PrFormatter {
         self.output_position = 0;
     }
 
-    fn read_col(&mut self, col_idx: usize, readers: &mut [PrReader], date: &str, name: &str) {
+    fn read_col(&mut self, col_idx: usize, io: &mut PrIo<'_, '_>, date: &str, name: &str) -> Result<(), PrStop> {
         let r_idx = self.columns[col_idx].reader_idx;
-        let mut byte = readers[r_idx].get();
+        let mut byte = io.get(r_idx)?;
         if byte == 12 && self.columns[col_idx].full {
-            byte = readers[r_idx].get();
+            byte = io.get(r_idx)?;
             if byte == 10 {
-                byte = readers[r_idx].get();
+                byte = io.get(r_idx)?;
             }
         }
         self.columns[col_idx].full = false;
         if byte == 12 {
-            self.feed_col(col_idx, readers);
+            self.feed_col(col_idx, io)?;
             self.feed_only = true;
             if self.need_header && !self.store {
                 self.vertical = true;
@@ -13405,11 +13437,11 @@ impl PrFormatter {
             } else if self.opts.keep_ff {
                 self.print_feed = true;
             }
-            return;
+            return Ok(());
         }
         if byte < 0 {
             self.close_col(col_idx);
-            return;
+            return Ok(());
         }
         let mut clump = if byte == 10 {
             String::new()
@@ -13418,8 +13450,8 @@ impl PrFormatter {
         };
         if self.opts.truncate && self.input_position > self.column_width {
             self.input_position = 0;
-            self.rest_col(col_idx, readers);
-            return;
+            self.rest_col(col_idx, io)?;
+            return Ok(());
         }
         if !self.storing {
             self.vertical = true;
@@ -13455,33 +13487,34 @@ impl PrFormatter {
         }
         self.empty = false;
         if byte == 10 {
-            return;
+            return Ok(());
         }
         for ch in clump.chars() {
             self.character(ch);
         }
         loop {
-            let rn = readers[r_idx].get();
+            if !self.storing && self.rendered.len() >= 8192 { io.row(&mut self.rendered)?; }
+            let rn = io.get(r_idx)?;
             if rn == 10 {
-                return;
+                return Ok(());
             }
             if rn == 12 {
-                self.feed_col(col_idx, readers);
+                self.feed_col(col_idx, io)?;
                 if self.opts.keep_ff {
                     self.print_feed = true;
                 }
-                return;
+                return Ok(());
             }
             if rn < 0 {
                 self.close_col(col_idx);
-                return;
+                return Ok(());
             }
             let prev = self.input_position;
             clump = self.clump(rn as u8);
             if self.opts.truncate && self.input_position > self.column_width {
                 self.input_position = prev;
-                self.rest_col(col_idx, readers);
-                return;
+                self.rest_col(col_idx, io)?;
+                return Ok(());
             }
             for ch in clump.chars() {
                 self.character(ch);
@@ -13540,11 +13573,11 @@ impl PrFormatter {
 
     fn run(
         &mut self,
-        readers: &mut [PrReader],
+        io: &mut PrIo<'_, '_>,
         col_reader_indices: &[usize],
         date: &str,
         name: &str,
-    ) {
+    ) -> Result<(), PrStop> {
         let count = if self.opts.merge {
             col_reader_indices.len()
         } else {
@@ -13594,7 +13627,7 @@ impl PrFormatter {
                         }
                         self.stored.clear();
                         self.input_position = 0;
-                        self.read_col(col_idx, readers, date, name);
+                        self.read_col(col_idx, io, date, name)?;
                         if self.columns[col_idx].status == PrColStatus::Open
                             || !self.stored.is_empty()
                         {
@@ -13647,7 +13680,7 @@ impl PrFormatter {
                         if self.store {
                             self.stored_line(col_idx, date, name);
                         } else {
-                            self.read_col(col_idx, readers, date, name);
+                            self.read_col(col_idx, io, date, name)?;
                         }
                         printed |= self.vertical;
                         self.columns[col_idx].remaining =
@@ -13680,12 +13713,14 @@ impl PrFormatter {
                     left = left.saturating_sub(1);
                 }
                 if !self.ready() && !self.opts.extremities {
+                    io.row(&mut self.rendered)?;
                     break;
                 }
                 if self.opts.double_space && printed {
                     self.append("\n");
                     left = left.saturating_sub(1);
                 }
+                io.row(&mut self.rendered)?;
             }
             if left == 0 {
                 for col in &mut self.columns {
@@ -13705,6 +13740,7 @@ impl PrFormatter {
                 self.append("\x0c");
                 self.print_feed = false;
             }
+            io.row(&mut self.rendered)?;
             self.page_number += 1;
             for col in &mut self.columns {
                 if col.status == PrColStatus::Held {
@@ -13712,15 +13748,17 @@ impl PrFormatter {
                 }
             }
         }
+        Ok(())
     }
 }
 
 fn cmd_pr(
     args: &[String],
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
     let mut opts = PrOptions {
         files: Vec::new(),
@@ -14158,8 +14196,7 @@ fn cmd_pr(
         names.into_iter().map(|n| vec![n]).collect()
     };
 
-    let mut stdout = String::new();
-    let mut stderr = String::new();
+    let mut out = ok_out("");
     let mut exit_code = 0;
 
     let ctype = env
@@ -14213,8 +14250,11 @@ fn cmd_pr(
         }
     };
 
-    let mut shared_readers: Vec<PrReader> = Vec::new();
-    let mut stdin_reader_idx: Option<usize> = None;
+    let mut io = PrIo {
+        readers: vec![PrReader::new(Box::new(move |chunk| stdin.next_stdin_chunk(chunk)
+            .map_err(|e| format!("pr: 'standard input': {}\n", pr_fs_reason(&e)))))],
+        pending: Vec::new(), write: &mut |fd, text| write(fd, text, &mut out),
+    };
 
     for group in groups {
         let mut formatter = match PrFormatter::new(opts.clone(), group.len()) {
@@ -14224,45 +14264,36 @@ fn cmd_pr(
         let mut col_reader_indices: Vec<usize> = Vec::new();
         let mut first_name = String::new();
         let mut first_mtime_ms = None;
+        io.readers.truncate(1); // Repeated '-' operands share the same reader, including its buffered tail.
         for name in &group {
             if name == "-" {
-                if first_name.is_empty() {
-                    first_name = "-".to_string();
-                }
-                let r_idx = *stdin_reader_idx.get_or_insert_with(|| {
-                    let idx = shared_readers.len();
-                    shared_readers.push(PrReader::new(crate::vfs::stream_string_to_bytes(stdin)));
-                    idx
-                });
-                col_reader_indices.push(r_idx);
+                if first_name.is_empty() { first_name = name.clone(); }
+                col_reader_indices.push(0);
             } else {
-                let p = resolve_posix_path(cwd, name);
-                if fs.is_dir(&p) {
-                    exit_code = 1;
-                    if !opts.quiet {
-                        stderr.push_str(&format!("pr: {name}: Is a directory\n"));
-                    }
-                    continue;
-                }
-                match fs.read_file(&p) {
-                    Ok(b) => {
-                        if first_name.is_empty() {
-                            first_name = name.clone();
-                            first_mtime_ms = fs.stat(&p).ok().map(|st| st.mtime_ms);
-                        }
-                        let r_idx = shared_readers.len();
-                        shared_readers.push(PrReader::new(b));
-                        col_reader_indices.push(r_idx);
-                    }
-                    Err(_) => {
+                let path = resolve_posix_path(cwd, name);
+                let stat = match fs.stat(&path) {
+                    Ok(st) => st,
+                    Err(e) => {
                         exit_code = 1;
-                        if !opts.quiet {
-                            stderr.push_str(&format!(
-                                "pr: {name}: No such file or directory\n"
-                            ));
+                        if !opts.quiet && !(io.write)(2, &format!("pr: {}: {}\n", fmt_quote::filename(name, false), pr_fs_reason(&e))) {
+                            return out;
                         }
+                        continue;
                     }
-                }
+                };
+                if first_name.is_empty() { first_name = name.clone(); first_mtime_ms = Some(stat.mtime_ms); }
+                col_reader_indices.push(io.readers.len());
+                let label = fmt_quote::filename(name, false);
+                let mut next = None;
+                io.readers.push(PrReader::new(Box::new(move |chunk| {
+                    if stat.kind == crate::vfs::VfsEntryKind::Directory { return Err(format!("pr: {label}: Is a directory\n")); }
+                    let detail = |e: String| format!("pr: {label}: {}\n", pr_fs_reason(&e));
+                    let reader = match &mut next {
+                        Some(reader) => reader,
+                        None => next.insert(fs.open_chunks(&path).map_err(detail)?),
+                    };
+                    reader(chunk).map_err(detail)
+                })));
             }
         }
         if col_reader_indices.is_empty() {
@@ -14281,15 +14312,20 @@ fn cmd_pr(
                 first_name
             }
         });
-        formatter.run(&mut shared_readers, &col_reader_indices, &date_str, &title);
-        stdout.push_str(&formatter.rendered);
+        match formatter.run(&mut io, &col_reader_indices, &date_str, &title) {
+            Ok(()) => { if io.flush().is_err() { return out; } }
+            Err(PrStop::Write) => return out,
+            Err(PrStop::Read(e)) => {
+                if io.row(&mut formatter.rendered).is_ok() && io.flush().is_ok() {
+                    (io.write)(2, &e);
+                }
+                exit_code = 1;
+                break;
+            }
+        }
     }
-
-    BuiltinOutcome {
-        stdout,
-        stderr,
-        exit_code,
-    }
+    out.exit_code = exit_code;
+    out
 }
 
 struct ParsedTabs {

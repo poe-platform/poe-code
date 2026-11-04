@@ -9203,6 +9203,42 @@ test("gzip and bzip2 only pass unrecognized input through in supported force mod
   } finally { rs.dispose(); }
 });
 
+test("pr writes completed rows before pulling more input and stops at output and page limits", { skip: !WebAssembly.Suspending }, async () => {
+  const bash = new RustWasmBash({cwd:"/", files:{"/f":"file\n"}});
+  try {
+    for (const [args, chunks, limit, seen, output] of [
+      ["-t", ["abc\n","def\n","ghi\n"], 6, ["","abc\n"], "abc\n"],
+      ["-t", ["a","b\n","c"], 100, ["","","ab\n"], "ab\nc\n"],
+      ["-t -l1 +1:1", ["a\n","b\n"], 100, [""], "a\n"],
+      ["-t /f", ["unused"], 100, [], "file\n"],
+      ["-tmJ -S: - -", ["a\n","b\n","c\n","d\n"], 100, ["","","a:b\n","a:b\n"], "a:b\nc:d\n"],
+    ]) {
+      await bash.fs.writeFile("/out", "");
+      const observed = [];
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const chunk of chunks) { observed.push(bash.readText("/out")); yield Buffer.from(chunk); }
+      }};
+      const run = bash.exec("pr " + args + " >/out", {stdin, limits:{maxOutputBytes:limit}});
+      if (limit === 6) await assert.rejects(run, {limit:"maxOutputBytes"});
+      else assert.equal((await run).exitCode, 0);
+      assert.deepEqual([observed,bash.readText("/out")], [seen,output], args);
+    }
+    const r = await bash.exec("pr -t /absent /f - / /f 2>&1", {stdin:Buffer.from([255,0,10])});
+    assert.equal(r.exitCode, 1);
+    assert.deepEqual(Buffer.from(r.stdoutBytes), Buffer.concat([
+      Buffer.from("pr: /absent: No such file or directory\nfile\n"), Buffer.from([255,0,10]), Buffer.from("pr: /: Is a directory\n"),
+    ]));
+  } finally { bash.dispose(); }
+});
+
+test("pr keeps the completed prefix and reports redirected input errors in order", async () => {
+  const bash = new RustWasmBash({cwd:"/", files:{"/f":"abc\n123\n"}});
+  try {
+    const r = await bash.exec("pr -t < /f 2>&1", {limits:{maxInputBytes:4}});
+    assert.deepEqual([r.exitCode, r.stdout], [1, "abc\npr: 'standard input': EFBIG: file too large, read '/f'\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("pr timestamps stdin and merged pages from the clock and files from their mtime", async (t) => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

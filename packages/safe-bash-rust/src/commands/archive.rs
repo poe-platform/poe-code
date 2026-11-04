@@ -2910,6 +2910,14 @@ fn check_extraction_root(fs:&dyn SafeBashFs,root:&str) -> Result<(), String> {
     Ok(())
 }
 
+fn create_extraction_parent(fs:&dyn SafeBashFs,path:&str,mode:u32,allow_trusted_ancestry:bool)->Result<(),String> {
+    let (existing,stamp)=fs.inspect_extraction(path,allow_trusted_ancestry)?;
+    if existing.is_some(){return Err(format!("EAGAIN: extraction directory changed: {path}"));}
+    let parent=fs.lstat(&crate::vfs::dirname_posix_path(path))?;
+    fs.prepare_extraction_directory(path,&parent,None,mode,(None,None),stamp.version)?;
+    Ok(())
+}
+
 struct DirectoryMetadata {
     parent: crate::vfs::FileStat,
     identity: crate::vfs::FileStat,
@@ -4371,7 +4379,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 Some(target)
             } else { None };
             if !delay_directories { restore_directories(&mut directories, Some(&dest))?; }
-            for parent in parents { fs.mkdir_one(parent, 0o700)?; }
+            for parent in parents { create_extraction_parent(fs,parent,0o700,true)?; }
             let (existing,mut stamp) = fs.inspect_extraction(&dest,true)?;
             if input_path.as_deref() == Some(&dest) || input_identity.is_some() && existing.as_ref().is_some_and(|s| s.identity == input_identity) {
                 return Err("entry would overwrite the input archive".into());
@@ -6862,7 +6870,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 match fs.lstat(&path) {
                     Ok(stat) if stat.kind == Directory => (),
                     Ok(_) => return Err(format!("unsafe non-directory or symlink ancestor: {}",tar_format::display(&path))),
-                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => fs.mkdir_one(&path,0o755)?,
+                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => create_extraction_parent(fs,&path,0o755,false)?,
                     Err(e) => return Err(e),
                 }
             }

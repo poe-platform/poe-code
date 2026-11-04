@@ -6528,6 +6528,26 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+for(const format of ["zip","tar"])test(format+" refuses an implicit extraction parent replaced during its creation",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await ref.mkdir("/parent");await ref.writeFile("/parent/item",Uint8Array.of(7));
+    const seed=await js.exec(format==="zip"?"zip -q seed.zip parent/item":"tar -cf seed.tar parent/item");
+    assert.equal(seed.exitCode,0,seed.stderr);const path="/seed."+format,archive=await ref.readFile(path);
+    for(const sh of [js,rust]){
+      const fs=new MemoryFileSystem();await fs.writeFile(path,archive);const prepare=fs.prepareDirectory.bind(fs);let seen=false;
+      fs.prepareDirectory=async(path,opts)=>{
+        if(path==="/parent" && opts.expected===null){seen=true;await fs.mkdir(path,{mode:0o711});}
+        return prepare(path,opts);
+      };
+      const r=await sh.exec(format==="zip"?"unzip -oq seed.zip":"tar -xf seed.tar",{fs});
+      assert.equal(seen,true,r.stderr);assert.notEqual(r.exitCode,0);
+      assert.equal((await fs.stat("/parent")).mode&511,0o711);assert.deepEqual(await fs.readdir("/parent"),[]);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 for(const format of ["zip","tar"])test(format+" restores directory metadata after extracting children and guards the original directory",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

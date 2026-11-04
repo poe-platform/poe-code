@@ -1547,6 +1547,34 @@ test("returning a memory stream releases its pinned bytes even after unlink",asy
   } finally { await bash.dispose(); }
 });
 
+test("conditional plugin publication checks parent and destination receipts before editing hard links", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const reference = new MemoryFileSystem(), js = new Shell({fs:reference,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  for (const [sh,volume] of [[js,reference],[rust,rust.fs]]) {
+    await volume.mkdir("/dir");
+    sh.register({name:"publish",async execute(c) {
+      const fs=c.fs, parent=await fs.stat("/dir"), file="/dir/out";
+      assert.equal((await fs.capabilitiesFor(file)).atomicFileMutation,true);
+      const created=await fs.writeFileConditional(file,Uint8Array.of(1),{parent,expected:null,mode:0o640});
+      assert.equal(created.mode & 0o777,0o640);
+      await volume.link(file,"/alias");
+      await assert.rejects(fs.writeFileConditional(file,Uint8Array.of(9),{parent,expected:created}),{code:"EAGAIN"});
+      const expected=await fs.lstat(file);
+      const updated=await fs.writeFileConditional(file,Uint8Array.of(255),{parent,expected,append:true,atimeMs:123,mtimeMs:456});
+      assert.equal(updated.ino,expected.ino); assert.equal(updated.mtimeMs,456); assert.equal(updated.atimeMs,123);
+      assert.deepEqual([...await volume.readFile("/alias")],[1,255]);
+      await assert.rejects(fs.removeFileConditional(file,{parent,expected}),{code:"EAGAIN"});
+      await fs.removeFileConditional(file,{parent,expected:updated});
+      await assert.rejects(volume.stat(file),{code:"ENOENT"});
+      await volume.rename("/dir","/before"); await volume.mkdir("/dir");
+      await assert.rejects(fs.writeFileConditional(file,Uint8Array.of(0),{parent,expected:null}),{code:"EAGAIN"});
+      return {exitCode:0};
+    }});
+    try { let cause; const r = await sh.exec("publish",{onInternalError:e => {cause=e;}}); assert.equal(r.exitCode,0,(sh === js ? "JS: " : "Rust: ")+(cause?.stack ?? r.stderr)); }
+    finally { await sh.dispose(); }
+  }
+});
+
 test("ranged filesystem streams keep large regular chunks and bound infinite device reads",async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/data":new Uint8Array(100005)}});
   async function sizes(path,options) {

@@ -181,7 +181,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const {onInternalError} = options;
   const backing = fs.capabilities;
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
-    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead"].map(key => [key, backing[key]]))});
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation"].map(key => [key, backing[key]]))});
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
@@ -300,7 +300,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const kind = pathProfile(path, settings);
               const directory = kind === 2, regular = kind === 0;
               return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
-                open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
+                atomicFileMutation:regular && capabilities.atomicFileMutation, open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
                 mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
                 rename:regular, atomicRename:regular, atomicRenameNoReplace:regular, symlinks:regular});
             },
@@ -331,10 +331,14 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               check();
               return fs.mkdir(path, options);
             },
+            async writeFileConditional(path, data, settings) {
+              admitPath(path,settings);
+              return fs.writeFileConditional(path,data,settings);
+            },
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
             appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
           };
-          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "unlink", "readlink", "realpath"]) {
+          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "unlink", "readlink", "realpath", "removeFileConditional"]) {
             commandFs[operation] = async (path, settings) => {
               admitPath(path, settings);
               return fs[operation](path, settings);
@@ -704,7 +708,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
 
 const wasmCapabilities = Object.freeze({
   write: true, append: true, exclusiveCreate: true, read: true, retainedRead: true, streamingRead: true, stat: true, readdir: true, realpath: true, access: true,
-  conditionalChmod: true, permissions: true, readlink: true, symlinks: true,
+  conditionalChmod: true, atomicFileMutation:true, permissions: true, readlink: true, symlinks: true,
 });
 
 export class WasmFileSystem {
@@ -714,10 +718,20 @@ export class WasmFileSystem {
 
   get capabilities() {
     const backing = this.bash._companion?.fs;
-    if (!backing) return this.bash.exports.safe_bash_supports_conditional_chmod(this.bash.sessionId)
-      ? wasmCapabilities : Object.freeze({...wasmCapabilities, conditionalChmod:false});
+    if (!backing) return Object.freeze({...wasmCapabilities,
+      conditionalChmod:!!this.bash.exports.safe_bash_supports_conditional_chmod(this.bash.sessionId),
+      atomicFileMutation:!!this.bash.exports.safe_bash_supports_file_mutation(this.bash.sessionId),
+    });
     return Object.freeze(Object.fromEntries(Object.keys(wasmCapabilities)
       .map(key => [key, backing.capabilities?.[key] === true])));
+  }
+
+  writeFileConditional(filePath, data, options) {
+    return this.bash._mutateFileConditional(filePath,data,options,false);
+  }
+
+  removeFileConditional(filePath, options) {
+    return this.bash._mutateFileConditional(filePath,undefined,options,true);
   }
 
   async access(filePath, mode = 0, options) {
@@ -1576,6 +1590,50 @@ export class RustWasmBash extends WasmShell {
     }
   }
 
+  #memoryReceipt(s) {
+    const key = this.#scopeKeys.get(s?.identityScope);
+    const complete = (typeof s?.identityScope === "symbol" || typeof s?.identityScope === "object" && s.identityScope !== null)
+      && Number.isSafeInteger(s.dev) && s.dev >= 0 && Number.isSafeInteger(s.ino) && s.ino >= 0;
+    // Only the issuing session can translate its opaque scope back to a native store.
+    const scope = !complete ? NaN : key === undefined || key >= 0n ? -1 : Number(~key);
+    return [scope, s?.dev === 0 ? s.ino : -1, ["file","directory","symlink","character"].indexOf(s?.type),
+      ...[s?.revision,s?.size,s?.mode,s?.nlink,s?.mtimeMs,s?.ctimeMs].map(n => typeof n === "number" ? n : NaN)];
+  }
+
+  async _mutateFileConditional(filePath, data, options, removing) {
+    const {parent,expected,signal,mode = 0o666,atimeMs,mtimeMs,append} = options;
+    signal?.throwIfAborted();
+    const name = removing ? "removeFileConditional" : "writeFileConditional";
+    if (this._companion || this.companionFactory && !this.forceNative) {
+      await this._ensureCompanionSynced();
+      signal?.throwIfAborted();
+      const fs = this._companion.fs;
+      if (!fs[name]) throw fsOperationError("ENOTSUP",name,filePath);
+      return removing ? fs[name](filePath,options) : fs[name](filePath,data,options);
+    }
+    if (typeof filePath !== "string") throw new TypeError("Filesystem paths must be strings");
+    if (!removing && !(data instanceof Uint8Array)) throw new TypeError("Memory files require Uint8Array data");
+    const rows = this.#memoryReceipt(parent);
+    if (expected !== null) rows.push(...this.#memoryReceipt(expected));
+    const flags = (removing ? 0 : 1) | (append ? 2 : 0) | (atimeMs !== undefined ? 4 : 0) | (mtimeMs !== undefined ? 8 : 0);
+    signal?.throwIfAborted();
+    const p = this._allocBytes(encoder.encode(filePath));
+    try {
+      const receipt = this._allocBytes(new Uint8Array(new Float64Array(rows).buffer));
+      try {
+        const bytes = this._allocBytes(removing ? new Uint8Array() : data);
+        try {
+          const n = this.exports.safe_bash_mutate_file_conditional(this.sessionId,p.ptr,p.len,receipt.ptr,receipt.len,bytes.ptr,bytes.len,flags,
+            typeof mode === "number" ? mode : NaN, typeof atimeMs === "number" ? atimeMs : NaN, typeof mtimeMs === "number" ? mtimeMs : NaN);
+          if (n === -1) throw new Error("Wasm session unavailable");
+          const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
+          if (n < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer,ptr,-n)));
+          if (n) return Object.freeze(this._decodeStat(ptr,n));
+        } finally { this._freeBytes(bytes); }
+      } finally { this._freeBytes(receipt); }
+    } finally { this._freeBytes(p); }
+  }
+
   chmodConditional(filePath, mode, parent, expected, ancestors, guard, signal) {
     const fail = code => { throw fsOperationError(code, "chmod", filePath); };
     if (guard !== undefined && typeof guard !== "function") fail("EINVAL");
@@ -1599,15 +1657,9 @@ export class RustWasmBash extends WasmShell {
         if (i === entries.length - 1) differentType = s.type !== r.type;
         continue;
       }
-      const key = this.#scopeKeys.get(s.identityScope);
-      const complete = (typeof s.identityScope === "symbol" || typeof s.identityScope === "object" && s.identityScope !== null)
-        && Number.isSafeInteger(s.dev) && s.dev >= 0 && Number.isSafeInteger(s.ino) && s.ino >= 0;
-      if (!complete && i < entries.length - 2) fail("ENOTSUP");
-      // Keep a foreign scope distinct from an incomplete identity. Only the
-      // issuing session can translate a scope back to its Rust filesystem.
-      const scope = !complete ? NaN : key === undefined ? -1 : key >= 0n ? -1 : Number(~key);
-      packed.set([scope, s.dev === 0 ? s.ino : -1, ["file","directory","symlink","character"].indexOf(s.type),
-        ...[s.revision, s.size, s.mode, s.nlink, s.mtimeMs, s.ctimeMs].map(n => typeof n === "number" ? n : NaN)], 9*i);
+      const row = this.#memoryReceipt(s);
+      if (Number.isNaN(row[0]) && i < entries.length - 2) fail("ENOTSUP");
+      packed.set(row,9*i);
     }
     signal?.throwIfAborted();
     const p = this._allocBytes(encoder.encode(filePath));

@@ -726,6 +726,56 @@ pub unsafe extern "C" fn safe_bash_chmod(
     }
 }
 
+fn memory_receipt(row: &[u8]) -> Result<FileStat,String> {
+    let n = |i:usize| f64::from_le_bytes(row[i*8..][..8].try_into().unwrap());
+    let count = |i| (n(i).is_finite() && n(i)>=0. && n(i).fract()==0.).then(||n(i) as u64);
+    Ok::<_, String>(FileStat {
+        identity: n(0).is_finite().then(||crate::vfs::EntryIdentity::Memory(count(0).unwrap_or(u64::MAX), count(1).unwrap_or(u64::MAX))),
+        kind: match n(2) {0. => VfsEntryKind::File, 3. => return Err("ENOTSUP: character device".into()), 1. => VfsEntryKind::Directory, 2. => VfsEntryKind::Symlink, _=>return Err("EAGAIN: different type".into())},
+        revision: count(3), size: count(4).and_then(|n|usize::try_from(n).ok()).unwrap_or(usize::MAX),
+        mode: count(5).and_then(|n|u32::try_from(n).ok()).unwrap_or(u32::MAX), nlink: count(6).and_then(|n|usize::try_from(n).ok()),
+        mtime_ms: n(7), ctime_ms: Some(n(8)), atime_ms: 0., birthtime_ms: None,
+        uid:None, gid:None, allocated_bytes:None, io_block_size:None, preferred_io_block_size:None, filesystem_type:None,
+    })
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_supports_file_mutation(id: u32) -> bool {
+    sessions().lock().is_ok_and(|map| map.get(&id).is_some_and(|s| s.shell.fs.memory_backend().is_some()))
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_mutate_file_conditional(
+    id: u32, path_ptr: *const u8, path_len: usize, receipt_ptr: *const u8, receipt_len: usize,
+    bytes_ptr: *const u8, bytes_len: usize, flags: u32, mode: f64, atime: f64, mtime: f64,
+) -> i32 {
+    let path = unsafe { str_from_raw(path_ptr,path_len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let result = (|| {
+        let fs = sess.shell.fs.memory_backend().ok_or("ENOTSUP: unsupported filesystem")?;
+        if !matches!(receipt_len,72|144) { return Err("EINVAL: invalid file receipt".into()); }
+        let receipts = unsafe { slice_from_raw(receipt_ptr,receipt_len) };
+        let parent = memory_receipt(&receipts[..72])?;
+        let expected = receipts.get(72..144).map(memory_receipt).transpose()?;
+        let write = (flags & 1 != 0).then(|| crate::vfs::memory::ConditionalFileWrite {
+            bytes: unsafe { slice_from_raw(bytes_ptr,bytes_len) }, append: flags & 2 != 0,
+            mode: if mode.fract()==0. && (0.0..=4095.0).contains(&mode) { mode as u32 } else { u32::MAX },
+            atime_ms: (flags & 4 != 0).then_some(atime), mtime_ms: (flags & 8 != 0).then_some(mtime),
+        });
+        fs.mutate_file_conditional(path,&parent,expected.as_ref(),write)
+    })();
+    match result {
+        Ok(Some(stat)) => { sess.last_output_buf = stat_bytes(stat); sess.last_output_buf.len() as i32 }
+        Ok(None) => 0,
+        Err(e) => {
+            let syscall = if e.starts_with("EAGAIN") || e.starts_with("ENOTSUP") { "fileStaging" }
+                else if flags & 1 != 0 { "writeFileConditional" } else { "removeFileConditional" };
+            sess.read_error(&e,syscall,path,None,None)
+        }
+    }
+}
+
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_supports_conditional_chmod(id: u32) -> bool {
     sessions().lock().is_ok_and(|map| map.get(&id).is_some_and(|s| s.shell.fs.memory_backend().is_some() || s.shell.fs.overlay_backend().is_some()))
@@ -745,18 +795,7 @@ pub unsafe extern "C" fn safe_bash_chmod_conditional(
         if data.len() / 72 != paths.clone().count() + 2 || !data.len().is_multiple_of(72) {
             return Err("EINVAL: invalid chmod receipt".into());
         }
-        let mut stats = data.chunks_exact(72).map(|row| {
-            let n = |i:usize| f64::from_le_bytes(row[i*8..][..8].try_into().unwrap());
-            let count = |i| (n(i).is_finite() && n(i)>=0. && n(i).fract()==0.).then(||n(i) as u64);
-            Ok::<_, String>(FileStat {
-                identity: n(0).is_finite().then(||crate::vfs::EntryIdentity::Memory(count(0).unwrap_or(u64::MAX), count(1).unwrap_or(u64::MAX))),
-                kind: match n(2) {0. => VfsEntryKind::File, 3. => return Err("ENOTSUP: character device".into()), 1. => VfsEntryKind::Directory, 2. => VfsEntryKind::Symlink, _=>return Err("EAGAIN: different type".into())},
-                revision: count(3), size: count(4).and_then(|n|usize::try_from(n).ok()).unwrap_or(usize::MAX),
-                mode: count(5).and_then(|n|u32::try_from(n).ok()).unwrap_or(u32::MAX), nlink: count(6).and_then(|n|usize::try_from(n).ok()),
-                mtime_ms: n(7), ctime_ms: Some(n(8)), atime_ms: 0., birthtime_ms: None,
-                uid:None, gid:None, allocated_bytes:None, io_block_size:None, preferred_io_block_size:None, filesystem_type:None,
-            })
-        });
+        let mut stats = data.chunks_exact(72).map(memory_receipt);
         let ancestors = paths.map(|p| Ok::<_,String>((p,stats.next().unwrap()?))).collect::<Result<Vec<_>,_>>()?;
         let parent = stats.next().unwrap()?;
         let expected = stats.next().unwrap()?;

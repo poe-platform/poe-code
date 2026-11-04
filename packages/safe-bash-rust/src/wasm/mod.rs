@@ -541,10 +541,7 @@ pub unsafe extern "C" fn safe_bash_rename(
     let Some(sess) = map.get_mut(&id) else { return -1 };
     match sess.shell.fs.rename(source, destination, no_replace) {
         Ok(()) => 0,
-        Err(error) => {
-            sess.last_output_buf = format!("{error}, rename '{source}' -> '{destination}'").into_bytes();
-            -(sess.last_output_buf.len() as i32)
-        }
+        Err(error) => sess.read_error(&error,"rename",source,None,None),
     }
 }
 

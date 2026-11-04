@@ -698,6 +698,10 @@ export class WasmFileSystem {
         if (rc < 0) {
           const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
           const message = decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -rc));
+          if (syscall === "rename") {
+            const error = readOperationError(message);
+            if (error.syscall !== "rename") throw error;
+          }
           if (syscall === "link") {
             const [code, scope] = message.split(":");
             if (scope === "overlay") throw fsOperationError(code, "overlay", newPath, undefined, "overlay hardlinks are not supported");

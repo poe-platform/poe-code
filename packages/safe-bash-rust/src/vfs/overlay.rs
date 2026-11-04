@@ -535,14 +535,9 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
-        let entry = |path| super::path::rename_entry(path, 40, |parent| {
-            let stat = self.lstat(parent)?;
-            match stat.kind {
-                VfsEntryKind::Directory if stat.mode & 0o100 == 0 => Err("EACCES: permission denied".into()),
-                VfsEntryKind::Directory => Ok(None),
-                VfsEntryKind::Symlink => self.readlink(parent).map(Some),
-                VfsEntryKind::File => Err("ENOTDIR: not a directory".into()),
-            }
+        let entry = |path: &str| self.access_path(path,false).map_err(|e| {
+            if e.starts_with("ELOOP:") && !e.contains(", ") { format!("ELOOP: too many symbolic links encountered, overlay '{path}'") }
+            else { e }
         });
         let from = entry(source)?;
         let original = self.lstat(&from)?;
@@ -552,32 +547,30 @@ impl SafeBashFs for OverlayVfs {
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
+        if no_replace && target.is_some() { return Err(format!("EEXIST: file already exists, overlay '{destination}'")); }
+        if from == to { return Ok(()); }
         if from == "/" || to == "/" || original.mode & 0o170000 == 0o020000
-            || target.as_ref().is_some_and(|t| t.mode & 0o170000 == 0o020000)
-        { return Err("EBUSY: resource busy or locked".into()); }
-        if (source.ends_with('/') || destination.ends_with('/')) && original.kind != VfsEntryKind::Directory {
-            return Err("ENOTDIR: not a directory".into());
-        }
-        if no_replace && target.is_some() { return Err("EEXIST: file already exists".into()); }
-        if from == to || target.as_ref().is_some_and(|t| original.identity.is_some() && t.identity == original.identity) {
-            return Ok(());
+            || target.as_ref().is_some_and(|t| t.mode & 0o170000 == 0o020000) {
+            return Err(format!("EBUSY: resource busy or locked, overlay '{source}'"));
         }
         if original.kind == VfsEntryKind::Directory && crate::vfs::is_path_within(&from, &to) {
-            return Err("EINVAL: invalid argument".into());
-        }
-        for p in [&from, &to] {
-            if self.stat(&crate::vfs::dirname_posix_path(p))?.mode & 0o300 != 0o300 {
-                return Err("EACCES: permission denied".into());
-            }
+            return Err(format!("EINVAL: invalid argument, overlay '{destination}'"));
         }
         if let Some(target) = target {
+            if original.identity.is_some() && target.identity == original.identity { return Ok(()); }
             match (original.kind, target.kind) {
                 (VfsEntryKind::Directory, VfsEntryKind::Directory) => {
-                    if !self.list_dir(&to)?.is_empty() { return Err("ENOTEMPTY: directory not empty".into()); }
+                    if !self.list_dir(&to)?.is_empty() { return Err(format!("ENOTEMPTY: directory not empty, overlay '{destination}'")); }
                 }
-                (VfsEntryKind::Directory, _) => return Err("ENOTDIR: not a directory".into()),
-                (_, VfsEntryKind::Directory) => return Err("EISDIR: illegal operation on a directory".into()),
+                (VfsEntryKind::Directory, _) => return Err(format!("ENOTDIR: not a directory, overlay '{destination}'")),
+                (_, VfsEntryKind::Directory) => return Err(format!("EISDIR: illegal operation on a directory, overlay '{destination}'")),
                 _ => {}
+            }
+        }
+        for p in [&from, &to] {
+            let parent = crate::vfs::dirname_posix_path(p);
+            if self.stat(&parent)?.mode & 0o300 != 0o300 {
+                return Err(format!("EACCES: permission denied, overlay '{parent}'"));
             }
         }
 

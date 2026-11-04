@@ -12545,3 +12545,16 @@ test("mv plans directory descendants before refusing publication on a device mou
     assert.equal(sh.readText("/w/src/child"),"keep");
   } finally { sh.dispose(); }
 });
+
+test("overlay rename resolves dot components and requires directories at trailing slashes", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/tree/sub/file":"keep"}});
+  try {
+    await assert.rejects(sh.fs.rename("/w/tree","/w/missing/"),{code:"ENOENT",syscall:"overlay",path:"/w/missing"});
+    assert.equal(sh.readText("/w/tree/sub/file"),"keep");
+    await sh.fs.rename("/w/tree/sub/..","/w/moved");
+    assert.equal(sh.readText("/w/moved/sub/file"),"keep");
+    const failure = await sh.exec("mv -T /w/moved/sub/file/ /w/out");
+    assert.equal(failure.stderr,"mv: ENOTDIR: not a directory, overlay '/w/moved/sub/file'\n");
+    assert.equal(sh.readText("/w/moved/sub/file"),"keep");
+  } finally { sh.dispose(); }
+});

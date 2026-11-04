@@ -8769,6 +8769,40 @@ test("awk reads only selected operands and shares the main reader with getline a
   } finally { sh.dispose(); }
 });
 
+test("grep accounts for named input setup even when max-count is zero", async () => {
+  const sh = new RustWasmBash();
+  try {
+    const cmd = "grep -m0 x /missing /missing";
+    await assert.rejects(sh.exec(cmd, {limits:{maxFileSystemOperations:1}}), {limit:"maxFileSystemOperations"});
+    // With a finite input quota the named source is only opened on its first pull.
+    const limits = {maxFileSystemOperations:1, maxInputBytes:16};
+    assert.equal((await sh.exec(cmd, {limits})).exitCode, 1);
+    assert.equal((await sh.exec("grep -m0 x ''", {limits})).exitCode, 1);
+    await assert.rejects(sh.exec("grep -n x /missing", {limits}), {limit:"maxFileSystemOperations"});
+  } finally { sh.dispose(); }
+});
+
+test("grep publishes context before the next pull and closes stdin on output failure", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    const seen = [];
+    const r = await sh.exec("grep -nC1 hit >/matches", {stdin:{async *[Symbol.asyncIterator](){
+      for (const chunk of ["no\nh", "it\n", "tail\n", "miss\n"]) {
+        seen.push(Buffer.from(await sh.fs.readFile("/matches")).toString());
+        yield Buffer.from(chunk);
+      }
+    }}});
+    assert.deepEqual([r.exitCode,r.stderr,seen], [0,"",["","","1-no\n2:hit\n","1-no\n2:hit\n3-tail\n"]]);
+    for (const args of ["-n a","-E a","-C1 a","-o a"]) {
+      let pulls = 0, closed = 0;
+      await assert.rejects(sh.exec("grep "+args, {limits:{maxOutputBytes:1},stdin:{async *[Symbol.asyncIterator](){
+        try { for (const chunk of ["a\n","b\n","a\n"]) { pulls++; yield Buffer.from(chunk); } } finally { closed++; }
+      }}}), {limit:"maxOutputBytes"});
+      assert.deepEqual([pulls,closed],[1,1],args);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("grep publishes literal matches before the next stdin pull and stops on write or validation failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

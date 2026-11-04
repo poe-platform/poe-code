@@ -1,5 +1,6 @@
 mod expr_bre;
 mod fd_glob;
+mod grep_stream;
 use fd_glob::{FdGlob, IgnoreFile, RuleError};
 mod mdq_classes;
 mod mdq_class;
@@ -49,6 +50,7 @@ where
             args,
             input,
             cwd,
+            !cfg!(target_arch = "wasm32") || env.contains_key("\0has_finite_input_quota"),
             fs,
             write,
         )),
@@ -2475,6 +2477,7 @@ fn cmd_grep(
     args: &[String],
     mut stdin: CommandInput,
     cwd: &str,
+    finite_input_quota: bool,
     fs: &dyn SafeBashFs,
     write: &mut CommandWriter,
 ) -> BuiltinOutcome {
@@ -2485,6 +2488,7 @@ fn cmd_grep(
     if literal && args.get(1).is_none_or(|f| f == "-") {
         return grep_literal_stdin(&args[0], stdin, write);
     }
+    let mut line_buffered = false;
     let mut ignore_case = false;
     let mut invert = false;
     let mut count_only = false;
@@ -2643,7 +2647,8 @@ fn cmd_grep(
                 "h" | "H" => { no_filename = key == "h"; with_filename = key == "H"; }
                 "T" => initial_tab = true,
                 "no-group-separator" => context_separator = None,
-                "binary" | "line-buffered" => {}
+                "line-buffered" => line_buffered = true,
+                "binary" => {}
                 _ => return error(format!("invalid option -- '{key}'")),
             }
         }
@@ -2769,54 +2774,49 @@ fn cmd_grep(
             _ => rules.push((value.to_owned(), key == "include")),
         }
     }
-    run_grep_engine(
-        rx,
-        targets,
-        stdin,
-        cwd,
-        fs,
-        GrepConfig {
-            // Production's single-pattern ASCII shortcut checks every input line.
-            grep_input: if literal { GrepInput::PlainLiteral }
-                else if ascii_pattern && !text || bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
-            ascii_record_rx: None,
-            invert,
-            count_only,
-            line_number,
-            files_with_matches,
-            files_without_match,
-            only_matching,
-            quiet,
-            no_messages,
-            no_filename,
-            with_filename,
-            max_count,
-            before_ctx,
-            after_ctx,
-            binary: RgBinary::Auto,
-            byte_offset,
-            null_delim,
-            null_data,
-            json_output: false,
-            replace: None,
-            multiline: false,
-            show_column: false,
-            ignore_binary,
-            count_matches: false,
-            include_zero: true,
-            trim: false,
-            heading: false,
-            crlf: false,
-            context_separator,
-            initial_tab,
-            stdin_label,
-            files: SearchFiles::Grep(GrepFiles { name: invoked_as, rules, excluded_dirs, recursive,
-                inspect: saw_recursive || recursive || dir_action.as_deref() == Some("skip") || devices == Some("skip"),
-                skip_dirs: dir_action.as_deref() == Some("skip"), skip_devices: devices == Some("skip"), follow: dereference_recursive }),
-            max_columns: None,
-            stats: false,
-        },
-    )
+    let cfg = GrepConfig {
+        // Production's single-pattern ASCII shortcut checks every input line.
+        grep_input: if literal { GrepInput::PlainLiteral }
+            else if ascii_pattern && !text || bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
+        ascii_record_rx: None,
+        invert,
+        count_only,
+        line_number,
+        files_with_matches,
+        files_without_match,
+        only_matching,
+        quiet,
+        no_messages,
+        no_filename,
+        with_filename,
+        max_count,
+        before_ctx,
+        after_ctx,
+        binary: RgBinary::Auto,
+        byte_offset,
+        null_delim,
+        null_data,
+        json_output: false,
+        replace: None,
+        multiline: false,
+        show_column: false,
+        ignore_binary,
+        count_matches: false,
+        include_zero: true,
+        trim: false,
+        heading: false,
+        crlf: false,
+        context_separator,
+        initial_tab,
+        stdin_label,
+        files: SearchFiles::Grep(GrepFiles { name: invoked_as, rules, excluded_dirs, recursive,
+            inspect: saw_recursive || recursive || dir_action.as_deref() == Some("skip") || devices == Some("skip"),
+            skip_dirs: dir_action.as_deref() == Some("skip"), skip_devices: devices == Some("skip"), follow: dereference_recursive }),
+        max_columns: None,
+        stats: false,
+    };
+    if literal { run_grep_engine(rx, targets, stdin, cwd, fs, cfg) }
+    else { grep_stream::run(rx, targets, stdin, cwd, fs, &cfg, line_buffered, finite_input_quota, write) }
 }
 
 fn cmd_rg(

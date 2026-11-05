@@ -139,7 +139,23 @@ fn composite_image_pixel(dest: &mut [u8; 4], value: [u8; 4]) {
     }
 }
 
+// Horizontal subpixel spans of the intersected form bounding boxes, in device space.
+type ClipRow = [(f64, f64); 4];
+fn clip_coverage(row: &Option<ClipRow>, x: usize) -> u8 {
+    let Some(spans) = row else {
+        return 255;
+    };
+    let x = (x * 4) as f64;
+    let count: f64 = spans
+        .iter()
+        .map(|&(a, b)| (b.min(x + 3.) - a.max(x) + 1.).max(0.))
+        .sum();
+    let coverage = count / 16.;
+    (coverage * coverage.sqrt() * 255.).round() as u8
+}
+
 struct Bitmap {
+    form_clips: Vec<[Point; 4]>,
     white_background: bool,
     w: usize,
     h: usize,
@@ -147,6 +163,67 @@ struct Bitmap {
     work: usize,
 }
 impl Bitmap {
+    fn clip_row(&mut self, y: usize, span: Option<(f64, f64)>) -> Option<Option<ClipRow>> {
+        if self.form_clips.is_empty() {
+            return Some(None);
+        }
+        self.work = self.work.checked_sub(16 * self.form_clips.len())?;
+        let mut spans = [(f64::NEG_INFINITY, f64::INFINITY); 4];
+        let mut inside_span = span.is_some_and(|(lo, hi)| lo >= 0. && hi <= self.w as f64);
+        for quad in &self.form_clips {
+            let [a, b, c, d] = *quad;
+            if (a[0] == b[0] && b[1] == c[1]) || (a[1] == b[1] && b[0] == c[0]) {
+                // Splash clips rectangles to whole scanlines and quarter-pixel columns.
+                let y = y as f64;
+                let inside = y >= a[1].min(c[1]).floor() && y < a[1].max(c[1]).ceil();
+                inside_span &= span.is_some_and(|(lo, hi)| {
+                    lo >= a[0].min(c[0])
+                        && hi <= a[0].max(c[0])
+                        && y >= a[1].min(c[1])
+                        && y + 1. <= a[1].max(c[1])
+                });
+                for (lo, hi) in &mut spans {
+                    *lo = lo.max((4. * a[0].min(c[0])).floor());
+                    *hi = if inside {
+                        hi.min((4. * a[0].max(c[0])).floor())
+                    } else {
+                        f64::NEG_INFINITY
+                    };
+                }
+            } else {
+                for (i, (lo, hi)) in spans.iter_mut().enumerate() {
+                    let y0 = y as f64 + i as f64 / 4.;
+                    let y1 = y0 + 0.25;
+                    let (mut left, mut right) = (f64::INFINITY, f64::NEG_INFINITY);
+                    for (p, q) in [(a, b), (b, c), (c, d), (d, a)] {
+                        if p[1].max(q[1]) < y0 || p[1].min(q[1]) >= y1 {
+                            continue;
+                        }
+                        let slope = (q[0] - p[0]) / (q[1] - p[1]);
+                        let base = p[0] - p[1] * slope;
+                        let x = |v: f64| (base + v * slope).clamp(p[0].min(q[0]), p[0].max(q[0]));
+                        let (u, v) = if p[1] == q[1] {
+                            (p[0], q[0])
+                        } else {
+                            (x(y0), x(y1))
+                        };
+                        left = left.min(u.min(v));
+                        right = right.max(u.max(v));
+                    }
+                    // Splash tests the first subscanline before antialiasing a transformed image span.
+                    if i == 0 {
+                        inside_span &= span.is_some_and(|(s, e)| {
+                            4. * s >= (4. * left).floor() && 4. * e - 1. <= (4. * right).floor()
+                        });
+                    }
+                    *lo = lo.max((4. * left).floor());
+                    *hi = hi.min((4. * right).floor());
+                }
+            }
+        }
+        Some((!inside_span).then_some(spans))
+    }
+
     fn transformed_image(
         &mut self,
         im: &Image,
@@ -215,6 +292,7 @@ impl Bitmap {
             return Some(());
         }
         let (xx, xy, yx, yy) = (d / det, -c / det, -b / det, a / det);
+        let height = self.h;
         let mut row = |y: usize, xa: f64, xb: f64| -> Option<()> {
             let start = (xa.floor() as usize).min(self.w);
             let mut end = xb.floor() + 1.;
@@ -223,12 +301,15 @@ impl Bitmap {
             }
             let xs = start..(end as usize).min(self.w);
             self.work = self.work.checked_sub(xs.len())?;
+            let clip = self.clip_row(y, Some((start as f64, end)))?;
             let py = y as f64 + 0.5 - f;
             for x in xs {
                 let px = x as f64 + 0.5 - e;
                 let u = ((px * xx + py * xy) as usize).min(w - 1);
                 let v = ((px * yx + py * yy) as usize).min(h - 1);
-                composite_image_pixel(&mut self.pixels[y * self.w + x], scaled[v * w + u]);
+                let mut value = scaled[v * w + u];
+                value[3] = div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
+                composite_image_pixel(&mut self.pixels[y * self.w + x], value);
             }
             Some(())
         };
@@ -252,7 +333,7 @@ impl Bitmap {
         } else {
             bottom
         };
-        for y in (top as usize).min(self.h)..(end as usize).min(self.h) {
+        for y in (top as usize).min(height)..(end as usize).min(height) {
             let scan = y as f64 + 0.5;
             if flat {
                 let x0 = edge(p, s, scan);
@@ -339,13 +420,16 @@ impl Bitmap {
             let bounds = [left, start_y, sw, sh];
             let mut sample = splash_rgba(&im, mask.as_ref(), bounds, xs.clone(), ys.clone());
             for y in ys {
+                let dest_y = if d < 0. {
+                    (bottom - 1. - y as f64) as usize
+                } else {
+                    y
+                };
+                let clip = self.clip_row(dest_y, None)?;
                 for x in xs.clone() {
-                    let value = sample(x, y, &mut self.work)?;
-                    let dest_y = if d < 0. {
-                        (bottom - 1. - y as f64) as usize
-                    } else {
-                        y
-                    };
+                    let mut value = sample(x, y, &mut self.work)?;
+                    value[3] =
+                        div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
                     composite_image_pixel(&mut self.pixels[dest_y * self.w + x], value);
                 }
             }
@@ -425,6 +509,7 @@ impl Bitmap {
             im.pixels = level;
         }
         for y in ys {
+            let clip = self.clip_row(y, None)?;
             for x in xs.clone() {
                 let dy = top - (y as f64 + 0.5) / scale - f;
                 let dx = ox + (x as f64 + 0.5) / scale - e;
@@ -439,7 +524,7 @@ impl Bitmap {
                     im.pixels[(v as usize).min(h - 1) * w + (u as usize).min(w - 1)].map(f64::from)
                 };
                 let dest = &mut self.pixels[y * self.w + x];
-                let alpha = s[3] / 255.;
+                let alpha = s[3] / 255. * (f64::from(clip_coverage(&clip,x)) / 255.);
                 if alpha == 0. {
                     continue;
                 }
@@ -510,12 +595,13 @@ impl Bitmap {
                     }
                 }
             }
+            let clip = self.clip_row(y, None)?;
             for (x, &count) in counts.iter().enumerate() {
                 let a = if aa {
                     f64::from(count) / 16.
                 } else {
                     f64::from(u8::from(count >= 8))
-                };
+                } * (f64::from(clip_coverage(&clip,x0+x)) / 255.);
                 if a == 0. {
                     continue;
                 }
@@ -705,6 +791,7 @@ impl PageSource<'_> {
             return None;
         }
         let mut bitmap = Bitmap {
+            form_clips: vec![],
             white_background: !opt.transparent,
             w,
             h,
@@ -717,8 +804,33 @@ impl PageSource<'_> {
         let mut width = 1.;
         let mut paths: Vec<Vec<Point>> = vec![];
         let mut stack = vec![];
+        let mut forms = vec![];
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
+                Draw::BeginForm([x0, y0, x1, y1], [a, b, c, d, e, f]) => {
+                    let pt = |x, y| {
+                        [
+                            (a * x + c * y + e - ox) * sx,
+                            (oy + ph - (b * x + d * y + f)) * sx,
+                        ]
+                    };
+                    bitmap
+                        .form_clips
+                        .push([pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1)]);
+                    forms.push((
+                        fill,
+                        stroke,
+                        width,
+                        std::mem::take(&mut paths),
+                        std::mem::take(&mut stack),
+                    ));
+                    return Some(());
+                }
+                Draw::EndForm => {
+                    (fill, stroke, width, paths, stack) = forms.pop()?;
+                    bitmap.form_clips.pop()?;
+                    return Some(());
+                }
                 Draw::Image(id, matrix) => {
                     let mode = if opt.splash { super::ImageRead::Raster } else { super::ImageRead::Pixels };
                     if let Some(image) = Image::read(objects, id, matrix, opt.limit, mode)? {

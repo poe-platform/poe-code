@@ -16738,6 +16738,43 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdf_forms_draw_nested_and_repeated_images_in_their_resource_scope() {
+        let stream = |dict: &str, data: &str| format!("<< {dict} /Length {} >>\nstream\n{data}\nendstream", data.len());
+        let image = "/Type /XObject /Subtype /Image /Width 1 /Height 1 /ColorSpace /DeviceRGB /BitsPerComponent 8";
+        let make = |matrix, bbox| classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 32 24] /Resources << /XObject << /F 5 0 R /One 9 0 R >> >> /Contents 4 0 R >>",
+            &stream("", "q 1 0 0 2 0 0 cm /F Do Q q 1 0 0 1 10 4 cm /F Do Q /One Do"),
+            &stream(&format!("/Type /XObject /Subtype /Form /Matrix [{matrix}] /BBox [{bbox}] /Resources << /XObject << /One 7 0 R /Inner 6 0 R >> >>"), "q 2 0 0 3 0 0 cm /One Do Q /Inner Do /F Do"),
+            &stream("/Type /XObject /Subtype /Form /Matrix [0 1 -1 0 7 0] /BBox [0 0 8 8] /Resources << /XObject << /One 8 0 R >> >>", "q 3 0 0 2 1 0 cm /One Do Q"),
+            &stream(image, "ABC"), &stream(image, "xyz"), &stream(image, "PQR"),
+        ], "");
+        let fs = MemoryVfs::new();
+        fs.write_file("/forms.pdf", make("2 0 0 1 1 2", "0 0 8 8").as_bytes()).unwrap();
+        let run = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+        let list = run("pdfimages", &["-list", "forms.pdf"]);
+        assert_eq!(list.exit_code, 0, "{}", list.stderr);
+        let cols = list.stdout.lines().skip(2).map(|row| {
+            let c: Vec<_> = row.split_whitespace().collect();
+            [c[10], c[12], c[13]]
+        }).collect::<Vec<_>>();
+        assert_eq!(cols, [["7","18","12"], ["8","12","18"], ["7","18","24"], ["8","24","18"], ["9","72","72"]]);
+        // Poppler 24.02: the inherited /F reference is recursive and is skipped;
+        // the second page-level invocation must still replay both nested placements.
+        for (matrix, bbox, dpi, digest) in [
+            ("2 0 0 1 1 2", "0 0 8 8", "72", "8087f065c7fef3024a3b4a2746a16be0f4de30b9fb1905168f39f2d0ab0dc0e3"),
+            ("2 0 0 1 1 2", "0.3 0.5 3.5 3", "144", "addbb46601d2b49c1cc3b9d7d5d9bbc14209c1e3d775d55b705bc7ab2200c038"),
+            ("2 0.3 0.1 1 1 2", "0 0 4 3", "144", "e3fecb183c6a914c53c3717cc7aa62156b8354783b32c073dcb04d02fbd3d604"),
+            ("1 1 -1 1 5 2", "0 0 5 3", "144", "0b906f528e5fe6dd3dd48e973356f89f4a4a8b4b231a0ec63d24c43d852425fe"),
+        ] {
+            fs.write_file("/forms.pdf", make(matrix, bbox).as_bytes()).unwrap();
+            let r = run("pdftoppm", &["-r", dpi, "-singlefile", "forms.pdf", "forms"]);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/forms.ppm").unwrap())), digest, "{matrix}");
+        }
+    }
+
+    #[test]
     fn pdfimages_soft_mask_uses_its_own_size_and_the_parent_object_id() {
         let fs = MemoryVfs::new();
         let draw = "q 4 0 0 2 0 0 cm /A Do /A Do Q";

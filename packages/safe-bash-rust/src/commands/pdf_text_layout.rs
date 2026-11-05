@@ -65,7 +65,7 @@ impl Font {
 struct State {
     mode: i32,
     ctm: Matrix,
-    font: usize,
+    font: Option<Rc<Font>>,
     size: f64,
     leading: f64,
     rise: f64,
@@ -73,7 +73,15 @@ struct State {
     word: f64,
     hscale: f64,
 }
+#[derive(Default)]
+struct Resources<'a> {
+    form: Option<super::ObjectId>,
+    fonts: BTreeMap<std::borrow::Cow<'a, [u8]>, Rc<Font>>,
+    xobjects: BTreeMap<std::borrow::Cow<'a, [u8]>, super::ObjectId>,
+}
 pub(super) enum Draw<'a, 'b> {
+    BeginForm([f64; 4], Matrix),
+    EndForm,
     Image(super::ObjectId, Matrix),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
@@ -86,6 +94,45 @@ pub(super) enum Draw<'a, 'b> {
         mode: i32,
     },
 }
+impl<'a> Resources<'a> {
+    fn load(&mut self, objects: &mut super::Objects<'a>, res: &Value<'a>) -> Option<()> {
+        let res = objects.resolve(res)?;
+        if let Some(Value::Dict(entries)) = res.get(b"XObject").and_then(|v| objects.resolve(v)) {
+            self.xobjects.extend(
+                entries
+                    .into_iter()
+                    .filter_map(|(k, v)| Some((k, v.reference()?))),
+            );
+        }
+        if let Some(Value::Dict(entries)) = res.get(b"Font").and_then(|v| objects.resolve(v)) {
+            for (key, v) in entries {
+                let dict = objects.resolve(&v)?;
+                let family = dict
+                    .get(b"BaseFont")
+                    .and_then(Value::word)
+                    .and_then(|w| w.strip_prefix(b"/"))
+                    .unwrap_or(&key);
+                let start = dict.get(b"FirstChar").and_then(Value::number).unwrap_or(0.) as usize;
+                let widths = match dict.get(b"Widths").and_then(|w| objects.resolve(w)) {
+                    Some(Value::Array(a)) => {
+                        a.iter().map(Value::number).collect::<Option<Vec<_>>>()?
+                    }
+                    _ => vec![],
+                };
+                let name = Rc::from(String::from_utf8_lossy(family).as_ref());
+                self.fonts.insert(
+                    key,
+                    Rc::new(Font {
+                        name,
+                        start,
+                        widths,
+                    }),
+                );
+            }
+        }
+        Some(())
+    }
+}
 impl<'a> PageSource<'a> {
     pub(super) fn draw_page(
         &mut self,
@@ -93,53 +140,10 @@ impl<'a> PageSource<'a> {
         mut emit: impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
     ) -> Option<()> {
         let mut node = page;
-        let mut fonts = vec![Font {
-            name: Rc::from("Helvetica"),
-            start: 0,
-            widths: vec![],
-        }];
-        let mut names = BTreeMap::new();
-        let mut xobjects = BTreeMap::new();
+        let mut resources = Resources::default();
         for _ in 0..128 {
             if let Some(res) = node.get(b"Resources") {
-                let res = self.objects.resolve(res)?;
-                if let Some(Value::Dict(entries)) =
-                    res.get(b"XObject").and_then(|v| self.objects.resolve(v))
-                {
-                    xobjects.extend(
-                        entries
-                            .into_iter()
-                            .filter_map(|(k, v)| Some((k, v.reference()?))),
-                    );
-                }
-                if let Some(Value::Dict(entries)) =
-                    res.get(b"Font").and_then(|v| self.objects.resolve(v))
-                {
-                    for (key, v) in entries {
-                        let dict = self.objects.resolve(&v)?;
-                        let family = dict
-                            .get(b"BaseFont")
-                            .and_then(Value::word)
-                            .and_then(|w| w.strip_prefix(b"/"))
-                            .unwrap_or(&key);
-                        let start =
-                            dict.get(b"FirstChar").and_then(Value::number).unwrap_or(0.) as usize;
-                        let widths = match dict.get(b"Widths").and_then(|w| self.objects.resolve(w))
-                        {
-                            Some(Value::Array(a)) => {
-                                a.iter().map(Value::number).collect::<Option<Vec<_>>>()?
-                            }
-                            _ => vec![],
-                        };
-                        let index = fonts.len();
-                        fonts.push(Font {
-                            name: Rc::from(String::from_utf8_lossy(family).as_ref()),
-                            start,
-                            widths,
-                        });
-                        names.insert(key, index);
-                    }
-                }
+                resources.load(&mut self.objects, res)?;
                 break;
             }
             let Some(parent) = node
@@ -158,10 +162,10 @@ impl<'a> PageSource<'a> {
             Some(Value::Array(a)) => a.iter().map(Value::reference).collect::<Option<Vec<_>>>()?,
             _ => return None,
         };
-        let mut st = State {
+        let st = State {
             mode: 0,
             ctm: ID,
-            font: 0,
+            font: None,
             size: 12.,
             leading: 0.,
             rise: 0.,
@@ -169,10 +173,25 @@ impl<'a> PageSource<'a> {
             word: 0.,
             hscale: 1.,
         };
+        self.draw_streams(&streams, st, &mut vec![resources], &mut emit)
+    }
+
+    fn draw_streams(
+        &mut self,
+        streams: &[super::ObjectId],
+        mut st: State,
+        scopes: &mut Vec<Resources<'a>>,
+        emit: &mut impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
+    ) -> Option<()> {
+        let default_font = Font {
+            name: Rc::from("Helvetica"),
+            start: 0,
+            widths: vec![],
+        };
         let (mut tm, mut lm) = (ID, ID);
         let mut stack = Vec::new();
         let mut in_text = false;
-        for id in streams {
+        for &id in streams {
             let bytes = self.objects.decoded_stream(id)?;
             let mut c = Cursor(&bytes);
             let mut args = Vec::new();
@@ -199,9 +218,53 @@ impl<'a> PageSource<'a> {
                         .last()
                         .and_then(Value::word)
                         .and_then(|n| n.strip_prefix(b"/"))
-                        .and_then(|n| xobjects.get(n))
+                        .and_then(|n| {
+                            scopes
+                                .iter()
+                                .rev()
+                                .find_map(|scope| scope.xobjects.get(n))
+                                .copied()
+                        })
                 {
-                    emit(Draw::Image(*id, st.ctm), &mut self.objects)?;
+                    let (dict, _) = self.objects.object(id)?;
+                    if dict.get(b"Subtype").and_then(Value::word) == Some(b"/Form") {
+                        if scopes.len() <= 100
+                            && !scopes.iter().any(|scope| scope.form == Some(id))
+                            && let Some(Value::Array(bounds)) =
+                                dict.get(b"BBox").and_then(|v| self.objects.resolve(v))
+                            && let [x0, y0, x1, y1, ..] = bounds.as_slice()
+                        {
+                            let bbox = [
+                                matrix_number(x0)?,
+                                matrix_number(y0)?,
+                                matrix_number(x1)?,
+                                matrix_number(y1)?,
+                            ];
+                            let mut child = st.clone();
+                            if let Some(Value::Array(values)) =
+                                dict.get(b"Matrix").and_then(|v| self.objects.resolve(v))
+                            {
+                                let m = std::array::from_fn(|i| {
+                                    values.get(i).and_then(matrix_number).unwrap_or(0.)
+                                });
+                                child.ctm = concat(m, st.ctm);
+                            }
+                            let mut local = Resources {
+                                form: Some(id),
+                                ..Resources::default()
+                            };
+                            if let Some(res) = dict.get(b"Resources") {
+                                local.load(&mut self.objects, res)?;
+                            }
+                            scopes.push(local);
+                            emit(Draw::BeginForm(bbox, child.ctm), &mut self.objects)?;
+                            self.draw_streams(&[id], child, scopes, emit)?;
+                            emit(Draw::EndForm, &mut self.objects)?;
+                            scopes.pop();
+                        }
+                    } else {
+                        emit(Draw::Image(id, st.ctm), &mut self.objects)?;
+                    }
                 }
                 match op {
                     b"q" => {
@@ -223,7 +286,14 @@ impl<'a> PageSource<'a> {
                     b"ET" => in_text = false,
                     b"cm" | b"Tm" => {
                         let entry = |i: usize| matrix_number(args.get(i)?);
-                        let m = [entry(0)?, entry(1)?, entry(2)?, entry(3)?, entry(4)?, entry(5)?];
+                        let m = [
+                            entry(0)?,
+                            entry(1)?,
+                            entry(2)?,
+                            entry(3)?,
+                            entry(4)?,
+                            entry(5)?,
+                        ];
                         if op == b"cm" {
                             st.ctm = concat(m, st.ctm);
                         } else {
@@ -233,7 +303,11 @@ impl<'a> PageSource<'a> {
                     }
                     b"Tf" => {
                         let key = args.first()?.word()?.strip_prefix(b"/")?;
-                        st.font = *names.get(key).unwrap_or(&0);
+                        st.font = scopes
+                            .iter()
+                            .rev()
+                            .find_map(|scope| scope.fonts.get(key))
+                            .cloned();
                         st.size = num(1)?;
                     }
                     b"Tr" => st.mode = num(0)? as i32,
@@ -267,7 +341,7 @@ impl<'a> PageSource<'a> {
                             Value::Array(a) => a,
                             _ => &args[args.len() - 1..],
                         };
-                        let font = &fonts[st.font];
+                        let font = st.font.as_deref().unwrap_or(&default_font);
                         for item in items {
                             if let Some(k) = item.number() {
                                 shift(&mut tm, -k * st.size * st.hscale / 1000., 0.);

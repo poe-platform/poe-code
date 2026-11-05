@@ -1143,7 +1143,7 @@ export function gifAst(): MediaAstPlugin {
         containerFormat: "gif", timescale: 100, duration, durationSeconds: duration / 100,
         tracks: [{ id: 1, type: "video", handlerType: "vide", timescale: 100, duration,
           language: "und", enabled: true, width, height,
-          codecDescriptions: [{ formatFourCC: "gif ", codecName: "gif", width, height, pixFmt: "rgb8" }],
+          codecDescriptions: [{ formatFourCC: "gif ", codecName: "gif", width, height, pixFmt: "bgra" }],
           samples, decodedVideoFrames: frames }],
         metadata: {}, byteLength: bytes.byteLength
       };

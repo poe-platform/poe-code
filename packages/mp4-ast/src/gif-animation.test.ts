@@ -17,7 +17,9 @@ it("parses and probes six GIF frames with individual durations", () => {
   assert.deepEqual(track.decodedVideoFrames!.map(frame => frame.ptsSeconds), [0, 1, 1.2, 1.5, 1.9, 2.4]);
   const probe = ast.probe(bytes, { showFrames: true });
   assert.equal(probe.streams[0]!.nb_frames, "6");
+  assert.equal(probe.streams[0]!.pix_fmt, "bgra");
   assert.equal(probe.frames!.length, 6);
+  assert.deepEqual(probe.frames!.map(frame => frame.pix_fmt), Array(6).fill("bgra"));
   assert.equal(probe.format.duration, "3.000000");
   const restored = decodeImage(ast.serialize(doc), { animated: true });
   assert.equal(restored.pages, 6);

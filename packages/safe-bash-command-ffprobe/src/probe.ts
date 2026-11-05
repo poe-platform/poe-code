@@ -172,12 +172,20 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
     const row = filter("format", {
       filename: parsed.filename,
       nb_streams: audio.streams.length,
+      nb_programs: 0,
+      nb_stream_groups: 0,
       format_name: audio.format === "m4a" ? "mov,mp4,m4a,3gp,3g2,mj2" : audio.format,
       ...(!stdinAudio && !unknownFlacDuration ? { duration: formatDuration.toFixed(6) } : {}),
       ...(!stdinAudio ? { size: String(size) } : {}),
       ...(!unknownFlacDuration ? { bit_rate: String(stdinAudio
         ? audio.streams.reduce((total, stream) => total + (stream.codec === "mp3" ? Math.round(mp3Bitrate) : Math.floor(stream.bitrate)), 0)
         : formatDuration ? Math.floor((size * 8) / formatDuration) : 0) } : {}),
+      // Strict MP3 parsing validates consecutive frames after ID3 metadata.
+      // Native mp3_read_probe assigns 52 to seven frames, 25 to four,
+      // and 1 to shorter valid streams. Signature-based containers score higher.
+      probe_score: audio.format === "wav" ? 99 : audio.format === "mp3"
+        ? Number(firstFrame?.fields?.frames) >= 7 ? 52 : Number(firstFrame?.fields?.frames) >= 4 ? 25 : 1
+        : 100,
       ...(retainedTags || Object.keys(formatTags).length ? { tags: formatTags } : {})
     });
     if (sections.has("format_tags") && sections.get("format_tags")?.length !== 0) row.tags = tags;

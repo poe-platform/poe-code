@@ -4,7 +4,15 @@ function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
 }
 
-function contributions(index: number, source: number, target: number, blur: number) {
+function contributions(index: number, source: number, target: number, blur: number, area: boolean) {
+    if (area) {
+        const start = index * source, end = (index + 1) * source;
+        const first = Math.floor(start / target), last = Math.ceil(end / target) - 1;
+        const weights = Float64Array.from({ length: last - first + 1 }, (_, i) =>
+            (Math.min(end, (first + i + 1) * target) - Math.max(start, (first + i) * target)) / source);
+        return { first, weights };
+    }
+
     const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
     const first = Math.max(0, Math.ceil(center - 3 * scale)), last = Math.min(source - 1, Math.floor(center + 3 * scale));
     const weights = new Float64Array(last - first + 1);
@@ -18,15 +26,15 @@ function contributions(index: number, source: number, target: number, blur: numb
     return { first, weights };
 }
 
-/** ImageMagick Lanczos: truncate support at edges and retain floating point between passes. */
-export function* resizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, thumbnail: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+/** ImageMagick area scaling or Lanczos filtering, retaining floating point between passes. */
+export function* resizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, thumbnail: boolean, scale = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const blur = thumbnail ? 0.9812505644269356 : 1;
     for (let left = 0; left < width; left += 256) {
-        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur));
+        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale));
         const rows = new Map<number, Float64Array>();
         for (let y = 0; y < height; y++) {
             yield;
-            const vertical = contributions(y, image.height, height, blur), sums = new Float64Array(count * 4);
+            const vertical = contributions(y, image.height, height, blur, scale), sums = new Float64Array(count * 4);
             for (let k = 0; k < vertical.weights.length; k++) {
                 const sy = vertical.first + k;
                 let row = rows.get(sy);

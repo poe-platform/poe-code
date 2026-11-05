@@ -74,3 +74,27 @@ for (const operation of [["-sample"], ["-filter", "point", "-resize"]]) {
         expect([...decodeImage(files.get("out.png")!).data]).toEqual(operation[0] === "-sample" ? [255, 0, 0, 255] : [0, 0, 255, 255]);
     });
 }
+
+// Native ImageMagick 7 area averages, independent of the configured resize filter.
+for (const [pixels, target, expected] of [
+    [[255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255], 2, [170, 85, 0, 255, 0, 85, 170, 255]],
+    [[255, 0, 0, 255, 0, 0, 255, 255], 3, [255, 0, 0, 255, 128, 0, 128, 255, 0, 0, 255, 255]],
+    [[255, 0, 0, 255, 0, 0, 255, 0], 1, [255, 0, 0, 128]]
+] as const) for (const vertical of [false, true]) for (const mode of ["buffered", "retained", "sync"] as const) {
+    it(`area averages scale to ${target}, vertical=${vertical}, ${mode}`, async () => {
+        const source = pixels.length / 4;
+        const input = await sharp(Uint8Array.from(pixels), { raw: {
+            width: vertical ? 1 : source, height: vertical ? source : 1, channels: 4
+        } }).png().toBuffer();
+        for (const filter of [[], ["-filter", "point"]]) {
+            const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+            const args = ["png:-", ...filter, "-scale", vertical ? `1x${target}!` : `${target}x1!`, "out.png"];
+            const result = mode === "sync" ? runConvertCliSync(args, files, input)
+                : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files, input);
+            expect(result.exitCode).toBe(0);
+            const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            expect([output.width, output.height]).toEqual(vertical ? [1, target] : [target, 1]);
+            expect([...output.data]).toEqual(expected);
+        }
+    });
+}

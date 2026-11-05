@@ -16670,6 +16670,26 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdf_page_rasters_cover_partial_pixels_and_report_scaled_density() {
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 32 16] >>",
+            "<< /Type /Page /Parent 2 0 R >>"], "");
+        fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        for (cmd, format, ext) in [("pdftoppm","-tiff","tif"), ("pdftocairo","-jpeg","jpg"), ("pdftoppm","-png","png")] {
+            for (flags, dims) in [(vec!["-rx","72.5","-ry","144.25"], (33,33)), (vec!["-scale-to","35"], (35,18))] {
+                let mut args = vec![format,"-singlefile"]; args.extend(flags); args.extend(["in.pdf","out"]);
+                let result = cmd_media_doc(cmd, &media_args(&args), "", "/", &fs);
+                assert_eq!(result.exit_code,0,"{}",result.stderr);
+                let bytes = fs.read_file(&format!("/out.{ext}")).unwrap();
+                let im = png_pixels::Raster::decode(&bytes, 1 << 20).unwrap();
+                assert_eq!((im.width,im.height),dims,"{cmd} {format}");
+                if ext == "jpg" && dims.0 == 35 { assert_eq!(&bytes[14..18], &[0,78,0,78]); }
+            }
+        }
+    }
+
+    #[test]
     fn pdf_tiff_contains_decodable_page_pixels_in_each_compression() {
         let stream = "1 0 0 rg 0 0 16 16 re f 0 0 1 rg 16 0 16 16 re f";
         let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());

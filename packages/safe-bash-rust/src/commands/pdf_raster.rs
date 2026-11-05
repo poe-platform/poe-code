@@ -382,11 +382,11 @@ impl PageSource<'_> {
                 }
             }
         }
-        let w = (pw * sx).round().max(1.) as usize;
-        let h = (ph * sx).round().max(1.) as usize;
+        let w = (pw * sx).ceil().max(1.) as usize;
+        let h = (ph * sx).ceil().max(1.) as usize;
         let resample = (sx - sy).abs() > 1e-6;
         let target_h = if resample {
-            (ph * sy).round().max(1.) as usize
+            (ph * sy).ceil().max(1.) as usize
         } else {
             h
         };
@@ -537,8 +537,8 @@ impl PageSource<'_> {
             [
                 (cx.min(dx) - ox) * sx,
                 (ph - (dy.max(cy) - oy)) * sy,
-                (dx - cx).abs() * sx,
-                (dy - cy).abs() * sy,
+                ((dx - cx).abs() * sx).ceil(),
+                ((dy - cy).abs() * sy).ceil(),
             ],
         );
         let (rw, rh) = if quarter { (bh, bw) } else { (bw, bh) };
@@ -573,7 +573,7 @@ impl PageSource<'_> {
             }
             return jpeg::encode(jpeg::Input::Page {
                 width: ow, height: oh, pixels: &pixels, quality,
-                dpi: opt.dpi.map(|v| v as u16), gray,
+                dpi: [(sx * 72.) as u16, (sy * 72.) as u16], gray,
             }, opt.limit).ok();
         }
         encode(ow, oh, &pixels, opt.format, opt.color)

@@ -16,7 +16,7 @@ import {
   type VirtualShellPlugin
 } from "safe-bash-contracts";
 import {
-  SqliteDatabase,
+  SqliteDatabase, SqliteConstraintError,
   matchGlob, matchLike,
   splitSqlStatements, tokenizeSql,
   type QueryResultSet,
@@ -1180,12 +1180,12 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           } catch (err) {
             context.signal.throwIfAborted();
             const msg = err instanceof Error ? err.message : String(err);
-            await writeText(context.stderr, `Error: ${msg}\n`);
+            const constraint = err instanceof SqliteConstraintError;
+            await writeText(context.stderr, constraint ? `Error: stepping, ${msg} (${err.code})\n` : `Error: ${msg}\n`);
+            state.exitCode = constraint ? err.code : 1;
             if (state.bail || positional.length >= 2) {
-              state.exitCode = 1;
               return false;
             }
-            state.exitCode = 1;
           }
           if (state.exitRequested) {
             return false;

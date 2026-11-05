@@ -1057,7 +1057,7 @@ test("sqlite3 records persistent foreign keys and enforces them only when enable
   const meta = await runSqlite3(fs, ["-json", "/fk.db", "PRAGMA foreign_key_list(child);"]);
   assert.deepEqual(JSON.parse(meta.stdout), [{ id: 0, seq: 0, table: "parent", from: "pid", to: "id", on_update: "NO ACTION", on_delete: "CASCADE", match: "NONE" }]);
   const invalid = await runSqlite3(fs, ["/fk.db", "PRAGMA foreign_keys=ON; INSERT INTO child VALUES(2,100);"]);
-  assert.equal(invalid.code, 1);
+  assert.equal(invalid.code, 19);
   assert.match(invalid.stderr, /FOREIGN KEY constraint failed/);
 });
 
@@ -1079,9 +1079,34 @@ test("sqlite3 rejects orphaning parent writes and child updates atomically", asy
   assert.equal((await runSqlite3(fs, ["/fk.db", "CREATE TABLE p(id INTEGER PRIMARY KEY); CREATE TABLE c(pid INTEGER REFERENCES p); INSERT INTO p VALUES(1),(2); INSERT INTO c VALUES(1);"])).code, 0);
   for (const sql of ["DELETE FROM p", "UPDATE p SET id=3 WHERE id=1", "UPDATE c SET pid=9", "INSERT OR IGNORE INTO c VALUES(9)"]) {
     const res = await runSqlite3(fs, ["/fk.db", `PRAGMA foreign_keys=ON; ${sql};`]);
-    assert.equal(res.code, 1, sql);
+    assert.equal(res.code, 19, sql);
     assert.match(res.stderr, /FOREIGN KEY constraint failed/);
   }
   const rows = await runSqlite3(fs, ["/fk.db", "SELECT id FROM p ORDER BY id; SELECT pid FROM c;"]);
   assert.equal(rows.stdout, "1\n2\n1\n");
+});
+
+for (const [sql, diagnostic] of [
+  ["CREATE TABLE t(x INTEGER UNIQUE); INSERT INTO t VALUES(1),(1);", "UNIQUE constraint failed: t.x"],
+  ["CREATE TABLE t(x INTEGER PRIMARY KEY); INSERT INTO t VALUES(1),(1);", "UNIQUE constraint failed: t.x"],
+  ["CREATE TABLE t(x NOT NULL); INSERT INTO t VALUES(NULL);", "NOT NULL constraint failed: t.x"],
+  ["CREATE TABLE t(x CHECK(x > 0)); INSERT INTO t VALUES(0);", "CHECK constraint failed: x > 0"],
+  ["PRAGMA foreign_keys=ON; CREATE TABLE p(id PRIMARY KEY); CREATE TABLE c(pid REFERENCES p); INSERT INTO c VALUES(1);", "FOREIGN KEY constraint failed"],
+  ["CREATE TABLE t(a, b, UNIQUE(a,b)); INSERT INTO t VALUES(1,2),(1,2);", "UNIQUE constraint failed: t.a, t.b"],
+  ["CREATE TABLE t(x UNIQUE); INSERT INTO t VALUES(1),(2); UPDATE t SET x=1 WHERE x=2;", "UNIQUE constraint failed: t.x"],
+  ["CREATE TABLE t(x); INSERT INTO t VALUES(1),(1); CREATE UNIQUE INDEX i ON t(x);", "UNIQUE constraint failed: t.x"],
+  ["CREATE TABLE t(x UNIQUE); WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<40) INSERT INTO t SELECT x FROM n; INSERT INTO t VALUES(40);", "UNIQUE constraint failed: t.x"],
+] as const) {
+  test(`sqlite3 returns constraint status and diagnostic: ${sql}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql]);
+    assert.equal(result.code, 19, result.stderr);
+    assert.equal(result.stderr, `Error: stepping, ${diagnostic} (19)\n`);
+  });
+}
+
+test("sqlite3 keeps ordinary SQL errors at status 1", async () => {
+  for (const sql of ["SELEC 1;", "SELECT * FROM missing;", "SELECT 'UNIQUE constraint failed: t.x';"]) {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql]);
+    assert.equal(result.code, sql.includes("'UNIQUE") ? 0 : 1);
+  }
 });

@@ -147,7 +147,9 @@ interface SnapshotState {
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
-class SqliteConstraintError extends Error {}
+export class SqliteConstraintError extends Error {
+  readonly code = 19;
+}
 
 function cloneSqlValue(v: SqlValue): SqlValue {
   if (v instanceof Uint8Array) {
@@ -2017,7 +2019,7 @@ export class SqliteDatabase {
         const candidate: TableRow = { rowid, data };
         const conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate);
         if (conflict) {
-          throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
+          throw new SqliteConstraintError(`UNIQUE constraint failed: ${conflict.columns.map(column => `${tbl.name}.${column}`).join(", ")}`);
         }
         this.checkRowCount(tbl.rows.length + 1);
         tbl.rows.push(candidate);
@@ -2753,7 +2755,7 @@ export class SqliteDatabase {
         }
         yield* stepSort(keys, compareKeys, this);
         for (let i = 1; i < keys.length; i++) {
-          if ((yield* compareKeys(keys[i - 1]!, keys[i]!)) === 0) throw new SqliteConstraintError(`UNIQUE constraint failed: ${tbl.name}`);
+          if ((yield* compareKeys(keys[i - 1]!, keys[i]!)) === 0) throw new SqliteConstraintError(`UNIQUE constraint failed: ${cols.map(column => `${tbl.name}.${column}`).join(", ")}`);
         }
       }
       this.indexes.set(objName, { name: objName, tableName: tbl.name, unique, columns: cols, collations, sql });
@@ -3367,7 +3369,7 @@ export class SqliteDatabase {
               }
               if (!previouslyValid) continue;
             }
-            throw new Error("FOREIGN KEY constraint failed");
+            throw new SqliteConstraintError("FOREIGN KEY constraint failed");
           }
         }
       }
@@ -3391,7 +3393,7 @@ export class SqliteDatabase {
           yield;
           if (this.foreignKeyMatches(child, row, key, columns, oldData)) matches.push(row);
         }
-        if (action === "RESTRICT" && matches.length) throw new Error("FOREIGN KEY constraint failed");
+        if (action === "RESTRICT" && matches.length) throw new SqliteConstraintError("FOREIGN KEY constraint failed");
         for (const row of matches) {
           yield;
           // Use ordinary writes so cascades obey constraints and fire triggers.
@@ -3419,7 +3421,7 @@ export class SqliteDatabase {
     candidate: TableRow,
     excludeRowid?: number,
     replaceNotNull = false
-  ): SqlSteps<TableRow | null> {
+  ): SqlSteps<{ row: TableRow; columns: string[] } | null> {
     // NOT NULL and CHECK constraints
     for (const col of tbl.columns) {
       yield;
@@ -3529,12 +3531,12 @@ export class SqliteDatabase {
         fastIdx.lastRow = added;
       }
       const byId = fastIdx.byRowid.get(candidate.rowid);
-      if (byId) return byId;
+      if (byId) return { row: byId, columns: [tbl.columns.find(col => col.primaryKey && col.type.toUpperCase() === "INTEGER")?.name ?? "rowid"] };
       for (let i = 0; i < resolvedKeySets.length; i += 1) {
         const k = encodeKey(candidate, resolvedKeySets[i]!);
         if (k !== null) {
           const hit = fastIdx.byKeySets[i]!.get(k);
-          if (hit) return hit;
+          if (hit) return { row: hit, columns: resolvedKeySets[i]!.map(key => key.cKey) };
         }
       }
       return null;
@@ -3546,7 +3548,7 @@ export class SqliteDatabase {
         continue;
       }
       if (existing.rowid === candidate.rowid) {
-        return existing;
+        return { row: existing, columns: [tbl.columns.find(col => col.primaryKey && col.type.toUpperCase() === "INTEGER")?.name ?? "rowid"] };
       }
       for (const kSet of resolvedKeySets) {
         yield;
@@ -3561,7 +3563,7 @@ export class SqliteDatabase {
           }
         }
         if (allEqual) {
-          return existing;
+          return { row: existing, columns: kSet.map(key => key.cKey) };
         }
       }
     }
@@ -3850,8 +3852,9 @@ export class SqliteDatabase {
         continue;
       }
 
-      const conflictRow = yield* this.checkConstraintsAndConflicts(tbl, candidate);
-      if (conflictRow) {
+      const conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate);
+      if (conflict) {
+        const conflictRow = conflict.row;
         if (upsertDoNothing || conflictAction === "IGNORE") {
           continue;
         }
@@ -3903,7 +3906,7 @@ export class SqliteDatabase {
             yield* this.applyForeignKeyActions(tbl, conflictRow.data);
           }
         } else {
-          throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
+          throw new SqliteConstraintError(`UNIQUE constraint failed: ${conflict.columns.map(column => `${tbl.name}.${column}`).join(", ")}`);
         }
       }
 
@@ -4176,7 +4179,7 @@ export class SqliteDatabase {
       }
       const candidate: TableRow = { rowid: row.rowid, data: newData };
       this.synchronizeRowid(tbl, candidate, assignments.map(assignment => assignment.col));
-      let conflict: TableRow | null;
+      let conflict: { row: TableRow; columns: string[] } | null;
       try {
         conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid, conflictAction === "REPLACE");
       } catch (error) {
@@ -4185,10 +4188,10 @@ export class SqliteDatabase {
       }
       if (conflict && conflictAction === "IGNORE") continue;
       while (conflict) {
-        if (conflictAction !== "REPLACE") throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
-        replacedRows.add(conflict);
-        tbl.rows.splice(tbl.rows.indexOf(conflict), 1);
-        yield* this.applyForeignKeyActions(tbl, conflict.data);
+        if (conflictAction !== "REPLACE") throw new SqliteConstraintError(`UNIQUE constraint failed: ${conflict.columns.map(column => `${tbl.name}.${column}`).join(", ")}`);
+        replacedRows.add(conflict.row);
+        tbl.rows.splice(tbl.rows.indexOf(conflict.row), 1);
+        yield* this.applyForeignKeyActions(tbl, conflict.row.data);
         conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid);
       }
       row.data = newData;

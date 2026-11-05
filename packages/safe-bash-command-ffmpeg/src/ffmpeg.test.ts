@@ -540,6 +540,25 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  it("mutes audible PCM samples with volume=0 without changing their count", async () => {
+    const vfs = createTestVfs();
+    const command = createFfmpegCommand();
+    const generated = await runCmd(command, ["-f", "lavfi", "-i", "sine=frequency=440:duration=0.1:sample_rate=8000", "/input.wav"], vfs);
+    assert.equal(generated.exitCode, 0, generated.stderr);
+    const input = parseWav(vfs.store.get("/input.wav")!).tracks[0]!.decodedAudio!;
+    assert.ok(input.channelData[0]!.some(value => value !== 0));
+
+    const result = await runCmd(command, ["-v", "error", "-i", "/input.wav", "-af", "volume=0", "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(output.sampleRate, input.sampleRate);
+    assert.equal(output.channels, input.channels);
+    for (const [channel, samples] of output.channelData.entries()) {
+      assert.equal(samples.length, input.channelData[channel]!.length);
+      assert.ok(samples.every(value => value === 0));
+    }
+  });
+
   it("rejects corrupt audio instead of replacing it with silence or a tone", async () => {
     for (const options of [[], ["-ar", "16000"], ["-af", "volume=0.5"]]) {
       const original = new Uint8Array([1, 2, 3]);

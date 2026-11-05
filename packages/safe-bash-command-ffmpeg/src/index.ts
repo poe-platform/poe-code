@@ -2120,9 +2120,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const trimmed = item.trim();
                   if (trimmed.startsWith("volume=")) {
                     const volSpec = trimmed.slice("volume=".length).trim();
+                    const gain = parseFloat(volSpec);
                     volFactor *= volSpec.endsWith("dB")
                       ? Math.pow(10, (parseFloat(volSpec.slice(0, -2)) || 0) / 20)
-                      : parseFloat(volSpec) || 1.0;
+                      : Number.isNaN(gain) ? 1.0 : gain;
                   } else if (trimmed.startsWith("atempo=")) {
                     tempoFactor *= Math.max(0.25, Math.min(4.0, parseFloat(trimmed.slice(7)) || 1.0));
                   } else if (trimmed === "areverse") {

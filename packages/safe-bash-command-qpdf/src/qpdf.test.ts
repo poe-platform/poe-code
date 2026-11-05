@@ -924,7 +924,7 @@ describe("safe-bash-command-qpdf", () => {
     );
 
     const files = new Map<string, Uint8Array>([["meta.pdf", doc.save()]]);
-    await runQpdfCli(["meta.pdf", "labeled.pdf", "--set-page-labels", "1:r/i-", "--"], files);
+    await runQpdfCli(["meta.pdf", "labeled.pdf", "--set-page-labels", "1:r//i-", "--"], files);
     const jsonRes = await runQpdfCli(
       ["labeled.pdf", "--json", "--json-key=pages", "--json-key=acroform", "--json-key=outlines", "--json-key=pagelabels"],
       files

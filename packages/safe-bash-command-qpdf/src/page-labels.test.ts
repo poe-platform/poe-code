@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { parseQpdfPageLabels } from "./page-labels.js";
 
-it("preserves page-label defaults, prefixes, duplicate order and permissive numeric operands", () => {
-  assert.deepEqual([...parseQpdfPageLabels(["1:r/2/前", "7:D/title", "0:n/0/zero", "2:A/-2", "1:/", "10000000000000000000:D/1", "bad"])], [
+it("preserves valid page-label defaults, prefixes and omitted styles", () => {
+  assert.deepEqual(parseQpdfPageLabels(["1:r/2/前", "7:D//title", "8:/1/zero", "9:A/2", "10:/", "11:D/1/a/b"], 11), [
     { index: 0, style: "r", start: 2, prefix: "前" },
     { index: 6, style: "D", start: 1, prefix: "title" },
-    { index: 0, start: 1, prefix: "zero" },
-    { index: 1, style: "A", start: -2, prefix: "" },
-    { index: 0, start: 1, prefix: "" },
-    { index: 10000000000000000000, style: "D", start: 1, prefix: "" },
+    { index: 7, start: 1, prefix: "zero" },
+    { index: 8, style: "A", start: 2, prefix: "" },
+    { index: 9, start: 1, prefix: "" },
+    { index: 10, style: "D", start: 1, prefix: "a/b" },
   ]);
 });

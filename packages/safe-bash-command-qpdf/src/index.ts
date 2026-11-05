@@ -2109,14 +2109,17 @@ function* executeQpdfCli(
   }
 
   // Apply --remove-page-labels and --set-page-labels
-  if (removePageLabels || pageLabelSpecs.length > 0) {
+  let pageLabels;
+  try { pageLabels = parseQpdfPageLabels(pageLabelSpecs, workingDoc.getPageCount()); }
+  catch (error) { return { exitCode: 2, stdout: "", stderr: `qpdf: ${(error as Error).message}\n` }; }
+  if (removePageLabels || pageLabels.length > 0) {
     const rootDict = asDict(workingDoc.cos.resolve(workingDoc.cos.rootRef));
     if (rootDict) {
-      if (removePageLabels && pageLabelSpecs.length === 0) {
+      if (removePageLabels && pageLabels.length === 0) {
         dictDelete(rootDict, "PageLabels");
-      } else if (pageLabelSpecs.length > 0) {
+      } else if (pageLabels.length > 0) {
         const numsItems: PdfCosNode[] = [];
-        for (const { index, style, start, prefix } of parseQpdfPageLabels(pageLabelSpecs)) {
+        for (const { index, style, start, prefix } of pageLabels) {
           const labelDict = cosDict({});
           if (style !== undefined) {
             dictSet(labelDict, "S", cosName(style));

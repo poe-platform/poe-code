@@ -288,6 +288,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       selectionGraph = await copyQpdfSelections(document, source, inputs, storage, options, signal);
       document = await selectionGraph.openDocument();
     }
+    let pageCount = 0;
+    if (options.pageLabelSpecs.length) for await (const page of document.pages()) { void page; pageCount++; }
+    let pageLabels;
+    try {
+      pageLabels = parseQpdfPageLabels(options.pageLabelSpecs, pageCount);
+    } catch (error) { return await diagnostic(`qpdf: ${(error as Error).message}\n`); }
     const destination = options.replaceInput ? inputName : options.outputFile;
     const { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels } = options;
     async function* rotations() {
@@ -359,8 +365,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { ...spec, length: input.size, chunks: input.stream(0, input.size, signal) };
       }
     }
-    if (options.generateAppearances || options.flattenAnnotations || options.stampSpecs.length || options.externalizeInlineImages || options.removeUnreferencedResources !== "no" || options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
-      editedGraph = await editRetainedDocument(document, storage, { generateAppearances: options.generateAppearances, ...(options.flattenAnnotations ? { flattenAnnotations: options.flattenAnnotations === true ? "all" as const : options.flattenAnnotations } : {}), ...(options.stampSpecs.length ? { stamps: stamps() } : {}), ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), removeUnreferencedResources: options.removeUnreferencedResources !== "no", flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    if (options.generateAppearances || options.flattenAnnotations || options.stampSpecs.length || options.externalizeInlineImages || options.removeUnreferencedResources !== "no" || options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || pageLabels.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { generateAppearances: options.generateAppearances, ...(options.flattenAnnotations ? { flattenAnnotations: options.flattenAnnotations === true ? "all" as const : options.flattenAnnotations } : {}), ...(options.stampSpecs.length ? { stamps: stamps() } : {}), ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), removeUnreferencedResources: options.removeUnreferencedResources !== "no", flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(pageLabels.length ? { pageLabels } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
     }
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");

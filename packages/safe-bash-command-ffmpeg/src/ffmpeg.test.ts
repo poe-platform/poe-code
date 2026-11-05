@@ -2023,6 +2023,30 @@ for (const [rate, nativePrefix] of [
   });
 }
 
+for (const length of [0, 80]) {
+  for (const { args, rate, channels, gain, tempo } of [
+    { args: [], rate: 8000, channels: 1, gain: 1, tempo: 1 },
+    { args: ["-af", "volume=0.5"], rate: 8000, channels: 1, gain: 0.5, tempo: 1 },
+    { args: ["-ar", "16000"], rate: 16000, channels: 1, gain: 1, tempo: 1 },
+    { args: ["-ac", "2"], rate: 8000, channels: 2, gain: 1, tempo: 1 },
+    { args: ["-af", "atempo=2,areverse"], rate: 8000, channels: 1, gain: 1, tempo: 2 }
+  ]) {
+    it(`preserves WAV sample count for ${length} samples with ${args.join(" ") || "no transform"}`, async () => {
+      const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(length).fill(0.25)] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", ...args, "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, rate);
+      assert.equal(audio.channels, channels);
+      assert.equal(audio.channelData.length, channels);
+      for (const samples of audio.channelData) {
+        assert.equal(samples.length, length * rate / 8000 / tempo);
+        for (const sample of samples) assert.ok(Math.abs(sample - 0.25 * gain) < 0.0001);
+      }
+    });
+  }
+}
+
 it("preserves constant audio when upsampling clips shorter than the filter", async () => {
   for (const length of [1, 8]) {
     const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(length).fill(0.25)] }) });

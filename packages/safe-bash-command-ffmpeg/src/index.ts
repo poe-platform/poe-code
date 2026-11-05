@@ -2267,7 +2267,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                 throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
               }
-              const durSec = (t.duration || origRate) / Math.max(1, t.timescale || origRate);
+              const durSec = t.duration / Math.max(1, t.timescale || origRate);
               let volFactor = t.volume ?? 1.0;
               let tempoFactor = 1.0;
               let reverseAudio = false;
@@ -2299,7 +2299,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
               }
 
-              const targetSamples = Math.max(1, Math.round((durSec / tempoFactor) * targetRate));
+              const targetSamples = Math.max(0, Math.round((durSec / tempoFactor) * targetRate));
               let stretched = await stretchAudio(t.decodedAudio.channelData, origRate, tempoFactor, budget, context.signal);
               if (targetRate !== origRate) stretched = await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
               const newChannelData: Float32Array[] = [];

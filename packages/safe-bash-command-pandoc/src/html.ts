@@ -9,6 +9,10 @@ import {
 import type { Attr, Block, Inline, Row, ColSpec, TableBody } from "./ast-types.js";
 import type { AdapterContext, ReaderCapability } from "./types.js";
 
+const listStyles: Readonly<Record<string, "Decimal" | "LowerAlpha" | "UpperAlpha" | "LowerRoman" | "UpperRoman">> = {
+  "1": "Decimal", a: "LowerAlpha", A: "UpperAlpha", i: "LowerRoman", I: "UpperRoman"
+};
+
 const empty: Attr = ["", [], []];
 const dropped = new Set([
   "head",
@@ -359,7 +363,7 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
               ? { t: "BulletList", c: items }
               : {
                   t: "OrderedList",
-                  c: [[number(value(node, "start"), 1), "Decimal", "Period"], items]
+                  c: [[number(value(node, "start"), 1), (Object.hasOwn(listStyles, value(node, "type")) ? listStyles[value(node, "type")]! : "DefaultStyle"), "DefaultDelim"], items]
                 }
           );
         } else if (tag === "figure") {

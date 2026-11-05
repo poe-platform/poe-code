@@ -53,7 +53,9 @@ an explicit input format. Use `-f commonmark` for strict CommonMark input. File 
 checkboxes or text checkbox symbols in LaTeX, reStructuredText, RTF and CommonMark.
 `markdown_strict` selects the CommonMark reader and writer. These
 compatibility names use the documented engine features; they do not enable
-additional dialect-specific extensions. XLSX input uses the first row as table headers, preserves literal
+additional dialect-specific extensions, except that `markdown` and `md` output preserve
+alphabetic and Roman ordered-list numbering (disable with `-fancy_lists`).
+HTML ordered lists retain their `start` and `type` attributes when converted to JSON or Markdown. XLSX input uses the first row as table headers, preserves literal
 cell whitespace, and calculates formulas whose results are missing.
 Shell arguments accept `--read`/`-r` and `--write`/`-w` as format aliases,
 attached short values such as `-fcommonmark -thtml -ooutput.html`, and bare

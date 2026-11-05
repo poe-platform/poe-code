@@ -260,3 +260,12 @@ it("streams CSV through the Markdown command path", async () => {
   } finally {acquire.mockRestore();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("preserves fancy list styles in both Markdown writer paths", async () => {
+  const blocks: Block[] = [{t: "OrderedList", c: [[26, "LowerAlpha", "DefaultDelim"], [[{t: "Plain", c: [s("First")]}], [{t: "Plain", c: [s("Second")]}]]]}];
+  expect(await md(blocks, "markdown")).toBe("z. First\naa. Second\n");
+  for (const to of ["commonmark", "gfm", "markdown-fancy_lists"]) {
+    await expect(md(blocks, to)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+    expect(await md(blocks, to, {lossy: true})).toBe("26. First\n27. Second\n");
+  }
+});

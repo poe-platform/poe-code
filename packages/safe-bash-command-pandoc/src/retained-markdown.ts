@@ -1,3 +1,4 @@
+import {markdownListMarker} from "./markdown-list-marker.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -12,7 +13,7 @@ type Job = {projection?: number | undefined; op: string; node: number; path: num
   text?: TextRange | undefined; parts?: Job[] | undefined; sep?: string | undefined; previous?: string | undefined; previousMarker?: string | undefined; marker?: string | undefined; choice?: string | undefined;
   next?: string | undefined; digits?: boolean | undefined; start?: boolean | undefined; finish?: boolean | undefined; task?: boolean | undefined; cell?: boolean | undefined; first?: string | undefined; rest?: string | undefined;
   begin?: number | undefined; stop?: number | undefined; width?: number | undefined; lineWidth?: number | undefined; gap?: string | undefined; column?: number | undefined; columns?: number | undefined;
-  row?: number | undefined; occupancy?: number | undefined; last?: number | undefined; number?: number | undefined; delimiter?: string | undefined};
+  row?: number | undefined; occupancy?: number | undefined; last?: number | undefined; number?: number | undefined; delimiter?: string | undefined; style?: string | undefined};
 
 /** Stored continuations and text ranges keep nesting, output and references out
  * of the resident heap. Reference collision chains retain exact target identity. */
@@ -254,7 +255,7 @@ class MarkdownTape {
               child.first = job.previous === "BulletList" && job.first === "-" ? "+" : "-"; job.first = child.first;
             }
           }
-          if (job.mode === "item") {child.first = job.first; child.number = job.number; child.delimiter = job.delimiter;}
+          if (job.mode === "item") {child.first = job.first; child.number = job.number; child.delimiter = job.delimiter; child.style = job.style;}
         }
         if (child) {if (job.index && job.sep) await this.addProjection(job.sep.length); job.stage = 1; await this.push(job); await this.push(child);} else {
           result = job.text!;
@@ -286,7 +287,7 @@ class MarkdownTape {
         continue;
       }
       if (job.op === "item") {
-        const mark = job.number === undefined ? job.first! : `${job.number + job.index!}${job.delimiter}`;
+        const mark = job.number === undefined ? job.first! : markdownListMarker(job.number + job.index!, job.style!, job.delimiter!);
         this.reserve(mark.length + 1);
         await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: mark + " ", rest: " ".repeat(mark.length + 1)});
         await this.push(this.list(job.node, job.path, "block", {task: true})); continue;
@@ -383,14 +384,15 @@ class MarkdownTape {
         }
         if (tag === "BulletList" || tag === "OrderedList") {
           const ordered = tag === "OrderedList", items = ordered ? await this.at(content!, 1) : content!;
-          let number: number | undefined, delimiter: string | undefined;
+          let number: number | undefined, delimiter: string | undefined, numberingStyle: string | undefined;
           if (ordered) {
             const spec = content! + 32, style = await this.tag(await this.at(spec, 1)), delim = await this.tag(await this.at(spec, 2));
-            if (!["Decimal", "DefaultStyle"].includes(style) || !["Period", "DefaultDelim", "OneParen"].includes(delim)) await this.loss(job.path, "list numbering style");
-            number = await this.number(spec + 32); delimiter = delim === "OneParen" ? ")" : ".";
+            if (style === "Example" || !this.selection.extensions.fancy_lists && (!["Decimal", "DefaultStyle"].includes(style) || !["Period", "DefaultDelim", "OneParen"].includes(delim))) await this.loss(job.path, "list numbering style");
+            number = await this.number(spec + 32); delimiter = this.selection.extensions.fancy_lists ? delim : delim === "OneParen" ? "OneParen" : "Period";
+            numberingStyle = this.selection.extensions.fancy_lists ? style : "Decimal";
           }
           let loose = false; for await (const item of this.tree.children(items)) for await (const block of this.tree.children(item)) if (await this.tag(block) === "Para") loose = true;
-          await this.push(this.list(items, await this.path(job.path, ".items"), "item", {first: job.first, number, delimiter, sep: loose ? "\n\n" : "\n"})); continue;
+          await this.push(this.list(items, await this.path(job.path, ".items"), "item", {first: job.first, number, delimiter, style: numberingStyle, sep: loose ? "\n\n" : "\n"})); continue;
         }
         if (tag === "Table") {await this.push({op: "table", node: content!, path: job.path}); continue;}
         await this.loss(job.path, tag);

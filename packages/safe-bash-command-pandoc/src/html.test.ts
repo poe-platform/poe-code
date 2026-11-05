@@ -111,7 +111,7 @@ it("preserves language, direction, div/span attributes, links, inline styles and
       ]
     },
     { t: "CodeBlock", c: [["", ["ts"], []], "\nlet x = 1;\n"] },
-    { t: "OrderedList", c: [[3, "Decimal", "Period"], [[plain(str("X"))]]] }
+    { t: "OrderedList", c: [[3, "DefaultStyle", "DefaultDelim"], [[plain(str("X"))]]] }
   ]);
   expect((await read("<pre>\nA\r\nB\n</pre>")).blocks).toEqual([
     { t: "CodeBlock", c: [empty, "A\nB\n"] }
@@ -263,5 +263,15 @@ it("is invariant across byte boundaries and cancels before finishing parsing", a
 it("unwraps unsupported element names that coincide with object prototype keys", async () => {
   expect((await read("<p><constructor>safe</constructor></p>")).blocks).toEqual([
     para(str("safe"))
+  ]);
+});
+
+it.each([
+  ["", "DefaultStyle"], ["1", "Decimal"], ["a", "LowerAlpha"],
+  ["A", "UpperAlpha"], ["i", "LowerRoman"], ["I", "UpperRoman"],
+  ["invalid", "DefaultStyle"], ["constructor", "DefaultStyle"]
+])("preserves HTML ordered-list type %s", async (type, style) => {
+  expect((await read(`<ol start="3" type="${type}"><li>First</li><li>Second</li></ol>`)).blocks).toEqual([
+    {t: "OrderedList", c: [[3, style, "DefaultDelim"], [[plain(str("First"))], [plain(str("Second"))]]]}
   ]);
 });

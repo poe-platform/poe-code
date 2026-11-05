@@ -1,3 +1,4 @@
+import { markdownListMarker } from "./markdown-list-marker.js";
 import { taskListState } from "./task-list.js";
 import type { Attr, Block, Inline } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
@@ -175,12 +176,12 @@ class Markdown {
         }
         case "BlockQuote": parts.push(this.indent(await this.blocks(node.c, `${p}.c`), "> ", "> ")); break;
         case "BulletList": case "OrderedList": {
-          if(node.t === "OrderedList" && (!["Decimal", "DefaultStyle"].includes(node.c[0][1]) || !["Period", "DefaultDelim", "OneParen"].includes(node.c[0][2]))) this.loss(p, "list numbering style");
+          if(node.t === "OrderedList" && (node.c[0][1] === "Example" || !this.selection.extensions.fancy_lists && (!["Decimal", "DefaultStyle"].includes(node.c[0][1]) || !["Period", "DefaultDelim", "OneParen"].includes(node.c[0][2])))) this.loss(p, "list numbering style");
           const items = node.t === "BulletList" ? node.c : node.c[1];
           const loose = items.some(item => item.some(block => block.t === "Para"));
           const rendered: string[] = [];
           for(const [j, item] of items.entries()) {
-            const mark = node.t === "BulletList" ? nodes[i - 1]?.t === "BulletList" && previousBullet === "-" ? "+" : "-" : `${node.c[0][0] + j}${node.c[0][2] === "OneParen" ? ")" : "."}`;
+            const mark = node.t === "BulletList" ? nodes[i - 1]?.t === "BulletList" && previousBullet === "-" ? "+" : "-" : markdownListMarker(node.c[0][0] + j, this.selection.extensions.fancy_lists ? node.c[0][1] : "Decimal", this.selection.extensions.fancy_lists ? node.c[0][2] : node.c[0][2] === "OneParen" ? "OneParen" : "Period");
             this.reserve(mark.length + 1);
             const content = await this.blocks(item, `${p}.items[${j}]`, true);
             rendered.push(content ? this.indent(content, mark + " ", " ".repeat(mark.length + 1)) : mark);

@@ -1,7 +1,8 @@
+import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { expect, it } from "vitest";
 import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createConvertCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     // Native ImageMagick Q16 output for the two RGBA pixels below.
@@ -48,6 +49,39 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result).toMatchObject({ exitCode: 0 });
         const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+        expect([...decodeImage(output).data]).toEqual(expected);
+    });
+}
+
+for (const mode of ["buffered", "retained", "sync", "convert"] as const) {
+    // ImageMagick 7.1.2 Q16-HDRI, RGBA PNG input, -threshold 45%, decoded RGBA.
+    it.each([
+        [[], [0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255]],
+        [["-channel", "R", "+channel"], [0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255]],
+        [["-channel", "RGB"], [0, 0, 0, 255, 0, 255, 255, 255, 0, 0, 0, 128, 0, 255, 255, 0]],
+        [["-channel", "RGBA"], [0, 0, 0, 255, 0, 255, 255, 255, 0, 0, 0, 255, 0, 255, 255, 0]],
+        [["-channel", "A"], [0, 37, 74, 255, 100, 150, 200, 255, 0, 37, 74, 255, 100, 150, 200, 0]],
+    ] as const)(`matches native threshold alpha for %j via ${mode}`, async (channels, expected) => {
+        const input = encodeImage({ width: 4, height: 1, data: new Uint8Array([0, 37, 74, 255, 100, 150, 200, 255, 0, 37, 74, 128, 100, 150, 200, 0]), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+        const files = new Map([["/in.png", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.png", input);
+        const args = ["/in.png", ...channels, "-threshold", "45%", "/out.png"];
+        let result;
+        if (mode === "convert") {
+            const argumentValues = createCommandArguments(args);
+            const context = {
+                command: "convert", args: argumentValues.args, argumentValues, cwd: "/", env: {},
+                signal: new AbortController().signal, fs: filesystem,
+                stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup() {}
+            } as unknown as CommandContext;
+            result = await createConvertCommand().execute(context);
+        } else {
+            result = mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        }
+        expect(result.exitCode).toBe(0);
+        const output = mode === "buffered" || mode === "sync" ? files.get("/out.png")! : await filesystem.readFile("/out.png");
         expect([...decodeImage(output).data]).toEqual(expected);
     });
 }

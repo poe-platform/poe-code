@@ -4515,7 +4515,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = tokens[++i] ?? "50%", value = raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw) / 257;
         const channels = state.channelExplicit ? state.channels : undefined;
         apply = function* (image) {
-            if (!channels) return yield* thresholdImageSteps(image, Math.round(value), true);
+            if (!channels) {
+                const output = yield* thresholdImageSteps(image, Math.round(value), true);
+                // Native default threshold assigns the intensity result to alpha too.
+                if (image.hasAlpha) for (let idx = 0; idx < output.data.length; idx += 4) {
+                    if (idx % 65536 === 0) yield;
+                    output.data[idx + 3] = output.data[idx]!;
+                }
+                return output;
+            }
             const out = new Uint8Array(image.data);
             const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {

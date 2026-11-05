@@ -47,6 +47,19 @@ it('preserves empty-document PostScript page errors',async()=>{
  await expect(createPdftocairoCommand().execute(f.context)).rejects.toMatchObject({code:'E_CAPABILITY',message:'Page index out of bounds: 0'});expect(await f.fs.readdir('/scratch')).toEqual([]);
 });
 
+it.each(["a4", "Letter"])("rejects invalid paper %s before retained output publication", async paper => {
+ const f=await fixture(input(),["-pdf","-paper",paper,"in.pdf","out.pdf"]);
+ expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(99);
+ expect(f.error()).toBe("Invalid paper size\n");
+ await expect(f.fs.stat("/out.pdf")).rejects.toMatchObject({code:"ENOENT"});
+ const existing=new TextEncoder().encode("existing output");
+ await f.fs.writeFile("/out.pdf",existing);
+ expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(99);
+ expect(await f.fs.readFile("/out.pdf")).toEqual(existing);
+ expect(f.stdout).toEqual([]);
+ expect(await f.fs.readdir("/scratch")).toEqual([]);
+});
+
 it("orients retained PDF paper for each source page",async()=>{
  const doc=PdfDocument.create();doc.addPage([216,144]);doc.addPage([144,216]);
  const f=await fixture(doc.save(),["-pdf","-paper","A4","in.pdf","-"]);

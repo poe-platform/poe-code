@@ -3,6 +3,29 @@ import { PdfDocument } from "@poe-code/pdf-ast";
 import { runPdftocairoCli, runPdftocairoCliSync } from "./index.js";
 
 for (const run of [runPdftocairoCli, runPdftocairoCliSync]) {
+  it.each(["A3", "A4", "letter", "legal", "match"])(`${run.name} accepts native paper spelling %s`, async paper => {
+    const doc = PdfDocument.create();
+    doc.addPage([144, 216]);
+    const files = new Map([["in.pdf", doc.save()]]);
+    const result = await run(["-pdf", "-paper", paper, "in.pdf", "out.pdf"], files);
+    expect(result.exitCode).toBe(0);
+    expect(files.has("out.pdf")).toBe(true);
+  });
+
+  it.each(["a3", "a4", "A5", "a5", "Letter", "Legal", "Match", "unknown"])(`${run.name} rejects invalid paper spelling %s without publishing output`, async paper => {
+    const doc = PdfDocument.create();
+    doc.addPage([144, 216]);
+    const files = new Map([["in.pdf", doc.save()]]);
+    const args = ["-pdf", "-paper", paper, "in.pdf", "out.pdf"];
+    const result = await run(args, files);
+    expect(result).toEqual({ exitCode: 99, stdout: "", stderr: "Invalid paper size\n" });
+    expect(files.has("out.pdf")).toBe(false);
+    const existing = new TextEncoder().encode("existing output");
+    files.set("out.pdf", existing);
+    expect((await run(args, files)).exitCode).toBe(99);
+    expect(files.get("out.pdf")).toBe(existing);
+  });
+
   it.each([
     { flags: ["-paper", "A4"], sizes: [[842, 595], [595, 842], [595, 842]] },
     { flags: ["-paperw", "900", "-paperh", "500"], sizes: [[500, 900], [900, 500], [900, 500]] },

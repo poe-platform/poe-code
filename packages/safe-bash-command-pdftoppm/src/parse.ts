@@ -466,7 +466,7 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
         }
         else if (arg === "-paper") {
             namedPaper = true;
-            const pName = (argv[++i] ?? "").toLowerCase();
+            const pName = argv[++i] ?? "";
             if (pName === "letter") {
                 paperW = 612;
                 paperH = 792;
@@ -475,17 +475,20 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
                 paperW = 612;
                 paperH = 1008;
             }
-            else if (pName === "a3") {
+            else if (pName === "A3") {
                 paperW = 842;
                 paperH = 1191;
             }
-            else if (pName === "a4") {
+            else if (pName === "A4") {
                 paperW = 595;
                 paperH = 842;
             }
-            else if (pName === "a5") {
-                paperW = 420;
-                paperH = 595;
+            else if (pName === "match") {
+                paperW = 0;
+                paperH = 0;
+            }
+            else {
+                return { exitCode: 99, stdout: "", stderr: "Invalid paper size\n" };
             }
         }
         else if (arg === "-paperw") {

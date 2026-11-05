@@ -1,3 +1,4 @@
+import { xlsxDateText } from "./xlsx-dates.js";
 import { RetainedSpans } from "./retained-spans.js";
 import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { createZipCodec } from "@poe-code/office-package/zip";
@@ -42,17 +43,20 @@ class Cursor {
 }
 
 /** XLSX cat keeps shared strings, cells and output spans in caller-owned storage. */
-export async function retainXlsxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, document?: RetainedOfficeBlocks): Promise<SofficeSnapshot> {
+export async function retainXlsxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, document?: RetainedOfficeBlocks, displayDates = false): Promise<SofficeSnapshot> {
   const { signal } = context, codec = createZipCodec(), limits = resolveOfficeResources({ archiveLimits: { chunkSize: 16384 } }).archiveLimits;
   let shared: SofficeSnapshot | undefined, sheet: SofficeSnapshot | undefined, fallback: SofficeSnapshot | undefined, fallbackName: string | undefined;
+  let stylesXml: SofficeSnapshot | undefined, workbookXml: SofficeSnapshot | undefined;
   await codec.readZipArchive({ size: source.size, read: (offset, maximum) => storage.read(source.position + offset, Math.min(16384, maximum, source.size - offset)) }, limits, signal, {
     storage, async onEntry(entry) {
       if (fallbackName === undefined && entry.name.startsWith("xl/worksheets/sheet")) fallbackName = entry.name;
-      const selected = entry.name === "xl/sharedStrings.xml" || entry.name === "xl/worksheets/sheet1.xml" || entry.name === fallbackName;
+      const selected = displayDates && ["xl/styles.xml", "xl/workbook.xml"].includes(entry.name) || entry.name === "xl/sharedStrings.xml" || entry.name === "xl/worksheets/sheet1.xml" || entry.name === fallbackName;
       const position = storage.allocate(0); let size = 0;
       for await (const bytes of codec.decodeZipEntry(entry, limits, signal)) {
         signal.throwIfAborted(); if (selected) { await storage.append(bytes); size += bytes.length; }
       }
+      if (entry.name === "xl/styles.xml") stylesXml = { position, size };
+      if (entry.name === "xl/workbook.xml") workbookXml = { position, size };
       if (entry.name === "xl/sharedStrings.xml") shared = { position, size };
       if (entry.name === "xl/worksheets/sheet1.xml") sheet = { position, size };
       if (entry.name === fallbackName) fallback = { position, size };
@@ -69,6 +73,36 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
     try { await run(cursor); failed = false; }
     finally { try { await cursor.tokens.return(undefined); } finally { await xml.close().catch(error => { if (!failed) throw error; }); } }
   };
+  const formats = new IntegerTable(storage), styles = new IntegerTable(storage);
+  let date1904 = false;
+  if (displayDates && workbookXml) await parse(workbookXml, async cursor => {
+    for await (const token of cursor.tokens) if (token.kind === "start-name" && await cursor.name(token.range) === "workbookPr")
+      await cursor.open(async (name, range) => { if (name === "date1904") date1904 = ["1", "true", "on"].includes(await cursor.name(range)); });
+  });
+  if (displayDates && stylesXml) await parse(stylesXml, async cursor => {
+    let inCells = false, count = 0;
+    for await (const token of cursor.tokens) {
+      const name = await cursor.name(token.range);
+      if (name === "cellXfs") { inCells = token.kind === "start-name" && await cursor.open() !== undefined; continue; }
+      if (token.kind !== "start-name") continue;
+      if (name === "numFmt") {
+        let id = NaN, value: SofficeSnapshot | undefined;
+        await cursor.open(async (name, range) => {
+          if (name === "numFmtId") id = Number(await cursor.name(range));
+          else if (name === "formatCode") value = await retainXmlText(storage, cursor.xml.read(range), signal, false);
+        });
+        if (value && Number.isSafeInteger(id) && id >= 0) {
+          await formats.set(BigInt(id) * 2n, BigInt(value.position));
+          await formats.set(BigInt(id) * 2n + 1n, BigInt(value.size));
+        }
+      } else if (name === "xf" && inCells) {
+        let id = 0;
+        await cursor.open(async (name, range) => { if (name === "numFmtId") id = Number(await cursor.name(range)); });
+        if (Number.isSafeInteger(id) && id >= 0) await styles.set(BigInt(count), BigInt(id));
+        count++;
+      }
+    }
+  });
   if (shared) await parse(shared, async cursor => {
     const spans = new RetainedSpans(storage, signal);
     for (;;) {
@@ -100,8 +134,10 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
         const name = await cursor.name(next.value.range);
         if (next.value.kind === "end-name" && name === "row") break;
         if (next.value.kind !== "start-name" || name !== "c") continue;
+        let style = 0;
         let type = "", typed = false, column: number | undefined;
         const start = await cursor.open(async (name, range, doubleQuoted) => {
+          if (name === "s") style = Number(await cursor.name(range));
           if (!doubleQuoted) return;
           const local = name.split(":").at(-1);
           if (local === "t" && !typed && range.length) { type = await cursor.name(range); typed = true; }
@@ -122,6 +158,22 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
         else if (type === "s" && value) {
           const index = await sharedIndex(storage, value, signal);
           value = Number.isSafeInteger(index) && index >= 0 && index < stringCount ? { position: Number(await strings.get(BigInt(index * 2))), size: Number(await strings.get(BigInt(index * 2 + 1))) } : undefined;
+        }
+        if (displayDates && value && (type === "" || type === "n") && value.size <= 64 && Number.isSafeInteger(style) && style >= 0) {
+          const id = await styles.get(BigInt(style)) ?? 0n, size = Number(await formats.get(id * 2n + 1n) ?? 0n);
+          let format: string | number = Number(id);
+          if (size) {
+            const position = Number(await formats.get(id * 2n)), decoder = new TextDecoder();
+            format = "";
+            for (let offset = 0; offset < size; offset += 16384) {
+              signal.throwIfAborted();
+              format += decoder.decode(await storage.read(position + offset, Math.min(16384, size - offset)), { stream: true });
+            }
+            format += decoder.decode();
+          }
+          const raw = new TextDecoder().decode(await storage.read(value.position, value.size));
+          const text = xlsxDateText(raw, format, date1904);
+          if (text !== raw) { const bytes = new TextEncoder().encode(text); value = { position: await storage.append(bytes), size: bytes.length }; }
         }
         if (value) await output.add(value);
         await document?.cell(value ?? empty);

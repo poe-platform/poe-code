@@ -1,3 +1,5 @@
+import { parseXml } from "@poe-code/safe-fs/xml";
+import { xlsxDateText } from "./xlsx-dates.js";
 import { xlsxMetadata, xlsxDocumentPrefix, xlsxDocumentSuffix } from "./xlsx-parts.js";
 import { docxMetadata, docxDocumentPrefix, docxDocumentSuffix } from "./docx-parts.js";
 import { tryRetainedTextConversion } from "./retained-conversion.js";
@@ -178,8 +180,23 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
   return blocks;
 }
 
-function parseXlsxRows(zipBytes: Uint8Array): string[][] {
+function parseXlsxRows(zipBytes: Uint8Array, displayDates = false): string[][] {
   const entries = readZipArchiveEntries(zipBytes);
+  const formats = new Map<number, string>();
+  const styles: number[] = [];
+  let date1904 = false;
+  if (displayDates) {
+    const styleBytes = entries.get("xl/styles.xml"), workbookBytes = entries.get("xl/workbook.xml");
+    if (styleBytes) {
+      const root = parseXml(new TextDecoder().decode(styleBytes));
+      for (const node of root.children.find(node => node.localName === "numFmts")?.children ?? []) {
+        formats.set(Number(node.attributes.find(attr => attr.localName === "numFmtId")?.value), node.attributes.find(attr => attr.localName === "formatCode")?.value ?? "");
+      }
+      for (const node of root.children.find(node => node.localName === "cellXfs")?.children ?? [])
+        styles.push(Number(node.attributes.find(attr => attr.localName === "numFmtId")?.value ?? 0));
+    }
+    if (workbookBytes) date1904 = ["1", "true", "on"].includes(parseXml(new TextDecoder().decode(workbookBytes)).children.find(node => node.localName === "workbookPr")?.attributes.find(attr => attr.localName === "date1904")?.value ?? "");
+  }
   const sharedStrings: string[] = [];
   const sstBytes = entries.get("xl/sharedStrings.xml");
   if (sstBytes) {
@@ -231,7 +248,9 @@ function parseXlsxRows(zipBytes: Uint8Array): string[][] {
           const idx = Number.parseInt(raw, 10);
           rowCells.push(sharedStrings[idx] ?? "");
         } else {
-          rowCells.push(raw);
+          const style = displayDates && cellType === "n" ? Number(parseXml(`<c ${attrs}/>`).attributes.find(attr => attr.localName === "s")?.value ?? 0) : undefined;
+          const format = style === undefined ? undefined : styles[style];
+          rowCells.push(xlsxDateText(raw, format === undefined ? undefined : formats.get(format) ?? format, date1904));
         }
       }
     }
@@ -1046,7 +1065,7 @@ function* runSofficeSteps(
         }
       } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
         const rows = lowerIn.endsWith(".xlsx")
-          ? parseXlsxRows(inputBytes)
+          ? parseXlsxRows(inputBytes, targetExt === "csv" || targetExt === "html")
           : parseDelimitedRows(new TextDecoder().decode(inputBytes));
         if (targetExt === "csv") {
           outBytes = formatStarCalcCsv(rows, filterOpts);

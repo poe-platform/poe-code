@@ -16,7 +16,7 @@ export async function retainSpreadsheetConversion(storage: PagedStorage, source:
   const { signal } = context, blocks = new RetainedOfficeBlocks(storage, signal), encoder = new TextEncoder();
   if (input === "text" || input === "markdown") await retainTextTable(storage, source, blocks, signal, input === "markdown");
   else if (input === "csv") await retainCsv(storage, source, blocks, signal);
-  else await retainXlsxText(storage, source, context, blocks);
+  else await retainXlsxText(storage, source, context, blocks, format === "csv" || format === "html");
   const snapshot = blocks.snapshot(), table = (await blocks.table(snapshot, 0))!;
   const escapeXml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   let separator = ",", quote = '"', quoteAll = false;

@@ -23,7 +23,13 @@ export function sampleEntryHeader(formatFourCC: string, body: Uint8Array): Codec
   const state: CodecEntryState = { metadata }, reader = new BinaryReader(body);
   if (['avc1','avc3','hvc1','hev1','av01','vp08','vp09','mp4v','jpeg','mjpa','png ','s263'].includes(formatFourCC)) {
     state.kind = 'video';
-    if (body.length >= 78) { reader.skip(24); metadata.width = reader.readU16BE(); metadata.height = reader.readU16BE(); state.childOffset = 78; }
+    if (body.length >= 78) {
+      reader.skip(24); metadata.width = reader.readU16BE(); metadata.height = reader.readU16BE();
+      reader.seek(42);
+      const nameLength = Math.min(reader.readU8(), 31);
+      metadata.compressorName = reader.readNullTerminatedString(nameLength);
+      state.childOffset = 78;
+    }
   } else if (['mp4a','Opus','fLaC','alac','ac-3','ec-3','sowt','twos','lpcm','.mp3','ulaw','alaw'].includes(formatFourCC)) {
     state.kind = 'audio';
     if (body.length >= 28) {

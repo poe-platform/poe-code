@@ -299,6 +299,7 @@ export interface MediaCodecDescription {
   readonly formatFourCC: string; // e.g. 'avc1', 'hvc1', 'av01', 'vp09', 'mp4a', 'Opus', 'fLaC', 'alac', 'jpeg', 'tx3g'
   readonly codecName: string; // e.g. 'h264', 'hevc', 'av1', 'vp9', 'aac', 'opus', 'flac', 'alac', 'mjpeg', 'mov_text'
   readonly codecTagString?: string | undefined;
+  readonly compressorName?: string | undefined;
   readonly profile?: string | undefined;
   readonly level?: number | undefined;
   readonly maxNumReorderFrames?: number | undefined;

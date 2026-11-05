@@ -63,6 +63,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     language: track.language || "und"
   };
   if (track.handlerName) streamTags.handler_name = track.handlerName;
+  if (desc?.compressorName) streamTags.encoder = desc.compressorName;
   if (track.rotation) streamTags.rotate = String(track.rotation);
 
   return {

@@ -11,6 +11,8 @@ export interface CompareOptions {
     readonly lowlightColor?: RgbaColor;
     readonly composeSrc: boolean;
     readonly diff: boolean;
+    readonly subimageSearch?: boolean;
+    readonly offset?: { x: number; y: number };
 }
 export type CompareRequest = {
     readonly kind: "read";
@@ -27,9 +29,11 @@ export interface CompareResult {
     readonly height: number;
     readonly metric: string;
     readonly exitCode: number;
+    readonly distortion: number;
 }
 /** Borrow input ranges until the next request; output chunks are owned by the receiver. */
 export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
+    if (options.subimageSearch) return yield* searchSubimageSteps(imgA, imgB, options);
     const { metric, fuzz, highlightColor, lowlightColor = { r: 255, g: 255, b: 255, a: 204 }, composeSrc } = options;
     const width = Math.max(imgA.width, imgB.width);
     const height = Math.max(imgA.height, imgB.height);
@@ -63,14 +67,28 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             if (!(dataA instanceof Uint8Array) || dataA.length !== lengthA)
                 throw new Error("Truncated comparison pixels");
             dataA = dataA.slice();
-            const dataB = yield { kind: "read", image: 1, position: (Math.min(y, imgB.height - 1) * imgB.width + leftB) * 4, length: lengthB };
-            if (!(dataB instanceof Uint8Array) || dataB.length !== lengthB)
-                throw new Error("Truncated comparison pixels");
+            let dataB: Uint8Array | undefined;
+            if (options.offset) {
+                dataB = dataA.slice();
+                const row = y - options.offset.y;
+                const start = Math.max(left, options.offset.x);
+                const end = Math.min(left + count, options.offset.x + imgB.width);
+                if (row >= 0 && row < imgB.height && start < end) {
+                    const bytes = yield { kind: "read", image: 1, position: (row * imgB.width + start - options.offset.x) * 4, length: (end - start) * 4 };
+                    if (!(bytes instanceof Uint8Array) || bytes.length !== (end - start) * 4)
+                        throw new Error("Truncated comparison pixels");
+                    dataB.set(bytes, (start - left) * 4);
+                }
+            } else {
+                dataB = yield { kind: "read", image: 1, position: (Math.min(y, imgB.height - 1) * imgB.width + leftB) * 4, length: lengthB };
+                if (!(dataB instanceof Uint8Array) || dataB.length !== lengthB)
+                    throw new Error("Truncated comparison pixels");
+            }
             const diffData = options.diff ? new Uint8Array(count * 4) : undefined;
             for (let x = left; x < left + count; x++) {
                 const outOff = (x - left) * 4;
                 const offA = (Math.min(x, imgA.width - 1) - leftA) * 4;
-                const offB = (Math.min(x, imgB.width - 1) - leftB) * 4;
+                const offB = options.offset ? outOff : (Math.min(x, imgB.width - 1) - leftB) * 4;
                 const rA = dataA[offA]!;
                 const gA = dataA[offA + 1]!;
                 const bA = dataA[offA + 2]!;
@@ -157,33 +175,40 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const ssim = ((2 * muA * muB + c1) * (2 * covAB + c2)) /
         ((muA * muA + muB * muB + c1) * (varA + varB + c2));
     let metricStr: string;
+    let distortion = rmseNorm;
     let exitCode = metric === "psnr" && mseNorm === 0 ? 1 : (aeCount > 0 ? 1 : 0);
     switch (metric) {
         case "ae":
+            distortion = aeMagnitude / (totalPixels * numCh * 255);
             metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
             break;
         case "mae":
+            distortion = maeNorm;
             metricStr = `${formatSignificantMetric(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
             break;
         case "mse":
+            distortion = mseNorm;
             metricStr = `${formatSignificantMetric(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
             break;
         case "pae":
+            distortion = paeNorm;
             metricStr = `${formatSignificantMetric(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
             break;
         case "psnr": {
             const psnr = mseNorm === 0 ? 120 : 10 * Math.log10(1 / mseNorm);
+            distortion = psnr / 120;
             metricStr = `${formatSignificantMetric(psnr)} (${formatSignificantMetric(psnr / 120)})`;
             break;
         }
         case "ssim": {
-            const distortion = yield* compareSsimSteps(imgA, imgB);
+            distortion = yield* compareSsimSteps(imgA, imgB);
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
         }
         case "dssim":
-            metricStr = formatMetricNum((1 - ssim) / 2);
+            distortion = (1 - ssim) / 2;
+            metricStr = formatMetricNum(distortion);
             break;
         case "ncc": {
             let varianceA = 0, varianceB = 0, covariance = 0;
@@ -196,7 +221,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             }
             const denominator = Math.sqrt(varianceA) * Math.sqrt(varianceB);
             const similarity = denominator === 0 ? 0 : covariance / denominator;
-            const distortion = Math.abs(1 - similarity) < 2e-12 ? 0 : (1 - similarity) / 2;
+            distortion = Math.abs(1 - similarity) < 2e-12 ? 0 : (1 - similarity) / 2;
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
@@ -206,7 +231,44 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             metricStr = `${formatSignificantMetric(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
             break;
     }
-    return { width, height, metric: metricStr, exitCode };
+    return { width, height, metric: metricStr, exitCode, distortion };
+}
+// Reuse the metric kernel on a virtual crop; translate bounded reads back to
+// the reference image so filesystem-backed searches never materialize a crop.
+function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
+    let best: CompareResult | undefined;
+    let offset = { x: 0, y: 0 };
+    search: for (let y = 0; y <= imgA.height - imgB.height; y++) {
+        for (let x = 0; x <= imgA.width - imgB.width; x++) {
+            yield;
+            const comparison = compareImageSteps({ ...imgA, width: imgB.width, height: imgB.height }, imgB, { ...options, subimageSearch: false, diff: false });
+            let next = comparison.next();
+            try {
+                while (!next.done) {
+                    const request = next.value;
+                    if (request?.kind === "read" && request.image === 0) {
+                        const pixel = request.position / 4;
+                        next = comparison.next(yield { ...request, position: ((y + Math.floor(pixel / imgB.width)) * imgA.width + x + pixel % imgB.width) * 4 });
+                    } else next = comparison.next(yield request);
+                }
+            } finally { comparison.return(undefined as never); }
+            const result = next.value;
+            if (!best || (options.metric === "psnr" ? result.distortion > best.distortion : result.distortion < best.distortion)) {
+                best = result;
+                offset = { x, y };
+                if (options.metric === "psnr" ? result.distortion === 1 : result.distortion === 0) break search;
+            }
+        }
+    }
+    if (!best) throw new Error("geometry does not contain image");
+    if (options.diff) yield* compareImageSteps(imgA, imgB, { ...options, subimageSearch: false, offset });
+    const normalized = formatSignificantMetric(best.distortion);
+    const similarity = options.metric === "ssim" || options.metric === "ncc" ? 1 - 2 * best.distortion : best.distortion;
+    const metric = options.metric === "ae"
+        ? `${formatSignificantMetric(best.distortion * imgA.width * imgA.height)} (${normalized})`
+        : options.metric === "dssim" ? normalized
+        : `${formatSignificantMetric(best.distortion * (options.metric === "psnr" ? 120 : 65535))} (${normalized})`;
+    return { ...best, width: imgA.width, height: imgA.height, metric: `${metric} @ ${offset.x},${offset.y} [${formatSignificantMetric(similarity)}]` };
 }
 export function formatMetricNum(n: number): string {
     if (!Number.isFinite(n))

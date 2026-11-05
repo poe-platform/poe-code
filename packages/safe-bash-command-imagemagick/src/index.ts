@@ -6265,6 +6265,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const state = createDefaultState();
     state.fuzz = 0;
     let metric = "rmse";
+    let subimageSearch = false;
+    let dissimilarityThreshold = 0.2;
     let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
     let composeSrc = false;
@@ -6279,6 +6281,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 stdout: "Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
                 stderr: ""
             };
+        }
+        else if (t === "-subimage-search" || t === "+subimage-search") {
+            subimageSearch = t === "-subimage-search";
         }
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
@@ -6330,7 +6335,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (value.trim() === "" || !Number.isFinite(Number(value))) {
                 return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-dissimilarity-threshold': ${rawThreshold}\n` };
             }
-            // Native uses this option only for subimage searches.
+            dissimilarityThreshold = Number(value) / (rawThreshold.endsWith("%") ? 100 : 1);
         }
         else if (t === "-density") {
             const g = parseMagickGeometry(argv[++i] ?? "72");
@@ -6398,10 +6403,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             stderr: `compare: unable to open image '${candSpec}': No such file or directory\n`
         };
     }
+    if (subimageSearch && (imgB.width > imgA.width || imgB.height > imgA.height))
+        return { exitCode: 2, stdout: "", stderr: `compare: geometry does not contain image '${refSpec}'\n` };
     const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
     const diff=outSpec.toLowerCase()!=="null:",diffPosition=backend&&diff?backend.storage.allocate(width*height*4):undefined;
     const diffData=!backend&&diff?new Uint8Array(width*height*4):undefined;
-    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{})});
+    const comparison=compareImageSteps(imgA,imgB,{metric,subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{})});
     let compared=comparison.next();
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}
@@ -6409,8 +6416,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
       else{if(backend)yield {async run(){await backend.storage.write(diffPosition!+request.position,request.data);}};else diffData!.set(request.data,request.position);compared=comparison.next();}
     }}finally{comparison.return(undefined as never);}
     const {metric:metricStr,exitCode}=compared.value;
+    const searchScore = metric === "ssim" || metric === "ncc" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
+    const comparisonStderr = `${metricStr}\n` + (subimageSearch && searchScore > dissimilarityThreshold
+        ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
-    if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,quality:state.quality});}};return {exitCode,stdout:"",stderr:`${metricStr}\n`,...(stdoutBytes?{stdoutBytes}:{})};}
+    if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,quality:state.quality});}};return {exitCode,stdout:"",stderr:comparisonStderr,...(stdoutBytes?{stdoutBytes}:{})};}
     if (diffData) {
         const diffImg: RgbaImage = {
             width,
@@ -6430,7 +6440,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return {
                 exitCode,
                 stdout: "",
-                stderr: `${metricStr}\n`,
+                stderr: comparisonStderr,
                 stdoutBytes: encoded
             };
         }
@@ -6439,7 +6449,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return {
         exitCode,
         stdout: "",
-        stderr: `${metricStr}\n`
+        stderr: comparisonStderr
     };
 }
 export async function runCompareCli(argv: readonly string[], files: Map<string, Uint8Array>|CompareFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

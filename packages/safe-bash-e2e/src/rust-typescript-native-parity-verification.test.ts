@@ -178,6 +178,28 @@ describe("Rust <-> TypeScript 100% native parity verification across all 5 repor
     }
   });
 
+  it("runs an injected command inside the Rust shell", { skip: typeof Reflect.get(globalThis, "WebAssembly")?.Suspending !== "function" }, async () => {
+    const previous = process.env.SAFE_BASH_E2E_BACKEND;
+    process.env.SAFE_BASH_E2E_BACKEND = "rust";
+    try {
+      await withE2EHarness({ plugins: [{ name: "write-record", setup(host) {
+        host.commands.register({ name: "write-record", async execute(ctx) {
+          await ctx.fs.writeFile("/workspace/record", new TextEncoder().encode("from plugin"));
+          return { exitCode: 0 };
+        } });
+      } }] }, async h => {
+        const result = await h.exec("write-record && cat /workspace/record");
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "from plugin", ""]);
+        assert.ok(h.shell instanceof RustWasmBash);
+        assert.equal(h.shell.readText("/workspace/record"), "from plugin");
+        assert.equal(h.shell.forceNative, true);
+      });
+    } finally {
+      if (previous === undefined) delete process.env.SAFE_BASH_E2E_BACKEND;
+      else process.env.SAFE_BASH_E2E_BACKEND = previous;
+    }
+  });
+
   it("Area 5 (Verification): Rust test harness executes natively without delegating to TypeScript for default, mountDev, memoryFsOptions, and xan configurations", async () => {
     const prevBackend = process.env.SAFE_BASH_E2E_BACKEND;
     process.env.SAFE_BASH_E2E_BACKEND = "rust";

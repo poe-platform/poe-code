@@ -1,3 +1,4 @@
+import { parseReadIntervals, readPacketIntervals } from "./read-intervals.js";
 import { formatProbeText, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
 import { PagedStorage, IntegerTable } from "@poe-code/safe-fs/storage";
 import { probeStoredOgg } from "./ogg-probe.js";
@@ -592,6 +593,7 @@ function parseProbeArguments(args: readonly string[]) {
     countFrames = false, countPackets = false;
   let selectStreams: string | undefined, showEntries: string | undefined,
     explicitFormat: string | undefined, inputTarget: string | undefined;
+  let readIntervals: ReturnType<typeof parseReadIntervals> | undefined;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     const value = () => {
@@ -612,6 +614,7 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-count_packets") countPackets = true;
     else if (arg === "-select_streams") selectStreams = value();
     else if (arg === "-show_entries") showEntries = value();
+    else if (arg === "-read_intervals") readIntervals = parseReadIntervals(value());
     else if (arg === "-f") explicitFormat = value();
     else {
       const input = arg === "-i" ? value() : arg;
@@ -639,7 +642,7 @@ function parseProbeArguments(args: readonly string[]) {
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
   return { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
-    selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
+    selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals };
 }
 
 type SourceProbe = ProbeSourceRows | { oggRows: (args: readonly string[]) => AsyncIterable<TaggedAudioRow> };
@@ -813,8 +816,10 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       };
       let storedTags: StoredAudioTags | undefined;
       try {
-        const { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
-          selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
+        const { printFormat, showFormat, showStreams, showPackets: requestedPackets, showFrames, showChapters, showPrograms,
+          selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals } = parseProbeArguments(args);
+        if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
+        const showPackets = requestedPackets || !!readIntervals && countPackets;
         const entryFilter = parseEntryFilter(showEntries);
         const mp4Records = !options.asts ? { packets: showPackets, frames: showFrames,
           metadata: !!selectStreams || !(showPackets || showFrames) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
@@ -879,6 +884,14 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           if (!options.asts && !explicitFormat) audioInput = { bytes, args };
         }
 
+        if (readIntervals && "packets" in probeResult && probeResult.packets) {
+          const selection = await readPacketIntervals(probeResult.packets, readIntervals, context, budget, retain, selectStreams);
+          const streams = probeResult.streams;
+          probeResult = { ...probeResult, packets: selection.packets, streams: { async *[Symbol.asyncIterator]() {
+            for await (const stream of streams) yield { ...stream, nb_read_packets: String(selection.counts.get(stream.index) ?? 0) };
+          } } };
+        }
+
         const formatted = "oggRows" in probeResult
           ? formatTaggedRows(probeResult.oggRows(args), args)
           : storedTags && audioInput && "audio" in audioInput
@@ -887,7 +900,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           printFormat,
           showFormat,
           showStreams,
-          showPackets,
+          showPackets: requestedPackets,
           showFrames,
           showChapters,
           showPrograms,
@@ -918,7 +931,7 @@ export function evalSyncFfprobe(
   args: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (args.length === 0) return undefined;
+  if (args.length === 0 || args.includes("-read_intervals")) return undefined;
   const { astPlugins, registry } = getDefaultMediaRegistry();
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;

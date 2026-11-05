@@ -78,6 +78,8 @@ The `markdown` and `md` readers parse bracketed spans (`[text]{#id .class}`),
 including nested inline content and key/value attributes; disable with `-bracketed_spans`.
 Inline HTML `<span>` tags also preserve attributes and Markdown children as native spans;
 disable with `-native_spans`.
+Code spans with raw format attributes (`` `<b>hi</b>`{=html} ``) become typed raw
+inlines; disable with `-raw_attribute`. Raw output follows the selected raw-content policy.
 The `markdown` and `md` readers preserve fenced divs (`::: {.note}`), including
 nested blocks, IDs, classes and key/value attributes; disable with `-fenced_divs`.
 HTML div blocks retain their IDs, classes, attributes and child structure in the

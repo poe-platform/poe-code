@@ -11,6 +11,20 @@ import type { AdapterContext } from "./types.js";
 import { asciiPunctuation, fencedDivAttributes, whitespace, letter, digit, normalizeLabel, readLabel, readDestination, readTitle, entity, decodeSyntax, normalizeUri } from "./commonmark-syntax.js";
 import { unicodePunctuation, unicodeWhitespace } from "./commonmark-characters.js";
 
+export async function scanMarkdownRawAttribute(
+  start: number, at: (offset: number) => string | undefined | Promise<string | undefined>, context: AdapterContext
+): Promise<number | undefined> {
+  if (await at(start) !== "{" || await at(start + 1) !== "=") return;
+  let end = start + 2;
+  while (true) {
+    await context.cooperate();
+    const unit = await at(end);
+    if (unit === "}" && end > start + 2) return end + 1;
+    if (!letter(unit) && !digit(unit) && unit !== "_" && unit !== "-") return;
+    end++;
+  }
+}
+
 interface Node {
   value: Inline | string;
   children: Node | null;
@@ -332,8 +346,12 @@ export async function parseCommonMarkInlines(
       context.charge("retainedBytes", (close - end) * 4);
       let literal = text.slice(end, close).split("\n").join(" ");
       if (literal.startsWith(" ") && literal.endsWith(" ") && [...literal].some((c) => c !== " ")) literal = literal.slice(1, -1);
-      append({ t: "Code", c: [attr(), literal] });
       i = close + count;
+      const rawEnd = extensions.raw_attribute ? await scanMarkdownRawAttribute(i, position => text[position], context) : undefined;
+      if (rawEnd !== undefined) {
+        append({t: "RawInline", c: [text.slice(i + 2, rawEnd - 1), literal]});
+        i = rawEnd;
+      } else append({ t: "Code", c: [attr(), literal] });
       continue;
     }
     if (char === "$" && extensions.tex_math_dollars) {

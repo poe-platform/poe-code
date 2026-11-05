@@ -42,7 +42,7 @@ const OPTIONAL_MARKDOWN_EXTENSIONS = new Set([
   "pandoc_title_block", "fancy_lists", "citations", "yaml_metadata_block", "tex_math_dollars", "fenced_code_blocks",
   "backtick_code_blocks", "fenced_code_attributes", "footnotes", "smart", "implicit_figures", "table_captions",
   "line_blocks", "definition_lists", "fenced_divs", "header_attributes", "auto_identifiers",
-  "link_attributes", "bracketed_spans", "native_divs", "native_spans", "superscript", "subscript"
+  "raw_attribute", "link_attributes", "bracketed_spans", "native_divs", "native_spans", "superscript", "subscript"
 ]);
 function validName(name: string): boolean {
   if (!name) return false;
@@ -129,7 +129,7 @@ export function createFormatRegistry(
     if (selectedDirection === "read" && (name === "markdown" || name === "md")) {extensions.line_blocks = true; extensions.pandoc_title_block = true; extensions.header_attributes = true; extensions.bracketed_spans = true; extensions.native_divs = true; extensions.native_spans = true; extensions.superscript = true; extensions.subscript = true; extensions.smart = true; extensions.implicit_figures = true; extensions.table_captions = true; extensions.citations = true;}
     if (name === "markdown" || name === "md") {
       extensions.tex_math_dollars = true;
-      if (selectedDirection === "read") extensions.raw_tex = true;
+      if (selectedDirection === "read") {extensions.raw_tex = true; extensions.raw_attribute = true;}
     }
     while (cursor < source.length) {
       const enabled = source[cursor++] === "+";

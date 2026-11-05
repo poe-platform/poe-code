@@ -1,4 +1,4 @@
-import {markdownNativeSpan} from "./commonmark-inlines.js";
+import {markdownNativeSpan, scanMarkdownRawAttribute} from "./commonmark-inlines.js";
 import {scanMarkdownRawTex} from "./commonmark-inlines.js";
 import {scanMarkdownCitation} from "./commonmark-inlines.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
@@ -184,7 +184,13 @@ export async function parseRetainedCommonMarkInlines(
         if (nonspace) {start++; stop--;}
       }
       const code = await ast.string(await ast.text.from((async function* () {for await (const text of syntax.source.chunks({start, end: stop})) yield text.replaceAll("\n", " ");})()));
-      await append(await ast.tag("Code", await ast.value([["", [], []], code]))); i = close + count; continue;
+      i = close + count;
+      const rawEnd = extensions.raw_attribute ? await scanMarkdownRawAttribute(i, char, context) : undefined;
+      if (rawEnd !== undefined) {
+        await append(await ast.tag("RawInline", await ast.value([await literal({start: i + 2, end: rawEnd - 1}), code])));
+        i = rawEnd;
+      } else await append(await ast.tag("Code", await ast.value([["", [], []], code])));
+      continue;
     }
     if (unit === "$" && extensions.tex_math_dollars) {
       const display = await char(i + 1) === "$", count = display ? 2 : 1, start = i + count;

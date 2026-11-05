@@ -579,6 +579,42 @@ describe("decoded audio editing", () => {
 
 
 describe("native ffmpeg parity", () => {
+  for (const [scale, width, height] of [
+    ["1:1", 1, 1],
+    ["1:3", 1, 3],
+    ["3:1", 3, 1],
+    ["iw/16:ih/10", 1, 1],
+    ["iw*0.0625:ih*0.1", 1, 1],
+    ["-1:1", 2, 1],
+    ["1:-1", 1, 1],
+    ["-2:1", 2, 1],
+    ["1:-2", 1, 2]
+  ] as const) {
+    it(`preserves small scale dimensions for ${scale}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      // Native FFmpeg: -f lavfi -i color=c=red:s=16x10:r=1:d=1
+      // -vf scale=1:1 -frames:v 1 -f image2pipe -c:v png pipe:1
+      const native = decodeImage(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAAAAAAAAQCEeRdzAAAADElEQVR4nGP8x8AAAAMCAQBFsWYPAAAAAElFTkSuQmCC", "base64"));
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=16x10:r=1:d=1",
+        "-vf", `scale=${scale}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const actual = decodeImage(vfs.store.get("/out.png")!);
+      assert.equal(actual.width, width);
+      assert.equal(actual.height, height);
+      if (scale === "1:1") {
+        assert.equal(actual.width, native.width);
+        assert.equal(actual.height, native.height);
+      }
+      for (let offset = 0; offset < actual.data.length; offset++) {
+        // Allow native lavfi's YUV-to-RGB conversion rounding.
+        assert.ok(Math.abs(actual.data[offset]! - native.data[offset % 4]!) <= 2);
+      }
+    });
+  }
+
   it("preserves destination alpha when blending drawbox", async () => {
     const { decodeImage } = await import("@poe-code/image-ast/portable");
     const vfs = createTestVfs();

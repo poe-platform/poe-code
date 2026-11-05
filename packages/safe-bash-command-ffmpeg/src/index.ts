@@ -382,10 +382,10 @@ function evalScaleDim(expr: string, iw: number, ih: number): number {
   if (clean === "-1" || clean === "-2") return -1;
   if (clean === "iw" || clean === "in_w") return iw;
   if (clean === "ih" || clean === "in_h") return ih;
-  if (clean.startsWith("iw/")) return Math.max(2, Math.round(iw / (parseFloat(clean.slice(3)) || 1)));
-  if (clean.startsWith("ih/")) return Math.max(2, Math.round(ih / (parseFloat(clean.slice(3)) || 1)));
-  if (clean.startsWith("iw*")) return Math.max(2, Math.round(iw * (parseFloat(clean.slice(3)) || 1)));
-  if (clean.startsWith("ih*")) return Math.max(2, Math.round(ih * (parseFloat(clean.slice(3)) || 1)));
+  if (clean.startsWith("iw/")) return Math.max(1, Math.round(iw / (parseFloat(clean.slice(3)) || 1)));
+  if (clean.startsWith("ih/")) return Math.max(1, Math.round(ih / (parseFloat(clean.slice(3)) || 1)));
+  if (clean.startsWith("iw*")) return Math.max(1, Math.round(iw * (parseFloat(clean.slice(3)) || 1)));
+  if (clean.startsWith("ih*")) return Math.max(1, Math.round(ih * (parseFloat(clean.slice(3)) || 1)));
   return parseInt(clean, 10) || iw;
 }
 
@@ -591,14 +591,14 @@ async function applyVideoFilterChain(
       let targetW = evalScaleDim(wSpec, iw, ih);
       let targetH = evalScaleDim(hSpec, iw, ih);
       if (targetW < 0 && targetH > 0) {
-        targetW = Math.max(2, Math.round((iw * targetH) / Math.max(1, ih)));
+        targetW = Math.max(1, Math.round((iw * targetH) / Math.max(1, ih)));
         if (wSpec.trim() === "-2" && targetW % 2 !== 0) targetW++;
       } else if (targetH < 0 && targetW > 0) {
-        targetH = Math.max(2, Math.round((ih * targetW) / Math.max(1, iw)));
+        targetH = Math.max(1, Math.round((ih * targetW) / Math.max(1, iw)));
         if (hSpec.trim() === "-2" && targetH % 2 !== 0) targetH++;
       }
-      targetW = Math.max(2, targetW);
-      targetH = Math.max(2, targetH);
+      targetW = Math.max(1, targetW);
+      targetH = Math.max(1, targetH);
 
       current = await mapWork(current, async (f) => {
 

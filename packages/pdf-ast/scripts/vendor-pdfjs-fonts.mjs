@@ -225,4 +225,74 @@ const result = await build({
   }],
 });
 
-writeFileSync(output, result.outputFiles[0].text.split("\n").filter(line => !line.trimStart().startsWith("// eslint-")).join("\n"));
+// Preserve authentication details for encryption inspection without changing authentication.
+let bundled = result.outputFiles[0].text;
+const encryptionInspectionPatches = [
+  [`  #fileId;
+  static get _defaultPasswordBytes() {
+`, `  #fileId;
+  passwordType;
+  userPasswordBytes;
+  static get _defaultPasswordBytes() {
+`],
+  [`  }
+  #createEncryptionKey20(revision, password, ownerPassword, ownerValidationSalt, ownerKeySalt, uBytes, userPassword, userValidationSalt, userKeySalt, ownerEncryption, userEncryption, perms) {
+`, `  }
+  matchesOwnerPassword() {
+    if (this.passwordType === "owner") return true;
+    if (this.passwordType !== "user") return false;
+    const dict = this.dict, revision = dict.get("R");
+    const owner = stringToBytes(dict.get("O"));
+    const user = stringToBytes(dict.get("U"));
+    const password = this.userPasswordBytes;
+    if (revision >= 5) {
+      const algorithm = revision === 6 ? new PDF20() : new PDF17();
+      return algorithm.checkOwnerPassword(password, owner.subarray(32, 40), user.subarray(0, 48), owner.subarray(0, 32));
+    }
+    const keyLength = this.encryptionKey.length * 8;
+    const decoded = this.#decodeUserPassword(password, owner, revision, keyLength);
+    return !!this.#prepareKeyData(stringToBytes(this.#fileId), decoded, owner, user, dict.get("P"), revision, keyLength, this.encryptMetadata);
+  }
+  #createEncryptionKey20(revision, password, ownerPassword, ownerValidationSalt, ownerKeySalt, uBytes, userPassword, userValidationSalt, userKeySalt, ownerEncryption, userEncryption, perms) {
+`],
+  [`    if (pdfAlgorithm.checkUserPassword(password, userValidationSalt, userPassword)) {
+      return pdfAlgorithm.getUserKey(password, userKeySalt, userEncryption);
+`, `    if (pdfAlgorithm.checkUserPassword(password, userValidationSalt, userPassword)) {
+      this.passwordType = "user";
+      this.userPasswordBytes = Uint8Array.from(password);
+      return pdfAlgorithm.getUserKey(password, userKeySalt, userEncryption);
+`],
+  [`    )) {
+      return pdfAlgorithm.getOwnerKey(
+`, `    )) {
+      this.passwordType = "owner";
+      return pdfAlgorithm.getOwnerKey(
+`],
+  [`        encryptMetadata
+      );
+    } else {
+`, `        encryptMetadata
+      );
+      if (encryptionKey) {
+        this.passwordType = "user";
+        this.userPasswordBytes = passwordBytes ?? new Uint8Array();
+      }
+    } else {
+`],
+  [`        encryptMetadata
+      );
+    }
+`, `        encryptMetadata
+      );
+      if (encryptionKey) {
+        this.passwordType = "owner";
+        this.userPasswordBytes = decodedPassword;
+      }
+    }
+`],
+];
+for (const [before, after] of encryptionInspectionPatches) {
+  if (!bundled.includes(before)) throw new Error("PDF.js encryption inspection source marker changed");
+  bundled = bundled.replace(before, after);
+}
+writeFileSync(output, bundled.split("\n").filter(line => !line.trimStart().startsWith("// eslint-")).join("\n"));

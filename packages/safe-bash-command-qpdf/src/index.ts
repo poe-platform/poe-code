@@ -1,3 +1,4 @@
+import { encryptionReport } from "./encryption-report.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import type { JsonValue } from "./json-output.js";
 import { parseQpdfPageLabels } from "./page-labels.js";
@@ -1273,12 +1274,7 @@ function* executeQpdfCli(
   }
 
   if (showEncryption) {
-    const enc = baseDoc.cos.encryption;
-    if (!enc) {
-      return { exitCode: 0, stdout: "File is not encrypted\n", stderr: "" };
-    }
-    const out = `R = ${enc.revision}\nV = ${enc.version}\nLength = ${enc.keyLengthBits}\nprint: ${enc.permissions.print ? "allowed" : "not allowed"}\nmodify: ${enc.permissions.modify ? "allowed" : "not allowed"}\nextract for accessibility: ${enc.permissions.copy ? "allowed" : "not allowed"}\n`;
-    return { exitCode: 0, stdout: out, stderr: "" };
+    return { exitCode: 0, stdout: encryptionReport(baseDoc.cos.encryption), stderr: "" };
   }
 
   if (showXref) {

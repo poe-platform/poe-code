@@ -15090,6 +15090,8 @@ function utf8PasswordToBytes(password) {
 }
 var CipherTransformFactory = class _CipherTransformFactory {
   #fileId;
+  passwordType;
+  userPasswordBytes;
   static get _defaultPasswordBytes() {
     return shadow(
       this,
@@ -15130,6 +15132,21 @@ var CipherTransformFactory = class _CipherTransformFactory {
       ])
     );
   }
+  matchesOwnerPassword() {
+    if (this.passwordType === "owner") return true;
+    if (this.passwordType !== "user") return false;
+    const dict = this.dict, revision = dict.get("R");
+    const owner = stringToBytes(dict.get("O"));
+    const user = stringToBytes(dict.get("U"));
+    const password = this.userPasswordBytes;
+    if (revision >= 5) {
+      const algorithm = revision === 6 ? new PDF20() : new PDF17();
+      return algorithm.checkOwnerPassword(password, owner.subarray(32, 40), user.subarray(0, 48), owner.subarray(0, 32));
+    }
+    const keyLength = this.encryptionKey.length * 8;
+    const decoded = this.#decodeUserPassword(password, owner, revision, keyLength);
+    return !!this.#prepareKeyData(stringToBytes(this.#fileId), decoded, owner, user, dict.get("P"), revision, keyLength, this.encryptMetadata);
+  }
   #createEncryptionKey20(revision, password, ownerPassword, ownerValidationSalt, ownerKeySalt, uBytes, userPassword, userValidationSalt, userKeySalt, ownerEncryption, userEncryption, perms) {
     if (password) {
       const passwordLength = Math.min(127, password.length);
@@ -15139,6 +15156,8 @@ var CipherTransformFactory = class _CipherTransformFactory {
     }
     const pdfAlgorithm = revision === 6 ? new PDF20() : new PDF17();
     if (pdfAlgorithm.checkUserPassword(password, userValidationSalt, userPassword)) {
+      this.passwordType = "user";
+      this.userPasswordBytes = Uint8Array.from(password);
       return pdfAlgorithm.getUserKey(password, userKeySalt, userEncryption);
     } else if (password.length && pdfAlgorithm.checkOwnerPassword(
       password,
@@ -15146,6 +15165,7 @@ var CipherTransformFactory = class _CipherTransformFactory {
       uBytes,
       ownerPassword
     )) {
+      this.passwordType = "owner";
       return pdfAlgorithm.getOwnerKey(
         password,
         ownerKeySalt,
@@ -15353,6 +15373,10 @@ var CipherTransformFactory = class _CipherTransformFactory {
         keyLength,
         encryptMetadata
       );
+      if (encryptionKey) {
+        this.passwordType = "user";
+        this.userPasswordBytes = passwordBytes ?? new Uint8Array();
+      }
     } else {
       const ownerValidationSalt = ownerBytes.subarray(32, 40);
       const ownerKeySalt = ownerBytes.subarray(40, 48);
@@ -15413,6 +15437,10 @@ var CipherTransformFactory = class _CipherTransformFactory {
         keyLength,
         encryptMetadata
       );
+      if (encryptionKey) {
+        this.passwordType = "owner";
+        this.userPasswordBytes = decodedPassword;
+      }
     }
     if (!encryptionKey) {
       throw new PasswordException(

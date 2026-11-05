@@ -204,6 +204,37 @@ export function derivePdfEncryptionKey(
   }
 }
 
+/** Inspection metadata from the authenticated security handler. */
+export function getPdfEncryptionInfo(state: PdfEncryptionState) {
+  const handler = securityHandlers.get(state);
+  if (!handler) throw new PdfError("E_CAPABILITY", "Encryption inspection requires authenticated PDF security state");
+  const { factory } = handler;
+  let userBytes = factory.userPasswordBytes ?? new Uint8Array();
+  if (state.revision < 5) {
+    for (let length = 0; length < userBytes.length; length++) {
+      if (userBytes.subarray(length).every((byte, index) => byte === PADDING_32[index])) {
+        userBytes = userBytes.subarray(0, length);
+        break;
+      }
+    }
+  }
+  const method = (filter: Name) => {
+    if (state.version < 4) return "RC4";
+    if (filter.name === "Identity") return "none";
+    const entry = factory.cf?.get(filter.name);
+    const cipher = entry instanceof Dict ? entry.get("CFM") : undefined;
+    const name = cipher instanceof Name ? cipher.name : undefined;
+    return name === "V2" ? "RC4" : name === "AESV2" ? "AESv2" : name === "AESV3" ? "AESv3" : "none";
+  };
+  return {
+    permissionsMask: factory.dict.get("P") as number,
+    ownerPasswordMatched: factory.matchesOwnerPassword(),
+    userPasswordMatched: factory.passwordType === "user",
+    userPassword: state.revision >= 5 ? new TextDecoder().decode(userBytes) : bytesToString(userBytes),
+    streamMethod: method(factory.stmf), stringMethod: method(factory.strf), fileMethod: method(factory.eff),
+  };
+}
+
 export function decryptPdfBuffer(
   state: PdfEncryptionState,
   objectNumber: number,

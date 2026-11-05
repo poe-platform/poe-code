@@ -317,6 +317,8 @@ The vendor script replaces `Map.getOrInsertComputed` with ordinary Map operation
 and `Math.sumPrecise` with exact integer addition over sixteen bytes for Node 22
 and ES2022 compatibility; it does not modify globals. The R5/R6 password hash
 adapter in `src/cos/security.ts` uses PDF.js's PDF17/PDF20 implementation.
+Local inspection additions retain the authenticated password identity and recovered
+user-password bytes, and check whether a user password also matches the owner.
 The AES256 length cases in `src/cos/security-writer.test.ts` are adapted from
 PDF.js `test/unit/crypto_spec.js`, with independent Node AES validation.
 

@@ -157,6 +157,14 @@ export function saslPrep(value: string): string;
 export function buildPostScriptJsFunction(source: string, domain: readonly number[], range: readonly number[]):
   (src: readonly number[], srcOffset: number, dest: number[], destOffset: number) => void;
 export class CipherTransformFactory {
+  matchesOwnerPassword(): boolean;
+  readonly passwordType: "user" | "owner" | undefined;
+  readonly userPasswordBytes: Uint8Array | undefined;
+  readonly dict: Dict;
+  readonly cf: Dict | null;
+  readonly stmf: Name;
+  readonly strf: Name;
+  readonly eff: Name;
   constructor(dict: Dict, fileId: string, password?: string);
   readonly encryptionKey: Uint8Array | null;
   readonly encryptMetadata: boolean;

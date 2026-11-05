@@ -1,3 +1,4 @@
+import { encryptionReport } from "./encryption-report.js";
 import { applyJsonInput } from "./json-input.js";
 import { createQpdfJson, type QpdfJsonOptions } from "./json.js";
 import { parseQpdfPageLabels } from "./page-labels.js";
@@ -243,8 +244,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       const message = options.check
         ? `checking ${inputName ?? "empty"}\nPDF Version: ${document.crossReference.version}\nFile is ${encryption ? "encrypted" : "not encrypted"}\nFile is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n`
         : options.showNpages ? `${count}\n`
-        : encryption ? `R = ${encryption.revision}\nV = ${encryption.version}\nLength = ${encryption.keyLengthBits}\nprint: ${encryption.permissions.print ? "allowed" : "not allowed"}\nmodify: ${encryption.permissions.modify ? "allowed" : "not allowed"}\nextract for accessibility: ${encryption.permissions.copy ? "allowed" : "not allowed"}\n`
-        : "File is not encrypted\n";
+        : encryptionReport(encryption);
       const bytes = new TextEncoder().encode(message);
       if (bytes.length > limits.maxOutputBytes) throw new RangeError("Output byte limit exceeded");
       await writeBytes(context.stdout, bytes, signal);

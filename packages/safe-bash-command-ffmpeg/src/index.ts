@@ -895,12 +895,37 @@ async function applyVideoFilterChain(
       }
       current = resampled;
     } else if (name === "trim") {
-      const st = parseFfmpegTimestamp(named.start ?? positional[0] ?? "0");
+      for (const option of Object.keys(named)) {
+        if (!["start", "end", "duration", "start_frame", "end_frame"].includes(option)) {
+          throw new Error(`trim: unsupported option ${option}`);
+        }
+      }
+      for (const option of ["start_frame", "end_frame"]) {
+        const value = named[option];
+        if (value !== undefined && (!value || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) {
+          throw new Error(`trim: ${option} must be a nonnegative integer`);
+        }
+      }
+      if (positional.some((part, index) => part && !part.includes("=") && index > 0)) {
+        throw new Error("trim: unsupported positional option");
+      }
+      const start = named.start ?? (positional[0]?.includes("=") ? undefined : positional[0]);
+      const st = parseFfmpegTimestamp(start ?? "0");
+      const startFrame = named.start_frame === undefined ? undefined : Number(named.start_frame);
+      const endFrame = named.end_frame === undefined ? undefined : Number(named.end_frame);
       const end = named.end ? parseFfmpegTimestamp(named.end) : Infinity;
       const dur = named.duration ? parseFfmpegTimestamp(named.duration) : undefined;
       const finalEnd = dur !== undefined ? st + dur : end;
       current = current
-        .filter((f) => f.ptsSeconds + f.durationSeconds > st && f.ptsSeconds < finalEnd)
+        .filter((f, index) => {
+          const afterStart = startFrame === undefined
+            ? f.ptsSeconds + f.durationSeconds > st
+            : index >= startFrame || (start !== undefined && f.ptsSeconds + f.durationSeconds > st);
+          const beforeEnd = endFrame === undefined
+            ? f.ptsSeconds < finalEnd
+            : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);
+          return afterStart && beforeEnd;
+        })
         .map((f) => ({ ...f, ptsSeconds: Math.max(0, f.ptsSeconds - st) }));
     } else if (name === "drawtext") {
       const rawText = (named.text ?? positional[0] ?? "").replace(/^['"]|['"]$/g, "");

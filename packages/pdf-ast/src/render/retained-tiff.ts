@@ -6,7 +6,7 @@ import { createTiffHeader, encodeTiffStripChunks } from "./tiff-stream.js";
 
 export interface PdfRetainedTiffOptions {
   readonly compression?: TiffCompressionMode;
-  readonly dpi?: number;
+  readonly dpi?: number | readonly [number, number];
   readonly dpiY?: number;
   readonly chunkBytes?: number;
   readonly maxStagingBytes?: number;
@@ -30,8 +30,8 @@ export async function* encodeRetainedTiff(width: number, height: number, input: 
   if (!Object.hasOwn(tags, compression)) throw new RangeError("Invalid TIFF compression");
   if (![width, height].every(n => Number.isSafeInteger(n) && n > 0 && n <= 0xffffffff) || !Number.isSafeInteger(width * height * 4)) throw new PdfError("E_LIMIT", "TIFF dimension limit exceeded");
   if (compression === "jpeg" && (width > 65535 || height > 65535)) throw new PdfError("E_LIMIT", "TIFF JPEG dimension limit exceeded");
-  const chunkBytes = options.chunkBytes ?? 65536; const dpi = options.dpi ?? 72, dpiY = options.dpiY ?? dpi;
-  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1 || !Number.isFinite(dpi) || !Number.isFinite(dpiY)) throw new RangeError("Invalid TIFF encoding options");
+  const chunkBytes = options.chunkBytes ?? 65536; const dpi = options.dpi ?? 72, dpiY = options.dpiY ?? (typeof dpi === "number" ? dpi : dpi[1]);
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1 || !Number.isFinite(dpiY) || !(typeof dpi === "number" ? Number.isFinite(dpi) : dpi.every(Number.isFinite))) throw new RangeError("Invalid TIFF encoding options");
   const stagingLimit = maximum(options.maxStagingBytes), outputLimit = maximum(options.maxOutputBytes), workingLimit = maximum(options.maxWorkingBytes);
   const headerLength = compression === "jpeg" ? 192 : 180;
   if (outputLimit < headerLength) throw new PdfError("E_LIMIT", "TIFF output byte limit exceeded");

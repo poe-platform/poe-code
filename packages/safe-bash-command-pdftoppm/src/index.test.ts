@@ -59,6 +59,24 @@ describe("safe-bash-command-pdftoppm", () => {
     expect([Array.from(jpg.slice(13, 18)), jpg[25], jpg[frame + 9]]).toEqual([[1, 1, 104, 2, 208], quant, components]);
   });
 
+  it("preserves each fractional resolution in TIFF output", async () => {
+    const files = new Map([["in.pdf", createSamplePdf(1, [12, 8])]]);
+    const result = await runPdftoppmCli(["-tiff", "-rx", "72.5", "-ry", "144.25", "-singlefile", "in.pdf", "out"], files);
+    expect(result.exitCode).toBe(0);
+    const bytes = files.get("out.tif")!;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const ifd = view.getUint32(4, true);
+    const density = [];
+    for (let i = 0; i < view.getUint16(ifd, true); i++) {
+      const field = ifd + 2 + 12 * i;
+      if ([282, 283].includes(view.getUint16(field, true))) {
+        const offset = view.getUint32(field + 8, true);
+        density.push(view.getUint32(offset, true) / view.getUint32(offset + 4, true));
+      }
+    }
+    expect(density).toEqual([72.5, 144.25]);
+  });
+
   it("supports -singlefile, -f/-l page ranges, -sep, and -rx/-ry asymmetric DPI", async () => {
     const pdfBytes = createSamplePdf(3, [72, 72]);
     const files = new Map<string, Uint8Array>([["report.pdf", pdfBytes]]);

@@ -3,7 +3,7 @@ import { readBytes } from "@poe-code/safe-fs/contracts";
 import { encodeJpegChunks } from "./jpeg-stream.js";
 import type { TiffCompressionMode } from "./raster.js";
 
-export function createTiffHeader(width: number, height: number, dpi: number, compressionTag: number, stripLength: number, dpiY = dpi): Uint8Array {
+export function createTiffHeader(width: number, height: number, dpi: number | readonly [number, number], compressionTag: number, stripLength: number, dpiY = typeof dpi === "number" ? dpi : dpi[1]): Uint8Array {
   const numEntries = compressionTag === 7 ? 13 : 12;
   const ifdOffset = 8;
   const ifdByteLength = 2 + numEntries * 12 + 4;
@@ -36,7 +36,6 @@ export function createTiffHeader(width: number, height: number, dpi: number, com
     pos += 12;
   };
 
-  const resolvedDpi = Math.max(1, Math.round(dpi));
   writeEntry(256, 4, 1, width); // ImageWidth
   writeEntry(257, 4, 1, height); // ImageLength
   writeEntry(258, 3, 3, bitsPerSampleOffset); // BitsPerSample -> [8, 8, 8]
@@ -58,10 +57,13 @@ export function createTiffHeader(width: number, height: number, dpi: number, com
   view.setUint16(bitsPerSampleOffset + 4, 8, true);
 
   // XResolution & YResolution rationals
-  view.setUint32(xResOffset, resolvedDpi, true);
-  view.setUint32(xResOffset + 4, 1, true);
-  view.setUint32(yResOffset, Math.max(1, Math.round(dpiY)), true);
-  view.setUint32(yResOffset + 4, 1, true);
+  const xDpi = typeof dpi === "number" ? dpi : dpi[0];
+  for (const [offset, value] of [[xResOffset, xDpi], [yResOffset, dpiY]] as const) {
+    const resolution = Math.min(0xffffffff, Math.max(1, value));
+    const denominator = Number.isInteger(resolution) ? 1 : Math.min(65536, Math.floor(0xffffffff / resolution));
+    view.setUint32(offset, Math.round(resolution * denominator), true);
+    view.setUint32(offset + 4, denominator, true);
+  }
 
   return out;
 }

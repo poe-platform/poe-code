@@ -248,9 +248,9 @@ export type TiffCompressionMode = "none" | "packbits" | "deflate" | "lzw" | "jpe
 
 export function *encodeTiffSteps(
   bitmap: RgbaBitmap,
-  dpi = 72,
+  dpi: number | readonly [number, number] = 72,
   compression: TiffCompressionMode = "none",
-  dpiY = dpi
+  dpiY = typeof dpi === "number" ? dpi : dpi[1]
 ): Generator<void, Uint8Array, void> {
   let work = 0;
   const { width, height, data } = bitmap;
@@ -1922,9 +1922,9 @@ export function encodePgm(
 
 export function encodeTiff(
   bitmap: RgbaBitmap,
-  dpi = 72,
+  dpi: number | readonly [number, number] = 72,
   compression: TiffCompressionMode = "none",
-  dpiY = dpi
+  dpiY = typeof dpi === "number" ? dpi : dpi[1]
 ): Uint8Array {
   const steps = encodeTiffSteps(bitmap, dpi, compression, dpiY);
   let next = steps.next();

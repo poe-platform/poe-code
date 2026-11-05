@@ -18,6 +18,8 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
     const radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1), angle = geometry.x ?? 0;
     if (![radius, sigma, angle].every(Number.isFinite) || radius < 0 || radius > 5000) throw new Error("Invalid sketch geometry");
     const width = image.width * 2, height = image.height * 2, size = width * height;
+    const alphas = image.hasAlpha ? new Float64Array(size) : undefined;
+    const alphaScratch = image.hasAlpha ? new Float64Array(size) : undefined;
     const key = new DataView(new ArrayBuffer(8));
     key.setBigUint64(0, BigInt(seed), true);
     const digest = sha256(new Uint8Array(key.buffer)), view = new DataView(digest.buffer, digest.byteOffset, digest.byteLength);
@@ -43,45 +45,77 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
             sum += weights[k]! * value * (image.hasAlpha ? value : 1); alpha += weights[k]! * value;
         }
         scratch[y * width + x] = image.hasAlpha ? sum / Math.max(1e-12, alpha) : sum;
+        if (alphas) alphas[y * width + x] = alpha;
     }
     [values, scratch] = [scratch, values];
     const edgeWidth = kernelWidth(radius, 0.5), half = (edgeWidth - 1) / 2, histogram = new Uint32Array(65536);
-    // Separable sliding box sum avoids a quadratic radius cost for the edge kernel.
+    // Convolve premultiplied color and alpha with separable sliding box sums.
     for (let y = 0; y < height; y++) {
         yield;
-        let sum = 0;
-        for (let k = -half; k <= half; k++) sum += values[y * width + Math.max(0, Math.min(width - 1, k))]!;
+        let sum = 0, alphaSum = 0;
+        for (let k = -half; k <= half; k++) {
+            const i = y * width + Math.max(0, Math.min(width - 1, k));
+            sum += values[i]! * (alphas?.[i] ?? 1);
+            alphaSum += alphas?.[i] ?? 0;
+        }
         for (let x = 0; x < width; x++) {
             if (x % 1024 === 0) yield;
             scratch[y * width + x] = sum;
-            sum += values[y * width + Math.min(width - 1, x + half + 1)]! - values[y * width + Math.max(0, x - half)]!;
+            if (alphaScratch) alphaScratch[y * width + x] = alphaSum;
+            const incoming = y * width + Math.min(width - 1, x + half + 1), outgoing = y * width + Math.max(0, x - half);
+            sum += values[incoming]! * (alphas?.[incoming] ?? 1) - values[outgoing]! * (alphas?.[outgoing] ?? 1);
+            alphaSum += (alphas?.[incoming] ?? 0) - (alphas?.[outgoing] ?? 0);
         }
     }
     for (let x = 0; x < width; x++) {
         yield;
-        let sum = 0;
-        for (let k = -half; k <= half; k++) sum += scratch[Math.max(0, Math.min(height - 1, k)) * width + x]!;
+        let sum = 0, alphaSum = 0;
+        for (let k = -half; k <= half; k++) {
+            const i = Math.max(0, Math.min(height - 1, k)) * width + x;
+            sum += scratch[i]!;
+            alphaSum += alphaScratch?.[i] ?? 0;
+        }
         for (let y = 0; y < height; y++) {
             if (y % 1024 === 0) yield;
-            const edge = edgeWidth * edgeWidth * values[y * width + x]! - sum;
+            const i = y * width + x;
+            const alpha = alphas ? edgeWidth * edgeWidth * alphas[i]! - alphaSum : 1;
+            const edge = (edgeWidth * edgeWidth * values[i]! * (alphas?.[i] ?? 1) - sum) / (Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha);
             const bin = Math.round(Math.max(0, Math.min(1, edge)) * 65535);
-            values[y * width + x] = bin; histogram[bin]!++;
-            sum += scratch[Math.min(height - 1, y + half + 1) * width + x]! - scratch[Math.max(0, y - half) * width + x]!;
+            values[i] = bin; histogram[bin]!++;
+            if (alphas) alphas[i] = Math.round(Math.max(0, Math.min(1, alpha)) * 65535);
+            const incoming = Math.min(height - 1, y + half + 1) * width + x, outgoing = Math.max(0, y - half) * width + x;
+            sum += scratch[incoming]! - scratch[outgoing]!;
+            alphaSum += (alphaScratch?.[incoming] ?? 0) - (alphaScratch?.[outgoing] ?? 0);
         }
     }
     let low = 0, high = 65535, count = 0;
     for (; low < 65535; low++) { count += histogram[low]!; if (count > size * 0.02) break; }
     count = 0;
     for (; high > 0; high--) { count += histogram[high]!; if (count > size * 0.01) break; }
-    for (let i = 0; i < size; i++) { if (i % 1024 === 0) yield; values[i] = 1 - Math.max(0, Math.min(1, high === low ? values[i]! / 65535 : (values[i]! - low) / (high - low))); }
-    // Native 50% resize uses a separable Lanczos filter, retaining HDRI precision.
+    for (let i = 0; i < size; i++) {
+        if (i % 1024 === 0) yield;
+        values[i] = 1 - Math.max(0, Math.min(1, high === low ? values[i]! / 65535 : (values[i]! - low) / (high - low)));
+        if (alphas) alphas[i] = 1 - Math.max(0, Math.min(1, high === low ? alphas[i]! / 65535 : (alphas[i]! - low) / (high - low)));
+    }
+    // Native 50% resize filters vertically first; alpha selects Mitchell instead of Lanczos.
     const sinc = (x: number): number => Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
-    for (let y = 0; y < height; y++) for (let x = 0; x < image.width; x++) {
+    const filter = (x: number): number => {
+        x = Math.abs(x);
+        if (!image.hasAlpha) return sinc(x) * sinc(x / 3);
+        return x < 1 ? (7 * x * x * x - 12 * x * x + 16 / 3) / 6 : x < 2 ? (-7 / 3 * x * x * x + 12 * x * x - 20 * x + 32 / 3) / 6 : 0;
+    };
+    const support = image.hasAlpha ? 4 : 6;
+    for (let y = 0; y < image.height; y++) for (let x = 0; x < width; x++) {
         if (x % 1024 === 0) yield;
-        const center = x * 2 + 0.5;
-        let sum = 0, weight = 0;
-        for (let sx = Math.max(0, Math.ceil(center - 6)); sx <= Math.min(width - 1, Math.floor(center + 6)); sx++) { const distance = (sx - center) / 2, w = sinc(distance) * sinc(distance / 3); sum += values[y * width + sx]! * w; weight += w; }
-        scratch[y * image.width + x] = sum / weight;
+        const center = y * 2 + 0.5;
+        let sum = 0, weight = 0, alpha = 0;
+        for (let sy = Math.max(0, Math.ceil(center - support)); sy <= Math.min(height - 1, Math.floor(center + support)); sy++) {
+            const w = filter((sy - center) / 2), i = sy * width + x;
+            sum += values[i]! * w * (alphas?.[i] ?? 1);
+            alpha += w * (alphas?.[i] ?? 1); weight += w;
+        }
+        scratch[y * width + x] = sum / (Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha);
+        if (alphaScratch) alphaScratch[y * width + x] = alpha / weight;
     }
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
         yield;
@@ -90,11 +124,29 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
         if (!bytes || bytes.length !== count * 4) throw new Error("Truncated sketch pixels");
         const data = new Uint8Array(bytes);
         for (let x = 0; x < count; x++) {
-            const center = y * 2 + 0.5;
-            let sum = 0, weight = 0;
-            for (let sy = Math.max(0, Math.ceil(center - 6)); sy <= Math.min(height - 1, Math.floor(center + 6)); sy++) { const distance = (sy - center) / 2, w = sinc(distance) * sinc(distance / 3); sum += scratch[sy * image.width + left + x]! * w; weight += w; }
-            const dodge = Math.max(0, Math.min(1, sum / weight));
-            for (let channel = 0; channel < 3; channel++) { const original = bytes[x * 4 + channel]! / 255; const color = dodge >= 1 ? 1 : Math.min(1, original / Math.max(1e-12, 1 - dodge)); data[x * 4 + channel] = Math.round(255 * color); }
+            const center = (left + x) * 2 + 0.5;
+            let sum = 0, weight = 0, alpha = 0;
+            for (let sx = Math.max(0, Math.ceil(center - support)); sx <= Math.min(width - 1, Math.floor(center + support)); sx++) {
+                const w = filter((sx - center) / 2), i = y * width + sx;
+                sum += scratch[i]! * w * (alphaScratch?.[i] ?? 1);
+                alpha += w * (alphaScratch?.[i] ?? 1); weight += w;
+            }
+            // Keep resize overshoot until compositing; native clamps each composite result.
+            const sourceColor = sum / (Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha);
+            const dodge = alpha > 0 ? Math.max(0, Math.min(1, sourceColor)) : 0;
+            const sourceAlpha = alpha / weight, originalAlpha = bytes[x * 4 + 3]! / 255;
+            const dodgeAlpha = Math.max(0, Math.min(1, sourceAlpha + originalAlpha - sourceAlpha * originalAlpha));
+            // Sketch's final Blend adds the original when it has an alpha channel.
+            const blendAlpha = image.hasAlpha ? originalAlpha : 0;
+            const outputAlpha = Math.max(0, Math.min(1, blendAlpha + dodgeAlpha));
+            for (let channel = 0; channel < 3; channel++) {
+                const original = bytes[x * 4 + channel]! / 255;
+                const color = dodge >= 1 ? 1 : Math.min(1, original / Math.max(1e-12, 1 - dodge));
+                const premultiplied = sourceAlpha * originalAlpha * color + sourceAlpha * (1 - originalAlpha) * sourceColor + originalAlpha * (1 - sourceAlpha) * original;
+                const dodgeColor = Math.max(0, Math.min(1, premultiplied / Math.max(1e-12, dodgeAlpha)));
+                data[x * 4 + channel] = Math.round(255 * Math.max(0, Math.min(1, (blendAlpha * original + dodgeAlpha * dodgeColor) / Math.max(1e-12, outputAlpha))));
+            }
+            data[x * 4 + 3] = Math.round(255 * outputAlpha);
         }
         yield { kind: "write", position, data };
     }

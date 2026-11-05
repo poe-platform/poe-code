@@ -12,7 +12,7 @@ export default {
   media: "text",
   inputEncoding: "utf8",
   suffixes: ["commonmark", "mkd", "mdown", "mdwn"],
-  extensions: {},
+  extensions: { pipe_tables: false },
   options: {
     read: [],
     write: ["wrap", "columns", "standalone", "metadata", "toc", "ascii", "eol", "rawContent"]

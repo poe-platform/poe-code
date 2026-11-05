@@ -27,6 +27,14 @@ describe("declared GFM reader", () => {
     }
     expect(await read("~~x~~", "gfm-strikeout+strikeout")).toEqual([para([{ t: "Strikeout", c: [str("x")] }])]);
   });
+  it("uses the reader's pipe_tables default and gives explicit enables precedence", async () => {
+    const input = "| a | b |\n| --- | --- |\n| 1 | 2 |";
+    for (const [format, block] of [
+      ["commonmark", "Para"], ["markdown_strict", "Para"], ["gfm", "Table"],
+      ["commonmark+pipe_tables", "Table"], ["gfm-pipe_tables", "Para"],
+      ["commonmark+pipe_tables-pipe_tables", "Table"], ["gfm-pipe_tables+pipe_tables", "Table"]
+    ] as const) expect((await read(input, format)).map(b => b.t), format).toEqual([block]);
+  });
   it("builds aligned tables, pads short rows and drops excess cells", async () => {
     const c = table((await read("| a | b | c |\n| :-- | :-: | --: |\n| x |\n| y | z | w | extra |"))[0]!);
     expect(c[2].map((col) => col[0])).toEqual(["AlignLeft", "AlignCenter", "AlignRight"]);
@@ -139,7 +147,7 @@ describe("declared GFM reader", () => {
     ["raw_html", "a <em>x</em>", [para([str("a"), { t: "Space" }, str("<em>x</em>")])]]
   ] as const)("independently keeps %s syntax literal when disabled", async (extension, text, expected) => {
     expect(await read(text, `gfm-${extension}`)).toEqual(expected);
-    expect(await read(text, `gfm+${extension}-${extension}`)).toEqual(expected);
+    expect(await read(text, `gfm+${extension}-${extension}`)).toEqual(await read(text));
     expect(await read(text, `gfm-${extension}+${extension}`)).toEqual(await read(text));
   });
 });

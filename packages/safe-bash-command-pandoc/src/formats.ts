@@ -137,6 +137,7 @@ export function createFormatRegistry(
         extensions.autolink_bare_uris = false;
       }
     }
+    const explicitlyEnabled = new Set<string>();
     while (cursor < source.length) {
       const enabled = source[cursor++] === "+";
       const start = cursor;
@@ -145,7 +146,8 @@ export function createFormatRegistry(
       const allowOptional = descriptor.name === "gfm" && name !== "commonmark" && OPTIONAL_MARKDOWN_EXTENSIONS.has(extension);
       if (!validName(extension) || (!Object.hasOwn(extensions, extension) && !allowOptional))
         fail("E_EXTENSION", `Unsupported extension: ${extension}`);
-      extensions[extension] = enabled;
+      if (enabled) explicitlyEnabled.add(extension);
+      extensions[extension] = explicitlyEnabled.has(extension);
     }
     return { descriptor, extensions: Object.freeze(extensions), ...(selectedDirection === "read" && (name === "markdown" || name === "md") ? {autolinkClasses: true} : {}) };
   }

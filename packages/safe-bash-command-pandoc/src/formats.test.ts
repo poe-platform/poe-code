@@ -16,12 +16,12 @@ describe("declarative format registry", () => {
         expect.objectContaining({ code: "E_FORMAT" })
       );
   });
-  it("scans toggles left to right and keeps disabled extensions explicit", () => {
+  it("keeps disabled extensions explicit and gives enables precedence", () => {
     const registry = createFormatRegistry(coreFormats);
     expect(
-      registry.parse("gfm-pipe_tables+pipe_tables-strikeout-strikeout", "read").extensions
+      registry.parse("gfm+pipe_tables-pipe_tables-strikeout-strikeout", "read").extensions
     ).toEqual({ autolink_bare_uris: true, pipe_tables: true, raw_html: true, strikeout: false, task_lists: true });
-    for (const name of ["gfm+", "gfm--strikeout", "gfm+unknown", "commonmark+pipe_tables"])
+    for (const name of ["gfm+", "gfm--strikeout", "gfm+unknown"])
       expect(() => registry.parse(name, "read")).toThrowError(
         expect.objectContaining({ code: "E_EXTENSION" })
       );

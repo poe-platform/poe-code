@@ -193,6 +193,38 @@ fn idct(block: &[i32; 64], quant: &[u16; 64], cos: &[[f64; 8]; 8]) -> [u8; 64] {
         (0.5 * (0..8).map(|u| temp[u][i % 8] * cos[u][i / 8]).sum::<f64>() + 128.).round() as u8
     })
 }
+// Eight-bit libjpeg ISLOW uses a 13-bit cosine basis and carries two
+// fractional bits between the vertical and horizontal inverse transforms.
+fn pdf_idct(block: &[i32; 64], q: &[u16; 64]) -> [u8; 64] {
+    const BASIS: [[i64; 8]; 8] = [
+        [8192, 11363, 10703, 9633, 8192, 6437, 4433, 2260],
+        [8192, 9633, 4433, -2259, -8192, -11362, -10704, -6436],
+        [8192, 6437, -4433, -11362, -8192, 2261, 10704, 9633],
+        [8192, 2260, -10703, -6436, 8192, 9633, -4433, -11363],
+        [8192, -2260, -10703, 6436, 8192, -9633, -4433, 11363],
+        [8192, -6437, -4433, 11362, -8192, -2261, 10704, -9633],
+        [8192, -9633, 4433, 2259, -8192, 11362, -10704, 6436],
+        [8192, -11363, 10703, -9633, 8192, -6437, 4433, -2260],
+    ];
+    if block[1..].iter().all(|&x| x == 0) {
+        return [(((i64::from(block[0]) * i64::from(q[0]) + 4) >> 3) + 128).clamp(0, 255) as u8;
+            64];
+    }
+    let mut freq = [[0i64; 8]; 8];
+    for (i, &n) in ZIGZAG.iter().enumerate() {
+        freq[n % 8][n / 8] = i64::from(block[i].saturating_mul(i32::from(q[i])));
+    }
+    let dot = |a: &[i64; 8], b: &[i64; 8]| a.iter().zip(b).map(|(x, y)| x * y).sum::<i64>();
+    let mut out = [0; 64];
+    for (y, basis) in BASIS.iter().enumerate() {
+        let row = freq.map(|col| (dot(&col, basis) + 1024) >> 11);
+        for (x, basis) in BASIS.iter().enumerate() {
+            out[y * 8 + x] = (((dot(&row, basis) + 131072) >> 18) + 128).clamp(0, 255) as u8;
+        }
+    }
+    out
+}
+
 struct Plane {
     id: u8,
     h: usize,
@@ -206,6 +238,49 @@ struct Plane {
 impl Plane {
     fn at(&self, x: usize, y: usize) -> i32 {
         i32::from(self.samples[y / 8 * self.cols + x / 8][y % 8 * 8 + x % 8])
+    }
+
+    fn pdf_sample(
+        &self,
+        x: usize,
+        y: usize,
+        w: usize,
+        h: usize,
+        max_h: usize,
+        max_v: usize,
+    ) -> i32 {
+        let (sx, sy) = (x * self.h / max_h, y * self.v / max_v);
+        let near = self.at(sx, sy);
+        if self.h == max_h && self.v == max_v {
+            return near;
+        }
+        let neighbor = |i: usize, odd: usize, len: usize| {
+            if odd == 0 {
+                i.saturating_sub(1)
+            } else {
+                (i + 1).min(len - 1)
+            }
+        };
+        let width = (w * self.h).div_ceil(max_h);
+        let x2 = neighbor(sx, x % 2, width);
+        let y2 = neighbor(sy, y % 2, (h * self.v).div_ceil(max_v));
+        if self.h * 2 == max_h && width > 2 {
+            if self.v == max_v {
+                return (3 * near + self.at(x2, sy) + 1 + (x % 2) as i32) >> 2;
+            }
+            if self.v * 2 == max_v {
+                return (9 * near
+                    + 3 * self.at(x2, sy)
+                    + 3 * self.at(sx, y2)
+                    + self.at(x2, y2)
+                    + 8
+                    - (x % 2) as i32)
+                    >> 4;
+            }
+        } else if self.h == max_h && self.v * 2 == max_v {
+            return (3 * near + self.at(sx, y2) + 1 + (y % 2) as i32) >> 2;
+        }
+        near
     }
 
     fn interpolated(
@@ -239,10 +314,15 @@ impl Plane {
     }
 }
 
+pub(super) enum Output {
+    Standalone,
+    Pdf(Option<bool>),
+}
+
 pub(super) fn samples(
     bytes: &[u8],
     limit: usize,
-    color_transform: Option<bool>,
+    output: Output,
 ) -> Result<(image_header::Jpeg, Vec<[u8; 4]>)> {
     if !bytes.starts_with(b"\xff\xd8") {
         return Err("Invalid JPEG signature");
@@ -260,7 +340,15 @@ pub(super) fn samples(
     let mut planes = Vec::new();
     let (mut max_h, mut max_v, mut cols, mut rows) = (1, 1, 0, 0);
     let (mut progressive, mut strip, mut restart) = (false, false, 0);
+    let pdf = matches!(output, Output::Pdf(_));
     let cos = cosines();
+    let reconstruct = |block: &[i32; 64], q: &[u16; 64]| {
+        if pdf {
+            pdf_idct(block, q)
+        } else {
+            idct(block, q, &cos)
+        }
+    };
     while !data.is_empty() {
         if byte(&mut data)? != 255 {
             continue;
@@ -455,7 +543,7 @@ pub(super) fn samples(
                                         .get(p.q)
                                         .and_then(Option::as_ref)
                                         .ok_or("Missing JPEG quantization table")?;
-                                    p.samples[j] = idct(block, q, &cos);
+                                    p.samples[j] = reconstruct(block, q);
                                 }
                             }
                         }
@@ -475,18 +563,25 @@ pub(super) fn samples(
             .and_then(Option::as_ref)
             .ok_or("Missing JPEG quantization table")?;
         for (block, samples) in p.coeff.drain(..).zip(&mut p.samples) {
-            *samples = idct(&block, q, &cos);
+            *samples = reconstruct(&block, q);
         }
     }
     let transform = adobe
-        .or(color_transform)
+        .or(match output {
+            Output::Standalone => None,
+            Output::Pdf(transform) => transform,
+        })
         .unwrap_or_else(|| planes.len() == 3 && (jfif || planes.iter().map(|p| p.id).ne(*b"RGB")));
     let mut pixels = Vec::with_capacity(w * h);
     for y in 0..h {
         for x in 0..w {
             let sample = |i: usize| {
                 let p = &planes[i];
-                p.at(x * p.h / max_h, y * p.v / max_v)
+                if pdf {
+                    p.pdf_sample(x, y, w, h, max_h, max_v)
+                } else {
+                    p.at(x * p.h / max_h, y * p.v / max_v)
+                }
             };
             let l = sample(0);
             let rgb = if planes.len() == 1 {
@@ -494,7 +589,7 @@ pub(super) fn samples(
             } else if !transform {
                 [l, sample(1), sample(2)]
             } else {
-                if strip {
+                if pdf || strip {
                     let (cb, cr) = (sample(1) - 128, sample(2) - 128);
                     [
                         l + ((91881 * cr + 32768) >> 16),
@@ -525,7 +620,7 @@ pub(super) fn samples(
 }
 
 pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
-    let (header, mut pixels) = samples(bytes, limit, None)?;
+    let (header, mut pixels) = samples(bytes, limit, Output::Standalone)?;
     if header.channels == 4 {
         // Standalone Adobe JPEGs store inverted ink values.
         for p in &mut pixels {

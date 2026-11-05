@@ -195,8 +195,12 @@ impl Image {
                     .and_then(|v| v.get(b"ColorTransform"))
                     .and_then(Value::number)
                     .map(|n| n != 0.);
-                let (header, samples) =
-                    crate::commands::archive::jpeg_decode::samples(&data, limit, transform).ok()?;
+                let (header, samples) = crate::commands::archive::jpeg_decode::samples(
+                    &data,
+                    limit,
+                    crate::commands::archive::jpeg_decode::Output::Pdf(transform),
+                )
+                .ok()?;
                 if (
                     header.width as usize,
                     header.height as usize,
@@ -233,7 +237,7 @@ impl Image {
                 }
                 if components == 4 && !matches!(mode, ImageRead::Extract { tiff: true, .. }) {
                     for p in &mut pixels {
-                        *p = device_cmyk(*p);
+                        *p = device_cmyk(*p, mode == ImageRead::Pixels);
                     }
                 }
             }
@@ -257,7 +261,8 @@ impl Image {
                 })
                 .collect();
         }
-        if !pixels.is_empty() && (mode == ImageRead::Pixels || !jpeg && !bilevel)
+        if !pixels.is_empty()
+            && (mode == ImageRead::Pixels || !jpeg && !bilevel)
             && let Some(mask) = dict.get(b"SMask").and_then(Value::reference)
         {
             let (m, _) = objects.object(mask)?;
@@ -450,26 +455,33 @@ impl Image {
 }
 
 // Interpolate the RGB values of the sixteen DeviceCMYK ink combinations.
-fn device_cmyk(ink: [u8; 4]) -> [u8; 4] {
-    const RGB: [[u8; 3]; 16] = [
-        [255, 255, 255],
-        [35, 31, 32],
-        [255, 242, 0],
-        [28, 26, 0],
-        [236, 0, 140],
-        [36, 0, 0],
-        [237, 28, 36],
-        [34, 0, 0],
-        [0, 173, 239],
-        [0, 15, 36],
-        [0, 166, 80],
-        [0, 19, 0],
-        [46, 49, 146],
-        [0, 0, 2],
-        [54, 54, 57],
-        [0, 0, 0],
+fn device_cmyk(ink: [u8; 4], render: bool) -> [u8; 4] {
+    const RGB: [[f64; 3]; 16] = [
+        [1., 1., 1.],
+        [0.1373, 0.1216, 0.1255],
+        [1., 0.9490, 0.],
+        [0.1098, 0.1020, 0.],
+        [0.9255, 0., 0.5490],
+        [0.1412, 0., 0.],
+        [0.9294, 0.1098, 0.1412],
+        [0.1333, 0., 0.],
+        [0., 0.6784, 0.9373],
+        [0., 0.0588, 0.1412],
+        [0., 0.6510, 0.3137],
+        [0., 0.0745, 0.],
+        [0.1804, 0.1922, 0.5725],
+        [0., 0., 0.0078],
+        [0.2118, 0.2119, 0.2235],
+        [0., 0., 0.],
     ];
-    let [c, m, y, k] = ink.map(|v| f64::from(v) / 255.);
+    // pdfimages uses 16-bit fixed point color values. Splash converts a row directly to bytes.
+    let [c, m, y, k] = ink.map(|v| {
+        if render {
+            f64::from(v) / 255.
+        } else {
+            f64::from((u32::from(v) << 16) / 255) / 65536.
+        }
+    });
     let mut rgb = [0.; 3];
     for (i, corner) in RGB.iter().enumerate() {
         let w = (if i & 8 == 0 { 1. - c } else { c })
@@ -477,10 +489,16 @@ fn device_cmyk(ink: [u8; 4]) -> [u8; 4] {
             * (if i & 2 == 0 { 1. - y } else { y })
             * (if i & 1 == 0 { 1. - k } else { k });
         for j in 0..3 {
-            rgb[j] += f64::from(corner[j]) * w;
+            rgb[j] += corner[j] * w;
         }
     }
-    let [r, g, b] = rgb.map(|n| n.round() as u8);
+    let [r, g, b] = rgb.map(|n| {
+        if render {
+            (n * 255.) as u8
+        } else {
+            ((((n * 65536.) as u32) * 255 + 32768) >> 16) as u8
+        }
+    });
     [r, g, b, 255]
 }
 

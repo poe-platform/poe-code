@@ -16709,13 +16709,15 @@ mod media_unit_tests {
 
     fn embedded_jpeg_pdf(jpeg: &[u8], color: &str, filters: &str, hex: bool) -> Vec<u8> {
         let bytes = if hex { [hex_enc(jpeg).as_bytes(), b">"].concat() } else { jpeg.to_vec() };
-        let draw = "q 17 0 0 13 0 0 cm /Photo Do Q";
+        let info = image_header::jpeg(jpeg).unwrap();
+        let (w,h)=(info.width,info.height);
+        let draw = format!("q {w} 0 0 {h} 0 0 cm /Photo Do Q");
         let placeholder = "X".repeat(bytes.len());
         let mut pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
             "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
-            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 17 13] /Resources << /XObject << /Photo 5 0 R >> >> /Contents 4 0 R >>",
+            &format!("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {w} {h}] /Resources << /XObject << /Photo 5 0 R >> >> /Contents 4 0 R >>"),
             &format!("<< /Length {} >>\nstream\n{draw}\nendstream",draw.len()),
-            &format!("<< /Type /XObject /Subtype /Image /Width 17 /Height 13 /BitsPerComponent 8 /ColorSpace /{color} {filters} /Length {} >>\nstream\n{placeholder}\nendstream",bytes.len())], "").into_bytes();
+            &format!("<< /Type /XObject /Subtype /Image /Width {w} /Height {h} /BitsPerComponent 8 /ColorSpace /{color} {filters} /Length {} >>\nstream\n{placeholder}\nendstream",bytes.len())], "").into_bytes();
         let at = pdf.windows(bytes.len()).position(|chunk| chunk == placeholder.as_bytes()).unwrap();
         pdf[at..at+bytes.len()].copy_from_slice(&bytes);
         pdf
@@ -16724,18 +16726,27 @@ mod media_unit_tests {
     #[test]
     fn pdfimages_decodes_jpeg_sample_channels() {
         let fs = MemoryVfs::new();
-        for (jpeg, cs, sample) in [
-            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-rgb-direct.jpg").as_slice(),"DeviceRGB",[33u8,68,63]),
-            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-RGB-0-0-17.jpg").as_slice(),"DeviceRGB",[36,68,65]),
-            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-L-1-0-17.jpg").as_slice(),"DeviceGray",[58;3]),
-            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-CMYK-0-0-17.jpg").as_slice(),"DeviceCMYK",[29,21,18]),
+        // Digests of the complete PPM files produced by Poppler 24.02.
+        for (jpeg, cs, digest) in [
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-rgb-direct.jpg").as_slice(),"DeviceRGB","c98d601a22feb7377593f654d92e1c9cc463b526fb17e784a8a3b9f8be220dfc"),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-RGB-0-0-17.jpg").as_slice(),"DeviceRGB","2a79d5233267a1a6f790f12fcca7bc106e87045f89e2fa0987e0232a57fc908a"),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-L-1-0-17.jpg").as_slice(),"DeviceGray","468fc9af35bc3ee45e962d9722dc140b3791ef809c41e2c1b8043b63c2cc8c3e"),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-CMYK-0-0-17.jpg").as_slice(),"DeviceCMYK","ba30edc4545abc23c76955fae1937ce0617add09e0bc2f69a7cde7ada4bff00b"),
+            (include_bytes!("../../tests/fixtures/subsampled-progressive.jpg").as_slice(),"DeviceRGB","eabcd543e1d1f4d5f95df6703a5f3102de5d9a4f5589304a03e711c661381f73"),
         ] {
             fs.write_file("/photo.pdf",&embedded_jpeg_pdf(jpeg,cs,"/Filter /DCTDecode",false)).unwrap();
             let r = cmd_media_doc("pdfimages",&media_args(&["photo.pdf","photo"]),"","/",&fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             let data = fs.read_file("/photo-000.ppm").unwrap();
-            let offset = b"P6\n17 13\n255\n".len() + (4 * 17 + 3) * 3;
-            assert!(data[offset..offset+3].iter().zip(sample).all(|(a,b)| a.abs_diff(b) <= 1),"{cs}: {:?}", &data[offset..offset+3]);
+            assert_eq!(hex_enc(&sha256_bytes(&data)),digest,"{cs}");
+            if jpeg == include_bytes!("../../../pdf-ast/src/fixtures/jpeg-rgb-direct.jpg") {
+                let page = cmd_media_doc("pdftoppm",&media_args(&["-r","72","-singlefile","photo.pdf","page"]),"","/",&fs);
+                assert_eq!(page.exit_code,0);
+                let ppm = fs.read_file("/page.ppm").unwrap();
+                let at = b"P6\n17 13\n255\n".len() + (4 * 17 + 3) * 3;
+                assert_eq!(&ppm[at..at+3], &[31,63,58]);
+            }
+
         }
     }
 

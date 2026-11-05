@@ -53,8 +53,8 @@ impl Bitmap {
         if det.abs() <= 1e-8 {
             return Some(());
         }
-        // Splash scales an upright scan across inclusive device bounds, then clips it.
-        if splash && im.bilevel && a > 0. && d > 0. && b == 0. && c == 0. {
+        // Splash scales an upright image across inclusive device bounds, then clips it.
+        if splash && a > 0. && d > 0. && b == 0. && c == 0. && im.pixels.iter().all(|p| p[3] == 255) {
             let left = ((e - ox) * scale).floor();
             let top_px = ((top - f - d) * scale).floor();
             let right = ((a + e - ox) * scale).floor() + 1.;
@@ -76,17 +76,17 @@ impl Bitmap {
                         let value = if smooth {
                             let x0 = (u as usize).min(im.width - 1);
                             let y0 = (v as usize).min(im.height - 1);
-                            let row = |j: usize| {
+                            let row = |j: usize, k: usize| {
                                 let p = &im.pixels[j * im.width..][..im.width];
-                                mix(p[x0][0], p[(x0 + 1).min(im.width - 1)][0], u.fract())
+                                mix(p[x0][k], p[(x0 + 1).min(im.width - 1)][k], u.fract())
                             };
-                            mix(row(y0), row((y0 + 1).min(im.height - 1)), v.fract())
+                            std::array::from_fn(|k| if k == 3 {255} else {mix(row(y0,k), row((y0 + 1).min(im.height - 1),k), v.fract())})
                         } else {
                             let x0 = (((x as f64 - left + 1.) * dx).ceil() - 1.) as usize;
                             let y0 = (((y as f64 - top_px + 1.) * dy).ceil() - 1.) as usize;
-                            im.pixels[y0.min(im.height - 1) * im.width + x0.min(im.width - 1)][0]
+                            im.pixels[y0.min(im.height - 1) * im.width + x0.min(im.width - 1)]
                         };
-                        self.pixels[y * self.w + x] = [value, value, value, 255];
+                        self.pixels[y * self.w + x] = value;
                         u += dx;
                     }
                     v += dy;

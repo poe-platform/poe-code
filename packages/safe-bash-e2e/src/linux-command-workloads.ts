@@ -56,6 +56,13 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
       for (const view of views) await view.writeFile("/workspace/" + file, Buffer.from(contents));
     }
     const publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICFS+NGbeR0kRTJC4V8uq2y3z/p7al7TAJeWDgaYgdsS parity\n";
+    // OpenSSH |1| hash of "host" with the 20 salt bytes 0..19.
+    const knownHosts = Buffer.concat([Buffer.from("# fixture\n\n  HOST,alias " + publicKey +
+      "@revoked host " + publicKey + "@cert-authority *.domain,!skip.domain " + publicKey +
+      "|1|AAECAwQFBgcICQoLDA0ODxAREhM=|6tbkAfZDulNpJ/cQ7aCK0Bbfp+g= " + publicKey +
+      "host unsupported ignored\nhost ssh-ed25519 raw-comment "), Buffer.from([0xff, 13, 10])]);
+    await writeFile(cwd + "/known_hosts", knownHosts);
+    for (const view of views) await view.writeFile("/workspace/known_hosts", knownHosts);
     await writeFile(cwd + "/samples/ed25519.pub", publicKey);
     for (const view of views) await view.writeFile("/workspace/samples/ed25519.pub", Buffer.from(publicKey));
     for (const [cmd, args, extension] of [
@@ -137,6 +144,10 @@ export function linuxCommands(text: string) {
       ["--no-require-git", "--require-git", "needle", "fd-repo"]].map(args => ({
       cmd: "fdfind", args, script: "fd " + args.join(" "), input: "",
     })),
+    ...[["-F", "host"], ["-q", "-F", "HOST"], ["-l", "-F", "host"], ["-F", "a.domain"], ["-F", "skip.domain"]].map(options => ({
+      cmd: "ssh-keygen", args: [...options, "-f", "known_hosts"], script: "ssh-keygen " + options.join(" ") + " -f known_hosts", input: "",
+    })),
+    { cmd: "ssh-keygen", args: ["-F", "host", "-f", "absent"], script: "ssh-keygen -F host -f absent", input: "" },
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",

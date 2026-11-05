@@ -74,7 +74,7 @@ describe("Obscure SSH/SSH-Keygen Ed25519 + SVGO + RSVG-Convert + DiffPDF + OpenS
     try {
       const r = await h.exec("cat << 'KH' > /workspace/known_hosts\n# Corporate known hosts\ngithub.com,192.30.255.112 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl\ngitlab.internal ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGx0b2JlcmVtb3ZlZHostKeyData1234567890abcdef\nprod.internal,10.0.0.10 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKp7f3vN8qZ4m1xL9sB2wC5dE8rF0tG3yH6jK9lM2nP5\nKH\nssh-keygen -F github.com -f /workspace/known_hosts\nssh-keygen -F 10.0.0.10 -f /workspace/known_hosts\nssh-keygen -R gitlab.internal -f /workspace/known_hosts\nset +e\nssh-keygen -F gitlab.internal -f /workspace/known_hosts\nrc=$?\nset -e\nprintf 'after_remove_rc=%d\\n' \"$rc\"\ngrep -v '^#' /workspace/known_hosts | awk 'NF {print $1}'");
       assert.equal(r.exitCode, 0);
-      assert.equal(r.stdout, "github.com,192.30.255.112 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl\nprod.internal,10.0.0.10 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKp7f3vN8qZ4m1xL9sB2wC5dE8rF0tG3yH6jK9lM2nP5\n# Host gitlab.internal found: removed\n/workspace/known_hosts updated.\nafter_remove_rc=1\ngithub.com,192.30.255.112\nprod.internal,10.0.0.10\n");
+      assert.equal(r.stdout, "# Host github.com found: line 2 \ngithub.com,192.30.255.112 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl\n# Host 10.0.0.10 found: line 4 \nprod.internal,10.0.0.10 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKp7f3vN8qZ4m1xL9sB2wC5dE8rF0tG3yH6jK9lM2nP5\n# Host gitlab.internal found: removed\n/workspace/known_hosts updated.\nafter_remove_rc=1\ngithub.com,192.30.255.112\nprod.internal,10.0.0.10\n");
     } finally {
       await h.dispose();
     }

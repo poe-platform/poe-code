@@ -10587,6 +10587,7 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     let mut encrypt = false;
     let mut key_type = "ed25519";
     let mut derive_pub = false;
+    let mut quiet = false;
     let mut show_fp = false;
     let mut find_host: Option<String> = None;
     let mut remove_host: Option<String> = None;
@@ -10638,7 +10639,7 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                 i += 1;
                 signature_file = Some(args[i].clone());
             }
-            "-q" => {}
+            "-q" => quiet = true,
             _ if !a.starts_with('-') => positional.push(a.to_string()),
             _ => return err_out(&format!("ssh-keygen: unsupported option: {a}\n"), 1),
         }
@@ -10656,28 +10657,49 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     };
 
     if let Some(host) = find_host {
-        let kh_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/known_hosts"));
-        let kh_text = fs
-            .read_file(&kh_path)
-            .ok()
-            .map(|b| String::from_utf8_lossy(&b).to_string())
-            .unwrap_or_default();
-        let matches: Vec<&str> = kh_text
-            .lines()
-            .filter(|l| {
-                let t = l.trim();
-                !t.is_empty()
-                    && !t.starts_with('#')
-                    && t.split_whitespace()
-                        .next()
-                        .map(|h| h.split(',').any(|x| x == host))
-                        .unwrap_or(false)
-            })
-            .collect();
-        if matches.is_empty() {
-            return err_out("", 1);
+        let file = file_arg.as_deref().unwrap_or("/home/user/.ssh/known_hosts");
+        let bytes = match fs.read_file(&resolve_ssh_path(cwd, file)) {
+            Ok(bytes) => bytes,
+            Err(e) if e.starts_with("EISDIR:") => return err_out("", 1),
+            Err(e) => return err_out(&format!("Cannot stat {file}: {}\r\n", super::coreutils::file_error_reason(&e)), 255),
+        };
+        let mut out = String::new();
+        let host_lower = host.to_ascii_lowercase();
+        for (index, raw) in bytes.split(|&b| b == b'\n').enumerate() {
+            let line = crate::vfs::bytes_to_stream_string(raw);
+            let mut words = line.split_ascii_whitespace();
+            let Some(first) = words.next() else { continue; };
+            let (marker, patterns) = match first {
+                "@revoked" => ("REVOKED", words.next()),
+                "@cert-authority" => ("CA", words.next()),
+                _ if first.starts_with(['@', '#']) => continue,
+                _ => ("", Some(first)),
+            };
+            let (Some(patterns), Some(kind), Some(blob)) = (patterns, words.next(), words.next()) else { continue; };
+            let base = kind.strip_suffix("-cert-v01@openssh.com").unwrap_or(kind);
+            if !(matches!(base, "ssh-ed25519" | "ssh-dss" | "ssh-rsa" | "rsa-sha2-256" | "rsa-sha2-512"
+                | "ecdsa-sha2-nistp256" | "ecdsa-sha2-nistp384" | "ecdsa-sha2-nistp521")
+                || matches!(kind, "sk-ssh-ed25519@openssh.com" | "sk-ssh-ed25519-cert-v01@openssh.com"
+                    | "sk-ecdsa-sha2-nistp256@openssh.com" | "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com")) { continue; }
+            if patterns.starts_with('|') {
+                let Some((salt, mac)) = patterns.strip_prefix("|1|").and_then(|s| s.split_once('|')) else { continue; };
+                let Ok(key) = base64_decode(salt) else { continue; };
+                if key.len() != 20 || ssh_b64_wrap(&key, 0) != salt ||
+                    ssh_b64_wrap(&openssl_hmac("sha1", &key, &crate::vfs::stream_string_to_bytes(&host)), 0) != mac { continue; }
+            } else if !ssh_matches_patterns(&host_lower, &patterns.to_ascii_lowercase()) { continue; }
+            let record = if show_fp {
+                if kind != "ssh-ed25519" { continue; }
+                let Some((pk, _)) = parse_openssh_ed25519_pubkey(&format!("{kind} {blob}")) else { continue; };
+                let end = blob.as_ptr() as usize - line.as_ptr() as usize + blob.len();
+                let comment = line[end..].trim_start_matches([' ', '\t']).trim_end_matches('\r');
+                let sep = if comment.is_empty() { "" } else { " " };
+                format!("{host} ED25519 {}{sep}{comment}", ssh_fingerprint_sha256(&pk))
+            } else { line };
+            if !quiet { out.push_str(&format!("# Host {host} found: line {} {marker}\n", index + 1)); }
+            out.push_str(&record);
+            out.push('\n');
         }
-        return ok_out(&format!("{}\n", matches.join("\n")));
+        return BuiltinOutcome { exit_code: i32::from(out.is_empty()), stdout: out, stderr: String::new() };
     }
 
     if let Some(host) = remove_host {

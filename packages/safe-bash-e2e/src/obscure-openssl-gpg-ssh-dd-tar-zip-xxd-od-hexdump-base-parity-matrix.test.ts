@@ -274,7 +274,9 @@ EOF
         [
           "derived=match",
           "fp=match",
+          "#",
           "github.com,192.30.255.112",
+          "#",
           "gitlab.com",
           "gone=1",
           "",

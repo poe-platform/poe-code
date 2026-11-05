@@ -332,7 +332,6 @@ export function evalSyncSshKeygen(
     let fileArg: string | undefined;
     let derivePub = false;
     let showFingerprint = false;
-    let findHost: string | undefined;
     let removeHost: string | undefined;
     let yAction: string | undefined;
     let namespace = "file";
@@ -348,7 +347,7 @@ export function evalSyncSshKeygen(
       else if (a === "-t" && i + 1 < opArgs.length) i++;
       else if (a === "-y") derivePub = true;
       else if (a === "-l") showFingerprint = true;
-      else if (a === "-F" && i + 1 < opArgs.length) findHost = opArgs[++i];
+      else if (a === "-F") return undefined;
       else if (a === "-R" && i + 1 < opArgs.length) removeHost = opArgs[++i];
       else if (a === "-Y" && i + 1 < opArgs.length) yAction = opArgs[++i];
       else if (a === "-n" && i + 1 < opArgs.length) namespace = opArgs[++i]!;
@@ -372,17 +371,6 @@ export function evalSyncSshKeygen(
       const outBytes = syncSshEncoder.encode(`${remaining.join("\n")}\n`);
       if (!writeFileSync(khRaw, outBytes)) return undefined;
       return `# Host ${removeHost} found: removed\n${khPath} updated.\n`;
-    }
-
-    if (findHost !== undefined) {
-      const khPath = fileArg ?? "/home/user/.ssh/known_hosts";
-      const khBytes = readFileSync?.(khPath);
-      if (!khBytes) return undefined;
-      const matches = syncSshDecoder.decode(khBytes)
-        .split("\n")
-        .filter(l => l.trim().length > 0 && !l.startsWith("#") && l.split(/\s+/)[0]?.split(",").includes(findHost!));
-      if (matches.length === 0) return undefined;
-      return `${matches.join("\n")}\n`;
     }
 
     if (yAction !== undefined) {

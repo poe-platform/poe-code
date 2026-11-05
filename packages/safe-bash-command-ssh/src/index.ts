@@ -374,6 +374,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
       let fileArg: string | undefined;
       let comment = "user@safe-bash";
       let derivePub = false;
+      let quiet = false;
       let showFingerprint = false;
       let encrypt = false;
       let keyType = "ed25519";
@@ -401,7 +402,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         else if (a === "-n" && i + 1 < args.length) { namespace = args[++i]!; namespaceProvided = true; }
         else if (a === "-I" && i + 1 < args.length) signerIdentity = args[++i];
         else if (a === "-s" && i + 1 < args.length) signatureFile = args[++i];
-        else if (a === "-q") continue;
+        else if (a === "-q") quiet = true;
         else if (!a.startsWith("-")) positionalFiles.push(a);
         else {
           await writeText(context.stderr, `ssh-keygen: unsupported option: ${a}\n`);
@@ -411,17 +412,53 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
 
       try {
         if (findHost !== undefined) {
-          const khPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/known_hosts");
-          const khText = textDecoder.decode(await readLimitedFile(context, khPath, maxBytes).catch(error => {
-            if (error instanceof FsError && error.code === "ENOENT") return new Uint8Array(0);
-            throw error;
-          }));
-          const matches = khText
-            .split("\n")
-            .filter(l => l.trim().length > 0 && !l.startsWith("#") && l.split(/\s+/)[0]?.split(",").includes(findHost!));
-          if (matches.length === 0) return { exitCode: 1 };
-          await writeText(context.stdout, `${matches.join("\n")}\n`);
-          return { exitCode: 0 };
+          const file = fileArg ?? "/home/user/.ssh/known_hosts";
+          let bytes: Uint8Array;
+          try { bytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, file), maxBytes); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (!(error instanceof FsError)) throw error;
+            if (error.code === "EISDIR") return { exitCode: 1 };
+            if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error;
+            await writeText(context.stderr, `Cannot stat ${file}: ${error.code === "ENOENT" ? "No such file or directory" : "Not a directory"}\r\n`);
+            return { exitCode: 255 };
+          }
+          let found = false;
+          for (let start = 0, number = 1; start < bytes.length; number++) {
+            context.signal.throwIfAborted();
+            const lf = bytes.indexOf(10, start);
+            const end = lf < 0 ? bytes.length : lf;
+            const line = bytes.subarray(start, end);
+            start = end + 1;
+            const fields = /^[ \t]*(?:(@[^ \t]+)[ \t]+)?([^ \t#]+)[ \t]+([^ \t]+)[ \t]+([^ \t\r]+)(?:[ \t]+(.*))?/u.exec(textDecoder.decode(line));
+            if (!fields) continue;
+            const [, marker, hosts, type, key, comment] = fields;
+            if (marker && marker !== "@cert-authority" && marker !== "@revoked") continue;
+            if (!/^(?:(?:ssh-(?:rsa|ed25519|dss)|rsa-sha2-(?:256|512)|ecdsa-sha2-nistp(?:256|384|521))(?:-cert-v01@openssh\.com)?|sk-(?:ssh-ed25519|ecdsa-sha2-nistp256)(?:-cert-v01)?@openssh\.com)$/u.test(type!)) continue;
+            if (hosts!.startsWith("|")) {
+              const parts = hosts!.split("|");
+              if (parts.length !== 4 || parts[1] !== "1") continue;
+              const salt = base64ToBytes(parts[2]!);
+              if (salt.length !== 20 || bytesToBase64(salt) !== parts[2]) continue;
+              const hmac = await crypto.subtle.importKey("raw", Uint8Array.from(salt), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+              const digest = await crypto.subtle.sign("HMAC", hmac, textEncoder.encode(findHost));
+              if (parts[3] !== bytesToBase64(new Uint8Array(digest))) continue;
+            } else if (!matchesPatterns(findHost.toLowerCase(), hosts!.toLowerCase())) continue;
+            let fingerprint: string | undefined;
+            if (showFingerprint) {
+              const parsed = type === "ssh-ed25519" && parseOpenSshEd25519PublicKey(type + " " + key);
+              if (!parsed) continue;
+              fingerprint = await computeFingerprintSha256(parsed.pubKey);
+            }
+            if (!quiet) await writeText(context.stdout, `# Host ${findHost} found: line ${number} ${marker === "@revoked" ? "REVOKED" : marker ? "CA" : ""}\n`);
+            if (fingerprint) await writeText(context.stdout, `${findHost} ED25519 ${fingerprint}${comment ? " " + comment : ""}\n`);
+            else {
+              await context.stdout.write(line);
+              await writeText(context.stdout, "\n");
+            }
+            found = true;
+          }
+          return { exitCode: found ? 0 : 1 };
         }
 
         if (removeHost !== undefined) {

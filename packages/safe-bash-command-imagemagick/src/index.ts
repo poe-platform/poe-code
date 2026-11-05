@@ -2647,6 +2647,16 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             if (norm === "dst" || norm === "dest") {
                 continue;
             }
+            if (norm === "modulusadd") {
+                // ImageMagick wraps premultiplied RGB, without alpha normalization.
+                for (let c = 0; c < 3; c++) {
+                    const channel = src.data[sIdx + c]! * sa + dst.data[dIdx + c]! * da;
+                    out[dIdx + c] = clampByteVal(channel % 255);
+                }
+                const alpha = saByte + daByte;
+                out[dIdx + 3] = alpha > 255 ? alpha - 255 : alpha;
+                continue;
+            }
             if (norm === "clear") {
                 out[dIdx] = 0;
                 out[dIdx + 1] = 0;

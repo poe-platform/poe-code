@@ -234,7 +234,7 @@ impl Bitmap {
         Some(())
     }
 }
-pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode: &str) -> Option<Vec<u8>> {
+pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode: &str, dpi: Option<[f64; 2]>) -> Option<Vec<u8>> {
     let png = matches!(format,"PNG"|"RGBA");
     let rgb = format=="PNG" && pixels.iter().all(|p| p[3] == 255);
     let mut raw = match format {
@@ -288,14 +288,17 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
     ihdr[4..8].copy_from_slice(&(h as u32).to_be_bytes());
     ihdr[8] = 8;
     ihdr[9] = if rgb { 2 } else { 6 };
-    for (tag, data) in [
-        (b"IHDR", ihdr.as_slice()),
-        (
-            b"IDAT",
-            crate::commands::codecs::zlib_compress(&raw).as_slice(),
-        ),
-        (b"IEND", &[]),
-    ] {
+    let phys = dpi.map(|[x,y]| {
+        let mut field = [0u8; 9];
+        field[..4].copy_from_slice(&((x / 0.0254) as u32).to_be_bytes());
+        field[4..8].copy_from_slice(&((y / 0.0254) as u32).to_be_bytes());
+        field[8] = 1;
+        field
+    });
+    let compressed = crate::commands::codecs::zlib_compress(&raw);
+    for (tag, data) in [(b"IHDR", ihdr.as_slice())].into_iter()
+        .chain(phys.as_ref().map(|bytes| (b"pHYs", bytes.as_slice())))
+        .chain([(b"IDAT", compressed.as_slice()), (b"IEND", &[][..])]) {
         out.extend_from_slice(&(data.len() as u32).to_be_bytes());
         let start = out.len();
         out.extend_from_slice(tag);
@@ -576,6 +579,6 @@ impl PageSource<'_> {
                 dpi: [(sx * 72.) as u16, (sy * 72.) as u16], gray,
             }, opt.limit).ok();
         }
-        encode(ow, oh, &pixels, opt.format, opt.color)
+        encode(ow, oh, &pixels, opt.format, opt.color, (opt.format == "PNG").then_some([sx * 72., sy * 72.]))
     }
 }

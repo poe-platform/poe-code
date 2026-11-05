@@ -16634,7 +16634,7 @@ mod media_unit_tests {
         fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
         let r = cmd_media_doc("pdftoppm", &media_args(&["-r","72","-png","-singlefile","page.pdf","out"]), "", "/", &fs);
         assert_eq!(r.exit_code, 0, "{}", r.stderr);
-        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "8b0eda31ccc5ae21f9093d29cb5b8ee3462f729a273f8d1cef833abdeb2d6950");
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "31d6b4bdfef2aff4d60bf2edd5b07ce9cf724ce1ea601327491795b3d63dbc35");
     }
 
     #[test]
@@ -16684,6 +16684,11 @@ mod media_unit_tests {
                 let bytes = fs.read_file(&format!("/out.{ext}")).unwrap();
                 let im = png_pixels::Raster::decode(&bytes, 1 << 20).unwrap();
                 assert_eq!((im.width,im.height),dims,"{cmd} {format}");
+                if ext == "png" {
+                    let offset = bytes.windows(4).position(|tag| tag == b"pHYs").expect("PNG physical resolution") + 4;
+                    let phys = if dims.0 == 33 { [2854u32,5679] } else { [3100,3100] };
+                    assert_eq!(&bytes[offset..offset + 9], &[phys[0].to_be_bytes().as_slice(), &phys[1].to_be_bytes(), &[1]].concat());
+                }
                 if ext == "jpg" && dims.0 == 35 { assert_eq!(&bytes[14..18], &[0,78,0,78]); }
             }
         }
@@ -16744,8 +16749,8 @@ mod media_unit_tests {
             "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents], "");
         fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
         for (cmd, flags, ext, hash) in [
-            ("pdftoppm", "-png", "png", "176688f1156bc304d2ee5a247bc2bdec9f1ef54174df08e94b2aad06d05aad6a"),
-            ("pdftocairo", "-png -transp", "png", "67681714765e53fa834b887320e34914d9c0831da276df5f331bce6c5a5cc4bf"),
+            ("pdftoppm", "-png", "png", "e2586112dde6f3fb2b7153cf37394aa5fd35262aa0abde87ba100c0bfd988380"),
+            ("pdftocairo", "-png -transp", "png", "5f54f1dad6524f167764171dd17c0154abe0c58b541dadd448a508f1bb055eba"),
             ("pdftoppm", "-gray", "pgm", "2996700b20eab9ff7c18de60f81d342f810d447ce56fc5bdcd011256e7c3734d"),
             ("pdftoppm", "-mono", "pbm", "72d971a340d3f55d32aa340fe87503c8994e4e8d207ac687557e9792b0f35362"),
         ] {

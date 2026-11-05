@@ -165,7 +165,7 @@ impl Image {
             }
             return Some(out);
         }
-        super::pdf_raster::encode(self.width, self.height, &self.pixels, format, "rgb")
+        super::pdf_raster::encode(self.width, self.height, &self.pixels, format, "rgb", None)
     }
 }
 

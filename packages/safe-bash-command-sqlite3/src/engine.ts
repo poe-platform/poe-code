@@ -1691,7 +1691,7 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%([-+ #0!,]*\d*(?:\.\d+)?)([sdiufeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%([-+ #0!,]*\d*(?:\.\d+)?)([sdiufeEgGoxXpcqQw%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
@@ -1729,18 +1729,18 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
         out = groups.reverse().join(",");
       }
       out = sign + out;
-    } else if (spec === "x" || spec === "X" || spec === "p") {
+    } else if (spec === "o" || spec === "x" || spec === "X" || spec === "p") {
       const integer = integerPrefix(raw);
       const clamped = integer < INT64_MIN ? INT64_MIN : integer > INT64_MAX ? INT64_MAX : integer;
-      out = BigInt.asUintN(64, clamped).toString(16);
+      out = BigInt.asUintN(64, clamped).toString(spec === "o" ? 8 : 16);
       if (spec !== "x") out = out.toUpperCase();
       const precisionIndex = flags.indexOf(".");
       const precision = precisionIndex < 0 ? 0 : Number(flags.slice(precisionIndex + 1));
-      // SQLite pads hexadecimal digits before adding the alternate-form prefix.
+      // SQLite pads digits before adding the alternate-form prefix.
       const zeroPad = modifiers.includes("0") && !modifiers.includes("-");
       out = out.padStart(Math.max(precision, zeroPad ? width : 0), "0");
       if (modifiers.includes("#") && clamped !== 0n) {
-        out = `${spec === "X" ? "0X" : "0x"}${out}`;
+        out = `${spec === "o" ? "0" : spec === "X" ? "0X" : "0x"}${out}`;
       }
     } else if (spec === "f") {
       const precMatch = /\.(\d+)/.exec(flags);

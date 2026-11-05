@@ -258,6 +258,17 @@ for (const fn of ["printf", "format"]) {
       );
     });
   }
+  test(`sqlite3 ${fn} formats octal with width, precision and alternate prefix`, async () => {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `SELECT ${fn}('%o|%04o|%#o|%#04o|%#.4o|%#o|%-#6o', 8, 8, 8, 8, 8, 0, 8);
+         SELECT ${fn}('%o|%o|%o|%o|%o|%o|%o:%d', -1, 9223372036854775807,
+           -9223372036854775808, NULL, '8', 8.9, 8, 42);`]),
+      { code: 0, stderr: "", stdout:
+        "10|0010|010|00010|00010|0|010   \n" +
+        "1777777777777777777777|777777777777777777777|1000000000000000000000|0|10|10|10:42\n" }
+    );
+  });
   test(`sqlite3 ${fn} formats pointers as unsigned 64-bit uppercase hexadecimal`, async () => {
     // Expected output verified with native SQLite.
     const values = ["255", "0", "-1", "-255", "4294967296",

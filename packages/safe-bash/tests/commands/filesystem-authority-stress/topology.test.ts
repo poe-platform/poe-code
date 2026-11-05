@@ -62,7 +62,7 @@ for (const name of ["cp", "mv"] as const) for (const alias of [false, true]) for
     assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, allowed ? "" : alias
-      ? name === "cp" ? "cp: '/left/source' and '/right/target' are the same file\n" : "mv: EINVAL: source and destination are the same file '/left/source' -> '/right/target'\n"
+      ? `${name}: '/left/source' and '/right/target' are the same file\n`
       : name === "cp" ? "cp: ENOTSUP: copy reader is not bound to the inspected source identity '/left/source'\n"
       : scopedSource ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/right/target'\n"
         : "mv: ENOTSUP: move source lacks authoritative snapshot '/left/source'\n");

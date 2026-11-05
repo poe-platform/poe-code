@@ -21,7 +21,7 @@ for (const name of ["cp", "mv"] as const) {
       assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
       assert.equal(result.stdout, "");
       assert.equal(result.stderr, allowed ? "" : alias
-        ? name === "cp" ? "cp: '/source' and '/target' are the same file\n" : "mv: EINVAL: source and destination are the same file '/source' -> '/target'\n"
+        ? `${name}: '/source' and '/target' are the same file\n`
         : name === "mv" ? scoped === false ? "mv: ENOTSUP: move source lacks authoritative snapshot '/source'\n"
           : "mv: EAGAIN: move destination changed during resolution capture '/target'\n"
         : "cp: ENOTSUP: copy reader is not bound to the inspected source identity '/source'\n");

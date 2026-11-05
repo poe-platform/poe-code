@@ -15787,6 +15787,29 @@ test("overlay fs.rm removes empty visible directories and preserves nonempty one
   } finally { sh.dispose(); }
 });
 
+test("mv checks the destination's no-replace capability on a supplied filesystem", {skip:!WebAssembly.Suspending}, async () => {
+  const {MemoryFileSystem, Shell, agentCommands} = await import("@poe-platform/safe-bash");
+  for (const engine of ["TypeScript", "Rust"]) {
+    const fs = new MemoryFileSystem();
+    const shell = engine === "Rust" ? new RustWasmBash({cwd:"/"}) : new Shell({fs,cwd:"/"}).use(agentCommands());
+    try {
+      await fs.writeFile("/source", Uint8Array.of(42));
+      fs.capabilitiesFor = async () => ({...fs.capabilities, atomicRenameNoReplace:false});
+      const rename = fs.rename.bind(fs);
+      const calls = [];
+      fs.rename = (from,to,options) => {
+        calls.push(options?.noReplace === true);
+        return rename(from,to,options);
+      };
+      assert.equal((await shell.exec("mv -n source dest", {fs})).exitCode, 1, engine);
+      assert.deepEqual(calls, [], engine);
+      assert.equal((await shell.exec("mv source dest", {fs})).exitCode, 0, engine);
+      assert.deepEqual(calls, [false], engine);
+      assert.deepEqual(await fs.readFile("/dest"), Uint8Array.of(42));
+    } finally { await shell.dispose(); }
+  }
+});
+
 test("mv admits all routed operands before either rename", async () => {
   for (const profile of ["strict-budgets-mount-dev", "overlay-cow-fs"]) {
     for (const [limit, moved] of [[3,0],[5,0],[6,1],[7,2]]) {

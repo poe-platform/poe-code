@@ -581,7 +581,16 @@ function bindExternalFs(shell,fs,options) {
           case "mkdir":await fs.mkdir(path,{...settings,recursive:!!flags,mode,exactMode:true});break;
           case "rm":await fs.rm(path,{...settings,recursive:!!flags});break;
           case "unlink":case "rmdir":await fs[op](path,settings);break;
-          case "rename":await fs.rename(path,decoder.decode(data),{...settings,noReplace:!!flags});break;
+          case "rename":{
+            const destination=decoder.decode(data);
+            if(flags){
+              const caps=await fs.capabilitiesFor?.(destination,{...settings,create:true}) ?? fs.capabilities;
+              settings.signal?.throwIfAborted();
+              if(caps?.atomicRenameNoReplace!==true)throw fsOperationError("ENOTSUP",op,path,destination);
+            }
+            await fs.rename(path,destination,{...settings,noReplace:!!flags});
+            break;
+          }
           case "link":case "symlink":await fs[op](path,decoder.decode(data),settings);break;
           case "readlink":result=encoder.encode(await fs.readlink(path,settings));break;
           case "readdir":result=encoder.encode((await fs.readdir(path,settings)).map(e=>typeof e==="string"?e:e.name).join("\0"));break;

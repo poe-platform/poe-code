@@ -316,7 +316,10 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         destination = { target: pathOf(context, parsed.operands[1]!), directory: false, sources: parsed.operands.slice(0, 1) };
       } else destination = await destinations(context, parsed.operands);
       const budget = new MoveBudget(context.signal);
-      const shouldSkip = async (source: string, target: string): Promise<boolean> => {
+      const targetOperand = targetDirectory ?? parsed.operands.at(-1)!;
+      const displayTargetFor = (source: string) => destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand;
+      const sameFile = (operand: string, source: string) => new PublicDiagnostic(`${quoteShellOperand(operand)} and ${quoteShellOperand(displayTargetFor(source))} are the same file`);
+      const shouldSkip = async (source: string, target: string, operand: string): Promise<boolean> => {
         if (!parsed.flags.has("n") && !parsed.flags.has("u")) return false;
         const targetStat = await maybeStat(context, target, false);
         if (!targetStat) return false;
@@ -328,14 +331,14 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
           ? compareCopyIdentity(sourceStat, targetStat)
           : await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
         if (source === target || identity === "same") {
-          throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+          throw sameFile(operand, source);
         }
         return true;
       };
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
-        if (await shouldSkip(source, target)) return;
+        if (await shouldSkip(source, target, operand)) return;
         await admitFilesystemModes(context, "mv", ["rename"], [source, target]);
         if (parsed.flags.has("n")) await admitNoReplaceRename(context, target);
       });
@@ -345,16 +348,15 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         const result = await eachOperand(context, destination.sources, async operand => {
           const source = pathOf(context, operand);
           const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
-          if (await shouldSkip(source, target)) return;
+          if (await shouldSkip(source, target, operand)) return;
           if (parsed.flags.has("n")) await admitNoReplaceRename(context, target);
-          const targetOperand = targetDirectory ?? parsed.operands.at(-1)!;
-          const displayTarget = destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand;
+          const displayTarget = displayTargetFor(source);
           if (parsed.flags.has("i")) {
             const sourceStat = await context.fs.lstat(source, { signal: context.signal });
             const targetStat = await maybeStat(context, target, false);
             if (targetStat) {
               if (source === target || await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
-                throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+                throw sameFile(operand, source);
               }
               await writeBytes(context.stderr, new TextEncoder().encode(`mv: overwrite ${quoteShellOperand(displayTarget)}? `), context.signal);
               const answer = await answers.next();
@@ -368,7 +370,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             const targetStat = await maybeStat(context, target, false);
             if (targetStat) {
               const identity = await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
-              if (source === target || identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+              if (source === target || identity === "same") throw sameFile(operand, source);
               if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "backup rename lacks authoritative distinctness" });
               if ((sourceStat.type === "directory") !== (targetStat.type === "directory")) throw new FsError(sourceStat.type === "directory" ? "ENOTDIR" : "EISDIR", { path: target });
               let largest = 0n;
@@ -391,7 +393,28 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             }
           }
           try {
-            try { await context.fs.rename(source, target, { signal: context.signal, ...(parsed.flags.has("n") ? { noReplace: true } : {}) }); }
+            try {
+              const plain = !parsed.flags.has("i") && !parsed.flags.has("n") && backupMode === "none";
+              let renamed = false;
+              if (plain && context.fs.capabilities.atomicRenameNoReplace === true) {
+                try {
+                  if (context.fs.capabilitiesFor) await admitNoReplaceRename(context, target);
+                  await context.fs.rename(source, target, { signal: context.signal, noReplace: true });
+                  renamed = true;
+                }
+                catch (error) {
+                  context.signal.throwIfAborted();
+                  if (codeOf(error) !== "EEXIST" && codeOf(error) !== "ENOTSUP") throw error;
+                }
+              }
+              if (!renamed) {
+                if (plain) {
+                  const to = await maybeStat(context, target, false);
+                  if (to && (source === target || compareCopyIdentity(to, await maybeStat(context, source, false)) === "same")) throw sameFile(operand, source);
+                }
+                await context.fs.rename(source, target, { signal: context.signal, ...(parsed.flags.has("n") ? { noReplace: true } : {}) });
+              }
+            }
             catch (error) {
               context.signal.throwIfAborted();
               if (parsed.flags.has("n")) {
@@ -402,7 +425,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
               const moved = await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget, parsed.flags.has("u"));
               if (moved === "skipped") return;
               if (!moved) {
-                if (!parsed.flags.has("n")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+                if (!parsed.flags.has("n")) throw sameFile(operand, source);
                 return;
               }
             }

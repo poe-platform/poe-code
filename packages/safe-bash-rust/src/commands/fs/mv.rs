@@ -270,7 +270,8 @@ pub(super) fn cmd_mv(
         } else {
             dst_base.clone()
         };
-        Ok::<_,&str>((src, name, target))
+        let display = if dst_is_dir {child_disp_path(dst_raw, &name)} else {dst_raw.clone()};
+        Ok::<_,&str>((src, display, target))
     };
     let plain = fs.link_free_memory();
     let sources = &eff_operands[..eff_operands.len() - 1];
@@ -284,7 +285,7 @@ pub(super) fn cmd_mv(
         Err(e) if e.starts_with("ENOENT:") => Ok(None),
         Err(e) => Err(e),
     };
-    let should_skip = |src: &str, target: &str| -> Result<bool, String> {
+    let should_skip = |src: &str, target: &str, operand: &str, display: &str| -> Result<bool, String> {
         if !no_clobber && !update_only {
             return Ok(false);
         }
@@ -306,7 +307,7 @@ pub(super) fn cmd_mv(
         }
         if src == target || from.identity.is_some() && from.identity == to.identity {
             return Err(format!(
-                "EINVAL: source and destination are the same file '{src}' -> '{target}'"
+                "{} and {} are the same file", shell_quoted_operand(operand), shell_quoted_operand(display)
             ));
         }
         Ok(true)
@@ -323,9 +324,9 @@ pub(super) fn cmd_mv(
         admit_rename(fs, target)
     };
     for operand in sources {
-        let Ok((src, _, target)) = paths(operand) else { continue; };
+        let Ok((src, display, target)) = paths(operand) else { continue; };
         let check = || -> Result<(), String> {
-            if !should_skip(&src, &target)? {
+            if !should_skip(&src, &target, operand, &display)? {
                 admit_pair(&src, &target)?;
                 if no_clobber {
                     admit_rename(fs, &target)?;
@@ -342,18 +343,13 @@ pub(super) fn cmd_mv(
         }
     }
     for src_raw in sources {
-        let (src, name, target) = match paths(src_raw) {
+        let (src, disp_target, target) = match paths(src_raw) {
             Ok(paths) => paths,
             Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; }
         };
-        let disp_target = if dst_is_dir {
-            child_disp_path(dst_raw, &name)
-        } else {
-            dst_raw.clone()
-        };
         let mut run = || -> Result<(), String> {
             let mut backup = None;
-            if should_skip(&src, &target)? {
+            if should_skip(&src, &target, src_raw, &disp_target)? {
                 return Ok(());
             }
             if no_clobber {
@@ -366,7 +362,7 @@ pub(super) fn cmd_mv(
                 };
                 if src == target || source.identity.is_some() && source.identity == to.identity {
                     return Err(format!(
-                        "EINVAL: source and destination are the same file '{src}' -> '{target}'"
+                        "{} and {} are the same file", shell_quoted_operand(src_raw), shell_quoted_operand(&disp_target)
                     ));
                 }
                 Ok(Some((source, to)))
@@ -418,7 +414,18 @@ pub(super) fn cmd_mv(
                     .map_err(|e| format!("{e}, rename '{target}' -> '{bak}'"))?;
                 backup = Some(bak);
             }
-            let result = match fs.rename(&src, &target, no_clobber) {
+            // As GNU mv does, try the atomic no-replace rename first. A missing
+            // destination and an EXDEV transfer need no extra metadata reads.
+            let rename = if !interactive && !no_clobber && backup_mode == BackupMode::None {
+                match fs.rename(&src, &target, true) {
+                    Err(e) if e.starts_with("EEXIST:") || e.starts_with("ENOTSUP:") => {
+                        inspect_pair()?;
+                        fs.rename(&src, &target, false)
+                    }
+                    result => result,
+                }
+            } else { fs.rename(&src, &target, no_clobber) };
+            let result = match rename {
                 Err(e) if !no_clobber && e.starts_with("EXDEV:") => {
                     fs.move_across_devices(&src, &target, None)
                 }

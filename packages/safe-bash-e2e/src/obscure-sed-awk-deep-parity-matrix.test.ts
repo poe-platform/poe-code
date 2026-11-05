@@ -119,7 +119,7 @@ describe("obscure sed and awk deep parity matrix", () => {
     assert.equal(quitSilentCode.stdout, "1\n2\n");
   });
 
-  it("06 sed l (unambiguous list) control/octal escaping, embedded newline $, and -l N line wrapping", async () => {
+  it("06 sed l (unambiguous list) control/octal escaping, embedded newline escaping, and -l N line wrapping", async () => {
     const h = await SafeBashE2EHarness.create();
 
     const escapes = await h.exec("printf 'a\\tb\\\\c\\007\\014\\033\\n' | sed -n 'l'");
@@ -132,7 +132,7 @@ describe("obscure sed and awk deep parity matrix", () => {
 
     const embeddedNl = await h.exec("printf 'first\\nsecond\\n' | sed -n 'N; l'");
     assert.equal(embeddedNl.exitCode, 0);
-    assert.equal(embeddedNl.stdout, "first$\nsecond$\n");
+    assert.equal(embeddedNl.stdout, "first\\nsecond$\n");
   });
 
   it("07 sed multi-expression -e group spanning (-e '2,3{' -e ... -e '}'), nested groups, and t/T conditional branch reset", async () => {

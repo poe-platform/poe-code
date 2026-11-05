@@ -11,6 +11,7 @@ const plugin = sedCommands();
 
 Use the command with a `CommandContext`, or install the plugin in a Safe Bash shell. `createSedCommands()` returns the command definitions without registering them. Limits are optional; omitted quotas are unbounded. Set finite limits for untrusted input.
 
+Use `sed -n 'l 0'` to inspect control characters and non-ASCII bytes without line wrapping.
 Supported operations include addressed substitutions, print/delete, hold space,
 branches, program files (`-f`), extended regular expressions (`-E`), null-delimited
 records (`-z`), and in-place edits with optional backups (`-i.bak`). In-place

@@ -75,7 +75,7 @@ enum SedOp {
     QuitSilent(Option<i32>),
     Zap,
     Filename,
-    List,
+    List(Option<u32>),
     Append(String),
     Insert(String),
     Change(String),
@@ -318,19 +318,19 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 if !in_place_suffix.is_empty() {
                     let _ = fs.write_file(&format!("{full}{in_place_suffix}"), &bytes);
                 }
-                let content = String::from_utf8_lossy(&bytes);
+                let content = crate::vfs::bytes_to_stream_string(&bytes);
                 let mut cmds_copy = parsed_cmds.clone();
                 let (res, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
                 if let Some(em) = err_msg {
                     return err_out(&em, code);
                 }
-                let _ = fs.write_file(&full, res.as_bytes());
+                let _ = fs.write_file(&full, &crate::vfs::stream_string_to_bytes(&res));
             } else {
                 return err_out(&format!("sed: ENOENT: no such file or directory, lstat '{full}'\n"), 1);
             }
         }
         for (wf, data) in write_files {
-            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), data.as_bytes());
+            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
         }
         return ok_out("");
     }
@@ -343,7 +343,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             } else {
                 let full = resolve_posix_path(cwd, f);
                 match fs.read_file(&full) {
-                    Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                    Ok(b) => crate::vfs::bytes_to_stream_string(&b),
                     Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
                 }
             };
@@ -355,13 +355,13 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             total_out.push_str(&part_out);
             if code != 0 {
                 for (wf, data) in write_files {
-                    let _ = fs.write_file(&resolve_posix_path(cwd, &wf), data.as_bytes());
+                    let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
                 }
                 return BuiltinOutcome { stdout: total_out, stderr: String::new(), exit_code: code };
             }
         }
         for (wf, data) in write_files {
-            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), data.as_bytes());
+            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
         }
         return ok_out(&total_out);
     }
@@ -377,7 +377,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             let full = resolve_posix_path(cwd, f);
             match fs.read_file(&full) {
-                Ok(b) => combined_in.push_str(&String::from_utf8_lossy(&b)),
+                Ok(b) => combined_in.push_str(&crate::vfs::bytes_to_stream_string(&b)),
                 Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
             }
         }
@@ -389,7 +389,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return err_out(&em, exit_code);
     }
     for (wf, data) in write_files {
-        let _ = fs.write_file(&resolve_posix_path(cwd, &wf), data.as_bytes());
+        let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
     }
     BuiltinOutcome {
         stdout: out,
@@ -764,7 +764,14 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         'z' => SedOp::Zap,
         'F' => SedOp::Filename,
-        'l' => SedOp::List,
+        'l' => {
+            let digits = rest[1..].split('#').next().unwrap().trim();
+            if !digits.bytes().all(|b| b.is_ascii_digit()) {
+                return Err("sed: unexpected text after 'l' command\n".into());
+            }
+            let width = digits.bytes().fold(0u32, |w, b| w.wrapping_mul(10).wrapping_add(u32::from(b - b'0')));
+            SedOp::List((!digits.is_empty() && width != u32::MAX).then_some(width))
+        }
         '=' => SedOp::LineNumber,
         'h' => SedOp::HoldCopy,
         'H' => SedOp::HoldAppend,
@@ -1373,46 +1380,28 @@ fn exec_sed_cmds(
                 out.push_str(filename);
                 out.push(rec_term);
             }
-            SedOp::List => {
-                let chars: Vec<char> = pattern_space.chars().collect();
-                let mut line = String::new();
-                for offset in 0..=chars.len() {
-                    let ch_opt = chars.get(offset).copied();
-                    let line_end = ch_opt == Some('\n') && rec_term == '\n';
-                    let token = match ch_opt {
-                        None => "$".to_string(),
-                        Some(_) if line_end => "$".to_string(),
-                        Some('\x07') => "\\a".to_string(),
-                        Some('\x08') => "\\b".to_string(),
-                        Some('\x0c') => "\\f".to_string(),
-                        Some('\n') => "\\n".to_string(),
-                        Some('\r') => "\\r".to_string(),
-                        Some('\t') => "\\t".to_string(),
-                        Some('\x0b') => "\\v".to_string(),
-                        Some('\\') => "\\\\".to_string(),
-                        Some(c) if (c as u32) < 32 || (c as u32) >= 127 => {
-                            format!("\\{:03o}", (c as u32) & 0xff)
-                        }
-                        Some(c) => c.to_string(),
+            SedOp::List(width) => {
+                use std::fmt::Write;
+                let width = width.map_or(line_length, |n| n as usize);
+                let mut column = 0;
+                for byte in crate::vfs::stream_string_to_bytes(pattern_space) {
+                    let escaped = match byte {
+                        7 => "\\a", 8 => "\\b", 12 => "\\f", b'\n' => "\\n",
+                        b'\r' => "\\r", b'\t' => "\\t", 11 => "\\v", b'\\' => "\\\\", _ => "",
                     };
-                    if line_length > 0
-                        && ch_opt.is_some()
-                        && !line_end
-                        && line.len() + token.len() >= line_length
-                    {
-                        out.push_str(&line);
+                    let printable = (32..127).contains(&byte);
+                    let len = if !escaped.is_empty() { 2 } else if printable { 1 } else { 4 };
+                    if width > 0 && column + len >= width {
                         out.push('\\');
                         out.push(rec_term);
-                        line.clear();
+                        column = 0;
                     }
-                    line.push_str(&token);
-                    if line_end {
-                        out.push_str(&line);
-                        out.push(rec_term);
-                        line.clear();
-                    }
+                    if !escaped.is_empty() { out.push_str(escaped); }
+                    else if printable { out.push(char::from(byte)); }
+                    else { write!(out, "\\{byte:03o}").unwrap(); }
+                    column += len;
                 }
-                out.push_str(&line);
+                out.push('$');
                 out.push(rec_term);
             }
             SedOp::LineNumber => {
@@ -1618,15 +1607,7 @@ fn run_sed_on_text(
     }
     let rec_term = if null_data { '\0' } else { '\n' };
     let had_trailing_delim = input.ends_with(rec_term);
-    let raw_lines: Vec<&str> = if null_data {
-        let mut v: Vec<&str> = input.split('\0').collect();
-        if v.last() == Some(&"") {
-            v.pop();
-        }
-        v
-    } else {
-        input.lines().collect()
-    };
+    let raw_lines: Vec<&str> = input.split_terminator(rec_term).collect();
     let total = raw_lines.len();
     let mut out = String::new();
     let mut hold_space = String::new();

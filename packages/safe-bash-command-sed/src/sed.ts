@@ -22,6 +22,7 @@ interface Instruction {
   occurrence?: number;
   print?: boolean;
   status?: number;
+  listWidth?: number;
   translation?: Map<string, string>;
 }
 
@@ -235,6 +236,15 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
       if (kind === ":") {
         if (!instruction.text || labels.has(instruction.text)) throw new ProgramError("empty or duplicate branch label");
         labels.set(instruction.text, result.length);
+      }
+    } else if (kind === "l") {
+      horizontal();
+      if (source.charCodeAt(offset) >= 48 && source.charCodeAt(offset) <= 57) {
+        let width = 0;
+        do {
+          width = (width * 10 + source.charCodeAt(offset++) - 48) >>> 0;
+        } while (source.charCodeAt(offset) >= 48 && source.charCodeAt(offset) <= 57);
+        if (width !== 0xffffffff) instruction.listWidth = width;
       }
     } else if (kind === "q" || kind === "Q") {
       if (second) throw new ProgramError("quit accepts at most one address");
@@ -600,18 +610,18 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "=": { const p = emit(`${number}${separator}`); if (p) await p; break; }
           case "l": {
             const escapes: Record<string, string> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\" };
+            const width = instruction.listWidth ?? lineLength;
             let line = "";
-            for (let offset = 0; offset <= pattern.length; offset++) {
-              budget.step(); await budget.checkpointSync();
-              const character = pattern[offset];
-              const lineEnd = character === "\n" && separator === "\n";
-              const token = character === undefined || lineEnd ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
-              // GNU sed reserves a column for continuation but appends the end marker without wrapping.
-              if (lineLength > 0 && character !== undefined && !lineEnd && line.length + token.length >= lineLength) { await emit(line + "\\" + separator); line = ""; }
+            for (const character of pattern) {
+              budget.step();
+              const pending = budget.checkpointSync();
+              if (pending) await pending;
+              const byte = character.charCodeAt(0);
+              const token = escapes[character] ?? (byte < 32 || byte >= 127 ? `\\${byte.toString(8).padStart(3, "0")}` : character);
+              if (width > 0 && line.length + token.length >= width) { await emit(line + "\\" + separator); line = ""; }
               line = budget.check(line + token);
-              if (lineEnd) { await emit(line + separator); line = ""; }
             }
-            await emit(line + separator);
+            await emit(budget.check(line + "$") + separator);
             break;
           }
           case "d": deleted = true; pc = program.length; continue;

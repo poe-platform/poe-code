@@ -177,6 +177,15 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   return [
+    ...([
+      ["sed -n 'N;l'", "first\nsecond\n"],
+      ["sed -n -z 'N;l'", "first\npart\0second\0"],
+      ["sed -n 'l 70'", "é0123456789".repeat(1024) + "\n"],
+      ["sed -n -l 5 'l'", Buffer.concat([Buffer.from("é💡\ue0ff"), Buffer.from([255,9,13,10])])],
+      ["sed -n -l 4 'l0;l 7;l4294967295;l4294967299'", "abcdefghij\n"],
+      ["cat >sed-list-edit; sed -s -n l sed-list-edit; sed -i.bak -e 'w sed-list-copy' -e l sed-list-edit; cat sed-list-edit sed-list-edit.bak sed-list-copy", Buffer.from([255,128,13,10])],
+      ["cat >sed-list-input; sed -n l sed-list-input", Buffer.from([195,169,255,13,10])],
+    ] as const).map(([script, input]) => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input })),
     { cmd: "df", args: ["--output=file,a'b\n💡"], script: String.raw`df --output=$'file,a\'b\n💡'`, input: "" },
     ...[
       "mkdir -p cache-dir/gh/nested; touch cache-dir/gh/nested/data cache-dir/keep; XDG_CACHE_HOME=cache-dir gh config clear-cache; test ! -e cache-dir/gh && test -f cache-dir/keep",

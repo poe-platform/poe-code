@@ -4,6 +4,7 @@ import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader
 import { parseAudio, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { encodeFlacPackets } from "./flac.js";
+import { FlacFrameScanner } from "./flac-probe.js";
 
 import { parseStreamingDocument, serializeDashDocument } from "./streaming.js";
 import { serializeOgg, extractOggFlac, readOggFlacHeader } from "./ogg.js";
@@ -849,37 +850,46 @@ function flacDocument(bytes: Uint8Array, byteLength: number, data: Uint8Array = 
   };
 }
 
+function flacProbe(scanner: FlacFrameScanner, options: MediaSourceProbeOptions = {}): MediaProbeResult {
+  const doc = flacDocument(scanner.header.subarray(0, Math.min(42, scanner.size)), scanner.size);
+  const samples = scanner.packets.map(packet => ({ ...packet, dts: packet.pts, cts: 0,
+    data: new Uint8Array(), isKeyframe: true, sampleDescriptionIndex: 1 }));
+  const result = buildProbeResultFromDoc({ ...doc, tracks: [{ ...doc.tracks[0]!, samples }] }, scanner.size,
+    options.filename ?? "input.flac", { ...options, formatName: "flac", formatLongName: "raw FLAC" });
+  return { ...result,
+    streams: result.streams.map(stream => ({ ...stream, nb_frames: undefined,
+      nb_read_packets: String(samples.length), nb_read_frames: String(samples.length) })),
+    packets: result.packets?.map((packet, index) => ({ ...packet, pos: String(scanner.packets[index]!.pos) })) };
+}
+
 export function flacAst(): MediaAstPlugin {
   return {
     async probeMetadata(source, options = {}) {
       options.signal?.throwIfAborted();
       if (!Number.isSafeInteger(source.size) || source.size < 0) throw new RangeError("Invalid FLAC source size");
-      const header = new Uint8Array(Math.min(42, source.size));
-      for (let offset = 0; offset < header.length;) {
-        const chunk = await source.read(offset, header.length - offset);
+      const scanner = new FlacFrameScanner();
+      while (scanner.size < source.size) {
+        const length = Math.min(16384, source.size - scanner.size);
+        const chunk = await source.read(scanner.size, length);
         options.signal?.throwIfAborted();
         if (!chunk.length) throw new Error("Unexpected end of FLAC source");
-        if (chunk.length > header.length - offset) throw new Error("FLAC source returned more bytes than requested");
-        header.set(chunk, offset); offset += chunk.length;
+        if (chunk.length > length) throw new Error("FLAC source returned more bytes than requested");
+        scanner.push(chunk);
       }
-      return buildProbeResultFromDoc(flacDocument(header, source.size), source.size, options.filename ?? "input.flac", {
-        ...options, formatName: "flac", formatLongName: "raw FLAC"
-      });
+      scanner.push(new Uint8Array(), true);
+      return flacProbe(scanner, options);
     },
     async probeMetadataStream(source, options = {}) {
       options.signal?.throwIfAborted();
-      const header = new Uint8Array(42);
-      let size = 0;
+      const scanner = new FlacFrameScanner();
       for await (const chunk of source) {
         options.signal?.throwIfAborted();
-        if (size < header.length) header.set(chunk.subarray(0, header.length - size), size);
-        size += chunk.length;
-        if (!Number.isSafeInteger(size)) throw new RangeError("Invalid FLAC source size");
+        scanner.push(chunk);
+        if (!Number.isSafeInteger(scanner.size)) throw new RangeError("Invalid FLAC source size");
       }
       options.signal?.throwIfAborted();
-      return buildProbeResultFromDoc(flacDocument(header.subarray(0, Math.min(size, header.length)), size), size, options.filename ?? "input.flac", {
-        ...options, formatName: "flac", formatLongName: "raw FLAC"
-      });
+      scanner.push(new Uint8Array(), true);
+      return flacProbe(scanner, options);
     },
     id: "flac",
     formatName: "flac",
@@ -900,12 +910,9 @@ export function flacAst(): MediaAstPlugin {
     parse(bytes) { return flacDocument(bytes, bytes.byteLength, bytes); },
     serialize(doc) { return concatBytes(encodeFlacPackets(doc)); },
     probe(bytes, options) {
-      const doc = this.parse(bytes, options);
-      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.flac", {
-        ...options,
-        formatName: "flac",
-        formatLongName: "raw FLAC"
-      });
+      const scanner = new FlacFrameScanner();
+      scanner.push(bytes, true);
+      return flacProbe(scanner, options);
     },
     concat(docs, options) {
       return concatMp4(docs, options);

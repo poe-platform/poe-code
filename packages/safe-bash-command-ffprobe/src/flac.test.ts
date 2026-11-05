@@ -20,7 +20,7 @@ for (const explicit of [true, false]) for (const route of ["retained", "stream",
       if (key === "capabilitiesFor") return async () => capabilities;
       if (key === "readFile") return () => { throw new Error("whole input forbidden"); };
       if (key === "readStream") return () => chunks();
-      if (key === "openReadFile") return async () => ({ stat: () => base.stat("/input.flac"), async read(offset: number, length: number) { expect(offset + length).toBeLessThanOrEqual(42); return bytes.slice(offset, offset + length); }, async close() { closed = true; } });
+      if (key === "openReadFile") return async () => ({ stat: () => base.stat("/input.flac"), async read(offset: number, length: number) { expect(length).toBeLessThanOrEqual(16384); return bytes.slice(offset, offset + length); }, async close() { closed = true; } });
       const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
     } });
     const result = await createFfprobeCommand().execute({ command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs, signal: new AbortController().signal,

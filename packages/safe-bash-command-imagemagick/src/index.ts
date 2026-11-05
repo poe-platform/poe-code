@@ -5842,10 +5842,12 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             const fw = stack[0]!.width;
             const fh = stack[0]!.height;
             const combined = new Uint8Array(fw * fh * stack.length * 4);
+            const delays: number[] = [];
             for (let idx = 0; idx < stack.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const outputFrame = yield* prepareHslOutput(stack[idx]!, format);
+                delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
                 const frame = outputFrame.width === fw && outputFrame.height === fh
                     ? outputFrame
                     : (yield* applyMagickResizeSteps(outputFrame, `${fw}x${fh}!`, state.kernel));
@@ -5857,6 +5859,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 height: fh * stack.length,
                 pages: stack.length,
                 pageHeight: fh,
+                delay: delays,
                 data: combined
             };
             encodePageHeight = fh;
@@ -6554,7 +6557,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             pageHeight = first.height;
             const { storedData16: ignored, ...metadata } = first;
-            image = { ...metadata, position, height: first.height * stack.length, pages: stack.length, pageHeight };
+            image = { ...metadata, position, height: first.height * stack.length, pages: stack.length, pageHeight,
+                storedDelay: { length: stack.length, async at(index) {
+                    const frame = (await stack.get(index))!;
+                    const scene = frame[magickInput]?.sceneIdx ?? 0;
+                    return await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 100;
+                } }
+            };
         }
         const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(state.delay === undefined ? {} : { delay: state.delay }), ...(state.loop === undefined ? {} : { loop: state.loop }) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };

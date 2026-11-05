@@ -16886,6 +16886,37 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftocairo_converts_fill_and_stroke_colors_to_device_bytes() {
+        let fs = MemoryVfs::new();
+        // Interior pixels from pdftocairo 24.02, at 72 dpi.
+        let shades = [
+            ("-0.0005", 0), ("0", 0), ("0.002", 0), ("0.00390625", 1),
+            ("0.1", 25), ("0.3", 76), ("0.5", 128), ("0.50196078", 128),
+            ("0.50390625", 128), ("0.75", 191), ("0.998", 255), ("0.9999847", 255),
+            ("1", 255), ("1.1", 255), ("0.26953125", 68), ("0.45703125", 116),
+        ];
+        let draw = shades.iter().enumerate().map(|(i, (v, _))| {
+            let x = i * 3;
+            let end = x + 3;
+            format!("{v} g {x} 0 3 1 re f {v} 0.1 0.3 rg {x} 1 3 1 re f {v} G {x} 2.5 m {end} 2.5 l S {v} 0.7 0.3 RG {x} 3.5 m {end} 3.5 l S")
+        }).collect::<Vec<_>>().join(" ");
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 4] /Contents 4 0 R >>",
+            &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len())], "");
+        fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        let r = cmd_media_doc("pdftocairo", &media_args(&["-png", "-singlefile", "-r", "72", "in.pdf", "page"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        let im = png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
+        assert_eq!(im.pixels.len(), 48 * 4);
+        for (i, (operand, v)) in shades.into_iter().enumerate() {
+            let expected = [[v, 179, 76, 255], [v, v, v, 255], [v, 25, 76, 255], [v, v, v, 255]];
+            for (row, pixel) in expected.into_iter().enumerate() {
+                assert_eq!(im.pixels[row * 48 + i * 3 + 1], pixel, "operand {operand}, row {row}");
+            }
+        }
+    }
+
+    #[test]
     fn pdftocairo_filters_standalone_images_in_device_space() {
         let fs = MemoryVfs::new();
         // Full RGBA output from Poppler 24.02 on a transparent page.

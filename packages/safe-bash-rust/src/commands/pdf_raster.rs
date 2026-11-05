@@ -161,6 +161,26 @@ fn clip_coverage(row: &Option<ClipRow>, x: usize) -> u8 {
     (coverage * coverage.sqrt() * 255.).round() as u8
 }
 
+// Poppler stores device color operands in 16.16. Its lexer accumulates the
+// fractional digits in order, which matters on exact fixed-point boundaries.
+fn cairo_component(value: &Value<'_>) -> Option<f64> {
+    let mut c = value.number()?.clamp(0., 1.);
+    if c > 0. && c < 1.
+        && let Some(frac) = value.word()?.split(|&b| b == b'.').nth(1)
+        && frac.iter().all(u8::is_ascii_digit)
+    {
+        let mut scale = 0.1;
+        c = 0.;
+        for &digit in frac {
+            c += f64::from(digit - b'0') * scale;
+            scale *= 0.1;
+        }
+    }
+    let fixed = (c * 65536.) as u32;
+    // Cairo takes the high byte of its rounded 16-bit solid color.
+    Some(f64::from((fixed * 65535 + 32768) >> 24) / 255.)
+}
+
 struct Bitmap {
     form_clips: Vec<[Point; 4]>,
     clip_antialias: bool,
@@ -915,10 +935,11 @@ impl PageSource<'_> {
                     }
                 }
                 b"rg" | b"RG" | b"g" | b"G" => {
+                    let component = |i| if opt.splash { n(i) } else { cairo_component(args.get(i)?) };
                     let c = if op.len() == 2 {
-                        [n(0)?, n(1)?, n(2)?]
+                        [component(0)?, component(1)?, component(2)?]
                     } else {
-                        [n(0)?; 3]
+                        [component(0)?; 3]
                     };
                     if op[0].is_ascii_lowercase() {
                         fill = c;

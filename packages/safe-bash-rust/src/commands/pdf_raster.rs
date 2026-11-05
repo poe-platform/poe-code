@@ -106,6 +106,39 @@ fn splash_sampler<const N: usize>(
     }
 }
 
+fn splash_rgba<'a>(
+    im: &'a Image,
+    mask: Option<&'a Image>,
+    bounds: [f64; 4],
+    xs: std::ops::Range<usize>,
+    ys: std::ops::Range<usize>,
+) -> impl FnMut(usize, usize, &mut usize) -> Option<[u8; 4]> + 'a {
+    let mut rgb = splash_sampler::<3>(im, bounds, xs.clone(), ys.clone());
+    let mut alpha = mask.map(|m| splash_sampler::<1>(m, bounds, xs, ys));
+    move |x, y, work| {
+        let [r, g, b] = rgb(x, y, work)?;
+        let a = match &mut alpha {
+            Some(sample) => sample(x, y, work)?[0],
+            None => 255,
+        };
+        Some([r, g, b, a])
+    }
+}
+
+fn composite_image_pixel(dest: &mut [u8; 4], value: [u8; 4]) {
+    if value[3] == 255 {
+        *dest = value;
+    } else if value[3] != 0 {
+        let (alpha, prior) = (u32::from(value[3]), u32::from(dest[3]));
+        let total = alpha + prior - div255(alpha * prior);
+        for k in 0..3 {
+            dest[k] = (((total - alpha) * u32::from(dest[k]) + alpha * u32::from(value[k])) / total)
+                as u8;
+        }
+        dest[3] = total as u8;
+    }
+}
+
 struct Bitmap {
     white_background: bool,
     w: usize,
@@ -114,6 +147,141 @@ struct Bitmap {
     work: usize,
 }
 impl Bitmap {
+    fn transformed_image(
+        &mut self,
+        im: &Image,
+        mask: Option<&Image>,
+        [a, b, c, d, e, f]: [f64; 6],
+        limit: usize,
+    ) -> Option<()> {
+        // Image coordinates start at the top left. First scale in image space,
+        // then map device pixel centers back into that bitmap.
+        let corners = [
+            [e, f],
+            [e + c, f + d],
+            [a + c + e, b + d + f],
+            [e + a, f + b],
+        ];
+        let extent = |k: usize| {
+            let lo = corners
+                .iter()
+                .map(|p| p[k])
+                .fold(f64::INFINITY, f64::min)
+                .floor();
+            let hi = corners
+                .iter()
+                .map(|p| p[k])
+                .fold(f64::NEG_INFINITY, f64::max)
+                .floor()
+                + 1.;
+            (lo, hi)
+        };
+        let ((left, right), (top, bottom)) = (extent(0), extent(1));
+        if right <= 0. || left >= self.w as f64 || bottom < 0. || top >= self.h as f64 {
+            return Some(());
+        }
+        let mut sw = right - left;
+        let mut sh = bottom - top;
+        if a.abs() < b.abs() {
+            std::mem::swap(&mut sw, &mut sh);
+        }
+        if sw <= 1. || sh <= 1. {
+            let span = |lo: f64, hi: f64| (hi.floor() - lo.floor()).abs() + 1.;
+            sw = span(e, e + a).max(span(f, f + b));
+            sh = span(e, e + c).max(span(f, f + d));
+            if b.abs() >= 1. {
+                sh = sh.max(1. + c.signum() * (c.floor() - (a * d / b).floor()));
+            }
+            if a.abs() >= 1. {
+                sh = sh.max(1. + d.signum() * (d.floor() - (b * c / a).floor()));
+            }
+        }
+        let (w, h) = (sw as usize, sh as usize);
+        let count = w.checked_mul(h)?;
+        if count == 0 || count > limit / 4 {
+            return None;
+        }
+        self.work = self.work.checked_sub(count)?;
+        let mut sample = splash_rgba(im, mask, [0., 0., sw, sh], 0..w, 0..h);
+        let mut scaled = Vec::with_capacity(count);
+        for y in 0..h {
+            for x in 0..w {
+                scaled.push(sample(x, y, &mut self.work)?);
+            }
+        }
+        let (a, b, c, d) = (a / sw, b / sw, c / sh, d / sh);
+        let det = a * d - b * c;
+        if det.abs() < 1e-6 {
+            return Some(());
+        }
+        let (xx, xy, yx, yy) = (d / det, -c / det, -b / det, a / det);
+        let mut row = |y: usize, xa: f64, xb: f64| -> Option<()> {
+            let start = (xa.floor() as usize).min(self.w);
+            let mut end = xb.floor() + 1.;
+            if start as f64 == end {
+                end += 1.;
+            }
+            let xs = start..(end as usize).min(self.w);
+            self.work = self.work.checked_sub(xs.len())?;
+            let py = y as f64 + 0.5 - f;
+            for x in xs {
+                let px = x as f64 + 0.5 - e;
+                let u = ((px * xx + py * xy) as usize).min(w - 1);
+                let v = ((px * yx + py * yy) as usize).min(h - 1);
+                composite_image_pixel(&mut self.pixels[y * self.w + x], scaled[v * w + u]);
+            }
+            Some(())
+        };
+        let mut first = 0;
+        for i in 1..4 {
+            if corners[i][1] < corners[first][1] {
+                first = i;
+            }
+        }
+        let prev = (first + 3) % 4;
+        if (corners[first][1] - corners[prev][1]).abs() <= 1e-6
+            && corners[prev][1] < corners[(first + 1) % 4][1]
+        {
+            first = prev;
+        }
+        let [p, q, r, s] = std::array::from_fn(|i| corners[(first + i) % 4]);
+        let edge = |p: Point, q: Point, y: f64| p[0] + (y - p[1]) * ((q[0] - p[0]) / (q[1] - p[1]));
+        let flat = (p[1] - q[1]).abs() <= 1e-6;
+        let end = if bottom - top == 1. {
+            bottom + 1.
+        } else {
+            bottom
+        };
+        for y in (top as usize).min(self.h)..(end as usize).min(self.h) {
+            let scan = y as f64 + 0.5;
+            if flat {
+                let x0 = edge(p, s, scan);
+                let x1 = edge(q, r, scan);
+                row(y, x0.min(x1), x0.max(x1))?;
+            } else {
+                // At each middle vertex the lower edge takes over on the rounded scanline.
+                let qcut = q[1].floor() + if q[1] >= s[1] { end - bottom + 1. } else { 0. };
+                let scut = s[1].floor() + if s[1] > q[1] { end - bottom + 1. } else { 0. };
+                let xq = if (y as f64) < qcut {
+                    edge(p, q, scan)
+                } else {
+                    edge(q, r, scan)
+                };
+                let xs = if (y as f64) < scut {
+                    edge(p, s, scan)
+                } else {
+                    edge(s, r, scan)
+                };
+                if q[0] < s[0] {
+                    row(y, xq, xs)?;
+                } else {
+                    row(y, xs, xq)?;
+                }
+            }
+        }
+        Some(())
+    }
+
     fn image(
         &mut self,
         mut im: Image,
@@ -121,7 +289,8 @@ impl Bitmap {
         ox: f64,
         top: f64,
         scale: f64,
-        upright: bool,
+        splash: bool,
+        limit: usize,
     ) -> Option<()> {
         let [a, b, c, d, e, f] = im.matrix;
         let det = a * d - b * c;
@@ -129,11 +298,26 @@ impl Bitmap {
             return Some(());
         }
         // Splash scales an upright image across inclusive device bounds, then clips it.
-        if upright {
+        if splash && !(a > 0. && b == 0. && c == 0.) {
+            return self.transformed_image(
+                &im,
+                mask.as_ref(),
+                [
+                    a * scale,
+                    -b * scale,
+                    -c * scale,
+                    d * scale,
+                    c * scale + (e * scale - ox * scale),
+                    -d * scale + (top * scale - f * scale),
+                ],
+                limit,
+            );
+        }
+        if splash {
             let left = ((e - ox) * scale).floor();
-            let top_px = ((top - f - d) * scale).floor();
+            let top_px = ((top - f - d.max(0.)) * scale).floor();
             let right = ((a + e - ox) * scale).floor() + 1.;
-            let bottom = ((top - f) * scale).floor() + 1.;
+            let bottom = ((top - f - d.min(0.)) * scale).floor() + 1.;
             let (sw, sh) = (right - left, bottom - top_px);
             if !(1. ..=i32::MAX as f64).contains(&sw) || !(1. ..=i32::MAX as f64).contains(&sh) {
                 return None;
@@ -141,29 +325,28 @@ impl Bitmap {
             let xs = (left as usize).min(self.w)..(right as usize).min(self.w);
             let ys = (top_px as usize).min(self.h)..(bottom as usize).min(self.h);
             self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
-            let bounds = [left, top_px, sw, sh];
-            let mut rgb = splash_sampler::<3>(&im, bounds, xs.clone(), ys.clone());
-            let mut alpha = mask.as_ref()
-                .map(|m| splash_sampler::<1>(m, bounds, xs.clone(), ys.clone()));
+            if xs.is_empty() || ys.is_empty() {
+                return Some(());
+            }
+            let (start_y, ys) = if d < 0. {
+                (
+                    0.,
+                    (bottom - ys.end as f64) as usize..(bottom - ys.start as f64) as usize,
+                )
+            } else {
+                (top_px, ys)
+            };
+            let bounds = [left, start_y, sw, sh];
+            let mut sample = splash_rgba(&im, mask.as_ref(), bounds, xs.clone(), ys.clone());
             for y in ys {
                 for x in xs.clone() {
-                    let [r, g, b] = rgb(x, y, &mut self.work)?;
-                    let a = match &mut alpha {
-                        Some(sample) => sample(x, y, &mut self.work)?[0],
-                        None => 255,
+                    let value = sample(x, y, &mut self.work)?;
+                    let dest_y = if d < 0. {
+                        (bottom - 1. - y as f64) as usize
+                    } else {
+                        y
                     };
-                    let value = [r, g, b, a];
-                    let dest = &mut self.pixels[y * self.w + x];
-                    if value[3] == 255 {
-                        *dest = value;
-                    } else if value[3] != 0 {
-                        let (alpha, prior) = (u32::from(value[3]), u32::from(dest[3]));
-                        let total = alpha + prior - div255(alpha * prior);
-                        for k in 0..3 {
-                            dest[k] = (((total - alpha) * u32::from(dest[k]) + alpha * u32::from(value[k])) / total) as u8;
-                        }
-                        dest[3] = total as u8;
-                    }
+                    composite_image_pixel(&mut self.pixels[dest_y * self.w + x], value);
                 }
             }
             return Some(());
@@ -537,11 +720,9 @@ impl PageSource<'_> {
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
                 Draw::Image(id, matrix) => {
-                    let [a, b, c, d, _, _] = matrix;
-                    let upright = opt.splash && a > 0. && d > 0. && b == 0. && c == 0.;
-                    let mode = if upright { super::ImageRead::Raster } else { super::ImageRead::Pixels };
+                    let mode = if opt.splash { super::ImageRead::Raster } else { super::ImageRead::Pixels };
                     if let Some(image) = Image::read(objects, id, matrix, opt.limit, mode)? {
-                        let mask = match (upright, image.soft_mask) {
+                        let mask = match (opt.splash, image.soft_mask) {
                             (true, Some(id)) => {
                                 let mask = Image::read(objects, id, matrix, opt.limit, mode)??;
                                 if mask.components != 1 { return None; }
@@ -549,7 +730,7 @@ impl PageSource<'_> {
                             }
                             _ => None,
                         };
-                        bitmap.image(image, mask, ox, oy + ph, sx, upright)?;
+                        bitmap.image(image, mask, ox, oy + ph, sx, opt.splash, opt.limit)?;
                     }
                     return Some(());
                 }

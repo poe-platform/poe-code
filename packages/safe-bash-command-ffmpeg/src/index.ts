@@ -655,11 +655,11 @@ async function applyVideoFilterChain(
       let targetW = evalScaleDim(wSpec, iw, ih);
       let targetH = evalScaleDim(hSpec, iw, ih);
       if (targetW < 0 && targetH > 0) {
-        targetW = Math.max(1, Math.round((iw * targetH) / Math.max(1, ih)));
-        if (wSpec.trim() === "-2" && targetW % 2 !== 0) targetW++;
+        const multiple = wSpec.trim() === "-2" ? 2 : 1;
+        targetW = Math.max(1, Math.round((iw * targetH) / (Math.max(1, ih) * multiple))) * multiple;
       } else if (targetH < 0 && targetW > 0) {
-        targetH = Math.max(1, Math.round((ih * targetW) / Math.max(1, iw)));
-        if (hSpec.trim() === "-2" && targetH % 2 !== 0) targetH++;
+        const multiple = hSpec.trim() === "-2" ? 2 : 1;
+        targetH = Math.max(1, Math.round((ih * targetW) / (Math.max(1, iw) * multiple))) * multiple;
       }
       targetW = Math.max(1, targetW);
       targetH = Math.max(1, targetH);

@@ -840,6 +840,35 @@ describe("native ffmpeg parity", () => {
     });
   }
 
+  for (const [inputWidth, inputHeight, dimension, expected] of [
+    [4, 3, "-2", 2],
+    [5, 3, "-2", 4],
+    [3, 2, "-2", 4],
+    [4, 3, "-1", 3]
+  ] as const) {
+    for (const transpose of [false, true]) {
+      const width = transpose ? inputHeight : inputWidth;
+      const height = transpose ? inputWidth : inputHeight;
+      const scale = transpose ? `2:${dimension}` : `${dimension}:2`;
+      it(`rounds aspect scale ${scale} for ${width}x${height} to the nearest multiple`, async () => {
+        const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+        const input = encodeImage({
+          width, height, channels: 4,
+          data: new Uint8Array(width * height * 4).fill(255),
+          format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const vfs = createTestVfs({ "/input.png": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/input.png", "-vf", `scale=${scale}`, "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = decodeImage(vfs.store.get("/out.png")!);
+        assert.equal(output.width, transpose ? 2 : expected);
+        assert.equal(output.height, transpose ? expected : 2);
+      });
+    }
+  }
+
   for (const [scale, width, height] of [
     ["1:1", 1, 1],
     ["1:3", 1, 3],

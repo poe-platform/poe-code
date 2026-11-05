@@ -62,25 +62,41 @@ pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, 
     for name in ["config.yml", "hosts.yml"] {
         let display = format!("{}/{name}", dir.trim_end_matches('/'));
         let path = resolve_posix_path(cwd, &display);
-        fs.command_descriptor_op()?;
-        let stat = match fs.stat(&path) {
-            Ok(stat) => stat,
-            Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => continue,
-            Err(e) => return Err(e),
-        };
-        if stat.size > remaining {
-            return Err("gh input byte limit exceeded".into());
-        }
-        let bytes = fs.read_file(&path)?;
-        remaining = remaining
-            .checked_sub(bytes.len())
-            .ok_or("gh input byte limit exceeded")?;
-        let invalid = |reason| {
-            let msg = format!("invalid config file {display}: {reason}");
+        let load_error = |msg: String| {
             format!(
                 "warning: failed to load config: {msg}\nfailed to create root command: failed to read configuration: {msg}\n"
             )
         };
+        let io_error = |e: String| {
+            let (op, reason) = match e.split(':').next() {
+                Some("EACCES") => ("open", "permission denied"),
+                Some("EISDIR") => ("read", "is a directory"),
+                Some("ELOOP") => ("open", "too many levels of symbolic links"),
+                Some("ENOTDIR") => ("open", "not a directory"),
+                _ if cfg!(unix) && e.ends_with("(os error 13)") => ("open", "permission denied"),
+                _ if cfg!(unix) && e.ends_with("(os error 21)") => ("read", "is a directory"),
+                _ if cfg!(unix) && e.ends_with("(os error 20)") => ("open", "not a directory"),
+                _ if e.starts_with("Too many levels of symbolic links") => {
+                    ("open", "too many levels of symbolic links")
+                }
+                _ => return e,
+            };
+            load_error(format!("{op} {display}: {reason}"))
+        };
+        fs.command_descriptor_op()?;
+        let stat = match fs.stat(&path) {
+            Ok(stat) => stat,
+            Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => continue,
+            Err(e) => return Err(io_error(e)),
+        };
+        if stat.size > remaining {
+            return Err("gh input byte limit exceeded".into());
+        }
+        let bytes = fs.read_file(&path).map_err(io_error)?;
+        remaining = remaining
+            .checked_sub(bytes.len())
+            .ok_or("gh input byte limit exceeded")?;
+        let invalid = |reason| load_error(format!("invalid config file {display}: {reason}"));
         let text = decode_yaml(bytes).ok_or_else(|| invalid("invalid yaml"))?;
         let source: Vec<_> = text.encode_utf16().collect();
         let doc = scan(&source).map_err(|_| invalid("invalid yaml"))?;

@@ -41,8 +41,13 @@ export async function readGhConfig(context: CommandContext, dir: string) {
     try {
       bytes = await context.fs.readFile(resolvePath(context.cwd, display), { signal: context.signal });
     } catch (error) {
-      if (!isFsError(error) || error.code !== "ENOENT") throw error;
-      continue;
+      if (!isFsError(error)) throw error;
+      if (error.code === "ENOENT") continue;
+      const reason = error.code === "EACCES" ? "permission denied" : error.code === "EISDIR" ? "is a directory" :
+        error.code === "ELOOP" ? "too many levels of symbolic links" : error.code === "ENOTDIR" ? "not a directory" : undefined;
+      if (!reason) throw error;
+      const operation = error.code === "EISDIR" ? "read" : "open";
+      return { values, hosts, hostSource, source, error: `${operation} ${display}: ${reason}` };
     }
     const text = decodeYaml(bytes);
     if (text === undefined) return { values, hosts, hostSource, source, error: `invalid config file ${display}: invalid yaml` };

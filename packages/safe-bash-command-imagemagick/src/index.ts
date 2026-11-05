@@ -6308,7 +6308,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
                 const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
                 await parseStoredCompareInput(token, settings, backend, signal, { visit: async image => {
-                    if (merge) await stack.set(0, await compositeStoredMagick(base, image, backend, signal, 0, 0, "over"));
+                    if (merge) {
+                        const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
+                        await stack.set(0, { ...composed, hasAlpha: base.hasAlpha, channels: base.channels });
+                    }
                     else await stack.push(image);
                 }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) }); return stack;
             });

@@ -6587,6 +6587,31 @@ for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lz
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip reads, relocates and bounds members with ZIP64 central sizes and offsets", async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await fs.writeFile("/first",Uint8Array.of(1));
+    const stdin=Uint8Array.of(0,255,3);
+    const a=await js.exec("zip -q -fz - first -",{stdin});assert.equal(a.exitCode,0,a.stderr);
+    await rust.fs.writeFile("/wide.zip",a.stdoutBytes);
+    const r=await rust.exec("unzip -p wide.zip -- -");assert.equal(r.exitCode,0,r.stderr);assert.deepEqual(r.stdoutBytes,stdin);
+    await rust.fs.writeFile("/first",new Uint8Array(256).fill(9));
+    const updated=await rust.exec("zip -q0 wide.zip first");assert.equal(updated.exitCode,0,updated.stderr);
+    await fs.writeFile("/updated.zip",await rust.fs.readFile("/wide.zip"));
+    const kept=await js.exec("unzip -p updated.zip -- -");assert.equal(kept.exitCode,0,kept.stderr);assert.deepEqual(kept.stdoutBytes,stdin);
+    const archive=Buffer.from(a.stdoutBytes),central=archive.indexOf(Buffer.from("PK\x01\x02","binary"));
+    const extra=central+46+archive.readUInt16LE(central+28);
+    assert.equal(archive.readUInt16LE(extra),1);
+    for(const offset of [extra+4,extra+12,extra+20]){
+      const invalid=Buffer.from(archive);invalid.writeBigUInt64LE(2n**63n,offset);await rust.fs.writeFile("/bad.zip",invalid);
+      const bad=await rust.exec("zip -qm bad.zip first");assert.notEqual(bad.exitCode,0);
+      assert.deepEqual(Buffer.from(await rust.fs.readFile("/bad.zip")),invalid);
+      assert.deepEqual(await rust.fs.readFile("/first"),new Uint8Array(256).fill(9));
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("zip reads a dash member and implicit filter from stdin without moving a literal dash", async () => {
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const rust=new RustWasmBash({cwd:"/"});

@@ -3529,6 +3529,8 @@ pub(super) struct ZipRecord<'a> {
     local: &'a [u8],
     central: &'a [u8],
     descriptor: &'a [u8],
+    offset64: Option<usize>,
+    sizes: (usize,usize),
 }
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
 
@@ -3553,10 +3555,14 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             out.extend_from_slice(record.local);
             let start = central.len();
             central.extend_from_slice(record.central);
-            central[start+42..start+46].copy_from_slice(&(local as u32).to_le_bytes());
+            if let Some(field)=record.offset64 {
+                central[start+field..start+field+8].copy_from_slice(&(local as u64).to_le_bytes());
+            } else {
+                central[start+42..start+46].copy_from_slice(&(local as u32).to_le_bytes());
+            }
             // Named output already knows the sizes. Like the JS writer, put them
             // in the local header and drop any streaming descriptor on plain members.
-            if record.local[18..26] == [255;8] {
+            if record.offset64.is_some() || record.local[18..26].chunks_exact(4).chain(record.central[20..28].chunks_exact(4)).any(|v|v==[255;4]) {
                 out.extend_from_slice(record.descriptor);
                 wide_archive = true;
             } else if record.central[8] & 9 == 9 {
@@ -3569,9 +3575,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
                 out[local+14..local+26].copy_from_slice(&record.central[16..28]);
             }
             let method = u16::from_le_bytes(record.central[10..12].try_into().unwrap());
-            let size = u32::from_le_bytes(record.central[24..28].try_into().unwrap());
-            let stored = u32::from_le_bytes(record.central[20..24].try_into().unwrap());
-            report(&e.name,method,size as usize,stored as usize);
+            report(&e.name,method,record.sizes.0,record.sizes.1);
             count = count.saturating_add(1);
             continue;
         }
@@ -3741,6 +3745,22 @@ struct ZipAes {
     method:u16,
 }
 
+// ZIP64 stores only the fields whose classic values are sentinels, in field order.
+fn zip64_values<const N:usize>(classic:[u32;N],field:Option<&[u8]>,version:u16)->Result<[usize;N],String> {
+    let mut wide=field.unwrap_or_default();
+    let mut values=[0;N];
+    for (value,raw) in values.iter_mut().zip(classic) {
+        *value=if raw!=u32::MAX {raw as usize} else {
+            if version<45 || wide.len()<8 {return Err("ZIP invalid ZIP64 metadata".into());}
+            let n=u64::from_le_bytes(wide[..8].try_into().unwrap());
+            wide=&wide[8..];
+            usize::try_from(n).map_err(|_|"ZIP64 value exceeds address space")?
+        };
+    }
+    if !wide.is_empty(){return Err("ZIP invalid ZIP64 metadata".into());}
+    Ok(values)
+}
+
 fn zip_extra(mut extra:&[u8])->Result<(Option<u64>,Option<ZipAes>,Option<&[u8]>),String> {
     let mut wide=None;
     let mut modified=None;
@@ -3801,6 +3821,7 @@ impl ZipAes {
 }
 
 pub(super) struct ZipMember {
+    offset64: Option<usize>,
     end: usize,
     central: std::ops::Range<usize>,
     local_start: usize,
@@ -3875,7 +3896,7 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     let mut out = Vec::with_capacity(members.len() + usize::from(!comment.is_empty()));
     for member in members {
         let (linkname,content) = if let Some(records) = retained.as_deref_mut() {
-            if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central],descriptor:&data[member.payload.end..member.end]}).is_some() { return Err("ZIP duplicate member name".into()); }
+            if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central],descriptor:&data[member.payload.end..member.end],offset64:member.offset64,sizes:(member.size,member.payload.len())}).is_some() { return Err("ZIP duplicate member name".into()); }
             (String::new(),Vec::new())
         } else {
             let decoded=member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]),None)?;
@@ -3985,7 +4006,13 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         let central_extra = &data[pos + 46 + name_len..pos + 46 + name_len + extra_len];
         pos += 46 + name_len + extra_len + entry_cmt_len;
 
-        let (modified,aes,_)=zip_extra(central_extra)?;
+        let (modified,aes,zip64)=zip_extra(central_extra)?;
+        let version=u16::from_le_bytes(data[central_start+6..central_start+8].try_into().unwrap());
+        let wide_central=comp_size==u32::MAX as usize || uncomp_size==u32::MAX as usize;
+        let offset64=if local_off==u32::MAX as usize {
+            zip64.and_then(|field| (field.as_ptr() as usize - data[central_start..].as_ptr() as usize + field.len()).checked_sub(8))
+        } else {None};
+        let [uncomp_size,comp_size,local_off]=zip64_values([uncomp_size as u32,comp_size as u32,local_off as u32],zip64,version)?;
         let flags=u16::from_le_bytes([data[central_start+8],data[central_start+9]]);
         if flags & (64|0x2000)!=0{return Err("ZIP encryption is unsupported".into());}
         if method==99 && (flags&1==0 || flags & !0x80f!=0 || data[central_start+6..central_start+8]!=[51,0]){
@@ -4023,17 +4050,12 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         if aes.is_some_and(|a|a.method==0) && comp_size-overhead!=uncomp_size{return Err("ZIP AES stored size mismatch".into());}
         if method == 0 && comp_size-usize::from(encrypted)*12 != uncomp_size { return Err("ZIP stored size mismatch".into()); }
         let descriptor = central[8] & 8 != 0;
-        let wide = local[18..26] == [255;8];
-        if wide {
-            let fields=wide_sizes.filter(|f|f.len()==16).ok_or("ZIP invalid ZIP64 local sizes")?;
-            if u16::from_le_bytes(local[4..6].try_into().unwrap())<45
-                || fields.chunks_exact(8).zip([uncomp_size,comp_size]).any(|(v,n)|v!=(n as u64).to_le_bytes() && !(descriptor && v==[0;8])) {
-                return Err("ZIP central/local size or CRC mismatch".into());
-            }
-        }
-        let local_meta=if wide { &local[14..18] } else { &local[14..26] };
-        if local_meta.chunks_exact(4).zip(central[16..28].chunks_exact(4))
-            .any(|(a,b)| a != b && !(descriptor && a == [0;4])) {
+        let raw_size=u32::from_le_bytes(local[22..26].try_into().unwrap());
+        let raw_compressed=u32::from_le_bytes(local[18..22].try_into().unwrap());
+        let wide=wide_central || raw_size==u32::MAX || raw_compressed==u32::MAX;
+        let local_sizes=zip64_values([raw_size,raw_compressed],wide_sizes,version)?;
+        if local_sizes.into_iter().zip([uncomp_size,comp_size]).any(|(a,b)|a!=b && !(descriptor && a==0))
+            || local[14..18]!=central[16..20] && !(descriptor && local[14..18]==[0;4]) {
             return Err("ZIP central/local size or CRC mismatch".into());
         }
         let mut stop = payload_start + comp_size;
@@ -4071,7 +4093,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
             0o644
         };
 
-        out.push(ZipMember { end:stop,name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,lzma_eos:flags&2!=0,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
+        out.push(ZipMember { offset64,end:stop,name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,lzma_eos:flags&2!=0,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
             payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
             typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
         });

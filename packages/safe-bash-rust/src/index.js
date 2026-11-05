@@ -1,23 +1,8 @@
-import fs from "node:fs";
-import { getSystemErrorMap } from "node:util";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { coreModule, callbackModule, posix, fsOperationError } from "#wasm-platform";
 const encoder = new TextEncoder();
 const overlayReceipt = Symbol("overlay observation");
 const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
 function fsErr(code, msg) { const e = new Error(msg); e.code = code; e[FS_ERROR_BRAND] = true; return e; }
-let systemErrors;
-function fsOperationError(text, syscall, path, dest, detail) {
-  const code = text.split(":", 1)[0];
-  systemErrors ??= new Map(Array.from(getSystemErrorMap(), ([errno, [name, description]]) => [name, [errno, description]]));
-  const [errno, description] = systemErrors.get(code) ?? systemErrors.get("EIO");
-  const message = `${code}: ${detail ?? (code === "ENOTSUP" ? "operation not supported" : description)}${syscall === undefined ? "" : ", " + syscall}` + (path === undefined ? "" : ` '${path}'`) + (dest === undefined ? "" : ` -> '${dest}'`);
-  const error = Object.assign(fsErr(code, message), { name: "FsError", errno, syscall, path });
-  if (dest !== undefined) error.dest = dest;
-  return error;
-}
 function readOperationError(text) {
   const codeEnd = text.indexOf(":"), opEnd = text.indexOf(":", codeEnd + 1), detailEnd = text.indexOf(":", opEnd + 1);
   const op = text.slice(codeEnd + 1, opEnd);
@@ -25,20 +10,10 @@ function readOperationError(text) {
 }
 const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 
-let compiledWasmModule = null;
-
 function createWasmInstance() {
-  if (!compiledWasmModule) {
-    let wasmPath = path.join(__dirname, "safe_bash_rust.wasm");
-    if (!fs.existsSync(wasmPath)) {
-      wasmPath = path.join(__dirname, "../dist/safe_bash_rust.wasm");
-    }
-    const bytes = fs.readFileSync(wasmPath);
-    compiledWasmModule = new WebAssembly.Module(bytes);
-  }
   const collators = new Map();
   let zoneName, zoneFormatter;
-  const instance = new WebAssembly.Instance(compiledWasmModule, {
+  const instance = new WebAssembly.Instance(coreModule(), {
     safe_bash: {
       wall_clock_ms: () => Date.now(),
       timezone_fields(ptr, len, seconds, offsetPtr, labelPtr, capacity) {
@@ -113,15 +88,9 @@ export class ShellLimitError extends Error {
 // JSPI preserves the Wasm VM stack. Rust also keeps addressable locals in
 // linear memory. Save that range while awaiting input so another shell can run.
 const streamHosts = new WeakMap();
-let streamAdapter;
 function suspendingCallback(read, resume) {
   // Call read(a,b,c), which may suspend, then resume on the restored Wasm VM stack.
-  streamAdapter ??= new WebAssembly.Module(Uint8Array.of(
-    0,97,115,109,1,0,0,0,1,14,2,96,3,127,127,127,0,96,3,127,127,127,1,127,
-    2,19,2,0,4,114,101,97,100,0,0,0,6,114,101,115,117,109,101,0,1,
-    3,2,1,1,7,8,1,4,110,101,120,116,0,2,10,20,1,18,0,32,0,32,1,32,2,16,0,32,0,32,1,32,2,16,1,11,
-  ));
-  return new WebAssembly.Instance(streamAdapter, {"":{read:new WebAssembly.Suspending(read),resume}}).exports.next;
+  return new WebAssembly.Instance(callbackModule(), {"":{read:new WebAssembly.Suspending(read),resume}}).exports.next;
 }
 
 function streamHost(x) {
@@ -1039,7 +1008,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             if (settings.argv0 !== undefined && (typeof settings.argv0 !== "string" || settings.argv0.includes("\0"))) throw new TypeError("invoke argv0 must be a string without NUL");
             if (settings.admittedHandles || settings.processSignals) throw new Error("Unsupported child process capabilities");
             const carrier = commandContract.getCommandArguments({args,argumentValues:settings.argumentValues});
-            const childCwd = proceed === undefined ? path.posix.resolve("/",context.cwd,settings.cwd ?? ".") : settings.cwd;
+            const childCwd = proceed === undefined ? posix.resolve("/",context.cwd,settings.cwd ?? ".") : settings.cwd;
             const entries = Object.entries(proceed !== undefined || settings.replaceEnv ? settings.env ?? {}
               : {...context.env,...settings.env,PWD:childCwd});
             if (entries.some(([k,v])=>k.includes("\0") || k.includes("=") || typeof v !== "string" || v.includes("\0"))) throw new TypeError(proceed === undefined ? "Invalid invoke environment entry" : "Invalid middleware environment value");
@@ -1147,7 +1116,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const pending = definition ? definition.execute(context)
             : composeMiddleware(middleware,async forwarded=>{
               const {command:name,args,argumentValues:values,argv0} = forwarded;
-              const handler = terminals.get(path.posix.basename(name));
+              const handler = terminals.get(posix.basename(name));
               const result = await invoke(name,args,{argumentValues:values,cwd:forwarded.cwd,env:forwarded.env},handler?.name ?? "");
               if (result !== undefined) return result;
               return handler.execute(handler.name===name ? forwarded : {...forwarded,command:handler.name,argv0:argv0 ?? name});
@@ -2106,7 +2075,7 @@ export class RustWasmBash extends WasmShell {
   #scopeKeys = new WeakMap();
   #overlayReceipts = new WeakMap();
   #overlay = false;
-  #releasedScopes = new FinalizationRegistry(scope => {
+  #releasedScopes = typeof FinalizationRegistry === "function" && typeof WeakRef === "function" && new FinalizationRegistry(scope => {
     if (!this.#identityScopes.get(scope)?.deref()) this.#identityScopes.delete(scope);
   });
   constructor(options = {}) {
@@ -2154,7 +2123,7 @@ export class RustWasmBash extends WasmShell {
     }
     if (options.symlinks) {
       for (const [linkPath, target] of Object.entries(options.symlinks)) {
-        this.mkdirAll(path.posix.dirname(linkPath));
+        this.mkdirAll(posix.dirname(linkPath));
         this.symlink(target, linkPath);
       }
     }
@@ -2454,11 +2423,11 @@ export class RustWasmBash extends WasmShell {
     if (guard !== undefined && typeof guard !== "function") fail("EINVAL");
     let last = "";
     const entries = ancestors.map(({path: p, stat}, i) => {
-      if (stat.type !== "directory" || (i === 0 ? p !== "/" : p === "/" || path.posix.dirname(p) !== last)) fail("EINVAL");
+      if (stat.type !== "directory" || (i === 0 ? p !== "/" : p === "/" || posix.dirname(p) !== last)) fail("EINVAL");
       last = p;
       return stat;
     });
-    if (last !== path.posix.dirname(filePath)) fail("EINVAL");
+    if (last !== posix.dirname(filePath)) fail("EINVAL");
     entries.push(parent, expected);
     if (this.#overlay && (!Number.isInteger(mode) || mode < 0 || mode > 0o7777)) throw fsOperationError("EINVAL","overlay",filePath);
     const packed = this.#overlay ? new Uint8Array(entries.length*48) : new Float64Array(entries.length * 9);
@@ -2581,12 +2550,13 @@ export class RustWasmBash extends WasmShell {
       // Memory filesystems report dev 0. Keep their identity scopes distinct,
       // including synthetic device mounts and logical overlay directories.
       const key = identityLength >= 100 ? view.getBigUint64(92, true) : ~view.getBigUint64(76, true);
-      identityScope = this.#identityScopes.get(key)?.deref();
+      const retained = this.#identityScopes.get(key);
+      identityScope = this.#releasedScopes ? retained?.deref() : retained;
       if (!identityScope) {
         identityScope = Symbol("Wasm filesystem identity");
-        this.#identityScopes.set(key, new WeakRef(identityScope));
+        this.#identityScopes.set(key, this.#releasedScopes ? new WeakRef(identityScope) : identityScope);
         this.#scopeKeys.set(identityScope,key);
-        this.#releasedScopes.register(identityScope, key);
+        if (this.#releasedScopes) this.#releasedScopes.register(identityScope, key);
       }
     }
     return {

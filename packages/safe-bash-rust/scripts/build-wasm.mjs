@@ -1,6 +1,8 @@
+import { build } from "esbuild";
+import { adapterBytes } from "../src/stream-adapter.js";
 import { resolveCargoTargetDirectory } from "../../mcp-protocol-rust/scripts/cargo-target.mjs";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -40,7 +42,15 @@ const wasmSrc = path.join(
   "safe_bash_rust.wasm",
 );
 copyFileSync(wasmSrc, path.join(distDir, "safe_bash_rust.wasm"));
-copyFileSync(path.join(pkgDir, "src", "index.js"), path.join(distDir, "index.js"));
+for (const file of ["index.js", "node-platform.js", "stream-adapter.js"]) {
+  copyFileSync(path.join(pkgDir, "src", file), path.join(distDir, file));
+}
+writeFileSync(path.join(distDir, "stream-adapter.wasm"), adapterBytes);
+await build({
+  entryPoints: [path.join(pkgDir, "src/index.js")], outfile: path.join(distDir, "workerd.js"),
+  bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", target: "es2022",
+  external: ["*.wasm"],
+});
 copyFileSync(path.join(pkgDir, "src", "index.d.ts"), path.join(distDir, "index.d.ts"));
 copyFileSync(path.join(pkgDir, "LICENSE.UNICODE"), path.join(distDir, "LICENSE.UNICODE"));
 copyFileSync(path.join(pkgDir, "LICENSE.BZIP2"), path.join(distDir, "LICENSE.BZIP2"));

@@ -10,7 +10,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "workerd": null,
+      "workerd": "./dist/workerd.js",
       "browser": null,
       "node": "./dist/index.js",
       "default": "./dist/index.js"
@@ -20,7 +20,8 @@
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && node scripts/build-wasm.mjs",
     "test": "node ../mcp-protocol-rust/scripts/cargo.mjs test && node --test src/wasm.test.mjs",
     "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && node --test src/wasm.test.mjs",
-    "lint": "cargo clippy --all-targets -- -D warnings"
+    "lint": "cargo clippy --all-targets -- -D warnings",
+    "test:workerd": "workerd test tests/workerd/config.capnp"
   },
   "dependencies": {},
   "peerDependencies": {
@@ -35,11 +36,19 @@
     "@poe-code/config-mutations-rust": "*",
     "@poe-code/safe-fs": "*",
     "@poe-platform/safe-bash": "*",
-    "mcp-protocol-rust": "*"
+    "esbuild": "0.28.1",
+    "mcp-protocol-rust": "*",
+    "workerd": "1.20260708.1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/safe-bash-rust"
+  },
+  "imports": {
+    "#wasm-platform": {
+      "workerd": "./src/workerd-platform.js",
+      "default": "./dist/node-platform.js"
+    }
   }
 }

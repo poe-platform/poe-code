@@ -1193,7 +1193,7 @@ function* executeQpdfCli(
           if (showEncryption && !check && !showNpages && err instanceof PdfPasswordError) {
             return { exitCode: 0, stdout: encryptionReport(err), stderr: "" };
           }
-          const msg = err instanceof Error ? err.message : String(err);
+          const msg = err instanceof PdfPasswordError ? "invalid password" : err instanceof Error ? err.message : String(err);
           return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile}: ${msg}\n` };
         }
       }

@@ -37,16 +37,19 @@ for (const mode of ["--show-encryption", "--check"]) for (const fixture of fixtu
   });
 }
 
-for (const password of [undefined, "wrong"]) {
-  it(`still rejects content access with ${password} password`, async () => {
+for (const operation of ["--check", "--decrypt"]) for (const password of [undefined, "wrong"]) {
+  it(`matches native ${operation} rejection with ${password} password`, async () => {
     const fixture = fixtures.cases.find(item => item.name === "r6")!;
     const input = new Uint8Array(Buffer.from(fixture.pdf, "base64"));
-    const args = [...(password === undefined ? [] : [`--password=${password}`]), "--decrypt", "/in.pdf", "/out.pdf"];
+    const options = [...(password === undefined ? [] : [`--password=${password}`]), operation];
+    // Compared with native qpdf using the same r6 fixture and options.
+    const expectedError = "qpdf: /in.pdf: invalid password\n";
+    const args = [...options, "/in.pdf", ...(operation === "--decrypt" ? ["/out.pdf"] : [])];
     for (const run of [runQpdfCli, runQpdfCliSync]) {
       const result = await run(args, new Map([["/in.pdf", input]]));
       assert.equal(result.exitCode, 2);
       assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "qpdf: /in.pdf: Invalid PDF password\n");
+      assert.equal(result.stderr, expectedError);
     }
     const fs = createMemoryFileSystem();
     await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
@@ -55,7 +58,7 @@ for (const password of [undefined, "wrong"]) {
       stdin: (async function* () {})(), stdout: { async write(bytes: Uint8Array) { output.push(bytes); } }, stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } } });
     assert.equal(result.exitCode, 2);
     assert.equal(Buffer.concat(output).toString(), "");
-    assert.equal(Buffer.concat(errors).toString(), "qpdf: /in.pdf: Invalid PDF password\n");
+    assert.equal(Buffer.concat(errors).toString(), expectedError);
     await assert.rejects(fs.stat("/out.pdf"), { code: "ENOENT" });
     assert.deepEqual(await fs.readFile("/in.pdf"), input);
     assert.deepEqual(await fs.readdir("/scratch"), []);

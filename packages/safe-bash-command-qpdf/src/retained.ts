@@ -183,7 +183,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         return { exitCode: 0 };
       }
       if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
-      return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
+      return await diagnostic(`qpdf: ${inputName}: ${error instanceof PdfPasswordError ? "invalid password" : error.message}\n`);
     }
     if (options.updateFromJsonFiles.length) {
       jsonDocument = await QpdfJsonDocument.fromDocument(document, source, storage, { signal });

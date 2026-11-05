@@ -6,6 +6,24 @@ import { createMagickCommand, runConvertCli, runConvertCliSync, runMagickCli } f
 
 // ImageMagick 7.1.2-31 Q16-HDRI, RGBA [100,150,200,160], -depth 8 rgba:-.
 for (const mode of ["buffered", "retained", "sync"] as const) {
+  for (const channel of [[], ["-channel", "None"]]) {
+    it.each(["Bogus", "Absolute"])(`${mode}: rejects %s with channels ${channel.join(" ")} before writing output`, async (operation) => {
+      const bytes = await sharp(new Uint8Array([100, 150, 200, 255]), {
+        raw: { width: 1, height: 1, channels: 4 },
+      }).png().toBuffer();
+      const files = new Map([["/in.png", bytes]]);
+      const filesystem = createMemoryFileSystem();
+      await filesystem.writeFile("/in.png", bytes);
+      const args = ["/in.png", ...channel, "-evaluate", operation, "2", "/out.png"];
+      const result = mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain(`unrecognized evaluate operator '-evaluate' '${operation}'`);
+      expect(files.has("/out.png")).toBe(false);
+      await expect(filesystem.readFile("/out.png")).rejects.toMatchObject({ code: "ENOENT" });
+    });
+  }
+
   // ImageMagick 7.1.2-32: aliases evaluate every default channel, including alpha.
   it.each([
     ["Sin", [245, 3, 195, 126]],

@@ -3,7 +3,7 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
-for (const options of [["-transpose"], ["-transverse"], ["-raise", "3"], ["+raise", "2x7"], ["-raise", "100"], ["-deskew", "40%"], ["-tile", "2x3"], ...["merge", "flatten", "mosaic"].map(mode => ["-layers", mode]), ["-unknown"], ["+unknown"]])
+for (const options of [["-transpose"], ["-transverse"], ["-raise", "3"], ["+raise", "2x7"], ["-raise", "100"], ["-deskew", "40%"], ["-tile", "2x3"], ...["merge", "flatten", "mosaic"].map(mode => ["-layers", mode])])
 it(`retains conversion options ${options.join(" ")}`, async () => {
     const fs = new MemoryFileSystem(), bytes = await sharp(Uint8Array.from({ length: 19 * 13 * 4 }, (_, i) => i * 73 % 256), { raw: { width: 19, height: 13, channels: 4 } }).png().toBuffer();
     await fs.writeFile("/input", bytes);

@@ -1475,14 +1475,13 @@ function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: n
     return { ...img, data: out, hasAlpha: true };
 }
 
-function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string, channels: {
+function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, channels: {
     r: boolean;
     g: boolean;
     b: boolean;
     a: boolean;
 }, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const op = opRaw.toLowerCase().replace(/[-_]/g, "");
     const isPct = valStr.trim().endsWith("%");
     const rawNum = parseFloat(valStr);
     const vByte = isPct
@@ -4565,7 +4564,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const target = parseColor(tokens[++i] ?? "#ffffff");
         apply = image => applyMagickTransparentSteps(image, target, state.alphaFuzz, token === "+transparent", signal);
     } else if (token === "-evaluate") {
-        const operation = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
+        const operationRaw = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
+        const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
+        if (!["add", "addmodulus", "mean", "subtract", "multiply", "divide", "pow", "log", "set", "min", "max",
+            "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
+            "threshold", "thresholdblack", "thresholdwhite"].includes(operation)) {
+            throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
+        }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickEvaluateSteps(image, operation, value, channels, signal);
     } else if (token === "-function") {

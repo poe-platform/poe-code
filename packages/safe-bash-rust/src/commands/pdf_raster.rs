@@ -156,6 +156,7 @@ fn clip_coverage(row: &Option<ClipRow>, x: usize) -> u8 {
 
 struct Bitmap {
     form_clips: Vec<[Point; 4]>,
+    clip_antialias: bool,
     white_background: bool,
     w: usize,
     h: usize,
@@ -168,6 +169,8 @@ impl Bitmap {
             return Some(None);
         }
         self.work = self.work.checked_sub(16 * self.form_clips.len())?;
+        let samples = if self.clip_antialias { 4 } else { 1 };
+        let scale = samples as f64;
         let mut spans = [(f64::NEG_INFINITY, f64::INFINITY); 4];
         let mut inside_span = span.is_some_and(|(lo, hi)| lo >= 0. && hi <= self.w as f64);
         for quad in &self.form_clips {
@@ -182,18 +185,22 @@ impl Bitmap {
                         && y >= a[1].min(c[1])
                         && y + 1. <= a[1].max(c[1])
                 });
-                for (lo, hi) in &mut spans {
-                    *lo = lo.max((4. * a[0].min(c[0])).floor());
+                for (lo, hi) in &mut spans[..samples] {
+                    *lo = lo.max((scale * a[0].min(c[0])).floor());
                     *hi = if inside {
-                        hi.min((4. * a[0].max(c[0])).floor())
+                        hi.min(if self.clip_antialias {
+                            (scale * a[0].max(c[0])).floor()
+                        } else {
+                            a[0].max(c[0]).ceil() - 1.
+                        })
                     } else {
                         f64::NEG_INFINITY
                     };
                 }
             } else {
-                for (i, (lo, hi)) in spans.iter_mut().enumerate() {
-                    let y0 = y as f64 + i as f64 / 4.;
-                    let y1 = y0 + 0.25;
+                for (i, (lo, hi)) in spans[..samples].iter_mut().enumerate() {
+                    let y0 = y as f64 + i as f64 / scale;
+                    let y1 = y0 + 1. / scale;
                     let (mut left, mut right) = (f64::INFINITY, f64::NEG_INFINITY);
                     for (p, q) in [(a, b), (b, c), (c, d), (d, a)] {
                         if p[1].max(q[1]) < y0 || p[1].min(q[1]) >= y1 {
@@ -213,13 +220,18 @@ impl Bitmap {
                     // Splash tests the first subscanline before antialiasing a transformed image span.
                     if i == 0 {
                         inside_span &= span.is_some_and(|(s, e)| {
-                            4. * s >= (4. * left).floor() && 4. * e - 1. <= (4. * right).floor()
+                            scale * s >= (scale * left).floor()
+                                && scale * e - 1. <= (scale * right).floor()
                         });
                     }
-                    *lo = lo.max((4. * left).floor());
-                    *hi = hi.min((4. * right).floor());
+                    *lo = lo.max((scale * left).floor());
+                    *hi = hi.min((scale * right).floor());
                 }
             }
+        }
+        if samples == 1 {
+            let (lo, hi) = spans[0];
+            spans.fill((lo * 4., hi * 4. + 3.));
         }
         Some((!inside_span).then_some(spans))
     }
@@ -792,6 +804,7 @@ impl PageSource<'_> {
         }
         let mut bitmap = Bitmap {
             form_clips: vec![],
+            clip_antialias: opt.antialias,
             white_background: !opt.transparent,
             w,
             h,

@@ -16761,14 +16761,16 @@ mod media_unit_tests {
         assert_eq!(cols, [["7","18","12"], ["8","12","18"], ["7","18","24"], ["8","24","18"], ["9","72","72"]]);
         // Poppler 24.02: the inherited /F reference is recursive and is skipped;
         // the second page-level invocation must still replay both nested placements.
-        for (matrix, bbox, dpi, digest) in [
-            ("2 0 0 1 1 2", "0 0 8 8", "72", "8087f065c7fef3024a3b4a2746a16be0f4de30b9fb1905168f39f2d0ab0dc0e3"),
-            ("2 0 0 1 1 2", "0.3 0.5 3.5 3", "144", "addbb46601d2b49c1cc3b9d7d5d9bbc14209c1e3d775d55b705bc7ab2200c038"),
-            ("2 0.3 0.1 1 1 2", "0 0 4 3", "144", "e3fecb183c6a914c53c3717cc7aa62156b8354783b32c073dcb04d02fbd3d604"),
-            ("1 1 -1 1 5 2", "0 0 5 3", "144", "0b906f528e5fe6dd3dd48e973356f89f4a4a8b4b231a0ec63d24c43d852425fe"),
+        for (matrix, bbox, dpi, aa, digest) in [
+            ("2 0 0 1 1 2", "0 0 8 8", "72", "yes", "8087f065c7fef3024a3b4a2746a16be0f4de30b9fb1905168f39f2d0ab0dc0e3"),
+            ("2 0 0 1 1 2", "0.3 0.5 3.5 3", "144", "yes", "addbb46601d2b49c1cc3b9d7d5d9bbc14209c1e3d775d55b705bc7ab2200c038"),
+            ("2 0.3 0.1 1 1 2", "0 0 4 3", "144", "yes", "e3fecb183c6a914c53c3717cc7aa62156b8354783b32c073dcb04d02fbd3d604"),
+            ("1 1 -1 1 5 2", "0 0 5 3", "144", "yes", "0b906f528e5fe6dd3dd48e973356f89f4a4a8b4b231a0ec63d24c43d852425fe"),
+            ("2 0 0 1 1 2", "0 0 8 8", "72", "no", "3cc3c5e62908a162e5ec31470bb0b52a7378355ab86968feaf9401df562f618a"),
+            ("2 0.3 0.1 1 1 2", "0 0 4 3", "144", "no", "c6abbdeb68a7a1ead335ab17eb13fe05ee4e3ced3d3b0c10024bebe4c3ac73af"),
         ] {
             fs.write_file("/forms.pdf", make(matrix, bbox).as_bytes()).unwrap();
-            let r = run("pdftoppm", &["-r", dpi, "-singlefile", "forms.pdf", "forms"]);
+            let r = run("pdftoppm", &["-r", dpi, "-aaVector", aa, "-singlefile", "forms.pdf", "forms"]);
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/forms.ppm").unwrap())), digest, "{matrix}");
         }

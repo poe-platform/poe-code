@@ -4,6 +4,37 @@ import {convert, convertToOutput} from "./engine.js";
 import {createPandocCommand} from "./command.js";
 
 for (const retained of [false, true]) {
+  it.each([
+    ["markdown", false],
+    ["md", false],
+    ["markdown+autolink_bare_uris", true],
+    ["md+autolink_bare_uris", true],
+    ["markdown+autolink_bare_uris-autolink_bare_uris", false],
+    ["gfm", true],
+    ["gfm-autolink_bare_uris", false]
+  ])(`uses the bare-link default and overrides for %s (retained=${retained})`, async (from, links) => {
+    const input = {bytes: new TextEncoder().encode("Visit https://example.com and me@example.org.\n")};
+    let output = "";
+    if (retained) await convertToOutput([input], {from, to: "json"}, {
+      workingFiles: {fs: new MemoryFileSystem(), directory: "/", cacheBytes: 16384},
+      output: {async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+    });
+    else {
+      const result = await convert([input], {from, to: "json"}, {});
+      if (result.kind !== "text") throw new Error("Expected text");
+      output = result.text;
+    }
+    const nodes = JSON.parse(output).blocks[0].c;
+    if (links) {
+      expect(nodes.filter((node: {t: string}) => node.t === "Link").map((node: {c: unknown[]}) => node.c[2])).toEqual([
+        ["https://example.com", ""], ["mailto:me@example.org", ""]
+      ]);
+    } else expect(nodes).toEqual([
+      {t: "Str", c: "Visit"}, {t: "Space"},
+      {t: "Str", c: "https://example.com"}, {t: "Space"},
+      {t: "Str", c: "and"}, {t: "Space"}, {t: "Str", c: "me@example.org."}
+    ]);
+  });
   for (const from of ["markdown", "md", "markdown-autolink_bare_uris", "commonmark", "gfm"]) {
     it(`preserves autolink attributes for ${from} (retained=${retained})`, async () => {
       const input = {bytes: new TextEncoder().encode("<https://example.com> <a@example.com> [ordinary](https://example.com)\n")};

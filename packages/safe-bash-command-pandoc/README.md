@@ -62,6 +62,8 @@ checkboxes or text checkbox symbols in LaTeX, reStructuredText, RTF and CommonMa
 compatibility names use the documented engine features; they do not enable
 additional dialect-specific extensions, except that `markdown` and `md` output preserve
 alphabetic and Roman ordered-list numbering (disable with `-fancy_lists`).
+The `markdown` and `md` readers keep bare URLs and email addresses as text;
+enable links with `+autolink_bare_uris` or use `gfm`. Angle-bracket links remain supported.
 The `markdown` and `md` readers apply smart quotes, dashes, and ellipses; disable
 this with `-f markdown-smart`. Code and escaped punctuation remain literal.
 The `markdown` and `md` writers preserve citations such as `[@doe2020, p. 4]`,

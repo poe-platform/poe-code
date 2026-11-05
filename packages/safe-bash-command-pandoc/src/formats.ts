@@ -131,7 +131,10 @@ export function createFormatRegistry(
     if (name === "markdown" || name === "md") {
       extensions.tex_math_dollars = true;
       extensions.raw_attribute = true;
-      if (selectedDirection === "read") extensions.raw_tex = true;
+      if (selectedDirection === "read") {
+        extensions.raw_tex = true;
+        extensions.autolink_bare_uris = false;
+      }
     }
     while (cursor < source.length) {
       const enabled = source[cursor++] === "+";

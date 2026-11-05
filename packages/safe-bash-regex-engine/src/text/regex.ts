@@ -573,6 +573,10 @@ export class Pattern {
         const accepts = propertyEscape();
         if (accepts) return { type: "character", accepts };
         const reference = source[offset];
+        if (dialect === "jq" && (reference === "A" || reference === "z" || reference === "Z")) {
+          offset++;
+          return reference === "A" ? { type: "begin" } : { type: "end", strict: reference === "z" };
+        }
         if ((dialect === "sed" || dialect === "jq") && reference !== undefined && /^[1-9]$/u.test(reference)) {
           const index = Number(reference);
           if (!closedGroups.has(index)) throw new ProgramError("pattern references an undefined or open capture group");

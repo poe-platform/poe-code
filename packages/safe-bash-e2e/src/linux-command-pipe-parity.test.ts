@@ -5,25 +5,24 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, pandocWordSample, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("native Pandoc recovers headings, formatting, code and links from DOCX exports", async () => {
   const pandoc = nativePandoc();
-  const markdown = "## Report\n\n**Bold** & *italic*, ~~old~~, `a < b`, [link](https://example.com/?a=1&b=2).\n";
   const options = ["-f", "gfm", "-t", "docx"];
   const decode = async (bytes: Uint8Array) => {
     const [status, json, error] = await runLinuxCommand(pandoc, ["-f", "docx", "-t", "json"], bytes);
     assert.equal(status, 0, error.toString());
     return JSON.parse(json.toString());
   };
-  const [status, docx, error] = await runLinuxCommand(pandoc, options, markdown);
+  const [status, docx, error] = await runLinuxCommand(pandoc, options, pandocWordSample);
   assert.equal(status, 0, error.toString());
   const expected = await decode(docx);
   const ts = await SafeBashE2EHarness.create({backend: "typescript"});
   const rust = new RustWasmBash({forceNative: true});
   try {
     for (const shell of [ts.shell, rust]) {
-      const result = await shell.exec("pandoc " + options.join(" "), {stdin: markdown});
+      const result = await shell.exec("pandoc " + options.join(" "), {stdin: pandocWordSample});
       assert.equal(result.exitCode, 0, result.stderr);
       assert.deepEqual(await decode(result.stdoutBytes), expected, shell.constructor.name);
     }

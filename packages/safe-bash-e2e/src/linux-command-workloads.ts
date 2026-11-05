@@ -173,6 +173,8 @@ const textCommands = ([
   cmd, args, script: [cmd, ...args.map(arg => "'" + arg.replaceAll("'", "'\\''") + "'")].join(" ")
 }));
 
+export const pandocWordSample = "## Report\n\n**Bold** & *italic*, ~~old~~, `a < b`, [link](https://example.com/?a=1&b=2).\n";
+
 export function nativePandoc() {
   const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
   const pandocVersion = execFileSync(pandoc, ["--version"], { encoding: "utf8" }).split("\n")[0];

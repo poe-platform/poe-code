@@ -3,7 +3,7 @@ import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness } from "./harness.js";
-import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, pandocWordSample, linuxEnv, linuxMutations, observeMutation, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -79,7 +79,7 @@ async function main(): Promise<void> {
     let cwd: string | undefined;
     try {
       cwd = await createLinuxCommandDirectory(ts.fs, rust.fs);
-      const workloads: { cmd: string; args: readonly string[]; script: string; input: string | Buffer; decoder?: string; mutation?: boolean }[] =
+      const workloads: { cmd: string; args: readonly string[]; script: string; input: string | Buffer; decoder?: { cmd: string; args: string[]; content: Buffer }; mutation?: boolean }[] =
         [...linuxCommands(text), ...linuxMutations];
       // GnuPG's binary re-export of a public-only safe-bash Ed25519 certificate.
       // Load identical packets in all three keyrings before measuring read-only exports.
@@ -94,11 +94,20 @@ async function main(): Promise<void> {
         }
         workloads.push({ cmd: "gpg", args: [...gpgOptions, "--export", selector], script: "gpg --export " + selector, input: "" });
       }
+      const pandoc = nativePandoc();
+      const writeDocx = ["-f", "gfm", "-t", "docx"];
+      const readDocx = ["-f", "docx", "-t", "json"];
+      const [exportCode, docx, exportError] = await runLinuxCommand(pandoc, writeDocx, pandocWordSample);
+      assert.equal(exportCode, 0, exportError.toString());
+      const [readCode, content, readError] = await runLinuxCommand(pandoc, readDocx, docx);
+      assert.equal(readCode, 0, readError.toString());
+      workloads.push({cmd: pandoc, args: writeDocx, script: "pandoc -f gfm -t docx", input: pandocWordSample,
+        decoder: {cmd: pandoc, args: readDocx, content}});
       const binary = codecInput();
       for (const [compress, decompress, cat] of linuxCodecs) {
         const [status, packed, errors] = await runLinuxCommand(compress, ["-c"], binary);
         assert.equal(status, 0, errors.toString());
-        workloads.push({ cmd: compress, args: ["-c"], script: compress + " -c", input: binary, decoder: decompress });
+        workloads.push({ cmd: compress, args: ["-c"], script: compress + " -c", input: binary, decoder: {cmd: decompress, args: ["-c"], content: binary} });
         for (const cmd of [decompress, cat]) workloads.push({ cmd, args: ["-c"], script: cmd + " -c", input: packed });
       }
       console.log(`Median milliseconds, ${iterations} samples after ${warmup} warmups.`);
@@ -139,8 +148,8 @@ async function main(): Promise<void> {
             } else if (decoder) {
               assert.equal(observed[0], expected[0], script);
               assert.deepEqual(observed[2], expected[2], script);
-              const decoded = await runLinuxCommand(decoder, ["-c"], observed[1]);
-              assert.deepEqual(decoded, [0, binary, Buffer.alloc(0)], script);
+              const decoded = await runLinuxCommand(decoder.cmd, decoder.args, observed[1]);
+              assert.deepEqual(decoded, [0, decoder.content, Buffer.alloc(0)], script);
             } else {
               assert.deepEqual(observed, expected, script);
             }

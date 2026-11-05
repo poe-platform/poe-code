@@ -386,9 +386,23 @@ async function saveKeyring(context: CommandContext, keys: StoredGpgKey[], previo
   });
 }
 
-async function ensureKeyForUid(context: CommandContext, uid: string): Promise<StoredGpgKey> {
+async function matchesSelectors(key: StoredGpgKey, queries: readonly string[], fingerprint?: string) {
+  for (const value of queries) {
+    const id = value.replace(/^0x/iu, "").replace(/!$/u, "").toUpperCase();
+    if (/^(?:[A-F0-9]{8}|[A-F0-9]{16}|[A-F0-9]{40})$/u.test(id)) {
+      if (id.length === 40) {
+        if (!key.certHex && !key.seedHex) continue;
+        fingerprint ??= bytesToHex((await certificate(key)).fp).toUpperCase();
+        if (fingerprint === id) return true;
+      } else if (key.keyIdHex.toUpperCase().endsWith(id)) return true;
+    } else if (value && key.uid.toLowerCase().includes(value.toLowerCase())) return true;
+  }
+  return !queries.length;
+}
+
+async function generateKey(context: CommandContext, uid: string): Promise<StoredGpgKey> {
   const keys = await loadKeyring(context);
-  const found = keys.find(k => k.uid.includes(uid) || k.keyIdHex.endsWith(uid.toUpperCase()));
+  const found = keys.find(k => k.uid === uid);
   if (found) {
     if (!found.seedHex || !/^[0-9a-f]{64}$/iu.test(found.seedHex)) throw new PublicDiagnostic("No secret key");
     return found;
@@ -481,7 +495,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       let passphrase: string | undefined;
       let passphraseFile: string | undefined;
       let passphraseFd: string | undefined;
-      let signerUid = "Git User <user@example.com>";
+      let signerUid: string | undefined;
       let statusFd: string | undefined;
       let outFile: string | undefined;
       const positionals: string[] = [];
@@ -588,8 +602,8 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         }
 
         if (quickGenKey) {
-          const uid = positionals[0] ?? signerUid;
-          const key = await ensureKeyForUid(context, uid);
+          const uid = positionals[0] ?? signerUid ?? "Git User <user@example.com>";
+          const key = await generateKey(context, uid);
           await writeText(context.stdout, `pub   ed25519/${key.keyIdHex} 2026-09-28 [SC]\nuid                 [ultimate] ${key.uid}\n`);
           return { exitCode: 0 };
         }
@@ -601,7 +615,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
             if (listSecret && !k.seedHex) continue;
             const cert = k.certHex || k.seedHex ? await certificate(k) : undefined;
             const fp = cert ? bytesToHex(cert.fp).toUpperCase() : "";
-            if (positionals.length && !positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase()) || fp === q.toUpperCase())) continue;
+            if (!await matchesSelectors(k, positionals, fp)) continue;
             const expired = cert?.expires !== undefined && cert.expires <= Date.now() / 1000;
             const kind = listSecret ? "sec" : "pub";
             const validity = expired ? "e" : k.seedHex ? "u" : "-";
@@ -623,7 +637,10 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         }
 
         if (exportKeys) {
-          const keys = (await loadKeyring(context)).filter(k => !positionals.length || positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())));
+          const keys = [];
+          for (const k of await loadKeyring(context)) {
+            if (await matchesSelectors(k, positionals)) keys.push(k);
+          }
           if (!keys.length) {
             if (!quiet) await writeText(context.stderr, "gpg: WARNING: nothing exported\n");
             return { exitCode: 0 };
@@ -667,7 +684,15 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           const payload = positionals[0]
             ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
-          const key = await ensureKeyForUid(context, signerUid);
+          let key: StoredGpgKey | undefined;
+          for (const k of await loadKeyring(context)) {
+            if (k.seedHex && (signerUid === undefined || await matchesSelectors(k, [signerUid]))) { key = k; break; }
+          }
+          if (!key) {
+            const who = signerUid === undefined ? "no default secret key" : `skipped "${signerUid}"`;
+            await writeText(context.stderr, `gpg: ${who}: No secret key\ngpg: signing failed: No secret key\n`);
+            return { exitCode: 2 };
+          }
           const cert = await certificate(key);
           const time = Math.floor(Date.now() / 1000);
           const signature = armorPacket("SIGNATURE", await sign(0, cert.fp, time, await privateKey(key), payload));

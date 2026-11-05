@@ -314,6 +314,17 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
     const home = dir + "/gnupg";
     await mkdir(home, { mode: 0o700 });
     const options = ["--no-options", "--no-autostart", "--batch", "--homedir", home];
+    const missingArgs = ["--detach-sign", "-u", "missing-signer", "-o", "missing.sig"];
+    const missing = await runLinuxCommand("gpg", [...options, ...missingArgs], "data", dir);
+    assert.equal(missing[0], 2);
+    for (const [shell, fs] of [[rust, rust.fs], [ts.shell, ts.fs]] as const) {
+      const noKey = await shell.exec("gpg " + missingArgs.join(" "), { stdin: "data" });
+      assert.equal(noKey.exitCode, missing[0]);
+      assert.equal(noKey.stdout, "");
+      assert.match(noKey.stderr, /No secret key/);
+      await assert.rejects(fs.stat("/workspace/missing.sig"), { code: "ENOENT" });
+      await assert.rejects(fs.stat("/home/user/.gnupg/keyring.json"), { code: "ENOENT" });
+    }
     for (const [shell, peer, who] of [[rust, ts.shell, "rust"], [ts.shell, rust, "typescript"]] as const) {
       const uid = `Parity ${who} <${who}@example.org>`;
       const generated = await shell.exec(`gpg --quick-generate-key '${uid}' ed25519 sign 0`);
@@ -341,6 +352,12 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
         assert.equal(imported[0], 0, imported[2].toString());
         assert.match(imported[1].toString(), /IMPORT_OK \d+ [A-F0-9]{40}/);
         const fingerprint = /IMPORT_OK \d+ ([A-F0-9]{40})/.exec(imported[1].toString())![1]!;
+        const selected = "0x" + fingerprint.toLowerCase();
+        const byFingerprint = await shell.exec("gpg " + flags + " --export " + selected);
+        assert.deepEqual(byFingerprint.stdoutBytes, cert.stdoutBytes);
+        const byId = await shell.exec("gpg -a --status-fd=2 -u " + selected + " --detach-sign", { stdin: payload });
+        assert.equal(byId.exitCode, 0, byId.stderr);
+        assert.ok(byId.stderr.trimEnd().endsWith(" " + fingerprint));
         const reexported = await runLinuxCommand("gpg", [...options, "--export", fingerprint], "", dir);
         assert.equal(reexported[0], 0, reexported[2].toString());
         const importedAgain = await peer.exec("gpg --import", { stdin: reexported[1] });

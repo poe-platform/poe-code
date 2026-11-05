@@ -16154,6 +16154,7 @@ test("GPG public key transfer permits verification but cannot grant signing auth
     () => new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands()).use(gpgCommands({replace:true}))]) {
     const owner = make(), recipient = make(), independent = make();
     try {
+      assert.equal((await owner.exec("gpg --quick-generate-key signer")).exitCode, 0);
       const signed = await owner.exec("printf data | gpg --detach-sign -u signer");
       assert.equal(signed.exitCode, 0, signed.stderr);
       const exported = await owner.exec("gpg --armor --export signer");

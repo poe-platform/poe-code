@@ -385,7 +385,8 @@ describe("obscure openssl, gpg, ssh, ssh-keygen, x509, crypt, dgst, and archive 
         const res = await h.exec(`
           set -euo pipefail
           cd /workspace
-          gpg --batch --yes --no-tty --armor --detach-sign -- -payload > /workspace/sig.asc
+          gpg --quick-generate-key "File Signer" ed25519 sign 0 >/dev/null
+          gpg --batch --yes --no-tty --armor --detach-sign -o /workspace/sig.asc -- -payload
           gpg --verify /workspace/sig.asc -- -payload >/dev/null 2>&1
           set +e
           gpg --unknown-nonexistent-flag >/dev/null 2>/workspace/unk.err

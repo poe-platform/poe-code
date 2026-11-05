@@ -9251,6 +9251,18 @@ struct GpgKey {
 }
 
 impl GpgKey {
+    fn matches_selector(&self, value: &str) -> bool {
+        let id = value.strip_suffix('!').unwrap_or(value);
+        let id = id.strip_prefix("0x").or_else(|| id.strip_prefix("0X")).unwrap_or(id);
+        if matches!(id.len(), 8 | 16 | 40) && id.bytes().all(|b| b.is_ascii_hexdigit()) {
+            if id.len() == 40 {
+                return self.certificate().is_ok_and(|c| openssl_hex_encode(&c.fingerprint).eq_ignore_ascii_case(id));
+            }
+            return self.id.to_ascii_uppercase().ends_with(&id.to_ascii_uppercase());
+        }
+        !value.is_empty() && self.uid.to_lowercase().contains(&value.to_lowercase())
+    }
+
     fn certificate(&self) -> Result<openpgp::Certificate, String> {
         let bytes = if !self.certificate.is_empty() {
             openssl_hex_decode(&self.certificate)?
@@ -9286,7 +9298,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut passphrase: Option<String> = None;
     let mut passphrase_file: Option<String> = None;
     let mut passphrase_fd: Option<String> = None;
-    let mut signer_uid = "Git User <user@example.com>".to_string();
+    let mut signer_uid = None;
     let mut status_fd: Option<String> = None;
     let mut out_file: Option<String> = None;
     let mut positionals = Vec::new();
@@ -9322,10 +9334,10 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             with_colons = true;
         } else if (a == "-u" || a == "--local-user") && i + 1 < args.len() {
             i += 1;
-            signer_uid = args[i].clone();
+            signer_uid = Some(args[i].clone());
         } else if let Some(rest) = a.strip_prefix("-bsau") && !rest.is_empty() {
             detach_sign = true;
-            signer_uid = rest.to_string();
+            signer_uid = Some(rest.to_string());
         } else if a == "--status-fd" && i + 1 < args.len() {
             i += 1;
             status_fd = Some(args[i].clone());
@@ -9417,9 +9429,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if load_keyring()? != keys[..previous] { return Err("keyring changed during update".into()); }
         fs.replace_file_entry_with_mode(keyring_path, serialize_keys(keys).as_bytes(), 0o600, receipt.version)
     };
-    let ensure_key = |uid: &str| -> Result<GpgKey, String> {
+    let generate_key = |uid: &str| -> Result<GpgKey, String> {
         let mut keys = load_keyring()?;
-        if let Some(found) = keys.iter().find(|k| k.uid.contains(uid) || k.id.ends_with(&uid.to_uppercase())) {
+        if let Some(found) = keys.iter().find(|k| k.uid == uid) {
             if found.seed.len() != 64 { return Err("No secret key".into()); }
             return Ok(found.clone());
         }
@@ -9576,8 +9588,8 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     if quick_gen_key {
-        let uid = positionals.first().map(|s| s.as_str()).unwrap_or(&signer_uid);
-        let GpgKey { uid: u, id: kid, .. } = match ensure_key(uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let uid = positionals.first().map(|s| s.as_str()).unwrap_or(signer_uid.as_deref().unwrap_or("Git User <user@example.com>"));
+        let GpgKey { uid: u, id: kid, .. } = match generate_key(uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         return ok_out(&format!("pub   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
     }
 
@@ -9593,7 +9605,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 match key.certificate() { Ok(c) => Some(c), Err(e) => return err_out(&format!("gpg: {e}\n"), 2) }
             };
             let fp = cert.as_ref().map(|c| openssl_hex_encode(&c.fingerprint).to_uppercase()).unwrap_or_default();
-            if !positionals.is_empty() && !positionals.iter().any(|q| uid.contains(q.as_str()) || kid.contains(&q.to_ascii_uppercase()) || fp == q.to_ascii_uppercase()) { continue; }
+            if !positionals.is_empty() && !positionals.iter().any(|q| key.matches_selector(q)) { continue; }
             let kind = if list_secret { "sec" } else { "pub" };
             let expires = cert.as_ref().and_then(|c| c.expires);
             let expired = expires.is_some_and(|t| t <= (crate::vfs::now_ms() / 1000.) as u64);
@@ -9621,7 +9633,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     if export_keys {
         let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        let keys: Vec<_> = keys.into_iter().filter(|k| positionals.is_empty() || positionals.iter().any(|p| k.uid.contains(p) || k.id.contains(&p.to_ascii_uppercase()))).collect();
+        let keys: Vec<_> = keys.into_iter().filter(|k| positionals.is_empty() || positionals.iter().any(|p| k.matches_selector(p))).collect();
         if keys.is_empty() {
             return if quiet { ok_out("") } else { err_out("gpg: WARNING: nothing exported\n", 0) };
         }
@@ -9694,7 +9706,11 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else {
             crate::vfs::stream_string_to_bytes(stdin)
         };
-        let key = match ensure_key(&signer_uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let keys = match load_keyring() { Ok(keys) => keys, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let Some(key) = keys.iter().find(|k| !k.seed.is_empty() && signer_uid.as_ref().is_none_or(|q| k.matches_selector(q))) else {
+            let who = signer_uid.map(|q| format!("skipped \"{q}\"")).unwrap_or_else(|| "no default secret key".into());
+            return err_out(&format!("gpg: {who}: No secret key\ngpg: signing failed: No secret key\n"), 2);
+        };
         let Some(seed): Option<[u8; 32]> = openssl_hex_decode(&key.seed).ok().and_then(|s| s.try_into().ok()) else { return err_out("gpg: No secret key\n", 2); };
         let cert = match key.certificate() { Ok(c) => c, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let time = (crate::vfs::now_ms() / 1000.) as u32;
@@ -11225,6 +11241,8 @@ mod tests {
         assert_eq!(exp_soon.exit_code, 1);
         assert_eq!(exp_soon.stdout, "Certificate will expire\n");
 
+        let generated = try_run_archive_command("gpg", &args(&["--quick-generate-key", "Alice <alice@example.com>"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(generated.exit_code, 0, "{}", generated.stderr);
         let gpg_sign = try_run_archive_command(
             "gpg",
             &args(&["--detach-sign", "--armor", "-u", "Alice <alice@example.com>", "-o", "/work/msg.asc", "/work/msg.txt"]),

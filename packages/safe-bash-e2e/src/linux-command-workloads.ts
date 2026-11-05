@@ -99,6 +99,8 @@ export function linuxCommands(text: string) {
     // Keep the host keybox in the private benchmark directory.
     { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-q", "--export", "missing"],
       script: "gpg --batch -q --export missing", input: "" },
+    { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-u", "missing-signer", "--detach-sign"],
+      script: "gpg --batch -u missing-signer --detach-sign", input: text },
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",

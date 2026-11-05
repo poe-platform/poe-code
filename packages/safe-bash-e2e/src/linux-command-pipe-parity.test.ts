@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const input = "alpha\nbeta\nbeta\n";
@@ -50,12 +50,8 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         assert.equal(withoutZ.stdout, own.stdout.split("\0").filter(entry => !entry.startsWith("Z=")).join("\0"));
       }
     });
-    const binary = Buffer.alloc(32768);
-    for (let i = 0; i < binary.length; i++) binary[i] = (i * 31 + (i >> 8)) % 256;
-    for (const [compress, decompress, cat] of [
-      ["gzip", "gunzip", "zcat"], ["bzip2", "bunzip2", "bzcat"], ["xz", "unxz", "xzcat"],
-      ["lzma", "unlzma", "lzcat"], ["zstd", "unzstd", "zstdcat"],
-    ] as const) {
+    const binary = codecInput();
+    for (const [compress, decompress, cat] of linuxCodecs) {
       await t.test(compress + " streams decode in both directions", async () => {
         const [status, packed, errors] = await runLinuxCommand(compress, ["-c"], binary);
         assert.equal(status, 0, errors.toString());

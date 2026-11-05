@@ -42,3 +42,14 @@ export const linuxCommands = ([
 ] as const).map(([cmd, ...args]) => ({
   cmd, args, script: [cmd, ...args.map(arg => "'" + arg.replaceAll("'", "'\\''") + "'")].join(" ")
 }));
+
+export const linuxCodecs = [
+  ["gzip", "gunzip", "zcat"], ["bzip2", "bunzip2", "bzcat"], ["xz", "unxz", "xzcat"],
+  ["lzma", "unlzma", "lzcat"], ["zstd", "unzstd", "zstdcat"],
+] as const;
+
+export function codecInput() {
+  const binary = Buffer.alloc(32768);
+  for (let i = 0; i < binary.length; i++) binary[i] = (i * 31 + (i >> 8)) % 256;
+  return binary;
+}

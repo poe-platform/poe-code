@@ -2,7 +2,7 @@ import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -72,13 +72,22 @@ async function main(): Promise<void> {
   if (args.includes("--linux-commands")) {
     assert.ok(Number.isSafeInteger(iterations) && iterations >= 1, "iterations must be a positive integer");
     assert.ok(Number.isSafeInteger(warmup) && warmup >= 0, "warmup must be a nonnegative integer");
-    const input = "alpha\nbeta\nbeta\n".repeat(256);
+    const text = "alpha\nbeta\nbeta\n".repeat(256);
     const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
     const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
     try {
-      console.log(`Median milliseconds, ${Buffer.byteLength(input)} stdin bytes, ${iterations} samples after ${warmup} warmups.`);
-      console.log("Command\tLinux (spawn + pipes)\tTypeScript (warm)\tRust/Wasm (warm)");
-      for (const { cmd, args: argv, script } of linuxCommands) {
+      const workloads: { cmd: string; args: readonly string[]; script: string; input: string | Buffer; decoder?: string }[] =
+        linuxCommands.map(command => ({ ...command, input: text }));
+      const binary = codecInput();
+      for (const [compress, decompress, cat] of linuxCodecs) {
+        const [status, packed, errors] = await runLinuxCommand(compress, ["-c"], binary);
+        assert.equal(status, 0, errors.toString());
+        workloads.push({ cmd: compress, args: ["-c"], script: compress + " -c", input: binary, decoder: decompress });
+        for (const cmd of [decompress, cat]) workloads.push({ cmd, args: ["-c"], script: cmd + " -c", input: packed });
+      }
+      console.log(`Median milliseconds, ${iterations} samples after ${warmup} warmups.`);
+      console.log("Command\tStdin bytes\tLinux (spawn + pipes)\tTypeScript (warm)\tRust/Wasm (warm)");
+      for (const { cmd, args: argv, script, input, decoder } of workloads) {
         if (cmd === "git") {
           if (!supportsHostPlugins) {
             console.log(script + "\tNot measured: the Git plugin needs WebAssembly Promise Integration");
@@ -98,8 +107,15 @@ async function main(): Promise<void> {
               : await (engine === 1 ? ts.shell : rust).exec(script, { stdin: input });
             const elapsed = performance.now() - start;
             const observed = "exitCode" in result
-              ? [result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)] : result;
-            assert.deepEqual(observed, expected, script);
+              ? ([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)] as const) : result;
+            if (decoder) {
+              assert.equal(observed[0], expected[0], script);
+              assert.deepEqual(observed[2], expected[2], script);
+              const decoded = await runLinuxCommand(decoder, ["-c"], observed[1]);
+              assert.deepEqual(decoded, [0, binary, Buffer.alloc(0)], script);
+            } else {
+              assert.deepEqual(observed, expected, script);
+            }
             if (round >= warmup) samples[engine]!.push(elapsed);
           }
         }
@@ -107,7 +123,7 @@ async function main(): Promise<void> {
           times.sort((a, b) => a - b);
           return ((times[(times.length - 1) >> 1]! + times[times.length >> 1]!) / 2).toFixed(3);
         });
-        console.log([script, ...medians].join("\t"));
+        console.log([script, Buffer.byteLength(input), ...medians].join("\t"));
       }
     } finally {
       await ts.dispose();

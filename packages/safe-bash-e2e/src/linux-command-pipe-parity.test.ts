@@ -35,21 +35,25 @@ test("native Pandoc recovers headings, formatting, code and links from DOCX expo
   } finally {await ts.dispose(); await rust.dispose();}
 });
 
-test("both backends read lists, links and inline code from native Word documents", async () => {
+test("both backends recover list structure, links, quotes, code and rules from native Word documents", async () => {
   const pandoc = nativePandoc();
-  const markdown = "3. one\n4. `x  y` and [docs](https://example.com/?a=1&b=2)\n   - nested\n5. three";
-  const [status, docx, error] = await runLinuxCommand(pandoc, ["-f", "gfm", "-t", "docx"], markdown);
-  assert.equal(status, 0, error.toString());
-  const options = ["-f", "docx", "-t", "json"];
-  const [code, json, stderr] = await runLinuxCommand(pandoc, options, docx);
-  assert.equal(code, 0, stderr.toString());
   const rust = new RustWasmBash({forceNative: true});
   const ts = await SafeBashE2EHarness.create({backend: "typescript"});
   try {
-    for (const shell of [rust, ts.shell]) {
-      const result = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
-      assert.equal(result.exitCode, 0, result.stderr);
-      assert.deepEqual(Buffer.from(result.stdoutBytes), json);
+    for (const markdown of [
+      "3. one\n4. `x  y` and [docs](https://example.com/?a=1&b=2)\n   - nested\n5. three",
+      "> First **quoted** paragraph.\n>\n> Another.\n\n---\n\n```\n  left\n\nright  \n```\n\nAfter",
+    ]) {
+      const [status, docx, error] = await runLinuxCommand(pandoc, ["-f", "gfm", "-t", "docx"], markdown);
+      assert.equal(status, 0, error.toString());
+      const options = ["-f", "docx", "-t", "json"];
+      const [code, json, stderr] = await runLinuxCommand(pandoc, options, docx);
+      assert.equal(code, 0, stderr.toString());
+      for (const shell of [ts.shell, rust]) {
+        const result = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, json.toString(), shell.constructor.name);
+      }
     }
   } finally {await rust.dispose(); await ts.dispose();}
 });

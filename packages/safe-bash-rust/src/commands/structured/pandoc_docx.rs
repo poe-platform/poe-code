@@ -150,40 +150,74 @@ fn read_inlines(
             flush(&mut text, properties, &mut out, &mut space);
             properties = next;
         }
-        for part in children(run) {
-            match part.tag.as_str() {
-                "w:t" => {
-                    for node in &part.children {
-                        match node {
-                            XmlNode::Text(s, _) | XmlNode::Cdata(s) => text.push_str(s),
-                            XmlNode::Markup(_) => {}
-                            XmlNode::Element(_) => return Err(INVALID),
-                        }
-                    }
-                }
-                "w:rPr" | "w:lastRenderedPageBreak" => {}
-                _ => return Err(UNSUPPORTED),
-            }
-        }
+        run_text(run, &mut text, false)?;
     }
     flush(&mut text, properties, &mut out, &mut space);
     Ok(out)
 }
 
+fn run_text(run: &XmlElement, text: &mut String, literal: bool) -> Result<(), Error> {
+    for part in children(run) {
+        match part.tag.as_str() {
+            "w:t" => {
+                for node in &part.children {
+                    match node {
+                        XmlNode::Text(s, _) | XmlNode::Cdata(s) => text.push_str(s),
+                        XmlNode::Markup(_) => {}
+                        XmlNode::Element(_) => return Err(INVALID),
+                    }
+                }
+            }
+            "w:tab" if literal => text.push('\t'),
+            "w:br" | "w:cr" if literal => text.push('\n'),
+            "w:rPr" | "w:lastRenderedPageBreak" => {}
+            _ => return Err(UNSUPPORTED),
+        }
+    }
+    Ok(())
+}
+
 fn paragraph(
     element: &XmlElement,
-    headings: &HashMap<String, usize>,
+    style: &str,
     links: &HashMap<String, String>,
     remaining: &mut usize,
 ) -> Result<Option<PandocBlock>, Error> {
+    let content = || {
+        children(element).filter(|e| {
+            !matches!(
+                e.tag.as_str(),
+                "w:pPr" | "w:proofErr" | "w:bookmarkStart" | "w:bookmarkEnd"
+            )
+        })
+    };
+    let mut nodes = content();
+    if let Some(run) = nodes.next()
+        && nodes.next().is_none()
+        && run.tag == "w:r"
+        && let Some(pict) = child(run, "w:pict")
+        && let Some(rect) = child(pict, "v:rect")
+        && matches!(attr(rect, "o:hr"), Some("t" | "true" | "1"))
+        && children(run).all(|node| matches!(node.tag.as_str(), "w:rPr" | "w:pict"))
+    {
+        return Ok(Some(PandocBlock::HorizontalRule));
+    }
+    if style == "source code" {
+        let mut code = String::new();
+        for run in content() {
+            if run.tag != "w:r" {
+                return Err(UNSUPPORTED);
+            }
+            run_text(run, &mut code, true)?;
+        }
+        return Ok(Some(PandocBlock::CodeBlock(Default::default(), code)));
+    }
     let out = read_inlines(element, links, remaining, false)?;
-    if let Some(level) = child(element, "w:pPr")
-        .and_then(|p| child(p, "w:pStyle"))
-        .and_then(|s| attr(s, "w:val"))
-        .and_then(|id| headings.get(id))
+    if let Some(level) = style.strip_prefix("heading ").and_then(|n| n.parse().ok())
+        && (1..=9).contains(&level)
     {
         return Ok(Some(PandocBlock::Header(
-            *level,
+            level,
             pandoc_slug(&inlines_plain_text(&out)),
             out,
         )));
@@ -283,7 +317,7 @@ pub(super) fn read(data: &[u8], mut remaining: usize) -> Result<Vec<PandocBlock>
             }
         }
     }
-    let mut headings = HashMap::new();
+    let mut style_names = HashMap::new();
     if let Some(styles) = part(&styles_path)? {
         let styles = root(&styles)?;
         if styles.tag != "w:styles" || attr(&styles, "xmlns:w") != Some(WORD) {
@@ -294,13 +328,8 @@ pub(super) fn read(data: &[u8], mut remaining: usize) -> Result<Vec<PandocBlock>
         {
             if let Some(id) = attr(style, "w:styleId")
                 && let Some(name) = child(style, "w:name").and_then(|e| attr(e, "w:val"))
-                && let Some(level) = name
-                    .to_ascii_lowercase()
-                    .strip_prefix("heading ")
-                    .and_then(|n| n.parse().ok())
-                && (1..=9).contains(&level)
             {
-                headings.insert(id.to_owned(), level);
+                style_names.insert(id.to_owned(), name.to_ascii_lowercase());
             }
         }
     }
@@ -339,6 +368,10 @@ pub(super) fn read(data: &[u8], mut remaining: usize) -> Result<Vec<PandocBlock>
         match e.tag.as_str() {
             "w:p" => {
                 let props = child(e, "w:pPr");
+                let style = props
+                    .and_then(|p| value(p, "w:pStyle"))
+                    .and_then(|id| style_names.get(id))
+                    .map_or("", String::as_str);
                 let num = props.and_then(|p| child(p, "w:numPr"));
                 if let Some((id, depth)) = num.and_then(|n| {
                     Some((
@@ -397,18 +430,26 @@ pub(super) fn read(data: &[u8], mut remaining: usize) -> Result<Vec<PandocBlock>
                         unreachable!()
                     };
                     let inlines = read_inlines(e, &links, &mut remaining, false)?;
-                    items.push(
-                        if props.and_then(|p| value(p, "w:pStyle")) == Some("Compact") {
-                            vec![PandocBlock::Plain(inlines)]
-                        } else {
-                            vec![PandocBlock::Para(inlines)]
-                        },
-                    );
+                    items.push(if style == "compact" {
+                        vec![PandocBlock::Plain(inlines)]
+                    } else {
+                        vec![PandocBlock::Para(inlines)]
+                    });
                 } else {
                     while !lists.is_empty() {
                         finish_list(&mut lists, &mut blocks);
                     }
-                    blocks.extend(paragraph(e, &headings, &links, &mut remaining)?);
+                    if let Some(block) = paragraph(e, style, &links, &mut remaining)? {
+                        if style == "block text" {
+                            if let Some(PandocBlock::BlockQuote(inner)) = blocks.last_mut() {
+                                inner.push(block);
+                            } else {
+                                blocks.push(PandocBlock::BlockQuote(vec![block]));
+                            }
+                        } else {
+                            blocks.push(block);
+                        }
+                    }
                 }
             }
             "w:bookmarkStart" | "w:bookmarkEnd" | "w:sectPr" => {}

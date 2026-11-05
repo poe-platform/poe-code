@@ -70,6 +70,8 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
     }
     const resources = new Map<string, Resource>();
     const paragraph = async (p: Paragraph): Promise<Block> => {
+      const name = p.style?.name ?? "";
+      if (name.toLowerCase() === "source code") return {t: "CodeBlock", c: [attr, p.text]};
       const onlyChild = (node: XmlElement | undefined, name: string, namespace = node?.namespace): XmlElement | undefined => {
         if (!node) return undefined;
         const children = activeModelChildren(p.store, p.ref.part)(node);
@@ -170,8 +172,15 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
         if (item instanceof Run) inlines.push(...content);
         else inlines.push({t: "Link", c: [attr, content, [item.url, ""]]});
       }
-      const name = p.style?.name ?? "";
       const level = name.startsWith("Heading ") ? Number(name.slice(8)) : 0;
+      if (!inlines.length) {
+        const node = p.store.node(p.ref);
+        const runs = node.children.filter(n => n.namespace === node.namespace && n.localName === "r");
+        if (runs.length === 1 && numberingChild(runs[0], "pict")?.children.some(rect =>
+          rect.namespace === "urn:schemas-microsoft-com:vml" && rect.localName === "rect" && rect.attributes.some(a =>
+            a.namespace === "urn:schemas-microsoft-com:office:office" && a.localName === "hr" && ["t", "true", "1"].includes(a.value))))
+          return {t: "HorizontalRule"};
+      }
       if (level >= 1 && level <= 6) {
         const base = headingIdentifier(inlines, ctx);
         let id = base;
@@ -191,7 +200,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       const binding = numbering?.paragraph(node);
       if (!binding || !numbering) {
         stack.length = 0;
-        if (p.style?.style_id === "BlockText" || (p.paragraph_format.left_indent?.twips ?? 0) > 0) {
+        if (p.style?.style_id === "BlockText" || p.style?.name?.toLowerCase() === "block text" || (p.paragraph_format.left_indent?.twips ?? 0) > 0) {
           const previous = blocks.at(-1);
           if (previous?.t === "BlockQuote") blocks[blocks.length - 1] = {t: "BlockQuote", c: [...previous.c, block]};
           else blocks.push({t: "BlockQuote", c: [block]});

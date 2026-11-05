@@ -206,9 +206,9 @@ async function collect(source: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
   return bytes;
 }
 
-function configurableOptions(args: Parameters<NonNullable<Codec["write"]>>): TextOptions {
-  const options: TextOptions = { separator: ",", quote: '"', eol: args[0].textExportEol ?? "\n", mode: "auto", whitespace: true,
-    format: "automatic", charset: "UTF-8", transliterate: true };
+function configurableOptions(args: Parameters<NonNullable<Codec["write"]>>, plainCsv = false): TextOptions {
+  const options: TextOptions = { separator: ",", quote: '"', eol: plainCsv ? "\n" : args[0].textExportEol ?? "\n", mode: "auto", whitespace: true,
+    format: "automatic", charset: "UTF-8", transliterate: !plainCsv };
   const context = args[2];
   for (const text of args[1]) for (const [key, value] of exportOptionPairs(text)) {
     context.signal.throwIfAborted();
@@ -238,14 +238,12 @@ export const writeConfigurableTextSource: NonNullable<Codec["writeWorkbookSource
   return exportText(args, configurableOptions(args), source);
 };
 
-export const writePlainCsvStream: NonNullable<Codec["writeStream"]> = (...args) => exportText(args,
-  { separator: ",", quote: '"', eol: "\n", mode: "auto", whitespace: true,
-    format: "automatic", charset: "UTF-8", transliterate: false });
+export const writePlainCsvStream: NonNullable<Codec["writeStream"]> = (...args) => exportText(args, configurableOptions(args, true));
 
-export const writePlainCsvSource: NonNullable<Codec["writeWorkbookSource"]> = (source, options, context, selection) =>
-  exportText([source.metadata, options, context, selection],
-    { separator: ",", quote: '"', eol: "\n", mode: "auto", whitespace: true,
-      format: "automatic", charset: "UTF-8", transliterate: false }, source);
+export const writePlainCsvSource: NonNullable<Codec["writeWorkbookSource"]> = (source, options, context, selection) => {
+  const args: Parameters<NonNullable<Codec["write"]>> = [source.metadata, options, context, selection];
+  return exportText(args, configurableOptions(args, true), source);
+};
 
 export const writeConfigurableText: NonNullable<Codec["write"]> = (...args) => collect(writeConfigurableTextStream(...args) as AsyncIterable<Uint8Array>);
 export const writePlainCsv: NonNullable<Codec["write"]> = (...args) => collect(writePlainCsvStream(...args) as AsyncIterable<Uint8Array>);

@@ -121,7 +121,7 @@ it("publishes UTF-8 fallback bytes but fails when a charset converter cannot be 
 
 it.each([
   ["Gnumeric_stf:stf_assistant", "formulas=true", 'ssconvert: Invalid export option "formulas" for format Gnumeric_stf:stf_assistant\n'],
-  ["Gnumeric_stf:stf_csv", "separator=;", 'ssconvert: Invalid export option "separator" for format Gnumeric_stf:stf_csv\n'],
+  ["Gnumeric_stf:stf_csv", "formulas=true", 'ssconvert: Invalid export option "formulas" for format Gnumeric_stf:stf_csv\n'],
   ["Gnumeric_stf:stf_csv", "sheet=First sheet=Second", 'Selected exporter (Gnumeric_stf:stf_csv) can only export one sheet at a time.\n'],
   ["Gnumeric_stf:stf_assistant", "quoting-mode=0", 'ssconvert: Invalid value for option quoting-mode: "0"\n']
 ])("preserves destination on rejected %s %s", async (id, options, error) => {
@@ -145,5 +145,20 @@ it.each([
     expect((await f.cli("Gnumeric_stf:stf_assistant", options)).exitCode).toBe(0);
     expect(f.errors).toEqual([]);
     expect(Array.from(f.volume.readFileSync("/output") as Uint8Array)).toEqual(Array.from(output, c => c.charCodeAt(0)));
+  } finally { await f.engine.dispose(); }
+});
+
+
+it.each([
+  ["separator=;", [49, 46, 50, 10]],
+  ["quoting-mode=always", [34, 49, 46, 50, 34, 10]],
+  ["eol=windows", [49, 46, 50, 13, 10]],
+  ["charset=UTF-16", [255, 254, 49, 0, 46, 0, 50, 0, 10, 0]]
+])("applies explicit CSV CLI option %s", async (option, bytes) => {
+  const f = fixture(book);
+  try {
+    expect((await f.cli("Gnumeric_stf:stf_csv", option)).exitCode).toBe(0);
+    expect(f.errors).toEqual([]);
+    expect(Array.from(f.volume.readFileSync("/output") as Uint8Array)).toEqual(bytes);
   } finally { await f.engine.dispose(); }
 });

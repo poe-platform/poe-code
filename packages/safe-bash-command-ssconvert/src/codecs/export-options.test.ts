@@ -50,13 +50,14 @@ it("routes text pairs to their handler and common sheet selection in original or
   } finally { await f.engine.dispose(); }
 });
 
-it("plain CSV accepts common selection and rejects configurable text options", async () => {
+it("plain CSV accepts common selection and configurable text options", async () => {
   const f = fixture("Gnumeric_stf:stf_csv");
   try {
     expect(await runCommand(["-T", "Gnumeric_stf:stf_csv", "-O", "sheet=Last", "/in", "/out"], f.engine, f.operation)).toMatchObject({ exitCode: 0 });
     expect(f.saved()?.[3]).toEqual({ sheets: ["b"] });
-    expect(await runCommand(["-T", "Gnumeric_stf:stf_csv", "-O", "separator=;", "/in", "/out"], f.engine, f.operation)).toEqual({ exitCode: 1 });
-    expect(f.errors).toEqual(['ssconvert: Invalid export option "separator" for format Gnumeric_stf:stf_csv\n']);
+    expect(await runCommand(["-T", "Gnumeric_stf:stf_csv", "-O", "separator=;", "/in", "/out"], f.engine, f.operation)).toMatchObject({ exitCode: 0 });
+    expect(f.saved()?.[1]).toEqual(["separator=;"]);
+    expect(f.errors).toEqual([]);
   } finally { await f.engine.dispose(); }
 });
 

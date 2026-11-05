@@ -63,7 +63,7 @@ export interface JpegOutputVector {
   metadata: ImageMetadata;
 }
 
-// Frozen original JPEG encoder at e1398e5c28.
+// Frozen JPEG output with native fast integer DCT and 8-bit YCbCr rounding.
 export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 1, height: 1, mode: "flat" },
@@ -86,7 +86,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 1, height: 1, mode: "checker" },
     options: {},
-    hash: "ca38d9269aed4b2ce89f440f64ba4de8ad56031150f5c838efd4f30596d884fc",
+    hash: "c8b6752e30439f1bbf69d56ab28078f276e4dbdc63be59658176b68e90da3a51",
     length: 614,
     metadata: {
       format: "jpeg",
@@ -140,7 +140,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 7, height: 7, mode: "checker" },
     options: {},
-    hash: "bc0f396f45332ec89544b0fec8b62f481ddda44afc825265a91e49d7ff19ef36",
+    hash: "ef7995ff5be515fabb1523271334a516a258cc5b0aa2bc5140afb2b226434fd3",
     length: 689,
     metadata: {
       format: "jpeg",
@@ -158,7 +158,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 7, height: 7, mode: "alpha" },
     options: {},
-    hash: "b8220f30010900819b61cf95d0a867aeae88a4f25d1c1c46208b9ad52a1c5158",
+    hash: "4bf956017f450f2a3f9ae30b624938c56c87770cb355a254295b8af96739c898",
     length: 702,
     metadata: {
       format: "jpeg",
@@ -194,7 +194,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 8, height: 8, mode: "checker" },
     options: {},
-    hash: "5b02e106959cf5fc990602d4b39b91163b052e4475fd8056fc4641cb13c38bfd",
+    hash: "f004a727011c861212fa5cdd4de3d36b77551da19e5bdb81939101d90b4c3017",
     length: 665,
     metadata: {
       format: "jpeg",
@@ -212,8 +212,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 8, height: 8, mode: "alpha" },
     options: {},
-    hash: "83b66cd604293b41455e2731b89aa5424024c5af3608bc4b18366d6b67ba5d21",
-    length: 697,
+    hash: "1049c1f53e665370db55429a3ef43f90a5527ce46ed42db20d510db6ffd931f9",
+    length: 698,
     metadata: {
       format: "jpeg",
       width: 8,
@@ -224,7 +224,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 697
+      size: 698
     }
   },
   {
@@ -248,8 +248,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 9, height: 7, mode: "checker" },
     options: {},
-    hash: "f7f5a4c628fed723f8113adb6a5bcf6cf5bf0c1a1943556e3f4dbd9718b65892",
-    length: 714,
+    hash: "bcb000b28382f4869ada2ca737a44516b52c4454cf0d26ea83dfd5512c690851",
+    length: 711,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -260,14 +260,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 714
+      size: 711
     }
   },
   {
     spec: { width: 9, height: 7, mode: "alpha" },
     options: {},
-    hash: "5587f18533a71e1b93c891c7bd8ad26a8493139983da0a00510354132d8e1bdd",
-    length: 730,
+    hash: "81a64664045fab946a7c802a89bf50103d1b26a33b222db9a35fe5a17f193f50",
+    length: 732,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -278,7 +278,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 730
+      size: 732
     }
   },
   {
@@ -302,7 +302,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 7, height: 9, mode: "checker" },
     options: {},
-    hash: "9b0fdcec68643263bd2cb87c8c9474b7f220d32a4e398f69faa46344ebb35cb7",
+    hash: "ed75bffb73747a51f1f8c6312afd8cb5ee32ef8e1ee4e7e01931eba72b7217b6",
     length: 713,
     metadata: {
       format: "jpeg",
@@ -320,8 +320,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 7, height: 9, mode: "alpha" },
     options: {},
-    hash: "c3d3f7035bdd7cfdb747fb6b2fefa01a63c83685058ba0e1956ea78692a3396a",
-    length: 727,
+    hash: "3fdb20523ddeee54e89dc0cbb271d7b4caac48cb0bd2c517e03041426a62e63c",
+    length: 732,
     metadata: {
       format: "jpeg",
       width: 7,
@@ -332,7 +332,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 727
+      size: 732
     }
   },
   {
@@ -356,8 +356,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 15, height: 17, mode: "checker" },
     options: {},
-    hash: "33e1b88ec672c8626408a51d5d957c4d7685b47e7e31a9dd59df38cf5ac5289b",
-    length: 907,
+    hash: "108389d1c15fba586b96d5d2b05f0599bcc5a3d6370a94d65103cde2bb44b0e5",
+    length: 906,
     metadata: {
       format: "jpeg",
       width: 15,
@@ -368,14 +368,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 907
+      size: 906
     }
   },
   {
     spec: { width: 15, height: 17, mode: "alpha" },
     options: {},
-    hash: "f8ca00b7762e75306d3be0eed100f819f9a389e22856edfc986937ec9c9dfde7",
-    length: 1037,
+    hash: "3a2d9b6cb4a7e4b1eb6dc9d0ee96e841a33a9059414acb088166071e3545d2de",
+    length: 1036,
     metadata: {
       format: "jpeg",
       width: 15,
@@ -386,7 +386,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 1037
+      size: 1036
     }
   },
   {
@@ -410,7 +410,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 16, height: 16, mode: "checker" },
     options: {},
-    hash: "199fb08a41d5126ac89268b407b468c6bda785b4acdf96c6a09bfed3a2dbd1a7",
+    hash: "b9b142dd11bd4503efd7c5d12ef775324f8fd0ac3b86828c927b306897fb010a",
     length: 820,
     metadata: {
       format: "jpeg",
@@ -428,8 +428,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 16, height: 16, mode: "alpha" },
     options: {},
-    hash: "f82d9446226de8eca1971a2d3d32636fa27cb63311f235a652278c40d736945c",
-    length: 964,
+    hash: "b8c5e79b1e706a8b63f9063e6f5eec1c12b174ea5aa1ee7aa24fa173dc0e799a",
+    length: 966,
     metadata: {
       format: "jpeg",
       width: 16,
@@ -440,7 +440,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 964
+      size: 966
     }
   },
   {
@@ -464,8 +464,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 17, height: 15, mode: "checker" },
     options: {},
-    hash: "9052c2317bb31f94f08ce3b627ad24bf10b90fb03cf67f5933a467148ab4acfe",
-    length: 912,
+    hash: "9f7d2b77827efee73c8e353bc79b717164ae4d5bb54f13579fd302be8993bc05",
+    length: 909,
     metadata: {
       format: "jpeg",
       width: 17,
@@ -476,13 +476,13 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 912
+      size: 909
     }
   },
   {
     spec: { width: 17, height: 15, mode: "alpha" },
     options: {},
-    hash: "89613c0a71fa8aaf92d9ccb363333b74eca7d887dea5110da68a14e2616671ff",
+    hash: "f80feea640305e15e66c676a30be643568ad366dfcf02d860371d8a7927f51a4",
     length: 1052,
     metadata: {
       format: "jpeg",
@@ -518,8 +518,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 67, height: 19, mode: "checker" },
     options: {},
-    hash: "4ea58cb2974894c632b4dec9cae81148e579766aa510a0274fb155bda0002f61",
-    length: 2224,
+    hash: "aebff6234326b6c64694bc77fc12d85af284b1423efb777091ad6f47df979ca9",
+    length: 2223,
     metadata: {
       format: "jpeg",
       width: 67,
@@ -530,14 +530,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 2224
+      size: 2223
     }
   },
   {
     spec: { width: 67, height: 19, mode: "alpha" },
     options: {},
-    hash: "0fbacdc13bc8914015094ca6fc0ba60e678a896e8551212568ddba69a61e5af7",
-    length: 2875,
+    hash: "78d92f974ccbfafd59125548479f04d962a36211dd542146ae030729d2388919",
+    length: 2890,
     metadata: {
       format: "jpeg",
       width: 67,
@@ -548,7 +548,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 2875
+      size: 2890
     }
   },
   {
@@ -608,7 +608,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 17, height: 19, mode: "alpha" },
     options: { quality: 25 },
-    hash: "c74913bac3a27cd7b5a0fe5edea9caf5aef4b1a59bc6bac9ccf4370e9d53adae",
+    hash: "e6f8104e90be13cb6f3dec2bec6325ac812bc53bd172a106e170adacaef3fb13",
     length: 789,
     metadata: {
       format: "jpeg",
@@ -626,8 +626,8 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 17, height: 19, mode: "alpha" },
     options: { quality: 50 },
-    hash: "ab745e149d3fbd08aa3b22bd8ee29a340d9734fc6709423986ebc54f3350d7e1",
-    length: 930,
+    hash: "a15f5915930bef22c6ae837a9831528df9d0fcf9d36c6885ad817f206fc071a5",
+    length: 922,
     metadata: {
       format: "jpeg",
       width: 17,
@@ -638,14 +638,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 930
+      size: 922
     }
   },
   {
     spec: { width: 17, height: 19, mode: "alpha" },
     options: { quality: 75 },
-    hash: "4f25d18d37221cb9602f109c61dd80fc67877f863bd660b998c0178cf35dfaa8",
-    length: 1101,
+    hash: "5f5de0a38e4aa79bef36c00b84bb56cf76cfed7c945a6d3423f35fc1fb7f1c57",
+    length: 1097,
     metadata: {
       format: "jpeg",
       width: 17,
@@ -656,14 +656,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 1101
+      size: 1097
     }
   },
   {
     spec: { width: 17, height: 19, mode: "alpha" },
     options: { quality: 85 },
-    hash: "f3638b89d3cbde13dd372b707fa6983dcab1c91a6b916369872c006322ecc886",
-    length: 1248,
+    hash: "c120f50ce337577094e28d3d24a6fe7b5746617f636539d3b4ac84bbe319efbf",
+    length: 1251,
     metadata: {
       format: "jpeg",
       width: 17,
@@ -674,14 +674,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 1248
+      size: 1251
     }
   },
   {
     spec: { width: 17, height: 19, mode: "alpha" },
     options: { quality: 99 },
-    hash: "30621e16586bd58e7118e7eb52c041a1bcfdced76895ad4aea9212ae70ac341a",
-    length: 2067,
+    hash: "79c48f4eee630417b000e468dce6fec7734b73b9e81f42ebf28d577886fa179d",
+    length: 2076,
     metadata: {
       format: "jpeg",
       width: 17,
@@ -692,14 +692,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 2067
+      size: 2076
     }
   },
   {
     spec: { width: 17, height: 19, mode: "alpha" },
     options: { quality: 100 },
-    hash: "e1c283cd46158c40f0b491e5fb0397f08adf91fb73a9c40e5ea8a459a1b372d3",
-    length: 2225,
+    hash: "27e4f176d0bc338ed2643cec4e7583c5f20542be7bca1efa8d1eb6c38a85fb2a",
+    length: 2226,
     metadata: {
       format: "jpeg",
       width: 17,
@@ -710,14 +710,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 2225
+      size: 2226
     }
   },
   {
     spec: { width: 17, height: 19, mode: "alpha" },
     options: { quality: 150 },
-    hash: "e1c283cd46158c40f0b491e5fb0397f08adf91fb73a9c40e5ea8a459a1b372d3",
-    length: 2225,
+    hash: "27e4f176d0bc338ed2643cec4e7583c5f20542be7bca1efa8d1eb6c38a85fb2a",
+    length: 2226,
     metadata: {
       format: "jpeg",
       width: 17,
@@ -728,14 +728,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 2225
+      size: 2226
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: -1, orientation: 0 },
-    hash: "790a21820fcb7aed64062968645f554de2191ab1666539704aca81c6a50ebd35",
-    length: 876,
+    hash: "25993b8f38e0ab0fd443e86a586e16fc802830050253ba28fdab1c2e2b130a6d",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -746,14 +746,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 1,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: -1, orientation: 1 },
-    hash: "dce70ffdfa4e70a57a78a994e6f08b8d720a701eaac434a34139be24384df3a4",
-    length: 964,
+    hash: "1239afcc48f5bca6708d32d5fd71ffaae5c529d23ef5cb0c1cd72619502c2118",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -765,14 +765,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 1,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: -1, orientation: 6 },
-    hash: "462f8d9a404d4fd3e10032d19d8934d7030fa74e0c3c6ad647371fa484c9bd2c",
-    length: 964,
+    hash: "54d8e49d0357632d02d91ade43ff8d6dd6082cac8161f82187e30df37c701951",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -784,14 +784,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: -1, orientation: 8 },
-    hash: "54d609ffad03d39cf43cff45e78722b37fbe8c59fb96f35e59e6e023f618917b",
-    length: 964,
+    hash: "6906bbe39bcd37075b208ebd0b88168a36b0bbbde9b57bf4a610b35234154170",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -803,14 +803,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 8,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: -1, orientation: 9 },
-    hash: "790a21820fcb7aed64062968645f554de2191ab1666539704aca81c6a50ebd35",
-    length: 876,
+    hash: "25993b8f38e0ab0fd443e86a586e16fc802830050253ba28fdab1c2e2b130a6d",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -821,14 +821,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 1,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0, orientation: 0 },
-    hash: "790a21820fcb7aed64062968645f554de2191ab1666539704aca81c6a50ebd35",
-    length: 876,
+    hash: "25993b8f38e0ab0fd443e86a586e16fc802830050253ba28fdab1c2e2b130a6d",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -839,14 +839,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 1,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0, orientation: 1 },
-    hash: "dce70ffdfa4e70a57a78a994e6f08b8d720a701eaac434a34139be24384df3a4",
-    length: 964,
+    hash: "1239afcc48f5bca6708d32d5fd71ffaae5c529d23ef5cb0c1cd72619502c2118",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -858,14 +858,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 1,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0, orientation: 6 },
-    hash: "462f8d9a404d4fd3e10032d19d8934d7030fa74e0c3c6ad647371fa484c9bd2c",
-    length: 964,
+    hash: "54d8e49d0357632d02d91ade43ff8d6dd6082cac8161f82187e30df37c701951",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -877,14 +877,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0, orientation: 8 },
-    hash: "54d609ffad03d39cf43cff45e78722b37fbe8c59fb96f35e59e6e023f618917b",
-    length: 964,
+    hash: "6906bbe39bcd37075b208ebd0b88168a36b0bbbde9b57bf4a610b35234154170",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -896,14 +896,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 8,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0, orientation: 9 },
-    hash: "790a21820fcb7aed64062968645f554de2191ab1666539704aca81c6a50ebd35",
-    length: 876,
+    hash: "25993b8f38e0ab0fd443e86a586e16fc802830050253ba28fdab1c2e2b130a6d",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -914,14 +914,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 1,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0.4, orientation: 0 },
-    hash: "790a21820fcb7aed64062968645f554de2191ab1666539704aca81c6a50ebd35",
-    length: 876,
+    hash: "25993b8f38e0ab0fd443e86a586e16fc802830050253ba28fdab1c2e2b130a6d",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -932,14 +932,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 1,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0.4, orientation: 1 },
-    hash: "dce70ffdfa4e70a57a78a994e6f08b8d720a701eaac434a34139be24384df3a4",
-    length: 964,
+    hash: "1239afcc48f5bca6708d32d5fd71ffaae5c529d23ef5cb0c1cd72619502c2118",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -951,14 +951,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 1,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0.4, orientation: 6 },
-    hash: "462f8d9a404d4fd3e10032d19d8934d7030fa74e0c3c6ad647371fa484c9bd2c",
-    length: 964,
+    hash: "54d8e49d0357632d02d91ade43ff8d6dd6082cac8161f82187e30df37c701951",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -970,14 +970,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0.4, orientation: 8 },
-    hash: "54d609ffad03d39cf43cff45e78722b37fbe8c59fb96f35e59e6e023f618917b",
-    length: 964,
+    hash: "6906bbe39bcd37075b208ebd0b88168a36b0bbbde9b57bf4a610b35234154170",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -989,14 +989,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 8,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 0.4, orientation: 9 },
-    hash: "790a21820fcb7aed64062968645f554de2191ab1666539704aca81c6a50ebd35",
-    length: 876,
+    hash: "25993b8f38e0ab0fd443e86a586e16fc802830050253ba28fdab1c2e2b130a6d",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1007,14 +1007,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 1,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 72.5, orientation: 0 },
-    hash: "3b9a5b2be2d575bfc6941be5b4fb0bd6751284933e5c3d5e1c040db2bb3839cc",
-    length: 876,
+    hash: "bbc950a424011e76b859cdaba94717007cab81de8a405a7c203d3317d9184c58",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1025,14 +1025,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 73,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 72.5, orientation: 1 },
-    hash: "321d4577fbc5ee4c219390383a3204a1925ca4a054a813367e44524aea25d67d",
-    length: 964,
+    hash: "60c42ee5a2952e48216e502015547dac7064d3d15011c87eaf18b35da05b6516",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1044,14 +1044,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 1,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 72.5, orientation: 6 },
-    hash: "69d6cf5911743129bfea98b2b926bf47661d390c627967a2728874170ac944e8",
-    length: 964,
+    hash: "8503737488e636faf98a5078f870fbe251e79074441e4441972c314e539e80e1",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1063,14 +1063,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 72.5, orientation: 8 },
-    hash: "05e5b7f454dcc75de2e762c5a77439aa68a3a0a0785f46cc29f178c554565955",
-    length: 964,
+    hash: "b9c6ca1ffda35bbaac71a503f2a6be2e72c27afd6ada5f7ee909fd21a17c0b11",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1082,14 +1082,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 8,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 72.5, orientation: 9 },
-    hash: "3b9a5b2be2d575bfc6941be5b4fb0bd6751284933e5c3d5e1c040db2bb3839cc",
-    length: 876,
+    hash: "bbc950a424011e76b859cdaba94717007cab81de8a405a7c203d3317d9184c58",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1100,14 +1100,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 73,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 300, orientation: 0 },
-    hash: "c35b73db6ec32142b1f108a82ffd640f7806d1036916837a5dd07dd40932dcc0",
-    length: 876,
+    hash: "16fbd02e3f6861db7a94f55942f262f43eefeb3ebd11503d0e22a0d94484ae47",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1118,14 +1118,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 300,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 300, orientation: 1 },
-    hash: "8d65bc4ac78180c56d7186f68950cd7dda0145fb17a4ba81183456552b444073",
-    length: 964,
+    hash: "05ffeb0a5f9fadd9d2232bdca175309111a5ab8b188d7605e81823119baf7c9d",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1137,14 +1137,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 1,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 300, orientation: 6 },
-    hash: "7083237c94e526dc7273781f3808b41ec7f485e4d149b810cbe7b736c8b6ae67",
-    length: 964,
+    hash: "07ae5952f7db1e4d9eeeb1236f88e27fa4a9fc0e639e7d2f428746e1be0a23fc",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1156,14 +1156,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 300, orientation: 8 },
-    hash: "60af4309f449b7ba35a4d79e25c1d7639d95d374ad413f15a590324a6d9a981d",
-    length: 964,
+    hash: "fede909c97ec69fc8e6909bd5c42933cd865b94325b9a10f98fb9794840b3a03",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1175,14 +1175,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 8,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 300, orientation: 9 },
-    hash: "c35b73db6ec32142b1f108a82ffd640f7806d1036916837a5dd07dd40932dcc0",
-    length: 876,
+    hash: "16fbd02e3f6861db7a94f55942f262f43eefeb3ebd11503d0e22a0d94484ae47",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1193,14 +1193,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 300,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65535, orientation: 0 },
-    hash: "03a68d9d9cb4dc93542fda894b01d29dc75f6673f5d1d53107ffbccaca71d48d",
-    length: 876,
+    hash: "b9438cfd906427772fc2bb953fc67f1374114a5f5fa3ca452e0310cd6ec8f0ca",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1211,14 +1211,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 65535,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65535, orientation: 1 },
-    hash: "2fee2abe17ce8df9641dbde289bcaca3523dcf6a342ced98973011d94ba82ff5",
-    length: 964,
+    hash: "5eca712576627a4d470d97bb6ded9686fb40a817acb28ab3319a150095ea8b96",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1230,14 +1230,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 1,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65535, orientation: 6 },
-    hash: "da283f354b9df764fd3b5b2019ce4e4c2727b2f8b629ff5f329dc70d1f4fc93e",
-    length: 964,
+    hash: "0dee6c3aa72a985cd18f8aa09bad7a553c1b6bf1a0f2a05ca9eaa06412e79fff",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1249,14 +1249,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65535, orientation: 8 },
-    hash: "b9035f93b1ab8fe912d3b155255e0de48d85444fc328d7fc4ff5d6a1e1ea4693",
-    length: 964,
+    hash: "aa926b9a15342dc8b88f426bee401eeb5e9168b98990167b87afcaf7abc21548",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1268,14 +1268,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 8,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65535, orientation: 9 },
-    hash: "03a68d9d9cb4dc93542fda894b01d29dc75f6673f5d1d53107ffbccaca71d48d",
-    length: 876,
+    hash: "b9438cfd906427772fc2bb953fc67f1374114a5f5fa3ca452e0310cd6ec8f0ca",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1286,14 +1286,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 65535,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65536, orientation: 0 },
-    hash: "9b6bcebb3c334cbe6ec7b9cd9383e543cdc03515dd63ee051f2e78dd0ef362fb",
-    length: 876,
+    hash: "bc382176fc33cb226e050bec537467c5a5381e6d59501236b47a5f5385e593c9",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1304,14 +1304,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65536, orientation: 1 },
-    hash: "10e110e928ec87f0355160934bf00be3a47bee784cfe661446ec333c9f545af8",
-    length: 964,
+    hash: "ed63a6e42a0f1fac05b7d2bf9d6d6c2fa6963610a14f9f75bb71846f3a9942a4",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1323,14 +1323,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 1,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65536, orientation: 6 },
-    hash: "5f6aebd60fd443d07c6bc02551b4b59c77b37fd8059f2f181ea4913e4651aef2",
-    length: 964,
+    hash: "17e4bb7eb9d077ec2af25de900070e32e1bd1c7566786a171f6175b42c9d2cb0",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1342,14 +1342,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65536, orientation: 8 },
-    hash: "0825e0cd39ad0bc19b9f03d3e85646cfdcb7ca281563b1f97de4f22b54eddba2",
-    length: 964,
+    hash: "424674afd79da900057ed0a7b50e6213aa13e694353d544249273eb2e7271304",
+    length: 965,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1361,14 +1361,14 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       hasAlpha: false,
       orientation: 8,
       isProgressive: false,
-      size: 964
+      size: 965
     }
   },
   {
     spec: { width: 9, height: 11, density: 144, orientation: 3 },
     options: { density: 65536, orientation: 9 },
-    hash: "9b6bcebb3c334cbe6ec7b9cd9383e543cdc03515dd63ee051f2e78dd0ef362fb",
-    length: 876,
+    hash: "bc382176fc33cb226e050bec537467c5a5381e6d59501236b47a5f5385e593c9",
+    length: 877,
     metadata: {
       format: "jpeg",
       width: 9,
@@ -1379,7 +1379,7 @@ export const jpegOutputVectors: JpegOutputVector[] = [
       density: 72,
       hasAlpha: false,
       isProgressive: false,
-      size: 876
+      size: 877
     }
   },
   {

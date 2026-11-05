@@ -133,7 +133,8 @@ export interface JpegInputVector {
   error?: string;
 }
 
-// Independent original decoder results at e1398e5c28, including captured authored entropy/refinement/table fixtures.
+// Independent decoder results, including captured entropy/refinement/table fixtures.
+// Encoded vectors use native-compatible JPEG color rounding and fast integer DCT.
 export const jpegInputVectors: JpegInputVector[] = [
   {
     name: "decodes complete baseline entropy",
@@ -1199,7 +1200,7 @@ export const jpegInputVectors: JpegInputVector[] = [
     name: "encoded 1x1 shrinkundefined",
     spec: { kind: "encoded", width: 1, height: 1 },
     options: {},
-    inputHash: "d862662e48c2d2044050777b25941685f00aec0fcdf89426cd59dab8f4314dd0",
+    inputHash: "55d5b8b95d62f43b190c6b7fbd9c82d09851ebfe1fd82f0b24dc1308b0a2cced",
     metadata: {
       format: "jpeg",
       width: 1,
@@ -1225,13 +1226,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "e7170dc5af25abdfab5179966de69de714e611c1da2575617cceec04517a3700"
+    hash: "f51498eff32349f6af1c0bfd95791614e2e2c4a40632d55c9cefc016a30e822d"
   },
   {
     name: "encoded 1x1 shrink128",
     spec: { kind: "encoded", width: 1, height: 1 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "d862662e48c2d2044050777b25941685f00aec0fcdf89426cd59dab8f4314dd0",
+    inputHash: "55d5b8b95d62f43b190c6b7fbd9c82d09851ebfe1fd82f0b24dc1308b0a2cced",
     metadata: {
       format: "jpeg",
       width: 1,
@@ -1257,13 +1258,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "e7170dc5af25abdfab5179966de69de714e611c1da2575617cceec04517a3700"
+    hash: "f51498eff32349f6af1c0bfd95791614e2e2c4a40632d55c9cefc016a30e822d"
   },
   {
     name: "encoded 1x1 shrink256",
     spec: { kind: "encoded", width: 1, height: 1 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "d862662e48c2d2044050777b25941685f00aec0fcdf89426cd59dab8f4314dd0",
+    inputHash: "55d5b8b95d62f43b190c6b7fbd9c82d09851ebfe1fd82f0b24dc1308b0a2cced",
     metadata: {
       format: "jpeg",
       width: 1,
@@ -1289,13 +1290,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "e7170dc5af25abdfab5179966de69de714e611c1da2575617cceec04517a3700"
+    hash: "f51498eff32349f6af1c0bfd95791614e2e2c4a40632d55c9cefc016a30e822d"
   },
   {
     name: "encoded 7x9 shrinkundefined",
     spec: { kind: "encoded", width: 7, height: 9 },
     options: {},
-    inputHash: "15fff52e3996017342aa53955c47a05ab721cdc3c94947213c82188411a86b67",
+    inputHash: "b57a8b9c5a4e45bcc5c7d09f9ed0b4ecb669fab3b2faeddbd2e613aeb3937a11",
     metadata: {
       format: "jpeg",
       width: 7,
@@ -1307,7 +1308,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 794
+      size: 797
     },
     expected: {
       width: 7,
@@ -1321,13 +1322,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "e1dcb044d54f81ed14f5f630ee9502049c97d00f917352c6ca9eca654768cd5b"
+    hash: "2a6131e7c84a112f037b451cd2fee7dab2fe38395fec8a22a55e5175ef1221d9"
   },
   {
     name: "encoded 7x9 shrink128",
     spec: { kind: "encoded", width: 7, height: 9 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "15fff52e3996017342aa53955c47a05ab721cdc3c94947213c82188411a86b67",
+    inputHash: "b57a8b9c5a4e45bcc5c7d09f9ed0b4ecb669fab3b2faeddbd2e613aeb3937a11",
     metadata: {
       format: "jpeg",
       width: 7,
@@ -1339,7 +1340,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 794
+      size: 797
     },
     expected: {
       width: 7,
@@ -1353,13 +1354,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "e1dcb044d54f81ed14f5f630ee9502049c97d00f917352c6ca9eca654768cd5b"
+    hash: "2a6131e7c84a112f037b451cd2fee7dab2fe38395fec8a22a55e5175ef1221d9"
   },
   {
     name: "encoded 7x9 shrink256",
     spec: { kind: "encoded", width: 7, height: 9 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "15fff52e3996017342aa53955c47a05ab721cdc3c94947213c82188411a86b67",
+    inputHash: "b57a8b9c5a4e45bcc5c7d09f9ed0b4ecb669fab3b2faeddbd2e613aeb3937a11",
     metadata: {
       format: "jpeg",
       width: 7,
@@ -1371,7 +1372,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 794
+      size: 797
     },
     expected: {
       width: 7,
@@ -1385,13 +1386,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "e1dcb044d54f81ed14f5f630ee9502049c97d00f917352c6ca9eca654768cd5b"
+    hash: "2a6131e7c84a112f037b451cd2fee7dab2fe38395fec8a22a55e5175ef1221d9"
   },
   {
     name: "encoded 17x19 shrinkundefined",
     spec: { kind: "encoded", width: 17, height: 19 },
     options: {},
-    inputHash: "2fa50d293bc2af909677354648cd04e136cf03406d845f9ce403ce56a6f2ad67",
+    inputHash: "e1f40ac96be608126e5355727057e1c1e97904b94fa0c0a0fe6978b3896704d4",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -1403,7 +1404,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1166
+      size: 1163
     },
     expected: {
       width: 17,
@@ -1417,13 +1418,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "85aafa1803d7b23d236895cd92ae38daa9b3034fb37c23066ef36f4290df3aaf"
+    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
   },
   {
     name: "encoded 17x19 shrink128",
     spec: { kind: "encoded", width: 17, height: 19 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "2fa50d293bc2af909677354648cd04e136cf03406d845f9ce403ce56a6f2ad67",
+    inputHash: "e1f40ac96be608126e5355727057e1c1e97904b94fa0c0a0fe6978b3896704d4",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -1435,7 +1436,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1166
+      size: 1163
     },
     expected: {
       width: 17,
@@ -1449,13 +1450,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "85aafa1803d7b23d236895cd92ae38daa9b3034fb37c23066ef36f4290df3aaf"
+    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
   },
   {
     name: "encoded 17x19 shrink256",
     spec: { kind: "encoded", width: 17, height: 19 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "2fa50d293bc2af909677354648cd04e136cf03406d845f9ce403ce56a6f2ad67",
+    inputHash: "e1f40ac96be608126e5355727057e1c1e97904b94fa0c0a0fe6978b3896704d4",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -1467,7 +1468,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1166
+      size: 1163
     },
     expected: {
       width: 17,
@@ -1481,13 +1482,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "85aafa1803d7b23d236895cd92ae38daa9b3034fb37c23066ef36f4290df3aaf"
+    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
   },
   {
     name: "encoded 511x512 shrinkundefined",
     spec: { kind: "encoded", width: 511, height: 512 },
     options: {},
-    inputHash: "7d5e079a3e240596554ee5e5eb6ff89a81a992580e4f502986269d5538ed5374",
+    inputHash: "b52c39fb3b2bb81f717d61c2c710218e29304db2f6c5f356923bc7b8d276bd68",
     metadata: {
       format: "jpeg",
       width: 511,
@@ -1499,7 +1500,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 250643
+      size: 251376
     },
     expected: {
       width: 511,
@@ -1513,13 +1514,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "25c57d4162f3b5130b094d45c95d26e312818eec601889b527db1400be61de11"
+    hash: "4c85177e08e3ee0bef3f1c947b71b5b5f3e6e2c86bc0644b59a0135626ac223f"
   },
   {
     name: "encoded 511x512 shrink128",
     spec: { kind: "encoded", width: 511, height: 512 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "7d5e079a3e240596554ee5e5eb6ff89a81a992580e4f502986269d5538ed5374",
+    inputHash: "b52c39fb3b2bb81f717d61c2c710218e29304db2f6c5f356923bc7b8d276bd68",
     metadata: {
       format: "jpeg",
       width: 511,
@@ -1531,7 +1532,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 250643
+      size: 251376
     },
     expected: {
       width: 128,
@@ -1545,13 +1546,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "8c994bc00c784e231e511cd6d3c3fcbf05a56f7e3682f8c6ecc2bfa91ea16457"
+    hash: "d1cf55b06631803ddff01cb742e6441b962251f8afa005e7ebb85c0ff4ae7bd0"
   },
   {
     name: "encoded 511x512 shrink256",
     spec: { kind: "encoded", width: 511, height: 512 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "7d5e079a3e240596554ee5e5eb6ff89a81a992580e4f502986269d5538ed5374",
+    inputHash: "b52c39fb3b2bb81f717d61c2c710218e29304db2f6c5f356923bc7b8d276bd68",
     metadata: {
       format: "jpeg",
       width: 511,
@@ -1563,7 +1564,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 250643
+      size: 251376
     },
     expected: {
       width: 256,
@@ -1577,13 +1578,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "305d01e77e813f768bd4fa6bac79682341a3bf2f89f80272fc02334bcb3b6a25"
+    hash: "e6679c235d588787815682cc0dcf391d553ab09b729d34da438ddaa6ef85cadf"
   },
   {
     name: "encoded 512x512 shrinkundefined",
     spec: { kind: "encoded", width: 512, height: 512 },
     options: {},
-    inputHash: "065243074c488e4467fa8af0af0ec65313682098e43c7f6c94abd548ca4aa62f",
+    inputHash: "42625352c8fa849fcbcc7646ac03c196cadff07902e93a8beebbcd1f7d0c4992",
     metadata: {
       format: "jpeg",
       width: 512,
@@ -1595,7 +1596,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 261200
+      size: 261372
     },
     expected: {
       width: 512,
@@ -1609,13 +1610,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "e3736bb0b5866fb114dadddde53eda24965f13c560e012344e1aeb05cc90b414"
+    hash: "fd59b3035a34da44e982668e2e63d4b7e9e95cd0a144fad69c6e45bbd8e10cef"
   },
   {
     name: "encoded 512x512 shrink128",
     spec: { kind: "encoded", width: 512, height: 512 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "065243074c488e4467fa8af0af0ec65313682098e43c7f6c94abd548ca4aa62f",
+    inputHash: "42625352c8fa849fcbcc7646ac03c196cadff07902e93a8beebbcd1f7d0c4992",
     metadata: {
       format: "jpeg",
       width: 512,
@@ -1627,7 +1628,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 261200
+      size: 261372
     },
     expected: {
       width: 128,
@@ -1641,13 +1642,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "5fa20a883c4b0e1dd61be174f9c362120193691aebaae75729ac28f89890bbcd"
+    hash: "1e722eba6ce59f08ae60f514e49bdf0eb4c09aef870732745ae98946c686e8dd"
   },
   {
     name: "encoded 512x512 shrink256",
     spec: { kind: "encoded", width: 512, height: 512 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "065243074c488e4467fa8af0af0ec65313682098e43c7f6c94abd548ca4aa62f",
+    inputHash: "42625352c8fa849fcbcc7646ac03c196cadff07902e93a8beebbcd1f7d0c4992",
     metadata: {
       format: "jpeg",
       width: 512,
@@ -1659,7 +1660,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 261200
+      size: 261372
     },
     expected: {
       width: 256,
@@ -1673,13 +1674,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "b12eed010c8b67b8ac11867c3614c6180dbfdf9e379490ae6f7d607326675598"
+    hash: "50c080c2ab60e5d2864c5e9e2fb850470c0aa4b058b7ebe8c415a0d8424cf441"
   },
   {
     name: "encoded 513x512 shrinkundefined",
     spec: { kind: "encoded", width: 513, height: 512 },
     options: {},
-    inputHash: "2de3a9ccdfd3419f330ca6a8cbf456701325c6e9b1883ea8b160418a1f8317c7",
+    inputHash: "8e6cee8fd8b74e3fb98762344693a2002940222b6186991477053d06740e6079",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1691,7 +1692,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 257532
+      size: 258600
     },
     expected: {
       width: 513,
@@ -1705,13 +1706,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "bd9cf8bfaddb9579f8a9544f74ae0cf64d3a83f48c95381eca400b843ebcdf6f"
+    hash: "dcf7676d8733913d49c9caefa748a8d23556026edba7142e36b5ff06af617af5"
   },
   {
     name: "encoded 513x512 shrink128",
     spec: { kind: "encoded", width: 513, height: 512 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "2de3a9ccdfd3419f330ca6a8cbf456701325c6e9b1883ea8b160418a1f8317c7",
+    inputHash: "8e6cee8fd8b74e3fb98762344693a2002940222b6186991477053d06740e6079",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1723,7 +1724,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 257532
+      size: 258600
     },
     expected: {
       width: 129,
@@ -1737,13 +1738,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "1923de57f546ae5f10397227ff6f02051cd5d49347764a83faa058eae8638ec1"
+    hash: "923bc10a6760459f187148c308147d61309084ee5ee849082694bdb95252dcd5"
   },
   {
     name: "encoded 513x512 shrink256",
     spec: { kind: "encoded", width: 513, height: 512 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "2de3a9ccdfd3419f330ca6a8cbf456701325c6e9b1883ea8b160418a1f8317c7",
+    inputHash: "8e6cee8fd8b74e3fb98762344693a2002940222b6186991477053d06740e6079",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1755,7 +1756,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 257532
+      size: 258600
     },
     expected: {
       width: 257,
@@ -1769,13 +1770,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "6a638a7063d340889043ca1e68f968bd8da5aa1dbe3a5412443fe26a634e4698"
+    hash: "42e2af487ab7454ea09c73001c1a7b693759dd07f9b6792b29e159d1ac905734"
   },
   {
     name: "encoded 513x9 shrinkundefined",
     spec: { kind: "encoded", width: 513, height: 9 },
     options: {},
-    inputHash: "b8faa1b7042f88f70577ba21523f407302078e0d2537cce77013c34aa5e5732d",
+    inputHash: "2787b8709e8137dc79e5e7cc91105780d7ba7cac7a969dff1eb963a1df8e248c",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1787,7 +1788,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 6603
+      size: 6643
     },
     expected: {
       width: 513,
@@ -1801,13 +1802,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "1c457f27f9ee3b467bec9df1689a7b792b0d3fa6eb9534d7acf324ab0cd1b30d"
+    hash: "3b151dc1088b3b56ed5f9457f70a6ce1531ddc8e921f57cfceccaa057049297a"
   },
   {
     name: "encoded 513x9 shrink128",
     spec: { kind: "encoded", width: 513, height: 9 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "b8faa1b7042f88f70577ba21523f407302078e0d2537cce77013c34aa5e5732d",
+    inputHash: "2787b8709e8137dc79e5e7cc91105780d7ba7cac7a969dff1eb963a1df8e248c",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1819,7 +1820,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 6603
+      size: 6643
     },
     expected: {
       width: 257,
@@ -1833,13 +1834,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "ad09728d5f7c750fff571c6e6570160fda37962513b2f25965400008c830c415"
+    hash: "83d900166a078c93ed15bb7df7dd9f962b2a2aac11b2b8607076ebaf05fba6ed"
   },
   {
     name: "encoded 513x9 shrink256",
     spec: { kind: "encoded", width: 513, height: 9 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "b8faa1b7042f88f70577ba21523f407302078e0d2537cce77013c34aa5e5732d",
+    inputHash: "2787b8709e8137dc79e5e7cc91105780d7ba7cac7a969dff1eb963a1df8e248c",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1851,7 +1852,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 6603
+      size: 6643
     },
     expected: {
       width: 257,
@@ -1865,13 +1866,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "ad09728d5f7c750fff571c6e6570160fda37962513b2f25965400008c830c415"
+    hash: "83d900166a078c93ed15bb7df7dd9f962b2a2aac11b2b8607076ebaf05fba6ed"
   },
   {
     name: "encoded 513x256 shrinkundefined",
     spec: { kind: "encoded", width: 513, height: 256 },
     options: {},
-    inputHash: "51e297c416a7e1fc3e448075596f4bf21811f980cbcd3b5172351e0828d4eaa3",
+    inputHash: "9a9bb62aa89f725e0e37dcf38acb45a6845a131e0e2c03a19fa80eb30fe05d4a",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1883,7 +1884,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 129114
+      size: 129660
     },
     expected: {
       width: 513,
@@ -1897,13 +1898,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "83379b9a2da5db94f919889a36552fa8769d51acb16d6caad395ef4c9e9d5562"
+    hash: "ce186c2f3cbf5e984f91d2aff8c24315c83059d88b74ca546aedc5fc72d3b211"
   },
   {
     name: "encoded 513x256 shrink128",
     spec: { kind: "encoded", width: 513, height: 256 },
     options: { maxDecodeDimension: 128 },
-    inputHash: "51e297c416a7e1fc3e448075596f4bf21811f980cbcd3b5172351e0828d4eaa3",
+    inputHash: "9a9bb62aa89f725e0e37dcf38acb45a6845a131e0e2c03a19fa80eb30fe05d4a",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1915,7 +1916,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 129114
+      size: 129660
     },
     expected: {
       width: 129,
@@ -1929,13 +1930,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "8a4329fd452d90c7f2b174f988ed74ba56189b341e91c39908a90c19b0d083fc"
+    hash: "5c2a9851ee313656d75c11c6b083d04c9ac34a2375dc0f016b1171caac2ec624"
   },
   {
     name: "encoded 513x256 shrink256",
     spec: { kind: "encoded", width: 513, height: 256 },
     options: { maxDecodeDimension: 256 },
-    inputHash: "51e297c416a7e1fc3e448075596f4bf21811f980cbcd3b5172351e0828d4eaa3",
+    inputHash: "9a9bb62aa89f725e0e37dcf38acb45a6845a131e0e2c03a19fa80eb30fe05d4a",
     metadata: {
       format: "jpeg",
       width: 513,
@@ -1947,7 +1948,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 129114
+      size: 129660
     },
     expected: {
       width: 257,
@@ -1961,7 +1962,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "8f8778dc1d7dc24f4f3714c0b00d332c5c3fd3a0f10727f80ea5b8eb17ad935f"
+    hash: "bee4276528ff409fda4d9519148b7394f60a2c2ff4d1d6fa95d79710a3940921"
   },
   {
     name: "synthetic c1 sampling1 progfalse sepfalse shrinkundefined",
@@ -3455,7 +3456,7 @@ export const jpegInputVectors: JpegInputVector[] = [
     name: "encoded truncated-1",
     spec: { kind: "encoded", width: 17, height: 19, truncate: -1 },
     options: {},
-    inputHash: "5ba11e6c8b5f6ba8c3b3732a3bab5a81eb08656a474a21cd52847d6c7429f7cf",
+    inputHash: "9081a92ac6b38cb84bd0427eab3f2626932fea6ff4781ce7e54248632f261bab",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -3467,7 +3468,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1165
+      size: 1162
     },
     expected: {
       width: 17,
@@ -3481,13 +3482,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "85aafa1803d7b23d236895cd92ae38daa9b3034fb37c23066ef36f4290df3aaf"
+    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
   },
   {
     name: "encoded truncated-2",
     spec: { kind: "encoded", width: 17, height: 19, truncate: -2 },
     options: {},
-    inputHash: "09768df6d425eaf9cee351af54353eb4c6611354a306c4fc183dd1df3339ef69",
+    inputHash: "bee0b0d76a15c2de66d05f6a23836a395987d37296a649feb86b97ea4103c443",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -3499,7 +3500,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1164
+      size: 1161
     },
     expected: {
       width: 17,
@@ -3513,13 +3514,13 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "85aafa1803d7b23d236895cd92ae38daa9b3034fb37c23066ef36f4290df3aaf"
+    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
   },
   {
     name: "encoded truncated-3",
     spec: { kind: "encoded", width: 17, height: 19, truncate: -3 },
     options: {},
-    inputHash: "1f363c626c01b2f505ee7838464a1501092f36d3f2807a22be9f5e63c3628f74",
+    inputHash: "bfc1e127c17654a8fe0bfa6387d483a51f6ed9bef3d2e897fdd7b7c08f0815ad",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -3531,7 +3532,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1163
+      size: 1160
     },
     error: "Truncated JPEG entropy data"
   },
@@ -3539,7 +3540,7 @@ export const jpegInputVectors: JpegInputVector[] = [
     name: "encoded truncated-20",
     spec: { kind: "encoded", width: 17, height: 19, truncate: -20 },
     options: {},
-    inputHash: "f69f9cb19258246f03d9bad4398406886e2ed494de4f7d2e83c7527b3cbe1590",
+    inputHash: "c4c3f74ce5f7cbd2f7906d6280a101a500166b639cf5bd85f8be0585b0331b21",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -3551,7 +3552,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1146
+      size: 1143
     },
     error: "Truncated JPEG entropy data"
   },
@@ -3559,7 +3560,7 @@ export const jpegInputVectors: JpegInputVector[] = [
     name: "encoded truncated-100",
     spec: { kind: "encoded", width: 17, height: 19, truncate: -100 },
     options: {},
-    inputHash: "711175d67ed2aa8106c9b8bdf07748ff9cc093c85c74760c64fad1eec8947c18",
+    inputHash: "29acda37336aa6e1b9715377d27773902c114b040ce328106fe947ef85c019b0",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -3571,7 +3572,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 1066
+      size: 1063
     },
     error: "Truncated JPEG entropy data"
   },
@@ -3579,7 +3580,7 @@ export const jpegInputVectors: JpegInputVector[] = [
     name: "encoded truncated-500",
     spec: { kind: "encoded", width: 17, height: 19, truncate: -500 },
     options: {},
-    inputHash: "99962bd73e11ce4483fad5ff9cf05a9bd39f066eb08089d54606e29e4aeddebd",
+    inputHash: "3cb369fe5f3c27d048235bd4c3e9ad17058f1f63cad976f5b8a9514361eb1dae",
     metadata: {
       format: "jpeg",
       width: 17,
@@ -3591,7 +3592,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 666
+      size: 663
     },
     expected: {
       width: 17,

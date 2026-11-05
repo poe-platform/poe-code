@@ -752,31 +752,52 @@ const INV_ZIGZAG = (() => {
   return inv;
 })();
 
-const FDCT_TEMP = new Float64Array(64);
+const FDCT_TEMP = new Int32Array(64);
 
+// IJG's fast integer DCT, used by ImageMagick's default JPEG encoder.
+// Multiplications truncate at eight fractional bits in both passes.
+const AAN_SCALES = new Int32Array([
+  16384,22725,21407,19266,16384,12873,8867,4520,
+  22725,31521,29692,26722,22725,17855,12299,6270,
+  21407,29692,27969,25172,21407,16819,11585,5906,
+  19266,26722,25172,22654,19266,15137,10426,5315,
+  16384,22725,21407,19266,16384,12873,8867,4520,
+  12873,17855,16819,15137,12873,10114,6967,3552,
+  8867,12299,11585,10426,8867,6967,4799,2446,
+  4520,6270,5906,5315,4520,3552,2446,1247
+]);
 function fdct8x8(block: Float64Array, quant: Uint8Array, outZigZag: Int32Array): void {
-  for (let y = 0; y < 8; y++) {
-    const rowOff = y * 8;
-    for (let u = 0; u < 8; u++) {
-      const cosOff = u * 8;
-      let sum = 0;
-      for (let x = 0; x < 8; x++) {
-        sum += block[rowOff + x]! * COS_TABLE[cosOff + x]!;
-      }
-      FDCT_TEMP[rowOff + u] = sum * 0.5;
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < 8; i++) {
+      const at = (j: number) => pass === 0 ? i * 8 + j : j * 8 + i;
+      const input = pass === 0 ? block : FDCT_TEMP;
+      const t0 = input[at(0)]! + input[at(7)]!, t7 = input[at(0)]! - input[at(7)]!;
+      const t1 = input[at(1)]! + input[at(6)]!, t6 = input[at(1)]! - input[at(6)]!;
+      const t2 = input[at(2)]! + input[at(5)]!, t5 = input[at(2)]! - input[at(5)]!;
+      const t3 = input[at(3)]! + input[at(4)]!, t4 = input[at(3)]! - input[at(4)]!;
+      const t10 = t0 + t3, t13 = t0 - t3, t11 = t1 + t2, t12 = t1 - t2;
+      FDCT_TEMP[at(0)] = t10 + t11;
+      FDCT_TEMP[at(4)] = t10 - t11;
+      const z1 = ((t12 + t13) * 181) >> 8;
+      FDCT_TEMP[at(2)] = t13 + z1;
+      FDCT_TEMP[at(6)] = t13 - z1;
+      const o10 = t4 + t5, o11 = t5 + t6, o12 = t6 + t7;
+      const z5 = ((o10 - o12) * 98) >> 8;
+      const z2 = ((o10 * 139) >> 8) + z5;
+      const z4 = ((o12 * 334) >> 8) + z5;
+      const z3 = (o11 * 181) >> 8;
+      const z11 = t7 + z3, z13 = t7 - z3;
+      FDCT_TEMP[at(5)] = z13 + z2;
+      FDCT_TEMP[at(3)] = z13 - z2;
+      FDCT_TEMP[at(1)] = z11 + z4;
+      FDCT_TEMP[at(7)] = z11 - z4;
     }
   }
-  for (let v = 0; v < 8; v++) {
-    const cosOff = v * 8;
-    const vRow = v * 8;
-    for (let u = 0; u < 8; u++) {
-      let sum = 0;
-      for (let y = 0; y < 8; y++) {
-        sum += FDCT_TEMP[y * 8 + u]! * COS_TABLE[cosOff + y]!;
-      }
-      const zigIdx = INV_ZIGZAG[vRow + u]!;
-      outZigZag[zigIdx] = Math.round((sum * 0.5) / (quant[zigIdx] ?? 1));
-    }
+  for (let i = 0; i < 64; i++) {
+    const zig = INV_ZIGZAG[i]!, value = FDCT_TEMP[i]!;
+    const divisor = (quant[zig]! * AAN_SCALES[i]! + 1024) >> 11;
+    const magnitude = Math.floor((Math.abs(value) + Math.floor(divisor / 2)) / divisor);
+    outZigZag[zig] = value < 0 ? -magnitude : magnitude;
   }
 }
 
@@ -970,7 +991,12 @@ export function createJpegEncoder(
               const r = data[idx]! * a + 255 * (1 - a);
               const g = data[idx + 1]! * a + 255 * (1 - a);
               const b = data[idx + 2]! * a + 255 * (1 - a);
-              sum += component === 0 ? 0.299 * r + 0.587 * g + 0.114 * b - 128 : component === 1 ? -0.168736 * r - 0.331264 * g + 0.5 * b : 0.5 * r - 0.418688 * g - 0.081312 * b;
+              // libjpeg rounds RGB to 8-bit YCbCr before the forward DCT.
+              sum += component === 0
+                ? Math.floor((19595 * r + 38470 * g + 7471 * b + 32768) / 65536) - 128
+                : component === 1
+                  ? Math.floor((-11059 * r - 21709 * g + 32768 * b + 32767) / 65536)
+                  : Math.floor((32768 * r - 27439 * g - 5329 * b + 32767) / 65536);
             }
             samples[y * 8 + x] = sum / (scaleX * scaleY);
           }

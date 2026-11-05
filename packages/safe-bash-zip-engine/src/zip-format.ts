@@ -167,7 +167,13 @@ function extras(bytes: Uint8Array, rawName: Uint8Array, comment: Uint8Array, cen
 
 function nameFrom(rawName: Uint8Array, flags: number, metadata: ExtraMetadata, limits: ArchiveLimits): string {
   number(rawName.length, Math.min(limits.maxPathBytes, 65535), "raw path byte");
-  const raw = flags & 0x800 ? text(rawName) : legacyName(rawName);
+  let raw: string;
+  if (flags & 0x800) raw = text(rawName);
+  else {
+    // macOS zip writes UTF-8 names without bit 11; retain CP437 for invalid UTF-8.
+    try { raw = text(rawName); }
+    catch { raw = legacyName(rawName); }
+  }
   pathBytes(raw, limits);
   if (flags & 0x800 && metadata.name !== undefined && metadata.name !== raw) fail("ZIP conflicting UTF-8 and Unicode extra names");
   return metadata.name ?? raw;

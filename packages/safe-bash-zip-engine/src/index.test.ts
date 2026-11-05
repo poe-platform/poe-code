@@ -9,6 +9,33 @@ import { collectBytes } from "safe-bash-contracts";
 import { settings } from "safe-bash-io-engine/commands/archive/internal";
 import { makeZipEntry, readZipArchive, decodeZipEntry, writeZipArchive } from "./zip-format.js";
 
+for (const [bytes, name] of [
+  [[0xc3, 0xa9], "é"],
+  [[0xe6, 0x97, 0xa5], "日"],
+  [[0xf0, 0x9f, 0x98, 0x80], "😀"],
+  [[0x82], "é"],
+  [[0xc3], "├"],
+  [[0xc0, 0xaf], "└»"],
+  [[0xed, 0xa0, 0x80], "φáÇ"],
+] as const) test(`ZIP unflagged names decode ${bytes.join(",")} as ${name} and survive rewriting`, async () => {
+  const signal = new AbortController().signal;
+  const limits = settings({});
+  const placeholder = "x".repeat(bytes.length) + ".txt";
+  const entry = await makeZipEntry(placeholder, new Uint8Array([42]), { modified: new Date(2026, 0, 1), mode: 0o100644, directory: false, symlink: false }, limits, signal, 0);
+  entry.flags = 0;
+  const wire = Buffer.from(await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal));
+  const local = wire.indexOf(placeholder);
+  const central = wire.indexOf(placeholder, local + placeholder.length);
+  assert.ok(local > 0 && central > local);
+  wire.set(bytes, local);
+  wire.set(bytes, central);
+  const archive = await readZipArchive(wire, limits, signal);
+  assert.equal(archive.entries[0]!.name, name + ".txt");
+  const rewritten = await readZipArchive(await writeZipArchive(archive, limits, signal), limits, signal);
+  assert.equal(rewritten.entries[0]!.name, name + ".txt");
+  assert.deepEqual(rewritten.entries[0]!.rawName, archive.entries[0]!.rawName);
+});
+
 test("ZIP directory and member reads use bounded ranges without collecting the archive", async () => {
   const signal = new AbortController().signal;
   const limits = settings({ limits: { chunkSize: 4096 } });

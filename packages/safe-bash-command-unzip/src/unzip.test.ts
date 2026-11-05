@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import { deflateRawSync } from "node:zlib";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { CommandContext, FileSystem } from "safe-bash-contracts";
@@ -68,6 +69,17 @@ async function run(fs: FileSystem, args: readonly string[], input = "", options:
 }
 
 const heading = "Archive:  sample.zip\n";
+// macOS system Zip 3.0: printf 'ok\n' > é.txt; zip -q single.zip é.txt
+// The filename is UTF-8, without bit 11 or a Unicode Path extra field.
+test("unzip lists and extracts unflagged UTF-8 names from macOS zip", async () => {
+  const fs = await fixture([]);
+  await fs.writeFile("/work/sample.zip", await readFile(new URL("./fixtures/macos-utf8.zip", import.meta.url)));
+  assert.deepEqual(await run(fs, ["-Z1", "sample.zip"]), { exitCode: 0, stdout: "é.txt\n", stderr: "" });
+  assert.deepEqual(await run(fs, ["-oq", "sample.zip", "-d", "dest"]), { exitCode: 0, stdout: "", stderr: "" });
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/dest/é.txt")), "ok\n");
+  await assert.rejects(fs.stat("/work/dest/├⌐.txt"));
+});
+
 const listing = "  Length      Date    Time    Name\n---------  ---------- -----   ----\n";
 const footer = "---------                     -------\n";
 const prompt = (name: string) => `replace ${name}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `;

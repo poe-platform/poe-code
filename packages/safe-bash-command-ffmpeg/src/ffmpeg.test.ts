@@ -2646,6 +2646,29 @@ it("rejects unsupported surround downmix layouts without overwriting output", as
 });
 
 
+it("rejects unsupported setpts offsets before downstream time selection without overwriting output", async () => {
+  const vfs = createTestVfs({ "/out.gif": "existing" });
+  const input = await runCmd(createFfmpegCommand(), [
+    "-f", "lavfi", "-i", "testsrc2=size=16x16:rate=1:duration=3", "/in.gif"
+  ], vfs);
+  assert.equal(input.exitCode, 0, input.stderr);
+  const before = new Map(vfs.store);
+  const result = await runCmd(createFfmpegCommand(), [
+    "-y", "-i", "/in.gif", "-vf", "setpts=PTS+1/TB,select=gt(t\\,1.5)",
+    "-fps_mode", "passthrough", "/out.gif"
+  ], vfs);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("setpts: invalid or unsupported expression"), result.stderr);
+  assert.deepEqual(vfs.store, before);
+
+  const control = await runCmd(createFfmpegCommand(), [
+    "-i", "/in.gif", "-vf", "select=gt(t\\,1.5)",
+    "-fps_mode", "passthrough", "/selected_%d.png"
+  ], vfs);
+  assert.equal(control.exitCode, 0, control.stderr);
+  assert.deepEqual([...vfs.store.keys()].filter(path => path.startsWith("/selected_")), ["/selected_1.png"]);
+});
+
 describe("image sequence output synchronization", () => {
   for (const [filter, count] of [
     ["select='eq(n,1)+eq(n,3)'", 3],

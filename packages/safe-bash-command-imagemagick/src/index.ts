@@ -6340,9 +6340,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
         else if (t.startsWith("-") && t.length > 1) {
-            // Skip optional flags with arguments if recognized
-            if (t === "-format" || t === "-alpha" || t === "-channel")
-                i++;
+            return { exitCode: 2, stdout: "", stderr: `compare: unrecognized option '${t}'\n` };
         }
         else {
             operands.push(t);

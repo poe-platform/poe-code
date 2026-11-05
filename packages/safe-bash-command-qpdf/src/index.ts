@@ -1,3 +1,4 @@
+import { qpdfJsonEncryption } from "./json-encryption.js";
 import { linearizationAssignments } from "./linearization-assignments.js";
 import { checkLinearization } from "./linearization-check.js";
 import { linearizationReport } from "./linearization-report.js";
@@ -1510,11 +1511,11 @@ function* executeQpdfCli(
       jsonObjectSelectors.some((s) => s.kind === "obj" && s.objNum === objNum && s.genNum === genNum);
     for (const [objNum, obj] of baseDoc.cos.objects.entries()) {
       if (!matchesSelector(objNum, obj.generationNumber)) continue;
-      if (jsonKeys.includes("objectinfo")) {
+      if (jsonVersion === 1 && include("objectinfo")) {
         const dict = obj.value.kind === "stream" ? obj.value.dict : undefined;
         objectInfo[`${objNum} ${obj.generationNumber} R`] = { stream: {
-          filter: dict ? cosNodeToJson(dictGet(dict, "Filter") ?? cosNull()) : null,
-          is: Boolean(dict), length: dict ? cosNodeToJson(dictGet(dict, "Length") ?? cosNull()) : null
+          filter: dict ? cosNodeToJson(baseDoc.cos.resolve(dictGet(dict, "Filter")) ?? cosNull()) : null,
+          is: Boolean(dict), length: dict ? cosNodeToJson(baseDoc.cos.resolve(dictGet(dict, "Length")) ?? cosNull()) : null
         } };
       }
       if (!includeObjects) continue;
@@ -1609,7 +1610,7 @@ function* executeQpdfCli(
     }
 
     let pagesVal: unknown = baseDoc.getPageCount();
-    if (jsonKeys.includes("pages") || (jsonVersion === 2 && include("pages"))) {
+    if (include("pages")) {
       const values: unknown[] = [];
       for (const [index, page] of baseDoc.getPages().entries()) {
         const steps = qpdfJsonPage(page.dict, page.ref, index, rootDictForJson, jsonVersion);
@@ -1626,26 +1627,15 @@ function* executeQpdfCli(
       pagesVal = values;
     }
 
-    const payload = {
-      version: 1,
-      pdfversion: baseDoc.cos.version,
-      pages: pagesVal,
-      pagelabels: pagelabelsJson,
-      outlines: outlinesJson,
-      acroform: acroformSection,
-      encrypt: { encrypted: Boolean(baseDoc.cos.encryption) },
-      attachments: attachmentsJson,
-      objects: objectsMap
-    };
     const sections: Record<string, unknown> = {
       pages: pagesVal, pagelabels: pagelabelsJson, outlines: outlinesJson,
-      acroform: acroformSection, encrypt: { encrypted: Boolean(baseDoc.cos.encryption) },
+      acroform: acroformSection, encrypt: jsonVersion === 1 ? qpdfJsonEncryption(baseDoc.cos.encryption) : { encrypted: Boolean(baseDoc.cos.encryption) },
       attachments: attachmentsJson, objects: objectsMap, objectinfo: objectInfo,
       qpdf: [{ jsonversion: 2, pdfversion: baseDoc.cos.version, maxobjectid: baseDoc.cos.maxObjectNumber }, objectsMap]
     };
     const selectedPayload: Record<string, unknown> = { version: jsonVersion, parameters: { decodelevel: "generalized" } };
-    for (const key of jsonKeys.length ? jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", "qpdf"]) selectedPayload[key] = sections[key];
-    const jsonOut = JSON.stringify(jsonKeys.length || jsonVersion === 2 ? selectedPayload : payload, null, 2) + "\n";
+    for (const key of jsonKeys.length ? jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", ...(jsonVersion === 1 ? ["objects", "objectinfo"] : ["qpdf"])]) selectedPayload[key] = sections[key];
+    const jsonOut = JSON.stringify(selectedPayload, null, 2) + "\n";
     if (outputFile && outputFile !== "-") {
       files.set(outputFile, new TextEncoder().encode(jsonOut));
       return { exitCode: 0, stdout: "", stderr: "" };

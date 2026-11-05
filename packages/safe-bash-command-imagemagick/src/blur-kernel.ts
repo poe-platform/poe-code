@@ -1,7 +1,23 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
+export function parseUnsharpGeometry(raw: string): { width: number; height: number; amount: number; threshold: number } {
+    const parts: string[] = [];
+    let start = 0;
+    for (let i = 0; i < raw.length; i++) {
+        if (raw[i] === "x" || raw[i] === "X" || i > start && (raw[i] === "+" || raw[i] === "-")) {
+            parts.push(raw.slice(start, i));
+            start = raw[i] === "x" || raw[i] === "X" ? i + 1 : i;
+        }
+    }
+    parts.push(raw.slice(start));
+    if (!raw.includes("x") && !raw.includes("X")) parts.splice(1, 0, "1");
+    const [width = 0, height = 1, amount = 1, threshold = 0.05] = parts.map(part => Number(part));
+    if (![width, height, amount, threshold].every(Number.isFinite)) throw new Error("Invalid unsharp geometry");
+    return { width, height, amount, threshold };
+}
+
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
-export function* blurPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* blurPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     let half = 0;
@@ -55,15 +71,24 @@ export function* blurPixelSteps(image: { width: number; height: number }, geomet
                 for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * weights[ky + half]!;
             }
             const data = new Uint8Array(count * 4);
+            const original = unsharp || mask?.some(active => !active)
+                ? yield { kind: "read" as const, position: (y * width + left) * 4, length: data.length }
+                : undefined;
+            if ((unsharp || mask?.some(active => !active)) && (!original || original.length !== data.length)) throw new Error("Truncated blur pixels");
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
-                for (let c = 0; c < 3; c++) data[x * 4 + c] = alpha > 0 ? Math.round(sums[x * 4 + c]! / alpha) : 0;
-                data[x * 4 + 3] = Math.round(alpha * 255);
+                for (let c = 0; c < 4; c++) {
+                    const index = x * 4 + c;
+                    let value = c === 3 ? alpha * 255 : alpha > 0 ? sums[index]! / alpha : 0;
+                    if (unsharp) {
+                        const source = original![index]!, difference = source - value;
+                        value = Math.abs(2 * difference) < 255 * unsharp.threshold ? source : source + unsharp.amount * difference;
+                    }
+                    data[index] = Math.max(0, Math.min(255, Math.round(value)));
+                }
             }
             if (mask && mask.some(active => !active)) {
-                const original = yield { kind: "read", position: (y * width + left) * 4, length: data.length };
-                if (!original || original.length !== data.length) throw new Error("Truncated blur pixels");
-                for (let i = 0; i < data.length; i++) if (!mask[i % 4]) data[i] = original[i]!;
+                for (let i = 0; i < data.length; i++) if (!mask[i % 4]) data[i] = original![i]!;
             }
             yield { kind: "write", position: (y * width + left) * 4, data };
         }

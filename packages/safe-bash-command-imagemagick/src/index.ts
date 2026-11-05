@@ -1,5 +1,5 @@
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
-import { blurPixelSteps } from "./blur-kernel.js";
+import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { montageFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { resizePixelSteps } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
@@ -41,7 +41,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -5061,11 +5061,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-unsharp") {
-            const g = parseMagickGeometry(tokens[++i] ?? "0x1");
-            const sigma = Math.max(0.3, g.height ?? g.width ?? 1);
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* sharpenImageSteps(im, sigma));
-            }));
+            const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1");
+            stack = yield* mapSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry), signal);
+            });
         }
         else if (t === "-median") {
             const r = Math.max(1, Math.round(Number(tokens[++i] ?? 3)));
@@ -5977,8 +5976,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-unsharp") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
-            transform(() => ({ kind: "sharpen", sigma, m1: 1, m2: 2 }));
+            const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-crop") {
             const geometry = tokens[++i] ?? "100%", parsed = parseMagickGeometry(geometry), gravity = state.gravity;
             steps.push(async (image, backend) => {

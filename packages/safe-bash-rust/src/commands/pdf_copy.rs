@@ -32,7 +32,7 @@ mod pdf_bitmap;
 pub(in crate::commands::archive) use pdf_bitmap::{ImageRead, NativeImage};
 #[path = "pdf_raster.rs"]
 mod pdf_raster;
-pub(in crate::commands::archive) use pdf_raster::RasterOptions;
+pub(in crate::commands::archive) use pdf_raster::{RasterBackend, RasterOptions};
 
 type Matrix = [f64; 6];
 const ID: Matrix = [1., 0., 0., 1., 0., 0.];

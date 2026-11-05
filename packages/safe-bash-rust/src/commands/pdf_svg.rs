@@ -3,7 +3,7 @@ use super::super::{
     svg_numbers, svg_tokens, xml_unescape_str,
 };
 use super::{
-    PageSource, RasterOptions,
+    PageSource, RasterBackend, RasterOptions,
     pdf_copy::{WIDTHS, literal, write_objects},
     pdf_render::win_ansi,
 };
@@ -421,7 +421,7 @@ pub(in crate::commands::archive) fn render_svg(
         .raster(
             1,
             &RasterOptions {
-                splash: false,
+                backend: RasterBackend::Svg,
                 tiff: None,
                 jpeg: None,
                 format: "RGBA",

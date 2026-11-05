@@ -4,14 +4,23 @@ use super::pdf_text_layout::Draw;
 use super::pdf_bitmap::{Image, ImageStream};
 #[path = "pdf_cairo_image.rs"]
 mod pdf_cairo_image;
+#[path = "pdf_cairo_path.rs"]
+mod pdf_cairo_path;
 #[path = "pdf_glyph.rs"]
 mod pdf_glyph;
 use super::{PageSource, Value};
 type Point = [f64; 2];
+#[derive(Clone, Copy, PartialEq)]
+pub(in crate::commands::archive) enum RasterBackend {
+    Splash,
+    Cairo,
+    Svg,
+}
+
 pub(in crate::commands::archive) struct RasterOptions<'a> {
     pub tiff: Option<(&'a str, bool)>,
     pub jpeg: Option<(u8, bool)>,
-    pub splash: bool,
+    pub backend: RasterBackend,
     pub format: &'a str,
     pub color: &'a str,
     pub transparent: bool,
@@ -40,11 +49,36 @@ fn div255(n: u32) -> u32 {
     (n + (n >> 8) + 128) >> 8
 }
 
-fn over_white(p: &mut [u8; 4]) {
+fn mul255(a: u32, b: u32) -> u32 {
+    let n = a * b + 128;
+    (n + (n >> 8)) >> 8
+}
+
+// The span compositor rounds solid fills with 127; Pixman uses 128 for
+// surface patterns. The mask scales premultiplied source channels.
+fn cairo_over(dest: &mut [u8; 4], src: &[u8], mask: u32, alpha: u32, bias: u32) {
+    let scale = |a: u32, b: u32| {
+        let t = a * b + bias;
+        (t + (t >> 8)) >> 8
+    };
+    let old = u32::from(dest[3]);
+    let out = alpha + scale(old, 255 - alpha);
+    for k in 0..3 {
+        let c = scale(src[k].into(), mask) + scale(mul255(dest[k].into(), old), 255 - alpha);
+        dest[k] = ((c * 255 + out / 2) / out).min(255) as u8;
+    }
+    dest[3] = out as u8;
+}
+
+fn over_white(p: &mut [u8; 4], backend: RasterBackend) {
     let alpha = u32::from(p[3]);
     if alpha < 255 {
         for c in &mut p[..3] {
-            *c = div255(alpha * u32::from(*c) + (255 - alpha) * 255) as u8;
+            *c = if backend == RasterBackend::Cairo {
+                (mul255(alpha, u32::from(*c)) + 255 - alpha) as u8
+            } else {
+                div255(alpha * u32::from(*c) + (255 - alpha) * 255) as u8
+            };
         }
         p[3] = 255;
     }
@@ -182,6 +216,7 @@ fn cairo_component(value: &Value<'_>) -> Option<f64> {
 }
 
 struct Bitmap {
+    backend: RasterBackend,
     form_clips: Vec<[Point; 4]>,
     clip_antialias: bool,
     white_background: bool,
@@ -512,47 +547,32 @@ impl Bitmap {
             (xs.start + xs.end) as f64 / 2.,
             (ys.start + ys.end) as f64 / 2.,
         ];
-        let shape = pdf_cairo_image::Footprint::new(matrix);
+        let shape = pdf_cairo_path::Footprint::new(matrix);
         let image = pdf_cairo_image::sampler(&im, matrix, center);
         let mask = mask
             .as_ref()
             .map(|m| pdf_cairo_image::sampler(m, matrix, center));
-        let mul = |a: u32, b: u32| {
-            let n = a * b + 128;
-            (n + (n >> 8)) >> 8
-        };
         for y in ys {
             let coverage = shape.row(y, self.w);
             let clip = self.clip_row(y, None)?;
             for x in xs.clone() {
-                let mut opacity = mul(coverage.alpha(x).into(), clip_coverage(&clip, x).into());
+                let mut opacity = mul255(coverage.alpha(x).into(), clip_coverage(&clip, x).into());
                 if opacity == 0 {
                     continue;
                 }
                 if let Some(mask) = &mask {
-                    opacity = mul(mask(x, y, &mut self.work)?[0].into(), opacity);
+                    opacity = mul255(mask(x, y, &mut self.work)?[0].into(), opacity);
                     if opacity == 0 {
                         continue;
                     }
                 }
                 let src = image(x, y, &mut self.work)?;
-                let alpha = mul(src[3].into(), opacity);
+                let alpha = mul255(src[3].into(), opacity);
                 if alpha == 0 {
                     continue;
                 }
-                let dest = &mut self.pixels[y * self.w + x];
-                let old = u32::from(dest[3]);
-                let out = alpha + mul(old, 255 - alpha);
-                for k in 0..3 {
-                    let color = if im.stencil {
-                        mul(im.pixels[0][k].into(), alpha)
-                    } else {
-                        mul(src[k].into(), opacity)
-                    };
-                    let premul = color + mul(mul(dest[k].into(), old), 255 - alpha);
-                    dest[k] = ((premul * 255 + out / 2) / out).min(255) as u8;
-                }
-                dest[3] = out as u8;
+                let (color, mask) = if im.stencil { (&im.pixels[0], alpha) } else { (&src, opacity) };
+                cairo_over(&mut self.pixels[y * self.w + x], color, mask, alpha, 128);
             }
         }
         Some(())
@@ -583,6 +603,47 @@ impl Bitmap {
         self.work = self
             .work
             .checked_sub((y1 - y0).checked_mul((x1 - x0).checked_add(edges.len())?)?)?;
+        if self.backend == RasterBackend::Cairo && aa {
+            let fixed = |p: Point| p.map(|v| (v * 256.).round_ties_even());
+            for (p, q) in &mut edges {
+                *p = fixed(*p);
+                *q = fixed(*q);
+            }
+            // Horizontal segments have already been dropped. A rectangle leaves
+            // two opposing vertical edges with matching endpoints.
+            let rect = match &edges[..] {
+                [(a, b), (c, d)] if a[0] == b[0] && c[0] == d[0] && a[1] == d[1] && b[1] == c[1] => Some((*a, *c)),
+                _ => None,
+            };
+            let solid = color.map(|c| (c * 255.).round() as u8);
+            let mut areas = vec![0.; x1 - x0];
+            for y in y0..y1 {
+                let clip = self.clip_row(y, None)?;
+                let box_row = rect.map(|(a, c)| pdf_cairo_path::Coverage::rectangle(a, c, y));
+                if box_row.is_none() {
+                    pdf_cairo_path::path_row(
+                        &edges,
+                        y,
+                        self.w,
+                        x0,
+                        &mut areas,
+                        even,
+                        &mut self.work,
+                    )?;
+                }
+                for (i, &area) in areas.iter().enumerate() {
+                    let x = x0 + i;
+                    let coverage = box_row
+                        .as_ref()
+                        .map_or_else(|| pdf_cairo_path::area_alpha(area), |r| r.alpha(x));
+                    let alpha = mul255(coverage.into(), clip_coverage(&clip, x).into());
+                    if alpha > 0 {
+                        cairo_over(&mut self.pixels[y * self.w + x], &solid, alpha, alpha, 127);
+                    }
+                }
+            }
+            return Some(());
+        }
         let inside = |v: i32| if even { v % 2 != 0 } else { v != 0 };
         let mut counts = vec![0u8; x1 - x0];
         let mut crossings = Vec::with_capacity(edges.len());
@@ -623,7 +684,7 @@ impl Bitmap {
                     continue;
                 }
                 let px = &mut self.pixels[y * self.w + x0 + x];
-                if self.white_background { over_white(px); }
+                if self.white_background && self.backend != RasterBackend::Cairo { over_white(px, self.backend); }
                 let remain = f64::from(px[3]) / 255. * (1. - a);
                 let out = a + remain;
                 for i in 0..3 {
@@ -808,12 +869,14 @@ impl PageSource<'_> {
             return None;
         }
         let mut bitmap = Bitmap {
+            backend: opt.backend,
             form_clips: vec![],
             clip_antialias: opt.antialias,
             white_background: !opt.transparent,
             w,
             h,
-            pixels: vec![if opt.transparent || opt.splash { [0; 4] } else { [255; 4] }; w * h],
+            // pdftocairo composites the completed ARGB surface over white at export.
+            pixels: vec![if opt.backend == RasterBackend::Svg { [255; 4] } else { [0; 4] }; w * h],
             work: opt.limit.saturating_mul(4),
         };
         let mut faces = std::collections::BTreeMap::new();
@@ -863,7 +926,7 @@ impl PageSource<'_> {
                             Some(id) => {
                                 let mut mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode)??;
                                 if mask.components != 1 { return None; }
-                                if opt.splash && mask.stencil && mask.width <= image.width && mask.height <= image.height {
+                                if opt.backend == RasterBackend::Splash && mask.stencil && mask.width <= image.width && mask.height <= image.height {
                                     // Splash expands the one-bit mask over the inclusive image bounds,
                                     // then resamples those alpha values together with the image.
                                     let coord = |i: usize, src: usize, dst: usize| ((((i as u64 + 1) * src as u64) - 1) / (dst as u64 + 1)) as usize;
@@ -885,7 +948,7 @@ impl PageSource<'_> {
                             }
                             _ => None,
                         };
-                        bitmap.image(image, mask, ox, oy + ph, sx, opt.splash, opt.limit)?;
+                        bitmap.image(image, mask, ox, oy + ph, sx, opt.backend == RasterBackend::Splash, opt.limit)?;
                     }
                     return Some(());
                 }
@@ -935,7 +998,7 @@ impl PageSource<'_> {
                     }
                 }
                 b"rg" | b"RG" | b"g" | b"G" => {
-                    let component = |i| if opt.splash { n(i) } else { cairo_component(args.get(i)?) };
+                    let component = |i| if opt.backend == RasterBackend::Splash { n(i) } else { cairo_component(args.get(i)?) };
                     let c = if op.len() == 2 {
                         [component(0)?, component(1)?, component(2)?]
                     } else {
@@ -1035,7 +1098,7 @@ impl PageSource<'_> {
                     by + iy
                 };
                 let mut p = bitmap.pixels[src_y.min(h - 1) * w + bx + ix];
-                if bitmap.white_background { over_white(&mut p); }
+                if bitmap.white_background { over_white(&mut p, bitmap.backend); }
                 pixels.push(p);
             }
         }

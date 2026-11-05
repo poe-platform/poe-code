@@ -9977,7 +9977,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         }
     }
     let options = pdf_reader::RasterOptions {
-        splash: !is_cairo,
+        backend: if is_cairo { pdf_reader::RasterBackend::Cairo } else { pdf_reader::RasterBackend::Splash },
         tiff: (fmt == "TIFF").then_some((&tiff_compression, !is_cairo)),
         jpeg: (fmt == "JPEG").then_some((jpeg_quality, is_cairo && color_mode == "gray")),
         format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
@@ -17310,6 +17310,32 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftocairo_rasterizes_compound_paths_and_overlapping_fills_like_poppler() {
+        let fs = MemoryVfs::new();
+        // Decoded Poppler 24.02 pixels, including subpixel crossings, page clipping,
+        // solid color rounding and the white background applied after all fills.
+        for (draw, transparent, digest) in [
+            ("0.1 0.7 0.3 rg 20.0 16.875 m 18.375 12.375 l 17.875 2.625 l h f 0.91 0.31 0.09 rg 6.25 17.5 m 3.875 5.0 l 12.25 18.875 l 18.5 3.25 l h f", true, "7ddff1785a9a280f672a7a993038c9aeb8754f1d416385e55c0c7b66385b753d"),
+            ("0.1 0.7 0.3 rg 21.75 6.875 m 15.25 -1.125 l -1.625 18.875 l h f 0.91 0.31 0.09 rg 12.75 8.25 m 3.625 2.375 l 0.0 20.875 l -0.75 21.0 l h f", false, "e7b1690ee535a3700ab55054aac2dbdfc3eaaa11562b44a58edf41cdfb296244"),
+            ("0.1 0.7 0.3 rg 1 1 18 18 re 12.25 2.75 m 7.25 11.75 l 13.125 12.625 l 2.875 13.375 l h f*", true, "e13538694e321bdb599b7fd41d3262a9454c5f3838b1ea95ac14984122bee72c"),
+            ("0.1 0.7 0.3 rg -1.50390625 -0.328125 m 7.15234375 1.5390625 l 16.65234375 7.03515625 l 13.3359375 6.50390625 l 7.18359375 11.35546875 l 8.33984375 10.12890625 l 3.69921875 12.45703125 l h f*", true, "0ba65126994b21ba721983ecbe396c3aeadfb3c446c8a6b97396efe078e1f2bc"),
+            ("0.1 0.7 0.3 rg 17.0234375 5.609375 2.5 7.875 re f", true, "c0f910d56b9ec672b17984dbbc1a2bd60ef7fe739a6f98e9d7a3068d945e91ff"),
+        ] {
+            let stream = format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len());
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 20 20] /Contents 4 0 R >>", &stream], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            let mut flags = vec!["-png", "-singlefile", "-r", "72"];
+            if transparent { flags.push("-transp"); }
+            flags.extend(["in.pdf", "out"]);
+            let r = cmd_media_doc("pdftocairo", &media_args(&flags), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let im = png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), digest, "{draw}");
+        }
+    }
+
+    #[test]
     fn render_pdf_vector_fills_to_png_and_portable_bitmaps() {
         let fs = MemoryVfs::new();
         let stream = "0 0.5 1 rg 1 1 m 12 2 l 6 10 l h f";
@@ -17320,14 +17346,22 @@ mod media_unit_tests {
         fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
         for (cmd, flags, ext, hash) in [
             ("pdftoppm", "-png", "png", "e2586112dde6f3fb2b7153cf37394aa5fd35262aa0abde87ba100c0bfd988380"),
-            ("pdftocairo", "-png -transp", "png", "5f54f1dad6524f167764171dd17c0154abe0c58b541dadd448a508f1bb055eba"),
+            ("pdftocairo", "-png -transp", "png", "befba5b3ff98734a265612f9a726e27886bcf1c567f93570d077577a49b908b9"),
             ("pdftoppm", "-gray", "pgm", "2996700b20eab9ff7c18de60f81d342f810d447ce56fc5bdcd011256e7c3734d"),
             ("pdftoppm", "-mono", "pbm", "72d971a340d3f55d32aa340fe87503c8994e4e8d207ac687557e9792b0f35362"),
         ] {
             let args = format!("{flags} -singlefile -r 72 page.pdf out");
             let r = cmd_media_doc(cmd, &media_args(&args.split_whitespace().collect::<Vec<_>>()), "", "/", &fs);
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
-            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/out.{ext}")).unwrap())), hash, "{cmd} {flags}");
+            let file = fs.read_file(&format!("/out.{ext}")).unwrap();
+            let digest = if cmd == "pdftocairo" {
+                // Poppler 24.02; PNG compression is independent of the raster.
+                let raster = png_pixels::Raster::decode(&file, 1 << 20).unwrap();
+                sha256_bytes(raster.pixels.as_flattened())
+            } else {
+                sha256_bytes(&file)
+            };
+            assert_eq!(hex_enc(&digest), hash, "{cmd} {flags}");
         }
     }
 

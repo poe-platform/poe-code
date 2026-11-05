@@ -37,6 +37,8 @@ stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all s
 Disposition selectors accept a type, an absolute index, or all streams; supported values are
 `0`, `1`, `default`, `+default`, and `-default`. Other disposition values fail explicitly.
 `-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N.
+`xfade` supports the default `fade` and `transition=wipeleft`; other transitions fail
+without creating or replacing output.
 Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.

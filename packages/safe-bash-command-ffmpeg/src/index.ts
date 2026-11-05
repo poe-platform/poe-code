@@ -1902,12 +1902,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               loadedDocs[1]!.timescale, budget
             , context.signal);
-            const durMatch = /duration=([0-9.]+)/.exec(filterComplex);
-            const offMatch = /offset=([0-9.]+)/.exec(filterComplex);
-            const fadeDur = parseFloat(durMatch?.[1] ?? "0.5") || 0.5;
+            const xfadeSpec = filterComplex.slice(filterComplex.indexOf("xfade") + "xfade".length)
+              .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
+            const positional = (xfadeSpec.startsWith("=") ? xfadeSpec.slice(1) : "").split(":");
+            const named: Record<string, string> = {};
+            for (const part of positional) {
+              const eqIdx = part.indexOf("=");
+              if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+            }
+            const transition = named.transition ?? (positional[0]!.includes("=") ? "fade" : positional[0] || "fade");
+            if (transition !== "fade" && transition !== "wipeleft") {
+              throw new Error(`Unsupported xfade transition: ${transition}`);
+            }
+            const fadeDur = parseFloat(named.duration ?? "0.5") || 0.5;
             const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
             const overlapFrames = Math.max(1, Math.min(f0.length, f1.length, Math.round(fadeDur * fps)));
-            const offsetSec = offMatch ? parseFloat(offMatch[1]!) : Math.max(0, (f0.length - overlapFrames) / fps);
+            const offsetSec = named.offset !== undefined ? parseFloat(named.offset) : Math.max(0, (f0.length - overlapFrames) / fps);
             const preCount = Math.max(0, Math.min(f0.length - overlapFrames, Math.round(offsetSec * fps)));
             const outFrames: MediaVideoFrame[] = [];
             let cursor = 0;
@@ -1919,9 +1929,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             for (let k = 0; k < overlapFrames; k++) {
               const a = f0[Math.min(f0.length - 1, preCount + k)]!;
               const b = f1[Math.min(f1.length - 1, k)]!;
-              const alpha = (k + 1) / (overlapFrames + 1);
+              const progress = k / (fadeDur * fps);
               const blended = new Uint8Array(a.data.byteLength);
               for (let pIdx = 0; pIdx < blended.byteLength; pIdx += 4) {
+                const alpha = transition === "wipeleft"
+                  ? ((pIdx / 4) % a.width > Math.floor(a.width * (1 - progress)) ? 1 : 0)
+                  : progress;
                 blended[pIdx] = Math.round(a.data[pIdx]! * (1 - alpha) + b.data[pIdx]! * alpha);
                 blended[pIdx + 1] = Math.round(a.data[pIdx + 1]! * (1 - alpha) + b.data[pIdx + 1]! * alpha);
                 blended[pIdx + 2] = Math.round(a.data[pIdx + 2]! * (1 - alpha) + b.data[pIdx + 2]! * alpha);

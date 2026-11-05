@@ -6,6 +6,34 @@ import { readTextSource, readTextWorkbookSource } from "./text-source.js";
 const context = (filename: string): CapabilityContext => ({ signal: new AbortController().signal,
   environment: { locale: "C", timezone: "UTC", env: {} }, limits: defaultSsconvertLimits, inputFilename: filename, own() {} });
 
+it.each(["buffered", "range", "replay"])("drops decoded NUL characters during %s CSV import", async mode => {
+  for (const [input, clean] of [
+    ["a,b\n1,\0" + "2\n", "a,b\n1,2\n"],
+    ['\0a,b\r\0\n\0"x\0y",2\r\0\n\0', 'a,b\r\n"xy",2\r\n'],
+    ["\0\0", ""]
+  ]) {
+    for (const encoding of ["utf-8", "utf-16le"]) {
+      const bytes = Buffer.from(input!, encoding === "utf-8" ? "utf8" : "utf16le");
+      const options = context("data.csv");
+      const expected = await readText(new TextEncoder().encode(clean!), options);
+      const range = { size: bytes.length, async read(offset: number, maximum: number) {
+        return bytes.subarray(offset, offset + Math.min(maximum, 1));
+      } };
+      if (mode === "buffered") expect(await readText(bytes, options, encoding)).toEqual(expected);
+      else if (mode === "range") expect(await readTextSource(range, options, encoding)).toEqual(expected);
+      else {
+        const source = await readTextWorkbookSource(range, options, encoding);
+        expect(source).toBeDefined();
+        for (let replay = 0; replay < 2; replay++) {
+          const cells = [];
+          for await (const cell of source!.cells("s1")) cells.push(cell);
+          expect({ ...source!.metadata, sheets: [{ ...source!.metadata.sheets[0]!, cells }] }).toEqual(expected);
+        }
+      }
+    }
+  }
+});
+
 it.each(["data.csv", "data.txt"])("preserves text import across range boundaries for %s", async filename => {
   const cases = ["", "a,b\n1,2\n", '"a,b",c\n"x""y",2', '"unclosed\nfield', "  \n\t\n  a  ,  b  \r\n1,2", "a,b,", ",,", "\n\n", '"a", "b"\n1,2', '"x"😀;y\n1;2', "a\r\nb\nc\rd", "=1+2,3\n4,5", "a\0b,\ufeff", "a:b\n1:2"];
   let seed = 71;

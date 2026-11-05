@@ -103,8 +103,8 @@ function separator(text: string, ending: string, csv: boolean, decimal: string):
 
 export async function readText(bytes: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook> {
   admit(bytes, context);
-  // Keep explicit-length text intact; native NUL substitution loses cell data.
-  const text = decodeText(bytes, encoding);
+  // Gnumeric drops decoded NUL characters before parsing text.
+  const text = decodeText(bytes, encoding).replaceAll("\0", "");
   context.signal.throwIfAborted();
   const { ending, unique } = lineEnding(text);
   const csv = context.inputFilename?.toLowerCase().endsWith(".csv") ?? false;

@@ -112,7 +112,11 @@ async function separator(source: AsyncIterable<string>, ending: string, csv: boo
 async function textGrammar(source: RangeSource, context: CapabilityContext, encoding?: string) {
   context.signal.throwIfAborted();
   if (source.size > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
-  const text = decodeTextSource(source, context.signal, encoding);
+  const decoded = decodeTextSource(source, context.signal, encoding);
+  const text = { async *[Symbol.asyncIterator]() {
+    // Normalize every replay before line-ending and separator detection.
+    for await (const chunk of decoded) yield chunk.replaceAll("\0", "");
+  } };
   const { ending, unique } = await lineEnding(text);
   const csv = context.inputFilename?.toLowerCase().endsWith(".csv") ?? false;
   const sep = await separator(text, ending, csv, formattingLocale(context.environment.locale).decimal);

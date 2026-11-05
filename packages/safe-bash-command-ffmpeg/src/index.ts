@@ -1067,6 +1067,26 @@ function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly
   return tracks;
 }
 
+function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][]): readonly MediaTrack[] {
+  for (const [specifier, value] of dispositions) {
+    const [selector, ordinal] = specifier.split(":");
+    const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
+    const index = type ? ordinal : selector;
+    let enabled: boolean;
+    if (value === "0" || value === "-default") enabled = false;
+    else if (value === "1" || value === "default" || value === "+default") enabled = true;
+    else throw new Error(`Unsupported disposition: ${value}`);
+    let matched = 0;
+    tracks = tracks.map(track => {
+      if (type && track.type !== type) return track;
+      const current = matched++;
+      if (index && current !== Number(index)) return track;
+      return { ...track, enabled };
+    });
+  }
+  return tracks;
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -1132,6 +1152,7 @@ export function evalSyncFfmpeg(
     let metadataSource: number | undefined;
     const metadata: Record<string, string> = {};
     const streamLanguages: [string, string][] = [];
+    const streamDispositions: [string, string][] = [];
     let outputTarget: string | undefined;
 
     for (let i = 0; i < args.length; i++) {
@@ -1209,6 +1230,8 @@ export function evalSyncFfmpeg(
       } else if (arg === "-af" || arg === "-filter:a") {
         // Audio filtering and validation require the async command.
         return undefined;
+      } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
+        streamDispositions.push([arg.slice("-disposition:".length), args[++i] ?? ""]);
       } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
         const kv = args[++i] ?? "";
         const eq = kv.indexOf("=");
@@ -1302,7 +1325,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       encoder: metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamLanguages(workingDoc.tracks, streamLanguages) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions) };
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -1433,6 +1456,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let metadataSource: number | undefined;
       const metadata: Record<string, string> = {};
       const streamLanguages: [string, string][] = [];
+      const streamDispositions: [string, string][] = [];
       let outputTarget: string | undefined;
 
       for (let i = 0; i < args.length; i++) {
@@ -1576,6 +1600,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           if (f) afFilters.push(f);
         } else if (arg === "-filter_complex" || arg === "-lavfi") {
           filterComplex = args[++i];
+        } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
+          streamDispositions.push([arg.slice("-disposition:".length), args[++i] ?? ""]);
         } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
           const kv = args[++i] ?? "";
           const eq = kv.indexOf("=");
@@ -2330,7 +2356,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           ...workingDoc,
           faststart,
           metadata: metaTags,
-          tracks: applyStreamLanguages(workingDoc.tracks, streamLanguages)
+          tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions)
         };
 
         // Null muxer (`-f null -`)

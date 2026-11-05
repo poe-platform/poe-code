@@ -8,13 +8,13 @@ function parseSingleTokenPageNumber(tok: string, totalPages: number): number {
   if (trimmed.startsWith("r")) {
     const rev = Number(digits);
     if (!Number.isFinite(rev) || rev < 1 || rev > totalPages) {
-      throw new Error(`Invalid reverse page number '${tok}'`);
+      throw new QpdfPageRangeError(`Invalid reverse page number '${tok}'`);
     }
     return totalPages - rev + 1;
   }
   const num = Number(digits);
   if (!Number.isFinite(num) || num < 1 || num > totalPages) {
-    throw new Error(`Page number '${tok}' out of bounds (1..${totalPages})`);
+    throw new QpdfPageRangeError(`Page number '${tok}' out of bounds (1..${totalPages})`);
   }
   return num;
 }

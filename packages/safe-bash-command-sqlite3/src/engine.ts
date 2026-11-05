@@ -1369,7 +1369,7 @@ function parseSqliteDateTime(args: SqlValue[]): Date | null {
   }
   if (typeof first === "string" && first.toLowerCase() === "now") {
     d = new Date();
-  } else if (typeof first === "number" || (typeof first === "string" && /^-?\d+(\.\d+)?$/.test(first.trim()))) {
+  } else if (typeof first === "number" || first instanceof Number || (typeof first === "string" && /^-?\d+(\.\d+)?$/.test(first.trim()))) {
     const num = Number(first);
     const secondArg = typeof args[1] === "string" ? args[1].toLowerCase().trim() : "";
     if (secondArg === "unixepoch") {

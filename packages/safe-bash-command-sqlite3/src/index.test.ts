@@ -4,6 +4,38 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const input of ["2460310.5", "CAST(2460310.5 AS REAL)", "'2460310.5'", "1704067200, 'unixepoch'"]) {
+  test(`sqlite3 date functions accept ${input}`, async () => {
+    const sql = `SELECT date(${input}), datetime(${input}), time(${input}),
+      julianday(${input}), unixepoch(${input}), strftime('%Y-%m-%d', ${input});`;
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+      code: 0,
+      stdout: "2024-01-01|2024-01-01 00:00:00|00:00:00|2460310.5|1704067200|2024-01-01\n",
+      stderr: ""
+    });
+  });
+}
+
+test("sqlite3 shell BLOB literals use lowercase hex while SQL quote stays uppercase", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:"], [
+    "CREATE TABLE t(x);",
+    "INSERT INTO t VALUES(x'00FF');",
+    "SELECT quote(x) FROM t;",
+    ".mode quote",
+    "SELECT x FROM t;",
+    ".mode insert t",
+    "SELECT x FROM t;",
+    ".dump"
+  ].join("\n"));
+  assert.deepEqual(result, {
+    code: 0,
+    stdout: "X'00FF'\nX'00ff'\nINSERT INTO t VALUES(X'00ff');\n" +
+      "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\n" +
+      "INSERT INTO t VALUES(X'00ff');\nCOMMIT;\n",
+    stderr: ""
+  });
+});
+
 test("sqlite3 text expressions preserve bytes after NUL", async () => {
   const sql = `
     SELECT hex(x'00FF'||x'4142'), hex(replace(x'61620063','b','Z')),

@@ -227,7 +227,7 @@ function* lavfiSteps(
       if (filterName === "sine") {
         for (let i = 0; i < totalSamples; i++) {
           if (i % 4096 === 0) yield;
-          arr[i] = Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.5;
+          arr[i] = Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.125;
         }
       }
       channelData.push(arr);
@@ -1064,7 +1064,6 @@ export function evalSyncFfmpeg(
     let rotation: number | undefined;
     let noOverwrite = true;
     const vfFilters: string[] = [];
-    const afFilters: string[] = [];
     const metadata: Record<string, string> = {};
     let outputTarget: string | undefined;
 
@@ -1133,7 +1132,8 @@ export function evalSyncFfmpeg(
       } else if (arg === "-vf" || arg === "-filter:v") {
         const f = args[++i]; if (f) vfFilters.push(f);
       } else if (arg === "-af" || arg === "-filter:a") {
-        const f = args[++i]; if (f) afFilters.push(f);
+        // Audio filtering and validation require the async command.
+        return undefined;
       } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
         const kv = args[++i] ?? "";
         const eq = kv.indexOf("=");
@@ -2128,6 +2128,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     tempoFactor *= Math.max(0.25, Math.min(4.0, parseFloat(trimmed.slice(7)) || 1.0));
                   } else if (trimmed === "areverse") {
                     reverseAudio = true;
+                  } else {
+                    throw new Error(`Unsupported audio filter: ${trimmed}`);
                   }
                 }
               }

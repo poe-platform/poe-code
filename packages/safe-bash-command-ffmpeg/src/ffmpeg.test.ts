@@ -541,6 +541,33 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  it("defers audio filters to the async command without writing output", () => {
+    const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160).fill(0.5)] });
+    for (const filter of ["no_such_filter", "volume=0.5"]) {
+      let writes = 0;
+      const result = evalSyncFfmpeg(["-y", "-i", "/input.wav", "-af", filter, "/output.wav"], undefined,
+        () => input, () => { writes++; return true; });
+      assert.equal(writes, 0);
+      assert.equal(result, undefined);
+    }
+  });
+
+  for (const filter of ["no_such_filter", "highpass=f=200", "volume=0.5,no_such_filter,areverse"]) {
+    for (const existing of [false, true]) {
+      it(`rejects unsupported audio filter ${filter} and preserves ${existing ? "existing" : "absent"} output`, async () => {
+        const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160).fill(0.5)] });
+        const original = new Uint8Array([1, 2, 3]);
+        const vfs = createTestVfs({ "/input.wav": input, ...(existing ? { "/output.wav": original } : {}) });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/input.wav", "-af", filter, "/output.wav"], vfs);
+        assert.equal(result.exitCode, 1, result.stderr);
+        assert.ok(result.stderr.includes("Unsupported audio filter:"), result.stderr);
+        assert.ok(result.stderr.includes(filter.includes("no_such_filter") ? "no_such_filter" : "highpass"), result.stderr);
+        assert.deepEqual(vfs.store.get("/output.wav"), existing ? original : undefined);
+        assert.deepEqual(vfs.store.get("/input.wav"), input);
+      });
+    }
+  }
+
   for (const [options, sampleRate, channels, samples] of [
     [["-ar", "8000"], 8000, 1, 80],
     [["-ac", "2"], 16000, 2, 160],
@@ -940,6 +967,26 @@ it("escapes tag separators, quotes and newlines like native ffprobe", async () =
     const result = await runCmd(createFfprobeCommand(), ["-show_entries", "format_tags=title", "-of", format, "/tagged.mp4"], vfs);
     assert.equal(result.stdout, output, format);
   }
+});
+
+it("matches native lavfi sine waveform amplitude", async () => {
+  const vfs = createTestVfs();
+  const result = await runCmd(createFfmpegCommand(), [
+    "-v", "error", "-f", "lavfi", "-i",
+    "sine=frequency=440:sample_rate=16000:duration=0.1", "/tone.wav"
+  ], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const audio = parseWav(vfs.store.get("/tone.wav")!).tracks[0]!.decodedAudio!;
+  assert.equal(audio.sampleRate, 16000);
+  assert.equal(audio.channelData.length, 1);
+  const samples = audio.channelData[0]!;
+  assert.equal(samples.length, 1600);
+  const peak = samples.reduce((value, sample) => Math.max(value, Math.abs(sample)), 0);
+  const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
+  // Native FFmpeg pcm_s16le output for this source; allow two PCM quantization steps.
+  const tolerance = 2 / 32768;
+  assert.ok(Math.abs(peak - 0.124969482421875) <= tolerance, `peak: ${peak}`);
+  assert.ok(Math.abs(rms - 0.08836870456) <= tolerance, `rms: ${rms}`);
 });
 
 it("matches native short sine and anullsrc sample counts and channel defaults", async () => {

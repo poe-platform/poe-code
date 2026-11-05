@@ -155,7 +155,7 @@ describe("obscure df, cal, ncal, whoami, egrep, fgrep, rgrep, less, more, and sy
       assert.equal(rMut.exitCode, 1);
       assert.equal(
         rMut.stderr,
-        "df: options -i, -T, and -P are mutually exclusive with --output\n"
+        "df: options -i and --output are mutually exclusive\nTry 'df --help' for more information.\n"
       );
 
       const rBad = await h.exec(`df --output=source,bogus`);

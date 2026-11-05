@@ -4139,9 +4139,17 @@ fn cmd_df(
         }
     }
 
+    let output_conflict = |flag| err_out(
+        &format!("df: options -{flag} and --output are mutually exclusive\nTry 'df --help' for more information.\n"), 1,
+    );
     let mut i = 0usize;
     while i < args.len() {
-        let arg = &args[i];
+        let arg = match args[i].as_str() {
+            "--inodes" if !end_of_options => "-i",
+            "--portability" if !end_of_options => "-P",
+            "--print-type" if !end_of_options => "-T",
+            arg => arg,
+        };
         if !end_of_options && arg == "--" {
             end_of_options = true;
             i += 1;
@@ -4185,19 +4193,13 @@ fn cmd_df(
                 scale_mode = "human-1024";
             } else if arg == "--si" {
                 scale_mode = "human-1000";
-            } else if arg == "--inodes" {
-                show_inodes = true;
             } else if arg == "--local" || arg == "--sync" || arg == "--no-sync" {
-            } else if arg == "--portability" {
-                portability = true;
-                if scale_mode == "blocks" && block_size == 1024 && !posixly_correct {
-                    block_header = "1024-blocks".to_string();
-                }
-            } else if arg == "--print-type" {
-                print_type = true;
             } else if arg == "--total" {
                 show_total = true;
             } else if arg == "--output" || arg.starts_with("--output=") {
+                if show_inodes || portability || print_type {
+                    return output_conflict(if show_inodes { 'i' } else if portability { 'P' } else { 'T' });
+                }
                 let fields = output_fields.get_or_insert_with(Vec::new);
                 if arg != "--output" {
                     let list: Vec<String> = arg["--output=".len()..]
@@ -4281,6 +4283,9 @@ fn cmd_df(
             let chars: Vec<char> = arg[1..].chars().collect();
             let mut j = 0usize;
             while j < chars.len() {
+                if output_fields.is_some() && matches!(chars[j], 'i' | 'P' | 'T') {
+                    return output_conflict(chars[j]);
+                }
                 match chars[j] {
                     'a' => show_all = true,
                     'h' => scale_mode = "human-1024",
@@ -4369,16 +4374,10 @@ fn cmd_df(
             i += 1;
             continue;
         }
-        operands.push(arg.clone());
+        operands.push(arg.to_owned());
         i += 1;
     }
 
-    if output_fields.is_some() && (show_inodes || print_type || portability) {
-        return err_out(
-            "df: options -i, -T, and -P are mutually exclusive with --output\n",
-            1,
-        );
-    }
     for t in &include_types {
         if exclude_types.contains(t) {
             return err_out(

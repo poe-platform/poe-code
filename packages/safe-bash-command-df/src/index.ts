@@ -75,6 +75,7 @@ const VERSION_TEXT = `df (Sandbox VFS-ish/GNU coreutils) 9.7
 Packaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)
 `;
 
+const outputModes = new Map([["--inodes", "-i"], ["--portability", "-P"], ["--print-type", "-T"]]);
 const VALID_OUTPUT_FIELDS = new Set([
   "source",
   "fstype",
@@ -291,7 +292,7 @@ export function evalSyncDf(
   }
 
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i]!;
+    const arg = (!endOfOptions && outputModes.get(args[i]!)) || args[i]!;
     if (!endOfOptions && arg === "--") { endOfOptions = true; continue; }
     if (!endOfOptions && arg === "--help") return HELP_TEXT;
     if (!endOfOptions && arg === "--version") return VERSION_TEXT;
@@ -299,14 +300,10 @@ export function evalSyncDf(
       if (arg === "--all") showAll = true;
       else if (arg === "--human-readable") scaleMode = "human-1024";
       else if (arg === "--si") scaleMode = "human-1000";
-      else if (arg === "--inodes") showInodes = true;
       else if (arg === "--local" || arg === "--sync" || arg === "--no-sync") { /* VFS mounts are local and need no host sync. */ }
-      else if (arg === "--portability") {
-        portability = true;
-        if (scaleMode === "blocks" && blockSize === 1024 && env.POSIXLY_CORRECT === undefined) blockHeader = "1024-blocks";
-      } else if (arg === "--print-type") printType = true;
       else if (arg === "--total") showTotal = true;
       else if (arg === "--output" || arg.startsWith("--output=")) {
+        if (showInodes || portability || printType) return undefined;
         outputFields ??= [];
         if (arg !== "--output") {
           const list = arg.slice("--output=".length).split(",").filter(Boolean);
@@ -335,6 +332,7 @@ export function evalSyncDf(
     if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
       for (let j = 1; j < arg.length; j++) {
         const ch = arg[j]!;
+        if (outputFields && "iPT".includes(ch)) return undefined;
         if (ch === "a") showAll = true;
         else if (ch === "h") scaleMode = "human-1024";
         else if (ch === "H") scaleMode = "human-1000";
@@ -363,7 +361,6 @@ export function evalSyncDf(
     }
     operands.push(arg);
   }
-  if (outputFields && (showInodes || printType || portability)) return undefined;
   for (const t of includeTypes) if (excludeTypes.has(t)) return undefined;
 
   const rootTotalBytes = options.totalBytes ?? 1024 * 1024 * 1024;
@@ -527,6 +524,11 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
       const operands: string[] = [];
       let endOfOptions = false;
 
+      const outputConflict = async (flag: string) => {
+        await writeText(context.stderr, `df: options -${flag} and --output are mutually exclusive\nTry 'df --help' for more information.\n`);
+        return { exitCode: 1 };
+      };
+
       const envBlock = context.env.DF_BLOCK_SIZE ?? context.env.BLOCK_SIZE ?? context.env.BLOCKSIZE;
       if (envBlock) {
         if (envBlock === "human-readable") {
@@ -543,7 +545,7 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
       }
 
       for (let i = 0; i < context.args.length; i++) {
-        const arg = context.args[i]!;
+        const arg = (!endOfOptions && outputModes.get(context.args[i]!)) || context.args[i]!;
         if (!endOfOptions && arg === "--") {
           endOfOptions = true;
           continue;
@@ -560,17 +562,11 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
           if (arg === "--all") showAll = true;
           else if (arg === "--human-readable") scaleMode = "human-1024";
           else if (arg === "--si") scaleMode = "human-1000";
-          else if (arg === "--inodes") showInodes = true;
           else if (arg === "--local" || arg === "--sync" || arg === "--no-sync") {
             // accepted
-          } else if (arg === "--portability") {
-            portability = true;
-            if (scaleMode === "blocks" && blockSize === 1024 && context.env.POSIXLY_CORRECT === undefined) {
-              blockHeader = "1024-blocks";
-            }
-          } else if (arg === "--print-type") printType = true;
-          else if (arg === "--total") showTotal = true;
+          } else if (arg === "--total") showTotal = true;
           else if (arg === "--output" || arg.startsWith("--output=")) {
+            if (showInodes || portability || printType) return outputConflict(showInodes ? "i" : portability ? "P" : "T");
             outputFields ??= [];
             if (arg !== "--output") {
               const list = arg.slice("--output=".length).split(",").filter(Boolean);
@@ -625,6 +621,7 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
         if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
           for (let j = 1; j < arg.length; j++) {
             const ch = arg[j]!;
+            if (outputFields && "iPT".includes(ch)) return outputConflict(ch);
             switch (ch) {
               case "a":
                 showAll = true;
@@ -705,10 +702,6 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
         operands.push(arg);
       }
 
-      if (outputFields && (showInodes || printType || portability)) {
-        await writeText(context.stderr, "df: options -i, -T, and -P are mutually exclusive with --output\n");
-        return { exitCode: 1 };
-      }
 
       for (const t of includeTypes) {
         if (excludeTypes.has(t)) {

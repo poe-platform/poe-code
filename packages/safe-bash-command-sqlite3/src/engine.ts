@@ -1849,6 +1849,7 @@ export class SqliteDatabase {
     return runCooperatively(this.executeStatementSteps(sql), signal);
   }
 
+  private readonly resultCollations = new WeakMap<QueryResultSet, string[]>();
   private readonly rowTables = new WeakMap<Record<string, SqlValue>, TableDef>();
 
   public tables = new Map<string, TableDef>();
@@ -4892,9 +4893,20 @@ export class SqliteDatabase {
     segments.push({ op: pendingOp, tokens: cleanLastTokens });
 
     let acc: QueryResultSet = { columns: [], rows: [] };
+    const collations: string[] = [];
+    const results: QueryResultSet[] = [];
     for (const seg of segments) {
-      yield;
       const res = yield* this.executeSingleSelect(seg.tokens, positionalParams, cteScope);
+      results.push(res);
+      for (let i = 0; i < res.columns.length; i += 1) {
+        yield;
+        collations[i] ||= this.resultCollations.get(res)?.[i] ?? "";
+      }
+    }
+    for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex += 1) {
+      yield;
+      const seg = segments[segmentIndex]!;
+      const res = results[segmentIndex]!;
       if (seg.op === "NONE") {
         acc = res;
       } else if (seg.op === "UNION ALL") {
@@ -4902,29 +4914,24 @@ export class SqliteDatabase {
         acc.rows.push(...res.rows);
       } else if (seg.op === "UNION") {
         const combined = [...acc.rows, ...res.rows];
-        acc.rows = yield* this.deduplicateResultRows(combined);
-      } else if (seg.op === "INTERSECT") {
-        const rightSet = new Set(
-          yield* stepMap(res.rows, function* (r) { yield;
-            return serializeSqlJson(r, false);
-          }, this)
-        );
-        acc.rows = yield* this.deduplicateResultRows(
-          yield* stepFilter(acc.rows, function* (r) { yield;
-            return rightSet.has(serializeSqlJson(r, false));
-          }, this)
-        );
-      } else if (seg.op === "EXCEPT") {
-        const rightSet = new Set(
-          yield* stepMap(res.rows, function* (r) { yield;
-            return serializeSqlJson(r, false);
-          }, this)
-        );
-        acc.rows = yield* this.deduplicateResultRows(
-          yield* stepFilter(acc.rows, function* (r) { yield;
-            return !rightSet.has(serializeSqlJson(r, false));
-          }, this)
-        );
+        acc.rows = yield* this.deduplicateResultRows(combined, collations);
+      } else if (seg.op === "INTERSECT" || seg.op === "EXCEPT") {
+        const left = yield* this.deduplicateResultRows(acc.rows, collations);
+        const right = yield* this.deduplicateResultRows(res.rows, collations);
+        const rows: SqlValue[][] = [];
+        let rightIndex = 0;
+        for (const row of left) {
+          yield;
+          let order = -1;
+          while (rightIndex < right.length) {
+            order = yield* this.compareResultRows(row, right[rightIndex]!, collations);
+            if (order <= 0) break;
+            rightIndex += 1;
+          }
+          const found = rightIndex < right.length && order === 0;
+          if (found === (seg.op === "INTERSECT")) rows.push(row);
+        }
+        acc.rows = rows;
       }
     }
 
@@ -4941,8 +4948,31 @@ export class SqliteDatabase {
     return acc;
   }
 
-  private *deduplicateResultRows(rows: SqlValue[][]): SqlSteps<SqlValue[][]> {
+  private *compareResultRows(a: SqlValue[], b: SqlValue[], collations: string[]): SqlSteps<number> {
+    for (let i = 0; i < a.length; i += 1) {
+      yield;
+      const order = compareSqlValues(a[i]!, b[i]!, collations[i] || "BINARY");
+      if (order !== 0) return order;
+    }
+    return 0;
+  }
+
+  private *deduplicateResultRows(rows: SqlValue[][], collations?: string[]): SqlSteps<SqlValue[][]> {
     const out: SqlValue[][] = [];
+    if (collations) {
+      const compare = this.compareResultRows.bind(this);
+      yield* stepSort(rows, function* (a, b) { return yield* compare(a, b, collations); }, this);
+      for (const row of rows) {
+        yield;
+        // SQLite's UNION index replaces an equal key with the latest row.
+        if (out.length > 0 && (yield* compare(out[out.length - 1]!, row, collations)) === 0) {
+          out[out.length - 1] = row;
+        } else {
+          out.push(row);
+        }
+      }
+      return out;
+    }
     const seen = new Set<string>();
     for (const r of rows) {
       yield;
@@ -5106,7 +5136,7 @@ export class SqliteDatabase {
 
     // 1. Evaluate FROM & JOINs into row contexts
     let workingRows: Record<string, SqlValue>[] = [{}];
-    let sourceSchema: { tableAlias: string; columns: string[]; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[] = [];
+    let sourceSchema: { tableAlias: string; columns: string[]; table?: TableDef | undefined; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[] = [];
 
     if (fromTokens && fromTokens.length > 0) {
       const built = yield* this.evaluateFromClause(fromTokens, positionalParams, cteScope);
@@ -5157,6 +5187,23 @@ export class SqliteDatabase {
         }
       }
     }
+
+    // Collation belongs to the source schema, even when a source has no rows.
+    const collationTables: Record<string, Record<string, SqlValue>> = {};
+    for (const source of sourceSchema) {
+      yield;
+      if (source.table) {
+        const row: Record<string, SqlValue> = {};
+        this.rowTables.set(row, source.table);
+        collationTables[source.tableAlias] = row;
+      }
+    }
+    const collationContext = {
+      __tables: collationTables,
+      __sources: Object.values(collationTables)
+    } as unknown as Record<string, SqlValue>;
+    const resultCollations = selectTargets.map(target =>
+      this.expressionCollation(target.expr, collationContext, ""));
 
     // Resolve identifiers against the schema before evaluating any rows. This
     // catches errors in empty tables and branches that evaluation never visits.
@@ -5576,10 +5623,12 @@ export class SqliteDatabase {
       }
     }
 
-    return {
+    const result = {
       columns: selectTargets.map((t) => t.alias),
       rows: finalProjected.map((p) => p.values.map((value) => value instanceof String ? value.valueOf() : value))
     };
+    this.resultCollations.set(result, resultCollations);
+    return result;
   }
 
   private *evaluateFromClause(
@@ -5588,7 +5637,7 @@ export class SqliteDatabase {
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
   ): SqlSteps<{
     rows: Record<string, SqlValue>[];
-    schema: { tableAlias: string; columns: string[]; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[];
+    schema: { tableAlias: string; columns: string[]; table?: TableDef | undefined; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[];
   }> {
     // Parse sequence of table sources and JOIN operators
     interface JoinItem {
@@ -5735,7 +5784,7 @@ export class SqliteDatabase {
     }
 
     let currentRows: Record<string, SqlValue>[] = [];
-    const schema: { tableAlias: string; columns: string[]; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[] = [];
+    const schema: { tableAlias: string; columns: string[]; table?: TableDef | undefined; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[] = [];
 
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       yield;
@@ -5765,7 +5814,7 @@ export class SqliteDatabase {
           });
         }, this)
       );
-      schema.push({ tableAlias: resolved.alias, columns: resolved.columns, ftsTable: resolved.ftsTable });
+      schema.push({ tableAlias: resolved.alias, columns: resolved.columns, table: resolved.table, ftsTable: resolved.ftsTable });
 
       if (itemIdx === 0) {
         currentRows = resolved.rows;
@@ -6110,6 +6159,7 @@ export class SqliteDatabase {
     rows: Record<string, SqlValue>[];
     isCorrelated?: boolean;
     ftsTable?: TableDef | undefined;
+    table?: TableDef | undefined;
   }> {
     if (srcTokens.length === 0) {
       return { alias: "", columns: [], rows: [{}] };
@@ -6408,7 +6458,7 @@ export class SqliteDatabase {
         __sources: [r.data]
       } as unknown as Record<string, SqlValue>;
     }, this);
-    return { alias, columns: cols, rows, ftsTable: tbl.fts5 ? tbl : undefined };
+    return { alias, columns: cols, rows, table: tbl, ftsTable: tbl.fts5 ? tbl : undefined };
   }
 
   private *evaluateTableValuedFunction(
@@ -7573,7 +7623,7 @@ export class SqliteDatabase {
     }
   }
 
-  private expressionCollation(expr: ExprNode, row: Record<string, SqlValue>): string {
+  private expressionCollation(expr: ExprNode, row: Record<string, SqlValue>, fallback = "BINARY"): string {
     // Explicit COLLATE anywhere in an expression takes precedence over a column.
     const explicit = (node: ExprNode): string | undefined => {
       if (node.kind === "collate") return node.collation;
@@ -7586,7 +7636,7 @@ export class SqliteDatabase {
     const collation = explicit(expr);
     if (collation !== undefined) return collation;
     while (expr.kind === "cast" || (expr.kind === "unary" && expr.op === "+")) expr = expr.expr;
-    if (expr.kind !== "column") return "BINARY";
+    if (expr.kind !== "column") return fallback;
     const columnName = expr.name.toLowerCase();
     const tables = (row as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
     const sources = expr.table
@@ -7596,7 +7646,7 @@ export class SqliteDatabase {
       const column = this.rowTables.get(source)?.columns.find(column => column.name.toLowerCase() === columnName);
       if (column) return column.collate ?? "BINARY";
     }
-    return "BINARY";
+    return fallback;
   }
 
   private expressionAffinity(expr: ExprNode, row: Record<string, SqlValue>): "NUMERIC" | "TEXT" | undefined {

@@ -5056,6 +5056,26 @@ test("mktemp creates private entries on a supplied filesystem and retries a conc
   } finally { sh.dispose(); }
 });
 
+test("ssh-keygen fails before publishing a key when entropy or private permissions are unavailable", async t => {
+  const sh = new RustWasmBash({ forceNative: true, cwd: "/" });
+  const cmd = "ssh-keygen -t ed25519 -N '' -f /key";
+  try {
+    const random = t.mock.method(globalThis.crypto, "getRandomValues", () => { throw new Error("unavailable"); });
+    const failed = await sh.exec(cmd);
+    assert.equal(failed.exitCode, 1);
+    assert.match(failed.stderr, /entropy/);
+    await assert.rejects(sh.fs.stat("/key"), { code: "ENOENT" });
+    random.mock.restore();
+    if (WebAssembly.Suspending) {
+      const { MemoryFileSystem } = await import("@poe-code/safe-fs");
+      const fs = new MemoryFileSystem();
+      fs.capabilitiesFor = () => ({ ...fs.capabilities, permissions: false });
+      assert.equal((await sh.exec(cmd, { fs })).exitCode, 1);
+      assert.deepEqual(await fs.readdir("/"), []);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("random devices use the host entropy source and fail if it is unavailable", async t => {
   const bash = createRustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

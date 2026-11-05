@@ -312,6 +312,8 @@ impl SafeBashFs for RealVfs {
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         use std::io::Write;
         let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
+        #[cfg(not(unix))]
+        if mode & 0o077 == 0 { return Err("ENOTSUP: private permissions unavailable".into()); }
         let mut options = std::fs::OpenOptions::new();
         options.write(true).create_new(true);
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }

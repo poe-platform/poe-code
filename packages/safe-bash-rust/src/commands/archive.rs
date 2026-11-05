@@ -10216,7 +10216,7 @@ fn ssh_fingerprint_sha256(pub_key: &[u8]) -> String {
     format!("SHA256:{}", b64.trim_end_matches('='))
 }
 
-fn format_openssh_ed25519_privkey(seed: &[u8; 32], pub_key: &[u8; 32], comment: &str) -> String {
+fn format_openssh_ed25519_privkey(seed: &[u8; 32], pub_key: &[u8; 32], comment: &str, check: u32) -> String {
     let pub_blob = ssh_ed25519_pubkey_blob(pub_key);
     let mut out = Vec::new();
     out.extend_from_slice(b"openssh-key-v1\0");
@@ -10227,7 +10227,6 @@ fn format_openssh_ed25519_privkey(seed: &[u8; 32], pub_key: &[u8; 32], comment: 
     ssh_write_str(&mut out, &pub_blob);
 
     let mut priv_sec = Vec::new();
-    let check = 0xa1b2c3d4u32;
     ssh_write_u32(&mut priv_sec, check);
     ssh_write_u32(&mut priv_sec, check);
     ssh_write_str(&mut priv_sec, b"ssh-ed25519");
@@ -10482,6 +10481,8 @@ fn cmd_ssh(args: &[String]) -> BuiltinOutcome {
 fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut file_arg: Option<String> = None;
     let mut comment = "user@safe-bash".to_string();
+    let mut encrypt = false;
+    let mut key_type = "ed25519";
     let mut derive_pub = false;
     let mut show_fp = false;
     let mut find_host: Option<String> = None;
@@ -10505,9 +10506,8 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                 i += 1;
                 comment = args[i].clone();
             }
-            "-N" | "-t" if i + 1 < args.len() => {
-                i += 1;
-            }
+            "-N" if i + 1 < args.len() => { i += 1; encrypt = !args[i].is_empty(); }
+            "-t" if i + 1 < args.len() => { i += 1; key_type = &args[i]; }
             "-y" => derive_pub = true,
             "-l" => show_fp = true,
             "-F" if i + 1 < args.len() => {
@@ -10785,19 +10785,27 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         return ok_out(&format!("256 {fp} {label} (ED25519)\n"));
     }
 
+    if encrypt { return err_out("ssh-keygen: encrypted private key generation is unsupported\n", 1); }
+    if key_type != "ed25519" { return err_out("ssh-keygen: only Ed25519 key generation is supported\n", 1); }
     let out_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"));
-    if let Some((dir, _)) = out_path.rsplit_once('/') && !dir.is_empty() {
-        let _ = fs.mkdir_all(dir);
+    let mut seed = [0; 32];
+    let mut check = [0; 4];
+    if let Err(e) = crate::vfs::memory::fill_random(&mut seed).and_then(|()| crate::vfs::memory::fill_random(&mut check)) {
+        return err_out(&format!("ssh-keygen: {e}\n"), 1);
     }
-    let seed_digest = sha256_bytes(format!("ed25519:{out_path}:{comment}").as_bytes());
-    let pub_key = ed25519_pubkey_from_seed(&seed_digest);
-    let priv_pem = format_openssh_ed25519_privkey(&seed_digest, &pub_key, &comment);
+    let pub_key = ed25519_pubkey_from_seed(&seed);
+    let priv_pem = format_openssh_ed25519_privkey(&seed, &pub_key, &comment, u32::from_be_bytes(check));
     let pub_line = format!(
         "ssh-ed25519 {} {comment}\n",
         ssh_b64_wrap(&ssh_ed25519_pubkey_blob(&pub_key), 0)
     );
-    let _ = fs.write_file(&out_path, priv_pem.as_bytes());
-    let _ = fs.write_file(&format!("{out_path}.pub"), pub_line.as_bytes());
+    let create = || -> Result<(), String> {
+        if let Some((dir, _)) = out_path.rsplit_once('/') && !dir.is_empty() { fs.mkdir_all(dir)?; }
+        fs.create_file(&fs.access_path(&out_path, false)?, priv_pem.as_bytes(), 0o600)?;
+        let public = fs.access_path(&format!("{out_path}.pub"), false)?;
+        fs.create_file(&public, pub_line.as_bytes(), 0o644)
+    };
+    if let Err(e) = create() { return err_out(&format!("ssh-keygen: {e}\n"), 1); }
     let fp = ssh_fingerprint_sha256(&pub_key);
     ok_out(&format!(
         "Generating public/private ed25519 key pair.\nYour identification has been saved in {out_path}\nYour public key has been saved in {out_path}.pub\nThe key fingerprint is:\n{fp} {comment}\n"

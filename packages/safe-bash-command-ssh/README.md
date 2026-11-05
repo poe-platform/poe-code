@@ -5,7 +5,7 @@ OpenSSH client (`ssh`) and key/signature utility (`ssh-keygen`) commands for `@p
 ## Features
 
 - **`ssh-keygen`**:
-  - Generate `openssh-key-v1` Ed25519 private and public key pairs (`ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "user@host"`).
+  - Generate an unencrypted Ed25519 key pair (`ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519 -C "user@host"`). The private file is created with mode `0600`. Use a new path for each pair; existing files and nonempty passphrases are rejected.
   - Derive public keys from private keys (`ssh-keygen -y -f ~/.ssh/id_ed25519`).
   - Display `SHA256:` key fingerprints (`ssh-keygen -l -f ~/.ssh/id_ed25519.pub`).
   - Search (`-F`) and remove (`-R`) hosts in `known_hosts`.

@@ -158,7 +158,7 @@ function formatOpenSshEd25519PrivateKey(seed: Uint8Array, pubKey: Uint8Array, co
   writeSshString(out, pubBlob);
 
   const privSection: number[] = [];
-  const check = 0xa1b2c3d4;
+  const check = globalThis.crypto.getRandomValues(new Uint32Array(1))[0]!;
   writeSshU32(privSection, check);
   writeSshU32(privSection, check);
   writeSshString(privSection, textEncoder.encode("ssh-ed25519"));
@@ -375,6 +375,8 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
       let comment = "user@safe-bash";
       let derivePub = false;
       let showFingerprint = false;
+      let encrypt = false;
+      let keyType = "ed25519";
       let findHost: string | undefined;
       let removeHost: string | undefined;
       let yAction: string | undefined;
@@ -389,8 +391,8 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         const a = args[i]!;
         if (a === "-f" && i + 1 < args.length) fileArg = args[++i];
         else if (a === "-C" && i + 1 < args.length) comment = args[++i]!;
-        else if (a === "-N" && i + 1 < args.length) i++;
-        else if (a === "-t" && i + 1 < args.length) i++;
+        else if (a === "-N" && i + 1 < args.length) encrypt = args[++i] !== "";
+        else if (a === "-t" && i + 1 < args.length) keyType = args[++i]!;
         else if (a === "-y") derivePub = true;
         else if (a === "-l") showFingerprint = true;
         else if (a === "-F" && i + 1 < args.length) findHost = args[++i];
@@ -595,8 +597,11 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
           return { exitCode: 0 };
         }
 
-        // Default: generate new Ed25519 keypair
+        if (encrypt) throw new PublicDiagnostic("encrypted private key generation is unsupported");
+        if (keyType !== "ed25519") throw new PublicDiagnostic("only Ed25519 key generation is supported");
         const outPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/id_ed25519");
+        const caps = await context.fs.capabilitiesFor?.(outPath, { creation: "exclusive", signal: context.signal }) ?? context.fs.capabilities;
+        if (caps.permissions !== true) throw new PublicDiagnostic("private key creation requires permission support");
         const dirPath = pathPosix.dirname(outPath);
         await context.fs.mkdir(dirPath, { recursive: true });
         const keyPair = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, [
@@ -611,10 +616,10 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         const privPem = formatOpenSshEd25519PrivateKey(seed, pubKey, comment);
         const pubLine = `ssh-ed25519 ${bytesToBase64(sshEd25519PubkeyBlob(pubKey))} ${comment}\n`;
         await writeFileOutput(context, textEncoder.encode(privPem), data =>
-          context.fs.writeFile(outPath, data, { signal: context.signal }),
+          context.fs.writeFile(outPath, data, { mode: 0o600, flag: "wx", signal: context.signal }),
         );
         await writeFileOutput(context, textEncoder.encode(pubLine), data =>
-          context.fs.writeFile(`${outPath}.pub`, data, { signal: context.signal }),
+          context.fs.writeFile(`${outPath}.pub`, data, { mode: 0o644, flag: "wx", signal: context.signal }),
         );
         const fp = await computeFingerprintSha256(pubKey);
         await writeText(

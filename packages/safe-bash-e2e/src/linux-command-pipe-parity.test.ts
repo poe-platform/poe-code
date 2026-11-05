@@ -1,4 +1,4 @@
-import { link, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { link, lstat, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -224,4 +224,54 @@ test("yes produces bytes until its downstream reader closes the pipe", async () 
       await assert.rejects(rust.exec(script, { limits: { maxOutputBytes: 32768 } }), { limit: "maxOutputBytes" });
     }
   } finally { rust.dispose(); await ts.dispose(); }
+});
+
+test("ssh-keygen creates fresh private Ed25519 keys usable by OpenSSH", async () => {
+  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
+  const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });
+  let dir: string | undefined;
+  try {
+    dir = await createLinuxCommandDirectory(ts.fs, rust.fs);
+    const args = ["-t", "ed25519", "-N", "", "-C", "parity", "-f", "key"];
+    const script = "ssh-keygen -t ed25519 -N '' -C parity -f key";
+    const [code, , stderr] = await runLinuxCommand("ssh-keygen", args, "", dir);
+    assert.equal(code, 0, stderr.toString());
+    const mode = (await lstat(dir + "/key")).mode & 0o777;
+    assert.equal(mode, 0o600);
+    for (const [shell, fs] of [[rust, rust.fs], [ts.shell, ts.fs]] as const) {
+      let previous = "";
+      for (let run = 0; run < 2; run++) {
+        const key = await shell.exec(script);
+        assert.equal(key.exitCode, 0, key.stderr);
+        const pub = Buffer.from(await fs.readFile("/workspace/key.pub")).toString();
+        assert.notEqual(pub, previous, "same path and comment must generate independent keys");
+        previous = pub;
+        assert.equal((await fs.stat("/workspace/key")).mode & 0o777, mode);
+        await writeFile(dir + "/key", await fs.readFile("/workspace/key"), { mode: 0o600 });
+        await writeFile(dir + "/key.pub", pub);
+        await writeFile(dir + "/allowed", "tester " + pub);
+        const signature = await runLinuxCommand("ssh-keygen", ["-Y", "sign", "-f", "key", "-n", "test"], "payload", dir);
+        assert.equal(signature[0], 0, signature[2].toString());
+        await writeFile(dir + "/signature", signature[1]);
+        const verified = await runLinuxCommand("ssh-keygen", ["-Y", "verify", "-f", "allowed", "-I", "tester", "-n", "test", "-s", "signature"], "payload", dir);
+        assert.equal(verified[0], 0, verified[2].toString());
+        assert.notEqual((await shell.exec(script)).exitCode, 0, "must not overwrite an occupied private-key path");
+        assert.equal(Buffer.from(await fs.readFile("/workspace/key.pub")).toString(), pub);
+        await fs.rm("/workspace/key");
+        await fs.rm("/workspace/key.pub");
+      }
+      for (const options of ["-t ed25519 -N not-empty", "-t rsa -N ''"]) {
+        const unsupported = await shell.exec("ssh-keygen " + options + " -f key");
+        assert.notEqual(unsupported.exitCode, 0, "must not silently substitute a plaintext Ed25519 key");
+        await assert.rejects(fs.stat("/workspace/key"), { code: "ENOENT" });
+      }
+      await fs.symlink!("absent", "/workspace/key");
+      assert.notEqual((await shell.exec(script)).exitCode, 0);
+      await assert.rejects(fs.stat("/workspace/absent"), { code: "ENOENT" });
+    }
+  } finally {
+    if (dir) await rm(dir, { recursive: true, force: true });
+    rust.dispose();
+    await ts.dispose();
+  }
 });

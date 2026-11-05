@@ -659,6 +659,9 @@ impl SafeBashFs for HostFs {
         if self.reserved_device(p, false)?.is_some() {
             return Err("EEXIST: file already exists".into());
         }
+        // Use the host's private exclusive-create operation when no group or
+        // other access is allowed: the backend must guarantee permission support.
+        if m & 0o077 == 0 { return self.request("mktemp", p, b, 0, m).map(drop); }
         self.request("writeFile", p, b, 1, m).map(drop)
     }
     fn mkdir_all(&self, p: &str) -> Result<(), String> {

@@ -35,6 +35,9 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
       await writeFile(cwd + path, bytes);
       for (const view of views) await view.writeFile("/workspace" + path, bytes);
     }
+    const publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICFS+NGbeR0kRTJC4V8uq2y3z/p7al7TAJeWDgaYgdsS parity\n";
+    await writeFile(cwd + "/samples/ed25519.pub", publicKey);
+    for (const view of views) await view.writeFile("/workspace/samples/ed25519.pub", Buffer.from(publicKey));
     for (const [cmd, args, extension] of [
       ["tar", ["-cf", "-", "samples/base", "samples/ours"], "tar"],
       ["zip", ["-q", "-", "samples/base", "samples/ours"], "zip"],
@@ -53,7 +56,7 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
 }
 
 const textCommands = ([
-  ["cat"], ["tac"], ["head", "-n", "2"], ["tail", "-n", "2"], ["wc", "-c"],
+  ["ssh-keygen", "-l", "-f", "samples/ed25519.pub"], ["cat"], ["tac"], ["head", "-n", "2"], ["tail", "-n", "2"], ["wc", "-c"],
   ["sort"], ["uniq", "-c"], ["nl", "-ba"], ["cut", "-c", "1-2"], ["tr", "a-z", "A-Z"],
   ["fold", "-w", "3"], ["rev"], ["fmt", "-w", "20"], ["strings", "-n", "2"],
   ["expand"], ["unexpand"], ["paste", "-s"], ["grep", "beta"], ["sed", "s/beta/z/g"],

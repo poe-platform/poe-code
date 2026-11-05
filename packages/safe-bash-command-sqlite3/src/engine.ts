@@ -196,6 +196,7 @@ export interface Token {
   type: "word" | "string" | "ident" | "number" | "blob" | "op" | "punct" | "param";
   value: string;
   raw: string;
+  leading?: string;
 }
 
 export function splitSqlStatements(sql: string): string[] {
@@ -287,6 +288,12 @@ export function splitSqlStatements(sql: string): string[] {
 export function tokenizeSql(sql: string): Token[] {
   const tokens: Token[] = [];
   let i = 0;
+  let previousEnd = 0;
+  const appendToken = (token: Token): void => {
+    token.leading = sql.slice(previousEnd, i);
+    previousEnd = i + token.raw.length;
+    tokens.push(token);
+  };
   while (i < sql.length) {
     const ch = sql[i]!;
     if (/\s/.test(ch)) {
@@ -314,7 +321,7 @@ export function tokenizeSql(sql: string): Token[] {
         j += 1;
       }
       const hex = sql.slice(i + 2, j);
-      tokens.push({ type: "blob", value: hex, raw: sql.slice(i, j + 1) });
+      appendToken({ type: "blob", value: hex, raw: sql.slice(i, j + 1) });
       i = j + 1;
       continue;
     }
@@ -333,7 +340,7 @@ export function tokenizeSql(sql: string): Token[] {
         val += sql[j]!;
         j += 1;
       }
-      tokens.push({ type: "string", value: val, raw: sql.slice(i, j + 1) });
+      appendToken({ type: "string", value: val, raw: sql.slice(i, j + 1) });
       i = j + 1;
       continue;
     }
@@ -353,7 +360,7 @@ export function tokenizeSql(sql: string): Token[] {
         val += sql[j]!;
         j += 1;
       }
-      tokens.push({ type: "ident", value: val, raw: sql.slice(i, j + 1) });
+      appendToken({ type: "ident", value: val, raw: sql.slice(i, j + 1) });
       i = j + 1;
       continue;
     }
@@ -362,7 +369,7 @@ export function tokenizeSql(sql: string): Token[] {
       while (j < sql.length && sql[j] !== "]") {
         j += 1;
       }
-      tokens.push({ type: "ident", value: sql.slice(i + 1, j), raw: sql.slice(i, j + 1) });
+      appendToken({ type: "ident", value: sql.slice(i + 1, j), raw: sql.slice(i, j + 1) });
       i = j + 1;
       continue;
     }
@@ -371,7 +378,7 @@ export function tokenizeSql(sql: string): Token[] {
       while (j < sql.length && /[A-Za-z0-9_]/.test(sql[j]!)) {
         j += 1;
       }
-      tokens.push({ type: "param", value: sql.slice(i, j), raw: sql.slice(i, j) });
+      appendToken({ type: "param", value: sql.slice(i, j), raw: sql.slice(i, j) });
       i = j;
       continue;
     }
@@ -403,7 +410,7 @@ export function tokenizeSql(sql: string): Token[] {
         }
       }
       const raw = sql.slice(i, j);
-      tokens.push({ type: "number", value: raw, raw });
+      appendToken({ type: "number", value: raw, raw });
       i = j;
       continue;
     }
@@ -413,28 +420,28 @@ export function tokenizeSql(sql: string): Token[] {
         j += 1;
       }
       const raw = sql.slice(i, j);
-      tokens.push({ type: "word", value: raw, raw });
+      appendToken({ type: "word", value: raw, raw });
       i = j;
       continue;
     }
     const three = sql.slice(i, i + 3);
     if (three === "->>") {
-      tokens.push({ type: "op", value: three, raw: three });
+      appendToken({ type: "op", value: three, raw: three });
       i += 3;
       continue;
     }
     const two = sql.slice(i, i + 2);
     if (["||", "!=", "<>", "<=", ">=", "==", "<<", ">>", "->"].includes(two)) {
-      tokens.push({ type: "op", value: two, raw: two });
+      appendToken({ type: "op", value: two, raw: two });
       i += 2;
       continue;
     }
     if (["(", ")", ",", ";", "."].includes(ch)) {
-      tokens.push({ type: "punct", value: ch, raw: ch });
+      appendToken({ type: "punct", value: ch, raw: ch });
       i += 1;
       continue;
     }
-    tokens.push({ type: "op", value: ch, raw: ch });
+    appendToken({ type: "op", value: ch, raw: ch });
     i += 1;
   }
   return tokens;
@@ -521,8 +528,8 @@ function reconstructTokensSql(tokens: Token[]): string {
       t.value === ";" ||
       prev?.value === "(" ||
       prev?.value === ".";
-    if (i > 0 && !noSpaceBefore) {
-      out += " ";
+    if (i > 0) {
+      out += t.leading ?? (noSpaceBefore ? "" : " ");
     }
     out += t.raw;
   }

@@ -4,6 +4,26 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+test("sqlite3 preserves unaliased expression spelling in JSON and headers", async () => {
+  const expressions = "typeof(1), abs(-2), length('abc'), 1+2, json_array(1,2), 1  +/*keep*/ 2";
+  const row = { "typeof(1)": "integer", "abs(-2)": 2, "length('abc')": 3,
+    "1+2": 3, "json_array(1,2)": "[1,2]", "1  +/*keep*/ 2": 3 };
+  for (const sql of [
+    `SELECT ${expressions};`,
+    `SELECT * FROM (SELECT ${expressions});`,
+    `WITH t AS (SELECT 1) SELECT ${expressions} FROM t;`,
+    `CREATE VIEW v AS SELECT ${expressions}; SELECT * FROM v;`
+  ]) {
+    const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", sql]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [row]);
+  }
+  assert.deepEqual(await runSqlite3(createMemoryFileSystem(), ["-header", ":memory:", "SELECT abs(-2), 1+2 AS sum, 3+4 total;"]),
+    { code: 0, stdout: "abs(-2)|sum|total\n2|3|7\n", stderr: "" });
+  assert.deepEqual(await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", "CREATE TABLE t(x); INSERT INTO t VALUES(1) RETURNING x+2;"]),
+    { code: 0, stdout: '[{"x+2":3}]\n', stderr: "" });
+});
+
 for (const input of ["2460310.5", "CAST(2460310.5 AS REAL)", "'2460310.5'", "1704067200, 'unixepoch'"]) {
   test(`sqlite3 date functions accept ${input}`, async () => {
     const sql = `SELECT date(${input}), datetime(${input}), time(${input}),

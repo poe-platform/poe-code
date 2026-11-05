@@ -3,12 +3,12 @@ import { convertHslPixels, prepareHslOutput, formatHslPixel, hslTextPixel, type 
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { montageFramePixels, montageShadowPixels } from "./montage-frame.js";
-import { pointResizePixelSteps, resizePixelSteps } from "./resize-kernel.js";
+import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
-import { clutPixelSteps, haldClutPixelSteps, interpolatePixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
+import { clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
@@ -1348,9 +1348,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
             const t = step / (count + 1);
             const w = Math.max(1, Math.round(a.width * (1 - t) + b.width * t));
             const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
-            const ra = a.width === w && a.height === h ? a : (yield* applyMagickResizeSteps(a, `${w}x${h}!`, "bilinear"));
-            const rb = b.width === w && b.height === h ? b : (yield* applyMagickResizeSteps(b, `${w}x${h}!`, "bilinear"));
-            out.push(yield* applyMagickRasterSteps(ra, interpolatePixelSteps(w * h * 4, t), signal, ra, [ra, rb]));
+            out.push(yield* applyMagickRasterSteps(a, morphPixelSteps(a, b, w, h, t), signal, { ...a, width: w, height: h }, [a, b]));
         }
     }
     out.push(stack[stack.length - 1]!);
@@ -5930,7 +5928,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence"].includes(token)) {
             const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : "", settings = { ...state, channels: { ...state.channels } };
             stackStep(async (stack, backend) => {
-                const resize = async (image: StoredRgbaImage, width: number, height: number) => image.width === width && image.height === height ? image : transformStoredImage(image, backend.storage, { kind: "resize", ...magickResizeOptions(image, `${width}x${height}!`, "bilinear")! }, signal);
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) return stack;
                     const lut = (await stack.get(stack.length - 1))!, mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
@@ -5963,8 +5960,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         for (let step = 1; step <= count; step++) {
                             await yieldTurn(signal);
                             const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));
-                            const first = await resize(a, width, height), last = await resize(b, width, height);
-                            await result.push(await transformStoredMagickRaster(first, backend, interpolatePixelSteps(width * height * 4, fraction), signal, first, [first, last]));
+                            await result.push(await transformStoredMagickRaster(a, backend, morphPixelSteps(a, b, width, height, fraction), signal, { ...a, width, height }, [a, b]));
                         }
                     }
                     await result.push((await stack.get(stack.length - 1))!); return result;

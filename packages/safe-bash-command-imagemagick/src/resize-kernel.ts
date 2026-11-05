@@ -1,3 +1,4 @@
+import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 function sinc(x: number): number {
@@ -49,8 +50,11 @@ function contributions(index: number, source: number, target: number, blur: numb
     return { first, weights };
 }
 
-/** ImageMagick area scaling or Lanczos/Mitchell filtering, retaining floating point between passes. */
-export function* resizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, thumbnail: boolean, scale = false, kernel: "lanczos3" | "mitchell" = "lanczos3"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+type ResizeImage = { width: number; height: number; hasAlpha: boolean };
+type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
+
+/** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
+function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: "lanczos3" | "mitchell"): ResizeSamples {
     const blur = thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1;
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
     for (let left = 0; left < width; left += 256) {
@@ -87,18 +91,57 @@ export function* resizePixelSteps(image: { width: number; height: number; hasAlp
                 }
                 for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * vertical.weights[k]!;
             }
-            const data = new Uint8Array(count * 4);
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
-                for (let channel = 0; channel < 3; channel++) {
-                    const value = Math.max(0, Math.min(255, Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha));
-                    // Match the Q16-HDRI float quantum conversion at half-byte ties.
-                    data[x * 4 + channel] = thumbnail ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
-                }
-                data[x * 4 + 3] = Math.round(Math.max(0, Math.min(255, alpha * 255)));
+                for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel] = Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha;
+                sums[x * 4 + 3] = alpha * 255;
             }
-            yield { kind: "write", position: (y * width + left) * 4, data };
+            yield { kind: "samples", position: (y * width + left) * 4, data: sums };
         }
+    }
+}
+
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: "lanczos3" | "mitchell" = "lanczos3"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel);
+    let next = samples.next();
+    while (!next.done) {
+        const request = next.value;
+        if (request?.kind !== "samples") { next = samples.next(yield request); continue; }
+        const data = Uint8Array.from(request.data, (sample, index) => {
+            const value = Math.max(0, Math.min(255, sample));
+            // Match the Q16-HDRI float quantum conversion at half-byte ties.
+            return thumbnail && index % 4 !== 3 ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
+        });
+        yield { kind: "write", position: request.position, data };
+        next = samples.next();
+    }
+}
+
+export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    if (a.width === width && a.height === height && b.width === width && b.height === height) {
+        yield* interpolatePixelSteps(width * height * 4, fraction);
+        return;
+    }
+    const sources = [a, b].map(image => resizeSamples(image, width, height, false,
+        image.width === width && image.height === height,
+        image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"));
+    while (true) {
+        let blended: Float64Array | undefined, position = 0;
+        for (let image = 0; image < sources.length; image++) {
+            const source = sources[image]!;
+            let next = source.next();
+            while (!next.done && next.value?.kind !== "samples") {
+                const request = next.value;
+                next = source.next(yield request?.kind === "read" ? { ...request, image } : request);
+            }
+            if (next.done) return;
+            const samples = next.value!;
+            if (samples.kind !== "samples") return;
+            position = samples.position;
+            if (!blended) blended = Float64Array.from(samples.data, value => value * (1 - fraction));
+            else for (let i = 0; i < blended.length; i++) blended[i]! += samples.data[i]! * fraction;
+        }
+        yield { kind: "write", position, data: Uint8Array.from(blended!, value => Math.round(Math.max(0, Math.min(255, value)))) };
     }
 }
 

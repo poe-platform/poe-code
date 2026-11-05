@@ -319,22 +319,26 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       const targetOperand = targetDirectory ?? parsed.operands.at(-1)!;
       const displayTargetFor = (source: string) => destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand;
       const sameFile = (operand: string, source: string) => new PublicDiagnostic(`${quoteShellOperand(operand)} and ${quoteShellOperand(displayTargetFor(source))} are the same file`);
+      // Backups rename directory entries. An inode can have several names.
+      const distinctEntries = async (source: string, target: string) => {
+        const a = dirname(source), b = dirname(target);
+        if (a !== b) {
+          const opts = { signal: context.signal };
+          if (compareCopyIdentity(await context.fs.stat(a, opts), await context.fs.stat(b, opts)) === "distinct") return true;
+        }
+        const srcName = basename(source), dstName = basename(target);
+        if (srcName === dstName) return false;
+        const names = await readDirectory(context, a);
+        return names.some(entry => entry.name === srcName) && (a === b ? names : await readDirectory(context, b)).some(entry => entry.name === dstName);
+      };
+      const entryIdentity = (source: string, target: string, from: FileStat, to: FileStat) =>
+        from.type === "symlink" || to.type === "symlink" ? compareCopyIdentity(from, to)
+          : compareObservedEntries(context.fs, source, from, context.fs, target, to, { signal: context.signal });
       const checkPair = async (source: string, target: string, from: FileStat, to: FileStat, operand: string) => {
         if (source === target) throw sameFile(operand, source);
-        const identity = from.type === "symlink" || to.type === "symlink" ? compareCopyIdentity(from, to)
-          : await compareObservedEntries(context.fs, source, from, context.fs, target, to, { signal: context.signal });
-        if (identity !== "same") return identity;
-        if (backupMode !== "none" && from.type !== "directory") {
-          // Backups rename directory entries. Prove there are two entries before moving either.
-          const a = dirname(source), b = dirname(target);
-          if (a !== b && compareCopyIdentity(await context.fs.stat(a, {signal:context.signal}), await context.fs.stat(b, {signal:context.signal})) === "distinct") return identity;
-          const srcName = basename(source), dstName = basename(target);
-          if (srcName !== dstName) {
-            const names = await readDirectory(context, a);
-            if (names.some(entry => entry.name === srcName) && (a === b ? names : await readDirectory(context, b)).some(entry => entry.name === dstName)) return identity;
-          }
-        }
-        throw sameFile(operand, source);
+        const identity = await entryIdentity(source, target, from, to);
+        if (identity === "same" && (backupMode === "none" || from.type === "directory" || !await distinctEntries(source, target))) throw sameFile(operand, source);
+        return identity;
       };
       const shouldSkip = async (source: string, target: string, operand: string): Promise<boolean> => {
         if (!parsed.flags.has("n") && !parsed.flags.has("u")) return false;
@@ -382,6 +386,9 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
               const identity = await checkPair(source, target, sourceStat, targetStat, operand);
               if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "backup rename lacks authoritative distinctness" });
               if ((sourceStat.type === "directory") !== (targetStat.type === "directory")) throw new FsError(sourceStat.type === "directory" ? "ENOTDIR" : "EISDIR", { path: target });
+              const backupConflict = () => new PublicDiagnostic(`backing up ${quoteShellOperand(displayTarget)} might destroy source;  ${quoteShellOperand(operand)} not moved`);
+              const simple = target + backupSuffix;
+              if (backupMode !== "numbered" && basename(source) === basename(simple) && !await distinctEntries(source, simple)) throw backupConflict();
               let largest = 0n;
               if (backupMode !== "simple") {
                 const prefix = `${basename(target)}.~`;
@@ -393,10 +400,13 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
                   if (number > largest) largest = number;
                 }
               }
-              backup = backupMode === "numbered" || largest > 0n ? `${target}.~${largest + 1n}~` : target + backupSuffix;
-              if (backup === source || backup === target) throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source or destination" });
+              backup = backupMode === "numbered" || largest > 0n ? `${target}.~${largest + 1n}~` : simple;
+              if (backup === source || backup === target) throw backupConflict();
               const backupStat = await maybeStat(context, backup, false);
-              if (backupStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, backup, backupStat, { signal: context.signal }) !== "distinct") throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source" });
+              if (backupStat) {
+                const relation = await entryIdentity(source, backup, sourceStat, backupStat);
+                if (relation === "unknown" || relation === "same" && !await distinctEntries(source, backup)) throw backupConflict();
+              }
               await admitFilesystemModes(context, "mv", ["rename"], [target, backup]);
               await context.fs.rename(target, backup, { signal: context.signal });
             }

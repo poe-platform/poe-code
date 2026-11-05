@@ -285,33 +285,30 @@ pub(super) fn cmd_mv(
         Err(e) if e.starts_with("ENOENT:") => Ok(None),
         Err(e) => Err(e),
     };
-    let check_pair = |src: &str, target: &str, from: &crate::vfs::FileStat, to: &crate::vfs::FileStat, operand: &str, display: &str| -> Result<(), String> {
-        if src != target {
-            if from.identity.is_none() || from.identity != to.identity { return Ok(()); }
-            if backup_mode != BackupMode::None && from.kind != VfsEntryKind::Directory {
-                let a = crate::vfs::dirname_posix_path(src);
-                let b = crate::vfs::dirname_posix_path(target);
-                if a != b {
-                    let (_, left) = fs.inspect_command_entry(&a, true, "stat")?;
-                    let (_, right) = fs.inspect_command_entry(&b, true, "stat")?;
-                    if left.identity.is_some() && right.identity.is_some() && left.identity != right.identity { return Ok(()); }
-                }
-                let src_name = basename_posix_path(src);
-                let dst_name = basename_posix_path(target);
-                if src_name != dst_name {
-                    fs.command_descriptor_op()?;
-                    let names = fs.list_dir(&a)?;
-                    if names.contains(&src_name) {
-                        let targets = if a == b { names } else {
-                            fs.command_descriptor_op()?;
-                            fs.list_dir(&b)?
-                        };
-                        if targets.contains(&dst_name) { return Ok(()); }
-                    }
-                }
-            }
+    let distinct_entries = |src: &str, target: &str| -> Result<bool, String> {
+        let a = crate::vfs::dirname_posix_path(src);
+        let b = crate::vfs::dirname_posix_path(target);
+        if a != b {
+            let (_, left) = fs.inspect_command_entry(&a, true, "stat")?;
+            let (_, right) = fs.inspect_command_entry(&b, true, "stat")?;
+            if left.identity.is_some() && right.identity.is_some() && left.identity != right.identity { return Ok(true); }
         }
-        Err(format!("{} and {} are the same file", shell_quoted_operand(operand), shell_quoted_operand(display)))
+        let src_name = basename_posix_path(src);
+        let dst_name = basename_posix_path(target);
+        if src_name == dst_name { return Ok(false); }
+        fs.command_descriptor_op()?;
+        let names = fs.list_dir(&a)?;
+        if !names.contains(&src_name) { return Ok(false); }
+        if a == b { return Ok(names.contains(&dst_name)); }
+        fs.command_descriptor_op()?;
+        Ok(fs.list_dir(&b)?.contains(&dst_name))
+    };
+    let check_pair = |src: &str, target: &str, from: &crate::vfs::FileStat, to: &crate::vfs::FileStat, operand: &str, display: &str| -> Result<(), String> {
+        if src == target || from.identity.is_some() && from.identity == to.identity &&
+            (backup_mode == BackupMode::None || from.kind == VfsEntryKind::Directory || !distinct_entries(src, target)?) {
+            return Err(format!("{} and {} are the same file", shell_quoted_operand(operand), shell_quoted_operand(display)));
+        }
+        Ok(())
     };
     let should_skip = |src: &str, target: &str, operand: &str, display: &str| -> Result<bool, String> {
         if !no_clobber && !update_only {
@@ -415,19 +412,20 @@ pub(super) fn cmd_mv(
                     };
                     return Err(format!("{reason} '{target}'"));
                 }
+                let backup_conflict = || format!("backing up {} might destroy source;  {} not moved", shell_quoted_operand(&disp_target), shell_quoted_operand(src_raw));
+                if backup_mode != BackupMode::Numbered {
+                    let (simple, _) = backup_path(&target, BackupMode::Simple, &backup_suffix, fs)?;
+                    if basename_posix_path(&src) == basename_posix_path(&simple) && !distinct_entries(&src, &simple)? { return Err(backup_conflict()); }
+                }
                 if backup_mode != BackupMode::Simple {
                     fs.command_descriptor_op()?;
                 }
                 let (bak, _) = backup_path(&target, backup_mode, &backup_suffix, fs)?;
-                if bak == src || bak == target {
-                    return Err(format!(
-                        "EINVAL: backup would overwrite source or destination '{bak}'"
-                    ));
-                }
+                if bak == src || bak == target { return Err(backup_conflict()); }
                 if let Some(st) = maybe_stat(&bak)?
-                    && (st.identity.is_none() || source_stat.identity == st.identity)
+                    && (st.identity.is_none() || source_stat.identity == st.identity && !distinct_entries(&src, &bak)?)
                 {
-                    return Err(format!("EINVAL: backup would overwrite source '{bak}'"));
+                    return Err(backup_conflict());
                 }
                 admit_pair(&target, &bak)?;
                 fs.rename(&target, &bak, false)

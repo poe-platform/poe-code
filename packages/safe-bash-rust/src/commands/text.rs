@@ -6169,7 +6169,7 @@ fn convert_context_diff_to_unified(text: &str) -> String {
         return text.to_string();
     }
     let mut out = String::new();
-    let lines: Vec<&str> = text.lines().collect();
+    let lines: Vec<&str> = text.split_terminator('\n').collect();
     let mut i = 0usize;
     while i < lines.len() {
         if let Some(a_hdr) = lines[i].strip_prefix("*** ")
@@ -6577,6 +6577,14 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     } else {
         stdin.to_string()
     };
+    // A CR in a hunk is file content unless the patch itself uses CRLF throughout.
+    let patch_text = if patch_text.ends_with("\r\n")
+        && patch_text.split_terminator('\n').all(|line| line.ends_with('\r'))
+    {
+        patch_text.replace("\r\n", "\n")
+    } else {
+        patch_text
+    };
     opts.was_context_diff = patch_text.contains("***************");
     let normalized_patch = convert_context_diff_to_unified(&patch_text);
 
@@ -6831,7 +6839,7 @@ fn apply_unified_diff(
 
     if !patch_text.contains("@@ ") {
         let index_target = patch_text
-            .lines()
+            .split_terminator('\n')
             .find_map(|l| l.strip_prefix("Index: "))
             .map(|p| {
                 let (dec, _) = decode_patch_header_path(p);
@@ -6841,11 +6849,11 @@ fn apply_unified_diff(
             .map(|s| s.to_string())
             .or(index_target);
         if let Some(target) = normal_target {
-            let p_lines: Vec<&str> = patch_text.lines().collect();
+            let p_lines: Vec<&str> = patch_text.split_terminator('\n').collect();
             let full = resolve_posix_path(cwd, &target);
             let mut file_lines: Vec<String> = fs
                 .read_file(&full)
-                .map(|b| String::from_utf8_lossy(&b).lines().map(|s| s.to_string()).collect())
+                .map(|b| String::from_utf8_lossy(&b).split_terminator('\n').map(|s| s.to_string()).collect())
                 .unwrap_or_default();
             let mut p_idx = 0usize;
             let mut applied_any = false;
@@ -7018,7 +7026,7 @@ fn apply_unified_diff(
         Ok(())
     };
 
-    let lines: Vec<&str> = patch_text.lines().collect();
+    let lines: Vec<&str> = patch_text.split_terminator('\n').collect();
     let mut idx = 0usize;
 
     while idx < lines.len() {
@@ -7083,7 +7091,7 @@ fn apply_unified_diff(
             if !created_from_dev_null && let Ok(bytes) = fs.read_file(&full) {
                 let s = String::from_utf8_lossy(&bytes);
                 no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
-                file_lines = s.lines().map(|l| l.to_string()).collect();
+                file_lines = s.split_terminator('\n').map(|l| l.to_string()).collect();
             } else {
                 no_trailing_newline = false;
                 file_lines = Vec::new();
@@ -7107,7 +7115,7 @@ fn apply_unified_diff(
                     if let Ok(bytes) = fs.read_file(&full) {
                         let s = String::from_utf8_lossy(&bytes);
                         no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
-                        file_lines = s.lines().map(|l| l.to_string()).collect();
+                        file_lines = s.split_terminator('\n').map(|l| l.to_string()).collect();
                     }
                 }
             }

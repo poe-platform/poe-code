@@ -98,3 +98,43 @@ for (const [pixels, target, expected] of [
         }
     });
 }
+
+// ImageMagick 7 selects Mitchell for alpha images and enlargement; RGB reduction uses Lanczos.
+for (const [channels, target, filter, expected] of [
+    [4, 2, [], [156, 100, 0, 255, 0, 100, 156, 255]],
+    [3, 2, [], [167, 107, 0, 255, 0, 107, 167, 255]],
+    [4, 2, ["-filter", "Lanczos"], [167, 107, 0, 255, 0, 107, 167, 255]],
+    [3, 2, ["-filter", "Mitchell"], [156, 100, 0, 255, 0, 100, 156, 255]],
+    [3, 6, [], [255, 0, 0, 255, 195, 64, 0, 255, 64, 197, 0, 255, 0, 197, 64, 255, 0, 64, 195, 255, 0, 0, 255, 255]],
+    [4, 6, [], [255, 0, 0, 255, 195, 64, 0, 255, 64, 197, 0, 255, 0, 197, 64, 255, 0, 64, 195, 255, 0, 0, 255, 255]]
+] as const) for (const vertical of [false, true]) for (const mode of ["buffered", "retained", "sync"] as const) {
+    it(`selects native resize filter: channels=${channels}, target=${target}, filter=${filter}, vertical=${vertical}, ${mode}`, async () => {
+        const pixels = [ [255, 0, 0], [0, 255, 0], [0, 0, 255] ].flatMap(rgb => channels === 4 ? [...rgb, 255] : rgb);
+        const input = await sharp(Uint8Array.from(pixels), { raw: {
+            width: vertical ? 1 : 3, height: vertical ? 3 : 1, channels
+        } }).png().toBuffer();
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const args = ["png:-", ...filter, "-resize", vertical ? `1x${target}!` : `${target}x1!`, "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files, input)
+            : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files, input);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        expect([...output.data]).toEqual(expected);
+    });
+}
+
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it(`matches native Mitchell enlargement across both axes: ${mode}`, async () => {
+        const input = await sharp(Uint8Array.from([255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 0, 0, 255, 255, 255, 0, 255]), {
+            raw: { width: 3, height: 2, channels: 3 }
+        }).png().toBuffer();
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const args = ["png:-", "-resize", "6x4!", "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files, input)
+            : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files, input);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        // Native ImageMagick 7 Q16-HDRI, RGB six-color input.
+        expect([...output.data]).toEqual([255, 0, 0, 255, 195, 58, 0, 255, 65, 195, 0, 255, 0, 197, 58, 255, 0, 64, 193, 255, 0, 0, 255, 255, 255, 57, 0, 255, 194, 112, 12, 255, 63, 212, 43, 255, 10, 195, 113, 255, 44, 63, 211, 255, 65, 0, 255, 255, 255, 190, 0, 255, 192, 211, 44, 255, 60, 245, 142, 255, 43, 192, 212, 255, 143, 61, 243, 255, 198, 0, 255, 255, 255, 255, 0, 255, 191, 255, 62, 255, 58, 255, 197, 255, 60, 190, 255, 255, 197, 60, 255, 255, 255, 0, 255, 255]);
+    });
+}

@@ -4,7 +4,7 @@ function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
 }
 
-function contributions(index: number, source: number, target: number, blur: number, area: boolean) {
+function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: "lanczos3" | "mitchell") {
     if (area) {
         const start = index * source, end = (index + 1) * source;
         const first = Math.floor(start / target), last = Math.ceil(end / target) - 1;
@@ -12,29 +12,32 @@ function contributions(index: number, source: number, target: number, blur: numb
             (Math.min(end, (first + i + 1) * target) - Math.max(start, (first + i) * target)) / source);
         return { first, weights };
     }
-
     const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
-    const first = Math.max(0, Math.ceil(center - 3 * scale)), last = Math.min(source - 1, Math.floor(center + 3 * scale));
+    const support = (kernel === "mitchell" ? 2 : 3) * scale;
+    const first = Math.max(0, Math.ceil(center - support)), last = Math.min(source - 1, Math.floor(center + support));
     const weights = new Float64Array(last - first + 1);
     let sum = 0;
     for (let i = 0; i < weights.length; i++) {
         const distance = (first + i - center) / scale;
-        weights[i] = sinc(distance) * sinc(distance / 3);
+        const x = Math.abs(distance);
+        weights[i] = kernel === "mitchell"
+            ? (x < 1 ? (7 * x * x * x - 12 * x * x + 16 / 3) / 6 : (-7 / 3 * x * x * x + 12 * x * x - 20 * x + 32 / 3) / 6)
+            : sinc(distance) * sinc(distance / 3);
         sum += weights[i]!;
     }
     for (let i = 0; i < weights.length; i++) weights[i]! /= sum;
     return { first, weights };
 }
 
-/** ImageMagick area scaling or Lanczos filtering, retaining floating point between passes. */
-export function* resizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, thumbnail: boolean, scale = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const blur = thumbnail ? 0.9812505644269356 : 1;
+/** ImageMagick area scaling or Lanczos/Mitchell filtering, retaining floating point between passes. */
+export function* resizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, thumbnail: boolean, scale = false, kernel: "lanczos3" | "mitchell" = "lanczos3"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const blur = thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1;
     for (let left = 0; left < width; left += 256) {
-        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale));
+        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale, kernel));
         const rows = new Map<number, Float64Array>();
         for (let y = 0; y < height; y++) {
             yield;
-            const vertical = contributions(y, image.height, height, blur, scale), sums = new Float64Array(count * 4);
+            const vertical = contributions(y, image.height, height, blur, scale, kernel), sums = new Float64Array(count * 4);
             for (let k = 0; k < vertical.weights.length; k++) {
                 const sy = vertical.first + k;
                 let row = rows.get(sy);

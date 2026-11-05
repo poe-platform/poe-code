@@ -208,6 +208,27 @@ class HtmlTape {
     }
     await used.add(id); await this.reserved.add(id); return id;
   }
+  private async captionIsAlt(body: number, caption: number): Promise<boolean> {
+    if (await this.count(body) !== 1) return false;
+    const block = await this.at(body, 0);
+    if (await this.tag(block) !== "Plain") return false;
+    const inlines = (await this.tree.property(block, "c"))!;
+    if (await this.count(inlines) !== 1) return false;
+    const image = await this.at(inlines, 0);
+    if (await this.tag(image) !== "Image") return false;
+    const blocks = await this.at(caption, 1);
+    if (!await this.count(blocks)) return false;
+    const label = emptyText();
+    for await (const block of this.tree.children(blocks)) {
+      if (!["Plain", "Para"].includes(await this.tag(block))) return false;
+      await this.text.append(label, await this.plain((await this.tree.property(block, "c"))!));
+    }
+    const content = (await this.tree.property(image, "c"))!;
+    const alt = await this.plain(await this.at(content, 1));
+    const values = new BackedTextSet(this.storage, this.text);
+    await values.add(alt);
+    return values.has(label);
+  }
   private async plain(node: number): Promise<TextRange> {
     const previous = this.output, stop = this.top, extracting = this.extractingText;
     this.output = emptyText(); this.extractingText = true;
@@ -501,7 +522,7 @@ class HtmlTape {
         await this.sequence(this.list(content!, cp, tag === "DefinitionList" ? "definition" : "line"), this.literal(tag === "DefinitionList" ? "</dl>\n" : "</div>\n"));
       } else if (tag === "Figure") {
         const body = await child(2), caption = await child(1); await this.add("<figure"); await this.attrs(await this.at(content!, 0)); await this.add(">");
-        await this.sequence(this.list(body.node, body.path, "block"), this.literal("<figcaption>"), {op: "caption", ...caption}, this.literal("</figcaption></figure>\n"));
+        await this.sequence(this.list(body.node, body.path, "block"), this.literal(await this.captionIsAlt(body.node, caption.node) ? '<figcaption aria-hidden="true">' : "<figcaption>"), {op: "caption", ...caption}, this.literal("</figcaption></figure>\n"));
       } else if (tag === "Table") {
         await this.add("<table"); await this.attrs(await this.at(content!, 0));
         let width = 0;

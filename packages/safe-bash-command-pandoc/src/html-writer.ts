@@ -301,7 +301,16 @@ class HtmlWriter {
         }
         case "DefinitionList": this.add("<dl>\n"); for(const [j, [term, defs]] of node.c.entries()) {this.add("<dt>"); await this.inlines(term, `${p}.c[${j}][0]`); this.add("</dt>\n"); for(const [k, def] of defs.entries()) {this.add("<dd>"); await this.blocks(def, `${p}.c[${j}][1][${k}]`); this.add("</dd>\n");}} this.add("</dl>\n"); break;
         case "LineBlock": this.add('<div class="line-block">'); for(const [j, line] of node.c.entries()) {if(j) this.add("<br>"); await this.inlines(line, `${p}.c[${j}]`);} this.add("</div>\n"); break;
-        case "Figure": this.add("<figure"); this.attrs(node.c[0]); this.add(">"); await this.blocks(node.c[2], `${p}.c[2]`); this.add("<figcaption>"); await this.caption(node.c[1], `${p}.c[1]`); this.add("</figcaption></figure>\n"); break;
+        case "Figure": {
+          const body = node.c[2], caption = node.c[1][1];
+          const image = body.length === 1 && body[0]!.t === "Plain" && body[0]!.c.length === 1 ? body[0]!.c[0] : undefined;
+          const duplicate = image?.t === "Image" && caption.length > 0 &&
+            caption.every(block => block.t === "Plain" || block.t === "Para") &&
+            caption.map(block => (block.t === "Plain" || block.t === "Para" ? this.plain(block.c) : "")).join("") === this.plain(image.c[1]);
+          this.add("<figure"); this.attrs(node.c[0]); this.add(">"); await this.blocks(body, `${p}.c[2]`);
+          this.add(duplicate ? '<figcaption aria-hidden="true">' : "<figcaption>");
+          await this.caption(node.c[1], `${p}.c[1]`); this.add("</figcaption></figure>\n"); break;
+        }
         case "Table": await this.table(node, p); break;
       }
     }

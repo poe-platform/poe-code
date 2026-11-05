@@ -1499,12 +1499,14 @@ function formatStrftime(fmt: string, d: Date): string {
 }
 
 // --- JSON Path Helper ---
-function parseJsonPathSegments(path: string): (string | number)[] {
+type JsonPathSegment = string | number | { fromEnd: number };
+
+function parseJsonPathSegments(path: string): JsonPathSegment[] {
   const p = path.trim();
   if (!p.startsWith("$")) {
     return [p];
   }
-  const segs: (string | number)[] = [];
+  const segs: JsonPathSegment[] = [];
   let i = 1;
   while (i < p.length) {
     if (p[i] === ".") {
@@ -1525,6 +1527,9 @@ function parseJsonPathSegments(path: string): (string | number)[] {
       const inside = p.slice(i + 1, j).trim();
       if (inside === "#") {
         segs.push("#");
+      } else if (inside.startsWith("#-") && inside.length > 2 &&
+        [...inside.slice(2)].every(char => char >= "0" && char <= "9")) {
+        segs.push({ fromEnd: Number(inside.slice(2)) });
       } else {
         const idx = Number(inside);
         segs.push(Number.isNaN(idx) ? inside.replace(/^['"]|['"]$/g, "") : idx);
@@ -1537,10 +1542,24 @@ function parseJsonPathSegments(path: string): (string | number)[] {
   return segs;
 }
 
+function resolveJsonPathSegment(cur: unknown, segment: JsonPathSegment): string | number | undefined {
+  if (typeof segment !== "object") {
+    return segment;
+  }
+  if (!Array.isArray(cur) || segment.fromEnd > cur.length) {
+    return undefined;
+  }
+  return cur.length - segment.fromEnd;
+}
+
 function extractByJsonPath(root: unknown, path: string): unknown {
   const segs = parseJsonPathSegments(path);
   let cur: any = root;
-  for (const s of segs) {
+  for (const segment of segs) {
+    const s = resolveJsonPathSegment(cur, segment);
+    if (s === undefined) {
+      return undefined;
+    }
     if (cur === null || cur === undefined || typeof cur !== "object") {
       return undefined;
     }
@@ -1571,13 +1590,19 @@ function setByJsonPath(
   const clone = structuredClone(root);
   let cur: any = clone;
   for (let i = 0; i < segs.length - 1; i += 1) {
-    const s = segs[i]!;
+    const s = resolveJsonPathSegment(cur, segs[i]!);
+    if (s === undefined) {
+      return root;
+    }
     if (cur[s] === undefined || cur[s] === null || typeof cur[s] !== "object") {
-      cur[s] = typeof segs[i + 1] === "number" ? [] : {};
+      cur[s] = typeof segs[i + 1] !== "string" ? [] : {};
     }
     cur = cur[s];
   }
-  const last = segs[segs.length - 1]!;
+  const last = resolveJsonPathSegment(cur, segs[segs.length - 1]!);
+  if (last === undefined) {
+    return root;
+  }
   if (Array.isArray(cur) && last === "#") {
     if (mode !== "replace") {
       cur.push(val);
@@ -1603,12 +1628,19 @@ function removeByJsonPath(root: any, path: string): any {
   const clone = structuredClone(root);
   let cur: any = clone;
   for (let i = 0; i < segs.length - 1; i += 1) {
-    cur = cur?.[segs[i]!];
+    const s = resolveJsonPathSegment(cur, segs[i]!);
+    if (s === undefined) {
+      return clone;
+    }
+    cur = cur?.[s];
     if (cur === undefined || cur === null) {
       return clone;
     }
   }
-  const last = segs[segs.length - 1]!;
+  const last = resolveJsonPathSegment(cur, segs[segs.length - 1]!);
+  if (last === undefined) {
+    return clone;
+  }
   if (Array.isArray(cur) && typeof last === "number") {
     const idx = last < 0 ? cur.length + last : last;
     if (idx >= 0 && idx < cur.length) {

@@ -51,6 +51,45 @@ async function runSqlite3(
   };
 }
 
+test("sqlite3 JSON1 resolves array indexes counted from the end", async () => {
+  const cases = [
+    ["json_extract('[10,20,30]', '$[#-1]')", "30"],
+    ["json_extract('{\"a\":[10,20,30]}', '$.a[#-2]')", "20"],
+    ["json_extract('[[10,20],[30,40]]', '$[#-1][#-2]')", "30"],
+    ["json_remove('[10,20,30]', '$[#-1]')", "[10,20]"],
+    ["json_set('[10,20,30]', '$[#-1]', 99)", "[10,20,99]"],
+    ["json_replace('[10,20,30]', '$[#-2]', 99)", "[10,99,30]"],
+    ["json_insert('[10,20,30]', '$[#-1]', 99)", "[10,20,30]"],
+    ["json_set('[[10,20],[30,40]]', '$[#-1][#-2]', 99)", "[[10,20],[99,40]]"],
+    ["json_remove('[[10,20],[30,40]]', '$[#-1][#-2]')", "[[10,20],[40]]"],
+    ["json_insert('[10,20,30]', '$[#]', 40)", "[10,20,30,40]"],
+    ["json_set('[10,20,30]', '$[#-0]', 40)", "[10,20,30,40]"],
+    ["json_set('{}', '$.a[#-1]', 99)", "{}"],
+    ["json_set('{}', '$.a[#-1].x', 99)", "{}"],
+    ["json_extract('[10,20,30]', '$[#-0]')", ""],
+    ["json_remove('[10,20,30]', '$[#-0]')", "[10,20,30]"],
+    ["json_replace('[10,20,30]', '$[#-0]', 99)", "[10,20,30]"],
+    ["json_type('[[10,20]]', '$[#-1]')", "array"],
+    ["json_array_length('[[10,20]]', '$[#-1]')", "2"],
+    ["'[10,20,30]' ->> '$[#-1]'", "30"],
+  ];
+  for (const doc of ["[]", "[10,20,30]"]) {
+    for (const path of ["$[#-4]", "$[#-4].x"]) {
+      cases.push(
+        [`json_extract('${doc}', '${path}')`, ""],
+        [`json_remove('${doc}', '${path}')`, doc],
+        ...["set", "insert", "replace"].map(mode => [
+          `json_${mode}('${doc}', '${path}', 99)`, doc
+        ])
+      );
+    }
+  }
+  for (const [expression, expected] of cases) {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${expression};`]);
+    assert.deepEqual(result, { code: 0, stdout: `${expected}\n`, stderr: "" }, expression);
+  }
+});
+
 for (const conflict of ["", "OR ABORT", "OR FAIL"]) {
   test(`sqlite3 persists statement conflict behavior for INSERT ${conflict}`, async () => {
     const fs = createMemoryFileSystem();

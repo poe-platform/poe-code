@@ -129,6 +129,7 @@ export function createFormatRegistry(
     if (selectedDirection === "read" && (name === "markdown" || name === "md")) {extensions.header_attributes = true; extensions.bracketed_spans = true; extensions.native_divs = true; extensions.superscript = true; extensions.subscript = true; extensions.smart = true; extensions.implicit_figures = true;}
     if (name === "markdown" || name === "md") {
       extensions.tex_math_dollars = true;
+      if (selectedDirection === "read") extensions.raw_tex = true;
     }
     while (cursor < source.length) {
       const enabled = source[cursor++] === "+";

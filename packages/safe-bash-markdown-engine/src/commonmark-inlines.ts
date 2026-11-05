@@ -1,3 +1,5 @@
+import {scanMarkdownRawTex} from "./markdown-raw-tex.js";
+export {scanMarkdownRawTex} from "./markdown-raw-tex.js";
 import { bareAutolink, filterGfmHtml } from "./gfm-syntax.js";
 import type { Inline, Attr } from "./ast-types.js";
 import type { BlockDefinition, PendingInline } from "./commonmark-blocks.js";
@@ -279,6 +281,8 @@ export async function parseCommonMarkInlines(
     if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
     const char = text[i]!;
     if (char === "\\") {
+      const rawEnd = extensions.raw_tex ? await scanMarkdownRawTex(i, position => text[position], context) : undefined;
+      if (rawEnd !== undefined) {append({t: "RawInline", c: ["tex", text.slice(i, rawEnd)]}); i = rawEnd; continue;}
       if (text[i + 1] === "\n") { append({ t: "LineBreak" }); i = skipSpace(text, i + 2, context); }
       else if (asciiPunctuation(text[i + 1]) || text[i + 1] === " " && (extensions.superscript || extensions.subscript)) { append(text[i + 1]!); i += 2; }
       else { append(char); i++; }

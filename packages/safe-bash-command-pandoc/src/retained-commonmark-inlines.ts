@@ -1,3 +1,4 @@
+import {scanMarkdownRawTex} from "./commonmark-inlines.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
 import {asciiPunctuation, fencedDivAttributes, digit, entity, letter, normalizeLabel} from "./commonmark-syntax.js";
@@ -119,6 +120,8 @@ export async function parseRetainedCommonMarkInlines(
   for (let i = syntax.range.start; i < syntax.range.end;) {
     await context.cooperate(); const unit = (await char(i))!;
     if (unit === "\\") {
+      const rawEnd = extensions.raw_tex ? await scanMarkdownRawTex(i, char, context) : undefined;
+      if (rawEnd !== undefined) {await append(await ast.tag("RawInline", await ast.value(["tex", await literal({start: i, end: rawEnd})]))); i = rawEnd; continue;}
       if (await char(i + 1) === "\n") {await append(await ast.tag("LineBreak")); i = await syntax.spaces(i + 2);}
       else if (asciiPunctuation(await char(i + 1)) || await char(i + 1) === " " && (extensions.superscript || extensions.subscript)) {await appendRange(i + 1, i + 2); i += 2;}
       else {await appendRange(i, i + 1); i++;} continue;

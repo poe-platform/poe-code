@@ -90,7 +90,7 @@ fn coreutil(
         "sponge" => cmd_sponge(args, input.buffered()?, cwd, fs),
         "seq" => cmd_seq(args),
         "basename" => cmd_basename(args),
-        "dirname" => cmd_dirname(args),
+        "dirname" => cmd_dirname(args, env.contains_key("POSIXLY_CORRECT")),
         "env" | "printenv" => cmd_printenv(args, env),
         "cal" | "ncal" => cmd_cal(cmd, args, env),
         "getconf" => cmd_getconf(args, cwd, fs),
@@ -4760,75 +4760,43 @@ pub(crate) fn yes_batch(args: &[String], posixly_correct: bool) -> Result<String
 }
 
 fn cmd_basename(args: &[String]) -> BuiltinOutcome {
-    let mut suffix: Option<String> = None;
+    let mut suffix = None;
     let mut multiple = false;
     let mut zero_term = false;
-    let mut operands = Vec::new();
-    let mut ended = false;
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if !ended && a == "--" {
-            ended = true;
-            i += 1;
-            continue;
-        }
-        if ended || !a.starts_with('-') || a == "-" {
-            operands.push(a.clone());
-            i += 1;
-            continue;
-        }
-        if a == "--multiple" {
-            multiple = true;
-            i += 1;
-        } else if a == "--zero" {
-            zero_term = true;
-            i += 1;
-        } else if a == "--suffix" {
-            if i + 1 >= args.len() {
-                return err_out("basename: option '--suffix' requires an argument\n", 1);
+    let mut words = args.iter();
+    while let Some(a) = words.as_slice().first() {
+        if !a.starts_with('-') || a == "-" { break; }
+        words.next();
+        match a.as_str() {
+            "--" => break,
+            "--multiple" => multiple = true,
+            "--zero" => zero_term = true,
+            "--suffix" => {
+                let Some(value) = words.next() else { return err_out("basename: option '--suffix' requires an argument\n", 1); };
+                suffix = Some(value.as_str());
+                multiple = true;
             }
-            suffix = Some(args[i + 1].clone());
-            multiple = true;
-            i += 2;
-        } else if let Some(s) = a.strip_prefix("--suffix=") {
-            suffix = Some(s.to_string());
-            multiple = true;
-            i += 1;
-        } else if a.starts_with("--") {
-            return err_out(&format!("basename: unrecognized option '{a}'\n"), 1);
-        } else {
-            let chars: Vec<char> = a[1..].chars().collect();
-            let mut ci = 0usize;
-            while ci < chars.len() {
-                match chars[ci] {
-                    'a' => {
-                        multiple = true;
-                        ci += 1;
-                    }
-                    'z' => {
-                        zero_term = true;
-                        ci += 1;
-                    }
+            _ if a.starts_with("--suffix=") => { suffix = Some(&a[9..]); multiple = true; }
+            _ if a.starts_with("--") => return err_out(&format!("basename: unrecognized option '{a}'\n"), 1),
+            _ => for (offset, flag) in a[1..].char_indices() {
+                match flag {
+                    'a' => multiple = true,
+                    'z' => zero_term = true,
                     's' => {
+                        let attached = &a[offset + 2..];
+                        suffix = if attached.is_empty() {
+                            let Some(value) = words.next() else { return err_out("basename: option requires an argument -- 's'\n", 1); };
+                            Some(value.as_str())
+                        } else { Some(attached) };
                         multiple = true;
-                        let rest: String = chars[ci + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            suffix = Some(rest);
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            suffix = Some(args[i].clone());
-                        } else {
-                            return err_out("basename: option requires an argument -- 's'\n", 1);
-                        }
                         break;
                     }
-                    c => return err_out(&format!("basename: invalid option -- '{c}'\n"), 1),
+                    _ => return err_out(&format!("basename: invalid option -- '{flag}'\n"), 1),
                 }
-            }
-            i += 1;
+            },
         }
     }
+    let operands = words.as_slice();
     if operands.is_empty() {
         return err_out("basename: missing operand\n", 1);
     }
@@ -4837,10 +4805,9 @@ fn cmd_basename(args: &[String]) -> BuiltinOutcome {
     }
     let term = if zero_term { '\0' } else { '\n' };
     let (paths, suf) = if multiple {
-        (&operands[..], suffix.as_deref())
+        (operands, suffix)
     } else {
-        let s = suffix.as_deref().or_else(|| operands.get(1).map(|x| x.as_str()));
-        (&operands[..1], s)
+        (&operands[..1], operands.get(1).map(String::as_str))
     };
     let mut out = String::new();
     for path in paths {
@@ -4870,7 +4837,7 @@ fn cmd_basename(args: &[String]) -> BuiltinOutcome {
     ok_out(&out)
 }
 
-fn cmd_dirname(args: &[String]) -> BuiltinOutcome {
+fn cmd_dirname(args: &[String], posix: bool) -> BuiltinOutcome {
     let mut zero_term = false;
     let mut operands = Vec::new();
     let mut ended = false;
@@ -4880,6 +4847,7 @@ fn cmd_dirname(args: &[String]) -> BuiltinOutcome {
             continue;
         }
         if ended || !a.starts_with('-') || a == "-" {
+            ended |= posix;
             operands.push(a);
             continue;
         }

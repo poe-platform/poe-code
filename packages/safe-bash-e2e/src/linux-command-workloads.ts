@@ -119,7 +119,8 @@ const textCommands = ([
   ["paste", "-s"], ["grep", "beta"], ["sed", "s/beta/z/g"],
   ["awk", "END {print NR}"], ["base64"], ["base32"], ["xxd", "-p"], ["od", "-An", "-tx1"],
   ["sha512sum"], ["sha384sum"], ["sha256sum"], ["sha224sum"], ["sha1sum"], ["md5sum"], ["cksum"],
-  ["basename", "/a/b"], ["dirname", "/a/b"], ["seq", "1", "4"], ["factor", "140"],
+  ["basename", "/a/b"], ["basename", "a/b-z", "-z"], ["basename", "a/b--", "--"], ["basename", "-a", "x", "--", "-z"],
+  ["basename", "a/b--help", "--help"], ["basename", "-sz", "a/bz", "bz"], ["dirname", "/a/b"], ["dirname", "a/b", "-z"], ["seq", "1", "4"], ["factor", "140"],
   ["expr", "7", "+", "4"], ["numfmt", "--to=iec", "1024"], ["tee"], ["true"], ["false"],
   ["printf", "%04d", "7"], ["echo", "alpha", "beta"], ["printenv", "LC_ALL"],
   ["dd", "bs=4", "count=2", "iflag=fullblock", "status=none"], ["shuf", "-i", "7-7"],
@@ -173,6 +174,7 @@ export function linuxCommands(text: string) {
     "env pwd -P ignored -L", "env POSIXLY_CORRECT=1 pwd ignored -P", "env pwd -- -L"]) {
     pipes.push('(root=$PWD; cd pwd-link && result=$(' + command + ') && printf "%s\\n" "${result#"$root"/}")');
   }
+  pipes.push("env POSIXLY_CORRECT=1 dirname a/b -z", "env POSIXLY_CORRECT= dirname a/b --", "env POSIXLY_CORRECT=1 dirname -z a/b --zero");
   pipes.push("pwd --logical", "command pwd --physical", "pwd -LPQ", "pwd --help", "builtin pwd -P --help -X",
     "command pwd -X --help", "pwd -- --help >/dev/null");
   for (const invocation of ["env pwd -X", "env pwd --unknown", "env pwd --physical=yes", "env pwd --h=x", "/usr/bin/pwd extra"]) {

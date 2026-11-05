@@ -183,3 +183,53 @@ pub fn scan(source: &[u16]) -> Result<Document, Error> {
     nodes[root].end = source.len();
     Ok(Document { root, nodes })
 }
+
+/// Find the colon and following entry delimiter for a top-level scalar key.
+/// For a missing key return the position before the closing brace or document end.
+/// The scanner distinguishes mapping punctuation from quoted or nested content.
+pub fn mapping_slot(source: &[u16], doc: &Document, name: &[u16]) -> (Option<usize>, usize) {
+    use super::syntax::scanner::{Scanner, TokenType as T};
+    let root = &doc.nodes[doc.root];
+    let pair = root.children.chunks_exact(2).position(|p| {
+        let key = &doc.nodes[p[0]];
+        key.kind == Kind::Scalar && key.text == name
+    });
+    let key_start = pair.map(|i| doc.nodes[root.children[i * 2]].start);
+    let next = pair
+        .and_then(|i| root.children.get(i * 2 + 2))
+        .map(|id| doc.nodes[*id].start);
+    let mut colon = None;
+    let mut depth = 0;
+    let mut end = source.len();
+    for token in Scanner::new(source.iter().copied()) {
+        let at = token.0.index().min(source.len());
+        if !root.flow && next.is_some_and(|n| at >= n) {
+            end = line_start(source, at);
+            break;
+        }
+        match token.1 {
+            T::Value if colon.is_none() && key_start.is_some_and(|k| at >= k) => colon = Some(at),
+            T::FlowMappingStart | T::FlowSequenceStart => depth += 1,
+            T::FlowMappingEnd if root.flow && depth == 1 => {
+                end = at;
+                break;
+            }
+            T::FlowMappingEnd | T::FlowSequenceEnd => depth -= 1,
+            T::FlowEntry
+                if root.flow
+                    && depth == 1
+                    && pair.is_some()
+                    && key_start.is_some_and(|k| at > k) =>
+            {
+                end = at;
+                break;
+            }
+            T::DocumentEnd => {
+                end = at;
+                break;
+            }
+            _ => {}
+        }
+    }
+    (colon, end)
+}

@@ -88,3 +88,24 @@ fn syntax_nesting_budget_rejects_before_unbounded_tree_growth() {
             .contains("syntax budget")
     );
 }
+
+#[test]
+fn root_mapping_slots_ignore_quoted_and_nested_delimiters() {
+    use config_mutations_rust::yaml::document::mapping_slot;
+    let flow = text("{'a:b': {other: [x, y]}, next: ' } '}");
+    let doc = scan(&flow).unwrap();
+    let (colon, end) = mapping_slot(&flow, &doc, &text("a:b"));
+    assert_eq!(&flow[colon.unwrap()..end], text(": {other: [x, y]}"));
+    assert_eq!(
+        mapping_slot(&flow, &doc, &text("missing")),
+        (None, flow.len() - 1)
+    );
+    let block = text("key: |-\n  not: a key\nother: x\n...\n");
+    let doc = scan(&block).unwrap();
+    let (colon, end) = mapping_slot(&block, &doc, &text("key"));
+    assert_eq!(&block[colon.unwrap()..end], text(": |-\n  not: a key\n"));
+    assert_eq!(
+        &block[mapping_slot(&block, &doc, &text("missing")).1..],
+        text("...\n")
+    );
+}

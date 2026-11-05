@@ -15,13 +15,18 @@ export function* edgePixelSteps(image: { width: number; height: number; hasAlpha
             const bytes = yield { kind: "read", position: (sy * width + first) * 4, length };
             if (!bytes || bytes.length !== length) throw new Error("Truncated edge pixels");
             for (let c = 0; c < 4; c++) {
-                if (!mask[c]) continue;
+                if (!mask[c] && !(image.hasAlpha && c === 3)) continue;
                 let sum = 0;
-                for (let k = -half; k <= half; k++) sum += bytes[(Math.max(0, Math.min(width - 1, left + k)) - first) * 4 + c]!;
+                for (let k = -half; k <= half; k++) {
+                    const offset = (Math.max(0, Math.min(width - 1, left + k)) - first) * 4;
+                    sum += bytes[offset + c]! * (image.hasAlpha && c < 3 ? bytes[offset + 3]! : 1);
+                }
                 for (let x = 0; x < count; x++) {
                     sums[x * 4 + c]! += sum;
-                    sum -= bytes[(Math.max(0, left + x - half) - first) * 4 + c]!;
-                    sum += bytes[(Math.min(width - 1, left + x + half + 1) - first) * 4 + c] ?? 0;
+                    const outgoing = (Math.max(0, left + x - half) - first) * 4;
+                    const incoming = (Math.min(width - 1, left + x + half + 1) - first) * 4;
+                    sum -= bytes[outgoing + c]! * (image.hasAlpha && c < 3 ? bytes[outgoing + 3]! : 1);
+                    sum += (bytes[incoming + c] ?? 0) * (image.hasAlpha && c < 3 ? (bytes[incoming + 3] ?? 0) : 1);
                 }
             }
         }
@@ -29,7 +34,15 @@ export function* edgePixelSteps(image: { width: number; height: number; hasAlpha
         if (!bytes || bytes.length !== count * 4) throw new Error("Truncated edge pixels");
         const data = new Uint8Array(bytes);
         for (let x = 0; x < count; x++) {
-            for (let c = 0; c < 4; c++) if (mask[c]) data[x * 4 + c] = Math.max(0, Math.min(255, area * bytes[x * 4 + c]! - sums[x * 4 + c]!));
+            const alpha = area * bytes[x * 4 + 3]! - sums[x * 4 + 3]!;
+            for (let c = 0; c < 4; c++) if (mask[c]) {
+                // Normalize premultiplied colors by the convolved alpha, including
+                // zero-sum kernels (ImageMagick uses a positive epsilon at zero).
+                const value = image.hasAlpha && c < 3
+                    ? (area * bytes[x * 4 + c]! * bytes[x * 4 + 3]! - sums[x * 4 + c]!) / (alpha === 0 ? 255e-12 : alpha)
+                    : area * bytes[x * 4 + c]! - sums[x * 4 + c]!;
+                data[x * 4 + c] = Math.max(0, Math.min(255, Math.round(value)));
+            }
         }
         yield { kind: "write", position, data };
     }

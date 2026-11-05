@@ -6562,7 +6562,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -6606,50 +6606,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const p = inPaths[idx]!;
             const effW = fastMetaDims[idx]!.width;
             const effH = fastMetaDims[idx]!.height;
-            const rawTileW = effW - borderW * 2;
-            const rawTileH = effH - borderW * 2;
             const cellX = col * slotW + padX;
             const cellY = row * slotH + padY;
             const off = resolveGravityOffset(maxThumbW - effW, maxThumbH - effH, state.gravity);
             const dstX = cellX + off.left;
             const dstY = cellY + off.top;
-            if (borderW > 0 && state.borderColor.a > 0) {
-                const bc = state.borderColor;
-                const x0 = Math.max(0, dstX);
-                const y0 = Math.max(0, dstY);
-                const x1 = Math.min(canvas.width, dstX + effW);
-                const y1 = Math.min(canvas.height, dstY + effH);
-                const ix0 = dstX + borderW;
-                const iy0 = dstY + borderW;
-                const ix1 = ix0 + rawTileW;
-                const iy1 = iy0 + rawTileH;
-                for (let by = y0; by < y1; by++) {
-                    const inY = by >= iy0 && by < iy1;
-                    for (let bx = x0; bx < x1; bx++) {
-                        if (inY && bx >= ix0 && bx < ix1) {
-                            bx = ix1 - 1;
-                            continue;
-                        }
-                        const di = (by * canvas.width + bx) * 4;
-                        if (bc.a === 255) {
-                            canvas.data[di] = bc.r;
-                            canvas.data[di + 1] = bc.g;
-                            canvas.data[di + 2] = bc.b;
-                            canvas.data[di + 3] = 255;
-                        } else {
-                            const sa = bc.a / 255;
-                            const da = (canvas.data[di + 3] ?? 0) / 255;
-                            const outA = sa + da * (1 - sa);
-                            if (outA > 0) {
-                                canvas.data[di] = Math.round((bc.r * sa + (canvas.data[di] ?? 0) * da * (1 - sa)) / outA);
-                                canvas.data[di + 1] = Math.round((bc.g * sa + (canvas.data[di + 1] ?? 0) * da * (1 - sa)) / outA);
-                                canvas.data[di + 2] = Math.round((bc.b * sa + (canvas.data[di + 2] ?? 0) * da * (1 - sa)) / outA);
-                                canvas.data[di + 3] = Math.round(outA * 255);
-                            }
-                        }
-                    }
-                }
-            }
             const rawTileBytes = files.get(p);
             const directPng = rawTileBytes ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
             if (directPng) {
@@ -6722,14 +6683,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 if (borderW > 0) {
                     const prev = thumb;
-                    thumb = (yield* extendImageSteps(thumb, {
-                        top: borderW,
-                        bottom: borderW,
-                        left: borderW,
-                        right: borderW,
-                        background: state.borderColor,
-                        extendWith: "background"
-                    }));
+                    thumb = yield* createSolidRgbaImageSteps(prev.width + borderW * 2, prev.height + borderW * 2, state.borderColor);
+                    yield* blitOverRgbaInPlaceSteps(thumb, prev, borderW, borderW);
                     if (thumb !== prev) detachRgbaBuffer(prev.data);
                 }
                 if (labels[inputIndex]) {
@@ -6797,7 +6752,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -6861,7 +6816,10 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`, state.kernel);
                             if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);
                         }
-                        if (borderW > 0) image = await transformStoredImage(image, backend.storage, { kind: "extend", top: borderW, bottom: borderW, left: borderW, right: borderW, background: state.borderColor, extendWith: "background" }, signal);
+                        if (borderW > 0) {
+                            const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);
+                            image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true);
+                        }
                         if (labels[index]) {
                             const labeled = image;
                             const text = await formatRetainedIdentify(labels[index]!, image, { filePath: parseInputToken(path).baseToken }, async () => ({ image: labeled, storage: backend.storage }), signal);
@@ -6899,13 +6857,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             } else image = (await images.get(index))!;
             const width = fast ? Number(await sources.get(BigInt(index * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt(index * 5 + 3))) : image.height;
             const offset = resolveGravityOffset(maxThumbW - width, maxThumbH - height, state.gravity), x = col * slotW + padX + offset.left, y = row * slotH + padY + offset.top;
-            if (fast && borderW > 0 && state.borderColor.a > 0) {
-                const border = await createStoredCanvas(width, height, state.borderColor, backend, signal), empty = new Uint8Array(16384);
-                for (let row = borderW; row < height - borderW; row++) for (let start = borderW; start < width - borderW; start += 4096) {
-                    await yieldTurn(signal); await backend.storage.write(border.position + (row * width + start) * 4, empty.subarray(0, Math.min(4096, width - borderW - start) * 4));
-                }
-                canvas = await compositeStoredMagick(canvas, border, backend, signal, x, y, "over", undefined, false, true, true);
-            }
             if (!anyTransparent) for (let start = 0; start < image.width * image.height * 4; start += 16384) {
                 await yieldTurn(signal);
                 const bytes = await backend.storage.read(image.position + start, Math.min(16384, image.width * image.height * 4 - start));

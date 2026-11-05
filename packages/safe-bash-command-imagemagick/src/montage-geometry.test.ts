@@ -10,6 +10,35 @@ const font = existsSync("/System/Library/Fonts/Supplemental/Arial.ttf")
   ? "/System/Library/Fonts/Supplemental/Arial.ttf" : "DejaVu-Sans";
 
 for (const mode of ["buffered", "retained"] as const)
+for (const geometry of ["2x2+1+1", "+1+1"])
+it.each([
+  { border: "#00ff00", pixel: [128, 127, 0, 255] },
+  { border: "#00ff0080", pixel: [170, 85, 0, 192] },
+  { border: undefined, pixel: [255, 0, 0, 128] },
+])(`composites montage tiles over their border via ${mode} at ${geometry}: $border`, async ({ border, pixel }) => {
+  const bytes = await sharp({ create: { width: 2, height: 2, channels: 4, background: { r: 255, g: 0, b: 0, alpha: 128 / 255 } } }).png().toBuffer();
+  const files = new Map([["input.png", bytes]]);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.png", bytes);
+  const options = ["-background", "none", "-tile", "1x1", "-geometry", geometry,
+    ...(border ? ["-border", "1", "-bordercolor", border] : [])];
+  const result = await runMontageCli([...options, "input.png", "png:-"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+  expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+  const actual = decodeImage(result.stdoutBytes!);
+  const size = border ? 6 : 4;
+  expect([actual.width, actual.height]).toEqual([size, size]);
+  expect(Array.from(actual.data.slice((2 * size + 2) * 4, (2 * size + 2) * 4 + 4))).toEqual(pixel);
+  if (nativeAvailable) {
+    const reference = spawnSync("magick", ["montage", "-font", font, ...options,
+      `inline:data:image/png;base64,${Buffer.from(bytes).toString("base64")}`, "png:-"]);
+    expect(reference.status, reference.stderr.toString()).toBe(0);
+    const native = decodeImage(reference.stdout);
+    expect([actual.width, actual.height]).toEqual([native.width, native.height]);
+    expect(Buffer.from(actual.data).equals(native.data)).toBe(true);
+  }
+});
+
+for (const mode of ["buffered", "retained"] as const)
 it.each([
   { scale: 1, geometry: [], width: 256, height: 126, red: [63, 62, 2, 2], blue: [190, 62, 4, 1] },
   { scale: 1, geometry: ["-geometry", "2x2+0+0"], width: 4, height: 2, red: [0, 0, 2, 2], blue: [2, 0, 2, 1] },

@@ -18,6 +18,26 @@ for (const retained of [false, true]) {
     });
     return output;
   }
+  it(`reads raw fenced blocks (retained=${retained})`, async () => {
+    for (const from of ["markdown", "md", "gfm+raw_attribute", "markdown-fenced_code_attributes"]) {
+      for (const [format, content] of [["html", "<details>Hi</details>"], ["tex", "\\LaTeX{}\n\n"], ["openxml", ""]]) {
+        expect(JSON.parse(await render('```{=' + format + '}\n' + content + '\n```\n', from)).blocks).toEqual([
+          {t: "RawBlock", c: [format, content]}
+        ]);
+      }
+    }
+    expect(await render('~~~{=html}\n<details>Hi</details>\n~~~\n', "markdown", "html")).toBe("<details>Hi</details>\n");
+  });
+  it(`keeps non-raw fenced blocks as code (retained=${retained})`, async () => {
+    for (const from of ["markdown-raw_attribute", "commonmark", "gfm"]) {
+      expect(JSON.parse(await render('```{=html}\nraw\n```\n', from)).blocks).toEqual([
+        {t: "CodeBlock", c: [["", ["{=html}"], []], "raw"]}
+      ]);
+    }
+    for (const info of ["{=}", "{=html}extra", "{=html extra}", "html"]) {
+      expect(JSON.parse(await render('```' + info + '\ncode\n```\n')).blocks[0].t).toBe("CodeBlock");
+    }
+  });
   it(`preserves fenced code attributes (retained=${retained})`, async () => {
     const text = '```{.python #demo .numberLines startFrom="3" title="A sample"}\nprint(1)\n```\n';
     for (const from of ["markdown", "md", "gfm+fenced_code_attributes"]) {
@@ -51,15 +71,18 @@ for (const retained of [false, true]) {
   });
 }
 
-it("converts standalone fenced code attributes", async () => {
+it.each([
+  {info: "{.python #demo}", block: {t: "CodeBlock", c: [["demo", ["python"], []], "print(1)"]}},
+  {info: "{=html}", block: {t: "RawBlock", c: ["html", "print(1)"]}}
+])("converts standalone fenced attributes $info", async ({info, block}) => {
   let output = "";
   const result = await createStandalonePandocCommand().execute({
     args: ["-f", "markdown", "-t", "json"],
-    stdin: [new TextEncoder().encode('```{.python #demo}\nprint(1)\n```\n')],
+    stdin: [new TextEncoder().encode('```' + info + '\nprint(1)\n```\n')],
     signal: new AbortController().signal,
     stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
     stderr: {async write() {}}
   });
   expect(result.exitCode).toBe(0);
-  expect(JSON.parse(output).blocks).toEqual([{t: "CodeBlock", c: [["demo", ["python"], []], "print(1)"]}]);
+  expect(JSON.parse(output).blocks).toEqual([block]);
 });

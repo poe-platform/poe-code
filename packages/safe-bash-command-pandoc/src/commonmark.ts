@@ -24,7 +24,7 @@ function toMetaValue(val: unknown, stringValue: (value: string) => MetaValue): M
 }
 import type { ReaderCapability } from "./types.js";
 import { parseCommonMarkBlocks, type PendingBlock } from "./commonmark-blocks.js";
-import { parseCommonMarkInlines } from "./commonmark-inlines.js";
+import { parseCommonMarkInlines, scanMarkdownRawAttribute } from "./commonmark-inlines.js";
 import { decodeSyntax, fencedDivAttributes } from "./commonmark-syntax.js";
 
 /** Resident YAML frontmatter semantics; the retained reader uses caller-backed
@@ -202,12 +202,17 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
         }
         case "code": {
           const decoded = decodeSyntax(block.info, context).trim();
+          const literal = block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal;
+          if (extensions.raw_attribute && await scanMarkdownRawAttribute(0, offset => decoded[offset], context) === decoded.length) {
+            result.push({t: "RawBlock", c: [decoded.slice(2, -1), literal]});
+            break;
+          }
           const info = decoded.split(" ")[0];
           const attributeText = decoded.startsWith("{") ? decoded : decoded.slice(info?.length ?? 0).trimStart();
           let attributes = extensions.fenced_code_attributes && attributeText.startsWith("{") && attributeText.endsWith("}")
             ? fencedDivAttributes(attributeText, context) : undefined;
           if (attributes && info && !decoded.startsWith("{")) attributes = [attributes[0], [info, ...attributes[1]], attributes[2]];
-          result.push({ t: "CodeBlock", c: [attributes ?? ["", info ? [info] : [], []], block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal] });
+          result.push({ t: "CodeBlock", c: [attributes ?? ["", info ? [info] : [], []], literal] });
           break;
         }
         case "nativeDiv": {

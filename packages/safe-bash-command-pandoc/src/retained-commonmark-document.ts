@@ -1,4 +1,5 @@
 import {BackedTextSet} from "./backed-text-set.js";
+import {scanMarkdownRawAttribute} from "./commonmark-inlines.js";
 import {retainedHeadingIdentifier} from "./retained-heading-identifier.js";
 import {headingAttributes} from "./heading-attributes.js";
 import {translate} from "./json.js";
@@ -291,6 +292,12 @@ export async function assembleRetainedCommonMark(
       await ast.push(out, await ast.tag("RawBlock", await ast.value(["html", Object.hasOwn(extensions, "raw_html") ? await rawHtml(range) : await literal(range)])));
     } else if (block.kind === "code") {
       const syntax = new RetainedCommonMarkSyntax(source, block.info, context), decoded = await source.append(syntax.decoded(block.info)), info = await source.trim(decoded);
+      const range = await parser.joined(current, "");
+      if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;
+      if (extensions.raw_attribute && await scanMarkdownRawAttribute(info.start, offset => offset < info.end ? source.unit(offset) : undefined, context) === info.end) {
+        await ast.push(out, await ast.tag("RawBlock", await ast.value([await literal({start: info.start + 2, end: info.end - 1}), await literal(range)])));
+        continue;
+      }
       const space = await source.find(info, " "), name = {start: info.start, end: space < 0 ? info.end : space}, classes = await ast.array();
       if (name.end > name.start) await ast.push(classes, await literal(name));
       let attributes;
@@ -301,8 +308,6 @@ export async function assembleRetainedCommonMark(
         attributes = fencedDivAttributes(text.slice(attributeRange.start - info.start), context);
         if (attributes && attributeRange.start > info.start) attributes = [attributes[0], [text.slice(0, name.end - name.start), ...attributes[1]], attributes[2]];
       }
-      const range = await parser.joined(current, "");
-      if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;
       await ast.push(out, await ast.tag("CodeBlock", await ast.value([attributes ?? ["", classes, []], await literal(range)])));
     } else if (block.kind === "table") {
       let caption: RtfValue | undefined;

@@ -267,6 +267,8 @@ type FormatStep = ProbeOutputPart | {
 };
 
 function formatQualifiedAudio(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput): string | undefined {
+  // MP4 track tags belong to the media probe, not the audio container metadata.
+  if (probe.format?.format_name.split(",").includes("mp4")) return undefined;
   // Both execution paths retain qualified audio schemas while media-only options
   // and mixed streams use the general media formatter.
   if (audioInput && !opts.showPackets && !opts.showFrames && !opts.showChapters && !opts.showPrograms && !opts.countFrames && !opts.countPackets &&

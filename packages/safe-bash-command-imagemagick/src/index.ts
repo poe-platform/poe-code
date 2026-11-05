@@ -6989,7 +6989,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 
     if (canStreamTiles && fastMetaDims.length === inPaths.length) {
         const n = fastMetaDims.length;
-        const cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n)));
+        const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max(0, ...fastMetaDims.map((d) => d.width));
         const maxThumbH = Math.max(0, ...fastMetaDims.map((d) => d.height));
@@ -7114,7 +7114,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         }
         const n = images.length;
-        const cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n)));
+        const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max(cellW ?? 0, ...images.map((im) => im.width));
         const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
@@ -7164,7 +7164,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             const off = resolveGravityOffset(concatenate ? 0 : maxThumbW - im.width, (concatenate ? rowHeights[row]! - padY * 2 : maxThumbH) - im.height, state.gravity);
             tileX += im.width + padX * 2;
-            yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left, cellY + off.top);
+            // Concatenate offsets bordered tiles without enlarging the canvas.
+            yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
             detachRgbaBuffer(im.data);
         }
         images.length = 0;
@@ -7285,7 +7286,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 }
             }
         }
-        const n = fast ? paths.length : images.length, cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n))), rows = tileRows ?? Math.ceil(n / cols);
+        const n = fast ? paths.length : images.length, cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0), slotH = maxThumbH + padY * 2 + (frame ? 34 : 0);
         const rowHeights = new IntegerTable(backend.storage, 128);
         let canvasWidth = cols * slotW + (frame ? 4 : 0), canvasHeight = rows * slotH;
@@ -7338,7 +7339,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
             const rowHeight = concatenate ? Number(await rowHeights.get(BigInt(row))) - padY * 2 : maxThumbH;
             const offset = resolveGravityOffset(concatenate ? 0 : maxThumbW - width, rowHeight - height, state.gravity);
-            const x = (concatenate ? tileX : col * slotW) + padX + offset.left, y = (concatenate ? tileY : row * slotH) + padY + offset.top;
+            // Concatenate offsets bordered tiles without enlarging the canvas.
+            const x = (concatenate ? tileX + borderW : col * slotW) + padX + offset.left, y = (concatenate ? tileY + borderW : row * slotH) + padY + offset.top;
             tileX += width + padX * 2;
             if (!anyTransparent) for (let start = 0; start < image.width * image.height * 4; start += 16384) {
                 await yieldTurn(signal);

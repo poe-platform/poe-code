@@ -45,6 +45,7 @@ pub(in crate::commands::archive) struct Image {
     jpeg: bool,
     pub(super) stencil: bool,
     pub(super) mask: Option<ObjectId>,
+    pub(super) has_alpha: bool,
     fax: bool,
     bits: usize,
     rgb48: Option<[(f64, f64); 3]>,
@@ -147,6 +148,22 @@ impl Image {
         let mono_extract =
             bits == 1 && components == 1 && matches!(mode, ImageRead::Extract { .. });
         let count = width.checked_mul(height)?;
+        let soft_mask = dict.get(b"SMask").and_then(Value::reference);
+        let mut mask = soft_mask;
+        let mut key = None;
+        if mask.is_none() && let Some(entry) = dict.get(b"Mask") {
+            match objects.filter_value(entry.clone())? {
+                Value::Dict(_) => mask = entry.reference(),
+                Value::Array(entries) if matches!(mode, ImageRead::Pixels | ImageRead::Raster) => {
+                    let mut ranges = [0i32; 8];
+                    for (slot, n) in ranges[..2 * components].iter_mut().zip(entries) {
+                        *slot = objects.filter_value(n)?.number()? as i32;
+                    }
+                    key = Some(ranges);
+                }
+                _ => {}
+            }
+        }
         let mut pixels = Vec::new();
         let mut native = None;
         if fax && mode != ImageRead::List {
@@ -206,6 +223,7 @@ impl Image {
                     return None;
                 }
                 let inverted = match dict.get(b"Decode") {
+                    _ if !mono_extract => false, // Apply Decode after testing the original fax samples.
                     _ if stencil && mono_extract => true,
                     None => false,
                     Some(Value::Array(a)) if a.len() == 2 => match (a[0].number()?, a[1].number()?)
@@ -342,8 +360,20 @@ impl Image {
         }
         let mut rgb48 = (bits == 16 && components == 3 && matches!(format, Some("PNG" | "TIFF")))
             .then_some([(0., 1.); 3]);
+        // Preserve the key result across color conversion (CMYK uses all four channels).
+        let opacity = if let Some(ranges) = key {
+            if pixels.len() > limit / 5 { return None; }
+            let shift = 8usize.saturating_sub(bits);
+            Some(pixels.iter().map(|p| {
+                let matched = (0..components).all(|i| {
+                    let sample = i32::from(p[i] >> shift);
+                    (ranges[2*i]..=ranges[2*i+1]).contains(&sample)
+                });
+                if matched { 0 } else { 255 }
+            }).collect::<Vec<u8>>())
+        } else { None };
         let mut ink_ranges = [(0., 1.); 4];
-        if !fax && !mono_extract && !pixels.is_empty() {
+        if !mono_extract && !pixels.is_empty() {
             if let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {
                     return None;
@@ -357,7 +387,7 @@ impl Image {
                         wide[i] = (lo, hi);
                         continue;
                     }
-                    if components == 4 && matches!(format, Some("PNG" | "PNM")) {
+                    if components == 4 && (key.is_some() || matches!(format, Some("PNG" | "PNM"))) {
                         ink_ranges[i] = (lo, hi);
                         continue;
                     }
@@ -377,7 +407,8 @@ impl Image {
                 }
             }
             if components == 4 && format != Some("TIFF") {
-                let render = format.is_none();
+                // With a color key Poppler uses per-pixel fixed point conversion, as in extraction.
+                let render = format.is_none() && key.is_none();
                 for p in &mut pixels {
                     let ink = std::array::from_fn(|i| {
                         let (lo, hi) = ink_ranges[i];
@@ -392,7 +423,9 @@ impl Image {
                 }
             }
         }
-        let soft_mask = dict.get(b"SMask").and_then(Value::reference);
+        if let Some(opacity) = opacity {
+            for (p, a) in pixels.iter_mut().zip(opacity) { p[3] = a; }
+        }
         if mode == ImageRead::Pixels
             && let Some(mask) = soft_mask
         {
@@ -415,10 +448,8 @@ impl Image {
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
             stencil,
-            mask: soft_mask.or_else(|| {
-                let id = dict.get(b"Mask")?.reference()?;
-                matches!(objects.object(id)?.0, Value::Dict(_)).then_some(id)
-            }),
+            mask,
+            has_alpha: key.is_some(),
             fax,
             bits,
             rgb48,

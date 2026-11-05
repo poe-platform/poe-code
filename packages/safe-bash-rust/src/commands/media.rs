@@ -16885,6 +16885,31 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdf_color_key_ranges_compare_original_samples_before_decode() {
+        let fs = MemoryVfs::new();
+        for (space, bits, key, samples, expected) in [
+            ("RGB", 8, "[98 104 99 105 100 106]", "abcdefghijklmnopqrstuvwx0123456789AB".as_bytes(), "ca975ebd3d0a09b132bc52955145021834eef3f69765559cdb96756a88efd117"),
+            ("Gray", 4, "[6 7]", b"abcdef", "0dede5ec03173b405b2348d2aa3178d59a10baaf6990dffe25085bde0f5dc175"),
+            ("Gray", 16, "[103 112]", b"abcdefghijklmnopqrstuvwx", "d3f610954b94945b7823916d9231ada9d0c8154a1e2ae1157ff7f549a8f83f3c"),
+            ("CMYK", 8, "[0 26 0 26 0 26 0 26]", &(0..48).collect::<Vec<u8>>()[..], "19468ff434e053415feabb75ca5449a0dd9248938e42bf7a3aa10c5192e3f44b"),
+        ] {
+            let data = format!("{}>", hex_enc(samples));
+            let pairs = key.split_whitespace().count() / 2;
+            let draw = "q 2 7 -8 1 17 8 cm /A Do Q";
+            for mask in [key, "6 0 R"] {
+                let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
+                    &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len()),
+                    &format!("<< /Type /XObject /Subtype /Image /Width 4 /Height 3 /ColorSpace /Device{space} /BitsPerComponent {bits} /Decode [{}] /Mask {mask} /Filter /ASCIIHexDecode /Length {} >>\nstream\n{data}\nendstream", "1 0 ".repeat(pairs), data.len()), key], "");
+                fs.write_file("/key.pdf", pdf.as_bytes()).unwrap();
+                let r = cmd_media_doc("pdftoppm", &media_args(&["-r","72","-singlefile","key.pdf","page"]), "", "/", &fs);
+                assert_eq!(r.exit_code, 0, "{}", r.stderr);
+                assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/page.ppm").unwrap())), expected, "{space} {bits} {mask}");
+            }
+        }
+    }
+
+    #[test]
     fn pdfimages_soft_mask_uses_its_own_size_and_the_parent_object_id() {
         let fs = MemoryVfs::new();
         let draw = "q 4 0 0 2 0 0 cm /A Do /A Do Q";

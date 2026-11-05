@@ -123,7 +123,7 @@ fn splash_rgba<'a>(
         let mut pixel = if im.stencil { im.pixels[0] } else { rgba(x, y, work)? };
         if let Some(sample) = &mut alpha {
             pixel[3] = sample(x, y, work)?[0];
-        } else if im.mask.is_none() {
+        } else if !im.has_alpha {
             pixel[3] = 255;
         }
         Some(pixel)
@@ -873,6 +873,7 @@ impl PageSource<'_> {
                                             p[3] = 255 - mask.pixels[offset + coord(x, mask.width, image.width)][0];
                                         }
                                     }
+                                    image.has_alpha = true;
                                     None
                                 } else {
                                     if mask.stencil {

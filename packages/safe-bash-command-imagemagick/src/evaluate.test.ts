@@ -6,6 +6,32 @@ import { createMagickCommand, runConvertCli, runConvertCliSync, runMagickCli } f
 
 // ImageMagick 7.1.2-31 Q16-HDRI, RGBA [100,150,200,160], -depth 8 rgba:-.
 for (const mode of ["buffered", "retained", "sync"] as const) {
+  // ImageMagick 7.1.2-31 Q16-HDRI: direct Median adds the operand in quantum units.
+  it.each([
+    ["50%", [], [168, 228, 255, 192]],
+    ["32767.5", [], [168, 228, 255, 192]],
+    ["257", [], [41, 101, 181, 65]],
+    ["0", [], [40, 100, 180, 64]],
+    ["-25%", [], [0, 36, 116, 0]],
+    ["-257", [], [39, 99, 179, 63]],
+    ["100%", [], [255, 255, 255, 255]],
+    ["50%", ["-channel", "RGB"], [168, 228, 255, 64]],
+    ["50%", ["-channel", "A"], [40, 100, 180, 192]],
+  ] as const)(`${mode}: Median %s matches native with channels %j`, async (operand, channel, expected) => {
+    const bytes = await sharp(new Uint8Array([40, 100, 180, 64]), {
+      raw: { width: 1, height: 1, channels: 4 },
+    }).png().toBuffer();
+    const files = new Map([["/in.png", bytes]]);
+    const filesystem = createMemoryFileSystem();
+    await filesystem.writeFile("/in.png", bytes);
+    const args = ["/in.png", ...channel, "-evaluate", "Median", operand, "/out.png"];
+    const result = mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+    expect([...output.data]).toEqual(expected);
+  });
+
   for (const operation of ["RMS", "RootMeanSquare"]) {
     // ImageMagick 7.1.2-31 Q16-HDRI squares quantum values and adds the operand.
     it.each([

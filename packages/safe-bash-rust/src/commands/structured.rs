@@ -432,13 +432,14 @@ pub fn parse_json_stream(input: &str) -> Result<Vec<JVal>, String> {
         if idx >= chars.len() {
             break;
         }
-        let val = parse_json_value(&chars, &mut idx)?;
+        let val = parse_json_value(&chars, &mut idx, usize::MAX)?;
         out.push(val);
     }
     Ok(out)
 }
 
-fn parse_json_value(chars: &[char], idx: &mut usize) -> Result<JVal, String> {
+fn parse_json_value(chars: &[char], idx: &mut usize, remaining_depth: usize) -> Result<JVal, String> {
+    if remaining_depth == 0 { return Err("document nesting limit exceeded".into()); }
     while *idx < chars.len() && chars[*idx].is_whitespace() {
         *idx += 1;
     }
@@ -485,7 +486,7 @@ fn parse_json_value(chars: &[char], idx: &mut usize) -> Result<JVal, String> {
                     *idx += 1;
                     break;
                 }
-                items.push(parse_json_value(chars, idx)?);
+                items.push(parse_json_value(chars, idx, remaining_depth - 1)?);
                 while *idx < chars.len() && chars[*idx].is_whitespace() {
                     *idx += 1;
                 }
@@ -522,7 +523,7 @@ fn parse_json_value(chars: &[char], idx: &mut usize) -> Result<JVal, String> {
                     return Err("expected ':'".into());
                 }
                 *idx += 1;
-                let val = parse_json_value(chars, idx)?;
+                let val = parse_json_value(chars, idx, remaining_depth - 1)?;
                 if let Some(pos) = entries.iter().position(|(k, _)| k == &key) {
                     entries[pos].1 = val;
                 } else {
@@ -30802,14 +30803,16 @@ fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
     out
 }
 
-fn parse_pandoc_json(input: &str) -> Vec<PandocBlock> {
-    let Some(JVal::Object(root)) = parse_json_stream(input).ok().and_then(|v| v.into_iter().next()) else {
-        return Vec::new();
-    };
+fn parse_pandoc_json(input: &str) -> Result<Vec<PandocBlock>, String> {
+    let chars: Vec<_> = input.chars().collect();
+    let mut i = 0;
+    let root = parse_json_value(&chars, &mut i, 256)?;
+    if !chars[i..].iter().all(|c| c.is_whitespace()) { return Err("Trailing garbage".into()); }
+    let JVal::Object(root) = root else { return Err("Error in $: mempty".into()); };
     let Some(JVal::Array(blocks)) = jval_obj_get(&root, "blocks") else {
-        return Vec::new();
+        return Err("missing blocks".into());
     };
-    parse_pandoc_json_blocks(blocks)
+    Ok(parse_pandoc_json_blocks(blocks))
 }
 
 fn parse_pandoc_json_blocks(blocks: &[JVal]) -> Vec<PandocBlock> {
@@ -31751,18 +31754,21 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     };
 
     let input_from_html = matches!(in_fmt.as_str(), "html" | "html5");
-    let Some(mut blocks) = (|| Some(match in_fmt.as_str() {
-        "html" | "html5" => parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes)),
-        "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes))?,
-        "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes))?,
-        "json" => parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)),
+    let Some(mut blocks) = (match in_fmt.as_str() {
+        "html" | "html5" => Some(parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes))),
+        "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes)),
+        "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes)),
+        "json" => match parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)) {
+            Ok(blocks) => Some(blocks),
+            Err(error) => return err_out(&format!("JSON parse error: {error}\n"), 64),
+        },
         "csv" | "tsv" => {
             let delim = if in_fmt == "tsv" { '\t' } else { ',' };
             let recs = parse_csv_rows(&String::from_utf8_lossy(&raw_bytes), delim);
             if recs.is_empty() {
-                Vec::new()
+                Some(Vec::new())
             } else {
-                vec![PandocBlock::Table(recs[0].clone(), recs[1..].to_vec(), None)]
+                Some(vec![PandocBlock::Table(recs[0].clone(), recs[1..].to_vec(), None)])
             }
         }
         "xlsx" => {
@@ -31785,20 +31791,20 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     ));
                 }
             }
-            b
+            Some(b)
         }
         "docx" | "odt" | "epub" | "epub3" => {
             let entries = read_office_archive(&raw_bytes);
             if let Some(md_bytes) = entries.get("__pandoc_source.md") {
-                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, true)?
+                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, true)
             } else if let Some(doc_xml) = entries.get("word/document.xml") {
-                parse_pandoc_html(&String::from_utf8_lossy(doc_xml))
+                Some(parse_pandoc_html(&String::from_utf8_lossy(doc_xml)))
             } else if let Some(content_xml) = entries.get("content.xml") {
-                parse_pandoc_html(&String::from_utf8_lossy(content_xml))
+                Some(parse_pandoc_html(&String::from_utf8_lossy(content_xml)))
             } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
-                parse_pandoc_html(&String::from_utf8_lossy(ch_xml))
+                Some(parse_pandoc_html(&String::from_utf8_lossy(ch_xml)))
             } else {
-                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown, 0, true)?
+                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown, 0, true)
             }
         }
         _ => {
@@ -31819,9 +31825,9 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             let tables = if !pipe_tables { PandocPipeTables::Disabled }
                 else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { PandocPipeTables::CommonMark }
                 else { PandocPipeTables::Markdown };
-            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, tables, 0, tasks)?
+            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, tables, 0, tasks)
         }
-    }))() else { return err_out("pandoc: document nesting limit exceeded\n", 1) };
+    }) else { return err_out("pandoc: document nesting limit exceeded\n", 1) };
 
     if shift_heading != 0 {
         for b in &mut blocks {
@@ -35651,6 +35657,20 @@ mod tests {
 <p>more</p></li>
 </ol>
 "#);
+    }
+
+    #[test]
+    fn pandoc_rejects_deep_list_inputs_before_overwriting_output() {
+        let vfs = MemoryVfs::new();
+        let markdown = "- ".repeat(100) + "leaf";
+        let json = format!(r#"{{"pandoc-api-version":[1,23,1,2],"meta":{{}},"blocks":[{}{}]}}"#,
+            r#"{"t":"BulletList","c":[["#.repeat(100), "]]}".repeat(100));
+        for (from, source) in [("commonmark", markdown), ("json", json)] {
+            vfs.write_file("/result", b"previous").unwrap();
+            let result = cmd_pandoc(&args(&["-f", from, "-t", "plain", "-o", "/result"]), &source, "/", &vfs);
+            assert_ne!(result.exit_code, 0, "{from}");
+            assert_eq!(vfs.read_file("/result").unwrap(), b"previous");
+        }
     }
 
     #[test]

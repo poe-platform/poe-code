@@ -69,7 +69,9 @@ stdout. Binary extraction preserves the original bytes.
 
 `--json=1` and `--json=2` use retained input and caller-backed object, page,
 outline and attachment traversal. `--json-key` emits only the requested top-level sections plus `version` and
-`parameters`; repeat it to select multiple sections. `--json-object` filters
+`parameters`; repeat it to select multiple sections. `--json-key=pages` includes
+content references, image properties, page labels, and destination outlines using
+native qpdf reference syntax. `--json-object` filters
 object entries. Inline base64 and `--json-stream-data=file` apply only when
 object output is selected.
 JSON and decoded stream files are staged before publication; stdout and file

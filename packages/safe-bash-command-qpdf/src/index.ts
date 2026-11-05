@@ -1,3 +1,5 @@
+import { qpdfJsonPage } from "./json-pages.js";
+import type { JsonValue } from "./json-output.js";
 import { parseQpdfPageLabels } from "./page-labels.js";
 import { formatSplitName } from "./split.js";
 import { parseQpdfPageRange, QpdfPageRangeError } from "./page-range.js";
@@ -1444,12 +1446,23 @@ function* executeQpdfCli(
       });
     }
 
-    const pagesVal = jsonKeys.includes("pages")
-      ? baseDoc.getPages().map((pg, idx) => ({
-          object: `obj:${pg.ref.objectNumber} ${pg.ref.generationNumber} R`,
-          pageposfrom1: idx + 1
-        }))
-      : baseDoc.getPageCount();
+    let pagesVal: unknown = baseDoc.getPageCount();
+    if (jsonKeys.includes("pages")) {
+      const values: unknown[] = [];
+      for (const [index, page] of baseDoc.getPages().entries()) {
+        const steps = qpdfJsonPage(page.dict, page.ref, index, rootDictForJson, jsonVersion);
+        let step = steps.next();
+        while (!step.done) { yield; step = steps.next(baseDoc.cos.resolve(step.value)); }
+        function materialize(value: JsonValue): unknown {
+          if (value === null || typeof value !== "object") return value;
+          if (value.kind === "array") return Array.from(value.values as Iterable<JsonValue>, materialize);
+          if (value.kind === "object") return Object.fromEntries(Array.from(value.entries as Iterable<readonly [string, JsonValue]>, ([key, item]) => [key, materialize(item)]));
+          throw new Error("Unexpected page JSON value");
+        }
+        values.push(materialize(step.value));
+      }
+      pagesVal = values;
+    }
 
     const payload =
       jsonVersion === 1

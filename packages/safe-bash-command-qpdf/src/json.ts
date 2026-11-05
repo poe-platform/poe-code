@@ -1,3 +1,4 @@
+import { qpdfJsonPage } from "./json-pages.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosDict, cosNumber, cosString, decodePdfString, dictGet, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
 import { retainedAttachments } from "./attachments.js";
@@ -72,7 +73,16 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     const bytes = await pages.read(pageBase + index * 16, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     return `obj:${view.getFloat64(0)} ${view.getFloat64(8)} R`;
   }
-  async function* pageValues(): AsyncGenerator<JsonValue> { for (let index = 0; index < count; index++) yield jsonRecord({ object: await pageObject(index), pageposfrom1: index + 1 }); }
+  async function* pageValues(): AsyncGenerator<JsonValue> {
+    const root = (await document.lookup(document.crossReference.rootRef))?.value;
+    let index = 0;
+    for await (const page of document.pages()) {
+      const steps = qpdfJsonPage(page.dict, page.reference!, index++, root?.kind === "dict" ? root : undefined, options.jsonVersion ?? 2);
+      let step = steps.next();
+      while (!step.done) { signal.throwIfAborted(); step = steps.next((await document.lookup(step.value))?.value); }
+      yield step.value;
+    }
+  }
   async function* outlines(): AsyncGenerator<JsonValue> {
     for await (const outline of document.outlines()) {
       const reference = await pageObject(outline.pageIndex);

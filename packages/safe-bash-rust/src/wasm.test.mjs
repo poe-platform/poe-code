@@ -2499,7 +2499,7 @@ test("plugin staging validates the exact paths and command signal used for the m
       let reads=0;
       return [key,{stat:deep[key].stat,get path(){return ++reads===1 ? stage[key].path : deep[key].path;}}];
     }));
-    try {await ctx.fs.removeStagedFile(receipt);removed=true;} catch {}
+    try {await ctx.fs.removeStagedFile(receipt);removed=true;} catch { /* A rejected receipt leaves the stage intact. */ }
     await ctx.fs.publishStagedFile(stage,"/out",{parent:root,get destination(){ctrl.abort(reason);return null;}});
     return {exitCode:0};
   }});
@@ -3216,8 +3216,8 @@ test("nested plugin input limits and cancellation stop child effects and release
   }});
   shell.register({name:"call_child",execute:c=>c.invoke("wait_child",[])});
   shell.register({name:"too_much",async execute(c) {
-    try { await c.invoke("touch",["/late"],{stdin:[Uint8Array.of(1,2,3)]}); } catch {}
-    try { await c.fs.writeFile("/late",Uint8Array.of(4)); } catch {}
+    try { await c.invoke("touch",["/late"],{stdin:[Uint8Array.of(1,2,3)]}); } catch { /* Try writing after the failed invocation. */ }
+    try { await c.fs.writeFile("/late",Uint8Array.of(4)); } catch { /* The outer command must still report the limit. */ }
     return {exitCode:0};
   }});
   try {
@@ -4027,7 +4027,7 @@ test("jq retains published bytes but reports a failed stdin producer at the shel
       const r = await sh.exec("\n\njq " + filter, {stdin});
       assert.deepEqual([r.exitCode,r.stdout,r.stderr], [1, filter.startsWith("'if") ? "1\n" : "1\n2\n", "shell: line 3: internal error\n"], filter);
     }
-    const broken = {async *[Symbol.asyncIterator]() { throw Error("private"); }};
+    const broken = {[Symbol.asyncIterator]() { return {async next() { throw Error("private"); }}; }};
     const redirected = await sh.exec("\njq . 2>/err; cat /err", {stdin: broken});
     assert.deepEqual([redirected.exitCode,redirected.stdout,redirected.stderr],[0,"shell: line 2: internal error\n",""]);
     for (const [args, stderr] of [["-n 1 1>&-", "shell: line 2: Bad file descriptor\n"], ["--version 1>&-", "shell: line 2: Bad file descriptor\n"], ["--bad 2>&-", ""]]) {
@@ -7253,7 +7253,7 @@ for(const format of ["zip","tar"])test(format+" restores directory metadata afte
         for(const [path,mode,delta] of [["/tree",0o750,0],["/tree/sub",0o711,2000]]){
           const st=await fs.stat(path);assert.deepEqual([st.mode&511,st.mtimeMs],[mode,base+delta]);
         }
-        if(format==="zip")assert.match(r.stdout,/   creating: tree\/\n/);
+        if(format==="zip")assert.match(r.stdout,/ {3}creating: tree\/\n/);
       }
     }
   }finally{await js.dispose();await rust.dispose();}
@@ -12275,7 +12275,7 @@ test("awk reads only selected operands and shares the main reader with getline a
       assert.deepEqual([r.exitCode,r.stdout,r.stderr,pulls],[0,output,"",reads],args);
     }
     let touched = false;
-    const help = await sh.exec("awk --help", {stdin:{async *[Symbol.asyncIterator]() { touched = true; throw Error(); }}});
+    const help = await sh.exec("awk --help", {stdin:{[Symbol.asyncIterator]() { return {async next() { touched = true; throw Error(); }}; }}});
     assert.equal(help.exitCode,0); assert.equal(touched,false);
   } finally { sh.dispose(); }
 });

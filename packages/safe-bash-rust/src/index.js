@@ -1256,8 +1256,9 @@ async function execAsyncStdin(shell, script, source, signal) {
       const closed = Promise.resolve().then(()=>iterator.return());
       if (signal?.aborted) closed.catch(()=>{});
       else {
-        try { await (signal ? untilAbort(closed,signal) : closed); }
-        catch (error) { if (signal?.aborted || job.status !== -1) throw error; }
+        await (signal ? untilAbort(closed,signal) : closed).catch(error => {
+          if (signal?.aborted || job.status !== -1) throw error;
+        });
       }
     }
   }
@@ -2706,7 +2707,7 @@ export class RustWasmBash extends WasmShell {
       if (pi?.effectiveUid !== undefined) shell._setBinding("\0euid", String(pi.effectiveUid));
       if (pi?.effectiveGid !== undefined) shell._setBinding("\0egid", String(pi.effectiveGid));
       if (options.limits) {
-        const { maxVfsBytes, maxBytes, maxFileBytes, maxFiles, ...limits } = options.limits;
+        const limits = options.limits;
         const sharedKeys = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxPipelineBytes", "maxSubstitutionDepth", "maxFunctionDepth", "maxCpuMs"];
         if (sharedKeys.some(k => limits[k] !== undefined && limits[k] !== Infinity)) shell._setBinding("\0has_finite_shared_quota", "1");
         const split = limits.commandLimits?.split?.maxFiles;

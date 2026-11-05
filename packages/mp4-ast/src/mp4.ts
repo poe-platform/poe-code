@@ -1990,7 +1990,8 @@ export function buildProbeResultFromDoc(
             pict_type: undefined,
             sample_fmt: sampleFormat,
             nb_samples: track.type === "audio" ? s.duration : undefined,
-            channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined
+            channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined,
+            ...(["mp4", "mov"].includes(doc.containerFormat) ? { channel_layout: stream.channel_layout } : {})
           });
         }
         bytePos += s.size;

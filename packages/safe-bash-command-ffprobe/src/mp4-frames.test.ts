@@ -4,6 +4,39 @@ import { createSyntheticMp4,probeMp4 } from '@poe-code/mp4-ast';
 import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import { createCommandArguments } from 'safe-bash-contracts/command';
 import { createFfprobeCommand, formatFfprobeResult } from './media.js';
+
+for (const channels of [1, 2]) for (const route of ['file', 'stdin', 'stream']) it(`reports AAC frame channel layout: channels=${channels}, ${route}`, async () => {
+  const bytes = channels === 1
+    ? readFileSync(new URL('../../mp4-ast/src/fixtures/packet-positions-interleaved.mp4', import.meta.url))
+    : createSyntheticMp4({ frameCount: 4, includeAudio: true, channels });
+  const base = new MemoryFileSystem();
+  await base.writeFile('/input.mp4', bytes);
+  const capabilities = { ...base.capabilities, retainedRead: false, streamingRead: true };
+  const fs = route === 'stream' ? new Proxy(base, { get(target, key) {
+    if (key === 'capabilities') return capabilities;
+    if (key === 'capabilitiesFor') return async () => capabilities;
+    const value = Reflect.get(target, key, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  } }) : base;
+  let output = '', diagnostic = '';
+  const result = await createFfprobeCommand().execute({
+    command: 'ffprobe', ...createCommandArguments([
+      '-v', 'error', '-select_streams', 'a:0', '-show_entries',
+      'stream=index,codec_type,channels,channel_layout:frame=stream_index,channels,channel_layout',
+      '-of', 'json', route === 'stdin' ? '-' : '/input.mp4'
+    ]), cwd: '/', env: {}, fs, signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
+    stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+    stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+  });
+  expect(result.exitCode, diagnostic).toBe(0);
+  const probe = JSON.parse(output);
+  const channel_layout = channels === 1 ? 'mono' : 'stereo';
+  expect(probe.streams).toEqual([{ index: 1, codec_type: 'audio', channels, channel_layout }]);
+  expect(probe.frames.length).toBeGreaterThan(0);
+  for (const frame of probe.frames) expect(frame).toEqual({ stream_index: 1, channels, channel_layout });
+});
+
 for(const fragmented of [false,true])for(const route of ['explicit','automatic','stdin','stream'])for(const selected of [false,true])for(const mixed of [false,true])it(`native MP4 frame source ${route}, fragmented=${fragmented},selected=${selected},mixed=${mixed}`,async()=>{
   const bytes=createSyntheticMp4({frameCount:4,includeAudio:true,channels:1,fragmented}),expected=probeMp4(bytes,{showFrames:true,showPackets:mixed}),base=new MemoryFileSystem();await base.writeFile('/input.mp4',bytes);
   let closed=0,output='',diagnostic='';

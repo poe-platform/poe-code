@@ -49,7 +49,8 @@ export async function* scanMp4Frames(source: MediaProbeSource, options: Mp4Packe
       width: track.width, height: track.height, pix_fmt: track.type === 'video' ? (track.codec?.pixFmt ?? 'yuv420p') : undefined,
       pict_type: undefined,
       sample_fmt: probeSampleFormat(track.type, track.codec?.codecName ?? (track.type === 'video' ? 'h264' : 'aac')),
-      nb_samples: track.type === 'audio' ? sample.duration : undefined, channels: track.type === 'audio' ? (track.codec?.channels ?? 2) : undefined };
+      nb_samples: track.type === 'audio' ? sample.duration : undefined, channels: track.type === 'audio' ? (track.codec?.channels ?? 2) : undefined,
+      channel_layout: track.type === 'audio' ? ((track.codec?.channels ?? 2) === 1 ? 'mono' : 'stereo') : undefined };
   }
 }
 

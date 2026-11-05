@@ -515,6 +515,7 @@ export interface MediaProbeFrame {
   readonly sample_fmt?: string | undefined;
   readonly nb_samples?: number | undefined;
   readonly channels?: number | undefined;
+  readonly channel_layout?: string | undefined;
 }
 
 export interface MediaProbeResult {

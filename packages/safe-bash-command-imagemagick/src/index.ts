@@ -3791,11 +3791,13 @@ function* parseMagickIndexSpec(spec: string, length: number): Generator<number> 
 }
 
 type MagickHistogram = Float64Array[];
-type MagickAnalysisOperation = { end: number; lookup(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Uint8Array[] };
+type MagickAnalysisOperation = { end: number; luminance: boolean; lookup(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Uint8Array[] };
 function* accumulateMagickHistogram(data: Uint8Array, histogram: MagickHistogram): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
         for (let channel = 0; channel < 4; channel++) histogram[channel]![data[i + channel]!]!++;
+        // Keep ImageMagick's 16-bit histogram precision for fractional luma.
+        if (histogram[4]) histogram[4][Math.round(257 * (0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!))]!++;
     }
 }
 function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<void, RgbaImage, void> {
@@ -3818,9 +3820,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     const token = tokens[start];
     if (!["-auto-level", "-auto-gamma", "-normalize", "-contrast-stretch", "-linear-stretch", "-equalize"].includes(token ?? "")) return;
     let end = start;
-    const argument = token === "-normalize" ? "2%x1%" : token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
+    const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, lookup(histogram, image) {
+    return { end, luminance: token === "-normalize" && !independent, lookup(histogram, image) {
         const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: 256 }, (_, value) => value));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
@@ -3839,6 +3841,17 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             for (let channel = 0; channel < 4; channel++) {
                 const range = maxs[channel]! - mins[channel]!;
                 if (active[channel] && range > 0) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value - mins[channel]!) / range * 255);
+            }
+        } else if (token === "-normalize") {
+            const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
+            for (let channel = 0; channel < 4; channel++) {
+                if (!active[channel]) continue;
+                const bins = histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 257 : 1;
+                let low = 0, high = bins.length - 1, sum = 0;
+                for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > 0.02 * count) break; }
+                sum = 0;
+                for (; high > 0; high--) { sum += bins[high]!; if (sum > 0.01 * count) break; }
+                if (high > low) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value * scale - low) / (high - low) * 255);
             }
         } else if (token === "-equalize") {
             for (let channel = 0; channel < 3; channel++) {
@@ -4327,7 +4340,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (analysisOperation) {
             i = analysisOperation.end;
             stack = yield* mapSteps(stack, function* (image) {
-                const histogram = Array.from({ length: 4 }, () => new Float64Array(256));
+                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 ? 65536 : 256));
                 yield* accumulateMagickHistogram(image.data, histogram);
                 return yield* applyMagickLookup(image, analysisOperation.lookup(histogram, image));
             });
@@ -5317,7 +5330,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i = analysisOperation.end;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const histogram = Array.from({ length: 4 }, () => new Float64Array(256)), size = image.width * image.height * 4;
+                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 ? 65536 : 256)), size = image.width * image.height * 4;
                 for (let offset = 0; offset < size; offset += 16384) {
                     if (offset % 1048576 === 0) await yieldTurn(signal);
                     await drainSteps(accumulateMagickHistogram(await backend.storage.read(image.position + offset, Math.min(16384, size - offset)), histogram), signal);

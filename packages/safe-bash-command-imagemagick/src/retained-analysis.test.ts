@@ -5,6 +5,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
 // Frozen from the established whole-image interpreter before retained analysis.
+// Normalize vectors corrected against ImageMagick 7.1.2 RGBA output.
 const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; hash: string }[] = [
   {
     "channels": 4,
@@ -30,7 +31,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
     "operators": [
       "-normalize"
     ],
-    "hash": "1c2b285fb530b7be407cb21a457ed136f7ff9c0a37e7e38c3e43781e40ad6a74"
+    "hash": "726aebb23fdf26658af4e9312fff82c6b2d009e42a1e031e11c768830485981b"
   },
   {
     "channels": 4,
@@ -99,7 +100,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
     "operators": [
       "-normalize"
     ],
-    "hash": "a36f91c8e312000827e0cf3d5ee4c4cc974917e96f6fffed406f2097b4e0f29d"
+    "hash": "65d1d6bbc0ceea490e6df6e0795f00b1495160b91ceecd2e6b9b0225af764b0a"
   },
   {
     "channels": 3,

@@ -279,10 +279,10 @@ impl Bitmap {
 }
 pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode: &str, dpi: Option<[f64; 2]>) -> Option<Vec<u8>> {
     let bilevel = format == "PNG1";
-    let png = matches!(format,"PNG"|"RGBA"|"PNG1");
+    let png = matches!(format,"PNG"|"RGBA"|"PNG1"|"PNG8");
     let rgb = format=="PNG" && pixels.iter().all(|p| p[3] == 255);
     let mut raw = match format {
-        "PNG" | "RGBA" | "PNG1" => vec![],
+        "PNG" | "RGBA" | "PNG1" | "PNG8" => vec![],
         "PBM" => format!("P4\n{w} {h}\n").into_bytes(),
         "PGM" => format!("P5\n{w} {h}\n255\n").into_bytes(),
         "PPM" => format!("P6\n{w} {h}\n255\n").into_bytes(),
@@ -305,6 +305,7 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
                         packed = 0;
                     }
                 }
+                "PNG8" => raw.push(p[0]),
                 "PGM" => raw.push(lum.round() as u8),
                 _ => {
                     if png && mode != "rgb" {
@@ -331,7 +332,7 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
     ihdr[..4].copy_from_slice(&(w as u32).to_be_bytes());
     ihdr[4..8].copy_from_slice(&(h as u32).to_be_bytes());
     ihdr[8] = if bilevel { 1 } else { 8 };
-    ihdr[9] = if bilevel { 0 } else if rgb { 2 } else { 6 };
+    ihdr[9] = if bilevel || format == "PNG8" { 0 } else if rgb { 2 } else { 6 };
     let phys = dpi.map(|[x,y]| {
         let mut field = [0u8; 9];
         field[..4].copy_from_slice(&((x / 0.0254) as u32).to_be_bytes());

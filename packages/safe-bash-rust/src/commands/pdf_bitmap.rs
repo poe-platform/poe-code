@@ -6,7 +6,7 @@ use super::{Matrix, ObjectId, Objects, PageSource, Value, pdf_text_layout::Draw}
 pub(in crate::commands::archive) enum ImageRead {
     List,
     Pixels,
-    Extract { fax: bool, jpeg: bool },
+    Extract { fax: bool, jpeg: bool, tiff: bool },
 }
 
 pub(in crate::commands::archive) enum NativeImage {
@@ -55,8 +55,12 @@ impl Image {
             last.as_ref().and_then(Value::word),
             Some(b"/CCITTFaxDecode" | b"/CCF")
         );
-        let jpeg = matches!(last.as_ref().and_then(Value::word), Some(b"/DCTDecode" | b"/DCT"));
-        if !bilevel && !jpeg
+        let jpeg = matches!(
+            last.as_ref().and_then(Value::word),
+            Some(b"/DCTDecode" | b"/DCT")
+        );
+        if !bilevel
+            && !jpeg
             && (filters.len() > 1 || last.is_some_and(|v| v.word() != Some(b"/FlateDecode")))
         {
             return Some(None);
@@ -75,7 +79,8 @@ impl Image {
         if bilevel && (number(b"BitsPerComponent")? != 1 || components != 1)
             || !bilevel
                 && (number(b"BitsPerComponent")? != 8
-                    || !jpeg && (dict.get(b"DecodeParms").is_some() || dict.get(b"Decode").is_some()))
+                    || !jpeg
+                        && (dict.get(b"DecodeParms").is_some() || dict.get(b"Decode").is_some()))
         {
             return Some(None);
         }
@@ -169,12 +174,68 @@ impl Image {
                 }
             }
         } else if jpeg && mode != ImageRead::List {
+            let data = objects.decoded_stream(id)?;
+            if data.len() > limit {
+                return None;
+            }
             if matches!(mode, ImageRead::Extract { jpeg: true, .. }) {
-                let data = objects.decoded_stream(id)?;
-                if data.len() > limit { return None; }
                 native = Some(NativeImage::Jpeg(data.into_owned()));
             } else {
-                return Some(None);
+                let parms = match dict.get(b"DecodeParms") {
+                    Some(v) => match objects.filter_value(v.clone())? {
+                        Value::Array(a) => a
+                            .get(filters.len() - 1)
+                            .and_then(|p| objects.filter_value(p.clone())),
+                        v => Some(v),
+                    },
+                    None => None,
+                };
+                let transform = parms
+                    .as_ref()
+                    .and_then(|v| v.get(b"ColorTransform"))
+                    .and_then(Value::number)
+                    .map(|n| n != 0.);
+                let (header, samples) =
+                    crate::commands::archive::jpeg_decode::samples(&data, limit, transform).ok()?;
+                if (
+                    header.width as usize,
+                    header.height as usize,
+                    usize::from(header.channels),
+                ) != (width, height, components)
+                {
+                    return None;
+                }
+                pixels = samples;
+                if let Some(v) = dict.get(b"Decode") {
+                    let Value::Array(ranges) = objects.filter_value(v.clone())? else {
+                        return None;
+                    };
+                    if ranges.len() != 2 * components {
+                        return None;
+                    }
+                    for (i, pair) in ranges.chunks_exact(2).enumerate() {
+                        let (lo, hi) = (pair[0].number()?, pair[1].number()?);
+                        if (lo, hi) == (0., 1.) {
+                            continue;
+                        }
+                        let map: [u8; 256] = std::array::from_fn(|n| {
+                            (lo * 255. + (hi - lo) * n as f64).round() as u8
+                        });
+                        for p in &mut pixels {
+                            p[i] = map[usize::from(p[i])];
+                        }
+                    }
+                    if components == 1 {
+                        for p in &mut pixels {
+                            *p = [p[0], p[0], p[0], 255];
+                        }
+                    }
+                }
+                if components == 4 && !matches!(mode, ImageRead::Extract { tiff: true, .. }) {
+                    for p in &mut pixels {
+                        *p = device_cmyk(*p);
+                    }
+                }
             }
         } else if !bilevel && mode != ImageRead::List {
             if count > limit / 4 {
@@ -184,39 +245,41 @@ impl Image {
             if bytes.len() != count.checked_mul(components)? {
                 return None;
             }
-            let mask = if let Some(mask) = dict.get(b"SMask").and_then(Value::reference) {
-                let (dict, _) = objects.object(mask)?;
-                if dict.get(b"Width").and_then(Value::word).and_then(uint) != Some(width)
-                    || dict.get(b"Height").and_then(Value::word).and_then(uint) != Some(height)
-                    || dict.get(b"ColorSpace")?.word()? != b"/DeviceGray"
-                    || dict.get(b"BitsPerComponent")?.word()? != b"8"
-                {
-                    return None;
-                }
-                let bits = objects.decoded_stream(mask)?;
-                if bits.len() != count {
-                    return None;
-                }
-                Some(bits)
-            } else {
-                None
-            };
             pixels = bytes
                 .chunks_exact(components)
-                .enumerate()
-                .map(|(i, v)| {
+                .map(|v| {
                     let [r, g, b] = if let [r, g, b] = *v {
                         [r, g, b]
                     } else {
                         [v[0]; 3]
                     };
-                    [r, g, b, mask.as_ref().map_or(255, |a| a[i])]
+                    [r, g, b, 255]
                 })
                 .collect();
         }
+        if !pixels.is_empty() && (mode == ImageRead::Pixels || !jpeg && !bilevel)
+            && let Some(mask) = dict.get(b"SMask").and_then(Value::reference)
+        {
+            let (m, _) = objects.object(mask)?;
+            if m.get(b"Width")?.number()? != width as f64
+                || m.get(b"Height")?.number()? != height as f64
+                || m.get(b"BitsPerComponent")?.number()? != 8.
+                || m.get(b"ColorSpace")?.word()? != b"/DeviceGray"
+            {
+                return None;
+            }
+            let alpha = objects.decoded_stream(mask)?;
+            if alpha.len() != count {
+                return None;
+            }
+            for (p, &a) in pixels.iter_mut().zip(alpha.iter()) {
+                p[3] = a;
+            }
+        }
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
-            bilevel, jpeg,
+            bilevel,
+            jpeg,
             native,
             width,
             height,
@@ -233,7 +296,11 @@ impl Image {
         let [x, y] = self.ppi();
         let (id, generation) = self.id;
         let (w, h, components) = (self.width, self.height, self.components);
-        let color = match components { 1 => "gray", 4 => "cmyk", _ => "rgb" };
+        let color = match components {
+            1 => "gray",
+            4 => "cmyk",
+            _ => "rgb",
+        };
         let interp = if self.interpolate { "yes" } else { "no" };
         let mut size = self.length as f64;
         let mut unit = "B";
@@ -289,6 +356,40 @@ impl Image {
         format: &str,
         limit: usize,
     ) -> Option<Vec<u8>> {
+        if self.jpeg {
+            let dpi = self.ppi().map(|n| n as f64);
+            let color = match self.components {
+                1 => "gray",
+                4 => "cmyk",
+                _ => "rgb",
+            };
+            if format == "TIFF" {
+                return crate::commands::archive::tiff::encode(
+                    &self.pixels,
+                    self.width,
+                    dpi,
+                    color,
+                    "none",
+                    false,
+                    limit,
+                );
+            }
+            return super::pdf_raster::encode(
+                self.width,
+                self.height,
+                &self.pixels,
+                if format == "PNG"
+                    && self.components == 1
+                    && self.pixels.iter().all(|p| p[3] == 255)
+                {
+                    "PNG8"
+                } else {
+                    format
+                },
+                "rgb",
+                Some(dpi),
+            );
+        }
         if self.bilevel {
             let dpi = self.ppi().map(|v| v as f64);
             if format == "TIFF" {
@@ -346,6 +447,41 @@ impl Image {
         }
         super::pdf_raster::encode(self.width, self.height, &self.pixels, format, "rgb", None)
     }
+}
+
+// Interpolate the RGB values of the sixteen DeviceCMYK ink combinations.
+fn device_cmyk(ink: [u8; 4]) -> [u8; 4] {
+    const RGB: [[u8; 3]; 16] = [
+        [255, 255, 255],
+        [35, 31, 32],
+        [255, 242, 0],
+        [28, 26, 0],
+        [236, 0, 140],
+        [36, 0, 0],
+        [237, 28, 36],
+        [34, 0, 0],
+        [0, 173, 239],
+        [0, 15, 36],
+        [0, 166, 80],
+        [0, 19, 0],
+        [46, 49, 146],
+        [0, 0, 2],
+        [54, 54, 57],
+        [0, 0, 0],
+    ];
+    let [c, m, y, k] = ink.map(|v| f64::from(v) / 255.);
+    let mut rgb = [0.; 3];
+    for (i, corner) in RGB.iter().enumerate() {
+        let w = (if i & 8 == 0 { 1. - c } else { c })
+            * (if i & 4 == 0 { 1. - m } else { m })
+            * (if i & 2 == 0 { 1. - y } else { y })
+            * (if i & 1 == 0 { 1. - k } else { k });
+        for j in 0..3 {
+            rgb[j] += f64::from(corner[j]) * w;
+        }
+    }
+    let [r, g, b] = rgb.map(|n| n.round() as u8);
+    [r, g, b, 255]
 }
 
 impl PageSource<'_> {

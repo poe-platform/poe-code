@@ -239,7 +239,14 @@ impl Plane {
     }
 }
 
-pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
+pub(super) fn samples(
+    bytes: &[u8],
+    limit: usize,
+    color_transform: Option<bool>,
+) -> Result<(image_header::Jpeg, Vec<[u8; 4]>)> {
+    if !bytes.starts_with(b"\xff\xd8") {
+        return Err("Invalid JPEG signature");
+    }
     let header = image_header::jpeg(bytes)?;
     let (w, h) = (header.width as usize, header.height as usize);
     if w.saturating_mul(h) > limit / 4 {
@@ -247,6 +254,8 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
     }
     let mut data = &bytes[2..];
     let mut tables: [Huffman; 8] = std::array::from_fn(|_| Huffman::default());
+    let mut adobe = None;
+    let mut jfif = false;
     let mut quant = [None; 4];
     let mut planes = Vec::new();
     let (mut max_h, mut max_v, mut cols, mut rows) = (1, 1, 0, 0);
@@ -271,6 +280,10 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
             .ok_or("Invalid JPEG segment length")?;
         let mut payload = take(&mut data, length)?;
         match marker {
+            0xe0 if payload.starts_with(b"JFIF\0") => jfif = true,
+            0xee if payload.starts_with(b"Adobe") && payload.len() >= 12 => {
+                adobe = Some(payload[11] != 0)
+            }
             0xdb => {
                 while !payload.is_empty() {
                     let spec = byte(&mut payload)?;
@@ -465,6 +478,9 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
             *samples = idct(&block, q, &cos);
         }
     }
+    let transform = adobe
+        .or(color_transform)
+        .unwrap_or_else(|| planes.len() == 3 && (jfif || planes.iter().map(|p| p.id).ne(*b"RGB")));
     let mut pixels = Vec::with_capacity(w * h);
     for y in 0..h {
         for x in 0..w {
@@ -473,8 +489,10 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
                 p.at(x * p.h / max_h, y * p.v / max_v)
             };
             let l = sample(0);
-            let mut rgb = if planes.len() == 1 {
+            let rgb = if planes.len() == 1 {
                 [l; 3]
+            } else if !transform {
+                [l, sample(1), sample(2)]
             } else {
                 if strip {
                     let (cb, cr) = (sample(1) - 128, sample(2) - 128);
@@ -496,20 +514,35 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
             }
             .map(|v| v.clamp(0, 255) as u8);
             if planes.len() == 4 {
-                let k = sample(3);
-                rgb = rgb.map(|v| ((i32::from(v) * k + 127) / 255) as u8);
+                let [c, m, y] = if transform { rgb.map(|v| 255 - v) } else { rgb };
+                pixels.push([c, m, y, sample(3) as u8]);
+            } else {
+                pixels.push([rgb[0], rgb[1], rgb[2], 255]);
             }
-            pixels.push([rgb[0], rgb[1], rgb[2], 255]);
+        }
+    }
+    Ok((header, pixels))
+}
+
+pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
+    let (header, mut pixels) = samples(bytes, limit, None)?;
+    if header.channels == 4 {
+        // Standalone Adobe JPEGs store inverted ink values.
+        for p in &mut pixels {
+            let k = u16::from(p[3]);
+            for v in &mut p[..3] {
+                *v = ((u16::from(*v) * k + 127) / 255) as u8;
+            }
+            p[3] = 255;
         }
     }
     Ok(Raster {
-        width: w,
-        height: h,
+        width: header.width as usize,
+        height: header.height as usize,
         density: header.density,
         orientation: header.orientation,
-        gray: planes.len() == 1,
-        // CMYK is converted to opaque RGBA for the portable four-channel encoders.
-        alpha: planes.len() == 4,
+        gray: header.channels == 1,
+        alpha: header.channels == 4,
         pixels,
     })
 }

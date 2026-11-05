@@ -10189,7 +10189,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         let mut outputs = Vec::new();
         let mut remaining = fs.shell_limits().max_output_bytes;
         for page in start_p..=end_p {
-            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode } };
+            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, tiff: tiff_mode } };
             let done = source.images(page, fs.max_input_bytes(), mode, |im| {
                 let (w, h) = (im.width, im.height);
                 if w < min_width || h < min_height || unique && !seen.insert(im.id) {
@@ -16719,6 +16719,24 @@ mod media_unit_tests {
         let at = pdf.windows(bytes.len()).position(|chunk| chunk == placeholder.as_bytes()).unwrap();
         pdf[at..at+bytes.len()].copy_from_slice(&bytes);
         pdf
+    }
+
+    #[test]
+    fn pdfimages_decodes_jpeg_sample_channels() {
+        let fs = MemoryVfs::new();
+        for (jpeg, cs, sample) in [
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-rgb-direct.jpg").as_slice(),"DeviceRGB",[33u8,68,63]),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-RGB-0-0-17.jpg").as_slice(),"DeviceRGB",[36,68,65]),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-L-1-0-17.jpg").as_slice(),"DeviceGray",[58;3]),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-CMYK-0-0-17.jpg").as_slice(),"DeviceCMYK",[29,21,18]),
+        ] {
+            fs.write_file("/photo.pdf",&embedded_jpeg_pdf(jpeg,cs,"/Filter /DCTDecode",false)).unwrap();
+            let r = cmd_media_doc("pdfimages",&media_args(&["photo.pdf","photo"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let data = fs.read_file("/photo-000.ppm").unwrap();
+            let offset = b"P6\n17 13\n255\n".len() + (4 * 17 + 3) * 3;
+            assert!(data[offset..offset+3].iter().zip(sample).all(|(a,b)| a.abs_diff(b) <= 1),"{cs}: {:?}", &data[offset..offset+3]);
+        }
     }
 
     #[test]

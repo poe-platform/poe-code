@@ -30,7 +30,7 @@ pub(super) fn encode(
     compression: &str, dither: bool, limit: usize,
 ) -> Option<Vec<u8>> {
     let height = pixels.len() / width;
-    let samples: u32 = if color == "rgba" { 4 } else if color == "rgb" { 3 } else { 1 };
+    let samples: u32 = if matches!(color,"rgba"|"cmyk") { 4 } else if color == "rgb" { 3 } else { 1 };
     let mono = samples == 1 && color == "mono";
     let bits = if mono { 1 } else { 8 };
     let codec = match compression { "none" => 1, "ccittrle" => 2, "ccittfax3" | "ccittt4" => 3, "ccittfax4" | "ccittt6" => 4, "lzw" => 5, "jpeg" => 7, "deflate" => 32946, "packbits" => 32773, _ => return None };
@@ -47,7 +47,7 @@ pub(super) fn encode(
         for (y, line) in pixels.chunks_exact(width).enumerate() {
             row.clear();
             for (x, &[r, g, b, a]) in line.iter().enumerate() {
-                if samples == 4 {
+                if color == "cmyk" { row.extend([r,g,b,a]); } else if samples == 4 {
                     row.extend([r, g, b].map(|v| ((u16::from(v) * u16::from(a) + 127) / 255) as u8));
                     row.push(a);
                 } else if samples == 3 {
@@ -95,11 +95,11 @@ pub(super) fn encode(
     let ycbcr = codec == 7 && samples == 3;
     let tags = [(256u16,4u16,1,width as u32), (257,4,1,height as u32),
         (258,3,samples,bits_field), (259,3,1,codec),
-        (262,3,1,if samples == 1 {1} else if ycbcr {6} else {2}),
+        (262,3,1,if samples == 1 {1} else if color == "cmyk" {5} else if ycbcr {6} else {2}),
         (273,4,1,8), (277,3,1,samples), (278,4,1,height as u32), (279,4,1,strip_len),
         (282,5,1,resolutions), (283,5,1,resolutions.checked_add(8)?), (284,3,1,1), (296,3,1,2)];
-    out.extend_from_slice(&(tags.len() as u16 + u16::from(samples == 4 || ycbcr)).to_le_bytes());
-    for (tag, ty, count, value) in tags.into_iter().chain((samples == 4).then_some((338,3,1,1)))
+    out.extend_from_slice(&(tags.len() as u16 + u16::from(color == "rgba" || ycbcr)).to_le_bytes());
+    for (tag, ty, count, value) in tags.into_iter().chain((color == "rgba").then_some((338,3,1,1)))
         .chain(ycbcr.then_some((530,3,2,0x00010001))) {
         out.extend_from_slice(&tag.to_le_bytes()); out.extend_from_slice(&ty.to_le_bytes());
         out.extend_from_slice(&count.to_le_bytes()); out.extend_from_slice(&value.to_le_bytes());

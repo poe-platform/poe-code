@@ -5841,10 +5841,32 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         last: BcVal::default(),
         runtime_err: None,
     };
-    let mut no_comments = String::new();
-    for line in input.lines() {
-        no_comments.push_str(line.split('#').next().unwrap_or(""));
-        no_comments.push('\n');
+    let mut no_comments = String::with_capacity(input.len());
+    let mut chars = input.chars().peekable();
+    while let Some(ch) = chars.next() {
+        match ch {
+            '"' => {
+                no_comments.push(ch);
+                for literal in chars.by_ref() {
+                    no_comments.push(literal);
+                    if literal == '"' { break; }
+                }
+            }
+            '#' => {
+                while let Some(c) = chars.next() {
+                    if c == '\\' && chars.next_if_eq(&'\n').is_some() { continue; }
+                    if c == '\n' { no_comments.push(c); break; }
+                }
+            }
+            '/' if chars.next_if_eq(&'*').is_some() => {
+                while let Some(c) = chars.next() {
+                    if c == '*' && chars.next_if_eq(&'/').is_some() { break; }
+                }
+                no_comments.push(' ');
+            }
+            '\\' if chars.next_if_eq(&'\n').is_some() => {}
+            _ => no_comments.push(ch),
+        }
     }
     let body = extract_bc_defines(&no_comments, &mut bc);
     let mut out = String::new();

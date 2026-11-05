@@ -96,7 +96,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
             }
             items.push(assembled);
           }
-          result.push(block.start === null ? { t: "BulletList", c: items } : { t: "OrderedList", c: [[block.start, "Decimal", block.marker === ")" ? "OneParen" : "Period"], items] });
+          result.push(block.start === null ? { t: "BulletList", c: items } : { t: "OrderedList", c: [[block.start, block.style ?? "Decimal", block.marker === ")" ? "OneParen" : "Period"], items] });
           break;
         }
       }

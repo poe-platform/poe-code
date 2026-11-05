@@ -1,10 +1,10 @@
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
-import {letter} from "./commonmark-syntax.js";
+import {letter, romanListNumber} from "./commonmark-syntax.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedSourceText, SourceRange} from "./retained-source-text.js";
 
 const blockTags = new Set(["address", "article", "aside", "base", "basefont", "blockquote", "body", "caption", "center", "col", "colgroup", "dd", "details", "dialog", "dir", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form", "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hr", "html", "iframe", "legend", "li", "link", "main", "menu", "menuitem", "nav", "noframes", "ol", "optgroup", "option", "p", "param", "search", "section", "summary", "table", "tbody", "td", "tfoot", "th", "thead", "title", "tr", "track", "ul"]);
-export interface RetainedMarker {start: number; marker: number; content: number; indent: number; empty: boolean}
+export interface RetainedMarker {style: number; start: number; marker: number; content: number; indent: number; empty: boolean}
 
 /** One physical line is represented by raw and tab-expanded source spans. The
  * cursor mapping uses two scalars even for a single input-sized line. */
@@ -78,18 +78,24 @@ export class RetainedCommonMarkLine {
     if (end - offset < 3 || char === "`" && await this.source.find({start: this.text.start + end, end: this.text.end}, "`") !== -1) return;
     return {char, length: end - offset};
   }
-  async marker(offset: number): Promise<RetainedMarker | undefined> {
-    let end = offset, start = NaN, char = await this.at(end);
+  async marker(offset: number, fancy = false): Promise<RetainedMarker | undefined> {
+    let end = offset, start = NaN, style = 0, char = await this.at(end);
     if (char === "-" || char === "+" || char === "*") end++;
     else {
       let value = 0;
       while (end - offset < 10) {const digit = await this.at(end); if (digit === undefined || digit < "0" || digit > "9") break; value = value * 10 + Number(digit); end++;}
-      if (end === offset || end - offset > 9 || await this.at(end) !== "." && await this.at(end) !== ")") return;
+      if (end === offset && fancy) {
+        let label = "";
+        while (end - offset < 16) {const c = await this.at(end); if (!c || !"ivxlcdmIVXLCDM".includes(c)) break; label += c; end++;}
+        const number = romanListNumber(label); if (number === undefined) return;
+        value = number; style = label === label.toLowerCase() ? 1 : 2;
+      }
+      if (end === offset || (!style && end - offset > 9) || await this.at(end) !== "." && await this.at(end) !== ")") return;
       start = value; char = await this.at(end++);
     }
     if (end !== this.length && await this.at(end) !== " ") return;
     const padding = await this.spaces(end), empty = end + padding === this.length, content = end + (empty || padding > 4 ? Math.min(padding, 1) : padding);
-    return {start, marker: char!.charCodeAt(0), content, indent: end - offset + (empty ? 1 : padding > 4 ? 1 : padding), empty};
+    return {start, style, marker: char!.charCodeAt(0), content, indent: end - offset + (empty ? 1 : padding > 4 ? 1 : padding), empty};
   }
   async html(offset: number, interrupt: boolean): Promise<{end: readonly string[] | null} | undefined> {
     if (await this.at(offset) !== "<") return;
@@ -109,9 +115,9 @@ export class RetainedCommonMarkLine {
     if (blockTags.has(name)) return {end: null};
     if (!interrupt && (closing || !special)) {const end = await syntax.html(start); if (end !== undefined && await this.spaces(end - this.text.start) === this.text.end - end) return {end: null};}
   }
-  async interrupts(offset: number, rawHtml: boolean): Promise<boolean> {
+  async interrupts(offset: number, rawHtml: boolean, fancy = false): Promise<boolean> {
     const indent = await this.spaces(offset); if (indent > 3) return false;
-    const at = offset + indent, item = await this.marker(at);
+    const at = offset + indent, item = await this.marker(at, fancy);
     return Boolean(await this.heading(at) || await this.rule(at) || await this.fence(at) || await this.at(at) === ">" || rawHtml && await this.html(at, true) || item && !item.empty && (Number.isNaN(item.start) || item.start === 1));
   }
   async closes(ends: readonly string[]): Promise<boolean> {

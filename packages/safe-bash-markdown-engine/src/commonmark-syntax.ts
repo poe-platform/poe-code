@@ -134,3 +134,22 @@ export function readTitle(text: string, start: number, context: AdapterContext):
     i++;
   }
 }
+
+/** Parse a canonical Roman numeral, bounded to the conventional 1–3999 range. */
+export function romanListNumber(label: string): number | undefined {
+  if (!label || label.length > 15 || label !== label.toLowerCase() && label !== label.toUpperCase()) return;
+  const lower = label.toLowerCase();
+  const values: Readonly<Record<string, number>> = {i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000};
+  let number = 0;
+  for (let i = 0; i < lower.length; i++) {
+    const value = values[lower[i]!];
+    if (value === undefined) return;
+    number += value < (values[lower[i + 1]!] ?? 0) ? -value : value;
+  }
+  if (number < 1 || number > 3999) return;
+  let canonical = "", remaining = number;
+  for (const [value, numeral] of [[1000, "m"], [900, "cm"], [500, "d"], [400, "cd"], [100, "c"], [90, "xc"], [50, "l"], [40, "xl"], [10, "x"], [9, "ix"], [5, "v"], [4, "iv"], [1, "i"]] as const) {
+    while (remaining >= value) {canonical += numeral; remaining -= value;}
+  }
+  return canonical === lower ? number : undefined;
+}

@@ -163,7 +163,7 @@ export async function assembleRetainedCommonMark(
     else if (block.kind === "quote" || block.kind === "list") {
       const children = await ast.array();
       await ast.push(out, block.kind === "quote" ? await ast.tag("BlockQuote", children) : Number.isNaN(block.number) ? await ast.tag("BulletList", children) :
-        await ast.tag("OrderedList", await ast.value([[block.number, await ast.tag("Decimal"), await ast.tag(block.marker === 41 ? "OneParen" : "Period")], children])));
+        await ast.tag("OrderedList", await ast.value([[block.number, await ast.tag(block.style === 1 ? "LowerRoman" : block.style === 2 ? "UpperRoman" : "Decimal"), await ast.tag(block.marker === 41 ? "OneParen" : "Period")], children])));
       await push(); position = block.first; out = children; depth++; tight = block.kind === "list" && !!block.tight; mode = block.kind === "list" ? 1 : 0; taskNode = 0;
     }
   }

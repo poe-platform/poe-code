@@ -6,7 +6,7 @@ import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedSourceText, SourceRange} from "./retained-source-text.js";
 
 const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote"] as const;
-const fields = ["parent", "first", "last", "next", "previous", "startLine", "startColumn", "endLine", "endColumn", "firstLine", "lastLine", "lineCount", "infoStart", "infoEnd", "number", "marker", "tight", "blank"] as const;
+const fields = ["parent", "first", "last", "next", "previous", "startLine", "startColumn", "endLine", "endColumn", "firstLine", "lastLine", "lineCount", "infoStart", "infoEnd", "number", "marker", "style", "tight", "blank"] as const;
 type Field = typeof fields[number];
 type Node = Record<Field, number> & {kind: typeof kinds[number]; info: SourceRange};
 type Line = {position: number; range: SourceRange; line: number; column: number; next: number; alignment: number};
@@ -245,11 +245,11 @@ export class RetainedCommonMarkBlocks {
       }
       const blank = offset + await line.spaces(offset) === line.length;
       if (matched < depth) {
-        const siblingIndent = await line.spaces(offset), sibling = siblingIndent <= 3 ? await line.marker(offset + siblingIndent) : undefined;
+        const siblingIndent = await line.spaces(offset), sibling = siblingIndent <= 3 ? await line.marker(offset + siblingIndent, extensions.fancy_lists) : undefined;
         const siblingItem = failed && kinds[failed[3]!] === "item" && sibling;
         const at = line.text.start + offset + siblingIndent;
         const siblingFootnote = failed && kinds[failed[3]!] === "footnote" && await source.starts({start: at, end: line.text.end}, "[^") && await source.find({start: at + 2, end: line.text.end}, "]:") >= 0;
-        if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !await line.interrupts(offset, extensions.raw_html !== false)) {
+        if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !await line.interrupts(offset, extensions.raw_html !== false, extensions.fancy_lists)) {
           await inline(leaf.node, line, offset + await line.spaces(offset)); await end(leaf.node, line);
           for await (const container of containers(this)) await end(container.fields[2]!, line); continue;
         }
@@ -287,7 +287,7 @@ export class RetainedCommonMarkBlocks {
         if (deepest) await this.put(deepest + 48, [1]); continue;
       }
       if (leaf?.kind === "table") {
-        const row = !await line.interrupts(offset, extensions.raw_html !== false) ? await this.pipeRow(await line.rawFrom(offset)) : undefined;
+        const row = !await line.interrupts(offset, extensions.raw_html !== false, extensions.fancy_lists) ? await this.pipeRow(await line.rawFrom(offset)) : undefined;
         if (row) {
           const columns = (await this.node((await this.node(leaf.node)).first)).lineCount, count = (await this.node(row)).lineCount;
           context.charge("tableCells", extensions.preserve_table_columns ? count : columns);
@@ -325,7 +325,7 @@ export class RetainedCommonMarkBlocks {
         if ((await this.node(position)).lineCount) {await this.put(position, [kinds.indexOf("heading")]); await this.set(position, "number", underline); await end(position, line); leaf = undefined; continue;}
         leaf = undefined;
       }
-      if (leaf?.kind === "paragraph" && !await line.interrupts(offset, extensions.raw_html !== false)) {await inline(leaf.node, line, offset + initialIndent); await end(leaf.node, line); continue;}
+      if (leaf?.kind === "paragraph" && !await line.interrupts(offset, extensions.raw_html !== false, extensions.fancy_lists)) {await inline(leaf.node, line, offset + initialIndent); await end(leaf.node, line); continue;}
       const wasParagraph = leaf?.kind === "paragraph"; await finish();
       for (;;) {
         context.checkpoint(); const indent = await line.spaces(offset), at = offset + indent;
@@ -337,10 +337,10 @@ export class RetainedCommonMarkBlocks {
             if (valid) {const node = await add("footnote", line, at, {infoStart: line.text.start + at + 2, infoEnd: stop}); await push(node, "footnote", 4); offset = stop - line.text.start + 2; offset += await line.spaces(offset); continue;}
           }
         }
-        const item = indent <= 3 && !await line.rule(at) ? await line.marker(at) : undefined;
+        const item = indent <= 3 && !await line.rule(at) ? await line.marker(at, extensions.fancy_lists) : undefined;
         if (top && kinds[top[3]!] === "list") {
           const list = await this.node(top[2]!);
-          if (!item || Number.isNaN(item.start) !== Number.isNaN(list.number) || item.marker !== list.marker) {
+          if (!item || Number.isNaN(item.start) !== Number.isNaN(list.number) || item.marker !== list.marker || item.style !== list.style) {
             await truncate(top[0]!, depth - 1);
             const parent = lastStack ? await this.get(lastStack, 8) : undefined, previous = list.last ? await this.node(list.last) : undefined;
             if (parent && kinds[parent[3]!] === "item" && previous?.blank) await this.put(lastStack + 48, [1]);
@@ -349,7 +349,7 @@ export class RetainedCommonMarkBlocks {
         if (indent <= 3 && await line.at(at) === ">") {const node = await add("quote", line, at); await push(node, "quote"); offset = at + 1; if (await line.at(offset) === " ") offset++; continue;}
         if (item && (!wasParagraph || !item.empty && (Number.isNaN(item.start) || item.start === 1))) {
           let list = lastStack ? await this.get(lastStack, 8) : undefined;
-          if (!list || kinds[list[3]!] !== "list") {const node = await add("list", line, at, {number: item.start, marker: item.marker, tight: 1}); await push(node, "list"); list = await this.get(lastStack, 8);}
+          if (!list || kinds[list[3]!] !== "list") {const node = await add("list", line, at, {number: item.start, marker: item.marker, style: item.style, tight: 1}); await push(node, "list"); list = await this.get(lastStack, 8);}
           const listNode = await this.node(list[2]!); if (listNode.last && (await this.node(listNode.last)).blank) await this.set(list[2]!, "tight", 0);
           context.charge("nodes", 1); context.charge("retainedBytes", 128);
           const node = await this.create("item", {startLine: line.number, startColumn: await line.column(at), endLine: line.number, endColumn: line.endColumn});

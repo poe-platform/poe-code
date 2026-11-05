@@ -1,7 +1,7 @@
 import type { AdapterContext } from "./types.js";
 import { pipeRow } from "./gfm-syntax.js";
 import type { Alignment } from "./ast-types.js";
-import { normalizeLabel } from "./commonmark-syntax.js";
+import { normalizeLabel, romanListNumber } from "./commonmark-syntax.js";
 
 export interface BlockPoint { line: number; column: number }
 export interface BlockSource { source: string; start: BlockPoint; end: BlockPoint }
@@ -19,7 +19,7 @@ export type PendingBlock =
   | { kind: "code"; info: string; literal: string; source: BlockSource }
   | { kind: "html"; literal: string; source: BlockSource }
   | { kind: "quote"; blocks: PendingBlock[]; source: BlockSource }
-  | { kind: "list"; start: number | null; marker: string; tight: boolean; items: PendingItem[]; source: BlockSource };
+  | { kind: "list"; start: number | null; marker: string; style?: "LowerRoman" | "UpperRoman" | undefined; tight: boolean; items: PendingItem[]; source: BlockSource };
 export interface BlockDefinition {
   label: string;
   destination: string;
@@ -50,7 +50,7 @@ type Leaf =
   | { kind: "fence"; node: Extract<PendingBlock, { kind: "code" }>; char: string; length: number; indent: number }
   | { kind: "indent"; node: Extract<PendingBlock, { kind: "code" }>; blanks: string[] }
   | { kind: "html"; node: Extract<PendingBlock, { kind: "html" }>; end: readonly string[] | null };
-interface Marker { start: number | null; marker: string; content: number; indent: number; empty: boolean }
+interface Marker { style?: "LowerRoman" | "UpperRoman" | undefined; start: number | null; marker: string; content: number; indent: number; empty: boolean }
 
 function spaces(text: string, offset: number): number {
   let end = offset;
@@ -123,22 +123,29 @@ function fence(text: string, offset: number): { char: string; length: number } |
   if (end - offset < 3 || (char === "`" && text.indexOf("`", end) !== -1)) return;
   return { char, length: end - offset };
 }
-function marker(text: string, offset: number): Marker | undefined {
+function marker(text: string, offset: number, fancy = false): Marker | undefined {
   let end = offset;
   let start: number | null = null;
+  let style: Marker["style"];
   let char = text[end];
   if (char === "-" || char === "+" || char === "*") end++;
   else {
     while (text[end] !== undefined && text[end]! >= "0" && text[end]! <= "9" && end - offset < 10) end++;
-    if (end === offset || end - offset > 9 || (text[end] !== "." && text[end] !== ")")) return;
-    start = Number(text.slice(offset, end));
+    if (end === offset && fancy) {
+      while (end - offset < 16 && text[end] && "ivxlcdmIVXLCDM".includes(text[end]!)) end++;
+      const label = text.slice(offset, end), number = romanListNumber(label);
+      if (number === undefined) return;
+      start = number; style = label === label.toLowerCase() ? "LowerRoman" : "UpperRoman";
+    }
+    if (end === offset || (!style && end - offset > 9) || (text[end] !== "." && text[end] !== ")")) return;
+    start ??= Number(text.slice(offset, end));
     char = text[end++];
   }
   if (end !== text.length && text[end] !== " ") return;
   const padding = spaces(text, end);
   const empty = end + padding === text.length;
   const content = end + (empty || padding > 4 ? Math.min(padding, 1) : padding);
-  return { start, marker: char!, content, indent: end - offset + (empty ? 1 : padding > 4 ? 1 : padding), empty };
+  return { start, style, marker: char!, content, indent: end - offset + (empty ? 1 : padding > 4 ? 1 : padding), empty };
 }
 
 const blockTags = new Set([
@@ -215,11 +222,11 @@ function htmlStart(text: string, offset: number, interrupt: boolean): { end: rea
   if (blockTags.has(name)) return { end: null };
   if (!interrupt && (closing || !["script", "pre", "style", "textarea"].includes(name)) && completeTag(text, offset)) return { end: null };
 }
-function interrupts(text: string, offset: number, rawHtml = true): boolean {
+function interrupts(text: string, offset: number, rawHtml = true, fancy = false): boolean {
   const indent = spaces(text, offset);
   if (indent > 3) return false;
   const at = offset + indent;
-  const item = marker(text, at);
+  const item = marker(text, at, fancy);
   return Boolean(heading(text, at) || rule(text, at) || fence(text, at) || text[at] === ">" || rawHtml && htmlStart(text, at, true) ||
     (item && !item.empty && (item.start === null || item.start === 1)));
 }
@@ -364,10 +371,10 @@ export async function parseCommonMarkBlocks(
     if (matched < stack.length) {
       const failed = stack[matched];
       const siblingIndent = spaces(line.text, offset);
-      const sibling = siblingIndent <= 3 ? marker(line.text, offset + siblingIndent) : undefined;
+      const sibling = siblingIndent <= 3 ? marker(line.text, offset + siblingIndent, extensions.fancy_lists) : undefined;
       const siblingItem = failed?.kind === "item" && sibling;
       const siblingFootnote = failed?.kind === "footnote" && line.text.startsWith("[^", offset + siblingIndent) && line.text.includes("]:", offset + siblingIndent + 2);
-      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !interrupts(line.text, offset, extensions.raw_html !== false)) {
+      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists)) {
         leaf.node.inline.lines.push(inlineLine(line, offset + spaces(line.text, offset)));
         leaf.node.source.end = endPoint(line);
         for (const container of stack) container.node.source.end = endPoint(line);
@@ -432,7 +439,7 @@ export async function parseCommonMarkBlocks(
       continue;
     }
     if (leaf?.kind === "table") {
-      const row = !interrupts(line.text, offset, extensions.raw_html !== false) ? pipeRow(rawFrom(line, offset), context) : undefined;
+      const row = !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists) ? pipeRow(rawFrom(line, offset), context) : undefined;
       if (row) {
         context.charge("tableCells", extensions.preserve_table_columns ? row.length : leaf.node.alignments.length);
         leaf.node.rows.push(extensions.preserve_table_columns ? row : row.slice(0, leaf.node.alignments.length));
@@ -480,7 +487,7 @@ export async function parseCommonMarkBlocks(
       }
       leaf = undefined;
     }
-    if (leaf?.kind === "paragraph" && !interrupts(line.text, offset, extensions.raw_html !== false)) {
+    if (leaf?.kind === "paragraph" && !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists)) {
       leaf.node.inline.lines.push(inlineLine(line, offset + initialIndent));
       leaf.node.source.end = endPoint(line);
       continue;
@@ -503,8 +510,8 @@ export async function parseCommonMarkBlocks(
           offset = end + 2 + spaces(line.text, end + 2); continue;
         }
       }
-      const item = indent <= 3 && !rule(line.text, at) ? marker(line.text, at) : undefined;
-      if (top?.kind === "list" && (!item || (item.start !== null) !== (top.node.start !== null) || item.marker !== top.node.marker)) {
+      const item = indent <= 3 && !rule(line.text, at) ? marker(line.text, at, extensions.fancy_lists) : undefined;
+      if (top?.kind === "list" && (!item || (item.start !== null) !== (top.node.start !== null) || item.marker !== top.node.marker || item.style !== top.node.style)) {
         stack.pop();
         const parent = stack[stack.length - 1];
         const previous = top.node.items[top.node.items.length - 1];
@@ -521,7 +528,7 @@ export async function parseCommonMarkBlocks(
       if (item && (!wasParagraph || !item.empty && (item.start === null || item.start === 1))) {
         let listContainer = stack[stack.length - 1];
         if (listContainer?.kind !== "list") {
-          const node: ListBlock = { kind: "list", start: item.start, marker: item.marker, tight: true, items: [], source: range(line, at) };
+          const node: ListBlock = { kind: "list", start: item.start, marker: item.marker, style: item.style, tight: true, items: [], source: range(line, at) };
           add(node);
           listContainer = { kind: "list", node };
           push(listContainer);

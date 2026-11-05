@@ -137,21 +137,21 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       }
     }
     const elst = await first(await first(trak, 'edts'), 'elst');
-    function* editDuration(): Mp4SampleSteps<{ duration: number; start: number } | undefined> {
+    function* editDuration(): Mp4SampleSteps<{ duration: number; start: number; mediaStart: number } | undefined> {
       if (!elst || elst.payloadSize < 8) return;
       const header = new BinaryReader((yield { kind: 'read', table: elst, offset: elst.payloadOffset, length: 8 }) as Uint8Array);
       const version = header.readU8(); header.skip(3); const count = header.readU32BE(), width = version === 1 ? 20 : 12;
-      let total = 0, entries = 0, delay = 0, foundMedia = false;
+      let total = 0, entries = 0, delay = 0, mediaStart = 0, foundMedia = false;
       for (let i = 0; i < count && 8 + i * width < elst.payloadSize; i++) {
         const row = new BinaryReader((yield { kind: 'read', table: elst, offset: elst.payloadOffset + 8 + i * width, length: Math.min(width, elst.payloadSize - 8 - i * width) }) as Uint8Array);
         let segment = version === 1 ? row.readU64BE() : row.readU32BE();
         const mediaTime = version === 1 ? row.readI64BE() : row.readI32BE();
         if (fragmented && segment === 0 && mediaTime >= 0) segment = Math.round(Math.max(0, mediaEnd - mediaTime) * movieTimescale / timescale);
-        if (mediaTime >= 0) foundMedia = true;
+        if (mediaTime >= 0 && !foundMedia) { mediaStart = mediaTime; foundMedia = true; }
         else if (!foundMedia) delay += segment;
         total += segment; entries++;
       }
-      return entries ? { duration: Math.round(total * timescale / movieTimescale), start: Math.round(delay * timescale / movieTimescale) } : undefined;
+      return entries ? { duration: Math.round(total * timescale / movieTimescale), start: Math.round(delay * timescale / movieTimescale), mediaStart } : undefined;
     }
     const edits = consumeMp4SampleSteps(source, editDuration(), sampleOptions), result = await edits.next();
     // The edit coroutine only reads rows and returns timing scalars; it never emits samples.
@@ -164,6 +164,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     formatStart = Math.min(formatStart, start);
     formatEnd = Math.max(formatEnd, start + probeDuration / Math.max(1, timescale));
     if (mode === 'summary') continue;
+    const timestampOffset = result.value ? result.value.start - result.value.mediaStart : 0;
     let bytePos = 0, cursor = 0, previousPts = -Infinity;
     const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasReorderedSamples: false };
     const packet = (sample: ProbeSample['sample']): ProbeSample => {
@@ -173,7 +174,9 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       }
       const record = { sample, track, bytePos }; bytePos += sample.size; return record;
     };
-    for await (const sample of samples()) {
+    for await (const rawSample of samples()) {
+      // Map media time to the movie timeline, retaining negative decoder preroll.
+      const sample = { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset };
       if (type !== 'subtitle' || !count || allPacked) { const row = packet(sample); if (mode !== 'streams') yield row; continue; }
       const start = Math.max(cursor, Math.round(sample.pts));
       if (start > cursor) { const row = packet({ pts: cursor, dts: cursor, duration: start - cursor, size: 2, isKeyframe: true }); if (mode !== 'streams') yield row; cursor = start; }

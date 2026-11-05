@@ -227,7 +227,7 @@ struct HostDescriptor {
 
 impl Drop for HostDescriptor {
     fn drop(&mut self) {
-        let _ = self.fs.request("close", "", &[], self.id, 0);
+        if self.id != 0 { let _ = self.fs.request("close", "", &[], self.id, 0); }
     }
 }
 impl crate::vfs::OpenRedirectFile for HostDescriptor {
@@ -702,6 +702,52 @@ impl SafeBashFs for HostFs {
         self.mutable(p, false)?;
         self.request(if d { "rmdir" } else { "unlink" }, p, &[], 0, 0)
             .map(drop)
+    }
+    fn move_across_devices(&self, source: &str, destination: &str, budget: Option<&crate::ExecutionBudget>) -> Result<(), String> {
+        use crate::vfs::FileReadHandle;
+        let step = || { if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } Ok::<_, String>(()) };
+        step()?;
+        self.mutable(source, false)?;
+        self.mutable(destination, false)?;
+        let observed = self.request("retainMoveFile", source, &[], 0, 0)?;
+        let (id, metadata) = observed.split_at_checked(4).ok_or("EIO: invalid move source")?;
+        let source_guard = self.own_stamp(id.to_vec())?;
+        let st = Self::parse_stat(metadata)?;
+        if st.size > self.max_input {
+            return Err(budget.map_or_else(|| "EFBIG: file input limit exceeded".into(), |b|
+                b.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", self.max_input))));
+        }
+        step()?;
+        let observed = self.request("inspectMoveDestination", destination, &[], 0, source_guard.version as u32)?;
+        let (id, existing) = observed.split_at_checked(4).ok_or("EIO: invalid move destination")?;
+        let target_guard = self.own_stamp(id.to_vec())?;
+        if !existing.is_empty() && Self::parse_stat(existing)?.kind == VfsEntryKind::Directory {
+            return Err(format!("EISDIR: illegal operation on a directory '{destination}'"));
+        }
+        step()?;
+        let id = u32::from_le_bytes(self.request("openReadFile", source, &[], 0, 0)?.try_into()
+            .map_err(|_| "EIO: invalid retained handle")?);
+        let reader = HostRead::File(HostDescriptor { fs: *self, id });
+        let check = || self.request("checkMoveRead", source, &[], source_guard.version as u32, id);
+        step()?; check()?;
+        let mut bytes = Vec::new();
+        while bytes.len() < st.size {
+            step()?;
+            let chunk = reader.read(bytes.len() as u64, (st.size - bytes.len()).min(65536))?;
+            if chunk.is_empty() { return Err(format!("EBUSY: move source changed during read '{source}'")); }
+            bytes.try_reserve(chunk.len()).map_err(|_| "ENOMEM: insufficient memory for move")?;
+            bytes.extend_from_slice(&chunk);
+        }
+        step()?; check()?;
+        if let HostRead::File(mut descriptor) = reader {
+            let id = std::mem::take(&mut descriptor.id);
+            self.request("close", "", &[], id, 1)?;
+        }
+        step()?;
+        self.replace_file_entry_with_metadata(destination, &bytes, st.mode & 0o7777,
+            (Some(st.atime_ms), Some(st.mtime_ms)), target_guard.version)?;
+        step()?;
+        self.request("removeRetained", "", &[], source_guard.version as u32, 0).map(drop)
     }
     fn rename(&self, p: &str, d: &str, no_replace: bool) -> Result<(), String> {
         self.mutable(p, false)?;

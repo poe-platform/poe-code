@@ -250,8 +250,8 @@ function bindExternalFs(shell,fs,options) {
           if(typeof root!=="string")throw fsOperationError("EIO",op,path);
           result=encoder.encode(root);return;
         }
-        if(op==="inspectExtraction"){
-          const caps=await fs.capabilitiesFor?.(path,{...settings,create:true}) ?? fs.capabilities;
+        if(op==="inspectExtraction" || op==="inspectMoveDestination"){
+          const caps=await fs.capabilitiesFor?.(path,{...settings,create:true,...(op==="inspectMoveDestination" && {stagingAncestry:true})}) ?? fs.capabilities;
           const ancestors=[];
           for(let end=0;end>=0;end=path.indexOf("/",end+1)){
             const dir=path.slice(0,end)||"/",stat=await fs.lstat(dir,settings);
@@ -260,8 +260,17 @@ function bindExternalFs(shell,fs,options) {
           }
           let destination=null;
           try{destination=await fs.lstat(path,settings);}catch(error){if(error?.code!=="ENOENT")throw error;}
-          const id=nextHandle++, guard={ancestors,parent:ancestors.at(-1).stat,destination};
-          publications.set(id,{path,guard,caps,allowTrusted:!!flags,retainedWriter:caps?.retainedStagingWrite===true && (!flags || caps.retainedStagingCleanup===true)});
+          if(op==="inspectMoveDestination" && destination){
+            const source=publications.get(mode).expected;
+            if(!destination.identityScope || !Number.isSafeInteger(destination.ino) || !Number.isSafeInteger(destination.dev))throw fsOperationError("ENOTSUP","mv",path);
+            if(source.identityScope===destination.identityScope && source.dev===destination.dev && source.ino===destination.ino)throw fsOperationError("EBUSY","mv",path);
+          }
+          // Creating a missing move target only requires exclusive publication
+          // under the observed parent. Overwriting an entry also binds its ancestry.
+          const exclusiveMove=op==="inspectMoveDestination" && destination===null && !caps?.atomicStagingAncestry &&
+            caps?.atomicFileStaging && caps.retainedStagingCleanup && caps.guardedStagingPublication;
+          const id=nextHandle++, guard={...(!exclusiveMove && {ancestors}),parent:ancestors.at(-1).stat,destination};
+          publications.set(id,{path,guard,caps,exclusiveMove,allowTrusted:!!flags,retainedWriter:caps?.retainedStagingWrite===true && (!flags || caps.retainedStagingCleanup===true)});
           const bytes=destination && statBytes(destination);
           result=new Uint8Array(4+(bytes?.length??0));new DataView(result.buffer).setUint32(0,id,true);
           if(bytes)result.set(bytes,4);
@@ -284,17 +293,20 @@ function bindExternalFs(shell,fs,options) {
             ...(caps?.timestamps!==false && Number.isFinite(mtime) && {mtimeMs:mtime})});
           obs.guard.destination=directory;result=statBytes(directory);return;
         }
-        if(op==="retainRemoval"){
+        if(op==="retainRemoval" || op==="retainMoveFile"){
           const caps=await fs.capabilitiesFor?.(path,settings)??fs.capabilities;
           if(!caps?.atomicEntryRemoval || !fs.removeEntryConditional){
+            if(op==="retainMoveFile")throw fsOperationError("ENOTSUP","removeEntryConditional",path);
             status=-1;result=encoder.encode("ZIP move requires atomic conditional source removal");return;
           }
           const parentPath=await fs.realpath(path.slice(0,path.lastIndexOf("/"))||"/",settings);
           const canonical=(parentPath==="/"?"":parentPath)+path.slice(path.lastIndexOf("/"));
           const parent=await fs.lstat(parentPath,settings),expected=await fs.lstat(canonical,settings);
+          if(op==="retainMoveFile" && expected.type!=="file")throw fsOperationError("ENOTSUP","mv",path);
           if(parent.type!=="directory" || !Number.isSafeInteger(expected.revision) ||
             [parent,expected].some(s=>(!s.identityScope || !["symbol","object"].includes(typeof s.identityScope)) ||
               !Number.isSafeInteger(s.dev) || s.dev<0 || !Number.isSafeInteger(s.ino) || s.ino<0)){
+            if(op==="retainMoveFile")throw fsOperationError("ENOTSUP","mv",path);
             status=-1;result=encoder.encode("ZIP move requires known source identity and revision");return;
           }
           const scope=s=>{
@@ -302,10 +314,22 @@ function bindExternalFs(shell,fs,options) {
             return removalScopes.get(s.identityScope);
           };
           const id=nextHandle++,p=statBytes(parent),e=statBytes(expected);
-          publications.set(id,{path:canonical,parent,expected});
+          publications.set(id,{path:op==="retainMoveFile"?path:canonical,parent,expected});
+          if(op==="retainMoveFile"){
+            result=new Uint8Array(4+e.length);new DataView(result.buffer).setUint32(0,id,true);result.set(e,4);return;
+          }
           result=new Uint8Array(16+p.length+e.length);const v=new DataView(result.buffer);
           v.setUint32(0,id,true);v.setUint32(4,scope(parent),true);v.setUint32(8,scope(expected),true);
           v.setUint32(12,p.length,true);result.set(p,16);result.set(e,16+p.length);return;
+        }
+        if(op==="checkMoveRead"){
+          const {expected,path}=publications.get(flags);
+          for(const current of [await handles.get(mode).stat(settings),await fs.lstat(path,settings)]){
+            if(["identityScope","dev","ino","revision","type","size","mode","nlink","mtimeMs","ctimeMs"].some(key=>current[key]!==expected[key])){
+              throw fsOperationError("EBUSY","mv",path);
+            }
+          }
+          return;
         }
         if(op==="removeRetained"){
           const {path:canonical,parent,expected}=publications.get(flags);
@@ -345,7 +369,7 @@ function bindExternalFs(shell,fs,options) {
           if(!staging){
             status=-1;result=encoder.encode("extraction requires atomic owned file staging");return;
           }
-          if(!obs.allowTrusted && !caps.atomicStagingAncestry){status=-1;result=encoder.encode("extraction requires atomic staging ancestry verification");return;}
+          if(!obs.exclusiveMove && !obs.allowTrusted && !caps.atomicStagingAncestry){status=-1;result=encoder.encode("extraction requires atomic staging ancestry verification");return;}
           if(op==="extractSymlink"){
             if(!fs.symlink || caps.symlinks===false){status=-1;result=encoder.encode("filesystem does not support symlinks");return;}
             await stageOutput(fs,path,{type:"symlink",target:decoder.decode(data)},guard,{retainCleanup:caps.retainedStagingCleanup===true});
@@ -516,7 +540,7 @@ function bindExternalFs(shell,fs,options) {
         const h=handles.get(flags);
         if(op==="close"){
           handles.delete(flags);
-          try{await h.close();}catch(e){closeErrors.push(e);}
+          try{await h.close();}catch(e){closeErrors.push(e);if(mode)throw e;}
           return;
         }
         if(op==="rangeRead"){

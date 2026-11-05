@@ -5178,6 +5178,62 @@ test("mktemp retries occupied names without following links, and propagates crea
   } finally { sh.dispose(); }
 });
 
+test("moving a host file across mounts preserves bytes and metadata when creating or replacing", {skip: !WebAssembly.Suspending}, async () => {
+  const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
+  const src = new MemoryFileSystem(), dest = new MemoryFileSystem();
+  const fs = createMountFileSystem({root:new MemoryFileSystem(),mounts:{"/src":src,"/dest":dest}});
+  const sh = new RustWasmBash({fs,cwd:"/"});
+  try {
+    for (const exists of [false,true]) {
+      const data = new Uint8Array(131073).fill(exists ? 255 : 127);
+      await src.writeFile("/file",data,{mode:0o640});
+      await src.utimes("/file",123456,654321);
+      const result = await sh.exec("mv /src/file /dest/file");
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.deepEqual(await dest.readFile("/file"),data);
+      const stat = await dest.stat("/file");
+      assert.equal(stat.mode & 0o777,0o640);
+      assert.equal(stat.mtimeMs,654321);
+      assert.deepEqual(await src.readdir("/"),[]);
+    }
+  } finally { await sh.dispose(); }
+});
+
+test("a cross-mount move preserves a raced source and never overwrites a raced destination", {skip: !WebAssembly.Suspending}, async () => {
+  const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
+  for (const race of ["read", "publish", "unlink"]) {
+    const src = new MemoryFileSystem(), dest = new MemoryFileSystem();
+    const fs = createMountFileSystem({root:new MemoryFileSystem(),mounts:{"/src":src,"/dest":dest}});
+    const bytes = value => new TextEncoder().encode(value);
+    await src.writeFile("/file",bytes("original"));
+    const originalRead = fs.openReadFile.bind(fs), publish = fs.publishStagedFile.bind(fs), unlink = fs.removeEntryConditional.bind(fs);
+    if (race === "read") fs.openReadFile = async (...args) => {
+      const handle = await originalRead(...args);
+      return {...handle, stat: handle.stat.bind(handle), close: handle.close.bind(handle), read: async (...args) => {
+        const chunk = await handle.read(...args);
+        await src.writeFile("/file",bytes("new source"));
+        return chunk;
+      }};
+    };
+    if (race === "publish") fs.publishStagedFile = async (...args) => {
+      await dest.writeFile("/file",bytes("new destination"));
+      return publish(...args);
+    };
+    if (race === "unlink") fs.removeEntryConditional = async (...args) => {
+      await src.writeFile("/file",bytes("new source"));
+      return unlink(...args);
+    };
+    const sh = new RustWasmBash({fs,cwd:"/"});
+    try {
+      const result = await sh.exec("mv /src/file /dest/file");
+      assert.equal(result.exitCode,1,race);
+      assert.deepEqual(await src.readFile("/file"),bytes(race === "publish" ? "original" : "new source"),race);
+      if (race === "read") assert.deepEqual(await dest.readdir("/"),[]);
+      else assert.deepEqual(await dest.readFile("/file"),bytes(race === "publish" ? "new destination" : "original"));
+    } finally { await sh.dispose(); }
+  }
+});
+
 test("the configured host root is live across commands and sessions, and an exec override is temporary", {skip: !WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
   const fs = new MemoryFileSystem(), other = new MemoryFileSystem();

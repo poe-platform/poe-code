@@ -4600,21 +4600,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = tokens[++i] ?? "50%", value = raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw) / 257;
         const channels = state.channelExplicit ? state.channels : undefined;
         apply = function* (image) {
-            if (!channels) {
-                const output = yield* thresholdImageSteps(image, Math.round(value), true);
-                // Native default threshold assigns the intensity result to alpha too.
-                if (image.hasAlpha) for (let idx = 0; idx < output.data.length; idx += 4) {
-                    if (idx % 65536 === 0) yield;
-                    output.data[idx + 3] = output.data[idx]!;
-                }
-                return output;
-            }
             const out = new Uint8Array(image.data);
-            const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
+            const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                for (let channel = 0; channel < 4; channel++) {
-                    if (mask[channel]) out[idx + channel] = out[idx + channel]! > value ? 255 : 0;
+                if (mask) {
+                    for (let channel = 0; channel < 4; channel++) {
+                        if (mask[channel]) out[idx + channel] = out[idx + channel]! > value ? 255 : 0;
+                    }
+                } else {
+                    const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
+                    const result = intensity > value ? 255 : 0;
+                    out[idx] = out[idx + 1] = out[idx + 2] = result;
+                    // Native default threshold assigns the intensity result to alpha too.
+                    if (image.hasAlpha) out[idx + 3] = result;
                 }
             }
             const { data16: ignored, ...metadata } = image;

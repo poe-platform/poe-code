@@ -5,6 +5,24 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createConvertCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    // ImageMagick 7.1.2: opaque RGB PNG input, decoded to 8-bit RGBA.
+    it.each([
+        [[225, 75, 73], 0],
+        [[225, 104, 73], 0],
+        [[225, 105, 73], 255],
+        [[128, 128, 128], 255],
+    ] as const)(`uses native RGB intensity for %j via ${mode}`, async (pixel, expected) => {
+        const input = encodeImage({ width: 1, height: 1, data: new Uint8Array([...pixel, 255]), format: "png", space: "srgb", channels: 3, depth: "uchar", density: 72, hasAlpha: false }, { format: "png" }).data;
+        const files = new Map([["in.png", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.png", input);
+        const args = ["in.png", "-threshold", "50%", "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+        expect([...decodeImage(output).data]).toEqual([expected, expected, expected, 255]);
+    });
     // Native ImageMagick Q16 output for the two RGBA pixels below.
     it.each([
         ["R", [255, 30, 100, 200, 0, 150, 10, 100]],

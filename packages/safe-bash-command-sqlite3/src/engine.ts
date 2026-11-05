@@ -2269,6 +2269,11 @@ export class SqliteDatabase {
     }
 
     if (["INSERT", "REPLACE", "UPDATE", "DELETE"].includes(first)) {
+      const rollbackOnConflict = first === "INSERT" && tokens[1]?.value.toUpperCase() === "OR" &&
+        tokens[2]?.value.toUpperCase() === "ROLLBACK";
+      const rollbackSnapshot = rollbackOnConflict
+        ? this.txSnapshot ?? this.savepoints.values().next().value ?? (yield* this.captureSnapshot())
+        : null;
       const snapshot = this.foreignKeys && this.foreignKeyDepth === 0 ? yield* this.captureSnapshot() : null;
       const existingRows = new Set<TableRow>();
       if (snapshot) {
@@ -2286,7 +2291,12 @@ export class SqliteDatabase {
         if (snapshot) yield* this.validateForeignKeys(snapshot, existingRows);
         return result;
       } catch (error) {
-        if (snapshot) {
+        if (rollbackSnapshot && error instanceof SqliteConstraintError && error.message !== "FOREIGN KEY constraint failed") {
+          yield* this.restoreSnapshot(rollbackSnapshot);
+          this.inTransaction = false;
+          this.txSnapshot = null;
+          this.savepoints.clear();
+        } else if (snapshot) {
           yield* this.restoreSnapshot(snapshot);
           [this.lastChanges, this.totalChanges, this.lastInsertRowid] = counters as [number, number, number];
         }

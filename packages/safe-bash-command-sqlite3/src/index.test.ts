@@ -51,6 +51,22 @@ async function runSqlite3(
   };
 }
 
+test("sqlite3 persists the rolled-back state after INSERT OR ROLLBACK fails", async () => {
+  const fs = createMemoryFileSystem();
+  const result = await runSqlite3(fs, ["/rollback.db"], `CREATE TABLE t(x INT UNIQUE);
+INSERT INTO t VALUES(1);
+BEGIN;
+INSERT INTO t VALUES(2);
+INSERT OR ROLLBACK INTO t VALUES(1);
+SELECT x FROM t ORDER BY x;
+`);
+  assert.equal(result.code, 19);
+  assert.ok(result.stderr.includes("UNIQUE constraint failed: t.x"));
+  const reopened = await runSqlite3(fs, ["/rollback.db", "SELECT x FROM t ORDER BY x"]);
+  assert.equal(reopened.code, 0, reopened.stderr);
+  assert.equal(reopened.stdout, "1\n");
+});
+
 for (const [ordering, values] of [
   ["ASC NULLS LAST", [1, 2, null, null]],
   ["DESC NULLS FIRST", [null, null, 2, 1]],

@@ -7021,26 +7021,16 @@ export class SqliteDatabase {
       , this);
       return new Number(sum / activeVals.length);
     }
-    if (u === "MIN") {
+    if (u === "MIN" || u === "MAX") {
       if (activeVals.length === 0) {
         return null;
       }
+      const collation = this.expressionCollation(expr.args[0]!, filteredGroup[0] ?? {});
       return yield* stepReduce<SqlValue, SqlValue>(
         activeVals,
-        function* (min, v) { yield;
-          return compareSqlValues(v, min) < 0 ? v : min;
-        },
-        activeVals[0]!
-      , this);
-    }
-    if (u === "MAX") {
-      if (activeVals.length === 0) {
-        return null;
-      }
-      return yield* stepReduce<SqlValue, SqlValue>(
-        activeVals,
-        function* (max, v) { yield;
-          return compareSqlValues(v, max) > 0 ? v : max;
+        function* (extreme, v) { yield;
+          const comparison = compareSqlValues(v, extreme, collation);
+          return (u === "MIN" ? comparison < 0 : comparison > 0) ? v : extreme;
         },
         activeVals[0]!
       , this);

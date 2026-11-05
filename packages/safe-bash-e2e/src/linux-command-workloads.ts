@@ -79,7 +79,10 @@ const textCommands = ([
   ["find", "samples", "-type", "f", "-name", "theirs", "-print0"], ["ls", "-1", "samples"],
   ["du", "-b", "samples/base"], ["stat", "-c", "%n %s", "samples/theirs"], ["hd", "samples/ours"],
   ["tar", "-xOf", "sample.tar", "samples/base"], ["unzip", "-p", "sample.zip", "samples/ours"],
-  ["less", "samples/theirs"],
+  ["less", "samples/theirs"], ["tree", "-i", "--noreport", "samples"],
+  ["uname", "-so"], ["id", "-un", "0"], ["locale", "-ck", "decimal_point"],
+  // Test the lower bound independently of the host processor count; sleep parses both units.
+  ["nproc", "--ignore=1000000"], ["sleep", "0.0001s", "0m"],
 ] as const).map(([cmd, ...args]) => ({
   cmd, args, script: [cmd, ...args.map(arg => "'" + arg.replaceAll("'", "'\\''") + "'")].join(" ")
 }));
@@ -91,6 +94,8 @@ export function linuxCommands(text: string) {
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",
       input: Buffer.from([0xff, 0, 1, 2, 3, 4, 124, 124, 5, 124, 6, 7, 8]),
     })),
+    { cmd: "patch", args: ["-s", "-o", "-", "samples/base"], script: "patch -s -o - samples/base",
+      input: "--- old\n+++ new\n@@ -1,3 +1,3 @@\n header\n-base\n+changed\n footer\n" },
     { cmd: "bc", args: [], script: "bc", input: String.raw`"literal:\n\q; define f(){return 1}"
 "continued\
 literal"

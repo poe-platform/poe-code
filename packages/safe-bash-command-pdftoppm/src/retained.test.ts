@@ -68,6 +68,30 @@ test("Poppler resolves general and per-axis DPI after parsing every flag", async
     }
   }
 });
+test("pdftocairo applies raster DPI along the rotated output axes", async () => {
+  for (const rotation of [90, 270] as const) {
+    const doc = PdfDocument.create(), page = doc.addPage([12, 8]);
+    page.setRotation(rotation);
+    page.drawRect({ x: 2, y: 2, width: 4, height: 4, fill: { r: 0, g: 0, b: 0 } });
+    const input = doc.save(), top = rotation === 90 ? 2 : 6;
+    for (const flags of [["-rx", "144", "-ry", "72"], ["-scale-to-x", "16", "-scale-to-y", "12"]]) {
+      const args = ["-png", "-singlefile", ...flags, "in.pdf", "page"];
+      const files = new Map([["in.pdf", input]]), f = await fixture(input, args);
+      assert.equal((await runPdftocairoCli(args, files)).exitCode, 0);
+      assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode, 0);
+      for (const bytes of [files.get("page.png")!, await f.fs.readFile("/page.png")]) {
+        const { width, height, data } = decodePng(bytes);
+        assert.deepEqual([width, height], [16, 12]);
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+          const value = x >= 4 && x < 12 && y >= top && y < top + 4 ? 0 : 255;
+          assert.deepEqual(Array.from(data.subarray((y * width + x) * 4, (y * width + x + 1) * 4)), [value, value, value, 255]);
+        }
+      }
+      await f.clean();
+    }
+  }
+});
+
 test("Poppler scales a subpoint page by its actual dimensions", async () => {
   const doc = PdfDocument.create();
   doc.addPage([0.5, 0.75]);

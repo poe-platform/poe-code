@@ -149,9 +149,11 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             renderedBytes = new TextEncoder().encode(svgText);
         }
         else {
+            // The bitmap renderer rotates after scaling; Cairo specifies DPI in output axes.
+            const swapAxes = cairo && (rot === 90 || rot === 270);
             const bitmap = (yield* renderDisplayListToBitmapSteps(displayList, {
-                dpiX: effDpiX,
-                dpiY: effDpiY,
+                dpiX: swapAxes ? effDpiY : effDpiX,
+                dpiY: swapAxes ? effDpiX : effDpiY,
                 useCropBox,
                 cropRect,
                 hideAnnotations,

@@ -4017,6 +4017,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     let i = start, apply: MagickPixelOperation["apply"];
     if (token === "-colorspace" || token === "-grayscale") {
         const space = (tokens[++i] ?? "gray").toLowerCase();
+        if (space === "cmyk") throw new Error("unsupported colorspace 'CMYK'");
         apply = function* (image) {
             if (!space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
             const out = new Uint8Array(image.data);

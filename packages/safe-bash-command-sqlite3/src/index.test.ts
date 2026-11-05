@@ -4,6 +4,24 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const fn of ["substr", "substring"]) {
+  test(`sqlite3 ${fn} slices BLOB bytes and preserves their type`, async () => {
+    const sql = `
+      SELECT hex(${fn}(x'00FF80',2,2)), hex(${fn}(x'41C3A942',2,2)), typeof(${fn}(x'41C3A942',2,2));
+      SELECT hex(${fn}(x'61626300FF',-2)), hex(${fn}(x'41C3A942',2,1));
+      SELECT hex(${fn}(x'00FF80',0,3)), hex(${fn}(x'00FF80',-5,4)), hex(${fn}(x'00FF80',3,-2));
+      SELECT hex(${fn}(x'00FF80',0)), hex(${fn}(x'00FF80',-2,1));
+      SELECT typeof(${fn}(x'',1)), typeof(${fn}(x'FF',9,2)), length(${fn}(x'FF',1,0));
+      SELECT ${fn}('é😀x',2,1), typeof(${fn}('é😀x',2,1));
+    `;
+    const expected = "FF80|C3A9|blob\n00FF|C3\n00FF|00FF|00FF\n00FF80|FF\nblob|blob|0\n😀|text\n";
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+      code: 0, stdout: expected, stderr: ""
+    });
+    assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), expected);
+  });
+}
+
 test("sqlite3 instr searches complete BLOB bytes", async () => {
   assert.deepEqual(
     await runSqlite3(createMemoryFileSystem(), [":memory:", `

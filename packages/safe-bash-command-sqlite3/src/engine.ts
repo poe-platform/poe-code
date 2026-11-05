@@ -7824,8 +7824,7 @@ export class SqliteDatabase {
         if (a0 === null || a1 === null) {
           return null;
         }
-        const s = toSqlString(a0);
-        const chars = Array.from(s);
+        const chars = a0 instanceof Uint8Array ? a0 : Array.from(toSqlString(a0));
         const pos = Math.trunc(toSqlNumber(a1));
         let len =
           args[2] !== undefined && args[2] !== null
@@ -7838,19 +7837,19 @@ export class SqliteDatabase {
           startIdx = chars.length + pos;
         } else {
           startIdx = 0;
-          // Position zero consumes one character before the string begins.
+          // Position zero consumes one character or byte before the value begins.
           if (args[2] !== undefined && args[2] !== null && len > 0) len -= 1;
         }
+        let endIdx;
         if (len < 0) {
-          const endIdx = Math.max(0, startIdx);
-          const beginIdx = Math.max(0, endIdx + len);
-          return chars.slice(beginIdx, endIdx).join("");
+          endIdx = Math.max(0, startIdx);
+          startIdx = Math.max(0, endIdx + len);
+        } else {
+          endIdx = Math.max(0, startIdx + len);
+          startIdx = Math.max(0, startIdx);
         }
-        if (startIdx < 0) {
-          const adjustedLen = Math.max(0, len + startIdx);
-          return chars.slice(0, adjustedLen).join("");
-        }
-        return chars.slice(startIdx, startIdx + len).join("");
+        const result = chars.slice(startIdx, endIdx);
+        return result instanceof Uint8Array ? result : result.join("");
       }
       case "REPLACE":
         if (a0 === null || a1 === null || args[2] === null || args[2] === undefined) {

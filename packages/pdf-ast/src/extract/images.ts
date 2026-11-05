@@ -60,6 +60,8 @@ export interface PdfExtractedImage {
     readonly k: number;
     readonly blackIs1: boolean;
     readonly byteAlign: boolean;
+    readonly columns?: number;
+    readonly endOfLine?: boolean;
   } | undefined;
 }
 
@@ -1129,11 +1131,7 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
             let rawJpegBytes: Uint8Array | undefined;
             let rawEncodedBytes: Uint8Array | undefined;
             let jbig2GlobalsBytes: Uint8Array | undefined;
-            let ccittParams: {
-                readonly k: number;
-                readonly blackIs1: boolean;
-                readonly byteAlign: boolean;
-            } | undefined;
+            let ccittParams: PdfExtractedImage["ccittParams"];
             if (encoding === "jpx" || encoding === "jbig2" || encoding === "ccitt") {
                 rawEncodedBytes = (yield* extractRawJpegFromStreamSteps(doc, xobjStream, filters));
                 const dpNode = dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP");
@@ -1160,7 +1158,11 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
                     const kNode = dpDict ? doc.resolve(dictGet(dpDict, "K")) : undefined;
                     const biNode = dpDict ? doc.resolve(dictGet(dpDict, "BlackIs1")) : undefined;
                     const baNode = dpDict ? doc.resolve(dictGet(dpDict, "EncodedByteAlign")) : undefined;
+                    const columns = dpDict ? doc.resolve(dictGet(dpDict, "Columns")) : undefined;
+                    const eol = dpDict ? doc.resolve(dictGet(dpDict, "EndOfLine")) : undefined;
                     ccittParams = {
+                        columns: columns?.kind === "number" ? columns.value : 1728,
+                        endOfLine: eol?.kind === "boolean" && eol.value,
                         k: kNode?.kind === "number" ? kNode.value : 0,
                         blackIs1: biNode?.kind === "boolean" ? biNode.value : false,
                         byteAlign: baNode?.kind === "boolean" ? baNode.value : false,

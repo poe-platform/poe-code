@@ -433,10 +433,10 @@ describe("safe-bash-command-pdfimages", () => {
     expect(Array.from(files.get("raw-000.jp2") ?? [])).toEqual(Array.from(jp2Payload));
     expect(Array.from(files.get("raw-001.jb2e") ?? [])).toEqual(Array.from(jbig2Payload));
     expect(Array.from(files.get("raw-002.ccitt") ?? [])).toEqual(Array.from(ccittPayload));
+    const listing = await runPdfimagesCli(["-list", "streams.pdf"], files);
+    expect(listing.stdout.trimEnd().split("\n").at(-1)).toContain("image      64    48  gray    1   1  ccitt  no");
     const paramsText = new TextDecoder().decode(files.get("raw-002.params")!);
-    expect(paramsText).toContain("-4");
-    expect(paramsText).toContain("-x 64");
-    expect(paramsText).toContain("-y 48");
+    expect(paramsText).toBe("-4 -P -X 64 -W -M\n");
     expect(res.stdout).toBe("raw-000.jp2\nraw-001.jb2e\nraw-002.ccitt\n");
   });
 

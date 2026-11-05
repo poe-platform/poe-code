@@ -29,6 +29,10 @@ export interface PdfimagesCliResult {
   readonly stderr: string;
 }
 
+function faxParams(k = 0, columns = 1728, endOfLine = false, blackIs1 = false): string {
+  return `${k < 0 ? "-4" : k > 0 ? "-2" : "-1"} ${endOfLine ? "-A" : "-P"} -X ${columns} ${blackIs1 ? "-W" : "-B"} -M\n`;
+}
+
 function formatPopplerSize(byteLength: number): string {
   if (byteLength < 0) return "   - ";
   if (byteLength <= 9999) return `${byteLength}B`;
@@ -51,10 +55,14 @@ function formatPopplerRatio(
   components: number,
   bpc: number
 ): string {
-  const uncompressedBytes = Math.floor(width * height * components * bpc / 8);
-  if (uncompressedBytes <= 0 || byteLength < 0) return "  - ";
-  const pct = 100 * byteLength / uncompressedBytes;
-  return `${pct.toFixed(pct > 9.9 ? 0 : 1)}%`;
+  const bytes = Math.floor(width * height * components * bpc / 8);
+  if (bytes <= 0 || byteLength < 0) return "  - ";
+  const pct = 100 * byteLength / bytes;
+  const scale = pct <= 9.9 ? 10 : 1;
+  const scaled = pct * scale;
+  const floor = Math.floor(scaled);
+  const rounded = scaled - floor === 0.5 && floor % 2 === 0 ? floor : Math.round(scaled);
+  return (rounded / scale).toFixed(scale === 10 ? 1 : 0) + "%";
 }
 
 const PDFIMAGES_VALUE_FLAGS = new Set(["-f", "-l", "-upw", "-opw", "-min-width", "-min-height"]);
@@ -315,16 +323,8 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
                 const paramsBase = includePage
                     ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.params`
                     : `${root}-${numStr}.params`;
-                const kVal = img.ccittParams?.k ?? 0;
-                const kFlag = kVal < 0 ? "-4" : kVal > 0 ? "-2" : "-1";
-                const extraFlags = [
-                    kFlag,
-                    `-x ${img.width}`,
-                    `-y ${img.height}`,
-                    ...(img.ccittParams?.blackIs1 ? ["-B"] : []),
-                    ...(img.ccittParams?.byteAlign ? ["-A"] : []),
-                ].join(" ");
-                files.set(paramsBase, new TextEncoder().encode(`${extraFlags}\n`));
+                const p = img.ccittParams;
+                files.set(paramsBase, new TextEncoder().encode(faxParams(p?.k, p?.columns, p?.endOfLine, p?.blackIs1)));
             }
             if (printFilenames)
                 printedFilenames.push(outName);
@@ -422,8 +422,8 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
           }
           // Buffered inline extraction exposes default CCITT sidecar parameters.
           const value = async (key: string) => !occurrence.inline && parameter?.kind === "dict" ? (await doc.lookup(dictGet(parameter,key)))?.value : undefined;
-          const k = await value("K"), black = await value("BlackIs1"), align = await value("EncodedByteAlign");
-          yield { decoded, metadata, idx: idx++, ccitt: { k: k?.kind === "number" ? k.value : 0, black: black?.kind === "boolean" && black.value, align: align?.kind === "boolean" && align.value } };
+          const k = await value("K"), black = await value("BlackIs1"), columns = await value("Columns"), eol = await value("EndOfLine");
+          yield { decoded, metadata, idx: idx++, ccitt: { k: k?.kind === "number" ? k.value : 0, black: black?.kind === "boolean" && black.value, columns: columns?.kind === "number" ? columns.value : 1728, eol: eol?.kind === "boolean" && eol.value } };
         } catch (failure) { imageFailed = true; throw failure; } finally { await decoded.close().catch(failure => { if (!imageFailed) throw failure; }); }
       }
     }
@@ -443,7 +443,7 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
         const chunks = ext === "png" ? encodeRetainedPng(decoded.width,decoded.height,decoded.rows(),storage,{signal}) : ext === "tif" ? encodeRetainedTiff(decoded.width,decoded.height,decoded.rows(),storage,{signal}) : ext === "ppm" || ext === "pbm" ? encodePortableBitmapChunks(ext,decoded.width,decoded.height,decoded.rows(),{signal}) : decoded.nativeContents();
         yield { name: `${base}.${ext}`, chunks };
         if (ext === "jb2e" && decoded.globalsByteLength !== undefined && !metadata.inline) yield { name: `${base}.jb2g`, chunks: decoded.nativeContents("globals") };
-        if (ext === "ccitt") yield { name: `${base}.params`, chunks: text([ccitt.k < 0 ? "-4" : ccitt.k > 0 ? "-2" : "-1", `-x ${decoded.width}`, `-y ${decoded.height}`, ...(ccitt.black ? ["-B"] : []), ...(ccitt.align ? ["-A"] : [])].join(" ") + "\n") };
+        if (ext === "ccitt") yield { name: `${base}.params`, chunks: text(faxParams(ccitt.k, ccitt.columns, ccitt.eol, ccitt.black)) };
       }
     }
     outputs = await PdfStagedOutputs.create(storage, entries(), { signal });

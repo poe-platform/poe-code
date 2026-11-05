@@ -199,6 +199,18 @@ class Markdown {
           const result = await writeGfm({blocks: [node], metadata: {}, resources: []}, this.context, this.selection, (nodes, path) => this.inline(nodes, path, "", false, true));
           if(result.kind === "text") parts.push(result.text.endsWith("\n") ? result.text.slice(0, -1) : result.text); break;
         }
+        case "Figure": {
+          this.attrs(node.c[0], p);
+          const body = node.c[2], caption = node.c[1][1], block = body[0], label = caption[0];
+          const image = block && (block.t === "Plain" || block.t === "Para") && block.c.length === 1 ? block.c[0] : undefined;
+          if (body.length === 1 && image?.t === "Image" && caption.length === 1 && (label?.t === "Plain" || label?.t === "Para")) {
+            parts.push(this.inline([{t: "Image", c: [image.c[0], label.c, image.c[2]]}], `${p}.c[2][0].c`));
+          } else {
+            const content = await this.blocks(body, `${p}.c[2]`), text = await this.blocks(caption, `${p}.c[1][1]`);
+            parts.push(this.join([content, text].filter(Boolean), "\n\n"));
+          }
+          break;
+        }
         case "Div": this.attrs(node.c[0], p); parts.push(await this.blocks(node.c[1], `${p}.c[1]`)); break;
         case "RawBlock": this.loss(p, "raw blocks"); parts.push(this.text(node.c[1], true, true)); break;
         default: this.loss(p, node.t);

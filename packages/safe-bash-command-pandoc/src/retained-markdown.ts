@@ -385,6 +385,25 @@ class MarkdownTape {
           await this.attrs(await this.at(content!, 1), job.path);
           await this.push({op: "header", node: content!, path: cp}); const inner = await child(2, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;
         }
+        if (tag === "Figure") {
+          await this.attrs(content! + 32, job.path);
+          const body = await this.at(content!, 2), caption = await this.at(await this.at(content!, 1), 1);
+          const bp = await this.path(cp, "[2]"), captionPath = await this.path(cp, "[1][1]");
+          if (await this.count(body) === 1 && await this.count(caption) === 1 && ["Plain", "Para"].includes(await this.tag(body + 32)) && ["Plain", "Para"].includes(await this.tag(caption + 32))) {
+            const inlines = (await this.tree.property(body + 32, "c"))!;
+            if (await this.count(inlines) === 1 && await this.tag(inlines + 32) === "Image") {
+              const image = (await this.tree.property(inlines + 32, "c"))!;
+              await this.attrs(image + 32, await this.path(bp, "[0].c[0]"));
+              await this.push({op: "link", node: image, path: await this.path(bp, "[0].c[0].c"), first: "!["});
+              await this.push(this.list((await this.tree.property(caption + 32, "c"))!, await this.path(captionPath, "[0].c"), "inline"));
+              continue;
+            }
+          }
+          const parts: Job[] = [];
+          if (await this.count(body)) parts.push(this.list(body, bp, "block"));
+          if (await this.count(caption)) parts.push(this.list(caption, captionPath, "block"));
+          await this.push({op: "parts", node: 0, path: cp, sep: "\n\n", parts}); continue;
+        }
         if (tag === "Div" || tag === "BlockQuote") {
           if (tag === "Div") await this.attrs(content! + 32, job.path);
           else await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: "> ", rest: "> "});

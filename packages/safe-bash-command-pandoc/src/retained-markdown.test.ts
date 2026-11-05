@@ -4,9 +4,38 @@ import { expect, it, vi } from "vitest";
 import { readDocument, writeDocument, convert, convertToOutput } from "./engine.js";
 import type { Attr, Block, Inline } from "./ast-types.js";
 import type { WriteOptions } from "./types.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 const a: Attr = ["", [], []];
 const s = (c: string): Inline => ({t: "Str", c});
 const p = (...c: Inline[]): Block => ({t: "Para", c});
+it("writes the JSON Figure command reproduction without losing content or warning", async () => {
+  const image: Inline = {t: "Image", c: [a, [s("Alt")], ["pic.png", "Caption"]]};
+  const document = {"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [
+    {t: "Figure", c: [a, [null, [{t: "Plain", c: [s("Alt")]}]], [{t: "Plain", c: [image]}]]}
+  ]};
+  let output = "", errors = "";
+  const result = await createStandalonePandocCommand().execute({
+    args: ["-f", "json", "-t", "markdown"], stdin: [new TextEncoder().encode(JSON.stringify(document))],
+    signal: new AbortController().signal,
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}
+  });
+  expect(result.exitCode, errors).toBe(0);
+  expect(errors).toBe("");
+  expect(output).toBe('![Alt](<pic.png> "Caption")\n');
+});
+it("preserves figure images with their long captions in both Markdown writers", async () => {
+  const image: Inline = {t: "Image", c: [a, [s("Alt")], ["pic.png", "Caption"]]};
+  for (const to of ["markdown", "commonmark", "gfm"]) {
+    for (const caption of [[s("Alt")], [{t: "Emph", c: [s("Long caption")]} as Inline]]) {
+      const figure: Block = {t: "Figure", c: [a, [[s("Short")], [p(...caption)]], [p(image)]]};
+      expect(await md([figure], to)).toBe(caption[0]?.t === "Emph" ? '![*Long caption*](<pic.png> "Caption")\n' : '![Alt](<pic.png> "Caption")\n');
+      expect(await md([{t: "BlockQuote", c: [figure]}], to)).toContain('> ![');
+    }
+    expect(await md([{t: "Figure", c: [a, [null, [p(s("Caption"))]], [p(s("Body"))]]}], to)).toBe("Body\n\nCaption\n");
+    expect(await md([{t: "Figure", c: [a, [null, []], [p(image)]]}], to)).toBe('![Alt](<pic.png> "Caption")\n');
+  }
+});
 it.each(["markdown", "md", "gfm+tex_math_dollars"])("preserves inline and display math in retained %s output", async to => {
   expect(await md([p({t: "Math", c: ["InlineMath", "x + 1"]}, {t: "Space"}, {t: "Math", c: ["DisplayMath", "\\frac{x}{y}"]})], to)).toBe("$x + 1$ $$\\frac{x}{y}$$\n");
 });

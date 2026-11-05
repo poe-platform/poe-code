@@ -6482,7 +6482,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 
 interface MontageArguments {
     concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean; thumbnail: string | undefined;
+    frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean; thumbnail: string | undefined; title: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments, void> {
     let cooperativeWork = 63;
@@ -6495,6 +6495,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let defaultGeometry = true;
     let concatenate = false;
     let thumbnail: string | undefined;
+    let title: string | undefined;
     let padX = 4;
     let padY = 3;
     let borderW = 0;
@@ -6573,7 +6574,13 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 defaultGeometry = false;
             }
         }
-        else if (t === "-title" || t === "-font") {
+        else if (t === "-title") {
+            title = argv[++i] ?? "";
+        }
+        else if (t === "+title") {
+            title = undefined;
+        }
+        else if (t === "-font") {
             i++;
         }
         else if (!t.startsWith("-")) {
@@ -6581,11 +6588,20 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte };
+    return { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title };
+}
+function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
+    // Montage doubles the title point size and reserves twice the normal line metrics.
+    // Arial-compatible layout metrics; glyphs still use the portable bitmap renderer.
+    const lineHeight = 2 * (Math.ceil(state.pointsize * 1854 / 2048) + Math.ceil(state.pointsize * 434 / 2048));
+    const lines = title.split("\n");
+    const height = lines.length * lineHeight + padY * 2;
+    const text = lines.map((line, index) => `<text x="${width / 2}" y="${padY + index * lineHeight + Math.ceil(state.pointsize * 2 * 1854 / 2048)}" text-anchor="middle" font-size="${state.pointsize * 2}" fill="${rgbaToCss(state.fill)}">${escapeXml(line)}</text>`).join("");
+    return { height, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${text}</svg>` };
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte } = yield* parseMontageArguments(argv);
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = yield* parseMontageArguments(argv);
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -6803,6 +6819,15 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         images.length = 0;
     }
+    if (title !== undefined) {
+        const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
+        const caption = decodeImage(new TextEncoder().encode(svg));
+        const previous = canvas;
+        canvas = yield* extendImageSteps(canvas, { top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" });
+        detachRgbaBuffer(previous.data);
+        yield* blitOverRgbaInPlaceSteps(canvas, caption, 0, 0);
+        detachRgbaBuffer(caption.data);
+    }
     if (!anyTransparent) {
         (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
         (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
@@ -6818,7 +6843,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte } = await drainSteps(parseMontageArguments(argv), signal);
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = await drainSteps(parseMontageArguments(argv), signal);
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
@@ -6970,6 +6995,12 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 if (anyTransparent) break;
             }
             canvas = await compositeStoredMagick(canvas, image, backend, signal, x + (fast ? borderW : 0), y + (fast ? borderW : 0), "over", undefined, false, true, directPng);
+        }
+        if (title !== undefined) {
+            const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
+            const caption = await decodeStoredMagickSvg(svg, 72, backend, signal);
+            canvas = await transformStoredImage(canvas, backend.storage, { kind: "extend", top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
+            canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
         }
         if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
         const { format, path } = inferOutputFormat(outSpec, "png"), stdoutBytes = await backend.publish(canvas, path, { format, quality: state.quality });

@@ -31,7 +31,7 @@ function padded(name: string): string {
 function date(entry: ZipEntry): string {
   const modified = entry.modified;
   const pad = (value: number) => String(value).padStart(2, "0");
-  return `${modified.getFullYear()}-${pad(modified.getMonth() + 1)}-${pad(modified.getDate())} ${pad(modified.getHours())}:${pad(modified.getMinutes())}`;
+  return `${pad(modified.getMonth() + 1)}-${pad(modified.getDate())}-${modified.getFullYear()} ${pad(modified.getHours())}:${pad(modified.getMinutes())}`;
 }
 
 async function comment(bytes: Uint8Array, budget: Budget): Promise<void> {

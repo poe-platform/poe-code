@@ -6,7 +6,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { CommandContext, FileSystem } from "safe-bash-contracts";
 import { bindFileOutputBudget } from "safe-bash-contracts/filesystem-output";
 import type { ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
-import { createUnzipCommand } from "./unzip.js";
+import { createUnzipCommand } from "./index.js";
 
 
 interface Member { name: string; body?: string | Uint8Array; mode?: number; method?: number; extra?: Uint8Array; crc?: number; flags?: number }
@@ -69,6 +69,25 @@ async function run(fs: FileSystem, args: readonly string[], input = "", options:
 }
 
 const heading = "Archive:  sample.zip\n";
+for (const [mode, entry] of [
+  ["-l", "        3  11-04-2026 18:53   é.txt"],
+  ["-v", "       3  Stored        3   0% 11-04-2026 18:53 da160e7d  é.txt"],
+] as const) test(`unzip ${mode} matches native macOS listing dates`, async (t) => {
+  const previous = process.env.TZ;
+  process.env.TZ = "America/Chicago";
+  t.after(() => {
+    if (previous === undefined) delete process.env.TZ;
+    else process.env.TZ = previous;
+  });
+  const fs = await fixture([]);
+  await fs.writeFile("/work/sample.zip", await readFile(new URL("./fixtures/macos-utf8.zip", import.meta.url)));
+  const result = await run(fs, [mode, "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout.split("\n")[3], entry);
+  await assert.rejects(fs.stat("/work/é.txt"));
+});
+
 // macOS system Zip 3.0: printf 'ok\n' > é.txt; zip -q single.zip é.txt
 // The filename is UTF-8, without bit 11 or a Unicode Path extra field.
 test("unzip lists and extracts unflagged UTF-8 names from macOS zip", async () => {
@@ -266,9 +285,9 @@ test("unzip -jn retains flattened destination and input archive safety", async (
   assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "keep");
 });
 
-test("unzip native Linux listing includes exact padding and totals", async () => {
+test("unzip listing includes exact padding and totals", async () => {
   assert.deepEqual(await run(await fixture(), ["-l", "sample.zip"]), { exitCode: 0, stderr: "", stdout: heading + listing
-    + "        0  2024-01-02 03:04   folder/\n        6  2024-01-02 03:04   hello.txt\n        5  2024-01-02 03:04   folder/data.txt\n"
+    + "        0  01-02-2024 03:04   folder/\n        6  01-02-2024 03:04   hello.txt\n        5  01-02-2024 03:04   folder/data.txt\n"
     + footer + "       11                     3 files\n" });
 });
 
@@ -312,7 +331,7 @@ test("unzip pattern selection and unmatched statuses follow native", async () =>
   const fs = await fixture();
   assert.deepEqual(await run(fs, ["-l", "sample.zip", "absent"]), { exitCode: 11, stderr: "caution: filename not matched:  absent\n", stdout: heading + listing + footer + "        0                     0 files\n" });
   assert.deepEqual(await run(fs, ["sample.zip", "absent"]), { exitCode: 11, stderr: "caution: filename not matched:  absent\n", stdout: heading });
-  assert.deepEqual(await run(fs, ["-l", "sample.zip", "*.txt"]), { exitCode: 0, stderr: "", stdout: heading + listing + "        6  2024-01-02 03:04   hello.txt\n        5  2024-01-02 03:04   folder/data.txt\n" + footer + "       11                     2 files\n" });
+  assert.deepEqual(await run(fs, ["-l", "sample.zip", "*.txt"]), { exitCode: 0, stderr: "", stdout: heading + listing + "        6  01-02-2024 03:04   hello.txt\n        5  01-02-2024 03:04   folder/data.txt\n" + footer + "       11                     2 files\n" });
 });
 
 test("unzip overwrite EOF is a warning and skips subsequent existing files", async () => {

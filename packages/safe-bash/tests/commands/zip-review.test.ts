@@ -438,7 +438,7 @@ test("unzip review: DOS-only timestamps use local time rather than UTC", async (
     assert.deepEqual(Buffer.from(await fs.readFile("/work/file")), Buffer.from("replacement"));
     assert.equal((await fs.stat("/work/file")).mtimeMs, Date.parse("2024-01-02T08:04:06Z"));
     const listing = await run(fs, "unzip", ["-l", "sample.zip"]);
-    assert.equal(listing.stdout.toString(), "Archive:  sample.zip\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n       11  2024-01-02 03:04   file\n---------                     -------\n       11                     1 file\n");
+    assert.equal(listing.stdout.toString(), "Archive:  sample.zip\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n       11  01-02-2024 03:04   file\n---------                     -------\n       11                     1 file\n");
   } finally {
     if (previous === undefined) delete process.env.TZ;
     else process.env.TZ = previous;

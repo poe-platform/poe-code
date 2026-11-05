@@ -827,6 +827,22 @@ describe("native ffmpeg parity", () => {
     });
   }
 
+  for (const color of ["notacolor", "#xyzxyz", "0x12345", "1234567", "notacolor@0.5"]) {
+    it(`rejects invalid lavfi color ${color} without writing output`, async () => {
+      for (const initialFiles of [{}, { "/out.png": "existing image" }]) {
+        const vfs = createTestVfs(initialFiles);
+        const original = vfs.store.get("/out.png");
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "lavfi", "-i", `color=c=${color}:s=16x16:r=1:d=1`,
+          "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.equal(result.exitCode, 1);
+        assert.ok(result.stderr.includes(`Invalid color: ${color}`), result.stderr);
+        assert.equal(vfs.store.get("/out.png"), original);
+      }
+    });
+  }
+
   it("preserves destination alpha when blending drawbox", async () => {
     const { decodeImage } = await import("@poe-code/image-ast/portable");
     const vfs = createTestVfs();

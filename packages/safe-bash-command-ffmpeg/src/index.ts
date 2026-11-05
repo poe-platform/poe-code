@@ -156,7 +156,7 @@ function parseColorRgba(colorStr: string): [number, number, number, number] {
       alpha ?? (hex.length === 8 ? parseInt(hex.slice(6, 8), 16) : 255)
     ];
   }
-  return [40, 120, 220, 255];
+  throw new Error(`Invalid color: ${colorStr}`);
 }
 
 function detachBytesBuffer(bytes: Uint8Array | undefined): void {

@@ -1302,13 +1302,14 @@ function sqlEquals(a: SqlValue, b: SqlValue, collation = "BINARY"): boolean | nu
 }
 
 export function matchLike(str: string, pattern: string, caseInsensitive: boolean, escapeChar = ""): boolean {
+  const characters = [...pattern];
   let regexStr = "^";
-  for (let i = 0; i < pattern.length; i += 1) {
-    let c = pattern[i]!;
-    const escaped = escapeChar && c === escapeChar && i + 1 < pattern.length;
+  for (let i = 0; i < characters.length; i += 1) {
+    let c = characters[i]!;
+    const escaped = escapeChar && c === escapeChar && i + 1 < characters.length;
     if (escaped) {
       i += 1;
-      c = pattern[i]!;
+      c = characters[i]!;
     }
     if (!escaped && c === "%") {
       regexStr += "[\\s\\S]*";
@@ -1321,7 +1322,7 @@ export function matchLike(str: string, pattern: string, caseInsensitive: boolean
     }
   }
   regexStr += "$";
-  return new RegExp(regexStr).test(str);
+  return new RegExp(regexStr, "u").test(str);
 }
 
 export function matchGlob(str: string, pattern: string): boolean {
@@ -1353,7 +1354,7 @@ export function matchGlob(str: string, pattern: string): boolean {
     }
   }
   regexStr += "$";
-  return new RegExp(regexStr).test(str);
+  return new RegExp(regexStr, "u").test(str);
 }
 
 // --- Date/Time Helpers ---

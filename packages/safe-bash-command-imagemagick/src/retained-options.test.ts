@@ -28,12 +28,15 @@ it(`keeps query/missing-input semantics without whole-file I/O: ${args.join(" ")
     expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["input"]);
 });
 
-it.each([true, false])("matches independent raised-border pixels with raised=%s", async raised => {
-    const fs = new MemoryFileSystem(), source = Uint8Array.from({ length: 36 }, (_, i) => i % 4 === 3 ? 127 : 100), bytes = await sharp(source, { raw: { width: 3, height: 3, channels: 4 } }).png().toBuffer();
+it.each([true, false])("matches native ImageMagick raised-border pixels with raised=%s", async raised => {
+    const fs = new MemoryFileSystem(), source = Uint8Array.from({ length: 36 }, (_, i) => i % 4 === 3 ? 255 : 128), bytes = await sharp(source, { raw: { width: 3, height: 3, channels: 4 } }).png().toBuffer();
     await fs.writeFile("/input", bytes);
-    expect((await runConvertCli(["input", raised ? "-raise" : "+raise", "1", "out.png"], { filesystem: fs, cwd: "/" })).exitCode).toBe(0);
-    const values = raised ? [140, 140, 140, 140, 100, 60, 140, 60, 60] : [60, 60, 140, 60, 100, 140, 140, 140, 140];
-    expect(decodeImage(await fs.readFile("/out.png")).data).toEqual(Uint8Array.from(values.flatMap(value => [value, value, value, 127])));
+    expect((await runConvertCli(["input", raised ? "-raise" : "+raise", "1x1", "out.png"], { filesystem: fs, cwd: "/" })).exitCode).toBe(0);
+    const files = new Map([["input", bytes]]);
+    expect((await runConvertCli(["input", raised ? "-raise" : "+raise", "1x1", "out.png"], files)).exitCode).toBe(0);
+    expect(decodeImage(files.get("out.png")!)).toEqual(decodeImage(await fs.readFile("/out.png")));
+    const values = raised ? [188, 188, 188, 160, 128, 95, 160, 68, 95] : [68, 68, 68, 95, 128, 160, 95, 188, 160];
+    expect(decodeImage(await fs.readFile("/out.png")).data).toEqual(Uint8Array.from(values.flatMap(value => [value, value, value, 255])));
 });
 
 it("preserves wide image transforms across bounded spans", async () => {
@@ -42,4 +45,17 @@ it("preserves wide image transforms across bounded spans", async () => {
     const args = ["input", "-raise", "2", "-transpose", "+raise", "1", "-transverse", "out.png"], files = new Map([["input", bytes]]);
     expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, files));
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+});
+
+it.each([true, false])("matches native two-pixel bevel corners on RGB with raised=%s", async raised => {
+    const source = Uint8Array.from(Array.from({ length: 25 }, () => [20, 100, 220, 255]).flat());
+    const bytes = await sharp(source, { raw: { width: 5, height: 5, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input", bytes]]);
+    expect((await runConvertCli(["input", raised ? "-raise" : "+raise", "2x2", "out.png"], files)).exitCode).toBe(0);
+    // Native ImageMagick 7.1.2: top, left, center, right, and bottom shades.
+    const shades = raised
+        ? [[131, 173, 236], [80, 140, 229], [20, 100, 220], [15, 75, 164], [11, 53, 116]]
+        : [[11, 53, 116], [15, 75, 164], [20, 100, 220], [80, 140, 229], [131, 173, 236]];
+    const regions = [0, 0, 0, 0, 0, 1, 0, 0, 0, 3, 1, 1, 2, 3, 3, 1, 1, 4, 3, 3, 1, 4, 4, 4, 3];
+    expect(decodeImage(files.get("out.png")!).data).toEqual(Uint8Array.from(regions.flatMap(region => [...shades[region]!, 255])));
 });

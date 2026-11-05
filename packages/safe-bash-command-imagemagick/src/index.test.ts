@@ -648,7 +648,7 @@ describe("safe-bash-command-imagemagick", () => {
       [
         "/valid.png",
         "-fx",
-        "a = 1/0; b = 0/0; c = sqrt(-9) + log(-5) + p{-999,9999}.r + u[99].g; clamp(c, 0, 1) * 0 + 0.5",
+        "a = 1/0; b = 0/0; c = sqrt(-9) + log(-5) + p{-999,9999}.r + u[0].g; clamp(c, 0, 1) * 0 + 0.5",
         "-distort",
         "Perspective",
         "0,0 0,0  0,0 0,0  0,0 0,0  0,0 0,0",
@@ -656,7 +656,7 @@ describe("safe-bash-command-imagemagick", () => {
       ],
       files
     );
-    expect(pathFx.exitCode).toBe(0);
+    expect(pathFx.exitCode, pathFx.stderr).toBe(0);
     const pathRaw = await sharp(files.get("/path-fx.png")!).raw().toBuffer();
     expect(pathRaw[0]).toBeCloseTo(128, 1);
   });

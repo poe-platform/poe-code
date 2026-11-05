@@ -2149,6 +2149,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         return result((x, y) => [x, y - padding - amplitude * Math.sin((2 * Math.PI * x) / length)], w, h + Math.round(padding * 2));
     }
     const method = spec.toLowerCase().replace(/[-_]/g, ""), nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);
+    if (method === "arc") throw new Error("Unsupported distortion method: Arc");
     if (method === "srt" || method === "scalerotatetranslate") {
         let ox = cx, oy = cy, scaleX = 1, scaleY = 1, angle = 0, nx = cx, ny = cy;
         if (nums.length === 1) angle = nums[0]!;

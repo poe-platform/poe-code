@@ -51,6 +51,23 @@ async function runSqlite3(
   };
 }
 
+test("sqlite3 IS boolean literals tests truthiness, including negation and NULL", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `
+    SELECT 2 IS TRUE, 0.5 IS TRUE, '1' IS TRUE, '0' IS FALSE;
+    WITH t(v) AS (VALUES (2),(0.5),(-2),(0),('1'),('0'),('abc'),('1x'),(NULL),(x'31'),(x'30'))
+    SELECT v IS TRUE, v IS FALSE, v IS NOT TRUE, v IS NOT FALSE FROM t;
+    SELECT 2 IS 1, 0 IS 0, 2 IS +TRUE, 2 IS (TRUE),
+           2 IS TRUE COLLATE NOCASE, TRUE IS 2, 2 = TRUE;
+  `]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "1|1|1|1\n" + [
+    "1|0|0|1", "1|0|0|1", "1|0|0|1", "0|1|1|0",
+    "1|0|0|1", "0|1|1|0", "0|1|1|0", "1|0|0|1",
+    "0|0|1|1", "1|0|0|1", "0|1|1|0",
+    "0|1|0|1|1|0|0", ""
+  ].join("\n"));
+});
+
 for (const op of ["IS DISTINCT FROM", "IS NOT DISTINCT FROM"]) {
   test(`sqlite3 ${op} compares null and non-null operands`, async () => {
     const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", `

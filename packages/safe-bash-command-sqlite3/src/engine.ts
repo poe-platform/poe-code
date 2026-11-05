@@ -439,7 +439,7 @@ export function tokenizeSql(sql: string): Token[] {
 
 // --- Expression AST ---
 export type ExprNode =
-  | { kind: "literal"; value: SqlValue }
+  | { kind: "literal"; value: SqlValue; booleanLiteral?: true }
   | { kind: "column"; table?: string | undefined; name: string; doubleQuoted?: boolean }
   | { kind: "star"; table?: string | undefined }
   | { kind: "param"; name: string; index: number }
@@ -894,11 +894,11 @@ class ExprParser {
       }
       if (upper === "TRUE") {
         this.pos += 1;
-        return { kind: "literal", value: 1 };
+        return { kind: "literal", value: 1, booleanLiteral: true };
       }
       if (upper === "FALSE") {
         this.pos += 1;
-        return { kind: "literal", value: 0 };
+        return { kind: "literal", value: 0, booleanLiteral: true };
       }
       if (upper === "CURRENT_TIMESTAMP") {
         this.pos += 1;
@@ -7153,6 +7153,15 @@ export class SqliteDatabase {
               ? expr.right.collation
               : "BINARY";
         let l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
+        if (expr.op === "IS" || expr.op === "IS NOT") {
+          let right = expr.right;
+          while (right.kind === "collate") right = right.expr;
+          if (right.kind === "literal" && right.booleanLiteral) {
+            const truth = isTruthy(l instanceof Uint8Array ? toSqlString(l) : l);
+            const matches = l !== null && truth === (right.value === 1);
+            return matches !== (expr.op === "IS NOT") ? 1 : 0;
+          }
+        }
         if (
           (expr.op === "LIKE" || expr.op === "GLOB") &&
           expr.right.kind === "func" &&

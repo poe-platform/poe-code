@@ -26,6 +26,19 @@ test("standalone awk works with only portable filesystem and command contracts",
   assert.equal(result.stdout, "right\n");
 });
 
+for (const value of [-2, -1, -0.5, 0, 1]) {
+  for (const output of ['printf format, x, x, x, x, x, x, x, x, x', 'print sprintf(format, x, x, x, x, x, x, x, x, x)']) {
+    test(`unsigned formatting clamps negatives: ${output}, ${value}`, async () => {
+      const program = `BEGIN { x = ${value}; format = "%u|%x|%X|%o|%#x|%#o|%.0u|%05u|%d"; ${output} }`;
+      const expected = value > 0 ? "1|1|1|1|0x1|01|1|00001|1" : `0|0|0|0|0|0||00000|${Math.trunc(value)}`;
+      const result = await run(createAwkCommand(), [program]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected + (output.startsWith("print ") ? "\n" : ""));
+      assert.equal(result.stderr, "");
+    });
+  }
+}
+
 for (const [program, expected] of [
   ['BEGIN { print sqrt(-1) }', "nan\n"],
   ['BEGIN { print log(0) }', "-inf\n"],

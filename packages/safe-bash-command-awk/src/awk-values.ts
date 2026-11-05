@@ -227,7 +227,7 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
       admit(1);
       part = value.kind === "string" ? value.text[0] ?? "\0" : String.fromCharCode(Math.trunc(amountOf(value)) & 255);
     } else {
-      const amount = amountOf(value);
+      let amount = amountOf(value);
       // Charge requested rendering work before numeric formatting or padding.
       budget?.step(1 + (/[fFeEgG]/u.test(conversion) ? precision ?? 6 : 0));
       if (!Number.isFinite(amount)) {
@@ -240,6 +240,7 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
       else if (conversion === "e" || conversion === "E") part = amount.toExponential(precision ?? 6);
       else if (conversion === "g" || conversion === "G") part = general(amount, precision ?? 6, flags.includes("#"));
       else {
+        if (amount < 0 && "uoxX".includes(conversion)) amount = 0;
         const radix = conversion === "o" ? 8 : conversion === "x" || conversion === "X" ? 16 : 10;
         const integer = BigInt(Math.trunc(amount));
         part = (/[uoxX]/u.test(conversion) ? BigInt.asUintN(32, integer) : integer).toString(radix);

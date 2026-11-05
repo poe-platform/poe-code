@@ -190,12 +190,17 @@ pub fn scan(source: &[u16]) -> Result<Document, Error> {
     Ok(Document { root, nodes })
 }
 
-/// Find the colon and following entry delimiter for a top-level scalar key.
+/// Find the colon and following entry delimiter for a scalar key in the selected mapping.
 /// For a missing key return the position before the closing brace or document end.
 /// The scanner distinguishes mapping punctuation from quoted or nested content.
-pub fn mapping_slot(source: &[u16], doc: &Document, name: &[u16]) -> (Option<usize>, usize) {
+pub fn mapping_slot(
+    source: &[u16],
+    doc: &Document,
+    id: usize,
+    name: &[u16],
+) -> (Option<usize>, usize) {
     use super::syntax::scanner::{Scanner, TokenType as T};
-    let root = &doc.nodes[doc.root];
+    let root = &doc.nodes[id];
     let pair = root.children.chunks_exact(2).position(|p| {
         let key = &doc.nodes[p[0]];
         key.kind == Kind::Scalar && key.text == name
@@ -206,9 +211,15 @@ pub fn mapping_slot(source: &[u16], doc: &Document, name: &[u16]) -> (Option<usi
         .map(|id| doc.nodes[*id].start);
     let mut colon = None;
     let mut depth = 0;
-    let mut end = source.len();
+    let mut end = root.end;
     for token in Scanner::new(source.iter().copied()) {
         let at = token.0.index().min(source.len());
+        if at < root.start {
+            continue;
+        }
+        if at >= root.end {
+            break;
+        }
         if !root.flow && next.is_some_and(|n| at >= n) {
             end = line_start(source, at);
             break;

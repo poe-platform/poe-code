@@ -32,6 +32,16 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("a legacy inline host does not replace other accounts in an existing hosts.yml", async () => {
+      for (const shell of [ts.shell, rust]) {
+        const result = await shell.exec("export GH_CONFIG_DIR=gh-mixed; mkdir -p gh-mixed; " +
+          "echo 'hosts: {one: {user: A}}' >gh-mixed/config.yml; " +
+          "echo 'one: {user: B, users: {A: {keep: a}, B: {keep: b}}}' >gh-mixed/hosts.yml; " +
+          "echo 'other: {keep: c}' >>gh-mixed/hosts.yml; gh config set pager cat -h one && cat gh-mixed/hosts.yml");
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, "one: {user: B, users: {A: {keep: a}, B: {keep: b, pager: cat}}, pager: cat}\nother: {keep: c}\n");
+      }
+    });
     await t.test("jq sorting filters evaluate object keys before rejecting the input", async () => {
       for (const filter of ["sort", "unique", "min", "max", "sort_by(.)", "group_by(.+1)", "unique_by(empty)", "min_by(.,.)", "max_by(.)", 'sort_by(error("from key"))']) {
         for (const input of ['{"a":1,"b":2}', "false"]) {

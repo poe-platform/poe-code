@@ -4431,8 +4431,6 @@ fn cmd_gh_inner(
             let error = |stderr| BuiltinOutcome { stdout: String::new(), stderr, exit_code: 1 };
             let display_dir = gh_config_dir(env);
             let dir = resolve_posix_path(cwd, &display_dir);
-            let display = format!("{}/config.yml", display_dir.trim_end_matches('/'));
-            let path = resolve_posix_path(cwd, &display);
             let config = match super::gh_config::read(fs, cwd, &display_dir) {
                 Ok(values) => values,
                 Err(e) => return error(format!("{e}\n")),
@@ -4494,9 +4492,20 @@ fn cmd_gh_inner(
                         return error(format!("failed to set {key:?} to {value:?}: valid values are '{}'\n", choices.join("', '")));
                     }
                     let stderr = if default.is_none() { format!("! warning: '{key}' is not a known configuration key\n") } else { String::new() };
-                    if host.is_empty() {
-                        drop(map);
-                        if let Err(e) = super::gh_config::write(fs, &dir, &path, config.original.as_deref(), key, value) {
+                    drop(map);
+                    use super::gh_config::{set_config, default_config};
+                    let mut writes = Vec::new();
+                    let (name, source) = if host.is_empty() {
+                        ("config.yml", config.original.as_deref().unwrap_or_else(|| default_config()))
+                    } else { ("hosts.yml", config.host_source.as_str()) };
+                    match set_config(source, host, key, value) {
+                        Ok(out) => writes.push((name, out)), Err(e) => return error(format!("{stderr}{e}\n")),
+                    }
+                    if !host.is_empty() && config.original.is_none() { writes.push(("config.yml", default_config().into())); }
+                    if let Err((code, at)) = fs.mkdir(&dir, true, 0o771) { return error(format!("{stderr}{code}: {at}\n")); }
+                    for (name, out) in writes {
+                        let display = format!("{}/{name}", display_dir.trim_end_matches('/'));
+                        if let Err(e) = fs.write_command_path(&resolve_posix_path(cwd, &display), out.as_bytes(), false, 0o600) {
                             let diagnostic = match e.split(':').next() {
                                 Some("EACCES") => format!("failed to write config to disk: open {display}: permission denied"),
                                 Some("EROFS") => format!("failed to write config to disk: open {display}: read-only file system"),
@@ -4504,12 +4513,12 @@ fn cmd_gh_inner(
                             };
                             return error(format!("{stderr}{diagnostic}\n"));
                         }
+                    }
+                    if host.is_empty() {
                         let mut map = states().lock().unwrap();
                         let st = map.entry(fs_id).or_default();
                         if let Some(global) = st.gh_config.get_mut(&dir).and_then(|hosts| hosts.get_mut("")) { global.remove(key); }
                         if key == "git_protocol" { st.gh_git_protocol = value.into(); }
-                    } else {
-                        st.gh_config.entry(dir).or_default().entry(host.into()).or_default().insert(key.into(), value.into());
                     }
                     BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 }
                 }

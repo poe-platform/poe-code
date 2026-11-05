@@ -32,6 +32,7 @@ function decodeYaml(bytes: Uint8Array): string | undefined {
 export async function readGhConfig(context: CommandContext, dir: string) {
   let values = new Map<string, string>();
   let source = "";
+  let hostSource = "";
   let hostsNode: unknown;
   const hosts: [string, Map<string, string>][] = [];
   for (const name of ["config.yml", "hosts.yml"]) {
@@ -44,17 +45,25 @@ export async function readGhConfig(context: CommandContext, dir: string) {
       continue;
     }
     const text = decodeYaml(bytes);
-    if (text === undefined) return { values, hosts, source, error: `invalid config file ${display}: invalid yaml` };
+    if (text === undefined) return { values, hosts, hostSource, source, error: `invalid config file ${display}: invalid yaml` };
     if (!text) continue;
     const doc = parseDocument(text, { schema: "failsafe", uniqueKeys: false });
     const reason = doc.errors.length ? "invalid yaml" : doc.contents && !isMap(doc.contents) ? "invalid format" : "";
-    if (reason) return { values, hosts, source, error: `invalid config file ${display}: ${reason}` };
+    if (reason) return { values, hosts, hostSource, source, error: `invalid config file ${display}: ${reason}` };
     if (!isMap(doc.contents)) continue;
     if (name === "config.yml") {
       source = text;
       values = scalarValues(doc.contents);
       hostsNode = doc.contents.get("hosts", true);
-    } else if (!values.has("hosts") && doc.contents.items.length) {
+      if (isMap(hostsNode) && hostsNode.range) {
+        const [start, end] = hostsNode.range;
+        const indent = " ".repeat(start - (text.lastIndexOf("\n", start - 1) + 1));
+        hostSource = hostsNode.flow ? text.slice(start, end) : text.slice(start, end).split("\n").map((line, i) =>
+          i && line.startsWith(indent) ? line.slice(indent.length) : line).join("\n");
+      }
+    } else if (doc.contents.items.length) {
+      hostSource = text;
+      if (values.has("hosts")) continue;
       hostsNode = doc.contents;
       values.set("hosts", "");
     }
@@ -64,15 +73,38 @@ export async function readGhConfig(context: CommandContext, dir: string) {
       hosts.push([key.value, isMap(value) ? scalarValues(value) : new Map()]);
     }
   }
-  return { values, hosts, source: values.size ? source : undefined, error: "" };
+  return { values, hosts, hostSource, source: values.size ? source : undefined, error: "" };
+}
+
+export const defaultConfig = defaultLines.join("\n") + "\n";
+
+function configMap(source: string): YAMLMap {
+  const doc = parseDocument(source, { schema: "failsafe", uniqueKeys: false, keepSourceTokens: true });
+  if (doc.errors.length || (doc.contents && !isMap(doc.contents))) throw new Error("invalid config file");
+  return doc.contents ?? new YAMLMap();
+}
+
+export function setConfig(source: string, host: string, key: string, value: string): string {
+  const root = configMap(source);
+  const updated = setIn(source, root, host ? [host, key] : [key], value);
+  if (!host) return updated;
+  const user = key === "user" ? value : root.getIn([host, "user"]);
+  return typeof user === "string" && user ? setIn(updated, configMap(updated), [host, "users", user, key], value) : updated;
 }
 
 // Edit the parsed pair's source span: emitting the whole document moves comments on empty values.
-export function setGlobalConfig(original: string | undefined, key: string, value: string): string {
-  const source = original ?? defaultLines.join("\n") + "\n";
-  const doc = parseDocument(source, { schema: "failsafe", uniqueKeys: false, keepSourceTokens: true });
-  if (doc.errors.length || (doc.contents && !isMap(doc.contents))) throw new Error("invalid config file");
-  const map = doc.contents ?? new YAMLMap();
+function setIn(source: string, map: YAMLMap, path: string[], value: string): string {
+  let i = 0;
+  while (i < path.length - 1) {
+    const child = map.get(path[i]!, true);
+    if (isMap(child)) {
+      map = child;
+      i++;
+    } else if (child === undefined || (isScalar(child) && child.type === Scalar.PLAIN &&
+      ["", "~", "null", "Null", "NULL"].includes(String(child.value ?? "")))) break;
+    else return source;
+  }
+  const key = path[i]!;
   const pair = map.items.find(item => isScalar(item.key) && item.key.value === key);
   const flow = !!map.flow;
   const emitted = new Document();
@@ -82,7 +114,7 @@ export function setGlobalConfig(original: string | undefined, key: string, value
     const plain = parseDocument(value, { customTags: ["timestamp"] });
     if (isScalar(plain.contents) && typeof plain.contents.value !== "string") node.type = Scalar.QUOTE_DOUBLE;
   }
-  emitted.set(pair ? "x" : key, node);
+  emitted.setIn([pair ? "x" : key, ...path.slice(i + 1)], node);
   const rendered = emitted.toString({ indent: 4, lineWidth: 0, singleQuote: true, collectionStyle: flow ? "flow" : "block", flowCollectionPadding: false });
   let entry = flow ? rendered.slice(1, -2) : rendered.slice(0, -1);
   if (!value && !flow) entry = entry.slice(0, entry.lastIndexOf(":") + 1);
@@ -93,8 +125,9 @@ export function setGlobalConfig(original: string | undefined, key: string, value
     if (!map.range) return entry + "\n";
     const at = map.range[1] - (flow ? 1 : 0);
     const before = source.slice(0, at);
-    return before + (flow ? !map.items.length ? "" : before.trimEnd().endsWith(",") ? " " : ", " : at && source[at - 1] !== "\n" ? "\n" : "") + indent + entry
+    const result = before + (flow ? !map.items.length ? "" : before.trimEnd().endsWith(",") ? " " : ", " : at && source[at - 1] !== "\n" ? "\n" : "") + indent + entry
       + (flow ? "" : "\n") + source.slice(at);
+    return result.endsWith("\n") ? result : result + "\n";
   }
   const sep = pair.srcToken?.sep?.find(t => t.type === "map-value-ind");
   const start = sep ? sep.offset + 1 : (pair.key as Scalar).range![1];

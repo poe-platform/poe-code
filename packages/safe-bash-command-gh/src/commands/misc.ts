@@ -1092,11 +1092,10 @@ LEARN MORE
 
   const { context } = env;
   const dir = getGhConfigDir(context);
-  const path = resolvePath(context.cwd, dir + "/config.yml");
   const resolvedDir = backend.configDir(context);
   const scopes = backend.configOverrides.get(resolvedDir);
-  const { readGhConfig, setGlobalConfig } = await import("../config-file.js");
-  const { values: file, hosts: diskHosts, source, error: msg } = await readGhConfig(context, dir);
+  const { readGhConfig, setConfig, defaultConfig } = await import("../config-file.js");
+  const { values: file, hosts: diskHosts, source, hostSource, error: msg } = await readGhConfig(context, dir);
   if (msg) {
     await writeErr(`warning: failed to load config: ${msg}\nfailed to create root command: failed to read configuration: ${msg}\n\n`);
     return 1;
@@ -1152,22 +1151,29 @@ LEARN MORE
       return 1;
     }
     if (!values.has(key)) await writeErr(`! warning: '${key}' is not a known configuration key\n`);
-    if (!host) {
-      const updated = setGlobalConfig(source, key, val);
-      await context.fs.mkdir(resolvedDir, { recursive: true, mode: 0o771, signal: context.signal });
+    const writes: [string, string][] = [];
+    if (host) {
+      writes.push(["hosts.yml", setConfig(hostSource, host, key, val)]);
+      if (source === undefined) writes.push(["config.yml", defaultConfig]);
+    } else {
+      writes.push(["config.yml", setConfig(source ?? defaultConfig, host, key, val)]);
+    }
+    await context.fs.mkdir(resolvedDir, { recursive: true, mode: 0o771, signal: context.signal });
+    for (const [name, updated] of writes) {
+      const path = resolvePath(resolvedDir, name);
       try {
         await context.fs.writeFile(path, new TextEncoder().encode(updated), { mode: 0o600, signal: context.signal });
       } catch (error) {
         if (!isFsError(error)) throw error;
         const reason = error.code === "EACCES" ? "permission denied" : error.code === "EROFS" ? "read-only file system" : undefined;
         if (!reason) throw error;
-        await writeErr(`failed to write config to disk: open ${dir}/config.yml: ${reason}\n`);
+        await writeErr(`failed to write config to disk: open ${dir}/${name}: ${reason}\n`);
         return 1;
       }
+    }
+    if (!host) {
       scopes?.get("")?.delete(key);
       backend.updatePublicConfig(resolvedDir, key, val);
-    } else {
-      backend.setConfigValue(resolvedDir, host, key, val);
     }
     return 0;
   }

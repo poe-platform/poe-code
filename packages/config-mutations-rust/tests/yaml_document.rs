@@ -102,18 +102,31 @@ fn root_mapping_slots_ignore_quoted_and_nested_delimiters() {
     use config_mutations_rust::yaml::document::mapping_slot;
     let flow = text("{'a:b': {other: [x, y]}, next: ' } '}");
     let doc = scan(&flow).unwrap();
-    let (colon, end) = mapping_slot(&flow, &doc, &text("a:b"));
+    let (colon, end) = mapping_slot(&flow, &doc, doc.root, &text("a:b"));
     assert_eq!(&flow[colon.unwrap()..end], text(": {other: [x, y]}"));
     assert_eq!(
-        mapping_slot(&flow, &doc, &text("missing")),
+        mapping_slot(&flow, &doc, doc.root, &text("missing")),
         (None, flow.len() - 1)
     );
     let block = text("key: |-\n  not: a key\nother: x\n...\n");
     let doc = scan(&block).unwrap();
-    let (colon, end) = mapping_slot(&block, &doc, &text("key"));
+    let (colon, end) = mapping_slot(&block, &doc, doc.root, &text("key"));
     assert_eq!(&block[colon.unwrap()..end], text(": |-\n  not: a key\n"));
     assert_eq!(
-        &block[mapping_slot(&block, &doc, &text("missing")).1..],
+        &block[mapping_slot(&block, &doc, doc.root, &text("missing")).1..],
         text("...\n")
     );
+}
+
+#[test]
+fn nested_mapping_slots_stop_before_the_sibling_host() {
+    use config_mutations_rust::yaml::document::mapping_slot;
+    let source = text("one:\n    user: {name: 'a,b', keep: x}\nother: untouched\n");
+    let doc = scan(&source).unwrap();
+    let host = doc.nodes[doc.root].children[1];
+    let user = doc.nodes[host].children[1];
+    let (colon, end) = mapping_slot(&source, &doc, user, &text("name"));
+    assert_eq!(&source[colon.unwrap()..end], text(": 'a,b'"));
+    let (_, end) = mapping_slot(&source, &doc, host, &text("editor"));
+    assert_eq!(&source[end..], text("other: untouched\n"));
 }

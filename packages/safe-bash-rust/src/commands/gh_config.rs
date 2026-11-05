@@ -8,6 +8,7 @@ use std::sync::OnceLock;
 pub(super) struct Config {
     pub values: BTreeMap<String, String>,
     pub hosts: Vec<(String, BTreeMap<String, String>)>,
+    pub host_source: String,
     pub original: Option<String>,
 }
 
@@ -96,13 +97,50 @@ pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, 
             entries(&doc, doc.root)
                 .find(|(key, _)| key == "hosts")
                 .map(|(_, node)| node)
-        } else if !root.children.is_empty() && !config.values.contains_key("hosts") {
+        } else if !root.children.is_empty() {
+            config.host_source = text;
+            if config.values.contains_key("hosts") {
+                continue;
+            }
             config.values.insert("hosts".into(), String::new());
             Some(doc.root)
         } else {
             None
         };
         if let Some(hosts) = hosts {
+            if name == "config.yml" && doc.nodes[hosts].kind == Kind::Mapping {
+                let node = &doc.nodes[hosts];
+                let start = if node.flow {
+                    node.start
+                } else {
+                    node.children
+                        .first()
+                        .map_or(node.start, |id| doc.nodes[*id].start)
+                };
+                let prefix = source[..start]
+                    .iter()
+                    .rev()
+                    .take_while(|u| **u == 32)
+                    .count();
+                let snippet = String::from_utf16_lossy(&source[start..node.end]);
+                let indent = " ".repeat(prefix);
+                config.host_source = if node.flow {
+                    snippet
+                } else {
+                    snippet
+                        .split('\n')
+                        .enumerate()
+                        .map(|(i, line)| {
+                            if i == 0 {
+                                line
+                            } else {
+                                line.strip_prefix(&indent).unwrap_or(line)
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                };
+            }
             for (name, host) in entries(&doc, hosts) {
                 config.hosts.push((name, settings(&doc, host)));
             }
@@ -116,7 +154,7 @@ pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, 
     Ok(config)
 }
 
-fn default_config() -> &'static str {
+pub(super) fn default_config() -> &'static str {
     static TEXT: OnceLock<String> = OnceLock::new();
     TEXT.get_or_init(|| {
         let lines = include_str!("../../../safe-bash-command-gh/src/config-defaults.json");
@@ -188,26 +226,67 @@ fn scalar(text: &str, flow: bool, key: bool) -> String {
     format!("'{}'", text.replace('\'', "''"))
 }
 
-pub(super) fn write(
-    fs: &dyn SafeBashFs,
-    dir: &str,
-    path: &str,
-    original: Option<&str>,
+pub(super) fn set_config(
+    original: &str,
+    host: &str,
     key: &str,
     value: &str,
-) -> Result<(), String> {
-    let source: Vec<_> = original
-        .unwrap_or_else(|| default_config())
-        .encode_utf16()
-        .collect();
+) -> Result<String, String> {
+    let source: Vec<_> = original.encode_utf16().collect();
     let doc = scan(&source).map_err(|e| e.to_string())?;
-    let root = &doc.nodes[doc.root];
+    if host.is_empty() {
+        return Ok(set_in(&source, &doc, &[key], value));
+    }
+    let updated = set_in(&source, &doc, &[host, key], value);
+    let user = if key == "user" {
+        value.to_owned()
+    } else {
+        entries(&doc, doc.root)
+            .find(|(name, _)| name == host)
+            .and_then(|(_, id)| entries(&doc, id).find(|(k, _)| k == "user"))
+            .map(|(_, id)| String::from_utf16_lossy(&doc.nodes[id].text))
+            .unwrap_or_default()
+    };
+    if user.is_empty() {
+        return Ok(updated);
+    }
+    let source: Vec<_> = updated.encode_utf16().collect();
+    let doc = scan(&source).map_err(|e| e.to_string())?;
+    Ok(set_in(&source, &doc, &[host, "users", &user, key], value))
+}
+
+fn set_in(source: &[u16], doc: &Document, path: &[&str], value: &str) -> String {
+    let mut id = doc.root;
+    let mut path = path;
+    while path.len() > 1 {
+        let child = entries(doc, id).find(|(name, _)| name == path[0]);
+        let Some((_, child)) = child else {
+            break;
+        };
+        let node = &doc.nodes[child];
+        if node.kind == Kind::Mapping {
+            id = child;
+            path = &path[1..];
+        } else if node.kind == Kind::Scalar
+            && !node.quoted
+            && matches!(
+                String::from_utf16_lossy(&node.text).as_str(),
+                "" | "~" | "null" | "Null" | "NULL"
+            )
+        {
+            break;
+        } else {
+            return String::from_utf16_lossy(source);
+        }
+    }
+    let root = &doc.nodes[id];
+    let key = path[0];
     let name: Vec<_> = key.encode_utf16().collect();
     let found = root
         .children
         .chunks_exact(2)
         .find(|p| doc.nodes[p[0]].kind == Kind::Scalar && doc.nodes[p[0]].text == name);
-    let (colon, mut end) = mapping_slot(&source, &doc, &name);
+    let (colon, mut end) = mapping_slot(source, doc, id, &name);
     let flow = root.flow;
     let first = root
         .children
@@ -275,6 +354,18 @@ pub(super) fn write(
         insert.push(':');
         end
     };
+    let mut nested_indent = indent.clone();
+    for component in &path[1..] {
+        if flow {
+            insert += " {";
+        } else {
+            nested_indent += "    ";
+            insert.push('\n');
+            insert += &nested_indent;
+        }
+        insert += &scalar(component, flow, true);
+        insert.push(':');
+    }
     if flow && value.is_empty() {
         insert += " ''";
     }
@@ -285,11 +376,14 @@ pub(super) fn write(
             if i != 0 {
                 insert.push('\n');
                 if !line.is_empty() {
-                    insert += &indent;
+                    insert += &nested_indent;
                 }
             }
             insert.push_str(line);
         }
+    }
+    if flow {
+        insert += &"}".repeat(path.len() - 1);
     }
     if !flow && let Some(pair) = found {
         let old = &doc.nodes[pair[1]];
@@ -315,7 +409,5 @@ pub(super) fn write(
     if !out.ends_with('\n') {
         out.push('\n');
     }
-    fs.mkdir(dir, true, 0o771)
-        .map_err(|(code, at)| format!("{code}: {at}"))?;
-    fs.write_command_path(path, out.as_bytes(), false, 0o600)
+    out
 }

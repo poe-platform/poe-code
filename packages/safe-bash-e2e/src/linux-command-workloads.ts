@@ -60,7 +60,9 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
     const knownHosts = Buffer.concat([Buffer.from("# fixture\n\n  HOST,alias " + publicKey +
       "@revoked host " + publicKey + "@cert-authority *.domain,!skip.domain " + publicKey +
       "|1|AAECAwQFBgcICQoLDA0ODxAREhM=|6tbkAfZDulNpJ/cQ7aCK0Bbfp+g= " + publicKey +
-      "host unsupported ignored\nhost ssh-ed25519 raw-comment "), Buffer.from([0xff, 13, 10])]);
+      "host unsupported ignored\nhost ssh-ed25519 raw-comment "), Buffer.from([0xff, 13, 10]),
+      Buffer.from("?? " + publicKey.trimEnd() + "  "), Buffer.from([0xff, 9, 13, 0, 120, 10]),
+      Buffer.from("É ssh-ed25519 another\n")]);
     await writeFile(cwd + "/known_hosts", knownHosts);
     for (const view of views) await view.writeFile("/workspace/known_hosts", knownHosts);
     await writeFile(cwd + "/samples/ed25519.pub", publicKey);
@@ -144,8 +146,11 @@ export function linuxCommands(text: string) {
       ["--no-require-git", "--require-git", "needle", "fd-repo"]].map(args => ({
       cmd: "fdfind", args, script: "fd " + args.join(" "), input: "",
     })),
-    ...[["-F", "host"], ["-q", "-F", "HOST"], ["-l", "-F", "host"], ["-F", "a.domain"], ["-F", "skip.domain"]].map(options => ({
+    ...[["-F", "host"], ["-q", "-F", "HOST"], ["-l", "-F", "host"], ["-F", "a.domain"], ["-F", "skip.domain"], ["-F", "é"], ["-l", "-F", "é"]].map(options => ({
       cmd: "ssh-keygen", args: [...options, "-f", "known_hosts"], script: "ssh-keygen " + options.join(" ") + " -f known_hosts", input: "",
+    })),
+    ...["LC_ALL=C.UTF-8 ssh-keygen -l -F é -f known_hosts", "ssh-keygen -l -F $'\\xffx' -f known_hosts"].map(script => ({
+      cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "",
     })),
     { cmd: "ssh-keygen", args: ["-F", "host", "-f", "absent"], script: "ssh-keygen -F host -f absent", input: "" },
     ...textCommands.map(command => ({ ...command, input: text })),

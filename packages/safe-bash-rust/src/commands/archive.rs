@@ -49,7 +49,7 @@ pub fn try_run_archive_command(
         "openssl" => Some(cmd_openssl(args, stdin, cwd, env, fs)),
         "gpg" => Some(cmd_gpg(args, stdin, cwd, env, fs)),
         "ssh" => Some(cmd_ssh(args)),
-        "ssh-keygen" => Some(cmd_ssh_keygen(args, stdin, cwd, fs)),
+        "ssh-keygen" => Some(cmd_ssh_keygen(args, stdin, cwd, env, fs)),
         "dot" | "neato" => Some(cmd_graphviz(cmd, args, stdin, cwd, fs)),
         _ => None,
     }
@@ -10414,9 +10414,23 @@ fn parse_openssh_ed25519_pubkey(line: &str) -> Option<([u8; 32], String)> {
     Some((pub_key, comment))
 }
 
-fn ssh_matches_glob(value: &str, pattern: &str) -> bool {
-    let vb = value.as_bytes();
-    let pb = pattern.as_bytes();
+fn ssh_fingerprint_label(bytes: &[u8], utf8: bool) -> String {
+    use std::fmt::Write;
+    let mut out = String::new();
+    for chunk in bytes.utf8_chunks() {
+        for c in chunk.valid().chars() {
+            if c == '\t' || c == '\r' || (!c.is_control() && (c.is_ascii() || utf8)) {
+                out.push(c);
+            } else {
+                for b in c.encode_utf8(&mut [0; 4]).bytes() { write!(out, "\\{b:03o}").unwrap(); }
+            }
+        }
+        for b in chunk.invalid() { write!(out, "\\{b:03o}").unwrap(); }
+    }
+    out
+}
+
+fn ssh_matches_glob(vb: &[u8], pb: &[u8]) -> bool {
     let mut v = 0usize;
     let mut p = 0usize;
     let mut star: Option<usize> = None;
@@ -10443,10 +10457,10 @@ fn ssh_matches_glob(value: &str, pattern: &str) -> bool {
     p == pb.len()
 }
 
-fn ssh_matches_patterns(value: &str, patterns: &str) -> bool {
+fn ssh_matches_patterns(value: &[u8], patterns: &[u8]) -> bool {
     let mut matched = false;
-    for pat in patterns.split(',') {
-        let neg = pat.starts_with('!');
+    for pat in patterns.split(|&b| b == b',') {
+        let neg = pat.starts_with(b"!");
         let inner = if neg { &pat[1..] } else { pat };
         if ssh_matches_glob(value, inner) {
             if neg {
@@ -10581,7 +10595,7 @@ fn cmd_ssh(args: &[String]) -> BuiltinOutcome {
     ok_out(&format!("ssh:{user}@{destination}:{port} {}\n", remote_cmd.join(" ")))
 }
 
-fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut file_arg: Option<String> = None;
     let mut comment = "user@safe-bash".to_string();
     let mut encrypt = false;
@@ -10664,8 +10678,12 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             Err(e) => return err_out(&format!("Cannot stat {file}: {}\r\n", super::coreutils::file_error_reason(&e)), 255),
         };
         let mut out = String::new();
-        let host_lower = host.to_ascii_lowercase();
+        let host_bytes = crate::vfs::stream_string_to_bytes(&host);
+        let host_lower = host_bytes.to_ascii_lowercase();
+        let locale = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()));
+        let utf8 = locale.is_some_and(|s| s.to_ascii_lowercase().replace('-', "").contains("utf8"));
         for (index, raw) in bytes.split(|&b| b == b'\n').enumerate() {
+            let raw = raw.split(|&b| b == 0).next().unwrap_or_default();
             let line = crate::vfs::bytes_to_stream_string(raw);
             let mut words = line.split_ascii_whitespace();
             let Some(first) = words.next() else { continue; };
@@ -10683,17 +10701,19 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                     | "sk-ecdsa-sha2-nistp256@openssh.com" | "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com")) { continue; }
             if patterns.starts_with('|') {
                 let Some((salt, mac)) = patterns.strip_prefix("|1|").and_then(|s| s.split_once('|')) else { continue; };
+                if salt.len() != 28 { continue; }
                 let Ok(key) = base64_decode(salt) else { continue; };
                 if key.len() != 20 || ssh_b64_wrap(&key, 0) != salt ||
-                    ssh_b64_wrap(&openssl_hmac("sha1", &key, &crate::vfs::stream_string_to_bytes(&host)), 0) != mac { continue; }
-            } else if !ssh_matches_patterns(&host_lower, &patterns.to_ascii_lowercase()) { continue; }
+                    ssh_b64_wrap(&openssl_hmac("sha1", &key, &host_bytes), 0) != mac { continue; }
+            } else if !ssh_matches_patterns(&host_lower, &crate::vfs::stream_string_to_bytes(patterns).to_ascii_lowercase()) { continue; }
             let record = if show_fp {
                 if kind != "ssh-ed25519" { continue; }
                 let Some((pk, _)) = parse_openssh_ed25519_pubkey(&format!("{kind} {blob}")) else { continue; };
                 let end = blob.as_ptr() as usize - line.as_ptr() as usize + blob.len();
-                let comment = line[end..].trim_start_matches([' ', '\t']).trim_end_matches('\r');
+                let comment = line[end..].trim_start_matches([' ', '\t']);
+                let comment = if comment == "\r" { String::new() } else { ssh_fingerprint_label(&crate::vfs::stream_string_to_bytes(comment), utf8) };
                 let sep = if comment.is_empty() { "" } else { " " };
-                format!("{host} ED25519 {}{sep}{comment}", ssh_fingerprint_sha256(&pk))
+                format!("{} ED25519 {}{sep}{comment}", ssh_fingerprint_label(&host_bytes, utf8), ssh_fingerprint_sha256(&pk))
             } else { line };
             if !quiet { out.push_str(&format!("# Host {host} found: line {} {marker}\n", index + 1)); }
             out.push_str(&record);
@@ -10843,7 +10863,7 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                     .filter(|(_, ns_opt, pk)| {
                         pk.as_slice() == pub_key.as_slice()
                             && (action == "find-principals"
-                                || ssh_matches_patterns(&namespace, ns_opt.as_deref().unwrap_or("*")))
+                                || ssh_matches_patterns(namespace.as_bytes(), ns_opt.as_deref().unwrap_or("*").as_bytes()))
                     })
                     .collect();
                 if action == "find-principals" {
@@ -10854,7 +10874,7 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                     return ok_out(&format!("{}\n", principals.join("\n")));
                 }
                 let id_str = signer_identity.as_deref().unwrap_or("");
-                if !matching.iter().any(|(p, _, _)| ssh_matches_patterns(id_str, p)) {
+                if !matching.iter().any(|(p, _, _)| ssh_matches_patterns(id_str.as_bytes(), p.as_bytes())) {
                     return err_out("ssh-keygen: signer is not authorized by allowed signers\n", 1);
                 }
             }

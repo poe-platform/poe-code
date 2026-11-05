@@ -243,6 +243,26 @@ function matchesGlob(value: string, pattern: string): boolean {
   return p === pattern.length;
 }
 
+// ssh-keygen prints raw records for -F, but escapes non-printable fingerprint labels.
+function fingerprintLabel(bytes: Uint8Array, utf8: boolean): string {
+  let label = "";
+  for (let i = 0; i < bytes.length; i++) {
+    const b = bytes[i]!;
+    if (b === 9 || b === 13 || (b >= 32 && b < 127)) { label += String.fromCharCode(b); continue; }
+    if (utf8 && b >= 0xc2 && b <= 0xf4) {
+      const width = b < 0xe0 ? 2 : b < 0xf0 ? 3 : 4;
+      const chunk = bytes.subarray(i, i + width);
+      const ch = textDecoder.decode(chunk);
+      if (chunk.length === width && [...ch].length === 1 && !/\p{C}/u.test(ch)
+        && (ch !== "\uFFFD" || (b === 0xef && chunk[1] === 0xbf && chunk[2] === 0xbd))) {
+        label += ch; i += width - 1; continue;
+      }
+    }
+    label += "\\" + b.toString(8).padStart(3, "0");
+  }
+  return label;
+}
+
 function matchesPatterns(value: string, patterns: string): boolean {
   let matched = false;
   for (const pattern of patterns.split(",")) {
@@ -378,7 +398,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
       let showFingerprint = false;
       let encrypt = false;
       let keyType = "ed25519";
-      let findHost: string | undefined;
+      let findHost: Uint8Array<ArrayBuffer> | undefined;
       let removeHost: string | undefined;
       let yAction: string | undefined;
       let namespace = "file";
@@ -396,7 +416,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         else if (a === "-t" && i + 1 < args.length) keyType = args[++i]!;
         else if (a === "-y") derivePub = true;
         else if (a === "-l") showFingerprint = true;
-        else if (a === "-F" && i + 1 < args.length) findHost = args[++i];
+        else if (a === "-F" && i + 1 < args.length) findHost = Uint8Array.from(getCommandArguments(context).bytes(++i)!);
         else if (a === "-R" && i + 1 < args.length) removeHost = args[++i];
         else if (a === "-Y" && i + 1 < args.length) yAction = args[++i];
         else if (a === "-n" && i + 1 < args.length) { namespace = args[++i]!; namespaceProvided = true; }
@@ -423,36 +443,48 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
             await writeText(context.stderr, `Cannot stat ${file}: ${error.code === "ENOENT" ? "No such file or directory" : "Not a directory"}\r\n`);
             return { exitCode: 255 };
           }
+          const byteText = new TextDecoder("latin1");
+          const asciiFold = (s: string) => s.replace(/[A-Z]/g, c => c.toLowerCase());
+          const host = asciiFold(byteText.decode(findHost));
+          const utf8 = /utf-?8/i.test(context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C");
           let found = false;
           for (let start = 0, number = 1; start < bytes.length; number++) {
             context.signal.throwIfAborted();
             const lf = bytes.indexOf(10, start);
             const end = lf < 0 ? bytes.length : lf;
-            const line = bytes.subarray(start, end);
+            let line = bytes.subarray(start, end);
+            const nul = line.indexOf(0);
+            if (nul >= 0) line = line.subarray(0, nul);
             start = end + 1;
-            const fields = /^[ \t]*(?:(@[^ \t]+)[ \t]+)?([^ \t#]+)[ \t]+([^ \t]+)[ \t]+([^ \t\r]+)(?:[ \t]+(.*))?/u.exec(textDecoder.decode(line));
+            const fields = /^[ \t]*(?:(@[^ \t]+)[ \t]+)?([^ \t#]+)[ \t]+([^ \t]+)[ \t]+([^ \t\r]+)(?:[ \t]+([\s\S]*))?/u.exec(byteText.decode(line));
             if (!fields) continue;
             const [, marker, hosts, type, key, comment] = fields;
             if (marker && marker !== "@cert-authority" && marker !== "@revoked") continue;
             if (!/^(?:(?:ssh-(?:rsa|ed25519|dss)|rsa-sha2-(?:256|512)|ecdsa-sha2-nistp(?:256|384|521))(?:-cert-v01@openssh\.com)?|sk-(?:ssh-ed25519|ecdsa-sha2-nistp256)(?:-cert-v01)?@openssh\.com)$/u.test(type!)) continue;
             if (hosts!.startsWith("|")) {
               const parts = hosts!.split("|");
-              if (parts.length !== 4 || parts[1] !== "1") continue;
+              if (parts.length !== 4 || parts[1] !== "1" || parts[2]!.length !== 28) continue;
               const salt = base64ToBytes(parts[2]!);
               if (salt.length !== 20 || bytesToBase64(salt) !== parts[2]) continue;
               const hmac = await crypto.subtle.importKey("raw", Uint8Array.from(salt), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
-              const digest = await crypto.subtle.sign("HMAC", hmac, textEncoder.encode(findHost));
+              const digest = await crypto.subtle.sign("HMAC", hmac, findHost);
               if (parts[3] !== bytesToBase64(new Uint8Array(digest))) continue;
-            } else if (!matchesPatterns(findHost.toLowerCase(), hosts!.toLowerCase())) continue;
+            } else if (!matchesPatterns(host, asciiFold(hosts!))) continue;
             let fingerprint: string | undefined;
             if (showFingerprint) {
               const parsed = type === "ssh-ed25519" && parseOpenSshEd25519PublicKey(type + " " + key);
               if (!parsed) continue;
               fingerprint = await computeFingerprintSha256(parsed.pubKey);
             }
-            if (!quiet) await writeText(context.stdout, `# Host ${findHost} found: line ${number} ${marker === "@revoked" ? "REVOKED" : marker ? "CA" : ""}\n`);
-            if (fingerprint) await writeText(context.stdout, `${findHost} ED25519 ${fingerprint}${comment ? " " + comment : ""}\n`);
-            else {
+            if (!quiet) {
+              await writeText(context.stdout, "# Host ");
+              await context.stdout.write(findHost);
+              await writeText(context.stdout, ` found: line ${number} ${marker === "@revoked" ? "REVOKED" : marker ? "CA" : ""}\n`);
+            }
+            if (fingerprint) {
+              const label = comment ? " " + fingerprintLabel(line.subarray(line.length - comment.length), utf8) : "";
+              await writeText(context.stdout, `${fingerprintLabel(findHost, utf8)} ED25519 ${fingerprint}${label}\n`);
+            } else {
               await context.stdout.write(line);
               await writeText(context.stdout, "\n");
             }

@@ -2570,6 +2570,16 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
+            if (norm === "minussrc") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    // Subtract source in the overlap, retaining both outside contributions.
+                    const channel = dst.data[dIdx + c]! * da + src.data[sIdx + c]! * sa * (1 - 2 * da);
+                    out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(channel / alpha);
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
             if (norm === "minus") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {

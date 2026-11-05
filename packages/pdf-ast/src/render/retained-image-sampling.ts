@@ -1,5 +1,5 @@
 import type {PdfEvaluatedImage} from "../ast.js";
-import {sampleImageLinear} from "./image-sampling.js";
+import {sampleImageLinear, sampleSplashImage} from "./image-sampling.js";
 
 /** Fixed range cache and caller-backed reduction levels. The source owner retains
  * all storage; borrowed reads are copied before another read can recycle them. */
@@ -22,11 +22,11 @@ export async function prepareRetainedImageSampler(image: PdfEvaluatedImage, widt
     }
     cache.set(page, bytes); out.set(bytes.subarray(offset - start, offset - start + 4), at);
   }
-  async function linear(x:number,y:number,out:Float64Array) {
+  async function linear(x:number,y:number,out:Float64Array,splash=false) {
     x = Math.max(0, Math.min(width - 1, x)); y = Math.max(0, Math.min(height - 1, y));
     const x0 = Math.floor(x), y0 = Math.floor(y);
     for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) await pixel(Math.min(width - 1, x0 + i), Math.min(height - 1, y0 + j), block.data, (j * 2 + i) * 4);
-    sampleImageLinear(block, x - x0, y - y0, out);
+    (splash ? sampleSplashImage : sampleImageLinear)(block, x - x0, y - y0, out);
   }
   const sample = new Float64Array(4), output = new Uint8Array(4096);
   while ((widthScale > 2 && width > 1) || (heightScale > 2 && height > 1)) {
@@ -49,8 +49,9 @@ export async function prepareRetainedImageSampler(image: PdfEvaluatedImage, widt
     width = nextWidth; height = nextHeight; position = nextPosition; cache.clear();
   }
   return {
-    async sample(u:number,v:number,smooth:boolean,out:Float64Array):Promise<void> {
-      if (smooth) await linear(u * width - 0.5, (1 - v) * height - 0.5, out);
+    async sample(u:number,v:number,smooth:boolean | "splash",out:Float64Array):Promise<void> {
+      if (smooth === "splash") await linear(u,v,out,true);
+      else if (smooth) await linear(u * width - 0.5, (1 - v) * height - 0.5, out);
       else {
         await pixel(Math.min(width - 1, Math.max(0, Math.floor(u * width))), Math.min(height - 1, Math.max(0, Math.floor((1 - v) * height))), block.data, 0);
         for (let c = 0; c < 4; c++) out[c] = block.data[c]!;

@@ -5,6 +5,22 @@
  */
 import type { RgbaBitmap } from "./raster.js";
 
+/** Splash expands each row to bytes before interpolating between rows. */
+export function sampleSplashImage(image: RgbaBitmap, x: number, y: number, out: Float64Array): void {
+  x = Math.max(0, Math.min(image.width - 1, x));
+  y = Math.max(0, Math.min(image.height - 1, y));
+  const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
+  const l = ix * 4, r = Math.min(image.width - 1, ix + 1) * 4;
+  const top = iy * image.width * 4, bottom = Math.min(image.height - 1, iy + 1) * image.width * 4;
+  for (let k = 0; k < 4; k++) {
+    const a = Math.trunc(image.data[top + l + k]! * (1 - fx) + image.data[top + r + k]! * fx);
+    const b = Math.trunc(image.data[bottom + l + k]! * (1 - fx) + image.data[bottom + r + k]! * fx);
+    out[k] = Math.trunc(a * (1 - fy) + b * fy);
+  }
+  if (image.data[top + l + 3] === 255 && image.data[top + r + 3] === 255 &&
+      image.data[bottom + l + 3] === 255 && image.data[bottom + r + 3] === 255) out[3] = 255;
+}
+
 /** Canvas-style bilinear filtering in premultiplied alpha, with clamped edges. */
 export function sampleImageLinear(image: RgbaBitmap, x: number, y: number, out: Float64Array): void {
   x = Math.max(0, Math.min(image.width - 1, x));

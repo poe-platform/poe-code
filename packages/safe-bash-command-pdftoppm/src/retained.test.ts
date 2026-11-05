@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { PdfDocument, PdfRetainedPage, decodePng, encodePng, encodeJpeg, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, PdfRetainedPage, decodePng, encodePng, encodeJpeg, cosName, cosStream, cosDict, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
 import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli, runPdftocairoCliSync } from "./index.js";
 function pdf() {
   const doc = PdfDocument.create();
@@ -43,6 +43,22 @@ test("retained invoice rendering evaluates once across tiles and preserves the c
     assert.equal(evaluate.mock.calls.length, 1);
     assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: 1 }); await f.clean();
   } finally { evaluate.mockRestore(); }
+});
+test("renders an embedded fax scan like Poppler pdftoppm at 72 dpi", async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([19, 7]);
+  const scan = doc.cos.allocateObject(cosStream(Buffer.from("935cdc6ed249622466a0cd66ba492a4925001001", "hex"), {
+    compress: false, dict: cosDict({ Type: cosName("XObject"), Subtype: cosName("Image"),
+      Width: cosNumber(19), Height: cosNumber(7), ColorSpace: cosName("DeviceGray"), BitsPerComponent: cosNumber(1),
+      Filter: cosName("CCITTFaxDecode"), DecodeParms: cosDict({K: cosNumber(-1), Columns: cosNumber(19), BlackIs1: {kind:"boolean",value:true}}) })
+  }));
+  page.setRawContentStream(`q 19 0 0 7 0 0 cm /${page.ensureXObjectResource(scan)} Do Q`);
+  const input = doc.save(), args = ["-gray", "-singlefile", "-r", "72", "in.pdf", "page"];
+  const files = new Map([["in.pdf", input]]), f = await fixture(input, args);
+  assert.equal((await runPdftoppmCli(args, files)).exitCode, 0);
+  assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, 0);
+  const expected = "50350a313920370a3235350a00000000000000000000000000000000000000dfdf150000009bdfdf630000004ddfdfb20000ff480600008febff8b1c00004bd5ffcf330000ffa39f9f9fe7ffffc59f9f9fc5ffffe79f9f9f7f7f7febffffa57f7f7fbfffffd27f7f7f92ff000055e6ffb72f000034afffd86700001277ff003cebffcc2f000026a8ffe27200000f65fff8";
+  for (const bytes of [files.get("page.pgm")!, await f.fs.readFile("/page.pgm")]) assert.equal(Buffer.from(bytes).toString("hex"), expected);
+  await f.clean();
 });
 for (const flags of [["-svg"], [], ["-gray"], ["-mono"], ["-png"], ["-jpeg"], ["-jpegcmyk"], ["-tiff"], ["-png", "-gray"], ["-tiff", "-tiffcompression", "lzw"], ["-rx", "90", "-ry", "47", "-x", "2", "-W", "9"]]) {
   test(`retained rendering matches bytes without whole input or output: ${flags.join(" ")}`, async () => {

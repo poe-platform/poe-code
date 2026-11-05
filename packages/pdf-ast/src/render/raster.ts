@@ -26,7 +26,7 @@ import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../as
 import type { PdfStoredOperations, PdfStoredClipPaths, PdfStoredPath, PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
 import { flattenCubicPoints } from "./cubic.js";
-import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
+import { downscaleImage, sampleImageLinear, sampleSplashImage } from "./image-sampling.js";
 import { appendStrokePoint, strokePointAt, strokeOutlinePoints, type StrokePoint, type StrokeSubpath } from "./stroke.js";
 
 export interface RgbaBitmap {
@@ -205,6 +205,7 @@ export interface PdfCropRect {
 }
 
 export interface RenderToPngOptions {
+  readonly splashImageSampling?: boolean | undefined;
   readonly scale?: number | undefined;
   readonly dpi?: number | undefined;
   readonly dpiX?: number | undefined;
@@ -1139,7 +1140,7 @@ type RetainedImageSampler = Awaited<ReturnType<typeof prepareRetainedImageSample
 interface RasterImageInput {
   signal?: AbortSignal | undefined;
   pathRequest?: (() => Promise<void>) | undefined;
-  request?: {kind:"prepare";image:PdfEvaluatedImage;widthScale:number;heightScale:number} | {kind:"sample";sampler:RetainedImageSampler;u:number;v:number;smooth:boolean;out:Float64Array} | undefined;
+  request?: {kind:"prepare";image:PdfEvaluatedImage;widthScale:number;heightScale:number} | {kind:"sample";sampler:RetainedImageSampler;u:number;v:number;smooth:boolean | "splash";out:Float64Array} | undefined;
   sampler?: RetainedImageSampler | undefined;
 }
 interface RasterOperationInput {
@@ -1354,6 +1355,11 @@ function *renderDisplayListLayerSteps(
       const clipMaxPx = img.clipRect ? Math.ceil((img.clipRect[2] - originX) * scale) - offsetX - 1 : width - 1;
       const clipMinPy = img.clipRect ? Math.floor((pageTop - img.clipRect[3]) * scale) - offsetY : 0;
       const clipMaxPy = img.clipRect ? Math.ceil((pageTop - img.clipRect[1]) * scale) - offsetY - 1 : height - 1;
+      const left = Math.floor(cornersPx[0]!), top = Math.floor(cornersPy[3]!);
+      const right = Math.floor(cornersPx[1]!), bottom = Math.floor(cornersPy[0]!);
+      const dx = img.width / (right - left + 1), dy = img.height / (bottom - top + 1);
+      const splash = options.splashImageSampling && img.bitsPerComponent === 1 && a > 0 && d > 0 && b === 0 && c === 0
+        && dx <= 1 && dy <= 1 && dx > 0.25 && dy > 0.25;
       const minPx = Math.max(0, clipMinPx, Math.floor(Math.min(...cornersPx)));
       const maxPx = Math.min(width - 1, clipMaxPx, axisAligned ? Math.floor(Math.max(...cornersPx)) : Math.ceil(Math.max(...cornersPx)) - 1);
       const minPy = Math.max(0, clipMinPy, Math.floor(Math.min(...cornersPy)));
@@ -1378,12 +1384,12 @@ function *renderDisplayListLayerSteps(
       const smooth = Math.fround((s1 + s2 + Math.hypot(s1 - s2, 2 * cross)) / 2) <= 1;
       const sample = new Float64Array(4);
 
-      for (let py = minPy; py <= maxPy; py++) {
+      for (let py = minPy, sy = (minPy - top) * dy; py <= maxPy; py++, sy += dy) {
     if (++work % 16384 === 0) yield;
         const yPdf = pageTop - (py + offsetY + 0.5) / scale;
         if (img.clipRect && (yPdf < img.clipRect[1] || yPdf > img.clipRect[3])) continue;
         const dyPdf = yPdf - f;
-        for (let px = minPx; px <= maxPx; px++) {
+        for (let px = minPx, sx = (minPx - left) * dx; px <= maxPx; px++, sx += dx) {
     if (++work % 16384 === 0) yield;
           const xPdf = originX + (px + offsetX + 0.5) / scale;
           if (img.clipRect && (xPdf < img.clipRect[0] || xPdf > img.clipRect[2])) continue;
@@ -1395,7 +1401,9 @@ function *renderDisplayListLayerSteps(
             v = Math.max(0, Math.min(1, v));
           } else if (u < 0 || u > 1 || v < 0 || v > 1) continue;
           if (sampler) {
-            images!.request = {kind:"sample",sampler,u,v,smooth,out:sample}; yield;
+            images!.request = {kind:"sample",sampler,u:splash ? sx : u,v:splash ? sy : v,smooth:splash ? "splash" : smooth,out:sample}; yield;
+          } else if (splash) {
+            sampleSplashImage(source!, sx, sy, sample);
           } else if (smooth) {
             sampleImageLinear(source!, u * source!.width - 0.5, (1 - v) * source!.height - 0.5, sample);
           } else {

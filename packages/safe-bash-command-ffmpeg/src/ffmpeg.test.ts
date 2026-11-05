@@ -1132,6 +1132,21 @@ it("matches native ffprobe flat numeric and string field types", async () => {
 
 
 describe("animated GIF and lavfi source regressions", () => {
+  for (const args of [["-vf", "fps=10"], ["-r", "10"]]) {
+    it(`resamples variable-duration GIF frames by presentation time with ${args.join(" ")}`, async () => {
+      // Three 4x4 frames: red for 0.1s, green for 0.9s, blue for 0.1s.
+      const input = Buffer.from("R0lGODlhBAAEAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQACgAAACwAAAAABAAEAAACBISPCQUAIfkEAFoAAAAsAAAAAAQABACAAIAAAAAAAgSEjwkFACH5BAAKAAAALAAAAAAEAAQAgAAA/wAAAAIEhI8JBQA7", "base64");
+      const vfs = createTestVfs({ "/input.gif": input });
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/input.gif", ...args, "/frame-%02d.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const frames = [...vfs.store.entries()].filter(([path]) => path.endsWith(".png"));
+      assert.equal(frames.length, 11);
+      const pixels = frames.sort(([a], [b]) => a.localeCompare(b)).map(([, bytes]) => [...decodeImage(bytes).data.slice(0, 3)]);
+      assert.deepEqual(pixels, [[255, 0, 0], ...Array.from({ length: 9 }, () => [0, 128, 0]), [0, 0, 255]]);
+    });
+  }
+
   for (const [option, filter] of [
     ["-vf", "not_a_video_filter"],
     ["-filter:v", "palettegen"],

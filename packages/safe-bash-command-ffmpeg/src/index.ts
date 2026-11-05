@@ -815,13 +815,14 @@ async function applyVideoFilterChain(
       const totalDuration = current.reduce((acc, f) => acc + f.durationSeconds, 0) || 1;
       const targetCount = Math.max(1, Math.round(totalDuration * targetFps));
       const resampled: MediaVideoFrame[] = [];
+      let srcIdx = 0;
       for (let i = 0; i < targetCount; i++) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
-        const srcIdx = Math.min(
-          current.length - 1,
-          Math.floor((i / targetCount) * current.length)
-        );
+        // Round presentation timestamps to the output time base, as FFmpeg does.
+        while (srcIdx + 1 < current.length && Math.round(current[srcIdx + 1]!.ptsSeconds * targetFps) <= i) {
+          srcIdx++;
+        }
         const src = current[srcIdx]!;
         resampled.push({
           ...src,

@@ -1050,7 +1050,7 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
         (p, Some(st))
     } else { (entry.clone(), existing.clone()) };
     if target == source || target_stat.as_ref().is_some_and(|t| t.identity.is_some() && t.identity == st.identity) {
-        return Err(format!("EINVAL: source and destination are the same file '{src}' -> '{dst}'"));
+        return Err(format!("{} and {} are the same file", shell_quoted_operand(display.0), shell_quoted_operand(display.1)));
     }
     if target_stat.as_ref().is_some_and(|t| settings.skip_existing(&st, t)) { return Ok(()); }
     if !directory && target_stat.as_ref().is_some_and(|t| t.kind != VfsEntryKind::Directory)
@@ -1521,7 +1521,7 @@ fn cmd_cp(
             Err(e) => { report.stderr.push_str(&format!("cp: {}\n", copy_error(&e, "realpath", &target))); code = 1; continue; }
         };
         if phys_src == phys_dst || source_stat.identity.is_some() && dest_stat.as_ref().is_some_and(|t| t.identity == source_stat.identity) {
-            report.stderr.push_str(&format!("cp: EINVAL: source and destination are the same file '{operand}' -> '{target}'\n"));
+            report.stderr.push_str(&format!("cp: {} and {} are the same file\n", shell_quoted_operand(src_raw), shell_quoted_operand(&disp_target)));
             code = 1;
             continue;
         }
@@ -6876,7 +6876,7 @@ mod tests {
         fs.symlink("file", "/alias").unwrap();
         fs.symlink("absent", "/dang").unwrap();
         for opt in ["-n", "-u"] {
-            for (src, dst, error) in [("/alias", "/file", "EINVAL: source and destination are the same file '/alias' -> '/file'"),
+            for (src, dst, error) in [("/alias", "/file", "'/alias' and '/file' are the same file"),
                 ("/file", "/dang", "ENOENT: no such file or directory, realpath '/dang'")] {
                 let r = try_run_fs_command("cp", &args(&[opt, src, dst]), "", "/", &BTreeMap::new(), &fs).unwrap();
                 assert_eq!(r.stderr, format!("cp: {error}\n"));

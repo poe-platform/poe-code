@@ -21,7 +21,7 @@ for (const name of ["cp", "mv"] as const) {
       assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
       assert.equal(result.stdout, "");
       assert.equal(result.stderr, allowed ? "" : alias
-        ? `${name}: EINVAL: source and destination are the same file '/source' -> '/target'\n`
+        ? name === "cp" ? "cp: '/source' and '/target' are the same file\n" : "mv: EINVAL: source and destination are the same file '/source' -> '/target'\n"
         : name === "mv" ? scoped === false ? "mv: ENOTSUP: move source lacks authoritative snapshot '/source'\n"
           : "mv: EAGAIN: move destination changed during resolution capture '/target'\n"
         : "cp: ENOTSUP: copy reader is not bound to the inspected source identity '/source'\n");
@@ -185,7 +185,7 @@ test("cp -f: fresh alias observation defeats stale distinct authority", async ()
   const result = await command("cp", ["-f", "/source", "/target"], observed);
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "cp: EINVAL: source and destination are the same file '/source' -> '/target'\n");
+  assert.equal(result.stderr, "cp: '/source' and '/target' are the same file\n");
   assert.equal(comparisons, 2);
   assert.equal(writes, 1);
   assert.deepEqual(effects(events), []);

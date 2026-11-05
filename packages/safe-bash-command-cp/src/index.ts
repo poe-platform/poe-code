@@ -70,14 +70,15 @@ async function copy(
     ? joinPath(preflight ? await canonicalMissing(context, dirname(target), "preflight")
       : await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
     : await canonicalMissing(context, target, preflight ? "preflight" : "copy");
+  const sameFile = () => new PublicDiagnostic(`${quoteShellOperand(displaySource)} and ${quoteShellOperand(displayTarget)} are the same file`);
   if (physicalSource === physicalTarget || compareCopyIdentity(sourceStat, targetStat) === "same") {
-    throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+    throw sameFile();
   }
   if (flags.has("n") && await maybeStat(context, target, false)) return;
   if (flags.has("u") && sourceStat.type !== "directory" && targetStat && targetStat.type !== "directory"
     && sourceStat.mtimeMs <= targetStat.mtimeMs) return;
   if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
-    throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+    throw sameFile();
   }
   if (!preflight && sourceStat.type !== "directory" && targetStat && targetStat.type !== "directory"
     && settings.confirmOverwrite && !await settings.confirmOverwrite(displayTarget)) return;
@@ -193,7 +194,7 @@ async function copy(
       if (existing.type === "directory") throw new FsError("EISDIR", { path: target });
       const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
       const identity = compareCopyIdentity(sourceEntry, existing);
-      if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+      if (identity === "same") throw sameFile();
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "symbolic link copy unlink lacks authoritative distinctness" });
       context.signal.throwIfAborted();
       if (backup) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
@@ -206,7 +207,7 @@ async function copy(
     if (removeDestination && targetStat) {
       const identity = targetStat.type === "symlink" ? compareCopyIdentity(sourceStat, targetStat)
         : await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
-      if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+      if (identity === "same") throw sameFile();
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "copy unlink lacks authoritative distinctness" });
     }
     if (backup && targetStat) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
@@ -229,7 +230,7 @@ async function copy(
     if (removeDestination && targetStat) {
       const identity = targetStat.type === "symlink" ? compareCopyIdentity(sourceStat, targetStat)
         : await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
-      if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+      if (identity === "same") throw sameFile();
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "copy unlink lacks authoritative distinctness" });
     }
     if (backup && await maybeStat(context, target, false)) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
@@ -255,7 +256,7 @@ async function copy(
           : await compareObservedEntries(context.fs, source, sourceContents, context.fs, target, existing, { signal: context.signal });
         const entryIdentity = sourceEntry.type === "symlink" ? compareCopyIdentity(sourceEntry, existing) : contentsIdentity;
         const identities = [entryIdentity, contentsIdentity];
-        if (identities.includes("same")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+        if (identities.includes("same")) throw sameFile();
         if (identities.includes("unknown")) throw new FsError("ENOTSUP", { path: source, dest: target, message: "forced copy unlink lacks authoritative distinctness" });
         await context.fs.rm(target, { recursive: false, signal: context.signal });
       }

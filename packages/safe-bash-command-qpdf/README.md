@@ -12,7 +12,7 @@ Inspect, check, encrypt, decrypt, merge, split, rotate, and transform PDFs at th
 | Page & Object Inspection | `--show-npages` / `--npages`, `--show-xref`, `--show-object=<n>`, `--json` | Inspects page count, xref offsets and object-stream indexes, individual COS objects, or QPDF v1/v2 JSON. |
 | Encryption & Predicates | `--encrypt user-password owner-password 256 --`, `--decrypt`, `--show-encryption`, `--is-encrypted`, `--requires-password` | Reports the permission mask, owner/user password matches, granular permissions and stream/string/file ciphers with `--show-encryption`, even when the password is omitted or incorrect. Writes AES-256 encrypted PDFs, decrypts PDFs and evaluates encryption status codes (`0`, `2`, `3`). Other encryption lengths are rejected with exit code `2`, including with `--allow-weak-crypto`. |
 | Page Selection & Merge | `--empty --pages fileA.pdf 1-3,r1 fileB.pdf 1-5:odd -- out.pdf` | Supports `rN`/`z`, descending ranges, `x` exclusions, and terminal `:odd`/`:even` positional filters applied after all groups and exclusions. |
-| Page Splitting | `--split-pages[=n]` | Splits multi-page PDFs into numbered single-page or N-page files. |
+| Page Splitting | `--split-pages[=n]` | Splits multi-page PDFs into numbered single-page or N-page files; zero or nonnumeric values keep one unsplit output. |
 | Page Rotation | `--rotate=[+\|-]angle:range` | Applies relative (`+90`, `-90`) or absolute (`0`, `90`, `180`, `270`) rotation to page ranges. |
 | QDF & Stream Modes | `--qdf`, `--stream-data=uncompress\|compress`, `--replace-input` | Normalizes and uncompresses/recompresses streams or updates files in-place. |
 

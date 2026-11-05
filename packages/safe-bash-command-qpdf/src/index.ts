@@ -874,7 +874,8 @@ function parseQpdfArguments(argv: readonly string[]) {
     } else if (arg === "--split-pages") {
       splitPagesGroup = 1;
     } else if (arg.startsWith("--split-pages=")) {
-      splitPagesGroup = Math.max(1, Number.parseInt(arg.slice("--split-pages=".length), 10) || 1);
+      const group = Number.parseInt(arg.slice("--split-pages=".length), 10);
+      splitPagesGroup = group ? Math.max(1, group) : undefined;
     } else if (arg.startsWith("--rotate=")) {
       const spec = arg.slice("--rotate=".length);
       const firstColon = spec.indexOf(":");

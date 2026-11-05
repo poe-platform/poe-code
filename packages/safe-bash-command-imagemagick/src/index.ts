@@ -1,3 +1,4 @@
+import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
@@ -36,7 +37,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -4676,7 +4677,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-trim") {
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* trimImageSteps(im, { threshold: state.fuzz }));
+                return (yield* trimMagickSteps(im, state.alphaFuzz));
             }));
         }
         else if (t === "-rotate") {
@@ -5650,8 +5651,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), width = Math.max(0, Math.round(geometry.width ?? 0)), height = Math.max(0, Math.round(geometry.height ?? width));
             transform(image => { const left = Math.min(Math.floor((image.width - 1) / 2), width), top = Math.min(Math.floor((image.height - 1) / 2), height); return { kind: "extract", left, top, width: Math.max(1, image.width - left * 2), height: Math.max(1, image.height - top * 2) }; });
         } else if (!operandsOnly && token === "-trim") {
-            const threshold = state.fuzz;
-            transform(() => ({ kind: "trim", threshold }));
+            const fuzz = state.alphaFuzz;
+            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal) : undefined);
         } else if (!operandsOnly && token === "-median") {
             const size = Math.max(1, Math.round(Number(tokens[++i] ?? 3)));
             transform(() => ({ kind: "median", size }));

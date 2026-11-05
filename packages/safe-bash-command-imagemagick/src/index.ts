@@ -1338,7 +1338,11 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
         const dr = Math.abs(out[i]! - target.r);
         const dg = Math.abs(out[i + 1]! - target.g);
         const db = Math.abs(out[i + 2]! - target.b);
-        const matched = Math.max(dr, dg, db) <= fuzz;
+        const alpha = out[i + 3]!;
+        // Native opaque painting compares alpha plus opacity-weighted RGB distance.
+        const distance = (alpha - target.a) ** 2
+            + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
+        const matched = distance <= fuzz ** 2;
         if (invert ? !matched : matched) {
             out[i] = replacement.r;
             out[i + 1] = replacement.g;
@@ -3990,7 +3994,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
     } else if (token === "-opaque" || token === "+opaque") {
         const target = parseColor(tokens[++i] ?? "#000000");
-        apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.fuzz, token === "+opaque", signal);
+        apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.alphaFuzz, token === "+opaque", signal);
     } else if (token === "-transparent" || token === "+transparent") {
         const target = parseColor(tokens[++i] ?? "#ffffff");
         apply = image => applyMagickTransparentSteps(image, target, state.alphaFuzz, token === "+transparent", signal);

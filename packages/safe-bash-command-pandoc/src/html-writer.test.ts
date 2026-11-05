@@ -34,7 +34,7 @@ it("writes nested formatting, quotes, citations, multilingual text and meaningfu
     {t: "Subscript", c: [s("n")]}, {t: "SmallCaps", c: [s("Caps")]},
     {t: "Quoted", c: ["DoubleQuote", [s("q")]]}, {t: "SoftBreak"}, {t: "LineBreak"},
     {t: "Cite", c: [[], [s("citation")]]})];
-  const expected = '<p><strong><em>你好 &amp; &lt;مرحبا&gt;</em></strong> <u>u</u><del>d</del><sup>2</sup><sub>n</sub><span class="smallcaps">Caps</span>“q”\n<br>citation</p>\n';
+  const expected = '<p><strong><em>你好 &amp; &lt;مرحبا&gt;</em></strong> <u>u</u><del>d</del><sup>2</sup><sub>n</sub><span class="smallcaps">Caps</span>“q”\n<br><span class="citation" data-cites="">citation</span></p>\n';
   const actual = await html(blocks); dom(actual, expected); expect(actual).toBe(expected);
 });
 it("preserves empty and code-only documents with text escaping separate from attribute escaping", async () => {

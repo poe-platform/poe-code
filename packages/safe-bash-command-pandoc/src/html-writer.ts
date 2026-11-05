@@ -138,7 +138,14 @@ class HtmlWriter {
           await this.inlines(node.c, `${p}.c`); this.add(`</${tag}>`); break;
         }
         case "Quoted": this.add(node.c[0] === "SingleQuote" ? "‘" : "“"); await this.inlines(node.c[1], `${p}.c[1]`); this.add(node.c[0] === "SingleQuote" ? "’" : "”"); break;
-        case "Cite": await this.inlines(node.c[1], `${p}.c[1]`); break;
+        case "Cite": {
+          this.add('<span class="citation" data-cites="');
+          for (const [index, citation] of node.c[0].entries()) {
+            if (index) this.add(" ");
+            this.escape(citation.citationId, true);
+          }
+          this.add('">'); await this.inlines(node.c[1], `${p}.c[1]`); this.add("</span>"); break;
+        }
         case "Code": this.add("<code"); this.attrs(node.c[0]); this.add(">"); this.escape(node.c[1]); this.add("</code>"); break;
         case "Math": this.add(`<span class="math ${node.c[0] === "InlineMath" ? "inline" : "display"}">`); this.escape(node.c[0] === "InlineMath" ? `\\(${node.c[1]}\\)` : `\\[${node.c[1]}\\]`); this.add("</span>"); break;
         case "RawInline": this.raw(node.c[0], node.c[1], p); break;

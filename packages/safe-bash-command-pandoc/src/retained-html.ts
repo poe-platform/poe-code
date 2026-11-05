@@ -361,7 +361,15 @@ class HtmlTape {
         } else if (tag === "Quoted") {
           const single = await this.tag(await this.at(content!, 0)) === "SingleQuote", inner = await child(1);
           await this.add(single ? "‘" : "“"); await this.sequence(this.list(inner.node, inner.path, "inline"), this.literal(single ? "’" : "”"));
-        } else if (tag === "Cite") {const inner = await child(1); await this.push(this.list(inner.node, inner.path, "inline"));}
+        } else if (tag === "Cite") {
+          await this.add('<span class="citation" data-cites="'); let index = 0;
+          for await (const citation of this.tree.children(await this.at(content!, 0))) {
+            if (index++) await this.add(" ");
+            await this.escape(await this.scalar((await this.tree.property(citation, "citationId"))!), true);
+          }
+          await this.add('">'); const inner = await child(1);
+          await this.sequence(this.list(inner.node, inner.path, "inline"), this.literal("</span>"));
+        }
         else if (tag === "Code") {
           await this.add("<code"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.escape(await this.scalar(await this.at(content!, 1))); await this.add("</code>");
         } else if (tag === "Math") {

@@ -207,8 +207,12 @@ class RstReader {
     }
     if (admonitions.includes(name) || name === "container" || name === "compound" || name === "rubric" || name === "epigraph" || name === "pull-quote") {
       if (!allow(name === "epigraph" || name === "pull-quote" ? [] : ["class", "name"])) return unsupported();
-      const content = argument && name !== "container" ? [{...at, text: argument}, ...(body.length ? [{...at, text: ""}, ...body] : [])] : body;
+      const content = argument && name !== "container" && name !== "admonition" ? [{...at, text: argument}, ...(body.length ? [{...at, text: ""}, ...body] : [])] : body;
       const blocks = await this.blocks(content, depth + 1);
+      if (admonitions.includes(name)) {
+        const title = name === "admonition" ? argument : name[0]!.toUpperCase() + name.slice(1);
+        blocks.unshift({t: "Div", c: [["", ["title"], []], [{t: "Para", c: this.inline(title, at)}]]});
+      }
       if (name === "rubric") return {blocks: [{t: "Div", c: [[options.get("name") ?? "", ["rubric", ...(options.get("class") ?? "").split(" ").filter(Boolean)], []], blocks]}], end};
       if (name === "epigraph" || name === "pull-quote") return {blocks: [{t: "BlockQuote", c: blocks}], end};
       const classes = name === "container" ? argument.split(" ").filter(Boolean) : [name];

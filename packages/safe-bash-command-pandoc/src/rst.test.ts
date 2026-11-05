@@ -8,6 +8,33 @@ const read = (s: string, context: ConversionContext = {}) => readDocument({bytes
 const json = (s: string, policy = {}, context: ConversionContext = {}) => convert([{bytes: bytes(s), source: "/book/main.rst", base: "/book"}], {from: "rst", to: "json", ...policy}, context);
 const str = (c: string) => ({t: "Str", c});
 const para = (c: string) => ({t: "Para", c: [str(c)]});
+it.each(["attention", "caution", "danger", "error", "hint", "important", "note", "tip", "warning"])("preserves the %s admonition title in JSON", async name => {
+  const result = await json(`.. ${name}::\n\n   Body.`);
+  expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([
+    {t: "Div", c: [["", [name], []], [
+      {t: "Div", c: [["", ["title"], []], [para(name[0]!.toUpperCase() + name.slice(1))]]},
+      para("Body.")
+    ]]}
+  ]);
+});
+it("keeps a custom admonition title separate from its body", async () => {
+  expect((await read(".. admonition:: **Read** first\n   :name: notice\n   :class: custom\n\n   Body.")).blocks).toEqual([
+    {t: "Div", c: [["notice", ["admonition", "custom"], []], [
+      {t: "Div", c: [["", ["title"], []], [{t: "Para", c: [{t: "Strong", c: [str("Read")]}, {t: "Space"}, str("first")]}]]},
+      para("Body.")
+    ]]}
+  ]);
+});
+it("renders an admonition title through the standalone command", async () => {
+  const stdout: Uint8Array[] = [];
+  const result = await createStandalonePandocCommand().execute({
+    args: ["-f", "rst", "-t", "html"], stdin: [bytes(".. note:: Read this first.")],
+    stdout: {write: async chunk => {stdout.push(chunk);}}, stderr: {write: async () => {}},
+    signal: new AbortController().signal
+  });
+  expect(result).toEqual({exitCode: 0});
+  expect(new TextDecoder().decode(Buffer.concat(stdout))).toBe('<div class="note"><div class="title"><p>Note</p>\n</div>\n<p>Read this first.</p>\n</div>\n');
+});
 it("assigns heading levels by adornment encounter, distinguishing overlines", async () => {
   const doc = await read("======\nTitle\n======\n\nPart\n----\n\nOther\n======\n\nAgain\n-----");
   expect(doc.blocks.filter(b => b.t === "Header").map(b => b.c[0])).toEqual([1, 2, 3, 2]);

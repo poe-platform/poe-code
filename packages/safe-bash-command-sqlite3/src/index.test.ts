@@ -4,6 +4,27 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const { declaration, expression, count, values } of [
+  { declaration: "TEXT", expression: "v COLLATE NOCASE", count: 4, values: "a,b,é,É" },
+  { declaration: "TEXT COLLATE NOCASE", expression: "v", count: 4, values: "a,b,é,É" },
+  { declaration: "TEXT COLLATE NOCASE", expression: "v COLLATE BINARY", count: 6, values: "a,A,b,B,é,É" },
+  { declaration: "TEXT", expression: "v", count: 6, values: "a,A,b,B,é,É" },
+  { declaration: "TEXT", expression: "v COLLATE RTRIM", count: 6, values: "a,A,b,B,é,É" }
+]) {
+  test(`sqlite3 DISTINCT aggregates respect ${declaration} / ${expression}`, async () => {
+    const sql = `CREATE TABLE t(v ${declaration});
+      INSERT INTO t VALUES('a'),('A'),('b'),('B'),('é'),('É'),('a'),(NULL),(NULL);
+      SELECT COUNT(DISTINCT ${expression}) AS n,
+        GROUP_CONCAT(DISTINCT ${expression}) AS vals,
+        JSON_GROUP_ARRAY(DISTINCT ${expression}) AS json_vals FROM t;`;
+    const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", sql]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{
+      n: count, vals: values, json_vals: JSON.stringify([...values.split(","), null])
+    }]);
+  });
+}
+
 for (const { name, args, input, stdout } of [
   { name: "dot mode defaults to headers", args: [":memory:"], input: ".mode column\nSELECT 1 AS x;", stdout: "x\n-\n1\n" },
   { name: "startup flag defaults to no headers", args: ["-column", ":memory:"], input: "SELECT 1 AS x;", stdout: "1\n" },

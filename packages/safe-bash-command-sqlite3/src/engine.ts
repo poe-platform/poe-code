@@ -6852,26 +6852,8 @@ export class SqliteDatabase {
       }, this);
     }
 
-    if (u === "COUNT") {
-      if (expr.star || expr.args.length === 0) {
-        return filteredGroup.length;
-      }
-      const vals = yield* stepFilter(
-        yield* stepMap(filteredGroup, function* (r) {
-          return yield* this.evalExprSteps(expr.args[0]!, r, positionalParams, cteScope);
-        }, this),
-        function* (v) { yield;
-          return v !== null && v !== undefined;
-        }
-      , this);
-      if (expr.distinct) {
-        return new Set(
-          vals.map((v) => {
-            return serializeSqlJson(v, false);
-          })
-        ).size;
-      }
-      return vals.length;
+    if (u === "COUNT" && (expr.star || expr.args.length === 0)) {
+      return filteredGroup.length;
     }
 
     if (u === "JSON_GROUP_OBJECT") {
@@ -6893,34 +6875,33 @@ export class SqliteDatabase {
         : null;
     }, this);
 
-    if (u === "JSON_GROUP_ARRAY") {
-      if (expr.distinct) {
-        const seen = new Set<string>();
-        vals = yield* stepFilter(vals, function* (v) { yield;
-          const k = serializeSqlJson(v, false);
-          if (seen.has(k)) {
-            return false;
-          }
-          seen.add(k);
-          return true;
-        }, this);
-      }
-      return new JsonText(serializeSqlJson(vals));
-    }
-
-    const nonNull = vals.filter((v): v is Exclude<SqlValue, null> => v !== null && v !== undefined);
-    let activeVals: SqlValue[] = nonNull;
-    if (expr.distinct) {
+    if (expr.distinct && expr.args[0]) {
+      const collation = this.expressionCollation(expr.args[0], filteredGroup[0] ?? {}).toUpperCase();
       const seen = new Set<string>();
-      activeVals = yield* stepFilter(nonNull, function* (v) { yield;
-        const k = serializeSqlJson(v, false);
-        if (seen.has(k)) {
-          return false;
+      vals = yield* stepFilter(vals, function* (v) { yield;
+        let key = v;
+        if (typeof v === "string" || v instanceof String) {
+          const text = String(v);
+          if (collation === "NOCASE") key = foldAsciiCase(text);
+          if (collation === "RTRIM") {
+            let end = text.length;
+            while (end > 0 && text[end - 1] === " ") end -= 1;
+            key = text.slice(0, end);
+          }
         }
+        const k = serializeSqlJson(key, false);
+        if (seen.has(k)) return false;
         seen.add(k);
         return true;
       }, this);
     }
+
+    if (u === "JSON_GROUP_ARRAY") {
+      return new JsonText(serializeSqlJson(vals));
+    }
+
+    const activeVals = vals.filter((v): v is Exclude<SqlValue, null> => v !== null && v !== undefined);
+    if (u === "COUNT") return activeVals.length;
 
     if (u === "SUM") {
       if (activeVals.length === 0) {

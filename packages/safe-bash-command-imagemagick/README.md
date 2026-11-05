@@ -33,7 +33,9 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 `identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
 geometry (`%g`, `%P`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,
-`%[type]`, `%[size]`, and `%[standard-deviation]`. Use `%[hex:p{0,0}]` for an
+`%[type]`, `%[size]`, `%[orientation]`, `%[exif:Orientation]`, and `%[standard-deviation]`.
+Orientation reports the EXIF name (such as `RightTop`) and numeric value (`6`),
+respectively; absent orientation yields `Undefined` and an empty EXIF value. Use `%[hex:p{0,0}]` for an
 uppercase RGB or RGBA hex value, or `%[fx:EXPRESSION]` and `%[pixel:EXPRESSION]`
 for calculated values. Named properties are case insensitive. Filenames and
 escaped percent signs are inserted literally; pixel statistics are calculated

@@ -2,8 +2,8 @@ import {deflateSync} from "node:zlib";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
-import {decodePngImage} from "./png.js";
-import {decodePngToStorage} from "./png-storage.js";
+import {decodePngImage, encodePngImage} from "./png.js";
+import {decodePngToStorage, encodePngFromStorage} from "./png-storage.js";
 
 function chunk(name: string, data: Uint8Array): Uint8Array {
   const result = new Uint8Array(data.length + 12);
@@ -175,11 +175,22 @@ it.each([
   const bytes = png(width, height, Uint8Array.from(raw), 16, color, [], interlace);
   const buffered = decodePngImage(bytes), {storage} = backing();
   expect(Array.from(buffered.data16!)).toEqual(Array.from({length: width * height * 4}, (_, i) => expected[i % 4]));
+  for (const consumeInput of [false, true]) {
+    const encoded = encodePngImage(decodePngImage(bytes), {consumeInput});
+    expect(encoded[24]).toBe(16);
+    expect(decodePngImage(encoded).data16).toEqual(buffered.data16);
+  }
   const read = vi.spyOn(storage, "read"), write = vi.spyOn(storage, "write");
   try {
     const retained = await decodePngToStorage(source(bytes), storage, new AbortController().signal);
     expect(read.mock.calls.every(([,length]) => length <= 4096)).toBe(true);
     expect(write.mock.calls.every(([,data]) => data.length <= 4096)).toBe(true);
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of encodePngFromStorage(retained, storage, new AbortController().signal)) chunks.push(chunk);
+    const encoded = Buffer.concat(chunks);
+    expect(encoded[24]).toBe(16);
+    expect(decodePngImage(encoded).data16).toEqual(buffered.data16);
+    expect(read.mock.calls.every(([,length]) => length <= 4096)).toBe(true);
     const samples16 = await storage.read(retained.storedData16!.position, retained.storedData16!.length * 2);
     expect(new Uint16Array(samples16.buffer, samples16.byteOffset, samples16.length / 2)).toEqual(buffered.data16);
   } finally {await storage.close();}

@@ -232,7 +232,7 @@ export function encodePngImage(
     readonly consumeInput?: boolean;
   }
 ): Uint8Array {
-  const { width, height, data } = img;
+  const { width, height, data, data16 } = img;
   const density = options?.density ?? img.density ?? 72;
   let hasAlpha = Boolean(img.hasAlpha || img.channels === 4 || img.channels === 2);
   if (options?.forceOpaque) {
@@ -248,12 +248,13 @@ export function encodePngImage(
 
   const isBw = img.space === "b-w" || img.channels === 1 || img.channels === 2;
   const colorType = isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
-  const bpp = isBw ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
+  const channels = isBw ? (hasAlpha ? [0, 3] : [0]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2]);
+  const bpp = channels.length * (data16 ? 2 : 1);
   const rowBytes = width * bpp;
   let activeData = data;
   const totalScanlineBytes = height * (rowBytes + 1);
   if (
-    options?.consumeInput &&
+    !data16 && options?.consumeInput &&
     bpp === 4 &&
     width >= 1 &&
     activeData.byteOffset === 0
@@ -271,7 +272,7 @@ export function encodePngImage(
       }
     }
   }
-  const canFilterInPlace = Boolean(options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
+  const canFilterInPlace = Boolean(!data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
   const raw = canFilterInPlace ? activeData.subarray(0, totalScanlineBytes) : new Uint8Array(totalScanlineBytes);
   const rowScratch = canFilterInPlace ? new Uint8Array(width * 4) : undefined;
   const reverseRows = canFilterInPlace && bpp === 4;
@@ -291,7 +292,14 @@ export function encodePngImage(
       const srcIdx = rowBase + x * 4;
       const prevIdx = x > 0 ? rowBase + (x - 1) * 4 : -1;
       const outCol = dstRow + 1 + x * bpp;
-      if (isBw) {
+      if (data16) {
+        for (let channel = 0; channel < channels.length; channel++) {
+          const value = data16[srcIdx + channels[channel]!]!;
+          const previous = prevIdx >= 0 ? data16[prevIdx + channels[channel]!]! : 0;
+          raw[outCol + channel * 2] = ((value >>> 8) - (previous >>> 8)) & 255;
+          raw[outCol + channel * 2 + 1] = ((value & 255) - (previous & 255)) & 255;
+        }
+      } else if (isBw) {
         const g = srcRowData[srcIdx]!;
         const pg = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
         raw[outCol] = (g - pg) & 0xff;
@@ -342,7 +350,7 @@ export function encodePngImage(
   const ihdrView = new DataView(ihdr.buffer);
   ihdrView.setUint32(0, width, false);
   ihdrView.setUint32(4, height, false);
-  ihdr[8] = 8;
+  ihdr[8] = data16 ? 16 : 8;
   ihdr[9] = colorType;
   ihdr[10] = 0;
   ihdr[11] = 0;

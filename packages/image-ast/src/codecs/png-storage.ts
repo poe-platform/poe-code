@@ -225,8 +225,9 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   }
   const gray = image.space === "b-w" || image.channels === 1 || image.channels === 2;
   const channels = gray ? alpha ? [0,3] : [0] : alpha ? [0,1,2,3] : [0,1,2];
+  const sampleBytes = image.storedData16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);
-  view.setUint32(0,width); view.setUint32(4,height); header[8] = 8; header[9] = gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
+  view.setUint32(0,width); view.setUint32(4,height); header[8] = sampleBytes * 8; header[9] = gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
   const density = options.density ?? image.density ?? 72;
@@ -241,15 +242,21 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     for (let y=0;y<height;y++) {
       signal.throwIfAborted();
       for (const bytes of encoder.push(Uint8Array.of(1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
-      const previous = new Uint8Array(channels.length);
-      for (let x=0;x<width;x+=1024) {
-        const count = Math.min(1024,width-x);
-        const pixels = await read(position + (y * width + x) * 4,count * 4);
-        const raw = new Uint8Array(count * channels.length);
+      const previous = new Uint8Array(channels.length * sampleBytes);
+      const chunkPixels = 1024 / sampleBytes;
+      for (let x=0;x<width;x+=chunkPixels) {
+        const count = Math.min(chunkPixels,width-x);
+        const pixels = await read((image.storedData16?.position ?? position) + (y * width + x) * 4 * sampleBytes,count * 4 * sampleBytes);
+        const samples16 = image.storedData16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;
+        const raw = new Uint8Array(count * channels.length * sampleBytes);
         for(let index=0;index<count;index++) for(let channel=0;channel<channels.length;channel++) {
-          const value=pixels[index*4+channels[channel]!]!;
-          raw[index*channels.length+channel]=(value-previous[channel]!)&255;
-          previous[channel]=value;
+          const value=(samples16 ?? pixels)[index*4+channels[channel]!]!;
+          for (let byte=0;byte<sampleBytes;byte++) {
+            const offset = channel * sampleBytes + byte;
+            const part = (value >>> ((sampleBytes - byte - 1) * 8)) & 255;
+            raw[index*channels.length*sampleBytes+offset]=(part-previous[offset]!)&255;
+            previous[offset]=part;
+          }
         }
         for (const bytes of encoder.push(raw)) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
       }

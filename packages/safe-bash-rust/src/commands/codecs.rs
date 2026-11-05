@@ -263,12 +263,20 @@ pub fn inflate_raw(data: &[u8]) -> Result<(Vec<u8>, usize), String> {
 }
 
 pub(super) fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
+    let mut out = Vec::new();
+    let used = deflate_member(data, limit, Some(&mut out))?;
+    Ok((out, used))
+}
+
+// PDF inline streams have no encoded length. Walking the same codes without
+// copying expansion bytes locates the final block even for very large runs.
+pub(super) fn deflate_member(data: &[u8], limit: usize, mut output: Option<&mut Vec<u8>>) -> Result<usize, String> {
     const CL_ORDER: [usize; 19] = [
         16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
     ];
 
     let mut reader = LsbBitReader::new(data);
-    let mut out = Vec::new();
+    let mut produced = 0;
 
     loop {
         let bfinal = reader.read_bits(1)? != 0;
@@ -280,12 +288,15 @@ pub(super) fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>,
                 if len != !nlen {
                     return Err("corrupt deflate block length".into());
                 }
-                if len as usize > limit - out.len() {
+                if len as usize > limit - produced {
                     return Err("inflated data exceeds input limit".into());
                 }
-                for _ in 0..len {
-                    out.push(reader.read_bits(8)? as u8);
-                }
+                // Stored blocks start byte-aligned and the two lengths end byte-aligned.
+                let end = reader.byte_pos.checked_add(usize::from(len)).ok_or("invalid block length")?;
+                let block = data.get(reader.byte_pos..end).ok_or("unexpected end of file")?;
+                if let Some(out) = &mut output { out.extend_from_slice(block); }
+                reader.byte_pos = end;
+                produced += usize::from(len);
             }
             1 | 2 => {
                 let (lit_tree, dist_tree) = if btype == 1 {
@@ -345,10 +356,11 @@ pub(super) fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>,
                 loop {
                     let sym = lit_tree.decode(&mut reader)? as usize;
                     if sym < 256 {
-                        if out.len() == limit {
+                        if produced == limit {
                             return Err("inflated data exceeds input limit".into());
                         }
-                        out.push(sym as u8);
+                        if let Some(out) = &mut output { out.push(sym as u8); }
+                        produced += 1;
                     } else if sym == 256 {
                         break;
                     } else {
@@ -364,16 +376,19 @@ pub(super) fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>,
                         }
                         let dist = (DIST_BASE[d_sym] as usize)
                             + (reader.read_bits(DIST_EXTRA[d_sym])? as usize);
-                        if dist == 0 || dist > out.len() {
+                        if dist == 0 || dist > produced {
                             return Err("invalid deflate distance".into());
                         }
-                        if length > limit - out.len() {
+                        if length > limit - produced {
                             return Err("inflated data exceeds input limit".into());
                         }
-                        for _ in 0..length {
-                            let b = out[out.len() - dist];
-                            out.push(b);
+                        if let Some(out) = &mut output {
+                            for _ in 0..length {
+                                let b = out[out.len() - dist];
+                                out.push(b);
+                            }
                         }
+                        produced += length;
                     }
                 }
             }
@@ -384,7 +399,7 @@ pub(super) fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>,
         }
     }
     reader.align_byte();
-    Ok((out, reader.consumed_bytes()))
+    Ok(reader.consumed_bytes())
 }
 
 // RFC 1951: pack fields least-significant bit first, Huffman codes most-significant bit first.

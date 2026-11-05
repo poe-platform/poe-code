@@ -45,6 +45,41 @@ pub(super) fn inline<'a>(c: &mut Cursor<'a>, tokens: &mut usize) -> Result<(Dict
         c.byte();
     }
     let bytes = c.0;
+    let filter = match field(b"F", b"Filter") {
+        Some(Value::Array(filters)) => filters.first().and_then(Value::word),
+        value => value.and_then(Value::word),
+    };
+    // The outer filter delimits the encoded payload. Never interpret an EI in
+    // a stored deflate block, run-length literal or ASCII85 group as an operator.
+    let length = match filter {
+        Some(b"/Fl" | b"/FlateDecode") if bytes.len() >= 2 && bytes[0] & 15 == 8
+            && u16::from_be_bytes([bytes[0],bytes[1]]) % 31 == 0 && bytes[1] & 32 == 0 => {
+            let used = crate::commands::codecs::deflate_member(&bytes[2..], usize::MAX, None).map_err(|_| BAD)?;
+            Some(used.checked_add(6).ok_or(BAD)?)
+        }
+        Some(b"/RL" | b"/RunLengthDecode") => {
+            let mut at = 0;
+            loop {
+                let n = *bytes.get(at).ok_or(BAD)?;
+                at += 1;
+                if n == 128 { break; }
+                at = at.checked_add(if n < 128 { usize::from(n) + 1 } else { 1 }).ok_or(BAD)?;
+            }
+            Some(at)
+        }
+        Some(b"/A85" | b"/ASCII85Decode") => bytes.windows(2).position(|w| w == b"~>").map(|i| i+2),
+        Some(b"/AHx" | b"/ASCIIHexDecode") => bytes.iter().position(|&b| b == b'>').map(|i| i+1),
+        None if minimum != 0 => Some(minimum),
+        _ => None,
+    };
+    if let Some(n) = length {
+        let mut rest = Cursor(bytes.get(n..).ok_or(BAD)?);
+        if rest.word() == Some(b"EI") {
+            c.0 = rest.0;
+            return Ok((dict, &bytes[..n]));
+        }
+        minimum = n;
+    }
     let mut end = bytes.len();
     for i in minimum..bytes.len().saturating_sub(2) {
         if ws(bytes[i]) && &bytes[i + 1..i + 3] == b"EI" {
@@ -449,6 +484,25 @@ mod tests {
                 want,
                 "{input}"
             );
+        }
+    }
+
+    #[test]
+    fn reads_through_false_ei_tokens_to_the_end_of_the_outer_filter() {
+        let pixels = b" EI abcdefghijklmnopqrstuvwxyz";
+        let n = pixels.len() as u16;
+        let stored = [b"\x78\x01\x01".as_slice(), &n.to_le_bytes(), &(!n).to_le_bytes(),
+            pixels, &crate::commands::codecs::adler32(pixels).to_be_bytes()].concat();
+        let repeated = [[(n-1) as u8].as_slice(), pixels, &[128]].concat();
+        for (filter, payload) in [
+            ("/Fl", stored.as_slice()), ("/RL", repeated.as_slice()),
+            ("[/A85 /Fl]", b"ABCDE EI ABCDEFGHIJKLMNOPQ~>"),
+        ] {
+            let dict = format!("/W 10 /H 1 /CS /RGB /BPC 8 /F {filter} ID ");
+            let stream = [dict.as_bytes(),payload,b" \r\nEI Q"].concat();
+            let mut c = Cursor(&stream);
+            assert_eq!(inline(&mut c, &mut 128).unwrap().1, payload, "{filter}");
+            assert_eq!(c.word(),Some(b"Q".as_slice()));
         }
     }
 }

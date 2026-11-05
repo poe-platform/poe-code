@@ -264,9 +264,8 @@ export function formatExtractedPageText(
         if (options.fixedPitch !== undefined && options.fixedPitch > 0) {
           const words = row.flatMap(seg => seg.words).sort((a, b) => a.bbox[0] - b.bbox[0]);
           for (const w of words) {
-            const spaces = Math.max(lineStr.length > 0 ? 1 : 0, Math.round((w.bbox[0] - curX) / pitch));
+            const spaces = Math.max(lineStr.length > 0 ? 1 : 0, Math.round(w.bbox[0] / pitch) - lineStr.length);
             lineStr += " ".repeat(Math.min(spaces, 80)) + w.text;
-            curX = w.bbox[2];
           }
         } else {
           for (const seg of row) {

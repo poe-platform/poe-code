@@ -240,6 +240,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       const val = Number.parseFloat(argv[++i] ?? "0");
       if (Number.isFinite(val) && val > 0) {
         res.fixed = val;
+        res.layout = true;
       }
     } else if (arg === "-linespacing") {
       const val = Number.parseFloat(argv[++i] ?? "0");

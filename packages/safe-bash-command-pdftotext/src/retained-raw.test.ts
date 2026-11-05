@@ -245,3 +245,22 @@ for (const mode of ["-htmlmeta", "-bbox", "-bbox-layout"]) test(`streams metadat
   assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
   assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.output); await f.clean();
 });
+
+for (const flags of [["-fixed", "8"], ["-layout", "-fixed", "8"], ["-fixed", "4"]]) {
+  test(`fixed-pitch columns match Poppler: ${flags.join(" ")}`, async () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage([216, 144]);
+    page.drawText("left", { x: 20, y: 120, size: 12 });
+    page.drawText("right", { x: 130, y: 120, size: 12 });
+    const input = doc.save();
+    const args = [...flags, "input.pdf", "-"];
+    const expected = flags.at(-1) === "4" ? "     left                        right\n\f" : "   left         right\n\f";
+    const direct = await runPdftotextCli(args, new Map([["input.pdf", input]]));
+    assert.equal(direct.exitCode, 0);
+    assert.equal(direct.output, expected);
+    const f = await fixture(input, args);
+    assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+    assert.equal(new TextDecoder().decode(joined(f.stdout)), expected);
+    await f.clean();
+  });
+}

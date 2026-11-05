@@ -283,7 +283,7 @@ export class PdfRawTextIndex {
           let wordsFailed=false;
           try{
             async function* content(){let length=0,currentX=leftMargin;
-              if(wordOrder){for await(const position of wordOrder.values()){const word=await read(position),spaces=Math.min(80,Math.max(length>0?1:0,Math.round((word[3]!-currentX)/pitch)));if(spaces){length+=spaces;yield " ".repeat(spaces);}for await(const part of text(word[1]!,word[2]!)){length+=part.length;yield part;}currentX=word[5]!;}}
+              if(wordOrder){for await(const position of wordOrder.values()){const word=await read(position),spaces=Math.min(80,Math.max(length>0?1:0,Math.round(word[3]!/pitch)-length));if(spaces){length+=spaces;yield " ".repeat(spaces);}for await(const part of text(word[1]!,word[2]!)){length+=part.length;yield part;}}}
               else for await(const position of row.values()){const line=await read(position),spaces=Math.min(40,Math.max(length>0?2:0,Math.round((line[3]!-currentX)/pitch)));if(spaces){length+=spaces;yield " ".repeat(spaces);}let seen=false;for await(const word of records(line[1]!,line[2]!)){if(!selected(bounds(word)))continue;if(seen){length++;yield " ";}seen=true;for await(const part of text(word[1]!,word[2]!)){length+=part.length;yield part;}}currentX=line[5]!;}
             }
             let length=0,end=0;for await(const part of content()){const kept=part.trimEnd().length;if(kept)end=length+kept;length+=part.length;}

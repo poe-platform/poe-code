@@ -42,7 +42,7 @@ const OPTIONAL_MARKDOWN_EXTENSIONS = new Set([
   "fancy_lists", "citations", "yaml_metadata_block", "tex_math_dollars", "fenced_code_blocks",
   "backtick_code_blocks", "fenced_code_attributes", "footnotes", "smart", "implicit_figures",
   "definition_lists", "fenced_divs", "header_attributes", "auto_identifiers",
-  "link_attributes", "bracketed_spans", "native_divs", "native_spans"
+  "link_attributes", "bracketed_spans", "native_divs", "native_spans", "superscript", "subscript"
 ]);
 function validName(name: string): boolean {
   if (!name) return false;
@@ -126,6 +126,7 @@ export function createFormatRegistry(
       Object.entries(descriptor.extensions).sort(([a], [b]) => compare(a, b))
     );
     if (name === "markdown" || name === "md") {extensions.footnotes = true; extensions.fancy_lists = true; extensions.definition_lists = true; extensions.fenced_divs = true; extensions.fenced_code_attributes = true;}
+    if (selectedDirection === "read" && (name === "markdown" || name === "md")) {extensions.superscript = true; extensions.subscript = true;}
     if (selectedDirection === "write" && (name === "markdown" || name === "md")) {
       extensions.tex_math_dollars = true;
     }

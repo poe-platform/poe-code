@@ -7,7 +7,7 @@ import type {SourceRange} from "./retained-source-text.js";
 import type {RetainedRtfAst, RtfValue} from "./retained-rtf-ast.js";
 
 /** All variable-sized inline state lives on the parser tape. Each loaded record
- * has at most nine scalars; delimiter lower bounds have eighteen possible keys. */
+ * has at most eleven scalars; delimiter lower bounds have a fixed number of keys. */
 export async function parseRetainedCommonMarkInlines(
   syntax: RetainedCommonMarkSyntax, tape: PagedStorage, ast: RetainedRtfAst, context: AdapterContext,
   extensions: Readonly<Record<string, boolean>> = {},
@@ -45,7 +45,7 @@ export async function parseRetainedCommonMarkInlines(
     if (previous) await put(previous + 32, [next]);
     if (next) await put(next + 24, [previous]); else tail = previous || root;
   };
-  // Delimiters: node, character code, length, original, opens, closes, serial, previous, next.
+  // Delimiters: node, character code, length, original, opens, closes, serial, previous, next, source position, script end (-2 for emphasis).
   const removeDelimiter = async (entry: number) => {
     const fields = await get(entry, 9), previous = fields[7]!, next = fields[8]!;
     if (previous) await put(previous + 64, [next]);
@@ -58,14 +58,14 @@ export async function parseRetainedCommonMarkInlines(
     let closer = bottom ? (await get(bottom, 9))[8]! : delimiter;
     if (!bottom) while (closer) {const previous = (await get(closer, 8))[7]!; if (!previous) break; closer = previous;}
     while (closer) {
-      await context.cooperate(); const close = await get(closer, 9);
+      await context.cooperate(); const close = await get(closer, 11);
       if (!close[5]) {closer = close[8]!; continue;}
-      const key = `${close[1]}:${close[4]}:${close[3]! % 3}`, floor = bottoms.get(key) ?? lower;
+      const key = `${close[1]}:${close[10] !== -2}:${close[4]}:${close[3]! % 3}`, floor = bottoms.get(key) ?? lower;
       let opener = close[7]!, open: number[] | undefined;
       while (opener) {
-        await context.cooperate(); open = await get(opener, 9);
+        await context.cooperate(); open = await get(opener, 11);
         if (open[6]! <= floor) break;
-        if (open[1] === close[1] && open[4] && (close[1] === 126 ? open[3] === close[3] : !((close[4] || open[5]) && (open[3]! + close[3]!) % 3 === 0 && (open[3]! % 3 !== 0 || close[3]! % 3 !== 0)))) break;
+        if (open[1] === close[1] && open[4] && (close[10] !== -2 ? open[10] === close[9] : close[1] === 126 ? open[3] === close[3] : !((close[4] || open[5]) && (open[3]! + close[3]!) % 3 === 0 && (open[3]! % 3 !== 0 || close[3]! % 3 !== 0)))) break;
         opener = open[7]!;
       }
       if (!opener || !open || open[6]! <= floor) {
@@ -79,7 +79,7 @@ export async function parseRetainedCommonMarkInlines(
       await put(close[0]!, [(await repeat(String.fromCharCode(close[1]!), close[2])).position]);
       const first = (await get(open[0]!, 5))[4]!, last = (await get(close[0]!, 4))[3]!;
       context.charge("nodes", 1); context.charge("retainedBytes", 128);
-      const value = await ast.tag(open[1] === 126 ? "Strikeout" : count === 2 ? "Strong" : "Emph", await ast.array());
+      const value = await ast.tag(open[10] !== -2 ? open[1] === 94 ? "Superscript" : "Subscript" : open[1] === 126 ? "Strikeout" : count === 2 ? "Strong" : "Emph", await ast.array());
       const wrap = await add([value.position, 0, first, open[0]!, close[0]!]);
       if (first) await put(first + 24, [0]); if (last) await put(last + 32, [0]);
       await put(open[0]! + 32, [wrap]); await put(close[0]! + 24, [wrap]);
@@ -118,7 +118,7 @@ export async function parseRetainedCommonMarkInlines(
     await context.cooperate(); const unit = (await char(i))!;
     if (unit === "\\") {
       if (await char(i + 1) === "\n") {await append(await ast.tag("LineBreak")); i = await syntax.spaces(i + 2);}
-      else if (asciiPunctuation(await char(i + 1))) {await appendRange(i + 1, i + 2); i += 2;}
+      else if (asciiPunctuation(await char(i + 1)) || await char(i + 1) === " " && (extensions.superscript || extensions.subscript)) {await appendRange(i + 1, i + 2); i += 2;}
       else {await appendRange(i, i + 1); i++;} continue;
     }
     if (unit === "`") {
@@ -137,15 +137,26 @@ export async function parseRetainedCommonMarkInlines(
       const code = await ast.string(await ast.text.from((async function* () {for await (const text of syntax.source.chunks({start, end: stop})) yield text.replaceAll("\n", " ");})()));
       await append(await ast.tag("Code", await ast.value([["", [], []], code]))); i = close + count; continue;
     }
-    if (unit === "*" || unit === "_" || unit === "~" && extensions.strikeout) {
+    if (unit === "*" || unit === "_" || unit === "^" && extensions.superscript || unit === "~" && (extensions.strikeout || extensions.subscript)) {
       let end = i; while (await char(end) === unit) {await context.cooperate(); end++;}
-      if (unit === "~" && end - i !== 2 && !(extensions.single_tilde && end - i === 1)) {await appendRange(i, end); i = end; continue;}
+      const script = end - i === 1 && (unit === "^" && extensions.superscript || unit === "~" && extensions.subscript);
+      let scriptEnd = -2;
+      if (script) {
+        scriptEnd = end;
+        while (scriptEnd < syntax.range.end && await char(scriptEnd) !== unit && !unicodeWhitespace(await char(scriptEnd))) {
+          await context.cooperate();
+          if (await char(scriptEnd) === "\\" && scriptEnd + 1 < syntax.range.end) scriptEnd++;
+          scriptEnd++;
+        }
+        if (scriptEnd === end || await char(scriptEnd) !== unit) scriptEnd = -1;
+      }
+      if (unit === "^" && !script || unit === "~" && !script && (!extensions.strikeout || end - i !== 2 && !(extensions.single_tilde && end - i === 1))) {await appendRange(i, end); i = end; continue;}
       const before = await char(i - 1), code = before?.charCodeAt(0) ?? 0;
       const previous = code >= 0xdc00 && code <= 0xdfff ? await scalar(i - 2) : before, next = await scalar(end);
       const left = !unicodeWhitespace(next) && (!unicodePunctuation(next) || unicodeWhitespace(previous) || unicodePunctuation(previous));
       const right = !unicodeWhitespace(previous) && (!unicodePunctuation(previous) || unicodeWhitespace(next) || unicodePunctuation(next));
       const node = await appendRange(i, end); context.bound("references", ++delimiterCount + bracketCount); context.charge("retainedBytes", 96);
-      const entry = await add([node, unit.charCodeAt(0), end - i, end - i, Number(unit !== "_" ? left : left && (!right || unicodePunctuation(previous))), Number(unit !== "_" ? right : right && (!left || unicodePunctuation(next))), serial++, delimiter, 0]);
+      const entry = await add([node, unit.charCodeAt(0), end - i, end - i, Number(script ? scriptEnd !== -1 : unit !== "_" ? left : left && (!right || unicodePunctuation(previous))), Number(script ? true : unit !== "_" ? right : right && (!left || unicodePunctuation(next))), serial++, delimiter, 0, i, scriptEnd]);
       if (delimiter) await put(delimiter + 64, [entry]); delimiter = entry; i = end; continue;
     }
     if (unit === "[" || unit === "!" && await char(i + 1) === "[") {
@@ -214,7 +225,7 @@ export async function parseRetainedCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < syntax.range.end && !"\\`*_~[]!<& \t\n".includes((await char(i))!)) {
+    while (i < syntax.range.end && !"\\`*_~^[]!<& \t\n".includes((await char(i))!)) {
       if (extensions.autolink_bare_uris && (await syntax.starts(i, "https://") || await syntax.starts(i, "http://") || await syntax.starts(i, "ftp://") || await syntax.starts(i, "www.") ||
         (letter(await char(i)) || digit(await char(i))) && !letter(await char(i - 1)) && !digit(await char(i - 1)) && !".-_+".includes(await char(i - 1) ?? ""))) break;
       await context.cooperate(); i++;

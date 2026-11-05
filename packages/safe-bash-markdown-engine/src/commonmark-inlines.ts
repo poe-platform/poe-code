@@ -12,6 +12,8 @@ interface Node {
   next: Node | null;
 }
 interface Delimiter {
+  scriptEnd: number | undefined;
+  position: number;
   node: Node;
   char: string;
   length: number;
@@ -206,12 +208,12 @@ export async function parseCommonMarkInlines(
     while (closer) {
       if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
       if (!closer.close) { closer = closer.next; continue; }
-      const key = closer.char + Number(closer.open) + closer.original % 3;
+      const key = closer.char + (closer.scriptEnd === undefined ? "" : "script") + Number(closer.open) + closer.original % 3;
       const floor = bottoms.get(key) ?? lower;
       let opener = closer.previous;
       while (opener && opener.index > floor) {
         if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
-        if (opener.char === closer.char && opener.open && (closer.char === "~" ? opener.original === closer.original : !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
+        if (opener.char === closer.char && opener.open && (closer.scriptEnd !== undefined ? opener.scriptEnd === closer.position : closer.char === "~" ? opener.original === closer.original : !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
         opener = opener.previous;
       }
       if (!opener || opener.index <= floor) {
@@ -230,7 +232,7 @@ export async function parseCommonMarkInlines(
       const last = closer.node.previous;
       context.charge("nodes", 1);
       context.charge("retainedBytes", 128);
-      const wrap: Node = { value: { t: opener.char === "~" ? "Strikeout" : count === 2 ? "Strong" : "Emph", c: [] }, children: first, previous: opener.node, next: closer.node };
+      const wrap: Node = { value: { t: opener.scriptEnd !== undefined ? opener.char === "^" ? "Superscript" : "Subscript" : opener.char === "~" ? "Strikeout" : count === 2 ? "Strong" : "Emph", c: [] }, children: first, previous: opener.node, next: closer.node };
       if (first) first.previous = null;
       if (last) last.next = null;
       opener.node.next = wrap;
@@ -276,7 +278,7 @@ export async function parseCommonMarkInlines(
     const char = text[i]!;
     if (char === "\\") {
       if (text[i + 1] === "\n") { append({ t: "LineBreak" }); i = skipSpace(text, i + 2, context); }
-      else if (asciiPunctuation(text[i + 1])) { append(text[i + 1]!); i += 2; }
+      else if (asciiPunctuation(text[i + 1]) || text[i + 1] === " " && (extensions.superscript || extensions.subscript)) { append(text[i + 1]!); i += 2; }
       else { append(char); i++; }
       continue;
     }
@@ -297,17 +299,29 @@ export async function parseCommonMarkInlines(
       i = close + count;
       continue;
     }
-    if (char === "*" || char === "_" || char === "~" && extensions.strikeout) {
+    if (char === "*" || char === "_" || char === "^" && extensions.superscript || char === "~" && (extensions.strikeout || extensions.subscript)) {
       let end = i;
       while (text[end] === char) { context.checkpoint(); end++; }
-      if (char === "~" && end - i !== 2 && !(extensions.single_tilde && end - i === 1)) { append(text.slice(i, end)); i = end; continue; }
+      const script = end - i === 1 && (char === "^" && extensions.superscript || char === "~" && extensions.subscript);
+      let scriptEnd: number | undefined;
+      if (script) {
+        // A script ends at the next unescaped marker and cannot cross raw whitespace.
+        scriptEnd = end;
+        while (scriptEnd < text.length && text[scriptEnd] !== char && !unicodeWhitespace(text[scriptEnd])) {
+          context.checkpoint();
+          if (text[scriptEnd] === "\\" && scriptEnd + 1 < text.length) scriptEnd++;
+          scriptEnd++;
+        }
+        if (scriptEnd === end || text[scriptEnd] !== char) scriptEnd = -1;
+      }
+      if (char === "^" && !script || char === "~" && !script && (!extensions.strikeout || end - i !== 2 && !(extensions.single_tilde && end - i === 1))) { append(text.slice(i, end)); i = end; continue; }
       const prev = before(text, i), next = after(text, end);
       const left = !unicodeWhitespace(next) && (!unicodePunctuation(next) || unicodeWhitespace(prev) || unicodePunctuation(prev));
       const right = !unicodeWhitespace(prev) && (!unicodePunctuation(prev) || unicodeWhitespace(next) || unicodePunctuation(next));
       const node = append(text.slice(i, end));
       context.bound("references", ++delimiterCount + bracketCount);
       context.charge("retainedBytes", 96);
-      const entry: Delimiter = { node, char, length: end - i, original: end - i, open: char !== "_" ? left : left && (!right || unicodePunctuation(prev)), close: char !== "_" ? right : right && (!left || unicodePunctuation(next)), index: serial++, previous: delimiter, next: null };
+      const entry: Delimiter = { node, char, position: i, scriptEnd, length: end - i, original: end - i, open: script ? scriptEnd !== -1 : char !== "_" ? left : left && (!right || unicodePunctuation(prev)), close: script ? true : char !== "_" ? right : right && (!left || unicodePunctuation(next)), index: serial++, previous: delimiter, next: null };
       if (delimiter) delimiter.next = entry;
       delimiter = entry;
       i = end;
@@ -423,7 +437,7 @@ export async function parseCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < text.length && !"\\`*_~[]!<& \t\n".includes(text[i]!) && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
+    while (i < text.length && !"\\`*_~^[]!<& \t\n".includes(text[i]!) && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
     append(text.slice(begin, i));
   }
   await emphasis(null);
@@ -468,7 +482,7 @@ export async function parseCommonMarkInlines(
       let value = node.value;
       if (node.children) {
         const children = await materialize(node.children, depth + 1);
-        if (value.t === "Emph" || value.t === "Strong" || value.t === "Strikeout") value = { t: value.t, c: children };
+        if (value.t === "Emph" || value.t === "Strong" || value.t === "Strikeout" || value.t === "Superscript" || value.t === "Subscript") value = { t: value.t, c: children };
         if (value.t === "Link" || value.t === "Image") value = { t: value.t, c: [value.c[0], children, value.c[2]] };
       }
       push(value);

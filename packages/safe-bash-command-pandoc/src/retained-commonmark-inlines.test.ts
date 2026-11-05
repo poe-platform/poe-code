@@ -35,7 +35,7 @@ async function compare(text: string, extensions: Record<string, boolean> = {stri
     charges = expectedCharges;
     const expected = await parseCommonMarkInlines({kind: "pendingInline", lines: [{text, start: {line: 1, column: 1}}]}, definitions, context, extensions);
     spy.mockRestore();
-    expect(actualCharges).toEqual(expectedCharges);
+    expect(actualCharges, text).toEqual(expectedCharges);
     const wire = new BackedJson(store(), units => context.cooperate(units)); await ast.write(value, wire);
     let serialized = ""; for await (const chunk of wire.chunks()) serialized += new TextDecoder().decode(chunk);
     expect(JSON.parse(serialized)).toEqual(expected);
@@ -49,6 +49,10 @@ it("preserves mixed delimiter, HTML, link, and entity boundaries", async () => {
   for (let sample = 0; sample < 300; sample++) {
     let text = "";
     for (let i = 0; i < 18; i++) {state = (Math.imul(state, 1664525) + 1013904223) >>> 0; text += tokens[state % tokens.length];}
-    await compare(text, {strikeout: true, single_tilde: sample % 2 === 0, raw_html: sample % 3 === 0, autolink_bare_uris: true});
+    await compare(text, {superscript: sample % 2 === 0, subscript: sample % 3 === 0, strikeout: true, single_tilde: sample % 2 === 0, raw_html: sample % 3 === 0, autolink_bare_uris: true});
   }
+});
+
+it.each(["x^2^ and H~2~O", "^*bold*^ ~a\\ b~ ~~gone~~", "^a b^ ~a b~ ^open ~open", "[x^2^](url) ^a~b~c^"])("retains script syntax and budgets: %s", async text => {
+  await compare(text, {superscript: true, subscript: true, strikeout: true});
 });

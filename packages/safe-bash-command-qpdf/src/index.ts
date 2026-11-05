@@ -1,3 +1,4 @@
+import { linearizationReport } from "./linearization-report.js";
 import { encryptionReport } from "./encryption-report.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import type { JsonValue } from "./json-output.js";
@@ -602,7 +603,7 @@ function parseQpdfArguments(argv: readonly string[]) {
   let splitPagesGroup: number | undefined;
   let collateCount: number | undefined;
   let linearize = false;
-  let showLinearization = false;
+  let showLinearization: false | "show" | "check" | "both" = false;
   let flattenAnnotations: false | "all" | "print" | "screen" = false;
   let flattenRotation = false;
   let removeUnreferencedResources: "no" | "yes" | "auto" = "no";
@@ -647,7 +648,8 @@ function parseQpdfArguments(argv: readonly string[]) {
     } else if (arg === "--linearize") {
       linearize = true;
     } else if (arg === "--show-linearization" || arg === "--check-linearization") {
-      showLinearization = true;
+      const mode = arg === "--show-linearization" ? "show" : "check";
+      showLinearization = !showLinearization || showLinearization === mode ? mode : "both";
     } else if (arg === "--collate") {
       collateCount = 1;
     } else if (arg.startsWith("--collate=")) {
@@ -973,7 +975,7 @@ function parseQpdfArguments(argv: readonly string[]) {
     splitPagesGroup,
     collateCount,
     linearize,
-    showLinearization,
+    showLinearization: showLinearization as false | "show" | "check" | "both",
     flattenAnnotations,
     flattenRotation,
     removeUnreferencedResources,
@@ -1185,20 +1187,31 @@ function* executeQpdfCli(
       }
     }
     if (!linDict) {
-      return { exitCode: 0, stdout: `${inputFile ?? "empty"}: not linearized\n`, stderr: "" };
+      return { exitCode: 0, stdout: `${inputFile ?? "empty"} is not linearized\n`.repeat(showLinearization === "both" ? 2 : 1), stderr: "" };
     }
     const numVal = (k: string, fb = 0) => {
       const n = cos.resolve(dictGet(linDict!, k));
       return n?.kind === "number" ? n.value : fb;
     };
     const hArr = cos.resolveArray(dictGet(linDict, "H"));
-    const h0 = hArr && hArr.items[0] ? (cos.resolve(hArr.items[0]) as any)?.value ?? 0 : 0;
-    const h1 = hArr && hArr.items[1] ? (cos.resolve(hArr.items[1]) as any)?.value ?? 0 : 0;
-    const out = [
-      `${inputFile ?? "empty"}: linearized`,
-      `Linearization dictionary: L=${numVal("L")} H=[${h0} ${h1}] O=${numVal("O")} E=${numVal("E")} N=${numVal("N", baseDoc.getPageCount())} T=${numVal("T")}`,
-      `no linearization errors`,
-    ].join("\n") + "\n";
+    const hint = (index: number) => {
+      const value = cos.resolve(hArr?.items[index]);
+      return value?.kind === "number" ? value.value : 0;
+    };
+    const h0 = hint(0), h1 = hint(1);
+    if (showLinearization === "check") return { exitCode: 0, stdout: `${inputFile ?? "empty"}: no linearization errors\n`, stderr: "" };
+    const values = { file_size: numVal("L"), first_page_object: numVal("O"), first_page_end: numVal("E"), npages: baseDoc.getPageCount(), xref_zero_offset: numVal("T"), first_page: numVal("P"), H_offset: h0, H_length: h1 };
+    let hintStream;
+    for (const object of cos.objects.values()) if (object.span?.start === h0 && object.value.kind === "stream") { hintStream = object.value; break; }
+    const hintBytes = hintStream ? cos.decodeStream(hintStream) : new Uint8Array();
+    const shared = hintStream && cos.resolve(dictGet(hintStream.dict, "S")), outline = hintStream && cos.resolve(dictGet(hintStream.dict, "O"));
+    const report = linearizationReport(inputFile ?? "empty", values, hintBytes.length, shared?.kind === "number" ? shared.value : 0, outline?.kind === "number" ? outline.value : undefined);
+    let out = showLinearization === "both" ? `${inputFile ?? "empty"}: no linearization errors\n` : "", step = report.next();
+    while (!step.done) {
+      yield;
+      if (typeof step.value === "string") { out += step.value; step = report.next(new Uint8Array()); }
+      else step = report.next(hintBytes.subarray(step.value.offset, step.value.offset + step.value.length));
+    }
     return { exitCode: 0, stdout: out, stderr: "" };
   }
 

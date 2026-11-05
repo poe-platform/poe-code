@@ -37,7 +37,7 @@ export interface RetainedQpdfOptions extends QpdfJsonOptions {
   splitPagesGroup: number | undefined;
   rotateSpecs: readonly { range: string; angle: number; relative: boolean; sign: number }[];
   listAttachments: boolean;
-  showLinearization: boolean;
+  showLinearization: false | "show" | "check" | "both";
   showAttachmentKey: string | undefined;
   collateCount: number | undefined;
   pageSpecs: readonly { file: string; password?: string; range: string }[];
@@ -214,7 +214,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
       }
       if (options.showLinearization) {
-        const parts = linearizationParts(document, source, storage, inputName, count, signal);
+        const parts = linearizationParts(document, source, storage, inputName, count, signal, options.showLinearization);
         await publishInspection((async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })());
         return { exitCode: 0 };
       }

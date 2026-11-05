@@ -1129,8 +1129,10 @@ describe("safe-bash-command-qpdf", () => {
     assert.ok(outBytes && outBytes.length > 0);
     const showRes = await runQpdfCli(["--show-linearization", "out.pdf"], files);
     assert.equal(showRes.exitCode, 0);
-    assert.match(showRes.stdout, /linearized/);
-    assert.match(showRes.stdout, new RegExp(`L=${outBytes.length}`));
-    assert.match(showRes.stdout, /no linearization errors/);
+    assert.match(showRes.stdout, /linearization data:/);
+    assert.match(showRes.stdout, new RegExp(`file_size: ${outBytes.length}`));
+    assert.match(showRes.stdout, /Page Offsets Hint Table/);
+    const checkRes = await runQpdfCli(["--check-linearization", "out.pdf"], files);
+    assert.equal(checkRes.stdout, "out.pdf: no linearization errors\n");
   });
 });

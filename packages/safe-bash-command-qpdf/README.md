@@ -56,8 +56,9 @@ atomic file publication, including filename patterns, rotations and information/
 removals. Page selections and collation compose with splitting through an unsaved
 caller-backed graph, preserving indirect values between transformations.
 
-`--show-linearization` and `--check-linearization` preserve revision and repair
-ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
+`--show-linearization` prints the linearization dictionary fields and decoded page,
+shared-object, and outline hint tables. `--check-linearization` prints the validation
+result. Both preserve revision and repair ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
 through caller-backed object and page indexes, preserving repair and password
 diagnostics without collecting input payloads. `--is-encrypted` and
 `--requires-password` scan retained input in bounded chunks and validate supplied

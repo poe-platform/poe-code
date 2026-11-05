@@ -119,34 +119,19 @@ export async function stampRetainedPages(document: PdfRetainedDocument, store: P
 }
 
 export function retainedStampTransform(dstAttributes: { mediaBox: readonly [number, number, number, number]; rotation: number }, srcAttributes: { mediaBox: readonly [number, number, number, number]; rotation: number }): string {
-  const dstSize = { width: Math.abs(dstAttributes.mediaBox[2] - dstAttributes.mediaBox[0]), height: Math.abs(dstAttributes.mediaBox[3] - dstAttributes.mediaBox[1]) };
-  const srcSize = { width: Math.abs(srcAttributes.mediaBox[2] - srcAttributes.mediaBox[0]), height: Math.abs(srcAttributes.mediaBox[3] - srcAttributes.mediaBox[1]) };
-  const rotDiff = ((dstAttributes.rotation - srcAttributes.rotation) % 360 + 360) % 360;
-  let stampOpenStr = "q\n";
-  if (srcSize.width > 0 && srcSize.height > 0) {
-    const fmt6 = (n: number) => Number(n.toFixed(6));
-    const fmt4 = (n: number) => Number(n.toFixed(4));
-    if (rotDiff === 90) {
-      const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
-      const ox = (dstSize.height - srcSize.width * s) / 2;
-      const oy = (dstSize.width - srcSize.height * s) / 2;
-      stampOpenStr = `q\n0 ${fmt6(s)} ${fmt6(-s)} 0 ${fmt4(dstSize.width - oy)} ${fmt4(ox)} cm\n`;
-    } else if (rotDiff === 180) {
-      const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
-      const ox = (dstSize.width - srcSize.width * s) / 2;
-      const oy = (dstSize.height - srcSize.height * s) / 2;
-      stampOpenStr = `q\n${fmt6(-s)} 0 0 ${fmt6(-s)} ${fmt4(dstSize.width - ox)} ${fmt4(dstSize.height - oy)} cm\n`;
-    } else if (rotDiff === 270) {
-      const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
-      const ox = (dstSize.height - srcSize.width * s) / 2;
-      const oy = (dstSize.width - srcSize.height * s) / 2;
-      stampOpenStr = `q\n0 ${fmt6(-s)} ${fmt6(s)} 0 ${fmt4(oy)} ${fmt4(dstSize.height - ox)} cm\n`;
-    } else if (Math.abs(srcSize.width - dstSize.width) > 0.5 || Math.abs(srcSize.height - dstSize.height) > 0.5) {
-      const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
-      const tx = (dstSize.width - srcSize.width * s) / 2;
-      const ty = (dstSize.height - srcSize.height * s) / 2;
-      stampOpenStr = `q\n${fmt6(s)} 0 0 ${fmt6(s)} ${fmt4(tx)} ${fmt4(ty)} cm\n`;
-    }
-  }
-  return stampOpenStr;
+  const [dx0, dy0, dx1, dy1] = dstAttributes.mediaBox;
+  const [sx0, sy0, sx1, sy1] = srcAttributes.mediaBox;
+  const width = Math.abs(sx1 - sx0), height = Math.abs(sy1 - sy0);
+  if (width === 0 || height === 0) return "q\n";
+  const rotation = ((dstAttributes.rotation - srcAttributes.rotation) % 360 + 360) % 360;
+  const swapped = rotation === 90 || rotation === 270;
+  // qpdf shrinks oversized stamps but never enlarges smaller ones.
+  const scale = Math.min(1, Math.abs(dx1 - dx0) / (swapped ? height : width), Math.abs(dy1 - dy0) / (swapped ? width : height));
+  const a = rotation === 180 ? -scale : swapped ? 0 : scale;
+  const b = rotation === 90 ? scale : rotation === 270 ? -scale : 0;
+  const c = -b, d = a;
+  const sx = (sx0 + sx1) / 2, sy = (sy0 + sy1) / 2;
+  const tx = (dx0 + dx1) / 2 - a * sx - c * sy;
+  const ty = (dy0 + dy1) / 2 - b * sx - d * sy;
+  return `q\n${[a, b, c, d, tx, ty].map(n => Number(n.toFixed(6))).join(" ")} cm\n`;
 }

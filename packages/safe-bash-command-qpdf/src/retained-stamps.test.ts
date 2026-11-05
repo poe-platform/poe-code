@@ -135,3 +135,37 @@ it("evicts inactive stamp input ranges before reusing the retained identity", as
   }
   assert.ok(await readsFor(2) > await readsFor(1));
 });
+
+// Matrices checked against native qpdf's placement and Form XObject matrices.
+for (const mode of ["overlay", "underlay"]) for (const [width, height, rotation, matrix] of [
+  [100, 50, 0, "1 0 0 1 30 5"],
+  [100, 50, 90, "0 -1 1 0 45 150"],
+  [100, 50, 180, "-1 0 0 -1 190 135"],
+  [100, 50, 270, "0 1 -1 0 175 -10"],
+  [400, 200, 0, "0.5 0 0 0.5 -5 0"],
+  [199.8, 99.8, 0, "1 0 0 1 -19.9 -19.9"],
+] as const) it(`centers ${mode} stamps with nonzero origins, size ${width}x${height}, and rotation ${rotation}`, async () => {
+  const base = PdfDocument.create(), stamp = PdfDocument.create();
+  const page = base.addPage([200, 100]), other = stamp.addPage([width, height]);
+  dictSet(page.dict, "MediaBox", cosArray([10, 20, 210, 120].map(n => cosNumber(n))));
+  dictSet(other.dict, "MediaBox", cosArray([30, 40, 30 + width, 40 + height].map(n => cosNumber(n))));
+  other.setRotation(rotation);
+  other.setRawContentStream(Buffer.from("0 0 1 rg 40 50 30 20 re f"));
+  const input = base.save(), source = stamp.save();
+  const args = ["in.pdf", "out.pdf", `--${mode}`, "stamp.pdf", "--"];
+  const files = new Map([["in.pdf", input], ["stamp.pdf", source]]);
+  assert.equal((await runQpdfCli(args, files)).exitCode, 0);
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/scratch");
+  await fs.writeFile("/in.pdf", input);
+  await fs.writeFile("/stamp.pdf", source);
+  const carrier = createCommandArguments(args);
+  const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier,
+    cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+    stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} } });
+  assert.equal(result.exitCode, 0);
+  for (const bytes of [files.get("out.pdf")!, await fs.readFile("/out.pdf")]) {
+    const content = Buffer.from(PdfDocument.load(bytes).getPage(0).getRawContentStream()).toString();
+    assert.ok(content.includes(`${matrix} cm`), content);
+  }
+});

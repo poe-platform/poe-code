@@ -22,6 +22,7 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   PdfDocument,
+  retainedStampTransform,
   PdfFileSource,
   parseCosDocumentSteps,
   serializeCosDocumentSteps,
@@ -1666,36 +1667,10 @@ function* executeQpdfCli(
         }
         const stampStream = iso88591ToBytes(stampStreamStr);
 
-        // Merge stamp stream into target stream wrapped in q ... Q (with MediaBox scaling/centering & rotation alignment)
-        const dstSize = targetPage.getSize();
-        const srcSize = srcStampPage.getSize();
-        const rotDiff = (((targetPage.getRotation() - srcStampPage.getRotation()) % 360) + 360) % 360;
-        let stampOpenStr = "q\n";
-        if (srcSize.width > 0 && srcSize.height > 0) {
-          const fmt6 = (n: number) => Number(n.toFixed(6));
-          const fmt4 = (n: number) => Number(n.toFixed(4));
-          if (rotDiff === 90) {
-            const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
-            const ox = (dstSize.height - srcSize.width * s) / 2;
-            const oy = (dstSize.width - srcSize.height * s) / 2;
-            stampOpenStr = `q\n0 ${fmt6(s)} ${fmt6(-s)} 0 ${fmt4(dstSize.width - oy)} ${fmt4(ox)} cm\n`;
-          } else if (rotDiff === 180) {
-            const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
-            const ox = (dstSize.width - srcSize.width * s) / 2;
-            const oy = (dstSize.height - srcSize.height * s) / 2;
-            stampOpenStr = `q\n${fmt6(-s)} 0 0 ${fmt6(-s)} ${fmt4(dstSize.width - ox)} ${fmt4(dstSize.height - oy)} cm\n`;
-          } else if (rotDiff === 270) {
-            const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
-            const ox = (dstSize.height - srcSize.width * s) / 2;
-            const oy = (dstSize.width - srcSize.height * s) / 2;
-            stampOpenStr = `q\n0 ${fmt6(-s)} ${fmt6(s)} 0 ${fmt4(oy)} ${fmt4(dstSize.height - ox)} cm\n`;
-          } else if (Math.abs(srcSize.width - dstSize.width) > 0.5 || Math.abs(srcSize.height - dstSize.height) > 0.5) {
-            const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
-            const tx = (dstSize.width - srcSize.width * s) / 2;
-            const ty = (dstSize.height - srcSize.height * s) / 2;
-            stampOpenStr = `q\n${fmt6(s)} 0 0 ${fmt6(s)} ${fmt4(tx)} ${fmt4(ty)} cm\n`;
-          }
-        }
+        const stampOpenStr = retainedStampTransform(
+          { mediaBox: targetPage.getMediaBox(), rotation: targetPage.getRotation() },
+          { mediaBox: srcStampPage.getMediaBox(), rotation: srcStampPage.getRotation() }
+        );
         const qOpenTarget = enc.encode("q\n");
         const qOpenStamp = enc.encode(stampOpenStr);
         const qClose = enc.encode("\nQ\n");

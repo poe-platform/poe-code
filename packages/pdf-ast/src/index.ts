@@ -124,3 +124,5 @@ export { encodePostscriptPageChunks } from "./render/postscript.js";
 export { CompactPdfNumber } from "./cos/compact-number.js";
 
 export { serializeRetainedCosNodeChunks } from "./cos/retained-node-writer.js";
+
+export { retainedStampTransform } from "./edit/retained-stamps.js";

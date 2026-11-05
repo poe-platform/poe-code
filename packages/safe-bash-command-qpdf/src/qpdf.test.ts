@@ -674,7 +674,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.match(subDoc.getPage(2).extractText(), /Page 5/);
   });
 
-  it("supports --flatten-rotation and scales/centers differing MediaBoxes in --overlay", async () => {
+  it("supports --flatten-rotation and centers differing MediaBoxes in --overlay", async () => {
     const doc = PdfDocument.create();
     const p1 = doc.addPage({ width: 200, height: 100 });
     p1.drawRect({ x: 0, y: 80, width: 20, height: 20, fill: { r: 1, g: 0, b: 0 } });
@@ -699,12 +699,12 @@ describe("safe-bash-command-qpdf", () => {
     const cbArr = flatRotDoc.cos.resolveArray(dictGet(flatRotDoc.getPage(0).dict, "CropBox"))!;
     assert.deepEqual(cbArr.items.map(it => (it as { value: number }).value), [20, 10, 80, 190]);
 
-    // 2. --overlay scales 100x50 stamp 2x onto 200x100 base page
+    // 2. --overlay centers a 100x50 stamp at its original size on a 200x100 base page
     const ovRes = await runQpdfCli(["base.pdf", "ov.pdf", "--overlay", "stamp.pdf", "--"], files);
     assert.equal(ovRes.exitCode, 0);
     const ovDoc = PdfDocument.load(files.get("ov.pdf")!);
     const rawContent = new TextDecoder().decode(ovDoc.getPage(0).getRawContentStream());
-    assert.match(rawContent, /2 0 0 2 0 0 cm/);
+    assert.match(rawContent, /1 0 0 1 50 25 cm/);
   });
 
   it("supports --externalize-inline-images (--ii-min-bytes) and --remove-unreferenced-resources", async () => {

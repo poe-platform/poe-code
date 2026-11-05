@@ -2225,6 +2225,13 @@ function* executeQpdfCli(
       return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${copySpec.file}\n` };
     }
     const srcDoc = (yield* PdfDocument.loadSteps(srcBytes, copySpec.password ? { password: copySpec.password } : {}));
+    const copyMetadata = (node: PdfCosNode, depth = 0): PdfCosNode => {
+      if (depth > 100) throw new Error("Attachment metadata depth limit exceeded");
+      if (node.kind === "ref") return copyMetadata(srcDoc.cos.resolve(node) ?? { kind: "null" }, depth + 1);
+      if (node.kind === "array") return cosArray(node.items.map(item => copyMetadata(item, depth + 1)));
+      if (node.kind === "dict") return { kind: "dict", entries: node.entries.map(entry => ({ key: entry.key, value: copyMetadata(entry.value, depth + 1) })) };
+      return node;
+    };
     const srcRoot = asDict(srcDoc.cos.resolve(srcDoc.cos.rootRef));
     const srcNames = srcRoot ? asDict(srcDoc.cos.resolve(dictGet(srcRoot, "Names"))) : undefined;
     const srcEf = srcNames ? asDict(srcDoc.cos.resolve(dictGet(srcNames, "EmbeddedFiles"))) : undefined;
@@ -2290,14 +2297,12 @@ function* executeQpdfCli(
                 return { exitCode: 2, stdout: "", stderr: `qpdf: duplicate attachment key ${newKey}\n` };
               }
             }
-            const efStreamRef = workingDoc.cos.allocateObject(
-              cosStream(data, {
-                dict: cosDict({
-                  Type: cosName("EmbeddedFile"),
-                  Params: cosDict({ Size: cosNumber(data.byteLength) })
-                })
-              })
-            );
+            const metadata = cosDict({ Type: cosName("EmbeddedFile"), Params: cosDict({ Size: cosNumber(data.byteLength) }) });
+            for (const key of ["Subtype", "Params"]) {
+              const value = dictGet(stNode.dict, key);
+              if (value) dictSet(metadata, key, copyMetadata(value));
+            }
+            const efStreamRef = workingDoc.cos.allocateObject(cosStream(data, { dict: metadata }));
             const fsRef = workingDoc.cos.allocateObject(
               cosDict({
                 Type: cosName("Filespec"),

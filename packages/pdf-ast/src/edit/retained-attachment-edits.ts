@@ -1,5 +1,5 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosArray, cosDict, cosName, cosNumber, cosString, decodePdfString, dictDelete, dictGet, dictSet, type PdfCosNode, type PdfCosRef } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosString, decodePdfString, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import { PdfNameIndex } from "../cos/name-index.js";
 import { PdfReferenceSet } from "../cos/reference-set.js";
@@ -15,6 +15,8 @@ export interface RetainedAttachmentInput {
   readonly mimetype?: string;
   readonly creationdate?: string;
   readonly moddate?: string;
+  /** Embedded-file dictionary with source references resolved before copying. */
+  readonly metadata?: PdfCosDict;
   readonly replace?: boolean;
   readonly length: number;
   readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
@@ -91,7 +93,7 @@ export async function editRetainedAttachments(document: PdfRetainedDocument, tar
       }
       {
         const embedded = await target.allocate();
-        await target.set({ objectNumber: embedded.objectNumber, generationNumber: 0, value: cosDict({
+        await target.set({ objectNumber: embedded.objectNumber, generationNumber: 0, value: attachment.metadata ?? cosDict({
           Type: cosName("EmbeddedFile"),
           ...(attachment.mimetype !== undefined ? { Subtype: cosName(attachment.mimetype) } : {}),
           Params: cosDict({

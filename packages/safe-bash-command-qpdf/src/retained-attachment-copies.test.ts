@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { PdfDocument, cosStream, cosArray, cosDict, cosName, cosString, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, cosStream, cosArray, cosDict, cosName, cosNumber, cosString, decodePdfString, dictGet, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
@@ -10,6 +10,15 @@ for (const mode of ["new", "existing", "nested", "indirect-array", "duplicate", 
   const other = PdfDocument.create(); other.addPage();
   const root = doc.cos.resolveDict(doc.cos.rootRef)!, sourceRoot = other.cos.resolveDict(other.cos.rootRef)!;
   const payload = new Uint8Array(65539).fill(199), embedded = other.cos.allocateObject(cosStream(payload, { compress: true }));
+  const stream = other.cos.resolve(embedded)!;
+  assert.equal(stream.kind, "stream");
+  if (stream.kind === "stream") {
+    dictSet(stream.dict, "Subtype", other.cos.allocateObject(cosName("text/plain")));
+    dictSet(stream.dict, "Params", other.cos.allocateObject(cosDict({
+      Size: cosNumber(payload.length), CreationDate: other.cos.allocateObject(cosString("D:20200101000000Z")),
+      ModDate: cosString("D:20210203040506Z"), CheckSum: cosString("retained-checksum")
+    })));
+  }
   if (mode === "unsupported") { const stream = other.cos.resolve(embedded); if (stream?.kind === "stream") dictSet(stream.dict, "Filter", cosName("Unsupported")); }
   const spec = other.cos.allocateObject(cosDict({ Type: cosName("Filespec"), UF: cosString("payload.bin"), EF: cosDict({ F: embedded }) }));
   const sourceTree = mode === "source-nested" ? cosDict({ Names: cosArray([cosString("source")]), Kids: cosArray([other.cos.allocateObject(cosDict({ Names: cosArray([spec]) }))]) }) : cosDict({ Names: cosArray([cosString("source"), spec]) });
@@ -28,6 +37,29 @@ for (const mode of ["new", "existing", "nested", "indirect-array", "duplicate", 
   let expectedError: Error | undefined, actualError: Error | undefined;
   const files = new Map([["in.pdf", input], [mode === "stdin" ? "-" : "source.pdf", copied], ["payload.bin", payload]]);
   let expected = await runQpdfCli(args, files).catch((error: Error) => { expectedError = error; return { exitCode: 2, stdout: "", stderr: "" }; });
+  if (expected.exitCode === 0 && mode !== "empty" && mode !== "remove") {
+    const output = PdfDocument.load(files.get("out.pdf")!);
+    const names = output.cos.resolveDict(dictGet(output.cos.resolveDict(output.cos.rootRef)!, "Names"))!;
+    const tree = output.cos.resolveDict(dictGet(names, "EmbeddedFiles"))!;
+    const pairs = output.cos.resolve(dictGet(tree, "Names"))!;
+    assert.equal(pairs.kind, "array");
+    if (pairs.kind === "array") {
+      const at = pairs.items.findIndex(node => node.kind === "string" && decodePdfString(node) === "copied-source");
+      const spec = output.cos.resolveDict(pairs.items[at + 1])!;
+      const ef = output.cos.resolveDict(dictGet(spec, "EF"))!;
+      const stream = output.cos.resolve(dictGet(ef, "F"))!;
+      assert.equal(stream.kind, "stream");
+      if (stream.kind === "stream") {
+        const subtype = output.cos.resolve(dictGet(stream.dict, "Subtype"));
+        assert.equal(subtype?.kind === "name" ? subtype.decoded : undefined, "text/plain");
+        const params = output.cos.resolveDict(dictGet(stream.dict, "Params"))!;
+        for (const [key, value] of Object.entries({ CreationDate: "D:20200101000000Z", ModDate: "D:20210203040506Z", CheckSum: "retained-checksum" })) {
+          const field = output.cos.resolve(dictGet(params, key));
+          assert.equal(field?.kind === "string" ? decodePdfString(field) : undefined, value);
+        }
+      }
+    }
+  }
   const controller = new AbortController(), failure = new Error("Attachment copy staging failed");
   if (mode.startsWith("failure-")) { expectedError = failure; expected = { ...expected, exitCode: 2 }; }
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input); await fs.writeFile("/payload.bin", payload); await fs.writeFile("/source.pdf", copied);

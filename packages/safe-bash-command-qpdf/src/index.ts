@@ -430,7 +430,6 @@ function parseStrictJsonObjectSelector(
 interface EncryptConfig {
   userPassword: string;
   ownerPassword: string;
-  keyLength: number;
   print: boolean;
   modify: boolean;
   copy: boolean;
@@ -904,11 +903,12 @@ function parseQpdfArguments(argv: readonly string[]) {
     } else if (arg === "--encrypt") {
       const userPassword = argv[++i] ?? "";
       const ownerPassword = argv[++i] ?? "";
-      const keyLength = Number.parseInt(argv[++i] ?? "256", 10) || 256;
+      if (argv[++i] !== "256") {
+        return { result: { exitCode: 2, stdout: "", stderr: "qpdf: only 256-bit encryption is supported; use --encrypt user-password owner-password 256 --\n" } };
+      }
       const cfg: EncryptConfig = {
         userPassword,
         ownerPassword,
-        keyLength,
         print: true,
         modify: true,
         copy: true,

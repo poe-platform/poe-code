@@ -10,7 +10,7 @@ Inspect, check, encrypt, decrypt, merge, split, rotate, and transform PDFs at th
 | --- | --- | --- |
 | Structural Check | `--check` | Validates COS xref/trailer/object graph and reports version & repair status. |
 | Page & Object Inspection | `--show-npages` / `--npages`, `--show-xref`, `--show-object=<n>`, `--json` | Inspects page count, xref table, individual COS objects, or QPDF v1/v2 JSON. |
-| Encryption & Predicates | `--encrypt ... --`, `--decrypt`, `--show-encryption`, `--is-encrypted`, `--requires-password` | Encrypts/decrypts PDFs and evaluates encryption status codes (`0`, `2`, `3`). |
+| Encryption & Predicates | `--encrypt user-password owner-password 256 --`, `--decrypt`, `--show-encryption`, `--is-encrypted`, `--requires-password` | Writes AES-256 encrypted PDFs, decrypts PDFs and evaluates encryption status codes (`0`, `2`, `3`). Other encryption lengths are rejected with exit code `2`, including with `--allow-weak-crypto`. |
 | Page Selection & Merge | `--empty --pages fileA.pdf 1-3,r1 fileB.pdf 1-5:odd -- out.pdf` | Supports `rN`/`z`, descending ranges, `x` exclusions, and `:odd`/`:even` positional filters. |
 | Page Splitting | `--split-pages[=n]` | Splits multi-page PDFs into numbered single-page or N-page files. |
 | Page Rotation | `--rotate=[+\|-]angle:range` | Applies relative (`+90`, `-90`) or absolute (`0`, `90`, `180`, `270`) rotation to page ranges. |

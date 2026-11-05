@@ -526,6 +526,16 @@ function reconstructTokensSql(tokens: Token[]): string {
   return out;
 }
 
+function isFromClause(tokens: Token[], index: number): boolean {
+  const isWord = (offset: number, word: string): boolean => {
+    const token = tokens[index + offset];
+    return token?.type === "word" && token.value.toUpperCase() === word;
+  };
+  return isWord(0, "FROM") && !(isWord(-1, "DISTINCT") && (
+    isWord(-2, "IS") || (isWord(-2, "NOT") && isWord(-3, "IS"))
+  ));
+}
+
 class ExprParser {
   public pos = 0;
   private paramCounter = 0;
@@ -4014,7 +4024,7 @@ export class SqliteDatabase {
     let whereExpr: ExprNode | undefined;
 
     while (i < tokens.length) {
-      if (tokens[i]!.value.toUpperCase() === "WHERE" || tokens[i]!.value.toUpperCase() === "FROM") {
+      if (tokens[i]!.value.toUpperCase() === "WHERE" || isFromClause(tokens, i)) {
         if (tokens[i]!.value.toUpperCase() === "WHERE") {
           whereExpr = new ExprParser(tokens.slice(i + 1)).parseExpression();
         }
@@ -4075,7 +4085,7 @@ export class SqliteDatabase {
           d += 1;
         } else if (t.value === ")") {
           d -= 1;
-        } else if (d === 0 && (t.value === "," || t.value.toUpperCase() === "WHERE" || t.value.toUpperCase() === "FROM")) {
+        } else if (d === 0 && (t.value === "," || t.value.toUpperCase() === "WHERE" || isFromClause(tokens, i))) {
           break;
         }
         exprToks.push(t);
@@ -4151,7 +4161,7 @@ export class SqliteDatabase {
       const token = tokens[i]!.value.toUpperCase();
       if (token === "(") depth += 1;
       else if (token === ")") depth -= 1;
-      else if (depth === 0 && token === "FROM") fromIdx = i;
+      else if (depth === 0 && isFromClause(tokens, i)) fromIdx = i;
       else if (depth === 0 && token === "WHERE") whereIdx = i;
     }
     const setTokens =
@@ -4841,7 +4851,7 @@ export class SqliteDatabase {
           d -= 1;
         } else if (d === 0 && t.type === "word") {
           const u = t.value.toUpperCase();
-          if (u === "FROM" || u === "WHERE" || u === "HAVING" || u === "WINDOW" || u === "LIMIT") {
+          if (isFromClause(tokens, i) || u === "WHERE" || u === "HAVING" || u === "WINDOW" || u === "LIMIT") {
             clausePositions.push({ name: u, pos: i });
           } else if (u === "GROUP" && tokens[i + 1]?.value.toUpperCase() === "BY") {
             clausePositions.push({ name: "GROUP BY", pos: i });

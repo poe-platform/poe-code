@@ -51,6 +51,35 @@ async function runSqlite3(
   };
 }
 
+for (const op of ["IS DISTINCT FROM", "IS NOT DISTINCT FROM"]) {
+  test(`sqlite3 ${op} compares null and non-null operands`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", `
+      SELECT NULL ${op} NULL AS both_null, NULL ${op} 1 AS left_null,
+             1 ${op} NULL AS right_null, 1 ${op} 1 AS equal,
+             1 ${op} 2 AS unequal, 'a' ${op} 'a' AS text_equal;
+    `]);
+    const distinct = op === "IS DISTINCT FROM";
+    assert.equal(result.code, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{
+      both_null: distinct ? 0 : 1, left_null: distinct ? 1 : 0,
+      right_null: distinct ? 1 : 0, equal: distinct ? 0 : 1,
+      unequal: distinct ? 1 : 0, text_equal: distinct ? 0 : 1
+    }]);
+  });
+
+  test(`sqlite3 ${op} preserves table clauses and UPDATE assignments`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `
+      CREATE TABLE t(x INTEGER, d INTEGER);
+      INSERT INTO t VALUES (NULL, 0), (1, 0), (2, 0);
+      UPDATE t SET d = x ${op} NULL WHERE x ${op} 1;
+      SELECT x ${op} NULL AS comparison, d FROM t
+      WHERE x ${op} 1 ORDER BY x ${op} NULL, x;
+    `]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, op === "IS DISTINCT FROM" ? "0|0\n1|1\n" : "0|0\n");
+  });
+}
+
 for (const op of ["=", "==", "!=", "<>"]) {
   test(`sqlite3 ${op} compares literals without affinity and retains column affinity`, async () => {
     const equal = op === "=" || op === "==";

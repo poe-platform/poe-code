@@ -6,14 +6,15 @@ import {SaxesParser} from "saxes";
 import {createMemoryFileSystem} from "@poe-code/safe-fs/core";
 import {toByteSource} from "safe-bash-contracts/io";
 import {createPandocCommand} from "./command.js";
-import {convert, writeDocument} from "./engine.js";
+import {convert, readDocument, writeDocument} from "./engine.js";
 import type {Inline} from "./ast-types.js";
 const context = {yield: async () => {}};
 const attr = ["", [], []] as const;
 const str = (c: string): Inline => ({t: "Str", c});
 
 it.each(["Strikeout", "Superscript", "Subscript", "Underline"] as const)("preserves nested %s formatting and hyperlinks in DOCX", async t => {
-  const result = await writeDocument({blocks: [{t: "Para", c: [{t: "Link", c: [attr, [{t: "Strong", c: [{t, c: [str("styled")]}]}], ["https://example.com", ""]]}]}], metadata: {}, resources: []}, {to: "docx"}, context);
+  const blocks = [{t: "Para", c: [{t: "Link", c: [attr, [{t: "Strong", c: [{t, c: [str("styled")]}]}], ["https://example.com", ""]]}]}] as const;
+  const result = await writeDocument({blocks, metadata: {}, resources: []}, {to: "docx"}, context);
   if (result.kind !== "binary") throw new Error("Expected DOCX");
   const parts = readZipArchiveEntries(result.bytes);
   const xml = new TextDecoder().decode(parts.get("word/document.xml"));
@@ -22,6 +23,7 @@ it.each(["Strikeout", "Superscript", "Subscript", "Underline"] as const)("preser
   expect(xml).toContain("w:hyperlink");
   expect(xml).toContain("styled");
   expect(xml).toContain("w:b");
+  expect((await readDocument({bytes: result.bytes}, {from: "docx"}, context)).blocks).toEqual(blocks);
 });
 it("resolves local images through the CLI and preserves output when an image limit is exceeded", async () => {
   const fs = createMemoryFileSystem();

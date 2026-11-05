@@ -94,8 +94,9 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
               ? [{t: "Code", c: [attr, text]}]
               : await literalInlines(text, ctx);
             const font = run.font;
-            if (font.subscript) inlines = [{t: "Subscript", c: inlines}];
+            if (font.underline) inlines = [{t: "Underline", c: inlines}];
             if (font.superscript) inlines = [{t: "Superscript", c: inlines}];
+            else if (font.subscript) inlines = [{t: "Subscript", c: inlines}];
             if (font.strike) inlines = [{t: "Strikeout", c: inlines}];
             if (run.bold) inlines = [{t: "Strong", c: inlines}];
             if (run.italic) inlines = [{t: "Emph", c: inlines}];

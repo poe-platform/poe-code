@@ -343,10 +343,10 @@ class MarkdownTape {
         if (tag === "Space" || tag === "SoftBreak" || tag === "LineBreak" || tag === "HorizontalRule") {
           result = await this.literal(tag === "Space" ? job.index === 0 || job.last ? "&#32;" : " " : tag === "SoftBreak" ? "\n" : tag === "LineBreak" ? "\\\n" : "---"); continue;
         }
-        if (tag === "Code" || tag === "CodeBlock") {
+        if (tag === "Code" || tag === "CodeBlock" || tag === "RawInline" && this.selection.extensions.raw_attribute) {
           const attr = content! + 32, original = await this.scalar(await this.at(content!, 1)); let info = emptyText();
-          if (tag === "Code") {
-            await this.attrs(attr, job.path);
+          if (tag !== "CodeBlock") {
+            if (tag === "Code") await this.attrs(attr, job.path);
             let loss = false; for await (const chunk of this.text.chunks(original)) if (chunk.includes("\r") || chunk.includes("\n")) loss = true;
             if (loss) await this.loss(job.path, "code-span line boundaries");
           } else {
@@ -365,6 +365,7 @@ class MarkdownTape {
           this.reserve(value.units + size * 2 + (tag === "CodeBlock" ? info.units : 0) + 2);
           if (tag === "CodeBlock") result = await this.join(await this.repeat("`", size), info, await this.literal("\n"), value, await this.literal(details.last === "\n" ? "" : "\n"), await this.repeat("`", size));
           else {const padding = details.first === "`" || details.last === "`" || details.first === " " && details.last === " " && details.nonspace ? " " : ""; result = await this.join(await this.repeat("`", size), await this.literal(padding), value, await this.literal(padding), await this.repeat("`", size));}
+          if (tag === "RawInline") result = await this.join(result, await this.literal("{="), await this.scalar(attr), await this.literal("}"));
           continue;
         }
         if (tag === "Link" || tag === "Image") {

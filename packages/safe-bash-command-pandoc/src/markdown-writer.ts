@@ -86,8 +86,9 @@ class Markdown {
           const delimiter = char.repeat(node.t === "Emph" ? 1 : 2);
           parts.push(this.join([delimiter, this.inline(node.c, `${p}.c`, char, false, cell), delimiter])); break;
         }
-        case "Code": {
-          this.attrs(node.c[0], p);
+        case "Code": case "RawInline": {
+          if (node.t === "RawInline" && !this.selection.extensions.raw_attribute) {this.loss(p, "raw inline content"); parts.push(this.text(node.c[1], true, true)); break;}
+          if (node.t === "Code") this.attrs(node.c[0], p);
           if(node.c[1].includes("\n") || node.c[1].includes("\r")) this.loss(p, "code-span line boundaries");
           this.reserve(node.c[1].length * 2);
           let value = node.c[1].split("\r\n").join(" ").split("\r").join(" ").split("\n").join(" ");
@@ -96,7 +97,7 @@ class Markdown {
           this.reserve(value.length + size * 2 + 2);
           const delimiter = "`".repeat(size);
           const padding = value.startsWith("`") || value.endsWith("`") || value.startsWith(" ") && value.endsWith(" ") && [...value].some(ch => ch !== " ") ? " " : "";
-          parts.push(this.join([delimiter, padding, value, padding, delimiter])); break;
+          parts.push(this.join([delimiter, padding, value, padding, delimiter, ...(node.t === "RawInline" ? ["{=", node.c[0], "}"] : [])])); break;
         }
         case "Link": case "Image": {
           const attr = node.c[0], widths: string[] = [];
@@ -131,7 +132,6 @@ class Markdown {
         }
         case "Quoted": {const quote = node.c[0] === "DoubleQuote" ? '"' : "'"; parts.push(this.join([quote, this.inline(node.c[1], `${p}.c[1]`), quote])); break;}
         case "Cite": this.loss(p, "citations"); parts.push(this.inline(node.c[1], `${p}.c[1]`)); break;
-        case "RawInline": this.loss(p, "raw inline content"); parts.push(this.text(node.c[1], true, true)); break;
         case "Math": {
           if (!this.selection.extensions.tex_math_dollars) throw new PandocError("E_CAPABILITY", this.context.operation ?? "write", "Math requires tex_math_dollars", this.selection.descriptor.name, p);
           const delimiter = node.c[0] === "DisplayMath" ? "$$" : "$";

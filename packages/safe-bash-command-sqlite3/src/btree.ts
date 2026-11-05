@@ -583,7 +583,10 @@ function compareSqlValuesForBTree(a: SqlValue, b: SqlValue): number {
     const nb = typeof b === "bigint" ? Number(b) : b instanceof Number ? b.valueOf() : (b as number);
     return na - nb;
   }
-  if (ra === 2) return (a as string) < (b as string) ? -1 : (a as string) > (b as string) ? 1 : 0;
+  if (ra === 2) {
+    a = textEncoder.encode(String(a));
+    b = textEncoder.encode(String(b));
+  }
   const ba = a as Uint8Array;
   const bb = b as Uint8Array;
   const len = Math.min(ba.byteLength, bb.byteLength);

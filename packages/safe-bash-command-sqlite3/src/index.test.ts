@@ -51,6 +51,18 @@ async function runSqlite3(
   };
 }
 
+for (const [sql, stdout] of [
+  ["SELECT char(0xE000) < char(0x1F600), hex(char(0xE000)), hex(char(0x1F600));", "1|EE8080|F09F9880\n"],
+  ["WITH t(x) AS (VALUES(char(0xE000)),(char(0x1F600))) SELECT hex(x) FROM t ORDER BY x;", "EE8080\nF09F9880\n"],
+  ["CREATE TABLE t(x TEXT); CREATE INDEX ix ON t(x); INSERT INTO t VALUES(char(0xE000)),(char(0x1F600)); SELECT hex(x) FROM t WHERE x < char(0x1F600) ORDER BY x;", "EE8080\n"],
+  ["SELECT 'a' < 'z', 'a' < 'aa', 'a' = 'a', char(0x1F600) > char(0xE000), char(0) < char(1);", "1|1|1|1|1\n"],
+]) {
+  test(`sqlite3 BINARY text uses UTF-8 byte order: ${sql}`, async () => {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql!]),
+      { code: 0, stdout, stderr: "" });
+  });
+}
+
 test("sqlite3 JSON1 treats quoted object names as single path components", async () => {
   const cases = [
     [`json_extract('{"a.b":42}', '$."a.b"')`, "42"],
@@ -1141,6 +1153,9 @@ for (const [mode, expected] of [
 
 // Expected results checked against /usr/bin/sqlite3 3.43.2.
 for (const [label, sql, expected] of [
+  ["LIKE counts Unicode code points", "SELECT char(0x1F600) LIKE '_', char(0x1F600) LIKE '__', char(0xE000) LIKE '_', 'a😀b' LIKE 'a_b', '😀😀' LIKE '__', '😀' LIKE '%_', like('_', '😀'), '😀' NOT LIKE '_';", "1|0|1|1|1|1|1|0\n"],
+  ["GLOB counts Unicode code points", "SELECT char(0x1F600) GLOB '?', char(0x1F600) GLOB '??', char(0xE000) GLOB '?', 'a😀b' GLOB 'a?b', '😀😀' GLOB '??', '😀' GLOB '*?', glob('?', '😀'), '😀' NOT GLOB '?', '😀' GLOB '[😀]', '😁' GLOB '[😀-😂]';", "1|0|1|1|1|1|1|0|1|1\n"],
+  ["LIKE accepts Unicode escape characters", "SELECT 'a_c' LIKE 'a'||char(0x1F600)||'_c' ESCAPE char(0x1F600), like('a😀_c', 'a_c', '😀'), 'a%c' LIKE 'a😀%c' ESCAPE '😀', '😀' LIKE '😀😀' ESCAPE '😀', '😀' LIKE '😀', '😀' GLOB '😀';", "1|1|1|1|1|1\n"],
   ["LIKE folds ASCII case only", "SELECT 'É' LIKE 'é', 'é' LIKE 'É', 'a' LIKE 'A', 'Z' LIKE 'z', 'é' LIKE 'é', 'École' LIKE 'é%', 'École' LIKE 'ÉCO%', 'é' NOT LIKE 'É', like('É', 'é'), like('A', 'a'), 'É' GLOB 'é';", "0|0|1|1|1|0|1|1|0|1|0\n"],
   ["LIKE escapes preserve ASCII-only folding", "SELECT 'É' LIKE '!é' ESCAPE '!', 'a' LIKE '!A' ESCAPE '!', 'A' LIKE 'aA' ESCAPE 'a', 'a' LIKE 'AA' ESCAPE 'A', 'é_%' LIKE 'é!_!%' ESCAPE '!', like('!é', 'É', '!');", "0|1|1|1|1|0\n"],
   ["REAL arithmetic and aggregates", "SELECT 5.0 / 2, 10.0 / 4, CAST(5 AS REAL) / 2, 1.0 + 2.0, TOTAL(NULL), 5 / 2;", "2.5|2.5|2.5|3.0|0.0|2\n"],

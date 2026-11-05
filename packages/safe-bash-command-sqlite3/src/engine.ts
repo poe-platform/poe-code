@@ -1118,7 +1118,8 @@ export function compareSqlValues(a: SqlValue, b: SqlValue, collation = "BINARY")
       sA = foldAsciiCase(sA);
       sB = foldAsciiCase(sB);
     }
-    return sA < sB ? -1 : sA > sB ? 1 : 0;
+    a = textEncoder.encode(sA);
+    b = textEncoder.encode(sB);
   }
   const uA = a as Uint8Array;
   const uB = b as Uint8Array;

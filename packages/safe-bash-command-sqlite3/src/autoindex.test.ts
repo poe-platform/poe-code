@@ -4,9 +4,32 @@ import { createRequire } from "node:module";
 import { test } from "node:test";
 import init from "@sqlite.org/sqlite-wasm";
 import { SqliteDatabase } from "./engine.js";
+import { readSqliteDatabaseBytes, writeSqliteDatabaseBytes } from "./btree.js";
 
 const wasmBinary = await readFile(createRequire(import.meta.url).resolve("@sqlite.org/sqlite-wasm/sqlite3.wasm"));
 const sqlite = await init({ wasmBinary } as Parameters<typeof init>[0]);
+
+for (const presorted of [true, false]) {
+  test(`BINARY index bytes preserve UTF-8 ordering (presorted=${presorted})`, () => {
+    const safe = new SqliteDatabase();
+    safe.exec("CREATE TABLE t(x TEXT); CREATE INDEX ix ON t(x); INSERT INTO t VALUES(char(0xE000)),(char(0x1F600));");
+    let bytes = safe.serializeToBytes();
+    if (!presorted) {
+      const image = readSqliteDatabaseBytes(bytes)!;
+      image.indexRows = new Map([["ix", [["😀", 2], ["\uE000", 1]]]]);
+      bytes = writeSqliteDatabaseBytes(image);
+    }
+    const native = new sqlite.oo1.DB();
+    try {
+      const pointer = sqlite.wasm.allocFromTypedArray(bytes);
+      assert.equal(sqlite.capi.sqlite3_deserialize(native, "main", pointer, bytes.length, bytes.length,
+        sqlite.capi.SQLITE_DESERIALIZE_FREEONCLOSE), 0);
+      assert.deepEqual(native.selectArrays("PRAGMA integrity_check"), [["ok"]]);
+      assert.deepEqual(native.selectArrays("SELECT hex(x) FROM t INDEXED BY ix ORDER BY x"), [["EE8080"], ["F09F9880"]]);
+      assert.deepEqual(native.selectArrays("SELECT hex(x) FROM t INDEXED BY ix WHERE x < char(0x1F600) ORDER BY x"), [["EE8080"]]);
+    } finally { native.close(); }
+  });
+}
 
 for (const schema of [
   "CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT UNIQUE, n INTEGER)",

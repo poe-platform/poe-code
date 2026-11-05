@@ -4,6 +4,29 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const rhs of ["('A','B',NULL)", "(SELECT 'A' UNION ALL SELECT 'B' UNION ALL SELECT NULL)"]) {
+  test(`sqlite3 IN respects left operand collation with ${rhs}`, async () => {
+    const sql = `CREATE TABLE t(v TEXT COLLATE NOCASE); INSERT INTO t VALUES('a');
+      SELECT 'a' COLLATE NOCASE IN ${rhs} AS hit,
+        'a' COLLATE NOCASE NOT IN ${rhs} AS miss,
+        v IN ${rhs} AS column_hit,
+        v COLLATE BINARY IN ${rhs} AS binary_miss,
+        'c' COLLATE NOCASE IN ${rhs} AS unknown,
+        NULL COLLATE NOCASE IN ${rhs} AS null_hit,
+        'a' IN ${rhs} AS default_miss FROM t;`;
+    const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", sql]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{ hit: 1, miss: 0, column_hit: 1,
+      binary_miss: null, unknown: null, null_hit: null, default_miss: null }]);
+  });
+}
+
+test("sqlite3 IN list ignores right operand collation", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:",
+    "SELECT 'a' IN ('A' COLLATE NOCASE) AS hit, 'a' COLLATE RTRIM IN ('a ') AS trimmed;"]);
+  assert.deepEqual(result, { code: 0, stdout: '[{"hit":0,"trimmed":1}]\n', stderr: "" });
+});
+
 for (const { declaration, expression, count, values } of [
   { declaration: "TEXT", expression: "v COLLATE NOCASE", count: 4, values: "a,b,é,É" },
   { declaration: "TEXT COLLATE NOCASE", expression: "v", count: 4, values: "a,b,é,É" },

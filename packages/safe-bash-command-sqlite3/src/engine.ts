@@ -7464,6 +7464,7 @@ export class SqliteDatabase {
       }
       case "in_list": {
         const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
+        const collation = this.expressionCollation(expr.expr, row);
         if (v === null) {
           return expr.list.length === 0 ? (expr.not ? 1 : 0) : null;
         }
@@ -7473,7 +7474,7 @@ export class SqliteDatabase {
           const iv = yield* this.evalExprSteps(item, row, positionalParams, cteScope, evaluation);
           if (iv === null) {
             sawNull = true;
-          } else if (sqlEquals(v, iv) === true) {
+          } else if (sqlEquals(v, iv, collation) === true) {
             return expr.not ? 0 : 1;
           }
         }
@@ -7484,6 +7485,7 @@ export class SqliteDatabase {
       }
       case "in_subquery": {
         const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
+        const collation = this.expressionCollation(expr.expr, row);
         this.outerRows.push(row);
         let res: QueryResultSet;
         try {
@@ -7506,7 +7508,7 @@ export class SqliteDatabase {
           const iv = r[0] ?? null;
           if (iv === null) {
             sawNull = true;
-          } else if (sqlEquals(v, iv) === true) {
+          } else if (sqlEquals(v, iv, collation) === true) {
             return expr.not ? 0 : 1;
           }
         }

@@ -107,7 +107,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     duration_ts: track.duration,
     duration: durationSec.toFixed(6),
     bit_rate: bitRate,
-    nb_frames: String(nbFrames),
+    nb_frames: containerFormat === "wav" ? undefined : String(nbFrames),
     disposition: {
       default: track.enabled ? 1 : 0,
       dub: 0,

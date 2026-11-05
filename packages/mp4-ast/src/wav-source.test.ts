@@ -34,7 +34,7 @@ it("probes a 512 MiB caller source using only bounded header reads", async () =>
     return bytes.slice(offset, offset + length);
   }});
   assert.equal(result.format.size, String(size));
-  assert.equal(result.streams[0]!.nb_frames, String(512 * 1024 * 1024 / 4 / 1024));
+  assert.equal(result.streams[0]!.nb_frames, undefined);
   assert.equal(result.streams[0]!.duration, "16777.216000");
   assert.ok(reads.length <= 4);
   assert.ok(reads.every(([, length]) => length <= 16));
@@ -71,7 +71,7 @@ it("skips large unknown chunks and honors odd-byte padding", async () => {
     return dataHeader;
   }});
   assert.equal(result.streams[0]!.duration, "0.128000");
-  assert.equal(result.streams[0]!.nb_frames, "1");
+  assert.equal(result.streams[0]!.nb_frames, undefined);
 });
 
 it("propagates source failures, rejects overreads and never reads after cancellation", async () => {

@@ -49,8 +49,8 @@ it("stages lazy packet/frame JSON in caller backing and writes bounded chunks", 
   const result = await run(); expect(result.result?.exitCode, result.diagnostic).toBe(0);
   expect(result.opened).toBe(1); expect(result.closed).toBe(1); expect(result.transfers).toBeGreaterThan(4);
   expect(result.largest).toBeLessThanOrEqual(16384); expect(result.remaining).toEqual(["input.wav"]);
-  const parsed = JSON.parse(result.output); expect(parsed.packets).toHaveLength(2048); expect(parsed.frames).toHaveLength(2048);
-  expect(parsed.packets.at(-1)).toMatchObject({ pts: 2096128, size: "2048" }); expect(parsed.frames.at(-1).nb_samples).toBe(1024);
+  const parsed = JSON.parse(result.output); expect(parsed.packets).toHaveLength(4096); expect(parsed.frames).toHaveLength(4096);
+  expect(parsed.packets.at(-1)).toMatchObject({ pts: 2096640, size: "1024" }); expect(parsed.frames.at(-1).nb_samples).toBe(512);
 });
 for (const mode of ["limit", "backing", "cancel", "sink"]) it(`cleans record staging after ${mode} failure`, async () => {
   const result = await run(mode); expect(result.opened).toBe(1); expect(result.closed).toBe(1); expect(result.remaining).toEqual(["input.wav"]);

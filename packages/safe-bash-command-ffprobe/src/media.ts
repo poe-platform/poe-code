@@ -12,7 +12,7 @@ import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudio
 import { probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
-import { probeMp4Source, scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
+import { wavPacketFrames, probeMp4Source, scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
   type MediaAstPlugin, type MediaProbeSource, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaProbeSourceRecords, type MediaProbeStream, type MediaResourceLimits } from "@poe-code/mp4-ast";
 
 export interface MediaCommandsOptions {
@@ -405,9 +405,13 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         if (typeOrdinal++ !== (parseInt(spec.slice(2), 10) || 0)) return;
       } else if ([...spec].every(c => c >= "0" && c <= "9") && stream.index !== parseInt(spec, 10)) return;
     }
+    const recordCount = probe.format?.format_name === "wav"
+      ? String(Math.ceil(stream.duration_ts / wavPacketFrames(Number(stream.sample_rate),
+        Math.max(1, (stream.channels ?? 1) * (stream.bits_per_sample ?? 16) / 8))))
+      : stream.nb_frames ?? "0";
     return filterObject({ ...stream,
-      ...(opts.countFrames ? { nb_read_frames: stream.nb_frames ?? "0" } : {}),
-      ...(opts.countPackets ? { nb_read_packets: stream.nb_frames ?? "0" } : {})
+      ...(opts.countFrames ? { nb_read_frames: recordCount } : {}),
+      ...(opts.countPackets ? { nb_read_packets: recordCount } : {})
     }, "stream", "stream_tags");
   };
   const finalFormat = includeFormat && probe.format

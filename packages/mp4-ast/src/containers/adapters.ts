@@ -403,7 +403,11 @@ export function isWavSignature(bytes: Uint8Array): boolean {
   );
 }
 
-const wavPacketFrames = 1024;
+export function wavPacketFrames(sampleRate: number, block: number): number {
+  // FFmpeg PCM demuxing targets ten packets per second, rounded down to a power of two.
+  const samples = Math.max(1, Math.min(Math.floor(sampleRate / 10), Math.floor(0x7fffffff / block)));
+  return 2 ** Math.floor(Math.log2(samples));
+}
 
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const header = readWavHeader(bytes);
@@ -438,7 +442,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   }
 
   const samples: MediaSample[] = [];
-  const chunkFrames = wavPacketFrames;
+  const chunkFrames = wavPacketFrames(header.sampleRate, bytesPerFrame);
   for (let offsetSample = 0; offsetSample < totalPcmSamples; offsetSample += chunkFrames) {
     const count = Math.min(chunkFrames, totalPcmSamples - offsetSample);
     const byteStart = offsetSample * bytesPerFrame;
@@ -551,7 +555,6 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
   const samples = doc.duration;
   const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
   return { ...result, streams: [{ ...result.streams[0]!,
-    nb_frames: String(Math.ceil(samples / wavPacketFrames)),
     bit_rate: doc.durationSeconds > 0
       ? String(Math.round(samples * bytesPerFrame * 8 / doc.durationSeconds)) : "0"
   }] };
@@ -561,10 +564,11 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
   const metadata = wavMetadata(header, options.filename), stream = metadata.streams[0]!;
   const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
   const samples = Math.floor(header.dataSize / bytesPerFrame), rate = Math.max(1, header.sampleRate);
+  const chunkFrames = wavPacketFrames(header.sampleRate, bytesPerFrame);
   function* spans() {
-    for (let pts = 0; pts < samples; pts += wavPacketFrames) {
+    for (let pts = 0; pts < samples; pts += chunkFrames) {
       options.signal?.throwIfAborted();
-      const count = Math.min(wavPacketFrames, samples - pts);
+      const count = Math.min(chunkFrames, samples - pts);
       yield { pts, count, size: String(count * bytesPerFrame), time: (pts / rate).toFixed(6), duration: (count / rate).toFixed(6) };
     }
     options.signal?.throwIfAborted();

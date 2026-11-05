@@ -55,7 +55,7 @@ it.each(['automatic','stdin'])('uses lazy record hooks for %s input',async mode=
 it('selects and counts streams incrementally with legacy ordinal and tag formatting',async()=>{
   const streams=[{...probe.streams[0]!,index:8},{...probe.streams[0]!,index:4,tags:{title:'é,"\n'}}];
   let output='';for await(const part of command.formatFfprobeSourceChunks({...probe,streams:rows(streams)},{...opts,printFormat:'csv',showFormat:false,showPackets:false,showFrames:false,selectStreams:'a:1',showEntries:'stream=index,nb_read_packets:stream_tags=title',countPackets:true}))output+=part;
-  expect(output).toBe('stream,4,"é,""\n",3\n');
+  expect(output).toBe('stream,4,"é,""\n",5\n');
 });
 
 it.each(['default','csv','compact','flat'])('yields %s before enumerating the next packet',async printFormat=>{

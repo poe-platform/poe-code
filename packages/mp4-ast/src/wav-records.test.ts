@@ -36,8 +36,8 @@ it("enumerates a large closed source lazily and checks cancellation between reco
   closed = true;
   assert.ok(result.packets); assert.ok(result.frames); assert.equal(reads, 4);
   const packets = result.packets[Symbol.iterator]();
-  assert.equal(packets.next().value?.pts, 0); assert.equal(packets.next().value?.pts, 1024);
-  const frames = result.frames[Symbol.iterator](); assert.equal(frames.next().value?.nb_samples, 1024);
+  assert.equal(packets.next().value?.pts, 0); assert.equal(packets.next().value?.pts, 512);
+  const frames = result.frames[Symbol.iterator](); assert.equal(frames.next().value?.nb_samples, 512);
   const reason = new Error("stop"); controller.abort(reason);
   assert.throws(() => packets.next(), error => error === reason); assert.throws(() => frames.next(), error => error === reason);
 });
@@ -49,5 +49,31 @@ for (const [bits, channels, tag] of [[8, 1, 1], [24, 2, 1], [32, 2, 3], [64, 2, 
     const options = { showPackets: true, showFrames: true };
     const result = await probeWavSource({ size: bytes.length, read: async (offset, length) => bytes.slice(offset, offset + length) }, options);
     assert.deepEqual({ ...result, packets: [...result.packets!], frames: [...result.frames!] }, wavAst().probe(bytes, options));
+  });
+}
+
+for (const [rate, channels, bits, packetSamples] of [[44100, 1, 16, 4096], [8000, 2, 24, 512], [96000, 2, 32, 8192], [9, 1, 8, 1]]) {
+  it(`matches native WAV packet boundaries at ${rate} Hz`, async () => {
+    const block = channels! * bits! / 8;
+    const bytes = new Uint8Array(44 + rate! * block); bytes.set(fixture(bytes.length));
+    const view = new DataView(bytes.buffer);
+    view.setUint16(22, channels!, true); view.setUint32(24, rate!, true);
+    view.setUint32(28, rate! * block, true); view.setUint16(32, block, true); view.setUint16(34, bits!, true);
+    const options = { showPackets: true, showFrames: true };
+    async function* chunks() { yield bytes; }
+    const results = [wavAst().probe(bytes, options),
+      await probeWavSource({ size: bytes.length, read: async (offset, length) => bytes.slice(offset, offset + length) }, options),
+      await probeWavStream(chunks(), options)];
+    for (const result of results) {
+      const packets = [...result.packets!];
+      assert.equal(packets.length, Math.ceil(rate! / packetSamples!));
+      assert.equal(result.streams[0]!.nb_frames, undefined);
+      for (const [index, packet] of packets.entries()) {
+        const pts = index * packetSamples!, duration = Math.min(packetSamples!, rate! - pts);
+        assert.equal(packet.pts, pts); assert.equal(packet.duration, duration); assert.equal(packet.size, String(duration * block));
+      }
+      assert.deepEqual([...result.frames!].map(frame => frame.nb_samples), packets.map(packet => packet.duration));
+    }
+    assert.equal(wavAst().probe(bytes).streams[0]!.nb_frames, undefined);
   });
 }

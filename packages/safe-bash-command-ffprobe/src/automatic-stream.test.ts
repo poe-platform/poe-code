@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
 async function run(route: "file" | "stdin", mode = "success", extra: string[] = []) {
-  const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(65536)] }, { tags: { title: "streamed title" } });
+  const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(32768)] }, { tags: { title: "streamed title" } });
   if (mode === "fallback") new DataView(bytes.buffer).setUint16(32, 7, true);
   const args = ["-of", "json", "-show_streams", "-show_format", ...extra, route === "stdin" ? "-" : "/input.wav"];
   const expected = evalSyncFfprobe(route === "stdin" ? bytes : undefined, args, () => bytes);
@@ -42,7 +42,7 @@ async function run(route: "file" | "stdin", mode = "success", extra: string[] = 
     const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
   } });
   let error: unknown;
-  const result = await Promise.resolve(createFfprobeCommand({ limits: { maxInputBytes: mode === "tiny-limit" ? 5 : mode === "limit" ? 70000 : bytes.length } }).execute({
+  const result = await Promise.resolve(createFfprobeCommand({ limits: { maxInputBytes: mode === "tiny-limit" ? 5 : mode === "limit" ? 40000 : bytes.length } }).execute({
     command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs, signal: controller.signal,
     inputBudget: { maxBytes: bytes.length, check(size) { admitted = size; } },
     stdin: route === "stdin" ? source() : { async *[Symbol.asyncIterator]() {} },

@@ -332,7 +332,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         let failure: CellValue | undefined;
         const collect = (v: Value) => {
           if (v.kind === "set") { for (const child of v.values) collect(child); return; }
-          if (v.kind === "string") {
+          if (v.kind === "string" || v.kind === "boolean") {
             const number = numeric(v);
             if (number === undefined) { failure ??= error("#VALUE!"); return; }
             v = numericResult(number);

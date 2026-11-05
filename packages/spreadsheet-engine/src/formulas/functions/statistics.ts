@@ -14,7 +14,7 @@ const aggregates = ['AVEDEV', 'AVERAGE', 'AVERAGEA', 'COUNT', 'COUNTA', 'DEVSQ',
 export function statisticalAggregate(name: string, values: readonly Value[], host: FunctionHost): Value {
   const xs: number[] = [], includeText = ['AVERAGEA','COUNTA','MAXA','MINA','STDEVA','STDEVPA','VARA','VARPA'].includes(name);
   for (let value of values) {
-    if (!includeText && value.kind === 'string') {
+    if (!includeText && (value.kind === 'string' || value.kind === 'boolean')) {
       const number = numeric(value);
       if (number === undefined) return error('#VALUE!');
       value = numericResult(number);

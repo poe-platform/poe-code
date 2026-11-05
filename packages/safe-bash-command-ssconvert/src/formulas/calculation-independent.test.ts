@@ -19,13 +19,32 @@ function calculate(formula: string): CellValue {
 }
 
 it.each([
+  ['=SUM(TRUE)', 1], ['=SUM(FALSE)', 0], ['=SUM(TRUE,"2")', 3],
+  ['=COUNT(TRUE)', 1], ['=COUNT(FALSE)', 1], ['=COUNT(TRUE,FALSE)', 2],
+  ['=SUM({TRUE;FALSE})', 0], ['=COUNT({TRUE;FALSE})', 0],
+  ['=SUM(IF(TRUE,TRUE,FALSE))', 1], ['=COUNT(1=1)', 1],
+  ['=PRODUCT(FALSE,2)', 0], ['=AVERAGE(TRUE,FALSE)', 0.5]
+] as const)("coerces direct boolean aggregate arguments in %s", (formula, expected) => {
+  expect(calculate(formula)).toEqual(n(expected));
+});
+
+it.each(['SUM', 'COUNT'])("ignores referenced booleans in %s", name => {
+  const result = recalculateWorkbook(book([
+    { row: 0, column: 0, value: { kind: "boolean", value: true } },
+    { row: 1, column: 0, value: { kind: "boolean", value: false } },
+    { row: 0, column: 1, formula: `=${name}(A1,A1:A2,TRUE)`, value: n(0), formulaDirty: true }
+  ]), context);
+  expect(result.sheets[0]!.cells[2]!.value).toEqual(n(1));
+});
+
+it.each([
   ['="invalid"+(1/0)', { kind: "error", value: "#VALUE!" }],
   ['=(1/0)+"invalid"', { kind: "error", value: "#DIV/0!" }],
   ['=IF("unrecognized",1/0,7)', n(7)],
   ['=IF(TRUE)', { kind: "boolean", value: true }],
   ['=IF(,1/0,8)', n(8)],
   // parser.y:468 applies format_match_simple to quoted array constants.
-  ['=SUM(TRUE,"2",{3,"4";5,FALSE})', n(14)],
+  ['=SUM(TRUE,"2",{3,"4";5,FALSE})', n(15)],
   ['=PRODUCT(TRUE,"2")', n(2)],
   ['=1e308*10', { kind: "error", value: "#NUM!" }],
   ['=(-1)^0.5', { kind: "error", value: "#NUM!" }],

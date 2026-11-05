@@ -327,5 +327,5 @@ export function formatExtractedPageText(
       }
       return out;
     })
-    .join("\n\n");
+    .join(options.mode === "raw" ? "\n" : "\n\n");
 }

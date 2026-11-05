@@ -23,7 +23,7 @@ function paragraph(line: Line): boolean {
     && !((line.prefix.startsWith("-") || line.prefix.startsWith("*")) && (line.prefix[1] === " " || line.prefix[1] === "\t"));
 }
 /** Preserve raw-mode formatting while staging one line at a time on caller
- * storage. Final line geometry decides paragraph separation, so no line text
+ * storage. Final line geometry decides hyphen rejoining, so no line text
  * is retained in memory while its geometry is still being accumulated. */
 export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph> | Iterable<PdfPlacedGlyph>,
   storage: PdfIndexStorage, options: PdfRawTextOptions = {}): AsyncGenerator<Uint8Array, void, void> {
@@ -213,7 +213,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
         if (!source.size) continue;
         if (emitted) {
           const rejoin = !blockBoundary && (options.rejoinHyphens ?? true) && tail?.[0] === 45 && line.first >= 97 && line.first <= 122;
-          if (!rejoin) { if (tail) yield* emit(tail); yield* emit(encoder.encode(blockBoundary ? "\n\n" : "\n")); }
+          if (!rejoin) { if (tail) yield* emit(tail); yield* emit(encoder.encode("\n")); }
           tail = undefined;
         }
         blockBoundary = false; emitted = true;

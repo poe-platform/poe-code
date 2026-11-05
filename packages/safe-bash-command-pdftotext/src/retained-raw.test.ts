@@ -1,6 +1,7 @@
 import { FsError } from "safe-bash-contracts/errors";
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { readFile } from "node:fs/promises";
 import { PdfDocument, PdfRetainedDocument, cosDict, cosName, cosString, cosArray, cosNumber, dictSet, dictGet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
@@ -38,6 +39,21 @@ async function fixture(input: Uint8Array, args: readonly string[], stdin = false
   return { fs, context, controller, stdout, stderr, counts: () => ({ wholeReads, payloadWrites, published }), async clean() { assert.deepEqual(await fs.readdir("/scratch"), []); } };
 }
 const joined = (chunks: Uint8Array[]) => new Uint8Array(Buffer.concat(chunks));
+for (const [eol, separator] of [["unix", "\n"], ["dos", "\r\n"], ["mac", "\r"]] as const) {
+  for (const noPageBreak of [false, true]) {
+    test(`raw columns have no paragraph breaks (${eol}, nopgbrk=${noPageBreak})`, async () => {
+      const input = await readFile(new URL("../../pdf-ast/src/fixtures/raw-text-columns.pdf", import.meta.url));
+      const args = ["-raw", "-f", "1", "-l", "1", "-eol", eol, ...(noPageBreak ? ["-nopgbrk"] : []), "input.pdf", "-"];
+      const expected = ["Left one", "Left two", "Left three", "Right one", "Right two", "Right three"].join(separator)
+        + (noPageBreak ? "" : "\f");
+      const f = await fixture(input, args);
+      assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+      assert.equal(new TextDecoder().decode(joined(f.stdout)), expected);
+      assert.equal((await runPdftotextCli(args, new Map([["input.pdf", input]]))).output, expected);
+      await f.clean();
+    });
+  }
+}
 for (const encoding of ["UTF-8", "Latin1", "ASCII7", "UCS-2", "Symbol", "ZapfDingbats"]) {
   test(`retained raw file input preserves ${encoding} bytes and atomic file output`, async () => {
     const input = pdf(); const args = ["-raw", "-enc", encoding, "-eol", "dos", "input.pdf", "output.txt"];

@@ -1,3 +1,4 @@
+import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
 import { decodeAacTrack } from "../aac.js";
 import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio, type AudioStream } from "@poe-code/audio-ast";
@@ -657,21 +658,21 @@ export function isMp3Signature(bytes: Uint8Array): boolean {
   return bytes[0] === 0xff && (bytes[1]! & 0xe0) === 0xe0 && (bytes[1]! & 0x06) !== 0x00;
 }
 
-/** The legacy MP3 media model uses fixed 417-byte frames; keep byte and source probes aligned. */
-function mp3Document(byteLength: number, samples: MediaSample[]): MediaDocument {
-  const sampleRate = 44100, channels = 2, count = Math.max(1, Math.floor(byteLength / 417));
+function mp3Document(byteLength: number, frames: Mp3Frame[], samples: MediaSample[]): MediaDocument {
+  const { sampleRate, channels } = frames[0]!;
+  const duration = frames.reduce((sum, frame) => sum + frame.samples * 14112000 / frame.sampleRate, 0);
   return {
     containerFormat: "mp3",
-    timescale: sampleRate,
-    duration: count * 1152,
-    durationSeconds: (count * 1152) / sampleRate,
+    timescale: 14112000,
+    duration,
+    durationSeconds: duration / 14112000,
     tracks: [
       {
         id: 1,
         type: "audio",
         handlerType: "soun",
-        timescale: sampleRate,
-        duration: count * 1152,
+        timescale: 14112000,
+        duration,
         language: "und",
         enabled: true,
         codecDescriptions: [
@@ -691,34 +692,43 @@ function mp3Document(byteLength: number, samples: MediaSample[]): MediaDocument 
   };
 }
 
-function mp3Records(size: number, options: MediaSourceProbeOptions): MediaProbeRecords {
+function mp3Records(size: number, frames: Mp3Frame[], options: MediaSourceProbeOptions): MediaProbeRecords {
   options.signal?.throwIfAborted();
-  if (!Number.isSafeInteger(size) || size < 0) throw new RangeError("Invalid MP3 source size");
-  const count = Math.max(1, Math.floor(size / 417)), doc = mp3Document(size, []);
+  const doc = mp3Document(size, frames, []);
   const metadata = buildProbeResultFromDoc(doc, size, options.filename ?? "input.mp3", {
     formatName: "mp3", formatLongName: "MP2/3 (MPEG audio layer 2/3)"
   });
-  const stream = { ...metadata.streams[0]!, nb_frames: String(count),
-    bit_rate: String(Math.round(Math.min(size, count * 417) * 8 / doc.durationSeconds)) };
+  const stream = { ...metadata.streams[0]!, nb_frames: undefined,
+    nb_read_packets: String(frames.length),
+    nb_read_frames: String(frames.filter(f => f.samples > f.skipSamples + f.discardPadding).length),
+    bit_rate: String(Math.round(frames.reduce((sum, f) => sum + f.size, 0) * 8 / doc.durationSeconds)) };
   function* spans() {
-    for (let index = 0; index < count; index++) {
+    let pts = 0;
+    for (const frame of frames) {
       options.signal?.throwIfAborted();
-      const pts = index * 1152;
-      yield { pts, time: (pts / 44100).toFixed(6), size: String(Math.min(417, size - index * 417)), pos: String(index * 417) };
+      const duration = frame.samples * 14112000 / frame.sampleRate;
+      yield { ...frame, pts, duration, time: (pts / 14112000).toFixed(6), durationTime: (duration / 14112000).toFixed(6) };
+      pts += duration;
     }
     options.signal?.throwIfAborted();
   }
   return { ...metadata, streams: [stream],
     packets: options.showPackets ? { *[Symbol.iterator]() {
       for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
-        dts: s.pts, dts_time: s.time, duration: 1152, duration_time: (1152 / 44100).toFixed(6), size: s.size, pos: s.pos, flags: "K_" };
+        dts: s.pts, dts_time: s.time, duration: s.duration, duration_time: s.durationTime, size: String(s.size), pos: String(s.offset), flags: "K_" };
     } } : undefined,
     frames: options.showFrames ? { *[Symbol.iterator]() {
-      for (const s of spans()) yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,
-        pts: s.pts, pts_time: s.time, pkt_dts: s.pts, pkt_dts_time: s.time,
-        best_effort_timestamp: s.pts, best_effort_timestamp_time: s.time, pkt_duration: 1152,
-        pkt_duration_time: (1152 / 44100).toFixed(6), pkt_size: s.size, width: undefined, height: undefined,
-        pix_fmt: undefined, pict_type: undefined, sample_fmt: stream.sample_fmt, nb_samples: 1152, channels: 2 };
+      for (const s of spans()) {
+        const samples = s.samples - s.skipSamples - s.discardPadding;
+        if (!samples) continue;
+        const pts = s.pts + s.skipSamples * 14112000 / s.sampleRate, time = (pts / 14112000).toFixed(6);
+        const duration = samples * 14112000 / s.sampleRate;
+        yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,
+          pts, pts_time: time, pkt_dts: pts, pkt_dts_time: time,
+          best_effort_timestamp: pts, best_effort_timestamp_time: time, duration,
+          duration_time: (duration / 14112000).toFixed(6), pkt_size: String(s.size),
+          sample_fmt: stream.sample_fmt, nb_samples: samples, channels: s.channels };
+      }
     } } : undefined
   };
 }
@@ -726,17 +736,11 @@ function mp3Records(size: number, options: MediaSourceProbeOptions): MediaProbeR
 export function mp3Ast(): MediaAstPlugin {
   return {
     async probeMetadata(source, options = {}) {
-      return mp3Records(source.size, options);
+      return mp3Records(source.size, await readMp3SourceFrames(source, options.signal), options);
     },
     async probeMetadataStream(source, options = {}) {
-      options.signal?.throwIfAborted();
-      let size = 0;
-      for await (const chunk of source) {
-        options.signal?.throwIfAborted();
-        size += chunk.byteLength;
-        if (!Number.isSafeInteger(size)) throw new RangeError("Invalid MP3 source size");
-      }
-      return mp3Records(size, options);
+      const { frames, size } = await readMp3StreamFrames(source, options.signal);
+      return mp3Records(size, frames, options);
     },
     id: "mp3",
     formatName: "mp3",
@@ -753,23 +757,16 @@ export function mp3Ast(): MediaAstPlugin {
       return false;
     },
     parse(bytes) {
-      const numFrames = Math.max(1, Math.floor(bytes.byteLength / 417));
-      const samples: MediaSample[] = [];
-      for (let i = 0; i < numFrames; i++) {
-        const start = Math.min(bytes.byteLength, i * 417);
-        const end = Math.min(bytes.byteLength, start + 417);
-        samples.push({
-          data: bytes.subarray(start, end),
-          dts: i * 1152,
-          pts: i * 1152,
-          cts: 0,
-          duration: 1152,
-          size: end - start,
-          isKeyframe: true,
-          sampleDescriptionIndex: 1
-        });
-      }
-      return mp3Document(bytes.byteLength, samples);
+      const frames = readMp3Frames(bytes);
+      let pts = 0;
+      const samples = frames.map(frame => {
+        const duration = frame.samples * 14112000 / frame.sampleRate;
+        const sample = { data: bytes.subarray(frame.offset, frame.offset + frame.size), dts: pts, pts,
+          cts: 0, duration, size: frame.size, isKeyframe: true, sampleDescriptionIndex: 1 };
+        pts += duration;
+        return sample;
+      });
+      return mp3Document(bytes.byteLength, frames, samples);
     },
     serialize(doc) {
       const numFrames = Math.max(1, Math.ceil(((doc.durationSeconds || 1) * 44100) / 1152));
@@ -780,13 +777,10 @@ export function mp3Ast(): MediaAstPlugin {
       frame[3] = 0x00;
       return concatBytes(Array.from({ length: numFrames }, () => frame));
     },
-    probe(bytes, options) {
-      const doc = this.parse(bytes, options);
-      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.mp3", {
-        ...options,
-        formatName: "mp3",
-        formatLongName: "MP2/3 (MPEG audio layer 2/3)"
-      });
+    probe(bytes, options = {}) {
+      const result = mp3Records(bytes.length, readMp3Frames(bytes), options);
+      return { ...result, packets: result.packets ? Array.from(result.packets) : undefined,
+        frames: result.frames ? Array.from(result.frames) : undefined };
     },
     concat(docs, options) {
       return concatMp4(docs, options);

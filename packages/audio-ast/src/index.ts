@@ -1,3 +1,4 @@
+export { mpegFrame } from "./mpeg.js";
 export { probeOggStreamSource, type OggCommentSpan } from "./ogg-stream-source.js";
 export { scanOggPages, type OggPageSpan } from "./ogg-source.js";
 export { probeMp3Source, type Mp3Tag } from "./mp3-source.js";

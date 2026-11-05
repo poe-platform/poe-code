@@ -41,11 +41,11 @@ it("spills MP3 tag records and preserves long canonical keys",async()=>{
   for(let i=0;i<1500;i++)tags['T'+i.toString(36).padStart(3,'0')]='value'+i;
   await run(fixture(tags),'json','retained');
 });
-it("preserves configured writers, selected tags and malformed MPEG fallback",async()=>{
+it("preserves configured writers and selected tags; rejects truncated MPEG frames",async()=>{
   const bytes=fixture({title:'one,two',artist:'artist'});
   for(const writer of ['json','csv:s=,','compact:s=||','default:nk=1:nw=1'])await run(bytes,writer,'retained',['-show_entries','format_tags=title,artist']);
   const broken=bytes.slice(0,-129);
-  for(const route of ['retained','stream','stdin'] as const)await run(broken,'json',route,[],true);
+  for(const route of ['retained','stream','stdin'] as const)await expect(run(broken,'json',route,[],true)).rejects.toThrow('Truncated MPEG frame');
 });
 it("preserves ffprobe's declared Xing byte-rate calculation", async()=>{
   const bytes=new Uint8Array(417*3);for(let i=0;i<3;i++)bytes.set([255,251,144,0],i*417);

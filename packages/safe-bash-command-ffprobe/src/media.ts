@@ -409,9 +409,10 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       ? String(Math.ceil(stream.duration_ts / wavPacketFrames(Number(stream.sample_rate),
         Math.max(1, (stream.channels ?? 1) * (stream.bits_per_sample ?? 16) / 8))))
       : stream.nb_frames ?? "0";
-    return filterObject({ ...stream,
-      ...(opts.countFrames ? { nb_read_frames: recordCount } : {}),
-      ...(opts.countPackets ? { nb_read_packets: recordCount } : {})
+    const { nb_read_frames, nb_read_packets, ...fields } = stream;
+    return filterObject({ ...fields,
+      ...(opts.countFrames ? { nb_read_frames: nb_read_frames ?? recordCount } : {}),
+      ...(opts.countPackets ? { nb_read_packets: nb_read_packets ?? recordCount } : {})
     }, "stream", "stream_tags");
   };
   const finalFormat = includeFormat && probe.format

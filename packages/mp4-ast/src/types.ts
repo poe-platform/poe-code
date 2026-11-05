@@ -442,6 +442,8 @@ export interface MediaProbeStream {
   readonly duration: string;
   readonly bit_rate?: string | undefined;
   readonly nb_frames?: string | undefined;
+  readonly nb_read_packets?: string | undefined;
+  readonly nb_read_frames?: string | undefined;
   readonly disposition: Readonly<Record<string, number>>;
   readonly tags?: Readonly<Record<string, string>> | undefined;
   readonly side_data_list?: readonly Readonly<Record<string, unknown>>[] | undefined;

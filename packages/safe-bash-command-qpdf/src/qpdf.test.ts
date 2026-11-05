@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createCommandArguments } from "safe-bash-contracts";
 import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictGet, dictSet } from "@poe-code/pdf-ast";
-import { parseQpdfPageRange, runQpdfCli, runQpdfCliSync } from "./index.js";
+import { createQpdfCommand, parseQpdfPageRange, runQpdfCli, runQpdfCliSync } from "./index.js";
 
 function createNumberedPdf(pageCount: number, prefix = "Doc"): Uint8Array {
   const doc = PdfDocument.create();
@@ -14,6 +16,41 @@ function createNumberedPdf(pageCount: number, prefix = "Doc"): Uint8Array {
 }
 
 describe("safe-bash-command-qpdf", () => {
+  for (const option of ["--copy-encryption", "--encryption-file-password"]) {
+    for (const args of [[`${option}=reference.pdf`], [option, "reference.pdf"]]) {
+      it(`rejects unsupported encryption option ${args.join(" ")} without publishing output`, async () => {
+        const pdf = createNumberedPdf(1);
+        for (const run of [runQpdfCli, runQpdfCliSync]) {
+          for (const output of ["out.pdf", "-", "--replace-input"]) {
+            const files = new Map([["in.pdf", pdf], ["out.pdf", pdf]]);
+            const before = new Map(files);
+            const result = await run(["in.pdf", output, ...args], files);
+            assert.equal(result.exitCode, 2);
+            assert.equal(result.stderr, `qpdf: ${option} is not supported\n`);
+            assert.equal(result.stdout, "");
+            assert.deepEqual(files, before);
+          }
+        }
+        const fs = createMemoryFileSystem();
+        await fs.writeFile("/in.pdf", pdf);
+        await fs.writeFile("/out.pdf", pdf);
+        const carrier = createCommandArguments(["in.pdf", "out.pdf", ...args]);
+        const errors: Uint8Array[] = [];
+        const result = await createQpdfCommand().execute({
+          command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: {}, fs,
+          signal: new AbortController().signal,
+          stdin: (async function* () { yield assert.fail("unexpected stdin read"); })(),
+          stdout: { async write() { assert.fail("unexpected stdout"); } },
+          stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+        });
+        assert.equal(result.exitCode, 2);
+        assert.equal(Buffer.concat(errors).toString(), `qpdf: ${option} is not supported\n`);
+        assert.deepEqual(await fs.readFile("/in.pdf"), pdf);
+        assert.deepEqual(await fs.readFile("/out.pdf"), pdf);
+      });
+    }
+  }
+
   for (const args of [
     ["in.pdf", "-"],
     ["--empty", "-"],

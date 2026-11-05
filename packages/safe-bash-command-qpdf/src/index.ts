@@ -920,6 +920,9 @@ function parseQpdfArguments(argv: readonly string[]) {
         });
         i++;
       }
+    } else if (arg === "--copy-encryption" || arg.startsWith("--copy-encryption=") ||
+      arg === "--encryption-file-password" || arg.startsWith("--encryption-file-password=")) {
+      return { result: { exitCode: 2, stdout: "", stderr: `qpdf: ${arg.split("=")[0]} is not supported\n` } };
     } else if (arg === "--encrypt") {
       const userPassword = argv[++i] ?? "";
       const ownerPassword = argv[++i] ?? "";

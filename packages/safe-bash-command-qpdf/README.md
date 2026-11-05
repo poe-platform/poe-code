@@ -55,6 +55,9 @@ when there are more inputs than sizes.
 decoding. File sizes are admitted before reading, and expanded lines count
 toward the configured argument budget.
 
+`--copy-encryption` and `--encryption-file-password` are unsupported and fail before
+writing output. Use `--encrypt` to set password protection explicitly.
+
 `--split-pages` stages grouped results and their names on caller storage before
 atomic file publication, including filename patterns, rotations and information/metadata/structure/form/label
 removals. Page selections and collation compose with splitting through an unsaved

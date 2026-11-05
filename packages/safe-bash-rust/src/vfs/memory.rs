@@ -570,7 +570,8 @@ impl MemoryVfs {
                 format!("{current}/{part}")
             };
 
-            if !is_last && state.devices.entry(&candidate).is_some_and(|n| !n.is_empty()) {
+            if !is_last && (matches!(state.nodes.get(&candidate), Some(MemoryNode::File { .. }))
+                || state.devices.entry(&candidate).is_some_and(|n| !n.is_empty())) {
                 return Err(FsError::new(FsErrorCode::NotDirectory, format!("ENOTDIR: not a directory, '{candidate}'")));
             }
             if is_last && !follow_final {
@@ -2182,6 +2183,18 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn file_ancestors_are_not_directories_even_through_links() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/plain", b"x").unwrap();
+        fs.symlink("plain", "/alias").unwrap();
+        for path in ["/plain/child", "/alias/deep/child"] {
+            assert!(fs.stat(path).unwrap_err().starts_with("ENOTDIR:"));
+            assert!(fs.lstat(path).unwrap_err().starts_with("ENOTDIR:"));
+        }
+        assert!(fs.stat("/absent/child").unwrap_err().starts_with("ENOENT:"));
+    }
 
     #[test]
     fn link_free_paths_require_the_last_symlink_name_to_be_gone() {

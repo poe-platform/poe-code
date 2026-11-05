@@ -1255,6 +1255,9 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
     if (!done) await iter.return?.();
   }
   budget.inputLocation.complete = true;
+  if (!active) {
+    yield* failure(new JqParseError("Unfinished abandoned text at EOF", 0, line, column), true);
+  }
   if (active && !failed) {
     try { yield* values(parser.finish(options.sequence ? { line, column, eof: true } : undefined)); } catch (error) { yield* failure(error, true); }
   }

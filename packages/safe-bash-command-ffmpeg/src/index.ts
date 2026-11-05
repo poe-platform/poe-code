@@ -1963,7 +1963,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             for (let i = 0; i < count; i++) {
               const a = f0[i]!;
               const b = f1[i]!;
-              const w = Math.max(a.width, b.width);
+              if (a.width !== b.width) {
+                throw new Error(`Input 1 width ${b.width} does not match input 0 width ${a.width}`);
+              }
+              const w = a.width;
               const h = a.height + b.height;
               const outData = new Uint8Array(w * h * 4);
               for (let y = 0; y < a.height; y++) {
@@ -2009,8 +2012,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             for (let i = 0; i < count; i++) {
               const a = f0[i]!;
               const b = f1[i]!;
+              if (a.height !== b.height) {
+                throw new Error(`Input 1 height ${b.height} does not match input 0 height ${a.height}`);
+              }
               const w = a.width + b.width;
-              const h = Math.max(a.height, b.height);
+              const h = a.height;
               const outData = new Uint8Array(w * h * 4);
               for (let y = 0; y < a.height; y++) {
                 outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);

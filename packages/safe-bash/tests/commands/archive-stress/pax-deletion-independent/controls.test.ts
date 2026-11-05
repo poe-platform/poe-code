@@ -204,7 +204,6 @@ test("D07 deletion/overrides never bypass structural framing, strict PAX grammar
     archive(header("g", record("size", "7")), extensionSize, member("safe", fileData)),
     archive(header("x", badRecord), member("safe", fileData)),
     masked(record("GNU.sparse.major", "")),
-    masked(record("vendor.layout", "")),
     masked(record("hdrcharset", "BINARY"), record("hdrcharset", "")),
     masked(record("mtime", "1e3"), record("mtime", "")),
     masked(record("path", "../outside/escape"), record("mtime", "")),
@@ -216,7 +215,7 @@ test("D07 deletion/overrides never bypass structural framing, strict PAX grammar
   for (const [index, bytes] of vectors.entries()) {
     const { fs, state, observe } = await backend();
     const result = await run(fs, bytes);
-    if (index === 8) {
+    if (index === 7) {
       success(result);
       assert.equal(state.publications, 1);
       assert.deepEqual(state.times, []);

@@ -482,6 +482,7 @@ interface MagickState {
   pointsize: number;
   gravity: GravityPosition;
   quality: number;
+  samplingFactor?: string;
   delay?: number;
   loop?: number;
   density: number;
@@ -5026,6 +5027,12 @@ if (t === "-seed") {
         else if (t === "+gravity") {
             state.gravity = "northwest";
         }
+        else if (t === "-sampling-factor") {
+            state.samplingFactor = tokens[++i] ?? "";
+        }
+        else if (t === "+sampling-factor") {
+            delete state.samplingFactor;
+        }
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(tokens[++i] ?? 92)));
         }
@@ -5160,12 +5167,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         if (++cooperativeWork % 65536 === 0)
                             yield;
                         const framePath = formatSceneOutputPath(path, idx);
-                        const { data: frameBytes } = encodeImage(yield* prepareHslOutput(stack[idx]!, format), { format, quality: state.quality });
+                        const { data: frameBytes } = encodeImage(yield* prepareHslOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                         files.set(framePath, frameBytes);
                     }
                 }
                 else {
-                    const { data: encoded } = encodeImage(yield* prepareHslOutput(top, format), { format, quality: state.quality });
+                    const { data: encoded } = encodeImage(yield* prepareHslOutput(top, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     files.set(path, encoded);
                 }
             }
@@ -5824,7 +5831,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const framePath = formatSceneOutputPath(outPath, idx);
-                const { data: frameBytes } = encodeImage(yield* prepareHslOutput(stack[idx]!, format), { format, quality: state.quality });
+                const { data: frameBytes } = encodeImage(yield* prepareHslOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                 files.set(framePath, frameBytes);
             }
             return { exitCode: 0, stdout: "", stderr: "" };
@@ -5857,7 +5864,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Collection is best-effort. */ } }
         const { data: encoded } = encodeImage(toEncode, {
             format,
-            quality: state.quality,
+            ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality,
             ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : {}),
             ...(state.delay === undefined ? {} : { delay: state.delay }),
             ...(state.loop === undefined ? {} : { loop: state.loop }),
@@ -6051,6 +6058,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;
         if (token === "") continue;
+        if (!operandsOnly && token === "-sampling-factor") { state.samplingFactor = tokens[++i] ?? ""; continue; }
+        if (!operandsOnly && token === "+sampling-factor") { delete state.samplingFactor; continue; }
         if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
         if (!operandsOnly && token === "(") {
             let depth = 1, end = i + 1;
@@ -6269,14 +6278,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
-            const path = tokens[++i] ?? "", quality = state.quality, adjoin = state.adjoin;
+            const path = tokens[++i] ?? "", quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin;
             stackStep(async (stack, backend) => {
                 const image = await stack.get(stack.length - 1);
                 if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
                     if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin)) {
-                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, quality }); }
-                    } else await backend.stage(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, quality });
+                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
+                    } else await backend.stage(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality });
                 }
                 return stack;
             });
@@ -6524,7 +6533,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !state.adjoin)) {
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
-                await backend.stage(await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, quality: state.quality });
+                await backend.stage(await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
             }
             await backend.publishPending();
             return { exitCode: 0, stdout: "", stderr: "" };
@@ -6547,7 +6556,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const { storedData16: ignored, ...metadata } = first;
             image = { ...metadata, position, height: first.height * stack.length, pages: stack.length, pageHeight };
         }
-        const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(state.delay === undefined ? {} : { delay: state.delay }), ...(state.loop === undefined ? {} : { loop: state.loop }) });
+        const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(state.delay === undefined ? {} : { delay: state.delay }), ...(state.loop === undefined ? {} : { loop: state.loop }) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }
@@ -7071,7 +7080,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const comparisonStderr = `${metricStr}\n` + (subimageSearch && searchScore > dissimilarityThreshold
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
-    if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,quality:state.quality});}};return {exitCode,stdout:"",stderr:comparisonStderr,...(stdoutBytes?{stdoutBytes}:{})};}
+    if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,chromaSubsampling:state.quality < 90 ? "4:2:0" : "4:4:4",quality:state.quality});}};return {exitCode,stdout:"",stderr:comparisonStderr,...(stdoutBytes?{stdoutBytes}:{})};}
     if (diffData) {
         const diffImg: RgbaImage = {
             width,
@@ -7085,7 +7094,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             data: diffData
         };
         const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-        const { data: encoded } = encodeImage(diffImg, { format, quality: state.quality, consumeInput: true } as any);
+        const { data: encoded } = encodeImage(diffImg, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, consumeInput: true } as any);
         detachRgbaBuffer(diffData);
         if (outPath === "-" || outSpec.endsWith(":-")) {
             return {
@@ -7477,7 +7486,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     const { format, path: outPath } = inferOutputFormat(outSpec, "png");
     if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
-    const { data: encoded } = encodeImage(canvas, { format, quality: state.quality, consumeInput: true } as any);
+    const { data: encoded } = encodeImage(canvas, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, consumeInput: true } as any);
     detachRgbaBuffer(canvas.data);
     if (outPath === "-" || outSpec.endsWith(":-")) {
         return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encoded };
@@ -7650,7 +7659,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
         }
         if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
-        const { format, path } = inferOutputFormat(outSpec, "png"), stdoutBytes = await backend.publish(canvas, path, { format, quality: state.quality });
+        const { format, path } = inferOutputFormat(outSpec, "png"), stdoutBytes = await backend.publish(canvas, path, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }

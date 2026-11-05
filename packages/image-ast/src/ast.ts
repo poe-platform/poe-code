@@ -444,6 +444,8 @@ export interface OutputEncodeOptions {
   readonly format?: ImageFormat;
   readonly rawDepth?: string;
   readonly quality?: number;
+  readonly samplingFactor?: string;
+  readonly chromaSubsampling?: "4:2:0" | "4:4:4";
   readonly compression?: "hevc" | "av1";
   readonly compressionLevel?: number;
   readonly palette?: boolean;

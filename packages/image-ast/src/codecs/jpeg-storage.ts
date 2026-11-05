@@ -18,15 +18,15 @@ export async function* encodeJpegFromStorage(
     throw new RangeError("Invalid JPEG backing allocation");
   yield encoder.header;
   const pixels = new Pixels(image, storage, signal),
-    block = new Uint8Array(256);
-  for (let by = 0; by < height; by += 8)
-    for (let bx = 0; bx < width; bx += 8) {
-      for (let y = 0; y < 8; y++)
-        for (let x = 0; x < 8; x++) {
+    block = new Uint8Array(encoder.blockWidth * encoder.blockHeight * 4);
+  for (let by = 0; by < height; by += encoder.blockHeight)
+    for (let bx = 0; bx < width; bx += encoder.blockWidth) {
+      for (let y = 0; y < encoder.blockHeight; y++)
+        for (let x = 0; x < encoder.blockWidth; x++) {
           const p = await pixels.pixel(
               Math.min(height - 1, by + y) * width + Math.min(width - 1, bx + x)
             ),
-            at = (y * 8 + x) * 4;
+            at = (y * encoder.blockWidth + x) * 4;
           block[at] = p & 255;
           block[at + 1] = (p >>> 8) & 255;
           block[at + 2] = (p >>> 16) & 255;

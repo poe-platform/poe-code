@@ -415,6 +415,8 @@ export function encodeImage(
     case "jpeg": {
       const data = encodeJpegImage(img, {
         quality: options.quality ?? 85,
+        ...(options.samplingFactor === undefined ? {} : { samplingFactor: options.samplingFactor }),
+        ...(options.chromaSubsampling === undefined ? {} : { chromaSubsampling: options.chromaSubsampling }),
         density: options.density ?? img.density,
         ...(options.orientation !== undefined ? { orientation: options.orientation } : {})
       });

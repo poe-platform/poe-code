@@ -7,7 +7,7 @@ export type RegexNode = { type: "empty" }
   | { type: "backreference"; index: number; ignoreCase?: boolean; fold?: (text: string) => string }
   | { type: "assertion"; node: RegexNode; positive: boolean; behind: boolean }
   | { type: "atomic"; node: RegexNode }
-  | { type: "character"; literal?: string; accepts: (character: string) => boolean }
+  | { type: "character"; literal?: string; foldedLiteral?: string; accepts: (character: string) => boolean }
   | { type: "sequence" | "alternate"; nodes: RegexNode[] }
   | { type: "repeat"; node: RegexNode; minimum: number; maximum: number; lazy?: boolean }
   | { type: "group"; node: RegexNode; index: number; lastCapture: number };

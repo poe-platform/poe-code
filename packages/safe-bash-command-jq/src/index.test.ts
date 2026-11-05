@@ -60,6 +60,14 @@ test("jq behavior works through the standalone portable factory", async () => {
 });
 
 for (const [filter, input, expected] of [
+ ['[("ı"|test("[I]";"i")), ("ſ"|test("[a-z]";"i")), ("ς"|test("[Σ]";"i")), ("SS"|test("^[^ß]$";"i")), ("ﬃ"|test("^ffi+$";"i"))]', 'null', '[false,true,true,false,false]\n'],
+ ['[test("STRASSE";"i"), ("STRASSE"|test("Straße";"i")), ("ﬃ"|test("ffi";"i")), test("STRASSE")]', '"Straße"', '[true,true,true,false]\n'],
+ ['[match("(?<word>STRASSE)";"i") | {offset,length,string,captures}]', '"😀Straße!"', '[{"offset":1,"length":6,"string":"Straße","captures":[{"offset":1,"length":6,"string":"Straße","name":"word"}]}]\n'],
+ ['[sub("STRASSE";"road";"i"), gsub("ffi";"X";"i")]', '"Straße ﬃ ffi"', '["road ﬃ ffi","Straße X X"]\n'],
+ ['[test("^(ß)\\\\1$";"i"), ("ßSS"|test("^(SS)\\\\1$";"i")), ("ßß"|test("^(SS)\\\\1$";"i")), ("SSSS"|test("^(ß)\\\\1$";"i"))]', '"SSß"', '[false,false,true,true]\n'],
+ ['[test("(?i:STRASSE)(?-i:X)"), test("(?i:STRASSE)(?-i:x)")]', '"StraßeX"', '[true,false]\n'],
+ ['[test("^ss$";"i"), test("^s+$";"i"), test("^(s)(s)$";"i"), test("^[ß]$";"i"), ("SS"|test("^[ß]$";"i"))]', '"ß"', '[true,false,false,true,true]\n'],
+ ['[("ς"|test("Σ";"i")), ("ſ"|test("[s]";"i")), ("ı"|test("I";"i")), ("İ"|test("i̇";"i")), ("ẞ"|test("ss";"i"))]', 'null', '[true,true,false,true,true]\n'],
  ['[test("(?>a)b"), test("(?>a|ab)c"), test("(?:a|ab)c")]', '"abc"', '[true,false,true]\n'],
  ['[test("a"; "i"), (match("a"; "i") | .offset), ([scan("a"; "i")] | length), ([splits("a"; "i")] | length)]', '"Aa"', '[true,0,2,3]\n'],
  ['[nth(1; range(3)), isempty(empty), ("x" | in({x:1})), IN(1,2), (INDEX(.[]; tostring) | keys), pick(.[1]), (9|sqrt), (0|todate)]', '[1,2]', '[1,true,true,false,["1","2"],[null,2],3,"1970-01-01T00:00:00Z"]\n'],

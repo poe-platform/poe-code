@@ -4,6 +4,31 @@ import { ReplacementBuffer } from "./replacement-buffer.js";
 import type { RegexNode as Node } from "./regex-syntax.js";
 import { parseRustPattern, unicodeProperty } from "./rust-syntax.js";
 
+// Uppercasing expands multi-character folds; lowering first also handles ẞ.
+// Preserve dotless i, which uppercasing would incorrectly equate with I.
+// Work per code point to avoid contextual lowercasing (Greek final sigma).
+// This gives the Unicode fold equivalence classes, using lowercase Cherokee.
+function foldJq(text: string): string {
+  let folded = "";
+  for (const character of text) folded += character === "ı" ? character : character.toLowerCase().toUpperCase().toLowerCase();
+  return folded;
+}
+
+function foldedEnd(text: string, position: number, expected: string, budget: PatternBudget): number | undefined {
+  let offset = 0;
+  while (offset < expected.length) {
+    budget.step();
+    const code = text.codePointAt(position);
+    if (code === undefined) return;
+    const character = String.fromCodePoint(code);
+    const folded = foldJq(character);
+    if (!expected.startsWith(folded, offset)) return;
+    offset += folded.length;
+    position += character.length;
+  }
+  return position;
+}
+
 function isWordChar(ch: string | undefined): boolean {
   if (ch === undefined) return false;
   const code = ch.charCodeAt(0);
@@ -19,7 +44,7 @@ function matchesBoundary(instruction: Extract<Instruction, { kind: "boundary" }>
   return boundary === instruction.positive;
 }
 
-type Instruction = { kind: "character"; literal?: string; accepts: (character: string) => boolean }
+type Instruction = { kind: "character"; literal?: string; foldedLiteral?: string; accepts: (character: string) => boolean }
   | { kind: "backreference"; index: number; ignoreCase: boolean; fold?: (text: string) => string }
   | { kind: "assertion"; first: number; next: number; positive: boolean; behind: boolean }
   | { kind: "atomic"; first: number; next: number }
@@ -154,7 +179,7 @@ function* compileProgram(root: Node, counts: Map<Node, number>, ignoreCase: bool
         pending.push({ node: node.node, index: 0 });
       } else pending.pop();
     } else {
-      if (node.type === "character") emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), accepts: node.accepts });
+      if (node.type === "character") emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), ...(node.foldedLiteral !== undefined ? { foldedLiteral: node.foldedLiteral } : {}), accepts: node.accepts });
       else if (node.type === "backreference") emit({ kind: "backreference", index: node.index, ignoreCase: node.ignoreCase ?? ignoreCase, ...(node.fold ? { fold: node.fold } : {}) });
       else if (node.type === "boundary") emit({ kind: "boundary", accepts: node.accepts, positive: node.positive, ...(node.edge ? { edge: node.edge } : {}) });
       else if (node.type === "continue") emit({ kind: "continue" });
@@ -462,6 +487,7 @@ export class Pattern {
     let dotAll = dialect !== "jq" || modifiers.includes("m");
     const characterNode = (character: string): Node => {
       const fold = insensitive;
+      if (fold && dialect === "jq") return { type: "character", foldedLiteral: foldJq(character), accepts: candidate => foldJq(candidate) === foldJq(character) };
       return { type: "character", ...(fold ? {} : { literal: character }),
         accepts: candidate => fold ? candidate.toLowerCase() === character.toLowerCase() : candidate === character };
     };
@@ -508,6 +534,7 @@ export class Pattern {
       if (negate) offset++;
       const tests: ((character: string) => boolean)[] = [];
       const fold = insensitive;
+      const expansions: Node[] = [];
       let first = true;
       while (offset < source.length && (source[offset] !== "]" || first)) {
         first = false;
@@ -515,7 +542,10 @@ export class Pattern {
           const end = source.indexOf(":]", offset + 2);
           const name = end < 0 ? "" : source.slice(offset + 2, end);
           if (!classes[name]) throw new ProgramError(`unsupported character class '${name}'`);
-          tests.push(classes[name]!); offset = end + 2; continue;
+          const accepts = classes[name]!;
+          tests.push(character => accepts(character) || fold && dialect === "jq" && character !== "ı"
+            && (accepts(character.toLowerCase()) || accepts(character.toUpperCase())));
+          offset = end + 2; continue;
         }
         if (source.startsWith("[.", offset) || source.startsWith("[=", offset)) throw new ProgramError("collating and equivalence classes are not supported");
         if (source[offset] === "\\" && "dDsSwW".includes(source[offset + 1] ?? " ")) {
@@ -559,14 +589,21 @@ export class Pattern {
           }
           const end = readBracketChar();
           if (start > end) throw new ProgramError("reversed character range");
-          tests.push(character => character >= start && character <= end);
+          const inRange = (character: string): boolean => [...character].length === 1 && character >= start && character <= end;
+          tests.push(character => inRange(character) || fold && dialect === "jq" && character !== "ı"
+            && (inRange(character.toLowerCase()) || inRange(character.toUpperCase()) || inRange(foldJq(character))));
+        } else if (fold && dialect === "jq") {
+          const folded = foldJq(start);
+          tests.push(character => foldJq(character) === folded);
+          if (!negate && folded.length > 1) expansions.push(characterNode(start));
         } else tests.push(character => character === start);
       }
       if (source[offset++] !== "]") throw new ProgramError("unterminated bracket expression");
-      return { type: "character", accepts: character => {
-        const accepted = tests.some(test => test(character) || fold && (test(character.toLowerCase()) || test(character.toUpperCase())));
+      const node: Node = { type: "character", accepts: character => {
+        const accepted = tests.some(test => test(character) || fold && dialect !== "jq" && (test(character.toLowerCase()) || test(character.toUpperCase())));
         return negate ? !accepted : accepted;
       } };
+      return expansions.length ? { type: "alternate", nodes: [node, ...expansions] } : node;
     };
     const atom = (atStart: boolean, afterBegin: boolean): Node => {
       const token = offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : source[offset];
@@ -584,7 +621,7 @@ export class Pattern {
           const index = Number(reference);
           if (!closedGroups.has(index)) throw new ProgramError("pattern references an undefined or open capture group");
           offset++;
-          return { type: "backreference", index, ignoreCase: insensitive };
+          return { type: "backreference", index, ignoreCase: insensitive, ...(dialect === "jq" ? { fold: foldJq } : {}) };
         }
         if (reference !== undefined && "bByY<>".includes(reference)) {
           offset++;
@@ -636,7 +673,16 @@ export class Pattern {
       assertion?: { positive: boolean; behind: boolean } | undefined;
     }
     const frames: ParseFrame[] = [{ nodes: [], alternatives: [], index: 0 }];
-    const sequence = (nodes: Node[]): Node => nodes.length ? { type: "sequence", nodes } : { type: "empty" };
+    const sequence = (nodes: Node[]): Node => {
+      const combined: Node[] = [];
+      for (const node of nodes) {
+        const previous = combined[combined.length - 1];
+        if (node.type === "character" && node.foldedLiteral !== undefined && previous?.type === "character" && previous.foldedLiteral !== undefined)
+          previous.foldedLiteral += node.foldedLiteral;
+        else combined.push(node);
+      }
+      return combined.length ? { type: "sequence", nodes: combined } : { type: "empty" };
+    };
     const finish = (frame: ParseFrame): Node => {
       frame.alternatives.push(sequence(frame.nodes));
       return frame.alternatives.length === 1 ? frame.alternatives[0]! : { type: "alternate", nodes: frame.alternatives };
@@ -943,8 +989,13 @@ export class Pattern {
           if (boundary === instruction.positive) push(state.pc + 1);
         }
         else if (instruction.kind === "character") {
-          const code = text.codePointAt(position);
-          if (code !== undefined) { const character = String.fromCodePoint(code); if (instruction.accepts(character)) push(state.pc + 1, position + character.length); }
+          if (instruction.foldedLiteral !== undefined) {
+            const end = foldedEnd(text, position, instruction.foldedLiteral, budget);
+            if (end !== undefined) push(state.pc + 1, end);
+          } else {
+            const code = text.codePointAt(position);
+            if (code !== undefined) { const character = String.fromCodePoint(code); if (instruction.accepts(character)) push(state.pc + 1, position + character.length); }
+          }
         } else if (instruction.kind === "backreference") {
           const begin = captures[instruction.index * 2];
           const end = captures[instruction.index * 2 + 1];

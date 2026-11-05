@@ -78,7 +78,7 @@ The `markdown` and `md` readers preserve `| ` line blocks, including empty lines
 and indentation. Disable this with `-f markdown-line_blocks`.
 The `markdown` and `md` readers support definition lists with `:` or `~`
 markers, repeated definitions, and indented blocks; disable with `-definition_lists`.
-The `markdown` and `md` readers parse bracketed spans (`[text]{#id .class}`),
+The `markdown` and `md` readers and writers preserve bracketed spans (`[text]{#id .class}`),
 including nested inline content and key/value attributes; disable with `-bracketed_spans`.
 Inline HTML `<span>` tags also preserve attributes and Markdown children as native spans;
 disable with `-native_spans`.

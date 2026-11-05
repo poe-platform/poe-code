@@ -117,6 +117,16 @@ class Markdown {
           const state = taskListState(node);
           if(state !== undefined) {
             parts.push(task && i === 0 && this.selection.extensions.task_lists ? (state ? "[x] " : "[ ] ") : (state ? "☒ " : "☐ "));
+          } else if (this.selection.extensions.bracketed_spans) {
+            const attributes: string[] = [];
+            if (attr[0]) attributes.push(this.join(["#", attr[0]]));
+            for (const name of attr[1]) attributes.push(this.join([".", name]));
+            for (const [key, value] of attr[2]) {
+              this.reserve(value.length * 2);
+              const escaped = value.split("\\").join("\\\\").split('"').join('\\"');
+              attributes.push(this.join([key, '="', escaped, '"']));
+            }
+            parts.push(this.join(["[", this.inline(node.c[1], `${p}.c[1]`, marker, false, cell), "]{", this.join(attributes, " "), "}"]));
           } else {this.attrs(attr, p); parts.push(this.inline(node.c[1], `${p}.c[1]`));} break;
         }
         case "Quoted": {const quote = node.c[0] === "DoubleQuote" ? '"' : "'"; parts.push(this.join([quote, this.inline(node.c[1], `${p}.c[1]`), quote])); break;}

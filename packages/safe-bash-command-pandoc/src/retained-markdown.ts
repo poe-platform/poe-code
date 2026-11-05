@@ -380,7 +380,11 @@ class MarkdownTape {
         if (tag === "Span") {
           const state = await this.task(content!);
           if (state !== undefined) result = await this.literal(job.task && this.selection.extensions.task_lists ? state ? "[x] " : "[ ] " : state ? "☒ " : "☐ ");
-          else {await this.attrs(content! + 32, job.path); const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline"));} continue;
+          else {
+            if (this.selection.extensions.bracketed_spans) await this.push({op: "span", node: content! + 32, path: job.path});
+            else await this.attrs(content! + 32, job.path);
+            const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline", {marker: job.marker, cell: job.cell}));
+          } continue;
         }
         if (tag === "Quoted") {
           const quote = await this.tag(content! + 32) === "DoubleQuote" ? '"' : "'";
@@ -447,6 +451,23 @@ class MarkdownTape {
         await this.loss(job.path, tag);
         if (job.op === "inline") await this.push(this.list(content!, cp, "inline")); else result = emptyText();
         continue;
+      }
+      if (job.op === "span") {
+        const attributes = emptyText(), id = await this.scalar(job.node + 32);
+        if (id.units) await this.text.append(attributes, await this.join(await this.literal("#"), id));
+        for await (const name of this.tree.children(await this.at(job.node, 1))) {
+          await this.text.append(attributes, await this.join(await this.literal(attributes.units ? " ." : "."), await this.scalar(name)));
+        }
+        for await (const pair of this.tree.children(await this.at(job.node, 2))) {
+          const value = await this.scalar(await this.at(pair, 1));
+          this.reserve(value.units * 2);
+          const source = this.text.chunks(value);
+          const escaped = await this.text.from((async function* () {
+            for await (const chunk of source) yield chunk.split("\\").join("\\\\").split('"').join('\\"');
+          })());
+          await this.text.append(attributes, await this.join(await this.literal(attributes.units ? " " : ""), await this.scalar(pair + 32), await this.literal('="'), escaped, await this.literal('"')));
+        }
+        result = await this.join(await this.literal("["), result, await this.literal("]{"), attributes, await this.literal("}")); continue;
       }
       if (job.op === "header") {
         const suffix = emptyText();

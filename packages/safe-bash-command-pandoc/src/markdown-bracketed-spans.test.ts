@@ -33,6 +33,26 @@ for (const retained of [false, true]) {
     expect(content[0].c[1].map((node: {t: string}) => node.t)).toEqual(["Emph", "Space", "Span", "Space", "Link"]);
     expect(await render('[marked]{.important}', "markdown", "html")).toBe('<p><span class="important">marked</span></p>\n');
   });
+  it(`writes Span attributes without projection (retained=${retained})`, async () => {
+    for (const to of ["markdown", "md", "gfm+bracketed_spans"]) {
+      for (const text of [
+        "A [marked]{.important} word.\n",
+        '[*outer* [inner]{.inner}]{#tag .important .extra title="a } b"}\n',
+        '[]{.empty}\n',
+        '[plain]{}\n',
+        String.raw`[marked]{title="a \"quote\" and \\ slash"}` + "\n"
+      ]) {
+        const json = await render(text);
+        expect(await render(json, "json", to)).toBe(text);
+      }
+    }
+  });
+  it(`respects disabled bracketed span output (retained=${retained})`, async () => {
+    const json = await render('[marked]{.important}');
+    for (const to of ["commonmark", "gfm", "markdown-bracketed_spans"]) {
+      await expect(render(json, "json", to)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+    }
+  });
   it.each(["commonmark", "gfm", "markdown-bracketed_spans"])(`keeps disabled spans literal in %s (retained=${retained})`, async from => {
     expect(JSON.parse(await render('[marked]{.important}', from)).blocks[0].c).toEqual([{t: "Str", c: "[marked]{.important}"}]);
   });
@@ -54,4 +74,22 @@ it("converts bracketed spans through the standalone command", async () => {
   });
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(output).blocks[0].c[2]).toEqual({t: "Span", c: [["", ["important"], []], [{t: "Str", c: "marked"}]]});
+});
+
+it("preserves Span classes through JSON command input without warnings", async () => {
+  let output = "", diagnostics = "";
+  const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Para", c: [
+    {t: "Str", c: "A"}, {t: "Space"},
+    {t: "Span", c: [["", ["important"], []], [{t: "Str", c: "marked"}]]},
+    {t: "Space"}, {t: "Str", c: "word."}
+  ]}]});
+  const result = await createStandalonePandocCommand().execute({
+    args: ["-f", "json", "-t", "markdown"], stdin: [new TextEncoder().encode(input)],
+    signal: new AbortController().signal,
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write(bytes) {diagnostics += new TextDecoder().decode(bytes);}}
+  });
+  expect(result.exitCode, diagnostics).toBe(0);
+  expect(output).toBe("A [marked]{.important} word.\n");
+  expect(diagnostics).toBe("");
 });

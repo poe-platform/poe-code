@@ -527,11 +527,21 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: nu
     ry = rx;
   }
 
-  const disk = (colonIdx < 0 ? kernelSpec : kernelSpec.slice(0, colonIdx)).toLowerCase() === "disk";
+  const shape = (colonIdx < 0 ? kernelSpec : kernelSpec.slice(0, colonIdx)).toLowerCase();
+  const disk = shape === "disk";
   const radius = Number(sizePart) || 4.5;
   if (disk) ry = Math.max(0, Math.floor(radius));
-  const rows = Array.from({ length: ry * 2 + 1 }, (_, row) =>
-    disk ? Math.floor(Math.sqrt(radius * radius - (row - ry) ** 2)) : rx);
+  if (shape === "octagon" || shape === "diamond" || shape === "plus") {
+    rx = ry = Math.max(1, Math.floor(Number(sizePart) || (shape === "diamond" ? 1 : 2)));
+  }
+  const rows = Array.from({ length: ry * 2 + 1 }, (_, row) => {
+    const dy = Math.abs(row - ry);
+    if (disk) return Math.floor(Math.sqrt(radius * radius - dy * dy));
+    if (shape === "diamond") return rx - dy;
+    if (shape === "plus") return dy === 0 ? rx : 0;
+    if (shape === "octagon") return Math.min(rx, rx + Math.floor(rx / 2) - dy);
+    return rx;
+  });
 
   const filter = (source: number, mode: "min" | "max" | "median"): MorphologyStep => ({ source, mode });
   const diff = (a: number, b: number): MorphologyStep => ({ mode: "diff", a, b });

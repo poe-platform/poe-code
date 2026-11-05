@@ -929,6 +929,44 @@ it("negative maps match input, subtitle, absolute and typed stream indices in or
   assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.type), ["video", "audio"]);
 });
 
+describe("HLS playlist windows", () => {
+  for (const [seconds, size, first] of [[5, "2", 3], [5, undefined, 0], [7, undefined, 2], [7, "0", 0], [5, "10", 0], [5, "1", 4]] as const) {
+    it(`retains the final window for ${seconds} segments and size ${size ?? "default"}`, async () => {
+      const doc = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: seconds, includeAudio: false }));
+      const input = serializeMp4({ ...doc, tracks: doc.tracks.map(track => ({
+        ...track, samples: track.samples.map(sample => ({ ...sample, isKeyframe: true }))
+      })) });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.mp4", "-c", "copy", "-hls_time", "1",
+        ...(size === undefined ? [] : ["-hls_list_size", size]),
+        "-hls_segment_filename", "/out%d.ts", "-f", "hls", "/out.m3u8"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), [
+        "#EXTM3U", "#EXT-X-VERSION:3", "#EXT-X-TARGETDURATION:1",
+        `#EXT-X-MEDIA-SEQUENCE:${first}`,
+        ...Array.from({ length: seconds - first }, (_, i) => ["#EXTINF:1.000000,", `out${first + i}.ts`]).flat(),
+        "#EXT-X-ENDLIST", ""
+      ].join("\n"));
+      for (let i = 0; i < seconds; i++) assert.ok(vfs.store.get(`/out${i}.ts`)?.byteLength);
+    });
+  }
+
+  for (const size of ["-1", "bad", "1.5", ""]) {
+    it(`rejects invalid list size ${JSON.stringify(size)} without writing output`, async () => {
+      const vfs = createTestVfs({ "/out.m3u8": "original" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=s=16x16:d=1", "-hls_list_size", size, "/out.m3u8"
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("hls_list_size"), result.stderr);
+      assert.deepEqual([...vfs.store.keys()], ["/out.m3u8"]);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), "original");
+    });
+  }
+});
+
 it("HLS copies each video sample once and cuts at keyframes", async () => {
   const doc = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 10, frameCount: 20, includeAudio: true }));
   const bytes = serializeMp4({ ...doc, tracks: doc.tracks.map(t => t.type === "video" ? {

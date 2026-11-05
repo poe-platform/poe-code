@@ -1453,6 +1453,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let audioRate: number | undefined;
       let audioChannels: number | undefined;
       let hlsTime = 2;
+      let hlsListSize = 5;
       let hlsSegmentFilename: string | undefined;
       let hlsSegmentType: string | undefined;
       let stripAudio = false;
@@ -1494,7 +1495,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           hlsSegmentFilename = args[++i];
         } else if (arg === "-hls_segment_type") {
           hlsSegmentType = args[++i];
-        } else if (arg === "-hls_list_size" || arg === "-hls_flags") {
+        } else if (arg === "-hls_list_size") {
+          const value = args[++i];
+          hlsListSize = value?.trim() ? Number(value) : NaN;
+          if (!Number.isSafeInteger(hlsListSize) || hlsListSize < 0) {
+            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_list_size\n"), context.signal);
+            return { exitCode: 1 };
+          }
+        } else if (arg === "-hls_flags") {
           i++;
         } else if (arg === "-map_chapters") {
           const value = args[++i];
@@ -2451,11 +2459,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           boundaries.push(totalSec);
           let targetDuration = 0;
           for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
+          const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
           const playlistLines: string[] = [
             "#EXTM3U",
             "#EXT-X-VERSION:3",
             `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
-            "#EXT-X-MEDIA-SEQUENCE:0"
+            `#EXT-X-MEDIA-SEQUENCE:${firstSegment}`
           ];
 
           for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
@@ -2482,7 +2491,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             budget.checkOutputBytes(segBytes.byteLength);
             await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
             await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
-            playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
+            if (sIdx >= firstSegment) playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
           }
 
           playlistLines.push("#EXT-X-ENDLIST", "");

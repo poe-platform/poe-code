@@ -31,8 +31,9 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
     .filter(([path]) => !["/media-codecs/", "/image-ast/", "/pdf-ast/"].some(owner => path.includes(owner)))
     .reduce((total, [, input]) => total + input.bytesInOutput, 0);
   // Includes PCM conversion, lossless WAV copying, audio probe metadata,
-  // native single-precision drawbox blending, named overlay offsets, and xfade input validation.
-  assert.ok(otherCodeBytes < 435_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // native single-precision drawbox blending, named overlay offsets, xfade input validation,
+  // and HLS playlist window handling.
+  assert.ok(otherCodeBytes < 437_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // AAC adds its decoder and tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices, in the complete Worker bundle budget.

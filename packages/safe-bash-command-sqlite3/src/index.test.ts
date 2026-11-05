@@ -2123,3 +2123,44 @@ test("sqlite3 preserves JSON5 infinities when modifying or extracting JSON", asy
     "SELECT json_set('{a:Inf}', '$.b', 1), json_extract('{a:Inf,b:-Inf}', '$.a', '$.b'), json_patch('{a:Inf}', '{b:NaN}');"]),
     { code: 0, stdout: '{"a":9e999,"b":1}|[9e999,-9e999]|{"a":9e999}\n', stderr: "" });
 });
+
+for (const source of ["t", "v", "(SELECT * FROM t)"]) {
+  for (const outer of ["t", "t o", "v"]) {
+    test(`sqlite3 correlated self-subqueries resolve outer ${outer} through inner ${source}`, async () => {
+      const qualifier = outer === "t o" ? "o" : outer;
+      const sql = `CREATE TABLE t(g INT,v INT);
+        INSERT INTO t VALUES(1,10),(1,20),(2,30);
+        CREATE VIEW v AS SELECT * FROM t;
+        SELECT g,
+          (SELECT max(v) FROM ${source} x WHERE x.g=${qualifier}.g) AS m,
+          (SELECT count(*) FROM ${source} x WHERE x.g=${qualifier}.g) AS n,
+          (SELECT v FROM ${source} x WHERE x.g=${qualifier}.g ORDER BY v LIMIT 1) AS first
+        FROM ${outer} ORDER BY g,v;`;
+      const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", sql]);
+      assert.equal(result.code, 0, result.stderr);
+      assert.deepEqual(JSON.parse(result.stdout), [
+        { g: 1, m: 20, n: 2, first: 10 },
+        { g: 1, m: 20, n: 2, first: 10 },
+        { g: 2, m: 30, n: 1, first: 30 }
+      ]);
+    });
+  }
+}
+
+for (const source of ["t", "v", "other"]) {
+  test(`sqlite3 correlated EXISTS and UPDATE preserve outer scope with inner ${source}`, async () => {
+    const sql = `CREATE TABLE t(id INT,manager INT,salary INT);
+      INSERT INTO t VALUES(1,NULL,10),(2,1,20),(3,2,30);
+      CREATE VIEW v AS SELECT * FROM t;
+      CREATE TABLE other AS SELECT * FROM t;
+      SELECT id FROM t WHERE EXISTS(SELECT 1 FROM ${source} c WHERE c.manager=t.id) ORDER BY id;
+      UPDATE t SET salary=(SELECT max(c.salary) FROM ${source} c WHERE c.manager=t.id);
+      SELECT id,salary FROM t ORDER BY id;`;
+    const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", sql]);
+    assert.deepEqual(result, {
+      code: 0,
+      stdout: '[{"id":1},\n{"id":2}]\n[{"id":1,"salary":20},\n{"id":2,"salary":30},\n{"id":3,"salary":null}]\n',
+      stderr: ""
+    });
+  });
+}

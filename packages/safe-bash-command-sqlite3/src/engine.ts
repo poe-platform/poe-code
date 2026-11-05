@@ -6351,20 +6351,16 @@ export class SqliteDatabase {
         cteScope
       )) ?? { columns: [], rows: [] };
       const cols = view.columns && view.columns.length > 0 ? view.columns : res.columns;
-      const sameViewAlias = alias.toLowerCase() === name.toLowerCase();
       const rows = yield* stepMap(res.rows, function* (r, rIdx) { yield;
         res.rows[rIdx] = undefined as any;
         const data: Record<string, SqlValue> = {};
         for (let cIdx = 0; cIdx < cols.length; cIdx++) {
           data[cols[cIdx]!] = r[cIdx] ?? null;
         }
-        const tablesMap: Record<string, Record<string, SqlValue>> = sameViewAlias
-          ? { [alias]: data }
-          : { [alias]: data, [name]: data };
         return {
           __rowid: rIdx + 1,
-          __tables: tablesMap,
-          __rowids: sameViewAlias ? { [alias]: rIdx + 1 } : { [alias]: rIdx + 1, [name]: rIdx + 1 },
+          __tables: { [alias]: data },
+          __rowids: { [alias]: rIdx + 1 },
           __sources: [data]
         } as unknown as Record<string, SqlValue>;
       }, this);
@@ -6379,20 +6375,13 @@ export class SqliteDatabase {
     const cols = tbl.columns.map((c) => {
       return c.name;
     });
-    const sameAliasAndName = alias.toLowerCase() === name.toLowerCase();
     const rows = yield* stepMap(this.preparing ? [] : tbl.rows, function* (r) {
       yield;
       this.rowTables.set(r.data, tbl);
-      const tablesMap: Record<string, Record<string, SqlValue>> = sameAliasAndName
-        ? { [alias]: r.data }
-        : { [alias]: r.data, [name]: r.data };
-      const rowidsMap: Record<string, number> = sameAliasAndName
-        ? { [alias]: r.rowid }
-        : { [alias]: r.rowid, [name]: r.rowid };
       return {
         __rowid: r.rowid,
-        __tables: tablesMap,
-        __rowids: rowidsMap,
+        __tables: { [alias]: r.data },
+        __rowids: { [alias]: r.rowid },
         __sources: [r.data]
       } as unknown as Record<string, SqlValue>;
     }, this);
@@ -7078,13 +7067,14 @@ export class SqliteDatabase {
     }
     const table = this.findTable(expr.name);
     if (!expr.table && table?.fts5) {
-      return table.columns.map((column) => this.lookupColInRow(row, table.name, column.name));
+      const source = Object.entries(tables).find(([, data]) => this.rowTables.get(data) === table);
+      if (source) return table.columns.map((column) => this.lookupColInRow(row, source[0], column.name));
     }
     const value = this.lookupColInRow(row, expr.table, expr.name);
     for (const [name, data] of Object.entries(tables)) {
-      const candidate = this.findTable(name);
+      const candidate = this.rowTables.get(data);
       if (!candidate?.fts5) continue;
-      if (expr.table && !Object.entries(tables).some(([alias, source]) => alias.toLowerCase() === expr.table!.toLowerCase() && source === data)) continue;
+      if (expr.table && name.toLowerCase() !== expr.table.toLowerCase()) continue;
       if (candidate.columns.some((column) => column.name.toLowerCase() === expr.name.toLowerCase())) return [value];
     }
     throw new Error("MATCH requires an FTS5 table or column");

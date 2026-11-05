@@ -349,11 +349,11 @@ EOF
 
       const rExtra = await h.exec(`whoami extra`);
       assert.equal(rExtra.exitCode, 1);
-      assert.equal(rExtra.stderr, "whoami: extra operand 'extra'\n");
+      assert.equal(rExtra.stderr, "whoami: extra operand 'extra'\nTry 'whoami --help' for more information.\n");
 
       const rOpt = await h.exec(`whoami --bogus`);
       assert.equal(rOpt.exitCode, 1);
-      assert.equal(rOpt.stderr, "whoami: unrecognized option '--bogus'\n");
+      assert.equal(rOpt.stderr, "whoami: unrecognized option '--bogus'\nTry 'whoami --help' for more information.\n");
     });
   });
 

@@ -1,6 +1,8 @@
+import { shellValueByteLength } from "safe-bash-contracts/value";
 import { isFsError } from "safe-bash-contracts/errors";
 import {
   commandRuntimeIdentity,
+  getCommandArguments,
   writeText,
   type CommandContext,
   type CommandDefinition,
@@ -37,12 +39,16 @@ export function settings(options: WhoamiCommandsOptions = {}): WhoamiLimits {
 }
 
 const HELP_TEXT = `Usage: whoami [OPTION]...
-Print the user name associated with the current effective user ID
-in the Sandbox VFS-ish/GNU environment.
+Print the user name associated with the current effective user ID.
 Same as id -un.
 
       --help        display this help and exit
       --version     output version information and exit
+
+GNU coreutils online help: <https://www.gnu.org/software/coreutils/>
+Report any translation bugs to <https://translationproject.org/team/>
+Full documentation <https://www.gnu.org/software/coreutils/whoami>
+or available locally via: info '(coreutils) whoami invocation'
 `;
 
 const VERSION_TEXT = `whoami (Sandbox VFS-ish/GNU coreutils) 9.7
@@ -78,9 +84,10 @@ export function createWhoamiCommand(options: WhoamiCommandsOptions = {}): Comman
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
       context.signal.throwIfAborted();
+      const argv = getCommandArguments(context);
       let argBytes = 0;
-      for (const arg of context.args) {
-        argBytes += new TextEncoder().encode(arg).byteLength;
+      for (const arg of argv.values) {
+        argBytes += shellValueByteLength(arg);
         if (argBytes > limits.maxArgumentBytes) {
           await writeText(context.stderr, "whoami: argument budget exceeded\n");
           return { exitCode: 1 };
@@ -88,29 +95,46 @@ export function createWhoamiCommand(options: WhoamiCommandsOptions = {}): Comman
       }
 
       let endOfOptions = false;
-      for (let i = 0; i < context.args.length; i++) {
-        const arg = context.args[i]!;
+      let operand: number | undefined;
+      const hint = "\nTry 'whoami --help' for more information.\n";
+      for (const [i, arg] of argv.args.entries()) {
         if (!endOfOptions && arg === "--") {
           endOfOptions = true;
-          continue;
-        }
-        if (!endOfOptions && arg === "--help") {
-          await writeText(context.stdout, HELP_TEXT);
-          return { exitCode: 0 };
-        }
-        if (!endOfOptions && arg === "--version") {
-          await writeText(context.stdout, VERSION_TEXT);
-          return { exitCode: 0 };
-        }
-        if (!endOfOptions && arg.startsWith("-")) {
-          if (arg.startsWith("--")) {
-            await writeText(context.stderr, `whoami: unrecognized option '${arg}'\n`);
+        } else if (endOfOptions || arg === "-" || !arg.startsWith("-")) {
+          operand ??= i;
+          if (context.env.POSIXLY_CORRECT !== undefined) break;
+        } else if (arg.startsWith("--")) {
+          const prefix = arg.split("=", 1)[0]!;
+          const option = ["--help", "--version"].find(name => name.startsWith(prefix));
+          if (option && prefix !== "--") {
+            if (prefix === arg) {
+              await writeText(context.stdout, option === "--help" ? HELP_TEXT : VERSION_TEXT);
+              return { exitCode: 0 };
+            }
+            await writeText(context.stderr, `whoami: option '${option}' doesn't allow an argument${hint}`);
           } else {
-            await writeText(context.stderr, `whoami: invalid option -- '${arg[1] ?? ""}'\n`);
+            const ambiguous = prefix === "--";
+            await writeText(context.stderr, ambiguous ? "whoami: option '" : "whoami: unrecognized option '");
+            await context.stderr.write(argv.bytes(i)!);
+            await writeText(context.stderr, (ambiguous ? "' is ambiguous; possibilities: '--help' '--version'" : "'") + hint);
           }
           return { exitCode: 1 };
+        } else {
+          await writeText(context.stderr, "whoami: invalid option -- '");
+          await context.stderr.write(argv.bytes(i)!.subarray(1, 2));
+          await writeText(context.stderr, "'" + hint);
+          return { exitCode: 1 };
         }
-        await writeText(context.stderr, `whoami: extra operand '${arg}'\n`);
+      }
+      if (operand !== undefined) {
+        let quoted = "";
+        for (const b of argv.bytes(operand)!) {
+          if (b === 39 || b === 92) quoted += "\\" + String.fromCharCode(b);
+          else if (b >= 7 && b <= 13) quoted += "\\" + "abtnvfr"[b - 7];
+          else if (b >= 32 && b < 127) quoted += String.fromCharCode(b);
+          else quoted += "\\" + b.toString(8).padStart(3, "0");
+        }
+        await writeText(context.stderr, `whoami: extra operand '${quoted}'${hint}`);
         return { exitCode: 1 };
       }
 

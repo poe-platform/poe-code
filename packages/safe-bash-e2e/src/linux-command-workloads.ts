@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { userInfo } from "node:os";
 import { spawn } from "node:child_process";
 import { chmod, lstat, mkdir, mkdtemp, readdir, readFile, readlink, rm, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -30,7 +31,12 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
   const cwd = await mkdtemp(out + "linux-commands-");
   try {
     await mkdir(cwd + "/samples");
-    for (const view of views) await view.mkdir("/workspace/samples", { recursive: true });
+    const { uid, gid, username } = userInfo();
+    for (const view of views) {
+      await view.mkdir("/workspace/samples", { recursive: true });
+      await view.mkdir("/etc", { recursive: true });
+      await view.writeFile("/etc/passwd", Buffer.from(`${username}:x:${uid}:${gid}::/:/bin/sh\n`));
+    }
     for (const [name, line] of [["base", "base"], ["ours", "edited here"], ["theirs", "edited there"]]) {
       const path = "/samples/" + name;
       const bytes = Buffer.from("header\n" + line + "\nfooter\n");
@@ -85,6 +91,7 @@ const textCommands = ([
   ["du", "-b", "samples/base"], ["stat", "-c", "%n %s", "samples/theirs"], ["hd", "samples/ours"],
   ["zip", "-q", "-", "samples/base", "samples/ours", "sample.tar"], ["tar", "-xOf", "sample.tar", "samples/base"], ["unzip", "-p", "sample.zip", "samples/ours"],
   ["less", "samples/theirs"], ["tree", "-i", "--noreport", "samples"],
+  ["whoami", "-"],
   ["uname", "-so"], ["id", "-un", "0"], ["locale", "-ck", "decimal_point"],
   // Test the lower bound independently of the host processor count; sleep parses both units.
   ["nproc", "--ignore=1000000"], ["sleep", "0.0001s", "0m"],
@@ -95,6 +102,7 @@ const textCommands = ([
 export function linuxCommands(text: string) {
   const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1"];
   return [
+    { cmd: "whoami", args: [], script: "EUID=" + userInfo().uid + " USER=unused whoami", input: "" },
     ...pipes.map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" })),
     // Keep the host keybox in the private benchmark directory.
     { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-q", "--export", "missing"],

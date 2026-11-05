@@ -10113,26 +10113,38 @@ fn cmd_whoami(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut end_of_options = false;
+    let mut operand = None;
+    let usage_error = |message: String| err_out(&format!("whoami: {message}\nTry 'whoami --help' for more information.\n"), 1);
     for arg in args {
         if !end_of_options && arg == "--" {
             end_of_options = true;
-            continue;
-        }
-        if !end_of_options && arg == "--help" {
-            return ok_out("Usage: whoami [OPTION]...\nPrint the user name associated with the current effective user ID\nin the Sandbox VFS-ish/GNU environment.\nSame as id -un.\n\n      --help        display this help and exit\n      --version     output version information and exit\n");
-        }
-        if !end_of_options && arg == "--version" {
-            return ok_out("whoami (Sandbox VFS-ish/GNU coreutils) 9.7\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n");
-        }
-        if !end_of_options && arg.starts_with('-') {
-            if arg.starts_with("--") {
-                return err_out(&format!("whoami: unrecognized option '{arg}'\n"), 1);
-            } else {
-                let ch = arg.chars().nth(1).unwrap_or_default();
-                return err_out(&format!("whoami: invalid option -- '{ch}'\n"), 1);
+        } else if end_of_options || arg == "-" || !arg.starts_with('-') {
+            operand.get_or_insert(arg);
+            if env.contains_key("POSIXLY_CORRECT") { break; }
+        } else if arg.starts_with("--") {
+            let prefix = arg.split('=').next().unwrap();
+            if prefix == "--" {
+                return usage_error(format!("option '{arg}' is ambiguous; possibilities: '--help' '--version'"));
             }
+            let Some(option) = ["--help", "--version"].into_iter().find(|name| name.starts_with(prefix)) else {
+                return usage_error(format!("unrecognized option '{arg}'"));
+            };
+            if prefix != arg {
+                return usage_error(format!("option '{option}' doesn't allow an argument"));
+            }
+            return ok_out(if option == "--help" {
+                "Usage: whoami [OPTION]...\nPrint the user name associated with the current effective user ID.\nSame as id -un.\n\n      --help        display this help and exit\n      --version     output version information and exit\n\nGNU coreutils online help: <https://www.gnu.org/software/coreutils/>\nReport any translation bugs to <https://translationproject.org/team/>\nFull documentation <https://www.gnu.org/software/coreutils/whoami>\nor available locally via: info '(coreutils) whoami invocation'\n"
+            } else {
+                "whoami (Sandbox VFS-ish/GNU coreutils) 9.7\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n"
+            });
+        } else {
+            let bytes = crate::vfs::stream_string_to_bytes(arg);
+            let ch = crate::vfs::bytes_to_stream_string(&bytes[1..2]);
+            return usage_error(format!("invalid option -- '{ch}'"));
         }
-        return err_out(&format!("whoami: extra operand '{arg}'\n"), 1);
+    }
+    if let Some(arg) = operand {
+        return usage_error(format!("extra operand {}", quote_bytes(&crate::vfs::stream_string_to_bytes(arg))));
     }
 
     let raw_euid = env.get("EUID").or_else(|| env.get("UID"));

@@ -30,6 +30,20 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("whoami follows GNU option ordering and reports the original argument bytes", async () => {
+      const scripts = [
+        "whoami operand --he", "whoami operand -é", "whoami -- $'a\\x27b\\nß'",
+        "whoami operand --ver=x", "whoami --=x", "whoami --unknown",
+        "POSIXLY_CORRECT=1 whoami first --help", "whoami $'-\\xff'", "whoami -- $'\\xff'",
+      ];
+      for (const script of scripts) {
+        const expected = await runLinuxCommand("bash", ["--noprofile", "--norc", "-c", script], "", cwd);
+        for (const shell of [ts.shell, rust]) {
+          const actual = await shell.exec(script);
+          assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], expected, script);
+        }
+      }
+    });
     for (const { cmd, args, script, input } of linuxMutations) {
       const dir = cwd;
       await t.test(script, async () => {

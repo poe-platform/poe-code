@@ -37,7 +37,9 @@ geometry (`%g`, `%P`), compression (`%C`, `%Q`), and named properties including
 uppercase RGB or RGBA hex value, or `%[fx:EXPRESSION]` and `%[pixel:EXPRESSION]`
 for calculated values. Named properties are case insensitive. Filenames and
 escaped percent signs are inserted literally; pixel statistics are calculated
-only when requested. Statistics use the command's 0–255 RGB sample scale.
+only when requested. `%q` reports the compatible ImageMagick quantum depth (`16`),
+while `%z` reports source bit depth and `%[bit-depth]` reports effective pixel depth.
+Statistics use the command's 0–255 RGB sample scale.
 
 ## Available Commands
 

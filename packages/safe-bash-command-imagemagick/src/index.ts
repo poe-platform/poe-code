@@ -938,7 +938,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
-    z: bitDepth, q: bitDepth, r: `DirectClass ${space}`,
+    z: bitDepth, q: "16", r: `DirectClass ${space}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath,
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(meta.density ?? 72), y: String(meta.density ?? 72),

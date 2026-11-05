@@ -23,6 +23,11 @@ describe("ImageMagick property formatting", () => {
     }
     const newline = mode === "info" ? "\n" : "";
 
+    it(`${mode}: reports Q16 independently of source and effective pixel depth`, async () => {
+      const bytes = await sharp({ create: { width: 1, height: 1, channels: 3, background: "red" } }).png().toBuffer();
+      expect(await format(bytes, "%q|%z|%[bit-depth]")).toBe(`16|8|1${newline}`);
+    });
+
     it(`${mode}: expands geometry, metadata, compression, and literal escapes once`, async () => {
       const bytes = await sharp({ create: { width: 80, height: 40, channels: 3, background: "red" } }).png().toBuffer();
       expect(await format(bytes, "%g|%P|%%|%[channels]|%[WIDTH]x%[Height]|%[depth]|%[bit-depth]|%C|%Q|%[size]"))

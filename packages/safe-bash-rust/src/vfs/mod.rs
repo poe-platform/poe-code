@@ -431,6 +431,11 @@ pub trait SafeBashFs: Send + Sync {
     fn create_file(&self, _path: &str, _data: &[u8], _mode: u32) -> Result<(), String> {
         Err("ENOTSUP: exclusive file creation is unsupported".into())
     }
+    /// Create a private entry exclusively with the given permissions; never follow the final name.
+    fn create_temp(&self, path: &str, directory: bool, mode: u32) -> Result<(), String> {
+        let entry = self.access_path(path, false)?;
+        if directory { self.mkdir_one(&entry, mode) } else { self.create_file(&entry, &[], mode) }
+    }
     /// Filesystem identity and revision covering a patch target and its local ancestors.
     fn patch_revision(&self, _path: &str) -> Result<(u64, u64), String> {
         Err("filesystem does not support race-safe patch mutations".into())

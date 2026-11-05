@@ -550,6 +550,14 @@ function bindExternalFs(shell,fs,options) {
           return;
         }
         if(op==="ftruncate"){await h.truncate(mode,settings);return;}
+        if(op==="mktemp"){
+          const caps=await fs.capabilitiesFor?.(path,{...settings,creation:"exclusive"}) ?? fs.capabilities;
+          if(caps?.readOnly)throw fsOperationError("EROFS",op,path);
+          if(caps?.permissions!==true)throw fsOperationError("ENOTSUP",op,path);
+          if(flags)await fs.mkdir(path,{...settings,recursive:false,mode,exactMode:true});
+          else await fs.writeFile(path,data,{...settings,mode,flag:"wx"});
+          return;
+        }
         if(op==="canLink"){
           const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
           result=Uint8Array.of(Number(caps?.hardlinks===true && typeof fs.link==="function"));return;

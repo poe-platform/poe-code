@@ -297,6 +297,18 @@ impl SafeBashFs for RealVfs {
         }))
     }
 
+    fn create_temp(&self, path: &str, directory: bool, mode: u32) -> Result<(), String> {
+        #[cfg(not(unix))]
+        { let _ = (path, directory, mode); Err("ENOTSUP: private permissions unavailable".into()) }
+        #[cfg(unix)]
+        {
+            if !directory { return self.create_file(path, &[], mode); }
+            use std::os::unix::fs::DirBuilderExt;
+            let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
+            std::fs::DirBuilder::new().mode(mode).create(host).map_err(mutation_error)
+        }
+    }
+
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         use std::io::Write;
         let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;

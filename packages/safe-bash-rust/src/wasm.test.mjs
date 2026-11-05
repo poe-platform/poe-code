@@ -4992,6 +4992,70 @@ test("provided devices preserve backing files and the mounted test devices remai
   } finally { provided.dispose(); mounted.dispose(); }
 });
 
+test("mktemp retries occupied names without following links, and propagates creation and entropy failures", async t => {
+  const sh = new RustWasmBash({ forceNative: true, cwd: "/" });
+  const random = t.mock.method(globalThis.crypto, "getRandomValues", bytes => bytes.fill(0));
+  try {
+    const first = await sh.exec("mktemp x.XXXXXX");
+    assert.equal(first.exitCode, 0, first.stderr);
+    const name = first.stdout.trim();
+    await sh.fs.rm("/" + name);
+    await sh.fs.symlink("/absent", "/" + name);
+    let calls = 0;
+    random.mock.mockImplementation(bytes => bytes.fill(calls++ ? 1 : 0));
+    const next = await sh.exec("mktemp x.XXXXXX");
+    assert.equal(next.exitCode, 0, next.stderr);
+    assert.notEqual(next.stdout, first.stdout);
+    assert.equal(await sh.fs.readlink("/" + name), "/absent");
+    await assert.rejects(sh.fs.stat("/absent"), { code: "ENOENT" });
+    assert.equal((await sh.fs.stat("/" + next.stdout.trim())).mode & 0o777, 0o600);
+    await sh.fs.mkdir("/locked", { mode: 0o500 });
+    for (const flags of ["", "-d"]) {
+      const failed = await sh.exec("mktemp -q " + flags + " /locked/f.XXXXXX");
+      assert.deepEqual([failed.exitCode, failed.stdout, failed.stderr], [1, "", ""]);
+    }
+    const missing = await sh.exec(`LC_ALL=C mktemp --suffix=.tmp "missing/a'bXXX"`);
+    assert.equal(missing.stderr, "mktemp: failed to create file via template 'missing/a\\'bXXX.tmp': No such file or directory\n");
+    random.mock.mockImplementation(() => { throw new Error("unavailable"); });
+    const failed = await sh.exec("mktemp -d dir.XXXXXX");
+    assert.equal(failed.exitCode, 1);
+    assert.equal(failed.stdout, "");
+    assert.match(failed.stderr, /entropy/);
+  } finally { sh.dispose(); }
+});
+
+test("mktemp creates private entries on a supplied filesystem and retries a concurrent collision", { skip: !WebAssembly.Suspending }, async () => {
+  const { MemoryFileSystem } = await import("@poe-code/safe-fs");
+  const fs = new MemoryFileSystem(), sh = new RustWasmBash({ forceNative: true, cwd: "/" });
+  const write = fs.writeFile.bind(fs);
+  let occupied;
+  fs.writeFile = async (path, bytes, options) => {
+    assert.equal(options.flag, "wx");
+    assert.equal(options.mode, 0o600);
+    if (!occupied) {
+      occupied = path;
+      await write(path, Uint8Array.of(42), { mode: 0o640 });
+    }
+    return write(path, bytes, options);
+  };
+  try {
+    const file = await sh.exec("mktemp /f.XXXXXX", { fs });
+    assert.equal(file.exitCode, 0, file.stderr);
+    assert.deepEqual(await fs.readFile(occupied), Uint8Array.of(42));
+    assert.equal((await fs.stat(occupied)).mode & 0o777, 0o640);
+    assert.equal((await fs.stat(file.stdout.trim())).mode & 0o777, 0o600);
+    const dir = await sh.exec("umask 0377; mktemp -d /d.XXXXXX", { fs });
+    assert.equal(dir.exitCode, 0, dir.stderr);
+    assert.equal((await fs.stat(dir.stdout.trim())).mode & 0o777, 0o400);
+    fs.capabilitiesFor = () => ({ ...fs.capabilities, permissions: false });
+    for (const flag of ["", "-d"]) {
+      const failed = await sh.exec("mktemp " + flag + " /denied.XXXXXX", { fs });
+      assert.deepEqual([failed.exitCode, failed.stdout], [1, ""]);
+    }
+    assert.ok(!(await fs.readdir("/")).some(e => e.name.startsWith("denied.")));
+  } finally { sh.dispose(); }
+});
+
 test("random devices use the host entropy source and fail if it is unavailable", async t => {
   const bash = createRustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

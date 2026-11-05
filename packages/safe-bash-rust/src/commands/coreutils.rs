@@ -1,5 +1,5 @@
 mod fmt_printable;
-mod fmt_quote;
+pub(super) mod fmt_quote;
 mod fold_widths;
 mod sort_keys;
 mod sort_locale;
@@ -18043,7 +18043,7 @@ fn ensure_install_dirs(
     }
 }
 
-fn file_error_reason(error: &str) -> &str {
+pub(super) fn file_error_reason(error: &str) -> &str {
     if error.ends_with("(os error 2)") {
         return "No such file or directory";
     }

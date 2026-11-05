@@ -33,7 +33,7 @@ pub(super) fn filename(text: &str, unicode: bool) -> String {
     if bare { text.to_string() } else { quote(text, true, unicode) }
 }
 
-pub(super) fn quote(text: &str, shell: bool, unicode: bool) -> String {
+pub(in crate::commands) fn quote(text: &str, shell: bool, unicode: bool) -> String {
     let bytes = crate::vfs::stream_string_to_bytes(text);
     let printable = |ch: Option<char>| {
         ch.is_some_and(|c| {

@@ -253,6 +253,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.commit_file_edit(&host_text(path), original, before, after, in_place).map_err(quote_host_text)
     }
 
+    fn create_temp(&self, path: &str, directory: bool, mode: u32) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.create_temp(&host_text(path), directory, mode).map_err(quote_host_text)
+    }
+
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

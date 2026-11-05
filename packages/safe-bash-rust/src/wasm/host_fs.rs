@@ -651,6 +651,10 @@ impl SafeBashFs for HostFs {
         }
         self.request("appendFile", p, b, 0, 0).map(drop)
     }
+    fn create_temp(&self, path: &str, directory: bool, mode: u32) -> Result<(), String> {
+        if self.reserved_device(path, false)?.is_some() { return Err("EEXIST: file already exists".into()); }
+        self.request("mktemp", path, &[], directory as u32, mode).map(drop)
+    }
     fn create_file(&self, p: &str, b: &[u8], m: u32) -> Result<(), String> {
         if self.reserved_device(p, false)?.is_some() {
             return Err("EEXIST: file already exists".into());

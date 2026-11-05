@@ -4878,72 +4878,68 @@ fn cmd_mktemp(
             .or_else(|| env.get("TMPDIR").filter(|s| !s.is_empty()).cloned())
             .unwrap_or_else(|| "/tmp".to_string())
     };
-    if use_tmpdir
-        && parent_dir == "/tmp"
-        && tmpdir.as_deref().unwrap_or("").is_empty()
-        && env.get("TMPDIR").filter(|s| !s.is_empty()).is_none()
-    {
-        let _ = fs.mkdir_all("/tmp");
+    let default_parent = use_tmpdir && parent_dir == "/tmp" && tmpdir.as_deref().unwrap_or("").is_empty()
+        && env.get("TMPDIR").is_none_or(String::is_empty);
+    let umask = env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+    let mode = (if is_dir { 0o700 } else { 0o600 }) & !umask;
+    let make_name = |middle: &str| {
+        let base = format!("{tpl_prefix}{middle}{tpl_tail}");
+        if use_tmpdir { format!("{}/{base}", parent_dir.trim_end_matches('/')) } else { base }
+    };
+    let failed = |error: &str| {
+        if quiet { return err_out("", 1); }
+        let name = make_name(&"X".repeat(x_count));
+        let locale = ["LC_ALL", "LC_CTYPE", "LANG"].into_iter()
+            .find_map(|key| env.get(key).filter(|value| !value.is_empty())).map_or("C", String::as_str);
+        let quoted = super::coreutils::fmt_quote::quote(&name, false, matches!(locale, "C.utf8" | "C.UTF-8"));
+        err_out(&format!("mktemp: failed to create {} via template {}: {}\n",
+            if is_dir { "directory" } else { "file" }, quoted, super::coreutils::file_error_reason(error)), 1)
+    };
+    if crate::vfs::stream_byte_len(last_comp) + suffix.as_deref().map_or(0, crate::vfs::stream_byte_len) > 255 {
+        return failed("File name too long");
     }
-
     let alphabet = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    let mut display_out = String::new();
-    let mut resolved_path = String::new();
-    for seq in 1..10000usize {
-        let mut rand_part = Vec::with_capacity(x_count);
-        let mut n = seq.wrapping_mul(2654435761);
-        for pos in 0..x_count {
-            let idx = (n.wrapping_add(pos * 17) ^ (seq * 31)) % alphabet.len();
-            rand_part.push(alphabet[idx]);
-            n = n.wrapping_mul(1103515245).wrapping_add(12345);
-        }
-        let rand_str = String::from_utf8_lossy(&rand_part);
-        let generated = format!("{tpl_prefix}{rand_str}{tpl_tail}");
-        let display = if use_tmpdir {
-            if parent_dir == "/" {
-                format!("/{generated}")
-            } else {
-                format!("{}/{generated}", parent_dir.trim_end_matches('/'))
+    for _ in 0..10000 {
+        let mut middle = String::with_capacity(x_count);
+        let mut bytes = [0; 32];
+        // Rejection sampling keeps every character equally likely. A broken entropy
+        // provider must not leave the command looping forever.
+        for _ in 0..128 {
+            if let Err(e) = crate::vfs::memory::fill_random(&mut bytes) {
+                return if quiet { err_out("", 1) } else { err_out(&format!("mktemp: {e}\n"), 1) };
             }
-        } else {
-            generated
-        };
-        let cand = resolve_posix_path(cwd, &display);
-        if !fs.exists(&cand) {
-            display_out = display;
-            resolved_path = cand;
-            break;
+            for &byte in &bytes {
+                if let Some(&c) = alphabet.get(usize::from(byte & 63)) {
+                    middle.push(char::from(c));
+                    if middle.len() == x_count { break; }
+                }
+            }
+            if middle.len() == x_count { break; }
+        }
+        if middle.len() != x_count { return failed("host entropy source unavailable"); }
+        let display = make_name(&middle);
+        let path = absolute_operand(cwd, &display);
+        if dry_run {
+            match fs.lstat(&path) {
+                Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => return ok_out(&format!("{display}\n")),
+                Ok(_) => continue,
+                Err(e) => return failed(&e),
+            }
+        }
+        let mut result = fs.create_temp(&path, is_dir, mode);
+        if default_parent && result.as_ref().is_err_and(|e| e.starts_with("ENOENT:") || e.ends_with("(os error 2)"))
+            && fs.lstat("/tmp").is_err_and(|e| e.starts_with("ENOENT:") || e.ends_with("(os error 2)"))
+        {
+            if let Err(e) = fs.mkdir_one("/tmp", 0o777) && !e.starts_with("EEXIST:") { return failed(&e); }
+            result = fs.create_temp(&path, is_dir, mode);
+        }
+        match result {
+            Ok(()) => return ok_out(&format!("{display}\n")),
+            Err(e) if e.starts_with("EEXIST:") => continue,
+            Err(e) => return failed(&e),
         }
     }
-    if !dry_run {
-        let parent = crate::vfs::dirname_posix_path(&resolved_path);
-        if !fs.exists(&parent) || !fs.is_dir(&parent) {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: if quiet {
-                    String::new()
-                } else {
-                    format!(
-                        "mktemp: ENOENT: no such file or directory, {} '{resolved_path}'\n",
-                        if is_dir { "mkdir" } else { "writeFile" }
-                    )
-                },
-                exit_code: 1,
-            };
-        }
-        let umask = env
-            .get("\0umask")
-            .and_then(|s| u32::from_str_radix(s, 8).ok())
-            .unwrap_or(0o022);
-        if is_dir {
-            let _ = fs.mkdir_all(&resolved_path);
-            let _ = fs.chmod(&resolved_path, 0o040000 | (0o700 & !umask));
-        } else {
-            let _ = fs.write_file(&resolved_path, &[]);
-            let _ = fs.chmod(&resolved_path, 0o100000 | (0o600 & !umask));
-        }
-    }
-    ok_out(&format!("{display_out}\n"))
+    failed("File exists")
 }
 
 fn detect_tree_utf8(

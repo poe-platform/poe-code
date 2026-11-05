@@ -900,7 +900,7 @@ function* magickPixelPropertiesSteps<Step=never>(
       statistics.standard_deviation += deviation / channels;
     }
     if (!img.hasAlpha) {
-      statistics["mean.3"] = 1;
+      statistics["mean.3"] = 0;
       statistics["standard_deviation.3"] = 0;
     }
   }
@@ -1631,6 +1631,8 @@ function sampleFxImage(
   ch: number
 ): number {
   if (!img) return 0;
+  // ImageMagick samples red for alpha qualifiers when no alpha channel exists.
+  if (ch === 3 && !img.hasAlpha) ch = 0;
   const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
   const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
   const idx = (cy * img.width + cx) * 4;
@@ -1670,7 +1672,7 @@ function propToChannel(prop: string, defaultCh: number): number {
   if (p === "r" || p === "red") return 0;
   if (p === "g" || p === "green") return 1;
   if (p === "b" || p === "blue") return 2;
-  if (p === "a" || p === "alpha" || p === "opacity") return 3;
+  if (p === "a" || p === "o" || p === "alpha" || p === "opacity") return 3;
   if (p === "intensity" || p === "luma" || p === "luminance") return 4;
   if (p === "hue") return 5;
   if (p === "saturation") return 6;

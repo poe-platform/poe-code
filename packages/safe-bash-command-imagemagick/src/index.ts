@@ -31,7 +31,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -1358,7 +1358,11 @@ function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: n
         const dr = Math.abs(out[i]! - target.r);
         const dg = Math.abs(out[i + 1]! - target.g);
         const db = Math.abs(out[i + 2]! - target.b);
-        const matched = Math.max(dr, dg, db) <= fuzz;
+        const alpha = out[i + 3]!;
+        // Native transparent painting compares alpha plus opacity-weighted RGB distance.
+        const distance = (alpha - target.a) ** 2
+            + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
+        const matched = distance <= fuzz ** 2;
         if (invert ? !matched : matched) {
             out[i + 3] = 0;
         }
@@ -3914,6 +3918,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...metadata, data: out, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
         };
     }
+    else if (token === "-gamma") {
+        const gamma = Math.max(0.1, Number(tokens[++i] ?? 1));
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const lookup = [channels.r, channels.g, channels.b, channels.a].map(active =>
+            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.pow(value / 255, 1 / gamma)) : value));
+        apply = image => applyMagickLookup(image, lookup);
+    }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
         if (mode === "remove") {
@@ -3982,7 +3993,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.fuzz, token === "+opaque", signal);
     } else if (token === "-transparent" || token === "+transparent") {
         const target = parseColor(tokens[++i] ?? "#ffffff");
-        apply = image => applyMagickTransparentSteps(image, target, state.fuzz, token === "+transparent", signal);
+        apply = image => applyMagickTransparentSteps(image, target, state.alphaFuzz, token === "+transparent", signal);
     } else if (token === "-evaluate") {
         const operation = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
         apply = image => applyMagickEvaluateSteps(image, operation, value, state.channels, signal);
@@ -4633,12 +4644,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-auto-orient") {
             stack = (yield* mapSteps(stack, function* (im) {
                 return (yield* applyExifOrientationSteps(im));
-            }));
-        }
-        else if (t === "-gamma") {
-            const gammaVal = Math.max(0.1, Number(tokens[++i] ?? 1.0));
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* gammaImageSteps(im, 1, gammaVal));
             }));
         }
         else if (t === "-raise" || t === "+raise") {
@@ -5518,9 +5523,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-rotate") {
             const angle = Number(tokens[++i] ?? 0), background = state.background;
             transform(() => ({ kind: "rotate", angle, background }));
-        } else if (!operandsOnly && token === "-gamma") {
-            const gamma = Math.max(0.1, Number(tokens[++i] ?? 1));
-            transform(() => ({ kind: "gamma", gamma: 1, gammaOut: gamma }));
         } else if (!operandsOnly && ["-blur", "-gaussian-blur", "-sharpen", "-unsharp"].includes(token)) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
             const kind = token === "-blur" || token === "-gaussian-blur" ? "blur" : "sharpen";

@@ -2769,6 +2769,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 continue;
             }
             if (norm === "lineardodge" ||
+                norm === "linearburn" ||
                 norm === "colorburn" ||
                 norm === "colordodge" ||
                 norm === "multiply" ||
@@ -2802,6 +2803,8 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                         let f = 0;
                         if (norm === "lineardodge")
                             f = Math.min(1, sc + dc);
+                        else if (norm === "linearburn")
+                            f = Math.max(0, sc + dc - 1);
                         else if (norm === "colorburn")
                             f = sc === 0 ? 0 : Math.max(0, 1 - (1 - dc) / sc);
                         else if (norm === "colordodge")

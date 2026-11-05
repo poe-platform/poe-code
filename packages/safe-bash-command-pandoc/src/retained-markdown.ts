@@ -309,6 +309,17 @@ class MarkdownTape {
           const url = await this.escape(await this.scalar(target + 32), true), title = await this.scalar(await this.at(target, 1));
           result = await this.join(await this.literal(job.first!), result, await this.literal("](<"), url, await this.literal(">"), title.units ? await this.join(await this.literal(' "'), await this.escape(title, true), await this.literal('"')) : emptyText(), await this.literal(")"));
         }
+        if (job.first === "![" && this.selection.extensions.link_attributes) {
+          const attr = job.node + 32, widths = emptyText();
+          let unsupported = (await this.tree.describe(attr + 32)).end > attr + 64 || !!await this.count(await this.at(attr, 1));
+          for await (const pair of this.tree.children(await this.at(attr, 2))) {
+            if (await this.tree.smallText(pair + 32, 5) !== "width") {unsupported = true; continue;}
+            if (widths.units) await this.text.append(widths, await this.literal(" "));
+            await this.text.append(widths, await this.join(await this.literal('width="'), await this.escape(await this.scalar(await this.at(pair, 1)), true), await this.literal('"')));
+          }
+          if (unsupported) await this.loss(job.path, "attributes");
+          if (widths.units) result = await this.join(result, await this.literal("{"), widths, await this.literal("}"));
+        }
         continue;
       }
       if (job.op === "inline" || job.op === "block") {
@@ -357,7 +368,8 @@ class MarkdownTape {
           continue;
         }
         if (tag === "Link" || tag === "Image") {
-          await this.attrs(content! + 32, job.path); await this.push({op: "link", node: content!, path: cp, first: tag === "Image" ? "![" : "["});
+          if (tag !== "Image" || !this.selection.extensions.link_attributes) await this.attrs(content! + 32, job.path);
+          await this.push({op: "link", node: content!, path: cp, first: tag === "Image" ? "![" : "["});
           const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;
         }
         if (tag === "Emph" || tag === "Strong" || tag === "Strikeout") {
@@ -403,7 +415,7 @@ class MarkdownTape {
             const inlines = (await this.tree.property(body + 32, "c"))!;
             if (await this.count(inlines) === 1 && await this.tag(inlines + 32) === "Image") {
               const image = (await this.tree.property(inlines + 32, "c"))!;
-              await this.attrs(image + 32, await this.path(bp, "[0].c[0]"));
+              if (!this.selection.extensions.link_attributes) await this.attrs(image + 32, await this.path(bp, "[0].c[0]"));
               await this.push({op: "link", node: image, path: await this.path(bp, "[0].c[0].c"), first: "!["});
               await this.push(this.list((await this.tree.property(caption + 32, "c"))!, await this.path(captionPath, "[0].c"), "inline"));
               continue;

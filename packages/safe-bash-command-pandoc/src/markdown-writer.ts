@@ -99,12 +99,18 @@ class Markdown {
           parts.push(this.join([delimiter, padding, value, padding, delimiter])); break;
         }
         case "Link": case "Image": {
-          this.attrs(node.c[0], p);
+          const attr = node.c[0], widths: string[] = [];
+          if (node.t === "Image" && this.selection.extensions.link_attributes) {
+            if (attr[0] || attr[1].length || attr[2].some(([key]) => key !== "width")) this.loss(p, "attributes");
+            for (const [key, value] of attr[2]) if (key === "width") widths.push(this.join(['width="', this.escape(value, true), '"']));
+          } else this.attrs(attr, p);
           const label = this.inline(node.c[1], `${p}.c[1]`);
           const url = this.escape(node.c[2][0], true);
           const title = node.c[2][1] ? this.join([' "', this.escape(node.c[2][1], true), '"']) : "";
           const reference = this.targets.get(JSON.stringify(node.c[2]));
-          parts.push(reference && reference.count > 1 ? this.join([node.t === "Image" ? "![" : "[", label, "][", reference.id, "]"]) : this.join([node.t === "Image" ? "![" : "[", label, "](<", url, ">", title, ")"])); break;
+          parts.push(reference && reference.count > 1 ? this.join([node.t === "Image" ? "![" : "[", label, "][", reference.id, "]"]) : this.join([node.t === "Image" ? "![" : "[", label, "](<", url, ">", title, ")"]));
+          if (widths.length) parts.push(this.join(["{", this.join(widths, " "), "}"]));
+          break;
         }
         case "Span": {
           const attr = node.c[0];

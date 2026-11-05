@@ -70,6 +70,8 @@ The `markdown` and `md` readers parse leading `%` title, author, and date lines
 into metadata; disable with `-f markdown-pandoc_title_block`.
 The `markdown` and `md` readers turn standalone images with nonempty alt text into
 figures, using the alt text as the caption. Disable this with `-f markdown-implicit_figures`.
+Markdown output preserves image width attributes such as `{width="50%"}`;
+disable this with `-t markdown-link_attributes`.
 The `markdown` and `md` readers resolve footnotes (`[^note]` with a matching
 `[^note]:` definition), including multi-paragraph notes; disable with `-footnotes`.
 The `markdown` and `md` readers preserve `| ` line blocks, including empty lines

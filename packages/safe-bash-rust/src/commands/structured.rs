@@ -30084,6 +30084,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
 
 #[derive(Clone, Debug)]
 enum PandocInline {
+    Space,
     Text(String),
     Strong(Vec<PandocInline>),
     Emph(Vec<PandocInline>),
@@ -30162,6 +30163,7 @@ fn inlines_plain_text(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Space => out.push(' '),
             PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
             PandocInline::Strong(c)
             | PandocInline::Emph(c)
@@ -30187,7 +30189,7 @@ fn parse_pandoc_md_inlines(s: &str) -> Vec<PandocInline> {
                 out.push(PandocInline::Code(PandocAttr::default(), rest[..end].to_string()));
                 i += 2 + end + 2;
                 if s[i..].starts_with("\\ ") {
-                    cur.push(' ');
+                    out.push(PandocInline::Space);
                     i += 2;
                 }
                 continue;
@@ -30256,6 +30258,12 @@ fn parse_pandoc_md_inlines(s: &str) -> Vec<PandocInline> {
                 }
             }
         }
+        if bytes[i] == b' ' {
+            if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
+            out.push(PandocInline::Space);
+            i += 1;
+            continue;
+        }
         let ch = s[i..].chars().next().unwrap();
         cur.push(ch);
         i += ch.len_utf8();
@@ -30285,7 +30293,7 @@ fn strip_html_comments(input: &str) -> String {
 #[derive(Clone, Copy, PartialEq)]
 enum PandocPipeTables { Disabled, CommonMark, Markdown }
 
-fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocPipeTables, depth: usize, tasks: bool) -> Option<Vec<PandocBlock>> {
+fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocPipeTables, depth: usize, tasks: pandoc_list::Tasks) -> Option<Vec<PandocBlock>> {
     if depth > 64 { return None; }
     let cleaned = if strip_comments {
         strip_html_comments(input)
@@ -30596,7 +30604,7 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
         }
         md_lines.push(s);
     }
-    parse_pandoc_markdown(&md_lines.join("\n"), false, PandocPipeTables::Markdown, 0, true)
+    parse_pandoc_markdown(&md_lines.join("\n"), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
 }
 
 fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
@@ -30637,30 +30645,17 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
             i += 1;
         }
     }
-    parse_pandoc_markdown(&cleaned, false, PandocPipeTables::Markdown, 0, true)
+    parse_pandoc_markdown(&cleaned, false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
 }
 
 fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
     let mut arr = Vec::new();
     for inl in inlines {
         match inl {
-            PandocInline::Text(s) => {
-                let parts: Vec<&str> = s.split(' ').collect();
-                for (idx, p) in parts.iter().enumerate() {
-                    if idx > 0 {
-                        arr.push(JVal::Object(vec![(
-                            "t".to_string(),
-                            JVal::Str("Space".to_string()),
-                        )]));
-                    }
-                    if !p.is_empty() {
-                        arr.push(JVal::Object(vec![
-                            ("t".to_string(), JVal::Str("Str".to_string())),
-                            ("c".to_string(), JVal::Str((*p).to_string())),
-                        ]));
-                    }
-                }
-            }
+            PandocInline::Space => arr.push(JVal::Object(vec![("t".into(), JVal::Str("Space".into()))])),
+            PandocInline::Text(s) => arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("Str".into())), ("c".into(), JVal::Str(s.clone())),
+            ])),
             PandocInline::Strong(c) => {
                 arr.push(JVal::Object(vec![
                     ("t".to_string(), JVal::Str("Strong".to_string())),
@@ -30757,7 +30752,6 @@ fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
         return Vec::new();
     };
     let mut out = Vec::new();
-    let mut cur_text = String::new();
     for item in items {
         if let JVal::Object(m) = item {
             let t = match jval_obj_get(m, "t") {
@@ -30767,12 +30761,11 @@ fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
             match t {
                 "Str" => {
                     if let Some(JVal::Str(s)) = jval_obj_get(m, "c") {
-                        cur_text.push_str(s);
+                        out.push(PandocInline::Text(s.clone()));
                     }
                 }
-                "Space" => cur_text.push(' '),
+                "Space" => out.push(PandocInline::Space),
                 _ => {
-                    if !cur_text.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur_text))); }
                     let Some(c) = jval_obj_get(m, "c") else { continue };
                     match t {
                         "Strong" => out.push(PandocInline::Strong(parse_pandoc_json_inlines(c))),
@@ -30796,9 +30789,6 @@ fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
                 }
             }
         }
-    }
-    if !cur_text.is_empty() {
-        out.push(PandocInline::Text(cur_text));
     }
     out
 }
@@ -30890,6 +30880,7 @@ fn render_pandoc_inlines_html(inlines: &[PandocInline], ascii: bool) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Space => out.push(' '),
             PandocInline::Text(s) => out.push_str(&html_escape_pandoc(s, ascii)),
             PandocInline::Strong(c) => {
                 out.push_str("<strong>");
@@ -30991,14 +30982,25 @@ fn render_pandoc_html(
                     if n.start != 1 { body.push_str(&format!(" start=\"{}\"", n.start)); }
                     if let Some(t) = n.html_type() { body.push_str(&format!(" type=\"{t}\"")); }
                 }
+                if numbering.is_none() && items.iter().all(|item| pandoc_list::label(item).is_some()) {
+                    body.push_str(" class=\"task-list\"");
+                }
                 body.push_str(">\n");
                 for item in items {
-                    let value = render_pandoc_html(item, false, false, false, ascii, "", "", "", "");
-                    let value = value.strip_suffix('\n').unwrap_or(&value);
                     body.push_str("<li>");
-                    if let Some(s) = value.strip_prefix("☒ ") { body.push_str("<label><input type=\"checkbox\" checked=\"\" />"); body.push_str(s); body.push_str("</label>"); }
-                    else if let Some(s) = value.strip_prefix("☐ ") { body.push_str("<label><input type=\"checkbox\" />"); body.push_str(s); body.push_str("</label>"); }
-                    else { body.push_str(value); }
+                    let rest = if let Some((paragraph, checked, label)) = pandoc_list::label(item) {
+                        if paragraph { body.push_str("<p>"); }
+                        body.push_str("<label><input type=\"checkbox\"");
+                        if checked { body.push_str(" checked=\"\""); }
+                        body.push_str(" />");
+                        body.push_str(&render_pandoc_inlines_html(label, ascii));
+                        body.push_str("</label>");
+                        if paragraph { body.push_str("</p>"); }
+                        if item.len() > 1 { body.push('\n'); }
+                        &item[1..]
+                    } else { item.as_slice() };
+                    let value = render_pandoc_html(rest, false, false, false, ascii, "", "", "", "");
+                    body.push_str(value.strip_suffix('\n').unwrap_or(&value));
                     body.push_str("</li>\n");
                 }
                 body.push_str(&format!("</{tag}>\n"));
@@ -31068,6 +31070,7 @@ fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool) -> St
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Space => out.push(' '),
             PandocInline::Text(s) => out.push_str(s),
             PandocInline::Strong(c) => out.push_str(&format!("**{}**", render_pandoc_inlines_md(c, bracket_links))),
             PandocInline::Emph(c) => out.push_str(&format!("*{}*", render_pandoc_inlines_md(c, bracket_links))),
@@ -31216,6 +31219,7 @@ fn render_pandoc_inlines_latex(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Space => out.push(' '),
             PandocInline::Text(s) => out.push_str(s),
             PandocInline::Strong(c) => out.push_str(&format!("\\textbf{{{}}}", render_pandoc_inlines_latex(c))),
             PandocInline::Emph(c) => out.push_str(&format!("\\emph{{{}}}", render_pandoc_inlines_latex(c))),
@@ -31256,6 +31260,7 @@ fn render_pandoc_inlines_rtf(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Space => out.push(' '),
             PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
             PandocInline::Strong(c) => out.push_str(&format!("{{\\b {}}}", render_pandoc_inlines_rtf(c))),
             PandocInline::Emph(c) => out.push_str(&format!("{{\\i {}}}", render_pandoc_inlines_rtf(c))),
@@ -31796,7 +31801,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "docx" | "odt" | "epub" | "epub3" => {
             let entries = read_office_archive(&raw_bytes);
             if let Some(md_bytes) = entries.get("__pandoc_source.md") {
-                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, true)
+                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
             } else if let Some(doc_xml) = entries.get("word/document.xml") {
                 Some(parse_pandoc_html(&String::from_utf8_lossy(doc_xml)))
             } else if let Some(content_xml) = entries.get("content.xml") {
@@ -31804,7 +31809,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
                 Some(parse_pandoc_html(&String::from_utf8_lossy(ch_xml)))
             } else {
-                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown, 0, true)
+                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
             }
         }
         _ => {
@@ -31820,7 +31825,9 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 }
                 enabled
             };
-            let tasks = extension("task_lists");
+            let tasks = if !extension("task_lists") { pandoc_list::Tasks::Disabled }
+                else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { pandoc_list::Tasks::CommonMark }
+                else { pandoc_list::Tasks::Markdown };
             let pipe_tables = extension("pipe_tables");
             let tables = if !pipe_tables { PandocPipeTables::Disabled }
                 else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { PandocPipeTables::CommonMark }
@@ -35671,6 +35678,66 @@ mod tests {
             assert_ne!(result.exit_code, 0, "{from}");
             assert_eq!(vfs.read_file("/result").unwrap(), b"previous");
         }
+    }
+
+    #[test]
+    fn pandoc_retains_json_string_boundaries_in_list_items() {
+        let vfs = MemoryVfs::new();
+        let run = |from, to, input| cmd_pandoc(&args(&["-f", from, "-t", to, "--wrap=none"]), input, "/", &vfs).stdout;
+        let wire = r#"{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"BulletList","c":[[{"t":"Plain","c":[{"t":"Str","c":"☒ literal"}]}],[{"t":"Plain","c":[{"t":"Str","c":"☐"},{"t":"Space"},{"t":"Str","c":"task"}]}]]}]}
+"#;
+        assert_eq!(run("json", "json", wire), wire);
+        assert_eq!(run("json", "html", wire), r##"<ul>
+<li>☒ literal</li>
+<li><label><input type="checkbox" />task</label></li>
+</ul>
+"##);
+    }
+
+    #[test]
+    fn pandoc_task_lists_follow_reader_dialect_and_scope_html_labels() {
+        let vfs = MemoryVfs::new();
+        let run = |from, to, input| cmd_pandoc(&args(&["-f", from, "-t", to, "--wrap=none"]), input, "/", &vfs).stdout;
+        assert_eq!(run("gfm", "html", r##"- ordinary
+
+- [x] done
+  - nested
+
+- [ ]   *todo*
+- ordinary
+"##), r##"<ul>
+<li>ordinary</li>
+</ul>
+<ul class="task-list">
+<li><p><label><input type="checkbox" checked="" />done</label></p>
+<ul>
+<li>nested</li>
+</ul></li>
+<li><p><label><input type="checkbox" /><em>todo</em></label></p></li>
+</ul>
+<ul>
+<li>ordinary</li>
+</ul>
+"##);
+        assert_eq!(run("markdown", "html", r##"- normal
+- [X] yes
+"##), r##"<ul>
+<li>normal</li>
+<li><label><input type="checkbox" checked="" />yes</label></li>
+</ul>
+"##);
+        assert_eq!(run("gfm", "html", r##"1. [x] literal
+"##), r##"<ol type="1">
+<li>[x] literal</li>
+</ol>
+"##);
+        assert_eq!(run("commonmark+task_lists", "html", r##"- [X]
+- [ ] open
+"##), r##"<ul>
+<li>☒</li>
+<li><label><input type="checkbox" />open</label></li>
+</ul>
+"##);
     }
 
     #[test]

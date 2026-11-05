@@ -1,6 +1,6 @@
 use super::{
-    JVal, PandocBlock, PandocPipeTables, jval_obj_get, mdq_interrupts_paragraph, mdq_list_marker,
-    parse_pandoc_markdown,
+    JVal, PandocBlock, PandocInline, PandocPipeTables, jval_obj_get, mdq_interrupts_paragraph,
+    mdq_list_marker, parse_pandoc_markdown,
 };
 
 #[derive(Debug, Clone)]
@@ -109,6 +109,29 @@ fn tag(name: &str) -> JVal {
     JVal::Object(vec![("t".into(), JVal::Str(name.into()))])
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub(super) enum Tasks {
+    Disabled,
+    Markdown,
+    CommonMark,
+}
+
+pub(super) fn label(item: &[PandocBlock]) -> Option<(bool, bool, &[PandocInline])> {
+    let first = item.first()?;
+    let (PandocBlock::Plain(content) | PandocBlock::Para(content)) = first else {
+        return None;
+    };
+    let [PandocInline::Text(mark), PandocInline::Space, rest @ ..] = content.as_slice() else {
+        return None;
+    };
+    let checked = match mark.as_str() {
+        "☒" => true,
+        "☐" => false,
+        _ => return None,
+    };
+    Some((matches!(first, PandocBlock::Para(_)), checked, rest))
+}
+
 pub(super) fn read(
     lines: &[&str],
     i: &mut usize,
@@ -116,10 +139,12 @@ pub(super) fn read(
     strip_comments: bool,
     tables: PandocPipeTables,
     depth: usize,
-    tasks: bool,
+    tasks: Tasks,
 ) -> Option<PandocBlock> {
     let mut items = Vec::new();
     let mut loose = false;
+    let mut blank_between = false;
+    let mut task_group = None;
     while let Some(&line) = lines.get(*i) {
         let Some((m, _, content)) = mdq_list_marker(line) else {
             break;
@@ -142,6 +167,29 @@ pub(super) fn read(
                 1
             };
         let first = line.get(indent..).unwrap_or("");
+        let task = if tasks == Tasks::Disabled || tasks == Tasks::CommonMark && start.is_some() {
+            None
+        } else {
+            first
+                .get(..3)
+                .and_then(|prefix| match prefix {
+                    "[x]" | "[X]" => Some("☒"),
+                    "[ ]" => Some("☐"),
+                    _ => None,
+                })
+                .filter(|_| {
+                    first[3..].starts_with(' ') || tasks == Tasks::CommonMark && first.len() == 3
+                })
+        };
+        if tasks == Tasks::CommonMark
+            && task_group
+                .replace(task.is_some())
+                .is_some_and(|was| was != task.is_some())
+        {
+            break;
+        }
+        loose |= blank_between;
+        blank_between = false;
         let mut content_lines = vec![first];
         *i += 1;
         while let Some(&next) = lines.get(*i) {
@@ -152,8 +200,7 @@ pub(super) fn read(
                 }
                 let Some(&after) = lines.get(*i) else { break };
                 if after.len() - after.trim_start_matches(' ').len() < indent {
-                    loose |= mdq_list_marker(after)
-                        .is_some_and(|(m, _, _)| m == marker && !super::mdq_thematic_break(after));
+                    blank_between = true;
                     break;
                 }
                 loose |= after.as_bytes().get(indent) != Some(&b' ');
@@ -176,12 +223,12 @@ pub(super) fn read(
             }
         }
         let mut source = content_lines.join("\n");
-        if tasks {
-            for (prefix, mark) in [("[x] ", "☒ "), ("[X] ", "☒ "), ("[ ] ", "☐ ")] {
-                if source.starts_with(prefix) {
-                    source.replace_range(..prefix.len(), mark);
-                    break;
-                }
+        if let Some(mark) = task {
+            let tail = source[3..].trim_start_matches(' ');
+            let prefix_len = source.len() - tail.len();
+            source.replace_range(..prefix_len, mark);
+            if source.len() > mark.len() && !source[mark.len()..].starts_with('\n') {
+                source.insert(mark.len(), ' ');
             }
         }
         items.push(parse_pandoc_markdown(

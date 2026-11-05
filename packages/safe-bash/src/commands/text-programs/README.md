@@ -100,7 +100,7 @@ on that first line. Zero is rejected in other address positions.
 | `n`, `N` | Advance input with normal output, or append a record to multiline pattern space. At EOF, `N` exits without automatically printing pattern space; queued append/read output is retained (POSIX behavior). |
 | `y/from/to/` | Byte translation with equal-length sets. |
 | `r FILE` | Queue raw file bytes after the cycle's normal output; missing/unreadable files contribute no bytes. Reads use the virtual filesystem and propagate cancellation. |
-| `w FILE`, `s///w FILE` | Precreate/truncate named outputs after parsing, then append selected pattern spaces with newlines. Substitution writes only changed patterns. Files remain open logically across input files; names extend to the script newline. |
+| `w FILE`, `s///w FILE` | Precreate/truncate named outputs after parsing, then append selected pattern spaces, preserving the final record delimiter when present. Substitution writes only changed patterns. Files remain open logically across input files; names extend to the script newline. |
 
 Whitespace, semicolons, newlines, and comments separate commands where their
 syntax permits it. Labels are identifiers using letters/digits/underscore/dot/

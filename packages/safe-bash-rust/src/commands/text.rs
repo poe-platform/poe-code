@@ -99,6 +99,25 @@ enum SedOp {
 #[derive(Clone, Debug)]
 enum SedAppend { Text(String), File(String) }
 
+#[derive(Clone, Default)]
+struct SedBuffer {
+    text: String,
+    unterminated: bool,
+}
+
+impl SedBuffer {
+    fn finish_record(&mut self, delimiter: char) {
+        if self.unterminated { self.text.push(delimiter); self.unterminated = false; }
+    }
+
+    fn write_record(&mut self, text: &str, unterminated: bool, delimiter: char) {
+        self.finish_record(delimiter);
+        self.text.push_str(text);
+        if !unterminated { self.text.push(delimiter); }
+        self.unterminated = unterminated;
+    }
+}
+
 struct SedQueue<'a> {
     fs: &'a dyn SafeBashFs,
     pending: Vec<SedAppend>,
@@ -106,10 +125,11 @@ struct SedQueue<'a> {
 }
 
 impl SedQueue<'_> {
-    fn flush(&mut self, out: &mut String) -> Result<(), String> {
+    fn flush(&mut self, out: &mut SedBuffer, delimiter: char) -> Result<(), String> {
+        if !self.pending.is_empty() { out.finish_record(delimiter); }
         for item in self.pending.drain(..) {
             match item {
-                SedAppend::Text(text) => { out.push_str(&text); out.push('\n'); }
+                SedAppend::Text(text) => { out.text.push_str(&text); out.text.push('\n'); }
                 SedAppend::File(path) => {
                     let fs = self.fs;
                     let limit = fs.remaining_output_bytes();
@@ -118,7 +138,7 @@ impl SedQueue<'_> {
                             return Err(fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes));
                         }
                         self.file_bytes += bytes.len();
-                        out.push_str(&crate::vfs::bytes_to_stream_string(bytes));
+                        out.text.push_str(&crate::vfs::bytes_to_stream_string(bytes));
                         Ok(true)
                     });
                     if let Err(error) = result
@@ -372,7 +392,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return err_out(&msg, 2);
     }
 
-    let mut write_files: BTreeMap<String, String> = BTreeMap::new();
+    let mut write_files: BTreeMap<String, SedBuffer> = BTreeMap::new();
     let mut queue = SedQueue { fs, pending: Vec::new(), file_bytes: 0 };
 
     if in_place && !files.is_empty() {
@@ -400,11 +420,12 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             };
             let content = crate::vfs::bytes_to_stream_string(&bytes);
             let mut cmds_copy = parsed_cmds.clone();
-            let (res, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue) {
+            let mut out = SedBuffer::default();
+            let quit = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
                 Ok(result) => result,
                 Err(e) => return err_out(&e, 2),
             };
-            let output = crate::vfs::stream_string_to_bytes(&res);
+            let output = crate::vfs::stream_string_to_bytes(&out.text);
             let publication = match backup {
                 Some((path, backup_stamp)) => fs.replace_file_with_backup(&full, &output, stamp.version, &path, backup_stamp.version),
                 None => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
@@ -415,13 +436,13 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if let Some(code) = quit { exit_code = code; break; }
         }
         for (wf, data) in write_files {
-            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
+            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
         }
         return err_out("", exit_code);
     }
 
     if separate && !files.is_empty() {
-        let mut total_out = String::new();
+        let mut out = SedBuffer::default();
         for f in &files {
             let content = if f == "-" {
                 stdin.to_string()
@@ -433,22 +454,21 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             };
             let mut cmds_copy = parsed_cmds.clone();
-            let (part_out, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue) {
+            let quit = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
                 Ok(result) => result,
                 Err(e) => return err_out(&e, 2),
             };
-            total_out.push_str(&part_out);
             if let Some(code) = quit {
                 for (wf, data) in write_files {
-                    let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
+                    let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
                 }
-                return BuiltinOutcome { stdout: total_out, stderr: String::new(), exit_code: code };
+                return BuiltinOutcome { stdout: out.text, stderr: String::new(), exit_code: code };
             }
         }
         for (wf, data) in write_files {
-            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
+            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
         }
-        return ok_out(&total_out);
+        return ok_out(&out.text);
     }
 
     let mut combined_in = String::new();
@@ -469,15 +489,16 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let cur_fname = files.first().map(|s| s.as_str()).unwrap_or("-");
-    let (out, quit) = match run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue) {
+    let mut out = SedBuffer::default();
+    let quit = match run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
         Ok(result) => result,
         Err(e) => return err_out(&e, 2),
     };
     for (wf, data) in write_files {
-        let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
+        let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
     }
     BuiltinOutcome {
-        stdout: out,
+        stdout: out.text,
         stderr: String::new(),
         exit_code: quit.unwrap_or(0),
     }
@@ -1343,14 +1364,15 @@ enum SedFlow {
 fn exec_sed_cmds(
     cmds: &mut [SedCmd],
     raw_lines: &[&str],
+    last_unterminated: bool,
     filename: &str,
     line_idx: &mut usize,
-    pattern_space: &mut String,
-    hold_space: &mut String,
+    pattern_space: &mut SedBuffer,
+    hold_space: &mut SedBuffer,
     subst_made: &mut bool,
-    out: &mut String,
+    out: &mut SedBuffer,
     queue: &mut SedQueue,
-    write_files: &mut BTreeMap<String, String>,
+    write_files: &mut BTreeMap<String, SedBuffer>,
     _quiet: bool,
     rec_term: char,
     line_length: usize,
@@ -1370,7 +1392,7 @@ fn exec_sed_cmds(
         }
         let matched = match (&cmd.addr1, &cmd.addr2) {
             (None, _) => true,
-            (Some(a1), None) => match addr_matches(a1, line_num, is_last, pattern_space, last_regex) {
+            (Some(a1), None) => match addr_matches(a1, line_num, is_last, &pattern_space.text, last_regex) {
                 Ok(b) => b,
                 Err(e) => return SedFlow::Error(e),
             },
@@ -1378,7 +1400,7 @@ fn exec_sed_cmds(
                 if !cmd.in_range {
                     let start_matched = match a1 {
                         SedAddr::Line(0) => line_num == 1 && cmd.range_start_line == 0,
-                        other => match addr_matches(other, line_num, is_last, pattern_space, last_regex) {
+                        other => match addr_matches(other, line_num, is_last, &pattern_space.text, last_regex) {
                             Ok(b) => b,
                             Err(e) => return SedFlow::Error(e),
                         },
@@ -1389,7 +1411,7 @@ fn exec_sed_cmds(
                             SedAddr::RelPlus(0) | SedAddr::RelStep(0) => true,
                             other => {
                                 if matches!(a1, SedAddr::Line(0)) {
-                                    match addr_matches(other, line_num, is_last, pattern_space, last_regex) {
+                                    match addr_matches(other, line_num, is_last, &pattern_space.text, last_regex) {
                                         Ok(b) => b,
                                         Err(e) => return SedFlow::Error(e),
                                     }
@@ -1410,7 +1432,7 @@ fn exec_sed_cmds(
                     let end_hit = match a2 {
                         SedAddr::RelPlus(n) => line_num >= cmd.range_start_line + *n,
                         SedAddr::RelStep(step) => *step == 0 || (line_num > cmd.range_start_line && line_num.is_multiple_of(*step)),
-                        other => match addr_matches(other, line_num, is_last, pattern_space, last_regex) {
+                        other => match addr_matches(other, line_num, is_last, &pattern_space.text, last_regex) {
                             Ok(b) => b,
                             Err(e) => return SedFlow::Error(e),
                         },
@@ -1434,35 +1456,33 @@ fn exec_sed_cmds(
             SedOp::Label(_) => {}
             SedOp::Delete => return SedFlow::Delete,
             SedOp::DeleteFirstLine => {
-                if let Some(nl_pos) = pattern_space.find(rec_term) {
-                    *pattern_space = pattern_space[nl_pos + 1..].to_string();
+                if let Some(nl_pos) = pattern_space.text.find(rec_term) {
+                    pattern_space.text.drain(..=nl_pos);
                     return SedFlow::RestartCycle;
                 }
                 return SedFlow::Delete;
             }
             SedOp::Print => {
-                out.push_str(pattern_space);
-                out.push(rec_term);
+                out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
             }
             SedOp::PrintFirstLine => {
-                let first_line = pattern_space.split(rec_term).next().unwrap_or(pattern_space);
-                out.push_str(first_line);
-                out.push(rec_term);
+                let first = pattern_space.text.split_once(rec_term);
+                out.write_record(first.map_or(&pattern_space.text, |(line, _)| line), first.is_none() && pattern_space.unterminated, rec_term);
             }
             SedOp::Quit(code) => return SedFlow::Quit(*code, false),
             SedOp::QuitSilent(code) => return SedFlow::Quit(*code, true),
             SedOp::Zap => {
-                pattern_space.clear();
+                pattern_space.text.clear();
             }
             SedOp::Filename => {
-                out.push_str(filename);
-                out.push(rec_term);
+                out.write_record(filename, false, rec_term);
             }
             SedOp::List(width) => {
                 use std::fmt::Write;
+                out.finish_record(rec_term);
                 let width = width.map_or(line_length, |n| n as usize);
                 let mut column = 0;
-                for byte in crate::vfs::stream_string_to_bytes(pattern_space) {
+                for byte in crate::vfs::stream_string_to_bytes(&pattern_space.text) {
                     let escaped = match byte {
                         7 => "\\a", 8 => "\\b", 12 => "\\f", b'\n' => "\\n",
                         b'\r' => "\\r", b'\t' => "\\t", 11 => "\\v", b'\\' => "\\\\", _ => "",
@@ -1470,59 +1490,61 @@ fn exec_sed_cmds(
                     let printable = (32..127).contains(&byte);
                     let len = if !escaped.is_empty() { 2 } else if printable { 1 } else { 4 };
                     if width > 0 && column + len >= width {
-                        out.push('\\');
-                        out.push(rec_term);
+                        out.text.push('\\');
+                        out.text.push(rec_term);
                         column = 0;
                     }
-                    if !escaped.is_empty() { out.push_str(escaped); }
-                    else if printable { out.push(char::from(byte)); }
-                    else { write!(out, "\\{byte:03o}").unwrap(); }
+                    if !escaped.is_empty() { out.text.push_str(escaped); }
+                    else if printable { out.text.push(char::from(byte)); }
+                    else { write!(out.text, "\\{byte:03o}").unwrap(); }
                     column += len;
                 }
-                out.push('$');
-                out.push(rec_term);
+                out.text.push('$');
+                out.text.push(rec_term);
             }
             SedOp::LineNumber => {
-                out.push_str(&line_num.to_string());
-                out.push(rec_term);
+                out.write_record(&line_num.to_string(), false, rec_term);
             }
             SedOp::HoldCopy => {
                 *hold_space = pattern_space.clone();
             }
             SedOp::HoldAppend => {
-                hold_space.push(rec_term);
-                hold_space.push_str(pattern_space);
+                hold_space.text.push(rec_term);
+                hold_space.text.push_str(&pattern_space.text);
+                hold_space.unterminated = pattern_space.unterminated;
             }
             SedOp::GetCopy => {
                 *pattern_space = hold_space.clone();
             }
             SedOp::GetAppend => {
-                pattern_space.push(rec_term);
-                pattern_space.push_str(hold_space);
+                pattern_space.text.push(rec_term);
+                pattern_space.text.push_str(&hold_space.text);
+                pattern_space.unterminated = hold_space.unterminated;
             }
             SedOp::Exchange => {
                 std::mem::swap(pattern_space, hold_space);
             }
             SedOp::Next => {
                 if !_quiet {
-                    out.push_str(pattern_space);
-                    out.push(rec_term);
+                    out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
                 }
-                if let Err(e) = queue.flush(out) { return SedFlow::Error(e); }
+                if let Err(e) = queue.flush(out, rec_term) { return SedFlow::Error(e); }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
-                    *pattern_space = raw_lines[*line_idx].to_string();
+                    pattern_space.text = raw_lines[*line_idx].to_string();
+                    pattern_space.unterminated = *line_idx + 1 == total && last_unterminated;
                     *subst_made = false;
                 } else {
                     return SedFlow::Delete;
                 }
             }
             SedOp::NextAppend => {
-                if let Err(e) = queue.flush(out) { return SedFlow::Error(e); }
+                if let Err(e) = queue.flush(out, rec_term) { return SedFlow::Error(e); }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
-                    pattern_space.push(rec_term);
-                    pattern_space.push_str(raw_lines[*line_idx]);
+                    pattern_space.text.push(rec_term);
+                    pattern_space.text.push_str(raw_lines[*line_idx]);
+                    pattern_space.unterminated = *line_idx + 1 == total && last_unterminated;
                     *subst_made = false;
                 } else {
                     return SedFlow::Delete;
@@ -1546,13 +1568,13 @@ fn exec_sed_cmds(
             }
             SedOp::WriteFile(wf) => {
                 let buf = write_files.entry(wf.clone()).or_default();
-                buf.push_str(pattern_space);
-                buf.push(rec_term);
+                buf.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
             }
             SedOp::Group(inner) => {
                 match exec_sed_cmds(
                     inner,
                     raw_lines,
+                    last_unterminated,
                     filename,
                     line_idx,
                     pattern_space,
@@ -1574,19 +1596,17 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::Insert(text) => {
-                out.push_str(text);
-                out.push(rec_term);
+                out.write_record(text, false, rec_term);
             }
             SedOp::Append(item) => queue.pending.push(item.clone()),
             SedOp::Change(text) => {
                 if cmd.addr2.is_none() || !still_in_range || cmd.negated || is_last {
-                    out.push_str(text);
-                    out.push(rec_term);
+                    out.write_record(text, false, rec_term);
                 }
                 return SedFlow::Delete;
             }
             SedOp::Transliterate(src, dst) => {
-                *pattern_space = pattern_space
+                pattern_space.text = pattern_space.text
                     .chars()
                     .map(|c| {
                         src.iter()
@@ -1616,24 +1636,22 @@ fn exec_sed_cmds(
                     pair
                 };
                 let (new_text, did_replace) = replace_regex_in_text(
-                    pattern_space,
+                    &pattern_space.text,
                     &eff_pat,
                     repl,
                     eff_ic,
                     *global,
                     *nth,
                 );
-                *pattern_space = new_text;
+                pattern_space.text = new_text;
                 if did_replace {
                     *subst_made = true;
                     if *print_flag {
-                        out.push_str(pattern_space);
-                        out.push(rec_term);
+                        out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
                     }
                     if let Some(wf) = write_file {
                         let buf = write_files.entry(wf.clone()).or_default();
-                        buf.push_str(pattern_space);
-                        buf.push(rec_term);
+                        buf.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
                     }
                 }
             }
@@ -1671,23 +1689,23 @@ fn run_sed_on_text(
     quiet: bool,
     null_data: bool,
     line_length: usize,
-    write_files: &mut BTreeMap<String, String>,
+    write_files: &mut BTreeMap<String, SedBuffer>,
     queue: &mut SedQueue,
-) -> Result<(String, Option<i32>), String> {
+    out: &mut SedBuffer,
+) -> Result<Option<i32>, String> {
     if input.is_empty() {
-        return Ok((String::new(), None));
+        return Ok(None);
     }
     let rec_term = if null_data { '\0' } else { '\n' };
     let had_trailing_delim = input.ends_with(rec_term);
     let raw_lines: Vec<&str> = input.split_terminator(rec_term).collect();
     let total = raw_lines.len();
-    let mut out = String::new();
-    let mut hold_space = String::new();
+    let mut hold_space = SedBuffer::default();
     let mut line_idx = 0usize;
     let mut last_regex: Option<(String, bool)> = None;
 
     while line_idx < total {
-        let mut pattern_space = raw_lines[line_idx].to_string();
+        let mut pattern_space = SedBuffer { text: raw_lines[line_idx].to_string(), unterminated: line_idx + 1 == total && !had_trailing_delim };
         let mut deleted = false;
         let mut quit = None;
         let mut subst_made = false;
@@ -1697,12 +1715,13 @@ fn run_sed_on_text(
             match exec_sed_cmds(
                 cmds,
                 &raw_lines,
+                !had_trailing_delim,
                 filename,
                 &mut line_idx,
                 &mut pattern_space,
                 &mut hold_space,
                 &mut subst_made,
-                &mut out,
+                out,
                 queue,
                 write_files,
                 quiet,
@@ -1724,7 +1743,7 @@ fn run_sed_on_text(
                 }
                 SedFlow::Quit(code, silent) => {
                     quit = Some(code.unwrap_or(0));
-                    if silent { return Ok((out, quit)); }
+                    if silent { return Ok(quit); }
                     break;
                 }
                 SedFlow::Error(msg) => {
@@ -1734,19 +1753,13 @@ fn run_sed_on_text(
             }
         }
 
-        let is_last = line_idx + 1 == total;
-        if !deleted && !quiet {
-            out.push_str(&pattern_space);
-            if !is_last || had_trailing_delim || !queue.pending.is_empty() {
-                out.push(rec_term);
-            }
-        }
-        queue.flush(&mut out)?;
-        if quit.is_some() { return Ok((out, quit)); }
+        if !deleted && !quiet { out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term); }
+        queue.flush(out, rec_term)?;
+        if quit.is_some() { out.finish_record(rec_term); return Ok(quit); }
         line_idx += 1;
     }
 
-    Ok((out, None))
+    Ok(None)
 }
 
 #[derive(Clone, Debug)]

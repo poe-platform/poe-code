@@ -537,7 +537,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   const writeFile = async (file: string): Promise<void> => {
     if (stdoutLen > 0) await flushStdout();
     const path = virtualPath(context, file);
-    const terminated = record.terminated || separator === "\n";
+    const terminated = record.terminated;
     const text = (outputState.unterminatedFiles.has(path) ? separator : "") + pattern + (terminated ? separator : "");
     await writeFileOutput(context, bytes(text), chunk => context.fs.appendFile(path, chunk, { signal: context.signal }));
     if (terminated) outputState.unterminatedFiles.delete(path);

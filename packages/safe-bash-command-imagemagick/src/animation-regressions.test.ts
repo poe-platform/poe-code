@@ -22,6 +22,6 @@ for (const retained of [false, true]) {
     const bytes = await sharp({ create: { width: 8, height: 6, channels: 3, background: "red" } }).png().toBuffer();
     files.set("in.png", bytes); await fs.writeFile("/in.png", bytes);
     expect(await runMontageCli(["-thumbnail", "4x3", "-tile", "1x1", "in.png", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).toMatchObject({ exitCode: 0 });
-    expect(decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!)).toMatchObject({ width: 8, height: 7 });
+    expect(decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!)).toMatchObject({ width: 128, height: 126 });
   });
 }

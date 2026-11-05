@@ -22,6 +22,11 @@ for (const [fixture, audioPackets, videoFrames] of [
     for await (const row of source.frames!) frames.push(row);
     for (const probe of [{ streams, packets, frames }, probeMp4(bytes, { showPackets: true, showFrames: true })]) {
       assert.equal(probe.packets!.filter(row => row.codec_type === 'audio').length, audioPackets);
+      const firstPacket = probe.packets!.find(row => row.codec_type === 'audio')!;
+      assert.equal(firstPacket.flags, 'KD_');
+      assert.deepEqual(firstPacket.side_data_list, [{
+        side_data_type: 'Skip Samples', skip_samples: 1024, discard_padding: 0, skip_reason: 0, discard_reason: 0
+      }]);
       const audio = probe.frames!.filter(row => row.media_type === 'audio');
       assert.equal(audio.length, audioPackets - 1);
       assert.equal(audio[0]!.pts, 0);
@@ -43,7 +48,15 @@ for (const delayed of [false, true]) test(`AAC without priming / with delayed ed
   const bytes = serializeMp4({ ...doc, tracks: [{ ...track, editList }] });
   const source = await probeMp4Source({ size: bytes.length,
     async read(offset, length) { return bytes.subarray(offset, offset + length); }
-  }, { showFrames: true, syncSamples });
+  }, { showFrames: true, showPackets: true, syncSamples });
+  const packets = [];
+  for await (const packet of source.packets!) packets.push(packet);
+  for (const rows of [packets, probeMp4(bytes, { showPackets: true }).packets!]) {
+    assert.equal(rows[0]!.flags, delayed ? 'KD_' : 'K__');
+    assert.equal(rows[0]!.side_data_list?.[0]?.skip_samples, delayed ? 1024 : undefined);
+    assert.equal(rows[1]!.flags, 'K__');
+    assert.equal(rows[1]!.side_data_list, undefined);
+  }
   const frames = [];
   for await (const frame of source.frames!) frames.push(frame);
   for (const actual of [frames, probeMp4(bytes, { showFrames: true }).frames!]) {

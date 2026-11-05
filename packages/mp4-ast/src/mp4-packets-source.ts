@@ -18,6 +18,8 @@ export interface Mp4PacketScanOptions extends Omit<Mp4SampleScanOptions, 'type' 
 type ProbeSample = {
   sample: Pick<Mp4SampleSpan, 'pts' | 'dts' | 'duration' | 'size' | 'isKeyframe' | 'offset'>;
   frameDts?: number | undefined;
+  discard?: boolean;
+  skipSamples?: number;
   track: { index: number; type: MediaTrackType; timescale: number; width: number | undefined; height: number | undefined; codec: Mp4CodecMetadata | undefined };
 };
 
@@ -27,7 +29,8 @@ export async function* scanMp4Packets(source: MediaProbeSource, options: Mp4Pack
     if (!('sample' in record)) continue;
     const { sample, track } = record;
     const scale = Math.max(1, track.timescale);
-    yield { codec_type: track.type, stream_index: track.index, pts: sample.pts, pts_time: (sample.pts / scale).toFixed(6), dts: sample.dts, dts_time: (sample.dts / scale).toFixed(6), duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), size: String(sample.size), pos: String(sample.offset), flags: sample.isKeyframe ? 'K__' : '___' };
+    yield { codec_type: track.type, stream_index: track.index, pts: sample.pts, pts_time: (sample.pts / scale).toFixed(6), dts: sample.dts, dts_time: (sample.dts / scale).toFixed(6), duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), size: String(sample.size), pos: String(sample.offset), flags: `${sample.isKeyframe ? 'K' : '_'}${record.discard ? 'D' : '_'}_`,
+      ...(record.skipSamples ? { side_data_list: [{ side_data_type: 'Skip Samples', skip_samples: record.skipSamples, discard_padding: 0, skip_reason: 0, discard_reason: 0 }] } : {}) };
   }
 }
 
@@ -95,7 +98,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       if (['stts', 'ctts', 'stsc', 'stsz', 'stco', 'co64', 'stss'].includes(box.type)) { const name = box.type as keyof Mp4SampleTables; tables[name] ??= box; }
     }
     let codec: Mp4CodecMetadata | undefined;
-    if (withCodec) {
+    if (withCodec || (mode === 'packets' && type === 'audio')) {
       const stsd = await first(stbl, 'stsd');
       if (stsd) for await (const description of scanMp4CodecDescriptions(source, stsd, work)) { codec = description; break; }
     }
@@ -176,6 +179,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     formatEnd = Math.max(formatEnd, start + probeDuration / Math.max(1, timescale));
     if (mode === 'summary') continue;
     const timestampOffset = result.value ? result.value.start - result.value.mediaStart : 0;
+    let firstPacket = true;
     let cursor = 0, previousPts = -Infinity, primingPackets = 0;
     const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasReorderedSamples: false };
     const packet = (sample: ProbeSample['sample']): ProbeSample => {
@@ -236,6 +240,11 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
         }
         if (type !== 'subtitle' || !count || allPacked) {
           const row = packet(sample);
+          if (mode === 'packets' && type === 'audio' && codec?.codecName === 'aac' && result.value) {
+            row.discard = rawSample.pts + rawSample.duration <= result.value.mediaStart;
+            if (firstPacket) row.skipSamples = Math.max(0, Math.round((result.value.mediaStart - rawSample.pts) * (codec.sampleRate ?? timescale) / timescale));
+          }
+          firstPacket = false;
           if (decodeSamples) {
             const decoded = await decodeSamples.next();
             row.frameDts = decoded.done ? undefined : decoded.value.dts + timestampOffset;

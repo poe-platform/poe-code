@@ -1941,7 +1941,7 @@ export function buildProbeResultFromDoc(
     const w = stream.width, h = stream.height, sampleFormat = stream.sample_fmt;
 
     if (options.showPackets || options.showFrames) {
-      let bytePos = 0;
+      let bytePos = 0, firstPacket = true;
       for (const rawSample of materialized.samples) {
         const s = timestampOffset ? { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset } : rawSample;
         const ptsTime = (s.pts / Math.max(1, track.timescale)).toFixed(6);
@@ -1959,9 +1959,15 @@ export function buildProbeResultFromDoc(
             duration_time: durTime,
             size: String(s.size),
             pos: String(s.offset ?? (doc.containerFormat === "mp4" || doc.containerFormat === "mov" ? -1 : bytePos)),
-            flags: s.isKeyframe ? "K__" : "___"
+            flags: `${s.isKeyframe ? "K" : "_"}${aacMediaStart !== undefined && rawSample.pts + rawSample.duration <= aacMediaStart ? "D" : "_"}_`,
+            ...(firstPacket && aacMediaStart !== undefined && aacMediaStart > rawSample.pts ? {
+              side_data_list: [{ side_data_type: "Skip Samples",
+                skip_samples: Math.round((aacMediaStart - rawSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale),
+                discard_padding: 0, skip_reason: 0, discard_reason: 0 }]
+            } : {})
           });
         }
+        firstPacket = false;
         if (options.showFrames && !(aacMediaStart !== undefined && s.pts + s.duration <= firstPts)) {
           frames.push({
             media_type: track.type,

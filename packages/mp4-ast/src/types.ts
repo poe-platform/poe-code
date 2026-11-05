@@ -489,6 +489,7 @@ export interface MediaProbePacket {
   readonly size: string;
   readonly pos: string;
   readonly flags: string;
+  readonly side_data_list?: readonly Readonly<Record<string, unknown>>[] | undefined;
 }
 
 export interface MediaProbeFrame {

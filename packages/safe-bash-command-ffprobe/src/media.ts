@@ -370,10 +370,16 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   ): Record<string, unknown> => {
     if (entryFilter.size === 0) return obj;
     const allowed = entryFilter.get(sectionName);
-    if (allowed === undefined && !nestedSections.some(section => entryFilter.has(section))) return obj;
+    if (allowed === undefined && !entryFilter.has(`${sectionName}_side_data`) && !nestedSections.some(section => entryFilter.has(section))) return obj;
 
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
+      if (k === "side_data_list" && Array.isArray(v)) {
+        const fields = entryFilter.get(`${sectionName}_side_data`);
+        if (fields === null || (fields === undefined && (allowed === null || allowed?.has(k)))) out[k] = v;
+        else if (fields?.size) out[k] = v.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => fields.has(key))));
+        continue;
+      }
       if (nestedSections.includes(`${sectionName}_${k}`) && v && typeof v === "object") {
         const allowedNested = entryFilter.get(`${sectionName}_${k}`);
         if (allowedNested !== undefined) {

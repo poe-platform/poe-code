@@ -3,6 +3,41 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runMagickCli } from "./index.js";
 
+it.each([false, true])("applies forward PerspectiveProjection coefficients, retained=%s", async retained => {
+    const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+    const backend = retained ? { filesystem, cwd: "/" } : files;
+    for (const [tx, ty] of [[2, 1], [-2, -1]] as const) {
+        const result = await runMagickCli(["-size", "15x13", "xc:black", "-fill", "white", "-draw", "rectangle 4,3 6,5", "-background", "black", "-distort", "PerspectiveProjection", `1,0,${tx},0,1,${ty},0,0`, "/out.png"], backend);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        expect([output.width, output.height]).toEqual([15, 13]);
+        const bright = [];
+        for (let y = 0; y < 13; y++) for (let x = 0; x < 15; x++) {
+            if (output.data[(y * 15 + x) * 4]! > 128) bright.push([x, y]);
+        }
+        expect(bright).toHaveLength(9);
+        expect(bright.reduce((sum, point) => sum + point[0]!, 0) / bright.length).toBe(5 + tx);
+        expect(bright.reduce((sum, point) => sum + point[1]!, 0) / bright.length).toBe(4 + ty);
+    }
+});
+
+it.each([false, true])("matches Perspective control points for a forward projective transform, retained=%s", async retained => {
+    const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+    const backend = retained ? { filesystem, cwd: "/" } : files;
+    const points = [[0, 0], [14, 0], [0, 12], [14, 12]].flatMap(([x, y]) => {
+        const denominator = 0.01 * x! + 0.02 * y! + 1;
+        return [x, y, (x! + 0.1 * y! + 2) / denominator, (0.2 * x! + y! - 1) / denominator];
+    });
+    for (const [method, args] of [["PerspectiveProjection", "1,0.1,2,0.2,1,-1,0.01,0.02"], ["Perspective", points.join(",")]]) {
+        expect((await runMagickCli(["-size", "15x13", "xc:black", "-fill", "white", "-draw", "rectangle 4,3 6,5", "-distort", method!, args!, `/${method}.png`], backend)).exitCode).toBe(0);
+    }
+    const projection = decodeImage(retained ? await filesystem.readFile("/PerspectiveProjection.png") : files.get("/PerspectiveProjection.png")!);
+    const perspective = decodeImage(retained ? await filesystem.readFile("/Perspective.png") : files.get("/Perspective.png")!);
+    expect([projection.width, projection.height]).toEqual([perspective.width, perspective.height]);
+    // Solving the control points can shift floating-point rounding by one byte.
+    for (let i = 0; i < projection.data.length; i++) expect(Math.abs(projection.data[i]! - perspective.data[i]!)).toBeLessThanOrEqual(1);
+});
+
 // Geometry from ImageMagick 7, including its best-fit border and page offsets.
 it.each([
     ["-distort", "45", "9x7+0+0", 9, 7],

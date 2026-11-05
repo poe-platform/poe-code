@@ -2167,7 +2167,12 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     }
     if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
         let coefficients: number[];
-        if (method === "perspectiveprojection") coefficients = nums.slice(0, 8);
+        if (method === "perspectiveprojection") {
+            const [a, b, c, d, e, f, g, i] = nums as [number, number, number, number, number, number, number, number];
+            // The supplied projection maps source to destination. Its adjugate
+            // maps back for sampling; the common determinant cancels on division.
+            coefficients = [e - f * i, c * i - b, b * f - c * e, f * g - d, a - c * g, c * d - a * f, d * i - e * g, b * g - a * i, a * e - b * d];
+        }
         else {
             const matrix: number[][] = [], values: number[] = [];
             for (let p = 0; p < 4; p++) {
@@ -2177,8 +2182,8 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             coefficients = solveLinearSystem(matrix, values);
         }
         if (coefficients.every(c => Math.abs(c) < 1e-12)) return;
-        const [a, b, c, d, e, f, g, i] = coefficients as [number, number, number, number, number, number, number, number];
-        return result((x, y) => { const denominator = g * x + i * y + 1 || 1e-9; return [(a * x + b * y + c) / denominator, (d * x + e * y + f) / denominator]; });
+        const [a, b, c, d, e, f, g, i, j = 1] = coefficients as [number, number, number, number, number, number, number, number, number?];
+        return result((x, y) => { const denominator = g * x + i * y + j || 1e-9; return [(a * x + b * y + c) / denominator, (d * x + e * y + f) / denominator]; });
     }
     if (method === "affine" && nums.length >= 12) {
         const matrix: number[][] = [], xs: number[] = [], ys: number[] = [];

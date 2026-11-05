@@ -11,7 +11,7 @@ ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv record
 
 Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `json`, `compact`, `csv`, `default`, `flat`; `-show_format`, `-show_streams`,
-`-show_entries section=fields` (including format/stream tags), `-select_streams a:0`,
+`-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0`,
 and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
 Packet scans support `-read_intervals START%END` (comma-separated intervals), relative `+` times, omitted endpoints, and `+#N` packet limits. For example, `-read_intervals '0%+0.4' -show_packets` reads 0.4 seconds from the seek point. Seeking starts at a preceding keyframe; durations start at the packet actually reached. Packet descriptors replay through caller-backed storage with a bounded cache, preserving interleaving and backward seeks. Decoded-frame intervals are not supported.

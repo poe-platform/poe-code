@@ -354,28 +354,24 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const filterObject = (
     obj: Record<string, unknown>,
     sectionName: string,
-    tagsSectionName?: string
+    ...nestedSections: string[]
   ): Record<string, unknown> => {
     if (entryFilter.size === 0) return obj;
     const allowed = entryFilter.get(sectionName);
-    const allowedTags = tagsSectionName ? entryFilter.get(tagsSectionName) : undefined;
-    if (allowed === undefined && allowedTags === undefined) return obj;
+    if (allowed === undefined && !nestedSections.some(section => entryFilter.has(section))) return obj;
 
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
-      if (k === "tags" && v && typeof v === "object") {
-        if (allowedTags !== undefined) {
-          if (allowedTags === null) {
-            out.tags = v;
-          } else {
-            const filteredTags: Record<string, unknown> = {};
-            for (const [tk, tv] of Object.entries(v as Record<string, unknown>)) {
-              if (allowedTags.has(tk)) filteredTags[tk] = tv;
-            }
-            if (allowedTags.size > 0) out.tags = filteredTags;
+      if (nestedSections.includes(`${sectionName}_${k}`) && v && typeof v === "object") {
+        const allowedNested = entryFilter.get(`${sectionName}_${k}`);
+        if (allowedNested !== undefined) {
+          if (allowedNested === null) {
+            out[k] = v;
+          } else if (allowedNested.size > 0) {
+            out[k] = Object.fromEntries(Object.entries(v).filter(([key]) => allowedNested.has(key)));
           }
-        } else if (allowed === null || allowed?.has("tags")) {
-          out.tags = v;
+        } else if (allowed === null || allowed?.has(k)) {
+          out[k] = v;
         }
         continue;
       }
@@ -388,7 +384,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
 
   const includesEntries = (section: string) => entryFilter.has(section) && entryFilter.get(section)?.size !== 0;
   const includeStreams =
-    opts.showStreams || includesEntries("stream") || includesEntries("stream_tags");
+    opts.showStreams || includesEntries("stream") || includesEntries("stream_tags") || includesEntries("stream_disposition");
   const includeFormat =
     opts.showFormat || includesEntries("format") || includesEntries("format_tags");
   const includePackets = opts.showPackets || includesEntries("packet");
@@ -415,7 +411,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return filterObject({ ...fields,
       ...(opts.countFrames ? { nb_read_frames: nb_read_frames ?? recordCount } : {}),
       ...(opts.countPackets ? { nb_read_packets: nb_read_packets ?? recordCount } : {})
-    }, "stream", "stream_tags");
+    }, "stream", "stream_tags", "stream_disposition");
   };
   // Resolve stream ordinals once, including for one-shot asynchronous metadata.
   // Only retain selected metadata when it will also be printed.
@@ -493,10 +489,10 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     paramMap.noprint_wrappers === "1" || paramMap.nw === "1";
   const noKey = paramMap.nokey === "1" || paramMap.nk === "1";
 
-  function probeEntries(section: Record<string, unknown>, tagPrefix: string): [string, unknown][] {
+  function probeEntries(section: Record<string, unknown>, tagPrefix: string, dispositionPrefix: string): [string, unknown][] {
     return Object.entries(section).flatMap(([key, value]) =>
-      key === "tags" && value && typeof value === "object"
-        ? Object.entries(value).map(([tag, text]): [string, unknown] => [tagPrefix + tag, text])
+      (key === "tags" || key === "disposition") && value && typeof value === "object"
+        ? Object.entries(value).map(([tag, text]): [string, unknown] => [(key === "tags" ? tagPrefix : dispositionPrefix) + tag, text])
         : [[key, value]]
     );
   }
@@ -527,7 +523,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       const printSection = paramMap.p !== "0" && paramMap.print_section !== "0";
       let first = true;
       if (printSection) { yield name; first = false; }
-      for (const [key, value] of probeEntries(section, "tag:")) {
+      for (const [key, value] of probeEntries(section, "tag:", "disposition:")) {
         if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
         if (!first) yield sep;
         first = false;
@@ -537,7 +533,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       yield "\n";
     } else if (fmt === "flat") {
       const sep = paramMap.s ?? ".", prefix = name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `format${sep}`;
-      for (const [key, value] of probeEntries(section, `tags${sep}`)) {
+      for (const [key, value] of probeEntries(section, `tags${sep}`, `disposition${sep}`)) {
         if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
         yield `${prefix}${key}=`; yield probeText(value); yield "\n";
       }
@@ -546,9 +542,9 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       if (!noWrappers) yield `[${wrapper}]\n`;
       for (const [key, value] of Object.entries(section)) {
         if (value === undefined) continue;
-        if (key === "tags" && value && typeof value === "object") {
+        if ((key === "tags" || key === "disposition") && value && typeof value === "object") {
           for (const [tag, text] of Object.entries(value)) {
-            if (!noKey) yield `TAG:${tag}=`;
+            if (!noKey) yield `${key === "tags" ? "TAG" : "DISPOSITION"}:${tag}=`;
             yield isProbeText(text) ? { text, mode: "plain" } : String(text); yield "\n";
           }
         } else if (typeof value !== "object") yield (noKey ? String(value) : `${key}=${String(value)}`) + "\n";

@@ -31,6 +31,9 @@ export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Ge
   }
   let groupParity: "odd" | "even" | undefined;
   rangeSpec = rangeSpec.trim();
+  if (rangeSpec.endsWith(",")) {
+    throw new QpdfPageRangeError(`error at * in numeric range ${rangeSpec}*: trailing comma`);
+  }
   if (rangeSpec.endsWith(":odd")) { groupParity = "odd"; rangeSpec = rangeSpec.slice(0, -4); }
   else if (rangeSpec.endsWith(":even")) { groupParity = "even"; rangeSpec = rangeSpec.slice(0, -5); }
   const ranges: RangePart[] = [];

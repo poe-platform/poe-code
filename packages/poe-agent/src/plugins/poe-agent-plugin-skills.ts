@@ -1,4 +1,4 @@
-import { discoverSkillsAsync } from "@poe-code/agent-skill-config/runtime";
+import { discoverSkillsAsync, renderSkillCatalog } from "@poe-code/agent-skill-config/runtime";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import type { ToolRegistry } from "../runtime/tools.js";
 
@@ -42,9 +42,10 @@ const skills = (options: SkillsPluginOptions = {}): AgentPlugin => {
       const catalog = options.directories?.length
         ? await discoverSkillsAsync(options.directories, requireRuntime(runtime))
         : [];
-      const catalogGuidance = catalog.length === 0 ? undefined : [
+      const rendered = renderSkillCatalog(catalog);
+      const catalogGuidance = rendered === undefined ? undefined : [
         "Available file skills:",
-        ...catalog.map(skill => `- ${skill.name}: ${skill.file}`),
+        rendered,
         "Read the full SKILL.md through the configured filesystem before using a skill."
       ].join("\n");
       const system = [ctx.system, guidance, catalogGuidance].filter(Boolean).join("\n\n");

@@ -12,7 +12,7 @@ export default defineConfig({
       enforce: "pre",
       transform(code, id) {
         if (
-          ["agent.test.ts", "agent-session.test.ts", "agent.mcp-spawn.test.ts", "filesystem.test.ts", "filesystem-auth.test.ts", "filesystem-platform.test.ts"].some(
+          ["agent.test.ts", "agent-session.test.ts", "agent.mcp-spawn.test.ts", "filesystem.test.ts", "filesystem-auth.test.ts", "filesystem-platform.test.ts", "skills-catalog.test.ts"].some(
             (name) => id === path("../poe-agent/src/" + name)
           )
         ) {
@@ -494,6 +494,7 @@ export default defineConfig({
       path("../poe-agent/src/filesystem.test.ts"),
       path("../poe-agent/src/filesystem-auth.test.ts"),
       path("../poe-agent/src/filesystem-platform.test.ts"),
+      path("../poe-agent/src/skills-catalog.test.ts"),
       path("../poe-agent/src/agent-session.test.ts"),
       path("../poe-agent/src/agent.mcp-spawn.test.ts"),
       path("../poe-agent/src/plugins/registry.test.ts"),

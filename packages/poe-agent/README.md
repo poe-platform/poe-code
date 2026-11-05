@@ -329,6 +329,8 @@ Options:
 
 Adds active-skill guidance and metadata to the prompt. `skillsPlugin({ directories: ["/.poe-code/skills"] })` loads a catalog through `runtime.fs` and directs the agent to read each full skill before using it. It is also exported from `poe-code/agent`.
 
+File catalogs include YAML frontmatter names, descriptions and locations, refreshed before each model request, including after edits and resume. Instruction bodies stay out of the system prompt. `disable-model-invocation: true` hides a skill from the catalog while leaving its file available for an explicit request. Invalid metadata and duplicate names produce catalog diagnostics; valid skills remain available. Files without frontmatter retain their directory names. Catalogs preserve the base system prompt and work with ordinary shell or file tools; no shell implementation is required.
+
 ### `spawnPlugin()`
 
 Adds `spawn({ task })`, which runs a fresh sub-agent and returns the child agent's `output` string.

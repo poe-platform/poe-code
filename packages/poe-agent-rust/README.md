@@ -142,6 +142,8 @@ Skills guidance lists active definitions, tags and available tool names while No
 preserves custom iterators, getters and metadata. Spawn arguments use shared Rust
 scalar validation; Node executes the injected spawn callback. Built-in configuration specs are available through `builtinPluginRegistry`.
 
+File skills use the shared metadata catalog: names, descriptions and locations refresh before each request; instruction bodies and explicit-only skills stay out of the system prompt. Invalid metadata and duplicate names appear as diagnostics without removing valid skills. The base prompt and the choice of shell or file tools are preserved.
+
 `memoryPlugin` finds the nearest project `AGENTS.md` and user memory file, expands
 trusted `@` file imports and caches the load per plugin. It rejects import cycles,
 escaping paths and symlinked files. Rust scans UTF16 lines/import paths and owns the

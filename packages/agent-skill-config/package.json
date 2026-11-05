@@ -32,7 +32,8 @@
     "@poe-code/config-mutations": "*",
     "@poe-code/user-error": "*",
     "@poe-code/safe-fs": "*",
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "yaml": "2.9.0"
   },
   "imports": {
     "#skill-templates": {

@@ -40,3 +40,4 @@ export { bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync } from "./bridge-act
 
 export { discoverSkillsAsync } from "./discover-skills-async.js";
 export type { DiscoveredSkill } from "./discover-skills-async.js";
+export { renderSkillCatalog } from "./skill-catalog.js";

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { execFileSync, spawnSync } from "node:child_process";
+import { promisify } from "node:util";
+import { execFile } from "node:child_process";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createQrencodeCommand } from "./index.js";
@@ -37,7 +38,11 @@ async function run(
   return { ...result, fs, stdout: Buffer.concat(output), stderr: Buffer.concat(errors).toString() };
 }
 
-const nativeAvailable = spawnSync("qrencode", ["--version"]).status === 0;
+const runNative = promisify(execFile);
+const nativeAvailable = await runNative("qrencode", ["--version"]).then(() => true, (error: NodeJS.ErrnoException) => {
+  if (error.code === "ENOENT") return false;
+  throw error;
+});
 
 test("all terminal renderers agree with native qrencode", { skip: !nativeAvailable }, async () => {
   for (const type of ["ASCII", "ASCIIi", "UTF8", "UTF8i", "ANSI", "ANSI256", "ANSIUTF8", "ANSIUTF8i", "ANSI256UTF8"]) {
@@ -45,7 +50,7 @@ test("all terminal renderers agree with native qrencode", { skip: !nativeAvailab
       const args = ["-t", type, "-m", margin, "--micro", "12345"];
       const result = await run(args);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(result.stdout.toString(), execFileSync("qrencode", args, { encoding: "utf8" }), type + " margin " + margin);
+      assert.equal(result.stdout.toString(), (await runNative("qrencode", args)).stdout, type + " margin " + margin);
     }
   }
 });
@@ -138,10 +143,9 @@ test(
       const flags = ["-t", "ASCII", "-m", "0", ...args];
       const result = await run(flags, input);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(
-        result.stdout.toString(),
-        execFileSync("qrencode", flags, { input, encoding: "utf8" })
-      );
+      const native = runNative("qrencode", flags, { timeout: 10000 });
+      native.child.stdin!.end(input);
+      assert.equal(result.stdout.toString(), (await native).stdout);
     }
     assert.equal((await run(["-8", "-v", "1", "-t", "ASCII"], "x".repeat(30))).exitCode, 0);
     assert.equal(

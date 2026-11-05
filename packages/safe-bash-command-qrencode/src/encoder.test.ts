@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { execFileSync, spawnSync } from "node:child_process";
+import { promisify } from "node:util";
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { encodeQr, reedSolomon } from "./encoder.js";
 
-const nativeAvailable = spawnSync("qrencode", ["--version"]).status === 0;
+const runNative = promisify(execFile);
+const nativeAvailable = await runNative("qrencode", ["--version"]).then(() => true, (error: NodeJS.ErrnoException) => {
+  if (error.code === "ENOENT") return false;
+  throw error;
+});
 
 test("matrix fixtures cover standard, Byte and Micro encodings without native tools", () => {
   const fixtures = [
@@ -23,12 +28,12 @@ test("matrix fixtures cover standard, Byte and Micro encodings without native to
   }
 });
 
-test("Micro QR padding and level combinations match native", { skip: !nativeAvailable }, () => {
+test("Micro QR padding and level combinations match native", { skip: !nativeAvailable }, async () => {
   for (const version of [1, 2, 3, 4])
     for (const level of ["L", "M", "Q"] as const) {
       if ((version === 1 && level !== "L") || (version < 4 && level === "Q")) continue;
       for (const text of ["1", "12345"]) {
-        const expected = execFileSync(
+        const { stdout: expected } = await runNative(
           "qrencode",
           ["--micro", "-v", String(version), "-l", level, "-t", "ASCII", "-m", "0", text],
           { encoding: "utf8" }
@@ -58,11 +63,11 @@ test("Reed Solomon matches the published version 1-M HELLO WORLD example", () =>
 test(
   "representative versions and all correction levels match native matrices",
   { skip: !nativeAvailable },
-  () => {
+  async () => {
     for (const level of ["L", "M", "Q", "H"] as const)
       for (const version of [1, 2, 5, 7, 10, 14, 21, 27, 32, 40]) {
         const text = "TEST";
-        const expected = execFileSync(
+        const { stdout: expected } = await runNative(
           "qrencode",
           ["-t", "ASCII", "-m", "0", "-v", String(version), "-l", level, text],
           { encoding: "utf8" }
@@ -77,7 +82,7 @@ test(
   }
 );
 
-test("QR and Micro QR matrices match native qrencode", { skip: !nativeAvailable }, () => {
+test("QR and Micro QR matrices match native qrencode", { skip: !nativeAvailable }, async () => {
   const cases = [
     { text: "01234567", args: [] },
     { text: "HELLO WORLD", args: [] },
@@ -88,7 +93,7 @@ test("QR and Micro QR matrices match native qrencode", { skip: !nativeAvailable 
     { text: "hello", args: ["--micro", "-v", "3", "-8"] }
   ];
   for (const { text, args } of cases) {
-    const output = execFileSync("qrencode", ["-t", "ASCII", "-m", "0", ...args, text], {
+    const { stdout: output } = await runNative("qrencode", ["-t", "ASCII", "-m", "0", ...args, text], {
       encoding: "utf8"
     });
     const versionIndex = args.indexOf("-v");
@@ -104,11 +109,13 @@ test("QR and Micro QR matrices match native qrencode", { skip: !nativeAvailable 
   }
 });
 
-test("forced byte mode matches native across single-byte length and QR version boundaries", { skip: !nativeAvailable }, () => {
+test("forced byte mode matches native across single-byte length and QR version boundaries", { skip: !nativeAvailable }, async () => {
   for (const length of [230, 231, 255, 256, 2048]) {
     const data = Uint8Array.from({ length }, (_, i) => (i * 29 + 17) & 255);
     const qr = encodeQr(data, { byte: true });
     const rows = qr.modules.map(row => row.map(dark => dark ? "##" : "  ").join("") + "\n").join("");
-    assert.equal(rows, execFileSync("qrencode", ["-8tASCII", "-m", "0"], { input: data, encoding: "utf8" }), String(length));
+    const native = runNative("qrencode", ["-8tASCII", "-m", "0"], { timeout: 10000 });
+    native.child.stdin!.end(data);
+    assert.equal(rows, (await native).stdout, String(length));
   }
 });

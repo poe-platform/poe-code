@@ -13,6 +13,7 @@ for (const mixed of [false, true]) it(`omits unknown MP4 picture types, mixed=${
     ...createCommandArguments(['-v', 'error', '-select_streams', 'v:0', '-show_frames',
       ...(mixed ? ['-show_packets'] : []), '-show_entries', 'frame=pict_type,key_frame,pts', '-of', 'json', '/input.mp4']),
     cwd: '/', env: {}, fs, signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
     stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
   });

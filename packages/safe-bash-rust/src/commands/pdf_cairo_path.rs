@@ -3,22 +3,17 @@ use super::Point;
 // Cairo measures polygon edges in 1/256-pixel units horizontally and uses
 // 15 subrows vertically. An uninterrupted pair of edges takes the analytic
 // scanline path; a vertex inside the row switches to horizontal subspans.
-pub(super) struct Footprint([Point; 4]);
-
 pub(super) enum Coverage {
     Box { left: f64, right: f64, height: f64 },
-    Edges([ScanEdge; 2]),
-    Spans([(f64, f64); 15]),
+    Subrows { left: f64, right: f64, count: f64 },
 }
 
 // Keep both endpoints over a shared denominator: rounding their positions
 // before finding column crossings can move a crossing by one subrow.
-#[derive(Clone, Copy, Default)]
-pub(super) struct ScanEdge {
+struct ScanEdge {
     top: f64,
     bottom: f64,
     denominator: f64,
-    next_sample: f64,
 }
 
 struct RowEdge {
@@ -57,76 +52,22 @@ impl RowEdge {
             top,
             bottom: top + 15. * self.slope,
             denominator: self.den,
-            next_sample: self.sample(15),
         }
-    }
-    fn crosses_boundary(&self, width: usize) -> bool {
-        let end = self.start_x + 15. * self.slope;
-        [0., width as f64 * 256. * self.den]
-            .iter()
-            .any(|&x| self.start_x.min(end) < x && x < self.start_x.max(end))
     }
 }
 
-impl Footprint {
-    pub(super) fn new([a, b, c, d, e, f]: [f64; 6]) -> Self {
-        // cairo_rectangle starts at PDF (0,0) and appends relative edges.
-        // Cairo rounds that origin and each delta separately to 24.8.
-        let fixed = |x: f64| (x * 256.).round_ties_even();
-        let (x, y) = (fixed(e + c), fixed(f + d));
-        let [a, b, c, d] = [a, b, c, d].map(fixed);
-        Self([
-            [x - c, y - d],
-            [x - c + a, y - d + b],
-            [x + a, y + b],
-            [x, y],
-        ])
-    }
-
-    pub(super) fn row(&self, y: usize, width: usize, clip: Point) -> Coverage {
-        let [a, b, c, d] = self.0;
-        if (a[0] == b[0] && a[1] == d[1]) || (a[1] == b[1] && a[0] == d[0]) {
-            return Coverage::rectangle(a, c, y, clip);
-        }
-        let start = y as f64 * 15.;
-        let mut lines = [ScanEdge::default(); 2];
-        let mut count = 0;
-        let mut spans = [(f64::INFINITY, f64::NEG_INFINITY); 15];
-        let mut whole = true;
-        for (i, &p) in self.0.iter().enumerate() {
-            let q = self.0[(i + 1) % 4];
-            let Some(edge) = RowEdge::new(p, q, start, p[1].min(q[1]), p[1].max(q[1])) else {
-                continue;
-            };
-            let (from, to) = (edge.from, edge.to);
-            if from == 0 && to == 15 && count < 2 {
-                // The full-row stepper subtracts half its integer step and
-                // half its remainder separately from the first sample.
-                lines[count] = edge.full();
-                // Clipping against the page introduces a vertex wherever
-                // an edge crosses either side within the row.
-                whole &= !edge.crosses_boundary(width);
-                count += 1;
-            } else {
-                whole = false;
-            }
-            for (sub, span) in spans.iter_mut().enumerate().take(to).skip(from) {
-                let sample = edge.sample(sub);
-                span.0 = span.0.min(sample);
-                span.1 = span.1.max(sample);
-            }
-        }
-        let middle = |e: &ScanEdge| (e.top + e.bottom) / e.denominator;
-        if count == 2 && middle(&lines[0]) > middle(&lines[1]) {
-            lines.swap(0, 1);
-        }
-        whole &= count == 2 && lines[0].next_sample <= lines[1].next_sample;
-        if whole {
-            Coverage::Edges(lines)
-        } else {
-            Coverage::Spans(spans)
-        }
-    }
+pub(super) fn image_corners([a, b, c, d, e, f]: [f64; 6]) -> [Point; 4] {
+    // cairo_rectangle starts at PDF (0,0) and appends relative edges.
+    // Cairo rounds that origin and each delta separately to 24.8.
+    let fixed = |x: f64| (x * 256.).round_ties_even();
+    let (x, y) = (fixed(e + c), fixed(f + d));
+    let [a, b, c, d] = [a, b, c, d].map(fixed);
+    [
+        [x - c, y - d],
+        [x - c + a, y - d + b],
+        [x + a, y + b],
+        [x, y],
+    ]
 }
 
 impl Coverage {
@@ -143,13 +84,11 @@ impl Coverage {
         {
             let from = ((top - y) * 15. / 256. + 0.5).floor();
             let to = ((bottom.min(clip[1]) - y) * 15. / 256. + 0.5).floor();
-            return Self::Spans(std::array::from_fn(|i| {
-                if (i as f64) >= from && (i as f64) < to {
-                    (left, right.min(clip[0]))
-                } else {
-                    (0., 0.)
-                }
-            }));
+            return Self::Subrows {
+                left,
+                right: right.min(clip[0]),
+                count: (to.clamp(0., 15.) - from.clamp(0., 15.)).max(0.),
+            };
         }
         Self::Box {
             left,
@@ -160,22 +99,15 @@ impl Coverage {
 
     pub(super) fn alpha(&self, col: usize) -> u8 {
         let x = col as f64 * 256.;
-        let area = match self {
+        let overlap = |left: f64, right: f64| (right.min(x + 256.) - left.max(x)).max(0.);
+        match *self {
             Self::Box {
                 left,
                 right,
                 height,
-            } => {
-                let width = (right.min(x + 256.) - left.max(x)).max(0.);
-                return (width * height / 256.) as u8;
-            }
-            Self::Edges(lines) => lines[1].area_to_left(x) - lines[0].area_to_left(x),
-            Self::Spans(spans) => spans
-                .iter()
-                .map(|&(l, r)| 2. * (r.min(x + 256.) - l.max(x)).max(0.))
-                .sum(),
-        };
-        area_alpha(area)
+            } => (overlap(left, right) * height / 256.) as u8,
+            Self::Subrows { left, right, count } => area_alpha(2. * overlap(left, right) * count),
+        }
     }
 }
 

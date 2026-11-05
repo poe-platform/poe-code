@@ -17256,6 +17256,28 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftocairo_clips_sheared_images_at_fractional_page_edges() {
+        let fs = MemoryVfs::new();
+        for (draw, flags, digest) in [
+            ("q 17.0 1.125 2.875 8.5 11.75 -1.875 cm /I Do Q", "-png -transp -singlefile -r 72", "9d51427c13f63734bf741609cb0e9d8226bf4b540c7e224fc7037ac8b7deb39b"),
+            ("q 19.875 -3.25 9.25 16.625 15.25 16.75 cm /I Do Q", "-png -transp -singlefile -rx 97 -ry 124", "f1a48393f713f57e74f8afd56d0ddf56f548a7881dab921ea53d10fb39a419f3"),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 20.375 19.75] >>",
+                "<< /Type /Page /Parent 2 0 R /Resources << /XObject << /I 5 0 R >> >> /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len()),
+                "<< /Type /XObject /Subtype /Image /Width 3 /Height 2 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Length 18 >>\nstream\nabcdefghijklmnopqr\nendstream"], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            let mut args = flags.split_whitespace().collect::<Vec<_>>();
+            args.extend(["in.pdf", "out"]);
+            let result = cmd_media_doc("pdftocairo", &media_args(&args), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let im = png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), digest, "{draw}");
+        }
+    }
+
+    #[test]
     fn pdftocairo_transforms_stroke_widths_with_the_page_and_content_matrix() {
         let fs = MemoryVfs::new();
         for (rotation, rx, ry, draw, digest) in [

@@ -514,16 +514,25 @@ impl Bitmap {
             (xs.start + xs.end) as f64 / 2.,
             (ys.start + ys.end) as f64 / 2.,
         ];
-        let shape = pdf_cairo_path::Footprint::new(matrix);
+        let [p, q, r, s] = pdf_cairo_path::image_corners(matrix);
+        let rectangle = (p[0] == q[0] && p[1] == s[1]) || (p[1] == q[1] && p[0] == s[0]);
+        let mut edges = if rectangle { Vec::new() } else {
+            pdf_cairo_path::clipped_edges(&[(p, q), (q, r), (r, s), (s, p)], self.page_clip)
+        };
+        let mut areas = if rectangle { Vec::new() } else { vec![0.; xs.len()] };
         let image = pdf_cairo_image::sampler(&im, matrix, center);
         let mask = mask
             .as_ref()
             .map(|m| pdf_cairo_image::sampler(m, matrix, center));
         for y in ys {
-            let coverage = shape.row(y, self.w, self.page_clip);
+            let box_row = rectangle.then(|| pdf_cairo_path::Coverage::rectangle(p, r, y, self.page_clip));
+            if !rectangle {
+                pdf_cairo_path::path_row(&mut edges, y, xs.start, &mut areas, false, &mut self.work)?;
+            }
             let clip = self.clip_row(y, None)?;
             for x in xs.clone() {
-                let mut opacity = mul255(coverage.alpha(x).into(), clip_coverage(&clip, x).into());
+                let coverage = box_row.as_ref().map_or_else(|| pdf_cairo_path::area_alpha(areas[x - xs.start]), |row| row.alpha(x));
+                let mut opacity = mul255(coverage.into(), clip_coverage(&clip, x).into());
                 if opacity == 0 {
                     continue;
                 }

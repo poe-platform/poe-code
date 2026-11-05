@@ -1504,6 +1504,9 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
             const cur = out[i + c]!;
             let next = cur;
             switch (op) {
+                case "uniformnoise":
+                    next = cur + 255 * vFactor * 0.015625 * (random!() - 0.5);
+                    break;
                 case "gaussiannoise": {
                     const alpha = random!(), beta = random!();
                     const gamma = Math.sqrt(-2 * Math.log(Math.abs(alpha) < 1e-12 ? 1 : alpha));
@@ -4618,13 +4621,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
         if (!["add", "sum", "addmodulus", "mean", "median", "subtract", "multiply", "divide", "pow", "exp", "exponential", "log", "inverselog", "set", "min", "max",
             "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
-            "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise"].includes(operation)) {
+            "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         let random: (() => number) | undefined;
         apply = (image, pixelOffset = 0) => {
-            if ((operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise") && pixelOffset === 0)
+            if ((operation === "uniformnoise" || operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise") && pixelOffset === 0)
                 random = createMagickRandom(state.seed ?? 0);
             return applyMagickEvaluateSteps(image, operation, value, channels, random, signal);
         };

@@ -915,7 +915,7 @@ function* magickPixelPropertiesSteps<Step=never>(
     min: String(min),
     max: String(max),
     "standard-deviation": String(Number(deviation.toPrecision(6))),
-    opaque: String(opaque),
+    opaque: opaque ? "True" : "False",
     type,
     "bit-depth": String(bitDepth)
   };
@@ -938,7 +938,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
-    z: bitDepth, q: "16", r: `DirectClass ${space}`,
+    z: bitDepth, q: "16", r: `DirectClass ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath,
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(meta.density ?? 72), y: String(meta.density ?? 72),
@@ -947,7 +947,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     C: compression, Q: String(context.quality ?? 92)
   };
   const properties: Record<string, string> = {
-    colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : ""}`,
+    colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0)}.0`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!
   };

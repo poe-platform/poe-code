@@ -31,21 +31,21 @@ describe("ImageMagick property formatting", () => {
     it(`${mode}: expands geometry, metadata, compression, and literal escapes once`, async () => {
       const bytes = await sharp({ create: { width: 80, height: 40, channels: 3, background: "red" } }).png().toBuffer();
       expect(await format(bytes, "%g|%P|%%|%[channels]|%[WIDTH]x%[Height]|%[depth]|%[bit-depth]|%C|%Q|%[size]"))
-        .toBe(`80x40+0+0|80x40|%|srgb|80x40|8|1|Zip|92|${bytes.byteLength}B${newline}`);
+        .toBe(`80x40+0+0|80x40|%|srgb  3.0|80x40|8|1|Zip|92|${bytes.byteLength}B${newline}`);
       expect(await format(bytes, "%%w|%%[mean]|%%%w|%%%%|\\n\\t%w|%[unknown]|%j|%[unfinished"))
         .toBe(`%w|%[mean]|%80|%%|\n\t80|%[unknown]|%j|%[unfinished${newline}`);
     });
 
     it.each([
-      { pixels: [255, 0, 0, 255, 255, 0, 0, 255], opaque: "true", type: "PaletteAlpha", depth: "1" },
-      { pixels: [255, 0, 0, 255, 0, 0, 255, 128], opaque: "false", type: "PaletteAlpha", depth: "8" },
-      { pixels: [0, 0, 0, 255, 255, 255, 255, 255], opaque: "true", type: "Bilevel", depth: "1" },
-      { pixels: [85, 85, 85, 255, 170, 170, 170, 255], opaque: "true", type: "GrayscaleAlpha", depth: "2" },
-      { pixels: [85, 85, 85, 255, 170, 170, 170, 128], opaque: "false", type: "GrayscaleAlpha", depth: "8" }
+      { pixels: [255, 0, 0, 255, 255, 0, 0, 255], opaque: "True", type: "PaletteAlpha", depth: "1" },
+      { pixels: [255, 0, 0, 255, 0, 0, 255, 128], opaque: "False", type: "PaletteAlpha", depth: "8" },
+      { pixels: [0, 0, 0, 255, 255, 255, 255, 255], opaque: "True", type: "Bilevel", depth: "1" },
+      { pixels: [85, 85, 85, 255, 170, 170, 170, 255], opaque: "True", type: "GrayscaleAlpha", depth: "2" },
+      { pixels: [85, 85, 85, 255, 170, 170, 170, 128], opaque: "False", type: "GrayscaleAlpha", depth: "8" }
     ])(`${mode}: calculates pixel properties ($type, $opaque)`, async ({ pixels, opaque, type, depth }) => {
       const bytes = await sharp(new Uint8Array(pixels), { raw: { width: 2, height: 1, channels: 4 } }).png().toBuffer();
       expect(await format(bytes, "%[channels]|%[opaque]|%[type]|%[bit-depth]"))
-        .toBe(`srgba|${opaque}|${type}|${depth}${newline}`);
+        .toBe(`srgba 4.0|${opaque}|${type}|${depth}${newline}`);
     });
 
     it(`${mode}: computes standard deviation across spatial samples, not between color channels`, async () => {
@@ -65,10 +65,10 @@ describe("ImageMagick property formatting", () => {
 
     it(`${mode}: reports grayscale channels and truecolor images`, async () => {
       const gray = await sharp(new Uint8Array([85, 170]), { raw: { width: 2, height: 1, channels: 1 } }).png().toBuffer();
-      expect(await format(gray, "%[channels]|%[type]|%[bit-depth]")).toBe(`gray|Grayscale|2${newline}`);
+      expect(await format(gray, "%[channels]|%[type]|%[bit-depth]")).toBe(`gray  1.0|Grayscale|2${newline}`);
       const pixels = Uint8Array.from({ length: 257 * 3 }, (_, i) => i % 3 === 0 ? Math.floor(i / 3) % 256 : i % 3 === 1 ? Math.floor(i / (256 * 3)) : 0);
       const rgb = await sharp(pixels, { raw: { width: 257, height: 1, channels: 3 } }).png().toBuffer();
-      expect(await format(rgb, "%[type]|%[opaque]")).toBe(`TrueColor|true${newline}`);
+      expect(await format(rgb, "%[type]|%[opaque]")).toBe(`TrueColor|True${newline}`);
     });
   }
 

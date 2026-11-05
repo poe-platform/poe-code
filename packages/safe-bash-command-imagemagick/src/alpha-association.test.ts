@@ -27,7 +27,7 @@ for (const execution of ["buffered", "retained", "sync"] as const) {
         const output = execution === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
         const image = decodeImage(output);
         expect([...image.data]).toEqual(expected);
-        expect(result.stdout.trim()).toBe("srgb");
+        expect(result.stdout.trim()).toBe("srgb  3.0");
     });
 }
 

@@ -3,7 +3,7 @@ import { test, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { PdfDocument, PdfRetainedPage, decodePng, encodePng, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
-import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli } from "./index.js";
+import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli, runPdftocairoCliSync } from "./index.js";
 function pdf() {
   const doc = PdfDocument.create();
   for (const rotation of [0, 90]) {
@@ -183,14 +183,20 @@ for (const rotation of [0, 90, 180, 270] as const) for (const beforeRotation of 
   }
 }
 
-for (const [x, y, width, height] of [[100, -1, 100, 150], [-1, 100, 67, 100], [100, 50, 100, 50]] as const) {
-  test(`Cairo targets rotated axes x=${x}, y=${y}`, async () => {
-    const doc = PdfDocument.create(); doc.addPage([216, 144]).setRotation(90);
+for (const rotation of [0, 90, 180, 270] as const) for (const [x, y, width, height] of (rotation === 90 || rotation === 270
+  ? [[100, -1, 100, 150], [-1, 100, 67, 101], [100, 50, 100, 51]] as const
+  : [[100, -1, 101, 67], [-1, 100, 150, 100], [100, 50, 101, 50]] as const)) {
+  test(`Cairo targets rotated axes rotation=${rotation}, x=${x}, y=${y}`, async () => {
+    const doc = PdfDocument.create(); doc.addPage([216, 144]).setRotation(rotation);
     const input = doc.save(), args = ["-png", "-singlefile", "-scale-to-x", String(x), "-scale-to-y", String(y), "in.pdf", "out"];
     const files = new Map([["in.pdf", input]]);
     assert.equal((await runPdftocairoCli(args, files)).exitCode, 0);
     const buffered = decodePng(files.get("out.png")!);
     assert.deepEqual([buffered.width, buffered.height], [width, height]);
+    const sync = runPdftocairoCliSync([...args.slice(0, -1), "-"], new Map([["in.pdf", input]]));
+    assert.equal(sync.exitCode, 0);
+    const stdout = decodePng(sync.stdoutBytes!);
+    assert.deepEqual([stdout.width, stdout.height], [width, height]);
     const f = await fixture(input, args); f.context.command = "pdftocairo";
     assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode, 0);
     const retained = decodePng(await f.fs.readFile("/out.png"));

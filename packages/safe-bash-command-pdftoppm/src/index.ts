@@ -54,7 +54,7 @@ function extractPdftoppmPositionals(argv: readonly string[]): string[] {
 function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, options: {
     readonly signal?: AbortSignal;
     readonly onAllocateBytes?: (bytes: number) => void;
-} = {}): Generator<void, PdftoppmCliResult, void> {
+} = {}, cairo = false): Generator<void, PdftoppmCliResult, void> {
     const parsed = yield* parsePdftoppmArgsSteps(argv, files.has("-"));
     if (!("inputPath" in parsed)) return parsed;
     const { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX: requestedX, scaleToY: requestedY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath } = parsed;
@@ -114,14 +114,15 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             effDpiY = factor;
         }
         else {
-            // Keep exact pixel targets from rounding up after the DPI round trip.
+            // Cairo keeps the DPI round-trip rounding; Splash snaps exact pixel targets.
+            const rounding = cairo ? 1 : 1 - Number.EPSILON;
             if (scaleToX > 0) {
-                effDpiX = (scaleToX * 72) / Math.max(ptW, 1) * (1 - Number.EPSILON);
+                effDpiX = (scaleToX * 72) / Math.max(ptW, 1) * rounding;
                 if (scaleToY < 0)
                     effDpiY = effDpiX;
             }
             if (scaleToY > 0) {
-                effDpiY = (scaleToY * 72) / Math.max(ptH, 1) * (1 - Number.EPSILON);
+                effDpiY = (scaleToY * 72) / Math.max(ptH, 1) * rounding;
                 if (scaleToX < 0)
                     effDpiX = effDpiY;
             }
@@ -472,7 +473,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
     }
     const snapBefore = new Map(files);
     const rasterPositionals = positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
-    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options));
+    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options, true));
     if (res.exitCode !== 0 || (!grayMode && !monoMode)) {
         return res;
     }
@@ -551,7 +552,7 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
             plan = { ...plan, colorMode: parsed.monoMode ? "mono" : "gray" };
           }
           return await executeRetainedRaster(context, plan, invocation.child(context.stdout).output, invocation.signal, maxInputBytes,
-            name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }));
+            name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }), parsed.format !== "svg");
         } finally { await invocation.close(); }
       }
     },

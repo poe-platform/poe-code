@@ -9,7 +9,7 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { PdftoppmPlan } from "./parse.js";
 
-export async function executeRetainedRaster(context: CommandContext, plan: PdftoppmPlan, stdout: ByteSink, signal: AbortSignal, maximum: number, publicationError?: (name: string) => { exitCode: number; stderr: string }): Promise<{ exitCode: number }> {
+export async function executeRetainedRaster(context: CommandContext, plan: PdftoppmPlan, stdout: ByteSink, signal: AbortSignal, maximum: number, publicationError?: (name: string) => { exitCode: number; stderr: string }, cairo = false): Promise<{ exitCode: number }> {
   const encoder = new TextEncoder(), directory = resolvePath(context.cwd, context.env.TMPDIR || "/tmp");
   const storage = new PdfStagingStorage({ fs: context.fs, directory });
   const diagnostic = async (message: string, exitCode: number) => { if (!plan.quiet) await writeBytes(context.stderr, encoder.encode(message), signal); return { exitCode }; };
@@ -62,9 +62,10 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         let dpiX = plan.dpiX ?? plan.dpi, dpiY = plan.dpiY ?? plan.dpi;
         if (plan.scaleTo > 0) dpiX = dpiY = plan.scaleTo * 72 / Math.max(ptW, ptH, 1);
         else {
-          // Keep exact pixel targets from rounding up after the DPI round trip.
-          if (scaleToX > 0) { dpiX = (scaleToX * 72) / Math.max(ptW, 1) * (1 - Number.EPSILON); if (scaleToY < 0) dpiY = dpiX; }
-          if (scaleToY > 0) { dpiY = (scaleToY * 72) / Math.max(ptH, 1) * (1 - Number.EPSILON); if (scaleToX < 0) dpiX = dpiY; }
+          // Cairo keeps the DPI round-trip rounding; Splash snaps exact pixel targets.
+          const rounding = cairo ? 1 : 1 - Number.EPSILON;
+          if (scaleToX > 0) { dpiX = (scaleToX * 72) / Math.max(ptW, 1) * rounding; if (scaleToY < 0) dpiY = dpiX; }
+          if (scaleToY > 0) { dpiY = (scaleToY * 72) / Math.max(ptH, 1) * rounding; if (scaleToX < 0) dpiX = dpiY; }
         }
         if(plan.format === "svg") {
           yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,

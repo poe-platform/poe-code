@@ -1746,6 +1746,17 @@ fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
     }
 }
 
+fn jq_length(input: &JVal) -> Result<f64, JqFault> {
+    Ok(match input {
+        JVal::Null => 0.0,
+        JVal::Number(n, _) => n.abs(),
+        JVal::Str(s) => s.chars().count() as f64,
+        JVal::Array(items) => items.len() as f64,
+        JVal::Object(fields) => fields.len() as f64,
+        JVal::Bool(_) => return Err(format!("{} has no length", jq_generator::describe(input)).into()),
+    })
+}
+
 fn try_eval_jq_builtin(
     s: &str,
     input: &JVal,
@@ -1808,14 +1819,11 @@ fn try_eval_jq_builtin(
         }
         "length" => {
             let len = match input {
-                JVal::Null => 0,
-                JVal::Str(st) => st.chars().count(),
-                JVal::Array(a) => a.len(),
-                JVal::Object(o) => o.len(),
-                JVal::Number(n, _) => n.abs() as usize,
-                JVal::Bool(_) => 0,
+                JVal::Number(n, _) if vars.yq.is_some() => (n.abs() as usize) as f64,
+                JVal::Bool(_) if vars.yq.is_some() => 0.0,
+                _ => jq_length(input)?,
             };
-            return Ok(Some(vec![JVal::Number(len as f64, None)]));
+            return Ok(Some(vec![JVal::Number(len, None)]));
         }
         "keys" | "keys_unsorted" => {
             let keys = match input {
@@ -2471,27 +2479,6 @@ fn try_eval_jq_builtin(
                         }
                     }
                     return Ok(Some(filtered));
-                }
-                "bsearch" => {
-                    if let JVal::Array(a) = input {
-                        let target = eval_jq(arg_expr, input, vars)?
-                            .into_iter()
-                            .next()
-                            .unwrap_or(JVal::Null);
-                        let mut lo = 0isize;
-                        let mut hi = a.len() as isize - 1;
-                        while lo <= hi {
-                            let mid = (lo + hi) / 2;
-                            match compare_jval(&a[mid as usize], &target) {
-                                std::cmp::Ordering::Equal => {
-                                    return Ok(Some(vec![JVal::Number(mid as f64, None)]));
-                                }
-                                std::cmp::Ordering::Less => lo = mid + 1,
-                                std::cmp::Ordering::Greater => hi = mid - 1,
-                            }
-                        }
-                        return Ok(Some(vec![JVal::Number(-(lo as f64) - 1.0, None)]));
-                    }
                 }
                 "explode" => {
                     let mut out = Vec::new();

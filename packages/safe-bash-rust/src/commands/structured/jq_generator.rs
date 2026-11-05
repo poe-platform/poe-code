@@ -361,6 +361,23 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         }) {
             return flow;
         }
+        if let ("bsearch", Some(filter)) = (name, args) {
+            return visit_jq(filter, input, vars, &mut |target| {
+                let mut low = 0.0;
+                let mut high = super::jq_length(input)?;
+                while low != high {
+                    let middle = ((low + high - 1.0) / 2.0).floor();
+                    let index = JVal::Number(middle, None);
+                    let item = index_value(input, &index)?;
+                    match super::compare_jval(item, &target) {
+                        std::cmp::Ordering::Equal => return emit(index),
+                        std::cmp::Ordering::Less => low = middle + 1.0,
+                        std::cmp::Ordering::Greater => high = middle,
+                    }
+                }
+                emit(JVal::Number(-low - 1.0, None))
+            });
+        }
         if let Some(args) = args && matches!(name, "scan" | "capture" | "match" | "test") {
             let pair = split_jq_binary(args, ";");
             let source = pair.as_ref().map_or(args, |(p, _)| p.as_str());

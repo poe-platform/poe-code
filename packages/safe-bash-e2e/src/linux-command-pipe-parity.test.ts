@@ -30,6 +30,21 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("jq binary search streams search keys and uses jq length and indexing rules", async () => {
+      for (const [filter, input] of [
+        ["bsearch(1,0,2)", "[1,1,1,1]"], ["bsearch(empty)", "false"],
+        ['bsearch(2,error("bad"))', "[1,2]"], ['first(bsearch(2,error("bad")))', "[1,2]"],
+        ["bsearch(.[])", '[{"a":1},{"b":0}]'], ["bsearch(null)", "null\n{}\n[]\n0\n\"\""],
+        ["bsearch(1)", "false"], ["bsearch(1)", '"xyz"'], ["bsearch(1)", '{"x":1}'],
+        ["bsearch(1)", "-0.25"], ["length", '-0.25\n"💡"\nfalse'],
+      ]) {
+        const reference = await runLinuxCommand("jq", ["-c", filter], input + "\n", cwd);
+        for (const shell of [ts.shell, rust]) {
+          const result = await shell.exec("jq -c '" + filter + "'", { stdin: input + "\n" });
+          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference, filter + " on " + input);
+        }
+      }
+    });
     await t.test("tsort consumes shared stdin only when it selects stdin", async () => {
       const edges = Buffer.concat([Buffer.alloc(65534, 32), Buffer.from("first\0suffix second\n")]);
       await writeFile(cwd + "/edges", edges);

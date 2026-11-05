@@ -133,6 +133,7 @@ export function linuxCommands(text: string) {
       cmd: "jq", args: ["-c", filter], script: "jq -c '" + filter + "'",
       input: '[{"b":0},{"a":9},{"a":0,"b":[1]},{"b":[0],"a":0},{"a":0,"b":[0]},{"a":2},{"a":9},{},{"y":0,"z":1},{"z":1,"y":0}]\n',
     })),
+    { cmd: "jq", args: ["-c", "bsearch(.[])"], script: "jq -c 'bsearch(.[])'", input: JSON.stringify(Array.from({ length: 128 }, (_, i) => 2 * i)) },
     ...pipes.map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" })),
     // Keep the host keybox in the private benchmark directory.
     { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-q", "--export", "missing"],

@@ -593,7 +593,7 @@ function parseQpdfArguments(argv: readonly string[]) {
   let decrypt = false;
   let password: string | undefined;
   let splitPagesGroup: number | undefined;
-  let collateCount: number | undefined;
+  let collateCounts: number[] | undefined;
   let linearize = false;
   let showLinearization: false | "show" | "check" | "both" = false;
   let flattenAnnotations: false | "all" | "print" | "screen" = false;
@@ -643,9 +643,9 @@ function parseQpdfArguments(argv: readonly string[]) {
       const mode = arg === "--show-linearization" ? "show" : "check";
       showLinearization = !showLinearization || showLinearization === mode ? mode : "both";
     } else if (arg === "--collate") {
-      collateCount = 1;
+      collateCounts = [1];
     } else if (arg.startsWith("--collate=")) {
-      collateCount = Math.max(1, Number.parseInt(arg.slice("--collate=".length), 10) || 1);
+      collateCounts = arg.slice("--collate=".length).split(",").map(value => Math.max(1, Number.parseInt(value, 10) || 1));
     } else if (arg === "--flatten-rotation") {
       flattenRotation = true;
     } else if (arg === "--remove-unreferenced-resources") {
@@ -971,7 +971,7 @@ function parseQpdfArguments(argv: readonly string[]) {
     decrypt,
     password,
     splitPagesGroup,
-    collateCount,
+    collateCounts,
     linearize,
     showLinearization: showLinearization as false | "show" | "check" | "both",
     flattenAnnotations,
@@ -1045,7 +1045,7 @@ function* executeQpdfCli(
     decrypt,
     password,
     splitPagesGroup,
-    collateCount,
+    collateCounts,
     linearize,
     showLinearization,
     flattenAnnotations,
@@ -1538,7 +1538,7 @@ function* executeQpdfCli(
       const pageNumbers = parseQpdfPageRange(spec.range, srcDoc.getPageCount());
       loadedSpecs.push({ doc: srcDoc, indices: pageNumbers.map((p) => p - 1) });
     }
-    if (collateCount !== undefined && loadedSpecs.length > 1) {
+    if (collateCounts !== undefined && loadedSpecs.length > 1) {
       const cursors = loadedSpecs.map(() => 0);
       let remaining = true;
       while (remaining) {
@@ -1547,7 +1547,7 @@ function* executeQpdfCli(
           const item = loadedSpecs[s]!;
           const cur = cursors[s]!;
           if (cur < item.indices.length) {
-            const slice = item.indices.slice(cur, cur + collateCount);
+            const slice = item.indices.slice(cur, cur + collateCounts[s % collateCounts.length]!);
             (yield* mergedDoc.copyPagesFromSteps(item.doc, slice));
             cursors[s] = cur + slice.length;
             if (cursors[s]! < item.indices.length) remaining = true;
@@ -2503,7 +2503,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
       const retained = Object.entries(parsed.options).every(([key, value]) => {
-        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCount", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup", "linearize", "objectStreamsMode", "qdf", "normalizeContentFlag", "streamDataMode", "pageLabelSpecs", "jsonVersion", "jsonKeys", "jsonObjectSelectors", "jsonStreamDataMode", "jsonStreamPrefix", "removeAttachmentKeys", "addAttachmentSpecs", "copyAttachmentsSpecs", "flattenRotation", "encryptConfig", "removeUnreferencedResources", "externalizeInlineImages", "iiMinBytes", "stampSpecs", "flattenAnnotations", "generateAppearances", "jsonInput", "updateFromJsonFiles"].includes(key)) return true;
+        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCounts", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup", "linearize", "objectStreamsMode", "qdf", "normalizeContentFlag", "streamDataMode", "pageLabelSpecs", "jsonVersion", "jsonKeys", "jsonObjectSelectors", "jsonStreamDataMode", "jsonStreamPrefix", "removeAttachmentKeys", "addAttachmentSpecs", "copyAttachmentsSpecs", "flattenRotation", "encryptConfig", "removeUnreferencedResources", "externalizeInlineImages", "iiMinBytes", "stampSpecs", "flattenAnnotations", "generateAppearances", "jsonInput", "updateFromJsonFiles"].includes(key)) return true;
         const baseline = defaults[key as keyof typeof defaults];
         return Array.isArray(value) ? value.length === 0 : value === baseline;
       });

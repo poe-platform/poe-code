@@ -50,7 +50,7 @@ export async function copyQpdfSelections(base: PdfRetainedDocument, source: PdfF
       }
     }
   }
-  const selected = options.collateCount !== undefined && options.pageSpecs.length > 1
+  const selected = options.collateCounts !== undefined && options.pageSpecs.length > 1
     ? collatedSelections(inputs, storage, options, signal) : selections();
   return createRetainedPageCopy(selected, storage, { metadata, signal });
 }
@@ -82,13 +82,13 @@ async function* collatedSelections(inputs: ReadonlyMap<string, PdfFileSource | u
         if (!failed) for (const result of [...closed, ...cleared]) if (result.status === "rejected") await Promise.reject(result.reason);
       }
     }
-    while (states.some(state => !state.next.done)) for (const state of states) {
+    while (states.some(state => !state.next.done)) for (const [index, state] of states.entries()) {
       signal.throwIfAborted(); if (state.next.done) continue;
       let document: PdfRetainedDocument | undefined, failed = false;
       try {
         document = await PdfRetainedDocument.open(state.input, storage, { signal, recovery: "repair", ...(state.password === undefined ? {} : { password: state.password }) });
         function* batch() {
-          for (let count = 0; count < options.collateCount! && !state.next.done; count++) {
+          for (let count = 0; count < options.collateCounts![index % options.collateCounts!.length]! && !state.next.done; count++) {
             const page = state.next.value; state.next = state.indices.next(); yield page - 1;
           }
         }

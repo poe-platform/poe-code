@@ -5,6 +5,36 @@ import { PdfDocument, cosStream, cosString, dictDelete, dictGet, dictSet, serial
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
+for (const retained of [false, true]) for (const [groups, sources, widths] of [
+  ["1,2", ["a.pdf", "b.pdf"], [101, 201, 202, 102, 203, 103]],
+  ["2", ["a.pdf", "b.pdf"], [101, 102, 201, 202, 103, 203]],
+  ["1,2", ["a.pdf", "b.pdf", "c.pdf"], [101, 201, 202, 301, 102, 203, 302, 103, 303]],
+] as const) it(`collates ${sources.length} inputs with groups ${groups} (${retained ? "retained" : "memory"})`, async () => {
+  const files = new Map<string, Uint8Array>();
+  for (const [index, name] of sources.entries()) {
+    const document = PdfDocument.create();
+    for (let page = 1; page <= 3; page++) document.addPage([(index + 1) * 100 + page, 400]);
+    files.set(name, document.save());
+  }
+  const args = ["--empty", `--collate=${groups}`, "--pages", ...sources, "--", "out.pdf"];
+  let output: Uint8Array;
+  if (retained) {
+    const fs = createMemoryFileSystem();
+    for (const [name, bytes] of files) await fs.writeFile(`/${name}`, bytes);
+    const carrier = createCommandArguments(args);
+    const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: {}, fs, signal: new AbortController().signal,
+      stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write() { assert.fail("Unexpected output"); } }, stderr: { async write(bytes: Uint8Array) { assert.fail(Buffer.from(bytes).toString()); } } });
+    assert.equal(result.exitCode, 0);
+    output = await fs.readFile("/out.pdf");
+  } else {
+    const result = await runQpdfCli(args, files);
+    assert.equal(result.exitCode, 0, result.stderr);
+    output = files.get("out.pdf")!;
+  }
+  const document = PdfDocument.load(output);
+  assert.deepEqual(Array.from({ length: document.getPageCount() }, (_, index) => document.getPage(index).getSize().width), widths);
+});
+
 for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-stdin", "empty", "empty-no-pages", "none", "duplicate", "stdout", "replace", "remove", "remove-large", "decrypt", "collate", "collate-two", "collate-large", "collate-single", "collate-empty", "rotate-absolute", "rotate-relative", "rotate-duplicates", "rotate-collated", "rotate-plain", "collate-inherited"]) it(`copies ${mode} page selections through retained storage with exact bytes`, async () => {
   const base = PdfDocument.create(), other = PdfDocument.create();
   for (let i = 0; i < 3; i++) base.addPage([100 + i * 10, 200]).drawText(`Base ${i + 1}`, { x: 10, y: 20 });

@@ -39,7 +39,7 @@ export interface RetainedQpdfOptions extends QpdfJsonOptions {
   listAttachments: boolean;
   showLinearization: false | "show" | "check" | "both";
   showAttachmentKey: string | undefined;
-  collateCount: number | undefined;
+  collateCounts: number[] | undefined;
   pageSpecs: readonly { file: string; password?: string; range: string }[];
   outputFile: string | undefined;
   password: string | undefined;

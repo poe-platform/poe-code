@@ -49,6 +49,8 @@ sequentially, including `--empty`, per-source passwords, stdin and repeated
 sources. Inactive inputs release range caches while retaining their acquired
 identity. `--collate` interleaves lazy page batches with only one source document
 active at a time; batch boundaries preserve independent resource copies.
+Use `--collate=1,2` for different batch sizes per input; the list repeats cyclically
+when there are more inputs than sizes.
 `@argument-file` inputs use retained range reads and incremental UTF-8 line
 decoding. File sizes are admitted before reading, and expanded lines count
 toward the configured argument budget.

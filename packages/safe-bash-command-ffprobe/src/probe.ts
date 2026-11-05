@@ -100,10 +100,12 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       : Object.fromEntries(Object.entries(row).filter(([key]) => fields.includes(key)));
   };
   const firstFrame = audio.nodes.find((node) => node.type === "MPEG");
-  const vbr = firstFrame?.fields?.vbr as { bytes?: number } | undefined;
+  const vbr = firstFrame?.fields?.vbr as { type?: string; bytes?: number } | undefined;
   const encodedSamples = Number(firstFrame?.fields?.encodedSamples);
   const mp3Bitrate =
-    vbr?.bytes && encodedSamples
+    vbr?.type === "Info"
+      ? Number(firstFrame?.fields?.bitrate)
+      : vbr?.bytes && encodedSamples
       ? (vbr.bytes * 8 * audio.streams[0]!.sampleRate) / encodedSamples
       : audio.streams[0]!.bitrate;
   const formatTags = audio.format === "ogg" ? {} : { ...audio.tags };

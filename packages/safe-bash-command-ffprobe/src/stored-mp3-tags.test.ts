@@ -29,6 +29,7 @@ async function run(bytes: Uint8Array, writer: string, route: "retained" | "strea
   });
   output += decoder.decode(); expect(result.exitCode).toBe(0); expect(output).toBe(fallback ? evalSyncFfprobe(bytes, args, () => bytes) : probe(bytes, args)); expect(opened).toBe(retired);
   expect(await base.readdir("/")).toEqual([{ name: "input.mp3", type: "file" }]);
+  return output;
 }
 for (const route of ["retained", "stream", "stdin"] as const) for (const writer of ["json", "default", "flat", "compact", "csv"]) {
   it(`streams strict MP3 metadata and tags with ${writer} via ${route}`, async () => {
@@ -49,8 +50,29 @@ it("preserves configured writers, selected tags and malformed MPEG fallback",asy
 it("preserves ffprobe's declared Xing byte-rate calculation", async()=>{
   const bytes=new Uint8Array(417*3);for(let i=0;i<3;i++)bytes.set([255,251,144,0],i*417);
   bytes.set(new TextEncoder().encode('Xing'),36);const view=new DataView(bytes.buffer);view.setUint32(40,3);view.setUint32(44,2);view.setUint32(48,1234);
-  for(const route of ['retained','stream','stdin'] as const)await run(bytes,'json',route);
+  for(const route of ['retained','stream','stdin'] as const) {
+    expect(JSON.parse(await run(bytes,'json',route)).streams[0].bit_rate).toBe('188956');
+  }
 });
+for (const { header, frameSize, bitrate } of [
+  { header: [255, 251, 148, 0], frameSize: 384, bitrate: '128000' },
+  { header: [255, 251, 80, 0], frameSize: 208, bitrate: '64000' }
+]) {
+  it(`reports the declared ${bitrate} CBR MP3 stream bitrate with an Info header`, async () => {
+    const bytes = new Uint8Array(frameSize * 3);
+    for (let i = 0; i < 3; i++) bytes.set(header, i * frameSize);
+    bytes.set(new TextEncoder().encode('Info'), 36);
+    const view = new DataView(bytes.buffer);
+    view.setUint32(40, 3);
+    view.setUint32(44, 2);
+    view.setUint32(48, bytes.length);
+    for (const route of ['retained', 'stream', 'stdin'] as const) {
+      const result = JSON.parse(await run(bytes, 'json', route));
+      expect(result.streams[0].bit_rate).toBe(bitrate);
+      expect(result.format.bit_rate).toBe(String(Math.floor(bytes.length * 8 / (2 * 1152 / Number(result.streams[0].sample_rate)))));
+    }
+  });
+}
 it("replays globally unsynchronized ID3v2.3 values through the stored index",async()=>{
   const data=Uint8Array.from([0,...Array.from({length:20000},(_,i)=>i%2?255:65)]),frame=new Uint8Array(10+data.length);
   frame.set(new TextEncoder().encode('TIT2'));new DataView(frame.buffer).setUint32(4,data.length);frame.set(data,10);

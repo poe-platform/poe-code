@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readEffects, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
@@ -20,9 +20,13 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
           rust.use(gitCommands());
         }
         const [code, stdout, stderr] = await runLinuxCommand(cmd, args, input, cwd);
+        const members = cmd === "zip" ? await readZipMembers(cwd!, stdout, args.slice(2)) : undefined;
         for (const shell of [ts.shell, rust]) {
           const result = await shell.exec(script, { stdin: input });
-          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], [code, stdout, stderr]);
+          assert.deepEqual([result.exitCode, Buffer.from(result.stderrBytes)], [code, stderr]);
+          const bytes = Buffer.from(result.stdoutBytes);
+          if (members) assert.deepEqual(await readZipMembers(cwd!, bytes, args.slice(2)), members);
+          else assert.deepEqual(bytes, stdout);
         }
       });
     }

@@ -3,7 +3,7 @@ import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -103,6 +103,7 @@ async function main(): Promise<void> {
         const expected = await runLinuxCommand(cmd, argv, input, cwd);
         if (mutation) assert.equal(expected[0], 0, expected[2].toString());
         const effects: Awaited<ReturnType<typeof observeMutation>> | undefined = mutation ? await observeMutation(cwd, cmd, expected) : undefined;
+        const members: Buffer[] | undefined = cmd === "zip" ? await readZipMembers(cwd, expected[1], argv.slice(2)) : undefined;
         const samples: number[][] = [[], [], []];
         for (let round = 0; round < warmup + iterations; round++) {
           for (let offset = 0; offset < 3; offset++) {
@@ -118,6 +119,10 @@ async function main(): Promise<void> {
               ? [result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)] : result;
             if (mutation) {
               assert.deepEqual(await observeMutation(cwd, cmd, observed, view), effects, script);
+            } else if (members) {
+              assert.equal(observed[0], expected[0], script);
+              assert.deepEqual(observed[2], expected[2], script);
+              assert.deepEqual(await readZipMembers(cwd, observed[1], argv.slice(2)), members, script);
             } else if (decoder) {
               assert.equal(observed[0], expected[0], script);
               assert.deepEqual(observed[2], expected[2], script);

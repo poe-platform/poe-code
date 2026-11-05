@@ -78,7 +78,7 @@ const textCommands = ([
   ["diff3", "-m", "samples/ours", "samples/base", "samples/theirs"],
   ["find", "samples", "-type", "f", "-name", "theirs", "-print0"], ["ls", "-1", "samples"],
   ["du", "-b", "samples/base"], ["stat", "-c", "%n %s", "samples/theirs"], ["hd", "samples/ours"],
-  ["tar", "-xOf", "sample.tar", "samples/base"], ["unzip", "-p", "sample.zip", "samples/ours"],
+  ["zip", "-q", "-", "samples/base", "samples/ours", "sample.tar"], ["tar", "-xOf", "sample.tar", "samples/base"], ["unzip", "-p", "sample.zip", "samples/ours"],
   ["less", "samples/theirs"], ["tree", "-i", "--noreport", "samples"],
   ["uname", "-so"], ["id", "-un", "0"], ["locale", "-ck", "decimal_point"],
   // Test the lower bound independently of the host processor count; sleep parses both units.
@@ -175,6 +175,20 @@ export async function observeMutation(cwd: string, cmd: string, [code, stdout, s
     stdout = Buffer.from("effects/" + created.name + "\n");
   }
   return { code, stdout, stderr, entries };
+}
+
+// ZIP writers can use different headers and compression streams for the same members.
+export async function readZipMembers(cwd: string, archive: Buffer, names: readonly string[]) {
+  await writeFile(cwd + "/verify.zip", archive);
+  const [code, listing, stderr] = await runLinuxCommand("unzip", ["-Z1", "verify.zip"], "", cwd);
+  assert.equal(code, 0, stderr.toString());
+  assert.deepEqual(listing, Buffer.from(names.join("\n") + "\n"));
+  return Promise.all(names.map(async name => {
+    const [code, contents, stderr] = await runLinuxCommand("unzip", ["-p", "verify.zip", name], "", cwd);
+    assert.equal(code, 0, stderr.toString());
+    assert.equal(stderr.length, 0);
+    return contents;
+  }));
 }
 
 export const linuxCodecs = [

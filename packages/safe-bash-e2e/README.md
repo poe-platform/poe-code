@@ -66,6 +66,9 @@ npm --workspace=@poe-platform/safe-bash-e2e test
 # Run the multi-profile benchmark suite and regenerate benchmarks/COMPARISON_REPORT.md
 npm --workspace=@poe-platform/safe-bash-e2e run bench
 
+# Compare command status and bytes to Linux, and print median timings
+npm --workspace=safe-bash-e2e run bench -- --linux-commands --iterations 10 --warmup 2
+
 # Compare any two stored benchmark JSON runs
 npm --workspace=@poe-platform/safe-bash-e2e run bench -- --compare benchmarks/ts-baseline-overlay-cow-fs.json benchmarks/ts-baseline-warm-memory-fastpath.json
 ```

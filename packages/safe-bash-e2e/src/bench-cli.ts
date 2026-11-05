@@ -1,3 +1,7 @@
+import assert from "node:assert/strict";
+import { RustWasmBash } from "@poe-code/safe-bash-rust";
+import { SafeBashE2EHarness, sb } from "./harness.js";
+import { linuxCommands, linuxEnv, runLinuxCommand } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -63,6 +67,45 @@ async function main(): Promise<void> {
     warmupIdx !== -1 && args[warmupIdx + 1]
       ? Number(args[warmupIdx + 1])
       : 2;
+
+  if (args.includes("--linux-commands")) {
+    assert.ok(Number.isSafeInteger(iterations) && iterations >= 1, "iterations must be a positive integer");
+    assert.ok(Number.isSafeInteger(warmup) && warmup >= 0, "warmup must be a nonnegative integer");
+    const input = "alpha\nbeta\nbeta\n".repeat(256);
+    const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
+    const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
+    try {
+      console.log(`Median milliseconds, ${Buffer.byteLength(input)} stdin bytes, ${iterations} samples after ${warmup} warmups.`);
+      console.log("Command\tLinux (spawn + pipes)\tTypeScript (warm)\tRust/Wasm (warm)");
+      for (const { cmd, args: argv, script } of linuxCommands) {
+        const expected = await runLinuxCommand(cmd, argv, input);
+        const samples: number[][] = [[], [], []];
+        for (let round = 0; round < warmup + iterations; round++) {
+          for (let offset = 0; offset < 3; offset++) {
+            const engine = (round + offset) % 3;
+            const start = performance.now();
+            const result = engine === 0
+              ? await runLinuxCommand(cmd, argv, input)
+              : await (engine === 1 ? ts.shell : rust).exec(script, { stdin: input });
+            const elapsed = performance.now() - start;
+            const observed = "exitCode" in result
+              ? [result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)] : result;
+            assert.deepEqual(observed, expected, script);
+            if (round >= warmup) samples[engine]!.push(elapsed);
+          }
+        }
+        const medians = samples.map(times => {
+          times.sort((a, b) => a - b);
+          return ((times[(times.length - 1) >> 1]! + times[times.length >> 1]!) / 2).toFixed(3);
+        });
+        console.log([script, ...medians].join("\t"));
+      }
+    } finally {
+      await ts.dispose();
+      await rust.dispose();
+    }
+    return;
+  }
 
   const gitCommit = tryGetGitCommit();
   const profiles: {

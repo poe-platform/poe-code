@@ -574,6 +574,13 @@ function bindExternalFs(shell,fs,options) {
           handles.set(id,descriptor);
           result=new Uint8Array(4);new DataView(result.buffer).setUint32(0,id,true);return;
         }
+        if(op==="unlink" && typeof fs.unlink!=="function" && fs.removeFileConditional) {
+          const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
+          if(!caps?.atomicFileMutation)throw fsOperationError("ENOTSUP",op,path);
+          const parent=await fs.lstat(posix.dirname(path),settings),expected=await fs.lstat(path,settings);
+          if(expected.type!=="file")throw fsOperationError(expected.type==="directory"?"EISDIR":"ENOTSUP",op,path);
+          await fs.removeFileConditional(path,{...settings,parent,expected});return;
+        }
         if(op!=="fstat" && typeof fs[op]!=="function")throw fsOperationError("ENOTSUP",op,path);
         switch(op) {
           case "stat":case "lstat":case "fstat":{

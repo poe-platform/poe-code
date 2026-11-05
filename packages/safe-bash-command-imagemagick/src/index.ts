@@ -4048,6 +4048,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return (yield* removeAlphaImageSteps((yield* flattenImageSteps(im, state.background))));
             };
         }
+        else if (mode === "background") {
+            apply = function* (im) {
+                let pixelWork = 0;
+                const out = new Uint8Array(im.data);
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    if (++pixelWork % 16384 === 0)
+                        yield;
+                    if (out[idx + 3] === 0) {
+                        out[idx] = state.background.r;
+                        out[idx + 1] = state.background.g;
+                        out[idx + 2] = state.background.b;
+                    }
+                }
+                return { ...im, data: out };
+            };
+        }
         else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
             apply = function* (im) {
                 let pixelWork = 0;

@@ -59,3 +59,36 @@ for (const transition of ["", "transition=fade:", "transition=wipeleft:", "wipel
     });
   });
 }
+
+for (const [size, rate, error] of [
+  ["8x16", 4, "size"],
+  ["16x8", 4, "size"],
+  ["8x8", 4, "size"],
+  ["16x16", 2, "timebase"]
+] as const) {
+  for (const existing of [false, true]) {
+    it(`xfade rejects ${size} at ${rate} fps with ${existing ? "existing" : "new"} output`, async () => {
+      const volume = Volume.fromJSON(existing ? { "/out_1.png": "existing output" } : {});
+      const before = volume.toJSON();
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-v", "error", ...inputs.slice(0, 4),
+          "-f", "lavfi", "-i", `color=c=blue:s=${size}:r=${rate}:d=2`,
+          "-filter_complex", "[0:v][1:v]xfade=transition=fade:duration=1:offset=1", "/out_%d.png"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      assert.notEqual(result.exitCode, 0);
+      const stderr = Buffer.concat(errors).toString();
+      assert.ok(stderr.includes("xfade") && stderr.includes(error), stderr);
+      assert.deepEqual(volume.toJSON(), before);
+    });
+  }
+}

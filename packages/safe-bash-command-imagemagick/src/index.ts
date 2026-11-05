@@ -2207,6 +2207,28 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             return [(ry[1]! * px - rx[1]! * py) / determinant - 0.5, (rx[0]! * py - ry[0]! * px) / determinant - 0.5];
         });
     }
+    if (method === "barrelinverse") {
+        if (![3, 4, 5, 6, 8, 10].includes(nums.length) || !nums.every(Number.isFinite)) throw new Error("Invalid BarrelInverse arguments");
+        const a = nums[0]!, b = nums[1]!, c = nums[2]!, d = nums.length === 3 || nums.length === 5 ? 1 - a - b - c : nums[3]!;
+        const ay = nums.length >= 8 ? nums[4]! : a, by = nums.length >= 8 ? nums[5]! : b, cyCoefficient = nums.length >= 8 ? nums[6]! : c, dyCoefficient = nums.length >= 8 ? nums[7]! : d;
+        const center = nums.length === 5 ? 3 : nums.length === 6 ? 4 : nums.length === 10 ? 8 : undefined;
+        // ImageMagick centers use pixel edges; the sampler uses pixel centers.
+        const ox = center === undefined ? cx : nums[center]! - 0.5, oy = center === undefined ? cy : nums[center + 1]! - 0.5, radius = Math.min(w, h) / 2;
+        return {
+            ...result((x, y) => {
+                const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy);
+                if (r === 0) return [x, y];
+                return [ox + dx * radius / (((a * r + b) * r + c) * r + d), oy + dy * radius / (((ay * r + by) * r + cyCoefficient) * r + dyCoefficient)];
+            }),
+            derivatives(x, y) {
+                const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy);
+                const fx = 1 / (((a * r + b) * r + c) * r + d), fy = 1 / (((ay * r + by) * r + cyCoefficient) * r + dyCoefficient);
+                const gx = r > 0 ? -(3 * a * r * r + 2 * b * r + c) / r * fx * fx : 0;
+                const gy = r > 0 ? -(3 * ay * r * r + 2 * by * r + cyCoefficient) / r * fy * fy : 0;
+                return [fx + dx * dx * gx, dx * dy * gx, dx * dy * gy, fy + dy * dy * gy];
+            }
+        };
+    }
     if (method === "barrel" && nums.length >= 3) {
         const a = nums[0] ?? 0, b = nums[1] ?? 0, c = nums[2] ?? 0, d = nums[3] ?? 1 - a - b - c, ox = nums[4] ?? cx, oy = nums[5] ?? cy, radius = Math.min(w, h) / 2;
         return { ...result((x, y) => { const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy), factor = a * r * r * r + b * r * r + c * r + d; return [ox + dx * factor * radius, oy + dy * factor * radius]; }),

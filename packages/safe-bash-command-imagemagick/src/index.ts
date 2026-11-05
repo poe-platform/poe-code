@@ -1,3 +1,4 @@
+import { compareLayerBounds } from "./compare-layers.js";
 import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
@@ -5230,7 +5231,25 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-dispose") {
             i++;
         }
-        else if (t === "-coalesce" || t === "-deconstruct") {
+        else if (t === "-deconstruct" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "compareany")) {
+            if (t === "-layers") i++;
+            const frames: RgbaImage[] = stack.length ? [stack[0]!] : [];
+            for (let n = 1; n < stack.length; n++) {
+                const current = stack[n]!, previous = stack[n - 1]!;
+                const bounds = compareLayerBounds(previous, current, state.fuzz);
+                let next = bounds.next();
+                while (!next.done) {
+                    if (!next.value) { yield; next = bounds.next(); }
+                    else {
+                        const { image, position, length } = next.value;
+                        next = bounds.next((image ? current : previous).data.subarray(position, position + length));
+                    }
+                }
+                if (next.value) frames.push({ ...yield* extractImageSteps(current, next.value), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
+            }
+            stack = frames;
+        }
+        else if (t === "-coalesce") {
             if (stack.length) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 let canvas: RgbaImage = { ...first, width, height, data: new Uint8Array(width * height * 4), hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
@@ -6327,7 +6346,32 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && ["-dispose", "-deskew"].includes(token)) { i++; continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
-        if (!operandsOnly && (token === "-coalesce" || token === "-deconstruct")) {
+        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "compareany"))) {
+            if (token === "-layers") i++;
+            const fuzz = state.fuzz;
+            stackStep(async (stack, backend) => {
+                const frames = new StoredImageStack(backend.storage, signal);
+                let previous = await stack.get(0);
+                if (previous) await frames.push(previous);
+                for (let n = 1; n < stack.length; n++) {
+                    const current = (await stack.get(n))!;
+                    const bounds = compareLayerBounds(previous!, current, fuzz);
+                    let next = bounds.next();
+                    while (!next.done) {
+                        if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
+                        else {
+                            const { image, position, length } = next.value;
+                            next = bounds.next(await backend.storage.read((image ? current : previous!).position + position, length));
+                        }
+                    }
+                    if (next.value) await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...next.value }, signal), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
+                    previous = current;
+                }
+                return frames;
+            });
+            continue;
+        }
+        if (!operandsOnly && token === "-coalesce") {
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;

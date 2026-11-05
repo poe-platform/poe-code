@@ -74,7 +74,8 @@ async function* collatedSelections(inputs: ReadonlyMap<string, PdfFileSource | u
       try {
         document = await PdfRetainedDocument.open(input, storage, { signal, recovery: "repair", ...(password === undefined ? {} : { password }) });
         const indices = iterateQpdfPageRange(spec.range, await validate(document, storage, signal));
-        states.push({ resources: new IntegerTable(backing), input, password, indices, next: indices.next() });
+        const next = options.collateCounts![states.length % options.collateCounts!.length] === 0 ? indices.return() : indices.next();
+        states.push({ resources: new IntegerTable(backing), input, password, indices, next });
       } catch (error) { failed = true; throw error; }
       finally {
         const closed = await Promise.allSettled([document?.close()]);

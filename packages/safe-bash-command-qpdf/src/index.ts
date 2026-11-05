@@ -646,7 +646,11 @@ function parseQpdfArguments(argv: readonly string[]) {
     } else if (arg === "--collate") {
       collateCounts = [1];
     } else if (arg.startsWith("--collate=")) {
-      collateCounts = arg.slice("--collate=".length).split(",").map(value => Math.max(1, Number.parseInt(value, 10) || 1));
+      collateCounts = arg.slice("--collate=".length).split(",").map(value => {
+        const count = Number.parseInt(value, 10);
+        return count === 0 ? 0 : Math.max(1, count || 1);
+      });
+      if (collateCounts.every(count => count === 0)) collateCounts = undefined;
     } else if (arg === "--flatten-rotation") {
       flattenRotation = true;
     } else if (arg === "--remove-unreferenced-resources") {
@@ -1593,7 +1597,7 @@ function* executeQpdfCli(
         for (let s = 0; s < loadedSpecs.length; s++) {
           const item = loadedSpecs[s]!;
           const cur = cursors[s]!;
-          if (cur < item.indices.length) {
+          if (cur < item.indices.length && collateCounts[s % collateCounts.length] !== 0) {
             const slice = item.indices.slice(cur, cur + collateCounts[s % collateCounts.length]!);
             (yield* mergedDoc.copyPagesFromSteps(item.doc, slice));
             cursors[s] = cur + slice.length;

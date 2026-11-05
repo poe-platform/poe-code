@@ -1894,14 +1894,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
           } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
+            const track0 = loadedDocs[0]!.tracks.find((t) => t.type === "video")!;
+            const track1 = loadedDocs[1]!.tracks.find((t) => t.type === "video")!;
             const f0 = await ensureDecodedFrames(
-              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
+              track0,
               loadedDocs[0]!.timescale, budget
             , context.signal);
             const f1 = await ensureDecodedFrames(
-              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
+              track1,
               loadedDocs[1]!.timescale, budget
             , context.signal);
+            if (f0[0] && f1[0]) {
+              if (f0[0].width !== f1[0].width || f0[0].height !== f1[0].height) {
+                throw new Error(`xfade input size ${f0[0].width}x${f0[0].height} does not match ${f1[0].width}x${f1[0].height}`);
+              }
+              // Lavfi's timebase is its frame interval, not the synthetic MP4 timescale.
+              const timebase0 = inputs[0]!.format === "lavfi" ? f0[0].durationSeconds : 1 / track0.timescale;
+              const timebase1 = inputs[1]!.format === "lavfi" ? f1[0].durationSeconds : 1 / track1.timescale;
+              if (timebase0 !== timebase1) {
+                throw new Error(`xfade input timebase ${timebase0} does not match ${timebase1}`);
+              }
+            }
             const xfadeSpec = filterComplex.slice(filterComplex.indexOf("xfade") + "xfade".length)
               .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
             const positional = (xfadeSpec.startsWith("=") ? xfadeSpec.slice(1) : "").split(":");

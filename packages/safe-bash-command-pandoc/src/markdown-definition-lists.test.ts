@@ -52,6 +52,19 @@ for (const retained of [false, true]) {
     const blocks = JSON.parse(await render("~~~\nTerm\n:   Definition\n~~~\n\n:   Orphan\n")).blocks;
     expect(blocks.map((block: {t: string}) => block.t)).toEqual(["CodeBlock", "Para"]);
   });
+  it.each([2, 3, 4, 6])(`keeps a nested list indented %i spaces inside a tight definition (retained=${retained})`, async indent => {
+    const text = `Term\n: First\n\n${" ".repeat(indent)}- child\n${" ".repeat(indent + 2)}continued\n${" ".repeat(indent)}- sibling\n\nOther\n: Second\n`;
+    expect(JSON.parse(await render(text)).blocks).toEqual([{t: "DefinitionList", c: [
+      [[{t: "Str", c: "Term"}], [[
+        {t: "Plain", c: [{t: "Str", c: "First"}]},
+        {t: "BulletList", c: [
+          [{t: "Plain", c: [{t: "Str", c: "child"}, {t: "SoftBreak"}, {t: "Str", c: "continued"}]}],
+          [{t: "Plain", c: [{t: "Str", c: "sibling"}]}]
+        ]}
+      ]]],
+      [[{t: "Str", c: "Other"}], [[{t: "Plain", c: [{t: "Str", c: "Second"}]}]]]
+    ]}]);
+  });
   it(`keeps adjacent multiline definitions tight (retained=${retained})`, async () => {
     const blocks = JSON.parse(await render("Term\n:   First\n    continued\n:   Second\n")).blocks;
     expect(blocks[0].c[0][1].map((definition: {t: string}[]) => definition[0]!.t)).toEqual(["Plain", "Plain"]);

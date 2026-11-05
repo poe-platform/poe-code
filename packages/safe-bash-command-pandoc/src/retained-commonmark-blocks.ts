@@ -200,7 +200,7 @@ export class RetainedCommonMarkBlocks {
       context.bound("depth", depth + 1); context.charge("nodes", 1); context.charge("retainedBytes", 128);
       if (lastStack) {
         const top = await this.get(lastStack, 8);
-        if (kinds[top[3]!] === "definition") {if (top[6]) await this.set(top[2]!, "tight", 0); await this.put(lastStack + 48, [0]);}
+        if (kinds[top[3]!] === "definition") {if (top[6] && kind !== "list") await this.set(top[2]!, "tight", 0); await this.put(lastStack + 48, [0]);}
         if (kinds[top[3]!] === "item") {if (top[6] && (await this.node(top[2]!)).first) await this.set(top[5]!, "tight", 0); await this.put(lastStack + 48, [0]);}
       }
       const node = await this.create(kind, {startLine: line.number, startColumn: await line.column(offset), endLine: line.number, endColumn: line.endColumn, ...initial}); await this.append(await parent(), node); return node;
@@ -235,8 +235,14 @@ export class RetainedCommonMarkBlocks {
         context.checkpoint(); const fields = container.fields, kind = kinds[fields[3]!]!;
         if (kind !== "list") {
           const indent = await line.spaces(offset);
+          const child = kind === "definition" && fields[1] ? await this.get(fields[1], 4) : undefined;
+          // Lists can use two continuation columns, with up to three extra marker spaces.
+          const nestedList = child && kinds[child[3]!] === "list" &&
+            (await this.node(child[2]!)).startColumn <= (await this.node(fields[2]!)).startColumn + 5;
           if (kind === "quote") {if (indent > 3 || await line.at(offset + indent) !== ">") {failed = fields; break;} offset += indent + 1; if (await line.at(offset) === " ") offset++;}
           else if (fields[7] && fields[6]) {failed = fields; break;}
+          else if (kind === "definition" && indent >= fields[4]! - 2 &&
+            (nestedList || indent <= fields[4]! + 1 && await line.marker(offset + indent, extensions.fancy_lists))) offset += fields[4]! - 2;
           else if (indent >= fields[4]!) offset += fields[4]!;
           else if (offset + indent === line.length) offset += indent;
           else {failed = fields; break;}

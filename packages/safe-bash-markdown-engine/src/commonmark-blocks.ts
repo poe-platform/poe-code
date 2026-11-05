@@ -268,7 +268,7 @@ export async function parseCommonMarkBlocks(
     const item = stack[stack.length - 1];
     if (item?.kind === "item" && item.blank && item.node.blocks.length > 0) item.list.tight = false;
     if (item?.kind === "item") item.blank = false;
-    if (item?.kind === "definition" && item.blank) item.node.tight = false;
+    if (item?.kind === "definition" && item.blank && node.kind !== "list") item.node.tight = false;
     if (item?.kind === "definition") item.blank = false;
     blocks().push(node);
   };
@@ -364,6 +364,7 @@ export async function parseCommonMarkBlocks(
     for (; matched < stack.length; matched++) {
       context.checkpoint();
       const container = stack[matched]!;
+      const child = stack[matched + 1];
       if (container.kind === "list" || container.kind === "nativeDiv" || container.kind === "div") continue;
       const indent = spaces(line.text, offset);
       if (container.kind === "quote") {
@@ -371,6 +372,9 @@ export async function parseCommonMarkBlocks(
         offset += indent + 1;
         if (line.text[offset] === " ") offset++;
       } else if (container.empty && container.blank) break;
+      // Lists can use two continuation columns, with up to three extra marker spaces.
+      else if (container.kind === "definition" && indent >= container.indent - 2 &&
+        (child?.kind === "list" && child.node.source.start.column <= container.node.source.start.column + 5 || indent <= container.indent + 1 && marker(line.text, offset + indent, extensions.fancy_lists))) offset += container.indent - 2;
       else if (indent >= container.indent) offset += container.indent;
       else if (offset + indent === line.text.length) offset += indent;
       else break;

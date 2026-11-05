@@ -6,11 +6,11 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli, runQpdfCliSync } from "./index.js";
 
 for (const path of ["buffered", "sync", "retained"]) {
-  for (const option of ["--split-pages=0", "--split-pages=foo", "--split-pages", "--split-pages=2"]) {
-    it(`${path}: ${option} preserves native output names and page grouping`, async () => {
+  for (const [target, stem, extension] of [["out.pdf", "out", ".pdf"], ["OUT.PDF", "OUT", ".PDF"], ["out.PdF", "out", ".PdF"], ["out", "out", ""], ["out.txt", "out.txt", ""]] as const) for (const option of ["--split-pages=0", "--split-pages=foo", "--split-pages", "--split-pages=2"]) {
+    it(`${path}: ${option} targeting ${target} preserves native output names and page grouping`, async () => {
       const document = PdfDocument.create();
       for (let width = 101; width <= 105; width++) document.addPage([width, 200]);
-      const input = document.save(), args = [option, "in.pdf", "out.pdf"];
+      const input = document.save(), args = [option, "in.pdf", target];
       const files = new Map([["in.pdf", input]]);
       if (path === "retained") {
         const fs = createMemoryFileSystem();
@@ -37,10 +37,10 @@ for (const path of ["buffered", "sync", "retained"]) {
       assert.deepEqual(files.get("in.pdf"), input);
       files.delete("in.pdf");
       const expected: [string, number[]][] = option === "--split-pages" ? [
-        ["out-1.pdf", [101]], ["out-2.pdf", [102]], ["out-3.pdf", [103]], ["out-4.pdf", [104]], ["out-5.pdf", [105]]
+        [`${stem}-1${extension}`, [101]], [`${stem}-2${extension}`, [102]], [`${stem}-3${extension}`, [103]], [`${stem}-4${extension}`, [104]], [`${stem}-5${extension}`, [105]]
       ] : option === "--split-pages=2" ? [
-        ["out-1-2.pdf", [101, 102]], ["out-3-4.pdf", [103, 104]], ["out-5-5.pdf", [105]]
-      ] : [["out.pdf", [101, 102, 103, 104, 105]]];
+        [`${stem}-1-2${extension}`, [101, 102]], [`${stem}-3-4${extension}`, [103, 104]], [`${stem}-5-5${extension}`, [105]]
+      ] : [[target, [101, 102, 103, 104, 105]]];
       assert.deepEqual([...files.keys()].sort(), expected.map(([name]) => name).sort());
       for (const [name, widths] of expected) {
         assert.deepEqual(PdfDocument.load(files.get(name)!).getPages().map(page => page.getSize().width), widths);

@@ -23,9 +23,10 @@ export function formatSplitName(template: string, total: number, group: number, 
     out += "%";
   }
   if (replaced) return out;
-  const stem = template.toLowerCase().endsWith(".pdf") ? template.slice(0, -4) : template;
+  const extension = template.toLowerCase().endsWith(".pdf") ? template.slice(-4) : "";
+  const stem = extension ? template.slice(0, -4) : template;
   const first = String(start).padStart(padLen, "0"), last = String(end).padStart(padLen, "0");
-  return `${stem}-${group === 1 ? first : `${first}-${last}`}.pdf`;
+  return `${stem}-${group === 1 ? first : `${first}-${last}`}${extension}`;
 }
 
 export async function* splitPageOutputs(document: PdfRetainedDocument, storage: PdfIndexStorage, target: string, group: number,

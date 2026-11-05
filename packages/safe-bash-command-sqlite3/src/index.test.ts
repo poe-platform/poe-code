@@ -79,6 +79,47 @@ for (const [sql, stdout] of [
   });
 }
 
+test("sqlite3 JSON1 rejects incomplete object arguments", async () => {
+  for (const args of ["'a'", "'a', 1, 'b'"]) {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT json_object(${args});`]),
+      { code: 1, stdout: "", stderr: "Error: stepping, json_object() requires an even number of arguments\n" }
+    );
+  }
+});
+
+for (const [name, updated] of [
+  ["json_set", '{"a":1,"b":2}'],
+  ["json_insert", '{"a":0,"b":2}'],
+  ["json_replace", '{"a":1}'],
+]) {
+  test(`sqlite3 ${name} rejects incomplete path/value pairs`, async () => {
+    for (const args of ["'{}', '$.a'", "'{}', '$.a', 1, '$.b'", "NULL, '$.a'"]) {
+      assert.deepEqual(
+        await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${name}(${args});`]),
+        { code: 1, stdout: "", stderr: `Error: stepping, ${name}() needs an odd number of arguments\n` },
+        args
+      );
+    }
+  });
+
+  test(`sqlite3 ${name} preserves complete and empty argument lists`, async () => {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `SELECT ${name}(), ${name}('{}'), ${name}('{"a":0}', '$.a', 1, '$.b', 2);`
+      ]),
+      { code: 0, stdout: `|{}|${updated}\n`, stderr: "" }
+    );
+  });
+}
+
+test("sqlite3 json_object preserves complete and empty argument lists", async () => {
+  assert.deepEqual(
+    await runSqlite3(createMemoryFileSystem(), [":memory:", "SELECT json_object(), json_object('a', 1, 'b', 2);"]),
+    { code: 0, stdout: '{}|{"a":1,"b":2}\n', stderr: "" }
+  );
+});
+
 test("sqlite3 JSON1 reports malformed input through the public command", async () => {
   for (const expression of [
     "json_extract('not json', '$')",

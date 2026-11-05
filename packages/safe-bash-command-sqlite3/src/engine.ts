@@ -8067,6 +8067,9 @@ export class SqliteDatabase {
       case "JSON_ARRAY":
         return serializeSqlJson(args);
       case "JSON_OBJECT": {
+        if (args.length % 2 !== 0) {
+          throw new Error("stepping, json_object() requires an even number of arguments");
+        }
         const entries: string[] = [];
         for (let i = 0; i + 1 < args.length; i += 2) {
           yield;
@@ -8152,6 +8155,9 @@ export class SqliteDatabase {
       case "JSON_SET":
       case "JSON_INSERT":
       case "JSON_REPLACE": {
+        if (args.length > 0 && args.length % 2 === 0) {
+          throw new Error(`stepping, ${u.toLowerCase()}() needs an odd number of arguments`);
+        }
         if (a0 === null) {
           return null;
         }

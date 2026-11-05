@@ -34,10 +34,17 @@ function* cellParts(value: SqlValue, nullValue: string): Generator<string> {
   }
 }
 
-function* cellLength(value: SqlValue, nullValue: string): Generator<string, number> {
-  let length = 0;
-  for (const part of cellParts(value, nullValue)) { length += part.length; yield ""; }
-  return length;
+/** Null marks a physical line boundary; text fragments remain bounded. */
+function* cellSegments(value: SqlValue, nullValue: string): Generator<string | null> {
+  for (const part of cellParts(value, nullValue)) {
+    let start = 0;
+    for (let end = part.indexOf('\n'); end >= 0; end = part.indexOf('\n', start)) {
+      if (end > start) yield part.slice(start, end);
+      yield null;
+      start = end + 1;
+    }
+    if (start < part.length) yield part.slice(start);
+  }
 }
 
 function* repeat(character: string, count: number): Generator<string> {
@@ -123,16 +130,21 @@ export function* formatQueryParts({columns, rows}: QueryResultSet, state: QueryO
   if (mode === 'column' || mode === 'table' || mode === 'markdown' || mode === 'box') {
     if (!state.showHeaders && !rows.length) return;
     const widths: number[] = [];
+    let multiline = false;
     for (let col = 0; col < columns.length; col++) {
-      let width = state.widths[col];
-      if (!(width! > 0)) {
-        width = Math.max(columns[col]!.length, 1);
-        for (const row of rows) {
-          width = Math.max(width, yield* cellLength(col < row.length ? row[col]! : '', state.nullValue));
+      let width = 1;
+      for (let row = -1; row < rows.length; row++) {
+        const value = row < 0 ? columns[col]! : (col < rows[row]!.length ? rows[row]![col]! : '');
+        let length = 0, lines = 0;
+        for (const part of cellSegments(value, state.nullValue)) {
+          if (part === null) { width = Math.max(width, length); length = 0; lines++; }
+          else { length += part.length; }
+          if (lines > 1 || (lines > 0 && length > 0)) multiline = true;
           yield '';
         }
+        width = Math.max(width, length);
       }
-      widths.push(width!);
+      widths.push(state.widths[col]! > 0 ? state.widths[col]! : width);
     }
     function* border(left: string, middle: string, right: string, line: string, padding: number): Generator<string> {
       yield left;
@@ -141,16 +153,34 @@ export function* formatQueryParts({columns, rows}: QueryResultSet, state: QueryO
     }
     function* rowParts(values: SqlValue[], header = false): Generator<string> {
       const framed = mode !== 'column', bar = mode === 'box' ? '│' : '|';
-      if (framed) yield bar + ' ';
-      for (let col = 0; col < values.length; col++) {
-        if (col) yield framed ? ' ' + bar + ' ' : '  ';
-        const width = widths[col], length = yield* cellLength(values[col]!, state.nullValue);
-        // padEnd(undefined) leaves extra cells unchanged, matching the convenience formatter.
-        const padding = Math.max(0, (width ?? 0) - length), left = header && (mode === 'table' || mode === 'markdown') ? Math.floor(padding / 2) : 0;
-        yield* repeat(' ', left); yield* cellParts(values[col]!, state.nullValue); yield* repeat(' ', padding - left);
-      }
-      yield framed ? ' ' + bar + '\n' : '\n';
+      const cells = values.map(value => {
+        const parts = cellSegments(value, state.nullValue);
+        return {parts, lengths: cellSegments(value, state.nullValue), next: parts.next()};
+      });
+      do {
+        if (framed) yield bar + ' ';
+        for (let col = 0; col < cells.length; col++) {
+          if (col) yield framed ? ' ' + bar + ' ' : '  ';
+          const cell = cells[col]!;
+          let length = 0;
+          for (let part = cell.lengths.next(); !part.done && part.value !== null; part = cell.lengths.next()) {
+            length += part.value.length;
+            yield '';
+          }
+          const padding = Math.max(0, (widths[col] ?? 0) - length);
+          const left = header && (mode === 'table' || mode === 'markdown') ? Math.floor(padding / 2) : 0;
+          yield* repeat(' ', left);
+          while (!cell.next.done && cell.next.value !== null) {
+            yield cell.next.value;
+            cell.next = cell.parts.next();
+          }
+          if (!cell.next.done) cell.next = cell.parts.next();
+          yield* repeat(' ', padding - left);
+        }
+        yield framed ? ' ' + bar + '\n' : '\n';
+      } while (cells.some(cell => !cell.next.done));
     }
+
     if (mode === 'table') yield* border('+', '+', '+', '-', 2);
     if (mode === 'box') yield* border('┌', '┬', '┐', '─', 2);
     if (state.showHeaders || mode === 'markdown') {
@@ -160,7 +190,14 @@ export function* formatQueryParts({columns, rows}: QueryResultSet, state: QueryO
       if (mode === 'table') yield* border('+', '+', '+', '-', 2);
       if (mode === 'box') yield* border('├', '┼', '┤', '─', 2);
     }
-    for (const row of rows) yield* rowParts(row);
+    for (let row = 0; row < rows.length; row++) {
+      if (row && multiline) {
+        if (mode === 'column') yield '\n';
+        if (mode === 'table') yield* border('+', '+', '+', '-', 2);
+        if (mode === 'box') yield* border('├', '┼', '┤', '─', 2);
+      }
+      yield* rowParts(rows[row]!);
+    }
     if (mode === 'table') yield* border('+', '+', '+', '-', 2);
     if (mode === 'box') yield* border('└', '┴', '┘', '─', 2);
     return;

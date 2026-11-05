@@ -26,7 +26,7 @@ test('sequential formatting produces its header before accessing rows',()=>{
 
 for(const mode of Object.keys(expected))test(`bounds ${mode} fragments for large cells, headers, nulls and padding`,()=>{
  const text='é😀\'"<&\r\n'.repeat(12000);
- const parts=formatQueryParts({columns:[text],rows:[[text],[null],[new TextEncoder().encode(text)]]},{...options,mode:mode as QueryOutputOptions['mode'],nullValue:text,widths:[text.length+5000]});
+ const parts=formatQueryParts({columns:[text],rows:[[text],[null],[new TextEncoder().encode(text)]]},{...options,mode:mode as QueryOutputOptions['mode'],nullValue:text,widths:[5000]});
  let length=0;
  for(const part of parts){assert.ok(part.length<=8192,`unbounded ${mode} fragment: ${part.length}`);length+=part.length;}
  assert.ok(length>text.length);
@@ -64,3 +64,11 @@ test('JSON REAL values round trip at exponent and rounding boundaries',()=>{
  test('CSV empty separators quote empty strings',()=>{
   assert.equal([...formatQueryParts({columns:[''],rows:[['']]},{...options,mode:'csv',colSeparator:''})].join(''),'""\n""\n');
  });
+
+test('aligned BLOB and null cells split newlines across chunk boundaries with explicit widths', () => {
+  const first = 'a'.repeat(4095);
+  const value = first + '\nnext\n';
+  const result = {columns: ['x', 'y'], rows: [[new TextEncoder().encode(value), null]]};
+  assert.equal([...formatQueryParts(result, {...options, mode: 'column', showHeaders: false, nullValue: 'b\nc', widths: [4095, 1]})].join(''),
+    first + '  b\nnext' + ' '.repeat(4091) + '  c\n');
+});

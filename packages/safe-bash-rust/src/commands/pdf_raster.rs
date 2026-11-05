@@ -198,7 +198,7 @@ fn clip_coverage(row: &Option<ClipRow>, x: usize) -> u8 {
 // Poppler stores device color operands in 16.16. Its lexer accumulates the
 // fractional digits in order, which matters on exact fixed-point boundaries.
 fn cairo_component(value: &Value<'_>) -> Option<f64> {
-    let c = value.number()?.clamp(0., 1.);
+    let c = value.poppler_number()?.clamp(0., 1.);
     let fixed = (c * 65536.) as u32;
     // Cairo takes the high byte of its rounded 16-bit solid color.
     Some(f64::from((fixed * 65535 + 32768) >> 24) / 255.)
@@ -778,7 +778,7 @@ impl PageSource<'_> {
                     *target = node
                         .get(key)
                         .and_then(|v| self.objects.resolve(v))
-                        .and_then(|v| v.rectangle());
+                        .and_then(|v| v.rectangle(Value::poppler_number));
                 }
             }
             if rot.is_none() {
@@ -975,7 +975,7 @@ impl PageSource<'_> {
                     return Some(());
                 }
             };
-            let n = |i: usize| args.get(i)?.number();
+            let n = |i: usize| args.get(i)?.poppler_number();
             let pt = |x, y| point(x * ctm[0] + y * ctm[2] + ctm[4], x * ctm[1] + y * ctm[3] + ctm[5]);
             match op {
                 b"q" => {

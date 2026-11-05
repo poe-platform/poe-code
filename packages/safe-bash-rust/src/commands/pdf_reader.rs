@@ -112,6 +112,9 @@ impl<'a> Value<'a> {
         }
     }
     fn number(&self) -> Option<f64> {
+        std::str::from_utf8(self.word()?).ok()?.parse().ok()
+    }
+    fn poppler_number(&self) -> Option<f64> {
         let token = std::str::from_utf8(self.word()?).ok()?;
         let Some((whole, fraction)) = token.split_once('.') else {
             return token.parse().ok();
@@ -134,14 +137,14 @@ impl<'a> Value<'a> {
         }
         Some(if whole.starts_with('-') { -number } else { number })
     }
-    fn rectangle(&self) -> Option<[f64; 4]> {
+    fn rectangle(&self, number: fn(&Self) -> Option<f64>) -> Option<[f64; 4]> {
         let Self::Array(items) = self else {
             return None;
         };
         let [x0, y0, x1, y1] = items.as_slice() else {
             return None;
         };
-        let rect = [x0.number()?, y0.number()?, x1.number()?, y1.number()?];
+        let rect = [number(x0)?, number(y0)?, number(x1)?, number(y1)?];
         rect.iter().all(|v| v.is_finite()).then_some(rect)
     }
     fn reference(&self) -> Option<ObjectId> {
@@ -984,8 +987,8 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
                 value = &resolved;
             }
             match key {
-                b"MediaBox" => media = value.rectangle()?,
-                b"CropBox" => crop = Some(value.rectangle()?),
+                b"MediaBox" => media = value.rectangle(Value::number)?,
+                b"CropBox" => crop = Some(value.rectangle(Value::number)?),
                 _ => {
                     rotation = std::str::from_utf8(value.word()?)
                         .ok()?

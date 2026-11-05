@@ -195,7 +195,7 @@ impl<'a> PageSource<'a> {
                         continue;
                     }
                 };
-                let num = |i: usize| args.get(i)?.number();
+                let num = |i: usize| args.get(i)?.poppler_number();
                 emit(Draw::Operator(op, &args, st.ctm), &mut self.objects)?;
                 if op == b"BI" {
                     let (fields, pixels) = super::pdf_content_edit::inline(&mut c, &mut self.objects.tokens).ok()?;
@@ -223,13 +223,13 @@ impl<'a> PageSource<'a> {
                                 dict.get(b"BBox").and_then(|v| self.objects.resolve(v))
                             && let [x0, y0, x1, y1, ..] = bounds.as_slice()
                         {
-                            let bbox = [x0.number()?, y0.number()?, x1.number()?, y1.number()?];
+                            let bbox = [x0.poppler_number()?, y0.poppler_number()?, x1.poppler_number()?, y1.poppler_number()?];
                             let mut child = st.clone();
                             if let Some(Value::Array(values)) =
                                 dict.get(b"Matrix").and_then(|v| self.objects.resolve(v))
                             {
                                 let m = std::array::from_fn(|i| {
-                                    values.get(i).and_then(Value::number).unwrap_or(0.)
+                                    values.get(i).and_then(Value::poppler_number).unwrap_or(0.)
                                 });
                                 child.ctm = concat(m, st.ctm);
                             }

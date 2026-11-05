@@ -1140,7 +1140,7 @@ impl<'a> Copy<'_, 'a> {
                     .into(),
             )
         });
-        let [x, y, right, top] = media.rectangle()?;
+        let [x, y, right, top] = media.rectangle(Value::number)?;
         if !entries.iter().any(|(k, _)| k.as_ref() == b"MediaBox") {
             entries.push((b"MediaBox".into(), media.clone()));
         }
@@ -1150,7 +1150,7 @@ impl<'a> Copy<'_, 'a> {
                 continue;
             }
             let rect = rectangle(inherited.get(key).copied()).unwrap_or_else(|| media.clone());
-            if rect.rectangle()? != [0., 0., (right - x).abs(), (top - y).abs()] {
+            if rect.rectangle(Value::number)? != [0., 0., (right - x).abs(), (top - y).abs()] {
                 boxes.push((key.into(), rect));
             }
         }

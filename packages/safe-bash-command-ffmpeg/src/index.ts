@@ -1022,6 +1022,9 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "drawbox") {
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
+      // Native packed-RGB drawbox blends with single-precision arithmetic.
+      const alpha = Math.fround(col[3] / 255);
+      const inverseAlpha = Math.fround(1 - alpha);
       const thicknessOption = named.t ?? named.thickness ?? positional[5] ?? "3";
       const thickness = thicknessOption === "fill" ? Infinity : parseInt(thicknessOption, 10);
       const replace = named.replace === "1";
@@ -1050,7 +1053,9 @@ async function applyVideoFilterChain(
               continue;
             }
             for (let channel = 0; channel < 3; channel++) {
-              nextData[idx + channel] = (nextData[idx + channel]! * (255 - col[3]) + col[channel]! * col[3]) / 255;
+              nextData[idx + channel] = Math.fround(
+                Math.fround(nextData[idx + channel]! * inverseAlpha) + Math.fround(col[channel]! * alpha)
+              );
             }
           }
         }

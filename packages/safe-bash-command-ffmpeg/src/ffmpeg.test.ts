@@ -1285,6 +1285,28 @@ describe("native ffmpeg parity", () => {
     });
   }
 
+  for (const [color, expected] of [
+    ["red@0.5", [127, 0, 127, 255]],
+    ["red@0x80", [128, 0, 126, 255]],
+    ["red", [255, 0, 0, 255]],
+    ["red@0", [0, 0, 255, 255]]
+  ] as const) {
+    it(`matches native drawbox ${color} on a one-pixel RGB PNG`, async () => {
+      const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 1, height: 1, channels: 3, data: new Uint8Array([0, 0, 255]),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: false
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/input.png": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.png", "-vf", `drawbox=x=0:y=0:w=1:h=1:color=${color}:t=fill`,
+        "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual([...decodeImage(vfs.store.get("/out.png")!).data], [...expected]);
+    });
+  }
+
   for (const replace of ["1", "0", undefined]) {
     for (const alpha of [0, 127, 255]) {
       it(`drawbox replace=${replace} on destination alpha ${alpha}`, async () => {
@@ -1306,7 +1328,7 @@ describe("native ffmpeg parity", () => {
           for (let x = 0; x < 4; x++) {
             const inside = x >= 1 && x <= 2 && y >= 1 && y <= 2;
             const expected = inside
-              ? replace === "1" ? [255, 0, 0, 127] : [127, 0, 128, alpha]
+              ? replace === "1" ? [255, 0, 0, 127] : [127, 0, 127, alpha]
               : [0, 0, 255, alpha];
             const offset = (y * 4 + x) * 4;
             assert.deepEqual([...image.data.subarray(offset, offset + 4)], expected);
@@ -1326,7 +1348,7 @@ describe("native ffmpeg parity", () => {
     ], vfs);
     assert.equal(result.exitCode, 0, result.stderr);
     const image = decodeImage(vfs.store.get("/out.png")!);
-    assert.deepEqual(Array.from(image.data.slice(20, 24)), [127, 0, 128, 127]);
+    assert.deepEqual(Array.from(image.data.slice(20, 24)), [127, 0, 127, 127]);
   });
 
   for (const alpha of ["", "-0.1", "1.1", "0x100", "nope"]) {
@@ -1368,10 +1390,10 @@ describe("native ffmpeg parity", () => {
     ["red@0", [0, 0, 255, 255]],
     ["red@1", [255, 0, 0, 255]],
     ["red", [255, 0, 0, 255]],
-    ["red@0.5", [127, 0, 128, 255]],
-    ["#ff0000@0.5", [127, 0, 128, 255]],
-    ["0xff0000@0x80", [128, 0, 127, 255]],
-    ["0xff000080", [128, 0, 127, 255]],
+    ["red@0.5", [127, 0, 127, 255]],
+    ["#ff0000@0.5", [127, 0, 127, 255]],
+    ["0xff0000@0x80", [128, 0, 126, 255]],
+    ["0xff000080", [128, 0, 126, 255]],
     ["ff000080@0", [0, 0, 255, 255]]
   ] as const) {
     it(`drawbox blends ${color} over blue and leaves pixels outside the box unchanged`, async () => {

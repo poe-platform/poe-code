@@ -381,7 +381,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (!editedGraph) for await (const object of retainedCosObjects(document, storage, { signal })) {
         if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
       }
-      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal, options.qdf);
+      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal, options.qdf, options.linearize);
       async function* entries() {
         // Preserve original Map insertion order when a split filename replaces
         // an input. Empty seed entries are discarded after staging.

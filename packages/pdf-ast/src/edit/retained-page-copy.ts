@@ -14,6 +14,8 @@ import { PdfError } from "../errors.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 
 export interface CopyRetainedPageOptions {
+  /** Linearize the copied output for progressive loading. */
+  readonly linearize?: boolean;
   /** Emit streams decoded by earlier edits without their encoded filters. */
   readonly normalizeContent?: boolean;
   /** Override a source page's rotation before cloning its indirect values.
@@ -82,7 +84,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
   const catalog = cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) });
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
-  let mayLinearize = false;
+  let mayLinearize = options.linearize === true;
   let work = 0, pageCount = 0, copiedMetadata = options.metadata !== undefined || options.metadataSource !== undefined, formRef: ReturnType<typeof cosRef> | undefined;
   let opened: Promise<PdfRetainedDocument> | undefined, closing: Promise<void> | undefined;
   function close(): Promise<void> {

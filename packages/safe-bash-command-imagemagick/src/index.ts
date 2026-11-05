@@ -6325,8 +6325,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 composeSrc = true;
         }
         else if (t === "-dissimilarity-threshold") {
+            const rawThreshold = argv[++i] ?? "";
+            const value = rawThreshold.endsWith("%") ? rawThreshold.slice(0, -1) : rawThreshold;
+            if (value.trim() === "" || !Number.isFinite(Number(value))) {
+                return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-dissimilarity-threshold': ${rawThreshold}\n` };
+            }
             // Native uses this option only for subimage searches.
-            i++;
         }
         else if (t === "-density") {
             const g = parseMagickGeometry(argv[++i] ?? "72");

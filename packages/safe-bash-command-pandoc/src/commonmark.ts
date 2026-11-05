@@ -23,7 +23,8 @@ function toMetaValue(val: unknown, stringValue: (value: string) => MetaValue): M
   }
   return undefined;
 }
-import type { ReaderCapability } from "./types.js";
+import type { FormatSelection } from "./formats.js";
+import type { AdapterContext, ReaderCapability } from "./types.js";
 import { parseCommonMarkBlocks, type PendingBlock } from "./commonmark-blocks.js";
 import { parseCommonMarkInlines, scanMarkdownRawAttribute } from "./commonmark-inlines.js";
 import { decodeSyntax, fencedDivAttributes } from "./commonmark-syntax.js";
@@ -63,13 +64,17 @@ export function expandPandocTabs() {
 }
 
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
-  const citationsState = {note: 0};
-  let extensions: Readonly<Record<string, boolean>> = {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false};
   let rawText = input.text ?? await context.decodeUtf8([input.bytes]);
   if (rawText.includes("\t")) {
     rawText = expandPandocTabs()(rawText);
     context.charge("retainedBytes", rawText.length * 2);
   }
+  return parseCommonMarkSource(rawText, input.base, context, selection);
+};
+
+export async function parseCommonMarkSource(rawText: string, base: string | undefined, context: AdapterContext, selection?: FormatSelection) {
+  const citationsState = {note: 0};
+  let extensions: Readonly<Record<string, boolean>> = {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false};
   const metadata: Record<string, MetaValue> = {};
   let text = rawText;
   if (extensions.pandoc_title_block) {
@@ -96,7 +101,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
   extensions = {...extensions, citations: extensions.citations ?? (metadata.bibliography !== undefined || metadata.references !== undefined)};
   const identifiers = new Set<string>();
   const gfmIdentifiers = new Map<string, number>();
-  const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
+  const pending = await parseCommonMarkBlocks(text, context, base, extensions);
   const notes = new Map<string, Extract<PendingBlock, {kind: "footnote"}>>();
   function collect(blocks: readonly PendingBlock[], depth: number) {
     context.bound("depth", depth);
@@ -175,7 +180,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
             const row = async (cells: string[]): Promise<Row> => {
               const values: Row[1][number][] = [];
               for (const cell of cells) {
-                const parsed = await parseCommonMarkBlocks(cell, context, input.base, extensions);
+                const parsed = await parseCommonMarkBlocks(cell, context, base, extensions);
                 const content = await assemble(parsed.blocks, depth + 1);
                 if (content.length === 1 && content[0]?.t === "Para") content[0] = {t: "Plain", c: content[0].c};
                 values.push([["", [], []], "AlignDefault", 1, 1, content]);
@@ -294,6 +299,6 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
   }
   const assembledBlocks = await assemble(pending.blocks, 1);
   return { blocks: assembledBlocks, metadata, resources: [] };
-};
+}
 
 export const commonmarkReader: ReaderCapability = { format: "commonmark", read: readCommonMark };

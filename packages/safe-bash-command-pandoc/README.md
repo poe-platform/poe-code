@@ -43,7 +43,8 @@ table per sheet, retaining cached values and calculating missing formula results
 PDF input uses semantic text, tables and image extraction.
 Plain output uses link labels, spaces for soft breaks, four-column decimal list
 prefixes, 72-character rules, and a final newline even for empty documents.
-Bullet lists use the compact spacing of Pandoc 3.11.
+Bullet lists use the compact spacing of Pandoc 3.11. Markdown input expands tabs
+to four-column tab stops before parsing, including inside code blocks.
 Both `html` and `html5` accept HTML input and produce HTML5 output.
 HTML input preserves head titles and author meta tags as Pandoc inline metadata.
 HTML MathML preserves inline/display equations, fractions, roots and scripts as

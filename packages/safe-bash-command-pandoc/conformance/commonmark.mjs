@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { readDocument } from "../dist/index.js";
+import { parseCommonMarkSource } from "../dist/commonmark.js";
 
 const corpus = await readFile(new URL("../../../docs/pandoc/commonmark-0.31.2-examples.json", import.meta.url));
 assert.equal(createHash("sha256").update(corpus).digest("hex"), "d431b29d97b6f73e69d547109cf5081578fac931e72afe95639ebe766c1b2a20", "Pinned normative corpus bytes");
@@ -73,12 +74,15 @@ let failures = 0;
 const sections = new Map();
 assert.equal(examples.length, 652, "Pinned CommonMark 0.31.2 corpus must be complete");
 assert.deepEqual(examples.map((example) => example.example), Array.from({ length: 652 }, (_, index) => index + 1));
+// The normative grammar receives literal tabs. The Pandoc command expands
+// them before invoking this parser; its preprocessing is checked against Pandoc.
+const reader = {format: "commonmark", read: (input, ctx, selection) => parseCommonMarkSource(input.text, input.base, ctx, selection)};
 for (const example of examples) {
   const section = sections.get(example.section) ?? { total: 0, failed: 0 };
   section.total++;
   sections.set(example.section, section);
   try {
-    const document = await readDocument({ bytes: new TextEncoder().encode(example.markdown) }, { from: "commonmark" }, { yield: async () => {} });
+    const document = await readDocument({ bytes: new TextEncoder().encode(example.markdown) }, { from: "commonmark" }, { reader, yield: async () => {} });
     const actual = blocks(document.blocks);
     assert.equal(actual, example.html);
   } catch (error) {

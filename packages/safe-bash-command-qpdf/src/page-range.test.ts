@@ -5,6 +5,50 @@ import { PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createQpdfCommand, iterateQpdfPageRange, parseQpdfPageRange, runQpdfCli } from "./index.js";
 
+for (const spec of ["1foo", "1.5", "r1foo", "1-3junk", "1-3:odd:even", "1-3-4"]) {
+  it(`rejects the entire malformed numeric range ${spec}`, () => {
+    assert.throws(() => parseQpdfPageRange(spec, 10), error => error instanceof Error && error.message.includes("invalid range syntax"));
+    assert.throws(() => [...iterateQpdfPageRange(spec, 10)], error => error instanceof Error && error.message.includes("invalid range syntax"));
+  });
+
+  it(`preserves files when a page operation uses ${spec}`, async () => {
+    const doc = PdfDocument.create();
+    for (let page = 0; page < 10; page++) doc.addPage([100, 200]);
+    const input = doc.save();
+    const operations = [
+      ["--empty", "--pages", "/in.pdf", spec, "--", "/out.pdf"],
+      ["/in.pdf", "/out.pdf", `--rotate=+90:${spec}`],
+      ...["overlay", "underlay"].flatMap(mode => ["from", "to", "repeat"].map(range =>
+        ["/in.pdf", "/out.pdf", `--${mode}`, "/in.pdf", `--${range}=${spec}`, "--"])),
+    ];
+    for (const args of operations) for (const existing of [false, true]) {
+      const files = new Map([["/in.pdf", input]]);
+      if (existing) files.set("/out.pdf", input);
+      const direct = await runQpdfCli(args, files);
+      assert.equal(direct.exitCode, 2, JSON.stringify(args));
+      assert.ok(direct.stderr.includes("invalid range syntax"), direct.stderr);
+      assert.deepEqual(files.get("/out.pdf"), existing ? input : undefined);
+      assert.deepEqual(files.get("/in.pdf"), input);
+
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/in.pdf", input);
+      if (existing) await fs.writeFile("/out.pdf", input);
+      const carrier = createCommandArguments(args), errors: Uint8Array[] = [];
+      const result = await createQpdfCommand().execute({
+        command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() { assert.fail("Unexpected stdout"); } },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes.slice()); } },
+      });
+      assert.equal(result.exitCode, 2, JSON.stringify(args));
+      assert.ok(Buffer.concat(errors).toString().includes("invalid range syntax"));
+      if (existing) assert.deepEqual(await fs.readFile("/out.pdf"), input);
+      else await assert.rejects(fs.stat("/out.pdf"), { code: "ENOENT" });
+      assert.deepEqual(await fs.readFile("/in.pdf"), input);
+    }
+  });
+}
+
 for (const [spec, expected] of [
   ["", []], ["1-z", [1, 2, 3, 4, 5, 6]], ["z-1:even", [5, 3, 1]],
   ["1-z,x2-4", [1, 5, 6]], ["1-3,x2,2", [1, 3, 2]],

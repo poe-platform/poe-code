@@ -1,14 +1,18 @@
 function parseSingleTokenPageNumber(tok: string, totalPages: number): number {
   const trimmed = tok.trim();
   if (trimmed === "z") return totalPages;
+  const digits = trimmed.startsWith("r") ? trimmed.slice(1) : trimmed;
+  if (digits.length === 0 || [...digits].some(char => char < "0" || char > "9")) {
+    throw new QpdfPageRangeError(`invalid range syntax: ${tok}`);
+  }
   if (trimmed.startsWith("r")) {
-    const rev = Number.parseInt(trimmed.slice(1), 10);
+    const rev = Number(digits);
     if (!Number.isFinite(rev) || rev < 1 || rev > totalPages) {
       throw new Error(`Invalid reverse page number '${tok}'`);
     }
     return totalPages - rev + 1;
   }
-  const num = Number.parseInt(trimmed, 10);
+  const num = Number(digits);
   if (!Number.isFinite(num) || num < 1 || num > totalPages) {
     throw new Error(`Page number '${tok}' out of bounds (1..${totalPages})`);
   }
@@ -41,8 +45,8 @@ export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Ge
     const excluded = raw.startsWith("x");
     const part = (excluded ? raw.slice(1) : raw).trim();
     if (part.includes("-")) {
-      const [left, right] = part.split("-", 2);
-      const first = parseSingleTokenPageNumber(left ?? "1", totalPages), last = parseSingleTokenPageNumber(right ?? "z", totalPages), direction = first <= last ? 1 : -1;
+      const separator = part.indexOf("-");
+      const first = parseSingleTokenPageNumber(part.slice(0, separator), totalPages), last = parseSingleTokenPageNumber(part.slice(separator + 1), totalPages), direction = first <= last ? 1 : -1;
       ranges.push({ first, last, step: direction, excluded });
     } else {
       const page = parseSingleTokenPageNumber(part, totalPages);

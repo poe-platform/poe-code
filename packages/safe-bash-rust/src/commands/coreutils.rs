@@ -51,6 +51,7 @@ pub(super) fn try_run_coreutil_with_input(
             remaining -= size;
         }
     }
+    if cmd == "tsort" { return Ok(Some(cmd_tsort(args, input, cwd, env, fs, write))); }
     if cmd == "shuf" { return Ok(Some(cmd_shuf(args, input, cwd, env, fs, write))); }
     if cmd == "dd" { return Ok(Some(cmd_dd(args, input, cwd, env, fs, write))); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
@@ -105,7 +106,6 @@ fn coreutil(
         "id" => cmd_id(args, env, fs),
         "sleep" => cmd_sleep(args, env),
         "factor" => cmd_factor(args, input, env.contains_key("POSIXLY_CORRECT")),
-        "tsort" => cmd_tsort(args, input, cwd, env, fs),
         "truncate" => cmd_truncate(args, cwd, env, fs),
         "fmt" => cmd_fmt(args, input, cwd, env, fs),
         "csplit" => cmd_csplit(args, input.buffered()?, cwd, env, fs),
@@ -20741,6 +20741,7 @@ fn cmd_tsort(
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
     if args.len() == 1 && args[0].len() > 2 {
         if "--help".starts_with(&args[0]) {
@@ -20837,9 +20838,7 @@ fn cmd_tsort(
     let order: Vec<_> = index.into_iter().map(|(name, idx)| { nodes[idx].name = name; idx }).collect();
 
     let mut remaining = nodes.len();
-    let mut status = 0;
-    let mut out = String::new();
-    let mut stderr = String::new();
+    let mut out = ok_out("");
 
     while remaining > 0 {
         let mut queue: std::collections::VecDeque<usize> = std::collections::VecDeque::new();
@@ -20849,8 +20848,9 @@ fn cmd_tsort(
             }
         }
         while let Some(u_idx) = queue.pop_front() {
-            out.push_str(&crate::vfs::bytes_to_stream_string(&nodes[u_idx].name));
-            out.push('\n');
+            let mut line = crate::vfs::bytes_to_stream_string(&nodes[u_idx].name);
+            line.push('\n');
+            if !write(1, &line, &mut out) { return out; }
             nodes[u_idx].printed = true;
             remaining -= 1;
             for target_idx in std::mem::take(&mut nodes[u_idx].edges).into_iter().rev() {
@@ -20863,8 +20863,8 @@ fn cmd_tsort(
         if remaining == 0 {
             break;
         }
-        status = 1;
-        stderr.push_str(&format!("tsort: {label}: input contains a loop:\n"));
+        out.exit_code = 1;
+        if !write(2, &format!("tsort: {label}: input contains a loop:\n"), &mut out) { return out; }
         let mut loop_idx: Option<usize> = None;
         let mut link: Vec<Option<usize>> = vec![None; nodes.len()];
         loop {
@@ -20881,7 +20881,7 @@ fn cmd_tsort(
                     if link[idx].is_some() {
                         while let Some(l_idx) = loop_idx {
                             let next_l = link[l_idx];
-                            stderr.push_str(&format!("tsort: {}\n", crate::vfs::bytes_to_stream_string(&nodes[l_idx].name)));
+                            if !write(2, &format!("tsort: {}\n", crate::vfs::bytes_to_stream_string(&nodes[l_idx].name)), &mut out) { return out; }
                             if l_idx == idx {
                                 let target_idx = nodes[idx].edges[epos];
                                 nodes[target_idx].count -= 1;
@@ -20911,11 +20911,7 @@ fn cmd_tsort(
         }
     }
 
-    BuiltinOutcome {
-        stdout: out,
-        stderr,
-        exit_code: status,
-    }
+    out
 }
 
 fn parse_truncate_size(spec: &str, prev_op: char, unicode: bool) -> Result<(u64, char), String> {

@@ -174,6 +174,7 @@ comment */ / 8, "\n" # trailing comment
     { cmd: "tsort", args: [], script: "tsort", input: "x a\nx b\na c\nb c\n" },
     { cmd: "tsort", args: ["-"], script: "tsort -", input: "a b\nb a\n" },
     { cmd: "tsort", args: ["--", "-"], script: "tsort -- -", input: "d b\nb a\ne d\nb f\na d\nf e\n" },
+    { cmd: "bash", args: ["--noprofile", "--norc", "-c", "tsort 2>&1"], script: "tsort 2>&1", input: "z z\na b\nb a\n" },
     { cmd: "tsort", args: ["--"], script: "tsort --", input: "x a\nx b\n".repeat(15000) },
     { cmd: "tsort", args: [], script: "tsort", input: Buffer.from("c3a920c3a9207a207a20ff20ff2080208020412041", "hex") },
   ];

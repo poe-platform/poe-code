@@ -14,6 +14,7 @@ import {
   decodeFourCC,
   decodeUtf8,
   encodeUtf8,
+  gcd,
   rgbaToYuv420p,
   yuv420pToRgba
 } from "../binary.js";
@@ -1169,11 +1170,29 @@ export function gifAst(): MediaAstPlugin {
     },
     probe(bytes, options) {
       const doc = this.parse(bytes, options);
-      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.gif", {
+      const result = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.gif", {
         ...options,
         formatName: "gif",
         formatLongName: "CompuServe Graphics Interchange Format (GIF)"
       });
+      const track = doc.tracks[0]!;
+      const stream = result.streams[0]!;
+      if (track.samples.length > 1) {
+        // Native GIF demuxing truncates the mean delay to whole centiseconds.
+        const averageDelay = Math.floor(track.duration / track.samples.length);
+        const averageDivisor = gcd(track.timescale, averageDelay);
+        // The nominal rate uses timestamp intervals, excluding the final delay.
+        let interval = 0;
+        for (let index = 1; index < track.samples.length; index++) {
+          interval = gcd(interval, track.samples[index]!.dts - track.samples[index - 1]!.dts);
+        }
+        const nominalDivisor = gcd(track.timescale, interval);
+        return { ...result, streams: [{ ...stream,
+          avg_frame_rate: `${track.timescale / averageDivisor}/${averageDelay / averageDivisor}`,
+          r_frame_rate: `${track.timescale / nominalDivisor}/${interval / nominalDivisor}`
+        }] };
+      }
+      return result;
     },
     concat(docs, options) {
       return concatMp4(docs, options);

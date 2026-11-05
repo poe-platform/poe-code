@@ -1004,22 +1004,11 @@ async function applyVideoFilterChain(
       void totalDur;
     } else if (name === "setpts") {
       const expr = (named.expr ?? positional[0] ?? "PTS").toUpperCase();
-      const mulMatch = /([0-9.]+)\s*\*\s*PTS/.exec(expr);
-      const divMatch = /PTS\s*\/\s*([0-9.]+)/.exec(expr);
-      const factor = mulMatch
-        ? parseFloat(mulMatch[1]!) || 1
-        : divMatch
-          ? 1 / (parseFloat(divMatch[1]!) || 1)
-          : 1;
-      let cursor = 0;
-      current = await mapWork(current, async (f) => {
-
-
-        const dur = Math.max(0.001, f.durationSeconds * factor);
-        const out = { ...f, ptsSeconds: cursor, durationSeconds: dur };
-        cursor += dur;
-        return out;
-      }, signal);
+      const startPts = current[0]?.ptsSeconds ?? 0;
+      current = await mapWork(current, async (f) => ({
+        ...f,
+        ptsSeconds: parseFilterExpression(expr, "setpts", { PTS: f.ptsSeconds, STARTPTS: startPts })
+      }), signal);
     } else if (name === "drawbox") {
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
       // Native packed-RGB drawbox blends with single-precision arithmetic.
@@ -1463,6 +1452,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let fragmented = false;
       let maxVideoFrames: number | undefined;
       let outputFps: number | undefined;
+      let videoSync = "auto";
       let outputSize: string | undefined;
       let rotation: number | undefined;
       let overwrite = false;
@@ -1483,8 +1473,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           overwrite = true;
         } else if (arg === "-n") {
           overwrite = false;
-        } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") {
+        } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
           i++;
+        } else if (arg === "-vsync" || arg === "-fps_mode") {
+          videoSync = args[++i] ?? "";
         } else if (arg === "-hls_time" || arg === "-seg_duration") {
           hlsTime = parseFloat(args[++i] ?? "2") || 2;
         } else if (arg === "-hls_segment_filename") {
@@ -2237,7 +2229,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         }
 
         // Apply `-frames:v <N>` limit
-        if (maxVideoFrames !== undefined) {
+        if (maxVideoFrames !== undefined && !outputTarget.includes("%")) {
           workingDoc = {
             ...workingDoc,
             tracks: workingDoc.tracks.map((t) => {
@@ -2505,7 +2497,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
           const vTrack = workingDoc.tracks.find((t) => t.type === "video");
           const frames = vTrack ? await ensureDecodedFrames(vTrack, workingDoc.timescale, budget, context.signal) : [];
-          const limit = maxVideoFrames ? Math.min(frames.length, maxVideoFrames) : frames.length;
+          const limit = maxVideoFrames ?? Infinity;
+          const duration = frames[0]?.durationSeconds ?? 1;
+          const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
+          let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
+          let idx = 0;
           const imgFmt: ImageFormat =
             outExt === "jpg" || outExt === "jpeg" ? "jpeg" :
             outExt === "webp" ? "webp" :
@@ -2513,18 +2509,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             outExt === "bmp" ? "bmp" :
             outExt === "ppm" ? "ppm" : "png";
 
-          for (let idx = 0; idx < limit; idx++) {
-            const f = frames[idx]!;
-            const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
-              const padLen = parseInt(widthDigits || "0", 10) || 0;
-              return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
-            });
-            const fullOutPath = resolvePath(context.cwd, fileName);
-            const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
-              format: imgFmt
-            })).data;
-            budget.checkOutputBytes(encoded.byteLength);
-            await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
+          for (let sourceIndex = 0; sourceIndex < frames.length && idx < limit; sourceIndex++) {
+            const source = frames[sourceIndex]!;
+            const delta0 = source.ptsSeconds / duration - nextPts;
+            const delta = delta0 + source.durationSeconds / duration;
+            // Match FFmpeg's CFR thresholds, including its tolerance for close timestamps.
+            const copies = constantRate ? (delta < -1.1 ? 0 : delta > 1.1 ? Math.round(delta) : 1) : 1;
+            const previousCopies = constantRate && delta0 > 1.1 ? Math.max(0, Math.round(delta0 - 0.6)) : 0;
+            if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
+            for (let copy = 0; copy < copies && idx < limit; copy++, idx++, nextPts++) {
+              budget.checkCpu();
+              budget.checkSamples(idx + 1);
+              budget.checkDuration((idx + 1) * duration);
+              const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
+              if (copy > 0) budget.recordFrame(f.width, f.height);
+              const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
+                const padLen = parseInt(widthDigits || "0", 10) || 0;
+                return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
+              });
+              const fullOutPath = resolvePath(context.cwd, fileName);
+              const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
+                format: imgFmt
+              })).data;
+              budget.checkOutputBytes(encoded.byteLength);
+              await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
+            }
           }
           options.onMetrics?.(budget.getStats());
           return { exitCode: 0 };

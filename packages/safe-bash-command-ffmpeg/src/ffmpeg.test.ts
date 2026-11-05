@@ -314,7 +314,7 @@ describe("video filter separators", () => {
         "-vf", `select=${expression},scale=8:8`, "/selected_%d.png"
       ], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.deepEqual([...vfs.store.keys()], ["/selected_1.png", "/selected_2.png"]);
+      assert.deepEqual([...vfs.store.keys()], ["/selected_1.png", "/selected_2.png", "/selected_3.png"]);
       const { decodeImage } = await import("@poe-code/image-ast/portable");
       assert.equal(decodeImage(vfs.store.get("/selected_1.png")!).width, 8);
     });
@@ -2279,4 +2279,81 @@ it("rejects unsupported surround downmix layouts without overwriting output", as
   assert.equal(result.exitCode, 1);
   assert.ok(result.stderr.includes("Unsupported audio channel layout"), result.stderr);
   assert.equal(new TextDecoder().decode(vfs.store.get("/output.wav")), "existing");
+});
+
+
+describe("image sequence output synchronization", () => {
+  for (const [filter, count] of [
+    ["select='eq(n,1)+eq(n,3)'", 3],
+    ["setpts=2*PTS", 7],
+    ["select='eq(n,1)+eq(n,3)',setpts=PTS", 3],
+    ["select='eq(n,1)+eq(n,3)',setpts=PTS-STARTPTS", 3],
+    ["fps=2", 8], ["fps=0.5", 2], ["reverse", 4], ["trim=start=1:end=3", 2]
+  ] as const) {
+    it(`matches native default cadence for ${filter}`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=4",
+        "-vf", filter, "/out_%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual([...vfs.store.keys()], Array.from({ length: count }, (_, i) => `/out_${i + 1}.png`));
+    });
+  }
+  for (const flags of [["-fps_mode", "passthrough"], ["-vsync", "0"]]) {
+    for (const [filter, count] of [["select='eq(n,1)+eq(n,3)'", 2], ["setpts=2*PTS", 4]] as const) {
+      it(`honors ${flags.join(" ")} for ${filter}`, async () => {
+        const vfs = createTestVfs();
+        const result = await runCmd(createFfmpegCommand(), [
+          "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=4",
+          "-vf", filter, ...flags, "/out_%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(vfs.store.size, count);
+      });
+    }
+  }
+  it("limits synchronized output frames before numbering", async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=4",
+      "-vf", "setpts=2*PTS", "-frames:v", "5", "-start_number", "7", "/out_%d.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual([...vfs.store.keys()], [7, 8, 9, 10, 11].map(i => `/out_${i}.png`));
+  });
+});
+
+
+for (const [filter, indices] of [
+  ["setpts=2*PTS", [0, 1, 1, 2, 2, 3, 3]],
+  ["select='eq(n,1)+eq(n,3)'", [1, 3, 3]],
+  ["setpts=0.25*PTS", [0, 1, 2]]
+] as const) {
+  it(`matches native frame identity from image input for ${filter}`, async () => {
+    const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+    const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255], [255, 255, 255, 255]];
+    const vfs = createTestVfs(Object.fromEntries(colors.map((color, i) => [
+      `/in_${i + 1}.png`, encodeImage({ width: 1, height: 1, data: Uint8Array.from(color),
+        channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data
+    ])));
+    const result = await runCmd(createFfmpegCommand(), [
+      "-framerate", "1", "-i", "/in_%d.png", "-vf", filter, "/out_%d.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = [...vfs.store.entries()].filter(([name]) => name.startsWith("/out_"));
+    assert.deepEqual(output.map(([, data]) => [...decodeImage(data).data]), indices.map(i => colors[i]));
+  });
+}
+
+
+it("bounds frames duplicated by output synchronization", async () => {
+  const vfs = createTestVfs();
+  const result = await runCmd(createFfmpegCommand({ limits: { maxFrames: 5 } }), [
+    "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=4",
+    "-vf", "setpts=1000000*PTS", "/out_%d.png"
+  ], vfs);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /maxFrames/);
+  assert.ok(vfs.store.size <= 5);
 });

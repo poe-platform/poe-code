@@ -1438,7 +1438,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string
     const vByte = isPct
         ? (rawNum / 100) * 255
         : rawNum / 257;
-    const vFactor = isPct ? rawNum / 100 : rawNum;
+    const vFactor = isPct ? (rawNum / 100) * 65535 : rawNum;
     const out = new Uint8Array(img.data);
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     for (let i = 0; i < out.length; i += 4) {

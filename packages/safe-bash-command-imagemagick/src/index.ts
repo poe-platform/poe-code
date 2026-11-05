@@ -2472,7 +2472,7 @@ function parseCompose(raw: string): BlendMode {
 function magickCompositeMode(mode: string): { name: string; delegated: boolean } {
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
-    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "colorburn", "saturate"].includes(name) };
+    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "saturate"].includes(name) };
 }
 
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2649,7 +2649,8 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx + 3] = dst.hasAlpha ? clampByteVal(outA * 255) : daByte;
                 continue;
             }
-            if (norm === "colordodge" ||
+            if (norm === "colorburn" ||
+                norm === "colordodge" ||
                 norm === "multiply" ||
                 norm === "screen" ||
                 norm === "overlay" ||
@@ -2679,7 +2680,9 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                     }
                     else {
                         let f = 0;
-                        if (norm === "colordodge")
+                        if (norm === "colorburn")
+                            f = sc === 0 ? 0 : Math.max(0, 1 - (1 - dc) / sc);
+                        else if (norm === "colordodge")
                             f = sc === 1 ? 1 : Math.min(1, dc / (1 - sc));
                         else if (norm === "multiply")
                             f = sc * dc;
@@ -2690,7 +2693,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                         else
                             f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
                         const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
-                        const unpremul = gamma > 1e-6 && (norm === "colordodge" || norm === "multiply" || norm === "overlay" || norm === "hardlight") ? comp / gamma : comp;
+                        const unpremul = gamma > 1e-6 && (norm === "colorburn" || norm === "colordodge" || norm === "multiply" || norm === "overlay" || norm === "hardlight") ? comp / gamma : comp;
                         out[dIdx + c] = clampByteVal(unpremul * 255);
                     }
                 }

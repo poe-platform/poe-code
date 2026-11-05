@@ -4,11 +4,51 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
+for (const retained of [false, true])
+it(`excludes absent alpha from opaque gradient auto-level (retained=${retained})`, async () => {
+    const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+    expect(await runConvertCli(["-size", "1x2", "gradient:rgb(50,100,150)-rgb(150,200,220)", "-auto-level", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files))
+        .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    expect(Array.from(decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data))
+        .toEqual([0, 75, 150, 255, 150, 225, 255, 255]);
+});
+
+for (const retained of [false, true])
+it(`levels the original native 16-bit PNG reproduction (retained=${retained})`, async () => {
+    // magick -size 3x1 xc:#20406080 -fill '#808080c0' -draw 'point 1,0'
+    //   -fill '#e0c0a040' -draw 'point 2,0' -strip png:-
+    const bytes = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAMAAAABEAYAAABLcMj3AAAAIklEQVQI12NUUHBwSEhoaAjab64lPTXh/++sP+7/lQ8wAgByuAqOOvnl1gAAAABJRU5ErkJggg==", "base64");
+    const files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", bytes);
+    expect(await runConvertCli(["input.png", "-auto-level", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files))
+        .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    const actual = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data;
+    const native = [0, 43, 85, 128, 110, 116, 122, 255, 102, 111, 119, 170];
+    // Analysis works on 8-bit samples; allow one byte of input quantization error.
+    for (let i = 0; i < native.length; i++) expect(Math.abs(actual[i]! - native[i]!)).toBeLessThanOrEqual(1);
+});
+
+for (const retained of [false, true])
+it.each([
+    { operators: ["-auto-level"], expected: [0, 43, 85, 128, 109, 116, 121, 255, 102, 110, 120, 170] },
+    { operators: ["-channel", "RGB", "-auto-level", "+channel"], expected: [0, 0, 0, 128, 255, 255, 255, 224, 239, 236, 246, 160] }
+])(`matches native semi-transparent auto-level (retained=${retained}): $operators`, async ({ operators, expected }) => {
+    // ImageMagick 7.1.2 output for the reproduction's pixels quantized to 8-bit RGBA.
+    const pixels = Uint8Array.from([32, 64, 96, 128, 114, 119, 123, 224, 109, 115, 122, 160]);
+    const bytes = await sharp(pixels, { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", bytes);
+    expect(await runConvertCli(["input.png", ...operators, "out.png"], retained ? { filesystem: fs, cwd: "/" } : files))
+        .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    expect(Array.from(decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data)).toEqual(expected);
+});
+
 // Frozen from the established whole-image interpreter before retained analysis.
 // Equalization vectors use native ImageMagick 7 output.
 // Contrast-stretch vectors use native ImageMagick 7.1.2 RGBA output.
 // Linear-stretch vectors corrected against ImageMagick 7.1.2 RGBA output.
 // Normalize vectors corrected against ImageMagick 7.1.2 RGBA output.
+// Default RGBA auto-level vector corrected against ImageMagick 7.1.2 output.
 const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; hash: string }[] = [
   {
     "channels": 4,
@@ -16,7 +56,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
     "operators": [
       "-auto-level"
     ],
-    "hash": "8593dff059eb6bd53caccaa72affe147575dd5e7e65026697dfbcca8da1193a2"
+    "hash": "a5304a633f35731ed60b3e2edfe4b66dff788e70ab30811030df1e8d13071528"
   },
   {
     "channels": 4,

@@ -1153,7 +1153,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
         depth: "uchar",
         density: 72,
         space: "srgb",
-        hasAlpha: true,
+        hasAlpha: c1.a < 255 || c2.a < 255,
         data
     };
 }
@@ -3940,9 +3940,14 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal(Math.pow(value / 255, exponent) * 255);
             }
         } else if (token === "-auto-level") {
-            const mins = [255, 255, 255, 255], maxs = [0, 0, 0, 0], active = [channels.r, channels.g, channels.b, channels.a];
+            const mins = [255, 255, 255, 255], maxs = [0, 0, 0, 0], active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
             for (let channel = 0; channel < 4; channel++) for (let value = 0; value < 256; value++) if (histogram[channel]![value]! > 0) { mins[channel] = Math.min(mins[channel]!, value); maxs[channel] = Math.max(maxs[channel]!, value); }
-            if (!independent) { const low = Math.min(mins[0]!, mins[1]!, mins[2]!), high = Math.max(maxs[0]!, maxs[1]!, maxs[2]!); mins[0] = mins[1] = mins[2] = low; maxs[0] = maxs[1] = maxs[2] = high; }
+            if (!independent) {
+                // Native default channels share one range, including alpha when present.
+                const channelCount = image.hasAlpha ? 4 : 3;
+                const low = Math.min(...mins.slice(0, channelCount)), high = Math.max(...maxs.slice(0, channelCount));
+                mins.fill(low); maxs.fill(high);
+            }
             for (let channel = 0; channel < 4; channel++) {
                 const range = maxs[channel]! - mins[channel]!;
                 if (active[channel] && range > 0) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value - mins[channel]!) / range * 255);
@@ -6132,7 +6137,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    await backend.storage.write(position+start*4,bytes);
   }
-  image={position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
+  image={position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{

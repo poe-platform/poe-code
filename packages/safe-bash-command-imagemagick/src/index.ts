@@ -1537,7 +1537,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, paramsRaw: s
     const fn = funcRaw.toLowerCase();
     const params = paramsRaw.split(",").map((s) => Number(s.trim()));
     const out = new Uint8Array(img.data);
-    const mask = [channels.r, channels.g, channels.b, channels.a];
+    const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -4336,7 +4336,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickEvaluateSteps(image, operation, value, channels, signal);
     } else if (token === "-function") {
         const operation = tokens[++i] ?? "Polynomial", value = tokens[++i] ?? "1,0";
-        apply = image => applyMagickFunctionSteps(image, operation, value, state.channels, signal);
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        apply = image => applyMagickFunctionSteps(image, operation, value, channels, signal);
     } else if (token === "-solarize") {
         const value = tokens[++i] ?? "50%";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };

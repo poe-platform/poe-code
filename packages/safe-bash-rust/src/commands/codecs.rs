@@ -1,3 +1,5 @@
+#[path = "bzip2_encode.rs"]
+mod bzip2_encode;
 #[path = "xz_filters.rs"]
 mod xz_filters;
 
@@ -874,37 +876,7 @@ pub fn bzip2_compress(data: &[u8], level: u8) -> Vec<u8> {
         }
         mtf_syms.push(eob);
 
-        // 4. Exact complete binary tree code lengths (1 <= L <= 9, Kraft sum == 1)
-        let k = alpha_size.next_power_of_two().trailing_zeros() as u8;
-        let two_pow_k = 1usize << k;
-        let num_short = two_pow_k - alpha_size;
-        let mut freq = vec![0usize; alpha_size];
-        for &s in &mtf_syms {
-            freq[s as usize] += 1;
-        }
-        let mut order: Vec<usize> = (0..alpha_size).collect();
-        order.sort_by(|&a, &b| freq[b].cmp(&freq[a]).then_with(|| a.cmp(&b)));
-        let mut code_lens = vec![k; alpha_size];
-        for &sym_idx in order.iter().take(num_short) {
-            code_lens[sym_idx] = k - 1;
-        }
-
-        // Canonical Huffman codes from code_lens
-        let min_len = *code_lens.iter().min().unwrap();
-        let max_len = *code_lens.iter().max().unwrap();
-        let mut codes = vec![0u32; alpha_size];
-        let mut vec_code = 0u32;
-        for l in min_len..=max_len {
-            for s in 0..alpha_size {
-                if code_lens[s] == l {
-                    codes[s] = vec_code;
-                    vec_code += 1;
-                }
-            }
-            vec_code <<= 1;
-        }
-
-        // 5. Block Header: 0x314159265359
+        // Block Header: 0x314159265359
         bw.write_bits(0x3141_5926_5359, 48);
         bw.write_bits(block_crc as u64, 32);
         bw.write_bits(0, 1); // not randomized
@@ -930,39 +902,7 @@ pub fn bzip2_compress(data: &[u8], level: u8) -> Vec<u8> {
             }
         }
 
-        // 2 tables (minimum allowed by bzip2 spec), all groups select table 0
-        let n_selectors = mtf_syms.len().div_ceil(50);
-        bw.write_bits(2, 3);
-        bw.write_bits(n_selectors as u64, 15);
-        for _ in 0..n_selectors {
-            bw.write_bits(0, 1);
-        }
-
-        // Write delta-encoded code lengths for both tables
-        for _t in 0..2 {
-            let mut curr = code_lens[0] as i32;
-            bw.write_bits(curr as u64, 5);
-            for &target_u8 in &code_lens {
-                let target = target_u8 as i32;
-                while curr != target {
-                    bw.write_bits(1, 1);
-                    if curr < target {
-                        bw.write_bits(0, 1);
-                        curr += 1;
-                    } else {
-                        bw.write_bits(1, 1);
-                        curr -= 1;
-                    }
-                }
-                bw.write_bits(0, 1);
-            }
-        }
-
-        // Write Huffman-coded symbols
-        for &s in &mtf_syms {
-            let idx_s = s as usize;
-            bw.write_bits(codes[idx_s] as u64, code_lens[idx_s]);
-        }
+        bzip2_encode::write_symbols(&mut bw, &mtf_syms, alpha_size);
     }
 
     // End-of-stream magic: 0x177245385090 + combined CRC32
@@ -1327,6 +1267,28 @@ mod tests {
 
         // Reject non-gzip magic
         assert!(gzip_decompress(b"not-gzip").is_err());
+    }
+
+    #[test]
+    fn bzip2_writes_native_huffman_tables_and_selectors() {
+        // bzip2 1.0.8 -9c: inputs span each table-count threshold.
+        for (size, expected) in [
+            (1, "f975d5e4b99c5dd8cea43d5b1c1cf03ba72dc4fc41a3eabb9bb05e9d242ab125"),
+            (100, "a71b45fc449850163fad43d907de394303effa1ec6f8595bc6b61502c67fe605"),
+            (360, "67757b2ad9811ccd752199e7362a9c913965087e19a0b1b7fe5f35ebe732c03b"),
+            (720, "c07c7f7b4b66dd9c4959e6d8c35e76e7c3a98c97bef78b2c8e1a6d1e38d1c9c1"),
+            (1800, "d8179aa3237a8347d7d1dd8cfcee1eb42c1cedb322337c1a502e0fac4b63faa3"),
+            (4096, "6587f90db5bc0094a5b0452e62ca410a89e44c1bc7cb1122943aa467b2dcbbcc"),
+        ] {
+            let mut seed=1u32;
+            let input: Vec<u8>=(0..size).map(|_| {
+                seed=seed.wrapping_mul(1664525).wrapping_add(1013904223);
+                (seed>>24) as u8
+            }).collect();
+            let data=bzip2_compress(&input,9);
+            let digest:String=crate::commands::archive::sha256_bytes(&data).iter().map(|b|format!("{b:02x}")).collect();
+            assert_eq!(digest,expected,"{size} bytes");
+        }
     }
 
     #[test]

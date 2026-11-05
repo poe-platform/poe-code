@@ -1,3 +1,4 @@
+import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { blurPixelSteps } from "./blur-kernel.js";
 import { montageFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { resizePixelSteps } from "./resize-kernel.js";
@@ -5053,7 +5054,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
             });
         }
-        else if (t === "-sharpen" || t === "-unsharp") {
+        else if (t === "-sharpen") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            stack = yield* mapSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry), signal);
+            });
+        }
+        else if (t === "-unsharp") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
             const sigma = Math.max(0.3, g.height ?? g.width ?? 1);
             stack = (yield* mapSteps(stack, function* (im) {
@@ -5966,7 +5973,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);
-        } else if (!operandsOnly && (token === "-sharpen" || token === "-unsharp")) {
+        } else if (!operandsOnly && token === "-sharpen") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal) : undefined);
+        } else if (!operandsOnly && token === "-unsharp") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
             transform(() => ({ kind: "sharpen", sigma, m1: 1, m2: 2 }));
         } else if (!operandsOnly && token === "-crop") {

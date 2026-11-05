@@ -808,6 +808,45 @@ describe("decoded audio editing", () => {
 
 
 describe("native ffmpeg parity", () => {
+  for (const position of ["x=iw-ow:y=ih-oh", "in_w-out_w:in_h-out_h", "(iw-ow)/2+1:(ih-oh)*1", "2:2"]) {
+    it(`evaluates crop position ${position}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const data = new Uint8Array(4 * 4 * 4);
+      for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 4; x++) data.set(x >= 2 && y >= 2 ? [0, 0, 255, 255] : [255, 0, 0, 255], (y * 4 + x) * 4);
+      }
+      const input = encodeImage({
+        width: 4, height: 4, channels: 4, data,
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/input.png": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.png", "-vf", `crop=2:2:${position}`, "-frames:v", "1", "/crop.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/crop.png")!);
+      assert.equal(output.width, 2);
+      assert.equal(output.height, 2);
+      assert.deepEqual(output.data, new Uint8Array(Array.from({ length: 4 }, () => [0, 0, 255, 255]).flat()));
+    });
+  }
+
+  for (const position of ["x=unknown:y=0", "x=0:y=2garbage", "x=iw/:y=0", "x=1/0:y=0", "x=sin(1):y=0"]) {
+    for (const existing of [false, true]) {
+      it(`rejects crop position ${position} and preserves ${existing ? "existing" : "absent"} output`, async () => {
+        const vfs = createTestVfs(existing ? { "/crop.png": "original" } : {});
+        const original = vfs.store.get("/crop.png");
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "lavfi", "-i", "color=c=red:s=4x4:r=1:d=1",
+          "-vf", `crop=2:2:${position}`, "-frames:v", "1", "/crop.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("crop:"), result.stderr);
+        assert.deepEqual(vfs.store.get("/crop.png"), original);
+      });
+    }
+  }
+
   for (const crop of ["100:100", "100:8", "8:100", "-1:8", "8:-1", "w=iw*2:h=ih"]) {
     for (const existing of [false, true]) {
       it(`rejects invalid crop ${crop} and preserves ${existing ? "existing" : "absent"} output`, async () => {

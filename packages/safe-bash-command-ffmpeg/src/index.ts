@@ -392,11 +392,11 @@ function evalScaleDim(expr: string, iw: number, ih: number): number {
 }
 
 
-function parseRotateAngle(expression: string): number {
+function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>): number {
   let offset = 0;
   const source = expression.trim();
   function parse(minPrecedence = 0, depth = 0): number {
-    if (depth > 64) throw new Error("rotate: angle expression is too deeply nested");
+    if (depth > 64) throw new Error(`${filter}: expression is too deeply nested`);
     while (source[offset] === " ") offset++;
     let value: number;
     const first = source[offset];
@@ -406,10 +406,16 @@ function parseRotateAngle(expression: string): number {
     } else if (first === "(") {
       offset++;
       value = parse(0, depth + 1);
-      if (source[offset++] !== ")") throw new Error("rotate: invalid angle expression");
-    } else if (source.slice(offset, offset + 2) === "PI") {
-      offset += 2;
-      value = Math.PI;
+      if (source[offset++] !== ")") throw new Error(`${filter}: invalid expression`);
+    } else if (first && ((first >= "a" && first <= "z") || (first >= "A" && first <= "Z") || first === "_")) {
+      const start = offset++;
+      while (offset < source.length) {
+        const c = source[offset]!;
+        if ((c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9") || c === "_") offset++;
+        else break;
+      }
+      const name = source.slice(start, offset);
+      value = Object.hasOwn(variables, name) ? variables[name]! : NaN;
     } else {
       const start = offset;
       while (offset < source.length) {
@@ -435,7 +441,7 @@ function parseRotateAngle(expression: string): number {
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || !Number.isFinite(angle)) throw new Error("rotate: invalid or unsupported angle expression");
+  if (offset !== source.length || !Number.isFinite(angle)) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -693,13 +699,14 @@ async function applyVideoFilterChain(
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
+      const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch };
       const cx = Math.max(
         0,
-        Math.min(iw - cw, parseInt(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), 10) || 0)
+        Math.min(iw - cw, Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
       );
       const cy = Math.max(
         0,
-        Math.min(ih - ch, parseInt(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), 10) || 0)
+        Math.min(ih - ch, Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
       );
       current = await mapWork(current, async (f) => {
 
@@ -776,7 +783,7 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "rotate") {
-      const angle = parseRotateAngle(named.angle ?? named.a ?? (positional[0] || "0"));
+      const angle = parseFilterExpression(named.angle ?? named.a ?? (positional[0] || "0"), "rotate", { PI: Math.PI });
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
       current = await mapWork(current, async (f) => {

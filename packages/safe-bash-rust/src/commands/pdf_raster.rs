@@ -6,6 +6,7 @@ mod pdf_glyph;
 use super::{PageSource, Value};
 type Point = [f64; 2];
 pub(in crate::commands::archive) struct RasterOptions<'a> {
+    pub jpeg: Option<(u8, bool)>,
     pub format: &'a str,
     pub color: &'a str,
     pub transparent: bool,
@@ -557,6 +558,19 @@ impl PageSource<'_> {
                 };
                 pixels.push(bitmap.pixels[src_y.min(h - 1) * w + bx + ix]);
             }
+        }
+        if let Some((quality, gray)) = opt.jpeg {
+            use crate::commands::archive::jpeg;
+            if opt.color != "rgb" {
+                for p in &mut pixels {
+                    let lum = (0.299 * f64::from(p[0]) + 0.587 * f64::from(p[1]) + 0.114 * f64::from(p[2])).round() as u8;
+                    p[..3].fill(if opt.color == "mono" { if lum < 128 { 0 } else { 255 } } else { lum });
+                }
+            }
+            return jpeg::encode(jpeg::Input::Page {
+                width: ow, height: oh, pixels: &pixels, quality,
+                dpi: opt.dpi.map(|v| v as u16), gray,
+            }, opt.limit).ok();
         }
         encode(ow, oh, &pixels, opt.format, opt.color)
     }

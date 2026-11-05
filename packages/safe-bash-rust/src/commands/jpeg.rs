@@ -138,6 +138,7 @@ pub(super) fn cosines() -> [[f64; 8]; 8] {
 
 pub(super) enum Input<'a> {
     Raster(&'a Raster, f64, u32),
+    Page { width: usize, height: usize, pixels: &'a [[u8; 4]], quality: u8, dpi: [u16; 2], gray: bool },
     Pdf {
         width: usize,
         height: usize,
@@ -147,33 +148,35 @@ pub(super) enum Input<'a> {
 
 pub(super) fn encode(input: Input<'_>, limit: usize) -> Result<Vec<u8>, &'static str> {
     let pdf = matches!(input, Input::Pdf { .. });
+    let gray = matches!(input, Input::Page { gray: true, .. });
     let (w, h, pixels, quality, density, orientation) = match input {
         Input::Raster(im, q, dpi) => (
             im.width,
             im.height,
             im.pixels.as_slice(),
             q,
-            dpi,
+            [dpi; 2],
             im.orientation,
         ),
+        Input::Page { width, height, pixels, quality, dpi, .. } => (width, height, pixels, f64::from(quality), dpi.map(u32::from), None),
         Input::Pdf {
             width,
             height,
             pixels,
-        } => (width, height, pixels, 90., 72, None),
+        } => (width, height, pixels, 90., [72; 2], None),
     };
     if w == 0 || h == 0 || w > 65535 || h > 65535 {
         return Err("JPEG dimensions exceed 16-bit frame fields");
     }
     let mut out = vec![255, 216];
     let mut jfif = *b"JFIF\0\x01\x01\x01\x00\x48\x00\x48\x00\x00";
-    let dpi = (density.max(1) as u16).to_be_bytes();
-    jfif[8..10].copy_from_slice(&dpi);
-    jfif[10..12].copy_from_slice(&dpi);
+    for (field, dpi) in jfif[8..12].chunks_exact_mut(2).zip(density) {
+        field.copy_from_slice(&(dpi.max(1) as u16).to_be_bytes());
+    }
     segment(&mut out, 0xe0, &jfif);
     if let Some(o) = orientation {
         let mut payload = b"Exif\0\0".to_vec();
-        payload.extend_from_slice(&super::image_header::encode_exif(o, density));
+        payload.extend_from_slice(&super::image_header::encode_exif(o, density[0]));
         segment(&mut out, 0xe1, &payload);
     }
     let q = quality.round().clamp(1., 100.);
@@ -197,7 +200,7 @@ pub(super) fn encode(input: Input<'_>, limit: usize) -> Result<Vec<u8>, &'static
         })
     });
     let mut dqt = Vec::new();
-    for (i, q) in quant[..if pdf { 1 } else { 2 }].iter().enumerate() {
+    for (i, q) in quant[..if pdf || gray { 1 } else { 2 }].iter().enumerate() {
         dqt.push(i as u8);
         dqt.extend_from_slice(q);
     }
@@ -209,7 +212,7 @@ pub(super) fn encode(input: Input<'_>, limit: usize) -> Result<Vec<u8>, &'static
         h as u8,
         (w >> 8) as u8,
         w as u8,
-        3,
+        if gray { 1 } else { 3 },
         1,
         17,
         0,
@@ -221,7 +224,7 @@ pub(super) fn encode(input: Input<'_>, limit: usize) -> Result<Vec<u8>, &'static
         chroma_table,
     ];
     if !pdf {
-        segment(&mut out, 0xc0, &sof);
+        segment(&mut out, 0xc0, if gray { &sof[..9] } else { &sof });
     }
     let mut dht = Vec::new();
     let tables = [
@@ -231,7 +234,7 @@ pub(super) fn encode(input: Input<'_>, limit: usize) -> Result<Vec<u8>, &'static
         (17, &AC_CHROMA_NRCODES, &AC_CHROMA_VALUES[..]),
     ]
     .map(|(id, counts, values)| {
-        if !pdf || id & 1 == 0 {
+        if (!pdf && !gray) || id & 1 == 0 {
             dht.push(id);
             dht.extend_from_slice(&counts[1..]);
             dht.extend_from_slice(values);
@@ -253,11 +256,8 @@ pub(super) fn encode(input: Input<'_>, limit: usize) -> Result<Vec<u8>, &'static
         segment(&mut out, 0xc0, &sof);
     }
     let selector = chroma_table * 17;
-    segment(
-        &mut out,
-        0xda,
-        &[3, 1, 0, 2, selector, 3, selector, 0, 63, 0],
-    );
+    let color_scan = [3, 1, 0, 2, selector, 3, selector, 0, 63, 0];
+    segment(&mut out, 0xda, if gray { &[1, 1, 0, 0, 63, 0] } else { &color_scan });
     let mut writer = Entropy {
         out,
         bits: 0,
@@ -276,7 +276,7 @@ pub(super) fn encode(input: Input<'_>, limit: usize) -> Result<Vec<u8>, &'static
                 channels[1][i] = -0.168736 * r - 0.331264 * g + 0.5 * b;
                 channels[2][i] = 0.5 * r - 0.418688 * g - 0.081312 * b;
             }
-            for (i, channel) in channels.iter().enumerate() {
+            for (i, channel) in channels[..if gray { 1 } else { 3 }].iter().enumerate() {
                 let chroma = usize::from(i != 0 && !pdf);
                 writer.block(
                     coefficients(channel, &cos, &quant[chroma], &order),

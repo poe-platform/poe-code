@@ -9484,6 +9484,7 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
 
 fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let is_cairo = cmd == "pdftocairo";
+    let mut jpeg_quality = 75;
     let mut ext = if is_cairo { "png" } else { "ppm" };
     let mut fmt = if is_cairo { "PNG" } else { "PPM" };
     let mut explicit_container = is_cairo;
@@ -9765,7 +9766,14 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 if arg == "-x" {crop_x = v;} else {crop_y = v;}
                 i += 1;
             }
-            "-jpegopt" | "-paper" | "-paperw" | "-paperh" | "-icc"
+            "-jpegopt" => {
+                for part in args[i+1].split(',') {
+                    if let Some(value) = part.strip_prefix("quality=")
+                        && let Ok(n) = value.parse::<u8>() && n <= 100 { jpeg_quality = n; }
+                }
+                i += 1;
+            }
+            "-paper" | "-paperw" | "-paperh" | "-icc"
             | "-freetype" | "-defaultgray" | "-defaultrgb" | "-defaultcmyk" => {
                 i += 1;
             }
@@ -9965,13 +9973,15 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         }
     }
     let options = pdf_reader::RasterOptions {
+        jpeg: (fmt == "JPEG").then_some((jpeg_quality, is_cairo && color_mode == "gray")),
         format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
         scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
         crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
     };
-    let mut source = if matches!(fmt, "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,"").ok() } else { None };
+    let mut source = if matches!(fmt, "JPEG" | "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,pw_opt.as_deref().unwrap_or("")).ok() } else { None };
     let mut render = |pno| {
         if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
+        if fmt == "JPEG" { return None; }
         let (w, h) = compute_dims(pno);
         Some(write_image_bytes(&ImageMeta {
             fmt: fmt.to_string(), w, h,
@@ -16614,6 +16624,38 @@ mod media_unit_tests {
         let r = cmd_media_doc("pdftoppm", &media_args(&["-r","72","-png","-singlefile","page.pdf","out"]), "", "/", &fs);
         assert_eq!(r.exit_code, 0, "{}", r.stderr);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "8b0eda31ccc5ae21f9093d29cb5b8ee3462f729a273f8d1cef833abdeb2d6950");
+    }
+
+    #[test]
+    fn pdf_page_jpeg_contains_rendered_pixels_and_resolution() {
+        let fs = MemoryVfs::new();
+        let stream = "1 0 0 rg 0 0 16 16 re f 0 0 1 rg 16 0 16 16 re f";
+        let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 32 16] >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents], "");
+        fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
+        for (cmd, gray, quality, luma_quantizer) in [
+            ("pdftoppm", false, None, 8), ("pdftocairo", true, Some("quality=90"), 3)
+        ] {
+            let mut args = vec!["-jpeg", "-singlefile", "-rx", "72", "-ry", "144"];
+            if let Some(q) = quality { args.extend(["-jpegopt", q]); }
+            if gray { args.push("-gray"); }
+            args.extend(["page.pdf", "out"]);
+            let result = cmd_media_doc(cmd, &media_args(&args), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let jpg = fs.read_file("/out.jpg").unwrap();
+            let im = jpeg_decode::decode(&jpg, 1 << 20).expect("a decodable JPEG");
+            assert_eq!((im.width, im.height, im.gray), (32, 32, gray));
+            assert_eq!(&jpg[14..18], &[0, 72, 0, 144]);
+            let dqt = jpg.windows(2).position(|tag| tag == [255, 219]).unwrap();
+            assert_eq!(jpg[dqt+5], luma_quantizer);
+            for (x, expected) in [(6, if gray { [77;3] } else { [254,0,0] }),
+                                  (24, if gray { [28;3] } else { [0,0,254] })] {
+                let pixel = im.pixels[6 * im.width + x];
+                assert!(pixel[..3].iter().zip(expected).all(|(a,b)| a.abs_diff(b) <= 2), "{cmd}: {pixel:?}");
+            }
+        }
     }
 
     #[test]

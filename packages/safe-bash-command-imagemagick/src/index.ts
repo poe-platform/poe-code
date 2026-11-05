@@ -1,3 +1,4 @@
+import { quantizePixelSteps } from "./quantize.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { clutPixelSteps, interpolatePixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
@@ -3962,7 +3963,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-sepia-tone" || token === "-solarize") {
         const value = tokens[++i] ?? (token === "-sepia-tone" ? "80%" : "50%");
         apply = image => token === "-sepia-tone" ? applyMagickSepiaToneSteps(image, value, signal) : applyMagickSolarizeSteps(image, value, signal);
-    } else if (token === "-posterize" || token === "-colors") {
+    } else if (token === "-posterize") {
         const levels = Number(tokens[++i] ?? 8);
         apply = image => applyMagickPosterizeSteps(image, levels, signal);
     } else if (token === "-monochrome") {
@@ -4263,6 +4264,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const histogram = Array.from({ length: 4 }, () => new Float64Array(256));
                 yield* accumulateMagickHistogram(image.data, histogram);
                 return yield* applyMagickLookup(image, analysisOperation.lookup(histogram, image));
+            });
+        }
+        else if (t === "-colors") {
+            const colors = Number(tokens[++i]);
+            stack = yield* mapSteps(stack, image => {
+                const { data16: ignored, ...pixels } = image;
+                return applyMagickRasterSteps(pixels, quantizePixelSteps(image.data.length, colors), signal);
             });
         }
         else if (pixelOperation) { i = pixelOperation.end; stack = yield* mapSteps(stack, pixelOperation.apply); }
@@ -5214,6 +5222,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image);
                 return plan ? transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, warpOperation.background), signal, plan) : image;
             });
+            continue;
+        }
+        if (!operandsOnly && token === "-colors") {
+            const colors = Number(tokens[++i]);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, colors), signal) : undefined);
             continue;
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);

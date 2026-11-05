@@ -125,8 +125,10 @@ export function createFormatRegistry(
     const extensions = Object.fromEntries(
       Object.entries(descriptor.extensions).sort(([a], [b]) => compare(a, b))
     );
-    if (selectedDirection === "write" && (name === "markdown" || name === "md"))
+    if (selectedDirection === "write" && (name === "markdown" || name === "md")) {
       extensions.fancy_lists = true;
+      extensions.tex_math_dollars = true;
+    }
     while (cursor < source.length) {
       const enabled = source[cursor++] === "+";
       const start = cursor;

@@ -25,7 +25,6 @@ const dropped = new Set([
   "template",
   "noscript",
   "svg",
-  "math",
   "base",
   "link",
   "meta",
@@ -227,6 +226,37 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
       if ("childNodes" in node) for (const child of node.childNodes) result += await literal(child);
       return result;
     }
+    async function math(node: H.Node): Promise<string> {
+      await ctx.cooperate();
+      const escape = (text: string) => Array.from(text, c =>
+        "\\{}#$%&_".includes(c) ? `\\${c}` : c === "^" ? "\\hat{}" : c === "~" ? "\\sim" : c
+      ).join("");
+      if (!element(node)) return node.nodeName === "#text" ? escape((node as H.TextNode).value.trim()) : "";
+      const tag = node.tagName;
+      if (dropped.has(tag) || tag === "annotation" || tag === "annotation-xml") return "";
+      if (["mi", "mn", "mo", "mtext", "ms"].includes(tag)) {
+        const text = escape((await literal(node)).trim());
+        return tag === "mtext" || tag === "ms" ? `\\text{${text}}` : text;
+      }
+      const children: string[] = [];
+      for (const child of node.childNodes) {
+        // Formatting whitespace between MathML elements has no mathematical meaning.
+        if (child.nodeName === "#text" && !(child as H.TextNode).value.trim()) continue;
+        children.push(await math(child));
+      }
+      const [first = "", second = "", third = ""] = children;
+      const base = first.length === 1 ? first : `{${first}}`;
+      let result: string;
+      if (tag === "mfrac" && children.length === 2) result = `\\frac{${first}}{${second}}`;
+      else if (tag === "msqrt") result = `\\sqrt{${children.join(" ")}}`;
+      else if (tag === "mroot" && children.length === 2) result = `\\sqrt[${second}]{${first}}`;
+      else if (tag === "msup" && children.length === 2) result = `${base}^{${second}}`;
+      else if (tag === "msub" && children.length === 2) result = `${base}_{${second}}`;
+      else if (tag === "msubsup" && children.length === 3) result = `${base}_{${second}}^{${third}}`;
+      else result = children.filter(Boolean).join(" ");
+      ctx.charge("retainedBytes", result.length * 2);
+      return result;
+    }
     async function inlines(nodes: readonly H.ChildNode[]): Promise<Inline[]> {
       const result: Inline[] = [];
       const text = (s: string) => {
@@ -268,6 +298,10 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
           continue;
         }
         if (dropped.has(tag)) continue;
+        if (tag === "math") {
+          result.push({t: "Math", c: [value(node, "display") === "block" ? "DisplayMath" : "InlineMath", await math(node)]});
+          continue;
+        }
         if (tag === "br") {
           result.push({ t: "LineBreak" });
           continue;

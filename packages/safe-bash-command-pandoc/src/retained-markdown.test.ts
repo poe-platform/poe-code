@@ -7,6 +7,9 @@ import type { WriteOptions } from "./types.js";
 const a: Attr = ["", [], []];
 const s = (c: string): Inline => ({t: "Str", c});
 const p = (...c: Inline[]): Block => ({t: "Para", c});
+it.each(["markdown", "md", "gfm+tex_math_dollars"])("preserves inline and display math in retained %s output", async to => {
+  expect(await md([p({t: "Math", c: ["InlineMath", "x + 1"]}, {t: "Space"}, {t: "Math", c: ["DisplayMath", "\\frac{x}{y}"]})], to)).toBe("$x + 1$ $$\\frac{x}{y}$$\n");
+});
 async function md(blocks: readonly Block[], to = "commonmark", options: Partial<WriteOptions> = {}) {
   const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {});
   if (wire.kind !== "text") throw new Error("Expected JSON");

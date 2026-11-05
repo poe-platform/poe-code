@@ -167,7 +167,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       finally {release();}
       if (filterFailure) throw filterFailure.reason;
     }
-    if (["plain", "commonmark", "gfm", "rtf", "odt"].includes(target)) await assertRetainedPlainMath(document.tree, document.order, context);
+    if (["plain", "commonmark", "gfm", "rtf", "odt"].includes(target) && !(target === "gfm" && createFormatRegistry().resolve(options.to, "write").extensions.tex_math_dollars)) await assertRetainedPlainMath(document.tree, document.order, context);
     if (options.shiftHeadingLevelBy || options.stripComments) {
       const next = await transformRetainedJson(document.tree, context, working, options, origins?.copy());
       await document.close();

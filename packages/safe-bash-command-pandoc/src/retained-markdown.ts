@@ -367,6 +367,10 @@ class MarkdownTape {
           await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: quote, rest: quote}); const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;
         }
         if (tag === "Cite") {await this.loss(job.path, "citations"); const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;}
+        if (tag === "Math" && this.selection.extensions.tex_math_dollars) {
+          const delimiter = await this.tag(content! + 32) === "DisplayMath" ? "$$" : "$";
+          result = await this.join(await this.literal(delimiter), await this.scalar(await this.at(content!, 1)), await this.literal(delimiter)); continue;
+        }
         if (tag === "RawInline" || tag === "Math" || tag === "RawBlock") {
           await this.loss(job.path, tag === "Math" ? "math" : tag === "RawInline" ? "raw inline content" : "raw blocks");
           result = await this.escape(await this.scalar(await this.at(content!, 1)), false, true); continue;

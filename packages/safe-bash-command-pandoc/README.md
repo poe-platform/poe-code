@@ -42,6 +42,9 @@ Plain output uses link labels, spaces for soft breaks, four-column decimal list
 prefixes, 72-character rules, and a final newline even for empty documents.
 Bullet lists use the compact spacing of Pandoc 3.11.
 Both `html` and `html5` accept HTML input and produce HTML5 output.
+HTML MathML preserves inline/display equations, fractions, roots and scripts as
+math nodes; other MathML containers retain their text. Markdown output uses
+TeX dollar delimiters (`-tex_math_dollars` disables this extension).
 The shell command infers omitted input and output formats from file extensions.
 Stdin and extensionless inputs default to `markdown`; stdout and extensionless
 outputs default to `html5`. Explicit `-f`/`-t` override inference; `--yes` is

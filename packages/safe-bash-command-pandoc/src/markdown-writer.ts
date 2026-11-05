@@ -115,7 +115,11 @@ class Markdown {
         case "Quoted": {const quote = node.c[0] === "DoubleQuote" ? '"' : "'"; parts.push(this.join([quote, this.inline(node.c[1], `${p}.c[1]`), quote])); break;}
         case "Cite": this.loss(p, "citations"); parts.push(this.inline(node.c[1], `${p}.c[1]`)); break;
         case "RawInline": this.loss(p, "raw inline content"); parts.push(this.text(node.c[1], true, true)); break;
-        case "Math": this.loss(p, "math"); parts.push(this.text(node.c[1], true, true)); break;
+        case "Math": {
+          if (!this.selection.extensions.tex_math_dollars) throw new PandocError("E_CAPABILITY", this.context.operation ?? "write", "Math requires tex_math_dollars", this.selection.descriptor.name, p);
+          const delimiter = node.c[0] === "DisplayMath" ? "$$" : "$";
+          parts.push(this.join([delimiter, node.c[1], delimiter])); break;
+        }
         case "Note": this.loss(p, "notes"); break;
         default: this.loss(p, node.t); parts.push(this.inline(node.c, `${p}.c`));
       }

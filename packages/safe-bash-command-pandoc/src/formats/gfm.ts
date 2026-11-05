@@ -6,7 +6,7 @@ export default {
   aliases: { read: ["markdown", "md", "markdown_github", "markdown_mmd", "markdown_phpextra", "commonmark_x"], write: ["markdown", "md", "markdown_github", "markdown_mmd", "markdown_phpextra", "commonmark_x"] },
   operands: "join",
   reader: { format: "gfm", read: readCommonMark },
-  writer: { format: "gfm", write: writeMarkdown },
+  writer: { format: "gfm", math: "source", write: writeMarkdown },
   read: true,
   write: true,
   media: "text",

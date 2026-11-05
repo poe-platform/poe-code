@@ -3,6 +3,27 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
+for (const retained of [false, true]) for (const dither of [[], ["+dither"], ["-dither", "None"]]) {
+    it(`matches native two-color saturated and grayscale palettes, retained=${retained}, dither=${dither.join(" ")}`, async () => {
+        // ImageMagick 7.1.2: 2x2 RGBA input, -colors 2 -depth 8 rgba:-.
+        for (const [source, expected] of [
+            [[255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255],
+                [85, 85, 85, 255, 85, 85, 85, 255, 85, 85, 85, 255, 255, 255, 255, 255]],
+            [[255, 255, 255, 255, 0, 0, 255, 255, 0, 255, 0, 255, 255, 0, 0, 255],
+                [255, 255, 255, 255, 85, 85, 85, 255, 85, 85, 85, 255, 85, 85, 85, 255]],
+            [[0, 0, 0, 255, 85, 85, 85, 255, 170, 170, 170, 255, 255, 255, 255, 255],
+                [43, 43, 43, 255, 43, 43, 43, 255, 213, 213, 213, 255, 213, 213, 213, 255]]
+        ] as const) {
+            const bytes = await sharp(Uint8Array.from(source), { raw: { width: 2, height: 2, channels: 4 } }).png().toBuffer();
+            const files = new Map([["in.png", bytes]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/in.png", bytes);
+            const result = await runConvertCli(["in.png", ...dither, "-colors", "2", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            expect([...decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual(expected);
+        }
+    });
+}
+
 for (const retained of [false, true]) {
     for (const dither of [[], ["-dither", "None"]]) {
         it(`bounds the whole palette, retained=${retained}, dither=${dither.join(" ")}`, async () => {

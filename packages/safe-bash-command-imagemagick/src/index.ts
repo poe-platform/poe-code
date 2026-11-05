@@ -4515,7 +4515,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         continue;
                     const v = out[idx + c]!;
                     if (inverse) {
-                        const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), 1 / gamma);
+                        const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), gamma);
                         out[idx + c] = clampByteVal(black + gVal * span);
                     }
                     else {

@@ -2459,6 +2459,11 @@ function* executeQpdfCli(
     };
   }
 
+  const shouldNormalizeContent =
+    normalizeContentFlag !== undefined
+      ? normalizeContentFlag
+      : qdf || streamDataMode === "uncompress";
+
   // Split pages if requested (--split-pages[=n])
   if (splitPagesGroup !== undefined) {
     const total = workingDoc.getPageCount();
@@ -2474,8 +2479,14 @@ function* executeQpdfCli(
       const indices: number[] = [];
       for (let k = startIdx; k <= endIdx; k++) indices.push(k);
       (yield* subDoc.copyPagesFromSteps(workingDoc, indices));
+      if (shouldNormalizeContent) {
+        for (const page of subDoc.getPages()) {
+          yield;
+          page.getRawContentStream();
+        }
+      }
       const splitName = formatSplitName(finalTarget, total, splitPagesGroup, startIdx + 1, endIdx + 1);
-      let bytes = (yield* subDoc.saveSteps({ normalizeContent: qdf, linearize, objectStreams: objectStreamsMode }));
+      let bytes = (yield* subDoc.saveSteps({ normalizeContent: shouldNormalizeContent, linearize, objectStreams: objectStreamsMode }));
       if (encryptConfig && !decrypt) {
         bytes = (yield* encryptCosDocumentSteps((yield* parseCosDocumentSteps(bytes)), encryptConfig));
       }
@@ -2485,10 +2496,6 @@ function* executeQpdfCli(
   }
 
   // Save final PDF
-  const shouldNormalizeContent =
-    normalizeContentFlag !== undefined
-      ? normalizeContentFlag
-      : qdf || streamDataMode === "uncompress";
   let outBytes = (yield* workingDoc.saveSteps({
     normalizeContent: shouldNormalizeContent,
     objectStreams: objectStreamsMode

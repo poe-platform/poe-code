@@ -377,11 +377,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     }
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");
+    const normalizeContent = options.normalizeContentFlag ?? (options.qdf || options.streamDataMode === "uncompress");
     if (options.splitPagesGroup !== undefined) {
       if (!editedGraph) for await (const object of retainedCosObjects(document, storage, { signal })) {
         if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
       }
-      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal, options.qdf, options.linearize, options.objectStreamsMode);
+      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal, normalizeContent, options.linearize, options.objectStreamsMode);
       async function* entries() {
         // Preserve original Map insertion order when a split filename replaces
         // an input. Empty seed entries are discarded after staging.
@@ -417,7 +418,6 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       return { exitCode: 0 };
     }
-    const normalizeContent = options.normalizeContentFlag ?? (options.qdf || options.streamDataMode === "uncompress");
     const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, normalizeContent, objectStreams: options.decrypt && document.encryption ? "preserve" : options.objectStreamsMode, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }

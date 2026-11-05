@@ -172,7 +172,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
       while (node.kind === "ref") { await checkpoint(++depth); const value = await store.get(node.objectNumber); if (!value) return undefined; node = value.value; }
       return node.kind === "dict" ? node : undefined;
     }
-    async function clone(node: PdfCosNode, depth = 0): Promise<PdfCosNode> {
+    async function clone(node: PdfCosNode, depth = 0, content = false): Promise<PdfCosNode> {
       await checkpoint(depth);
       if (node.kind === "ref") {
         const found = await memo.get(BigInt(node.objectNumber));
@@ -182,14 +182,14 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
         if (!original) return cosRef(0);
         if (!original.stream && original.value.kind === "dict" && dictGet(original.value, "Linearized") !== undefined) mayLinearize = true;
         const reference = await store.allocate(); await memo.set(BigInt(node.objectNumber), BigInt(reference.objectNumber));
-        let value = await clone(original.value, depth + 1);
+        let value = await clone(original.value, depth + 1, content);
         if (original.stream) {
           // Decrypted encoded streams can change length, so admit a retained
           // snapshot before constructing the target stream's /Length.
-          const source = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(original.objectNumber, original.generationNumber, { raw: !(options.normalizeContent && original.decoded) }), { signal });
+          const source = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(original.objectNumber, original.generationNumber, { raw: !(options.normalizeContent && (original.decoded || content)) }), { signal });
           let streamFailed = false;
           try {
-            if (options.normalizeContent && original.decoded && value.kind === "dict") {
+            if (options.normalizeContent && (original.decoded || content) && value.kind === "dict") {
               value = { ...value, entries: value.entries.filter(entry => !["Filter", "DecodeParms", "Length"].includes(entry.key.decoded)) };
               dictSet(value, "Length", cosNumber(source.size));
             }
@@ -200,10 +200,10 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
         } else await store.set({ objectNumber: reference.objectNumber, generationNumber: 0, value });
         return reference;
       }
-      if (node.kind === "array") { const items = []; for (const item of node.items) items.push(await clone(item, depth + 1)); return cosArray(items); }
+      if (node.kind === "array") { const items = []; for (const item of node.items) items.push(await clone(item, depth + 1, content)); return cosArray(items); }
       if (node.kind === "dict") {
         const type = dictGet(node, "Type"), pageTree = type?.kind === "name" && (type.decoded === "Page" || type.decoded === "Pages");
-        const entries = []; for (const entry of node.entries) { if (pageTree && entry.key.decoded === "Parent") continue; entries.push({ key: { ...entry.key }, value: await clone(entry.value, depth + 1) }); }
+        const entries = []; for (const entry of node.entries) { if (pageTree && entry.key.decoded === "Parent") continue; entries.push({ key: { ...entry.key }, value: await clone(entry.value, depth + 1, pageTree && entry.key.decoded === "Contents") }); }
         return { kind: "dict", entries };
       }
       return node;

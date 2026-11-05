@@ -555,6 +555,9 @@ export async function runQpdfCli(
       step = steps.next();
     }
     return { ...step.value, stderr: parsed.stderr + step.value.stderr };
+  } catch (error) {
+    if (!(error instanceof QpdfPageRangeError)) throw error;
+    return { exitCode: 2, stdout: "", stderr: `${parsed.stderr}qpdf: ${error.message}\n` };
   } finally { steps.return({ exitCode: 2, stdout: "", stderr: "" }); }
 }
 
@@ -1028,9 +1031,14 @@ export function runQpdfCliSync(
   const parsed = parseQpdfArguments(argv);
   if (parsed.result) return parsed.result;
   const steps = executeQpdfCli(parsed.options, files);
-  let step = steps.next();
-  while (!step.done) step = steps.next();
-  return { ...step.value, stderr: parsed.stderr + step.value.stderr };
+  try {
+    let step = steps.next();
+    while (!step.done) step = steps.next();
+    return { ...step.value, stderr: parsed.stderr + step.value.stderr };
+  } catch (error) {
+    if (!(error instanceof QpdfPageRangeError)) throw error;
+    return { exitCode: 2, stdout: "", stderr: `${parsed.stderr}qpdf: ${error.message}\n` };
+  }
 }
 
 function* executeQpdfCli(

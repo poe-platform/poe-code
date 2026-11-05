@@ -22,6 +22,9 @@ export class QpdfPageRangeError extends Error {}
 /** Expand on demand. Later exclusions filter earlier ranges without a page set;
  * the compact descriptors grow only with the caller's range expression. */
 export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Generator<number, void, void> {
+  if (rangeSpec.trim().startsWith("x")) {
+    throw new QpdfPageRangeError(`error at * in numeric range *${rangeSpec}: first range group may not be an exclusion`);
+  }
   const suffix = rangeSpec.indexOf(":");
   if (suffix !== -1 && rangeSpec.includes(",", suffix)) {
     throw new QpdfPageRangeError(`error at * in numeric range ${rangeSpec.slice(0, suffix)}*${rangeSpec.slice(suffix)}: expected :even or :odd`);

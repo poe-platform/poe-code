@@ -13205,7 +13205,7 @@ fn cmd_sox(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 }
 
 fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read virtual file (- for stdin)\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
+    const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read input from a virtual file\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
     let parse_uint = |val: &str, min: usize, max: usize| -> Result<usize, String> {
         if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
             return Err(format!("Invalid number: {val}"));
@@ -13254,10 +13254,7 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             continue;
         }
         if end || !arg.starts_with('-') || arg == "-" {
-            if operand_opt.is_some() {
-                return err_out("qrencode: Only one input string is accepted\n", 1);
-            }
-            operand_opt = Some(arg.to_string());
+            operand_opt.get_or_insert_with(|| arg.to_string());
             i += 1;
             continue;
         }
@@ -13382,38 +13379,29 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     if structured && (version == 0 || output_opt.as_deref().unwrap_or("-") == "-") {
         return err_out("qrencode: Structured append requires a version and output filename\n", 1);
     }
-    if input_opt.is_some() && operand_opt.is_some() {
-        return err_out("qrencode: Choose a file or an input string\n", 1);
-    }
     let input_limit = if structured { 113_424usize } else { 7089usize };
-    let mut data = if let Some(op) = operand_opt {
-        if op.len() > input_limit {
-            return err_out("qrencode: Input exceeds byte limit\n", 1);
+    let mut data = if let Some(op) = &operand_opt {
+        if crate::vfs::stream_byte_len(op) > input_limit { return err_out("qrencode: Input exceeds byte limit\n", 1); }
+        crate::vfs::stream_string_to_bytes(op)
+    } else if let Some(inp) = input_opt {
+        if inp.is_empty() { return err_out("Cannot read input file .\n", 1); }
+        let full = resolve_posix_path(cwd, &inp);
+        if fs.is_dir(&full) { return err_out("No input data.\n", 1); }
+        match fs.read_file(&full) {
+            Ok(bytes) => bytes,
+            Err(e) if matches!(e.split(':').next(), Some("ENOENT" | "ENOTDIR" | "EACCES")) =>
+                return err_out(&format!("Cannot read input file {inp}.\n"), 1),
+            Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
         }
-        crate::vfs::stream_string_to_bytes(&op)
-    } else if let Some(ref inp) = input_opt && inp != "-" {
-        let full = resolve_posix_path(cwd, inp);
-        if fs.is_dir(&full) {
-            return err_out(
-                &format!(
-                    "qrencode: EISDIR: illegal operation on a directory, readStream '{full}'\n"
-                ),
-                1,
-            );
-        }
-        let Ok(b) = fs.read_file(&full) else {
-            return err_out(
-                &format!("qrencode: ENOENT: no such file or directory, stat '{full}'\n"),
-                1,
-            );
-        };
-        b
     } else {
         crate::vfs::stream_string_to_bytes(stdin)
     };
     if data.len() > input_limit {
         return err_out("qrencode: Input exceeds byte limit\n", 1);
     }
+    if data.is_empty() && operand_opt.is_none() { return err_out("No input data.\n", 1); }
+    if !byte_mode && let Some(nul) = data.iter().position(|&b| b == 0) { data.truncate(nul); }
+    if data.is_empty() { return err_out("Failed to encode the input data: Invalid argument\n", 1); }
     if ignorecase && !byte_mode {
         let mut idx = 0usize;
         while idx < data.len() {
@@ -17026,7 +17014,7 @@ mod media_unit_tests {
         assert_eq!(qr_err.exit_code, 1);
         assert_eq!(
             qr_err.stderr,
-            "qrencode: ENOENT: no such file or directory, stat '/work/missing.txt'\n"
+            "Cannot read input file missing.txt.\n"
         );
 
         let wk_err = cmd_media_doc("wkhtmltopdf", &media_args(&["only_one.html"]), "", "/work", &vfs);

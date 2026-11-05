@@ -101,12 +101,12 @@ describe("obscure media, graphviz, qr, pdf, image, audio/video & office diagnost
       await h.expectFail(
         "qrencode -r /workspace/qrdir/missing.txt -o -",
         1,
-        "qrencode: ENOENT: no such file or directory, stat '/workspace/qrdir/missing.txt'\n"
+        "Cannot read input file /workspace/qrdir/missing.txt.\n"
       );
       await h.expectFail(
         "qrencode -r /workspace/qrdir -o -",
         1,
-        "qrencode: EISDIR: illegal operation on a directory, readStream '/workspace/qrdir'\n"
+        "No input data.\n"
       );
       await h.expectFail(
         "qrencode -M -v 5 -o - 'hello'",
@@ -118,11 +118,9 @@ describe("obscure media, graphviz, qr, pdf, image, audio/video & office diagnost
         1,
         "qrencode: Structured append requires a version and output filename\n"
       );
-      await h.expectFail(
-        "qrencode -r in.txt -o - 'hello'",
-        1,
-        "qrencode: Choose a file or an input string\n"
-      );
+      const selected = await h.exec("qrencode -r in.txt -t ASCII 'hello'");
+      assert.equal(selected.exitCode, 0);
+      assert.equal(selected.stdout, (await h.exec("qrencode -t ASCII hello")).stdout);
     });
   });
 

@@ -8,6 +8,7 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin
 } from "safe-bash-contracts";
+import { isFsError } from "safe-bash-contracts/errors";
 import { yieldTurn, drainCooperativeSteps } from "safe-bash-contracts/yield";
 import {
   QrEncodingError,
@@ -40,7 +41,7 @@ export {
 const help = `Usage: qrencode [OPTION]... [STRING]
 Generate QR codes from a string, stdin, or a virtual file.
   -o, --output FILE       Virtual output file (- for stdout)
-  -r, --read-from FILE    Read virtual file (- for stdin)
+  -r, --read-from FILE    Read input from a virtual file
   -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,
                          UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8
   -s, --size N            Module pixel size (default 3)
@@ -117,8 +118,7 @@ function parse(args: readonly string[]) {
       continue;
     }
     if (end || !arg.startsWith("-") || arg === "-") {
-      if (operand !== undefined) throw new Error("Only one input string is accepted");
-      operand = i;
+      operand ??= i;
       continue;
     }
     const long = arg.startsWith("--"),
@@ -168,8 +168,6 @@ function parse(args: readonly string[]) {
     throw new Error("Unsupported Micro QR version, level, or structured append");
   if (structured && (!version || !output || output === "-"))
     throw new Error("Structured append requires a version and output filename");
-  if (input !== undefined && operand !== undefined)
-    throw new Error("Choose a file or an input string");
   return {
     output,
     input,
@@ -266,6 +264,10 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
     name: "qrencode",
     async execute(context: CommandContext) {
       context.signal.throwIfAborted();
+      const fail = async (message: string) => {
+        await writeBytes(context.stderr, new TextEncoder().encode(message + "\n"), context.signal);
+        return { exitCode: 1 };
+      };
       try {
         const carrier = getCommandArguments(context),
           parsed = parse(carrier.args);
@@ -285,17 +287,26 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
           if (carrier.args[parsed.operand]!.length > inputLimit)
             throw new Error("Input exceeds byte limit");
           data = carrier.bytes(parsed.operand)!;
-        } else if (parsed.input && parsed.input !== "-") {
+        } else if (parsed.input !== undefined) {
+          if (!parsed.input) return fail("Cannot read input file .");
           const path = resolvePath(context.cwd, parsed.input);
-          const stat = await context.fs.stat(path, { signal: context.signal });
-          if (stat.size > inputLimit) throw new Error("Input exceeds byte limit");
-          data = context.fs.readStream
-            ? await collectBytes(context.fs.readStream(path, { signal: context.signal }), {
-                maxBytes: inputLimit,
-                maxMemoryBytes: limits.maxMemoryBytes,
-                signal: context.signal
-              })
-            : await context.fs.readFile(path, { signal: context.signal, maxBytes: inputLimit });
+          try {
+            const stat = await context.fs.stat(path, { signal: context.signal });
+            if (stat.type === "directory") return fail("No input data.");
+            if (stat.size > inputLimit) throw new Error("Input exceeds byte limit");
+            data = context.fs.readStream
+              ? await collectBytes(context.fs.readStream(path, { signal: context.signal }), {
+                  maxBytes: inputLimit,
+                  maxMemoryBytes: limits.maxMemoryBytes,
+                  signal: context.signal
+                })
+              : await context.fs.readFile(path, { signal: context.signal, maxBytes: inputLimit });
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if (isFsError(error, "ENOENT") || isFsError(error, "ENOTDIR") || isFsError(error, "EACCES"))
+              return fail(`Cannot read input file ${parsed.input}.`);
+            throw error;
+          }
         } else
           data = await collectBytes(context.stdin, {
             maxBytes: inputLimit,
@@ -305,6 +316,12 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
         if (data.length > inputLimit) throw new Error("Input exceeds byte limit");
         if (data.length * 64 + 2 * 1024 * 1024 > limits.maxMemoryBytes)
           throw new Error("QR encoding exceeds memory budget");
+        if (!data.length && parsed.operand === undefined) return fail("No input data.");
+        if (!parsed.encode.byte) {
+          const nul = data.indexOf(0);
+          if (nul >= 0) data = data.subarray(0, nul);
+        }
+        if (!data.length) return fail("Failed to encode the input data: Invalid argument");
         if (parsed.ignorecase && !parsed.encode.byte) {
           data = data.slice();
           for (let i = 0; i < data.length; i++) {
@@ -353,14 +370,7 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
           (error.name === "BudgetExceededError" || error.name === "AbortError")
         )
           throw error;
-        await writeBytes(
-          context.stderr,
-          new TextEncoder().encode(
-            `qrencode: ${error instanceof Error ? error.message : String(error)}\n`
-          ),
-          context.signal
-        );
-        return { exitCode: 1 };
+        return fail(`qrencode: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   };

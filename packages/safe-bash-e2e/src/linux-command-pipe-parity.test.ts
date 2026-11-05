@@ -30,6 +30,24 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("qrencode selects the first operand and encodes binary or NUL-terminated input", async () => {
+      const dash = Buffer.from([65, 0, 255, 66]);
+      await writeFile(cwd + "/-", dash);
+      for (const fs of [ts.fs, rust.fs]) await fs.writeFile("/workspace/-", dash);
+      for (const [args, input] of [
+        ["-r absent first second", "ignored"], ["-r samples/ours", "ignored"],
+        ["-8 -r -", "not the file"], ["-r absent", "not the file"], ["-r samples", ""], ["-r ''", "ignored"],
+        ["", ""], ["''", "ignored"], ["", Buffer.from([0])], ["-8", Buffer.from([0])],
+        ["", Buffer.from([65, 0, 66])], ["-8", Buffer.from([65, 0, 66])],
+      ] as const) {
+        const script = "qrencode -t ASCII -o - " + args;
+        const expected = await runLinuxCommand("bash", ["--noprofile", "--norc", "-c", script], input, cwd);
+        for (const shell of [ts.shell, rust]) {
+          const result = await shell.exec(script, { stdin: input });
+          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], expected, script);
+        }
+      }
+    });
     await t.test("whoami follows GNU option ordering and reports the original argument bytes", async () => {
       const scripts = [
         "whoami operand --he", "whoami operand -é", "whoami -- $'a\\x27b\\nß'",

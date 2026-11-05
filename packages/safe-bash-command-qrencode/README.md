@@ -35,6 +35,8 @@ the minimum version (`0` or `auto` chooses automatically). `--strict-version`
 prevents growth. Micro QR versions 1–4 support their standard subset of levels
 and modes; level H and structured append are unavailable for Micro QR.
 
+The first input string takes precedence over `-r FILE`. Omit both to read stdin. Text input ends at the first NUL byte; use `-8` to include embedded NUL bytes.
+
 Numeric and alphanumeric segments are selected automatically. Text uses UTF-8
 bytes; `-8` preserves all input bytes in Byte mode, and `-k` interprets eligible
 Shift-JIS pairs in Kanji mode. `-i` folds ASCII lowercase to uppercase unless

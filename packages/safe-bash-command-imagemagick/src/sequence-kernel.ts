@@ -76,7 +76,7 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
                 const bytes = (yield { kind: "read", image, position, length })!;
                 for (let pixel = 0; pixel < pixels; pixel++) {
                     const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
-                    if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(bytes.subarray(offset, offset + 3), offset); ranks[pixel]! -= 1; }
+                    if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(bytes.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
                 }
             }
         } else if (["mean", "average", "min", "max", "add", "multiply"].includes(operation)) {
@@ -94,7 +94,7 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
                 }
             }
             const average = operation === "mean" || operation === "average";
-            for (let offset = 0; offset < length; offset++) if (offset % 4 !== 3) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : values[offset]!);
+            for (let offset = 0; offset < length; offset++) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : values[offset]!);
         }
         yield { kind: "write", position, data };
     }

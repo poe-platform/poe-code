@@ -3820,7 +3820,24 @@ type MagickPixelOperation = { end: number; apply(image: RgbaImage): Generator<vo
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"];
-    if (token === "-alpha") {
+    if (token === "-colorspace" || token === "-grayscale") {
+        const space = (tokens[++i] ?? "gray").toLowerCase();
+        apply = function* (image) {
+            if (!space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
+            const out = new Uint8Array(image.data);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) yield;
+                // ImageMagick computes luma directly from the encoded RGB values.
+                const gray = clampByteVal(space === "rec601luma"
+                    ? 0.298839 * out[idx]! + 0.586811 * out[idx + 1]! + 0.11435 * out[idx + 2]!
+                    : 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!);
+                out[idx] = out[idx + 1] = out[idx + 2] = gray;
+            }
+            const { data16: ignored, ...metadata } = image;
+            return { ...metadata, data: out, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
+        };
+    }
+    else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
         if (mode === "remove") {
             apply = function* (im) {
@@ -4467,14 +4484,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapSteps(stack, function* (im) {
                 return (yield* applyExifOrientationSteps(im));
             }));
-        }
-        else if (t === "-colorspace" || t === "-grayscale") {
-            const cs = (tokens[++i] ?? "gray").toLowerCase();
-            if (cs.includes("gray") || cs.includes("grey") || cs === "rec709luma" || cs === "rec601luma") {
-                stack = (yield* mapSteps(stack, function* (im) {
-                    return (yield* grayscaleImageSteps(im));
-                }));
-            }
         }
         else if (t === "-gamma") {
             const gammaVal = Math.max(0.1, Number(tokens[++i] ?? 1.0));
@@ -5357,9 +5366,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-gamma") {
             const gamma = Math.max(0.1, Number(tokens[++i] ?? 1));
             transform(() => ({ kind: "gamma", gamma: 1, gammaOut: gamma }));
-        } else if (!operandsOnly && ["-colorspace", "-grayscale"].includes(token)) {
-            const space = (tokens[++i] ?? "gray").toLowerCase();
-            if (space.includes("gray") || space.includes("grey") || space === "rec709luma" || space === "rec601luma") transform(() => ({ kind: "grayscale" }));
         } else if (!operandsOnly && ["-blur", "-gaussian-blur", "-sharpen", "-unsharp"].includes(token)) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
             const kind = token === "-blur" || token === "-gaussian-blur" ? "blur" : "sharpen";

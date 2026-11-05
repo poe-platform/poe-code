@@ -1,6 +1,5 @@
 import type { CommandDefinition } from "safe-bash-contracts";
-import { integer, UsageError } from "safe-bash-io-engine/internal";
-import { numericOptions } from "safe-bash-text-stream-engine/stream-inspection/numeric-options";
+import { integer, options, UsageError } from "safe-bash-io-engine/internal";
 import { ByteOutput, command, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
 
 function tabStops(specifications: readonly string[], session: Session): (column: number) => number | undefined {
@@ -58,8 +57,17 @@ function tabStops(specifications: readonly string[], session: Session): (column:
 
 export function createUnexpandWithSettings(limits: StreamFormatLimits): CommandDefinition {
   return command("unexpand", limits, async session => {
-    const parsed = numericOptions(session.context.args, "at:", { all: "a", tabs: "t", "first-only": false }, "t", undefined, true);
-    const nextTab = tabStops(parsed.values.get("t") ?? [], session);
+    const specifications: string[] = [];
+    let digits = "";
+    // GNU accumulates legacy digits across options; only a comma or end of options commits them.
+    const parsed = options(session.context.args, "at:0123456789,", { all: "a", tabs: "t", "first-only": false },
+      false, undefined, undefined, (key, value) => {
+        if (key === "t") specifications.push(value!);
+        else if (key >= "0" && key <= "9") digits += key;
+        else if (key === "," && digits) { specifications.push(digits); digits = ""; }
+      });
+    if (digits) specifications.push(digits);
+    const nextTab = tabStops(specifications, session);
     const all = !parsed.flags.has("first-only") && (parsed.flags.has("a") || parsed.flags.has("t"));
     const output = new ByteOutput(session);
     let column = 0, initial = true, active = true;

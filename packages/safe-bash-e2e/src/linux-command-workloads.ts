@@ -116,7 +116,7 @@ const textCommands = ([
   ["ssh-keygen", "-l", "-f", "samples/ed25519.pub"], ["cat"], ["tac"], ["head", "-n", "2"], ["tail", "-n", "2"], ["wc", "-c"],
   ["sort"], ["uniq", "-c"], ["nl", "-ba"], ["cut", "-c", "1-2"], ["tr", "a-z", "A-Z"],
   ["fold", "-w", "3"], ["rev"], ["fmt", "-w", "20"], ["strings", "-n", "2"],
-  ["expand"], ["unexpand"], ["paste", "-s"], ["grep", "beta"], ["sed", "s/beta/z/g"],
+  ["paste", "-s"], ["grep", "beta"], ["sed", "s/beta/z/g"],
   ["awk", "END {print NR}"], ["base64"], ["base32"], ["xxd", "-p"], ["od", "-An", "-tx1"],
   ["sha512sum"], ["sha384sum"], ["sha256sum"], ["sha224sum"], ["sha1sum"], ["md5sum"], ["cksum"],
   ["basename", "/a/b"], ["dirname", "/a/b"], ["seq", "1", "4"], ["factor", "140"],
@@ -361,6 +361,12 @@ export function linuxCommands(text: string) {
       cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "",
     })),
     { cmd: "ssh-keygen", args: ["-F", "host", "-f", "absent"], script: "ssh-keygen -F host -f absent", input: "" },
+    ...([["expand"], ["expand", "-i", "-t", "3,5,+4"], ["expand", "-t", "+3", "-t", "5"],
+      ["expand", "-t", "/3", "-t", "5"], ["unexpand"], ["unexpand", "-4"], ["unexpand", "-4a"],
+      ["unexpand", "-3", "-5"], ["unexpand", "-3,5", "-t4"], ["unexpand", "-t4"], ["unexpand", "-t", "+3", "-t", "5"], ["unexpand", "-t", "/3", "-t", "5"],
+    ] as const).map(([cmd, ...args]) => ({
+      cmd, args, script: [cmd, ...args].join(" "), input: (" ".repeat(38) + "a       b\t \b\tZ\n\t  x\t\t\n").repeat(8),
+    })),
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",

@@ -14501,9 +14501,6 @@ impl ParsedTabs {
                         abs_repeat = n;
                     }
                     _ => {
-                        if rel_repeat != 0 || abs_repeat != 0 {
-                            return Err(format!("{cmd_name}: repeating tab stop must be last\n"));
-                        }
                         if n <= stops.last().copied().unwrap_or(0) {
                             return Err(format!("{cmd_name}: tab stops must be ascending\n"));
                         }
@@ -14729,6 +14726,7 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
     let mut tab_specs: Vec<String> = Vec::new();
     let mut all_flag = false;
     let mut has_t = false;
+    let mut digits = String::new();
     let mut first_only = false;
     let mut files = Vec::new();
     let mut ended = false;
@@ -14792,19 +14790,18 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
         }
         let chars: Vec<char> = a[1..].chars().collect();
         let mut j = 0usize;
-        let mut num_buf = String::new();
         while j < chars.len() {
             let ch = chars[j];
-            if ch.is_ascii_digit() || ch == ',' || ch == '/' || ch == '+' {
-                num_buf.push(ch);
-                has_t = true;
+            if ch.is_ascii_digit() {
+                digits.push(ch);
                 j += 1;
                 continue;
             }
-            if !num_buf.is_empty() {
-                tab_specs.push(std::mem::take(&mut num_buf));
-            }
             match ch {
+                ',' => {
+                    if !digits.is_empty() { tab_specs.push(std::mem::take(&mut digits)); }
+                    j += 1;
+                }
                 'a' => {
                     all_flag = true;
                     j += 1;
@@ -14825,11 +14822,9 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
                 _ => return err_out(&format!("unexpand: invalid option -- '{ch}'\n"), 1),
             }
         }
-        if !num_buf.is_empty() {
-            tab_specs.push(num_buf);
-        }
         i += 1;
     }
+    if !digits.is_empty() { tab_specs.push(digits); }
     let tabs = match ParsedTabs::parse(&tab_specs, "unexpand") {
         Ok(t) => t,
         Err(msg) => return err_out(&msg, 1),

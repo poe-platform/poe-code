@@ -110,3 +110,33 @@ it("rejects unsupported virtual pixels before replacing output", async () => {
         expect(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")).toEqual(original);
     }
 });
+
+// Best-fit geometry checked against ImageMagick 7, with physical pixel edges.
+it.each([
+    ["Affine", "0,0,2,1 14,0,16,1 0,12,2,13", 17, 15, "+1+0"],
+    ["Perspective", "0,0,2,1 14,0,16,1 0,12,2,13 14,12,16,13", 17, 15, "+1+0"],
+    ["PerspectiveProjection", "1,0,2,0,1,1,0,0", 17, 15, "+1+0"],
+    ["PerspectiveProjection", "1,0,-2,0,1,-1,0,0", 17, 15, "-3-2"],
+    ["Affine", "0,0,2,1 14,0,30,1 0,12,2,25", 32, 28, "+1+0"],
+    ["PerspectiveProjection", "1,0.1,2,0.2,1,-1,0.01,0.02", 15, 14, "+1-2"],
+    ["Perspective", "0,0,1,2 12,0,11,1 0,16,2,15 12,16,12,16", 16, 14, "+0+0"],
+] as const)("expands %s %s and preserves its page", async (method, args, width, height, offset) => {
+    for (const retained of [false, true]) for (const operator of ["+distort", "-distort"]) {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const backend = retained ? { filesystem, cwd: "/" } : files;
+        const result = await runMagickCli(["-size", "15x13", "xc:black", "-fill", "white", "-draw", "rectangle 4,3 6,5", operator, method, args, "/out.png"], backend);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        expect([output.width, output.height]).toEqual(operator === "+distort" ? [width, height] : [15, 13]);
+        expect((await runMagickCli(["identify", "-format", "%g", "/out.png"], backend)).stdout).toBe(operator === "+distort" ? `${width}x${height}${offset}` : "15x13+0+0");
+        if (operator === "+distort" && width === 17) {
+            const bright = [];
+            for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+                if (output.data[(y * width + x) * 4]! > 128) bright.push([x, y]);
+            }
+            expect(bright).toHaveLength(9);
+            expect(bright.reduce((sum, point) => sum + point[0]!, 0) / bright.length).toBe(6);
+            expect(bright.reduce((sum, point) => sum + point[1]!, 0) / bright.length).toBe(5);
+        }
+    }
+});

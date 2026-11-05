@@ -2117,6 +2117,14 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, token: string, spec: string, args = "0"): WarpPlan | undefined {
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
+    const bestFit = (plan: WarpPlan, forward: WarpPlan["map"]): WarpPlan => {
+        if (token !== "+distort") return plan;
+        // Transform pixel edges, then round outwards to include the best-fit border.
+        const corners = [-0.5, w - 0.5].flatMap(x => [-0.5, h - 0.5].map(y => forward(x, y)));
+        const x = Math.floor(Math.min(...corners.map(point => point[0]!))), y = Math.floor(Math.min(...corners.map(point => point[1]!)));
+        const width = Math.ceil(Math.max(...corners.map(point => point[0]!))) - x + 1, height = Math.ceil(Math.max(...corners.map(point => point[1]!))) - y + 1;
+        return { ...plan, width, height, map: (px, py) => plan.map(px + x, py + y), virtualCanvas: { width, height, x, y } };
+    };
     if (token === "-swirl") {
         const maxR = Math.max(cx, cy, 1), radians = (Number(spec) * Math.PI) / 180;
         return result((x, y) => {
@@ -2156,15 +2164,10 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         const radians = (angle * Math.PI) / 180, cos = Math.cos(radians), sin = Math.sin(radians);
         const map: WarpPlan["map"] = (x, y) => { const dx = x - nx, dy = y - ny; return [ox + (dx * cos + dy * sin) / scaleX, oy + (-dx * sin + dy * cos) / scaleY]; };
         const derivatives = () => [cos / scaleX, sin / scaleX, -sin / scaleY, cos / scaleY] as const;
-        if (token !== "+distort") return { ...result(map), derivatives };
-        // Transform pixel edges, then round outwards to include the best-fit border.
-        const corners = [-0.5, w - 0.5].flatMap(x => [-0.5, h - 0.5].map(y => {
+        return bestFit({ ...result(map), derivatives }, (x, y) => {
             const dx = (x - ox) * scaleX, dy = (y - oy) * scaleY;
             return [nx + dx * cos - dy * sin, ny + dx * sin + dy * cos];
-        }));
-        const x = Math.floor(Math.min(...corners.map(point => point[0]!))), y = Math.floor(Math.min(...corners.map(point => point[1]!)));
-        const width = Math.ceil(Math.max(...corners.map(point => point[0]!))) - x + 1, height = Math.ceil(Math.max(...corners.map(point => point[1]!))) - y + 1;
-        return { ...result((px, py) => map(px + x, py + y), width, height), derivatives, virtualCanvas: { width, height, x, y } };
+        });
     }
     if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
         let coefficients: number[];
@@ -2184,13 +2187,25 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         }
         if (coefficients.every(c => Math.abs(c) < 1e-12)) return;
         const [a, b, c, d, e, f, g, i, j = 1] = coefficients as [number, number, number, number, number, number, number, number, number?];
-        return result((x, y) => { const denominator = g * x + i * y + j || 1e-9; return [(a * x + b * y + c) / denominator, (d * x + e * y + f) / denominator]; });
+        const plan = result((x, y) => { const denominator = g * x + i * y + j || 1e-9; return [(a * x + b * y + c) / denominator, (d * x + e * y + f) / denominator]; });
+        return bestFit(plan, (x, y) => {
+            // Invert the sampling homography and transform physical pixel edges.
+            const px = x + 0.5, py = y + 0.5;
+            const denominator = (d * i - e * g) * px + (b * g - a * i) * py + a * e - b * d;
+            return [((e * j - f * i) * px + (c * i - b * j) * py + b * f - c * e) / denominator - 0.5,
+                ((f * g - d * j) * px + (a * j - c * g) * py + c * d - a * f) / denominator - 0.5];
+        });
     }
     if (method === "affine" && nums.length >= 12) {
         const matrix: number[][] = [], xs: number[] = [], ys: number[] = [];
         for (let p = 0; p < 3; p++) { matrix.push([nums[p * 4 + 2]!, nums[p * 4 + 3]!, 1]); xs.push(nums[p * 4]!); ys.push(nums[p * 4 + 1]!); }
         const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
-        return result((x, y) => [rx[0]! * x + rx[1]! * y + rx[2]!, ry[0]! * x + ry[1]! * y + ry[2]!]);
+        const plan = result((x, y) => [rx[0]! * x + rx[1]! * y + rx[2]!, ry[0]! * x + ry[1]! * y + ry[2]!]);
+        return bestFit(plan, (x, y) => {
+            const px = x + 0.5 - rx[2]!, py = y + 0.5 - ry[2]!;
+            const determinant = rx[0]! * ry[1]! - rx[1]! * ry[0]!;
+            return [(ry[1]! * px - rx[1]! * py) / determinant - 0.5, (rx[0]! * py - ry[0]! * px) / determinant - 0.5];
+        });
     }
     if (method === "barrel" && nums.length >= 3) {
         const a = nums[0] ?? 0, b = nums[1] ?? 0, c = nums[2] ?? 0, d = nums[3] ?? 1 - a - b - c, ox = nums[4] ?? cx, oy = nums[5] ?? cy, radius = Math.min(w, h) / 2;

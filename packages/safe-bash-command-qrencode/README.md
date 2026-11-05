@@ -27,7 +27,7 @@ await shell.dispose();
 
 Formats: `PNG`, `PNG32`, `SVG`, `EPS`, `ASCII`, `ASCIIi`, `UTF8`, `UTF8i`,
 `ANSI`, `ANSI256`, and `ANSIUTF8`. `-o -` writes bytes to stdout for pipelines
-or redirection. Without `-o`, output also goes to stdout. Terminal formats use
+or redirection. PNG and PNG32 require an explicit output. Vector and terminal formats default to stdout. Terminal formats use
 one character pair or half-block per module; `-s` scales raster and vector output.
 
 QR versions 1–40 support error correction `-l L|M|Q|H`, with `-v` selecting
@@ -41,7 +41,7 @@ Numeric and alphanumeric segments are selected automatically. Text uses UTF-8
 bytes; `-8` preserves all input bytes in Byte mode, and `-k` interprets eligible
 Shift-JIS pairs in Kanji mode. `-i` folds ASCII lowercase to uppercase unless
 `-8` is selected. Structured append requires `-v` and a filename, creates up to
-16 numbered files (`part-01.png`, …), and preserves parity and sequence headers.
+16 numbered files (`part-01.png`, …), and preserves parity and sequence headers. A matching extension follows the number (`part-01.txt` for ASCII); otherwise the number follows the full name. In structured mode, `-o -` writes numbered files starting with `--01`.
 
 Use `-m` for the quiet zone (default 4 modules; Micro QR 2), `-s` for module
 size (default 3), `-d` for PNG DPI (default 72), and `--foreground` /

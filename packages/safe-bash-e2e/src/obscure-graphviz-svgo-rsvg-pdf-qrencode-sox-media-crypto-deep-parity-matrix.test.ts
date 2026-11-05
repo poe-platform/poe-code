@@ -148,7 +148,7 @@ NEATO
         set +e
         qrencode --strict-version -v 1 -l H -t ASCII "THIS_STRING_IS_TOO_LONG_FOR_VERSION_1_H_CAPACITY" >/dev/null 2>/workspace/strict.err
         rc_strict=$?
-        qrencode -s 2000 -t PNG "OVERFLOW" >/dev/null 2>/workspace/mem.err
+        qrencode -s 2000 -o - -t PNG "OVERFLOW" >/dev/null 2>/workspace/mem.err
         rc_mem=$?
         set -e
         printf 'rc_strict=%d rc_mem=%d\\n' "$rc_strict" "$rc_mem"

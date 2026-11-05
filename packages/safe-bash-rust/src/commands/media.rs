@@ -13206,6 +13206,7 @@ fn cmd_sox(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
 fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read input from a virtual file\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
+    if args.is_empty() { return err_out(QR_HELP, 1); }
     let parse_uint = |val: &str, min: usize, max: usize| -> Result<usize, String> {
         if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
             return Err(format!("Invalid number: {val}"));
@@ -13323,13 +13324,11 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             "o" => output_opt = Some(val),
             "r" => input_opt = Some(val),
             "t" => {
-                if !matches!(
-                    val.as_str(),
-                    "PNG" | "PNG32" | "SVG" | "EPS" | "ASCII" | "ASCIIi" | "UTF8" | "UTF8i" | "ANSI" | "ANSI256" | "ANSIUTF8"
-                ) {
+                let Some(format) = ["PNG", "PNG32", "SVG", "EPS", "ASCII", "ASCIIi", "UTF8", "UTF8i", "ANSI", "ANSI256", "ANSIUTF8"]
+                    .into_iter().find(|name| val.eq_ignore_ascii_case(name)) else {
                     return err_out("qrencode: Unsupported output type\n", 1);
-                }
-                rtype = val;
+                };
+                rtype = format.to_string();
             }
             "s" => match parse_uint(&val, 1, 0x7fffffff) {
                 Ok(v) => size = v,
@@ -13373,11 +13372,11 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     if help {
         return ok_out(QR_HELP);
     }
+    if output_opt.is_none() && matches!(rtype.as_str(), "PNG" | "PNG32") {
+        return err_out("No output filename is given.\n", 1);
+    }
     if micro && (version > 4 || level == 3 || structured) {
         return err_out("qrencode: Unsupported Micro QR version, level, or structured append\n", 1);
-    }
-    if structured && (version == 0 || output_opt.as_deref().unwrap_or("-") == "-") {
-        return err_out("qrencode: Structured append requires a version and output filename\n", 1);
     }
     let input_limit = if structured { 113_424usize } else { 7089usize };
     let mut data = if let Some(op) = &operand_opt {
@@ -13402,6 +13401,11 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     if data.is_empty() && operand_opt.is_none() { return err_out("No input data.\n", 1); }
     if !byte_mode && let Some(nul) = data.iter().position(|&b| b == 0) { data.truncate(nul); }
     if data.is_empty() { return err_out("Failed to encode the input data: Invalid argument\n", 1); }
+    if structured {
+        if version == 0 { return err_out("Version number must be specified to encode structured symbols.\n", 1); }
+        if output_opt.is_none() { return err_out("An output filename must be specified to store the structured images.\n", 1); }
+        if matches!(rtype.as_str(), "PNG32" | "ASCIIi") { return err_out("Unknown image type.\n", 1); }
+    }
     if ignorecase && !byte_mode {
         let mut idx = 0usize;
         while idx < data.len() {
@@ -13450,24 +13454,14 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             return err_out("qrencode: QR output exceeds memory budget\n", 1);
         }
         let rendered = qr_render(sym, &rtype, size, margin, dpi, fg, bg);
-        if let Some(ref out_p) = output_opt && out_p != "-" {
+        if let Some(ref out_p) = output_opt && (structured || out_p != "-") {
             let mut name = out_p.clone();
             if structured {
-                let dot = name.rfind('.');
-                let slash = name.rfind('/');
-                let has_ext = match (dot, slash) {
-                    (Some(d), Some(s)) => d > s,
-                    (Some(_), None) => true,
-                    _ => false,
-                };
-                let (stem, suffix) = if has_ext {
-                    let d = dot.unwrap();
-                    (name[..d].to_string(), name[d..].to_string())
-                } else {
-                    (name.clone(), format!(".{}", rtype.to_ascii_lowercase()))
-                };
-                name = format!("{stem}-{:02}{suffix}", idx + 1);
+                let ext = match rtype.as_str() { "PNG" => ".png", "SVG" => ".svg", "EPS" => ".eps", _ => ".txt" };
+                let dot = name.len().checked_sub(ext.len()).filter(|&pos| pos > 0 && name.get(pos..).is_some_and(|s| s.eq_ignore_ascii_case(ext))).unwrap_or(name.len());
+                name.insert_str(dot, &format!("-{:02}", idx + 1));
             }
+            if name.is_empty() { return err_out("Failed to create file: \nNo such file or directory\n", 1); }
             let full = resolve_posix_path(cwd, &name);
             if let Err(error) = fs.write_file(&full, &rendered) {
                 let message = match error.split_once(':').map(|(code,_)| code) {

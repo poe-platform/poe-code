@@ -30,6 +30,34 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("qrencode chooses stdout or numbered files from the format and output operand", async () => {
+      const argsOnly = await runLinuxCommand("qrencode", [], "ignored", cwd);
+      for (const shell of [ts.shell, rust]) {
+        const result = await shell.exec("qrencode", { stdin: "ignored" });
+        assert.equal(result.exitCode, argsOnly[0]);
+        assert.deepEqual(Buffer.from(result.stdoutBytes), argsOnly[1]);
+        assert.match(result.stderr, /Usage: qrencode/);
+      }
+      for (const args of ["hello", "-r absent", "-t pNg hello", "-t ASCII -o '' hello", "-S -v 1 hello", "-S -t ASCII hello", "-S -v 1 -t ASCII hello"]) {
+        const script = "qrencode " + args;
+        const expected = await runLinuxCommand("bash", ["--noprofile", "--norc", "-c", script], "", cwd);
+        for (const shell of [ts.shell, rust]) {
+          const actual = await shell.exec(script);
+          assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], expected, script);
+        }
+      }
+      for (const [name, file] of [["-", "--01"], ["part", "part-01"], ["case.TxT", "case-01.TxT"], ["other.png", "other.png-01"], [".txt", ".txt-01"], ["", "-01"]] as const) {
+        const script = "qrencode -S -v 1 -t ascii -o '" + name + "' hello";
+        const expected = await runLinuxCommand("bash", ["--noprofile", "--norc", "-c", script], "", cwd);
+        assert.equal(expected[0], 0);
+        const bytes = await readFile(cwd + "/" + file);
+        for (const [shell, fs] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+          const actual = await shell.exec(script);
+          assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], expected, script);
+          assert.deepEqual(Buffer.from(await fs.readFile("/workspace/" + file)), bytes);
+        }
+      }
+    });
     await t.test("qrencode selects the first operand and encodes binary or NUL-terminated input", async () => {
       const dash = Buffer.from([65, 0, 255, 66]);
       await writeFile(cwd + "/-", dash);

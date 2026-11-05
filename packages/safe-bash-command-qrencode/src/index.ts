@@ -150,9 +150,9 @@ function parse(args: readonly string[]) {
     if (key === "o") output = attached;
     else if (key === "r") input = attached;
     else if (key === "t") {
-      if (!outputTypes.includes(attached as RenderOptions["type"]))
-        throw new Error("Unsupported output type");
-      type = attached as RenderOptions["type"];
+      const selected = outputTypes.find(format => format.toLowerCase() === attached.toLowerCase());
+      if (!selected) throw new Error("Unsupported output type");
+      type = selected;
     } else if (key === "s") size = integer(attached, 1);
     else if (key === "m") margin = integer(attached, 0);
     else if (key === "d") dpi = integer(attached, 1, 109093169);
@@ -164,10 +164,6 @@ function parse(args: readonly string[]) {
     } else if (key === "foreground") foreground = color(attached);
     else background = color(attached);
   }
-  if (micro && (version > 4 || level === "H" || structured))
-    throw new Error("Unsupported Micro QR version, level, or structured append");
-  if (structured && (!version || !output || output === "-"))
-    throw new Error("Structured append requires a version and output filename");
   return {
     output,
     input,
@@ -271,10 +267,19 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
       try {
         const carrier = getCommandArguments(context),
           parsed = parse(carrier.args);
+        if (!carrier.args.length) {
+          await writeBytes(context.stderr, new TextEncoder().encode(help), context.signal);
+          return { exitCode: 1 };
+        }
         if (parsed.assistance) {
           await writeBytes(context.stdout, new TextEncoder().encode(help), context.signal);
           return { exitCode: 0 };
         }
+        const type = parsed.render.type;
+        if (parsed.output === undefined && (type === "PNG" || type === "PNG32"))
+          return fail("No output filename is given.");
+        if (parsed.encode.micro && (parsed.encode.version > 4 || parsed.encode.level === "H" || parsed.structured))
+          throw new Error("Unsupported Micro QR version, level, or structured append");
         if (limits.maxMemoryBytes < 2 * 1024 * 1024)
           throw new Error("QR encoding exceeds memory budget");
         const inputLimit = Math.min(
@@ -322,6 +327,11 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
           if (nul >= 0) data = data.subarray(0, nul);
         }
         if (!data.length) return fail("Failed to encode the input data: Invalid argument");
+        if (parsed.structured) {
+          if (!parsed.encode.version) return fail("Version number must be specified to encode structured symbols.");
+          if (parsed.output === undefined) return fail("An output filename must be specified to store the structured images.");
+          if (type === "PNG32" || type === "ASCIIi") return fail("Unknown image type.");
+        }
         if (parsed.ignorecase && !parsed.encode.byte) {
           data = data.slice();
           for (let i = 0; i < data.length; i++) {
@@ -343,17 +353,14 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
           );
           outputBytes += output.length;
           if (outputBytes > limits.maxOutputBytes) throw new Error("QR output exceeds byte limit");
-          if (parsed.output && parsed.output !== "-") {
+          if (parsed.output !== undefined && (parsed.structured || parsed.output !== "-")) {
             let name = parsed.output;
             if (parsed.structured) {
-              const dot = name.lastIndexOf("."),
-                slash = name.lastIndexOf("/");
-              const suffix = dot > slash ? name.slice(dot) : `.${parsed.render.type.toLowerCase()}`;
-              name =
-                (dot > slash ? name.slice(0, dot) : name) +
-                `-${String(i + 1).padStart(2, "0")}` +
-                suffix;
+              const ext = type === "PNG" || type === "SVG" || type === "EPS" ? "." + type.toLowerCase() : ".txt";
+              const dot = name.length > ext.length && name.toLowerCase().endsWith(ext) ? name.length - ext.length : name.length;
+              name = name.slice(0, dot) + "-" + String(i + 1).padStart(2, "0") + name.slice(dot);
             }
+            if (!name) return fail("Failed to create file: \nNo such file or directory");
             await writeFileOutput(context, output, (bytes) =>
               context.fs.writeFile(resolvePath(context.cwd, name), bytes, {
                 signal: context.signal

@@ -114,9 +114,9 @@ describe("obscure media, graphviz, qr, pdf, image, audio/video & office diagnost
         "qrencode: Unsupported Micro QR version, level, or structured append\n"
       );
       await h.expectFail(
-        "qrencode -S -v 1 -o - 'hello'",
+        "qrencode -S -v 1 -t ASCII 'hello'",
         1,
-        "qrencode: Structured append requires a version and output filename\n"
+        "An output filename must be specified to store the structured images.\n"
       );
       const selected = await h.exec("qrencode -r in.txt -t ASCII 'hello'");
       assert.equal(selected.exitCode, 0);

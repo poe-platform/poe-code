@@ -8,6 +8,8 @@ import { StoredMetadataStack, appendStoredRecord } from "../content/stored-recor
 import { parseValueSteps, type ValueArrayStorage, type ValueContainer } from "./value-parser.js";
 
 export interface ParseCosRangeOptions extends ValueArrayStorage {
+  /** Report tolerated syntax damage without changing recovery behavior. */
+  readonly onWarning?: ((message: string) => void) | undefined;
   /** Bound unknown keyword spellings without changing recognition or source spans. */
   readonly compactKeywords?: boolean;
   /** Bound numeric spelling scratch; long raw spellings become equivalent canonical numbers. */
@@ -180,6 +182,7 @@ export async function parseCosRangeObject(source: PdfFileSource, offset: number,
         if (candidate !== undefined) { stream = { start, end: start + length }; end = candidate; }
       }
       if (!stream) {
+        options.onWarning?.(`Recovered stream length at byte offset ${start}`);
         const marker = await findEndstream(source, start, signal);
         if (marker < 0) throw new PdfError("E_PARSE", "Missing endstream keyword in PDF stream object");
         let dataEnd = marker;

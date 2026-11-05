@@ -93,7 +93,7 @@ export async function openPdfCrossReference(source: PdfFileSource, storage: PdfI
   let visited: PdfObjectIndex | undefined;
   let revision: PdfObjectIndex | undefined;
   let index: PdfObjectIndex | undefined;
-  let revisionCount = 0;
+  let revisionCount = 0, highestObject = 0;
   let newest: PdfCosDict | undefined;
   let rootRef: PdfCosRef | undefined;
   let infoRef: PdfCosRef | undefined;
@@ -141,7 +141,10 @@ export async function openPdfCrossReference(source: PdfFileSource, storage: PdfI
         }
         revision = await PdfObjectIndex.build(rows(), storage, { ...indexOptions, duplicate: "last" });
         newest ??= trailer!;
-        yield* revision.entries(options.signal);
+        for await (const entry of revision.entries(options.signal)) {
+          highestObject = Math.max(highestObject, entry.objectNumber);
+          yield entry;
+        }
         await revision.close();
         revision = undefined;
         offset = link(trailer!, "Prev", source.size);
@@ -163,6 +166,10 @@ export async function openPdfCrossReference(source: PdfFileSource, storage: PdfI
   try {
     index = await PdfObjectIndex.build(entries(), storage, indexOptions);
     if (!rootRef || !newest) throw new PdfError("E_PARSE", "PDF trailer missing /Root reference");
+    if (options.onWarning) {
+      const size = dictGet(newest, "Size");
+      if (size?.kind === "number" && size.value <= highestObject) options.onWarning("Reported number of objects does not match cross-reference table");
+    }
     return {
       version, xrefOffset, revisionCount, trailer: newest, rootRef, index,
       ...(infoRef ? { infoRef } : {}), ...(encryptNode ? { encryptNode } : {}), ...(idArray ? { idArray } : {}),

@@ -21,6 +21,8 @@ import { CosByteLexer, type CosToken } from "./lexer.js";
 import { authenticateStandardEncryption, decryptCosDocumentSteps } from "./security.js";
 
 export interface ParseCosOptions {
+  /** Report tolerated syntax damage without changing recovery behavior. */
+  readonly onWarning?: ((message: string) => void) | undefined;
   readonly password?: string | undefined;
   readonly recovery?: "strict" | "repair" | undefined;
   readonly maxObjects?: number | undefined;
@@ -158,8 +160,8 @@ export class ParsedCosDocument {
   }
 }
 
-function* parseNodeFromLexerSteps(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, repair = false): Generator<void, PdfCosNode | undefined, void> {
-  const work = parseValueSteps(lexer, maxDepth, repair);
+function* parseNodeFromLexerSteps(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, repair = false, onWarning?: ParseCosOptions["onWarning"]): Generator<void, PdfCosNode | undefined, void> {
+  const work = parseValueSteps(lexer, maxDepth, repair, Infinity, { onWarning });
   try {
     let step = work.next();
     while (!step.done) {
@@ -168,7 +170,7 @@ function* parseNodeFromLexerSteps(lexer: CosByteLexer, bytes: Uint8Array, maxDep
         step = work.next();
       } else {
         if (step.value !== "token" && step.value.kind !== "dict") throw new TypeError("Stored values require asynchronous parsing");
-        step = work.next(step.value === "token" ? lexer.nextToken() : parseDictionaryStream(step.value, lexer, bytes));
+        step = work.next(step.value === "token" ? lexer.nextToken() : parseDictionaryStream(step.value, lexer, bytes, onWarning));
       }
     }
     return step.value;
@@ -209,7 +211,7 @@ function findEndstreamBeforeEndobj(bytes: Uint8Array, fromIndex: number): number
 }
 
 
-function parseDictionaryStream(dictNode: PdfCosDict, lexer: CosByteLexer, bytes: Uint8Array): PdfCosNode {
+function parseDictionaryStream(dictNode: PdfCosDict, lexer: CosByteLexer, bytes: Uint8Array, onWarning?: ParseCosOptions["onWarning"]): PdfCosNode {
   const savedAfterDict = lexer.offset;
   const maybeStreamTok = lexer.nextToken();
   if (maybeStreamTok?.kind === "keyword" && maybeStreamTok.value === "stream") {
@@ -246,6 +248,7 @@ function parseDictionaryStream(dictNode: PdfCosDict, lexer: CosByteLexer, bytes:
       }
     }
     if (!rawStreamBytes) {
+      onWarning?.(`Recovered stream length at byte offset ${streamStart}`);
       const marker = findEndstreamBeforeEndobj(bytes, streamStart);
       if (marker < 0) {
         throw new PdfError("E_PARSE", "Missing endstream keyword in PDF stream object");
@@ -303,7 +306,7 @@ function parseHeaderVersion(bytes: Uint8Array): string {
   return head.slice(idx + 5, idx + 8);
 }
 
-function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursionDepth: number, repair = false): Generator<void, PdfIndirectObject, void> {
+function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursionDepth: number, repair = false, onWarning?: ParseCosOptions["onWarning"]): Generator<void, PdfIndirectObject, void> {
   yield;
 
   const lexer = new CosByteLexer(bytes, offset);
@@ -318,7 +321,7 @@ function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursi
   ) {
     throw new PdfError("E_PARSE", `Malformed indirect object header at byte offset ${offset}`);
   }
-  const value = (yield* parseNodeFromLexerSteps(lexer, bytes, maxRecursionDepth, repair));
+  const value = (yield* parseNodeFromLexerSteps(lexer, bytes, maxRecursionDepth, repair, onWarning));
   if (!value) {
     throw new PdfError("E_PARSE", `Empty indirect object ${objNumTok.value} at offset ${offset}`);
   }
@@ -330,7 +333,7 @@ function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursi
   };
 }
 
-function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number): Generator<void, PdfRevision, void> {
+function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number, onWarning?: ParseCosOptions["onWarning"]): Generator<void, PdfRevision, void> {
   yield;
   let work = 0;
 
@@ -412,7 +415,7 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
   }
 
   // Cross-reference stream (PDF 1.5+)
-  const xrefObj = (yield* parseObjectAtOffsetSteps(bytes, xrefOffset, maxRecursionDepth));
+  const xrefObj = (yield* parseObjectAtOffsetSteps(bytes, xrefOffset, maxRecursionDepth, false, onWarning));
   if (xrefObj.value.kind !== "stream") {
     throw new PdfError("E_PARSE", `Expected xref table or XRef stream at offset ${xrefOffset}`);
   }
@@ -502,6 +505,7 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
     }
   }
 
+  if (!entries.has(xrefObj.objectNumber)) onWarning?.("xref entry for the xref stream itself is missing - a common error handled correctly by qpdf and most other applications");
   const prevNode = dictGet(dict, "Prev");
   return {
     xrefOffset,
@@ -614,7 +618,8 @@ function* unpackObjectStreamSteps(
   streamObj: PdfCosStream,
   maxDecompressedBytes: number,
   maxRecursionDepth: number,
-  repair = false
+  repair = false,
+  onWarning?: ParseCosOptions["onWarning"]
 ): Generator<void, Map<number, PdfCosNode>, void> {
   yield;
   let work = 0;
@@ -642,7 +647,7 @@ function* unpackObjectStreamSteps(
 
     try {
       const valLexer = new CosByteLexer(decoded, firstNode.value + pair.relativeOffset);
-      const node = (yield* parseNodeFromLexerSteps(valLexer, decoded, maxRecursionDepth, repair));
+      const node = (yield* parseNodeFromLexerSteps(valLexer, decoded, maxRecursionDepth, repair, onWarning));
       if (node) {
         result.set(pair.objectNumber, node);
       }
@@ -697,7 +702,7 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
       if (++work % 16 === 0) yield;
 
           visitedOffsets.add(currentXrefOffset);
-          const rev: PdfRevision = (yield* parseXrefRevisionAtSteps(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects));
+          const rev: PdfRevision = (yield* parseXrefRevisionAtSteps(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects, options.onWarning));
           revisions.push(rev);
           for (const [num, entry] of rev.entries.entries()) {
       if (++work % 16 === 0) yield;
@@ -732,6 +737,11 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
     }
   }
 
+  const declaredSize = revisions[0] && dictGet(revisions[0].trailer, "Size");
+  let highestObject = 0;
+  for (const number of mergedXref.keys()) highestObject = Math.max(highestObject, number);
+  if (!useRepair && declaredSize?.kind === "number" && declaredSize.value <= highestObject) options.onWarning?.("Reported number of objects does not match cross-reference table");
+
   let objects = new Map<number, PdfIndirectObject>();
   if (!useRepair && rootRef) {
     try {
@@ -739,7 +749,7 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
       if (++work % 16 === 0) yield;
 
         if (entry.type !== "uncompressed") continue;
-        const parsed = (yield* parseObjectAtOffsetSteps(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair"));
+        const parsed = (yield* parseObjectAtOffsetSteps(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair", options.onWarning));
         // PDF.js fetchUncompressed validates both identifiers before using the
         // object. Bad offsets can otherwise silently substitute another object.
         if (parsed.objectNumber !== objNum || parsed.generationNumber !== (entry.generationNumber ?? 0)) {
@@ -759,6 +769,7 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
       throw new PdfError("E_PARSE", "PDF trailer missing /Root reference");
     }
     useRepair = true;
+    options.onWarning?.("Damaged cross-reference data; reconstructing cross-reference table");
     const scanned = (yield* repairScanCosDocumentSteps(bytes, maxObjects, maxRecursionDepth));
     objects = scanned.objects;
     revisions.length = 0;
@@ -853,7 +864,7 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
       if (!unpacked) {
         const stmObj = objects.get(entry.objectStreamNumber)?.value;
         if (stmObj?.kind === "stream") {
-          unpacked = (yield* unpackObjectStreamSteps(stmObj, maxDecompressedBytes, maxRecursionDepth, recovery === "repair"));
+          unpacked = (yield* unpackObjectStreamSteps(stmObj, maxDecompressedBytes, maxRecursionDepth, recovery === "repair", options.onWarning));
           objStmCache.set(entry.objectStreamNumber, unpacked);
         }
       }

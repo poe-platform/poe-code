@@ -72,6 +72,12 @@ export interface RetainedQpdfOptions extends QpdfJsonOptions {
 export async function executeRetainedQpdf(context: CommandContext, options: RetainedQpdfOptions, limits: QpdfLimits, signal: AbortSignal, inputBytes = 0): Promise<{ exitCode: number }> {
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 2 }; };
   const inputName = options.inputFile;
+  const warnings = new Set<string>();
+  const onWarning = (message: string) => { warnings.add(message); };
+  async function success(): Promise<{ exitCode: number }> {
+    if (warnings.size) await writeBytes(context.stderr, new TextEncoder().encode([...warnings].map(message => `WARNING: ${inputName ?? "empty"}: ${message}\n`).join("") + "qpdf: operation succeeded with warnings\n"), signal);
+    return { exitCode: warnings.size && !options.warningExit0 ? 3 : 0 };
+  }
   const useEmpty = options.emptyInput && !options.isEncrypted && !options.requiresPassword;
   const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
   const inputs = new Map<string, PdfFileSource | undefined>();
@@ -175,7 +181,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
     }
     try {
-      document ??= await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", ...(options.password === undefined ? {} : { password: options.password }) });
+      document ??= await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", onWarning, ...(options.password === undefined ? {} : { password: options.password }) });
     } catch (error) {
       signal.throwIfAborted();
       if (options.showEncryption && !options.check && !options.showNpages && error instanceof PdfPasswordError) {
@@ -223,8 +229,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (options.showLinearization || options.check) {
         const parts = linearizationParts(document, source, storage, inputName, count, signal, options.showLinearization || "inspect", linearizationWarnings);
         await publishInspection((async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })());
-        if (linearizationWarnings.length) await writeBytes(context.stderr, new TextEncoder().encode(linearizationWarnings.map(message => `WARNING: ${inputName ?? "empty"}: ${message}\n`).join("") + "qpdf: operation succeeded with warnings\n"), signal);
-        if (options.showLinearization) return { exitCode: linearizationWarnings.length && !options.warningExit0 ? 3 : 0 };
+        for (const message of linearizationWarnings) warnings.add(message);
+        if (options.showLinearization) return await success();
       }
       if (!options.check && (options.showPages || ((options.showObject || options.showXref) && !options.showNpages && !options.showEncryption))) {
         const number = objectNumber ?? NaN, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
@@ -241,12 +247,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
           chunks = encodeDisplayParts(parts(), signal);
         }
         await publishInspection(chunks);
-        return { exitCode: 0 };
+        return await success();
       }
       if (!options.check && !options.showNpages && !options.showEncryption && (options.listAttachments || options.showAttachmentKey !== undefined)) {
         const chunks = attachmentChunks(document, storage, options.showAttachmentKey, signal, inputName ?? "");
         await publishInspection(chunks);
-        return { exitCode: 0 };
+        return await success();
       }
       let version = document.crossReference.version;
       if (options.check) {
@@ -260,13 +266,13 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       const encryption = document.encryption;
       const message = options.check
-        ? `checking ${inputName ?? "empty"}\nPDF Version: ${version}\n${encryptionReport(encryption)}File is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\n${linearizationWarnings.length ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`
+        ? `checking ${inputName ?? "empty"}\nPDF Version: ${version}\n${encryptionReport(encryption)}File is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\n${warnings.size ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`
         : options.showNpages ? `${count}\n`
         : encryptionReport(encryption);
       const bytes = new TextEncoder().encode(message);
       if (bytes.length > limits.maxOutputBytes) throw new RangeError("Output byte limit exceeded");
       await writeBytes(context.stdout, bytes, signal);
-      return { exitCode: linearizationWarnings.length && !options.warningExit0 ? 3 : 0 };
+      return await success();
     }
     if (options.jsonVersion !== undefined) {
       try { editedGraph = await editRetainedDocument(document, storage, { ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), signal }); }
@@ -300,7 +306,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error;
         return await diagnostic(`qpdf: open ${publishing}: ${error.code === "ENOENT" ? "No such file or directory" : error.code}\n`);
       }
-      return { exitCode: 0 };
+      return await success();
     }
     if (options.pageSpecs.length) {
       selectionGraph = await copyQpdfSelections(document, source, inputs, storage, options, signal);
@@ -428,7 +434,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
           return await diagnostic(`qpdf: open ${entry.name}: ${error.code === "ENOENT" ? "No such file or directory" : error.code}\n`);
         }
       }
-      return { exitCode: 0 };
+      return await success();
     }
     const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, normalizeContent, qdf: options.qdf && !options.linearize, objectStreams: options.decrypt && document.encryption ? "preserve" : options.objectStreamsMode, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
@@ -448,7 +454,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         return await diagnostic(`qpdf: open ${destination}: ${error.code === "ENOENT" ? "No such file or directory" : error.code}\n`);
       }
     }
-    return { exitCode: 0 };
+    return await success();
   } catch (error) {
     failed = true;
     if (error instanceof PdfError && error.message.startsWith("Unsupported streaming PDF filter: ")) {

@@ -549,7 +549,8 @@ export async function runQpdfCli(
   const usesStdin = inputFile === "-" || updateFromJsonFiles.includes("-") ||
     [...pageSpecs, ...stampSpecs, ...addAttachmentSpecs, ...copyAttachmentsSpecs].some(spec => spec.file === "-");
   if (readStdin && usesStdin) await readStdin();
-  const steps = executeQpdfCli(parsed.options, files);
+  const warnings = new Set<string>();
+  const steps = executeQpdfCli(parsed.options, files, warnings);
   try {
     let step = steps.next();
     while (!step.done) {
@@ -557,7 +558,13 @@ export async function runQpdfCli(
       signal?.throwIfAborted();
       step = steps.next();
     }
-    return { ...step.value, stderr: parsed.stderr + step.value.stderr };
+    const result = { ...step.value };
+    if (warnings.size) {
+      result.stderr = [...warnings].join("") + result.stderr;
+      if (!result.stderr.endsWith("qpdf: operation succeeded with warnings\n") && result.exitCode !== 2) result.stderr += "qpdf: operation succeeded with warnings\n";
+      if (result.exitCode === 0 && !parsed.options.warningExit0) result.exitCode = 3;
+    }
+    return { ...result, stderr: parsed.stderr + result.stderr };
   } catch (error) {
     if (!(error instanceof QpdfPageRangeError)) throw error;
     return { exitCode: 2, stdout: "", stderr: `${parsed.stderr}qpdf: ${error.message}\n` };
@@ -1043,11 +1050,18 @@ export function runQpdfCliSync(
 ): QpdfCliResult {
   const parsed = parseQpdfArguments(argv);
   if (parsed.result) return parsed.result;
-  const steps = executeQpdfCli(parsed.options, files);
+  const warnings = new Set<string>();
+  const steps = executeQpdfCli(parsed.options, files, warnings);
   try {
     let step = steps.next();
     while (!step.done) step = steps.next();
-    return { ...step.value, stderr: parsed.stderr + step.value.stderr };
+    const result = { ...step.value };
+    if (warnings.size) {
+      result.stderr = [...warnings].join("") + result.stderr;
+      if (!result.stderr.endsWith("qpdf: operation succeeded with warnings\n") && result.exitCode !== 2) result.stderr += "qpdf: operation succeeded with warnings\n";
+      if (result.exitCode === 0 && !parsed.options.warningExit0) result.exitCode = 3;
+    }
+    return { ...result, stderr: parsed.stderr + result.stderr };
   } catch (error) {
     if (!(error instanceof QpdfPageRangeError)) throw error;
     return { exitCode: 2, stdout: "", stderr: `${parsed.stderr}qpdf: ${error.message}\n` };
@@ -1056,7 +1070,8 @@ export function runQpdfCliSync(
 
 function* executeQpdfCli(
   options: NonNullable<ReturnType<typeof parseQpdfArguments>["options"]>,
-  files: Map<string, Uint8Array>
+  files: Map<string, Uint8Array>,
+  warnings: Set<string>
 ): Generator<void, QpdfCliResult> {
   const {
     check,
@@ -1149,7 +1164,7 @@ function* executeQpdfCli(
   }
 
   let baseDoc: PdfDocument;
-  let repairedWarning = false;
+  const onWarning = (message: string) => { warnings.add(`WARNING: ${inputFile ?? "empty"}: ${message}\n`); };
 
   if (emptyInput) {
     baseDoc = PdfDocument.create();
@@ -1181,7 +1196,7 @@ function* executeQpdfCli(
       }
     } else {
       try {
-        baseDoc = (yield* PdfDocument.loadSteps(raw, password !== undefined ? { password } : {}));
+        baseDoc = (yield* PdfDocument.loadSteps(raw, { onWarning, ...(password !== undefined ? { password } : {}) }));
       } catch (error) {
         if (showEncryption && !check && !showNpages && error instanceof PdfPasswordError) {
           return { exitCode: 0, stdout: encryptionReport(error), stderr: "" };
@@ -1189,9 +1204,9 @@ function* executeQpdfCli(
         try {
           baseDoc = (yield* PdfDocument.loadSteps(raw, {
             ...(password !== undefined ? { password } : {}),
-            recovery: "repair"
+            onWarning, recovery: "repair"
           }));
-          repairedWarning = true;
+          onWarning("Recovered damaged PDF");
         } catch (err) {
           if (showEncryption && !check && !showNpages && err instanceof PdfPasswordError) {
             return { exitCode: 0, stdout: encryptionReport(err), stderr: "" };
@@ -1354,8 +1369,8 @@ function* executeQpdfCli(
     const adobe = cos.resolveDict(extensions && dictGet(extensions, "ADBE"));
     const extensionLevel = adobe && asNumber(cos.resolve(dictGet(adobe, "ExtensionLevel")))?.value;
     const version = `${cos.version}${extensionLevel ? ` extension level ${extensionLevel}` : ""}`;
-    const out = `checking ${inputFile ?? "empty"}\nPDF Version: ${version}\n${encryptionReport(cos.encryption)}File is ${linStatus}\n${linearizationWarning ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`;
-    const code = (repairedWarning || linearizationWarning) && !warningExit0 ? 3 : 0;
+    const out = `checking ${inputFile ?? "empty"}\nPDF Version: ${version}\n${encryptionReport(cos.encryption)}File is ${linStatus}\n${linearizationWarning || warnings.size ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`;
+    const code = (warnings.size || linearizationWarning) && !warningExit0 ? 3 : 0;
     return { exitCode: code, stdout: out, stderr: linearizationWarning ? `${linearizationWarning}qpdf: operation succeeded with warnings\n` : "" };
   }
 
@@ -2572,7 +2587,7 @@ function* executeQpdfCli(
   }
 
   files.set(finalTarget, outBytes);
-  return { exitCode: repairedWarning && !warningExit0 ? 3 : 0, stdout: "", stderr: "" };
+  return { exitCode: warnings.size && !warningExit0 ? 3 : 0, stdout: "", stderr: "" };
 }
 
 export async function qpdf(context: CommandContext, options: QpdfCommandOptions = {}): Promise<{ exitCode: number }> {

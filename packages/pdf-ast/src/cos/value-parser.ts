@@ -40,7 +40,7 @@ export type ValueWork<T> = Generator<void | "token" | PdfCosDict
   | {kind: "container-push"; container: ValueContainer}
   | {kind: "container-pop"}, T, CosToken | PdfCosNode | ValueContainer | number | undefined>;
 
-export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (storage: PdfPixelStorage | undefined) => void }, maxDepth: number, repair = false, maxNodes = Infinity, options: ValueArrayStorage = {}): ValueWork<PdfCosNode | undefined> {
+export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (storage: PdfPixelStorage | undefined) => void }, maxDepth: number, repair = false, maxNodes = Infinity, options: ValueArrayStorage & { readonly onWarning?: ((message: string) => void) | undefined } = {}): ValueWork<PdfCosNode | undefined> {
   yield;
   if (options.deferArrayValues && !options.deferDictionaryValues) throw new TypeError("Deferred array values require deferred dictionary values");
   if (options.deferDictionaryValues && (!options.dictionaryStorage ||
@@ -120,7 +120,7 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
       } else {
         // PDF.js Parser.getObj advances past stray non-Name keys rather than
         // discarding the dictionary (e.g. unescaped font-name spaces).
-        if (repair) continue;
+        if (repair) { options.onWarning?.(`Expected dictionary key /Name, got ${tok.kind}; ignored invalid token`); continue; }
         throw new PdfError("E_PARSE", `Expected dictionary key /Name, got ${tok.kind}`);
       }
     } else {

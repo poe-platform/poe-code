@@ -204,6 +204,7 @@ export class PdfObjectReader {
           if (event.kind === "object" && event.object.objectNumber === objectNumber && event.object.generationNumber === generationNumber) recovered = event.object;
         }
         if (!recovered) throw error;
+        this.options.onWarning?.(`Recovered object ${objectNumber} from damaged cross-reference data`);
         object = recovered;
         if (this.repairedOffsets.size >= 64) this.repairedOffsets.delete(this.repairedOffsets.keys().next().value!);
         this.repairedOffsets.set(objectNumber, object.span.start);
@@ -366,6 +367,7 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
   catch (error) {
     options.signal?.throwIfAborted();
     if (options.recovery !== "repair" || !canRepair(error)) throw error;
+    options.onWarning?.("Damaged cross-reference data; reconstructing cross-reference table");
     crossReference = await recoverPdfReferences(source, storage, xrefOptions); repaired = true;
   }
   let reader: PdfObjectReader | undefined;

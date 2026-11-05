@@ -164,9 +164,11 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
   });
   const reader = new DecodedFields(decoded, maxDecoded, signal);
   let failed = false;
+  let foundSelf = false;
   try {
     for await (const [start, count] of subsections()) {
       for (let i = 0; i < count; i++) {
+        if (start + i === object.objectNumber) foundSelf = true;
         const type = w0 ? await reader.integer(w0) : 1;
         const field1 = await reader.integer(w1);
         const field2 = w2 ? await reader.integer(w2) : 0;
@@ -179,6 +181,7 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
       }
     }
     await reader.finish();
+    if (!foundSelf) options.onWarning?.("xref entry for the xref stream itself is missing - a common error handled correctly by qpdf and most other applications");
     signal?.throwIfAborted();
     return dict;
   } catch (error) { failed = true; throw error; }

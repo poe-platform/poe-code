@@ -253,6 +253,25 @@ export function linuxCommands(text: string) {
       input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "OrderedList", c: [
         [26, {t: "LowerAlpha"}, {t: "OneParen"}], [[{t: "Plain", c: [{t: "Str", c: "one"}]}], [], [{t: "Para", c: [{t: "Str", c: "three"}]}]]]}]}),
     },
+    {
+      cmd: pandoc, args: ["-f", "json", "-t", "gfm"], script: "pandoc -f json -t gfm",
+      input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: ["first", "second"].map(c => ({
+        t: "BulletList", c: [[{t: "Plain", c: [{t: "Str", c}]}]],
+      }))}),
+    },
+    ...["json", "html", "gfm", "commonmark", "plain"].map(to => ({
+      cmd: pandoc, args: ["-f", "gfm", "-t", to, "--wrap=none"], script: `pandoc -f gfm -t ${to} --wrap=none`,
+      input: "- ordinary\n\n- [x] done\n  - nested\n\n- [ ] todo\n- ordinary\n",
+    })),
+    ...["markdown", "gfm", "commonmark+task_lists"].map(from => ({
+      cmd: pandoc, args: ["-f", from, "-t", "json"], script: `pandoc -f ${from} -t json`, input: "1. [x] text\n",
+    })),
+    ...["json", "html"].map(to => ({
+      cmd: pandoc, args: ["-f", "json", "-t", to, "--wrap=none"], script: `pandoc -f json -t ${to} --wrap=none`,
+      input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "BulletList", c: [
+        [{t: "Plain", c: [{t: "Str", c: "☒ literal"}]}],
+        [{t: "Para", c: [{t: "Str", c: "☐"}, {t: "Space"}, {t: "Emph", c: [{t: "Str", c: "todo"}]}]}]]}]}),
+    })),
     ...["json", "plain"].map(to => ({
       cmd: pandoc, args: ["-f", "json", "-t", to], script: `pandoc -f json -t ${to}`,
       input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "BlockQuote", c: [

@@ -727,3 +727,14 @@ fn xq_enforces_the_output_budget_before_reading_another_document() {
         }
     }
 }
+
+#[test]
+fn gh_clear_cache_charges_the_filesystem_budget_before_removal() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.mkdir_all("/cache/gh").unwrap();
+    fs.write_file("/cache/gh/value", b"retained").unwrap();
+    shell.set_limits(safe_bash_rust::ShellLimits { max_filesystem_operations: 0, ..Default::default() });
+    let error = shell.exec("XDG_CACHE_HOME=/cache gh config clear-cache").unwrap_err();
+    assert!(error.contains("maxFileSystemOperations"), "{error}");
+    assert_eq!(fs.read_file("/cache/gh/value").unwrap(), b"retained");
+}

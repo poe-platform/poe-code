@@ -206,7 +206,8 @@ function normalizeTopLevelArgs(rawArgs: readonly string[]): {
   const remaining = rawArgs.slice(idx + 1);
   return {
     command,
-    subArgs: [...remaining, ...preFlags],
+    subArgs: command === "config" && remaining[0] === "clear-cache"
+      ? [remaining[0], ...rawArgs.slice(0, idx), ...remaining.slice(1)] : [...remaining, ...preFlags],
     version,
     help: help && !command,
   };

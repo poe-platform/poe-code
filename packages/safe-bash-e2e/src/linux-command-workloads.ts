@@ -164,6 +164,19 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   return [
     { cmd: "df", args: ["--output=file,a'b\n💡"], script: String.raw`df --output=$'file,a\'b\n💡'`, input: "" },
+    ...[
+      "mkdir -p cache-dir/gh/nested; touch cache-dir/gh/nested/data cache-dir/keep; XDG_CACHE_HOME=cache-dir gh config clear-cache; test ! -e cache-dir/gh && test -f cache-dir/keep",
+      "mkdir -p cache-link; ln -s ../samples cache-link/gh; XDG_CACHE_HOME=cache-link gh config clear-cache; test ! -L cache-link/gh && cat samples/base",
+      "mkdir -p cache-home/.cache/gh; HOME=cache-home XDG_CACHE_HOME= gh config clear-cache; test ! -d cache-home/.cache/gh",
+      "XDG_CACHE_HOME=samples/base gh config clear-cache",
+      "XDG_CACHE_HOME=cache-dir gh config clear-cache extra",
+      ...["config clear-cache --host example.invalid", "-R o/r config clear-cache", "config clear-cache --json=x",
+        "config clear-cache -h", "--help config clear-cache", "config clear-cache -- --help", "config clear-cache --help=invalid"].map(args =>
+        "mkdir -p cache-flags/gh; XDG_CACHE_HOME=cache-flags gh " + args + "; rc=$?; test -d cache-flags/gh && printf '%s' \"$rc\""),
+
+    ].map(script => ({
+      cmd: "env", args: ["GH_CONFIG_DIR=.gh-config", "XDG_STATE_HOME=.gh-state", "bash", "--noprofile", "--norc", "-c", script], script, input: "",
+    })),
     ...[["list"], ["ls"], ...["editor", "prompt", "color_labels", "spinner", "telemetry", "missing", "__proto__"].map(key => ["get", key]),
       ["get"], ["get", "editor", "extra"], ["set", "prompt", "sometimes"], ["set", "git_protocol", "SSH"], ["set", "telemetry", "yes"],
       ["set", "editor"], ["list", "extra"], ["set", "clipboard", "enabled", "-h", "host"], ["set", "api_host", "host"]].map(args => ({

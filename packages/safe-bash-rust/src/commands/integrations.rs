@@ -3866,6 +3866,63 @@ fn split_gh_alias_expansion(expansion: &str) -> Vec<String> {
     tokens
 }
 
+fn gh_clear_cache<'a>(args: impl Iterator<Item = &'a str>, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let error = |stderr| BuiltinOutcome { stdout: String::new(), stderr, exit_code: 1 };
+    let mut count = 0;
+    let mut help = false;
+    let mut options = true;
+    for word in args {
+        if options && word == "--" { options = false; continue; }
+        if !options || word == "-" || !word.starts_with('-') { count += 1; continue; }
+        if word.starts_with("-h") { help = true; break; }
+        if word == "--help" { help = true; continue; }
+        let reason = if let Some(value) = word.strip_prefix("--help=") {
+            match value {
+                "1" | "t" | "T" | "TRUE" | "true" | "True" => { help = true; continue; }
+                "0" | "f" | "F" | "FALSE" | "false" | "False" => { help = false; continue; }
+                _ => format!("invalid argument {value:?} for \"--help\" flag: strconv.ParseBool: parsing {value:?}: invalid syntax"),
+            }
+        } else if word.starts_with("---") || word.starts_with("--=") { format!("bad flag syntax: {word}") }
+        else if word.starts_with("--") { format!("unknown flag: {}", word.split('=').next().unwrap()) }
+        else { format!("unknown shorthand flag: '{}' in {word}", word.chars().nth(1).unwrap()) };
+        return error(format!("{reason}\n\nUsage:  gh config clear-cache [flags]\n"));
+    }
+    if help { return BuiltinOutcome { stdout: "Clear the cli cache
+
+USAGE
+  gh config clear-cache [flags]
+
+INHERITED FLAGS
+  --help   Show help for command
+
+EXAMPLES
+  # Clear the cli cache
+  $ gh config clear-cache
+
+LEARN MORE
+  Use `gh <command> <subcommand> --help` for more information about a command.
+  Read the manual at https://cli.github.com/manual
+  Learn about exit codes using `gh help exit-codes`
+  Learn about accessibility experiences using `gh help accessibility`
+
+".into(), stderr: String::new(), exit_code: 0 }; }
+    if count > 0 { return error(format!("accepts 0 arg(s), received {count}\n")); }
+    let dir = env.get("XDG_CACHE_HOME").filter(|v| !v.is_empty()).cloned().unwrap_or_else(|| {
+        let home = env.get("HOME").map(String::as_str).filter(|v| !v.is_empty()).unwrap_or("/home/user");
+        format!("{}/.cache", home.trim_end_matches('/'))
+    });
+    let cache = format!("{}/gh", dir.trim_end_matches('/'));
+    let path = resolve_posix_path(cwd, &cache);
+    if let Err(e) = fs.command_descriptor_op().and_then(|_| fs.remove_path(&path)) && !e.starts_with("ENOENT:") && !e.ends_with("(os error 2)") {
+        let reason = match e.split(':').next() {
+            Some("ENOTDIR") => "not a directory", Some("EACCES") => "permission denied",
+            Some("EROFS") => "read-only file system", _ => "could not remove cache",
+        };
+        return error(format!("unlinkat {cache}: {reason}\n"));
+    }
+    BuiltinOutcome { stdout: "✓ Cleared the cache\n".into(), stderr: String::new(), exit_code: 0 }
+}
+
 fn cmd_gh(
     args: &[String],
     stdin: &str,
@@ -3896,6 +3953,13 @@ fn cmd_gh_inner(
 
     let fs_id = fs.fs_id();
     let (repo_flag, json_fields, jq_expr, filtered_args) = parse_gh_common_flags(args);
+    let mut names = filtered_args.iter().map(String::as_str).skip_while(|s| matches!(*s, "--help" | "-h"));
+    if names.next() == Some("config") && names.next() == Some("clear-cache") {
+        // Validate the original flags before deleting; the common parser strips flags for other subcommands.
+        let mut command = ["config", "clear-cache"].into_iter().peekable();
+        let flags = args.iter().map(String::as_str).filter(|word| command.next_if_eq(word).is_none());
+        return gh_clear_cache(flags, cwd, env, fs);
+    }
     if filtered_args.is_empty() {
         return BuiltinOutcome {
             stdout: GH_ROOT_HELP.to_string(),
@@ -4416,11 +4480,6 @@ fn cmd_gh_inner(
                     let stderr = if default.is_none() { format!("! warning: '{key}' is not a known configuration key\n") } else { String::new() };
                     BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 }
                 }
-                "clear-cache" => BuiltinOutcome {
-                    stdout: "✓ Cleared the cache\n".into(),
-                    stderr: String::new(),
-                    exit_code: 0,
-                },
                 _ => BuiltinOutcome {
                     stdout: String::new(),
                     stderr: format!("unknown command \"{sub}\" for \"gh config\"\n"),

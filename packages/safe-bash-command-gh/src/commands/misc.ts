@@ -1,4 +1,4 @@
-import { resolvePath } from "@poe-code/safe-fs/core";
+import { isFsError, resolvePath } from "@poe-code/safe-fs/core";
 import { type CommandContext, type CommandDefinition, type CommandHandler } from "safe-bash-contracts";
 import {
   getBoolFlag,
@@ -1026,6 +1026,70 @@ export async function handleConfigCommand(
   const { backend, writeOut, writeErr } = env;
   const sub = rawArgs[0] ?? "list";
   const rest = rawArgs.slice(1);
+  if (sub === "clear-cache") {
+    let count = 0;
+    let help = false;
+    let options = true;
+    for (const word of rest) {
+      if (options && word === "--") { options = false; continue; }
+      if (!options || word === "-" || !word.startsWith("-")) { count++; continue; }
+      if (word.startsWith("-h")) { help = true; break; }
+      if (word === "--help") { help = true; continue; }
+      let reason: string;
+      if (word.startsWith("--help=")) {
+        const value = word.slice(7);
+        if (["1", "t", "T", "TRUE", "true", "True"].includes(value)) { help = true; continue; }
+        if (["0", "f", "F", "FALSE", "false", "False"].includes(value)) { help = false; continue; }
+        const quoted = JSON.stringify(value);
+        reason = `invalid argument ${quoted} for "--help" flag: strconv.ParseBool: parsing ${quoted}: invalid syntax`;
+      } else if (word.startsWith("---") || word.startsWith("--=")) reason = "bad flag syntax: " + word;
+      else if (word.startsWith("--")) reason = "unknown flag: " + word.split("=", 1)[0];
+      else reason = `unknown shorthand flag: '${word[1]}' in ${word}`;
+      await writeErr(reason + "\n\nUsage:  gh config clear-cache [flags]\n");
+      return 1;
+    }
+    if (help) {
+      await writeOut(`Clear the cli cache
+
+USAGE
+  gh config clear-cache [flags]
+
+INHERITED FLAGS
+  --help   Show help for command
+
+EXAMPLES
+  # Clear the cli cache
+  $ gh config clear-cache
+
+LEARN MORE
+  Use \`gh <command> <subcommand> --help\` for more information about a command.
+  Read the manual at https://cli.github.com/manual
+  Learn about exit codes using \`gh help exit-codes\`
+  Learn about accessibility experiences using \`gh help accessibility\`
+
+`);
+      return 0;
+    }
+    if (count) {
+      await writeErr(`accepts 0 arg(s), received ${count}\n`);
+      return 1;
+    }
+    const { context } = env;
+    const dir = context.env.XDG_CACHE_HOME || (context.env.HOME || "/home/user") + "/.cache";
+    const cache = dir.replace(/\/+$/u, "") + "/gh";
+    try {
+      await context.fs.rm(resolvePath(context.cwd, cache), { recursive: true, force: true, signal: context.signal });
+    } catch (error) {
+      if (!isFsError(error)) throw error;
+      const reason = error.code === "ENOTDIR" ? "not a directory" : error.code === "EACCES" ? "permission denied" : error.code === "EROFS" ? "read-only file system" : undefined;
+      if (!reason) throw error;
+      await writeErr(`unlinkat ${cache}: ${reason}\n`);
+      return 1;
+    }
+    await writeOut("✓ Cleared the cache\n");
+    return 0;
+  }
+
   const parsed = parseCommandArgs(rest, [{ short: "h", long: "host", type: "string" }]);
 
   const pos = [...parsed.positionals, ...parsed.passthrough];
@@ -1089,11 +1153,6 @@ export async function handleConfigCommand(
     let overrides = backend.configOverrides.get(host);
     if (!overrides) backend.configOverrides.set(host, overrides = new Map());
     overrides.set(key, val);
-    return 0;
-  }
-
-  if (sub === "clear-cache") {
-    await writeOut("✓ Cleared the cache\n");
     return 0;
   }
 

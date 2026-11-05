@@ -2456,10 +2456,12 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 continue;
             }
             if (norm === "difference") {
+                if (saByte === 0)
+                    continue;
                 out[dIdx] = Math.abs(sr - dr);
                 out[dIdx + 1] = Math.abs(sg - dg);
                 out[dIdx + 2] = Math.abs(sb - db);
-                out[dIdx + 3] = Math.abs(saByte - daByte);
+                out[dIdx + 3] = dst.hasAlpha ? Math.abs(saByte - daByte) : daByte;
                 continue;
             }
             if (norm === "in" || norm === "srcin") {
@@ -2578,7 +2580,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
         const clipped = (yield* extractImageSteps(src, { left: sx0, top: sy0, width: sx1 - sx0, height: sy1 - sy0 }));
         return (yield* compositeImageSteps(dst, [rgbaToCompositeLayer(clipped, Math.max(0, ox), Math.max(0, oy), parseCompose(modeRaw))]));
     }
-    return { ...dst, data: out, hasAlpha: true };
+    return { ...dst, data: out, hasAlpha: norm === "difference" ? dst.hasAlpha : true };
 }
 
 function rgbaToCss(c: RgbaColor): string {
@@ -4982,7 +4984,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
 }
 
 async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false): Promise<StoredRgbaImage> {
-    let hasAlpha = base.hasAlpha || (!generic && !magickCompositeMode(mode).delegated);
+    const compositeMode = magickCompositeMode(mode);
+    let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && compositeMode.name !== "difference");
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));

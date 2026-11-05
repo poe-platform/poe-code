@@ -955,6 +955,7 @@ async function applyVideoFilterChain(
       const rows = Math.max(1, parseInt(rowsStr ?? "2", 10) || 2);
       const padding = parseInt(named.padding ?? "0", 10) || 0;
       const margin = parseInt(named.margin ?? "0", 10) || 0;
+      const color = parseColorRgba(named.color ?? "black");
       const perTile = cols * rows;
       const tiledFrames: MediaVideoFrame[] = [];
       for (let base = 0; base < current.length; base += perTile) {
@@ -966,7 +967,7 @@ async function applyVideoFilterChain(
         const outW = margin * 2 + cols * fw + Math.max(0, cols - 1) * padding;
         const outH = margin * 2 + rows * fh + Math.max(0, rows - 1) * padding;
         const canvas = new Uint8Array(outW * outH * 4);
-        for (let i = 3; i < canvas.byteLength; i += 4) canvas[i] = 255;
+        for (let i = 0; i < canvas.byteLength; i += 4) canvas.set(color, i);
         for (let k = 0; k < batch.length; k++) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 

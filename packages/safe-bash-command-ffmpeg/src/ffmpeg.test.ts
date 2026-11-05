@@ -13,6 +13,43 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("tile background", () => {
+  for (const [option, background] of [
+    ["", [0, 0, 0, 255]],
+    [":color=yellow", [255, 255, 0, 255]],
+    [":color=0xff0000@0.5", [255, 0, 0, 127]]
+  ] as const) {
+    it(`fills margins, gaps and unused tiles with ${option || "default black"}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const blue = [0, 0, 255, 255];
+      const vfs = createTestVfs({
+        "/in.png": encodeImage({
+          width: 16, height: 16, channels: 4, format: "png", space: "srgb",
+          depth: "uchar", density: 72, hasAlpha: true,
+          data: Uint8Array.from(Array(256).fill(blue).flat())
+        }, { format: "png" }).data
+      });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error", "-i", "/in.png",
+        "-vf", `tile=2x2:padding=4:margin=4${option}`,
+        "-frames:v", "1", "-update", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const image = decodeImage(vfs.store.get("/out.png")!);
+      assert.equal(image.width, 44);
+      assert.equal(image.height, 44);
+      for (let y = 0; y < 44; y++) {
+        for (let x = 0; x < 44; x++) {
+          const offset = (y * 44 + x) * 4;
+          assert.deepEqual([...image.data.subarray(offset, offset + 4)],
+            x >= 4 && x < 20 && y >= 4 && y < 20 ? blue : background,
+            `pixel (${x}, ${y})`);
+        }
+      }
+    });
+  }
+});
+
 describe("overlay alpha", () => {
   // Decoded native FFmpeg PNG pixels for a green overlay on opaque red.
   for (const [alpha, expected] of [

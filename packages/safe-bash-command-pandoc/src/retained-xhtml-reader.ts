@@ -191,7 +191,11 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
         await ast.push(flow, await ast.tag("CodeBlock", await ast.value([[await nonempty(a[0]!) ? a[0]! : b[0]!, classes, pairs], lit])));
       } else if (tag === "ul" || tag === "ol") {
         const items = await ast.array(); for await (const child of children(p)) {const r = await get(child, F.Count); if (names[r[F.Tag]!] === "li") await ast.push(items, value(r[F.Flow]!));}
-        await ast.push(flow, tag === "ul" ? await ast.tag("BulletList", items) : await ast.tag("OrderedList", await ast.value([[await number(await lookup(raw, "start")), "Decimal", "Period"], items])));
+        const listStyles: Readonly<Record<string, string>> = {"1": "Decimal", a: "LowerAlpha", A: "UpperAlpha", i: "LowerRoman", I: "UpperRoman"};
+        const type = await lookup(raw, "type");
+        let style = "DefaultStyle";
+        for (const [key, name] of Object.entries(listStyles)) if (await same(type, key)) {style = name; break;}
+        await ast.push(flow, tag === "ul" ? await ast.tag("BulletList", items) : await ast.tag("OrderedList", await ast.value([[await number(await lookup(raw, "start")), style, "DefaultDelim"], items])));
       } else if (tag === "figure") {
         let caption = 0; for await (const child of children(p)) {const r = await get(child, F.Count); if (names[r[F.Tag]!] === "figcaption") {caption = child; break;}}
         await ast.push(flow, await ast.tag("Figure", await ast.value([attrs, [null, caption ? await childFlow(caption) : await ast.array()], await childFlow(p, caption)])));

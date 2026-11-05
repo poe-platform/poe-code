@@ -12,6 +12,7 @@ import {readRetainedXhtml} from "./retained-xhtml-reader.js";
 async function* byteSource(bytes: Uint8Array) {yield bytes;}
 
 it.each([
+  '<ol type="i" start="3"><li>Roman</li></ol><ol type="constructor"><li>Default</li></ol>',
   '<table><tbody><tr>' + '<td rowspan="2">a</td>'.repeat(96) + '</tr><tr><td>b</td></tr></tbody></table>',
   '<pre id="p" title="outer" class="a a"><code id="c" title="inner" class="a b">literal<span> child</span><script>drop</script></code></pre>',
   '<p>a<![CDATA[ b & c]]>&#13;d&#10;e</p>',

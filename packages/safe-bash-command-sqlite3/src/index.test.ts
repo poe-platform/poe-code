@@ -79,6 +79,42 @@ for (const [sql, stdout] of [
   });
 }
 
+for (const name of ["json_set", "json_insert", "json_replace"]) {
+  test(`sqlite3 ${name} preserves scalars along unreachable paths`, async () => {
+    for (const scalar of ["5", '"text"', "true", "false", "null"]) {
+      for (const [doc, path] of [
+        [scalar, "$.b"],
+        [scalar, "$.b.c"],
+        [scalar, "$[0]"],
+        [`{"a":${scalar}}`, "$.a.b"],
+        [`{"a":${scalar}}`, "$.a.b.c"],
+        [`[${scalar}]`, "$[0].b"],
+        [`{"a":[${scalar}]}`, "$.a[0].b"],
+      ]) {
+        const sql = `SELECT ${name}('${doc}', '${path}', 1);`;
+        assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]),
+          { code: 0, stdout: `${doc}\n`, stderr: "" }, sql);
+      }
+    }
+  });
+}
+
+test("sqlite3 JSON1 preserves valid mutations around unreachable scalar paths", async () => {
+  for (const [expression, expected] of [
+    [`json_set('{"a":5}', '$.a.b', 1, '$.c', 2)`, '{"a":5,"c":2}'],
+    [`json_set('{"a":5}', '$.c', 2, '$.a.b', 1)`, '{"a":5,"c":2}'],
+    [`json_replace('{"a":5}', '$.a.b', 1, '$.a', 2)`, '{"a":2}'],
+    [`json_set('5', '$', 2)`, '2'],
+    [`json_replace('null', '$', 2)`, '2'],
+    [`json_set('{}', '$.a.b', 1)`, '{"a":{"b":1}}'],
+    [`json_insert('{}', '$.a.b', 1)`, '{"a":{"b":1}}'],
+    [`json_replace('{}', '$.a.b', 1)`, '{}'],
+  ]) {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${expression};`]),
+      { code: 0, stdout: `${expected}\n`, stderr: "" }, expression);
+  }
+});
+
 test("sqlite3 JSON1 rejects incomplete object arguments", async () => {
   for (const args of ["'a'", "'a', 1, 'b'"]) {
     assert.deepEqual(

@@ -1611,14 +1611,23 @@ function setByJsonPath(
   const clone = structuredClone(root);
   let cur: any = clone;
   for (let i = 0; i < segs.length - 1; i += 1) {
+    if (cur === null || typeof cur !== "object") {
+      return root;
+    }
     const s = resolveJsonPathSegment(cur, segs[i]!);
     if (s === undefined) {
       return root;
     }
-    if (cur[s] === undefined || cur[s] === null || typeof cur[s] !== "object") {
+    if (cur[s] === undefined) {
+      if (mode === "replace") {
+        return root;
+      }
       cur[s] = typeof segs[i + 1] !== "string" ? [] : {};
     }
     cur = cur[s];
+  }
+  if (cur === null || typeof cur !== "object") {
+    return root;
   }
   const last = resolveJsonPathSegment(cur, segs[segs.length - 1]!);
   if (last === undefined) {

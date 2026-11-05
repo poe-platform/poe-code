@@ -712,7 +712,7 @@ const SHARED_STOCK_MEMORY_CAPABILITIES: FileSystemCapabilities = Object.freeze({
   permissions: true,
   timestamps: true,
   atomicRename: true,
-  atomicStagedFileMutation: true, atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
+  atomicStagedFileBackup: true, atomicStagedFileMutation: true, atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
   synchronousDirectoryValidation: true, synchronousStagingResolution: true, synchronousFollowedStagingResolution: true, guardedStagingPublication: true,
   atomicDirectoryMetadata: true,
   streamingRead: true,
@@ -2305,7 +2305,7 @@ export class MemoryFileSystem implements FileSystem {
     const staging = { parent: snapshot(receipt.parent), directory: snapshot(receipt.directory), file: snapshot(receipt.file) };
     const parent = { ...options.parent };
     const expected = options.destination === null ? null : { ...options.destination };
-    const companions = options.companions.map(entry => ({ path: entry.path, expected: entry.expected === null ? null : { ...entry.expected }, remove: entry.remove }));
+    const companions = options.companions.map(entry => ({ path: entry.path, expected: entry.expected === null ? null : { ...entry.expected }, remove: entry.remove, keepDestination: entry.keepDestination }));
     const syscall = "publishStagedFileSet";
     const parentPath = destination.slice(0, destination.lastIndexOf("/")) || "/";
     const paths = new Set([destination]);
@@ -2330,20 +2330,29 @@ export class MemoryFileSystem implements FileSystem {
     this.permission(file.parent, 3, syscall, staging.file.path);
     this.permission(target.parent, 3, syscall, destination);
     const retired: Location[] = [];
+    let backup: Location | undefined;
     for (const companion of companions) {
       const location = this.entry(companion.path, syscall, true);
       if (location.parent !== target.parent || location.node === node) this.fail("EINVAL", syscall, companion.path);
       this.expectEntry(location.node, companion.expected, companion.path);
       if (location.node && location.node.type !== "file") this.fail("EAGAIN", syscall, companion.path);
-      if (companion.remove && location.node) retired.push(location);
+      if (companion.keepDestination) {
+        if (!this.capabilities.atomicStagedFileBackup) this.fail("ENOTSUP", syscall, companion.path);
+        if (backup || companion.remove || !target.node || target.node === location.node) this.fail("EINVAL", syscall, companion.path);
+        backup = location;
+      } else if (companion.remove && location.node) retired.push(location);
     }
     const now = Date.now();
     const published = { ...this.snapshot(node), ctimeMs: now, revision: Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1) };
     // Admission and all source-set checks precede the single synchronous commit.
     // No calls to overridable async mutations can interleave a partial result.
-    const nameGrowth = target.node ? 0 : (target.name.length - file.name.length) * 2;
+    const newName = !target.node ? target.name : backup && !backup.node ? backup.name : undefined;
+    const nameGrowth = newName === undefined ? 0 : (newName.length - file.name.length) * 2;
     this.ledger.reserve(Math.max(0, nameGrowth), 0, syscall, destination);
-    try { target.parent.entries.set(target.name, node); }
+    try {
+      if (backup) backup.parent.entries.set(backup.name, target.node!);
+      target.parent.entries.set(target.name, node);
+    }
     catch (error) { this.ledger.release(Math.max(0, nameGrowth), 0); throw error; }
     memoryCaches.get(this.ledger)!.clearWrites();
     file.parent.entries.delete(file.name);
@@ -2353,10 +2362,13 @@ export class MemoryFileSystem implements FileSystem {
       entry.node!.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, entry.node!.revision + 1);
       this.releaseNode(entry.node!);
     };
-    if (target.node) {
-      this.ledger.release(file.name.length * 2, 1);
-      unlink(target);
-    } else if (nameGrowth < 0) this.ledger.release(-nameGrowth, 0);
+    if (backup) {
+      target.node!.ctimeMs = now;
+      target.node!.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, target.node!.revision + 1);
+      if (backup.node) unlink(backup);
+    } else if (target.node) unlink(target);
+    if (newName === undefined) this.ledger.release(file.name.length * 2, 1);
+    else if (nameGrowth < 0) this.ledger.release(-nameGrowth, 0);
     for (const entry of retired) {
       entry.parent.entries.delete(entry.name);
       this.ledger.release(entry.name.length * 2, 1);

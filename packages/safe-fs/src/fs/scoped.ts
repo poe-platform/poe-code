@@ -282,8 +282,12 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
             ...controls.companions.map(value => value.path), ...(controls.ancestors ?? []).map(value => value.path)]) {
             validatePath(path, maxPathComponents);
           }
-          assertOpen(controls);
-          return Reflect.apply(method, original, [staging, args[1], controls]);
+          const publish = () => {
+            assertOpen(controls);
+            return Reflect.apply(method, original, [staging, args[1], controls]);
+          };
+          const backup = controls.companions.find(value => value.keepDestination);
+          return backup ? requireOwnedMutation(original, backup.path, "atomicStagedFileBackup", controls, backup.expected === null).then(publish) : publish();
         }
         if (["writeFile", "appendFile", "writeStream", "mkdir"].includes(String(property))) {
           const index = property === "mkdir" ? 1 : 2;

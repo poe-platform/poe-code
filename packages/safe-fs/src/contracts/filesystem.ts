@@ -83,6 +83,7 @@ export interface FileSystemCapabilities {
   readonly atomicFileStaging?: boolean;
   /** Staged payload publication can atomically preserve an existing inode. */
   readonly atomicStagedFileMutation?: boolean;
+  readonly atomicStagedFileBackup?: boolean;
   /** Creates a cleanup handle bound to owned staging entries, independent of ancestor paths. */
   readonly retainedStagingCleanup?: boolean;
   readonly retainedStagingWrite?: boolean;
@@ -347,6 +348,8 @@ export interface PublishStagedFileSetOptions extends PublishStagedFileOptions {
     readonly path: string;
     readonly expected: FileStat | null;
     readonly remove: boolean;
+    /** Move the displaced destination to this sibling. Requires atomicStagedFileBackup. */
+    readonly keepDestination?: boolean;
   }[];
 }
 

@@ -38,6 +38,25 @@ test("publishes a database and retires its checked source set together", async (
   } finally { await wal.close(); }
 });
 
+for (const exists of [false, true]) test(`backs up the displaced inode to a ${exists ? "used" : "new"} sibling name`, async () => {
+  const { fs, staged, options } = await fixture();
+  const path = exists ? "/db/logs.db-wal" : "/db/missing";
+  await fs.link("/db/logs.db", "/db/input-peer");
+  if (exists) await fs.link(path, "/db/backup-peer");
+  const destination = await fs.lstat("/db/logs.db");
+  const expected = exists ? await fs.lstat(path) : null;
+  await fs.publishStagedFileSet(staged, "/db/logs.db", {
+    ...options, destination, companions: [{ path, expected, remove: false, keepDestination: true }],
+  });
+  const backup = await fs.lstat(path);
+  assert.equal(backup.ino, destination.ino);
+  assert.equal(backup.nlink, 2);
+  assert.deepEqual(await fs.readFile("/db/input-peer"), Uint8Array.of(1));
+  assert.deepEqual(await fs.readFile("/db/logs.db"), Uint8Array.of(3));
+  if (exists) assert.deepEqual(await fs.readFile("/db/backup-peer"), Uint8Array.of(2));
+  await fs.removeStagedFile(staged);
+});
+
 for (const conflict of ["wal", "journal", "database"] as const) test(`rejects ${conflict} conflicts before any publication`, async () => {
   const { fs, staged, options } = await fixture();
   const path = conflict === "wal" ? "/db/logs.db-wal" : conflict === "journal" ? "/db/logs.db-journal" : "/db/logs.db";
@@ -133,6 +152,21 @@ test("scoped source-set publication charges admission and preserves its receipt 
   assert.equal(charges, 1);
   assert.deepEqual(receipt, await fs.lstat("/db/logs.db"));
   await assert.rejects(fs.lstat("/db/logs.db-wal"), { code: "ENOENT" });
+});
+
+test("scoped backup publication refuses an unqualified provider before dispatch", async () => {
+  const { fs, staged, options } = await fixture();
+  const view = new Proxy(fs, { get(target, key) {
+    if (key === "capabilitiesFor") return async () => ({ ...fs.capabilities, atomicStagedFileBackup: false });
+    if (key === "publishStagedFileSet") return () => assert.fail("must not dispatch to legacy host");
+    const value = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const scoped = scopeFileSystem(view, () => {}, new AbortController().signal);
+  await assert.rejects(scoped.publishStagedFileSet!(staged, "/db/logs.db", {
+    ...options, companions: [{ path: "/db/logs.bak", expected: null, remove: false, keepDestination: true }],
+  }), { code: "ENOTSUP" });
+  assert.deepEqual(await fs.readFile("/db/logs.db"), Uint8Array.of(1));
 });
 
 test("scoped publication observes scope cancellation at the atomic commit guard", async () => {

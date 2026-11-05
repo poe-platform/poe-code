@@ -160,7 +160,7 @@ export class MountFileSystem implements FileSystem {
         retainedStagingCleanup: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         synchronousDirectoryValidation: ["prepareDirectoryAncestry"], guardedStagingPublication: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         trustedOwnedStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"],
-        atomicStagedFileMutation: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
+        atomicStagedFileBackup: ["publishStagedFileSet"], atomicStagedFileMutation: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicEntryRemovalReceipt: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
         descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
@@ -177,7 +177,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "guardedStagingPublication", "retainedStagingCleanup", "atomicEntryRemovalReceipt", "atomicStagedFileMutation",
+      "guardedStagingPublication", "retainedStagingCleanup", "atomicEntryRemovalReceipt", "atomicStagedFileMutation", "atomicStagedFileBackup",
       "trustedOwnedStaging", "atomicFilePublication", "atomicEntryRemoval", "atomicTreeRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open", "versionedDescriptors",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
@@ -1172,6 +1172,7 @@ export class MountFileSystem implements FileSystem {
         if (this.protected(resolved.path)) fail("EBUSY");
         if (resolved.mount !== target.mount) fail("EXDEV");
         this.mutable(resolved);
+        if (companion.keepDestination) await requireOwnedMutation(backend, resolved.local, "atomicStagedFileBackup", options, companion.expected === null);
         companions.push({ ...companion, path: resolved.local });
       }
       let localAncestors: FileStagingEntry[] | undefined;

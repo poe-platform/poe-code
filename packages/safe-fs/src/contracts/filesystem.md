@@ -1308,7 +1308,10 @@ staging does not imply it. In addition to the regular-file replacement it checks
 `companions`, each containing a canonical sibling `path`, an `expected` version
 (or `null` for absence), and a `remove` boolean. All bindings and permissions are
 validated before an indivisible commit replaces the destination and removes the
-selected companions. Check-only companions remain unchanged. Duplicate paths,
+selected companions. With `atomicStagedFileBackup: true`, one non-removed
+companion can specify `keepDestination: true` to receive the displaced regular
+file, preserving its inode, links, mode and open readers. Other check-only
+companions remain unchanged. Duplicate paths,
 non-siblings, and aliases of the staged inode are rejected. Source conflicts,
 cancellation, guard failures, and resource admission failures leave every entry
 unchanged. Existing retained readers keep their original objects. The caller

@@ -26,6 +26,16 @@ it("mounted source sets publish and retire companions in one backend commit", as
   await expect(fs.lstat("/mounted/db/embeddings.db-wal")).rejects.toMatchObject({ code: "ENOENT" });
   await fs.removeStagedFile!(staged);
 });
+it("publishes the original inode at the translated backup path", async () => {
+  const { fs, staged, options, leaf } = await fixture();
+  const backup = "/mounted/db/embeddings.db.bak";
+  await fs.publishStagedFileSet!(staged, "/mounted/db/embeddings.db", {
+    ...options, companions: [{ path: backup, expected: null, remove: false, keepDestination: true }],
+  });
+  expect((await leaf.lstat("/db/embeddings.db.bak")).ino).toBe(options.destination.ino);
+  expect(await fs.readFile(backup)).toEqual(Uint8Array.of(1));
+  await fs.removeStagedFile!(staged);
+});
 for (const conflict of ["database", "wal", "journal"]) it(`mounted source-set ${conflict} conflicts preserve all other entries`, async () => {
   const { fs, staged, options } = await fixture();
   expect(fs.publishStagedFileSet).toBeTypeOf("function");

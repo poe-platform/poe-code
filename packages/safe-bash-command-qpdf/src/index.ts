@@ -554,11 +554,12 @@ export async function runQpdfCli(
       signal?.throwIfAborted();
       step = steps.next();
     }
-    return step.value;
+    return { ...step.value, stderr: parsed.stderr + step.value.stderr };
   } finally { steps.return({ exitCode: 2, stdout: "", stderr: "" }); }
 }
 
 function parseQpdfArguments(argv: readonly string[]) {
+  let stderr = "";
   let check = false;
   let showNpages = false;
   let showPages = false;
@@ -930,6 +931,7 @@ function parseQpdfArguments(argv: readonly string[]) {
           cfg.permissions.modify = cfg.permissions.addNotes = cfg.permissions.fillForms = false;
           cfg.permissions.assemble = sub === "--modify=assembly";
         }
+        if (sub === "--accessibility=n") stderr += "qpdf: -accessibility=n is ignored for modern encryption formats\n";
         if (sub === "--extract=n") cfg.permissions.copy = false;
         if (sub === "--annotate=n") cfg.permissions.addNotes = false;
         if (sub === "--assemble=n") cfg.permissions.assemble = false;
@@ -945,7 +947,7 @@ function parseQpdfArguments(argv: readonly string[]) {
   const inputFile = emptyInput ? undefined : positional[0];
   const outputFile = emptyInput ? positional[0] : positional[1];
 
-  return { options: {
+  return { stderr, options: {
     check,
     showNpages,
     showPages,
@@ -1012,7 +1014,7 @@ export function runQpdfCliSync(
   const steps = executeQpdfCli(parsed.options, files);
   let step = steps.next();
   while (!step.done) step = steps.next();
-  return step.value;
+  return { ...step.value, stderr: parsed.stderr + step.value.stderr };
 }
 
 function* executeQpdfCli(
@@ -2516,7 +2518,10 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
         const baseline = defaults[key as keyof typeof defaults];
         return Array.isArray(value) ? value.length === 0 : value === baseline;
       });
-      if (retained) return await executeRetainedQpdf({ ...context, stdout: invocation.child(context.stdout).output }, parsed.options, limits, invocation.signal, accountedBytes);
+      if (retained) {
+        if (parsed.stderr) await writeBytes(context.stderr, encoder.encode(parsed.stderr), invocation.signal);
+        return await executeRetainedQpdf({ ...context, stdout: invocation.child(context.stdout).output }, parsed.options, limits, invocation.signal, accountedBytes);
+      }
     }
     const inputs = parsed.options ? [
       parsed.options.inputFile,

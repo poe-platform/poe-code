@@ -179,3 +179,29 @@ it("rejects invalid rotate angles without replacing output", async () => {
     assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")!), "existing");
   }
 });
+
+// Native FFmpeg 9.0.1 RGBA output for the same 3x2 colors supplied as rgb24 rawvideo.
+for (const [angle, pixels] of [
+  ["PI/2", [255,127,127,191,95,63,191,95,63,127,127,255,63,95,191,63,95,191]],
+  ["-PI/2", [63,95,191,63,95,191,127,127,255,191,95,63,191,95,63,255,127,127]],
+  ["PI/4", [219,30,204,114,83,24,72,86,162,255,90,164,140,89,230,0,37,255]],
+  ["-PI/4", [162,86,72,24,83,114,0,217,255,50,104,35,230,89,140,164,90,255]]
+] as const) {
+  it(`matches native rotate=${angle} boundary pixels on a 3x2 canvas`, async () => {
+    const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+    const input = encodeImage({
+      width: 3, height: 2, channels: 4,
+      data: new Uint8Array([255,0,0,255,0,128,0,255,0,0,255,255,255,255,0,255,255,0,255,255,0,255,255,255]),
+      format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+    }, { format: "png" }).data;
+    const vfs = createTestVfs({ "/input.png": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/input.png", "-vf", `rotate=${angle}`, "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = decodeImage(vfs.store.get("/out.png")!);
+    assert.equal(actual.width, 3);
+    assert.equal(actual.height, 2);
+    assert.deepEqual([...actual.data], pixels.flatMap((value, i) => i % 3 === 2 ? [value, 255] : [value]));
+  });
+}

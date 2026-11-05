@@ -800,16 +800,17 @@ async function applyVideoFilterChain(
             const sy = -sin * (x - cx) + cos * (y - cy) + cy;
             const dest = (y * f.width + x) * 4;
             data[dest + 3] = 255;
-            // FFmpeg extends edge pixels for the one-pixel interpolation border.
-            if (sx < -1 || sx > f.width || sy < -1 || sy > f.height) continue;
-            const px = Math.max(0, Math.min(f.width - 1, sx));
-            const py = Math.max(0, Math.min(f.height - 1, sy));
-            const x0 = Math.floor(px);
-            const y0 = Math.floor(py);
+            const ix = Math.floor(sx);
+            const iy = Math.floor(sy);
+            if (ix < -1 || ix > f.width || iy < -1 || iy > f.height) continue;
+            // FFmpeg clips the integer index but retains the original fractional
+            // weight, including in the one-pixel interpolation border.
+            const x0 = Math.max(0, Math.min(f.width - 1, ix));
+            const y0 = Math.max(0, Math.min(f.height - 1, iy));
             const x1 = Math.min(x0 + 1, f.width - 1);
             const y1 = Math.min(y0 + 1, f.height - 1);
-            const dx = px - x0;
-            const dy = py - y0;
+            const dx = sx - ix;
+            const dy = sy - iy;
             for (let c = 0; c < 4; c++) {
               const top = f.data[(y0 * f.width + x0) * 4 + c]! * (1 - dx) + f.data[(y0 * f.width + x1) * 4 + c]! * dx;
               const bottom = f.data[(y1 * f.width + x0) * 4 + c]! * (1 - dx) + f.data[(y1 * f.width + x1) * 4 + c]! * dx;

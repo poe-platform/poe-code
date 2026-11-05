@@ -1495,7 +1495,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string
                     next = cur ^ Math.round(vByte);
                     break;
                 case "leftshift":
-                    next = (cur << Math.round(vFactor)) & 0xff;
+                    next = cur * 2 ** Math.round(vFactor);
                     break;
                 case "rightshift":
                     next = cur >> Math.round(vFactor);

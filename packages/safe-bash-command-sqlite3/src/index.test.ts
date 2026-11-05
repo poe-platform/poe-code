@@ -51,6 +51,30 @@ async function runSqlite3(
   };
 }
 
+test("sqlite3 JSON1 treats quoted object names as single path components", async () => {
+  const cases = [
+    [`json_extract('{"a.b":42}', '$."a.b"')`, "42"],
+    [`json_extract('{"x y":9}', '$."x y"')`, "9"],
+    [`json_extract('{"":7}', '$.""')`, "7"],
+    [`json_extract('{"a":{"b":3}}', '$.a.b')`, "3"],
+    [`json_extract('{"a[b]":{"c.d":[4]}}', '$."a[b]"."c.d"[0]')`, "4"],
+    [`json_set('{"a.b":1}', '$."a.b"', 2)`, '{"a.b":2}'],
+    [`json_remove('{"a.b":1,"x":2}', '$."a.b"')`, '{"x":2}'],
+    [`json_insert('{}', '$.""', 7)`, '{"":7}'],
+    [`json_insert('{"a.b":1}', '$."a.b"', 2)`, '{"a.b":1}'],
+    [`json_replace('{"x y":1}', '$."x y"', 2)`, '{"x y":2}'],
+    [`json_set('{}', '$."a.b".""', 2)`, '{"a.b":{"":2}}'],
+    [`json_remove('{"a.b":[{"":7}]}', '$."a.b"[0].""')`, '{"a.b":[{}]}'],
+    [`json_type('{"a.b":[]}', '$."a.b"')`, "array"],
+    [`json_array_length('{"a.b":[1,2]}', '$."a.b"')`, "2"],
+    [`'{"a.b":42}' ->> '$."a.b"'`, "42"],
+  ];
+  for (const [expression, expected] of cases) {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${expression};`]);
+    assert.deepEqual(result, { code: 0, stdout: `${expected}\n`, stderr: "" }, expression);
+  }
+});
+
 test("sqlite3 JSON1 resolves array indexes counted from the end", async () => {
   const cases = [
     ["json_extract('[10,20,30]', '$[#-1]')", "30"],

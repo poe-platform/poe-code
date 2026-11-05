@@ -1511,6 +1511,15 @@ function parseJsonPathSegments(path: string): JsonPathSegment[] {
   while (i < p.length) {
     if (p[i] === ".") {
       i += 1;
+      if (p[i] === '"') {
+        const end = p.indexOf('"', i + 1);
+        if (end === -1) {
+          throw new Error(`bad JSON path: '${path}'`);
+        }
+        segs.push(p.slice(i + 1, end));
+        i = end + 1;
+        continue;
+      }
       let j = i;
       while (j < p.length && p[j] !== "." && p[j] !== "[") {
         j += 1;

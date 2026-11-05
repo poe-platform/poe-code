@@ -1804,8 +1804,18 @@ export class Interpreter {
       yield name === "all"; return;
     }
     if (!Array.isArray(input)) {
-      if (name === "unique" && !isObject(input)) throw new JqError(`Cannot iterate over ${describe(input, budget)}`);
       if (name === "sort") throw new JqError(`${describe(input, budget)} cannot be sorted, as it is not an array`);
+      if (name === "min" || name === "max") {
+        const label = describe(input, budget);
+        throw new JqError(`${label} and ${label} cannot be iterated over`);
+      }
+      if (name === "unique" || ["sort_by", "group_by", "unique_by", "min_by", "max_by"].includes(name)) {
+        const identity: Ast = { kind: "identity" };
+        const keys = await this.collect({ kind: "binary", operator: "|", left: { kind: "iterate", base: identity },
+          right: { kind: "array", body: args[0] ?? identity } }, input);
+        const problem = name === "min_by" || name === "max_by" ? "cannot be iterated over" : "cannot be sorted, as they are not both arrays";
+        throw new JqError(`${describe(input, budget)} and ${describe(keys, budget)} ${problem}`);
+      }
       throw new JqError(`${name} requires an array`);
     }
     if (name === "reverse") {

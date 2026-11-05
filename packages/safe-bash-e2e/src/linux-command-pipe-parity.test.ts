@@ -30,6 +30,18 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("jq sorting filters evaluate object keys before rejecting the input", async () => {
+      for (const filter of ["sort", "unique", "min", "max", "sort_by(.)", "group_by(.+1)", "unique_by(empty)", "min_by(.,.)", "max_by(.)", 'sort_by(error("from key"))']) {
+        for (const input of ['{"a":1,"b":2}', "false"]) {
+          const reference = await runLinuxCommand("jq", ["-c", filter], input + "\n", cwd);
+          assert.equal(reference[0], 5);
+          for (const shell of [ts.shell, rust]) {
+            const result = await shell.exec("jq -c '" + filter + "'", { stdin: input + "\n" });
+            assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference, filter + " on " + input);
+          }
+        }
+      }
+    });
     await t.test("jq binary search streams search keys and uses jq length and indexing rules", async () => {
       for (const [filter, input] of [
         ["bsearch(1,0,2)", "[1,1,1,1]"], ["bsearch(empty)", "false"],

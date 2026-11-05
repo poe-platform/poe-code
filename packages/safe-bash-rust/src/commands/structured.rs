@@ -1757,6 +1757,23 @@ fn jq_length(input: &JVal) -> Result<f64, JqFault> {
     })
 }
 
+fn jq_sort_input_error(input: &JVal, name: &str, filter: &str, vars: &JqScope<'_>) -> JqFault {
+    let label = jq_generator::describe(input);
+    if name == "sort" { return format!("{label} cannot be sorted, as it is not an array").into(); }
+    if matches!(name, "min" | "max") { return format!("{label} and {label} cannot be iterated over").into(); }
+    let JVal::Object(fields) = input else { return format!("Cannot iterate over {label}").into(); };
+    let mut keys = Vec::with_capacity(fields.len());
+    for (_, item) in fields {
+        match eval_jq(filter, item, vars) {
+            Ok(values) => keys.push(JVal::Array(values)),
+            Err(fault) => return fault,
+        }
+    }
+    let problem = if matches!(name, "min_by" | "max_by") { "cannot be iterated over" }
+        else { "cannot be sorted, as they are not both arrays" };
+    format!("{label} and {} {problem}", jq_generator::describe(&JVal::Array(keys))).into()
+}
+
 fn try_eval_jq_builtin(
     s: &str,
     input: &JVal,
@@ -1891,6 +1908,9 @@ fn try_eval_jq_builtin(
             }
             _ => {}
         },
+        "sort" | "unique" | "min" | "max" if !matches!(input, JVal::Array(_)) => {
+            return Err(jq_sort_input_error(input, s, ".", vars));
+        }
         "sort" => {
             if let JVal::Array(a) = input {
                 let mut s = a.clone();
@@ -2510,6 +2530,9 @@ fn try_eval_jq_builtin(
                         _ => false,
                     };
                     return Ok(Some(vec![JVal::Bool(res)]));
+                }
+                "sort_by" | "group_by" | "unique_by" | "min_by" | "max_by" if !matches!(input, JVal::Array(_)) => {
+                    return Err(jq_sort_input_error(input, fname, arg_expr, vars));
                 }
                 "sort_by" | "group_by" | "unique_by" => {
                     if let JVal::Array(items) = input {

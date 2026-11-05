@@ -6288,10 +6288,15 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         }
         else if (t === "-fuzz") {
-            const rawFuzz = argv[++i] ?? "0";
+            const rawFuzz = argv[++i] ?? "";
+            const value = rawFuzz.endsWith("%") ? rawFuzz.slice(0, -1) : rawFuzz;
+            const fuzz = Number(value);
+            if (value.trim() === "" || !Number.isFinite(fuzz)) {
+                return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-fuzz': ${rawFuzz}\n` };
+            }
             state.fuzz = rawFuzz.endsWith("%")
-                ? (parseFloat(rawFuzz) / 100) * 255
-                : parseFloat(rawFuzz);
+                ? (fuzz / 100) * 255
+                : fuzz;
         }
         else if (t === "-highlight-color") {
             highlightColor = parseColor(argv[++i] ?? "#f1001e");

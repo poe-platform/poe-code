@@ -244,7 +244,7 @@ export function evalSyncUnzip(
           if (quiet === 0) {
             const fn = filteredZipName(m.name);
             const pad = fn + " ".repeat(Math.max(0, 22 - new TextEncoder().encode(fn).byteLength));
-            out += `    testing: ${pad} OK\n`;
+            out += `    testing: ${pad}   OK\n`;
           }
         } else {
           const isDir = m.name.endsWith("/");

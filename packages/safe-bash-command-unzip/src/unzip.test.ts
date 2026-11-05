@@ -6,7 +6,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { CommandContext, FileSystem } from "safe-bash-contracts";
 import { bindFileOutputBudget } from "safe-bash-contracts/filesystem-output";
 import type { ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
-import { createUnzipCommand } from "./index.js";
+import { createUnzipCommand, evalSyncUnzip } from "./index.js";
 
 
 interface Member { name: string; body?: string | Uint8Array; mode?: number; method?: number; extra?: Uint8Array; crc?: number; flags?: number }
@@ -69,6 +69,18 @@ async function run(fs: FileSystem, args: readonly string[], input = "", options:
 }
 
 const heading = "Archive:  sample.zip\n";
+for (const [name, spaces] of [["hello.txt", 16], ["é.txt", 19], ["a".repeat(22), 3], ["a".repeat(25), 3]] as const) {
+  test(`unzip -t matches native result spacing for ${name}`, async () => {
+    const fs = await fixture([{ name, body: "hello\n" }]);
+    if (name === "é.txt") await fs.writeFile("/work/sample.zip", await readFile(new URL("./fixtures/macos-utf8.zip", import.meta.url)));
+    const expected = `${heading}    testing: ${name}${" ".repeat(spaces)}OK\nNo errors detected in compressed data of sample.zip.\n`;
+    assert.deepEqual(await run(fs, ["-t", "sample.zip"]), { exitCode: 0, stdout: expected, stderr: "" });
+    const bytes = zip([{ name, body: "hello\n", flags: 0x800 }]);
+    assert.equal(evalSyncUnzip(["-t", "sample.zip"], () => bytes), expected);
+    await assert.rejects(fs.stat(`/work/${name}`));
+  });
+}
+
 for (const [mode, entry] of [
   ["-l", "        3  11-04-2026 18:53   é.txt"],
   ["-v", "       3  Stored        3   0% 11-04-2026 18:53 da160e7d  é.txt"],

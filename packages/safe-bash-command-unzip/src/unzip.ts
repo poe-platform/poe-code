@@ -220,7 +220,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         try {
           if (parsed.test) {
             for await (const chunk of payload(entry)) { if (chunk.length) context.signal.throwIfAborted(); }
-            if (!parsed.quiet) await budget.output(`    testing: ${padded(filtered(entry.name))} OK\n`);
+            if (!parsed.quiet) await budget.output(`    testing: ${padded(filtered(entry.name))}   OK\n`);
             continue;
           }
           if (parsed.pipe) {

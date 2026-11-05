@@ -4874,14 +4874,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = [appended];
         }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+            const flatten = t === "-flatten" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
             if (t === "-layers")
                 i++;
             if (stack.length > 0) {
                 const oldStack = stack;
-                const maxW = Math.max(...oldStack.map((im) => im.width));
-                const maxH = Math.max(...oldStack.map((im) => im.height));
+                const maxW = flatten ? oldStack[0]!.width : Math.max(...oldStack.map((im) => im.width));
+                const maxH = flatten ? oldStack[0]!.height : Math.max(...oldStack.map((im) => im.height));
                 const canvas = (yield* createSolidRgbaImageSteps(maxW, maxH, state.background));
-                const layers = oldStack.map((im) => rgbaToCompositeLayer(im, 0, 0, state.compose));
+                const layers: CompositeLayer[] = [];
+                for (const im of oldStack) {
+                    const clipped = im.width > maxW || im.height > maxH
+                        ? yield* extractImageSteps(im, { left: 0, top: 0, width: Math.min(im.width, maxW), height: Math.min(im.height, maxH) })
+                        : im;
+                    layers.push(rgbaToCompositeLayer(clipped, 0, 0, state.compose));
+                }
                 const flattened = (yield* compositeImageSteps(canvas, layers));
                 if (canvas.data.buffer !== flattened.data.buffer) detachRgbaBuffer(canvas.data);
                 for (const im of oldStack) {
@@ -5368,6 +5375,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+            const flatten = token === "-flatten" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
             if (token === "-layers") i++;
             const settings = { ...state };
             stackStep(async (stack, backend) => {
@@ -5383,7 +5391,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) return stack;
                 let width = 0, height = 0;
-                for (let n = 0; n < stack.length; n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
+                for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
                 result = await createStoredCanvas(width, height, settings.background, backend, signal);
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {

@@ -245,9 +245,14 @@ export function linuxCommands(text: string) {
       cmd: pandoc, args: ["-f", "gfm", "-t", "plain", "--wrap=none"],
       script: "pandoc -f gfm -t plain --wrap=none", input,
     })),
-    ...["    x\n\n    y\n", "~~~lang\nx", "~~~lang\r\nx\r\n\r\n~~~", "> a\n>\n> > ~~~foo\n> > one\n> >\n> > ~~~\n\n---\n"].map(input => ({
+    ...["- a\n  - b\n- c\n", "3) one\n4) two\n", "- a\n\n- b\n", "    x\n\n    y\n", "~~~lang\nx", "~~~lang\r\nx\r\n\r\n~~~", "> a\n>\n> > ~~~foo\n> > one\n> >\n> > ~~~\n\n---\n"].map(input => ({
       cmd: pandoc, args: ["-f", "commonmark", "-t", "json"], script: "pandoc -f commonmark -t json", input,
     })),
+    {
+      cmd: pandoc, args: ["-f", "json", "-t", "plain"], script: "pandoc -f json -t plain",
+      input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "OrderedList", c: [
+        [26, {t: "LowerAlpha"}, {t: "OneParen"}], [[{t: "Plain", c: [{t: "Str", c: "one"}]}], [], [{t: "Para", c: [{t: "Str", c: "three"}]}]]]}]}),
+    },
     ...["json", "plain"].map(to => ({
       cmd: pandoc, args: ["-f", "json", "-t", to], script: `pandoc -f json -t ${to}`,
       input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "BlockQuote", c: [

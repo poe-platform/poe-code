@@ -11,11 +11,12 @@ import type {BackedJson} from "./backed-json.js";
 import type {ExecutionContext} from "./execution.js";
 import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 import {readJsonNumber} from "./json-number.js";
+import {htmlTablePercent} from "./tables.js";
 import {PandocError} from "./errors.js";
 
 type Job = {
   op: string; node: number; path: number; mode?: string; cursor?: number; index?: number;
-  value?: string; columns?: number; columnCount?: number; occupancy?: number; column?: number;
+  value?: string; columns?: number; columnCount?: number; explicitWidths?: boolean; occupancy?: number; column?: number;
   last?: boolean; start?: number; row?: number; rowHeads?: number; header?: boolean;
 };
 type HtmlResource = (node: number) => Promise<AsyncIterable<Uint8Array> | undefined>;
@@ -329,15 +330,16 @@ class HtmlTape {
       }
       if (job.op === "tableColumns") {
         const columns = await part(2), count = await this.count(columns.node), index = this.storage.allocate(count * 8);
-        await this.add("<colgroup>"); let i = 0;
+        let i = 0;
+        if (job.explicitWidths) await this.add("<colgroup>\n");
         for await (const column of this.tree.children(columns.node)) {
           await this.put(index + i++ * 8, column);
-          const align = alignment[await this.tag(column + 32)]!, widthNode = await this.at(column, 1);
-          const width = await this.tag(widthNode) === "ColWidth" ? `width:${await this.number((await this.tree.property(widthNode, "c"))!) * 100}%` : "";
-          await this.add("<col"); const style = [width, align ? `text-align:${align}` : ""].filter(Boolean).join(";");
-          if (style) await this.attribute("style", style); await this.add(">");
+          if (job.explicitWidths) {
+            const w = await this.at(column, 1);
+            await this.add(await this.tag(w) === "ColWidth" ? `<col style="width: ${Math.trunc(100 * await this.number((await this.tree.property(w, "c"))!))}%" />\n` : "<col />\n");
+          }
         }
-        await this.add("</colgroup>\n");
+        if (job.explicitWidths) await this.add("</colgroup>\n");
         const head = await part(3), bodies = await part(4), foot = await part(5), extra = {columns: index, columnCount: count};
         await this.sequence({op: "section", ...head, ...extra, header: true}, this.list(bodies.node, bodies.path, "body", extra), {op: "section", ...foot, ...extra, header: false}, this.literal("</table>\n")); continue;
       }
@@ -356,7 +358,7 @@ class HtmlTape {
         continue;
       }
       if (job.op === "row") {
-        const cells = await part(1); await this.add("<tr"); await this.attrs((await part(0)).node); await this.add(">");
+        const cells = await part(1); await this.add("<tr"); await this.attrs((await part(0)).node); await this.add(">\n");
         await this.sequence({...job, ...cells, op: "cells", row: job.index!, column: 0, index: 0, cursor: cells.node + 32}, this.literal("</tr>\n")); continue;
       }
       if (job.op === "cells") {
@@ -368,13 +370,13 @@ class HtmlTape {
         for (let i = 0; i < span; i++) {await this.put(job.occupancy! + (column + i) * 8, job.row! + rows); await this.context.cooperate();}
         await this.push({...job, cursor: (await this.tree.describe(cursor)).end, column: column + span, index: job.index! + 1});
         const path = await this.path(job.path, `[${job.index}]`), head = job.header || column < job.rowHeads!, tag = head ? "th" : "td";
-        await this.add(`<${tag}`); await this.attrs(cursor + 32);
-        if (head) await this.attribute("scope", job.header ? "col" : "row");
-        if (rows !== 1) await this.attribute("rowspan", String(rows)); if (span !== 1) await this.attribute("colspan", String(span));
+        await this.add(`<${tag}`);
+        if (span !== 1) await this.attribute("colspan", String(span)); if (rows !== 1) await this.attribute("rowspan", String(rows));
+        await this.attrs(cursor + 32);
         const columnNode = await this.pointer(job.columns! + column * 8), cellAlign = await this.tag(await this.at(cursor, 1));
         const align = alignment[cellAlign === "AlignDefault" ? await this.tag(columnNode + 32) : cellAlign]!;
-        if (align) await this.attribute("style", `text-align:${align}`);
-        await this.add(">"); await this.sequence(this.list(await this.at(cursor, 4), await this.path(path, "[4]"), "block"), this.literal(`</${tag}>`)); continue;
+        if (align) await this.attribute("style", `text-align: ${align};`);
+        await this.add(">"); await this.sequence(this.list(await this.at(cursor, 4), await this.path(path, "[4]"), "block"), this.literal(`</${tag}>\n`)); continue;
       }
       const tag = await this.tag(job.node), content = await this.tree.property(job.node, "c"), cp = await this.path(job.path, ".c");
       const child = async (index: number) => ({node: await this.at(content!, index), path: await this.path(cp, `[${index}]`)});
@@ -545,18 +547,19 @@ class HtmlTape {
         await this.sequence(this.list(body.node, body.path, "block"), this.literal(await this.captionIsAlt(body.node, caption.node) ? '<figcaption aria-hidden="true">' : "<figcaption>"), {op: "caption", ...caption}, this.literal("</figcaption></figure>\n"));
       } else if (tag === "Table") {
         await this.add("<table"); await this.attrs(await this.at(content!, 0));
-        let width = 0;
-        for await (const column of this.tree.children(await this.at(content!, 2))) {
-          const col = await this.at(column, 1);
-          if (await this.tag(col) === "ColWidth") width += await this.number((await this.tree.property(col, "c"))!);
+        let width = 0, explicitWidths = false;
+        for await (const col of this.tree.children(await this.at(content!, 2))) {
+          const w = await this.at(col, 1);
+          if (await this.tag(w) === "ColWidth") {explicitWidths = true; width += await this.number((await this.tree.property(w, "c"))!);}
         }
-        if (width > 0 && width < 1) await this.attribute("style", `width:${Math.round(width * 100)}%;`);
+        if (width > 0 && width < 1) await this.attribute("style", `width:${htmlTablePercent(width)}%;`);
         await this.add(">\n");
+        const columns: Job = {op: "tableColumns", node: content!, path: cp, explicitWidths};
         const caption = await child(1), short = await this.at(caption.node, 0), long = await this.at(caption.node, 1);
         const hasCaption = await this.count(long) || (await this.tree.describe(short)).kind === "array" && await this.count(short);
         if (hasCaption) {
-          await this.add("<caption>"); await this.sequence({op: "caption", ...caption}, this.literal("</caption>\n"), {op: "tableColumns", node: content!, path: cp});
-        } else await this.push({op: "tableColumns", node: content!, path: cp});
+          await this.add("<caption>"); await this.sequence({op: "caption", ...caption}, this.literal("</caption>\n"), columns);
+        } else await this.push(columns);
       }
     }
   }

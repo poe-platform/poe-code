@@ -102,7 +102,7 @@ it("uses the retained standalone table writer through the CLI", async () => {
       stdin: (async function* () {yield encoder.encode("name,value\nfirst,one\n");})(),
       stdout: {async write(bytes) {text += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {error += new TextDecoder().decode(bytes);}}
     })).toEqual({exitCode: 0});
-    expect(text).toContain("<!DOCTYPE html>"); expect(text).toContain('<th scope="col">name</th>'); expect(error).toBe("");
+    expect(text).toContain("<!DOCTYPE html>"); expect(text).toContain('<th>name</th>'); expect(error).toBe("");
     expect(acquire).not.toHaveBeenCalled();
   } finally {acquire.mockRestore();}
   expect(await fs.readdir("/")).toEqual([]);

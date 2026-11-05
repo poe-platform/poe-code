@@ -31029,12 +31029,12 @@ fn render_pandoc_html(
                     body.push_str("<colgroup>\n");
                     for (_,w) in &table.cols {
                         if *w == 0. {body.push_str("<col />\n");}
-                        else {body.push_str(&format!("<col style=\"width: {}%\" />\n", (w*100.).round_ties_even()));}
+                        else {body.push_str(&format!("<col style=\"width: {}%\" />\n", (w*100.).trunc()));}
                     }
                     body.push_str("</colgroup>\n");
                 }
                 for (group, rows, cell) in [("thead", &table.head, "th"), ("tbody", &table.body, "td")] {
-                    if rows.is_empty() {continue;}
+                    if group == "thead" && rows.is_empty() {continue;}
                     body.push_str(&format!("<{group}>\n"));
                     for row in rows {
                         body.push_str("<tr>\n");

@@ -1,6 +1,12 @@
 import type { Block, Cell, Row } from "./ast-types.js";
 import { AstError } from "./errors.js";
 
+// Pandoc rounds the table width to the nearest even percent on ties.
+export function htmlTablePercent(width: number): number {
+  const n = width * 100, lower = Math.floor(n);
+  return n - lower === 0.5 && lower % 2 === 0 ? lower : Math.round(n);
+}
+
 export type Table = Extract<Block, { t: "Table" }>;
 export interface PlacedCell {
   readonly cell: Cell;

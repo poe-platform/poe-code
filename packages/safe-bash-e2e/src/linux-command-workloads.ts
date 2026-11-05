@@ -237,6 +237,7 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   const pandoc = nativePandoc();
   const nativeDocx = execFileSync(pandoc, ["-f", "gfm", "-t", "docx"], {input: "# Report\n\nBody with **bold** and *italic*.\n"});
+  const nativeTable = execFileSync(pandoc, ["-f", "gfm", "-t", "docx"], {input: pandocWordTable});
   return [
     ...["- a\n- b\n", "#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",
       "| a | b |\n| --- | --- |\n| 1 | 2 |\n", "before\n| one |\n|---|\nafter\n",
@@ -285,10 +286,10 @@ export function linuxCommands(text: string) {
         {t: "BlockQuote", c: [{t: "Para", c: [{t: "Str", c: "quoted"}]}]}, {t: "BlockQuote", c: []}, {t: "HorizontalRule"},
       ]}),
     },
-    {
-      cmd: pandoc, args: ["-f", "docx", "-t", "json"], script: "pandoc -f docx -t json",
-      input: execFileSync(pandoc, ["-f", "gfm", "-t", "docx"], {input: pandocWordTable}),
-    },
+    ...["json", "html"].map(to => ({
+      cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeTable,
+    })),
+    {cmd: pandoc, args: ["-f", "csv", "-t", "html"], script: "pandoc -f csv -t html", input: "Name,Score\nA & B,2\n"},
     ...["plain", "html"].map(to => ({
       cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeDocx,
     })),

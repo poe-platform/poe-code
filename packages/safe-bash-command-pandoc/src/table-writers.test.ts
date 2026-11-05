@@ -38,9 +38,9 @@ it("retains HTML spans, sections, captions, row headers, widths and alignment in
   expect(elements(dom, "tbody")).toHaveLength(2);
   expect(elements(dom, "tfoot")).toHaveLength(1);
   const th = elements(dom, "th");
-  expect(th.map(n => n.attrs)).toContainEqual(expect.arrayContaining([{name: "rowspan", value: "2"}, {name: "scope", value: "row"}]));
+  expect(th.map(n => n.attrs)).toContainEqual(expect.arrayContaining([{name: "rowspan", value: "2"}]));
   expect(th.map(n => n.attrs)).toContainEqual(expect.arrayContaining([{name: "colspan", value: "2"}]));
-  expect(elements(dom, "col")[0]?.attrs).toContainEqual({name: "style", value: "width:25%;text-align:left"});
+  expect(elements(dom, "col")[0]?.attrs).toContainEqual({name: "style", value: "width: 25%"});
   expect(result).toMatchObject({diagnostics: []});
   expect(result.kind === "text" && result.text).toContain("Caption &amp; &lt;");
 });
@@ -101,7 +101,7 @@ it("applies column alignment to default-aligned HTML cells", async () => {
   const result = await output(doc([r(c("a"), c("b"))]), "html5");
   const dom = parseFragment(result.kind === "text" ? result.text : "");
   expect(elements(dom, "td").map(n => n.attrs)).toEqual([
-    [{name: "style", value: "text-align:left"}], [{name: "style", value: "text-align:right"}]]);
+    [{name: "style", value: "text-align: left;"}], [{name: "style", value: "text-align: right;"}]]);
 });
 it("preserves supported rich GFM inlines and their significant spaces", async () => {
   const rich: Cell = [a, "AlignDefault", 1, 1, [{t: "Plain", c: [{t: "Strong", c: [{t: "Str", c: " | bold "}]}]}]];

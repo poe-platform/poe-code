@@ -85,7 +85,7 @@ it("uses the backed conversion path from the Safe Bash command", async () => {
       stderr: {async write(bytes) {error += new TextDecoder().decode(bytes);}}
     })).resolves.toEqual({exitCode: 0});
     expect(error).toBe("");
-    expect(output).toContain('<th scope="col">a</th>');
+    expect(output).toContain('<th>a</th>');
     expect(output).toContain("<td>1</td>");
     expect(acquire).not.toHaveBeenCalled();
   } finally {acquire.mockRestore();}

@@ -5,7 +5,7 @@ import { taskListItemState, taskListState } from "./task-list.js";
 import type { Alignment, Attr, Block, Caption, ColSpec, Inline, MetaValue, Row } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import { PandocError } from "./errors.js";
-import { placeRows } from "./tables.js";
+import { htmlTablePercent, placeRows } from "./tables.js";
 
 const alignment: Record<Alignment, string> = {AlignLeft: "left", AlignRight: "right", AlignCenter: "center", AlignDefault: ""};
 const numbering = {DefaultStyle: "", Example: "1", Decimal: "1", LowerRoman: "i", UpperRoman: "I", LowerAlpha: "a", UpperAlpha: "A"};
@@ -214,31 +214,30 @@ class HtmlWriter {
     let current = -1;
     for(const placed of placeRows(rows, cols.length, path, rowHeads)) {
       if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate(); if(!placed) continue;
-      while(current < placed.row) {if(current >= 0) this.add("</tr>\n"); current++; this.add("<tr"); this.attrs(rows[current]![0]); this.add(">");}
+      while(current < placed.row) {if(current >= 0) this.add("</tr>\n"); current++; this.add("<tr"); this.attrs(rows[current]![0]); this.add(">\n");}
       const cell = placed.cell, head = header || placed.column < rowHeads, tag = head ? "th" : "td";
-      this.add(`<${tag}`); this.attrs(cell[0]);
-      if(head) this.attribute("scope", header ? "col" : "row");
-      if(cell[2] !== 1) this.attribute("rowspan", String(cell[2]));
+      this.add(`<${tag}`);
       if(cell[3] !== 1) this.attribute("colspan", String(cell[3]));
+      if(cell[2] !== 1) this.attribute("rowspan", String(cell[2]));
+      this.attrs(cell[0]);
       const align = alignment[cell[1] === "AlignDefault" ? cols[placed.column]![0] : cell[1]];
-      if(align) this.attribute("style", `text-align:${align}`);
-      this.add(">"); await this.blocks(cell[4], `${placed.path}[4]`); this.add(`</${tag}>`);
+      if(align) this.attribute("style", `text-align: ${align};`);
+      this.add(">"); await this.blocks(cell[4], `${placed.path}[4]`); this.add(`</${tag}>\n`);
     }
-    while(current < rows.length - 1) {if(current >= 0) this.add("</tr>\n"); current++; this.add("<tr"); this.attrs(rows[current]![0]); this.add(">");}
+    while(current < rows.length - 1) {if(current >= 0) this.add("</tr>\n"); current++; this.add("<tr"); this.attrs(rows[current]![0]); this.add(">\n");}
     if(current >= 0) this.add("</tr>\n");
   }
   async table(node: Extract<Block, {t: "Table"}>, p: string): Promise<void> {
     const t = node.c; this.add("<table"); this.attrs(t[0]);
-    const width = t[2].reduce((sum, [, col]) => sum + (col.t === "ColWidth" ? col.c : 0), 0);
-    if(width > 0 && width < 1) this.attribute("style", `width:${Math.round(width * 100)}%;`);
+    const width = t[2].reduce((sum,[,w]) => sum + (w.t === "ColWidth" ? w.c : 0), 0);
+    if(width > 0 && width < 1) this.attribute("style", `width:${htmlTablePercent(width)}%;`);
     this.add(">\n");
     if(t[1][1].length || t[1][0]?.length) {this.add("<caption>"); await this.caption(t[1], `${p}.c[1]`); this.add("</caption>\n");}
-    this.add("<colgroup>");
-    for(const [align, width] of t[2]) {
-      this.add("<col"); const style = [width.t === "ColWidth" ? `width:${width.c * 100}%` : "", alignment[align] ? `text-align:${alignment[align]}` : ""].filter(Boolean).join(";");
-      if(style) this.attribute("style", style); this.add(">");
+    if(t[2].some(([,w]) => w.t === "ColWidth")) {
+      this.add("<colgroup>\n");
+      for(const [,w] of t[2]) this.add(w.t === "ColWidth" ? `<col style="width: ${Math.trunc(100 * w.c)}%" />\n` : "<col />\n");
+      this.add("</colgroup>\n");
     }
-    this.add("</colgroup>\n");
     if(t[3][1].length) {this.add("<thead"); this.attrs(t[3][0]); this.add(">\n"); await this.rows(t[3][1], t[2], `${p}.c[3][1]`, true); this.add("</thead>\n");}
     for(const [i, body] of t[4].entries()) {this.add("<tbody"); this.attrs(body[0]); this.add(">\n"); await this.rows(body[2], t[2], `${p}.c[4][${i}][2]`, true); await this.rows(body[3], t[2], `${p}.c[4][${i}][3]`, false, body[1]); this.add("</tbody>\n");}
     if(t[5][1].length) {this.add("<tfoot"); this.attrs(t[5][0]); this.add(">\n"); await this.rows(t[5][1], t[2], `${p}.c[5][1]`, false); this.add("</tfoot>\n");}

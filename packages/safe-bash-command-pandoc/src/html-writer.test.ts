@@ -133,7 +133,7 @@ it("preserves nested tables and rich cell content with security attributes and e
       [[a, 0, [], rows]], [a, []]]};
   };
   const actual = await html([table([p({t: "Image", c: [a, [s("图")], ["a.png", ""]]}, {t: "Strong", c: [s("<&")]}), table([])], [1, 2])]);
-  const expected = '<table>\n<colgroup><col><col></colgroup>\n<tbody>\n<tr><td colspan="2"><p><img src="a.png" alt="图"><strong>&lt;&amp;</strong></p>\n<table>\n<colgroup><col><col></colgroup>\n<tbody>\n<tr><td></td><td></td></tr>\n</tbody>\n</table>\n</td></tr>\n</tbody>\n</table>\n';
+  const expected = '<table>\n<tbody>\n<tr>\n<td colspan="2"><p><img src="a.png" alt="图"><strong>&lt;&amp;</strong></p>\n<table>\n<tbody>\n<tr>\n<td></td>\n<td></td>\n</tr>\n</tbody>\n</table>\n</td>\n</tr>\n</tbody>\n</table>\n';
   expect(actual).toBe(expected); dom(actual, expected);
 });
 

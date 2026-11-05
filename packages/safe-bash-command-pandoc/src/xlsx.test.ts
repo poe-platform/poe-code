@@ -26,7 +26,7 @@ it.each(["gfm", "markdown", "html", "rst"])("uses the first XLSX row as the %s t
   expect(result.text).toContain("Item name");
   expect(result.text).toContain("Green apples");
   expect(result.diagnostics).toEqual([]);
-  if (to === "html") expect(result.text).toContain('<th scope="col">Item name</th>');
+  if (to === "html") expect(result.text).toContain('<th>Item name</th>');
   if (to === "rst") expect(result.text).toContain("===");
 });
 

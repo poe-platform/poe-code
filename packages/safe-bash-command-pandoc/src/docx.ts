@@ -192,7 +192,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       return {t: "Para", c: inlines};
     };
     type ListFrame = {id: number; level: number; items: Block[][]};
-    const appendParagraph = async (p: Paragraph, blocks: Block[], stack: ListFrame[]) => {
+    const appendParagraph = async (p: Paragraph, blocks: Block[], stack: ListFrame[], inCell = false) => {
       const block = await paragraph(p);
       const node = p.store.node(p.ref);
       if (!numbering && Number(numberingAttribute(numberingChild(numberingChild(numberingChild(node, "pPr"), "numPr"), "numId")) ?? 0)) throw new PandocError("E_PARSE", "read", "Missing DOCX numbering definitions", "docx");
@@ -204,7 +204,8 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
           const previous = blocks.at(-1);
           if (previous?.t === "BlockQuote") blocks[blocks.length - 1] = {t: "BlockQuote", c: [...previous.c, block]};
           else blocks.push({t: "BlockQuote", c: [block]});
-        } else blocks.push(block);
+        } else if (block.t !== "Para") blocks.push(block);
+        else if (block.c.length) blocks.push(inCell && p.style?.style_id === "Compact" ? {t: "Plain", c: block.c} : block);
         return;
       }
       const {id, level} = binding;
@@ -261,12 +262,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
                 const jc = numberingAttribute(numberingChild(numberingChild(node, "pPr"), "jc"));
                 align = jc === "right" ? "AlignRight" : jc === "center" ? "AlignCenter" : jc === "left" || jc === "both" ? "AlignLeft" : "AlignDefault";
               }
-              await appendParagraph(item, content, group);
-              const last = content.at(-1);
-              if (last?.t === "Para") {
-                if (!last.c.length) content.pop();
-                else if (item.style?.style_id === "Compact") content[content.length - 1] = {t: "Plain", c: last.c};
-              }
+              await appendParagraph(item, content, group, true);
             } else {
               group.length = 0;
               content.push(await readTable(item));

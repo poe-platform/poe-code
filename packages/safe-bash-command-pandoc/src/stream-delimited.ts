@@ -245,20 +245,18 @@ export async function streamDelimited(
           const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
           const length = view.getFloat64(0, true), rows = view.getFloat64(8, true), width = view.getFloat64(16, true);
           if (rows) {
-            await add("<table>\n<colgroup>");
-            for (let column = 0; column < width; column++) {await add("<col>"); await context.cooperate();}
-            await add("</colgroup>\n<thead>\n");
+            await add("<table>\n<thead>\n");
             let row = 0, column = 0;
             let opened = false;
             const open = async () => {
               if (opened) return;
-              if (!column) await add("<tr>");
-              await add(row ? "<td>" : '<th scope="col">');
+              if (!column) await add("<tr>\n");
+              await add(row ? "<td>" : "<th>");
               opened = true;
             };
             const field = async () => {
               await open();
-              await add(row ? "</td>" : "</th>");
+              await add(row ? "</td>\n" : "</th>\n");
               column++;
               opened = false;
             };

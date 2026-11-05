@@ -63,25 +63,21 @@ test("both backends recover list structure, links, quotes, code and rules from n
 test("Word table imports preserve native Pandoc cells, headers and widths", async () => {
   const pandoc = nativePandoc();
   const [created, docx, error] = await runLinuxCommand(pandoc, ["-f", "gfm", "-t", "docx"],
-    pandocWordTable);
+    pandocWordTable + "\n\n| A | B | C | D | E |\n|---|---|---|---|---|");
   assert.equal(created, 0, error.toString());
-  const options = ["-f", "docx", "-t", "json"];
-  const [status, expected, stderr] = await runLinuxCommand(pandoc, options, docx);
-  assert.equal(status, 0, stderr.toString());
   const ts = await SafeBashE2EHarness.create({backend: "typescript"});
   const rust = new RustWasmBash({forceNative: true});
   try {
-    for (const shell of [ts.shell, rust]) {
-      const actual = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
-      assert.equal(actual.exitCode, 0, actual.stderr);
-      assert.deepEqual(JSON.parse(actual.stdout), JSON.parse(expected.toString()), shell.constructor.name);
+    for (const to of ["json", "html"]) {
+      const options = ["-f", "docx", "-t", to, "--wrap=none"];
+      const [code, expected, diagnostic] = await runLinuxCommand(pandoc, options, docx);
+      assert.equal(code, 0, diagnostic.toString());
+      for (const shell of [ts.shell, rust]) {
+        const actual = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
+        assert.equal(actual.exitCode, 0, actual.stderr);
+        assert.equal(actual.stdout, expected.toString(), shell.constructor.name);
+      }
     }
-    const htmlOptions = ["-f", "docx", "-t", "html", "--wrap=none"];
-    const [code, html, diagnostic] = await runLinuxCommand(pandoc, htmlOptions, docx);
-    assert.equal(code, 0, diagnostic.toString());
-    const rendered = await rust.exec("pandoc " + htmlOptions.join(" "), {stdin: docx});
-    assert.equal(rendered.exitCode, 0, rendered.stderr);
-    assert.equal(rendered.stdout, html.toString());
   } finally {await ts.dispose(); await rust.dispose();}
 });
 

@@ -781,6 +781,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
         r: number;
         g: number;
         b: number;
+        a: number;
     }> = [];
     const seen = new Set<number>();
     for (let i = 0; i < palImg.data.length; i += 4) {
@@ -789,10 +790,11 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
         const r = palImg.data[i]!;
         const g = palImg.data[i + 1]!;
         const b = palImg.data[i + 2]!;
-        const key = (r << 16) | (g << 8) | b;
+        const a = palImg.data[i + 3]!;
+        const key = (r << 24) | (g << 16) | (b << 8) | a;
         if (!seen.has(key)) {
             seen.add(key);
-            palette.push({ r, g, b });
+            palette.push({ r, g, b, a });
             if (palette.length >= 256)
                 break;
         }
@@ -813,12 +815,13 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
             const oldR = Math.max(0, Math.min(255, buf[idx]!));
             const oldG = Math.max(0, Math.min(255, buf[idx + 1]!));
             const oldB = Math.max(0, Math.min(255, buf[idx + 2]!));
+            const oldA = Math.max(0, Math.min(255, buf[idx + 3]!));
             let best = palette[0]!;
             let bestDist = Infinity;
             for (const p of palette) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                const d = (oldR - p.r) ** 2 + (oldG - p.g) ** 2 + (oldB - p.b) ** 2;
+                const d = (oldR - p.r) ** 2 + (oldG - p.g) ** 2 + (oldB - p.b) ** 2 + (oldA - p.a) ** 2;
                 if (d < bestDist) {
                     bestDist = d;
                     best = p;
@@ -827,10 +830,12 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
             out[idx] = best.r;
             out[idx + 1] = best.g;
             out[idx + 2] = best.b;
+            out[idx + 3] = best.a;
             if (dither) {
                 const errR = oldR - best.r;
                 const errG = oldG - best.g;
                 const errB = oldB - best.b;
+                const errA = oldA - best.a;
                 const spread = (nx: number, ny: number, wgt: number) => {
                     if (nx < 0 || nx >= w || ny < 0 || ny >= h)
                         return;
@@ -838,6 +843,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
                     buf[nIdx] = buf[nIdx]! + errR * wgt;
                     buf[nIdx + 1] = buf[nIdx + 1]! + errG * wgt;
                     buf[nIdx + 2] = buf[nIdx + 2]! + errB * wgt;
+                    buf[nIdx + 3] = buf[nIdx + 3]! + errA * wgt;
                 };
                 spread(x + 1, y, 7 / 16);
                 spread(x - 1, y + 1, 3 / 16);

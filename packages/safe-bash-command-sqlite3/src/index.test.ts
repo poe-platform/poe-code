@@ -913,6 +913,8 @@ for (const [mode, expected] of [
 
 // Expected results checked against /usr/bin/sqlite3 3.43.2.
 for (const [label, sql, expected] of [
+  ["LIKE folds ASCII case only", "SELECT 'É' LIKE 'é', 'é' LIKE 'É', 'a' LIKE 'A', 'Z' LIKE 'z', 'é' LIKE 'é', 'École' LIKE 'é%', 'École' LIKE 'ÉCO%', 'é' NOT LIKE 'É', like('É', 'é'), like('A', 'a'), 'É' GLOB 'é';", "0|0|1|1|1|0|1|1|0|1|0\n"],
+  ["LIKE escapes preserve ASCII-only folding", "SELECT 'É' LIKE '!é' ESCAPE '!', 'a' LIKE '!A' ESCAPE '!', 'A' LIKE 'aA' ESCAPE 'a', 'a' LIKE 'AA' ESCAPE 'A', 'é_%' LIKE 'é!_!%' ESCAPE '!', like('!é', 'É', '!');", "0|1|1|1|1|0\n"],
   ["REAL arithmetic and aggregates", "SELECT 5.0 / 2, 10.0 / 4, CAST(5 AS REAL) / 2, 1.0 + 2.0, TOTAL(NULL), 5 / 2;", "2.5|2.5|2.5|3.0|0.0|2\n"],
   ["NULL boolean truth tables", "WITH t(x) AS (VALUES(NULL),(0),(1)) SELECT a.x AND b.x, a.x OR b.x FROM t a CROSS JOIN t b;", "|\n0|\n|1\n0|\n0|0\n0|1\n|1\n0|1\n1|1\n"],
   ["NULL BETWEEN comparisons", "SELECT 5 BETWEEN NULL AND 3, 5 NOT BETWEEN NULL AND 3, 5 NOT BETWEEN 6 AND NULL, 5 BETWEEN NULL AND 6, 5 NOT BETWEEN 3 AND NULL, NULL BETWEEN 1 AND 2;", "0|1|1|||\n"],
@@ -932,7 +934,8 @@ for (const [name, pattern, matches] of [
   ["a(b_c", "a(b_c", true], ["a\\b_c", "a\\b_c", true],
   ["abc_def", "abc_def", true], ["abc_def", "%bc_d%", true],
   ["abc_def", "bc_d", false], ["abc_def", "bc", false],
-  ["abc_def", "abc*", false], ["ABC_def", "abc%", true]
+  ["abc_def", "abc*", false], ["ABC_def", "abc%", true],
+  ["École", "é%", false], ["école", "É%", false], ["École", "ÉCO%", true]
 ] as const) {
   test(`sqlite3 .tables uses literal SQL LIKE patterns: ${name}, ${pattern}`, async () => {
     const script = `CREATE TABLE "${name}"(id INT);\n.tables ${pattern}\n`;

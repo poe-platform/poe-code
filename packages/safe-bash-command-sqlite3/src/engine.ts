@@ -1275,22 +1275,24 @@ function sqlEquals(a: SqlValue, b: SqlValue, collation = "BINARY"): boolean | nu
 export function matchLike(str: string, pattern: string, caseInsensitive: boolean, escapeChar = ""): boolean {
   let regexStr = "^";
   for (let i = 0; i < pattern.length; i += 1) {
-    const c = pattern[i]!;
-    if (escapeChar && c === escapeChar && i + 1 < pattern.length) {
-      regexStr += pattern[i + 1]!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    let c = pattern[i]!;
+    const escaped = escapeChar && c === escapeChar && i + 1 < pattern.length;
+    if (escaped) {
       i += 1;
-      continue;
+      c = pattern[i]!;
     }
-    if (c === "%") {
+    if (!escaped && c === "%") {
       regexStr += "[\\s\\S]*";
-    } else if (c === "_") {
+    } else if (!escaped && c === "_") {
       regexStr += "[\\s\\S]";
+    } else if (caseInsensitive && ((c >= "a" && c <= "z") || (c >= "A" && c <= "Z"))) {
+      regexStr += `[${c.toUpperCase()}${c.toLowerCase()}]`;
     } else {
       regexStr += c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
   }
   regexStr += "$";
-  return new RegExp(regexStr, caseInsensitive ? "i" : "").test(str);
+  return new RegExp(regexStr).test(str);
 }
 
 export function matchGlob(str: string, pattern: string): boolean {

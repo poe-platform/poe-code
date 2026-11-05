@@ -118,7 +118,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
     });
   const tags = filter("format_tags", formatTags) as Record<string, string>;
   const rows: { section: string; row: Row }[] = [];
-  if (sections.has("stream") || sections.has("stream_tags"))
+  if ((sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0))
     for (const [index, stream] of audio.streams.entries()) {
       if (parsed.selector && index !== 0) continue;
       const row = filter("stream", {
@@ -154,11 +154,12 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
             }
           : {})
       });
-      if (sections.has("stream_tags"))
+      if (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0)
         row.tags = filter("stream_tags", stream.tags ?? audio.tags) as Record<string, string>;
+      if (sections.get("stream_tags")?.length === 0) delete row.tags;
       rows.push({ section: "stream", row });
     }
-  if (sections.has("format") || sections.has("format_tags")) {
+  if ((sections.has("format") && sections.get("format")?.length !== 0) || (sections.has("format_tags") && sections.get("format_tags")?.length !== 0)) {
     const row = filter("format", {
       filename: parsed.filename,
       nb_streams: audio.streams.length,
@@ -168,7 +169,8 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       bit_rate: String(formatDuration ? Math.floor((size * 8) / formatDuration) : 0),
       ...(retainedTags || Object.keys(formatTags).length ? { tags: formatTags } : {})
     });
-    if (sections.has("format_tags")) row.tags = tags;
+    if (sections.has("format_tags") && sections.get("format_tags")?.length !== 0) row.tags = tags;
+    if (sections.get("format_tags")?.length === 0) delete row.tags;
     rows.push({ section: "format", row });
   }
   return rows;
@@ -179,7 +181,7 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
   const rows = audioProbeRows(audio, size, parsed);
   if (format === "json") {
     const result: Record<string, unknown> = {};
-    if (sections.has("stream") || sections.has("stream_tags"))
+    if ((sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0))
       result.streams = rows.filter((r) => r.section === "stream").map((r) => r.row);
     const row = rows.find((r) => r.section === "format");
     if (row) result.format = row.row;

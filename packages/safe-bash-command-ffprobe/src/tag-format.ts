@@ -92,7 +92,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
     yield (first ? "" : "\n" + " ".repeat(indent)) + "}";
   }
   if (format === "json") {
-    yield "{"; let first = true, streamOpen = sections.has("stream") || sections.has("stream_tags"), firstStream = true;
+    yield "{"; let first = true, streamOpen = (sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0), firstStream = true;
     if (streamOpen) { yield '\n    "streams": ['; first = false; }
     for await (const entry of rows) {
       const { section, row } = entry; tags = entry.tags;

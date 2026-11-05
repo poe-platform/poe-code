@@ -324,8 +324,8 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
   }
 }
 
-function parseEntryFilter(showEntries: string | undefined): Map<string, Set<string>> {
-  const entryFilter = new Map<string, Set<string>>();
+function parseEntryFilter(showEntries: string | undefined): Map<string, Set<string> | null> {
+  const entryFilter = new Map<string, Set<string> | null>();
   if (showEntries) {
     for (const secSpec of showEntries.split(":")) {
       if (!secSpec.trim()) continue;
@@ -339,7 +339,7 @@ function parseEntryFilter(showEntries: string | undefined): Map<string, Set<stri
           .filter(Boolean);
         entryFilter.set(secName, new Set(fields));
       } else {
-        entryFilter.set(secSpec.trim().toLowerCase(), new Set());
+        entryFilter.set(secSpec.trim().toLowerCase(), null);
       }
     }
   }
@@ -358,41 +358,42 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (entryFilter.size === 0) return obj;
     const allowed = entryFilter.get(sectionName);
     const allowedTags = tagsSectionName ? entryFilter.get(tagsSectionName) : undefined;
-    if (!allowed && !allowedTags) return obj;
+    if (allowed === undefined && allowedTags === undefined) return obj;
 
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
       if (k === "tags" && v && typeof v === "object") {
-        if (allowedTags) {
-          if (allowedTags.size === 0) {
+        if (allowedTags !== undefined) {
+          if (allowedTags === null) {
             out.tags = v;
           } else {
             const filteredTags: Record<string, unknown> = {};
             for (const [tk, tv] of Object.entries(v as Record<string, unknown>)) {
               if (allowedTags.has(tk)) filteredTags[tk] = tv;
             }
-            out.tags = filteredTags;
+            if (allowedTags.size > 0) out.tags = filteredTags;
           }
-        } else if (allowed && (allowed.size === 0 || allowed.has("tags"))) {
+        } else if (allowed === null || allowed?.has("tags")) {
           out.tags = v;
         }
         continue;
       }
-      if (allowed && (allowed.size === 0 || allowed.has(k))) {
+      if (allowed === null || allowed?.has(k)) {
         out[k] = v;
       }
     }
     return out;
   };
 
+  const includesEntries = (section: string) => entryFilter.has(section) && entryFilter.get(section)?.size !== 0;
   const includeStreams =
-    opts.showStreams || entryFilter.has("stream") || entryFilter.has("stream_tags");
+    opts.showStreams || includesEntries("stream") || includesEntries("stream_tags");
   const includeFormat =
-    opts.showFormat || entryFilter.has("format") || entryFilter.has("format_tags");
-  const includePackets = opts.showPackets || entryFilter.has("packet");
-  const includeFrames = opts.showFrames || entryFilter.has("frame");
-  const includeChapters = opts.showChapters || entryFilter.has("chapter");
-  const includePrograms = opts.showPrograms || entryFilter.has("program");
+    opts.showFormat || includesEntries("format") || includesEntries("format_tags");
+  const includePackets = opts.showPackets || includesEntries("packet");
+  const includeFrames = opts.showFrames || includesEntries("frame");
+  const includeChapters = opts.showChapters || includesEntries("chapter");
+  const includePrograms = opts.showPrograms || includesEntries("program");
 
   let typeOrdinal = 0;
   const prepareStream = (row: unknown): Record<string, unknown> | undefined => {
@@ -635,8 +636,8 @@ function parseProbeArguments(args: readonly string[]) {
     showStreams = true;
   }
   const entryFilter = parseEntryFilter(showEntries);
-  showPackets ||= entryFilter.has("packet");
-  showFrames ||= entryFilter.has("frame");
+  showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
+  showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
   return { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }

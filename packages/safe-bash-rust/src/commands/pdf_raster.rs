@@ -117,18 +117,16 @@ fn splash_rgba<'a>(
     xs: std::ops::Range<usize>,
     ys: std::ops::Range<usize>,
 ) -> impl FnMut(usize, usize, &mut usize) -> Option<[u8; 4]> + 'a {
-    let mut rgb = splash_sampler::<3>(im, bounds, xs.clone(), ys.clone());
+    let mut rgba = splash_sampler::<4>(im, bounds, xs.clone(), ys.clone());
     let mut alpha = mask.or(im.stencil.then_some(im)).map(|m| splash_sampler::<1>(m, bounds, xs, ys));
     move |x, y, work| {
-        let [r, g, b] = if im.stencil {
-            let [r, g, b, _] = im.pixels[0];
-            [r, g, b]
-        } else { rgb(x, y, work)? };
-        let a = match &mut alpha {
-            Some(sample) => sample(x, y, work)?[0],
-            None => 255,
-        };
-        Some([r, g, b, a])
+        let mut pixel = if im.stencil { im.pixels[0] } else { rgba(x, y, work)? };
+        if let Some(sample) = &mut alpha {
+            pixel[3] = sample(x, y, work)?[0];
+        } else if im.mask.is_none() {
+            pixel[3] = 255;
+        }
+        Some(pixel)
     }
 }
 
@@ -861,11 +859,28 @@ impl PageSource<'_> {
                                 *p = [r, g, b, 255 - p[0]];
                             }
                         }
-                        let mask = match (opt.splash, image.soft_mask) {
+                        let mask = match (opt.splash, image.mask) {
                             (true, Some(id)) => {
-                                let mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode)??;
+                                let mut mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode)??;
                                 if mask.components != 1 { return None; }
-                                Some(mask)
+                                if mask.stencil && mask.width <= image.width && mask.height <= image.height {
+                                    // Splash expands the one-bit mask over the inclusive image bounds,
+                                    // then resamples those alpha values together with the image.
+                                    let coord = |i: usize, src: usize, dst: usize| ((((i as u64 + 1) * src as u64) - 1) / (dst as u64 + 1)) as usize;
+                                    for (y, row) in image.pixels.chunks_exact_mut(image.width).enumerate() {
+                                        let offset = coord(y, mask.height, image.height) * mask.width;
+                                        for (x, p) in row.iter_mut().enumerate() {
+                                            p[3] = 255 - mask.pixels[offset + coord(x, mask.width, image.width)][0];
+                                        }
+                                    }
+                                    None
+                                } else {
+                                    if mask.stencil {
+                                        mask.stencil = false;
+                                        for p in &mut mask.pixels { p[0] = 255 - p[0]; }
+                                    }
+                                    Some(mask)
+                                }
                             }
                             _ => None,
                         };

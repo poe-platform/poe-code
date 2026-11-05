@@ -44,7 +44,7 @@ pub(super) enum ImageStream<'a> {
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
     pub(super) stencil: bool,
-    pub(super) soft_mask: Option<ObjectId>,
+    pub(super) mask: Option<ObjectId>,
     fax: bool,
     bits: usize,
     rgb48: Option<[(f64, f64); 3]>,
@@ -415,7 +415,10 @@ impl Image {
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
             stencil,
-            soft_mask,
+            mask: soft_mask.or_else(|| {
+                let id = dict.get(b"Mask")?.reference()?;
+                matches!(objects.object(id)?.0, Value::Dict(_)).then_some(id)
+            }),
             fax,
             bits,
             rgb48,
@@ -449,7 +452,7 @@ impl Image {
         };
         let (x, y) = (ppi(self.width, a, b), ppi(self.height, c, d));
         let object = parent.or(self.id).map_or_else(|| "[inline]  ".to_owned(), |(id, gen_num)| format!(" {id:6} {gen_num:2}"));
-        let kind = if parent.is_some() { "smask" } else if self.stencil { "stencil" } else { "image" };
+        let kind = if parent.is_some() && self.stencil { "mask" } else if parent.is_some() { "smask" } else if self.stencil { "stencil" } else { "image" };
         let (w, h, components) = (self.width, self.height, self.components);
         let color = match components {
             _ if self.stencil => "-",
@@ -661,10 +664,10 @@ impl PageSource<'_> {
                 && let Some(image) = Image::read(objects, stream, matrix, limit, mode)?
             {
                 let id = image.id;
-                let soft_mask = image.soft_mask;
+                let mask = image.mask;
                 handle(image, None)?;
                 if mode != ImageRead::Pixels
-                    && let Some(mask) = soft_mask
+                    && let Some(mask) = mask
                     && let Some(mask_image) = Image::read(objects, ImageStream::Object(mask), matrix, limit, mode)?
                 {
                     handle(mask_image, id)?;

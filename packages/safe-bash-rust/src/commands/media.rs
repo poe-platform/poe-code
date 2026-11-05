@@ -16857,6 +16857,34 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdf_explicit_mask_uses_parent_id_and_its_own_resolution() {
+        let fs = MemoryVfs::new();
+        let image = "abcdefghijklmnopqrstuvwx0123456789AB";
+        let stream = |dict: &str, data: &str| format!("<< {dict} /Length {} >>\nstream\n{data}\nendstream", data.len());
+        for (w, h, decode, interp, matrix, mask, digest) in [
+            (2, 1, "0 1", "false", "12 0 0 7 3 5", "V", "a2e69b029253f7fa5a808ab97765b8c1d37a640dba5b2016d4713b988e5a547c"),
+            (4, 3, "1 0", "false", "2 7 -8 1 17 8", "VUU", "d1cc7fc6e37ddb551ea47a71cddd69cde0109e37bade9abb034acb951829d12c"),
+            (8, 5, "1 0", "true", "2 7 -8 1 17 8", "VUU0V", "2ba51fc36eadcb9ebe158d862a21163ab4115bffa3e03925c60c5d97e5e86203"),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
+                &stream("", &format!("q {matrix} cm /A Do Q")),
+                &stream(&format!("/Type /XObject /Subtype /Image /Width 4 /Height 3 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Mask 6 0 R /Interpolate {interp}"), image),
+                &stream(&format!("/Type /XObject /Subtype /Image /Width {w} /Height {h} /ImageMask true /Decode [{decode}] /Interpolate {interp}"), mask)], "");
+            fs.write_file("/image.pdf", pdf.as_bytes()).unwrap();
+            let run = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+            let listing = run("pdfimages", &["-list", "image.pdf"]);
+            let row: Vec<_> = listing.stdout.lines().nth(3).unwrap().split_whitespace().collect();
+            assert_eq!((&row[2..6], &row[10..12]), (["mask", &w.to_string(), &h.to_string(), "-"].as_slice(), ["5", "0"].as_slice()));
+            assert_eq!(run("pdfimages", &["image.pdf", "out"]).exit_code, 0);
+            assert_eq!(fs.read_file("/out-001.pbm").unwrap(), format!("P4\n{w} {h}\n{mask}").as_bytes());
+            assert_eq!(fs.read_file("/out-000.ppm").unwrap(), format!("P6\n4 3\n255\n{image}").as_bytes());
+            assert_eq!(run("pdftoppm", &["-r", "72", "-singlefile", "image.pdf", "page"]).exit_code, 0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/page.ppm").unwrap())), digest, "{w}x{h}");
+        }
+    }
+
+    #[test]
     fn pdfimages_soft_mask_uses_its_own_size_and_the_parent_object_id() {
         let fs = MemoryVfs::new();
         let draw = "q 4 0 0 2 0 0 cm /A Do /A Do Q";

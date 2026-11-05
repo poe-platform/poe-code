@@ -7269,7 +7269,11 @@ export class SqliteDatabase {
           if (l === null || pat === null || esc === null) {
             return null;
           }
-          return matchLike(toSqlString(l), toSqlString(pat), expr.op === "LIKE", toSqlString(esc))
+          const escapeChar = toSqlString(esc);
+          if ([...escapeChar].length !== 1) {
+            throw new Error("stepping, ESCAPE expression must be a single character");
+          }
+          return matchLike(toSqlString(l), toSqlString(pat), expr.op === "LIKE", escapeChar)
             ? 1
             : 0;
         }

@@ -1151,9 +1151,22 @@ for (const [mode, expected] of [
   });
 }
 
+for (const escape of ["''", "'!!'", "'😀😀'", "'!' || '!'"]) {
+  test(`sqlite3 rejects invalid LIKE ESCAPE length: ${escape}`, async () => {
+    const sql = `SELECT 'a_c' LIKE 'a!_c' ESCAPE ${escape};`;
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+      code: 1,
+      stdout: "",
+      stderr: "Error: stepping, ESCAPE expression must be a single character\n"
+    });
+    assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), undefined);
+  });
+}
+
 // Expected results checked against /usr/bin/sqlite3 3.43.2.
 for (const [label, sql, expected] of [
   ["LIKE rejects dangling escapes", "SELECT 'a!' LIKE 'a!' ESCAPE '!', 'a' LIKE 'a!' ESCAPE '!', 'a!' LIKE 'a!!' ESCAPE '!', like('a!', 'a!', '!'), like('a!', 'a', '!'), like('a!!', 'a!', '!'), 'a!' NOT LIKE 'a!' ESCAPE '!', 'abc!' LIKE '%!' ESCAPE '!', '' LIKE '!' ESCAPE '!', 'a😀' LIKE 'a😀' ESCAPE '😀', like('a😀', 'a😀', '😀'), 'a!' LIKE 'a!';", "0|0|1|0|0|1|1|0|0|0|0|1\n"],
+  ["LIKE ESCAPE preserves NULL and evaluated single characters", "SELECT 'a_c' LIKE 'a!_c' ESCAPE NULL, NULL LIKE 'a!_c' ESCAPE '!', 'a_c' LIKE NULL ESCAPE '!', 'a_c' LIKE 'a!_c' ESCAPE substr('!!', 1, 1), 'a_c' NOT LIKE 'a!_c' ESCAPE '!';", "|||1|0\n"],
   ["LIKE counts Unicode code points", "SELECT char(0x1F600) LIKE '_', char(0x1F600) LIKE '__', char(0xE000) LIKE '_', 'a😀b' LIKE 'a_b', '😀😀' LIKE '__', '😀' LIKE '%_', like('_', '😀'), '😀' NOT LIKE '_';", "1|0|1|1|1|1|1|0\n"],
   ["GLOB counts Unicode code points", "SELECT char(0x1F600) GLOB '?', char(0x1F600) GLOB '??', char(0xE000) GLOB '?', 'a😀b' GLOB 'a?b', '😀😀' GLOB '??', '😀' GLOB '*?', glob('?', '😀'), '😀' NOT GLOB '?', '😀' GLOB '[😀]', '😁' GLOB '[😀-😂]';", "1|0|1|1|1|1|1|0|1|1\n"],
   ["LIKE accepts Unicode escape characters", "SELECT 'a_c' LIKE 'a'||char(0x1F600)||'_c' ESCAPE char(0x1F600), like('a😀_c', 'a_c', '😀'), 'a%c' LIKE 'a😀%c' ESCAPE '😀', '😀' LIKE '😀😀' ESCAPE '😀', '😀' LIKE '😀', '😀' GLOB '😀';", "1|1|1|1|1|1\n"],

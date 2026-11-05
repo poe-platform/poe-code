@@ -569,6 +569,13 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
     if (cellEvaluation && cell.formula && pending.has(cell) && !result) return { ...original ?? cell, formulaDirty: true };
     if (!result || !cell.formula || !pending.has(cell)) return original ?? cell;
     const { displayedText: ignoredDisplayedText, ...retained } = cell;
+    // Function auto-formats apply to the expression result, not its operands.
+    // Arithmetic and unitless functions therefore retain General formatting.
+    let node = expressions.get(cell);
+    while (node?.kind === "parentheses") { tick(); node = node.child; }
+    if (result.kind === "number" && (!cell.format || cell.format === "General") &&
+      node?.kind === "call" && functionDescriptors[node.name]?.flags.includes("GNM_FUNC_AUTO_DATE"))
+      return { ...retained, format: "yyyy/mm/dd", value: result, cachedResult: result, formulaDirty: false };
     return { ...retained, value: result, cachedResult: result, formulaDirty: false };
   }) })) }, context.limits);
 }

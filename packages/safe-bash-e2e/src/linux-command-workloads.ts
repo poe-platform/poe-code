@@ -173,6 +173,7 @@ export function linuxCommands(text: string) {
     "env pwd -P ignored -L", "env POSIXLY_CORRECT=1 pwd ignored -P", "env pwd -- -L"]) {
     pipes.push('(root=$PWD; cd pwd-link && result=$(' + command + ') && printf "%s\\n" "${result#"$root"/}")');
   }
+  pipes.push("pwd --logical", "command pwd --physical", "pwd -LPQ");
   for (const invocation of ["env pwd -X", "env pwd --unknown", "env pwd --physical=yes", "env pwd --h=x", "/usr/bin/pwd extra"]) {
     pipes.push("(cd pwd-link && " + invocation + " >/dev/null)");
   }
@@ -353,7 +354,8 @@ export function linuxCommands(text: string) {
       "[nan,1]|bsearch(nan,1,0)", "[nan,nan]|bsearch(nan)", "[0,1,2]|[min_by(nan),max_by(nan)]", "nan|bsearch(0)"].map(filter => ({
       cmd: "jq", args: ["-c", filter], script: "jq -c '" + filter + "'", input: "null\n",
     })),
-    ...pipes.map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" })),
+    // Match the virtual shell name ($0), including in diagnostics.
+    ...pipes.map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script, "shell"], script, input: "" })),
     // Keep the host keybox in the private benchmark directory.
     { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-q", "--export", "missing"],
       script: "gpg --batch -q --export missing", input: "" },

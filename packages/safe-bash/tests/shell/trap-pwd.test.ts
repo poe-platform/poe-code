@@ -94,11 +94,12 @@ test("pwd uses the last logical/physical flag and rejects invalid options", asyn
     assert.equal(result.stdout, `${path}\n`);
     assert.equal(result.stderr, "");
   }
-  for (const args of ["-Q", "-LPQ", "-Q --", "-P -Q extra"]) {
+  for (const args of ["--logical", "--physical", "-Q", "-LPQ", "-Q --", "-P -Q extra"]) {
     const result = await shell.exec(`pwd ${args}`);
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "pwd: invalid option\n");
+    const flag = args.startsWith("--") ? "-" : "Q";
+    assert.equal(result.stderr, `shell: line 1: pwd: -${flag}: invalid option\npwd: usage: pwd [-LP]\n`);
   }
 });
 

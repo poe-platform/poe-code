@@ -215,15 +215,19 @@ echo "real_dotdot:$?:$PWD"
     });
   });
 
-  it("8. pwd supports -L, -P, --logical, --physical, --, and rejects invalid options", async () => {
+  it("8. pwd supports -L, -P and --, and rejects GNU long options", async () => {
     await withE2EHarness(async (h) => {
       const res = await h.exec(`
 mkdir -p /real/target
 ln -s /real/target /sym_target
 cd -L /sym_target
 pwd
+pwd -L
+pwd -P
 pwd --logical
+echo "logical:$?"
 pwd --physical
+echo "physical:$?"
 pwd --
 pwd -z
 echo "pwd_z:$?"
@@ -231,9 +235,10 @@ echo "pwd_z:$?"
       assert.equal(res.exitCode, 0);
       assert.equal(
         res.stdout,
-        "/sym_target\n/sym_target\n/real/target\n/sym_target\npwd_z:2\n"
+        "/sym_target\n/sym_target\n/real/target\nlogical:2\nphysical:2\n/sym_target\npwd_z:2\n"
       );
-      assert.equal(res.stderr, "pwd: invalid option\n");
+      assert.equal(stripLinePrefixes(res.stderr),
+        "pwd: --: invalid option\npwd: usage: pwd [-LP]\n".repeat(2) + "pwd: -z: invalid option\npwd: usage: pwd [-LP]\n");
     });
   });
 

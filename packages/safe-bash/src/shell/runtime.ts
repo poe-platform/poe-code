@@ -8914,10 +8914,12 @@ export class Runtime {
       let physical = false;
       for (const arg of args) {
         if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
-        if (arg === "--logical") { physical = false; continue; }
-        if (arg === "--physical") { physical = true; continue; }
         for (const flag of arg.slice(1)) {
-          if (flag !== "L" && flag !== "P") { await writeDiagnostic(stderr, "pwd: invalid option\n"); return 2; }
+          if (flag !== "L" && flag !== "P") {
+            await this.diagnostic(context, `pwd: -${flag}: invalid option`);
+            await writeDiagnostic(stderr, "pwd: usage: pwd [-LP]\n");
+            return 2;
+          }
           physical = flag === "P";
         }
       }

@@ -8066,7 +8066,7 @@ const syncExtraRuntimeMethods = {
           }
         }
       }
-      if ( w0Plain === "pwd" && (command.words.length === 1 || (command.words.length === 2 && (command.words[1]?.plain === "-L" || command.words[1]?.plain === "--logical"))) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd")) {
+      if ( w0Plain === "pwd" && (command.words.length === 1 || (command.words.length === 2 && command.words[1]?.plain === "-L")) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd")) {
         return true;
       }
       if ((w0Plain === "dirname" || w0Plain === "basename") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
@@ -10434,7 +10434,7 @@ const syncExtraRuntimeMethods = {
           }
         }
       }
-      if ( w0Plain === "pwd" && command.redirects.length === 0 && (command.words.length === 1 || (command.words.length === 2 && (command.words[1]?.plain === "-L" || command.words[1]?.plain === "--logical"))) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd") && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
+      if ( w0Plain === "pwd" && command.redirects.length === 0 && (command.words.length === 1 || (command.words.length === 2 && command.words[1]?.plain === "-L")) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd") && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
         const fastSyncSink = (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ? io.stdout : undefined;
         const fastPipeSink = !fastSyncSink && io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync() ? io.stdout : undefined;
         const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
@@ -18192,7 +18192,7 @@ const syncExtraRuntimeMethods = {
         } else if (w0Plain0 === "env") {
           stage0Formatted = evalSyncEnv(subArgs0, rawState.exported, rawState.variables);
         } else if (w0Plain0 === "pwd") {
-          if (subArgs0.length === 0 || (subArgs0.length === 1 && (subArgs0[0] === "-L" || subArgs0[0] === "--logical"))) {
+          if (subArgs0.length === 0 || (subArgs0.length === 1 && subArgs0[0] === "-L")) {
             stage0Formatted = (rawState.logicalCwd ?? rawState.cwd) + "\n";
           }
         } else if (w0Plain0 === "awk") {
@@ -20022,7 +20022,7 @@ const syncExtraRuntimeMethods = {
         return disc.text;
       }
     }
-    if (w0Plain === "pwd" && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd") && !this.hasBuiltinOverride("pwd")) {
+    if (w0Plain === "pwd" && (cmd.words.length === 1 || (cmd.words.length === 2 && cmd.words[1]?.plain === "-L")) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd") && !this.hasBuiltinOverride("pwd")) {
       let res = rawState.logicalCwd ?? rawState.cwd;
       while (res.endsWith("\n")) res = res.slice(0, -1);
       const byteLength = shellValueByteLength(res) + 1;

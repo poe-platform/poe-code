@@ -94,11 +94,9 @@ export function basicCommands(): CommandDefinition[] {
           await writeDiagnostic(context.stderr, `${name}: ${message}\nTry '${name} --help' for more information.\n`, context.signal);
           return { exitCode: 1 };
         }
-        if (arg === "--logical") { mode = "logical"; continue; }
-        if (arg === "--physical") { mode = "physical"; continue; }
         for (const flag of arg.slice(1)) {
           if (flag !== "L" && flag !== "P") {
-            if (!external) throw new UsageError(`invalid option '${flag}'`);
+            if (!external) throw new UsageError(`-${flag}: invalid option\npwd: usage: pwd [-LP]`);
             await writeDiagnostic(context.stderr, `${name}: invalid option -- '${flag}'\nTry '${name} --help' for more information.\n`, context.signal);
             return { exitCode: 1 };
           }

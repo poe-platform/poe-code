@@ -28,6 +28,15 @@ test("builtin pwd ignores help after an operand in direct handlers", async () =>
   assert.equal(result.stdout, "/work\n");
 });
 
+test("direct builtin pwd rejects GNU long options", async () => {
+  for (const flag of ["--logical", "--physical"]) {
+    const result = await run("pwd", [flag]);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "pwd: --: invalid option\npwd: usage: pwd [-LP]\n");
+  }
+});
+
 test("external pwd invalid option has GNU failure status", async () => {
   const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
   try {

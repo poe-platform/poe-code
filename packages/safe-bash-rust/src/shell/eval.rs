@@ -4340,6 +4340,12 @@ impl<'a> EvalState<'a> {
         self.dispatch_terminal(words,stdin,mode,None)
     }
 
+    fn run_shell_builtin(&mut self, name: &str, args: &[String], stdin: &mut String) -> Option<BuiltinOutcome> {
+        let mut out = try_run_builtin(name, args, stdin, self.cwd, self.env, self.fs)?;
+        if name == "pwd" && out.exit_code == 2 { out.stderr.insert_str(0, &self.diag_prefix()); }
+        Some(out)
+    }
+
     fn dispatch_terminal(
         &mut self,
         words: &[String],
@@ -4358,7 +4364,7 @@ impl<'a> EvalState<'a> {
         let args = &words[1..];
         if mode == DispatchMode::Builtin
             && !(matches!(cmd.as_str(),"echo"|"printf"|"test"|"[") && self.custom_commands.contains_key(cmd))
-            && let Some(out) = try_run_builtin(cmd,args,stdin,self.cwd,self.env,self.fs) { return Ok(out); }
+            && let Some(out) = self.run_shell_builtin(cmd, args, stdin) { return Ok(out); }
 
         if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
@@ -5432,7 +5438,7 @@ impl<'a> EvalState<'a> {
         }
 
         if let Some(b_out) =
-            try_run_builtin(effective_cmd, args, stdin, self.cwd, self.env, self.fs)
+            self.run_shell_builtin(effective_cmd, args, stdin)
         {
             return Ok(b_out);
         }

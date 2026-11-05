@@ -70,13 +70,11 @@ pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs:
                         .expect("pwd has GNU information metadata");
                 } else { physical = *option == "physical"; }
             } else { diagnostic = Some(format!("unrecognized option '{arg}'")); }
-        } else if arg == "--physical" || arg == "--logical" {
-            physical = arg == "--physical";
         } else {
             for ch in arg[1..].chars() {
                 match ch {
                     'L' => physical = false, 'P' => physical = true,
-                    _ => { diagnostic = Some(format!("invalid option -- '{ch}'")); break; }
+                    _ => { diagnostic = Some(if external.is_some() { format!("invalid option -- '{ch}'") } else { format!("-{ch}: invalid option") }); break; }
                 }
             }
         }
@@ -86,7 +84,7 @@ pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs:
                 out.stderr = format!("{name}: {message}\nTry '{name} --help' for more information.\n");
             } else {
                 out.exit_code = 2;
-                out.stderr = "pwd: invalid option\n".into();
+                out.stderr = format!("pwd: {message}\npwd: usage: pwd [-LP]\n");
             }
             return out;
         }
@@ -3946,7 +3944,7 @@ mod tests {
 
         let pwd_err = try_run_builtin("pwd", &args(&["-z"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
         assert_eq!(pwd_err.exit_code, 2);
-        assert_eq!(pwd_err.stderr, "pwd: invalid option\n");
+        assert_eq!(pwd_err.stderr, "pwd: -z: invalid option\npwd: usage: pwd [-LP]\n");
 
         let let_help = try_run_builtin("let", &args(&["--help"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
         assert_eq!(let_help.exit_code, 2);

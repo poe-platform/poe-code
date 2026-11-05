@@ -22,13 +22,6 @@ for (const specimen of numericSyntaxCases) {
     if (specimen.error === undefined) assert.equal(native.stderrHex, "");
     else assert.notEqual(native.stderrHex, "");
     const result = await runFixture(specimen, {}, {}, 1);
-    // Issue 1079 supersedes this native acceptance of a stop after +N.
-    if (specimen.id === "expand-repeat-separate-stop") {
-      assert.equal(result.exitCode, 1);
-      assert.equal(result.stdoutHex, "");
-      assert.match(result.stderr, /repeating tab stop must be last/u);
-      return;
-    }
     assert.equal(result.exitCode, native.status, result.stderr);
     assert.equal(result.stdoutHex, native.stdoutHex);
     assert.equal(result.stderr, specimen.error ?? "");
@@ -86,11 +79,14 @@ test("legacy numeric syntax retains the actual shared shell output budget", asyn
   } finally { await shell.dispose(); }
 });
 
-test("expand rejects explicit stops after repeating stops across options", async () => {
-  for (const args of [["-t", "4", "-t", "+2", "-t", "8"], ["-t", "+2", "-t", "6"], ["-t", "/2", "-t", "6"]]) {
-    const result = await runFixture({ id: "repeat-order", command: "expand", args, stdinHex: "09580a" });
-    assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /repeating tab stop must be last/u);
-    assert.equal(result.stdoutHex, "");
+test("expand applies the repeat interval after stops from later options", async () => {
+  for (const [args, expected] of [
+    [["-t", "4", "-t", "+2", "-t", "8"], "    X   Y Z\n"],
+    [["-t", "+3", "-t", "5"], "     X  Y  Z\n"],
+    [["-t", "/3", "-t", "5"], "     X   Y  Z\n"],
+  ] as const) {
+    const result = await runFixture({ id: "repeat-order", command: "expand", args, stdinHex: "09580959095a0a" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
   }
 });

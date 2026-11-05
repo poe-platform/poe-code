@@ -2005,6 +2005,7 @@ export function buildProbeResultFromDoc(
       filename,
       nb_streams: streams.length,
       nb_programs: 0,
+      nb_stream_groups: 0,
       format_name: options.formatName ?? "mov,mp4,m4a,3gp,3g2,mj2",
       format_long_name: options.formatLongName ?? "QuickTime / MOV",
       start_time: startTime.toFixed(6),

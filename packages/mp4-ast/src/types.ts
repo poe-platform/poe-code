@@ -458,6 +458,7 @@ export interface MediaProbeFormat {
   readonly filename: string;
   readonly nb_streams: number;
   readonly nb_programs: number;
+  readonly nb_stream_groups: number;
   readonly format_name: string;
   readonly format_long_name: string;
   readonly start_time: string;

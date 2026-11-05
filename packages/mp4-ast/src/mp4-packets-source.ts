@@ -268,7 +268,7 @@ export async function probeMp4Source(source: MediaProbeSource, options: Mp4Sourc
     for await (const row of scanProbeRecords(source, work, 'streams')) if (!('sample' in row)) yield row;
   }
   return { streams: { [Symbol.asyncIterator]: streams },
-    format: { filename: options.filename ?? 'input.mp4', nb_streams: tracks, nb_programs: 0,
+    format: { filename: options.filename ?? 'input.mp4', nb_streams: tracks, nb_programs: 0, nb_stream_groups: 0,
       format_name: 'mov,mp4,m4a,3gp,3g2,mj2', format_long_name: 'QuickTime / MOV', start_time: start.toFixed(6),
       duration: presentationDuration.toFixed(6), size: String(source.size), bit_rate: presentationDuration > 0 ? String(Math.round(source.size * 8 / presentationDuration)) : '0', probe_score: 100, tags: metadata.tags },
     chapters: metadata.chapters,

@@ -6078,6 +6078,7 @@ struct PatchOpts {
     posix: bool,
     reject_format: Option<String>,
     was_context_diff: bool,
+    strip_cr: bool,
     backup_suffix: String,
     backup_prefix: Option<String>,
     backup_basename_prefix: Option<String>,
@@ -6169,7 +6170,13 @@ fn convert_context_diff_to_unified(text: &str) -> String {
         return text.to_string();
     }
     let mut out = String::new();
-    let lines: Vec<&str> = text.split_terminator('\n').collect();
+    let lines: Vec<&str> = text.split_terminator('\n').map(|line| {
+        if line.starts_with("*** ") || line.starts_with("--- ") {
+            line.strip_suffix('\r').unwrap_or(line)
+        } else {
+            line
+        }
+    }).collect();
     let mut i = 0usize;
     while i < lines.len() {
         if let Some(a_hdr) = lines[i].strip_prefix("*** ")
@@ -6282,6 +6289,7 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     };
     let mut backup_explicit = false;
     let mut fuzz_explicit = false;
+    let mut binary = false;
     let mut silent = false;
     let mut input_file: Option<String> = Some("-".to_string());
     let mut output_file: Option<String> = None;
@@ -6347,7 +6355,9 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             opts.forward_only = true;
         } else if a == "--force" {
             opts.force = true;
-        } else if a == "--batch" || a == "--binary" || a == "--set-time" || a == "--set-utc" || a == "--unified" || a == "--context" || a == "--normal" {
+        } else if a == "--binary" {
+            binary = true;
+        } else if a == "--batch" || a == "--set-time" || a == "--set-utc" || a == "--unified" || a == "--context" || a == "--normal" {
         } else if a == "--atomic" {
             opts.atomic = true;
         } else if a == "--merge" || a.starts_with("--merge=") {
@@ -6578,9 +6588,9 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         stdin.to_string()
     };
     // A CR in a hunk is file content unless the patch itself uses CRLF throughout.
-    let patch_text = if patch_text.ends_with("\r\n")
-        && patch_text.split_terminator('\n').all(|line| line.ends_with('\r'))
-    {
+    opts.strip_cr = !binary && patch_text.ends_with("\r\n")
+        && patch_text.split_terminator('\n').all(|line| line.ends_with('\r'));
+    let patch_text = if opts.strip_cr {
         patch_text.replace("\r\n", "\n")
     } else {
         patch_text
@@ -6727,6 +6737,7 @@ fn flush_patched_file(
 }
 
 fn parse_normal_diff_cmd(line: &str) -> Option<(char, usize, usize)> {
+    let line = line.strip_suffix('\r').unwrap_or(line);
     for op in ['a', 'c', 'd'] {
         if let Some((lhs, rhs)) = line.split_once(op)
             && !lhs.is_empty()
@@ -6831,6 +6842,11 @@ fn apply_unified_diff(
     let dry_run = opts.dry_run;
     let cwd = &opts.work_cwd;
     let action_verb = if dry_run { "checking" } else { "patching" };
+    let transport_notice = if opts.strip_cr {
+        "(Stripping trailing CRs from patch; use --binary to disable.)\n"
+    } else {
+        ""
+    };
     let mut staged_writes: Option<Vec<(String, Option<Vec<u8>>)>> = if opts.atomic {
         Some(Vec::new())
     } else {
@@ -6919,9 +6935,9 @@ fn apply_unified_diff(
                     stdout_patched,
                 )?;
                 let msg = if let Some(out_ov) = output_override {
-                    format!("{action_verb} file {out_ov} (read from {target})\n")
+                    format!("{transport_notice}{action_verb} file {out_ov} (read from {target})\n")
                 } else {
-                    format!("{action_verb} file {target}\n")
+                    format!("{transport_notice}{action_verb} file {target}\n")
                 };
                 return Ok((msg, false));
             }
@@ -7083,9 +7099,9 @@ fn apply_unified_diff(
                 stripped.clone()
             };
             if let Some(out_ov) = output_override {
-                status_out.push_str(&format!("{action_verb} file {out_ov} (read from {target})\n"));
+                status_out.push_str(&format!("{transport_notice}{action_verb} file {out_ov} (read from {target})\n"));
             } else {
-                status_out.push_str(&format!("{action_verb} file {target}\n"));
+                status_out.push_str(&format!("{transport_notice}{action_verb} file {target}\n"));
             }
             let full = resolve_posix_path(cwd, &target);
             if !created_from_dev_null && let Ok(bytes) = fs.read_file(&full) {

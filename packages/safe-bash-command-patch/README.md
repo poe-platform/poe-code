@@ -20,7 +20,7 @@ output uses awaited blocks of at most 16 KiB, preserving atomic-mode timing.
 Hunk matching uses stored line indexes; merge and conditional output replay ranges
 without copying complete line lists.
 Streaming patch input is staged before parsing; mail and CRLF envelopes replay
-indexed physical lines. Named inputs and existing targets require identity-checked retained reads.
+indexed physical lines. Use `--binary` to preserve carriage returns in patch body lines. Named inputs and existing targets require identity-checked retained reads.
 Normal/context conversion streams into caller storage before parsing.
 Context halves replay their stored physical ranges instead of collecting lines.
 Parsed body text and line descriptors also use caller storage; matching, reversal,

@@ -8,7 +8,7 @@ export class StoredPatchInput implements PatchInput {
   private cachedIndex = -1;
   private cachedLine = "";
   constructor(readonly document: IndexedDocument, readonly crlf = false,
-    readonly start = 0, readonly length = document.length - start) {}
+    readonly start = 0, readonly length = document.length - start, readonly binary = false) {}
 
   async read(index: number, prefix?: number): Promise<string | undefined> {
     if (index < 0 || index >= this.length) return undefined;
@@ -36,9 +36,9 @@ export class StoredPatchInput implements PatchInput {
     return true;
   }
 
-  async body(index: number, skip: number, incomplete: boolean): Promise<PatchText> {
+  async body(index: number, skip: number, incomplete: boolean, payload = false): Promise<PatchText> {
     const line = await this.document.line(this.start + index), document = this.document;
-    const end = line.end - (this.crlf ? 2 : 1), start = Math.min(line.start + skip, end);
+    const end = line.end - (this.crlf && !(this.binary && payload) ? 2 : 1), start = Math.min(line.start + skip, end);
     return { size: end - start + (incomplete ? 0 : 1), terminated: !incomplete, bytes: {
       async *[Symbol.asyncIterator]() {
         yield* document.range(start, end);
@@ -74,9 +74,9 @@ export class StoredPatchInput implements PatchInput {
   }
 }
 
-export async function unwrapStoredPatch(document: IndexedDocument, budget: Budget): Promise<PatchInput> {
+export async function unwrapStoredPatch(document: IndexedDocument, budget: Budget, binary = false): Promise<StoredPatchInput> {
   if (document.size && (await document.data.read(8 + document.size - 1, 1))[0] !== 10) throw new ToolError("patch is truncated: missing final LF");
-  let crlf = true;
+  let crlf = document.length > 0;
   for (let index = 0; index < document.length; index++) {
     const line = await document.line(index);
     budget.step(line.end - line.start);
@@ -111,5 +111,5 @@ export async function unwrapStoredPatch(document: IndexedDocument, budget: Budge
         || /^\d/u.test(line) && await input.normalCommand(index)) throw new ToolError("patch data after mail signature");
     }
   }
-  return new StoredPatchInput(document, crlf, start, end - start);
+  return new StoredPatchInput(document, crlf, start, end - start, binary);
 }

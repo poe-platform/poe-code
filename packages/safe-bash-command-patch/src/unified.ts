@@ -36,7 +36,7 @@ export interface PatchInput {
   readonly length: number;
   read(index: number, prefix?: number): Promise<string | undefined>;
   matches?(index: number, text: string): Promise<boolean>;
-  body?(index: number, skip: number, incomplete: boolean): Promise<PatchText>;
+  body?(index: number, skip: number, incomplete: boolean, payload?: boolean): Promise<PatchText>;
 }
 export interface UnifiedCursor { readonly lines: readonly string[]; index: number }
 export interface IndexedUnifiedCursor { readonly input: PatchInput; index: number }
@@ -141,7 +141,7 @@ export async function parseUnifiedReader<Lines, Hunks extends { readonly length:
         if (oldRead > oldCount || newRead > newCount) throw new ToolError("hunk line counts do not match header");
         const incomplete = physical.matches ? await physical.matches(index, "\\ No newline at end of file")
           : (await physical.read(index)) === "\\ No newline at end of file";
-        const text = physical.body ? await physical.body(bodyIndex, 1, incomplete) : `${body.slice(1)}${incomplete ? "" : "\n"}`;
+        const text = physical.body ? await physical.body(bodyIndex, 1, incomplete, true) : `${body.slice(1)}${incomplete ? "" : "\n"}`;
         const entry: ParsedPatchLine = { kind, text };
         changed ||= kind !== " ";
         if (incomplete) {

@@ -39,7 +39,7 @@ class Reader {
     if (line !== prefix && !(prefix === " " && line === "")
       && !line.startsWith(`${prefix} `) && !line.startsWith(`${prefix}\t`)) throw new ToolError("malformed patch body prefix");
     const incomplete = await this.matches("\\ No newline at end of file");
-    const text = this.input.body ? await this.input.body(position, 2, incomplete) : `${line.slice(2)}${incomplete ? "" : "\n"}`;
+    const text = this.input.body ? await this.input.body(position, 2, incomplete, true) : `${line.slice(2)}${incomplete ? "" : "\n"}`;
     if (incomplete) {
       await this.take();
       if (textSize(text) === 0) throw new ToolError("empty incomplete line is not a valid text line");

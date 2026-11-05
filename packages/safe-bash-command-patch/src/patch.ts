@@ -15,7 +15,7 @@ import { FsError,dirname,pathOf,pipeBytes,resolvePath,writeBytes,type CommandCon
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
 
-interface PatchFlags extends BackupOptions { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; quiet: boolean; force: boolean; backup: boolean; alwaysBackup?: boolean; forward?: boolean; output?: string; directory?: string; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string; posix?: boolean; verbose?: boolean; ifdef?: string; merge?: "merge" | "diff3"; setTime?: "local" | "utc"; rejectFormat?: "unified" | "context"; readOnly?: "ignore" | "warn" | "fail"; quotingStyle?: string }
+interface PatchFlags extends BackupOptions { binary?: boolean; strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; quiet: boolean; force: boolean; backup: boolean; alwaysBackup?: boolean; forward?: boolean; output?: string; directory?: string; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string; posix?: boolean; verbose?: boolean; ifdef?: string; merge?: "merge" | "diff3"; setTime?: "local" | "utc"; rejectFormat?: "unified" | "context"; readOnly?: "ignore" | "warn" | "fail"; quotingStyle?: string }
 
 function flags(args: readonly string[]): PatchFlags {
   const result: PatchFlags = { input: "-", reverse: false, dryRun: false, atomic: false, quiet: false, force: false, backup: true, fuzz: 2, ignoreWhitespace: false, removeEmpty: false };
@@ -45,7 +45,7 @@ function flags(args: readonly string[]): PatchFlags {
     else if (arg === "--quiet" || arg === "--silent") { result.quiet = true; result.verbose = false; }
     else if (arg === "--force") result.force = true;
     else if (arg === "--batch") continue;
-    else if (arg === "--binary") continue;
+    else if (arg === "--binary") result.binary = true;
     else if (arg === "--posix") result.posix = true;
     else if (arg === "--verbose") { result.verbose = true; result.quiet = false; }
     else if (arg === "--set-time") result.setTime ??= "local";
@@ -305,7 +305,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         : context.fs.readStream && inputCapabilities?.streamingRead !== false ? await documents.load(budget.streamSource(inputPath))
           : await documents.load(targetBytes(await budget.read(inputPath)));
     const progress: ParseProgress | undefined = options.atomic ? undefined : {};
-    const sections = await parsePatchWith(await unwrapStoredPatch(input, budget), budget, options.format, explicit, {
+    const physical = await unwrapStoredPatch(input, budget, options.binary);
+    const sections = await parsePatchWith(physical, budget, options.format, explicit, {
       unified: cursor => parseUnifiedReader(cursor, budget, true, () => bodies.begin(), () => bodies.beginHunks()),
       converted: async chunks => {
         const converted = await documents.load({ async *[Symbol.asyncIterator]() {
@@ -377,6 +378,9 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       await appendStatus(text); await flushStatus();
     };
     const applySection = async (authorizedPatch: AuthorizedPatch<PatchLines, FilePatch["hunks"]>) => {
+      if (physical.crlf && !options.binary && !options.quiet) {
+        await status("(Stripping trailing CRs from patch; use --binary to disable.)\n");
+      }
       const sourcePatch = authorizedPatch.patch;
       if (sourcePatch.unlocated) {
         if (options.atomic) throw new ToolError("no file to patch; provide a target or Index header", 1);

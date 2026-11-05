@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runMontageCli } from "./index.js";
+import { runMagickCli, runMontageCli, runMontageCliSync } from "./index.js";
 
 it.each(["buffered", "retained"] as const)("renders montage filename labels below the tiles via %s", async mode => {
   const bytes = await sharp({ create: { width: 80, height: 40, channels: 3, background: "red" } }).png().toBuffer();
@@ -45,7 +45,7 @@ it("expands filename labels once and preserves labels for each input", async () 
   expect(ink[1]).toBe(0);
 });
 
-it.each(["buffered", "retained"] as const)("sets labels on previously read images and consumes the font argument via %s", async mode => {
+it.each(["buffered", "retained"] as const)("sets labels on previously read images via %s", async mode => {
   const bytes = await sharp({ create: { width: 160, height: 40, channels: 3, background: "red" } }).png().toBuffer();
   const files = new Map([["first.png", bytes], ["second.png", bytes]]);
   const fs = new MemoryFileSystem();
@@ -53,11 +53,30 @@ it.each(["buffered", "retained"] as const)("sets labels on previously read image
   const input = mode === "buffered" ? files : { filesystem: fs, cwd: "/" };
   for (const args of [
     ["-label", "%f", "first.png", "second.png", "expected.png"],
-    ["first.png", "second.png", "-set", "label", "%f", "-font", "DejaVu-Sans", "actual.png"],
+    ["first.png", "second.png", "-set", "label", "%f", "actual.png"],
   ]) {
     const result = await runMontageCli([...args.slice(0, -1), "-tile", "2x1", "-geometry", "160x40+4+4", args.at(-1)!], input);
     expect(result).toMatchObject({ exitCode: 0, stderr: "" });
   }
   const read = async (name: string) => decodeImage(mode === "buffered" ? files.get(name)! : await fs.readFile("/" + name));
   expect(await read("actual.png")).toEqual(await read("expected.png"));
+});
+
+it.each(["buffered", "retained", "sync", "magick"] as const)("rejects unsupported label fonts without replacing output via %s", async mode => {
+  const bytes = await sharp({ create: { width: 20, height: 10, channels: 3, background: "red" } }).png().toBuffer();
+  const files = new Map([["input.png", bytes], ["out.png", bytes]]);
+  const filesystem = new MemoryFileSystem();
+  for (const [name, data] of files) await filesystem.writeFile("/" + name, data);
+  for (const font of ["/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Times New Roman.ttf", "DejaVu-Sans"]) {
+    const args = ["-label", "WIDE", "-pointsize", "18", "-tile", "1x1", "-geometry", "100x40+4+4", "-font", font, "input.png", "out.png"];
+    const result = mode === "sync" ? runMontageCliSync(args, files)
+      : mode === "magick" ? await runMagickCli(["montage", ...args], files)
+      : await runMontageCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("unsupported font");
+    expect(result.stderr).toContain(font);
+    expect(result.stdout).toBe("");
+    expect(result.stdoutBytes).toBeUndefined();
+    expect(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")).toEqual(bytes);
+  }
 });

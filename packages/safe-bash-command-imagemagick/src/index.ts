@@ -6484,7 +6484,7 @@ interface MontageArguments {
     concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean; thumbnail: string | undefined; title: string | undefined;
 }
-function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments, void> {
+function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     const state = createDefaultState();
     state.gravity = "center";
@@ -6581,7 +6581,10 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             title = undefined;
         }
         else if (t === "-font") {
-            i++;
+            const font = argv[++i];
+            return { exitCode: 1, stdout: "", stderr: font === undefined
+                ? "montage: missing argument for -font\n"
+                : `montage: unsupported font '${font}'; only bundled bitmap glyphs are available\n` };
         }
         else if (!t.startsWith("-")) {
             operands.push(t);
@@ -6601,7 +6604,9 @@ function montageTitleSvg(title: string, width: number, state: MagickState, padY:
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = yield* parseMontageArguments(argv);
+    const parsed = yield* parseMontageArguments(argv);
+    if ("exitCode" in parsed) return parsed;
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = parsed;
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -6843,7 +6848,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = await drainSteps(parseMontageArguments(argv), signal);
+    const parsed = await drainSteps(parseMontageArguments(argv), signal);
+    if ("exitCode" in parsed) return parsed;
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = parsed;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {

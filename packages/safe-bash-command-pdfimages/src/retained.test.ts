@@ -4,6 +4,23 @@ import { PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createPdfimagesCommand, runPdfimagesCli } from "./index.js";
 
+it("matches the exact Poppler -list row for a 3x2 RGB image", async () => {
+  const doc = PdfDocument.create();
+  const page = doc.addPage([216, 144]);
+  const pixels = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 0, 0, 255, 255, 255, 0, 255]);
+  page.drawImage(doc.embedRgbImage(3, 2, pixels), { x: 0, y: 0, width: 6, height: 4 });
+  const input = doc.save();
+  const result = await runPdfimagesCli(["-list", "in.pdf"], new Map([["in.pdf", input]]));
+  expect(result).toEqual({
+    exitCode: 0,
+    stderr: "",
+    stdout: "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio\n"
+      + "--------------------------------------------------------------------------------------------\n"
+      + "   1     0 image       3     2  rgb     3   8  image  no         6  0    36    36   19B 106%\n",
+  });
+  await compareCommand(input, ["-list"]);
+});
+
 it.each([false, true])("streams retained image extraction without whole-file I/O (stdin=%s)", async stdin => {
   const doc = PdfDocument.create(); const page = doc.addPage([32,32]);
   page.drawImage(doc.embedRgbImage(2,2,new Uint8Array([255,0,0,0,255,0,0,0,255,255,255,255])),{x:0,y:0,width:16,height:16});

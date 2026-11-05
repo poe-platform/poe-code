@@ -239,14 +239,17 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
   }
   async function table(p: number, attrs: RtfValue) {
     const heads = await ast.array(), feet = await ast.array(), bodies = await ast.array(); let width = 0, caption = await ast.array();
-    const rows = async (parent: number) => {
+    let inferHead = true;
+    for await (const child of children(p)) if (names[(await get(child, F.Count))[F.Tag]!] === "thead") inferHead = false;
+    const rows = async (parent: number, leadingHead = false) => {
       const result = await ast.array(), occupied = new IntegerTable(storage, 64); let columns = 0;
       for await (const child of children(parent)) {
         const row = await get(child, F.Count); if (names[row[F.Tag]!] !== "tr") continue;
-        const cells = await ast.array(); let column = 0;
+        const cells = await ast.array(); let column = 0, header = leadingHead;
         for await (const cell of children(child)) {
           const r = await get(cell, F.Count), tag = names[r[F.Tag]!]!; if (tag !== "td" && tag !== "th") continue;
           while ((await occupied.get(BigInt(column)) ?? 0n) > 0n) {column++; ctx.checkpoint();}
+          if (tag === "td") header = false;
           const raw = value(r[F.Attributes]!), rows = await number(await lookup(raw, "rowspan")), cols = await number(await lookup(raw, "colspan"), 1000);
           ctx.bound("tableCells", column + cols); ctx.charge("references", cols);
           for (let i = 0; i < cols; i++) await occupied.set(BigInt(column + i), BigInt(Math.max(rows, Number(await occupied.get(BigInt(column + i)) ?? 0n))));
@@ -254,11 +257,12 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
           column += cols; await ast.push(cells, await ast.value([await attributes(raw, tag, ["rowspan", "colspan"]), "AlignDefault", rows, cols, await childFlow(cell)]));
         }
         width = Math.max(width, column, columns); for (let column = 0; column < columns; column++) await occupied.set(BigInt(column), BigInt(Math.max(0, Number(await occupied.get(BigInt(column)) ?? 0n) - 1)));
-        await ast.push(result, await ast.value([await attributes(value(row[F.Attributes]!), "tr"), cells]));
+        await ast.push(header && await ast.count(cells) ? heads : result, await ast.value([await attributes(value(row[F.Attributes]!), "tr"), cells]));
+        leadingHead = false;
       }
       return result;
     };
-    for await (const child of children(p)) {const row = await get(child, F.Count), tag = names[row[F.Tag]!]!; if (tag === "caption") caption = await childFlow(child); else if (tag === "thead") await copy(heads, await rows(child)); else if (tag === "tfoot") await copy(feet, await rows(child)); else if (tag === "tbody") await ast.push(bodies, await ast.value([await attributes(value(row[F.Attributes]!), tag), 0, [], await rows(child)]));}
+    for await (const child of children(p)) {const row = await get(child, F.Count), tag = names[row[F.Tag]!]!; if (tag === "caption") caption = await childFlow(child); else if (tag === "thead") await copy(heads, await rows(child)); else if (tag === "tfoot") await copy(feet, await rows(child)); else if (tag === "tbody") {await ast.push(bodies, await ast.value([await attributes(value(row[F.Attributes]!), tag), 0, [], await rows(child, inferHead)])); inferHead = false;}}
     const specs = await ast.array(); for (let i = 0; i < width; i++) await ast.push(specs, await ast.value(["AlignDefault", await ast.tag("ColWidthDefault")]));
     return ast.tag("Table", await ast.value([attrs, [null, caption], specs, [empty, heads], bodies, [empty, feet]]));
   }

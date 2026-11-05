@@ -471,16 +471,19 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
       const bodies: TableBody[] = [];
       let width = 0;
       let caption: Block[] = [];
-      async function rows(nodes: readonly H.ChildNode[]): Promise<Row[]> {
+      let inferHead = !node.childNodes.some(child => element(child) && child.tagName === "thead");
+      async function rows(nodes: readonly H.ChildNode[], leadingHead = false): Promise<Row[]> {
         const result: Row[] = [];
         const occupied: number[] = [];
         for (const row of nodes)
           if (element(row) && row.tagName === "tr") {
             await ctx.cooperate();
             const cells: Row[1][number][] = [];
+            let header = leadingHead;
             let column = 0;
             for (const cell of row.childNodes)
               if (element(cell) && ["td", "th"].includes(cell.tagName)) {
+                if (cell.tagName === "td") header = false;
                 while ((occupied[column] ?? 0) > 0) {
                   column++;
                   ctx.checkpoint();
@@ -503,7 +506,8 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
             width = Math.max(width, column, occupied.length);
             for (let i = 0; i < occupied.length; i++)
               occupied[i] = Math.max(0, (occupied[i] ?? 0) - 1);
-            result.push([attr(row), cells]);
+            (header && cells.length ? heads : result).push([attr(row), cells]);
+            leadingHead = false;
           }
         return result;
       }
@@ -512,8 +516,10 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
           if (child.tagName === "caption") caption = await flow(child.childNodes);
           else if (child.tagName === "thead") heads.push(...(await rows(child.childNodes)));
           else if (child.tagName === "tfoot") feet.push(...(await rows(child.childNodes)));
-          else if (child.tagName === "tbody")
-            bodies.push([attr(child), 0, [], await rows(child.childNodes)]);
+          else if (child.tagName === "tbody") {
+            bodies.push([attr(child), 0, [], await rows(child.childNodes, inferHead)]);
+            inferHead = false;
+          }
         }
       const specs: ColSpec[] = Array.from({ length: width }, () => [
         "AlignDefault",

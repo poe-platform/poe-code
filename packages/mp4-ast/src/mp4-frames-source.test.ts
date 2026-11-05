@@ -40,6 +40,7 @@ for (const fragmented of [false, true]) test(`B-frame presentation order, fragme
   for (const frame of frames) {
     const packet = packets.find(packet => packet.pts === frame.pts)!;
     assert.equal(frame.pkt_size, packet.size);
+    assert.equal(frame.pkt_pos, packet.pos);
     assert.equal(frame.key_frame, packet.flags.startsWith('K') ? 1 : 0);
     assert.equal(frame.best_effort_timestamp, frame.pts);
   }

@@ -41,6 +41,7 @@ export async function* scanMp4Frames(source: MediaProbeSource, options: Mp4Packe
       ...(frameDts === undefined ? {} : { pkt_dts: frameDts, pkt_dts_time: (frameDts / scale).toFixed(6) }),
       best_effort_timestamp: sample.pts, best_effort_timestamp_time: ptsTime,
       duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), pkt_size: String(sample.size),
+      pkt_pos: String(sample.offset),
       width: track.width, height: track.height, pix_fmt: track.type === 'video' ? (track.codec?.pixFmt ?? 'yuv420p') : undefined,
       pict_type: undefined,
       sample_fmt: probeSampleFormat(track.type, track.codec?.codecName ?? (track.type === 'video' ? 'h264' : 'aac')),

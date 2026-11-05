@@ -51,6 +51,15 @@ async function compareCommand(input: Uint8Array, flags: string[]) {
   return { stdout, fs, files: expected };
 }
 
+it("lists inline images with Poppler's object field and embedded size", async () => {
+  const {cosStream,dictSet} = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), page = doc.addPage([16,16]);
+  const draw = "q 8 0 0 5 2 1 cm BI /W 2 /H 1 /BPC 8 /CS /RGB ID abcdef EI Q";
+  dictSet(page.pageDict,"Contents",doc.cos.allocateObject(cosStream(new TextEncoder().encode(draw))));
+  const {stdout} = await compareCommand(doc.save(),["-list"]);
+  expect(stdout.split("\n")[2]).toBe("   1     0 image       2     1  rgb     3   8  image  no   [inline]      18    14    0B 0.0%");
+});
+
 it("lists effective PPI with Poppler precision and ties to even", async () => {
   const doc = PdfDocument.create(), page = doc.addPage([3000,300]);
   const image = doc.embedRgbImage(2,3,new Uint8Array(18));

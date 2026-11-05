@@ -215,14 +215,14 @@ function formatPopplerPpi(ppi: number): string {
 
 type ImageListing = Omit<import("@poe-code/pdf-ast").PdfExtractedImage, "bitmap">;
 function formatImageRow(img: ImageListing, idx: number): string {
-        const objField = img.inline || !img.objectId
-            ? "  [inline]"
-            : `${String(img.objectId.objNum).padStart(6)} ${String(img.objectId.genNum).padStart(2)}`;
-        const sizeStr = formatPopplerSize(img.byteLength).padStart(5);
-        const ratioStr = formatPopplerRatio(img.byteLength, img.width, img.height, img.components, img.bitsPerComponent).padStart(4);
-        const interpStr = (img.interpolate ? "yes" : "no").padEnd(5);
-        const colorCol = (img.colorSpaceLabel ?? img.colorSpace).padEnd(4);
-        return `${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(7)} ${String(img.width).padStart(5)} ${String(img.height).padStart(5)}  ${colorCol} ${String(img.components).padStart(4)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)}  ${interpStr} ${objField} ${formatPopplerPpi(img.xPpi).padStart(5)} ${formatPopplerPpi(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`;
+        const objField = img.inline ? "[inline]  " : !img.objectId ? "[none]    "
+            : ` ${String(img.objectId.objNum).padStart(6)} ${String(img.objectId.genNum).padStart(2)}`;
+        const embeddedSize = img.inline ? 0 : img.byteLength;
+        const sizeStr = formatPopplerSize(embeddedSize).padStart(5);
+        const ratioStr = formatPopplerRatio(embeddedSize, img.width, img.height, img.components, img.bitsPerComponent).padStart(4);
+        const interpStr = (img.interpolate ? "yes" : "no").padEnd(3);
+        const colorCol = (img.colorSpaceLabel ?? img.colorSpace).padEnd(5);
+        return `${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(6)} ${String(img.width).padStart(6)} ${String(img.height).padStart(5)}  ${colorCol} ${String(img.components).padStart(3)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)}  ${interpStr}  ${objField} ${formatPopplerPpi(img.xPpi).padStart(5)} ${formatPopplerPpi(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`;
 }
 
 function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, options: {

@@ -1511,73 +1511,74 @@ function formatStrftime(fmt: string, d: Date): string {
 }
 
 // --- JSON Path Helper ---
-type JsonPathSegment = string | number | { fromEnd: number };
+type JsonPathSegment = string | number | { fromEnd: number } | { invalid: "array" | "path" };
 
 function parseJsonPathSegments(path: string): JsonPathSegment[] {
-  const p = path.trim();
-  if (!p.startsWith("$")) {
-    return [p];
+  if (!path.startsWith("$")) {
+    throw new Error(`bad JSON path: '${path}'`);
   }
   const segs: JsonPathSegment[] = [];
   let i = 1;
-  while (i < p.length) {
-    if (p[i] === ".") {
+  while (i < path.length) {
+    if (path[i] === ".") {
       i += 1;
-      if (p[i] === '"') {
-        const end = p.indexOf('"', i + 1);
+      if (path[i] === '"') {
+        const end = path.indexOf('"', i + 1);
         if (end === -1) {
-          throw new Error(`bad JSON path: '${path}'`);
+          segs.push({ invalid: "path" });
+          break;
         }
-        segs.push(p.slice(i + 1, end));
+        segs.push(path.slice(i + 1, end));
         i = end + 1;
         continue;
       }
       let j = i;
-      while (j < p.length && p[j] !== "." && p[j] !== "[") {
-        j += 1;
+      while (j < path.length && path[j] !== "." && path[j] !== "[") j += 1;
+      if (j === i) {
+        segs.push({ invalid: "path" });
+        break;
       }
-      if (j > i) {
-        segs.push(p.slice(i, j));
-      }
+      segs.push(path.slice(i, j));
       i = j;
-    } else if (p[i] === "[") {
-      let j = i + 1;
-      while (j < p.length && p[j] !== "]") {
-        j += 1;
+    } else if (path[i] === "[") {
+      const end = path.indexOf("]", i + 1);
+      const inside = path.slice(i + 1, end);
+      const digits = inside.startsWith("#-") ? inside.slice(2) : inside;
+      if (end === -1 || (inside !== "#" &&
+        (digits.length === 0 || ![...digits].every(char => char >= "0" && char <= "9")))) {
+        segs.push({ invalid: "array" });
+        break;
       }
-      const inside = p.slice(i + 1, j).trim();
-      if (inside === "#") {
-        segs.push("#");
-      } else if (inside.startsWith("#-") && inside.length > 2 &&
-        [...inside.slice(2)].every(char => char >= "0" && char <= "9")) {
-        segs.push({ fromEnd: Number(inside.slice(2)) });
-      } else {
-        const idx = Number(inside);
-        segs.push(Number.isNaN(idx) ? inside.replace(/^['"]|['"]$/g, "") : idx);
-      }
-      i = j + 1;
+      segs.push(inside === "#" ? { fromEnd: 0 } : inside.startsWith("#-")
+        ? { fromEnd: Number(digits) } : Number(digits));
+      i = end + 1;
     } else {
-      i += 1;
+      segs.push({ invalid: "path" });
+      break;
     }
   }
   return segs;
 }
 
-function resolveJsonPathSegment(cur: unknown, segment: JsonPathSegment): string | number | undefined {
-  if (typeof segment !== "object") {
-    return segment;
+function resolveJsonPathSegment(cur: unknown, segment: JsonPathSegment, path: string): string | number | undefined {
+  // SQLite only validates an array subscript after reaching an array.
+  if (typeof segment === "object" && "invalid" in segment) {
+    if (segment.invalid === "array" && !Array.isArray(cur)) return undefined;
+    throw new Error(`bad JSON path: '${path}'`);
   }
-  if (!Array.isArray(cur) || segment.fromEnd > cur.length) {
-    return undefined;
+  if (typeof segment === "string") {
+    return cur !== null && typeof cur === "object" && !Array.isArray(cur) ? segment : undefined;
   }
-  return cur.length - segment.fromEnd;
+  if (!Array.isArray(cur)) return undefined;
+  const index = typeof segment === "number" ? segment : cur.length - segment.fromEnd;
+  return index >= 0 && index <= cur.length ? index : undefined;
 }
 
 function extractByJsonPath(root: unknown, path: string): unknown {
   const segs = parseJsonPathSegments(path);
   let cur: any = root;
   for (const segment of segs) {
-    const s = resolveJsonPathSegment(cur, segment);
+    const s = resolveJsonPathSegment(cur, segment, path);
     if (s === undefined) {
       return undefined;
     }
@@ -1592,7 +1593,7 @@ function extractByJsonPath(root: unknown, path: string): unknown {
         return undefined;
       }
     } else {
-      cur = cur[String(s)];
+      cur = Object.prototype.hasOwnProperty.call(cur, s) ? cur[s] : undefined;
     }
   }
   return cur;
@@ -1606,38 +1607,27 @@ function setByJsonPath(
 ): any {
   const segs = parseJsonPathSegments(path);
   if (segs.length === 0) {
-    return val;
+    return mode === "insert" ? root : val;
   }
   const clone = structuredClone(root);
   let cur: any = clone;
   for (let i = 0; i < segs.length - 1; i += 1) {
-    if (cur === null || typeof cur !== "object") {
-      return root;
-    }
-    const s = resolveJsonPathSegment(cur, segs[i]!);
+    const s = resolveJsonPathSegment(cur, segs[i]!, path);
     if (s === undefined) {
       return root;
     }
-    if (cur[s] === undefined) {
-      if (mode === "replace") {
-        return root;
-      }
-      cur[s] = typeof segs[i + 1] !== "string" ? [] : {};
+    if (!Object.prototype.hasOwnProperty.call(cur, s)) {
+      if (mode === "replace") return root;
+      const next = segs[i + 1]!;
+      const array = typeof next === "number" ||
+        (typeof next === "object" && !("invalid" in next && next.invalid === "path"));
+      Object.defineProperty(cur, s, { value: array ? [] : {}, writable: true, enumerable: true, configurable: true });
     }
     cur = cur[s];
   }
-  if (cur === null || typeof cur !== "object") {
-    return root;
-  }
-  const last = resolveJsonPathSegment(cur, segs[segs.length - 1]!);
+  const last = resolveJsonPathSegment(cur, segs[segs.length - 1]!, path);
   if (last === undefined) {
     return root;
-  }
-  if (Array.isArray(cur) && last === "#") {
-    if (mode !== "replace") {
-      cur.push(val);
-    }
-    return clone;
   }
   const exists = Object.prototype.hasOwnProperty.call(cur, last);
   if (mode === "insert" && exists) {
@@ -1646,7 +1636,7 @@ function setByJsonPath(
   if (mode === "replace" && !exists) {
     return clone;
   }
-  cur[last] = val;
+  Object.defineProperty(cur, last, { value: val, writable: true, enumerable: true, configurable: true });
   return clone;
 }
 
@@ -1658,16 +1648,16 @@ function removeByJsonPath(root: any, path: string): any {
   const clone = structuredClone(root);
   let cur: any = clone;
   for (let i = 0; i < segs.length - 1; i += 1) {
-    const s = resolveJsonPathSegment(cur, segs[i]!);
+    const s = resolveJsonPathSegment(cur, segs[i]!, path);
     if (s === undefined) {
       return clone;
     }
-    cur = cur?.[s];
-    if (cur === undefined || cur === null) {
+    cur = Object.prototype.hasOwnProperty.call(cur, s) ? cur[s] : undefined;
+    if (cur === undefined) {
       return clone;
     }
   }
-  const last = resolveJsonPathSegment(cur, segs[segs.length - 1]!);
+  const last = resolveJsonPathSegment(cur, segs[segs.length - 1]!, path);
   if (last === undefined) {
     return clone;
   }

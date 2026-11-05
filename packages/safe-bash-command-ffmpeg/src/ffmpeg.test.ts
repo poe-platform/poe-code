@@ -892,6 +892,37 @@ describe("native ffmpeg parity", () => {
     });
   }
 
+  for (const replace of ["1", "0", undefined]) {
+    for (const alpha of [0, 127, 255]) {
+      it(`drawbox replace=${replace} on destination alpha ${alpha}`, async () => {
+        const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+        const input = encodeImage({
+          width: 4, height: 4, channels: 4,
+          data: new Uint8Array(Array.from({ length: 16 }, () => [0, 0, 255, alpha]).flat()),
+          format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const vfs = createTestVfs({ "/input.png": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/input.png", "-vf",
+          `drawbox=x=1:y=1:w=2:h=2:color=red@0.5:t=fill${replace === undefined ? "" : `:replace=${replace}`}`,
+          "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const image = decodeImage(vfs.store.get("/out.png")!);
+        for (let y = 0; y < 4; y++) {
+          for (let x = 0; x < 4; x++) {
+            const inside = x >= 1 && x <= 2 && y >= 1 && y <= 2;
+            const expected = inside
+              ? replace === "1" ? [255, 0, 0, 127] : [127, 0, 128, alpha]
+              : [0, 0, 255, alpha];
+            const offset = (y * 4 + x) * 4;
+            assert.deepEqual([...image.data.subarray(offset, offset + 4)], expected);
+          }
+        }
+      });
+    }
+  }
+
   it("preserves destination alpha when blending drawbox", async () => {
     const { decodeImage } = await import("@poe-code/image-ast/portable");
     const vfs = createTestVfs();

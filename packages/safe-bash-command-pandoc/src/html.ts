@@ -8,7 +8,7 @@ import {
   type DefaultTreeAdapterMap,
   type Token
 } from "parse5";
-import type { Attr, Block, Inline, Row, ColSpec, TableBody } from "./ast-types.js";
+import type { Attr, Block, Inline, Row, ColSpec, TableBody, MetaValue } from "./ast-types.js";
 import type { AdapterContext, ReaderCapability } from "./types.js";
 
 const listStyles: Readonly<Record<string, "Decimal" | "LowerAlpha" | "UpperAlpha" | "LowerRoman" | "UpperRoman">> = {
@@ -515,9 +515,21 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
         : undefined;
     const language = html && element(html) ? value(html, "lang") || value(html, "xml:lang") : "";
     const dir = html && element(html) ? value(html, "dir") : "";
+    const metadata: Record<string, MetaValue> = {};
+    const head = html && element(html) ? html.childNodes.find(n => element(n) && n.tagName === "head") : undefined;
+    if (head && element(head)) for (const node of head.childNodes) {
+      await ctx.cooperate();
+      if (!element(node)) continue;
+      const key = node.tagName === "title" ? "title" : node.tagName === "meta" && value(node, "name").toLowerCase() === "author" ? "author" : undefined;
+      if (!key) continue;
+      const content = await inlines(key === "title" ? node.childNodes : [{nodeName: "#text", value: value(node, "content"), parentNode: null}]);
+      while (content[0]?.t === "Space") content.shift();
+      while (content.at(-1)?.t === "Space") content.pop();
+      metadata[key] = {t: "MetaInlines", c: content};
+    }
     return {
       blocks: await flow(body && element(body) ? body.childNodes : []),
-      metadata: {},
+      metadata,
       resources: [],
       ...(language ? { language } : {}),
       ...(["ltr", "rtl", "auto"].includes(dir) ? { direction: dir as "ltr" | "rtl" | "auto" } : {})

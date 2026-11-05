@@ -9713,7 +9713,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             }
             "-tiffcompression" => {
                 let comp = args[i + 1].to_ascii_lowercase();
-                if !matches!(comp.as_str(), "none" | "packbits" | "deflate" | "lzw" | "jpeg") {
+                if !matches!(comp.as_str(), "none" | "packbits" | "deflate" | "lzw" | "jpeg" | "ccittrle" | "ccittfax3" | "ccittt4" | "ccittfax4" | "ccittt6") {
                     return err_out(
                         if quiet { "" } else { "Bad '-tiffcompression' value on command line\n" },
                         99,
@@ -16690,6 +16690,35 @@ mod media_unit_tests {
                     assert_eq!(&bytes[offset..offset + 9], &[phys[0].to_be_bytes().as_slice(), &phys[1].to_be_bytes(), &[1]].concat());
                 }
                 if ext == "jpg" && dims.0 == 35 { assert_eq!(&bytes[14..18], &[0,78,0,78]); }
+            }
+        }
+    }
+
+    #[test]
+    fn pdf_tiff_writes_ccitt_compressed_bilevel_pages() {
+        let stream = "0 g 0 0 3 17 re f 9 3 8 11 re f 25 3 7 4 re f";
+        let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 33 17] >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents], "");
+        let fs = MemoryVfs::new();
+        fs.write_file("/in.pdf",pdf.as_bytes()).unwrap();
+        for cmd in ["pdftoppm","pdftocairo"] {
+            for (name, tag) in [("ccittrle",2),("ccittfax3",3),("ccittt4",3),("ccittfax4",4),("ccittt6",4)] {
+                let args = media_args(&["-r","72","-tiff","-singlefile","-mono","-tiffcompression",name,"in.pdf","out"]);
+                let r = cmd_media_doc(cmd,&args,"","/",&fs);
+                assert_eq!((r.exit_code,r.stderr.as_str()),(0,""),"{cmd} {name}");
+                let bytes = fs.read_file("/out.tif").unwrap();
+                let ifd = u32::from_le_bytes(bytes[4..8].try_into().unwrap()) as usize;
+                let compression = bytes[ifd+2..].chunks_exact(12).find(|e| e[..2] == 259u16.to_le_bytes()).unwrap();
+                assert_eq!(u16::from_le_bytes(compression[8..10].try_into().unwrap()),tag);
+                let raster = tiff::Tiff::parse(&bytes,1<<20).unwrap().decode().unwrap();
+                for (i, pixel) in raster.pixels.iter().enumerate() {
+                    let (x,y) = (i%33,16-i/33);
+                    let v = if x<3 || (9..17).contains(&x) && (3..14).contains(&y)
+                        || (25..32).contains(&x) && (3..7).contains(&y) {0} else {255};
+                    assert_eq!(*pixel,[v,v,v,255],"{cmd} {name} {x},{y}");
+                }
             }
         }
     }

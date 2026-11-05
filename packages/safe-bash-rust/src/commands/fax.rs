@@ -160,33 +160,42 @@ pub(super) fn decode(
     Some(out)
 }
 
-fn line_2d(bits: &mut Bits<'_>, previous: &[u8], line: &mut [u8], width: usize) -> Option<()> {
+fn changes(line: &[u8], width: usize) -> impl Iterator<Item = usize> + '_ {
     let mut last = false;
-    let mut changes = (0..if previous.is_empty() { 0 } else { width })
-        .filter(|&x| {
-            let black = previous[x / 8] & (128 >> (x % 8)) != 0;
-            let changed = black != last;
-            last = black;
-            changed
-        })
-        .peekable();
+    (0..if line.is_empty() { 0 } else { width }).filter(move |&x| {
+        let black = line[x / 8] & (128 >> (x % 8)) != 0;
+        let changed = black != last;
+        last = black;
+        changed
+    })
+}
+
+fn reference(line: &[u8], width: usize) -> impl FnMut(usize, bool, bool) -> (usize, usize) + '_ {
+    let mut changes = changes(line, width).peekable();
     let mut b = changes.next().unwrap_or(width);
     let mut next = changes.next().unwrap_or(width);
     let mut b_black = true;
-    let mut x = 0usize;
-    let mut first = true;
-    let mut black = false;
-    while x < width {
+    move |x, first, black| {
         while b <= x && !first {
             b = next;
             next = changes.next().unwrap_or(width);
             b_black = !b_black;
         }
-        let (b1, b2) = if b_black != black {
+        if b_black != black {
             (b, next)
         } else {
             (next, *changes.peek().unwrap_or(&width))
-        };
+        }
+    }
+}
+
+fn line_2d(bits: &mut Bits<'_>, previous: &[u8], line: &mut [u8], width: usize) -> Option<()> {
+    let mut reference = reference(previous, width);
+    let mut x = 0usize;
+    let mut first = true;
+    let mut black = false;
+    while x < width {
+        let (b1, b2) = reference(x, first, black);
         let mut zeros = 0;
         while bits.bit()? == 0 {
             zeros += 1;
@@ -234,4 +243,83 @@ fn line_2d(bits: &mut Bits<'_>, previous: &[u8], line: &mut [u8], width: usize) 
         first = false;
     }
     Some(())
+}
+
+use crate::commands::codecs::MsbBitWriter;
+
+fn write_run(out: &mut MsbBitWriter, black: bool, mut length: usize) {
+    let codes = if black { &BLACK } else { &WHITE };
+    while length >= 64 {
+        let units = (length / 64).min(40);
+        let code = codes[63 + units];
+        out.write_bits(code.into(), code.ilog2() as u8);
+        length -= units * 64;
+    }
+    let code = codes[length];
+    out.write_bits(code.into(), code.ilog2() as u8);
+}
+
+pub(super) fn encode(rows: &[u8], width: usize, codec: u32, limit: usize) -> Option<Vec<u8>> {
+    let mut out = MsbBitWriter::new();
+    let mut prev = &[][..];
+    for row in rows.chunks_exact(width.div_ceil(8)) {
+        let mut transitions = changes(row, width);
+        let mut a1 = transitions.next().unwrap_or(width);
+        let mut black = false;
+        let mut x = 0;
+        if codec == 4 {
+            let mut reference = reference(prev, width);
+            let mut first = true;
+            while x < width {
+                let (b1, b2) = reference(x, first, black);
+                first = false;
+                if b2 < a1 {
+                    out.write_bits(1, 4); // Pass.
+                    x = b2;
+                } else if a1.abs_diff(b1) <= 3 {
+                    let delta = a1.abs_diff(b1);
+                    if delta == 0 {
+                        out.write_bits(1, 1);
+                    } else {
+                        out.write_bits(2 + u64::from(a1 > b1), [0, 3, 6, 7][delta]);
+                    }
+                    x = a1;
+                    a1 = transitions.next().unwrap_or(width);
+                    black = !black;
+                } else {
+                    let a2 = transitions.next().unwrap_or(width);
+                    out.write_bits(1, 3); // Horizontal: two runs.
+                    write_run(&mut out, black, a1 - x);
+                    write_run(&mut out, !black, a2 - a1);
+                    x = a2;
+                    a1 = transitions.next().unwrap_or(width);
+                }
+                if out.bytes.len() > limit {
+                    return None;
+                }
+            }
+        } else {
+            if codec == 3 {
+                out.write_bits(1, 12);
+            } // Group 3 EOL.
+            while x < width {
+                write_run(&mut out, black, a1 - x);
+                x = a1;
+                a1 = transitions.next().unwrap_or(width);
+                black = !black;
+                if out.bytes.len() > limit {
+                    return None;
+                }
+            }
+            if codec == 2 {
+                out.align();
+            }
+        }
+        prev = row;
+    }
+    if codec == 4 {
+        out.write_bits(0x001001, 24);
+    } // T.6 EOFB.
+    let bytes = out.finish();
+    (bytes.len() <= limit).then_some(bytes)
 }

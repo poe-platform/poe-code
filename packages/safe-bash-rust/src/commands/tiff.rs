@@ -34,7 +34,8 @@ pub(super) fn encode(
     let samples: u32 = if opt.transparent { 4 } else if opt.color == "rgb" { 3 } else { 1 };
     let mono = samples == 1 && opt.color == "mono";
     let bits = if mono { 1 } else { 8 };
-    let codec = match compression { "none" => 1, "lzw" => 5, "jpeg" => 7, "deflate" => 32946, "packbits" => 32773, _ => return None };
+    let codec = match compression { "none" => 1, "ccittrle" => 2, "ccittfax3" | "ccittt4" => 3, "ccittfax4" | "ccittt6" => 4, "lzw" => 5, "jpeg" => 7, "deflate" => 32946, "packbits" => 32773, _ => return None };
+    if matches!(codec, 2..=4) && !mono { return None; }
     let strip = if codec == 7 {
         if samples == 4 || mono { return None; }
         super::jpeg::encode(super::jpeg::Input::Page { width, height, pixels, quality: 75,
@@ -68,6 +69,7 @@ pub(super) fn encode(
             if raw.len() > opt.limit { return None; }
         }
         match codec {
+            2..=4 => fax::encode(&raw, width, codec, opt.limit)?,
             5 => crate::commands::codecs::tiff_lzw(&raw),
             32946 => crate::commands::codecs::zlib_compress(&raw),
             _ => raw,

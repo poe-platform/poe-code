@@ -558,14 +558,14 @@ fn gzip_member(data: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
 // BZIP2 (.bz2) COMPRESS & DECOMPRESS
 // ============================================================================
 
-struct MsbBitWriter {
-    bytes: Vec<u8>,
+pub(super) struct MsbBitWriter {
+    pub(super) bytes: Vec<u8>,
     bit_buf: u64,
     bit_cnt: u8,
 }
 
 impl MsbBitWriter {
-    fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             bytes: Vec::new(),
             bit_buf: 0,
@@ -573,7 +573,7 @@ impl MsbBitWriter {
         }
     }
 
-    fn write_bits(&mut self, val: u64, n: u8) {
+    pub(super) fn write_bits(&mut self, val: u64, n: u8) {
         if n == 0 {
             return;
         }
@@ -586,11 +586,15 @@ impl MsbBitWriter {
         }
     }
 
-    fn finish(mut self) -> Vec<u8> {
+    pub(super) fn align(&mut self) {
         if self.bit_cnt > 0 {
             let pad = 8 - self.bit_cnt;
-            self.bytes.push(((self.bit_buf << pad) & 0xff) as u8);
+            self.write_bits(0, pad);
         }
+    }
+
+    pub(super) fn finish(mut self) -> Vec<u8> {
+        self.align();
         self.bytes
     }
 }

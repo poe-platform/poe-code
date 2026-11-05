@@ -36,7 +36,7 @@ export function encodeText(text: string, charset: string, transliterate: boolean
     result = new TextEncoder().encode(text);
   }
   else if (["utf-16", "utf-16le", "utf-16be", "ucs-2", "ucs-2le", "ucs-2be"].includes(name)) {
-    const bom = name === "utf-16", big = name.endsWith("be");
+    const bom = name === "utf-16", big = bom || name.endsWith("be");
     const ucs2 = name.startsWith("ucs-2");
     const replacements = ucs2 && transliterate ?
       (converterLocale(context.environment) === "C" ? cTransliterations : utf8Transliterations) : undefined;
@@ -50,7 +50,7 @@ export function encodeText(text: string, charset: string, transliterate: boolean
     admit(length);
     result = new Uint8Array(length);
     const view = new DataView(result.buffer);
-    if (bom) view.setUint16(0, 0xfeff, true);
+    if (bom) view.setUint16(0, 0xfeff, !big);
     let offset = bom ? 2 : 0;
     for (const character of text) {
       context.signal.throwIfAborted();
@@ -61,7 +61,7 @@ export function encodeText(text: string, charset: string, transliterate: boolean
         view.setUint16(offset, replacement.charCodeAt(i), !big);
     }
   } else if (["utf-32", "utf-32le", "utf-32be", "ucs-4", "ucs-4le", "ucs-4be"].includes(name)) {
-    const bom = name === "utf-32", big = name.endsWith("be") || name === "ucs-4";
+    const bom = name === "utf-32", big = bom || name.endsWith("be") || name === "ucs-4";
     let length = bom ? 4 : 0;
     for (const character of text) {
       void character;
@@ -71,7 +71,7 @@ export function encodeText(text: string, charset: string, transliterate: boolean
     admit(length);
     result = new Uint8Array(length);
     const view = new DataView(result.buffer);
-    if (bom) view.setUint32(0, 0xfeff, true);
+    if (bom) view.setUint32(0, 0xfeff, !big);
     let offset = bom ? 4 : 0;
     for (const character of text) {
       context.signal.throwIfAborted();

@@ -1,4 +1,6 @@
 // Captured from the separate pinned 1.12.61 oracle, using original fixtures.
+// Generic UTF-16/UTF-32 expectations use the big-endian default; the original
+// Linux oracle emitted little-endian bytes for these platform-dependent names.
 // Output expectations are hexadecimal bytes, never decoded-string comparisons.
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
@@ -136,7 +138,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe2200e9002000df002000ac202000226f20003dd800de22002c0031002e0032000a00",
+    "outputHex": "feff002200e9002000df002020ac00206f220020d83dde000022002c0031002e0032000a",
     "status": 0,
     "stderr": ""
   },
@@ -147,7 +149,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe2200e9002000df002000ac202000226f20003dd800de22002c0031002e0032000a00",
+    "outputHex": "feff002200e9002000df002020ac00206f220020d83dde000022002c0031002e0032000a",
     "status": 0,
     "stderr": ""
   },
@@ -202,7 +204,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe000022000000e900000020000000df00000020000000ac20000020000000226f00002000000000f60100220000002c000000310000002e000000320000000a000000",
+    "outputHex": "0000feff00000022000000e900000020000000df00000020000020ac0000002000006f22000000200001f600000000220000002c000000310000002e000000320000000a",
     "status": 0,
     "stderr": ""
   },
@@ -213,7 +215,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe000022000000e900000020000000df00000020000000ac20000020000000226f00002000000000f60100220000002c000000310000002e000000320000000a000000",
+    "outputHex": "0000feff00000022000000e900000020000000df00000020000020ac0000002000006f22000000200001f600000000220000002c000000310000002e000000320000000a",
     "status": 0,
     "stderr": ""
   },
@@ -400,7 +402,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe2200e9002000df002000ac202000226f20003dd800de22002c0031002e0032000a00",
+    "outputHex": "feff002200e9002000df002020ac00206f220020d83dde000022002c0031002e0032000a",
     "status": 0,
     "stderr": ""
   },
@@ -411,7 +413,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe2200e9002000df002000ac202000226f20003dd800de22002c0031002e0032000a00",
+    "outputHex": "feff002200e9002000df002020ac00206f220020d83dde000022002c0031002e0032000a",
     "status": 0,
     "stderr": ""
   },
@@ -466,7 +468,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe000022000000e900000020000000df00000020000000ac20000020000000226f00002000000000f60100220000002c000000310000002e000000320000000a000000",
+    "outputHex": "0000feff00000022000000e900000020000000df00000020000020ac0000002000006f22000000200001f600000000220000002c000000310000002e000000320000000a",
     "status": 0,
     "stderr": ""
   },
@@ -477,7 +479,7 @@ const cases: readonly Case[] = [
     "env": {},
     "exportLocale": null,
     "inputHex": "22c3a920c39f20e282ac20e6bca220f09f9880222c312e320a",
-    "outputHex": "fffe000022000000e900000020000000df00000020000000ac20000020000000226f00002000000000f60100220000002c000000310000002e000000320000000a000000",
+    "outputHex": "0000feff00000022000000e900000020000000df00000020000020ac0000002000006f22000000200001f600000000220000002c000000310000002e000000320000000a",
     "status": 0,
     "stderr": ""
   },

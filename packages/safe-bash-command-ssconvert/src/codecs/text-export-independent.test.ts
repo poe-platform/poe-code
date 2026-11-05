@@ -25,10 +25,11 @@ it("uses the pinned C-locale replacement for non-BMP UCS-2 transliteration", () 
 });
 
 it.each([
-  ["UTF-16", [255, 254, 61, 216, 0, 222, 10, 0]],
+  ["UTF-16", [254, 255, 216, 61, 222, 0, 0, 10]],
   ["UTF-16LE", [61, 216, 0, 222, 10, 0]],
   ["UTF-16BE", [216, 61, 222, 0, 0, 10]],
-  ["UTF-32", [255, 254, 0, 0, 0, 246, 1, 0, 10, 0, 0, 0]],
+  ["UTF-32", [0, 0, 254, 255, 0, 1, 246, 0, 0, 0, 0, 10]],
+  ["UTF-32LE", [0, 246, 1, 0, 10, 0, 0, 0]],
   ["UTF-32BE", [0, 1, 246, 0, 0, 0, 0, 10]]
 ] as const)("preserves measured BOM and scalar bytes for %s", (charset, bytes) => {
   expect(encodeText("😀\n", charset, false, context)).toEqual(new Uint8Array(bytes));
@@ -116,7 +117,8 @@ it("observes cancellation identity and encoded byte expansion limits", () => {
       limits: { ...context.limits, outputBytes: 3 } })).toThrow("ssconvert output bytes limit exceeded");
 });
 
-it("shares CLI and SDK byte encoding with in-memory publication", async () => {
+it.each(["UCS-2", "UTF-16", "UTF-16LE", "UTF-16BE", "UTF-32", "UTF-32LE", "UTF-32BE"])(
+  "shares CLI and SDK %s byte encoding with in-memory publication", async charset => {
   const volume = Volume.fromJSON({ "/input": "fixture", "/output": "keep" });
   const book: Workbook = { sheets: [{ id: "a", name: "A", cells: [
     { row: 0, column: 0, value: { kind: "string", value: "😀" } }
@@ -133,7 +135,7 @@ it("shares CLI and SDK byte encoding with in-memory publication", async () => {
     stderr: { async write(bytes: Uint8Array) { errors.push(new Uint8Array(bytes)); } } };
   try {
     const result = await runCommand(["-T", "Gnumeric_stf:stf_assistant", "-O",
-      "charset=UCS-2 transliterate-mode=escape", "/input", "/output"], engine, operation);
+      `charset=${charset} transliterate-mode=escape`, "/input", "/output"], engine, operation);
     expect(result.exitCode).toBe(0);
     expect(errors).toEqual([]);
     const cliBytes = new Uint8Array(volume.readFileSync("/output") as Uint8Array);
@@ -142,9 +144,9 @@ it("shares CLI and SDK byte encoding with in-memory publication", async () => {
     const sdk = await engine.writeWorkbook(ownedBook, { kind: "stream", sink: {
       async write(bytes) { chunks.push(new Uint8Array(bytes)); }
     } }, { exportType: "Gnumeric_stf:stf_assistant",
-      exportOptions: ["charset=UCS-2 transliterate-mode=escape"] }, operation);
+      exportOptions: [`charset=${charset} transliterate-mode=escape`] }, operation);
     expect(sdk.exitCode).toBe(0);
-    expect(chunks).toEqual([cliBytes]);
-    expect(cliBytes).toEqual(encodeText("\\U0001f600\n", "UCS-2", false, context));
+    expect(Uint8Array.from(chunks.flatMap(chunk => Array.from(chunk)))).toEqual(cliBytes);
+    expect(cliBytes).toEqual(encodeText("😀\n", charset, false, context));
   } finally { await engine.dispose(); }
 });

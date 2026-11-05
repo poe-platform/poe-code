@@ -1149,6 +1149,31 @@ for (const limits of [undefined, { maxInputBytes: Infinity, maxOutputBytes: Infi
 }
 
 // Expected results checked against /usr/bin/sqlite3 3.43.2.
+for (const [expression, expected] of [
+  ["unhex('4142')", "X'4142'"],
+  ["unhex('41 42')", "NULL"],
+  ["unhex('41 42',' ')", "X'4142'"],
+  ["unhex('41-42','-')", "X'4142'"],
+  ["unhex('--41 :42--','- :')", "X'4142'"],
+  ["unhex('4-1','-')", "NULL"],
+  ["unhex('4142','14')", "X'4142'"],
+  ["unhex('41-42',' ')", "NULL"],
+  ["unhex('414')", "NULL"],
+  ["unhex('41gg')", "NULL"],
+  ["unhex('')", "X''"],
+  ["unhex('--','-')", "X''"],
+  ["unhex(NULL,'-')", "NULL"],
+  ["unhex('4142',NULL)", "NULL"],
+] as const) {
+  test(`sqlite3 UNHEX native semantics in both execution paths: ${expression}`, async () => {
+    const sql = `SELECT quote(${expression});`;
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]),
+      { code: 0, stdout: `${expected}\n`, stderr: "" });
+    assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), `${expected}\n`);
+  });
+}
+
+// Expected results checked against /usr/bin/sqlite3 3.43.2.
 for (const [mode, expected] of [
   ["-json", '[{"precise":1.234567890123456691,"small":1.000000000000000082e-05,"large":1.0e+20,"overflow":9223372036854775810.0,"integer":9223372036854775807,"tiny":-9.99999999999999946e-21,"huge":1.000000000000000019e+30,"zero":0.0}]\n'],
   ["-list", "1.23456789012346|1.0e-05|1.0e+20|9.22337203685478e+18|9223372036854775807|-1.0e-20|1.0e+30|0.0\n"]

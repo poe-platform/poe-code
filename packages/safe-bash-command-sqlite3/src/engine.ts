@@ -7835,11 +7835,20 @@ export class SqliteDatabase {
         return out;
       }
       case "UNHEX": {
-        if (a0 === null) {
+        if (a0 === null || args[1] === null) {
           return null;
         }
-        const h = toSqlString(a0).replace(/\s+/g, "");
-        if (h.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(h)) {
+        const ignored = args.length > 1 ? toSqlString(args[1]!) : "";
+        let h = "";
+        for (const character of toSqlString(a0)) {
+          yield;
+          if ("0123456789abcdefABCDEF".includes(character)) {
+            h += character;
+          } else if (h.length % 2 !== 0 || !ignored.includes(character)) {
+            return null;
+          }
+        }
+        if (h.length % 2 !== 0) {
           return null;
         }
         const out = new Uint8Array(h.length / 2);

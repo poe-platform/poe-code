@@ -317,6 +317,59 @@ describe("drawbox position expressions", () => {
   }
 });
 
+describe("drawbox dimension expressions", () => {
+  // Native FFmpeg on an opaque black 8x8 RGBA input produces these box sizes.
+  for (const [dimensions, size] of [
+    ["w=4:h=4", 4],
+    ["w=iw/2:h=ih/2", 4],
+    ["w=iw-2:h=ih-2", 6],
+    ["width=in_w/2:height=in_h/2", 4],
+    ["w=iw/3:h=ih/3", 2],
+    ["w=0:h=0", 8]
+  ] as const) {
+    it(`matches native pixels for ${dimensions}`, async () => {
+      const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+      const data = new Uint8Array(8 * 8 * 4);
+      for (let i = 3; i < data.length; i += 4) data[i] = 255;
+      const input = encodeImage({
+        width: 8, height: 8, channels: 4, data,
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/input.png": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.png", "-vf", `drawbox=x=1:y=1:${dimensions}:color=red:t=fill`,
+        "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/out.png")!);
+      for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+          const offset = (y * 8 + x) * 4;
+          assert.deepEqual([...output.data.slice(offset, offset + 4)],
+            x >= 1 && x < 1 + size && y >= 1 && y < 1 + size
+              ? [255, 0, 0, 255] : [0, 0, 0, 255], `pixel (${x},${y})`);
+        }
+      }
+    });
+  }
+
+  for (const dimension of ["w", "h", "width", "height"]) {
+    for (const expression of ["unknown", "1junk", "1/0", "(iw-2"]) {
+      it(`rejects ${dimension}=${expression} without overwriting output`, async () => {
+        const vfs = createTestVfs({ "/out.png": "original" });
+        const original = vfs.store.get("/out.png");
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "lavfi", "-i", "color=c=black:s=8x8:r=1:d=1",
+          "-vf", `drawbox=${dimension}=${expression}:t=fill`, "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("drawbox: invalid"), result.stderr);
+        assert.deepEqual(vfs.store.get("/out.png"), original);
+      });
+    }
+  }
+});
+
 describe("drawbox thickness", () => {
   for (const [options, thickness] of [
     ["x=2:y=2:w=12:h=12:color=red:t=1", 1],

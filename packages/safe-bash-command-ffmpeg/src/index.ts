@@ -1019,8 +1019,6 @@ async function applyVideoFilterChain(
         return out;
       }, signal);
     } else if (name === "drawbox") {
-      const bw = parseInt(named.w ?? named.width ?? positional[2] ?? "16", 10) || 16;
-      const bh = parseInt(named.h ?? named.height ?? positional[3] ?? "16", 10) || 16;
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
       const thicknessOption = named.t ?? named.thickness ?? positional[5] ?? "3";
       const thickness = thicknessOption === "fill" ? Infinity : parseInt(thicknessOption, 10);
@@ -1029,6 +1027,10 @@ async function applyVideoFilterChain(
   let work = 0;
 
         const variables = { iw: f.width, ih: f.height, in_w: f.width, in_h: f.height };
+        const width = Math.trunc(parseFilterExpression(named.w ?? named.width ?? positional[2] ?? "0", "drawbox", variables));
+        const height = Math.trunc(parseFilterExpression(named.h ?? named.height ?? positional[3] ?? "0", "drawbox", variables));
+        const bw = width <= 0 ? f.width : width;
+        const bh = height <= 0 ? f.height : height;
         const bx = Math.trunc(parseFilterExpression(named.x ?? positional[0] ?? "0", "drawbox", variables));
         const by = Math.trunc(parseFilterExpression(named.y ?? positional[1] ?? "0", "drawbox", variables));
         const nextData = new Uint8Array(f.data);

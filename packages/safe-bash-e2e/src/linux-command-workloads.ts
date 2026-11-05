@@ -175,6 +175,8 @@ const textCommands = ([
 
 export const pandocWordSample = "## Report\n\n**Bold** & *italic*, ~~old~~, `a < b`, [link](https://example.com/?a=1&b=2).\n";
 
+export const pandocWordTable = "| Name | Score | Note |\n| :---: | ---: | :---: |\n| **Ada** | 2 | [details](https://example.com) |\n| `Bob` | 3 | |";
+
 export function nativePandoc() {
   const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
   const pandocVersion = execFileSync(pandoc, ["--version"], { encoding: "utf8" }).split("\n")[0];
@@ -282,6 +284,10 @@ export function linuxCommands(text: string) {
       input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [
         {t: "BlockQuote", c: [{t: "Para", c: [{t: "Str", c: "quoted"}]}]}, {t: "BlockQuote", c: []}, {t: "HorizontalRule"},
       ]}),
+    },
+    {
+      cmd: pandoc, args: ["-f", "docx", "-t", "json"], script: "pandoc -f docx -t json",
+      input: execFileSync(pandoc, ["-f", "gfm", "-t", "docx"], {input: pandocWordTable}),
     },
     ...["plain", "html"].map(to => ({
       cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeDocx,

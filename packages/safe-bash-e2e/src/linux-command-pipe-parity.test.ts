@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, pandocWordSample, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, pandocWordSample, pandocWordTable, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("native Pandoc recovers headings, formatting, code and links from DOCX exports", async () => {
   const pandoc = nativePandoc();
@@ -26,7 +26,7 @@ test("native Pandoc recovers headings, formatting, code and links from DOCX expo
       assert.equal(result.exitCode, 0, result.stderr);
       assert.deepEqual(await decode(result.stdoutBytes), expected, shell.constructor.name);
     }
-    const structured = "3. one\n4. two\n   - nested\n5. three\n\n> Quote\n\n---\n\n```\nx\ny\n```\n\n| a | b |\n| --- | ---: |\n| 1 | 2 |";
+    const structured = "3. one\n4. two\n   - nested\n5. three\n\n> Quote\n\n---\n\n```\nx\ny\n```\n\n| a | b |\n| --- | ---: |\n| **one** | [link](https://example.org) |";
     const [code, native, stderr] = await runLinuxCommand(pandoc, options, structured);
     assert.equal(code, 0, stderr.toString());
     const exported = await rust.exec("pandoc " + options.join(" "), {stdin: structured});
@@ -63,17 +63,26 @@ test("both backends recover list structure, links, quotes, code and rules from n
 test("Word table imports preserve native Pandoc cells, headers and widths", async () => {
   const pandoc = nativePandoc();
   const [created, docx, error] = await runLinuxCommand(pandoc, ["-f", "gfm", "-t", "docx"],
-    "| Name | Score | Note |\n| :---: | ---: | :---: |\n| **Ada** | 2 | [details](https://example.com) |\n| `Bob` | 3 | |");
+    pandocWordTable);
   assert.equal(created, 0, error.toString());
   const options = ["-f", "docx", "-t", "json"];
   const [status, expected, stderr] = await runLinuxCommand(pandoc, options, docx);
   assert.equal(status, 0, stderr.toString());
   const ts = await SafeBashE2EHarness.create({backend: "typescript"});
+  const rust = new RustWasmBash({forceNative: true});
   try {
-    const actual = await ts.shell.exec("pandoc " + options.join(" "), {stdin: docx});
-    assert.equal(actual.exitCode, 0, actual.stderr);
-    assert.deepEqual(JSON.parse(actual.stdout), JSON.parse(expected.toString()));
-  } finally {await ts.dispose();}
+    for (const shell of [ts.shell, rust]) {
+      const actual = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.deepEqual(JSON.parse(actual.stdout), JSON.parse(expected.toString()), shell.constructor.name);
+    }
+    const htmlOptions = ["-f", "docx", "-t", "html", "--wrap=none"];
+    const [code, html, diagnostic] = await runLinuxCommand(pandoc, htmlOptions, docx);
+    assert.equal(code, 0, diagnostic.toString());
+    const rendered = await rust.exec("pandoc " + htmlOptions.join(" "), {stdin: docx});
+    assert.equal(rendered.exitCode, 0, rendered.stderr);
+    assert.equal(rendered.stdout, html.toString());
+  } finally {await ts.dispose(); await rust.dispose();}
 });
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {

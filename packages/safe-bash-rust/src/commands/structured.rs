@@ -27,6 +27,7 @@ use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Targ
 mod mdq_writer;
 mod pandoc_docx;
 mod pandoc_plain_table;
+mod pandoc_table;
 mod pandoc_list;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
@@ -30138,7 +30139,7 @@ enum PandocBlock {
     List(Option<pandoc_list::Numbering>, Vec<Vec<PandocBlock>>),
     BlockQuote(Vec<PandocBlock>),
     CodeBlock(PandocAttr, String),
-    Table(Vec<String>, Vec<Vec<String>>, Option<Vec<Option<std::fmt::Alignment>>>),
+    Table(pandoc_table::Table),
     HorizontalRule,
 }
 
@@ -30404,7 +30405,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
                 rows.push(row);
                 i += 1;
             }
-            blocks.push(PandocBlock::Table(headers, rows, Some(align)));
+            blocks.push(PandocBlock::Table(pandoc_table::Table::simple(headers, rows, Some(align))));
             continue;
         }
         if trimmed.starts_with("> ") || trimmed == ">" {
@@ -30733,7 +30734,7 @@ fn pandoc_blocks_to_json(blocks: &[PandocBlock]) -> JVal {
                 };
                 b_arr.push(JVal::Object(vec![("t".into(), JVal::Str(tag.into())), ("c".into(), content)]));
             }
-            PandocBlock::Table(..) => {}
+            PandocBlock::Table(table) => b_arr.push(table.json()),
         }
     }
     JVal::Array(b_arr)
@@ -31019,24 +31020,41 @@ fn render_pandoc_html(
                 body.push_str(&html_escape_pandoc(code, ascii));
                 body.push_str("</code></pre>\n");
             }
-            PandocBlock::Table(headers, rows, _) => {
-                body.push_str("<table>\n<colgroup>");
-                for _ in headers {
-                    body.push_str("<col>");
-                }
-                body.push_str("</colgroup>\n<thead>\n<tr>");
-                for h in headers {
-                    body.push_str(&format!("<th scope=\"col\">{}</th>", html_escape_pandoc(h, ascii)));
-                }
-                body.push_str("</tr>\n</thead>\n<tbody>\n");
-                for r in rows {
-                    body.push_str("<tr>");
-                    for c in r {
-                        body.push_str(&format!("<td>{}</td>", html_escape_pandoc(c, ascii)));
+            PandocBlock::Table(table) => {
+                let total: f64 = table.cols.iter().map(|c| c.1).sum();
+                body.push_str("<table");
+                if total > 0. && total < 1. {body.push_str(&format!(" style=\"width:{}%;\"", (total * 100.).round_ties_even()));}
+                body.push_str(">\n");
+                if total > 0. {
+                    body.push_str("<colgroup>\n");
+                    for (_,w) in &table.cols {
+                        if *w == 0. {body.push_str("<col />\n");}
+                        else {body.push_str(&format!("<col style=\"width: {}%\" />\n", (w*100.).round_ties_even()));}
                     }
-                    body.push_str("</tr>\n");
+                    body.push_str("</colgroup>\n");
                 }
-                body.push_str("</tbody>\n</table>\n");
+                for (group, rows, cell) in [("thead", &table.head, "th"), ("tbody", &table.body, "td")] {
+                    if rows.is_empty() {continue;}
+                    body.push_str(&format!("<{group}>\n"));
+                    for row in rows {
+                        body.push_str("<tr>\n");
+                        let mut col = 0usize;
+                        for c in row {
+                            let content = render_pandoc_html(&c.blocks, false,false,false,ascii,"","","","");
+                            body.push_str(&format!("<{cell}"));
+                            if let Some(a) = c.align.or_else(||table.cols.get(col).and_then(|c|c.0)) {
+                                let side = match a {std::fmt::Alignment::Right=>"right",std::fmt::Alignment::Center=>"center",std::fmt::Alignment::Left=>"left"};
+                                body.push_str(&format!(" style=\"text-align: {side};\""));
+                            }
+                            if c.span.1>1 {body.push_str(&format!(" colspan=\"{}\"",c.span.1));}
+                            body.push_str(&format!(">{}</{cell}>\n",content.trim_end_matches('\n')));
+                            col = col.saturating_add(c.span.1);
+                        }
+                        body.push_str("</tr>\n");
+                    }
+                    body.push_str(&format!("</{group}>\n"));
+                }
+                body.push_str("</table>\n");
             }
             PandocBlock::HorizontalRule => {
                 body.push_str("<hr />\n");
@@ -31110,16 +31128,17 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool, tasks: bo
                         Some(value)
                     }).unwrap());
             }
-            PandocBlock::Table(headers, rows, align) => {
-                let row = |cells: &[String]| format!("| {} |", cells.iter().map(|c| c.replace('|', "\\|")).collect::<Vec<_>>().join(" | "));
-                let mut t = vec![row(headers)];
-                let markers = (0..headers.len()).map(|i| match align.as_ref().and_then(|a| a.get(i)).copied().flatten() {
+            PandocBlock::Table(table) => {
+                let row = |cells: &[pandoc_table::Cell]| format!("| {} |", cells.iter().map(|c| render_pandoc_markdown(&c.blocks, bracket_links,tasks).trim_end_matches('\n').replace('|', "\\|")).collect::<Vec<_>>().join(" | "));
+                let mut t: Vec<_> = table.head.iter().map(|r|row(r)).collect();
+                let markers = table.cols.iter().map(|(a,_)| match a {
                     Some(std::fmt::Alignment::Right) => "---:",
                     Some(std::fmt::Alignment::Center) => ":---:",
+                    Some(std::fmt::Alignment::Left) => ":---",
                     _ => "---",
                 }).collect::<Vec<_>>();
                 t.push(format!("| {} |", markers.join(" | ")));
-                t.extend(rows.iter().map(|r| row(r)));
+                t.extend(table.body.iter().map(|r|row(r)));
                 parts.push(t.join("\n"));
             }
             PandocBlock::HorizontalRule => {
@@ -31181,8 +31200,8 @@ fn render_pandoc_plain(blocks: &[PandocBlock], mut limit: usize) -> Option<Strin
                 if matches!(inner.first(), Some(PandocBlock::Table(..))) { quoted.insert_str(0, "  \n"); }
                 quoted
             }
-            PandocBlock::Table(header, rows, align) => {
-                pandoc_plain_table::render(header, rows, align.as_deref(), limit)?
+            PandocBlock::Table(table) => {
+                pandoc_plain_table::render(table, limit)?
             }
         };
         if part.is_empty() { continue; }
@@ -31811,7 +31830,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             if recs.is_empty() {
                 Some(Vec::new())
             } else {
-                Some(vec![PandocBlock::Table(recs[0].clone(), recs[1..].to_vec(), None)])
+                Some(vec![PandocBlock::Table(pandoc_table::Table::simple(recs[0].clone(), recs[1..].to_vec(), None))])
             }
         }
         "xlsx" => {
@@ -31828,10 +31847,10 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     vec![PandocInline::Text(sh.name)],
                 ));
                 if !sh.rows.is_empty() {
-                    b.push(PandocBlock::Table(
+                    b.push(PandocBlock::Table(pandoc_table::Table::simple(
                         sh.rows[0].clone(),
                         sh.rows[1..].to_vec(), None,
-                    ));
+                    )));
                 }
             }
             Some(b)

@@ -362,104 +362,264 @@ pub(super) fn read(data: &[u8], mut remaining: usize) -> Result<Vec<PandocBlock>
             }
         }
     }
-    let mut lists: Vec<(usize, &str, PandocBlock)> = Vec::new();
-    let mut blocks = Vec::new();
-    for e in children(child(&document, "w:body").ok_or(INVALID)?) {
-        match e.tag.as_str() {
-            "w:p" => {
-                let props = child(e, "w:pPr");
-                let style = props
-                    .and_then(|p| value(p, "w:pStyle"))
-                    .and_then(|id| style_names.get(id))
-                    .map_or("", String::as_str);
-                let num = props.and_then(|p| child(p, "w:numPr"));
-                if let Some((id, depth)) = num.and_then(|n| {
-                    Some((
-                        value(n, "w:numId")?,
-                        value(n, "w:ilvl").unwrap_or("0").parse::<usize>().ok()?,
-                    ))
-                }) && id != "0"
-                {
-                    if depth > 8 {
-                        return Err(UNSUPPORTED);
-                    }
-                    while lists
-                        .last()
-                        .is_some_and(|(d, key, _)| *d > depth || *d == depth && *key != id)
-                    {
-                        finish_list(&mut lists, &mut blocks);
-                    }
-                    if lists.last().is_none_or(|(d, _, _)| *d < depth) {
-                        let lvl = instances
-                            .get(id)
-                            .and_then(|key| levels.get(&(*key, depth)))
-                            .ok_or(UNSUPPORTED)?;
-                        let fmt = value(lvl, "w:numFmt").ok_or(UNSUPPORTED)?;
-                        let number = if fmt == "bullet" {
-                            None
-                        } else {
-                            let style = match fmt {
-                                "decimal" => "Decimal",
-                                "lowerLetter" => "LowerAlpha",
-                                "upperLetter" => "UpperAlpha",
-                                "lowerRoman" => "LowerRoman",
-                                "upperRoman" => "UpperRoman",
-                                _ => return Err(UNSUPPORTED),
-                            };
-                            let pattern = value(lvl, "w:lvlText").unwrap_or(".");
-                            let delimiter = if pattern.starts_with('(') && pattern.ends_with(')') {
-                                "TwoParens"
-                            } else if pattern.ends_with(')') {
-                                "OneParen"
-                            } else {
-                                "Period"
-                            };
-                            Some(pandoc_list::Numbering {
-                                start: starts
-                                    .get(&(id, depth))
-                                    .copied()
-                                    .or_else(|| value(lvl, "w:start").and_then(|n| n.parse().ok()))
-                                    .unwrap_or(1),
-                                style: style.into(),
-                                delimiter: delimiter.into(),
-                            })
-                        };
-                        lists.push((depth, id, PandocBlock::List(number, Vec::new())));
-                    }
-                    let Some((_, _, PandocBlock::List(_, items))) = lists.last_mut() else {
-                        unreachable!()
-                    };
-                    let inlines = read_inlines(e, &links, &mut remaining, false)?;
-                    items.push(if style == "compact" {
-                        vec![PandocBlock::Plain(inlines)]
-                    } else {
-                        vec![PandocBlock::Para(inlines)]
+    let body = child(&document, "w:body").ok_or(INVALID)?;
+    let text_width = child(body, "w:sectPr")
+        .and_then(|pr| {
+            let width = attr(child(pr, "w:pgSz")?, "w:w")?.parse::<i32>().ok()? as f64;
+            let mar = child(pr, "w:pgMar")?;
+            ["w:left", "w:right", "w:gutter"]
+                .iter()
+                .try_fold(width, |w, k| {
+                    Some(w - attr(mar, k)?.parse::<i32>().ok()? as f64)
+                })
+        })
+        .unwrap_or(9360.);
+    BodyReader {
+        style_names: &style_names,
+        instances: &instances,
+        levels: &levels,
+        starts: &starts,
+        links: &links,
+        text_width,
+        remaining,
+    }
+    .blocks(body, 0)
+}
+
+struct BodyReader<'a> {
+    style_names: &'a HashMap<String, String>,
+    instances: &'a HashMap<&'a str, &'a str>,
+    levels: &'a HashMap<(&'a str, usize), &'a XmlElement>,
+    starts: &'a HashMap<(&'a str, usize), i64>,
+    links: &'a HashMap<String, String>,
+    text_width: f64,
+    remaining: usize,
+}
+
+impl BodyReader<'_> {
+    fn table(&mut self, tbl: &XmlElement, depth: usize) -> Result<Option<PandocBlock>, Error> {
+        use super::pandoc_table::{Cell, Table};
+        let mut table = Table::default();
+        if let Some(grid) = child(tbl, "w:tblGrid") {
+            for col in children(grid).filter(|e| e.tag == "w:gridCol") {
+                table.cols.push((
+                    None,
+                    attr(col, "w:w")
+                        .and_then(|s| s.parse::<i32>().ok())
+                        .unwrap_or(0) as f64,
+                ));
+            }
+        }
+        let available = self.text_width - 10. * (table.cols.len() as f64 - 1.);
+        if available <= 0. {
+            return Err(UNSUPPORTED);
+        }
+        let mut total = 0.;
+        for (_, w) in &mut table.cols {
+            *w /= available;
+            total += *w;
+        }
+        if total > 1. {
+            for (_, w) in &mut table.cols {
+                *w /= total;
+            }
+        }
+        let first_header = child(tbl, "w:tblPr")
+            .and_then(|pr| child(pr, "w:tblLook"))
+            .is_some_and(|look| {
+                attr(look, "w:firstRow").map_or_else(
+                    || {
+                        attr(look, "w:val")
+                            .and_then(|v| u32::from_str_radix(v, 16).ok())
+                            .is_some_and(|v| v & 32 != 0)
+                    },
+                    |v| v == "1",
+                )
+            });
+        for (i, tr) in children(tbl).filter(|e| e.tag == "w:tr").enumerate() {
+            let mut row = Vec::new();
+            for tc in children(tr).filter(|e| e.tag == "w:tc") {
+                let props = child(tc, "w:tcPr");
+                if props.and_then(|p| child(p, "w:vMerge")).is_some() {
+                    return Err(UNSUPPORTED);
+                }
+                let span = props
+                    .and_then(|p| value(p, "w:gridSpan"))
+                    .map_or(Some(1), |v| v.parse::<usize>().ok())
+                    .filter(|n| *n > 0)
+                    .ok_or(INVALID)?;
+                let align = children(tc)
+                    .find(|p| p.tag != "w:tcPr")
+                    .filter(|p| p.tag == "w:p")
+                    .and_then(|p| child(p, "w:pPr"))
+                    .and_then(|p| value(p, "w:jc"))
+                    .and_then(|v| match v {
+                        "both" | "left" => Some(fmt::Alignment::Left),
+                        "right" => Some(fmt::Alignment::Right),
+                        "center" => Some(fmt::Alignment::Center),
+                        _ => None,
                     });
-                } else {
-                    while !lists.is_empty() {
-                        finish_list(&mut lists, &mut blocks);
-                    }
-                    if let Some(block) = paragraph(e, style, &links, &mut remaining)? {
-                        if style == "block text" {
-                            if let Some(PandocBlock::BlockQuote(inner)) = blocks.last_mut() {
-                                inner.push(block);
-                            } else {
-                                blocks.push(PandocBlock::BlockQuote(vec![block]));
-                            }
-                        } else {
-                            blocks.push(block);
-                        }
+                let mut blocks = self.blocks(tc, depth + 1)?;
+                if blocks.len() == 1
+                    && let PandocBlock::Para(nodes) = &mut blocks[0]
+                {
+                    blocks[0] = PandocBlock::Plain(std::mem::take(nodes));
+                }
+                row.push(Cell {
+                    align,
+                    span: (1, span),
+                    blocks,
+                });
+            }
+            if i == 0 {
+                if table.cols.is_empty() {
+                    // Without a grid, Pandoc derives one default width per first-row cell.
+                    table.cols.resize(row.len(), (None, 0.));
+                }
+                if let Some(first) = row.first() {
+                    for col in table.cols.iter_mut().take(first.span.1) {
+                        col.0 = first.align;
                     }
                 }
             }
-            "w:bookmarkStart" | "w:bookmarkEnd" | "w:sectPr" => {}
-            _ => return Err(UNSUPPORTED),
+            let header = i == 0 && first_header
+                || child(tr, "w:trPr")
+                    .and_then(|p| child(p, "w:tblHeader"))
+                    .is_some_and(|p| attr(p, "w:val") != Some("0"));
+            if header {
+                if table.head.is_empty() {
+                    table.head.append(&mut table.body);
+                }
+                table.head.push(row);
+            } else {
+                table.body.push(row);
+            }
         }
+        Ok((!table.head.is_empty() || !table.body.is_empty()).then_some(PandocBlock::Table(table)))
     }
-    while !lists.is_empty() {
-        finish_list(&mut lists, &mut blocks);
+
+    fn blocks(&mut self, parent: &XmlElement, depth: usize) -> Result<Vec<PandocBlock>, Error> {
+        if depth > 32 {
+            return Err(INPUT_LIMIT);
+        }
+        let mut lists: Vec<(usize, &str, PandocBlock)> = Vec::new();
+        let mut blocks = Vec::new();
+        for e in children(parent) {
+            match e.tag.as_str() {
+                "w:p" => {
+                    let props = child(e, "w:pPr");
+                    let style = props
+                        .and_then(|p| value(p, "w:pStyle"))
+                        .and_then(|id| self.style_names.get(id))
+                        .map_or("", String::as_str);
+                    let num = props.and_then(|p| child(p, "w:numPr"));
+                    if let Some((id, depth)) = num.and_then(|n| {
+                        Some((
+                            value(n, "w:numId")?,
+                            value(n, "w:ilvl").unwrap_or("0").parse::<usize>().ok()?,
+                        ))
+                    }) && id != "0"
+                    {
+                        if depth > 8 {
+                            return Err(UNSUPPORTED);
+                        }
+                        while lists
+                            .last()
+                            .is_some_and(|(d, key, _)| *d > depth || *d == depth && *key != id)
+                        {
+                            finish_list(&mut lists, &mut blocks);
+                        }
+                        if lists.last().is_none_or(|(d, _, _)| *d < depth) {
+                            let lvl = self
+                                .instances
+                                .get(id)
+                                .and_then(|key| self.levels.get(&(*key, depth)))
+                                .ok_or(UNSUPPORTED)?;
+                            let fmt = value(lvl, "w:numFmt").ok_or(UNSUPPORTED)?;
+                            let number = if fmt == "bullet" {
+                                None
+                            } else {
+                                let style = match fmt {
+                                    "decimal" => "Decimal",
+                                    "lowerLetter" => "LowerAlpha",
+                                    "upperLetter" => "UpperAlpha",
+                                    "lowerRoman" => "LowerRoman",
+                                    "upperRoman" => "UpperRoman",
+                                    _ => return Err(UNSUPPORTED),
+                                };
+                                let pattern = value(lvl, "w:lvlText").unwrap_or(".");
+                                let delimiter =
+                                    if pattern.starts_with('(') && pattern.ends_with(')') {
+                                        "TwoParens"
+                                    } else if pattern.ends_with(')') {
+                                        "OneParen"
+                                    } else {
+                                        "Period"
+                                    };
+                                Some(pandoc_list::Numbering {
+                                    start: self
+                                        .starts
+                                        .get(&(id, depth))
+                                        .copied()
+                                        .or_else(|| {
+                                            value(lvl, "w:start").and_then(|n| n.parse().ok())
+                                        })
+                                        .unwrap_or(1),
+                                    style: style.into(),
+                                    delimiter: delimiter.into(),
+                                })
+                            };
+                            lists.push((depth, id, PandocBlock::List(number, Vec::new())));
+                        }
+                        let Some((_, _, PandocBlock::List(_, items))) = lists.last_mut() else {
+                            unreachable!()
+                        };
+                        let inlines = read_inlines(e, self.links, &mut self.remaining, false)?;
+                        items.push(if style == "compact" {
+                            vec![PandocBlock::Plain(inlines)]
+                        } else {
+                            vec![PandocBlock::Para(inlines)]
+                        });
+                    } else {
+                        while !lists.is_empty() {
+                            finish_list(&mut lists, &mut blocks);
+                        }
+                        if let Some(block) = paragraph(e, style, self.links, &mut self.remaining)? {
+                            if style == "block text" {
+                                if let Some(PandocBlock::BlockQuote(inner)) = blocks.last_mut() {
+                                    inner.push(block);
+                                } else {
+                                    blocks.push(PandocBlock::BlockQuote(vec![block]));
+                                }
+                            } else if parent.tag == "w:tc"
+                                && style == "compact"
+                                && let PandocBlock::Para(nodes) = block
+                            {
+                                blocks.push(PandocBlock::Plain(nodes));
+                            } else {
+                                blocks.push(block);
+                            }
+                        }
+                    }
+                }
+                "w:tbl" => {
+                    while !lists.is_empty() {
+                        finish_list(&mut lists, &mut blocks);
+                    }
+                    if let Some(table) = self.table(e, depth)? {
+                        blocks.push(table);
+                    }
+                }
+                "w:tcPr" if parent.tag == "w:tc" => {}
+                "w:bookmarkStart" | "w:bookmarkEnd" | "w:sectPr" => {}
+                _ => return Err(UNSUPPORTED),
+            }
+        }
+        while !lists.is_empty() {
+            finish_list(&mut lists, &mut blocks);
+        }
+        Ok(blocks)
     }
-    Ok(blocks)
 }
 
 use std::fmt::{self, Write};
@@ -598,20 +758,24 @@ impl Writer {
                     let num = format!(r#"<w:numPr><w:ilvl w:val="{level}"/><w:numId w:val="{id}"/></w:numPr>"#);
                     for item in items {self.blocks(item, if matches!(item.first(),Some(PandocBlock::Plain(_))) {"Compact"} else {""}, depth+1, &num)?;}
                 }
-                PandocBlock::Table(header, rows, alignments) => {
-                    let cols = header.len().max(1);
-                    self.document.write_str("<w:tbl><w:tblPr><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblLook w:firstRow=\"1\"/></w:tblPr><w:tblGrid>")?;
-                    for _ in 0..cols {write!(self.document, r#"<w:gridCol w:w="{}"/>"#, 7920/cols)?;}
+                PandocBlock::Table(table) => {
+                    let cols = table.cols.len().max(1);
+                    write!(self.document, r#"<w:tbl><w:tblPr><w:tblW w:type="auto" w:w="0"/><w:tblLook w:firstRow="{}"/></w:tblPr><w:tblGrid>"#,usize::from(!table.head.is_empty()))?;
+                    for (_,w) in &table.cols {write!(self.document, r#"<w:gridCol w:w="{}"/>"#, if *w>0. {(w*(9360. - 10.*(cols-1) as f64)).round() as usize} else {7920/cols})?;}
                     self.document.write_str("</w:tblGrid>")?;
-                    for (i,row) in std::iter::once(header).chain(rows).enumerate() {
+                    for (i,row) in table.head.iter().chain(&table.body).enumerate() {
                         self.document.write_str("<w:tr>")?;
-                        if i==0 {self.document.write_str("<w:trPr><w:tblHeader w:val=\"on\"/></w:trPr>")?;}
-                        for (j,cell) in row.iter().enumerate() {
-                            self.document.write_str("<w:tc><w:p><w:pPr><w:pStyle w:val=\"Compact\"/>")?;
-                            if let Some(a) = alignments.as_ref().and_then(|a|a.get(j)).copied().flatten() {
-                                write!(self.document, "<w:jc w:val=\"{}\"/>", match a {fmt::Alignment::Center=>"center",fmt::Alignment::Right=>"right",_=>"left"})?;
-                            }
-                            write!(self.document, r#"</w:pPr><w:r><w:t xml:space="preserve">{}</w:t></w:r></w:p></w:tc>"#, super::xml_escape_text(cell))?;
+                        if i<table.head.len() {self.document.write_str(r#"<w:trPr><w:tblHeader w:val="on"/></w:trPr>"#)?;}
+                        let mut col = 0usize;
+                        for cell in row {
+                            self.document.write_str("<w:tc>")?;
+                            if cell.span.1>1 {write!(self.document,r#"<w:tcPr><w:gridSpan w:val="{}"/></w:tcPr>"#,cell.span.1)?;}
+                            let jc = match cell.align.or_else(||table.cols.get(col).and_then(|c|c.0)) {
+                                Some(fmt::Alignment::Center)=>r#"<w:jc w:val="center"/>"#,Some(fmt::Alignment::Right)=>r#"<w:jc w:val="right"/>"#,Some(fmt::Alignment::Left)=>r#"<w:jc w:val="left"/>"#,None=>""};
+                            if cell.blocks.is_empty() {write!(self.document,"<w:p><w:pPr>{jc}</w:pPr></w:p>")?;}
+                            else {self.blocks(&cell.blocks,"Compact",depth,jc)?;}
+                            self.document.write_str("</w:tc>")?;
+                            col=col.saturating_add(cell.span.1);
                         }
                         self.document.write_str("</w:tr>")?;
                     }

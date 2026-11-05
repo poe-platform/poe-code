@@ -1,4 +1,4 @@
-use super::{inlines_plain_text, json_format::LimitedText, parse_pandoc_md_inlines};
+use super::{json_format::LimitedText, pandoc_table::Table, render_pandoc_plain};
 use crate::commands::coreutils::fold_char_width;
 use std::fmt::{Alignment, Write};
 
@@ -12,29 +12,22 @@ fn width(text: &str) -> usize {
     text.chars().map(|ch| fold_char_width(ch as u32)).sum()
 }
 
-pub(super) fn render(
-    header: &[String],
-    rows: &[Vec<String>],
-    pipe_alignment: Option<&[Option<Alignment>]>,
-    mut limit: usize,
-) -> Option<String> {
-    let mut widths = vec![2; header.len()];
+pub(super) fn render(table: &Table, mut limit: usize) -> Option<String> {
+    let mut widths = vec![2; table.cols.len()];
     let mut heights = Vec::new();
     let mut multiline = false;
-    let cells: Vec<Vec<Vec<String>>> = std::iter::once(header)
-        .chain(rows.iter().map(Vec::as_slice))
+    let cells: Vec<Vec<Vec<String>>> = table
+        .head
+        .iter()
+        .chain(&table.body)
         .map(|row| {
             // A separator keeps even an empty multi-column row visible.
-            let mut height = usize::from(header.len() > 1);
+            let mut height = usize::from(table.cols.len() > 1);
             let cells = row
                 .iter()
                 .zip(&mut widths)
                 .map(|(cell, column)| {
-                    let text = if pipe_alignment.is_some() {
-                        inlines_plain_text(&parse_pandoc_md_inlines(cell))
-                    } else {
-                        cell.clone()
-                    };
+                    let text = render_pandoc_plain(&cell.blocks, limit)?;
                     let lines: Vec<_> = text
                         .lines()
                         .filter(|s| !s.is_empty())
@@ -44,15 +37,15 @@ pub(super) fn render(
                         *column = (*column).max(width(line) + 2);
                     }
                     height = height.max(lines.len());
-                    lines
+                    Some(lines)
                 })
-                .collect();
+                .collect::<Option<_>>()?;
             multiline |= height > 1;
             heights.push(height);
-            cells
+            Some(cells)
         })
-        .collect();
-    let has_header = cells[0].iter().any(|cell| !cell.is_empty());
+        .collect::<Option<_>>()?;
+    let has_header = !table.head.is_empty() && cells[0].iter().any(|cell| !cell.is_empty());
     let mut text = String::new();
     let mut out = LimitedText {
         text: &mut text,
@@ -72,7 +65,7 @@ pub(super) fn render(
         rule(&mut out, has_header).ok()?;
     }
     for (r, row) in cells.iter().enumerate() {
-        if r == 0 && !has_header {
+        if r < table.head.len() && !has_header {
             continue;
         }
         if multiline && r > 1 {
@@ -95,7 +88,7 @@ pub(super) fn render(
                 let left = if value.is_empty() {
                     0
                 } else {
-                    match pipe_alignment.and_then(|a| a.get(i)).copied().flatten() {
+                    match table.cols[i].0 {
                         Some(Alignment::Right) => pad,
                         Some(Alignment::Center) => pad / 2,
                         _ => 0,
@@ -108,13 +101,13 @@ pub(super) fn render(
                 }
             }
         }
-        if r == 0 {
+        if r + 1 == table.head.len() {
             out.write_char('\n').ok()?;
             rule(&mut out, false).ok()?;
         }
     }
     if !has_header || multiline {
-        if multiline && rows.len() == 1 {
+        if multiline && table.body.len() == 1 {
             out.write_char('\n').ok()?;
         }
         out.write_char('\n').ok()?;

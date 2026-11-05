@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { buffer } from "node:stream/consumers";
-import { mkdir, mkdtemp, readFile, rm, utimes, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { MemoryFileSystem, Shell, archiveCommands } from "@poe-platform/safe-bash";
@@ -13,13 +13,14 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
   const out = fileURLToPath(new URL("../../../out/", import.meta.url));
   await mkdir(out, { recursive: true });
   const cwd = await mkdtemp(out + "infozip-");
-  const native = async (command: "zip" | "unzip" | "funzip", args: string[], stdin?: Uint8Array) => {
+  const native = async (command: "zip" | "unzip" | "funzip", args: string[], stdin?: Uint8Array | "src") => {
     // Node uses a socket pair for child stdin. Info-ZIP records its file type;
     // use a shell pipe so the reference member has the metadata of a Unix pipe.
     const path = "/usr/bin/" + command;
-    const proc = stdin ? spawn("/bin/sh", ["-c", 'cat | exec "$@"', "sh", path, ...args], {cwd, env})
+    const proc = stdin === "src" ? spawn("/bin/sh", ["-c", 'exec "$@" <src', "sh", path, ...args], {cwd, env})
+      : stdin ? spawn("/bin/sh", ["-c", 'cat | exec "$@"', "sh", path, ...args], {cwd, env})
       : spawn(path, args, {cwd, env, stdio:["ignore", "pipe", "pipe"]});
-    if (stdin) proc.stdin!.end(stdin);
+    if (stdin && stdin !== "src") proc.stdin!.end(stdin);
     const [[status], stdout, stderr] = await Promise.all([once(proc, "close"), buffer(proc.stdout!), buffer(proc.stderr!)]);
     return { status, stdout, stderr };
   };
@@ -31,9 +32,11 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
     assert.match((await native("unzip", ["-v"])).stdout.toString(), /UnZip 6\.00\b/);
     const payload = Uint8Array.of(0, 8, 255);
     await writeFile(cwd + "/src", payload);
+    await chmod(cwd + "/src", 0o640);
     await utimes(cwd + "/src", 1700000000, 1700000000);
     for (const view of [fs, rust.fs]) {
       await view.writeFile("/src", payload);
+      await view.chmod("/src", 0o640);
       await view.utimes("/src", 1700000000000, 1700000000000);
     }
     for (const args of [["-", "src"], ["-q0", "-", "src"], ["-b", "absent", "-", "src"], ["-T", "-TT", "false", "-", "src"], ["-", "absent"]]) {
@@ -61,6 +64,29 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
         const streamed = await native("funzip", ["check.zip"]);
         assert.equal(streamed.status, 0, shell.constructor.name + ": " + args.join(" ") + ": " + streamed.stderr);
         assert.deepEqual(streamed.stdout, Buffer.from(payload));
+      }
+    }
+    for (const flags of [["-q0"], ["-q0", "-fz-"]]) {
+      const args = [...flags, "-", "-"];
+      const reference = await native("zip", args, "src");
+      assert.equal(reference.status, 0, reference.stderr.toString());
+      for (const shell of [js, rust]) {
+        const result = await shell.exec("zip " + args.join(" ") + " <src");
+        assert.equal(result.exitCode, 0, result.stderr);
+        for (const bytes of [Buffer.from(result.stdoutBytes), reference.stdout]) {
+          const central = bytes.indexOf(Buffer.from("PK\x01\x02","binary"));
+          assert.equal(bytes.readUInt32LE(central + 38) >>> 16, 0o100640);
+          assert.equal(bytes.readUInt32LE(10), reference.stdout.readUInt32LE(10)); // DOS time and date
+          if (flags.length === 2) assert.equal(bytes.readUInt32LE(18), payload.length);
+          else {
+            let extra = 30 + bytes.readUInt16LE(26);
+            const end = extra + bytes.readUInt16LE(28);
+            while (extra < end && bytes.readUInt16LE(extra) !== 1) extra += 4 + bytes.readUInt16LE(extra+2);
+            assert.ok(extra < end);
+            assert.equal(bytes.readBigUInt64LE(extra+4), BigInt(payload.length));
+            assert.equal(bytes.readBigUInt64LE(extra+12), BigInt(payload.length));
+          }
+        }
       }
     }
     await writeFile(cwd + "/-", "literal dash");

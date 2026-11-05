@@ -821,7 +821,9 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       if (previous && previous.source !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
       if (previous || !await filterName(name, selection, parsed.includes.length)) return;
       const prior = await old.get(name);
-      const modified = new Date();
+      const input = context.stdinInput;
+      const stat = input?.stat?.type === "file" ? input.stat : undefined;
+      const modified = stat ? new Date(stat.mtimeMs) : new Date();
       if (parsed.entryComments && prior) await commentNames.set(name, true);
       if (!zipDateMatches(modified, parsed.fromDate, parsed.beforeDate)) return;
       if (parsed.filesync) {
@@ -834,10 +836,9 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
         await listed.set(name, { name, size: 0, source });
         return;
       }
-      const live = true;
-      const bytes = live ? scope.stdin : await collectBytes(scope.stdin, { ...(Number.isFinite(Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes)) ? { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes) } : {}), signal: context.signal });
-      await budget.member(bytes instanceof Uint8Array ? bytes.length : 0);
-      await encodeSelected(source, name, bytes, { modified, mode: 0o010660, directory: false, symlink: false });
+      const size = stat && Math.max(0, stat.size - input!.position);
+      await budget.member(size ?? 0);
+      await encodeSelected(source, name, scope.stdin, { modified, mode: stat?.mode ?? 0o010660, directory: false, symlink: false }, size);
       return;
     }
     const path = vfsPath(context.cwd, source);

@@ -6490,7 +6490,12 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
         let mut raw_entries = Vec::new();
         let visit = if t == "-" && !stored_name {
             if !tar_matches_exclude("-", &excludes) {
-                let entry=TarEntry {name:t.clone(),typeflag:b'0',mode:0o010600,mtime:crate::vfs::now_ms()/1000.,
+                let stat=match stdin.file.map(|f|f.source) {
+                    Some(super::InputSource::File(handle,_)) if !handle.is_stream()=>handle.stat().ok().filter(|st|st.mode & 0o170000==0o100000),
+                    _=>None,
+                };
+                let entry=TarEntry {name:t.clone(),typeflag:b'0',mode:stat.as_ref().map_or(0o010600,|st|st.mode),
+                    mtime:stat.map_or_else(crate::vfs::now_ms,|st|st.mtime_ms)/1000.,
                     atime:None,uid:0,gid:0,linkname:String::new(),content:Vec::new()};
                 raw_entries.push((None,t.clone(),None,entry));
             }
@@ -6630,6 +6635,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                     e.content = converted;
                 }
             }
+            if file.is_none() { e.typeflag=crate::commands::codecs::ZIP_STDIN_TYPE; }
             if split_size != 0 && let Some((path,stat))=file { sources.push((path,stat.identity)); }
             if let Some(ex) = entries.get_mut(*index) {
                 *ex = e;

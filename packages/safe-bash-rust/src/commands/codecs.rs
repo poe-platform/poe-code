@@ -3522,6 +3522,7 @@ fn dos_to_unix_secs(dos_date: u16, dos_time: u16) -> u64 {
 
 // ZIP has no member with this tar type. Keep archive metadata separate from every filename.
 pub const ZIP_COMMENT_TYPE: u8 = b'C';
+pub(super) const ZIP_STDIN_TYPE: u8 = b'I';
 
 /// The local header and compressed payload (without a trailing descriptor), and
 /// the central record. Both borrow the validated input archive during an edit.
@@ -3601,7 +3602,8 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         } else {
             &e.content
         };
-        let stdin_member = e.mode & 0o170000 == 0o010000;
+        let stdin_member = e.typeflag == ZIP_STDIN_TYPE;
+        let pipe_member = stdin_member && e.mode & 0o170000 == 0o010000;
         let wide = zip64.unwrap_or(stdin_member);
         wide_archive |= wide && !descriptors;
         let compress = compression!=0 && level != 0 && !is_dir && !is_symlink && (!payload.is_empty() || stdin_member && descriptors)
@@ -3658,8 +3660,8 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         out.extend_from_slice(extra);
         if wide {
             out.extend_from_slice(&[1,0,16,0]);
-            out.extend_from_slice(&(if descriptor && stdin_member {0} else {u64::from(sz)}).to_le_bytes());
-            out.extend_from_slice(&(if descriptor && (method!=0 || stdin_member) {0} else {stored.len() as u64}).to_le_bytes());
+            out.extend_from_slice(&(if descriptor && pipe_member {0} else {u64::from(sz)}).to_le_bytes());
+            out.extend_from_slice(&(if descriptor && (method!=0 || pipe_member) {0} else {stored.len() as u64}).to_le_bytes());
         }
         out.extend_from_slice(stored);
 
@@ -3679,7 +3681,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             0o040000u32
         } else if is_symlink {
             0o120000u32
-        } else if stdin_member { 0o010000 } else {
+        } else if pipe_member { 0o010000 } else {
             0o100000u32
         };
         let unix_mode = unix_type | (e.mode & 0o7777);

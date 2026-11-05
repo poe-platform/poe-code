@@ -493,7 +493,26 @@ export async function parseCommonMarkInlines(
       if (first) first.previous = null;
       opener.node.next = null;
       tail = opener.node;
-      const value: Inline = { t: opener.image ? "Image" : "Link", c: [attr(), [], [normalizeUri(decodeSyntax(target.url, context), context), decodeSyntax(target.title, context)]] };
+      let attributes = attr();
+      if (extensions.link_attributes && text[target.end] === "{") {
+        let end = target.end + 1, quote: string | undefined;
+        while (end < text.length) {
+          context.checkpoint();
+          const unit = text[end];
+          if (quote) {
+            if (unit === "\\") {end += 2; continue;}
+            if (unit === quote) quote = undefined;
+          } else if (unit === "}") break;
+          else if ((unit === '"' || unit === "'") && text[end - 1] === "=") quote = unit;
+          end++;
+        }
+        if (text[end] === "}") {
+          context.charge("retainedBytes", (end + 1 - target.end) * 2);
+          const parsed = fencedDivAttributes(text.slice(target.end, end + 1), context);
+          if (parsed) {attributes = parsed; target.end = end + 1;}
+        }
+      }
+      const value: Inline = { t: opener.image ? "Image" : "Link", c: [attributes, [], [normalizeUri(decodeSyntax(target.url, context), context), decodeSyntax(target.title, context)]] };
       if (reference) context.linkReference?.(value.c[2], reference.label, reference.style);
       if (opener.image && context.resourceTarget) {
         let offset = 0;

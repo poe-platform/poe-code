@@ -309,6 +309,26 @@ export async function parseRetainedCommonMarkInlines(
       const url = await ast.string(await ast.text.from(syntax.uri(syntax.decoded(target.url))));
       const title = await ast.string(await ast.text.from(syntax.decoded(target.title)));
       const value = await ast.tag(opener[2] ? "Image" : "Link", await ast.value([["", [], []], await ast.array(), [url, title]]));
+      if (extensions.link_attributes && await char(target.end) === "{") {
+        let end = target.end + 1, quote: string | undefined;
+        while (end < syntax.range.end) {
+          await context.cooperate();
+          const unit = await char(end);
+          if (quote) {
+            if (unit === "\\") {end += 2; continue;}
+            if (unit === quote) quote = undefined;
+          } else if (unit === "}") break;
+          else if ((unit === '"' || unit === "'") && await char(end - 1) === "=") quote = unit;
+          end++;
+        }
+        if (await char(end) === "}") {
+          context.bound("text", end + 1 - target.end); context.charge("retainedBytes", (end + 1 - target.end) * 2);
+          let text = "";
+          for await (const chunk of syntax.source.chunks({start: target.end, end: end + 1})) text += chunk;
+          const attributes = fencedDivAttributes(text, context);
+          if (attributes) {await ast.set((await ast.content(value))!, 0, await ast.value(attributes)); target.end = end + 1;}
+        }
+      }
       if (opener[2]) await imageTarget?.(url, opener[1]! - syntax.range.start);
       await append(value, false, first); await removeNode(opener[0]!); if (!opener[2]) await deactivateLinks(); i = target.end; continue;
     }

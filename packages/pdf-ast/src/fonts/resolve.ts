@@ -74,6 +74,8 @@ export interface ResolvedPageFont {
   readonly ascent: number;
   readonly descent: number;
   readonly fontMatrix?: Matrix6 | undefined;
+  readonly type3TextScale?: number;
+  readonly type3WidthScale?: number;
   readonly charProcs?: PdfCosDict | undefined;
   readonly fontResources?: PdfCosDict | undefined;
   readonly embeddedCff?: EmbeddedCffFont | StoredCffFont | undefined;
@@ -160,9 +162,11 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             else widths.set(first,width,last);
         }
         let defaultWidth = 556;
+        let type3TextScale = 1, type3WidthPriority = 0;
         // ToUnicode labels codes; only the font's encoding determines their width.
         const isTwoByteCid = subtype === "Type0";
         let fontMatrix: Matrix6 | undefined;
+        let textMatrixX = 0.001, textMatrixY = 0.001;
         let charProcs: PdfCosDict | undefined;
         let fontResources: PdfCosDict | undefined;
         if (subtype === "Type3") {
@@ -172,7 +176,25 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 fontMatrix = [0.001, 0, 0, 0.001, 0, 0];
                 for (let i = 0; i < 6; i++) {
                     const value = yield* resolve(yield* cursor.next());
-                    if (value?.kind === "number") fontMatrix[i] = value.value;
+                    if (value?.kind === "number") {
+                        fontMatrix[i] = value.value;
+                        if (i === 0 || i === 3) {
+                            // Poppler accumulates decimal digits. Preserve its rounding
+                            // for extraction thresholds without changing paint geometry.
+                            let number = 0, scale = 0, sign = 1;
+                            for (const char of value.raw) {
+                                if (char === "-") sign = -1;
+                                else if (char === ".") scale = 0.1;
+                                else if (char >= "0" && char <= "9") {
+                                    const digit = char.charCodeAt(0) - 48;
+                                    if (scale) { number += digit * scale; scale *= 0.1; }
+                                    else number = number * 10 + digit;
+                                }
+                            }
+                            if (i === 0) textMatrixX = number * sign;
+                            else textMatrixY = number * sign;
+                        }
+                    }
                 }
             }
             else {
@@ -233,6 +255,15 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                     const wItem = (yield* resolve(yield* cursor.next()));
                     if (wItem?.kind === "number") {
                         yield* setWidth(firstChar + k, wItem.value * type3Scale1000);
+                        if (subtype === "Type3" && wItem.value > 0) {
+                            const name = yield* glyphName(firstChar + k);
+                            const letter = name?.length === 1 && ((name >= "A" && name <= "Z") || (name >= "a" && name <= "z"));
+                            const priority = name === "m" ? 3 : letter ? 2 : name ? 1 : 0;
+                            if (priority > type3WidthPriority) {
+                                type3WidthPriority = priority;
+                                type3TextScale = (wItem.value * textMatrixX) / (priority === 3 ? 0.6 : 0.5);
+                            }
+                        }
                     }
                 }
             }
@@ -380,6 +411,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             ascent: ascent?.kind === "number" && ascent.value !== 0 ? Math.abs(ascent.value) / 1000 : metrics.ascender / 1000,
             descent: descent?.kind === "number" && descent.value !== 0 ? -Math.abs(descent.value) / 1000 : metrics.descender / 1000,
             fontMatrix,
+            ...(subtype === "Type3" ? { type3TextScale: type3TextScale * (textMatrixX ? Math.abs(textMatrixY / textMatrixX) : 1), type3WidthScale: type3Scale1000 ? textMatrixX * 1000 / type3Scale1000 : 1 } : {}),
             charProcs,
             fontResources,
             embeddedTrueType,

@@ -112,7 +112,7 @@ export class PdfRawTextIndex {
     const sorted=ordered?orderedTextGlyphs(source,backing,this.storage,orderOptions):undefined;
     const input=sorted?(this.options.mode === "logical"?logicalTextGlyphs(sorted,backing,this.storage,this.options.pageWidth??0,orderOptions):sorted):source;
     type Box = [number, number, number, number];
-    type Line = { baseline: number; firstWord: number; lastWord: number; count: number; bbox?: Box; fontSize: number; prefix: string; prefixStarted: boolean };
+    type Line = { type3Size: number | undefined; baseline: number; firstWord: number; lastWord: number; count: number; bbox?: Box; fontSize: number; prefix: string; prefixStarted: boolean };
     type Block = { kind: number; firstLine: number; count: number; bbox: Box };
     let line: Line | undefined, block: Block | undefined, previousLine: { bbox: Box; baseline: number; fontSize: number } | undefined;
     let word: { position: number; start: number; units: number; bbox: Box; fontSize: number; fontPosition:number; fontUnits:number } | undefined;
@@ -139,10 +139,10 @@ export class PdfRawTextIndex {
       await this.link(lastLine, position); lastLine = position; lineCount++;
       const prefix = line.prefix, kind = line.fontSize >= 15 ? 1 : prefix.startsWith("•") || ((prefix.startsWith("-") || prefix.startsWith("*")) && (prefix[1] === " " || prefix[1] === "\t")) ? 2 : 0;
       const gap = previousLine ? previousLine.baseline - line.baseline : 0;
-      const sameBlock = block?.kind === 0 && kind === 0 && previousLine && gap > 0 && gap <= previousLine.fontSize * 1.9 && Math.abs(line.bbox![0] - previousLine.bbox[0]) < previousLine.fontSize * 5;
+      const sameBlock = block?.kind === 0 && kind === 0 && previousLine && (line.type3Size!==undefined ? gap >= 0 : gap > 0) && gap <= previousLine.fontSize * 1.9 && Math.abs(line.bbox![0] - previousLine.bbox[0]) < previousLine.fontSize * 5;
       if (!sameBlock) { await flushBlock(); block = { kind, firstLine: position, count: 1, bbox: line.bbox! }; }
       else { block!.count++; block!.bbox = mergeBBox(block!.bbox, line.bbox!); }
-      previousLine = { bbox: line.bbox!, baseline: line.baseline, fontSize: line.fontSize }; line = undefined;
+      previousLine = { bbox: line.bbox!, baseline: line.baseline, fontSize: line.type3Size ?? line.fontSize }; line = undefined;
     };
     const accept = async (glyph: PdfRawTextGlyph) => {
       this.assertOpen();
@@ -157,10 +157,11 @@ export class PdfRawTextIndex {
         if (line && (ordered ? (glyph as PdfOrderedTextGlyph).lineStart : !sameTextLine(direction.diagonal ? lastGlyph! : lineReference!, glyph, true))) await flushLine();
         const geometry: PdfTextGeometry = { matrix: [...glyph.matrix], bbox: [...glyph.bbox], baselineY: glyph.baselineY, fontSize: glyph.fontSize, advanceWidth: glyph.advanceWidth };
         if (!line) { lineReference = geometry; lastGlyph = geometry; }
-        line ??= { baseline: glyph.baselineY, firstWord: 0, lastWord: 0, count: 0, fontSize: 12, prefix: "", prefixStarted: false };
+        line ??= { type3Size: ordered && (glyph as PdfOrderedTextGlyph).wordStart!==undefined ? glyph.type3FontSize : undefined, baseline: glyph.baselineY, firstWord: 0, lastWord: 0, count: 0, fontSize: 12, prefix: "", prefixStarted: false };
 
         if (possibleSpace && next?.done) { await flushWord(); return; }
-        if (previousGlyph && textWordBreak(previousGlyph, glyph, !ordered)) await flushWord();
+        const wordStart=ordered?(glyph as PdfOrderedTextGlyph).wordStart:undefined;
+        if (wordStart===true || (wordStart===undefined && previousGlyph && textWordBreak(previousGlyph, glyph, !ordered))) await flushWord();
         const observe = (text: string) => {
           if (line!.prefix.length >= 2) return; const part = line!.prefixStarted ? text : text.trimStart();
           if (part.length) { line!.prefixStarted = true; line!.prefix += part.slice(0, 2 - line!.prefix.length); }

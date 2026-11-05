@@ -256,6 +256,9 @@ export interface PdfPlacedGlyph {
   readonly advanceWidth: number;
   readonly matrix: readonly [number, number, number, number, number, number];
   readonly fontSize: number;
+  /** Type 3 size estimate used only for text extraction, never painting. */
+  readonly type3FontSize?: number;
+  readonly type3AdvanceWidth?: number;
   readonly fontName: string;
   readonly color: PdfRgbColor;
   readonly renderMode?: number | undefined;

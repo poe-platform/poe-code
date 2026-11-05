@@ -1,3 +1,4 @@
+import { type3WordOrder, type Type3Word, type Type3OrderReply } from "./type3-word-order.js";
 import { textDirection, sameTextLine, textWordBreak, PdfTextGlyphOrder, mergeBBox, PdfTextGlyphNormalizer } from "./text-glyphs.js";
 import type {
   PdfDisplayList,
@@ -38,6 +39,38 @@ export function extractPageFromDisplayList(
     };
   }
 
+  const lines: PdfTextLine[] = [];
+  const type3 = options.mode !== "raw" && glyphs.some(g => g.type3FontSize !== undefined) && glyphs.every(g => g.matrix[0] > 0 && g.matrix[1] === 0);
+  if (type3) {
+    const pool: Type3Word[] = [], words: PdfTextWord[] = [];
+    let current: PdfPlacedGlyph[] = [], baseline = 0;
+    const flushWord = () => {
+      if (!current.length) return;
+      let bbox = current[0]!.bbox;
+      for (const g of current) bbox = mergeBBox(bbox, g.bbox);
+      words.push({ text: current.map(g => g.unicode).join(""), bbox, fontSize: current[0]!.fontSize, fontName: current[0]!.fontName, glyphs: current });
+      current = [];
+    };
+    const flushLine = () => {
+      flushWord(); if (!words.length) return;
+      let bbox = words[0]!.bbox;
+      for (const w of words) bbox = mergeBBox(bbox, w.bbox);
+      lines.push({ text: words.map(w => w.text).join(" "), bbox, baselineY: baseline, words: words.splice(0) });
+    };
+    const program = type3WordOrder(0, options.fixedPitch); let reply: Type3OrderReply;
+    for (let step = program.next(); !step.done; step = program.next(reply)) {
+      const request = step.value; reply = undefined;
+      if (request.kind === "glyph") reply = { glyph: glyphs[request.position]!, next: request.position + 1 < glyphs.length ? request.position + 1 : -1 };
+      else if (request.kind === "read") reply = [...pool[request.index]!];
+      else if (request.kind === "write") pool[request.index] = [...request.word];
+      else {
+        if (request.lineStart) { flushLine(); baseline = glyphs[request.first]!.baselineY; }
+        else if (request.wordStart) flushWord();
+        for (let i = request.first; i !== request.end; i = i + 1 < glyphs.length ? i + 1 : -1) current.push(glyphs[i]!);
+      }
+    }
+    flushLine();
+  } else {
   const order = new PdfTextGlyphOrder();
   for (const glyph of glyphs) order.observe(glyph);
   const sortedGlyphs = options.mode === "raw" ? [...glyphs] : glyphs
@@ -62,7 +95,6 @@ export function extractPageFromDisplayList(
     }
   }
 
-  const lines: PdfTextLine[] = [];
   for (const group of lineGlyphGroups) {
     if (options.mode !== "raw") {
       group.sort((a, b) => textDirection(a).along - textDirection(b).along);
@@ -137,7 +169,9 @@ export function extractPageFromDisplayList(
     }
   }
 
-  if (options.mode === "logical" && lines.length > 2) {
+  }
+
+  if (!type3 && options.mode === "logical" && lines.length > 2) {
     const midX = displayList.width * 0.5;
     const leftCol = lines.filter(l => l.bbox[2] <= midX + 18);
     const rightCol = lines.filter(l => l.bbox[0] >= midX - 18 && !leftCol.includes(l));
@@ -184,9 +218,9 @@ function isBulletPrefixedLine(str: string): boolean {
     }
     const prevLine = prevBlock.lines[prevBlock.lines.length - 1]!;
     const vGap = prevLine.baselineY - line.baselineY;
-    const avgSize = prevLine.words[0]?.glyphs[0]?.fontSize ?? 12;
+    const avgSize = (type3 ? prevLine.words[0]?.glyphs[0]?.type3FontSize : undefined) ?? prevLine.words[0]?.glyphs[0]?.fontSize ?? 12;
     const sameColumn = Math.abs(line.bbox[0] - prevLine.bbox[0]) < avgSize * 5;
-    if (prevBlock.kind === "paragraph" && lineKind === "paragraph" && vGap > 0 && vGap <= avgSize * 1.9 && sameColumn) {
+    if (prevBlock.kind === "paragraph" && lineKind === "paragraph" && (type3 ? vGap >= 0 : vGap > 0) && vGap <= avgSize * 1.9 && sameColumn) {
       prevBlock.lines.push(line);
       blocks[blocks.length - 1] = {
         ...prevBlock,

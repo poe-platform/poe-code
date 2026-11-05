@@ -13,7 +13,7 @@ export type { RetainedInlineImageOptions } from "./retained-inline-images.js";
 import { pruneRetainedResources } from "./retained-resource-pruning.js";
 import { flattenRetainedRotations } from "./retained-flatten-rotation.js";
 import { editRetainedAttachments, type RetainedAttachmentInput } from "./retained-attachment-edits.js";
-export { PdfDuplicateAttachment, type RetainedAttachmentInput } from "./retained-attachment-edits.js";
+export { PdfDuplicateAttachment, PdfMissingAttachment, type RetainedAttachmentInput } from "./retained-attachment-edits.js";
 import { PdfMergeLabels, type RetainedPageLabel } from "./retained-merge-labels.js";
 export type { RetainedPageLabel } from "./retained-merge-labels.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";

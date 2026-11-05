@@ -1172,7 +1172,8 @@ remain resident.
 Pass `removeAttachments` as an iterable of keys and `attachments` as an iterable
 of `{ key, filename, length, chunks, description?, replace? }` inputs to edit
 embedded files. Payload chunks stream into caller storage; `length` must match
-the supplied bytes. Removal runs before addition, and `replace: true` replaces
+the supplied bytes. Removing an absent key throws `PdfMissingAttachment`.
+Removal runs before addition, and `replace: true` replaces
 the first matching key. Pass `attachmentCopies` to append embedded files before
 removal/addition while preserving existing child name trees and indirect arrays.
 `copyRetainedAttachments(sourceDocument, storage, { prefix?, signal? })` supplies

@@ -2283,15 +2283,17 @@ function* executeQpdfCli(
       dictSet(efTree, "Names", namesArr);
 
       if (removeAttachmentKeys.length > 0) {
-        const remSet = new Set(removeAttachmentKeys);
+        const remSet = new Set(removeAttachmentKeys), missing = new Set(removeAttachmentKeys);
         const kept: PdfCosNode[] = [];
         for (let k = 0; k + 1 < namesArr.items.length; k += 2) {
           const keyNode = workingDoc.cos.resolve(namesArr.items[k]);
           const keyStr = keyNode?.kind === "string" ? decodePdfString(keyNode) : "";
+          missing.delete(keyStr);
           if (!remSet.has(keyStr)) {
             kept.push(namesArr.items[k]!, namesArr.items[k + 1]!);
           }
         }
+        if (missing.size) return { exitCode: 2, stdout: "", stderr: `qpdf: attachment ${missing.values().next().value} not found\n` };
         dictSet(efTree, "Names", cosArray(kept));
         namesArr = asArray(dictGet(efTree, "Names"))!;
       }

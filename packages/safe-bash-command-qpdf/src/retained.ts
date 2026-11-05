@@ -9,7 +9,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { QpdfJsonDocument, encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { QpdfJsonDocument, encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfMissingAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -420,6 +420,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     if (error instanceof PdfError && error.message.startsWith("Unsupported streaming PDF filter: ")) {
       throw new PdfError(error.code, `Unsupported PDF filter: ${error.message.slice("Unsupported streaming PDF filter: ".length)}`);
     }
+    if (error instanceof PdfMissingAttachment) return await diagnostic(`qpdf: attachment ${error.key} not found\n`);
     if (error instanceof PdfDuplicateAttachment) return await diagnostic(`qpdf: duplicate attachment key ${error.key}\n`); if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
     const results = await Promise.allSettled([jsonDocument?.close(), jsonOutput?.close(), splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), ...rebuilt, source, output])].map(input => input?.close())]);

@@ -2931,6 +2931,21 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height">,geomStr:string
 
 function* applyMagickResizeSteps(img:RgbaImage,geomStr:string,kernel:ResizeKernel):Generator<void,RgbaImage,void>{const options=magickResizeOptions(img,geomStr,kernel);return options?yield*resizeImageSteps(img,options):img;}
 
+function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, left: number, top: number) {
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    return { ...page, x: page.x + left, y: page.y + top };
+}
+
+function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry) {
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    return {
+        width: geometry.width ?? page.width,
+        height: geometry.height ?? (geometry.width === undefined ? page.height : geometry.width),
+        x: geometry.hasOffset ? geometry.x + (geometry.forceExact ? page.x : 0) : page.x,
+        y: geometry.hasOffset ? geometry.y + (geometry.forceExact ? page.y : 0) : page.y
+    };
+}
+
 function* applyMagickCropSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition): Generator<void, RgbaImage, void> {
     return (yield* applyMagickCropToStackSteps(img, geomStr, gravity))[0]!;
 }
@@ -2954,12 +2969,13 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
                 const left = Math.min(img.width - 1, Math.round((c * img.width) / cols));
                 const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * img.width) / cols)));
                 const w = nextLeft - left;
-                tiles.push((yield* extractImageSteps(img, { left, top, width: w, height: h })));
+                tiles.push({ ...(yield* extractImageSteps(img, { left, top, width: w, height: h })), virtualCanvas: magickCropCanvas(img, left, top) });
             }
         }
         return tiles;
     }
-    const area=magickCropArea(img,geomStr,gravity);return area?[(yield*extractImageSteps(img,area))]:[img];
+    const area = magickCropArea(img, geomStr, gravity);
+    return area ? [{ ...(yield* extractImageSteps(img, area)), virtualCanvas: magickCropCanvas(img, area.left, area.top) }] : [img];
 }
 
 function magickCropArea(img:Pick<RgbaImage,"width"|"height">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined {
@@ -4728,7 +4744,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "+repage" || t === "-repage") {
-            if (t === "-repage") i++;
+            if (t === "-repage") {
+                const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
+                stack = yield* mapSteps(stack, function* (image) {
+                    yield;
+                    return { ...image, virtualCanvas: magickRepageCanvas(image, geometry) };
+                });
+            }
             else stack = yield* mapSteps(stack, function* (image) {
                 yield;
                 const { virtualCanvas: ignoredCanvas, ...reset } = image;
@@ -5607,7 +5629,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-repage") { i++; continue; }
+        if (!operandsOnly && token === "-repage") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
+            steps.push(async image => image ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry) } : undefined);
+            continue;
+        }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
             const path = tokens[++i] ?? "", quality = state.quality, adjoin = state.adjoin;
             stackStep(async (stack, backend) => {
@@ -5752,14 +5778,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             transform(() => kind === "blur" ? { kind, sigma } : { kind, sigma, m1: 1, m2: 2 });
         } else if (!operandsOnly && token === "-crop") {
             const geometry = tokens[++i] ?? "100%", parsed = parseMagickGeometry(geometry), gravity = state.gravity;
-            transform(image => {
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                let area;
                 if (parsed.isSubdivide) {
                     const columns = Math.max(1, Math.round(parsed.width ?? 1)), rows = Math.max(1, Math.round(parsed.height ?? 1));
                     const left = Math.min(image.width - 1, Math.round((columns - 1) * image.width / columns)), top = Math.min(image.height - 1, Math.round((rows - 1) * image.height / rows));
-                    return { kind: "extract", left, top, width: image.width - left, height: image.height - top };
-                }
-                const area = magickCropArea(image, geometry, gravity);
-                return area ? { kind: "extract", ...area } : undefined;
+                    area = { left, top, width: image.width - left, height: image.height - top };
+                } else area = magickCropArea(image, geometry, gravity);
+                return area ? {
+                    ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                    virtualCanvas: magickCropCanvas(image, area.left, area.top)
+                } : image;
             });
         } else if (!operandsOnly && token === "-shave") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), width = Math.max(0, Math.round(geometry.width ?? 0)), height = Math.max(0, Math.round(geometry.height ?? width));
@@ -6225,7 +6255,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image=await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal);}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await transformStoredImage(image,backend.storage,{kind:"resize",...resize},signal);}}
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await transformStoredImage(image,backend.storage,{kind:"resize",...resize},signal);}}
  return image;
  }
 }

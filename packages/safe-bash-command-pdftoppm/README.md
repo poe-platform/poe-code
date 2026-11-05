@@ -16,6 +16,8 @@ Zero-dependency Poppler `pdftoppm` page renderer for `@poe-platform/safe-bash` p
 | `-x` / `-y` / `-W` / `-H` / `-sz` / `-cropbox` | Pixel-level sub-region cropping and `/CropBox` bounding |
 | `-upw <pw>` / `-opw <pw>` | Decrypt password-protected PDFs (`R2`–`R6` AES/RC4) |
 
+`pdftoppm -mono` preserves midtones with a 4×4 ordered dither screen in both PBM and raster image output. It matches Poppler’s dispersed screen below 300 DPI; at higher resolutions it keeps the ordered screen instead of Poppler’s randomized clustered dots.
+
 ## Quick Start
 
 ```ts

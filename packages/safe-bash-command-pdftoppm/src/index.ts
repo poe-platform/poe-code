@@ -1,3 +1,4 @@
+import { monochromePixel } from "./monochrome.js";
 import { VALUE_FLAGS, parsePdftoppmArgsSteps, parsePdftocairoArgsSteps } from "./parse.js";
 import { executeRetainedCairoDocument } from "./retained-cairo-pdf.js";
 import { executeRetainedRaster } from "./retained.js";
@@ -155,7 +156,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 thinLineMode,
             }));
             options.onAllocateBytes?.(bitmap.width * bitmap.height * 4);
-            if (colorMode !== "rgb" && (format === "png" || format === "tif" || format === "jpg")) {
+            if (colorMode !== "rgb" && (format === "png" || format === "tif" || format === "jpg" || format === "pbm")) {
                 for (let px = 0; px < bitmap.data.length; px += 4) {
                     if (++cooperativeWork % 65536 === 0)
                         yield;
@@ -163,7 +164,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     const g = bitmap.data[px + 1]!;
                     const b = bitmap.data[px + 2]!;
                     const lum = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-                    const v = colorMode === "mono" ? (lum < 128 ? 0 : 255) : lum;
+                    const v = colorMode === "mono" ? (cairo ? (lum < 128 ? 0 : 255) : monochromePixel(lum, (px / 4) % bitmap.width, Math.floor(px / 4 / bitmap.width))) : lum;
                     bitmap.data[px] = v;
                     bitmap.data[px + 1] = v;
                     bitmap.data[px + 2] = v;

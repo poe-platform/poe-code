@@ -246,3 +246,31 @@ for (const cairo of [false, true]) for (const [dpi, width, height] of [
     await f.clean();
   });
 }
+
+for (const format of ["png", "pbm"] as const) for (const retained of [false, true]) {
+  test(`monochrome ${format} preserves Poppler midtones (retained=${retained})`, async () => {
+    const doc = PdfDocument.create(), page = doc.addPage([200, 100]);
+    page.drawRect({ x: 10, y: 10, width: 80, height: 60, fill: { r: 1, g: 0, b: 0 } });
+    page.drawRect({ x: 110, y: 10, width: 8, height: 8, fill: { r: 0, g: 0, b: 0 } });
+    const input = doc.save(), args = [...(format === "png" ? ["-png"] : []), "-mono", "-r", "72", "-singlefile", "in.pdf", "out"];
+    const f = await fixture(input, args), files = new Map([["in.pdf", input]]);
+    const result = retained ? await createPdftoppmCommand().execute(f.context) : await runPdftoppmCli(args, files);
+    assert.equal(result.exitCode, 0);
+    const bytes = retained ? await f.fs.readFile(`/out.${format}`) : files.get(`out.${format}`)!;
+    const rgba = format === "png" ? decodePng(bytes).data : undefined;
+    const header = new TextEncoder().encode("P4\n200 100\n");
+    if (!rgba) assert.deepEqual(bytes.subarray(0, header.length), header);
+    const pixel = (x: number, y: number) => rgba ? rgba[(y * 200 + x) * 4]! : (bytes[header.length + y * 25 + (x >> 3)]! & (128 >> (x & 7))) ? 0 : 255;
+    // Poppler 26.09.0, pdftoppm -mono -r 72: 3,300 black / 1,500 white.
+    const native = [[255, 0, 255, 0], [0, 0, 0, 0], [255, 0, 255, 0], [0, 0, 0, 255]];
+    let black = 0;
+    for (let y = 30; y < 90; y++) for (let x = 10; x < 90; x++) {
+      assert.equal(pixel(x, y), native[y & 3]![x & 3]);
+      if (pixel(x, y) === 0) black++;
+    }
+    assert.equal(black, 3300);
+    assert.equal(pixel(0, 0), 255);
+    for (let y = 82; y < 90; y++) for (let x = 110; x < 118; x++) assert.equal(pixel(x, y), 0);
+    if (retained) await f.clean();
+  });
+}

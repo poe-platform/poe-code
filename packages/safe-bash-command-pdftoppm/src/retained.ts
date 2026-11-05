@@ -1,3 +1,4 @@
+import { monochromePixel } from "./monochrome.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, PdfStagingStorage, renderRetainedPageToSvg, renderRetainedPagePixels, getDisplayListCropBox,
   encodeRetainedPng, encodeRetainedTiff, encodeJpegChunks, encodePortableBitmapChunks, type PdfOutputEntry } from "@poe-code/pdf-ast";
@@ -83,11 +84,13 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         pixelIterator = bitmap.pixels[Symbol.asyncIterator]();
         const ownedPixels = { [Symbol.asyncIterator]: () => pixelIterator! };
         async function* pixels() {
+          let pixel = 0;
           for await (const bytes of ownedPixels) {
-            if (plan.colorMode !== "rgb" && (plan.format === "png" || plan.format === "tif" || plan.format === "jpg")) {
+            if (plan.colorMode !== "rgb" && (plan.format === "png" || plan.format === "tif" || plan.format === "jpg" || plan.format === "pbm")) {
               for (let at = 0; at < bytes.length; at += 4) {
                 const luminance = Math.round(0.299 * bytes[at]! + 0.587 * bytes[at + 1]! + 0.114 * bytes[at + 2]!);
-                const value = plan.colorMode === "mono" ? (luminance < 128 ? 0 : 255) : luminance;
+                const value = plan.colorMode === "mono" ? (cairo ? (luminance < 128 ? 0 : 255) : monochromePixel(luminance, pixel % bitmap.width, Math.floor(pixel / bitmap.width))) : luminance;
+                pixel++;
                 bytes[at] = value; bytes[at + 1] = value; bytes[at + 2] = value;
               }
             }

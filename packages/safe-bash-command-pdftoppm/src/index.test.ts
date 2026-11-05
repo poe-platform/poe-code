@@ -594,9 +594,9 @@ describe("safe-bash-command-pdftoppm", () => {
     const monoRes = await runPdftoppmCli(["-mono", "-png", "-singlefile", "-r", "72", "color.pdf", "mono-out"], files);
     expect(monoRes.exitCode).toBe(0);
     const monoPng = decodePng(files.get("mono-out.png")!);
-    expect(monoPng.data[0]).toBe(0);
-    expect(monoPng.data[1]).toBe(0);
-    expect(monoPng.data[2]).toBe(0);
+    expect(monoPng.data[0]).toBe(255);
+    expect(monoPng.data[1]).toBe(255);
+    expect(monoPng.data[2]).toBe(255);
 
     doc.setTitle("Cairo Paper Test");
     files.set("color.pdf", doc.save());

@@ -457,11 +457,19 @@ export async function parseCommonMarkInlines(
           const attributes = fencedDivAttributes(text.slice(i + 1, end + 1), context);
           if (attributes) {
             await emphasis(opener.delimiter);
-            const first = opener.node.next;
+            let first = opener.node.next;
             if (first) first.previous = null;
             opener.node.next = null;
             tail = opener.node;
-            append({t: "Span", c: [attributes, []]}, first);
+            const classes = attributes[1].filter(name => name !== "smallcaps");
+            const smallcaps = attributes[1].length - classes.length;
+            const span = !smallcaps || attributes[0] !== "" || classes.length > 0 || attributes[2].length > 0;
+            for (let count = span ? smallcaps : smallcaps - 1; count > 0; count--) {
+              first = append({t: "SmallCaps", c: []}, first);
+              removeNode(first);
+              first.previous = null;
+            }
+            append(span ? {t: "Span", c: [[attributes[0], classes, attributes[2]], []]} : {t: "SmallCaps", c: []}, first);
             removeNode(opener.node);
             i = end + 1; continue;
           }
@@ -634,7 +642,7 @@ export async function parseCommonMarkInlines(
       let value = node.value;
       if (node.children) {
         const children = await materialize(node.children, depth + 1);
-        if (value.t === "Emph" || value.t === "Strong" || value.t === "Strikeout" || value.t === "Superscript" || value.t === "Subscript") value = { t: value.t, c: children };
+        if (value.t === "Emph" || value.t === "Strong" || value.t === "Strikeout" || value.t === "Superscript" || value.t === "Subscript" || value.t === "SmallCaps") value = { t: value.t, c: children };
         if (value.t === "Span") value = {t: "Span", c: [value.c[0], children]};
         if (value.t === "Quoted") value = {t: "Quoted", c: [value.c[0], children]};
         if (value.t === "Link" || value.t === "Image") value = { t: value.t, c: [value.c[0], children, value.c[2]] };

@@ -281,10 +281,20 @@ export async function parseRetainedCommonMarkInlines(
           const attributes = fencedDivAttributes(text, context);
           if (attributes) {
             await emphasis(opener[5]!);
-            const first = (await get(opener[0]!, 5))[4]!;
+            let first = (await get(opener[0]!, 5))[4]!;
             if (first) await put(first + 24, [0]);
             await put(opener[0]! + 32, [0]); tail = opener[0]!;
-            await append(await ast.tag("Span", await ast.value([attributes, await ast.array()])), false, first);
+            const classes = attributes[1].filter(name => name !== "smallcaps");
+            const smallcaps = attributes[1].length - classes.length;
+            const span = !smallcaps || attributes[0] !== "" || classes.length > 0 || attributes[2].length > 0;
+            for (let count = span ? smallcaps : smallcaps - 1; count > 0; count--) {
+              first = await append(await ast.tag("SmallCaps", await ast.array()), false, first);
+              await removeNode(first);
+              await put(first + 24, [0]);
+            }
+            await append(span
+              ? await ast.tag("Span", await ast.value([[attributes[0], classes, attributes[2]], await ast.array()]))
+              : await ast.tag("SmallCaps", await ast.array()), false, first);
             await removeNode(opener[0]!);
             i = end + 1; continue;
           }

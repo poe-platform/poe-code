@@ -27,6 +27,25 @@ for (const retained of [false, true]) {
       ]);
     }
   });
+  it(`projects smallcaps classes while preserving other attributes (retained=${retained})`, async () => {
+    const smallcaps = {t: "SmallCaps", c: [{t: "Emph", c: [{t: "Str", c: "Acronym"}]}]};
+    for (const from of ["markdown", "md"]) {
+      expect(JSON.parse(await render('[*Acronym*]{.smallcaps} in text.', from)).blocks[0].c).toEqual([
+        smallcaps, {t: "Space"}, {t: "Str", c: "in"}, {t: "Space"}, {t: "Str", c: "text."}
+      ]);
+      expect(JSON.parse(await render('[*Acronym*]{#tag .before .smallcaps .after title="label"}', from)).blocks[0].c).toEqual([
+        {t: "Span", c: [["tag", ["before", "after"], [["title", "label"]]], [smallcaps]]}
+      ]);
+      expect(JSON.parse(await render('[]{.smallcaps}', from)).blocks[0].c).toEqual([{t: "SmallCaps", c: []}]);
+      expect(JSON.parse(await render('[*Acronym*]{.smallcaps .smallcaps}', from)).blocks[0].c).toEqual([
+        {t: "SmallCaps", c: [smallcaps]}
+      ]);
+    }
+    expect(JSON.parse(await render('[Acronym]{.SmallCaps}')).blocks[0].c[0].t).toBe("Span");
+    expect(JSON.parse(await render('[Acronym]{.smallcaps}', "markdown-bracketed_spans")).blocks[0].c).toEqual([
+      {t: "Str", c: "[Acronym]{.smallcaps}"}
+    ]);
+  });
   it(`preserves nested inline content (retained=${retained})`, async () => {
     const content = JSON.parse(await render('[*outer* [inner]{.inner} [link](url)]{.outer}')).blocks[0].c;
     expect(content[0].t).toBe("Span");

@@ -183,9 +183,15 @@ export async function assembleRetainedCommonMark(
       const syntax = new RetainedCommonMarkSyntax(source, block.info, context), decoded = await source.append(syntax.decoded(block.info)), info = await source.trim(decoded);
       const space = await source.find(info, " "), name = {start: info.start, end: space < 0 ? info.end : space}, classes = await ast.array();
       if (name.end > name.start) await ast.push(classes, await literal(name));
+      let attributes;
+      if (extensions.fenced_code_attributes && info.end > info.start && await source.unit(info.start) === "{" && await source.unit(info.end - 1) === "}") {
+        context.bound("text", info.end - info.start); context.charge("retainedBytes", (info.end - info.start) * 2);
+        let text = ""; for await (const chunk of source.chunks(info)) text += chunk;
+        attributes = fencedDivAttributes(text, context);
+      }
       const range = await parser.joined(current, "");
       if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;
-      await ast.push(out, await ast.tag("CodeBlock", await ast.value([["", classes, []], await literal(range)])));
+      await ast.push(out, await ast.tag("CodeBlock", await ast.value([attributes ?? ["", classes, []], await literal(range)])));
     } else if (block.kind === "table") await ast.push(out, await table(current));
     else if (block.kind === "definitionList") {
       const children = await ast.array(); await ast.push(out, await ast.tag("DefinitionList", children));

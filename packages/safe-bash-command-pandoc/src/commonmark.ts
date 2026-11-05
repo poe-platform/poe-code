@@ -22,7 +22,7 @@ function toMetaValue(val: unknown): MetaValue | undefined {
 import type { ReaderCapability } from "./types.js";
 import { parseCommonMarkBlocks, type PendingBlock } from "./commonmark-blocks.js";
 import { parseCommonMarkInlines } from "./commonmark-inlines.js";
-import { decodeSyntax } from "./commonmark-syntax.js";
+import { decodeSyntax, fencedDivAttributes } from "./commonmark-syntax.js";
 import { upgradeBracketedCitationsInBlocks } from "./citeproc-filters.js";
 
 /** Resident YAML frontmatter semantics; the retained reader uses caller-backed
@@ -110,8 +110,11 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;
         case "html": result.push({ t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal] }); break;
         case "code": {
-          const info = decodeSyntax(block.info, context).trim().split(" ")[0];
-          result.push({ t: "CodeBlock", c: [["", info ? [info] : [], []], block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal] });
+          const decoded = decodeSyntax(block.info, context).trim();
+          const info = decoded.split(" ")[0];
+          const attributes = extensions.fenced_code_attributes && decoded.startsWith("{") && decoded.endsWith("}")
+            ? fencedDivAttributes(decoded, context) : undefined;
+          result.push({ t: "CodeBlock", c: [attributes ?? ["", info ? [info] : [], []], block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal] });
           break;
         }
         case "div": result.push({t: "Div", c: [block.attributes, await assemble(block.blocks, depth + 1)]}); break;

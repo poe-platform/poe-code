@@ -67,6 +67,7 @@ export function basicCommands(): CommandDefinition[] {
     }),
     define("pwd", async (context) => {
       const external = (context as { externalInvocation?: boolean }).externalInvocation === true;
+      const name = context.argv0 ?? "pwd";
       let mode: "physical" | "logical" = external && context.env.POSIXLY_CORRECT === undefined ? "physical" : "logical";
       let ignored = false;
       for (let index = 0; index < context.args.length; index++) {
@@ -77,18 +78,26 @@ export function basicCommands(): CommandDefinition[] {
           if (!external || context.env.POSIXLY_CORRECT !== undefined) break;
           continue;
         }
+        if (external && arg.startsWith("--")) {
+          const key = arg.slice(2).split("=", 1)[0]!;
+          const option = ["logical", "physical"].find(value => key && value.startsWith(key));
+          if (option && !arg.includes("=")) { mode = option === "physical" ? "physical" : "logical"; continue; }
+          const message = option ? `option '--${option}' doesn't allow an argument` : `unrecognized option '${arg}'`;
+          await writeDiagnostic(context.stderr, `${name}: ${message}\nTry '${name} --help' for more information.\n`, context.signal);
+          return { exitCode: 1 };
+        }
         if (arg === "--logical") { mode = "logical"; continue; }
         if (arg === "--physical") { mode = "physical"; continue; }
         for (const flag of arg.slice(1)) {
           if (flag !== "L" && flag !== "P") {
             if (!external) throw new UsageError(`invalid option '${flag}'`);
-            await writeDiagnostic(context.stderr, `pwd: invalid option '${flag}'\n`, context.signal);
+            await writeDiagnostic(context.stderr, `${name}: invalid option -- '${flag}'\nTry '${name} --help' for more information.\n`, context.signal);
             return { exitCode: 1 };
           }
           mode = flag === "P" ? "physical" : "logical";
         }
       }
-      if (external && ignored) await writeDiagnostic(context.stderr, "pwd: ignoring non-option arguments\n", context.signal);
+      if (external && ignored) await writeDiagnostic(context.stderr, `${name}: ignoring non-option arguments\n`, context.signal);
       const requiredMode = external ? "physical" : mode;
       assertCommandRequirements(context, pwdRequirements, [requiredMode]);
       if (requiredMode === "physical" && context.fs.capabilitiesFor) assertCommandRequirements(context, pwdRequirements, [requiredMode],

@@ -6817,7 +6817,7 @@ export class Runtime {
           return { exitCode: 127 };
         }
         this.budget.beginPathLookupSuspension();
-        const executionContext = state.externalInvocation
+        const executionContext = state.externalInvocation || virtualName !== undefined
           ? Object.create(Object.getPrototypeOf(forwarded), {
             ...Object.getOwnPropertyDescriptors(forwarded), externalInvocation: { value: true, configurable: true }, }) as ShellCommandContext
           : forwarded;

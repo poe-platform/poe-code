@@ -48,6 +48,61 @@ pub fn resolve_physical_path(cwd: &str, path: &str, fs: &dyn SafeBashFs) -> Stri
     }
 }
 
+pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs, external: Option<&str>) -> BuiltinOutcome {
+    let posix = env.contains_key("POSIXLY_CORRECT");
+    let mut physical = external.is_some() && !posix;
+    let mut ignored = false;
+    let mut out = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+    for (i, arg) in args.iter().enumerate() {
+        if arg == "--" { ignored |= i + 1 < args.len(); break; }
+        if !arg.starts_with('-') || arg == "-" {
+            ignored = true;
+            if external.is_none() || posix { break; }
+            continue;
+        }
+        let mut diagnostic = None;
+        if external.is_some() && let Some(long) = arg.strip_prefix("--") {
+            let name = long.split('=').next().unwrap_or(long);
+            if let Some(option) = ["logical", "physical"].iter().find(|option| !name.is_empty() && option.starts_with(name)) {
+                if long.contains('=') { diagnostic = Some(format!("option '--{option}' doesn't allow an argument")); }
+                else { physical = *option == "physical"; }
+            } else { diagnostic = Some(format!("unrecognized option '{arg}'")); }
+        } else if arg == "--physical" || arg == "--logical" {
+            physical = arg == "--physical";
+        } else {
+            for ch in arg[1..].chars() {
+                match ch {
+                    'L' => physical = false, 'P' => physical = true,
+                    _ => { diagnostic = Some(format!("invalid option -- '{ch}'")); break; }
+                }
+            }
+        }
+        if let Some(message) = diagnostic {
+            if let Some(name) = external {
+                out.exit_code = 1;
+                out.stderr = format!("{name}: {message}\nTry '{name} --help' for more information.\n");
+            } else {
+                out.exit_code = 2;
+                out.stderr = "pwd: invalid option\n".into();
+            }
+            return out;
+        }
+    }
+    if let Some(name) = external {
+        if ignored { out.stderr = format!("{name}: ignoring non-option arguments\n"); }
+        if !physical && let Some(logical) = env.get("PWD")
+            && logical.starts_with('/') && !logical.split('/').any(|s| matches!(s, "." | ".."))
+            && same_file("/", logical, cwd, fs)
+        { out.stdout = format!("{logical}\n"); return out; }
+    }
+    let path = if physical || external.is_some() { fs.access_path(cwd, true) } else { Ok(cwd.to_owned()) };
+    match path {
+        Ok(path) => out.stdout = format!("{path}\n"),
+        Err(e) => { out.stderr.push_str(&format!("{}: {e}\n", external.unwrap_or("pwd"))); out.exit_code = 1; }
+    }
+    out
+}
+
 pub fn try_run_builtin(
     cmd: &str,
     args: &[String],
@@ -67,45 +122,7 @@ pub fn try_run_builtin(
             stderr: String::new(),
             exit_code: 1,
         }),
-        "pwd" => {
-            let mut physical = false;
-            for a in args {
-                if a == "--" || !a.starts_with('-') || a == "-" {
-                    break;
-                }
-                if a == "--logical" {
-                    physical = false;
-                    continue;
-                }
-                if a == "--physical" {
-                    physical = true;
-                    continue;
-                }
-                for ch in a[1..].chars() {
-                    if ch == 'P' {
-                        physical = true;
-                    } else if ch == 'L' {
-                        physical = false;
-                    } else {
-                        return Some(BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "pwd: invalid option\n".to_string(),
-                            exit_code: 2,
-                        });
-                    }
-                }
-            }
-            let out_path = if physical {
-                resolve_physical_path(cwd, cwd, fs)
-            } else {
-                cwd.clone()
-            };
-            Some(BuiltinOutcome {
-                stdout: format!("{out_path}\n"),
-                stderr: String::new(),
-                exit_code: 0,
-            })
-        }
+        "pwd" => Some(pwd(args, cwd, env, fs, None)),
         "cd" => Some(builtin_cd("cd", args, false, cwd, env, fs)),
         "pushd" | "popd" | "dirs" => Some(builtin_directory_stack(cmd, args, cwd, env, fs)),
         "echo" => {

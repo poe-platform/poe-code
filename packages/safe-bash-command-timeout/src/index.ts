@@ -224,6 +224,7 @@ function definition(configuration: Settings): CommandDefinition {
       const argumentValues = ownedArguments?.slice(offset + 2);
       const args = argumentValues?.args ?? Object.freeze(originalArgs.slice(offset + 2));
       const streams = {
+        externalInvocation: true,
         ...(argumentValues === undefined ? {} : { argumentValues }),
         stdin: context.stdin,
         ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),

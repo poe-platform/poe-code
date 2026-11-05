@@ -42,7 +42,7 @@ type InputCursor = Rc<RefCell<String>>;
 type SavedFds = (Vec<(u32, Option<FdTarget>, bool)>, Vec<(u32, Option<u32>)>);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum DispatchMode { Shell, BypassFunctions, Builtin, EnvShebang }
+enum DispatchMode { Shell, External, BypassFunctions, Builtin, EnvShebang }
 
 pub(crate) trait CommandCaller {
     fn state(&self) -> &EvalState<'_>;
@@ -228,7 +228,7 @@ impl CommandContext<'_> {
             child.fd_table.insert(2,if options.merge_stderr { FdTarget::Stdout } else { FdTarget::Stderr });
             if options.stdin_is_default { child.default_input_fds.insert(0); } else { child.default_input_fds.remove(&0); }
             let words = std::iter::once(name.to_string()).chain(args.iter().cloned()).collect::<Vec<_>>();
-            let mut out = child.dispatch_words(&words,stdin,DispatchMode::Shell)?;
+            let mut out = child.dispatch_words(&words,stdin,if external { DispatchMode::External } else { DispatchMode::Shell })?;
             child.close_child_outputs(&mut out);
             child.account_forwarded_output(&out.stdout,&out.stderr,child.forwarded_output.get())?;
             Ok(out)
@@ -4347,7 +4347,7 @@ impl<'a> EvalState<'a> {
         mode: DispatchMode,
         host_terminal: Option<(&str,&mut bool)>,
     ) -> Result<BuiltinOutcome, EvalError> {
-        let bypass_functions = mode != DispatchMode::Shell;
+        let bypass_functions = !matches!(mode, DispatchMode::Shell | DispatchMode::External);
         let Some(cmd) = words.first() else {
             return Ok(BuiltinOutcome {
                 stdout: String::new(),
@@ -5204,7 +5204,7 @@ impl<'a> EvalState<'a> {
                     self.env.insert("0".to_string(), a0.clone());
                     self.env.insert("\0argv0".to_string(), a0);
                 }
-                let out = self.dispatch_words(&args[exec_idx..], stdin, mode)?;
+                let out = self.dispatch_words(&args[exec_idx..], stdin, DispatchMode::External)?;
                 self.exit_requested = Some(out.exit_code);
                 return Ok(out);
             }
@@ -5400,6 +5400,10 @@ impl<'a> EvalState<'a> {
             return self.dispatch_host(custom,words,stdin,custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),None);
         }
 
+        if effective_cmd == "pwd" && (virtual_name.is_some() || mode == DispatchMode::External) {
+            return Ok(super::builtins::pwd(args, self.cwd, self.env, self.fs, Some(custom_argv0.as_deref().unwrap_or(cmd))));
+        }
+
         if virtual_name.is_some() {
             match effective_cmd {
                 "true" => {
@@ -5415,15 +5419,6 @@ impl<'a> EvalState<'a> {
                         stderr: String::new(),
                         exit_code: 1,
                     });
-                }
-                "pwd" => {
-                    return self.dispatch_words(
-                        &std::iter::once("pwd".to_string())
-                            .chain(args.iter().cloned())
-                            .collect::<Vec<_>>(),
-                        stdin,
-                        DispatchMode::BypassFunctions,
-                    );
                 }
                 "kill" => {
                     return Ok(self.builtin_kill(args));
@@ -5719,7 +5714,8 @@ impl<'a> EvalState<'a> {
                 {
                     Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("env: {target}: command not found\n"), exit_code: 127 })
                 } else {
-                    sub_eval.dispatch_words(sub_words, sub_stdin, if mode == DispatchMode::EnvShebang { DispatchMode::BypassFunctions } else { DispatchMode::Shell })
+                    if mode == DispatchMode::EnvShebang { sub_eval.functions.clear(); }
+                    sub_eval.dispatch_words(sub_words, sub_stdin, DispatchMode::External)
                 };
                 sub_eval.budget.leave_substitution();
                 let mut out = match res {

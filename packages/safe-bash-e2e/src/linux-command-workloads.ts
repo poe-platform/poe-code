@@ -47,7 +47,7 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
       await writeFile(cwd + path, bytes);
       for (const view of views) await view.writeFile("/workspace" + path, bytes);
     }
-    for (const [name, target] of [["df-link", "samples/base"], ["df-dangling", "not-there"], ["df-loop", "df-loop"], ["df-proc", "/proc"]]) {
+    for (const [name, target] of [["pwd-link", "samples"], ["df-link", "samples/base"], ["df-dangling", "not-there"], ["df-loop", "df-loop"], ["df-proc", "/proc"]]) {
       await symlink(target, cwd + "/" + name);
       for (const view of views) await view.symlink!(target, "/workspace/" + name);
     }
@@ -168,6 +168,14 @@ export function linuxCommands(text: string) {
   const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1",
     String.raw`df --output=$'target,\xff'`, "LC_ALL=C.UTF-8 df --output=’é",
     "LC_ALL= LC_MESSAGES=C LC_CTYPE=C.UTF-8 df --output=é"];
+  for (const command of ["pwd", "command pwd -L", "pwd -P", "env pwd", "env pwd --logical", "/usr/bin/pwd", "exec pwd", "timeout 10 pwd", "env pwd --phys",
+    "env POSIXLY_CORRECT=1 pwd", "env -u PWD pwd -L", 'env PWD="$PWD/." pwd -L', 'env PWD="$PWD//" pwd -L',
+    "env pwd -P ignored -L", "env POSIXLY_CORRECT=1 pwd ignored -P", "env pwd -- -L"]) {
+    pipes.push('(root=$PWD; cd pwd-link && result=$(' + command + ') && printf "%s\\n" "${result#"$root"/}")');
+  }
+  for (const invocation of ["env pwd -X", "env pwd --unknown", "env pwd --physical=yes", "/usr/bin/pwd extra"]) {
+    pipes.push("(cd pwd-link && " + invocation + " >/dev/null)");
+  }
   for (const options of ["-p1", "-p65535", "-p '+0008'", "-p ' 22'", "-p23 -p0", "-bpg -p44", "-Jjumps -p45", "-p www", "-p ssh", "-p null",
     "-oPort=24 -p25", "-p25 -oPort=24", "-o ' pOrT = 0024 # use this port'", "-o 'Port 2\"4\"'", "-oPort=www", "-oPort=24 -pbad", "-oPort=27 -oPort=28"]) {
     pipes.push("ssh -GT -F none " + options + " example.invalid | grep '^port '");

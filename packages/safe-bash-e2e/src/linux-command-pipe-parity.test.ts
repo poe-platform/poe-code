@@ -188,3 +188,34 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
     await rust.dispose();
   }
 });
+
+test("yes produces bytes until its downstream reader closes the pipe", async () => {
+  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
+  const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
+  try {
+    for (const script of [
+      "yes >&-",
+      "yes --help >&-",
+      "yes -x >&-",
+      String.raw`yes $'\xff' | head -c 5`,
+      "yes 2>&1 | head -c 3",
+      "shopt -s lastpipe; yes word | read line; echo \"$line\"",
+      "yes | head -c 1 </dev/null",
+      "yes " + "x".repeat(25000) + " | head -c 3",
+      "yes α β | head -n 11001 | wc -l",
+      "set -o pipefail; yes | head -c 1",
+      "yes | true; echo \"${PIPESTATUS[*]}\"",
+      "yes -x | head; echo \"${PIPESTATUS[*]}\"",
+      "yes() { echo once; }; yes | head; echo \"${PIPESTATUS[*]}\"",
+    ]) {
+      const reference = await runLinuxCommand("bash", ["--noprofile", "--norc", "-c", script], "");
+      for (const shell of [ts.shell, rust]) {
+        const result = await shell.exec(script);
+        assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference, shell.constructor.name + ": " + script);
+      }
+    }
+    for (const script of ["yes", "yes >/output", "yes | wc -c"]) {
+      await assert.rejects(rust.exec(script, { limits: { maxOutputBytes: 32768 } }), { limit: "maxOutputBytes" });
+    }
+  } finally { rust.dispose(); await ts.dispose(); }
+});

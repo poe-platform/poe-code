@@ -88,7 +88,9 @@ const textCommands = ([
 }));
 
 export function linuxCommands(text: string) {
+  const pipe = "yes | head -c 32769 | wc -c";
   return [
+    { cmd: "bash", args: ["--noprofile", "--norc", "-c", pipe], script: pipe, input: "" },
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",

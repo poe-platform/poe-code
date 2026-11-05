@@ -520,6 +520,8 @@ pub struct EvalState<'a> {
     // An output remains private while its command runs or a descriptor still refers to it.
     exclusive_outputs: Vec<(usize, Rc<ExclusiveOutput>)>,
     stage_depth: usize,
+    // Only a direct producer stage can hand its stdout reader to the next stage.
+    pipeline_reader: Option<Option<FdTarget>>,
     path_outputs: Rc<RefCell<Vec<std::rc::Weak<PathOutput>>>>,
     pub in_fds: BTreeMap<u32, InputCursor>,
     pub in_fd_aliases: BTreeMap<u32, u32>,
@@ -635,6 +637,7 @@ impl<'a> EvalState<'a> {
             exec_replaced_stdin: false,
             exclusive_outputs: Vec::new(),
             stage_depth: 0,
+            pipeline_reader: None,
             path_outputs: Rc::default(),
             in_fds: BTreeMap::new(),
             in_fd_aliases: BTreeMap::new(),
@@ -792,6 +795,7 @@ impl<'a> EvalState<'a> {
             exec_replaced_stdin: false,
             exclusive_outputs: Vec::new(),
             stage_depth: 0,
+            pipeline_reader: None,
             path_outputs: self.path_outputs.clone(),
             in_fds: self.in_fds.clone(),
             in_fd_aliases: self.in_fd_aliases.clone(),
@@ -1820,6 +1824,7 @@ impl<'a> EvalState<'a> {
         let mut cur_stdin = String::new();
         let mut combined_stderr = String::new();
         let mut saved_stdout = None;
+        let mut pipeline_reader = None;
         let mut stage_codes = Vec::with_capacity(pipe.commands.len());
 
         if !self.in_trap {
@@ -1849,12 +1854,14 @@ impl<'a> EvalState<'a> {
             if use_lastpipe {
                 let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
                 let outer_input = self.fd_table.remove(&0);
+                if let Some(reader) = pipeline_reader.take() { self.fd_table.insert(0, reader); }
                 let outer_default = self.default_input_fds.remove(&0);
                 let previously_replaced = std::mem::take(&mut self.exec_replaced_stdin);
                 let stage_res = self.eval_pipeline_stage(cmd_node, &mut cur_stdin, None);
                 if self.exec_replaced_stdin {
                     *stdin = std::mem::take(&mut cur_stdin);
                 } else {
+                    self.fd_table.remove(&0);
                     if outer_default { self.default_input_fds.insert(0); }
                     if let Some(target) = outer_input { self.fd_table.insert(0, target); }
                 }
@@ -1886,6 +1893,7 @@ impl<'a> EvalState<'a> {
                 sub.async_default_stdin = self.async_default_stdin;
             } else {
                 sub.fd_table.remove(&0);
+                if let Some(reader) = pipeline_reader.take() { sub.fd_table.insert(0, reader); }
                 sub.default_input_fds.remove(&0);
                 sub.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
             }
@@ -1903,6 +1911,7 @@ impl<'a> EvalState<'a> {
                 sub.redirect_child_stdout(FdTarget::PipeStdout { peer_retired }, &mut saved_stdout);
                 sub.env.insert("\0pipe_fd__1".to_string(), "1".to_string());
                 sub.in_pipeline_producer = true;
+                if matches!(cmd_node, CommandNode::Simple(_)) { sub.pipeline_reader = Some(None); }
             }
             let stage_res = if idx == 0 {
                 sub.eval_pipeline_stage(cmd_node, stdin, None)
@@ -1919,6 +1928,7 @@ impl<'a> EvalState<'a> {
             if let Some(code) = sub.exit_requested {
                 stage_out.exit_code = code;
             }
+            pipeline_reader = sub.pipeline_reader.take().flatten();
             sub.run_exit_trap_if_needed(&mut stage_out);
             sub.close_child_outputs(&mut stage_out);
             if !is_last {
@@ -5443,7 +5453,6 @@ impl<'a> EvalState<'a> {
             return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
-
         // Native ls currently implements names only. Long-listing flags must not
         // silently discard metadata; use the existing implementation in hybrid mode.
         let long_listing = effective_cmd == "ls" && args.iter().take_while(|arg| arg.as_str() != "--")
@@ -5471,6 +5480,35 @@ impl<'a> EvalState<'a> {
             ).map_err(EvalError::Budget)?;
             self.budget.check_cancelled().map_err(EvalError::Budget)?;
             return Ok(BuiltinOutcome { stdout: result.stdout, stderr: result.stderr, exit_code: result.exit_code });
+        }
+
+        if effective_cmd == "yes" && !self.is_fd_writable(1) {
+            let message = match crate::commands::coreutils::yes_batch(args, self.env.contains_key("POSIXLY_CORRECT")) {
+                Err(out) if out.exit_code != 0 => return Ok(out),
+                Err(_) => "write error",
+                Ok(_) => "standard output",
+            };
+            return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("yes: {message}: Bad file descriptor\n"), exit_code: 1 });
+        }
+        if effective_cmd == "yes" && self.stage_depth == 1
+            && let Some(reader) = &mut self.pipeline_reader
+            && matches!(self.fd_table.get(&1), Some(FdTarget::PipeStdout { .. } | FdTarget::SavedStdout { pipe_peer_retired: Some(_), .. }))
+        {
+            let batch = match crate::commands::coreutils::yes_batch(args, self.env.contains_key("POSIXLY_CORRECT")) {
+                Ok(batch) => stream_string_to_bytes(&batch),
+                Err(out) => return Ok(out),
+            };
+            let mut offset = 0;
+            *reader = Some(FdTarget::input_stream(move |budget| {
+                let size = (batch.len() - offset).min(8192).min(budget.remaining_output_bytes().max(1));
+                Some(budget.check_cancelled().and_then(|()| budget.add_output_bytes(size)).map(|()| {
+                    let bytes = batch[offset..offset + size].to_vec();
+                    offset = (offset + size) % batch.len();
+                    bytes
+                }))
+            }));
+            // This stream never reaches EOF: a finishing reader closes the pipe.
+            return Ok(BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 141 });
         }
 
         let fs_ref = self.fs;
@@ -5565,6 +5603,7 @@ impl<'a> EvalState<'a> {
                     exec_replaced_stdin: false,
                     exclusive_outputs: Vec::new(),
                     stage_depth: 0,
+                    pipeline_reader: None,
                     path_outputs: self.path_outputs.clone(),
                     in_fds: inherited_inputs.clone(),
                     in_fd_aliases: inherited_aliases.clone(),

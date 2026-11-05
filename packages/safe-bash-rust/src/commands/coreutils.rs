@@ -35,6 +35,22 @@ pub(super) fn try_run_coreutil_with_input(
     }
     if cmd == "date" { return cmd_date(args, input, cwd, env, fs).map(Some); }
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
+    if cmd == "yes" {
+        let batch = match yes_batch(args, env.contains_key("POSIXLY_CORRECT")) {
+            Ok(batch) => batch,
+            Err(out) => return Ok(Some(out)),
+        };
+        let mut out = ok_out("");
+        let mut remaining = fs.remaining_output_bytes();
+        let size = crate::vfs::stream_byte_len(&batch);
+        loop {
+            if size > remaining {
+                return Err(CommandFailure { output: out, message: fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes) });
+            }
+            if !write(1, &batch, &mut out) { return Ok(Some(out)); }
+            remaining -= size;
+        }
+    }
     if cmd == "shuf" { return Ok(Some(cmd_shuf(args, input, cwd, env, fs, write))); }
     if cmd == "dd" { return Ok(Some(cmd_dd(args, input, cwd, env, fs, write))); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
@@ -72,7 +88,6 @@ fn coreutil(
         "iconv" => cmd_iconv(args, input.buffered()?, cwd, env, fs),
         "sponge" => cmd_sponge(args, input.buffered()?, cwd, fs),
         "seq" => cmd_seq(args),
-        "yes" => cmd_yes(args, env.contains_key("POSIXLY_CORRECT")),
         "basename" => cmd_basename(args),
         "dirname" => cmd_dirname(args),
         "env" | "printenv" => cmd_printenv(args, env),
@@ -4681,7 +4696,7 @@ fn cmd_seq(args: &[String]) -> BuiltinOutcome {
     }
 }
 
-fn cmd_yes(args: &[String], posixly_correct: bool) -> BuiltinOutcome {
+pub(crate) fn yes_batch(args: &[String], posixly_correct: bool) -> Result<String, BuiltinOutcome> {
     let mut delimiter_idx: Option<usize> = None;
     for (idx, arg) in args.iter().enumerate() {
         if arg == "--" {
@@ -4698,8 +4713,8 @@ fn cmd_yes(args: &[String], posixly_correct: bool) -> BuiltinOutcome {
                 format!("option '{arg}' is ambiguous; possibilities: '--help' '--version'")
             } else if let Some(option) = ["help", "version"].into_iter().find(|opt| opt.starts_with(name)) {
                 if long == name {
-                    return ok_out(if option == "help" { include_str!("help/yes.txt") }
-                        else { "yes (virtual-bash GNU-compatible profile)\n" });
+                    return Err(ok_out(if option == "help" { include_str!("help/yes.txt") }
+                        else { "yes (virtual-bash GNU-compatible profile)\n" }));
                 }
                 format!("option '--{option}' doesn't allow an argument")
             } else {
@@ -4709,7 +4724,7 @@ fn cmd_yes(args: &[String], posixly_correct: bool) -> BuiltinOutcome {
             let bytes = stream_string_to_bytes(arg);
             format!("invalid option -- '{}'", crate::vfs::bytes_to_stream_string(&bytes[1..2]))
         };
-        return err_out(&format!("yes: {message}\nTry 'yes --help' for more information.\n"), 1);
+        return Err(err_out(&format!("yes: {message}\nTry 'yes --help' for more information.\n"), 1));
     }
     let words: Vec<&str> = args
         .iter()
@@ -4728,7 +4743,7 @@ fn cmd_yes(args: &[String], posixly_correct: bool) -> BuiltinOutcome {
         words.join(" ")
     };
     let line = format!("{word}\n");
-    ok_out(&line.repeat(10_500))
+    Ok(if line.len() < 8192 { line.repeat(8192 / line.len()) } else { line })
 }
 
 fn cmd_basename(args: &[String]) -> BuiltinOutcome {

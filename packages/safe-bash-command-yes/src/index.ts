@@ -2,6 +2,7 @@ import {
   builtInDirectContextExecutors, commandRuntimeIdentity, FsError, getCommandArguments, isFsError, writeBytes,
   type CommandContext, type CommandDefinition, type VirtualShellPlugin,
 } from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 
@@ -129,11 +130,12 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
         return { exitCode: 0 };
       } catch (error) {
         context.signal.throwIfAborted();
-        if (!isFsError(error) || error.code === "EPIPE" || closed) throw error;
+        const closedDescriptor = error instanceof PublicDiagnostic && "code" in error && error.code === "EBADF";
+        if (closed || !closedDescriptor && !isFsError(error) || error.code === "EPIPE") throw error;
         const description = error.code === "EIO" ? "Input/output error"
           : error.code === "ENOSPC" ? "No space left on device"
           : error.code === "EBADF" ? "Bad file descriptor" : error.message;
-        await writeBytes(context.stderr, encoder.encode(`yes: standard output: ${description}\n`), context.signal);
+        await writeBytes(context.stderr, encoder.encode(`yes: ${selected.kind === "text" ? "write error" : "standard output"}: ${description}\n`), context.signal);
         return { exitCode: 1 };
       } finally { cleanup(); }
     },

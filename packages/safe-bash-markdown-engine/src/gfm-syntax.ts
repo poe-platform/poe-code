@@ -3,6 +3,11 @@ import type { AdapterContext } from "./types.js";
 import { letter, digit } from "./commonmark-syntax.js";
 import { unicodeWhitespace } from "./commonmark-characters.js";
 
+export function taskSymbol(prefix: string, allowBare: boolean): "☒" | "☐" | undefined {
+  if (prefix[0] !== "[" || prefix[2] !== "]" || !(prefix[3] === " " || prefix.length === 3 && allowBare)) return;
+  return prefix[1] === "x" || prefix[1] === "X" ? "☒" : prefix[1] === " " ? "☐" : undefined;
+}
+
 /** Pipe splitting precedes inline parsing, even inside code spans (GFM §4.10). */
 export function pipeRow(text: string, context: AdapterContext): string[] | undefined {
   const cells: string[] = [];

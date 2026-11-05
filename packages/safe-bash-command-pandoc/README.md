@@ -60,8 +60,7 @@ not required.
 `markdown`, `md`, `markdown_github`, `markdown_mmd`, `markdown_phpextra`, and
 `commonmark_x` select the supported GFM reader and writer, including tables
 and strikeout. The `.md` suffix also selects GFM, so pipe tables work without
-an explicit input format. Use `-f commonmark` to read pipe-delimited lines as ordinary text, or `-f commonmark+pipe_tables` to recognize tables. File suffix inference is case-insensitive. Task lists render as HTML
-checkboxes or text checkbox symbols in LaTeX, reStructuredText, RTF and CommonMark.
+an explicit input format. Use `-f commonmark` to read pipe-delimited lines as ordinary text, or `-f commonmark+pipe_tables` to recognize tables. File suffix inference is case-insensitive. GFM separates checkbox items from ordinary bullets; the Markdown reader keeps both in the same list. JSON preserves the checkbox symbols (☐ and ☒), and HTML renders labeled checkboxes.
 `markdown_strict` selects the CommonMark reader and writer. These
 compatibility names use the documented engine features; they do not enable
 additional dialect-specific extensions, except that `markdown` and `md` output preserve

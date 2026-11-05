@@ -35,6 +35,7 @@ export interface FormatCapability extends Omit<
 }
 export interface FormatSelection {
   readonly autolinkClasses?: boolean;
+  readonly name?: string;
   readonly descriptor: FormatDescriptor;
   readonly extensions: Readonly<Record<string, boolean>>;
 }
@@ -149,7 +150,7 @@ export function createFormatRegistry(
       if (enabled) explicitlyEnabled.add(extension);
       extensions[extension] = explicitlyEnabled.has(extension);
     }
-    return { descriptor, extensions: Object.freeze(extensions), ...(selectedDirection === "read" && (name === "markdown" || name === "md") ? {autolinkClasses: true} : {}) };
+    return { name, descriptor, extensions: Object.freeze(extensions), ...(selectedDirection === "read" && (name === "markdown" || name === "md") ? {autolinkClasses: true} : {}) };
   }
   return {
     parse,

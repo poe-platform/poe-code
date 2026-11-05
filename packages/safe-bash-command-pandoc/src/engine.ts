@@ -1,3 +1,4 @@
+import {pandocMarkdownExtensions} from "./commonmark.js";
 import {readRetainedCommonMark} from "./retained-commonmark.js";
 import {readRetainedEpubDocument} from "./retained-epub-document.js";
 import {readRetainedMediawiki} from "./retained-mediawiki.js";
@@ -654,7 +655,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
           if (reader.descriptor.name === "epub" && "bytes" in inputs[0]! && Number.isFinite(session.limits.references)) session.charge("references", 1);
           reading = true;
           if (reader.descriptor.name === "commonmark" || reader.descriptor.name === "gfm") {
-            const retained = await readRetainedCommonMark(inputs, session, context.workingFiles!, {...reader.extensions, autolinkClasses: reader.autolinkClasses ?? false}, options.fileScope, error => {markdownError = error;});
+            const retained = await readRetainedCommonMark(inputs, session, context.workingFiles!, pandocMarkdownExtensions(reader), options.fileScope, error => {markdownError = error;});
             reading = false; return retained;
           }
           if (reader.descriptor.name === "json") {const retained = await readRetainedJson(inputs[0]!, session, context.workingFiles!, true, true, () => {readerStarted = true;}); reading = false; return retained;}

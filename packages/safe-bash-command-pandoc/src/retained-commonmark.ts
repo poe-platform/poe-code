@@ -153,7 +153,7 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
           await ast.write(await ast.tag("MetaInlines", inlines), target);
         });
         if (envelope && metadata.parsed) range = {start: envelope.end, end: range.end};
-        const parser = new RetainedCommonMarkBlocks(source, tape, context, inputs[readerIndex]!.base, {...extensions, pandoc_code_blocks: true}); await parser.parse(range);
+        const parser = new RetainedCommonMarkBlocks(source, tape, context, inputs[readerIndex]!.base, extensions); await parser.parse(range);
         const blocks = await assembleRetainedCommonMark(parser, ast, tape, context, {...extensions,
           citations: extensions.citations ?? (await metadata.tree.property(metadata.tree.rootPosition, "bibliography") !== undefined || await metadata.tree.property(metadata.tree.rootPosition, "references") !== undefined)}, async (target, line) => {await astOrigins.seed(target.position, await sourceAt(line) + 1);});
         if (envelope) {

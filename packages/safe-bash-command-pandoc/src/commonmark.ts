@@ -63,13 +63,18 @@ export function expandPandocTabs() {
   };
 }
 
+export function pandocMarkdownExtensions(selection?: FormatSelection) {
+  const name = selection?.name ?? selection?.descriptor?.name ?? "commonmark";
+  return {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false, pandoc_code_blocks: true, pandoc_task_groups: ["gfm", "commonmark", "commonmark_x"].includes(name)};
+}
+
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
   let rawText = input.text ?? await context.decodeUtf8([input.bytes]);
   if (rawText.includes("\t")) {
     rawText = expandPandocTabs()(rawText);
     context.charge("retainedBytes", rawText.length * 2);
   }
-  return parseCommonMarkSource(rawText, input.base, context, {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false, pandoc_code_blocks: true});
+  return parseCommonMarkSource(rawText, input.base, context, pandocMarkdownExtensions(selection));
 };
 
 export async function parseCommonMarkSource(rawText: string, base: string | undefined, context: AdapterContext, extensions: FormatSelection["extensions"] = {}) {
@@ -278,13 +283,12 @@ export async function parseCommonMarkSource(rawText: string, base: string | unde
           const items: Block[][] = [];
           for (const item of block.items) {
             const first = item.blocks[0];
-            const text = first?.kind === "paragraph" ? first.inline.lines[0]?.text : undefined;
-            const task = extensions.task_lists && text?.startsWith("[") && text[2] === "]" && [" ", "\t", "x", "X"].includes(text[1] ?? "") && (text.length === 3 || text[3] === " " || text[3] === "\t");
+            const task = item.task;
             const blocks = task && first?.kind === "paragraph" ? [{ ...first, inline: { ...first.inline, lines: first.inline.lines.map((line, i) => i ? line : { ...line, text: line.text.slice(4).trimStart() }) } }, ...item.blocks.slice(1)] : item.blocks;
             const assembled = await assemble(blocks, depth + 1, block.tight);
             const leading = assembled[0];
             if (task && (leading?.t === "Plain" || leading?.t === "Para")) {
-              const marker: Inline = {t: "Str", c: text![1] === "x" || text![1] === "X" ? "☒" : "☐"};
+              const marker: Inline = {t: "Str", c: task};
               assembled[0] = {t: leading.t, c: leading.c.length ? [marker, {t: "Space"}, ...leading.c] : [marker]};
             }
             items.push(assembled);

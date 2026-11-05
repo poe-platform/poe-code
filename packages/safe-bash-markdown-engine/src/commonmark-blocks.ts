@@ -1,5 +1,5 @@
 import type { AdapterContext } from "./types.js";
-import { pipeRow, simpleTableColumns, multilineTable } from "./gfm-syntax.js";
+import { pipeRow, taskSymbol, simpleTableColumns, multilineTable } from "./gfm-syntax.js";
 import type { Alignment, Attr } from "./ast-types.js";
 import { fencedDivAttributes, normalizeLabel, romanListNumber } from "./commonmark-syntax.js";
 
@@ -9,7 +9,7 @@ export interface PendingInline {
   kind: "pendingInline";
   lines: { text: string; start: BlockPoint }[];
 }
-export interface PendingItem { blocks: PendingBlock[]; source: BlockSource }
+export interface PendingItem { task?: "☒" | "☐"; blocks: PendingBlock[]; source: BlockSource }
 export interface PendingDefinition extends PendingItem { tight: boolean }
 export type PendingBlock =
   | { kind: "nativeDiv"; literal: string; blocks: PendingBlock[]; source: BlockSource }
@@ -619,7 +619,10 @@ export async function parseCommonMarkBlocks(
       }
       let item = indent <= 3 && !rule(line.text, at) ? marker(line.text, at, extensions.fancy_lists) : undefined;
       if (item && top?.kind === "list" && item.marker === top.node.marker && item.style !== top.node.style) item = marker(line.text, at, extensions.fancy_lists, top.node.style);
-      if (top?.kind === "list" && (!item || (item.start !== null) !== (top.node.start !== null) || item.marker !== top.node.marker || item.style !== top.node.style)) {
+      const task = extensions.task_lists && item && (!extensions.pandoc_task_groups || item.start === null)
+        ? taskSymbol(line.text.slice(item.content, item.content + 4), !!extensions.pandoc_task_groups) : undefined;
+      if (top?.kind === "list" && (!item || (item.start !== null) !== (top.node.start !== null) || item.marker !== top.node.marker
+          || item.style !== top.node.style || extensions.pandoc_task_groups && !!task !== !!top.node.items.at(-1)?.task)) {
         stack.pop();
         const parent = stack[stack.length - 1];
         const previous = top.node.items[top.node.items.length - 1];
@@ -644,7 +647,7 @@ export async function parseCommonMarkBlocks(
         const previous = listContainer.node.items[listContainer.node.items.length - 1];
         // Blank lines between items are recorded before the previous item closes.
         if (previous && blankItems.has(previous)) listContainer.node.tight = false;
-        const node: PendingItem = { blocks: [], source: range(line, at) };
+        const node: PendingItem = { blocks: [], source: range(line, at), ...(task ? {task} : {}) };
         context.charge("nodes", 1);
         context.charge("retainedBytes", 128);
         listContainer.node.items.push(node);

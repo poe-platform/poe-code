@@ -1,13 +1,14 @@
 import {simpleTableColumns, multilineTable} from "safe-bash-markdown-engine/gfm-syntax";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
+import {taskSymbol} from "./gfm-syntax.js";
 import {asciiPunctuation, fencedDivAttributes, normalizeLabel} from "./commonmark-syntax.js";
 import {RetainedCommonMarkLine} from "./retained-commonmark-line.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedSourceText, SourceRange} from "./retained-source-text.js";
 
 const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote", "definitionList", "definitionTerm", "definition", "div", "nativeDiv"] as const;
-const fields = ["parent", "first", "last", "next", "previous", "startLine", "startColumn", "endLine", "endColumn", "firstLine", "lastLine", "lineCount", "infoStart", "infoEnd", "number", "marker", "style", "tight", "blank"] as const;
+const fields = ["parent", "first", "last", "next", "previous", "startLine", "startColumn", "endLine", "endColumn", "firstLine", "lastLine", "lineCount", "infoStart", "infoEnd", "number", "marker", "style", "tight", "blank", "task"] as const;
 type Field = typeof fields[number];
 type Node = Record<Field, number> & {kind: typeof kinds[number]; info: SourceRange};
 type Line = {position: number; range: SourceRange; line: number; column: number; next: number; alignment: number};
@@ -463,8 +464,14 @@ export class RetainedCommonMarkBlocks {
         const list = top && kinds[top[3]!] === "list" ? await this.node(top[2]!) : undefined;
         let item = indent <= 3 && !await line.rule(at) ? await line.marker(at, extensions.fancy_lists) : undefined;
         if (item && list && item.marker === list.marker && item.style !== list.style) item = await line.marker(at, extensions.fancy_lists, list.style);
+        let task = 0;
+        if (extensions.task_lists && item && (!extensions.pandoc_task_groups || Number.isNaN(item.start)) && await line.at(item.content) === "[") {
+          let prefix = "[";
+          for (let i = 1; i < 4 && item.content + i < line.length; i++) prefix += await line.at(item.content + i);
+          task = taskSymbol(prefix, !!extensions.pandoc_task_groups)?.charCodeAt(0) ?? 0;
+        }
         if (list && top) {
-          if (!item || Number.isNaN(item.start) !== Number.isNaN(list.number) || item.marker !== list.marker || item.style !== list.style) {
+          if (!item || Number.isNaN(item.start) !== Number.isNaN(list.number) || item.marker !== list.marker || item.style !== list.style || extensions.pandoc_task_groups && !!task !== !!list.task) {
             await truncate(top[0]!, depth - 1);
             const parent = lastStack ? await this.get(lastStack, 8) : undefined, previous = list.last ? await this.node(list.last) : undefined;
             if (parent && kinds[parent[3]!] === "item" && previous?.blank) await this.put(lastStack + 48, [1]);
@@ -473,10 +480,10 @@ export class RetainedCommonMarkBlocks {
         if (indent <= 3 && await line.at(at) === ">") {const node = await add("quote", line, at); await push(node, "quote"); offset = at + 1; if (await line.at(offset) === " ") offset++; continue;}
         if (item && (!wasParagraph || !item.empty && (Number.isNaN(item.start) || item.start === 1))) {
           let list = lastStack ? await this.get(lastStack, 8) : undefined;
-          if (!list || kinds[list[3]!] !== "list") {const node = await add("list", line, at, {number: item.start, marker: item.marker, style: item.style, tight: 1}); await push(node, "list"); list = await this.get(lastStack, 8);}
+          if (!list || kinds[list[3]!] !== "list") {const node = await add("list", line, at, {number: item.start, marker: item.marker, style: item.style, tight: 1, task}); await push(node, "list"); list = await this.get(lastStack, 8);}
           const listNode = await this.node(list[2]!); if (listNode.last && (await this.node(listNode.last)).blank) await this.set(list[2]!, "tight", 0);
           context.charge("nodes", 1); context.charge("retainedBytes", 128);
-          const node = await this.create("item", {startLine: line.number, startColumn: await line.column(at), endLine: line.number, endColumn: line.endColumn});
+          const node = await this.create("item", {task, startLine: line.number, startColumn: await line.column(at), endLine: line.number, endColumn: line.endColumn});
           await this.append(list[2]!, node); await push(node, "item", indent + item.indent, list[2]!, item.empty);
           offset = item.content; if (item.empty) break; continue;
         }

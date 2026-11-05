@@ -145,18 +145,8 @@ export async function assembleRetainedCommonMark(
     }
     if (mode === 1) {
       const children = await ast.array(); await ast.push(out, children); await push(); out = children; position = block.first; mode = 0; taskNode = 0;
-      if (extensions.task_lists && position) {
-        const first = await parser.node(position);
-        if (first.kind === "paragraph") {
-          const line = await parser.lines(position).next();
-          if (!line.done) {
-            const range = line.value.range, syntax = new RetainedCommonMarkSyntax(source, range, context), start = range.start;
-            if (await syntax.at(start) === "[" && await syntax.at(start + 2) === "]" && [" ", "\t", "x", "X"].includes(await syntax.at(start + 1) ?? "") &&
-              (range.end - start === 3 || await syntax.at(start + 3) === " " || await syntax.at(start + 3) === "\t")) {
-              taskNode = position; checked = ["x", "X"].includes((await syntax.at(start + 1))!);
-            }
-          }
-        }
+      if (block.task && position && (await parser.node(position)).kind === "paragraph") {
+        taskNode = position; checked = block.task === "☒".charCodeAt(0);
       }
       continue;
     }

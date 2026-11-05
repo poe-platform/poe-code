@@ -262,6 +262,7 @@ class MarkdownTape {
             const tag = await this.tag(node), next = after < job.end! ? await this.tag(after) : "";
             child.previous = job.previous; job.next = tag;
             if (job.mode === "inline") {
+              if (child.task && tag === "Str") child.task = after === (await this.tree.describe(job.node)).end || await this.tag(after) === "Space";
               child.start = job.index === 0 || job.previous === "SoftBreak" || job.previous === "LineBreak";
               child.finish = after === job.end || next === "SoftBreak" || next === "LineBreak";
               child.last = after === job.end ? 1 : 0;
@@ -373,6 +374,10 @@ class MarkdownTape {
         const tag = await this.tag(job.node), content = await this.tree.property(job.node, "c"), cp = await this.path(job.path, ".c");
         const child = async (index: number, op: string): Promise<Job> => ({op, node: await this.at(content!, index), path: await this.path(cp, `[${index}]`)});
         if (tag === "Str") {
+          if (job.task && this.selection.extensions.task_lists) {
+            const mark = await this.tree.smallText(content!, 1);
+            if (mark === "☒" || mark === "☐") {result = await this.literal(mark === "☒" ? "[x]" : "[ ]"); continue;}
+          }
           const value = await this.scalar(content!);
           if (job.task && this.selection.extensions.task_lists) {
             const marker = await this.tree.smallText(content!, 1);

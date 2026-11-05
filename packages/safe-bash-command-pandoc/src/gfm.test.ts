@@ -83,7 +83,7 @@ describe("declared GFM reader", () => {
     const blocks = await read(text);
     expect(JSON.stringify(blocks)).not.toContain('"Strikeout"');
   });
-  it("retains task states as leading checkbox characters in nested/tight and loose lists", async () => {
+  it("retains Pandoc task symbols in nested/tight and loose lists", async () => {
     const blocks = await read("- [x] done\n  - [ ] child\n- [X] upper\n\n- [ ] loose\n\n  [x] later");
     expect(blocks[0]!.t).toBe("BulletList");
     if (blocks[0]!.t !== "BulletList") throw new Error("Expected list");
@@ -96,7 +96,17 @@ describe("declared GFM reader", () => {
     expect(items[1]![0]).toEqual(para([marker(true), {t: "Space"}, str("upper")]));
     expect(items[2]![1]).toEqual(para([str("[x]"), { t: "Space" }, str("later")]));
     const result = await convert([{ bytes: new TextEncoder().encode("- [ ] todo") }], { from: "gfm", to: "json" }, {});
-    expect(result.kind === "text" && result.text).toContain('☐');
+    expect(result.kind === "text" && result.text).toContain('"t":"Str","c":"☐"');
+  });
+  it("groups bullet tasks by reader dialect without loosening unrelated groups", async () => {
+    const source = "- one\n\n- [x] two\n- three\n";
+    const plain = (...c: Inline[]): Block => ({t: "Plain", c});
+    const one = [str("one")], two: Inline[] = [str("☒"), {t: "Space"}, str("two")], three = [str("three")];
+    for (const from of ["gfm", "commonmark+task_lists", "commonmark_x"]) {
+      expect(await read(source, from)).toEqual([one, two, three].map(c => ({t: "BulletList", c: [[plain(...c)]]})));
+      expect(await read("1. [x] two", from)).toEqual([{t: "OrderedList", c: [[1, "Decimal", "Period"], [[plain(str("[x]"), {t: "Space"}, str("two"))]]]}]);
+    }
+    expect(await read(source, "markdown")).toEqual([{t: "BulletList", c: [one, two, three].map(c => [para(c)])}]);
   });
   it("retains state for empty task items", async () => {
     expect(await read("- [ ]\n- [x]")).toEqual([{ t: "BulletList", c: [[{ t: "Plain", c: [str("☐")] }], [{ t: "Plain", c: [str("☒")] }]] }]);
@@ -112,7 +122,7 @@ describe("declared GFM reader", () => {
     expect((await readDocument({ bytes: new TextEncoder().encode("---\ntitle: test\n---") }, { from: "gfm" }, {})).metadata).toEqual({});
   });
   it("does not recognize malformed tasks or markers outside the first list paragraph", async () => {
-    for (const text of ["[x] standalone", "- [y] text", "- [x]text", "- \\[x] text", "- ` [x] ` text", "- heading\n\n  [x] later"]) expect(JSON.stringify(await read(text))).not.toContain("☒");
+    for (const text of ["[x] standalone", "- [y] text", "- [x]text", "- \\[x] text", "- ` [x] ` text", "- heading\n\n  [x] later"]) expect(JSON.stringify(await read(text))).not.toMatch(/[☐☒]/);
   });
   it.each([
     ["www.example.org.", [link("www.example.org", "http://www.example.org"), str(".")]],

@@ -66,7 +66,9 @@ class Markdown {
       if(node.t !== "Str") digitsBefore = false;
       switch(node.t) {
         case "Str": {
-          if (task && i === 0 && this.selection.extensions.task_lists && (node.c === "☒" || node.c === "☐")) {parts.push(node.c === "☒" ? "[x]" : "[ ]"); break;}
+          if (task && !i && this.selection.extensions.task_lists && (node.c === "☐" || node.c === "☒") && (!nodes[1] || nodes[1].t === "Space")) {
+            parts.push(node.c === "☒" ? "[x]" : "[ ]"); break;
+          }
           let value = node.c;
           if(cell && [...value].some(ch => "\r\n\t".includes(ch))) {
             if(!this.context.lossy) throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", "Flattened cell text line boundaries", "gfm", p);
@@ -174,7 +176,7 @@ class Markdown {
       if(i < nodes.length && nodes[i]!.t !== "Space" && nodes[i]!.t !== "SoftBreak") continue;
       if(i > start) {
         // Render each word as a potential line start, escaping block markers.
-        const word = this.inline(nodes.slice(start, i), path, "", task && start === 0);
+        const word = this.inline(nodes.slice(start, i), path, "", task && start === 0 && (nodes[0]?.t !== "Str" || !nodes[1] || nodes[1].t === "Space"));
         const gap = separator && lineWidth > 0 && lineWidth + 1 + word.length > width ? "\n" : separator;
         parts.push(gap, word);
         const lastBreak = word.lastIndexOf("\n");

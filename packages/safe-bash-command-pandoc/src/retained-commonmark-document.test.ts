@@ -18,6 +18,7 @@ const samples = [
   "a\u0000b\n", "```a\u0000b\nx\u0000y\n```", "[a\u0000b]: /x\u0000y\n[a\u0000b]",
   "# Title\n\nText with *emphasis*, **bold**, [link](target 'title') and ![image](image.png).",
   "> - outer\n>   - inner\n>\n>   paragraph\n", "1. one\n2. two\n\n   three\n",
+  "- ordinary\n\n- [x] done\n  - nested\n\n- [ ] todo\n- ordinary\n", "1. [x] literal\n",
   "- [x] done\n- [ ] todo\n  - [X] nested\n", "- [x] **bold**\n\n  another block\n", "- [ ]\n",
   "a|b\n:--|--:\nx|*y*\nz\n", "|a\\|b|c|\n|:--:|--|\n|x|[ref]|\n\n[ref]: target\n",
   "```js extra\nx\n```\n\n    code\n\n    more\n", "<script>\nbody\n</script>\n\n<div>safe</div>",
@@ -28,7 +29,7 @@ it.each(samples.map((text, index) => ({text, index})))("assembles backed Markdow
   const store = () => {const value = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1); stores.push(value); return value;};
   try {
     const source = new RetainedSourceText(store(), units => context.cooperate(units)); await source.append([text]);
-    const extensions = {pandoc_code_blocks: true, simple_tables: true, citations: true, pipe_tables: true, raw_html: true, strikeout: true, task_lists: true, autolink_bare_uris: true, gfm_auto_identifiers: true};
+    const extensions = {pandoc_task_groups: true, pandoc_code_blocks: true, simple_tables: true, citations: true, pipe_tables: true, raw_html: true, strikeout: true, task_lists: true, autolink_bare_uris: true, gfm_auto_identifiers: true};
     const blocks = new RetainedCommonMarkBlocks(source, store(), context, "input", extensions); await blocks.parse({start: 0, end: text.length});
     const ast = new RetainedRtfAst(store(), units => context.cooperate(units));
     const result = await assembleRetainedCommonMark(blocks, ast, store(), context, extensions);

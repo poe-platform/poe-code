@@ -177,6 +177,12 @@ it("encodes target entities and quotes independently from inline prose", async (
   expect(actual).toBe('[go](<a(b)\\"c\\&d\\<e\\>&#32;f> "a\\"b(c)\\&d")\n');
   expect(await back(actual)).toEqual([p({t: "Link", c: [a, [s("go")], ['a(b)%22c&d%3Ce%3E%20f', 'a"b(c)&d']]})]);
 });
+it("uses the selected task syntax for Pandoc checkbox symbols in list items", async () => {
+  const blocks: Block[] = [{t: "BulletList", c: [[{t: "Plain", c: [s("☒"), {t: "Space"}, s("done")]}], [{t: "Plain", c: [s("☐")]}]]}];
+  expect(await md(blocks, "gfm")).toBe("- [x] done\n- [ ]\n");
+  expect(await md(blocks, "commonmark")).toBe("- ☒ done\n- ☐\n");
+});
+
 it("keeps blank lines inside blockquotes and adjacent lists distinct", async () => {
   const quote: Block = {t: "BlockQuote", c: [p(s("a")), p(s("b"))]};
   const actual = await md([quote]); expect(actual).toBe("> a\n>\n> b\n"); expect(await back(actual)).toEqual([quote]);

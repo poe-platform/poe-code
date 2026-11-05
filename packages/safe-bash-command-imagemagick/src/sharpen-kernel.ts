@@ -1,7 +1,7 @@
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
 
 /** ImageMagick's normalized negative Gaussian with a doubled center. */
-export function* sharpenPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sharpenPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, geometry: { width?: number; height?: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const radius = geometry.width ?? 0, sigma = Math.max(1e-12, Math.abs(geometry.height ?? 1));
     let half = Math.max(1, Math.ceil(radius));
     if (radius <= 0) {
@@ -27,5 +27,5 @@ export function* sharpenPixelSteps(image: { width: number; height: number }, geo
     kernel[Math.floor(kernel.length / 2)] = -2 * sum;
     const scale = 1 - sum;
     for (let i = 0; i < kernel.length; i++) kernel[i]! /= scale;
-    yield* convolvePixelSteps({ ...image, hasAlpha: false }, kernel, 0);
+    yield* convolvePixelSteps(image, kernel, 0);
 }

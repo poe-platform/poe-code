@@ -250,14 +250,19 @@ export function *encodeTiffSteps(
   bitmap: RgbaBitmap,
   dpi: number | readonly [number, number] = 72,
   compression: TiffCompressionMode = "none",
-  dpiY = typeof dpi === "number" ? dpi : dpi[1]
+  dpiY = typeof dpi === "number" ? dpi : dpi[1],
+  grayscale = false
 ): Generator<void, Uint8Array, void> {
   let work = 0;
   const { width, height, data } = bitmap;
-  const rgbByteLength = width * height * 3;
-  const rawRgb = new Uint8Array(rgbByteLength);
-  for (let i = 0, j = 0; i < data.length; i += 4, j += 3) {
+  const samples = grayscale ? 1 : 3;
+  const rawRgb = new Uint8Array(width * height * samples);
+  for (let i = 0, j = 0; i < data.length; i += 4, j += samples) {
     if (++work % 16384 === 0) yield;
+    if (grayscale) {
+      rawRgb[j] = Math.round((30 * data[i]! + 59 * data[i + 1]! + 11 * data[i + 2]!) / 100);
+      continue;
+    }
     rawRgb[j] = data[i]!;
     rawRgb[j + 1] = data[i + 1]!;
     rawRgb[j + 2] = data[i + 2]!;
@@ -271,7 +276,7 @@ export function *encodeTiffSteps(
   } else if (compression === "packbits") {
     compressionTag = 32773;
     const packed: number[] = [];
-    const rowStride = width * 3;
+    const rowStride = width * samples;
     for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
       const row = rawRgb.subarray(y * rowStride, (y + 1) * rowStride);
@@ -283,10 +288,10 @@ export function *encodeTiffSteps(
     stripBytes = encodeLzw(rawRgb);
   } else if (compression === "jpeg") {
     compressionTag = 7;
-    stripBytes = yield* encodeJpegSteps(bitmap);
+    stripBytes = yield* encodeJpegSteps(bitmap, 90, grayscale ? "gray" : "rgb");
   }
 
-  const header = createTiffHeader(width, height, dpi, compressionTag, stripBytes.length, dpiY);
+  const header = createTiffHeader(width, height, dpi, compressionTag, stripBytes.length, dpiY, grayscale);
   const output = new Uint8Array(header.length + stripBytes.length); output.set(header); output.set(stripBytes, header.length);
   return output;
 }
@@ -1924,9 +1929,10 @@ export function encodeTiff(
   bitmap: RgbaBitmap,
   dpi: number | readonly [number, number] = 72,
   compression: TiffCompressionMode = "none",
-  dpiY = typeof dpi === "number" ? dpi : dpi[1]
+  dpiY = typeof dpi === "number" ? dpi : dpi[1],
+  grayscale = false
 ): Uint8Array {
-  const steps = encodeTiffSteps(bitmap, dpi, compression, dpiY);
+  const steps = encodeTiffSteps(bitmap, dpi, compression, dpiY, grayscale);
   let next = steps.next();
   while (!next.done) next = steps.next();
   return next.value;

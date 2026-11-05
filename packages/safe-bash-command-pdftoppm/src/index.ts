@@ -161,7 +161,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 thinLineMode,
             }));
             options.onAllocateBytes?.(bitmap.width * bitmap.height * 4);
-            if (colorMode !== "rgb" && (format === "png" || format === "tif" || format === "jpg" || format === "pbm")) {
+            if (colorMode !== "rgb" && (format === "png" || (format === "tif" && colorMode === "mono") || format === "jpg" || format === "pbm")) {
                 for (let px = 0; px < bitmap.data.length; px += 4) {
                     if (++cooperativeWork % 65536 === 0)
                         yield;
@@ -178,7 +178,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (format === "png")
                 renderedBytes = (yield* encodePngSteps(bitmap, cairo ? undefined : effDpiX, effDpiY));
             else if (format === "tif")
-                renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression, effDpiY));
+                renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression, effDpiY, colorMode === "gray" && !transparent));
             else if (format === "jpg")
                 renderedBytes = (yield* encodeJpegSteps(bitmap, jpegQuality, grayscaleJpeg ? "gray" : parsed.jpegColorSpace, effDpiX, effDpiY));
             else if (format === "pgm")
@@ -477,6 +477,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
         files.set(finalOut, psBytes);
         return { exitCode: 0, stdout: "", stderr: "" };
     }
+    if (format === "tif" && grayMode && !monoMode) forwardedArgs.push("-gray");
     const snapBefore = new Map(files);
     const rasterPositionals = positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
     const res = (yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options, true, format === "jpg" && grayMode));
@@ -553,6 +554,7 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
             if (plan.stderr) await writeBytes(context.stderr, new TextEncoder().encode(plan.stderr), invocation.signal);
             return { exitCode: plan.exitCode };
           }
+          if (plan.format === "tif" && parsed.grayMode && !parsed.monoMode) plan = { ...plan, colorMode: "gray" };
           // Preserve Cairo's existing PNG-file-only color conversion.
           if (plan.format === "png" && plan.positionals[1] && plan.positionals[1] !== "-" && (parsed.grayMode || parsed.monoMode)) {
             plan = { ...plan, colorMode: parsed.monoMode ? "mono" : "gray" };

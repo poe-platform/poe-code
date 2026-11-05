@@ -3,12 +3,13 @@ import { readBytes } from "@poe-code/safe-fs/contracts";
 import { encodeJpegChunks } from "./jpeg-stream.js";
 import type { TiffCompressionMode } from "./raster.js";
 
-export function createTiffHeader(width: number, height: number, dpi: number | readonly [number, number], compressionTag: number, stripLength: number, dpiY = typeof dpi === "number" ? dpi : dpi[1]): Uint8Array {
-  const numEntries = compressionTag === 7 ? 13 : 12;
+export function createTiffHeader(width: number, height: number, dpi: number | readonly [number, number], compressionTag: number, stripLength: number, dpiY = typeof dpi === "number" ? dpi : dpi[1], grayscale = false): Uint8Array {
+  const colorJpeg = compressionTag === 7 && !grayscale;
+  const numEntries = colorJpeg ? 13 : 12;
   const ifdOffset = 8;
   const ifdByteLength = 2 + numEntries * 12 + 4;
   const bitsPerSampleOffset = ifdOffset + ifdByteLength;
-  const xResOffset = bitsPerSampleOffset + 6;
+  const xResOffset = bitsPerSampleOffset + (grayscale ? 0 : 6);
   const yResOffset = xResOffset + 8;
   const stripOffset = yResOffset + 8;
 
@@ -38,23 +39,23 @@ export function createTiffHeader(width: number, height: number, dpi: number | re
 
   writeEntry(256, 4, 1, width); // ImageWidth
   writeEntry(257, 4, 1, height); // ImageLength
-  writeEntry(258, 3, 3, bitsPerSampleOffset); // BitsPerSample -> [8, 8, 8]
+  writeEntry(258, 3, grayscale ? 1 : 3, grayscale ? 8 : bitsPerSampleOffset); // BitsPerSample -> [8, 8, 8]
   writeEntry(259, 3, 1, compressionTag); // Compression
-  writeEntry(262, 3, 1, compressionTag === 7 ? 6 : 2); // PhotometricInterpretation = 2 (RGB)
+  writeEntry(262, 3, 1, grayscale ? 1 : colorJpeg ? 6 : 2); // PhotometricInterpretation = 2 (RGB)
   writeEntry(273, 4, 1, stripOffset); // StripOffsets
-  writeEntry(277, 3, 1, 3); // SamplesPerPixel = 3
+  writeEntry(277, 3, 1, grayscale ? 1 : 3); // SamplesPerPixel = 3
   writeEntry(278, 4, 1, height); // RowsPerStrip
   writeEntry(279, 4, 1, stripLength); // StripByteCounts
   writeEntry(282, 5, 1, xResOffset); // XResolution
   writeEntry(283, 5, 1, yResOffset); // YResolution
   writeEntry(296, 3, 1, 2); // ResolutionUnit = 2 (Inch)
-  if (compressionTag === 7) writeEntry(530, 3, 2, 0x00010001); // YCbCr subsampling 1:1
+  if (colorJpeg) writeEntry(530, 3, 2, 0x00010001); // YCbCr subsampling 1:1
   view.setUint32(pos, 0, true); // Next IFD offset = 0
 
   // BitsPerSample [8, 8, 8]
-  view.setUint16(bitsPerSampleOffset, 8, true);
-  view.setUint16(bitsPerSampleOffset + 2, 8, true);
-  view.setUint16(bitsPerSampleOffset + 4, 8, true);
+  if (!grayscale) {
+    for (let i = 0; i < 3; i++) view.setUint16(bitsPerSampleOffset + 2 * i, 8, true);
+  }
 
   // XResolution & YResolution rationals
   const xDpi = typeof dpi === "number" ? dpi : dpi[0];
@@ -102,19 +103,25 @@ export function *encodePackBitsRowSteps(row: Uint8Array): Generator<void, number
 }
 
 
-async function* rgbRows(width: number, height: number, input: AsyncIterable<Uint8Array>, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
-  let position = 0; let row = new Uint8Array(width * 3); const expected = width * height * 4;
+async function* sampleRows(width: number, height: number, input: AsyncIterable<Uint8Array>, grayscale: boolean, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
+  const stride = width * (grayscale ? 1 : 3);
+  let luma = 0, position = 0; let row = new Uint8Array(stride); const expected = width * height * 4;
   for await (const bytes of readBytes(input, signal)) {
     for (let at = 0; at < bytes.length && position < expected; at++, position++) {
       const channel = position % 4;
-      if (channel < 3) row[Math.floor(position % (width * 4) / 4) * 3 + channel] = bytes[at]!;
-      if ((position + 1) % (width * 4) === 0) { yield row; row = new Uint8Array(width * 3); }
+      const pixel = Math.floor(position % (width * 4) / 4);
+      if (grayscale && channel < 3) {
+        if (channel === 0) luma = 0;
+        luma += bytes[at]! * (channel === 0 ? 30 : channel === 1 ? 59 : 11);
+        row[pixel] = Math.round(luma / 100);
+      } else if (channel < 3) row[pixel * 3 + channel] = bytes[at]!;
+      if ((position + 1) % (width * 4) === 0) { yield row; row = new Uint8Array(stride); }
       if (position % 65536 === 65535) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
     }
   }
   while (position < expected) {
     const take = Math.min(expected - position, width * 4 - position % (width * 4)); position += take;
-    yield row; row = new Uint8Array(width * 3);
+    yield row; row = new Uint8Array(stride);
   }
 }
 
@@ -151,9 +158,9 @@ async function* lzwChunks(input: AsyncIterable<Uint8Array>, chunkBytes: number, 
 
 /** Pure strip encoding; callers admit row/codec state and own output staging. */
 export async function* encodeTiffStripChunks(width: number, height: number, input: AsyncIterable<Uint8Array>, compression: TiffCompressionMode,
-  chunkBytes: number, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
-  if (compression === "jpeg") { yield* encodeJpegChunks(width, height, input, { chunkBytes, ...(signal ? { signal } : {}) }); return; }
-  const rows = rgbRows(width, height, input, signal);
+  chunkBytes: number, signal?: AbortSignal, grayscale = false): AsyncGenerator<Uint8Array> {
+  if (compression === "jpeg") { yield* encodeJpegChunks(width, height, input, { chunkBytes, grayscale, ...(signal ? { signal } : {}) }); return; }
+  const rows = sampleRows(width, height, input, grayscale, signal);
   if (compression === "lzw") { yield* lzwChunks(rows, chunkBytes, signal); return; }
   const codec = compression === "deflate" ? createByteCodec({ direction: "encode", format: "zlib", chunkSize: chunkBytes }) : undefined;
   try {

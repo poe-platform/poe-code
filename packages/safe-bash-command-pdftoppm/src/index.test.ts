@@ -59,6 +59,23 @@ describe("safe-bash-command-pdftoppm", () => {
     expect([Array.from(jpg.slice(13, 18)), jpg[25], jpg[frame + 9]]).toEqual([[1, 1, 104, 2, 208], quant, components]);
   });
 
+  it.each([runPdftoppmCli, runPdftocairoCli])("writes a single grayscale TIFF sample for each pixel", async run => {
+    const doc = PdfDocument.create(), page = doc.addPage([8, 8]);
+    page.drawRect({ x: 0, y: 0, width: 8, height: 8, fill: { r: 1, g: 0, b: 0 } });
+    const files = new Map([["in.pdf", doc.save()]]);
+    const result = await run(["-tiff", "-gray", "-r", "72", "-singlefile", "in.pdf", "out"], files);
+    expect(result.exitCode).toBe(0);
+    const bytes = files.get("out.tif")!;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const ifd = view.getUint32(4, true);
+    const tags = new Map<number, number>();
+    for (let i = 0; i < view.getUint16(ifd, true); i++) {
+      const at = ifd + 2 + 12 * i;
+      tags.set(view.getUint16(at, true), view.getUint32(at + 8, true));
+    }
+    expect([tags.get(262), tags.get(277), tags.get(279), bytes[tags.get(273)! + 27]]).toEqual([1, 1, 64, 77]);
+  });
+
   it("preserves each fractional resolution in TIFF output", async () => {
     const files = new Map([["in.pdf", createSamplePdf(1, [12, 8])]]);
     const result = await runPdftoppmCli(["-tiff", "-rx", "72.5", "-ry", "144.25", "-singlefile", "in.pdf", "out"], files);

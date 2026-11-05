@@ -19,8 +19,12 @@ import { vi } from "vitest";
 it.each(["none", "packbits", "deflate", "lzw", "jpeg"] as const)("streams %s TIFF with byte parity and bounded owned chunks", async compression => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const actual: number[] = [];
   async function* input() { const chunk = new Uint8Array(7); for (let at = 0; at < data.length; at += 7) { chunk.set(data.subarray(at, at + 7)); yield chunk.subarray(0, Math.min(7, data.length - at)); } }
-  for await (const bytes of encodeRetainedTiff(17, 13, input(), { fs, directory: "/scratch" }, { compression, dpi: 150, chunkBytes: 31 })) { expect(bytes.buffer.byteLength).toBeLessThanOrEqual(31); actual.push(...bytes); }
-  expect(new Uint8Array(actual)).toEqual(encodeTiff({ width: 17, height: 13, data }, 150, compression)); expect(await fs.readdir("/scratch")).toEqual([]);
+  for (const grayscale of [false, true]) {
+    actual.length = 0;
+    for await (const bytes of encodeRetainedTiff(17, 13, input(), { fs, directory: "/scratch" }, { compression, grayscale, dpi: 150, chunkBytes: 31 })) { expect(bytes.buffer.byteLength).toBeLessThanOrEqual(31); actual.push(...bytes); }
+    expect(new Uint8Array(actual)).toEqual(encodeTiff({ width: 17, height: 13, data }, 150, compression, undefined, grayscale));
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  }
 });
 it("admits working/output bounds before reading pixels and cleans staging on failure", async () => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" }; const read = vi.fn();

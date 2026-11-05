@@ -88,7 +88,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         async function* pixels() {
           let pixel = 0;
           for await (const bytes of ownedPixels) {
-            if (plan.colorMode !== "rgb" && (plan.format === "png" || plan.format === "tif" || plan.format === "jpg" || plan.format === "pbm")) {
+            if (plan.colorMode !== "rgb" && (plan.format === "png" || (plan.format === "tif" && plan.colorMode === "mono") || plan.format === "jpg" || plan.format === "pbm")) {
               for (let at = 0; at < bytes.length; at += 4) {
                 const luminance = Math.round(0.299 * bytes[at]! + 0.587 * bytes[at + 1]! + 0.114 * bytes[at + 2]!);
                 const value = plan.colorMode === "mono" ? (cairo ? (luminance < 128 ? 0 : 255) : monochromePixel(luminance, pixel % bitmap.width, Math.floor(pixel / bitmap.width))) : luminance;
@@ -100,7 +100,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
           }
         }
         const chunks = plan.format === "png" ? encodeRetainedPng(bitmap.width, bitmap.height, pixels(), storage, { ...(!cairo ? { dpi: dpiX, dpiY } : { colorMode: plan.colorMode }), signal })
-          : plan.format === "tif" ? encodeRetainedTiff(bitmap.width, bitmap.height, pixels(), storage, { dpi: dpiX, dpiY, compression: plan.tiffCompression, signal })
+          : plan.format === "tif" ? encodeRetainedTiff(bitmap.width, bitmap.height, pixels(), storage, { dpi: dpiX, dpiY, compression: plan.tiffCompression, grayscale: plan.colorMode === "gray" && !plan.transparent, signal })
           : plan.format === "jpg" ? encodeJpegChunks(bitmap.width, bitmap.height, pixels(), { quality: plan.jpegQuality, colorSpace: grayscaleJpeg ? "gray" : plan.jpegColorSpace, dpi: dpiX, dpiY, signal })
           : encodePortableBitmapChunks(plan.format === "pgm" || plan.format === "pbm" ? plan.format : "ppm", bitmap.width, bitmap.height, pixels(), { signal });
         yield { name: name(number), chunks }; if (plan.singleFile) break;

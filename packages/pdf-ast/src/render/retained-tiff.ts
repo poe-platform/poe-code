@@ -6,6 +6,7 @@ import { createTiffHeader, encodeTiffStripChunks } from "./tiff-stream.js";
 
 export interface PdfRetainedTiffOptions {
   readonly compression?: TiffCompressionMode;
+  readonly grayscale?: boolean;
   readonly dpi?: number | readonly [number, number];
   readonly dpiY?: number;
   readonly chunkBytes?: number;
@@ -33,7 +34,8 @@ export async function* encodeRetainedTiff(width: number, height: number, input: 
   const chunkBytes = options.chunkBytes ?? 65536; const dpi = options.dpi ?? 72, dpiY = options.dpiY ?? (typeof dpi === "number" ? dpi : dpi[1]);
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1 || !Number.isFinite(dpiY) || !(typeof dpi === "number" ? Number.isFinite(dpi) : dpi.every(Number.isFinite))) throw new RangeError("Invalid TIFF encoding options");
   const stagingLimit = maximum(options.maxStagingBytes), outputLimit = maximum(options.maxOutputBytes), workingLimit = maximum(options.maxWorkingBytes);
-  const headerLength = compression === "jpeg" ? 192 : 180;
+  const grayscale = options.grayscale ?? false;
+  const headerLength = grayscale ? 174 : compression === "jpeg" ? 192 : 180;
   if (outputLimit < headerLength) throw new PdfError("E_LIMIT", "TIFF output byte limit exceeded");
   const scratch = compression === "jpeg" ? width * Math.min(8, height) * 4 + chunkBytes + 65536
     : compression === "packbits" ? width * 64 + chunkBytes * 2 + 1024
@@ -42,9 +44,9 @@ export async function* encodeRetainedTiff(width: number, height: number, input: 
   const { signal } = options; signal?.throwIfAborted(); let strip: PdfFileSource | undefined; let failed = false;
   try {
     strip = await PdfFileSource.fromStream(storage.fs, storage.directory,
-      encodeTiffStripChunks(width, height, input, compression, chunkBytes, signal),
+      encodeTiffStripChunks(width, height, input, compression, chunkBytes, signal, grayscale),
       { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: Math.min(stagingLimit, outputLimit - headerLength, 0xffffffff - headerLength), ...(signal ? { signal } : {}) });
-    const header = createTiffHeader(width, height, dpi, tags[compression], strip.size, dpiY);
+    const header = createTiffHeader(width, height, dpi, tags[compression], strip.size, dpiY, grayscale);
     for (let at = 0; at < header.length; at += chunkBytes) { signal?.throwIfAborted(); yield header.slice(at, at + chunkBytes); }
     yield* strip.stream(0, strip.size, signal);
   } catch (error) { failed = true; throw error; }

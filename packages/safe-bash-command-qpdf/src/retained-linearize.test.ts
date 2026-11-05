@@ -28,7 +28,7 @@ for (const layout of [["--set-page-labels", "1:r/2/前", "3://Appendix", "--"], 
   if (mode === "removals") args.push("--remove-info", "--remove-metadata", "--remove-structure", "--remove-page-labels");
   const files = new Map([["in.pdf", input]]);
   let expected;
-  if (mode === "empty" && layout.includes("--linearize") && !layout.includes("--object-streams=generate")) {
+  if (mode === "empty" && layout.includes("--linearize")) {
     await assert.rejects(runQpdfCli(args, files), /Cannot linearize a PDF with no pages/);
     expected = { exitCode: 2, stdout: "", stderr: "qpdf: Cannot linearize a PDF with no pages\n" };
   } else expected = await runQpdfCli(args, files);

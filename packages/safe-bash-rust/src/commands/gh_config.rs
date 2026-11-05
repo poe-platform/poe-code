@@ -12,11 +12,14 @@ pub(super) struct Config {
 }
 
 fn entries(doc: &Document, node: usize) -> impl Iterator<Item = (String, usize)> + '_ {
-    doc.nodes[node].children.chunks_exact(2).filter_map(move |pair| {
-        let key = &doc.nodes[pair[0]];
-        (doc.nodes[node].kind == Kind::Mapping && key.kind == Kind::Scalar)
-            .then(|| (String::from_utf16_lossy(&key.text), pair[1]))
-    })
+    doc.nodes[node]
+        .children
+        .chunks_exact(2)
+        .filter_map(move |pair| {
+            let key = &doc.nodes[pair[0]];
+            (doc.nodes[node].kind == Kind::Mapping && key.kind == Kind::Scalar)
+                .then(|| (String::from_utf16_lossy(&key.text), pair[1]))
+        })
 }
 
 fn settings(doc: &Document, node: usize) -> BTreeMap<String, String> {
@@ -27,6 +30,29 @@ fn settings(doc: &Document, node: usize) -> BTreeMap<String, String> {
             .or_insert_with(|| String::from_utf16_lossy(&doc.nodes[value].text));
     }
     values
+}
+
+fn decode_yaml(bytes: Vec<u8>) -> Option<String> {
+    let text = if bytes.starts_with(&[0xff, 0xfe]) || bytes.starts_with(&[0xfe, 0xff]) {
+        let chunks = bytes[2..].chunks_exact(2);
+        if !chunks.remainder().is_empty() {
+            return None;
+        }
+        let decode = if bytes[0] == 0xff {
+            u16::from_le_bytes
+        } else {
+            u16::from_be_bytes
+        };
+        let units: Vec<_> = chunks.map(|pair| decode([pair[0], pair[1]])).collect();
+        String::from_utf16(&units).ok()?
+    } else {
+        let mut text = String::from_utf8(bytes).ok()?;
+        if text.starts_with('\u{feff}') {
+            text.drain(..3);
+        }
+        text
+    };
+    text.chars().all(|c| matches!(c, '\t' | '\n' | '\r' | '\u{20}'..='\u{7e}' | '\u{85}' | '\u{a0}'..='\u{fffd}' | '\u{10000}'..)).then_some(text)
 }
 
 pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, String> {
@@ -54,7 +80,7 @@ pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, 
                 "warning: failed to load config: {msg}\nfailed to create root command: failed to read configuration: {msg}\n"
             )
         };
-        let text = String::from_utf8(bytes).map_err(|_| invalid("invalid yaml"))?;
+        let text = decode_yaml(bytes).ok_or_else(|| invalid("invalid yaml"))?;
         let source: Vec<_> = text.encode_utf16().collect();
         let doc = scan(&source).map_err(|_| invalid("invalid yaml"))?;
         let root = &doc.nodes[doc.root];
@@ -183,7 +209,10 @@ pub(super) fn write(
         .find(|p| doc.nodes[p[0]].kind == Kind::Scalar && doc.nodes[p[0]].text == name);
     let (colon, mut end) = mapping_slot(&source, &doc, &name);
     let flow = root.flow;
-    let first = root.children.first().map_or(root.start, |id| doc.nodes[*id].start);
+    let first = root
+        .children
+        .first()
+        .map_or(root.start, |id| doc.nodes[*id].start);
     let line_start = source[..first]
         .iter()
         .rposition(|u| *u == 10)

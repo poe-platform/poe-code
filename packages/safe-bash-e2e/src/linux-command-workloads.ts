@@ -54,6 +54,17 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
     const ghConfig = Buffer.from('version: "1"\neditor: nano\nserial: 001\nbrowser: |-\n  first\n  second\naliases: { co: pr checkout }\n');
     await writeFile(cwd + "/samples/config.yml", ghConfig);
     for (const view of views) await view.writeFile("/workspace/samples/config.yml", ghConfig);
+    const wide = Buffer.from("\ufeffeditor: café💡\nother: keep\n", "utf16le");
+    for (const [name, bytes] of [
+      ["gh-le", wide], ["gh-be", Buffer.from(wide).swap16()],
+      ["gh-host-le", Buffer.from("\ufeffone.invalid: {editor: café💡}\n", "utf16le")],
+      ["gh-bom", Buffer.from("\ufeffeditor: café💡\nother: keep\n")],
+      ["gh-bad-utf8", Buffer.concat([Buffer.from("editor: "), Buffer.from([255,10])])],
+      ["gh-bad-utf16", Buffer.from([255,254,0,216])], ["gh-no-bom", wide.subarray(2)],
+    ] as const) {
+      await writeFile(cwd + "/samples/" + name, bytes);
+      for (const view of views) await view.writeFile("/workspace/samples/" + name, bytes);
+    }
     const fdIgnore = Buffer.from("theirs\n");
     await writeFile(cwd + "/samples/.fdignore", fdIgnore);
     for (const view of views) await view.writeFile("/workspace/samples/.fdignore", fdIgnore);
@@ -200,6 +211,10 @@ export function linuxCommands(text: string) {
       "(export GH_CONFIG_DIR=gh-comments; mkdir -p gh-comments; printf 'editor: # default\\n# next\\nother: 001\\n' >gh-comments/config.yml; gh config set editor $'first\\nsecond'; cat gh-comments/config.yml)",
       "(export GH_CONFIG_DIR=gh-indent; mkdir -p gh-indent; printf '    editor: old\\n    other: 001\\n' >gh-indent/config.yml; gh config set editor $'first\\nsecond'; gh config set pager cat; gh config get editor; gh config get pager; gh config get other)",
       "(export GH_CONFIG_DIR=gh-readonly; mkdir -p gh-readonly; echo 'editor: original' >gh-readonly/config.yml; chmod 444 gh-readonly/config.yml; gh config set custom-key denied; rc=$?; chmod 644 gh-readonly/config.yml; cat gh-readonly/config.yml; exit $rc)",
+      ...["gh-le", "gh-be", "gh-bom", "gh-bad-utf8", "gh-bad-utf16", "gh-no-bom"].map(name =>
+        "(export GH_CONFIG_DIR=gh-encoding; mkdir -p gh-encoding; cp samples/" + name +
+        " gh-encoding/config.yml; gh config get editor; gh config set editor after; rc=$?; cat gh-encoding/config.yml; exit $rc)"),
+      "(export GH_CONFIG_DIR=gh-host-encoding; mkdir -p gh-host-encoding; cp samples/gh-host-le gh-host-encoding/hosts.yml; gh config get editor -h one.invalid; cp samples/gh-bad-utf8 gh-host-encoding/hosts.yml; gh config set editor after; rc=$?; test ! -e gh-host-encoding/config.yml || exit 99; exit $rc)",
       "(export GH_CONFIG_DIR=gh-host-file; mkdir -p gh-host-file; echo 'editor: global' >gh-host-file/config.yml; echo 'example.invalid: {editor: local, serial: 001, ref: &a nano, alias: *a, clipboard: disabled, telemetry: disabled}' >gh-host-file/hosts.yml; gh config get editor; gh config get editor -h example.invalid; gh config get serial -h example.invalid; gh config get alias -h example.invalid; gh config get editor -h EXAMPLE.INVALID; gh config list)",
       "(export GH_CONFIG_DIR=gh-host-switch; mkdir -p gh-host-switch; printf 'one.invalid: {editor: one}\\ntwo.invalid: {editor: two}\\n' >gh-host-switch/hosts.yml; GH_HOST=two.invalid gh config list; gh config get hosts; gh config get version; gh config get aliases)",
       "(export GH_CONFIG_DIR=gh-host-change; mkdir -p gh-host-change; echo 'one.invalid: {pager: old}' >gh-host-change/hosts.yml; gh config get pager -h one.invalid; echo 'one.invalid: {pager: new}' >gh-host-change/hosts.yml; gh config get pager -h one.invalid; rm gh-host-change/hosts.yml; gh config get pager -h one.invalid)",

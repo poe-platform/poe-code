@@ -13,6 +13,22 @@ function scalarValues(map: YAMLMap) {
   return values;
 }
 
+function decodeYaml(bytes: Uint8Array): string | undefined {
+  const encoding = bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8";
+  let text: string;
+  try {
+    text = new TextDecoder(encoding, { fatal: true }).decode(bytes);
+  } catch (error) {
+    if (error instanceof TypeError) return undefined;
+    throw error;
+  }
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if ((c < 32 && c !== 9 && c !== 10 && c !== 13) || (c >= 127 && c < 160 && c !== 133) || c === 65534 || c === 65535) return undefined;
+  }
+  return text;
+}
+
 export async function readGhConfig(context: CommandContext, dir: string) {
   let values = new Map<string, string>();
   let source = "";
@@ -20,13 +36,15 @@ export async function readGhConfig(context: CommandContext, dir: string) {
   const hosts: [string, Map<string, string>][] = [];
   for (const name of ["config.yml", "hosts.yml"]) {
     const display = dir.replace(/\/+$/u, "") + "/" + name;
-    let text: string;
+    let bytes: Uint8Array;
     try {
-      text = new TextDecoder().decode(await context.fs.readFile(resolvePath(context.cwd, display), { signal: context.signal }));
+      bytes = await context.fs.readFile(resolvePath(context.cwd, display), { signal: context.signal });
     } catch (error) {
       if (!isFsError(error) || error.code !== "ENOENT") throw error;
       continue;
     }
+    const text = decodeYaml(bytes);
+    if (text === undefined) return { values, hosts, source, error: `invalid config file ${display}: invalid yaml` };
     if (!text) continue;
     const doc = parseDocument(text, { schema: "failsafe", uniqueKeys: false });
     const reason = doc.errors.length ? "invalid yaml" : doc.contents && !isMap(doc.contents) ? "invalid format" : "";

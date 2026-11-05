@@ -1040,6 +1040,17 @@ test("config set and auth login retain the backend settings for the user's home 
   assert.match((await run("git", ["remote", "-v"], { cwd: "/work/scoped-clone" })).stdout, /git@github.com:/u);
 });
 
+test("cloning follows edits to the persisted global protocol", async () => {
+  const { fs, run } = createTestHarness();
+  const env = { GH_CONFIG_DIR: "/work/gh" };
+  await run("gh", ["config", "set", "git_protocol", "ssh"], { env });
+  await run("gh", ["repo", "clone", "octocat/Hello-World", "first"], { env });
+  assert.match((await run("git", ["remote", "-v"], { cwd: "/work/first" })).stdout, /git@github.com:/u);
+  await fs.writeFile("/work/gh/config.yml", new TextEncoder().encode("git_protocol: https\n"));
+  await run("gh", ["repo", "clone", "octocat/Hello-World", "second"], { env });
+  assert.match((await run("git", ["remote", "-v"], { cwd: "/work/second" })).stdout, /https:\/\/github.com/u);
+});
+
 test("file and stdin inputs share invocation byte and file budgets", async () => {
   for (const limits of [{ maxInputBytes: 3 }, { maxFiles: 1 }]) {
     const { fs, run } = createTestHarness({ limits });

@@ -1095,27 +1095,12 @@ LEARN MORE
   const path = resolvePath(context.cwd, dir + "/config.yml");
   const resolvedDir = backend.configDir(context);
   const scopes = backend.configOverrides.get(resolvedDir);
-  let bytes: Uint8Array | undefined;
-  try {
-    bytes = await context.fs.readFile(path, { signal: context.signal });
-  } catch (error) {
-    if (!isFsError(error) || error.code !== "ENOENT") throw error;
-  }
-  const file = new Map<string, string>();
-  if (bytes?.length) {
-    const { parseDocument, isMap, isScalar, isAlias } = await import("yaml");
-    const doc = parseDocument(decodeUtf8(bytes), { schema: "failsafe", uniqueKeys: false });
-    const reason = doc.errors.length ? "invalid yaml" : doc.contents && !isMap(doc.contents) ? "invalid format" : "";
-    if (reason) {
-      const msg = `invalid config file ${dir}/config.yml: ${reason}`;
-      await writeErr(`warning: failed to load config: ${msg}\nfailed to create root command: failed to read configuration: ${msg}\n\n`);
-      return 1;
-    }
-    if (isMap(doc.contents)) for (const { key, value } of doc.contents.items) {
-      if (isScalar(key) && typeof key.value === "string" && !file.has(key.value)) {
-        file.set(key.value, isScalar(value) ? String(value.value ?? "") : isAlias(value) ? value.source : "");
-      }
-    }
+  const { readGlobalConfig, setGlobalConfig } = await import("../config-file.js");
+  const { values: file, source, reason } = await readGlobalConfig(context, path);
+  if (reason) {
+    const msg = `invalid config file ${dir}/config.yml: ${reason}`;
+    await writeErr(`warning: failed to load config: ${msg}\nfailed to create root command: failed to read configuration: ${msg}\n\n`);
+    return 1;
   }
   const parsed = parseCommandArgs(rest, [{ short: "h", long: "host", type: "string" }]);
 
@@ -1126,11 +1111,10 @@ LEARN MORE
     return 1;
   }
   const host = getStringFlag(parsed, "host") ?? "";
-  const config = resolvedDir === backend.defaultConfigDir ? backend.config : undefined;
   const values = new Map(Object.entries({
-    api_host: "", git_protocol: config?.gitProtocol ?? "https", editor: config?.editor ?? "", prompt: config?.prompt ?? "enabled",
-    prefer_editor_prompt: "disabled", pager: config?.pager ?? "", http_unix_socket: config?.httpUnixSocket ?? "",
-    browser: config?.browser ?? "", clipboard: "enabled", color_labels: "disabled", accessible_colors: "disabled",
+    api_host: "", git_protocol: "https", editor: "", prompt: "enabled",
+    prefer_editor_prompt: "disabled", pager: "", http_unix_socket: "",
+    browser: "", clipboard: "enabled", color_labels: "disabled", accessible_colors: "disabled",
     accessible_prompter: "disabled", spinner: "enabled", telemetry: "enabled",
   }));
   const valueOf = (key: string, scope = host) => scopes?.get(scope)?.get(key)
@@ -1168,7 +1152,23 @@ LEARN MORE
       return 1;
     }
     if (!values.has(key)) await writeErr(`! warning: '${key}' is not a known configuration key\n`);
-    backend.setConfigValue(resolvedDir, host, key, val);
+    if (!host) {
+      const updated = setGlobalConfig(source, key, val);
+      await context.fs.mkdir(resolvedDir, { recursive: true, mode: 0o771, signal: context.signal });
+      try {
+        await context.fs.writeFile(path, new TextEncoder().encode(updated), { mode: 0o600, signal: context.signal });
+      } catch (error) {
+        if (!isFsError(error)) throw error;
+        const reason = error.code === "EACCES" ? "permission denied" : error.code === "EROFS" ? "read-only file system" : undefined;
+        if (!reason) throw error;
+        await writeErr(`failed to write config to disk: open ${dir}/config.yml: ${reason}\n`);
+        return 1;
+      }
+      scopes?.get("")?.delete(key);
+      backend.updatePublicConfig(resolvedDir, key, val);
+    } else {
+      backend.setConfigValue(resolvedDir, host, key, val);
+    }
     return 0;
   }
 

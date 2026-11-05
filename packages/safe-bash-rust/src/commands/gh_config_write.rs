@@ -1,0 +1,205 @@
+use super::structured::{JVal, parse_json_stream};
+use crate::vfs::SafeBashFs;
+use config_mutations_rust::yaml::document::{Kind, mapping_slot, scan};
+use std::sync::OnceLock;
+
+fn default_config() -> &'static str {
+    static TEXT: OnceLock<String> = OnceLock::new();
+    TEXT.get_or_init(|| {
+        let lines = include_str!("../../../safe-bash-command-gh/src/config-defaults.json");
+        let JVal::Array(lines) = parse_json_stream(lines).unwrap().remove(0) else {
+            unreachable!()
+        };
+        lines
+            .into_iter()
+            .map(|line| match line {
+                JVal::Str(s) => s + "\n",
+                _ => unreachable!(),
+            })
+            .collect()
+    })
+}
+
+fn scalar(text: &str, flow: bool, key: bool) -> String {
+    let double = || JVal::Str(text.to_owned()).to_json_string(true, false, 0);
+    if text.is_empty() {
+        return if key { "\"\"".into() } else { String::new() };
+    }
+    if text.chars().any(|c| c.is_control() && c != '\n') {
+        return double();
+    }
+    if text.contains('\n') {
+        if flow || key {
+            return double();
+        }
+        let trimmed = text.trim_end_matches('\n');
+        let chomp = match text.len() - trimmed.len() {
+            0 => "-",
+            1 => "",
+            _ => "+",
+        };
+        let mut block = format!(
+            "|{}{chomp}",
+            if text.starts_with([' ', '\n']) {
+                "4"
+            } else {
+                ""
+            }
+        );
+        for line in text.strip_suffix('\n').unwrap_or(text).split('\n') {
+            block.push('\n');
+            if !line.is_empty() {
+                block.push_str("    ");
+                block.push_str(line);
+            }
+        }
+        return block;
+    }
+    let raw: Vec<_> = text.encode_utf16().collect();
+    if text.trim() == text
+        && !text.starts_with(['!', '&', '*', '\'', '"', '|', '>', '%', '@', '`'])
+        && !(flow && text.contains([',', '[', ']', '{', '}']))
+        && let Ok(doc) = scan(&raw)
+    {
+        let root = &doc.nodes[doc.root];
+        if root.kind == Kind::Scalar && root.text == raw {
+            if root.scalar.is_some()
+                || config_mutations_rust::temporal::Temporal::parse(&raw)
+                    .is_some_and(|t| t.has_date)
+            {
+                return double();
+            }
+            return text.into();
+        }
+    }
+    format!("'{}'", text.replace('\'', "''"))
+}
+
+pub(super) fn write(
+    fs: &dyn SafeBashFs,
+    dir: &str,
+    path: &str,
+    original: Option<&str>,
+    key: &str,
+    value: &str,
+) -> Result<(), String> {
+    let source: Vec<_> = original
+        .unwrap_or_else(|| default_config())
+        .encode_utf16()
+        .collect();
+    let doc = scan(&source).map_err(|e| e.to_string())?;
+    let root = &doc.nodes[doc.root];
+    let name: Vec<_> = key.encode_utf16().collect();
+    let found = root
+        .children
+        .chunks_exact(2)
+        .find(|p| doc.nodes[p[0]].kind == Kind::Scalar && doc.nodes[p[0]].text == name);
+    let (colon, mut end) = mapping_slot(&source, &doc, &name);
+    let flow = root.flow;
+    let first = doc.nodes[root.children[0]].start;
+    let line_start = source[..first]
+        .iter()
+        .rposition(|u| *u == 10)
+        .map_or(0, |at| at + 1);
+    let indent = if flow {
+        String::new()
+    } else {
+        " ".repeat(
+            source[line_start..first]
+                .iter()
+                .take_while(|u| **u == 32)
+                .count(),
+        )
+    };
+    let mut insert = String::new();
+    let start = if found.is_some() {
+        let start = colon.map_or(end, |at| at + 1);
+        if colon.is_none() {
+            insert.push(':');
+        }
+        if !flow {
+            // Keep trailing standalone comments on the next key or mapping.
+            while end > start {
+                let line_end = if source[end - 1] == 10 { end - 1 } else { end };
+                let begin = source[start..line_end]
+                    .iter()
+                    .rposition(|u| *u == 10)
+                    .map_or(start, |i| start + i + 1);
+                if begin == start {
+                    break;
+                }
+                let tail = &source[begin..line_end];
+                if tail.first() == Some(&35) || tail.iter().all(|u| matches!(u, 9 | 13 | 32)) {
+                    end = begin;
+                } else {
+                    break;
+                }
+            }
+            if end > start && source[end - 1] == 10 {
+                end -= 1;
+            }
+        }
+        start
+    } else {
+        if flow {
+            if source[..end]
+                .iter()
+                .rev()
+                .find(|c| !matches!(c, 9 | 10 | 13 | 32))
+                != Some(&44)
+            {
+                insert.push(',');
+            }
+            insert.push(' ');
+        } else if end > 0 && source[end - 1] != 10 {
+            insert.push('\n');
+        }
+        insert += &indent;
+        insert.push_str(&scalar(key, flow, true));
+        insert.push(':');
+        end
+    };
+    if flow && value.is_empty() {
+        insert += " ''";
+    }
+    if !value.is_empty() {
+        insert.push(' ');
+        let encoded = scalar(value, flow, false);
+        for (i, line) in encoded.split('\n').enumerate() {
+            if i != 0 {
+                insert.push('\n');
+                if !line.is_empty() {
+                    insert += &indent;
+                }
+            }
+            insert.push_str(line);
+        }
+    }
+    if !flow && let Some(pair) = found {
+        let old = &doc.nodes[pair[1]];
+        if old.kind == Kind::Scalar && old.text.is_empty() && !old.quoted {
+            let removed = String::from_utf16_lossy(&source[start..end]);
+            if let Some(comment) = removed
+                .lines()
+                .next()
+                .map(str::trim_start)
+                .filter(|s| s.starts_with('#'))
+            {
+                let at = insert.find('\n').unwrap_or(insert.len());
+                insert.insert_str(at, &format!(" {comment}"));
+            }
+        }
+    }
+    if !flow && found.is_none() {
+        insert.push('\n');
+    }
+    let mut out = String::from_utf16_lossy(&source[..start]);
+    out += &insert;
+    out += &String::from_utf16_lossy(&source[end..]);
+    if !out.ends_with('\n') {
+        out.push('\n');
+    }
+    fs.mkdir(dir, true, 0o771)
+        .map_err(|(code, at)| format!("{code}: {at}"))?;
+    fs.write_command_path(path, out.as_bytes(), false, 0o600)
+}

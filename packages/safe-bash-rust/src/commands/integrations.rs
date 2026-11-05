@@ -3873,12 +3873,12 @@ fn gh_config_dir(env: &BTreeMap<String, String>) -> String {
     format!("{}/.config/gh", get("HOME").map(String::as_str).unwrap_or("/home/user"))
 }
 
-fn gh_config_file(fs: &dyn SafeBashFs, path: &str, display: &str) -> Result<BTreeMap<String, String>, String> {
+fn gh_config_file(fs: &dyn SafeBashFs, path: &str, display: &str) -> Result<(BTreeMap<String, String>, Option<String>), String> {
     use config_mutations_rust::yaml::document::{scan, Kind};
     let mut values = BTreeMap::new();
     let stat = match fs.command_descriptor_op().and_then(|_| fs.stat(path)) {
         Ok(stat) => stat,
-        Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => return Ok(values),
+        Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => return Ok((values, None)),
         Err(e) => return Err(e),
     };
     if stat.size > fs.max_input_bytes() { return Err("gh input byte limit exceeded".into()); }
@@ -3892,7 +3892,7 @@ fn gh_config_file(fs: &dyn SafeBashFs, path: &str, display: &str) -> Result<BTre
     let source: Vec<_> = std::str::from_utf8(&bytes).map_err(|_| invalid("invalid yaml"))?.encode_utf16().collect();
     let doc = scan(&source).map_err(|_| invalid("invalid yaml"))?;
     let root = &doc.nodes[doc.root];
-    if root.kind == Kind::Scalar && root.text.is_empty() && !root.quoted { return Ok(values); }
+    if root.kind == Kind::Scalar && root.text.is_empty() && !root.quoted { return Ok((values, None)); }
     if root.kind != Kind::Mapping { return Err(invalid("invalid format")); }
     for pair in root.children.chunks_exact(2) {
         let (key, value) = (&doc.nodes[pair[0]], &doc.nodes[pair[1]]);
@@ -3900,7 +3900,8 @@ fn gh_config_file(fs: &dyn SafeBashFs, path: &str, display: &str) -> Result<BTre
             values.entry(String::from_utf16_lossy(&key.text)).or_insert_with(|| String::from_utf16_lossy(&value.text));
         }
     }
-    Ok(values)
+    let original = if root.children.is_empty() { None } else { Some(String::from_utf8(bytes).unwrap()) };
+    Ok((values, original))
 }
 
 fn gh_clear_cache<'a>(args: impl Iterator<Item = &'a str>, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -4462,7 +4463,8 @@ fn cmd_gh_inner(
             let display_dir = gh_config_dir(env);
             let dir = resolve_posix_path(cwd, &display_dir);
             let display = format!("{}/config.yml", display_dir.trim_end_matches('/'));
-            let file = match gh_config_file(fs, &resolve_posix_path(cwd, &display), &display) {
+            let path = resolve_posix_path(cwd, &display);
+            let (file, original) = match gh_config_file(fs, &path, &display) {
                 Ok(values) => values,
                 Err(e) => return error(format!("{e}\n")),
             };
@@ -4520,9 +4522,24 @@ fn cmd_gh_inner(
                     if !choices.is_empty() && !choices.contains(&value) {
                         return error(format!("failed to set {key:?} to {value:?}: valid values are '{}'\n", choices.join("', '")));
                     }
-                    st.gh_config.entry(dir).or_default().entry(host.into()).or_default().insert(key.into(), value.into());
-                    if host.is_empty() && key == "git_protocol" { st.gh_git_protocol = value.into(); }
                     let stderr = if default.is_none() { format!("! warning: '{key}' is not a known configuration key\n") } else { String::new() };
+                    if host.is_empty() {
+                        drop(map);
+                        if let Err(e) = super::gh_config_write::write(fs, &dir, &path, original.as_deref(), key, value) {
+                            let diagnostic = match e.split(':').next() {
+                                Some("EACCES") => format!("failed to write config to disk: open {display}: permission denied"),
+                                Some("EROFS") => format!("failed to write config to disk: open {display}: read-only file system"),
+                                _ => e,
+                            };
+                            return error(format!("{stderr}{diagnostic}\n"));
+                        }
+                        let mut map = states().lock().unwrap();
+                        let st = map.entry(fs_id).or_default();
+                        if let Some(global) = st.gh_config.get_mut(&dir).and_then(|hosts| hosts.get_mut("")) { global.remove(key); }
+                        if key == "git_protocol" { st.gh_git_protocol = value.into(); }
+                    } else {
+                        st.gh_config.entry(dir).or_default().entry(host.into()).or_default().insert(key.into(), value.into());
+                    }
                     BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 }
                 }
                 _ => BuiltinOutcome {

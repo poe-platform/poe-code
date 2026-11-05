@@ -264,11 +264,13 @@ export async function handleRepoCommand(
   rawArgs: readonly string[]
 ): Promise<number> {
   const { context, backend, git, ssh, openBrowser, limits, writeOut, writeErr } = env;
-  const useConfiguredSsh = () => {
+  const useConfiguredSsh = async () => {
     const dir = backend.configDir(context);
     const hosts = backend.configOverrides.get(dir);
-    const protocol = hosts?.get(backend.defaultHost)?.get("git_protocol") ?? hosts?.get("")?.get("git_protocol")
-      ?? (dir === backend.defaultConfigDir ? backend.config.gitProtocol : "https");
+    const { readGlobalConfig } = await import("../config-file.js");
+    const { values, reason } = await readGlobalConfig(context, resolvePath(dir, "config.yml"));
+    if (reason) throw new Error(`invalid config file ${dir}/config.yml: ${reason}`);
+    const protocol = hosts?.get(backend.defaultHost)?.get("git_protocol") ?? hosts?.get("")?.get("git_protocol") ?? values.get("git_protocol");
     return protocol === "ssh";
   };
   const subcommand = rawArgs[0];
@@ -344,7 +346,7 @@ export async function handleRepoCommand(
     const useSsh =
       repoArg.startsWith("git@") ||
       repoArg.startsWith("ssh://") ||
-      useConfiguredSsh();
+      await useConfiguredSsh();
 
     await cloneRepositoryIntoVfs({
       context,
@@ -478,7 +480,7 @@ export async function handleRepoCommand(
         context,
         repo,
         targetDir: cloneTarget,
-        useSsh: useConfiguredSsh(),
+        useSsh: await useConfiguredSsh(),
         ssh,
         git,
       });
@@ -549,7 +551,7 @@ export async function handleRepoCommand(
         context,
         repo: forkRepo,
         targetDir,
-        useSsh: useConfiguredSsh(),
+        useSsh: await useConfiguredSsh(),
         ssh,
         git,
       });

@@ -60,7 +60,10 @@ export class GitHubBackend {
     let values = hosts.get(host);
     if (!values) hosts.set(host, values = new Map());
     values.set(key, value);
-    if (host || dir !== this.defaultConfigDir) return;
+    if (!host) this.updatePublicConfig(dir, key, value);
+  }
+  updatePublicConfig(dir: string, key: string, value: string): void {
+    if (dir !== this.defaultConfigDir) return;
     switch (key) {
       case "git_protocol": this.config.gitProtocol = value as GhConfigState["gitProtocol"]; break;
       case "prompt": this.config.prompt = value as GhConfigState["prompt"]; break;

@@ -1,4 +1,5 @@
 pub mod codecs;
+mod gh_config_write;
 pub mod integrations;
 pub mod archive;
 pub mod coreutils;

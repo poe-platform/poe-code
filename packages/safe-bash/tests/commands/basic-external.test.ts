@@ -28,6 +28,13 @@ test("builtin pwd ignores help after an operand in direct handlers", async () =>
   assert.equal(result.stdout, "/work\n");
 });
 
+test("builtin pwd writes its help to stdout and stops parsing options", async () => {
+  const result = await run("pwd", ["-P", "--help", "-X"]);
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stdout.startsWith("pwd: pwd [-LP]\n"));
+  assert.equal(result.stderr, "");
+});
+
 test("direct builtin pwd rejects GNU long options", async () => {
   for (const flag of ["--logical", "--physical"]) {
     const result = await run("pwd", [flag]);

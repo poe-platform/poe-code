@@ -173,7 +173,8 @@ export function linuxCommands(text: string) {
     "env pwd -P ignored -L", "env POSIXLY_CORRECT=1 pwd ignored -P", "env pwd -- -L"]) {
     pipes.push('(root=$PWD; cd pwd-link && result=$(' + command + ') && printf "%s\\n" "${result#"$root"/}")');
   }
-  pipes.push("pwd --logical", "command pwd --physical", "pwd -LPQ");
+  pipes.push("pwd --logical", "command pwd --physical", "pwd -LPQ", "pwd --help", "builtin pwd -P --help -X",
+    "command pwd -X --help", "pwd -- --help >/dev/null");
   for (const invocation of ["env pwd -X", "env pwd --unknown", "env pwd --physical=yes", "env pwd --h=x", "/usr/bin/pwd extra"]) {
     pipes.push("(cd pwd-link && " + invocation + " >/dev/null)");
   }

@@ -4342,7 +4342,7 @@ impl<'a> EvalState<'a> {
 
     fn run_shell_builtin(&mut self, name: &str, args: &[String], stdin: &mut String) -> Option<BuiltinOutcome> {
         let mut out = try_run_builtin(name, args, stdin, self.cwd, self.env, self.fs)?;
-        if name == "pwd" && out.exit_code == 2 { out.stderr.insert_str(0, &self.diag_prefix()); }
+        if name == "pwd" && out.exit_code == 2 && !out.stderr.is_empty() { out.stderr.insert_str(0, &self.diag_prefix()); }
         Some(out)
     }
 

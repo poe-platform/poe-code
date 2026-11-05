@@ -1,3 +1,4 @@
+import { pwdBuiltinHelp } from "./pwd-help.js";
 import { isShellIdentifier, protectedReadArrays, variableTarget } from "./variable-target.js";
 export { isShellIdentifier } from "./variable-target.js";
 import { defaultPredicateExecutors } from "../commands/predicates.js";
@@ -8914,6 +8915,7 @@ export class Runtime {
       let physical = false;
       for (const arg of args) {
         if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+        if (arg === "--help") { await writeText(stdout, pwdBuiltinHelp); return 2; }
         for (const flag of arg.slice(1)) {
           if (flag !== "L" && flag !== "P") {
             await this.diagnostic(context, `pwd: -${flag}: invalid option`);

@@ -60,6 +60,25 @@ pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs:
             if external.is_none() || posix { break; }
             continue;
         }
+        if external.is_none() && arg == "--help" {
+            out.exit_code = 2;
+            out.stdout = concat!(
+                "pwd: pwd [-LP]\n",
+                "    Print the name of the current working directory.\n",
+                "    \n",
+                "    Options:\n",
+                "      -L\tprint the value of $PWD if it names the current working\n",
+                "    \t\tdirectory\n",
+                "      -P\tprint the physical directory, without any symbolic links\n",
+                "    \n",
+                "    By default, `pwd' behaves as if `-L' were specified.\n",
+                "    \n",
+                "    Exit Status:\n",
+                "    Returns 0 unless an invalid option is given or the current directory\n",
+                "    cannot be read.\n",
+            ).into();
+            return out;
+        }
         let mut diagnostic = None;
         if external.is_some() && let Some(long) = arg.strip_prefix("--") {
             let name = long.split('=').next().unwrap_or(long);

@@ -1,3 +1,4 @@
+import { pwdBuiltinHelp } from "../shell/pwd-help.js";
 import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { byteLength } from "../byte-encoding.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -78,6 +79,10 @@ export function basicCommands(): CommandDefinition[] {
           ignored = true;
           if (!external || context.env.POSIXLY_CORRECT !== undefined) break;
           continue;
+        }
+        if (!external && arg === "--help") {
+          await output(context, pwdBuiltinHelp);
+          return { exitCode: 2 };
         }
         if (external && arg.startsWith("--")) {
           const key = arg.slice(2).split("=", 1)[0]!;

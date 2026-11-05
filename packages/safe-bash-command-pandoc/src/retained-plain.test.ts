@@ -27,7 +27,15 @@ async function compare(blocks: Block[], options: Partial<ConversionOptions> = {}
     expect(acquire).not.toHaveBeenCalled();
   } finally {acquire.mockRestore();}
   expect(await fs.readdir("/")).toEqual([]);
+  return text;
 }
+
+it("matches Pandoc 3.11 plain list spacing, numbering and empty items", async () => {
+  const tight: Block = {t: "Plain", c: [str("one")]};
+  expect(await compare([{t: "OrderedList", c: [[26, "LowerAlpha", "OneParen"], [[tight], [], [para(str("three"))]]]}]))
+    .toBe("z)  one\n\na)  \n\nb)  three\n");
+  expect(await compare([{t: "OrderedList", c: [[4, "UpperRoman", "TwoParens"], [[tight]]]}])).toBe("(IV) one\n");
+});
 
 it.each([{}, {wrap: "auto" as const, columns: 12}, {wrap: "preserve" as const}, {eol: "crlf" as const}])("renders retained text and nested containers with writer parity: %j", async options => {
   await compare([

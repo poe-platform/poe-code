@@ -41,7 +41,7 @@ it("handles empty nodes, headings, paragraphs, quotes and Unicode without stylin
   expect(await plain(d({t: "Header", c: [2, a, [s("标题 العربية 👩🏽‍💻 é")]]}, p({t: "Quoted", c: ["DoubleQuote", [s("word")]]}, {t: "Space"}, {t: "Strong", c: [s("next")]})))).toMatchObject({text: '标题 العربية 👩🏽‍💻 é\n\n"word" next\n', diagnostics: []});
 });
 it("renders nested and empty list items with hanging indentation and meaningful code whitespace", async () => {
-  expect(await plain(d({t: "BulletList", c: [[{t: "Plain", c: [s("outer")]}, {t: "OrderedList", c: [[3, "Decimal", "Period"], [[p(s("inner"))], []]]}], []]}, {t: "CodeBlock", c: [a, "  x\n\ty  \n"]}))).toMatchObject({text: "- outer\n  3.  inner\n  4.\n-\n\n      x\n    \ty  \n"});
+  expect(await plain(d({t: "BulletList", c: [[{t: "Plain", c: [s("outer")]}, {t: "OrderedList", c: [[3, "Decimal", "Period"], [[p(s("inner"))], []]]}], []]}, {t: "CodeBlock", c: [a, "  x\n\ty  \n"]}))).toMatchObject({text: "- outer\n  3.  inner\n\n  4.  \n- \n\n      x\n    \ty  \n"});
 });
 it("renders link labels, empty image boundaries and inline notes", async () => {
   const url = "https://example.test/" + "segment/".repeat(30);

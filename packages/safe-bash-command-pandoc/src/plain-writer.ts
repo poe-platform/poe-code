@@ -2,6 +2,21 @@ import type { Block, Caption, Inline } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import { PandocError } from "./errors.js";
 
+export function plainListPrefix(start: number, index: number, style: string, delimiter: string): string {
+  let n = start + index, numeral = String(n);
+  if (style === "LowerAlpha" || style === "UpperAlpha") {
+    numeral = String.fromCharCode((style === "LowerAlpha" ? 97 : 65) + (Math.max(1, start) - 1 + index) % 26);
+  } else if (style === "LowerRoman" || style === "UpperRoman") {
+    numeral = n < 0 || n >= 4000 ? "?" : "";
+    if (!numeral) for (const [value, digits] of [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]] as const) {
+      while (n >= value) {numeral += digits; n -= value;}
+    }
+    if (style === "LowerRoman") numeral = numeral.toLowerCase();
+  }
+  const marker = delimiter === "TwoParens" ? "(" + numeral + ")" : numeral + (delimiter === "OneParen" ? ")" : ".");
+  return (marker + " ").padEnd(4);
+}
+
 class Plain {
   constructor(readonly context: AdapterContext) {}
   join(parts: readonly string[], separator = ""): string {
@@ -114,12 +129,12 @@ class Plain {
           const items = node.t === "BulletList" ? node.c : node.c[1];
           const rendered: string[] = [];
           for(const [j, item] of items.entries()) {
-            const marker = node.t === "BulletList" ? "-" : `${node.c[0][0] + j}.`;
+            const prefix = node.t === "BulletList" ? "- " : plainListPrefix(node.c[0][0], j, node.c[0][1], node.c[0][2]);
             const content = await this.blocks(item, `${p}.c${node.t === "OrderedList" ? "[1]" : ""}[${j}]`);
-            const prefix = node.t === "BulletList" ? marker + " " : marker + " ".repeat(Math.max(1, 4 - marker.length));
-            rendered.push(content ? this.indent(content, prefix, " ".repeat(prefix.length)) : marker);
+            rendered.push(content ? this.indent(content, prefix, " ".repeat(prefix.length)) : prefix);
           }
-          value = this.join(rendered, "\n"); break;
+          const loose = items.some(item => item.length && item[0]!.t !== "Plain" && (item.length > 1 || item[0]!.t !== "BulletList" && item[0]!.t !== "OrderedList"));
+          value = this.join(rendered, loose ? "\n\n" : "\n"); break;
         }
         case "DefinitionList": {
           const entries: string[] = [];

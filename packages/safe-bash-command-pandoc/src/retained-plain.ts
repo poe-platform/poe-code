@@ -1,3 +1,4 @@
+import {plainListPrefix} from "./plain-writer.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -12,7 +13,7 @@ type Job = {
   op: string; node: number; path: number; stage?: number; mode?: string;
   cursor?: number; end?: number; index?: number; text?: TextRange; count?: number;
   previous?: string; tag?: string; sep?: string; skip?: boolean; byCount?: boolean;
-  start?: number; first?: string; rest?: string; empty?: string; title?: number;
+  style?: string; delimiter?: string; start?: number; first?: string; rest?: string; empty?: string; title?: number;
   parts?: Job[]; setCount?: number; noJoin?: boolean; always?: boolean;
 };
 
@@ -130,7 +131,7 @@ class PlainTape {
           const node = job.cursor!, path = await this.path(job.path, `[${job.index}]`);
           job.cursor = (await this.tree.describe(node)).end;
           if (job.mode === "block") job.tag = await this.tag(node);
-          child = {op: job.mode!, node, path, index: job.index!, ...(job.start === undefined ? {} : {start: job.start})};
+          child = {op: job.mode!, node, path, index: job.index!, ...(job.start === undefined ? {} : {start: job.start, style: job.style, delimiter: job.delimiter})};
         }
         if (child) {job.stage = 1; await this.push(job); await this.push(child);}
         else {
@@ -151,9 +152,8 @@ class PlainTape {
         continue;
       }
       if (job.op === "item") {
-        const marker = job.start === undefined ? "-" : `${job.start + job.index!}.`;
-        const prefix = job.start === undefined ? "- " : marker + " ".repeat(Math.max(1, 4 - marker.length));
-        await this.push({...this.post(job.node, job.path, "indent"), first: prefix, rest: " ".repeat(prefix.length), empty: marker});
+        const prefix = job.start === undefined ? "- " : plainListPrefix(job.start, job.index!, job.style!, job.delimiter!);
+        await this.push({...this.post(job.node, job.path, "indent"), first: prefix, rest: " ".repeat(prefix.length), empty: prefix});
         await this.push({...job, op: "blocks"}); continue;
       }
       if (job.op === "definition") {
@@ -235,7 +235,21 @@ class PlainTape {
         if (tag === "LineBlock" || tag === "BulletList" || tag === "OrderedList" || tag === "DefinitionList") {
           const ordered = tag === "OrderedList", node = ordered ? await this.at(content!, 1) : content!, path = ordered ? await this.path(cp, "[1]") : cp;
           const list = this.list(node, path, tag === "LineBlock" ? "inlines" : tag === "DefinitionList" ? "definition" : "item", tag === "DefinitionList" ? "\n\n" : "\n");
-          if (ordered) list.start = await this.number(await this.at(await this.at(content!, 0), 0));
+          if (ordered) {
+            const spec = await this.at(content!, 0);
+            list.start = await this.number(await this.at(spec, 0));
+            list.style = await this.tag(await this.at(spec, 1));
+            list.delimiter = await this.tag(await this.at(spec, 2));
+          }
+          if (list.mode === "item") for await (const item of this.tree.children(node)) {
+            await this.context.cooperate();
+            const first = item + 32, end = (await this.tree.describe(item)).end;
+            if (first === end) continue;
+            const tag = await this.tag(first);
+            if (tag !== "Plain" && (tag !== "BulletList" && tag !== "OrderedList" || (await this.tree.describe(first)).end !== end)) {
+              list.sep = "\n\n"; break;
+            }
+          }
           await this.push(list); continue;
         }
         if (tag === "Figure") {

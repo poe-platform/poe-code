@@ -1,3 +1,4 @@
+import {htmlImageWidth} from "./html-image-width.js";
 import {htmlMath} from "./html-math.js";
 import {codeLanguage, highlightCode, highlightCss} from "./html-highlight.js";
 import { taskListItemState, taskListState } from "./task-list.js";
@@ -55,11 +56,14 @@ class HtmlWriter {
     if(chunk) this.add(chunk);
   }
   attribute(key: string, value: string): void {this.add(` ${key}="`); this.escape(value, true); this.add('"');}
-  attrs(attr: Attr, id = attr[0]): void {
+  attrs(attr: Attr, id = attr[0], image = false): void {
     if(id) this.attribute("id", id);
     if(attr[1].length) this.attribute("class", attr[1].join(" "));
     const seen = new Set(["id", "class"]);
     for(const [key, value] of attr[2]) {
+      if (image && key === "width" && !seen.has(key)) {
+        seen.add(key); this.attribute(...htmlImageWidth(value)); continue;
+      }
       // Explicit passive vocabulary; URL-bearing and active attributes cannot bypass targets.
       if(seen.has(key) || !( ["title", "lang", "dir", "role"].includes(key) || key.startsWith("data-") || key.startsWith("aria-")) ||
         [...key].some(ch => !(ch >= "a" && ch <= "z") && !(ch >= "0" && ch <= "9") && ch !== "-")) this.fail("Unsupported HTML attribute");
@@ -183,7 +187,7 @@ class HtmlWriter {
           if(image) this.attribute("alt", this.plain(node.c[1]));
           if(node.c[2][1]) this.attribute("title", node.c[2][1]);
           if(node.c[0][2].some(([key]) => key === "title") && node.c[2][1]) this.fail("Duplicate HTML title attribute", p);
-          this.attrs(node.c[0]); this.add(">");
+          this.attrs(node.c[0], node.c[0][0], image); this.add(">");
           if(!image) {await this.inlines(node.c[1], `${p}.c[1]`); this.add("</a>");} break;
         }
         case "Note": {

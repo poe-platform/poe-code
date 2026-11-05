@@ -1,3 +1,4 @@
+import {htmlImageWidth} from "./html-image-width.js";
 import {htmlMath} from "./html-math.js";
 import {codeLanguage, highlightCode, highlightCss} from "./html-highlight.js";
 import type {RetainedDocumentSidecars} from "./retained-json.js";
@@ -148,7 +149,7 @@ class HtmlTape {
     }
     return undefined;
   }
-  private async attrs(node: number, id?: TextRange, codeClass?: string): Promise<void> {
+  private async attrs(node: number, id?: TextRange, codeClass?: string, image = false): Promise<void> {
     id ??= await this.scalar(await this.at(node, 0));
     if (id.units) await this.attribute("id", id);
     const classes = await this.at(node, 1), entries = await this.at(node, 2);
@@ -165,6 +166,11 @@ class HtmlTape {
     await seen.add(await this.text.from(["id"])); await seen.add(await this.text.from(["class"]));
     for await (const pair of this.tree.children(entries)) {
       const keyNode = await this.at(pair, 0), key = await this.scalar(keyNode), value = await this.at(pair, 1);
+      if (image && await this.matches(keyNode, "width") && !await seen.has(key)) {
+        await seen.add(key);
+        await this.attribute(...htmlImageWidth(await this.tree.smallText(value, 128)));
+        continue;
+      }
       let prefix = "", valid = true;
       for await (const chunk of this.text.chunks(key)) for (const char of chunk) {
         if (prefix.length < 6) prefix += char;
@@ -402,7 +408,7 @@ class HtmlTape {
           if (image) await this.attribute("alt", await this.plain(label.node));
           if (title.units) await this.attribute("title", title);
           if (title.units) for await (const pair of this.tree.children(await this.at(attrs, 2))) if (await this.matches(pair + 32, "title")) await this.fail("Duplicate HTML title attribute", job.path);
-          await this.attrs(attrs); await this.add(">");
+          await this.attrs(attrs, undefined, undefined, image); await this.add(">");
           if (!image) await this.sequence(this.list(label.node, label.path, "inline"), this.literal("</a>"));
         } else if (tag === "Note") {
           const index = ++this.noteCount, id = await this.unique(await this.text.from([`fn${index}`])), ref = await this.unique(await this.text.from([`fnref${index}`]));

@@ -95,7 +95,7 @@ test("Word table merges survive import and Word export", async () => {
     for (const to of ["json", "html", "docx"]) {
       const native = await convert("docx", to, docx);
       const expected = to === "docx" ? await convert("docx", "json", native) : native;
-      for (const shell of to === "docx" ? [rust] : [ts.shell, rust]) {
+      for (const shell of [ts.shell, rust]) {
         const actual = await shell.exec(`pandoc -f docx -t ${to}${to === "html" ? " --wrap=none" : ""}`, {stdin: docx});
         assert.equal(actual.exitCode, 0, actual.stderr);
         const output = to === "docx" ? await convert("docx", "json", actual.stdoutBytes) : actual.stdoutBytes;

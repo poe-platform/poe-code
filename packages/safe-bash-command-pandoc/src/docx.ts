@@ -1,6 +1,6 @@
 import {encodeXML} from "entities";
 import type {Paragraph, Table, DocxBlock, DocxRunInput, DocumentModelContext, XmlElement} from "safe-bash-docx-engine";
-import type {Block, Inline, Row, Alignment} from "./ast-types.js";
+import type {Block, Cell, Inline, Row, Alignment} from "./ast-types.js";
 import type {AdapterContext, ReaderCapability, WriterCapability, Resource} from "./types.js";
 import {PandocError} from "./errors.js";
 import {literalInlines} from "./literal-inlines.js";
@@ -302,12 +302,13 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
 export const docxWriter: WriterCapability = {format: "docx", imageResources: "embed", async write(document, ctx) {
   return guarded(ctx, async () => {
     const blocks: DocxBlock[] = [];
-    const tableWidths: (readonly number[] | undefined)[] = [];
     const paragraphs: {runs: readonly RichRun[]; properties: string}[] = [];
     const numbering: string[] = [];
     const notes: (readonly Block[])[] = [];
     let noteReference = false;
     let compactLists = false;
+    const tables: {widths: number[]; fraction: number}[] = [];
+    const cellEdits: (string | null)[] = [];
     const w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
     const runs = (nodes: readonly Inline[], style: Omit<RichRun, "text" | "image" | "raw"> = {}, result: RichRun[] = []): RichRun[] => {
@@ -391,19 +392,35 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
         } else if (block.t === "Table") {
           if (block.c[1][1].length) await visit(block.c[1][1], target, indent);
           else if (block.c[1][0]?.length) paragraph(target, runs(block.c[1][0]), "");
-          const specs = block.c[2];
-          tableWidths.push(specs.some(([, width]) => width.t === "ColWidth")
-            ? specs.map(([, width]) => width.t === "ColWidth" ? width.c : 1 / specs.length) : undefined);
+          const cols = block.c[2], fraction = cols.reduce((sum, [,w]) => sum + (w.t === "ColWidth" ? w.c : 0), 0);
+          const widths = cols.map(([,w]) => Math.floor(7920 * (fraction ? w.t === "ColWidth" ? w.c : 0 : 1 / cols.length)));
+          tables.push({widths, fraction});
           const rows = [];
+          const active = new Map<number, {cell: Cell; end: number}>();
           for (const row of [...block.c[3][1], ...block.c[4].flatMap(body => [...body[2], ...body[3]]), ...block.c[5][1]]) {
             const cells = [];
-            for (const [column, cell] of row[1].entries()) {
-              if (cell[2] !== 1 || cell[3] !== 1) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "DOCX table spans are unsupported", "docx");
-              const align = cell[1] === "AlignDefault" ? specs[column]?.[0] : cell[1];
-              const justification = align === "AlignLeft" ? "left" : align === "AlignRight" ? "right" : align === "AlignCenter" ? "center" : undefined;
-              const children: DocxBlock[] = []; await visit(cell[4], children, 0, undefined, justification ? `<w:jc w:val="${justification}"/>` : "");
-              if (!children.length || children.at(-1)?.kind !== "paragraph") paragraph(children, [], "");
+            let owner = 0;
+            for (let col = 0; col < cols.length;) {
+              await ctx.cooperate();
+              const prior = active.get(col);
+              const cell = prior?.cell ?? row[1][owner++]!;
+              const end = prior?.end ?? rows.length + cell[2];
+              if (end > rows.length + 1) active.set(col, {cell, end}); else active.delete(col);
+              const width = widths.slice(col, col + cell[3]).reduce((a,b) => a+b, 0);
+              const span = cell[3] > 1 ? `<w:gridSpan w:val="${cell[3]}"/>` : "";
+              const merge = prior ? "<w:vMerge/>" : cell[2] > 1 ? '<w:vMerge w:val="restart"/>' : "";
+              cellEdits.push(`<w:tcPr xmlns:w="${w}"><w:tcW w:w="${width}" w:type="dxa"/>${span}${merge}</w:tcPr>`);
+              const children: DocxBlock[] = [];
+              if (!prior) {
+                const align = cell[1] === "AlignDefault" ? cols[col]![0] : cell[1];
+                const justification = align === "AlignDefault" ? "" : `<w:jc w:val="${align.slice(5).toLowerCase()}"/>`;
+                await visit(cell[4], children, 0, undefined, justification);
+              }
+              if (children.at(-1)?.kind !== "paragraph") paragraph(children, [], "");
               cells.push({blocks: children});
+              // The archive creator takes a rectangular grid. These cells are removed before serialization.
+              for (let j = 1; j < cell[3]; j++) {ctx.checkpoint(); cellEdits.push(null); cells.push({blocks: []});}
+              col += cell[3];
             }
             rows.push(cells);
           }
@@ -421,13 +438,13 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       if (noteReference) paragraph(blocks, [], "");
       noteRanges.push({start, end: blocks.length});
     }
-    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image} = await import("safe-bash-docx-engine/pandoc-adapter");
+    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image, numberingChild} = await import("safe-bash-docx-engine/pandoc-adapter");
     const mc = await modelContext(ctx);
     const archiveContext = {signal: mc.signal!, budget: mc.budget!};
     const archive = await createDocumentArchive({content: {version: 1, blocks}}, archiveContext);
     const main = new DocumentXmlEditor(archive.members.find(member => member.name === "word/document.xml")!.bytes, {}, undefined, mc.budget);
     const relationships = new DocumentXmlEditor(archive.members.find(member => member.name === "word/_rels/document.xml.rels")!.bytes, {}, undefined, mc.budget);
-    let paragraphIndex = 0, tableIndex = 0, relationshipId = 2;
+    let paragraphIndex = 0, relationshipId = 2;
     const linkRelationships: string[] = [];
     const media = new Map<string, {name: string; bytes: Uint8Array; type: string; id: string; asset: import("safe-bash-docx-engine").Image}>();
     let drawingId = 0;
@@ -453,9 +470,22 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       const a = "http://schemas.openxmlformats.org/drawingml/2006/main", pic = "http://schemas.openxmlformats.org/drawingml/2006/picture";
       return `<w:drawing xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="${a}" xmlns:pic="${pic}" xmlns:r="${r}"><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${width}" cy="${height}"/><wp:docPr id="${++drawingId}" name="Image ${drawingId}" descr="${alt}" title="${encodeXML(node.c[2][1])}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="${pic}"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Image ${drawingId}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${entry.id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${width}" cy="${height}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>`;
     };
+    const documentEdits = new Map<import("safe-bash-docx-engine").XmlElement, string>();
+    let tableIndex = 0, cellIndex = 0;
     const edit = async (node: import("safe-bash-docx-engine").XmlElement): Promise<void> => {
       await ctx.cooperate();
-      if (node.namespace === w && node.localName === "p") {
+      if (node.namespace === w && node.localName === "tbl") {
+        const {widths, fraction} = tables[tableIndex++]!;
+        const grid = numberingChild(node, "tblGrid")!, props = numberingChild(node, "tblPr")!;
+        documentEdits.set(grid, `<w:tblGrid xmlns:w="${w}">${widths.map(width => `<w:gridCol w:w="${width}"/>`).join("")}</w:tblGrid>`);
+        documentEdits.set(numberingChild(props, "tblW")!, `<w:tblW xmlns:w="${w}" w:type="${fraction ? "pct" : "auto"}" w:w="${Math.round(fraction * 5000)}"/>`);
+        for (const row of node.children.filter(n => n.namespace === w && n.localName === "tr")) await edit(row);
+      } else if (node.namespace === w && node.localName === "tc") {
+        const props = cellEdits[cellIndex++];
+        if (props === null) {documentEdits.set(node, ""); return;}
+        documentEdits.set(numberingChild(node, "tcPr")!, props!);
+        for (const child of node.children) if (child.localName !== "tcPr") await edit(child);
+      } else if (node.namespace === w && node.localName === "p") {
         const extra = paragraphs[paragraphIndex++];
         if (!extra) return;
         const replacements = new Map<import("safe-bash-docx-engine").XmlElement, string>();
@@ -485,32 +515,14 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           }
           if (codeStyle || format || run.image || run.link !== undefined) replacements.set(native, xml);
         }
-        if (extra.properties || replacements.size) main.replaceElement(node, `<w:p xmlns:w="${w}" xmlns:r="${r}">${!properties && extra.properties ? `<w:pPr>${extra.properties}</w:pPr>` : ""}${main.sourceXml(node, replacements, true)}</w:p>`);
-      } else {
-        if (node.namespace === w && node.localName === "tbl") {
-          const widths = tableWidths[tableIndex++];
-          if (widths) {
-            const total = widths.reduce((sum, width) => sum + width, 0);
-            const grid = node.children.find(child => child.localName === "tblGrid")!;
-            const columns = grid.children;
-            const available = columns.reduce((sum, column) => sum + Number(column.attributes.find(attribute => attribute.localName === "w")!.value), 0);
-            const preferred = node.children.find(child => child.localName === "tblPr")!.children.find(child => child.localName === "tblW")!;
-            main.setAttribute(preferred, "w:w", String(Math.round(total * 5000)));
-            main.setAttribute(preferred, "w:type", "pct");
-            for (const [index, column] of columns.entries()) main.setAttribute(column, "w:w", String(Math.max(1, Math.round(available * widths[index]!))));
-            for (const row of node.children.filter(child => child.localName === "tr")) {
-              for (const [index, cell] of row.children.filter(child => child.localName === "tc").entries()) {
-                const width = cell.children.find(child => child.localName === "tcPr")!.children.find(child => child.localName === "tcW")!;
-                main.setAttribute(width, "w:w", String(Math.round(widths[index]! / total * 5000)));
-                main.setAttribute(width, "w:type", "pct");
-              }
-            }
-          }
-        }
-        for (const child of node.children) await edit(child);
-      }
+        if (extra.properties || replacements.size) documentEdits.set(node, `<w:p xmlns:w="${w}" xmlns:r="${r}">${!properties && extra.properties ? `<w:pPr>${extra.properties}</w:pPr>` : ""}${main.sourceXml(node, replacements, true)}</w:p>`);
+      } else for (const child of node.children) await edit(child);
     };
     await edit(main.root);
+    if (documentEdits.size) {
+      const body = numberingChild(main.root, "body")!;
+      main.replaceElement(body, main.sourceXml(body, documentEdits));
+    }
     let documentBytes = main.serialize();
     let footnotes: string | undefined;
     if (notes.length) {

@@ -8073,9 +8073,11 @@ export class SqliteDatabase {
         const entries: string[] = [];
         for (let i = 0; i + 1 < args.length; i += 2) {
           yield;
-          if (args[i] !== null && args[i] !== undefined) {
-            entries.push(`${JSON.stringify(toSqlString(args[i]!))}:${serializeSqlJson(args[i + 1] ?? null)}`);
+          const label = args[i];
+          if (typeof label !== "string" && !(label instanceof String)) {
+            throw new Error("stepping, json_object() labels must be TEXT");
           }
+          entries.push(`${JSON.stringify(label)}:${serializeSqlJson(args[i + 1] ?? null)}`);
         }
         return `{${entries.join(",")}}`;
       }
@@ -8086,12 +8088,14 @@ export class SqliteDatabase {
         try {
           const parsed = JSON.parse(toSqlString(a0));
           if (args.length <= 2) {
-            const extracted = extractByJsonPath(parsed, toSqlString(a1 ?? "$"));
+            if (a1 === null) return null;
+            const extracted = extractByJsonPath(parsed, toSqlString(a1));
             const value = jsonValueToSql(extracted, true);
             return extracted !== null && typeof extracted === "object" && typeof value === "string" ? new JsonText(value) : value;
           }
           const arr = args.slice(1).map((p) => {
-            const v = extractByJsonPath(parsed, toSqlString(p ?? "$"));
+            if (p === null) return null;
+            const v = extractByJsonPath(parsed, toSqlString(p));
             return v === undefined ? null : v;
           });
           return new JsonText(JSON.stringify(arr));
@@ -8108,6 +8112,7 @@ export class SqliteDatabase {
         }
         try {
           const parsed = JSON.parse(toSqlString(a0));
+          if (args.length > 1 && a1 === null) return null;
           const target =
             a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
           if (target === undefined) {
@@ -8142,6 +8147,7 @@ export class SqliteDatabase {
         }
         try {
           const parsed = JSON.parse(toSqlString(a0));
+          if (args.length > 1 && a1 === null) return null;
           const target =
             a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
           return Array.isArray(target) ? target.length : 0;
@@ -8166,7 +8172,8 @@ export class SqliteDatabase {
           const mode = u === "JSON_SET" ? "set" : u === "JSON_INSERT" ? "insert" : "replace";
           for (let i = 1; i + 1 < args.length; i += 2) {
             yield;
-            const p = toSqlString(args[i] ?? "$");
+            if (args[i] === null) continue;
+            const p = toSqlString(args[i]!);
             const value = args[i + 1] ?? null;
             const v = value instanceof JsonText ? JSON.parse(value.valueOf()) : value;
             cur = setByJsonPath(cur, p, v, mode);
@@ -8187,7 +8194,8 @@ export class SqliteDatabase {
           let cur = JSON.parse(toSqlString(a0));
           for (let i = 1; i < args.length; i += 1) {
             yield;
-            cur = removeByJsonPath(cur, toSqlString(args[i] ?? "$"));
+            if (args[i] === null) return null;
+            cur = removeByJsonPath(cur, toSqlString(args[i]!));
           }
           return serializeSqlJson(cur);
         } catch (error) {

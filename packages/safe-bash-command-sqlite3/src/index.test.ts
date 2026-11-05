@@ -113,6 +113,24 @@ for (const [name, updated] of [
   });
 }
 
+for (const label of ["NULL", "1", "1.5", "9007199254740993", "x'61'", "TRUE"]) {
+  test(`sqlite3 json_object rejects non-text label ${label}`, async () => {
+    for (const args of [`${label}, 2`, `'valid', 1, ${label}, 2`]) {
+      assert.deepEqual(
+        await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT json_object(${args});`]),
+        { code: 1, stdout: "", stderr: "Error: stepping, json_object() labels must be TEXT\n" }
+      );
+    }
+  });
+}
+
+test("sqlite3 json_object accepts text labels including JSON-tagged text", async () => {
+  assert.deepEqual(
+    await runSqlite3(createMemoryFileSystem(), [":memory:", "SELECT json_object('', NULL, CAST(1 AS TEXT), 2, json('[]'), 3); SELECT json_object(label, 4) FROM (SELECT 'key' AS label);"]),
+    { code: 0, stdout: '{"":null,"1":2,"[]":3}\n{"key":4}\n', stderr: "" }
+  );
+});
+
 test("sqlite3 json_object preserves complete and empty argument lists", async () => {
   assert.deepEqual(
     await runSqlite3(createMemoryFileSystem(), [":memory:", "SELECT json_object(), json_object('a', 1, 'b', 2);"]),
@@ -147,6 +165,37 @@ test("sqlite3 JSON1 preserves validation and SQL NULL behavior", async () => {
     ]),
     { code: 0, stdout: "0|1|||||||||\n", stderr: "" }
   );
+});
+
+test("sqlite3 JSON1 honors NULL paths through the public command", async () => {
+  const cases = [
+    ["json_extract('{}', NULL)", "NULL"],
+    ["json_extract('{}')", "NULL"],
+    ["json_type('{}', NULL)", "NULL"],
+    ["json_array_length('[1,2]', NULL)", "NULL"],
+    ["json_extract('[1,2]', NULL, '$[0]', NULL)", "[null,1,null]"],
+    ["json_extract('[1,2]', '$[0]', NULL)", "[1,null]"],
+    ["json_remove('[1,2]', NULL)", "NULL"],
+    ["json_remove('[1,2]', '$[0]', NULL)", "NULL"],
+    ["json_remove('[1,2]', NULL, '$[0]')", "NULL"],
+    ["json_type('{}')", "object"],
+    ["json_array_length('[1,2]')", "2"],
+    ["json_extract('[1,2]', '$')", "[1,2]"],
+  ];
+  for (const name of ["json_set", "json_insert", "json_replace"]) {
+    cases.push(
+      [`${name}('{}', NULL, 1)`, "{}"],
+      [`${name}('[1,2]', NULL, 9, '$[0]', 3, NULL, 8)`, name === "json_insert" ? "[1,2]" : "[3,2]"],
+      [`${name}('{}', NULL, 9, '$.a', 3, NULL, 8)`, name === "json_replace" ? "{}" : '{"a":3}'],
+    );
+  }
+  for (const [expression, expected] of cases) {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), ["-nullvalue", "NULL", ":memory:", `SELECT ${expression};`]),
+      { code: 0, stdout: `${expected}\n`, stderr: "" },
+      expression
+    );
+  }
 });
 
 test("sqlite3 JSON1 treats quoted object names as single path components", async () => {

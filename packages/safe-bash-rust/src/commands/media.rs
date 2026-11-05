@@ -16767,6 +16767,57 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdf_stencil_keeps_packed_samples_but_paints_with_the_current_fill() {
+        let fs = MemoryVfs::new();
+        for (decode, digest) in [
+            ("", "079b2660bd2f2561eeb62b02ee20197d5f250705af6dafaec20a3cafcffeffe3"),
+            ("/D [1 0]", "aa5da6e3c6441dcdd5396775cb4b5a2658e0d9580b77625fb26526b6049c0455"),
+        ] {
+            let image = format!("BI /IM true /W 17 /H 3 {decode} ID VUUVUUVUU EI");
+            let draw = format!("q 1 0 0 rg 12 0 0 7 3 5 cm {image} Q q 0 0 1 rg 2 7 -8 1 17 8 cm {image} Q");
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << >> /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len())], "");
+            fs.write_file("/mask.pdf", pdf.as_bytes()).unwrap();
+            let run = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+            let list = run("pdfimages", &["-list", "mask.pdf"]);
+            assert_eq!(list.stdout.lines().skip(2).collect::<Vec<_>>(), [
+                "   1     0 stencil    17     3  -       1   1  image  no   [inline]     102    31    0B 0.0%",
+                "   1     1 stencil    17     3  -       1   1  image  no   [inline]     168    27    0B 0.0%",
+            ]);
+            assert_eq!(run("pdfimages", &["mask.pdf", "out"]).exit_code, 0);
+            for name in ["/out-000.pbm", "/out-001.pbm"] {
+                assert_eq!(fs.read_file(name).unwrap(), b"P4\n17 3\nVUUVUUVUU");
+            }
+            assert_eq!(run("pdftoppm", &["-r", "72", "-singlefile", "mask.pdf", "page"]).exit_code, 0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/page.ppm").unwrap())), digest);
+        }
+    }
+
+    #[test]
+    fn pdf_stencil_xobject_decodes_group4_polarity_and_fractional_fill() {
+        let fs = MemoryVfs::new();
+        let draw = "q 0.1 0.3 0.9 rg 12 0 0 7 3 5 cm /M Do Q";
+        let fax = "23a23a23e5d11d11d04bedb88deac250010010>";
+        for (black, pbm, digest) in [
+            (false, "a9aa80accf80cdc680", "82a1731a80f3af917ee6927cc0fe149e9f449c0065750c5d63b7a45809409a98"),
+            (true, "56557f53307f32397f", "3371bfa19130394b7ce2a758b2a698f9b381f3c7bd1ce0b74e791498671f2597"),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << /XObject << /M 5 0 R >> >> /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len()),
+                &format!("<< /Type /XObject /Subtype /Image /ImageMask true /Width 17 /Height 3 /Decode [1 0] /Filter [/ASCIIHexDecode /CCITTFaxDecode] /DecodeParms [null << /K -1 /Columns 17 /Rows 3 /BlackIs1 {black} >>] /Length {} >>\nstream\n{fax}\nendstream", fax.len())], "");
+            fs.write_file("/mask.pdf", pdf.as_bytes()).unwrap();
+            let run = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+            assert_eq!(run("pdfimages", &["mask.pdf", "out"]).exit_code, 0);
+            let file = fs.read_file("/out-000.pbm").unwrap();
+            assert_eq!(hex_enc(file.strip_prefix(b"P4\n17 3\n").unwrap()), pbm);
+            assert_eq!(run("pdftoppm", &["-r", "72", "-singlefile", "mask.pdf", "page"]).exit_code, 0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/page.ppm").unwrap())), digest);
+        }
+    }
+
+    #[test]
     fn pdf_forms_draw_nested_and_repeated_images_in_their_resource_scope() {
         let stream = |dict: &str, data: &str| format!("<< {dict} /Length {} >>\nstream\n{data}\nendstream", data.len());
         let image = "/Type /XObject /Subtype /Image /Width 1 /Height 1 /ColorSpace /DeviceRGB /BitsPerComponent 8";

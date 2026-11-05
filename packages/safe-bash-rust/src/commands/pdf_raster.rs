@@ -56,7 +56,7 @@ fn splash_sampler<const N: usize>(
     ys: std::ops::Range<usize>,
 ) -> impl FnMut(usize, usize, &mut usize) -> Option<[u8; N]> + '_ {
     let (dx, dy) = (im.width as f64 / sw, im.height as f64 / sh);
-    let smooth = dx <= 1. && dy <= 1. && (im.interpolate || dx > 0.25 && dy > 0.25);
+    let smooth = !im.stencil && dx <= 1. && dy <= 1. && (im.interpolate || dx > 0.25 && dy > 0.25);
     let mix = |a: u8, b: u8, t: f64| (f64::from(a) * (1. - t) + f64::from(b) * t) as u8;
     // A reduced axis averages whole source samples; an enlarged axis repeats them.
     let span = |i: usize, src: usize, dst: usize| {
@@ -88,12 +88,16 @@ fn splash_sampler<const N: usize>(
             let mut sum = [0u64; N];
             for j in rows {
                 for p in &im.pixels[j * im.width..][cols.clone()] {
+                    if im.stencil {
+                        sum[0] += u64::from(p[3] != 0);
+                        continue;
+                    }
                     for (total, &channel) in sum.iter_mut().zip(p) {
                         *total += u64::from(channel);
                     }
                 }
             }
-            let reciprocal = (1 << 23) / count as u64;
+            let reciprocal = (if im.stencil { 255 } else { 1 } << 23) / count as u64;
             sum.map(|n| ((n * reciprocal) >> 23) as u8)
         };
         if x + 1 == xs.end {
@@ -114,9 +118,12 @@ fn splash_rgba<'a>(
     ys: std::ops::Range<usize>,
 ) -> impl FnMut(usize, usize, &mut usize) -> Option<[u8; 4]> + 'a {
     let mut rgb = splash_sampler::<3>(im, bounds, xs.clone(), ys.clone());
-    let mut alpha = mask.map(|m| splash_sampler::<1>(m, bounds, xs, ys));
+    let mut alpha = mask.or(im.stencil.then_some(im)).map(|m| splash_sampler::<1>(m, bounds, xs, ys));
     move |x, y, work| {
-        let [r, g, b] = rgb(x, y, work)?;
+        let [r, g, b] = if im.stencil {
+            let [r, g, b, _] = im.pixels[0];
+            [r, g, b]
+        } else { rgb(x, y, work)? };
         let a = match &mut alpha {
             Some(sample) => sample(x, y, work)?[0],
             None => 255,
@@ -274,14 +281,14 @@ impl Bitmap {
         if a.abs() < b.abs() {
             std::mem::swap(&mut sw, &mut sh);
         }
-        if sw <= 1. || sh <= 1. {
+        if im.stencil || sw <= 1. || sh <= 1. {
             let span = |lo: f64, hi: f64| (hi.floor() - lo.floor()).abs() + 1.;
             sw = span(e, e + a).max(span(f, f + b));
             sh = span(e, e + c).max(span(f, f + d));
-            if b.abs() >= 1. {
+            if !im.stencil && b.abs() >= 1. {
                 sh = sh.max(1. + c.signum() * (c.floor() - (a * d / b).floor()));
             }
-            if a.abs() >= 1. {
+            if !im.stencil && a.abs() >= 1. {
                 sh = sh.max(1. + d.signum() * (d.floor() - (b * c / a).floor()));
             }
         }
@@ -846,7 +853,14 @@ impl PageSource<'_> {
                 }
                 Draw::Image(stream, matrix) => {
                     let mode = if opt.splash { super::ImageRead::Raster } else { super::ImageRead::Pixels };
-                    if let Some(image) = Image::read(objects, stream, matrix, opt.limit, mode)? {
+                    if let Some(mut image) = Image::read(objects, stream, matrix, opt.limit, mode)? {
+                        if image.stencil {
+                            // Convert PDF 16.16 color components to device bytes.
+                            let [r, g, b] = fill.map(|c: f64| ((((c.clamp(0., 1.) * 65536.) as u32) * 255 + 32768) >> 16) as u8);
+                            for p in &mut image.pixels {
+                                *p = [r, g, b, 255 - p[0]];
+                            }
+                        }
                         let mask = match (opt.splash, image.soft_mask) {
                             (true, Some(id)) => {
                                 let mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode)??;

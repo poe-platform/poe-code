@@ -43,6 +43,7 @@ pub(super) enum ImageStream<'a> {
 
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
+    pub(super) stencil: bool,
     pub(super) soft_mask: Option<ObjectId>,
     fax: bool,
     bits: usize,
@@ -124,7 +125,9 @@ impl Image {
         }
         let number = |k: &[u8]| uint(dict.get(k)?.word()?);
         let (width, height) = (number(b"Width")?, number(b"Height")?);
+        let stencil = dict.get(b"ImageMask").and_then(Value::word) == Some(b"true");
         let components = match dict.get(b"ColorSpace").and_then(Value::word) {
+            _ if stencil => 1,
             Some(b"/DeviceRGB") => 3,
             Some(b"/DeviceGray") => 1,
             Some(b"/DeviceCMYK") => 4,
@@ -134,7 +137,7 @@ impl Image {
         if width == 0 || height == 0 {
             return None;
         }
-        let bits = number(b"BitsPerComponent")?;
+        let bits = if stencil { 1 } else { number(b"BitsPerComponent")? };
         if !matches!(bits, 1 | 2 | 4 | 8 | 16)
             || fax && (bits != 1 || components != 1)
             || jpeg && bits != 8
@@ -203,6 +206,7 @@ impl Image {
                     return None;
                 }
                 let inverted = match dict.get(b"Decode") {
+                    _ if stencil && mono_extract => true,
                     None => false,
                     Some(Value::Array(a)) if a.len() == 2 => match (a[0].number()?, a[1].number()?)
                     {
@@ -222,13 +226,25 @@ impl Image {
                     false,
                     limit,
                 )?;
+                let mut pbm = (stencil && format == Some("PNM")).then(|| format!("P4\n{width} {height}\n").into_bytes());
                 for row in rows.chunks_exact(stride) {
+                    if let Some(out) = &mut pbm {
+                        let used = width.div_ceil(8);
+                        out.extend_from_slice(&row[..used]);
+                        let start = out.len() - used;
+                        let samples = &mut out[start..];
+                        // CCITT fills unused bits as white before applying BlackIs1.
+                        if width % 8 != 0 { samples[used-1] |= 255 >> (width % 8); }
+                        if !black { for b in samples { *b = !*b; } }
+                        continue;
+                    }
                     pixels.extend((0..width).map(|x| {
                         let bit = row[x / 8] & (128 >> (x % 8)) != 0;
                         let v = if bit ^ !black ^ inverted { 255 } else { 0 };
                         [v, v, v, 255]
                     }));
                 }
+                native = pbm.map(NativeImage::Pbm);
             }
         } else if jpeg && mode != ImageRead::List {
             let data = objects.decode(&dict, encoded)?;
@@ -281,7 +297,9 @@ impl Image {
                 return None;
             }
             // Monochrome extraction preserves whole scanlines, including the unused bits at the right edge.
-            let invert = if mono_extract && let Some(v) = dict.get(b"Decode") {
+            let invert = if stencil && mono_extract {
+                true // pdfimages writes the mask samples independently of paint polarity.
+            } else if mono_extract && let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {
                     return None;
                 };
@@ -396,6 +414,7 @@ impl Image {
         }
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
+            stencil,
             soft_mask,
             fax,
             bits,
@@ -430,9 +449,10 @@ impl Image {
         };
         let (x, y) = (ppi(self.width, a, b), ppi(self.height, c, d));
         let object = parent.or(self.id).map_or_else(|| "[inline]  ".to_owned(), |(id, gen_num)| format!(" {id:6} {gen_num:2}"));
-        let kind = if parent.is_some() { "smask" } else { "image" };
+        let kind = if parent.is_some() { "smask" } else if self.stencil { "stencil" } else { "image" };
         let (w, h, components) = (self.width, self.height, self.components);
         let color = match components {
+            _ if self.stencil => "-",
             1 => "gray",
             4 => "cmyk",
             _ => "rgb",
@@ -473,7 +493,7 @@ impl Image {
             format!("{pct:.0}%")
         };
         format!(
-            "{page:4} {idx:5} {kind:<6} {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}  {object} {x} {y} {size:>5} {ratio:>4}\n"
+            "{page:4} {idx:5} {kind:<7}{w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}  {object} {x} {y} {size:>5} {ratio:>4}\n"
         )
     }
     pub(in crate::commands::archive) fn bilevel(&self) -> bool {

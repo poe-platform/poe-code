@@ -2442,7 +2442,9 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
         else if (request.kind === "read") next = steps.next(sources[request.image ?? 0]!.data.subarray(request.position, request.position + request.length));
         else { data.set(request.data, request.position); next = steps.next(); }
     }
-    return { ...img, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data };
+    // Raster steps replace the pixels; the original high-depth samples are stale.
+    const { data16: _data16, ...metadata } = img;
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data };
 }
 
 function resolveGravityOffset(
@@ -5737,7 +5739,8 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
             next = steps.next(bytes.subarray(request.position - page, request.position - page + request.length));
         }
     }
-    return { ...image, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position };
+    const { storedData16: _storedData16, ...metadata } = image;
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position };
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal): Promise<StoredRgbaImage> {

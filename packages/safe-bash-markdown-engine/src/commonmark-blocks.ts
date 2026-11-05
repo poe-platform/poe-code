@@ -12,6 +12,7 @@ export interface PendingInline {
 export interface PendingItem { blocks: PendingBlock[]; source: BlockSource }
 export interface PendingDefinition extends PendingItem { tight: boolean }
 export type PendingBlock =
+  | { kind: "nativeDiv"; literal: string; blocks: PendingBlock[]; source: BlockSource }
   | { kind: "div"; attributes: Attr; blocks: PendingBlock[]; source: BlockSource }
   | { kind: "definitionList"; items: {term: PendingInline; definitions: PendingDefinition[]}[]; source: BlockSource }
   | { kind: "footnote"; label: string; blocks: PendingBlock[]; source: BlockSource }
@@ -43,6 +44,7 @@ interface Line {
 }
 type ListBlock = Extract<PendingBlock, { kind: "list" }>;
 type Container =
+  | { kind: "nativeDiv"; node: Extract<PendingBlock, { kind: "nativeDiv" }> }
   | { kind: "div"; node: Extract<PendingBlock, { kind: "div" }> }
   | { kind: "definition"; node: PendingDefinition; indent: number; blank: boolean; empty: boolean }
   | { kind: "footnote"; node: Extract<PendingBlock, { kind: "footnote" }>; indent: number; blank: boolean; empty: boolean }
@@ -257,7 +259,7 @@ export async function parseCommonMarkBlocks(
   const range = (line: Line, offset: number): BlockSource => ({ source, start: point(line, offset), end: endPoint(line) });
   const blocks = (): PendingBlock[] => {
     const top = stack[stack.length - 1];
-    return top?.kind === "div" || top?.kind === "quote" || top?.kind === "item" || top?.kind === "footnote" || top?.kind === "definition" ? top.node.blocks : document.blocks;
+    return top?.kind === "nativeDiv" || top?.kind === "div" || top?.kind === "quote" || top?.kind === "item" || top?.kind === "footnote" || top?.kind === "definition" ? top.node.blocks : document.blocks;
   };
   const add = (node: PendingBlock): void => {
     context.bound("depth", stack.length + 1);
@@ -362,7 +364,7 @@ export async function parseCommonMarkBlocks(
     for (; matched < stack.length; matched++) {
       context.checkpoint();
       const container = stack[matched]!;
-      if (container.kind === "list" || container.kind === "div") continue;
+      if (container.kind === "list" || container.kind === "nativeDiv" || container.kind === "div") continue;
       const indent = spaces(line.text, offset);
       if (container.kind === "quote") {
         if (indent > 3 || line.text[offset + indent] !== ">") break;
@@ -436,6 +438,11 @@ export async function parseCommonMarkBlocks(
         continue;
       }
       finish();
+    }
+    if (extensions.native_divs && spaces(line.text, offset) <= 3 && line.text.slice(offset).trim().toLowerCase() === "</div>") {
+      let index = stack.length - 1;
+      while (index >= 0 && stack[index]!.kind !== "nativeDiv") index--;
+      if (index >= 0) {finish(); stack.length = index; continue;}
     }
     if (extensions.fenced_divs && spaces(line.text, offset) <= 3) {
       const at = offset + spaces(line.text, offset);
@@ -623,6 +630,13 @@ export async function parseCommonMarkBlocks(
         add(node);
         leaf = { kind: "fence", node, ...opening, indent };
         break;
+      }
+      if (extensions.native_divs && indent <= 3 && line.text.slice(at, at + 4).toLowerCase() === "<div" &&
+        [">", " "].includes(line.text[at + 4] ?? "") && completeTag(line.text, at) && !line.text.trimEnd().endsWith("/>")) {
+        const literal = rawFrom(line, at);
+        context.charge("retainedBytes", literal.length * 2);
+        const node: Extract<PendingBlock, {kind: "nativeDiv"}> = {kind: "nativeDiv", literal, blocks: [], source: range(line, at)};
+        add(node); push({kind: "nativeDiv", node}); break;
       }
       const html = extensions.raw_html !== false && indent <= 3 ? htmlStart(line.text, at, false) : undefined;
       if (html) {

@@ -5,7 +5,7 @@ import {RetainedCommonMarkLine} from "./retained-commonmark-line.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedSourceText, SourceRange} from "./retained-source-text.js";
 
-const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote", "definitionList", "definitionTerm", "definition", "div"] as const;
+const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote", "definitionList", "definitionTerm", "definition", "div", "nativeDiv"] as const;
 const fields = ["parent", "first", "last", "next", "previous", "startLine", "startColumn", "endLine", "endColumn", "firstLine", "lastLine", "lineCount", "infoStart", "infoEnd", "number", "marker", "style", "tight", "blank"] as const;
 type Field = typeof fields[number];
 type Node = Record<Field, number> & {kind: typeof kinds[number]; info: SourceRange};
@@ -187,7 +187,7 @@ export class RetainedCommonMarkBlocks {
     const containers = async function* (parser: RetainedCommonMarkBlocks) {for (let position = firstStack; position;) {const fields = await parser.get(position, 8); yield {position, fields}; position = fields[1]!;}};
     const parent = async () => {
       if (!lastStack) return this.root;
-      const top = await this.get(lastStack, 8); return ["div", "quote", "item", "footnote", "definition"].includes(kinds[top[3]!]!) ? top[2]! : this.root;
+      const top = await this.get(lastStack, 8); return ["nativeDiv", "div", "quote", "item", "footnote", "definition"].includes(kinds[top[3]!]!) ? top[2]! : this.root;
     };
     const finish = async () => {if (leaf?.kind === "paragraph") await this.extractDefinitions(leaf.node); leaf = undefined;};
     const push = async (node: number, kind: Node["kind"], indent = 0, list = 0, empty = false) => {
@@ -280,6 +280,20 @@ export class RetainedCommonMarkBlocks {
           await literal(leaf.node, line, offset + 4, {raw, ending}); leaf.blanks = await this.create("row"); await end(leaf.node, line); continue;
         }
         await finish();
+      }
+      if (extensions.native_divs && await line.spaces(offset) <= 3 && await line.at(offset + await line.spaces(offset)) === "<") {
+        const tag = await this.trim(await line.rawFrom(offset));
+        if (tag.end - tag.start === 6) {
+          let text = ""; for await (const chunk of source.chunks(tag)) text += chunk;
+          if (text.toLowerCase() === "</div>") {
+            let closing = 0, closingDepth = -1, index = 0;
+            for await (const container of containers(this)) {
+              if (kinds[container.fields[3]!] === "nativeDiv") {closing = container.fields[0]!; closingDepth = index;}
+              index++;
+            }
+            if (closingDepth >= 0) {await finish(); await truncate(closing, closingDepth); continue;}
+          }
+        }
       }
       if (extensions.fenced_divs && await line.spaces(offset) <= 3) {
         const at = offset + await line.spaces(offset); let stop = at;
@@ -431,6 +445,15 @@ export class RetainedCommonMarkBlocks {
         if (indent <= 3 && await line.rule(at)) {await add("thematicBreak", line, at); break;}
         const opening = indent <= 3 ? await line.fence(at) : undefined;
         if (opening) {const info = await this.trim(await line.rawFrom(at + opening.length)), node = await add("code", line, at, {infoStart: info.start, infoEnd: info.end}); leaf = {kind: "fence", node, ...opening, indent}; break;}
+        if (extensions.native_divs && indent <= 3 && await line.at(at) === "<") {
+          const info = await this.trim(await line.rawFrom(at));
+          let prefix = ""; for await (const chunk of source.chunks({start: info.start, end: Math.min(info.end, info.start + 5)})) prefix += chunk;
+          if (prefix.slice(0, 4).toLowerCase() === "<div" && [">", " ", "\t"].includes(prefix[4] ?? "") &&
+            await source.unit(info.end - 2) !== "/" && await new RetainedCommonMarkSyntax(source, info, context).html(info.start) === info.end) {
+            const node = await add("nativeDiv", line, at, {infoStart: info.start, infoEnd: info.end});
+            await push(node, "nativeDiv"); break;
+          }
+        }
         const html = extensions.raw_html !== false && indent <= 3 ? await line.html(at, false) : undefined;
         if (html) {const value = await prepareLiteral(line, offset), node = await add("html", line, at); await literal(node, line, offset, value); if (html.end === null || !await line.closes(html.end)) leaf = {kind: "html", node, end: html.end}; break;}
         if (indent >= 4) {const value = await prepareLiteral(line, offset + 4), node = await add("code", line, offset + 4); await literal(node, line, offset + 4, value); leaf = {kind: "indent", node, blanks: await this.create("row")}; break;}

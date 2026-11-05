@@ -200,6 +200,11 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           result.push({ t: "CodeBlock", c: [attributes ?? ["", info ? [info] : [], []], block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal] });
           break;
         }
+        case "nativeDiv": {
+          const div = (await nativeDivBlocks(block.literal, context))?.[0];
+          if (div?.t === "Div") result.push({t: "Div", c: [div.c[0], await assemble(block.blocks, depth + 1)]});
+          break;
+        }
         case "div": result.push({t: "Div", c: [block.attributes, await assemble(block.blocks, depth + 1)]}); break;
         case "quote": result.push({ t: "BlockQuote", c: await assemble(block.blocks, depth + 1) }); break;
         case "list": {

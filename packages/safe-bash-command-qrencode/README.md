@@ -30,7 +30,7 @@ Formats: `PNG`, `PNG32`, `SVG`, `EPS`, `ASCII`, `ASCIIi`, `UTF8`, `UTF8i`,
 or redirection. PNG and PNG32 require an explicit output. Vector and terminal formats default to stdout. Terminal formats use
 one character pair or half-block per module; `-s` scales raster and vector output.
 
-QR versions 1–40 support error correction `-l L|M|Q|H`, with `-v` selecting
+QR versions 1–40 support error correction `-l L|M|Q|H`. The first letter selects the level regardless of case, so `--level=high` is equivalent to `-l H`. Use `-v` to select
 the minimum version (`0` or `auto` chooses automatically). `--strict-version`
 prevents growth. Micro QR versions 1–4 support their standard subset of levels
 and modes; level H and structured append are unavailable for Micro QR.

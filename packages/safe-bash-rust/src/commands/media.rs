@@ -13345,7 +13345,7 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             "t" => {
                 let Some(format) = ["PNG", "PNG32", "SVG", "EPS", "ASCII", "ASCIIi", "UTF8", "UTF8i", "ANSI", "ANSI256", "ANSIUTF8", "ANSIUTF8i", "ANSI256UTF8"]
                     .into_iter().find(|name| val.eq_ignore_ascii_case(name)) else {
-                    return err_out("qrencode: Unsupported output type\n", 1);
+                    return err_out(&format!("Invalid image type: {val}\n"), 1);
                 };
                 rtype = format.to_string();
             }
@@ -13369,12 +13369,12 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
                     Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
                 }
             },
-            "l" => match val.as_str() {
-                "L" => level = 0,
-                "M" => level = 1,
-                "Q" => level = 2,
-                "H" => level = 3,
-                _ => return err_out("qrencode: Invalid error correction level\n", 1),
+            "l" => match val.as_bytes().first().map(u8::to_ascii_uppercase) {
+                Some(b'L') => level = 0,
+                Some(b'M') => level = 1,
+                Some(b'Q') => level = 2,
+                Some(b'H') => level = 3,
+                _ => return err_out(&format!("Invalid level: {val}\n"), 1),
             },
             "foreground" => match parse_color(&val) {
                 Ok(c) => fg = c,

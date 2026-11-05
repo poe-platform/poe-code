@@ -173,6 +173,7 @@ export function linuxCommands(text: string) {
     pipes.push("ssh -GT -F none " + options + " example.invalid | grep '^port '");
   }
   pipes.push("{ ssh -GT -F none -o Port=24 example.invalid >/dev/null; cat; } <samples/base");
+  pipes.push(String.raw`qrencode -t ASCII -l $'\xff' hello`, String.raw`qrencode $'--type=\xff' hello`);
   pipes.push(String.raw`ssh -GT -o$'Port=\xff' example.invalid`);
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
@@ -295,6 +296,9 @@ export function linuxCommands(text: string) {
       script: "(export GH_CONFIG_DIR=.gh-roundtrip XDG_STATE_HOME=.gh-state; " + script + ")", input: "",
     })),
     { cmd: "whoami", args: [], script: "EUID=" + userInfo().uid + " USER=unused whoami", input: "" },
+    ...["--level=high", "-lm", "-lquality", "-llow", "--level=bad", "--level=", "--type=bad"].map(option => ({
+      cmd: "qrencode", args: ["-t", "ASCII", option, "hello"], script: "qrencode -t ASCII " + option + " hello", input: "",
+    })),
     { cmd: "qrencode", args: ["-t", "ansiutf8i", "-m", "1", "Hello"], script: "qrencode -t ansiutf8i -m 1 Hello", input: "" },
     { cmd: "qrencode", args: ["-M", "-t", "ANSI256UTF8", "-m", "3", "1234"], script: "qrencode -M -t ANSI256UTF8 -m 3 1234", input: "" },
     ...[Buffer.from([65, 0, 255, 66]), codecInput().subarray(0, 2048)].map(input => ({ cmd: "qrencode", args: ["-8tASCII"], script: "qrencode -8tASCII", input })),

@@ -153,22 +153,24 @@ function parse(args: readonly string[]) {
       continue;
     }
     shortOffset = 1;
+    const valueOffset = attached === undefined ? 0 : arg.length - attached.length;
     attached ??= args[++i];
     if (attached === undefined) throw new Error(`Missing value for ${arg}`);
     if (key === "o") output = attached;
     else if (key === "r") input = attached;
     else if (key === "t") {
       const selected = outputTypes.find(format => format.toLowerCase() === attached.toLowerCase());
-      if (!selected) throw new Error("Unsupported output type");
+      if (!selected) return { invalidValue: { label: "image type", index: i, offset: valueOffset } };
       type = selected;
     } else if (key === "s") size = integer(attached, 1);
     else if (key === "m") margin = integer(attached, 0);
     else if (key === "d") dpi = integer(attached, 1, 109093169);
     else if (key === "v") version = attached === "auto" ? 0 : integer(attached, 0, 40);
     else if (key === "l") {
-      if (!["L", "M", "Q", "H"].includes(attached))
-        throw new Error("Invalid error correction level");
-      level = attached as QrLevel;
+      const selected = attached[0]?.toUpperCase();
+      if (selected !== "L" && selected !== "M" && selected !== "Q" && selected !== "H")
+        return { invalidValue: { label: "level", index: i, offset: valueOffset } };
+      level = selected;
     } else if (key === "foreground") foreground = color(attached);
     else background = color(attached);
   }
@@ -275,6 +277,12 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
       try {
         const carrier = getCommandArguments(context),
           parsed = parse(carrier.args);
+        if (parsed.invalidValue) {
+          const { label, index, offset } = parsed.invalidValue;
+          await writeBytes(context.stderr, new TextEncoder().encode(`Invalid ${label}: `), context.signal);
+          await writeBytes(context.stderr, carrier.bytes(index)!.subarray(offset), context.signal);
+          return fail("");
+        }
         if (parsed.invalidShortOption) {
           const { index, offset } = parsed.invalidShortOption;
           await writeBytes(context.stderr, new TextEncoder().encode("qrencode: invalid option -- '"), context.signal);

@@ -4762,7 +4762,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     for (let channel = 0; channel < 4; channel++) {
                         // A scalar threshold leaves native's alpha threshold at opaque.
                         const threshold = channel === 3 ? 255 : thresh;
-                        if (mask[channel] && (isBlack ? out[idx + channel]! <= threshold : out[idx + channel]! > threshold))
+                        if (mask[channel] && (isBlack ? out[idx + channel]! < threshold : out[idx + channel]! > threshold))
                             out[idx + channel] = isBlack ? 0 : 255;
                     }
                     continue;

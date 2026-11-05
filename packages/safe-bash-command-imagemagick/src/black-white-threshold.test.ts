@@ -14,6 +14,9 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         ["-black-threshold", [100, 150, 10, 128], ["-channel", "RGB"], [0, 150, 0, 128]],
         ["-white-threshold", [200, 30, 100, 128], ["-channel", "RGBA"], [255, 30, 100, 128]],
         ["-black-threshold", [100, 150, 10, 128], ["-channel", "RGBA"], [0, 150, 0, 0]],
+        ["-black-threshold", [200, 30, 100, 255], ["-channel", "RGBA"], [200, 0, 0, 255]],
+        ["-black-threshold", [200, 30, 100, 254], ["-channel", "RGBA"], [200, 0, 0, 0]],
+        ["-black-threshold", [200, 30, 100, 255], ["-channel", "A"], [200, 30, 100, 255]],
         ["-white-threshold", [200, 30, 100, 128], ["-channel", "A"], [200, 30, 100, 128]],
         ["-black-threshold", [100, 150, 10, 128], ["-channel", "A"], [100, 150, 10, 0]],
         ["-white-threshold", [200, 30, 100, 128], ["-channel", "R", "+channel"], [200, 30, 100, 128]],
@@ -40,11 +43,13 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
 
 // Native ImageMagick 7.1.2 RGBA output, including intensities above the RGB threshold.
 it.each([
-    [[200, 30, 100, 255], [0, 0, 0, 0]],
-    [[100, 150, 10, 128], [100, 150, 10, 0]],
-] as const)("magick black-threshold converts PNG stdin %j", async (pixel, expected) => {
+    [[200, 30, 100, 255], [], "50%", [0, 0, 0, 0]],
+    [[100, 150, 10, 128], [], "50%", [100, 150, 10, 0]],
+    [[200, 30, 100, 255], ["-channel", "RGBA"], "50%", [200, 0, 0, 255]],
+    [[128, 30, 100, 255], ["-channel", "RGBA"], "32896", [128, 0, 0, 255]],
+] as const)("magick black-threshold converts PNG stdin %j %j %s", async (pixel, channels, threshold, expected) => {
     const png = encodeImage({ width: 1, height: 1, data: Uint8Array.from(pixel), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
-    const args = createCommandArguments(["png:-", "-black-threshold", "50%", "png:-"]);
+    const args = createCommandArguments(["png:-", ...channels, "-black-threshold", threshold, "png:-"]);
     const output: Uint8Array[] = [];
     let stderr = "";
     const context = {

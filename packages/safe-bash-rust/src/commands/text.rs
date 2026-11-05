@@ -339,6 +339,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut write_files: BTreeMap<String, String> = BTreeMap::new();
 
     if in_place && !files.is_empty() {
+        let mut exit_code = 0;
         for f in &files {
             let full = resolve_posix_path(cwd, f);
             let operand = absolute_operand(cwd, f);
@@ -362,21 +363,22 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             };
             let content = crate::vfs::bytes_to_stream_string(&bytes);
             let mut cmds_copy = parsed_cmds.clone();
-            let (res, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
-            if let Some(em) = err_msg {
-                return err_out(&em, code);
-            }
+            let (res, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files) {
+                Ok(result) => result,
+                Err(e) => return err_out(&e, 2),
+            };
             let output = crate::vfs::stream_string_to_bytes(&res);
             let publication = match backup {
                 Some((path, backup_stamp)) => fs.replace_file_with_backup(&full, &output, stamp.version, &path, backup_stamp.version),
                 None => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
             };
             if let Err(e) = publication { return err_out(&format!("sed: {e}\n"), 4); }
+            if let Some(code) = quit { exit_code = code; break; }
         }
         for (wf, data) in write_files {
             let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
         }
-        return ok_out("");
+        return err_out("", exit_code);
     }
 
     if separate && !files.is_empty() {
@@ -392,12 +394,12 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             };
             let mut cmds_copy = parsed_cmds.clone();
-            let (part_out, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
-            if let Some(em) = err_msg {
-                return err_out(&em, code);
-            }
+            let (part_out, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files) {
+                Ok(result) => result,
+                Err(e) => return err_out(&e, 2),
+            };
             total_out.push_str(&part_out);
-            if code != 0 {
+            if let Some(code) = quit {
                 for (wf, data) in write_files {
                     let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
                 }
@@ -428,17 +430,17 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let cur_fname = files.first().map(|s| s.as_str()).unwrap_or("-");
-    let (out, exit_code, err_msg) = run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files);
-    if let Some(em) = err_msg {
-        return err_out(&em, exit_code);
-    }
+    let (out, quit) = match run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files) {
+        Ok(result) => result,
+        Err(e) => return err_out(&e, 2),
+    };
     for (wf, data) in write_files {
         let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));
     }
     BuiltinOutcome {
         stdout: out,
         stderr: String::new(),
-        exit_code,
+        exit_code: quit.unwrap_or(0),
     }
 }
 
@@ -1497,7 +1499,7 @@ fn exec_sed_cmds(
                     pattern_space.push_str(raw_lines[*line_idx]);
                     *subst_made = false;
                 } else {
-                    return SedFlow::Quit(None, true);
+                    return SedFlow::Delete;
                 }
             }
             SedOp::Branch(lbl) => {
@@ -1645,9 +1647,9 @@ fn run_sed_on_text(
     null_data: bool,
     line_length: usize,
     write_files: &mut BTreeMap<String, String>,
-) -> (String, i32, Option<String>) {
+) -> Result<(String, Option<i32>), String> {
     if input.is_empty() {
-        return (String::new(), 0, None);
+        return Ok((String::new(), None));
     }
     let rec_term = if null_data { '\0' } else { '\n' };
     let had_trailing_delim = input.ends_with(rec_term);
@@ -1656,13 +1658,12 @@ fn run_sed_on_text(
     let mut out = String::new();
     let mut hold_space = String::new();
     let mut line_idx = 0usize;
-    let mut exit_code = 0i32;
     let mut last_regex: Option<(String, bool)> = None;
 
     while line_idx < total {
         let mut pattern_space = raw_lines[line_idx].to_string();
         let mut deleted = false;
-        let mut quit_now = false;
+        let mut quit = None;
         let mut appends: Vec<String> = Vec::new();
         let mut subst_made = false;
         let mut restart_guard = 0usize;
@@ -1697,15 +1698,14 @@ fn run_sed_on_text(
                     continue;
                 }
                 SedFlow::Quit(code, silent) => {
-                    quit_now = true;
-                    exit_code = code.unwrap_or(0);
+                    quit = Some(code.unwrap_or(0));
                     if silent {
                         deleted = true;
                     }
                     break;
                 }
                 SedFlow::Error(msg) => {
-                    return (String::new(), 2, Some(msg));
+                    return Err(msg);
                 }
                 SedFlow::Continue | SedFlow::Branch(_) => break,
             }
@@ -1722,13 +1722,11 @@ fn run_sed_on_text(
             out.push_str(&ap);
             out.push(rec_term);
         }
-        if quit_now {
-            break;
-        }
+        if quit.is_some() { return Ok((out, quit)); }
         line_idx += 1;
     }
 
-    (out, exit_code, None)
+    Ok((out, None))
 }
 
 #[derive(Clone, Debug)]

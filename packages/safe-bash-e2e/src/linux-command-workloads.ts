@@ -187,6 +187,8 @@ export function linuxCommands(text: string) {
       ["rm -rf test-links; mkdir test-links; cd test-links; touch a b; ln a peer; ln -s peer sym; test a -ef peer; echo $?; [ sym -ef a ]; echo $?; [[ a -ef peer ]]; echo $?; test a -ef b; echo $?; test missing/../a -ef a; echo $?", ""],
       ["rm -rf sed-links; mkdir sed-links; cd sed-links; echo old >file; ln file peer; sed -i 's/old/new/' file; cat file peer; test ! file -ef peer", ""],
       ["rm -rf sed-backups; mkdir sed-backups; cd sed-backups; echo old >file; ln file peer; chmod 640 file; echo previous >file.bak; ln file.bak peer-backup; sed -i.bak 's/old/new/' file; cat file peer file.bak peer-backup; stat -c %a file file.bak; test peer -ef file.bak", ""],
+      ["rm -rf sed-quit; mkdir sed-quit; cd sed-quit; printf 'a\\nz\\n' >a; printf 'b\\ny\\n' >b; sed -i.bak -e 'w seen' -e 'Q7' a b; rc=$?; cat a b a.bak seen; test ! -e b.bak && exit $rc", ""],
+      ["sed -s -n 'p;q' samples/base samples/base", ""],
       ["rm -rf sed-directory; mkdir -p sed-directory/file.bak; cd sed-directory; echo old >file; sed -i.bak 's/old/new/' file; rc=$?; cat file; exit $rc", ""],
       ["cat >sed-list-input; sed -n l sed-list-input", Buffer.from([195,169,255,13,10])],
     ] as const).map(([script, input]) => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input })),

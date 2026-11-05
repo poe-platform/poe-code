@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, readEffects, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readEffects, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
@@ -32,12 +32,12 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         await resetEffects(dir);
         const reference = await runLinuxCommand(cmd, args, input, dir);
         assert.equal(reference[0], 0, reference[2].toString());
-        const expected = await readEffects(dir, cmd);
+        const expected = await observeMutation(dir, cmd, reference);
         for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
           await resetEffects(dir, view);
           const result = await shell.exec(script, { stdin: input });
-          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference, shell.constructor.name);
-          assert.deepEqual(await readEffects(dir, cmd, view), expected, shell.constructor.name);
+          const observed = await observeMutation(dir, cmd, [result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], view);
+          assert.deepEqual(observed, expected, shell.constructor.name);
         }
       });
     }

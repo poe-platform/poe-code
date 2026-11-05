@@ -3,7 +3,7 @@ import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, readEffects, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -102,7 +102,7 @@ async function main(): Promise<void> {
         if (mutation) await resetEffects(cwd);
         const expected = await runLinuxCommand(cmd, argv, input, cwd);
         if (mutation) assert.equal(expected[0], 0, expected[2].toString());
-        const effects: Awaited<ReturnType<typeof readEffects>> | undefined = mutation ? await readEffects(cwd, cmd) : undefined;
+        const effects: Awaited<ReturnType<typeof observeMutation>> | undefined = mutation ? await observeMutation(cwd, cmd, expected) : undefined;
         const samples: number[][] = [[], [], []];
         for (let round = 0; round < warmup + iterations; round++) {
           for (let offset = 0; offset < 3; offset++) {
@@ -116,7 +116,9 @@ async function main(): Promise<void> {
             const elapsed = performance.now() - start;
             const observed: readonly [number, Buffer, Buffer] = "exitCode" in result
               ? [result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)] : result;
-            if (decoder) {
+            if (mutation) {
+              assert.deepEqual(await observeMutation(cwd, cmd, observed, view), effects, script);
+            } else if (decoder) {
               assert.equal(observed[0], expected[0], script);
               assert.deepEqual(observed[2], expected[2], script);
               const decoded = await runLinuxCommand(decoder, ["-c"], observed[1]);
@@ -124,7 +126,6 @@ async function main(): Promise<void> {
             } else {
               assert.deepEqual(observed, expected, script);
             }
-            if (mutation) assert.deepEqual(await readEffects(cwd, cmd, view), effects, script);
             if (round >= warmup) samples[engine]!.push(elapsed);
           }
         }

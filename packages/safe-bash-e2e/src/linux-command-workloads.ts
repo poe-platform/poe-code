@@ -116,6 +116,8 @@ export const linuxMutations = ([
   ["split", "-d", "-e", "-n", "20000", "effects/source", "effects/x"],
   ["split", "-d", "-e", "-n", "l/20000", "effects/source", "effects/x"],
   ["split", "-d", "-e", "-n", "r/20000", "effects/source", "effects/x"],
+  ["mktemp", "--suffix=.data", "effects/slot.XXXXXX"],
+  ["mktemp", "-d", "--suffix=.data", "effects/slot.XXXXXX"],
   ["csplit", "-f", "effects/x", "effects/source", "/middle/"],
   ["install", "-m", "0751", "effects/source", "effects/installed"],
   ["cp", "-p", "effects/source", "effects/copy"], ["mv", "effects/source", "effects/moved"],
@@ -156,10 +158,23 @@ export async function readEffects(cwd: string, cmd: string, view?: FileSystem | 
       : type === "symlink" ? (view ? await view.readlink!(path) : await readlink(path))
       : type === "directory" ? (view ? (await view.readdir(path)).map(e => e.name) : await readdir(path)).sort() : undefined;
     // Only compare permissions or times the command explicitly sets or preserves, independent of host umask.
-    const mode = (cmd === "cp" || cmd === "mv" || cmd === "chmod" || cmd === "install" || cmd === "mkdir") && name !== "empty" ? stat.mode & 0o7777 : undefined;
+    const mode = (cmd === "cp" || cmd === "mv" || cmd === "chmod" || cmd === "install" || cmd === "mkdir" || cmd === "mktemp") && name !== "empty" ? stat.mode & 0o7777 : undefined;
     const mtime = ["cp", "mv", "touch"].includes(cmd) && type === "file" ? stat.mtimeMs : undefined;
     return { name, type, contents, mode, mtime };
   }));
+}
+
+export async function observeMutation(cwd: string, cmd: string, [code, stdout, stderr]: readonly [number, Buffer, Buffer], view?: FileSystem | WasmFileSystem) {
+  const entries = await readEffects(cwd, cmd, view);
+  if (cmd === "mktemp") {
+    const output = stdout.toString("latin1");
+    assert.match(output, /^effects\/slot\.[A-Za-z0-9]{6}\.data\n$/u);
+    const created = entries.find(entry => "effects/" + entry.name + "\n" === output);
+    assert.ok(created, "mktemp must create the exact path printed on stdout");
+    created.name = "slot.XXXXXX.data";
+    stdout = Buffer.from("effects/" + created.name + "\n");
+  }
+  return { code, stdout, stderr, entries };
 }
 
 export const linuxCodecs = [

@@ -3,8 +3,9 @@ import { SsconvertError } from "../../contracts.js";
 import { logGamma } from "./scientific.js";
 import { normalProbability, normalQuantile } from "./normal-distribution.js";
 import type { FunctionHost } from "./types.js";
-import { smallParameterBeta, sourceSmallABeta } from "./statistics-beta.js";
+import { binomialProbability, sourceSmallABeta } from "./statistics-beta.js";
 import { sourceBetaQuantile } from "./statistics-inverse.js";
+import { multiply, divide, type Pair } from "./captured-quad.js";
 import { capturedExp, fusedMultiplyAdd } from "./numeric-arithmetic.js";
 
 export function logComplement(logp: number): number {
@@ -48,8 +49,8 @@ export function betaProbability(x: number, a: number, b: number, lower: boolean,
   if (x >= 1) return lower ? log ? 0 : 1 : log ? -Infinity : 0;
   if (a < 1 && (b < 1 || (1 + b) * x <= 1)) return sourceSmallABeta(x,a,b,lower,log,host);
   if (b < 1 && (1 + a) * (1 - x) <= 1) return sourceSmallABeta(1 - x,b,a,!lower,log,host);
-  if (b < 1 && a >= 1 && (1 + a) * (1 - x) > 1) return smallParameterBeta(x,b,a,lower,log,host);
-  if (a < 1 && b >= 1 && (1 + b) * x > 1) return smallParameterBeta(1 - x,a,b,!lower,log,host);
+  if (b < 1 && a >= 1 && (1 + a) * (1 - x) > 1) return binomialProbability(-b,a,1 - x,x,0,lower,log,host);
+  if (a < 1 && b >= 1 && (1 + b) * x > 1) return binomialProbability(-a,b,x,1 - x,0,!lower,log,host);
   const directLower = x < (a + 1) / (a + b + 2), y = directLower ? x : 1 - x, aa = directLower ? a : b, bb = directLower ? b : a;
   const factor = aa * Math.log(y) + bb * Math.log1p(-y) - (logGamma(aa,host) + logGamma(bb,host) - logGamma(aa + bb,host));
   return selectTail(factor + Math.log(betaFraction(y,aa,bb,host) / aa),directLower,lower,log);
@@ -89,6 +90,21 @@ const nonnegative = (x: number | undefined) => x !== undefined && x >= 0;
 const unit = (x: number | undefined) => x !== undefined && x >= 0 && x <= 1;
 const integer = (x: number | undefined) => x !== undefined && x >= 0 && Number.isInteger(x);
 function logChoose(n: number, k: number, host: FunctionHost): number { return k < 0 || k > n ? -Infinity : logGamma(n + 1,host) - logGamma(k + 1,host) - logGamma(n - k + 1,host); }
+/** Gnumeric's paired factorial/power product while factorials remain finite. */
+function binomialDensity(x: number, n: number, p: number, host: FunctionHost): number | undefined {
+  if (n > 170 || x <= 0 || x >= n || !Number.isInteger(x) || p === 0 || p === 1) return undefined;
+  let numerator: Pair = [1,0], left: Pair = [1,0], right: Pair = [1,0];
+  let successes: Pair = [1,0], failures: Pair = [1,0];
+  for (let i = 1; i <= n; i++) {
+    host.tick();
+    numerator = multiply(numerator,[i,0]);
+    if (i <= x) { left = multiply(left,[i,0]); successes = multiply(successes,[p,0]); }
+    if (i <= n - x) { right = multiply(right,[i,0]); failures = multiply(failures,[1-p,0]); }
+  }
+  const result = multiply(multiply(divide(numerator,multiply(left,right)),successes),failures);
+  // Let the logarithmic path handle underflow in the separate power factors.
+  return result[0] > 0 && Number.isFinite(result[0]) ? result[0] + result[1] : undefined;
+}
 /** Released Hill inverse-t expansion when the smaller probability underflows. */
 function underflowStudentQuantile(x:number,df:number,lower:boolean,host:FunctionHost):number | undefined {
   host.tick();
@@ -110,7 +126,7 @@ export const distributions: Readonly<Record<string, Distribution>> = {
   weibull: { parameters:2, minimum:0, maximum:Infinity, valid:p => positive(p[0]) && positive(p[1]), density:(x,p) => x < 0 ? -Infinity : x === 0 ? p[0]! < 1 ? Infinity : p[0] === 1 ? -Math.log(p[1]!) : -Infinity : Math.log(p[0]! / p[1]!) + (p[0]! - 1) * Math.log(x / p[1]!) - (x / p[1]!) ** p[0]!, probability:(x,p,l,g) => selectTail(x <= 0 ? 0 : -((x / p[1]!) ** p[0]!),false,l,g), quantile:(x,p,l,g) => p[1]! * (-(l ? logComplement(g ? x : Math.log(x)) : g ? x : Math.log(x))) ** (1 / p[0]!) },
   rayleigh: { parameters:1, minimum:0, maximum:Infinity, valid:p => positive(p[0]), density:(x,p) => x <= 0 ? -Infinity : Math.log(x) - 2 * Math.log(p[0]!) - .5 * (x / p[0]!) ** 2, probability:(x,p,l,g) => selectTail(x <= 0 ? 0 : -.5 * (x / p[0]!) ** 2,false,l,g), quantile:(x,p,l,g) => p[0]! * Math.sqrt(-2 * (l ? logComplement(g ? x : Math.log(x)) : g ? x : Math.log(x))) },
   gumbel: { parameters:2, minimum:-Infinity, maximum:Infinity, valid:p => positive(p[1]), density:(x,p) => { const z = (x - p[0]!) / p[1]!; return -z - Math.exp(-z) - Math.log(p[1]!); }, probability:(x,p,l,g) => selectTail(-Math.exp(-(x - p[0]!) / p[1]!),true,l,g), quantile:(x,p,l,g) => p[0]! - p[1]! * Math.log(-(l ? g ? x : Math.log(x) : logComplement(g ? x : Math.log(x)))) },
-  binom: { parameters:2, minimum:0, maximum:p => p[0]!, discrete:true, valid:p => integer(p[0]) && unit(p[1]), density:(x,p,h) => !Number.isInteger(x) || x < 0 || x > p[0]! ? -Infinity : p[1] === 0 ? x === 0 ? 0 : -Infinity : p[1] === 1 ? x === p[0] ? 0 : -Infinity : logChoose(p[0]!,x,h) + x * Math.log(p[1]!) + (p[0]! - x) * Math.log1p(-p[1]!), probability:(x,p,l,g,h) => { const k = Math.floor(x); if (k < 0) return l ? g ? -Infinity : 0 : g ? 0 : 1; if (k >= p[0]!) return l ? g ? 0 : 1 : g ? -Infinity : 0; if (p[1] === 0) return l ? g ? 0 : 1 : g ? -Infinity : 0; if (p[1] === 1) return l ? g ? -Infinity : 0 : g ? 0 : 1; return betaProbability(p[1]!,k + 1,p[0]! - k,!l,g,h); } },
+  binom: { parameters:2, minimum:0, maximum:p => p[0]!, discrete:true, valid:p => integer(p[0]) && unit(p[1]), density:(x,p,h) => !Number.isInteger(x) || x < 0 || x > p[0]! ? -Infinity : p[1] === 0 ? x === 0 ? 0 : -Infinity : p[1] === 1 ? x === p[0] ? 0 : -Infinity : logChoose(p[0]!,x,h) + x * Math.log(p[1]!) + (p[0]! - x) * Math.log1p(-p[1]!), probability:(x,p,l,g,h) => { const k = Math.floor(x); if (k < 0) return l ? g ? -Infinity : 0 : g ? 0 : 1; if (k >= p[0]!) return l ? g ? 0 : 1 : g ? -Infinity : 0; if (p[1] === 0) return l ? g ? 0 : 1 : g ? -Infinity : 0; if (p[1] === 1) return l ? g ? -Infinity : 0 : g ? 0 : 1; return binomialProbability(k,p[0]! - k,p[1]!,1 - p[1]!,p[0]! * p[1]! - k,l,g,h); } },
   pois: { parameters:1, minimum:0, maximum:Infinity, discrete:true, valid:p => nonnegative(p[0]), density:(x,p,h) => !Number.isInteger(x) || x < 0 ? -Infinity : p[0] === 0 ? x === 0 ? 0 : -Infinity : x * Math.log(p[0]!) - p[0]! - logGamma(x + 1,h), probability:(x,p,l,g,h) => x < 0 ? l ? g ? -Infinity : 0 : g ? 0 : 1 : p[0] === 0 ? l ? g ? 0 : 1 : g ? -Infinity : 0 : gammaProbability(p[0]!,Math.floor(x) + 1,!l,g,h) },
   geom: { parameters:1, minimum:0, maximum:Infinity, discrete:true, valid:p => positive(p[0]) && unit(p[0]), density:(x,p) => !Number.isInteger(x) || x < 0 ? -Infinity : p[0] === 1 ? x === 0 ? 0 : -Infinity : Math.log(p[0]!) + x * Math.log1p(-p[0]!), probability:(x,p,l,g) => selectTail(x < 0 ? 0 : (Math.floor(x) + 1) * Math.log1p(-p[0]!),false,l,g) },
   nbinom: { parameters:2, minimum:0, maximum:Infinity, discrete:true, valid:p => nonnegative(p[0]) && positive(p[1]) && unit(p[1]), density:(x,p,h) => !Number.isInteger(x) || x < 0 ? -Infinity : p[0] === 0 || p[1] === 1 ? x === 0 ? 0 : -Infinity : logGamma(x + p[0]!,h) - logGamma(p[0]!,h) - logGamma(x + 1,h) + p[0]! * Math.log(p[1]!) + x * Math.log1p(-p[1]!), probability:(x,p,l,g,h) => x < 0 ? l ? g ? -Infinity : 0 : g ? 0 : 1 : p[0] === 0 || p[1] === 1 ? l ? g ? 0 : 1 : g ? -Infinity : 0 : betaProbability(p[1]!,p[0]!,Math.floor(x) + 1,l,g,h) },
@@ -145,6 +161,10 @@ export function distributionValue(family: string, operation: string, x: number, 
     }
   }
   if (!d.valid(p) || Number.isNaN(x) || operation === 'q' && (log ? x > 0 : x < 0 || x > 1)) return NaN;
+  if (family === 'binom' && operation === 'd' && !log) {
+    const value = binomialDensity(x,p[0]!,p[1]!,host);
+    if (value !== undefined) return value;
+  }
   if (operation === 'd') { const value = d.density(x,p,host); return log ? value : Math.exp(value); }
   if (operation === 'p') return d.probability(x,p,lower,log,host);
   const lo = typeof d.minimum === 'number' ? d.minimum : d.minimum(p), hi = typeof d.maximum === 'number' ? d.maximum : d.maximum(p);

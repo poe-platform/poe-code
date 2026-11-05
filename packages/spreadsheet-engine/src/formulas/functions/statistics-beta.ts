@@ -77,9 +77,9 @@ function binomialTerm(i:number,j:number,p:number,q:number,dfm:number,log:boolean
   const factor=c1/((c2+1)*(c3+1)*2*Math.PI);
   return log?exponent+.5*Math.log(factor):capturedExp(exponent)*Math.sqrt(factor);
 }
-/** Released binomial CF branch; nonpositive beta parameters retain its source behavior. */
-export function smallParameterBeta(x:number,small:number,large:number,lower:boolean,log:boolean,host:FunctionHost):number {
-  const pp=1-x,qq=x,jj=large;let ii=-small,ip1=ii+1,diff=0,probability:number;
+/** Gnumeric binomialcf, shared by small-parameter beta and binomial CDFs. */
+export function binomialProbability(ii:number,jj:number,pp:number,qq:number,diff:number,lower:boolean,log:boolean,host:FunctionHost):number {
+  let ip1=ii+1,probability:number;
   if(ii>-1&&(jj<=0||pp===0))return lower?log?0:1:log?-Infinity:0;
   if(ii>-1&&ii<0){ii=-ii;ip1=ii;const factor=ii/((ii+jj)*pp);probability=binomialTerm(ii,jj,pp,qq,(ii+jj)*pp-ii,log,host);probability=log?probability+Math.log(factor):probability*factor;ii--;diff=(ii+jj)*pp-ii;}
   else probability=binomialTerm(ii,jj,pp,qq,diff,log,host);

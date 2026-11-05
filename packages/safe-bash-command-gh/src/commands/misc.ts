@@ -1028,60 +1028,67 @@ export async function handleConfigCommand(
   const rest = rawArgs.slice(1);
   const parsed = parseCommandArgs(rest, [{ short: "h", long: "host", type: "string" }]);
 
-  const keyToProp = (k: string): keyof typeof backend.config | undefined => {
-    switch (k) {
-      case "git_protocol":
-        return "gitProtocol";
-      case "editor":
-        return "editor";
-      case "prompt":
-        return "prompt";
-      case "pager":
-        return "pager";
-      case "http_unix_socket":
-        return "httpUnixSocket";
-      case "browser":
-        return "browser";
-      default:
-        return undefined;
-    }
-  };
+  const pos = [...parsed.positionals, ...parsed.passthrough];
+  const expected = sub === "set" ? 2 : sub === "get" ? 1 : sub === "list" || sub === "ls" ? 0 : undefined;
+  if (expected !== undefined && expected !== pos.length) {
+    await writeErr(`accepts ${expected} arg(s), received ${pos.length}\n`);
+    return 1;
+  }
+  const host = getStringFlag(parsed, "host") ?? "";
+  const config = backend.config;
+  const values = new Map(Object.entries({
+    api_host: "", git_protocol: config.gitProtocol, editor: config.editor, prompt: config.prompt,
+    prefer_editor_prompt: "disabled", pager: config.pager, http_unix_socket: config.httpUnixSocket,
+    browser: config.browser, clipboard: "enabled", color_labels: "disabled", accessible_colors: "disabled",
+    accessible_prompter: "disabled", spinner: "enabled", telemetry: "enabled",
+  }));
+  const valueOf = (key: string, scope = host) => backend.configOverrides.get(scope)?.get(key)
+    ?? backend.configOverrides.get("")?.get(key) ?? values.get(key);
 
+  if (sub === "list" || sub === "ls") {
+    const hosts = [...backend.configOverrides.keys()].filter(Boolean);
+    const scope = host || env.context.env.GH_HOST || (hosts.length === 1 ? hosts[0] : backend.defaultHost);
+    await writeOut([...values.keys()].map(key => `${key}=${valueOf(key, key === "telemetry" ? "" : scope)}\n`).join(""));
+    return 0;
+  }
+  const key = pos[0]!;
   if (sub === "get") {
-    const key = parsed.positionals[0] ?? "";
-    const prop = keyToProp(key);
-    if (!prop) {
-      await writeErr(`unknown config key "${key}"\n`);
+    const val = valueOf(key) ?? (key === "version" ? "1" : key === "aliases" ? "" : undefined);
+    if (val === undefined) {
+      await writeErr(`could not find key "${key}"\n`);
       return 1;
     }
-    await writeOut(`${String(backend.config[prop])}\n`);
+    if (val) await writeOut(val + "\n");
     return 0;
   }
-
   if (sub === "set") {
-    const key = parsed.positionals[0] ?? "";
-    const val = parsed.positionals[1] ?? "";
-    const prop = keyToProp(key);
-    if (!prop) {
-      await writeErr(`unknown config key "${key}"\n`);
+    const val = pos[1]!;
+    if ((key === "api_host" && !host) || (key === "clipboard" && host)) {
+      const message = host ? "--host cannot be used when setting clipboard" : "--host required when setting api_host";
+      await writeErr(message + "\n\nUsage:  gh config set <key> <value> [flags]\n\nFlags:\n  -h, --host string   Set per-host setting\n  \n");
       return 1;
     }
-    (backend.config as unknown as Record<string, string>)[prop] = val;
-    return 0;
-  }
-
-  if (sub === "list") {
-    await writeOut(
-      [
-        `git_protocol=${backend.config.gitProtocol}`,
-        `editor=${backend.config.editor}`,
-        `prompt=${backend.config.prompt}`,
-        `pager=${backend.config.pager}`,
-        `http_unix_socket=${backend.config.httpUnixSocket}`,
-        `browser=${backend.config.browser}`,
-        "",
-      ].join("\n")
-    );
+    const choices = key === "git_protocol" ? ["https", "ssh"]
+      : key === "telemetry" ? ["enabled", "disabled", "log"]
+      : ["prompt", "prefer_editor_prompt", "clipboard", "color_labels", "accessible_colors", "accessible_prompter", "spinner"].includes(key)
+        ? ["enabled", "disabled"] : [];
+    if (choices.length && !choices.includes(val)) {
+      await writeErr(`failed to set "${key}" to ${JSON.stringify(val)}: valid values are '${choices.join("', '")}'\n`);
+      return 1;
+    }
+    if (!values.has(key)) await writeErr(`! warning: '${key}' is not a known configuration key\n`);
+    if (!host) {
+      // Keep the settings used by the other sandbox commands on the public backend.
+      switch (key) {
+        case "git_protocol": config.gitProtocol = val as typeof config.gitProtocol; return 0;
+        case "prompt": config.prompt = val as typeof config.prompt; return 0;
+        case "http_unix_socket": config.httpUnixSocket = val; return 0;
+        case "editor": case "pager": case "browser": config[key] = val; return 0;
+      }
+    }
+    let overrides = backend.configOverrides.get(host);
+    if (!overrides) backend.configOverrides.set(host, overrides = new Map());
+    overrides.set(key, val);
     return 0;
   }
 

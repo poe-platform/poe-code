@@ -164,6 +164,18 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   return [
     { cmd: "df", args: ["--output=file,a'b\n💡"], script: String.raw`df --output=$'file,a\'b\n💡'`, input: "" },
+    ...[["list"], ["ls"], ...["editor", "prompt", "color_labels", "spinner", "telemetry", "missing", "__proto__"].map(key => ["get", key]),
+      ["get"], ["get", "editor", "extra"], ["set", "prompt", "sometimes"], ["set", "git_protocol", "SSH"], ["set", "telemetry", "yes"],
+      ["set", "editor"], ["list", "extra"], ["set", "clipboard", "enabled", "-h", "host"], ["set", "api_host", "host"]].map(args => ({
+      cmd: "env", args: ["GH_CONFIG_DIR=.gh-config", "XDG_STATE_HOME=.gh-state", "gh", "config", ...args],
+      script: ["gh", "config", ...args].join(" "), input: "",
+    })),
+    ...["gh config set --host example.invalid editor nano; gh config get editor; gh config get -h example.invalid editor; gh config list",
+      "gh config set test-custom sample; gh config get test-custom; gh config list -h empty.invalid",
+      "gh config set -h example.invalid telemetry log; gh config get --host=example.invalid telemetry; gh config ls -h example.invalid",
+    ].map(script => ({
+      cmd: "env", args: ["GH_CONFIG_DIR=.gh-roundtrip", "XDG_STATE_HOME=.gh-state", "bash", "--noprofile", "--norc", "-c", script], script, input: "",
+    })),
     { cmd: "whoami", args: [], script: "EUID=" + userInfo().uid + " USER=unused whoami", input: "" },
     { cmd: "qrencode", args: ["-t", "ansiutf8i", "-m", "1", "Hello"], script: "qrencode -t ansiutf8i -m 1 Hello", input: "" },
     { cmd: "qrencode", args: ["-M", "-t", "ANSI256UTF8", "-m", "3", "1234"], script: "qrencode -M -t ANSI256UTF8 -m 3 1234", input: "" },

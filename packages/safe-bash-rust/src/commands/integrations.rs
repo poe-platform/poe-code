@@ -607,7 +607,7 @@ struct IntegrationState {
     gh_logged_in: bool,
     gh_hosts: Vec<(String, Vec<GhHostAuthEntry>)>,
     gh_next_id: u64,
-    gh_config: BTreeMap<String, String>,
+    gh_config: BTreeMap<String, BTreeMap<String, String>>,
     gh_aliases: Vec<(String, String)>,
     gh_default_repo: Option<String>,
     gh_repos: BTreeMap<String, GhRepoRecord>,
@@ -621,13 +621,6 @@ struct IntegrationState {
 
 impl Default for IntegrationState {
     fn default() -> Self {
-        let mut gh_config = BTreeMap::new();
-        gh_config.insert("git_protocol".into(), "https".into());
-        gh_config.insert("editor".into(), "vim".into());
-        gh_config.insert("prompt".into(), "enabled".into());
-        gh_config.insert("pager".into(), String::new());
-        gh_config.insert("http_unix_socket".into(), String::new());
-        gh_config.insert("browser".into(), String::new());
         let gh_aliases = vec![("co".to_string(), "pr checkout".to_string())];
         let mut gh_repos = BTreeMap::new();
         gh_repos.insert(
@@ -712,7 +705,7 @@ impl Default for IntegrationState {
                 }],
             )],
             gh_next_id: 1007,
-            gh_config,
+            gh_config: BTreeMap::new(),
             gh_aliases,
             gh_default_repo: None,
             gh_repos,
@@ -4192,7 +4185,7 @@ fn cmd_gh_inner(
                     st.gh_user = user.clone();
                     if let Some(p) = proto_opt {
                         st.gh_git_protocol = p.clone();
-                        st.gh_config.insert("git_protocol".into(), p);
+                        st.gh_config.entry(String::new()).or_default().insert("git_protocol".into(), p);
                     }
                     if let Some(sc) = scopes_opt {
                         st.gh_scopes = sc.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
@@ -4360,74 +4353,68 @@ fn cmd_gh_inner(
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
-            let pos: Vec<&str> = args
-                .iter()
-                .skip(2)
-                .enumerate()
-                .filter(|(idx, a)| {
-                    if a.starts_with('-') {
-                        return false;
-                    }
-                    if *idx > 0 {
-                        let prev = args[*idx + 1].as_str();
-                        if prev == "-h" || prev == "--host" {
-                            return false;
-                        }
-                    }
-                    true
-                })
-                .map(|(_, a)| a.as_str())
-                .collect();
+            const DEFAULTS: &[(&str, &str)] = &[
+                ("api_host", ""), ("git_protocol", "https"), ("editor", ""), ("prompt", "enabled"),
+                ("prefer_editor_prompt", "disabled"), ("pager", ""), ("http_unix_socket", ""), ("browser", ""),
+                ("clipboard", "enabled"), ("color_labels", "disabled"), ("accessible_colors", "disabled"),
+                ("accessible_prompter", "disabled"), ("spinner", "enabled"), ("telemetry", "enabled"),
+            ];
+            let error = |stderr| BuiltinOutcome { stdout: String::new(), stderr, exit_code: 1 };
+            let mut host = "";
+            let mut pos = Vec::new();
+            let mut words = args.iter().skip(2).map(String::as_str);
+            while let Some(word) = words.next() {
+                if word == "--" { pos.extend(words); break; }
+                if word == "-h" || word == "--host" {
+                    let Some(value) = words.next() else { return error(format!("flag needs an argument: {word}\n")); };
+                    host = value;
+                } else if let Some(value) = word.strip_prefix("--host=").or_else(|| word.strip_prefix("-h=")).or_else(|| word.strip_prefix("-h")) {
+                    host = value;
+                } else { pos.push(word); }
+            }
+            let expected = match sub { "list" | "ls" => Some(0), "get" => Some(1), "set" => Some(2), _ => None };
+            if let Some(n) = expected && n != pos.len() {
+                return error(format!("accepts {n} arg(s), received {}\n", pos.len()));
+            }
+            let lookup = |key: &str, scope: &str| st.gh_config.get(scope).and_then(|items| items.get(key))
+                .or_else(|| st.gh_config.get("").and_then(|items| items.get(key))).map(String::as_str)
+                .or_else(|| DEFAULTS.iter().find(|(k, _)| *k == key).map(|(_, value)| *value));
             match sub {
-                "list" => {
-                    let mut out = String::new();
-                    let default_keys = ["git_protocol", "editor", "prompt", "pager", "http_unix_socket", "browser"];
-                    for k in default_keys {
-                        if let Some(v) = st.gh_config.get(k) {
-                            out.push_str(&format!("{k}={v}\n"));
-                        }
-                    }
-                    for (k, v) in &st.gh_config {
-                        if !default_keys.contains(&k.as_str()) {
-                            out.push_str(&format!("{k}={v}\n"));
-                        }
-                    }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                "list" | "ls" => {
+                    let mut hosts = st.gh_config.keys().map(String::as_str).filter(|h| !h.is_empty());
+                    let scope = if !host.is_empty() { host }
+                        else if let Some(h) = env.get("GH_HOST").filter(|h| !h.is_empty()) { h }
+                        else { match (hosts.next(), hosts.next()) { (Some(h), None) => h, _ => "github.com" } };
+                    let stdout = DEFAULTS.iter().map(|(k, _)| format!("{k}={}\n", lookup(k, if *k == "telemetry" { "" } else { scope }).unwrap())).collect();
+                    BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
                 }
                 "get" => {
-                    let key = pos.first().copied().unwrap_or("");
-                    if !matches!(
-                        key,
-                        "git_protocol" | "editor" | "prompt" | "pager" | "http_unix_socket" | "browser"
-                    ) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("unknown config key \"{key}\"\n"),
-                            exit_code: 1,
-                        };
-                    }
-                    let val = st.gh_config.get(key).cloned().unwrap_or_default();
-                    BuiltinOutcome { stdout: format!("{val}\n"), stderr: String::new(), exit_code: 0 }
+                    let key = pos[0];
+                    let val = lookup(key, host).or(match key { "version" => Some("1"), "aliases" => Some(""), _ => None });
+                    let Some(val) = val else { return error(format!("could not find key \"{key}\"\n")); };
+                    let stdout = if val.is_empty() { String::new() } else { format!("{val}\n") };
+                    BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
                 }
                 "set" => {
-                    let key = pos.first().copied().unwrap_or("");
-                    if !matches!(
-                        key,
-                        "git_protocol" | "editor" | "prompt" | "pager" | "http_unix_socket" | "browser"
-                    ) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("unknown config key \"{key}\"\n"),
-                            exit_code: 1,
-                        };
+                    let (key, value) = (pos[0], pos[1]);
+                    let default = DEFAULTS.iter().find(|(k, _)| *k == key).map(|(_, v)| *v);
+                    if (key == "api_host" && host.is_empty()) || (key == "clipboard" && !host.is_empty()) {
+                        let message = if host.is_empty() { "--host required when setting api_host" } else { "--host cannot be used when setting clipboard" };
+                        return error(format!("{message}\n\nUsage:  gh config set <key> <value> [flags]\n\nFlags:\n  -h, --host string   Set per-host setting\n  \n"));
                     }
-                    if let (Some(k), Some(v)) = (pos.first().copied(), pos.get(1).copied()) {
-                        st.gh_config.insert(k.to_string(), v.to_string());
-                        if k == "git_protocol" {
-                            st.gh_git_protocol = v.to_string();
-                        }
+                    let choices: &[&str] = match (key, default) {
+                        ("git_protocol", _) => &["https", "ssh"],
+                        ("telemetry", _) => &["enabled", "disabled", "log"],
+                        (_, Some("enabled" | "disabled")) => &["enabled", "disabled"],
+                        _ => &[],
+                    };
+                    if !choices.is_empty() && !choices.contains(&value) {
+                        return error(format!("failed to set {key:?} to {value:?}: valid values are '{}'\n", choices.join("', '")));
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    st.gh_config.entry(host.into()).or_default().insert(key.into(), value.into());
+                    if host.is_empty() && key == "git_protocol" { st.gh_git_protocol = value.into(); }
+                    let stderr = if default.is_none() { format!("! warning: '{key}' is not a known configuration key\n") } else { String::new() };
+                    BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 }
                 }
                 "clear-cache" => BuiltinOutcome {
                     stdout: "✓ Cleared the cache\n".into(),
@@ -9638,7 +9625,7 @@ mod tests {
 
         let cfg_bad = cmd_gh(&args(&["config", "get", "badkey"]), "", "/", &mut env, &vfs);
         assert_eq!(cfg_bad.exit_code, 1);
-        assert_eq!(cfg_bad.stderr, "unknown config key \"badkey\"\n");
+        assert_eq!(cfg_bad.stderr, "could not find key \"badkey\"\n");
 
         cmd_gh(&args(&["alias", "set", "loop1", "loop2"]), "", "/", &mut env, &vfs);
         cmd_gh(&args(&["alias", "set", "loop2", "loop1"]), "", "/", &mut env, &vfs);

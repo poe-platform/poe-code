@@ -708,49 +708,6 @@ export function evalSyncGh(
       return `# ${shellName} completion for gh\ncomplete -W "pr repo issue api auth release run workflow gist search label secret variable cache ssh-key gpg-key attestation config alias status browse version" gh\n`;
     }
 
-    if (command === "config") {
-      const sub = subArgs[0] ?? "list";
-      const rest = subArgs.slice(1);
-      const parsed = parseCommandArgs(rest, [{ short: "h", long: "host", type: "string" }]);
-      const map: Record<string, keyof typeof backend.config> = {
-        git_protocol: "gitProtocol",
-        editor: "editor",
-        prompt: "prompt",
-        pager: "pager",
-        http_unix_socket: "httpUnixSocket",
-        browser: "browser",
-      };
-      if (sub === "list") {
-        return [
-          `git_protocol=${backend.config.gitProtocol}`,
-          `editor=${backend.config.editor}`,
-          `prompt=${backend.config.prompt}`,
-          `pager=${backend.config.pager}`,
-          `http_unix_socket=${backend.config.httpUnixSocket}`,
-          `browser=${backend.config.browser}`,
-          "",
-        ].join("\n");
-      }
-      if (sub === "get") {
-        const key = parsed.positionals[0] ?? "";
-        const prop = map[key];
-        if (!prop) return undefined;
-        return `${String(backend.config[prop])}\n`;
-      }
-      if (sub === "set") {
-        const key = parsed.positionals[0] ?? "";
-        const val = parsed.positionals[1] ?? "";
-        const prop = map[key];
-        if (!prop) return undefined;
-        (backend.config as unknown as Record<string, string>)[prop] = val;
-        return "";
-      }
-      if (sub === "clear-cache") {
-        return "✓ Cleared the cache\n";
-      }
-      return undefined;
-    }
-
     if (command === "alias") {
       const sub = subArgs[0] ?? "list";
       const rest = subArgs.slice(1);

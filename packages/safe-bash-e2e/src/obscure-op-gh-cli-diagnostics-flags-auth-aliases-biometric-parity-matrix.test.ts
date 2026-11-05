@@ -438,9 +438,9 @@ describe("obscure op and gh CLI diagnostics, flag validations, auth/admin gates,
       assert.equal(
         res.stdout,
         [
-          "rc=1,1,0 val=nvim",
-          'unknown config key "invalid_key"',
-          'unknown config key "invalid_key"',
+          "rc=1,0,0 val=nvim",
+          'could not find key "invalid_key"',
+          "! warning: 'invalid_key' is not a known configuration key",
           "",
         ].join("\n")
       );

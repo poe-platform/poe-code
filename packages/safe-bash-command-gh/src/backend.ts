@@ -41,6 +41,7 @@ export class GitHubBackend {
   readonly extensions = new Map<string, { readonly name: string; readonly repo: string; readonly version: string }>();
   readonly codespaces = new Map<string, GhCodespace>();
   readonly config: GhConfigState;
+  readonly configOverrides = new Map<string, Map<string, string>>();
   currentUser: string;
   defaultHost: string;
   readonly now: () => Date;
@@ -60,7 +61,7 @@ export class GitHubBackend {
     const token = options.defaultToken ?? "gho_default_safe_bash_token_1234567890";
     this.config = {
       gitProtocol: "https",
-      editor: "vim",
+      editor: "",
       prompt: "enabled",
       pager: "",
       httpUnixSocket: "",

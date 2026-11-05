@@ -173,9 +173,9 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
             singleFile = true;
         else if (arg === "-forcenum")
             forceNum = true;
-        else if (arg === "-o" || arg === "-odd")
+        else if (arg === "-o")
             oddOnly = true;
-        else if (arg === "-e" || arg === "-even")
+        else if (arg === "-e")
             evenOnly = true;
         else if (arg === "-cropbox")
             useCropBox = true;

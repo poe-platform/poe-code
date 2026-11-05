@@ -4,10 +4,14 @@ import { runPdftoppmCli, runPdftoppmCliSync } from "./index.js";
 
 const doc = PdfDocument.create();
 doc.addPage([2, 2]);
+doc.addPage([2, 2]);
+doc.addPage([2, 2]);
 const pdf = doc.save();
 const validArgs = ["in.pdf", "out"];
 const invalidArgs: string[][] = [
   ["-unknown-flag", ...validArgs],
+  ["-png", "-odd", ...validArgs],
+  ["-png", "-even", ...validArgs],
   [...validArgs, "extra"],
 
 ];
@@ -28,6 +32,17 @@ it.each(invalidArgs)("rejects invalid arguments %j before reading or writing PDF
     expect(result.stderr).not.toBe("");
     expect([...files.keys()]).toEqual(["in.pdf"]);
     expect((await run(args, new Map())).exitCode).toBe(99);
+  }
+});
+it.each([
+  { flag: "-o", outputs: ["out-1.png", "out-3.png"] },
+  { flag: "-e", outputs: ["out-2.png"] },
+])("filters pages with $flag", async ({ flag, outputs }) => {
+  for (const run of [runPdftoppmCli, runPdftoppmCliSync]) {
+    const files = new Map([["in.pdf", pdf]]);
+    const result = await run(["-png", flag, ...validArgs], files);
+    expect(result.exitCode).toBe(0);
+    expect([...files.keys()]).toEqual(["in.pdf", ...outputs]);
   }
 });
 it("identifies an empty PDF stream", async () => {

@@ -128,6 +128,7 @@ export async function parseDocument(source: string, budget: MdqBudget): Promise<
           }
           n = node("table", { rows, alignments: b.alignments.map(a => a === "AlignDefault" ? "none" : a.slice(5).toLowerCase()) }); break;
         }
+        default: throw new Error(`Unexpected CommonMark block ${b.kind}`);
       }
       (sections.at(-1)?.children ?? result).push(n);
     }

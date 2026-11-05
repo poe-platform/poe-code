@@ -5,6 +5,22 @@ import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, 
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
 for (const fn of ["printf", "format"]) {
+  for (const [args, expected] of [
+    ["'%,d|%,d|%,d|%,d|%,d|%,d', 1234567, -1234567, 999, -999, 0, NULL", "1,234,567|-1,234,567|999|-999|0|0"],
+    ["'%,i|%,u|%,u|%,d|%,d', 1234567, 1234567, -1, 9223372036854775807, -9223372036854775808", "1,234,567|1,234,567|18,446,744,073,709,551,615|9,223,372,036,854,775,807|-9,223,372,036,854,775,808"],
+    ["'%,010d|%,10d|%-,10d|%+,d|%,.8d', 1234, 1234, 1234, 1234, 1234", "0,000,001,234|     1,234|1,234     |+1,234|00,001,234"],
+    ["'% ,d|%-,010d|%,x|%,d:%d', 1234, 1234, 65535, 1234, 42", " 1,234|0,000,001,234|ffff|1,234:42"],
+  ]) {
+    test(`sqlite3 ${fn} comma grouping matches native SQLite: ${args}`, async () => {
+      assert.deepEqual(
+        await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${fn}(${args});`]),
+        { code: 0, stdout: `${expected}\n`, stderr: "" }
+      );
+    });
+  }
+}
+
+for (const fn of ["printf", "format"]) {
   test(`sqlite3 ${fn} alternate hexadecimal forms match native SQLite`, async () => {
     // Expected output verified with native SQLite.
     assert.deepEqual(

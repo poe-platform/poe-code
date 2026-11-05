@@ -1693,13 +1693,13 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%([-+ #0]*\d*(?:\.\d+)?)([sdfeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%([-+ #0,]*\d*(?:\.\d+)?)([sdiufeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
     const raw: SqlValue = args[argIdx++] ?? null;
     let flagEnd = 0;
-    while (flagEnd < flags.length && "-+ #0".includes(flags[flagEnd]!)) flagEnd++;
+    while (flagEnd < flags.length && "-+ #0,".includes(flags[flagEnd]!)) flagEnd++;
     const modifiers = flags.slice(0, flagEnd);
     const width = Number(flags.slice(flagEnd).split(".")[0]);
     let out = "";
@@ -1714,11 +1714,21 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
     } else if (spec === "c") {
       const s = toSqlString(raw);
       out = s[0] ?? "";
-    } else if (spec === "d") {
-      out = String(Math.trunc(toSqlNumber(raw)));
-      const sign = out.startsWith("-") ? "-" : modifiers.includes("+") ? "+" : "";
+    } else if (spec === "d" || spec === "i" || spec === "u") {
+      const integer = integerPrefix(raw);
+      const clamped = integer < INT64_MIN ? INT64_MIN : integer > INT64_MAX ? INT64_MAX : integer;
+      out = String(spec === "u" ? BigInt.asUintN(64, clamped) : clamped);
+      const sign = out.startsWith("-") ? "-" : spec === "u" ? "" : modifiers.includes("+") ? "+" : modifiers.includes(" ") ? " " : "";
       if (out.startsWith("-")) out = out.slice(1);
-      if (modifiers.includes("0")) out = out.padStart(Math.max(0, width - sign.length), "0");
+      const precisionIndex = flags.indexOf(".");
+      const precision = precisionIndex < 0 ? 0 : Number(flags.slice(precisionIndex + 1));
+      out = out.padStart(Math.max(precision, modifiers.includes("0") ? width - sign.length : 0), "0");
+      if (modifiers.includes(",")) {
+        // SQLite groups after zero padding, before adding the sign and spaces.
+        const groups = [];
+        for (let end = out.length; end > 0; end -= 3) groups.push(out.slice(Math.max(0, end - 3), end));
+        out = groups.reverse().join(",");
+      }
       out = sign + out;
     } else if (spec === "x" || spec === "X" || spec === "p") {
       const integer = integerPrefix(raw);

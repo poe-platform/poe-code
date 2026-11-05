@@ -25,7 +25,8 @@ export async function* encodeGifFromStorage(
   )
     throw new RangeError("Invalid GIF backing allocation");
   const pixels = new Pixels(image, storage, signal),
-    palette = new GifPalette();
+    palette = new GifPalette(),
+    previousPixels = new Pixels(image, storage, signal);
   for (let i = 0; i < length / 4; i++) {
     const p = await pixels.pixel(i);
     palette.add(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24);
@@ -35,9 +36,12 @@ export async function* encodeGifFromStorage(
   yield gifHeader(image, options, layout, palette);
   for (let frame = 0; frame < layout.frames; frame++) {
     const start = frame * layout.framePixels;
+    const rectangle = await image.storedGifFrame?.at(frame) ?? image.gifFrames?.[frame];
+    const count = rectangle ? rectangle.width * rectangle.height : layout.framePixels;
+    const pixel = (i: number) => start + (rectangle ? Math.floor(i / rectangle.width) * image.width + i % rectangle.width : i);
     let transparent = false;
-    for (let i = 0; i < layout.framePixels; i++)
-      if ((await pixels.pixel(start + i)) >>> 24 < 128) {
+    for (let i = 0; i < count; i++)
+      if ((await pixels.pixel(pixel(i))) >>> 24 < 128) {
         transparent = true;
         break;
       }
@@ -47,10 +51,33 @@ export async function* encodeGifFromStorage(
       : undefined;
     signal.throwIfAborted();
     const frameDisposal = await image.storedDisposal?.at(frame, {signal});
-    yield gifFrameHeader(image, options, layout, frame, transparent, frameDelay, frameDisposal);
+
+    let left = rectangle?.x ?? image.virtualCanvas?.x ?? 0, top = rectangle?.y ?? image.virtualCanvas?.y ?? 0, width = rectangle?.width ?? layout.width, height = rectangle?.height ?? layout.frameHeight;
+    let cropped = false;
+    const currentDisposal = frameDisposal ?? (typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame]) ?? 1;
+    const previousDisposal = frame > 0 ? await image.storedDisposal?.at(frame - 1, { signal }) ?? (typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame - 1]) ?? 1 : 1;
+    const previousRectangle = frame > 0 ? await image.storedGifFrame?.at(frame - 1) ?? image.gifFrames?.[frame - 1] : undefined;
+    if (options.optimizeFrames && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
+      && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
+      && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight))) {
+      cropped = true;
+      let right = -1, bottom = -1;
+      left = width; top = height;
+      for (let i = 0; i < count; i++) {
+        const different = await pixels.pixel(pixel(i)) !== await previousPixels.pixel(start - layout.framePixels + i);
+        if (different) {
+          const x = i % layout.width, y = Math.floor(i / layout.width);
+          left = Math.min(left, x); top = Math.min(top, y);
+          right = Math.max(right, x); bottom = Math.max(bottom, y);
+        }
+      }
+      if (right < 0) { left = 0; top = 0; width = 1; height = 1; }
+      else { width = right - left + 1; height = bottom - top + 1; }
+    }
+    yield gifFrameHeader(image, options, layout, frame, transparent, frameDelay, frameDisposal, { left, top, width, height });
     const codes = new GifCodes();
     codes.code(256);
-    for (let i = 0; i < layout.framePixels; i++) {
+    for (let i = 0; i < width * height; i++) {
       if (i > 0 && i % 120 === 0) {
         const chunk = codes.code(256);
         if (chunk) {
@@ -58,7 +85,7 @@ export async function* encodeGifFromStorage(
           yield chunk;
         }
       }
-      const p = await pixels.pixel(start + i),
+      const p = await pixels.pixel(cropped ? start + (top + Math.floor(i / width)) * layout.width + left + i % width : pixel(i)),
         chunk = codes.code(palette.index(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24));
       if (chunk) {
         signal.throwIfAborted();

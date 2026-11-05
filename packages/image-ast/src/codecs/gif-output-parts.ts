@@ -4,8 +4,9 @@ export interface GifOptions {
   readonly pageHeight?: number;
   readonly delay?: number | readonly number[];
   readonly loop?: number;
+  readonly optimizeFrames?: boolean;
 }
-export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal">;
+export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames">;
 /** The wire palette is fixed at 256 entries, independent of raster size. */
 export class GifPalette {
   readonly bytes = new Uint8Array(768);
@@ -92,7 +93,8 @@ export function gifHeader(
   layout: ReturnType<typeof gifLayout>,
   palette: GifPalette
 ) {
-  const { width, frameHeight, frames } = layout,
+  const { frames } = layout,
+    width = image.virtualCanvas?.width || layout.width, frameHeight = image.virtualCanvas?.height || layout.frameHeight,
     loop = options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
     out = new Uint8Array(13 + 768 + (loop === undefined || loop === 1 ? 0 : 19));
   out.set([
@@ -147,9 +149,11 @@ export function gifFrameHeader(
   frame: number,
   transparent: boolean,
   frameDelay = image.delay?.[frame],
-  frameDisposal = typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame]
+  frameDisposal = typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame],
+  rectangle = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
 ) {
-  const { width, frameHeight, frames } = layout,
+  const { frames } = layout,
+    { left, top, width, height } = rectangle,
     delay = Array.isArray(options.delay)
       ? (options.delay[frame] ?? options.delay[options.delay.length - 1] ?? 100)
       : typeof options.delay === "number"
@@ -170,7 +174,7 @@ export function gifFrameHeader(
       0
     ]);
   out.set(
-    [44, 0, 0, 0, 0, width & 255, width >>> 8, frameHeight & 255, frameHeight >>> 8, 0, 8],
+    [44, left & 255, left >>> 8, top & 255, top >>> 8, width & 255, width >>> 8, height & 255, height >>> 8, 0, 8],
     gce ? 8 : 0
   );
   return out;

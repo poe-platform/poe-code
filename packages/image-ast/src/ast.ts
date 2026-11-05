@@ -56,6 +56,7 @@ export interface RgbaImage {
   readonly pages?: number;
   readonly sourcePages?: number;
   readonly pageHeight?: number;
+  readonly gifFrames?: readonly { readonly width: number; readonly height: number; readonly x: number; readonly y: number }[];
   readonly disposal?: number | readonly number[];
   readonly delay?: readonly number[];
   readonly loop?: number;
@@ -269,6 +270,8 @@ export interface SharpInputOptions {
   readonly page?: number;
   readonly pages?: number;
   readonly animated?: boolean;
+  /** Decode a single GIF frame rectangle without compositing preceding frames. */
+  readonly coalesce?: boolean;
   readonly autoOrient?: boolean;
   readonly limitInputPixels?: number | boolean | undefined;
   readonly sequentialRead?: boolean;
@@ -456,6 +459,7 @@ export interface OutputEncodeOptions {
   readonly pageHeight?: number;
   readonly delay?: number | readonly number[];
   readonly loop?: number;
+  readonly optimizeFrames?: boolean;
 }
 
 const NAMED_COLORS: Record<string, [number, number, number, number]> = {

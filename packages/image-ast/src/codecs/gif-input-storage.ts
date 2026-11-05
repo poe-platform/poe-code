@@ -112,9 +112,11 @@ export async function decodeGifToStorage(
     header = new Uint8Array(Math.min(source.size, 13));
   for (let i = 0; i < header.length; i++) header[i] = (await reader.at(i)) ?? 0;
   if (!isGifBytes(header) || header.length < 13) throw new Error("Invalid GIF header");
-  const width = header[6]! | (header[7]! << 8),
+  let width = header[6]! | (header[7]! << 8),
     height = header[8]! | (header[9]! << 8),
     frameBytes = width * height * 4;
+  const canvasWidth = width, canvasHeight = height;
+  let virtualCanvas: StoredRgbaImage["virtualCanvas"];
   checkLimitInputPixels(width, height, options);
   const word = async (at: number) =>
     ((await reader.at(at)) ?? 0) | (((await reader.at(at + 1)) ?? 0) << 8);
@@ -129,10 +131,10 @@ export async function decodeGifToStorage(
   };
   const {frames,loop}=await scanGifAnimation(reader,source.size,start);
   const totalPages = Math.max(1, frames),
-    multi =
+    multi = options?.coalesce !== false && (
       options?.animated === true ||
       options?.pages === -1 ||
-      (options?.pages !== undefined && options.pages > 1),
+      (options?.pages !== undefined && options.pages > 1)),
     page = Math.max(0, options?.page ?? 0),
     pages = multi
       ? options?.pages !== undefined && options.pages > 0
@@ -169,9 +171,9 @@ export async function decodeGifToStorage(
       delayView.setUint32(0, delay, true);
       await write(delayPosition + frame * 4, delayBytes);
     });
-  const canvas = allocate(frameBytes),
-    saved = allocate(frameBytes),
-    output = pages > 1 ? allocate(frameBytes * pages) : canvas,
+  let canvas = options?.coalesce === false ? 0 : allocate(frameBytes),
+    output = pages > 1 ? allocate(frameBytes * pages) : canvas;
+  const saved = options?.coalesce === false ? 0 : allocate(frameBytes),
     zeros = new Uint8Array(4096);
   const clear = async (at: number, length: number) => {
     for (let i = 0; i < length; i += 4096) {
@@ -185,7 +187,7 @@ export async function decodeGifToStorage(
       await defaultRuntime.yieldTurn(signal);
     }
   };
-  await clear(canvas, frameBytes);
+  if (options?.coalesce !== false) await clear(canvas, frameBytes);
   if (pages > 1) await clear(output, frameBytes * pages);
   let cacheAt = -1,
     cache = new Uint8Array(0),
@@ -239,9 +241,9 @@ export async function decodeGifToStorage(
         at += (length ?? Number.NaN) + 1;
       } else at = await skip(at);
     } else if (intro === 44) {
-      const left = await word(at),
-        top = await word(at + 2),
-        w = await word(at + 4),
+      let left = await word(at),
+        top = await word(at + 2);
+      const w = await word(at + 4),
         h = await word(at + 6),
         flags = (await reader.at(at + 8)) ?? 0;
       at += 9;
@@ -254,8 +256,17 @@ export async function decodeGifToStorage(
       const minimum = (await reader.at(at++)) ?? 0,
         data = at;
       at = await skip(at);
+      if (options?.coalesce === false) {
+        if (current++ !== page) { transparent = -1; disposal = 0; continue; }
+        virtualCanvas = { width: canvasWidth, height: canvasHeight, x: left, y: top };
+        width = w; height = h; frameBytes = w * h * 4;
+        checkLimitInputPixels(width, height, options);
+        canvas = allocate(frameBytes); output = canvas;
+        await clear(canvas, frameBytes);
+        left = 0; top = 0;
+      }
       await flush();
-      if (disposal === 3) await copy(canvas, saved);
+      if (disposal === 3 && !virtualCanvas) await copy(canvas, saved);
       let x = 0,
         y = 0,
         pass = 0;
@@ -268,7 +279,7 @@ export async function decodeGifToStorage(
           dy = top + y;
         if (dx < width && dy < height) {
           if (index === transparent) {
-            if (current === 0) await pixel(dy * width + dx, 0);
+            if (current === 0 || virtualCanvas) await pixel(dy * width + dx, 0);
           } else
             await pixel(
               dy * width + dx,
@@ -293,7 +304,7 @@ export async function decodeGifToStorage(
       if (transparent !== -1) hasAlpha = true;
       if (current >= page && current <= end && pages > 1)
         await copy(canvas, output + (current - page) * frameBytes);
-      if (current >= end) break;
+      if (virtualCanvas || current >= end) break;
       if (disposal === 2) {
         for (let y = 0; y < h; y++) {
           if (top + y >= height) continue;
@@ -313,6 +324,7 @@ export async function decodeGifToStorage(
       disposal = 0;
     } else break;
   }
+  if (options?.coalesce === false && !virtualCanvas) throw new RangeError("GIF frame is out of range");
   await flush();
   if (!hasAlpha)
     for (let i = 0; i < frameBytes * pages && !hasAlpha; i += 4096) {
@@ -326,7 +338,8 @@ export async function decodeGifToStorage(
     }
   return {
     width,
-    height: height * pages,
+    height: height * (virtualCanvas ? 1 : pages),
+    ...(virtualCanvas ? { virtualCanvas, disposal } : {}),
     position: output,
     format: "gif",
     space: "srgb",

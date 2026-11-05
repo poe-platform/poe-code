@@ -485,6 +485,7 @@ interface MagickState {
   samplingFactor?: string;
   delay?: number;
   loop?: number;
+  optimizeLayers?: boolean;
   density: number;
   fuzz: number;
   alphaFuzz: number;
@@ -4009,6 +4010,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         if (++work % 16384 === 0)
             yield;
         let img = decodeImage(rawBytes, {
+            coalesce: false,
             density: state.density,
             ...(effectiveMaxDecodeDim !== undefined ? { maxDecodeDimension: effectiveMaxDecodeDim } : {}),
             ...(totalPages > 1 || pageSpec !== undefined ? { page: pageIdx } : {})
@@ -5229,7 +5231,26 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
         }
         else if (t === "-coalesce" || t === "-deconstruct") {
-            // Coalesces frames in-place
+            if (stack.length) {
+                const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                let canvas: RgbaImage = { ...first, width, height, data: new Uint8Array(width * height * 4), hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
+                const frames: RgbaImage[] = [];
+                for (const frame of stack) {
+                    const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+                    canvas = yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(frame, x, y, "over")]);
+                    frames.push({ ...frame, width, height, data: canvas.data, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal: 2 });
+                    if (frame.disposal === 3) canvas = previous;
+                    else if (frame.disposal === 2) {
+                        const data = new Uint8Array(canvas.data);
+                        for (let row = Math.max(0, y); row < Math.min(height, y + frame.height); row++) {
+                            yield;
+                            data.fill(0, (row * width + Math.max(0, x)) * 4, (row * width + Math.min(width, x + frame.width)) * 4);
+                        }
+                        canvas = { ...canvas, data, hasAlpha: true };
+                    }
+                }
+                stack = frames;
+            }
         }
         else if (t === "-splice") {
             const geom = tokens[++i] ?? "0x0";
@@ -5688,6 +5709,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = [appended];
         }
+        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize") { state.optimizeLayers = true; i++; }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
             const flatten = t === "-flatten" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
             if (t === "-layers")
@@ -5863,8 +5885,8 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         let toEncode = yield* prepareHslOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && format === "gif") {
-            const fw = stack[0]!.width;
-            const fh = stack[0]!.height;
+            let fw = 0, fh = 0;
+            for (const frame of stack) { fw = Math.max(fw, frame.width); fh = Math.max(fh, frame.height); }
             const combined = new Uint8Array(fw * fh * stack.length * 4);
             const delays: number[] = [];
             const disposals: number[] = [];
@@ -5874,10 +5896,10 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 const outputFrame = yield* prepareHslOutput(stack[idx]!, format);
                 disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 1);
                 delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
-                const frame = outputFrame.width === fw && outputFrame.height === fh
-                    ? outputFrame
-                    : (yield* applyMagickResizeSteps(outputFrame, `${fw}x${fh}!`, state.kernel));
-                combined.set(frame.data, idx * fw * fh * 4);
+                for (let y = 0; y < outputFrame.height; y++) {
+                    if (++cooperativeWork % 64 === 0) yield;
+                    combined.set(outputFrame.data.subarray(y * outputFrame.width * 4, (y + 1) * outputFrame.width * 4), (idx * fw * fh + y * fw) * 4);
+                }
             }
             toEncode = {
                 ...(yield* prepareHslOutput(stack[0]!, format)),
@@ -5887,6 +5909,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 pageHeight: fh,
                 delay: delays,
                 disposal: disposals,
+                gifFrames: stack.map(frame => ({ width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
                 data: combined
             };
             encodePageHeight = fh;
@@ -5896,7 +5919,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             format,
             ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality,
             ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : { delay: toEncode.delay?.[(finalImg as MagickImage)[magickInput]?.sceneIdx ?? 0] }),
-            ...(state.loop === undefined ? {} : { loop: state.loop }),
+            ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}),
             consumeInput: true
         } as any);
         detachRgbaBuffer(toEncode.data);
@@ -6258,6 +6281,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize") { state.optimizeLayers = true; i++; continue; }
         if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
             const flatten = token === "-flatten" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
             if (token === "-layers") i++;
@@ -6303,7 +6327,26 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && ["-dispose", "-deskew"].includes(token)) { i++; continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
-        if (!operandsOnly && (token === "-coalesce" || token === "-deconstruct")) continue;
+        if (!operandsOnly && (token === "-coalesce" || token === "-deconstruct")) {
+            stackStep(async (stack, backend) => {
+                if (!stack.length) return stack;
+                const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                let canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                const frames = new StoredImageStack(backend.storage, signal);
+                for (let index = 0; index < stack.length; index++) {
+                    const frame = (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+                    canvas = await compositeStoredMagick(canvas, frame, backend, signal, x, y, "over", undefined, true);
+                    await frames.push({ ...frame, width, height, position: canvas.position, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal: 2 });
+                    if (frame.disposal === 3) canvas = previous;
+                    else if (frame.disposal === 2) {
+                        const clear = await createStoredCanvas(frame.width, frame.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                        canvas = await compositeStoredMagick(canvas, clear, backend, signal, x, y, "source", undefined, true);
+                    }
+                }
+                return frames;
+            });
+            continue;
+        }
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
@@ -6584,21 +6627,29 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         let pageHeight: number | undefined;
         if (stack.length > 1 && output.format === "gif") {
-            const first = await prepareStoredHslOutput((await stack.get(0))!, output.format, backend, signal), size = first.width * first.height * 4, position = backend.storage.allocate(size * stack.length);
+            const first = await prepareStoredHslOutput((await stack.get(0))!, output.format, backend, signal);
+            let width = first.width, height = first.height;
+            for (let index = 1; index < stack.length; index++) {
+                const frame = (await stack.get(index))!;
+                width = Math.max(width, frame.width); height = Math.max(height, frame.height);
+            }
+            const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
             for (let index = 0; index < stack.length; index++) {
-                let frame = await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal);
-                if (frame.width !== first.width || frame.height !== first.height) {
-                    const resize = magickResizeOptions(frame, `${first.width}x${first.height}!`, state.kernel)!;
-                    frame = await resizeStoredMagickImage(frame, backend, resize, signal);
-                }
-                for (let offset = 0; offset < size; offset += 16384) {
+                const frame = await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal);
+                for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 4096) {
                     await yieldTurn(signal);
-                    await backend.storage.write(position + index * size + offset, await backend.storage.read(frame.position + offset, Math.min(16384, size - offset)));
+                    const count = Math.min(4096, width - x), bytes = new Uint8Array(count * 4);
+                    if (y < frame.height && x < frame.width) bytes.set(await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(count, frame.width - x) * 4));
+                    await backend.storage.write(position + index * size + (y * width + x) * 4, bytes);
                 }
             }
-            pageHeight = first.height;
+            pageHeight = height;
             const { storedData16: ignored, ...metadata } = first;
-            image = { ...metadata, position, height: first.height * stack.length, pages: stack.length, pageHeight,
+            image = { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight,
+                storedGifFrame: { async at(index) {
+                    const frame = (await stack.get(index))!;
+                    return { width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };
+                } },
                 storedDisposal: { length: stack.length, async at(index) {
                     const frame = (await stack.get(index))!;
                     return typeof frame.disposal === "number" ? frame.disposal : 1;
@@ -6612,7 +6663,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const scene = pageHeight === undefined ? (await stack.get(0))![magickInput]?.sceneIdx ?? 0 : 0;
         const delay = pageHeight === undefined ? await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] : undefined;
-        const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }) });
+        const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }
@@ -6944,10 +6995,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   else{
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
    if(readOptions.visit){
-    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame,configured,metadata,byteLength)=>{image=await finish(Object.assign(frame,{[magickInput]:{filePath:path,byteLen:byteLength,originalWidth:metadata?.width??frame.width,originalHeight:metadata?.height??frame.height,sceneIdx:configured.page??0}}));await readOptions.visit!(image);},readOptions.source);
+    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame,configured,metadata,byteLength)=>{image=await finish(Object.assign(frame,{[magickInput]:{filePath:path,byteLen:byteLength,originalWidth:metadata?.width??frame.width,originalHeight:metadata?.height??frame.height,sceneIdx:configured.page??0}}));await readOptions.visit!(image);},readOptions.source);
     return image;
    }
-   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
+   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
   }
  }
  if(image){image=await finish(image);await readOptions.visit?.(image);}

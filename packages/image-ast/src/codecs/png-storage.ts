@@ -24,6 +24,7 @@ export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16"> {
   /** Frame delays can remain in caller storage instead of an unbounded metadata array. */
   readonly storedDelay?: ImageDelayReader;
   readonly storedDisposal?: ImageDelayReader;
+  readonly storedGifFrame?: { at(index: number): Promise<NonNullable<RgbaImage["gifFrames"]>[number]> };
 }
 
 async function range(source: ImageByteSource, position: number, length: number, signal: AbortSignal): Promise<Uint8Array> {

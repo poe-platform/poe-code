@@ -1,3 +1,5 @@
+import {BackedTextSet} from "./backed-text-set.js";
+import {retainedHeadingIdentifier} from "./retained-heading-identifier.js";
 import type {RetainedXmlDocument, RetainedXmlNode} from "@poe-code/office-xml/retained-xml-document";
 import {characters, equal, literal} from "@poe-code/office-xml/retained-values";
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
@@ -245,10 +247,28 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
     const specs = await ast.array(); for (let i = 0; i < width; i++) await ast.push(specs, await ast.value(["AlignDefault", await ast.tag("ColWidthDefault")]));
     return ast.tag("Table", await ast.value([attrs, [null, caption], specs, [empty, heads], bodies, [empty, feet]]));
   }
+  const result = await childFlow(body), identifiers = new BackedTextSet(storage, ast.text);
+  // Construction is postorder; assign identifiers in document order.
+  await ast.walk(result, async (node, _depth, leaving) => {
+    if (leaving || await ast.name(node) !== "Header") return;
+    const content = (await ast.content(node))!, attrs = (await ast.at(content, 1))!;
+    let id = await ast.range((await ast.at(attrs, 0))!);
+    if (!id.units) {
+      const base = await retainedHeadingIdentifier(ast, (await ast.at(content, 2))!);
+      id = base;
+      for (let suffix = 1; await identifiers.has(id); suffix++) {
+        id = await ast.text.from(ast.text.chunks(base));
+        await ast.text.append(id, await ast.text.from([`-${suffix}`]));
+      }
+      await ast.set(attrs, 0, await ast.string(id));
+    }
+    await identifiers.add(id);
+    return false;
+  });
   let language = await lookup(rootAttributes, "lang");
   if (!await nonempty(language)) language = await lookup(rootAttributes, "xml:lang");
   const dir = await lookup(rootAttributes, "dir");
   let direction: "ltr" | "rtl" | "auto" | undefined;
   for (const candidate of ["ltr", "rtl", "auto"] as const) if (await same(dir, candidate)) direction = candidate;
-  return {blocks: await childFlow(body), ...(await nonempty(language) ? {language} : {}), ...(direction ? {direction} : {})};
+  return {blocks: result, ...(await nonempty(language) ? {language} : {}), ...(direction ? {direction} : {})};
 }

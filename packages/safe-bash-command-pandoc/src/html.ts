@@ -1,3 +1,4 @@
+import {headingIdentifier} from "./heading-attributes.js";
 import {
   Parser,
   serializeOuter,
@@ -225,6 +226,7 @@ export async function nativeDivBlocks(text: string, ctx: AdapterContext): Promis
 
 /** Map an already parsed tree without invoking HTML tokenization or recovery. */
 export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
+    const identifiers = new Set<string>();
     async function literal(node: H.Node): Promise<string> {
       await ctx.cooperate();
       if (node.nodeName === "#text") return (node as H.TextNode).value;
@@ -392,9 +394,19 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
               ? { t: "Div", c: [attributes, [paragraph]] }
               : paragraph
           );
-        } else if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag))
-          result.push({ t: "Header", c: [Number(tag[1]), attr(node), await inlineContent()] });
-        else if (containers.has(tag))
+        } else if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag)) {
+          const content = await inlineContent();
+          let attributes = attr(node);
+          if (!attributes[0]) {
+            const base = headingIdentifier(content, ctx);
+            let id = base;
+            for (let suffix = 1; identifiers.has(id); suffix++) {ctx.checkpoint(); id = `${base}-${suffix}`;}
+            ctx.charge("retainedBytes", id.length * 2);
+            attributes = [id, attributes[1], attributes[2]];
+          }
+          identifiers.add(attributes[0]);
+          result.push({ t: "Header", c: [Number(tag[1]), attributes, content] });
+        } else if (containers.has(tag))
           result.push({ t: "Div", c: [attr(node), await flow(node.childNodes)] });
         else if (tag === "hr") result.push({ t: "HorizontalRule" });
         else if (tag === "blockquote")

@@ -12,6 +12,9 @@ import {readRetainedXhtml} from "./retained-xhtml-reader.js";
 async function* byteSource(bytes: Uint8Array) {yield bytes;}
 
 it.each([
+  '<h2>Hello World</h2><div><h3>Hello World</h3></div><h4>Hello World</h4>',
+  '<h1 id="hello">First</h1><h2>Hello</h2><h3 id="hello">Explicit</h3>',
+  '<h2>33. <em>Hello</em>, <a href="/url">World</a> <code>A_B.C</code>!</h2><h2>123 !!!</h2><h2>École 中文</h2>',
   '<ol type="i" start="3"><li>Roman</li></ol><ol type="constructor"><li>Default</li></ol>',
   '<table><tbody><tr>' + '<td rowspan="2">a</td>'.repeat(96) + '</tr><tr><td>b</td></tr></tbody></table>',
   '<pre id="p" title="outer" class="a a"><code id="c" title="inner" class="a b">literal<span> child</span><script>drop</script></code></pre>',

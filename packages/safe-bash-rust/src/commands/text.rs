@@ -7152,12 +7152,14 @@ fn apply_unified_diff(
             let mut new_no_nl = false;
             while idx < lines.len() {
                 let hl = lines[idx];
-                if hl.starts_with("@@ ")
-                    || hl.starts_with("--- ")
-                    || hl.starts_with("+++ ")
+                // Within the declared range, "--- " and "+++ " are ordinary edits.
+                if (hunk_old.len() == old_count && hunk_new.len() == new_count
+                    && !hl.starts_with("\\ No newline at end of file"))
+                    || hl.starts_with("@@ ")
+                    || (hunk_old.len() >= old_count && hl.starts_with("--- "))
+                    || (hunk_new.len() >= new_count && hl.starts_with("+++ "))
                     || hl.starts_with("diff ")
                     || hl.starts_with("Index: ")
-                    || hl == "-- "
                 {
                     break;
                 }

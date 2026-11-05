@@ -22,6 +22,7 @@ test("GNU diff and patch exchange unified diffs with TypeScript and Rust", async
   try {
     for (const [before, after] of [
       ["", "new line\n"],
+      ["-- old path\n", "++ new path\n"],
       ["café\nend", "café\nlast"],
       ["a\r\nb\r\n", "a\r\nc\r\n"],
       ["old\none\ntwo\nthree\nfour\nfive\nlast\n", "new\none\ntwo\nthree\nfour\nfive\nlast"]

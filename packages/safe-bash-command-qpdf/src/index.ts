@@ -646,10 +646,12 @@ function parseQpdfArguments(argv: readonly string[]) {
     } else if (arg === "--collate") {
       collateCounts = [1];
     } else if (arg.startsWith("--collate=")) {
-      collateCounts = arg.slice("--collate=".length).split(",").map(value => {
+      collateCounts = [];
+      for (const value of arg.slice("--collate=".length).split(",")) {
         const count = Number.parseInt(value, 10);
-        return count === 0 ? 0 : Math.max(1, count || 1);
-      });
+        if (count < 0) return { result: { exitCode: 2, stdout: "", stderr: `qpdf: underflow converting ${value} to 64-bit unsigned integer\n` } };
+        collateCounts.push(count === 0 ? 0 : Math.max(1, count || 1));
+      }
     } else if (arg === "--flatten-rotation") {
       flattenRotation = true;
     } else if (arg === "--remove-unreferenced-resources") {

@@ -5,13 +5,16 @@ import { PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli, runQpdfCliSync } from "./index.js";
 
-for (const [groups, sources] of [
+for (const [groups, sources, negative] of [
   ["1,2", ["in.pdf", "in.pdf", "in.pdf"]],
   ["0,0", ["in.pdf", "in.pdf", "in.pdf"]],
   ["1,2,3", ["in.pdf", "in.pdf"]],
   ["1,2", ["in.pdf"]],
+  ["-1", ["in.pdf", "in.pdf"], "-1"],
+  ["1,-2", ["in.pdf", "in.pdf"], "-2"],
+  ["-3,1", ["in.pdf", "in.pdf"], "-3"],
 ] as const) {
-  const diagnostic = "--pages: if --collate has more than one value, it must have one value per page specification";
+  const diagnostic = negative ? `underflow converting ${negative} to 64-bit unsigned integer` : "--pages: if --collate has more than one value, it must have one value per page specification";
   for (const existing of [false, true]) it(`rejects collate ${groups} for ${sources.length} specifications without publishing output (existing=${existing})`, async () => {
     const doc = PdfDocument.create(); for (let i = 0; i < 3; i++) doc.addPage();
     const input = doc.save(), original = new TextEncoder().encode("existing output");

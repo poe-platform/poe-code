@@ -4552,12 +4552,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = tokens[++i] ?? "50%";
         const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw) / 257;
         const isBlack = token === "-black-threshold";
+        const channels = state.channels;
         apply = function* (im) {
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
+            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
+                if (state.channelExplicit) {
+                    for (let channel = 0; channel < 4; channel++) {
+                        // A scalar threshold leaves native's alpha threshold at opaque.
+                        const threshold = channel === 3 ? 255 : thresh;
+                        if (mask[channel] && (isBlack ? out[idx + channel]! <= threshold : out[idx + channel]! > threshold))
+                            out[idx + channel] = isBlack ? 0 : 255;
+                    }
+                    continue;
+                }
                 const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
                 if (isBlack && intensity <= thresh) {
                     out[idx] = 0;

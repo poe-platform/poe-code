@@ -754,6 +754,22 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  it("matches constant volume gains when evaluating arithmetic on a sine wave", async () => {
+    const input = encodeWav({ sampleRate: 16000, channels: [Float64Array.from({ length: 8000 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 440 * i / 16000))] });
+    const vfs = createTestVfs({ "/input.wav": input });
+    for (const [expression, gain] of [["0.5+0.25", "0.75"], ["0.5+0.25*2", "1"], ["(0.5+0.25)/2", "0.375"], ["1-0.25-0.25", "0.5"], ["-0.5+1", "0.5"]]) {
+      for (const [value, path] of [[expression, "/expression.wav"], [gain, "/constant.wav"]]) {
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-af", `volume=${value}`, "-c:a", "pcm_s16le", path!], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const actual = parseWav(vfs.store.get("/expression.wav")!).tracks[0]!.decodedAudio!;
+      const expected = parseWav(vfs.store.get("/constant.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(actual.sampleRate, 16000);
+      assert.equal(actual.channelData[0]!.length, 8000);
+      assert.deepEqual(actual.channelData, expected.channelData, expression);
+    }
+  });
+
   for (const expression of ["banana", "1junk", "", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "1/0", "(1+2", "sin(0)"]) {
     for (const existing of [false, true]) {
       it(`rejects volume=${expression} with existing output=${existing}`, async () => {

@@ -124,7 +124,7 @@ export async function* matchRegex(input: Json, source: Json, modifiers: Json, bu
       for (let index = 1; index <= pattern.groupCount; index++) {
         const start = match.captureOffsets?.[index * 2];
         const end = match.captureOffsets?.[index * 2 + 1];
-        captures.push({ ...(start === undefined || end === undefined ? { offset: -1, length: 0, string: null } : position(start, end)), name: names.get(index) ?? null });
+        captures.push({ ...(start === undefined || end === undefined ? { offset: -1, string: null, length: 0 } : position(start, end)), name: names.get(index) ?? null });
       }
       const result = { ...position(match.start, match.end), captures };
       budget.value(result);

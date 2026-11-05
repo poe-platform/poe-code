@@ -4467,15 +4467,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const s0 = sig(0);
         const s1 = sig(1);
         const span = Math.max(1e-6, s1 - s0);
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
+            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
-                for (let c = 0; c < 3; c++) {
+                for (let c = 0; c < 4; c++) {
                     if (++pixelWork % 16384 === 0)
                         yield;
+                    if (!mask[c])
+                        continue;
                     const u = out[idx + c]! / 255;
                     out[idx + c] = clampByteVal(((sig(u) - s0) / span) * 255);
                 }

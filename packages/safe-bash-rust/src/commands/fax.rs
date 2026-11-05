@@ -104,6 +104,7 @@ pub(super) enum Coding {
     Rle,
     Group3 { mixed: bool },
     Group4,
+    Pdf { k: i32, eol: bool, align: bool },
 }
 
 pub(super) fn decode(
@@ -137,6 +138,18 @@ pub(super) fn decode(
                     return None;
                 }
                 !mixed || bits.bit()? == 1
+            }
+            Coding::Pdf { k, eol, align } => {
+                if align { bits.pos = bits.pos.checked_add(7)? & !7; }
+                if k >= 0 {
+                    let start = bits.pos;
+                    while bits.bit()? == 0 {}
+                    if bits.pos - start < 12 {
+                        if eol { return None; }
+                        bits.pos = start;
+                    }
+                }
+                k == 0 || k > 0 && bits.bit()? == 1
             }
             Coding::Group4 => false,
         };

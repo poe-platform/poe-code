@@ -1,5 +1,4 @@
-#[path = "fax.rs"]
-mod fax;
+use super::fax;
 use super::png_pixels::Raster;
 use std::borrow::Cow;
 
@@ -27,22 +26,22 @@ fn packbits(row: &[u8], out: &mut Vec<u8>) {
 }
 
 pub(super) fn encode(
-    pixels: &[[u8; 4]], width: usize, dpi: [f64; 2], opt: &super::pdf_reader::RasterOptions<'_>,
-    compression: &str, dither: bool,
+    pixels: &[[u8; 4]], width: usize, dpi: [f64; 2], color: &str,
+    compression: &str, dither: bool, limit: usize,
 ) -> Option<Vec<u8>> {
     let height = pixels.len() / width;
-    let samples: u32 = if opt.transparent { 4 } else if opt.color == "rgb" { 3 } else { 1 };
-    let mono = samples == 1 && opt.color == "mono";
+    let samples: u32 = if color == "rgba" { 4 } else if color == "rgb" { 3 } else { 1 };
+    let mono = samples == 1 && color == "mono";
     let bits = if mono { 1 } else { 8 };
     let codec = match compression { "none" => 1, "ccittrle" => 2, "ccittfax3" | "ccittt4" => 3, "ccittfax4" | "ccittt6" => 4, "lzw" => 5, "jpeg" => 7, "deflate" => 32946, "packbits" => 32773, _ => return None };
     if matches!(codec, 2..=4) && !mono { return None; }
     let strip = if codec == 7 {
         if samples == 4 || mono { return None; }
         super::jpeg::encode(super::jpeg::Input::Page { width, height, pixels, quality: 75,
-            dpi: dpi.map(|v| v as u16), gray: samples == 1 }, opt.limit).ok()?
+            dpi: dpi.map(|v| v as u16), gray: samples == 1 }, limit).ok()?
     } else {
         let stride = if mono { width.div_ceil(8) } else { width.checked_mul(samples as usize)? };
-        if stride.checked_mul(height)? > opt.limit { return None; }
+        if stride.checked_mul(height)? > limit { return None; }
         let mut raw = Vec::new();
         let mut row = Vec::with_capacity(stride);
         for (y, line) in pixels.chunks_exact(width).enumerate() {
@@ -66,10 +65,10 @@ pub(super) fn encode(
                 }
             }
             if codec == 32773 { packbits(&row, &mut raw); } else { raw.extend_from_slice(&row); }
-            if raw.len() > opt.limit { return None; }
+            if raw.len() > limit { return None; }
         }
         match codec {
-            2..=4 => fax::encode(&raw, width, codec, opt.limit)?,
+            2..=4 => fax::encode(&raw, width, codec, limit)?,
             5 => crate::commands::codecs::tiff_lzw(&raw),
             32946 => crate::commands::codecs::zlib_compress(&raw),
             _ => raw,
@@ -77,7 +76,7 @@ pub(super) fn encode(
     };
     let mut out = b"II*\0\0\0\0\0".to_vec();
     let strip_len = u32::try_from(strip.len()).ok()?;
-    if strip.len().checked_add(8)? > opt.limit { return None; }
+    if strip.len().checked_add(8)? > limit { return None; }
     out.extend_from_slice(&strip);
     if out.len() % 2 != 0 { out.push(0); }
     let bits_field = if samples == 1 { bits } else {
@@ -106,7 +105,7 @@ pub(super) fn encode(
         out.extend_from_slice(&count.to_le_bytes()); out.extend_from_slice(&value.to_le_bytes());
     }
     out.extend_from_slice(&0u32.to_le_bytes());
-    (out.len() <= opt.limit).then_some(out)
+    (out.len() <= limit).then_some(out)
 }
 
 fn word(bytes: &[u8], little: bool) -> u32 {

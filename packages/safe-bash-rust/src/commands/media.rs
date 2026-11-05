@@ -110,6 +110,8 @@ mod exiftool_json;
 mod qpdf_argfiles;
 #[path = "exiftool_argfiles.rs"]
 mod exiftool_argfiles;
+#[path = "fax.rs"]
+mod fax;
 #[path = "tiff.rs"]
 mod tiff;
 #[path = "bmp.rs"]
@@ -9337,10 +9339,10 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 Some(())
             };
             if let Some(source) = source.as_mut() {
-                source.images(pno, fs.max_input_bytes(), true, |im| {
+                source.images(pno, fs.max_input_bytes(), pdf_reader::ImageRead::Pixels, |im| {
                     let bytes = if image_fmt == "jpg" {
                         jpeg::encode(jpeg::Input::Pdf {width:im.width, height:im.height, pixels:&im.pixels},limit).ok()?
-                    } else { im.encode("PNG")? };
+                    } else { im.encode("PNG", limit)? };
                     emit(im.width,im.height,bytes)
                 }).ok_or("PDF Error: Invalid or oversized PDF image\n")?;
             } else if let Some(pg) = doc.pages.get(pno-1) {
@@ -10058,6 +10060,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     let mut print_names = false;
     let mut png_mode = false;
     let mut tiff_mode = false;
+    let mut ccitt_mode = false;
     let mut jpeg_mode = false;
     let mut all_mode = false;
     let mut first_p: Option<usize> = None;
@@ -10075,7 +10078,8 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             "-j" => jpeg_mode = true,
             "-all" => all_mode = true,
             "-u" => unique=true, "-q" => {},
-            "-jp2" | "-jbig2" | "-ccitt" => {}
+            "-ccitt" => ccitt_mode = true,
+            "-jp2" | "-jbig2" => {}
             "-f" => {
                 let Some(raw) = args.get(i + 1) else {
                     return err_out("Missing value for '-f'\n", 99);
@@ -10165,7 +10169,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             99,
         );
     }
-    if let Ok(mut source) = pdf_reader::PageSource::open(&b,"") {
+    if let Ok(mut source) = pdf_reader::PageSource::open(&b,pw_opt.as_deref().unwrap_or("")) {
         let mut idx = 0;
         let mut seen = std::collections::BTreeSet::new();
         let mut out = if list_mode {
@@ -10176,7 +10180,8 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         let mut outputs = Vec::new();
         let mut remaining = fs.shell_limits().max_output_bytes;
         for page in start_p..=end_p {
-            let done = source.images(page, fs.max_input_bytes(), !list_mode, |im| {
+            let mode = if list_mode { pdf_reader::ImageRead::List } else if ccitt_mode || all_mode { pdf_reader::ImageRead::NativeFax } else { pdf_reader::ImageRead::Pixels };
+            let done = source.images(page, fs.max_input_bytes(), mode, |im| {
                 let (w, h) = (im.width, im.height);
                 if w < min_width || h < min_height || unique && !seen.insert(im.id) {
                     return Some(());
@@ -10184,26 +10189,24 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 if list_mode {
                     out.push_str(&im.listing(page, idx));
                 } else {
-                    let (ext, format) = if tiff_mode {
-                        ("tif", "TIFF")
-                    } else if png_mode || all_mode {
-                        ("png", "PNG")
-                    } else {
-                        ("ppm", "PPM")
-                    };
                     let root = &pos[1];
-                    let name = if page_nums {
-                        format!("{root}-{page:03}-{idx:03}.{ext}")
-                    } else {
-                        format!("{root}-{idx:03}.{ext}")
+                    let base = if page_nums { format!("{root}-{page:03}-{idx:03}") } else { format!("{root}-{idx:03}") };
+                    let mut stage = |ext: &str, bytes: Vec<u8>| {
+                        remaining = remaining.checked_sub(bytes.len())?;
+                        let name = format!("{base}.{ext}");
+                        if print_names { out.push_str(&name); out.push('\n'); }
+                        outputs.push((name, bytes));
+                        Some(())
                     };
-                    let bytes = im.encode(format)?;
-                    remaining = remaining.checked_sub(bytes.len())?;
-                    if print_names {
-                        out.push_str(&name);
-                        out.push('\n');
+                    if let Some((data, params)) = im.native {
+                        stage("ccitt", data)?;
+                        stage("params", params.into_bytes())?;
+                    } else {
+                        let (ext, format) = if tiff_mode { ("tif", "TIFF") }
+                            else if png_mode || all_mode { ("png", "PNG") }
+                            else if im.bilevel { ("pbm", "PBM") } else { ("ppm", "PPM") };
+                        stage(ext, im.encode(format, fs.max_input_bytes())?)?;
                     }
-                    outputs.push((name, bytes));
                 }
                 idx += 1;
                 Some(())
@@ -16667,6 +16670,37 @@ mod media_unit_tests {
                 assert!(pixel[..3].iter().zip(expected).all(|(a,b)| a.abs_diff(b) <= 2), "{cmd}: {pixel:?}");
             }
         }
+    }
+
+    #[test]
+    fn embedded_group4_scan_can_be_listed_rendered_and_extracted() {
+        let scan = hex_dec("935cdc6ed249622466a0cd66ba492a4925001001");
+        let draw = "q 19 0 0 7 0 0 cm /Scan Do Q";
+        let fs = MemoryVfs::new();
+        let mut pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 19 7] /Resources << /XObject << /Scan 5 0 R >> >> /Contents 4 0 R >>",
+            &format!("<< /Length {} >>\nstream\n{draw}\nendstream",draw.len()),
+            "<< /Type /XObject /Subtype /Image /Width 19 /Height 7 /ColorSpace /DeviceGray /BitsPerComponent 1 /Filter /CCITTFaxDecode /DecodeParms << /K -1 /Columns 19 /Rows 7 /BlackIs1 true >> /Length 20 >>\nstream\nXXXXXXXXXXXXXXXXXXXX\nendstream"], "").into_bytes();
+        let at = pdf.windows(scan.len()).position(|v| v == b"XXXXXXXXXXXXXXXXXXXX").unwrap();
+        pdf[at..at+scan.len()].copy_from_slice(&scan);
+        fs.write_file("/scan.pdf",&pdf).unwrap();
+        let run = |cmd, args: &[&str]| cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+        let list = run("pdfimages",&["-list","scan.pdf"]);
+        assert_eq!(list.stdout.lines().last(),Some("   1     0 image      19     7  gray    1   1  ccitt  no         5  0    72    72   20B 125%"));
+        for flag in ["-all","-ccitt"] {
+            let r = run("pdfimages",&[flag,"scan.pdf",flag.trim_start_matches('-')]);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(fs.read_file(&format!("/{}-000.ccitt",&flag[1..])).unwrap(),scan);
+            assert_eq!(fs.read_file(&format!("/{}-000.params",&flag[1..])).unwrap(),b"-4 -P -X 19 -W -M\n");
+        }
+        assert_eq!(run("pdfimages",&["scan.pdf","scan"]).exit_code,0);
+        assert_eq!(fs.read_file("/scan-000.pbm").unwrap(),hex_dec("50340a313920370affffe03c78e078f1e0000000e3c780c78f008f1e20"));
+        let r = run("pdftoppm",&["-gray","-r","72","-singlefile","scan.pdf","page"]);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        let px = fs.read_file("/page.pgm").unwrap();
+        assert_eq!(&px[b"P5\n19 7\n255\n".len()..][..19], &[0;19]);
+        assert!(px[b"P5\n19 7\n255\n".len()..].contains(&255));
     }
 
     #[test]

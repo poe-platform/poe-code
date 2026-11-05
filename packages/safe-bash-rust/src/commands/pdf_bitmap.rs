@@ -1,8 +1,17 @@
-// Sampled PDF image XObjects with byte-aligned DeviceRGB or DeviceGray samples.
+// Sampled PDF image XObjects.
 use super::super::uint;
 use super::{Matrix, ObjectId, Objects, PageSource, Value, pdf_text_layout::Draw};
 
+#[derive(Clone, Copy, PartialEq)]
+pub(in crate::commands::archive) enum ImageRead {
+    List,
+    Pixels,
+    NativeFax,
+}
+
 pub(in crate::commands::archive) struct Image {
+    pub bilevel: bool,
+    pub native: Option<(Vec<u8>, String)>,
     pub width: usize,
     pub height: usize,
     components: usize,
@@ -19,13 +28,29 @@ impl Image {
         id: ObjectId,
         matrix: Matrix,
         limit: usize,
-        decode: bool,
+        mode: ImageRead,
     ) -> Option<Option<Self>> {
-        let (dict, cursor) = objects.object(id)?;
-        if dict.get(b"Subtype").and_then(Value::word) != Some(b"/Image")
-            || dict
-                .get(b"Filter")
-                .is_some_and(|v| v.word() != Some(b"/FlateDecode"))
+        let (mut dict, cursor) = objects.object(id)?;
+        if dict.get(b"Subtype").and_then(Value::word) != Some(b"/Image") {
+            return Some(None);
+        }
+        let filters = match dict.get(b"Filter") {
+            None => vec![],
+            Some(v) => match objects.filter_value(v.clone())? {
+                Value::Array(a) => a,
+                v => vec![v],
+            },
+        };
+        let last = match filters.last() {
+            Some(v) => Some(objects.filter_value(v.clone())?),
+            None => None,
+        };
+        let bilevel = matches!(
+            last.as_ref().and_then(Value::word),
+            Some(b"/CCITTFaxDecode" | b"/CCF")
+        );
+        if !bilevel
+            && (filters.len() > 1 || last.is_some_and(|v| v.word() != Some(b"/FlateDecode")))
         {
             return Some(None);
         }
@@ -39,16 +64,104 @@ impl Image {
         if width == 0 || height == 0 {
             return None;
         }
-        if number(b"BitsPerComponent")? != 8
-            || dict.get(b"DecodeParms").is_some()
-            || dict.get(b"Decode").is_some()
+        if bilevel && (number(b"BitsPerComponent")? != 1 || components != 1)
+            || !bilevel
+                && (number(b"BitsPerComponent")? != 8
+                    || dict.get(b"DecodeParms").is_some()
+                    || dict.get(b"Decode").is_some())
         {
             return Some(None);
         }
         let count = width.checked_mul(height)?;
         let length = objects.stream(&dict, cursor)?.len();
         let mut pixels = Vec::new();
-        if decode {
+        let mut native = None;
+        if bilevel && mode != ImageRead::List {
+            let encoded = objects.raw_stream(id, &mut dict, cursor)?;
+            let outer = match objects.filter_value(dict.get(b"Filter")?.clone())? {
+                Value::Array(mut a) => {
+                    a.pop()?;
+                    a
+                }
+                _ => vec![],
+            };
+            let parms = match dict.get(b"DecodeParms") {
+                Some(v) => match objects.filter_value(v.clone())? {
+                    Value::Array(a) => a
+                        .get(outer.len())
+                        .and_then(|v| objects.filter_value(v.clone())),
+                    v => Some(v),
+                },
+                None => None,
+            };
+            let param = |key: &[u8]| parms.as_ref()?.get(key)?.word();
+            let k = match param(b"K") {
+                Some(n) => std::str::from_utf8(n).ok()?.parse::<i32>().ok()?,
+                None => 0,
+            };
+            let columns = param(b"Columns").map_or(Some(1728), uint)?;
+            let black = param(b"BlackIs1") == Some(b"true");
+            let eol = param(b"EndOfLine") == Some(b"true");
+            let align = param(b"EncodedByteAlign") == Some(b"true");
+            let encoded = if outer.is_empty() {
+                encoded
+            } else {
+                let mut fields = vec![(b"Filter".as_slice().into(), Value::Array(outer))];
+                if let Some(v) = dict.get(b"DecodeParms") {
+                    fields.push((b"DecodeParms".as_slice().into(), v.clone()));
+                }
+                objects.decode(&Value::Dict(fields), encoded)?
+            };
+            if encoded.len() > limit {
+                return None;
+            }
+            if mode == ImageRead::NativeFax {
+                let coding = if k < 0 {
+                    "-4"
+                } else if k > 0 {
+                    "-2"
+                } else {
+                    "-1"
+                };
+                let line = if eol { "-A" } else { "-P" };
+                let polarity = if black { "-W" } else { "-B" };
+                native = Some((
+                    encoded.into_owned(),
+                    format!("{coding} {line} -X {columns} {polarity} -M\n"),
+                ));
+            } else {
+                if count > limit / 4 || width > columns {
+                    return None;
+                }
+                let inverted = match dict.get(b"Decode") {
+                    None => false,
+                    Some(Value::Array(a)) if a.len() == 2 => match (a[0].number()?, a[1].number()?)
+                    {
+                        (0., 1.) => false,
+                        (1., 0.) => true,
+                        _ => return None,
+                    },
+                    _ => return None,
+                };
+                let stride = columns.div_ceil(8);
+                use crate::commands::archive::fax;
+                let rows = fax::decode(
+                    &encoded,
+                    fax::Coding::Pdf { k, eol, align },
+                    columns,
+                    stride.checked_mul(height)?,
+                    false,
+                    limit,
+                )?;
+                for row in rows.chunks_exact(stride) {
+                    pixels.extend((0..width).map(|x| {
+                        let bit = row[x / 8] & (128 >> (x % 8)) != 0;
+                        let v = if bit ^ !black ^ inverted { 255 } else { 0 };
+                        [v, v, v, 255]
+                    }));
+                }
+            }
+        } else if !bilevel && mode != ImageRead::List {
             if count > limit / 4 {
                 return None;
             }
@@ -88,6 +201,8 @@ impl Image {
         }
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
+            bilevel,
+            native,
             width,
             height,
             components,
@@ -105,18 +220,39 @@ impl Image {
         let (w, h, components) = (self.width, self.height, self.components);
         let color = if components == 1 { "gray" } else { "rgb" };
         let interp = if self.interpolate { "yes" } else { "no" };
-        let size = match self.length {
-            n if n >= 1 << 20 => format!("{:.1}M", n as f64 / 1048576.),
-            n if n >= 1024 => format!("{:.1}K", n as f64 / 1024.),
-            n => format!("{n}B"),
+        let mut size = self.length as f64;
+        let mut unit = "B";
+        for suffix in ["K", "M", "G"] {
+            if size < 10000. {
+                break;
+            }
+            size /= 1024.;
+            unit = suffix;
+        }
+        let precision = if unit == "B" || size >= 100. {
+            0
+        } else if size >= 10. {
+            1
+        } else {
+            2
         };
-        let ratio = format!(
-            "{:.1}%",
-            (self.length as f64 / (w as f64 * h as f64 * components as f64) * 100.)
-                .clamp(0.1, 999.)
-        );
+        let size = format!("{size:.precision$}{unit}");
+        let (bpc, enc) = if self.bilevel {
+            (1, "ccitt")
+        } else {
+            (8, "image")
+        };
+        let bytes = (w as u128 * h as u128 * components as u128 * bpc) / 8;
+        let pct = self.length as f64 * 100. / bytes as f64;
+        let ratio = if bytes == 0 {
+            "  - ".to_owned()
+        } else if pct < 10. {
+            format!("{pct:.1}%")
+        } else {
+            format!("{pct:.0}%")
+        };
         format!(
-            "{page:4} {idx:5} image  {w:5} {h:6} {color:<5} {components:4}   8  image {interp:>6} {id:6} {generation:2} {x:5} {y:5} {size:>5} {ratio:>5}\n"
+            "{page:4} {idx:5} image  {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}   {id:6} {generation:2} {x:5} {y:5} {size:>5} {ratio:>4}\n"
         )
     }
     fn ppi(&self) -> [usize; 2] {
@@ -131,7 +267,33 @@ impl Image {
         [dpi(self.width, a.hypot(b)), dpi(self.height, c.hypot(d))]
     }
 
-    pub(in crate::commands::archive) fn encode(&self, format: &str) -> Option<Vec<u8>> {
+    pub(in crate::commands::archive) fn encode(
+        &self,
+        format: &str,
+        limit: usize,
+    ) -> Option<Vec<u8>> {
+        if self.bilevel {
+            let dpi = self.ppi().map(|v| v as f64);
+            if format == "TIFF" {
+                return crate::commands::archive::tiff::encode(
+                    &self.pixels,
+                    self.width,
+                    dpi,
+                    "mono",
+                    "none",
+                    false,
+                    limit,
+                );
+            }
+            return super::pdf_raster::encode(
+                self.width,
+                self.height,
+                &self.pixels,
+                if format == "PNG" { "PNG1" } else { format },
+                "mono",
+                Some(dpi),
+            );
+        }
         if format == "TIFF" {
             let w = self.width as u32;
             let h = self.height as u32;
@@ -174,7 +336,7 @@ impl PageSource<'_> {
         &mut self,
         page: usize,
         limit: usize,
-        decode: bool,
+        mode: ImageRead,
         mut handle: impl FnMut(Image) -> Option<()>,
     ) -> Option<()> {
         let node = self
@@ -182,7 +344,7 @@ impl PageSource<'_> {
             .page_dict(*self.pages.get(page.checked_sub(1)?)?, &self.tree)?;
         self.draw_page(&node, |event, objects| {
             if let Draw::Image(id, matrix) = event
-                && let Some(image) = Image::read(objects, id, matrix, limit, decode)?
+                && let Some(image) = Image::read(objects, id, matrix, limit, mode)?
             {
                 handle(image)?;
             }

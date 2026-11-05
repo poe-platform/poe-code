@@ -235,10 +235,11 @@ impl Bitmap {
     }
 }
 pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode: &str, dpi: Option<[f64; 2]>) -> Option<Vec<u8>> {
-    let png = matches!(format,"PNG"|"RGBA");
+    let bilevel = format == "PNG1";
+    let png = matches!(format,"PNG"|"RGBA"|"PNG1");
     let rgb = format=="PNG" && pixels.iter().all(|p| p[3] == 255);
     let mut raw = match format {
-        "PNG" | "RGBA" => vec![],
+        "PNG" | "RGBA" | "PNG1" => vec![],
         "PBM" => format!("P4\n{w} {h}\n").into_bytes(),
         "PGM" => format!("P5\n{w} {h}\n255\n").into_bytes(),
         "PPM" => format!("P6\n{w} {h}\n255\n").into_bytes(),
@@ -252,8 +253,8 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
         for (i, p) in row.iter().enumerate() {
             let lum = 0.299 * f64::from(p[0]) + 0.587 * f64::from(p[1]) + 0.114 * f64::from(p[2]);
             match format {
-                "PBM" => {
-                    if lum < 128. {
+                "PBM" | "PNG1" => {
+                    if (lum < 128.) != bilevel {
                         packed |= 128 >> (i % 8);
                     }
                     if i % 8 == 7 || i + 1 == w {
@@ -286,8 +287,8 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
     let mut ihdr = [0; 13];
     ihdr[..4].copy_from_slice(&(w as u32).to_be_bytes());
     ihdr[4..8].copy_from_slice(&(h as u32).to_be_bytes());
-    ihdr[8] = 8;
-    ihdr[9] = if rgb { 2 } else { 6 };
+    ihdr[8] = if bilevel { 1 } else { 8 };
+    ihdr[9] = if bilevel { 0 } else if rgb { 2 } else { 6 };
     let phys = dpi.map(|[x,y]| {
         let mut field = [0u8; 9];
         field[..4].copy_from_slice(&((x / 0.0254) as u32).to_be_bytes());
@@ -411,7 +412,7 @@ impl PageSource<'_> {
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
                 Draw::Image(id, matrix) => {
-                    if let Some(image) = super::pdf_bitmap::Image::read(objects, id, matrix, opt.limit, true)? {
+                    if let Some(image) = super::pdf_bitmap::Image::read(objects, id, matrix, opt.limit, super::ImageRead::Pixels)? {
                         bitmap.image(image, ox, oy + ph, sx)?;
                     }
                     return Some(());
@@ -564,7 +565,7 @@ impl PageSource<'_> {
             }
         }
         if let Some((compression, dither)) = opt.tiff {
-            return crate::commands::archive::tiff::encode(&pixels, ow, [sx * 72., sy * 72.], opt, compression, dither);
+            return crate::commands::archive::tiff::encode(&pixels, ow, [sx * 72., sy * 72.], if opt.transparent { "rgba" } else { opt.color }, compression, dither, opt.limit);
         }
         if let Some((quality, gray)) = opt.jpeg {
             use crate::commands::archive::jpeg;

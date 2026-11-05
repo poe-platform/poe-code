@@ -15,7 +15,7 @@ mod pdf_json_input;
 pub(super) use pdf_json_input::JsonDocument;
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
-pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};
+pub(super) use pdf_copy::{ImageRead, PageOutput, PageSource, RasterOptions};
 
 #[path = "pdf_office.rs"]
 mod pdf_office;

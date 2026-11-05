@@ -55,12 +55,16 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         const attributes = await page.attributes(), media = attributes.mediaBox;
         const width = Math.abs(media[2] - media[0]), height = Math.abs(media[3] - media[1]), ox = Math.min(media[0], media[2]), oy = Math.min(media[1], media[3]);
         const box = plan.useCropBox ? getDisplayListCropBox({ width, height, cropBox: [attributes.cropBox[0] - ox, attributes.cropBox[1] - oy, attributes.cropBox[2] - ox, attributes.cropBox[3] - oy] }) : [0, 0, width, height];
-        const quarter = attributes.rotation === 90 || attributes.rotation === 270, ptW = quarter ? box[3]! - box[1]! : box[2]! - box[0]!, ptH = quarter ? box[2]! - box[0]! : box[3]! - box[1]!;
+        const ptW = box[2]! - box[0]!, ptH = box[3]! - box[1]!;
+        const swapTargets = plan.scaleDimensionBeforeRotation && (attributes.rotation === 90 || attributes.rotation === 270);
+        const scaleToX = swapTargets ? plan.scaleToY : plan.scaleToX;
+        const scaleToY = swapTargets ? plan.scaleToX : plan.scaleToY;
         let dpiX = plan.dpiX ?? plan.dpi, dpiY = plan.dpiY ?? plan.dpi;
         if (plan.scaleTo > 0) dpiX = dpiY = plan.scaleTo * 72 / Math.max(ptW, ptH, 1);
         else {
-          if (plan.scaleToX > 0) { dpiX = plan.scaleToX * 72 / Math.max(ptW, 1); if (plan.scaleToY < 0) dpiY = dpiX; }
-          if (plan.scaleToY > 0) { dpiY = plan.scaleToY * 72 / Math.max(ptH, 1); if (plan.scaleToX < 0) dpiX = dpiY; }
+          // Keep exact pixel targets from rounding up after the DPI round trip.
+          if (scaleToX > 0) { dpiX = (scaleToX * 72) / Math.max(ptW, 1) * (1 - Number.EPSILON); if (scaleToY < 0) dpiY = dpiX; }
+          if (scaleToY > 0) { dpiY = (scaleToY * 72) / Math.max(ptH, 1) * (1 - Number.EPSILON); if (scaleToX < 0) dpiX = dpiY; }
         }
         if(plan.format === "svg") {
           yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,

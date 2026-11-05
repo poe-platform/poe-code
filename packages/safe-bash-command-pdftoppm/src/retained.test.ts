@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { PdfDocument, PdfRetainedPage, encodePng, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, PdfRetainedPage, decodePng, encodePng, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
 import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli } from "./index.js";
 function pdf() {
   const doc = PdfDocument.create();
@@ -160,3 +160,41 @@ for (const cairo of [false, true]) for (const failure of ["none", "write", "canc
 
 for(const args of [["-svg","in.pdf"],["-svg","in.pdf","custom.SVG"],["-svg","-","-"],["-svg","-f","2","in.pdf","out"]])test(`retained Cairo SVG preserves bytes ${args.join(" ")}`,async()=>{const input=pdf(),files=new Map([[args.includes("-")?"-":"in.pdf",input]]),expected=await runPdftocairoCli(args,files),f=await fixture(input,args,args.includes("-"));assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode,expected.exitCode);for(const [name,bytes] of files)if(name!=="in.pdf"&&name!=="-")assert.deepEqual(await f.fs.readFile("/"+name),bytes);if(expected.stdoutBytes)assert.deepEqual(new Uint8Array(Buffer.concat(f.stdout)),expected.stdoutBytes);assert.deepEqual(f.counts().reads,0);await f.clean();});
 for(const cairo of [false,true])test(`SVG preserves sink failure identity and removes all staging Cairo=${cairo}`,async()=>{const f=await fixture(pdf(),['-svg','in.pdf','-']),reason=new Error('SVG sink failed');f.context.stdout.write=async()=>{throw reason;};await assert.rejects(async()=> (cairo?createPdftocairoCommand():createPdftoppmCommand()).execute(f.context),error=>error===reason);assert.deepEqual(f.counts(),{reads:0,writes:0,published:0});await f.clean();});
+
+for (const rotation of [0, 90, 180, 270] as const) for (const beforeRotation of [false, true]) {
+  for (const [x, y, width, height] of [[100, -1, 100, 67], [-1, 100, 150, 100], [100, 50, 100, 50]] as const) {
+    test(`axis scaling rotation=${rotation}, beforeRotation=${beforeRotation}, x=${x}, y=${y}`, async () => {
+      const doc = PdfDocument.create(); doc.addPage([216, 144]).setRotation(rotation);
+      const input = doc.save();
+      const args = ["-png", "-singlefile", "-scale-to-x", String(x), "-scale-to-y", String(y),
+        ...(beforeRotation ? ["-scale-dimension-before-rotation"] : []), "in.pdf", "out"];
+      const quarter = rotation === 90 || rotation === 270;
+      const expected = quarter ? (beforeRotation ? (x === 100 && y === -1 ? [100, 150] : x === -1 ? [67, 100] : [100, 50]) : [height, width]) : [width, height];
+      const files = new Map([["in.pdf", input]]);
+      assert.equal((await runPdftoppmCli(args, files)).exitCode, 0);
+      const buffered = decodePng(files.get("out.png")!);
+      assert.deepEqual([buffered.width, buffered.height], expected);
+      const f = await fixture(input, args);
+      assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, 0);
+      const retained = decodePng(await f.fs.readFile("/out.png"));
+      assert.deepEqual([retained.width, retained.height], expected);
+      await f.clean();
+    });
+  }
+}
+
+for (const [x, y, width, height] of [[100, -1, 100, 150], [-1, 100, 67, 100], [100, 50, 100, 50]] as const) {
+  test(`Cairo targets rotated axes x=${x}, y=${y}`, async () => {
+    const doc = PdfDocument.create(); doc.addPage([216, 144]).setRotation(90);
+    const input = doc.save(), args = ["-png", "-singlefile", "-scale-to-x", String(x), "-scale-to-y", String(y), "in.pdf", "out"];
+    const files = new Map([["in.pdf", input]]);
+    assert.equal((await runPdftocairoCli(args, files)).exitCode, 0);
+    const buffered = decodePng(files.get("out.png")!);
+    assert.deepEqual([buffered.width, buffered.height], [width, height]);
+    const f = await fixture(input, args); f.context.command = "pdftocairo";
+    assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode, 0);
+    const retained = decodePng(await f.fs.readFile("/out.png"));
+    assert.deepEqual([retained.width, retained.height], [width, height]);
+    await f.clean();
+  });
+}

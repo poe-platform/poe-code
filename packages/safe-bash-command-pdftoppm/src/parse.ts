@@ -40,6 +40,7 @@ export interface PdftoppmPlan {
   readonly scaleTo: number;
   readonly scaleToX: number;
   readonly scaleToY: number;
+  readonly scaleDimensionBeforeRotation: boolean;
   readonly firstPage: number;
   readonly lastPage: number;
   readonly oddOnly: boolean;
@@ -79,6 +80,7 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     let scaleTo = 0;
     let scaleToX = 0;
     let scaleToY = 0;
+    let scaleDimensionBeforeRotation = false;
     let firstPage = 1;
     let lastPage = 0;
     let oddOnly = false;
@@ -270,6 +272,9 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
         else if (arg === "-ry") {
             dpiY = Math.max(1, Number(argv[++i] ?? "150") || 150);
         }
+        else if (arg === "-scale-dimension-before-rotation") {
+            scaleDimensionBeforeRotation = true;
+        }
         else if (arg === "-scale-to") {
             scaleTo = Math.max(0, Number(argv[++i] ?? "0") || 0);
         }
@@ -321,7 +326,7 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     if (!inputPath || positionals.length > 2) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
     }
-    return { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX, scaleToY, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath };
+    return { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX, scaleToY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath };
 }
 
 const VALID_CAIRO_ANTIALIAS = new Set([
@@ -385,7 +390,7 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
     let paperH = 0;
     let origPageSizes = false;
     let password = "";
-    const forwardedArgs: string[] = [];
+    const forwardedArgs: string[] = ["-scale-dimension-before-rotation"];
     const positionals: string[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)

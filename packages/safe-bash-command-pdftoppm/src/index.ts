@@ -57,7 +57,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
 } = {}): Generator<void, PdftoppmCliResult, void> {
     const parsed = yield* parsePdftoppmArgsSteps(argv, files.has("-"));
     if (!("inputPath" in parsed)) return parsed;
-    const { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX, scaleToY, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath } = parsed;
+    const { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX: requestedX, scaleToY: requestedY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath } = parsed;
     let cooperativeWork = 63;
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
@@ -100,8 +100,12 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const box = useCropBox ? getDisplayListCropBox(displayList) : [0, 0, displayList.width, displayList.height];
         const rawSize = { width: box[2]! - box[0]!, height: box[3]! - box[1]! };
         const rot = page.getRotation();
-        const ptW = rot === 90 || rot === 270 ? rawSize.height : rawSize.width;
-        const ptH = rot === 90 || rot === 270 ? rawSize.width : rawSize.height;
+        const ptW = rawSize.width;
+        const ptH = rawSize.height;
+        // The renderer scales the PDF axes, then rotates the bitmap.
+        const swapTargets = scaleDimensionBeforeRotation && (rot === 90 || rot === 270);
+        const scaleToX = swapTargets ? requestedY : requestedX;
+        const scaleToY = swapTargets ? requestedX : requestedY;
         let effDpiX = dpiX ?? dpi;
         let effDpiY = dpiY ?? dpi;
         if (scaleTo > 0) {
@@ -110,13 +114,14 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             effDpiY = factor;
         }
         else {
+            // Keep exact pixel targets from rounding up after the DPI round trip.
             if (scaleToX > 0) {
-                effDpiX = (scaleToX * 72) / Math.max(ptW, 1);
+                effDpiX = (scaleToX * 72) / Math.max(ptW, 1) * (1 - Number.EPSILON);
                 if (scaleToY < 0)
                     effDpiY = effDpiX;
             }
             if (scaleToY > 0) {
-                effDpiY = (scaleToY * 72) / Math.max(ptH, 1);
+                effDpiY = (scaleToY * 72) / Math.max(ptH, 1) * (1 - Number.EPSILON);
                 if (scaleToX < 0)
                     effDpiX = effDpiY;
             }

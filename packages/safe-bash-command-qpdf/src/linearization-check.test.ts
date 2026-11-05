@@ -38,7 +38,8 @@ const cases = [
   ["shared object count", corruptHint(48, 0), true],
   ["shared group length", corruptHint(58, 0), true],
 ] as const;
-for (const retained of [false, true]) for (const flag of ["--check", "--check-linearization"]) for (const [name, input, warning] of cases) {
+for (const retained of [false, true]) for (const flag of ["--check", "--check-linearization", "--show-linearization"]) for (const [name, input, warning] of cases) {
+  if (flag === "--show-linearization" && name !== "valid native output" && name !== "malformed hints") continue;
   it(`${flag} validates ${name} (retained=${retained})`, async () => {
     for (const warningExit0 of [false, true]) {
       const args = [flag, "in.pdf", ...(warningExit0 ? ["--warning-exit-0"] : [])];
@@ -59,6 +60,13 @@ for (const retained of [false, true]) for (const flag of ["--check", "--check-li
         assert.equal(result.exitCode, warning && !warningExit0 ? 3 : 0, result.stderr);
         if (warning) { assert.match(result.stderr, /linearization/i); assert.doesNotMatch(result.stdout, /no linearization errors|No syntax or stream encoding errors/); }
         else assert.equal(result.stderr, "");
+        if (flag === "--show-linearization") {
+          assert.ok(result.stdout.startsWith("in.pdf: linearization data:\n"));
+          assert.match(result.stdout, /Page Offsets Hint Table/);
+          assert.match(result.stdout, /Shared Objects Hint Table/);
+          assert.doesNotMatch(result.stdout, /no linearization errors/);
+          if (warning) assert.equal(result.stderr, "WARNING: in.pdf: invalid linearization: missing or invalid hint stream\nqpdf: operation succeeded with warnings\n");
+        }
       }
     }
   });

@@ -89,33 +89,31 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
       decoded = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(entry.objectNumber, entry.generationNumber ?? 0), { signal });
       break;
     }
-    if (mode !== "show") {
-      let mainXref = document.crossReference.xrefOffset;
-      const prev = dictGet(document.crossReference.trailer, "Prev");
-      if (prev?.kind === "number") mainXref = prev.value;
-      const validation = checkLinearization(values, source.size, await number("N"), decoded?.size ?? 0, sharedOffset, mainXref, outlineOffset);
-      let step = validation.next();
-      const pages = document.pages();
-      try {
-        while (!step.done) {
-          signal.throwIfAborted();
-          const request = step.value;
-          let bytes: Uint8Array = new Uint8Array();
-          if (!("kind" in request)) bytes = await decoded!.read(request.offset, request.length, signal);
-          else if (request.kind === "file") bytes = await source.read(request.offset, request.length, signal);
-          else {
-            const number = request.kind === "page" ? (await pages.next()).value?.reference?.objectNumber : request.number;
-            const entry = number === undefined ? undefined : await document.crossReference.index.get(number, signal);
-            const object = entry?.type === "uncompressed" ? await document.objects.get(number!, entry.generationNumber ?? 0) : undefined;
-            if (object) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
-          }
-          step = validation.next(bytes);
+    let mainXref = document.crossReference.xrefOffset;
+    const prev = dictGet(document.crossReference.trailer, "Prev");
+    if (prev?.kind === "number") mainXref = prev.value;
+    const validation = checkLinearization(values, source.size, await number("N"), decoded?.size ?? 0, sharedOffset, mainXref, outlineOffset);
+    let validationStep = validation.next();
+    const pages = document.pages();
+    try {
+      while (!validationStep.done) {
+        signal.throwIfAborted();
+        const request = validationStep.value;
+        let bytes: Uint8Array = new Uint8Array();
+        if (!("kind" in request)) bytes = await decoded!.read(request.offset, request.length, signal);
+        else if (request.kind === "file") bytes = await source.read(request.offset, request.length, signal);
+        else {
+          const number = request.kind === "page" ? (await pages.next()).value?.reference?.objectNumber : request.number;
+          const entry = number === undefined ? undefined : await document.crossReference.index.get(number, signal);
+          const object = entry?.type === "uncompressed" ? await document.objects.get(number!, entry.generationNumber ?? 0) : undefined;
+          if (object) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
         }
-      } finally { await pages.return(undefined); }
-      if (step.value) warnings.push(step.value);
-      else if (mode !== "inspect") yield `${filename ?? "empty"}: no linearization errors\n`;
-      if (mode === "check" || mode === "inspect") return;
-    }
+        validationStep = validation.next(bytes);
+      }
+    } finally { await pages.return(undefined); }
+    if (validationStep.value) warnings.push(validationStep.value);
+    else if (mode === "check" || mode === "both") yield `${filename ?? "empty"}: no linearization errors\n`;
+    if (mode === "check" || mode === "inspect") return;
     const report = linearizationReport(filename ?? "empty", values, decoded?.size ?? 0, sharedOffset, outlineOffset);
     let step = report.next();
     while (!step.done) {

@@ -1255,26 +1255,24 @@ function* executeQpdfCli(
       for (const object of cos.objects.values()) if (object.span?.start === h0 && object.value.kind === "stream") { hintStream = object.value; break; }
       const hintBytes = hintStream ? cos.decodeStream(hintStream) : new Uint8Array();
       const shared = hintStream && cos.resolve(dictGet(hintStream.dict, "S")), outline = hintStream && cos.resolve(dictGet(hintStream.dict, "O"));
-      if (showLinearization !== "show") {
-        const validation = checkLinearization(values, cos.bytes.length, numVal("N"), hintBytes.length, shared?.kind === "number" ? shared.value : 0,
-          cos.revisions.at(-1)?.xrefOffset ?? 0, outline?.kind === "number" ? outline.value : undefined);
-        let step = validation.next();
-        const pages = baseDoc.getPages();
-        while (!step.done) {
-          yield;
-          const request = step.value;
-          let bytes: Uint8Array = new Uint8Array();
-          if (!("kind" in request)) bytes = hintBytes.subarray(request.offset, request.offset + request.length);
-          else if (request.kind === "file") bytes = cos.bytes.subarray(request.offset, request.offset + request.length);
-          else {
-            const number = request.kind === "page" ? pages[request.number]?.ref.objectNumber : request.number;
-            const object = number === undefined ? undefined : cos.objects.get(number);
-            if (object?.span) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
-          }
-          step = validation.next(bytes);
+      const validation = checkLinearization(values, cos.bytes.length, numVal("N"), hintBytes.length, shared?.kind === "number" ? shared.value : 0,
+        cos.revisions.at(-1)?.xrefOffset ?? 0, outline?.kind === "number" ? outline.value : undefined);
+      let step = validation.next();
+      const pages = baseDoc.getPages();
+      while (!step.done) {
+        yield;
+        const request = step.value;
+        let bytes: Uint8Array = new Uint8Array();
+        if (!("kind" in request)) bytes = hintBytes.subarray(request.offset, request.offset + request.length);
+        else if (request.kind === "file") bytes = cos.bytes.subarray(request.offset, request.offset + request.length);
+        else {
+          const number = request.kind === "page" ? pages[request.number]?.ref.objectNumber : request.number;
+          const object = number === undefined ? undefined : cos.objects.get(number);
+          if (object?.span) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
         }
-        linearizationWarning = step.value;
+        step = validation.next(bytes);
       }
+      linearizationWarning = step.value;
       const stderr = linearizationWarning ? `WARNING: ${inputFile ?? "empty"}: ${linearizationWarning}\nqpdf: operation succeeded with warnings\n` : "";
       const exitCode = linearizationWarning && !warningExit0 ? 3 : 0;
       if (showLinearization === "check") return { exitCode, stdout: linearizationWarning ? "" : `${inputFile ?? "empty"}: no linearization errors\n`, stderr };

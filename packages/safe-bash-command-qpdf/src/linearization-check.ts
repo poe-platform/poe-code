@@ -22,7 +22,8 @@ export function* checkLinearization(values: Record<string, number>, fileSize: nu
     if (!Number.isSafeInteger(v[key]) || v[key]! <= 0 || v[key]! >= fileSize) return invalid(`${key} out of range`);
   }
   if (v.H_offset! + v.H_length! > fileSize || !hintSize || !Number.isSafeInteger(sharedOffset) || sharedOffset < 36 || sharedOffset >= hintSize) return invalid("missing or invalid hint stream");
-  // /T points to the whitespace before entry zero (or before an xref stream).
+  // /T points to the whitespace before entry zero; for xref streams,
+  // qpdf also accepts the start of the stream object.
   if (!Number.isSafeInteger(mainXref) || mainXref <= 0 || mainXref >= fileSize) return invalid("missing main xref");
   const xref = yield { kind: "file", offset: mainXref, length: Math.min(128, fileSize - mainXref) };
   const text = new TextDecoder().decode(xref);
@@ -36,7 +37,7 @@ export function* checkLinearization(values: Record<string, number>, fileSize: nu
     while (text[pos] !== undefined && text[pos]! >= "0" && text[pos]! <= "9") pos++;
     zero = mainXref + pos;
   }
-  if (v.xref_zero_offset !== zero) return invalid("xref offset (/T) mismatch");
+  if (v.xref_zero_offset !== zero && (text.startsWith("xref") || v.xref_zero_offset !== mainXref)) return invalid("xref offset (/T) mismatch");
   const adjusted = (offset: number) => offset >= v.H_offset! ? offset + v.H_length! : offset;
   try {
     const page = new HintBits(sharedOffset);

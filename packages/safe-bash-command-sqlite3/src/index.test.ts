@@ -406,6 +406,23 @@ test("sqlite3 supports INSERT INTO ... WITH RECURSIVE and CREATE TABLE ... AS WI
   assert.equal(res.stdout, "1|n-1\n2|n-2\n3|n-3\n4|n-4\n5|n-5\n5|15\n");
 });
 
+for (const [value, digits, expected] of [
+  [123.456, -1, "123.0"],
+  [123.456, -2, "123.0"],
+  [-123.456, -1, "-123.0"],
+  [-123.5, -1, "-124.0"],
+  [123.456, 0, "123.0"],
+  [123.456, 1, "123.5"],
+] as const) {
+  test(`sqlite3 ROUND(${value}, ${digits}) matches native value and REAL type`, async () => {
+    const sql = `SELECT round(${value}, ${digits}), typeof(round(${value}, ${digits}));`;
+    const stdout = `${expected}|real\n`;
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]),
+      { code: 0, stdout, stderr: "" });
+    assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), stdout);
+  });
+}
+
 test("sqlite3 matches native /usr/bin/sqlite3 for COALESCE/IFNULL/IIF projections, ROUND/TOTAL REAL formatting, QUOTE(blob) uppercase, and -html output", async () => {
   const fs = createMemoryFileSystem();
   const sql = [

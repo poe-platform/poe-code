@@ -7875,7 +7875,7 @@ export class SqliteDatabase {
           return null;
         }
         const num = toSqlNumber(a0);
-        const digits = a1 !== null && a1 !== undefined ? Math.trunc(toSqlNumber(a1)) : 0;
+        const digits = a1 !== null && a1 !== undefined ? Math.max(0, Math.trunc(toSqlNumber(a1))) : 0;
         const factor = 10 ** digits;
         const scaled = num * factor;
         const rounded = (scaled < 0 ? -Math.round(-scaled) : Math.round(scaled)) / factor;

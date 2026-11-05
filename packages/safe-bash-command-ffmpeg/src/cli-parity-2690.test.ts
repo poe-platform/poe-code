@@ -1,7 +1,7 @@
 import { Volume } from "memfs";
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { createSyntheticMp4, parseMp4 } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, parseMp4, serializeMp4 } from "@poe-code/mp4-ast";
 import {
   createFfmpegCommand,
 } from "./index.js";
@@ -79,6 +79,37 @@ async function runCmd(
     stderr: new TextDecoder().decode(stderrBytes),
     stdoutBytes
   };
+}
+
+for (const maps of [["0:a:99"], ["0:v", "0:a:99"]]) {
+  for (const existing of [false, true]) {
+    it(`rejects unmatched required maps ${maps} and preserves output (${existing})`, async () => {
+      const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ includeAudio: true }), ...(existing ? { "/out.mp4": "existing" } : {}) });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.mp4", ...maps.flatMap(map => ["-map", map]), "-c", "copy", "/out.mp4"], vfs);
+      assert.equal(result.exitCode, 234);
+      assert.ok(result.stderr.includes("matches no streams"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.mp4"), existing ? new TextEncoder().encode("existing") : undefined);
+    });
+  }
+}
+
+for (const [maps, expected] of [
+  [["0:a:99?"], ["video", "audio"]],
+  [["0:a:99?", "0:s?"], ["video", "audio"]],
+  [["0:a:99?", "0:v"], ["video"]],
+  [["0:a:1", "0:a:99?", "0:v"], ["audio", "video"]]
+] as const) {
+  it(`ignores unmatched optional maps ${maps} and publishes selected streams`, async () => {
+    const doc = parseMp4(createSyntheticMp4({ includeAudio: true }));
+    const audio = doc.tracks.find(track => track.type === "audio")!;
+    const bytes = serializeMp4({ ...doc, tracks: [...doc.tracks, { ...audio, id: 3 }] });
+    const vfs = createTestVfs({ "/in.mp4": bytes });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", ...maps.flatMap(map => ["-map", map]), "-c", "copy", "/out.mp4"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = parseMp4(vfs.store.get("/out.mp4")!);
+    assert.deepEqual(output.tracks.map(track => track.type), expected);
+    assert.ok(output.tracks.every(track => track.samples.length > 0));
+  });
 }
 
 for (const args of [

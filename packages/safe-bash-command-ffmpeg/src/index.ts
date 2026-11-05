@@ -1993,10 +1993,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
         } else if (maps.length > 0) {
           let selectedTracks: { input: number; track: MediaTrack }[] = [];
+          let mapped = false;
           for (const map of maps) {
             const exclude = map.startsWith("-");
             let clean = exclude ? map.slice(1) : map;
-            if (clean.endsWith("?")) clean = clean.slice(0, -1);
+            const optional = clean.endsWith("?");
+            if (optional) clean = clean.slice(0, -1);
             if (clean.startsWith("[")) continue;
             const [input, selector, ordinal] = clean.split(":");
             const inputIdx = Number(input);
@@ -2006,13 +2008,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
             const index = type ? ordinal : selector;
             if (index !== undefined) matches = matches.filter((_, i) => i === Number(index));
+            if (matches.length === 0 && !optional) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Stream map '${clean}' matches no streams.\nTo ignore this, add a trailing '?' to the map.\n`), context.signal);
+              return { exitCode: 234 };
+            }
             if (exclude) {
               selectedTracks = selectedTracks.filter(entry => entry.input !== inputIdx || !matches.includes(entry.track));
             } else {
+              mapped ||= matches.length > 0;
               selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
             }
           }
           const filteredTracks = selectedTracks.map(entry => entry.track);
+          if (!mapped) {
+            // Ignored optional maps leave automatic video/audio selection enabled.
+            const tracks = loadedDocs.flatMap(doc => doc.tracks);
+            for (const type of ["video", "audio"] as const) {
+              const track = tracks.find(track => track.type === type);
+              if (track) filteredTracks.push(track);
+            }
+          }
 
           workingDoc = await muxMp4Cooperatively(
             [{ ...loadedDocs[0]!, tracks: filteredTracks }],

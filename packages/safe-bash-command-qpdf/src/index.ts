@@ -875,7 +875,10 @@ function parseQpdfArguments(argv: readonly string[]) {
       splitPagesGroup = 1;
     } else if (arg.startsWith("--split-pages=")) {
       const group = Number.parseInt(arg.slice("--split-pages=".length), 10);
-      splitPagesGroup = group ? Math.max(1, group) : undefined;
+      if (group < 0) {
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: integer out of range converting ${group} from a 4-byte signed type to a 8-byte unsigned type\n` } };
+      }
+      splitPagesGroup = group || undefined;
     } else if (arg.startsWith("--rotate=")) {
       const spec = arg.slice("--rotate=".length);
       const firstColon = spec.indexOf(":");

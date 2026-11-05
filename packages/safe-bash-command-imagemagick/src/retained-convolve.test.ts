@@ -12,7 +12,30 @@ const operators = [
 async function fixture(width = 13) {
     return sharp(Uint8Array.from({ length: width * 17 * 4 }, (_, i) => i * 37 % 256), { raw: { width, height: 17, channels: 4 } }).png().toBuffer();
 }
-it("preserves original convolution pixel vectors", async () => {
+for (const retained of [false, true])
+for (const operator of [["-convolve"], ["-morphology", "Convolve"]])
+it.each([
+    ["0,1,0,1,4,1,0,1,0", 255, 32, 128],
+    ["0,-1,0,-1,-4,-1,0,-1,0", 255, 32, 128],
+    ["0,-1,0,-1,4,-1,0,-1,0", 255, 0, 255]
+] as const)(`matches ImageMagick impulse ${operator.join(" ")} (retained=${retained}): %s`, async (kernel, intensity, neighbor, center) => {
+    // ImageMagick 7.1.2, opaque black 5x5 image with a grayscale impulse at (2, 2).
+    const pixels = new Uint8Array(5 * 5 * 4);
+    for (let i = 3; i < pixels.length; i += 4) pixels[i] = 255;
+    pixels.fill(intensity, 12 * 4, 12 * 4 + 3);
+    const input = await sharp(pixels, { raw: { width: 5, height: 5, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const spec = operator[0] === "-convolve" ? kernel : `3x3:${kernel}`;
+    expect((await runConvertCli(["input.png", ...operator, spec, "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
+    const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
+    const expected = new Uint8Array(pixels.length);
+    for (let i = 3; i < expected.length; i += 4) expected[i] = 255;
+    for (const index of [7, 11, 13, 17]) expected.fill(neighbor, index * 4, index * 4 + 3);
+    expected.fill(center, 12 * 4, 12 * 4 + 3);
+    expect(output.data).toEqual(expected);
+});
+it("preserves convolution pixel vectors", async () => {
     const bytes = await fixture(), hashes: string[] = [];
     for (const args of operators) {
         const files = new Map([["input", bytes]]);
@@ -24,9 +47,9 @@ it("preserves original convolution pixel vectors", async () => {
         "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
         "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
         "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
-        "129c2abd350f3d85f0c669240b29bb6824a7ca2954ed4dd0987d2cc8bb0ce150",
-        "7523590141d3fd3b14ad7c09f4dc461440a5c51250416ab05edb5b81e4a87f97",
-        "d4094d53d3f49678ee0be3a7be313e9315716f6fdd27872e43e0f9e18b8b44d6",
+        "2f6b9af07632f593110f9e50d6b653dcdd07ce2d1e69383662e46679a8a9997e",
+        "3cfb0e56521a38e4b4313b68a7dd2606a6bcb498e33f58c59d53c864aefd0ee0",
+        "40d2fa8d388dcc3ca6782c3933e998d506009c378898b513187a33b435cde60b",
         "0e4cbf0ead81e2f99a18d2ed821ad0e8d22a203905b2f540d64966aaecbe12a2",
         "0e4cbf0ead81e2f99a18d2ed821ad0e8d22a203905b2f540d64966aaecbe12a2",
         "1c986bbf5a236f9823a35c35600e35b0f56f0a4ce0186f98d65865a9c8753a95",

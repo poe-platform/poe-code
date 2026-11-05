@@ -694,7 +694,9 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
 
 function parseMagickConvolveKernel(spec: string): number[] {
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
-    return afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
+    const kernel = afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
+    const sum = kernel.reduce((total, weight) => total + weight, 0);
+    return sum === 0 ? kernel : kernel.map(weight => weight / sum);
 }
 function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const kernel = parseMagickConvolveKernel(spec);

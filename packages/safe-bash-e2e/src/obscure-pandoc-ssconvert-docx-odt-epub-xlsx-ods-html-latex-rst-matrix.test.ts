@@ -50,9 +50,36 @@ describe("obscure pandoc & ssconvert document and spreadsheet conversion matrix"
   it("5. pandoc GFM pipe tables, task lists, blockquotes, fenced code blocks, and horizontal rules", async () => {
     const h = await SafeBashE2EHarness.create();
     try {
-      const res = await h.exec("set -euo pipefail\ncat > gfm.md <<'MD'\n| Name | Score |\n| --- | --- |\n| Alice | 95 |\n| Bob | 88 |\n\n- [x] done\n- [ ] todo\n\n> Quoted text\n\n```js\nconst x = 1;\n```\n\n---\nMD\n\npandoc -f markdown -t html gfm.md > gfm.html\ngrep -q '<tr><th scope=\"col\">Name</th><th scope=\"col\">Score</th></tr>' gfm.html\ngrep -q '<tr><td>Alice</td><td>95</td></tr>' gfm.html\ngrep -q '<li><input type=\"checkbox\" checked=\"\" />done</li>' gfm.html\ngrep -q '<li><input type=\"checkbox\" />todo</li>' gfm.html\ngrep -q '<blockquote><p>Quoted text</p>' gfm.html\ngrep -q '<pre><code class=\"js\">const x = 1;' gfm.html\ngrep -q '<hr>' gfm.html\necho \"OK_PANDOC_GFM\"");
-      assert.equal(res.exitCode, 0, `stderr: ${res.stderr}`);
-      assert.match(res.stdout, /OK_PANDOC_GFM/);
+      const res = await h.exec(`set -euo pipefail
+cat > gfm.md <<'MD'
+| Name | Score |
+| --- | --- |
+| Alice | 95 |
+| Bob | 88 |
+
+- [x] done
+- [ ] todo
+
+> Quoted text
+
+\`\`\`js
+const x = 1;
+\`\`\`
+
+---
+MD
+
+pandoc -f markdown -t html gfm.md > gfm.html
+htmlq -t 'thead th' < gfm.html
+htmlq -t 'tbody td' < gfm.html
+htmlq -t 'li label' < gfm.html
+htmlq -t 'blockquote p' < gfm.html
+htmlq -t 'pre.js code, pre code.js' < gfm.html
+grep -Fq '<input type="checkbox" checked="" />done</label>' gfm.html
+grep -Fq '<input type="checkbox" />todo</label>' gfm.html
+grep -Fxq '<hr />' gfm.html`);
+      assert.equal(res.exitCode, 0, res.stderr);
+      assert.deepEqual(res.stdout.trim().split("\n"), ["Name", "Score", "Alice", "95", "Bob", "88", "done", "todo", "Quoted text", "const x = 1;"]);
     } finally {
       await h.dispose();
     }

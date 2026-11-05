@@ -31008,7 +31008,9 @@ fn render_pandoc_html(
             }
             PandocBlock::BlockQuote(inner) => {
                 let inner_html = render_pandoc_html(inner, false, false, false, ascii, "", "", "", "");
-                body.push_str(&format!("<blockquote>{inner_html}</blockquote>\n"));
+                body.push_str("<blockquote>\n");
+                body.push_str(if inner_html.is_empty() { "\n" } else { &inner_html });
+                body.push_str("</blockquote>\n");
             }
             PandocBlock::CodeBlock(attr, code) => {
                 body.push_str("<pre");
@@ -31037,7 +31039,7 @@ fn render_pandoc_html(
                 body.push_str("</tbody>\n</table>\n");
             }
             PandocBlock::HorizontalRule => {
-                body.push_str("<hr>\n");
+                body.push_str("<hr />\n");
             }
         }
     }

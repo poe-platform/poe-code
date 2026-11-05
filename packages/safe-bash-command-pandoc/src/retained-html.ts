@@ -502,7 +502,7 @@ class HtmlTape {
         await this.add(">");
         if (this.options.numberSections && section.number) {await this.add('<span class="header-section-number">'); await this.escape(section.number); await this.add("</span> ");}
         await this.sequence(this.list(inner.node, inner.path, "inline"), this.literal(`</h${level}>\n`));
-      } else if (tag === "HorizontalRule") await this.add("<hr>\n");
+      } else if (tag === "HorizontalRule") await this.add("<hr />\n");
       else if (tag === "BlockQuote" || tag === "Div") {
         let blockTag = tag === "Div" ? "div" : "blockquote";
         const inner = tag === "Div" ? await child(1) : {node: content!, path: cp};
@@ -513,7 +513,7 @@ class HtmlTape {
         }
         await this.add(`<${blockTag}`);
         if (tag === "Div") await this.attrs(await this.at(content!, 0), undefined, undefined, false, false, blockTag === "section" ? "section" : undefined);
-        await this.add(">");
+        await this.add(tag === "Div" ? ">" : await this.count(inner.node) ? ">\n" : ">\n\n");
         await this.sequence(this.list(inner.node, inner.path, "block"), this.literal(`</${blockTag}>\n`));
       } else if (tag === "BulletList" || tag === "OrderedList") {
         const ordered = tag === "OrderedList", listTag = ordered ? "ol" : "ul";

@@ -46,13 +46,15 @@ test("both backends recover list structure, links, quotes, code and rules from n
     ]) {
       const [status, docx, error] = await runLinuxCommand(pandoc, ["-f", "gfm", "-t", "docx"], markdown);
       assert.equal(status, 0, error.toString());
-      const options = ["-f", "docx", "-t", "json"];
-      const [code, json, stderr] = await runLinuxCommand(pandoc, options, docx);
-      assert.equal(code, 0, stderr.toString());
-      for (const shell of [ts.shell, rust]) {
-        const result = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
-        assert.equal(result.exitCode, 0, result.stderr);
-        assert.equal(result.stdout, json.toString(), shell.constructor.name);
+      for (const to of ["json", "html"]) {
+        const options = ["-f", "docx", "-t", to, "--wrap=none"];
+        const [code, expected, stderr] = await runLinuxCommand(pandoc, options, docx);
+        assert.equal(code, 0, stderr.toString());
+        for (const shell of [ts.shell, rust]) {
+          const result = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stdout, expected.toString(), shell.constructor.name);
+        }
       }
     }
   } finally {await rust.dispose(); await ts.dispose();}

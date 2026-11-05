@@ -277,6 +277,12 @@ export function linuxCommands(text: string) {
     ...["markdown_mmd", "markdown_phpextra", "markdown_mmd+task_lists", "markdown_phpextra+task_lists"].map(from => ({
       cmd: pandoc, args: ["-f", from, "-t", "html"], script: `pandoc -f ${from} -t html`, input: "- [x] task\n",
     })),
+    {
+      cmd: pandoc, args: ["-f", "json", "-t", "html"], script: "pandoc -f json -t html",
+      input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [
+        {t: "BlockQuote", c: [{t: "Para", c: [{t: "Str", c: "quoted"}]}]}, {t: "BlockQuote", c: []}, {t: "HorizontalRule"},
+      ]}),
+    },
     ...["plain", "html"].map(to => ({
       cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeDocx,
     })),

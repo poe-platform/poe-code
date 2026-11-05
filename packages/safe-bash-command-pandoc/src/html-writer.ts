@@ -295,12 +295,12 @@ class HtmlWriter {
           if (this.context.numberSections && section.number) {this.add('<span class="header-section-number">'); this.escape(section.number); this.add("</span> ");}
           await this.inlines(node.c[2], `${p}.c[2]`); this.add(`</h${level}>\n`); break;
         }
-        case "HorizontalRule": this.add("<hr>\n"); break;
+        case "HorizontalRule": this.add("<hr />\n"); break;
         case "BlockQuote": case "Div": {
           const tag = node.t === "Div" ? node.c[0][1].includes("section") ? "section" : "div" : "blockquote";
           this.add(`<${tag}`);
           if(node.t === "Div") this.attrs(tag === "section" ? [node.c[0][0], node.c[0][1].filter(name => name !== "section"), node.c[0][2]] : node.c[0]);
-          this.add(">");
+          this.add(node.t === "Div" ? ">" : node.c.length ? ">\n" : ">\n\n");
           await this.blocks(node.t === "Div" ? node.c[1] : node.c, node.t === "Div" ? `${p}.c[1]` : `${p}.c`); this.add(`</${tag}>\n`); break;
         }
         case "BulletList": case "OrderedList": {

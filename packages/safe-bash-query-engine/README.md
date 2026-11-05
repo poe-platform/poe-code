@@ -18,6 +18,9 @@ English timezone data. `todate` and `fromdate` alias the ISO-8601 conversions.
 `env` and `$ENV` read only the environment supplied by the command context;
 standalone query sessions default to an empty environment.
 
+`fromstream(events)` reconstructs JSON values from jq stream events, including
+nested containers; use `jq -cn --stream 'fromstream(inputs)'` to rebuild input documents.
+
 Use `structuredCommands` from `@poe-platform/safe-bash` and `yqCommands` from
 `@poe-platform/safe-bash/commands/yq` to register commands. This private
 workspace is bundled into Safe Bash and does not need a separate installation.

@@ -942,6 +942,28 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "fromstream") {
+      let result: Json = null;
+      for await (const event of this.run(args[0]!, input)) {
+        const pending = budget.tickSync(); if (pending) await pending;
+        if (!Array.isArray(event)) continue;
+        const path = event[0] ?? null;
+        if (event.length === 2) {
+          // Reuse setpath's index normalization and resource accounting.
+          for await (const value of this.call("setpath", [
+            { kind: "literal", value: path },
+            { kind: "literal", value: event[1]! },
+          ], result)) result = value;
+        }
+        // A root leaf or the final top-level container ending completes a value.
+        if (Array.isArray(path) && ((event.length === 2 && path.length === 0)
+          || (event.length === 1 && path.length === 1))) {
+          yield result;
+          result = null;
+        }
+      }
+      return;
+    }
     if (name === "inputs") {
       while (this.inputSource) {
         const pending = budget.tickSync(); if (pending) await pending;

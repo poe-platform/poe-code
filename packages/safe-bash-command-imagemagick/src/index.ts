@@ -1,3 +1,4 @@
+import { blurPixelSteps } from "./blur-kernel.js";
 import { montageFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { resizePixelSteps } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
@@ -5048,10 +5049,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
-            const sigma = Math.max(0.3, g.height ?? g.width ?? 1);
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* blurImageSteps(im, sigma));
-            }));
+            stack = yield* mapSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur"), signal);
+            });
         }
         else if (t === "-sharpen" || t === "-unsharp") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
@@ -5963,10 +5963,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-rotate") {
             const angle = Number(tokens[++i] ?? 0), background = state.background;
             transform(() => ({ kind: "rotate", angle, background }));
-        } else if (!operandsOnly && ["-blur", "-gaussian-blur", "-sharpen", "-unsharp"].includes(token)) {
+        } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur"), signal) : undefined);
+        } else if (!operandsOnly && (token === "-sharpen" || token === "-unsharp")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
-            const kind = token === "-blur" || token === "-gaussian-blur" ? "blur" : "sharpen";
-            transform(() => kind === "blur" ? { kind, sigma } : { kind, sigma, m1: 1, m2: 2 });
+            transform(() => ({ kind: "sharpen", sigma, m1: 1, m2: 2 }));
         } else if (!operandsOnly && token === "-crop") {
             const geometry = tokens[++i] ?? "100%", parsed = parseMagickGeometry(geometry), gravity = state.gravity;
             steps.push(async (image, backend) => {

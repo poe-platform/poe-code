@@ -1,3 +1,4 @@
+import { linearizationAssignments } from "./linearization-assignments.js";
 import { checkLinearization } from "./linearization-check.js";
 import { linearizationReport } from "./linearization-report.js";
 import { encryptionReport } from "./encryption-report.js";
@@ -23,6 +24,8 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   PdfDocument,
+  CosByteLexer,
+  PdfError,
   PdfPasswordError,
   retainedStampTransform,
   PdfFileSource,
@@ -1283,6 +1286,37 @@ function* executeQpdfCli(
           yield;
           if (typeof step.value === "string") { out += step.value; step = report.next(new Uint8Array()); }
           else step = report.next(hintBytes.subarray(step.value.offset, step.value.offset + step.value.length));
+        }
+        if (hintBytes.length) {
+          const entries = new Map(cos.revisions.flatMap(revision => [...revision.entries]).reverse());
+          // Repaired files have no revision entries. Recover compressed owners
+          // from object-stream headers, matching the retained reader's index.
+          if (!cos.revisions.length) for (const object of cos.objects.values()) {
+            if (object.value.kind !== "stream") continue;
+            const type = dictGet(object.value.dict, "Type"), count = dictGet(object.value.dict, "N");
+            if (type?.kind !== "name" || type.decoded !== "ObjStm" || count?.kind !== "number") continue;
+            try {
+              const lexer = new CosByteLexer(cos.decodeStream(object.value));
+              for (let i = 0; i < count.value; i++) {
+                yield;
+                const id = lexer.nextToken(), offset = lexer.nextToken();
+                if (!id || !offset) break;
+                if (id.kind === "number" && offset.kind === "number" && !entries.has(id.value) && cos.objects.has(id.value) && !cos.objects.get(id.value)!.span) {
+                  entries.set(id.value, { objectNumber: id.value, type: "compressed", objectStreamNumber: object.objectNumber });
+                }
+              }
+            } catch (error) { if (!(error instanceof PdfError) || error.code === "E_LIMIT") throw error; }
+          }
+          const assignments = linearizationAssignments(cos.rootRef, cos.revisions[0]?.trailer ?? cosDict({ Root: cos.rootRef, ...(cos.infoRef ? { Info: cos.infoRef } : {}) }));
+          let assignment = assignments.next();
+          while (!assignment.done) {
+            yield;
+            if (typeof assignment.value === "string") { out += assignment.value; assignment = assignments.next(undefined); }
+            else {
+              const object = cos.objects.get(assignment.value.objectNumber);
+              assignment = assignments.next(object ? { value: object.value, container: entries.get(object.objectNumber)?.objectStreamNumber } : undefined);
+            }
+          }
         }
         return { exitCode, stdout: out, stderr };
       }

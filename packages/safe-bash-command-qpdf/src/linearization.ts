@@ -1,3 +1,4 @@
+import { linearizationAssignments } from "./linearization-assignments.js";
 import { checkLinearization } from "./linearization-check.js";
 import { linearizationReport } from "./linearization-report.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
@@ -120,6 +121,20 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
       signal.throwIfAborted();
       if (typeof step.value === "string") { yield step.value; step = report.next(new Uint8Array()); }
       else step = report.next(await decoded!.read(step.value.offset, step.value.length, signal));
+    }
+    const root = dictGet(document.crossReference.trailer, "Root");
+    if (decoded && root?.kind === "ref") {
+      const assignments = linearizationAssignments(root, document.crossReference.trailer);
+      let assignment = assignments.next();
+      while (!assignment.done) {
+        signal.throwIfAborted();
+        if (typeof assignment.value === "string") { yield assignment.value; assignment = assignments.next(undefined); }
+        else {
+          const ref = assignment.value, object = await document.objects.get(ref.objectNumber, ref.generationNumber);
+          const entry = await document.crossReference.index.get(ref.objectNumber, signal);
+          assignment = assignments.next(object ? { value: object.value, container: entry?.objectStreamNumber } : undefined);
+        }
+      }
     }
   } finally { await decoded?.close(); }
 }

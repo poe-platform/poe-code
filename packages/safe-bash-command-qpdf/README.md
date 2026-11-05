@@ -64,7 +64,8 @@ removals. Page selections and collation compose with splitting through an unsave
 caller-backed graph, preserving indirect values between transformations.
 
 `--show-linearization` prints the linearization dictionary fields and decoded page,
-shared-object, and outline hint tables. `--check-linearization` prints the validation
+shared-object, and outline hint tables, followed by computed object assignments
+for the document-open, first-page, private, shared, and remaining linearization parts. `--check-linearization` prints the validation
 result after checking file offsets and page/shared-object hint tables. Malformed
 linearization produces warnings and exit code `3` in both `--check-linearization`
 and `--check`; `--warning-exit-0` keeps the warnings but returns `0`. Both preserve revision and repair ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs

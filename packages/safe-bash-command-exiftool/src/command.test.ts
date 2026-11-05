@@ -5,7 +5,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import type { ByteSink } from "safe-bash-contracts/io";
 import { shellValueFromBytes, type ShellValue } from "safe-bash-contracts/value";
-import { createExiftoolCommand, type ExiftoolCommandOptions } from "./command.js";
+import { createExiftoolCommand, evalSyncExiftool, type ExiftoolCommandOptions } from "./command.js";
 import { fixture } from "../tests/fixtures.js";
 import { pngChunk } from "./png.js";
 
@@ -894,5 +894,41 @@ test("help names after the option terminator remain literal files", async () => 
     await fs.writeFile("/" + flag, fixture("literal"));
     const result = await invoke(["-s3", "-Title", "--", flag], fs);
     assert.deepEqual(result, { exitCode: 0, stdout: "literal\n", stderr: "" });
+  }
+});
+
+
+test("JPEG print conversion respects numeric CLI and SDK selectors in both read paths", async () => {
+  const { createExiftoolArguments } = await import("./sdk.js");
+  const orientations = ["Unknown (0)", "Horizontal (normal)", "Mirror horizontal", "Rotate 180", "Mirror vertical", "Mirror horizontal and rotate 270 CW", "Rotate 90 CW", "Mirror horizontal and rotate 90 CW", "Rotate 270 CW", "Unknown (9)"];
+  const units = ["Unknown (0)", "None", "inches", "cm", "Unknown (4)"];
+  for (const little of [false, true]) {
+    for (let orientation = 0; orientation < orientations.length; orientation++) {
+      const unit = orientation % units.length;
+      // Independent TIFF SHORT entries, with no production writer involved.
+      const bytes = new Uint8Array([255,216,255,225,0,46,69,120,105,102,0,0,
+        77,77,0,42,0,0,0,8,0,2,
+        1,18,0,3,0,0,0,1,0,0,0,0,
+        1,40,0,3,0,0,0,1,0,0,0,0,0,0,0,0,255,217]);
+      const view = new DataView(bytes.buffer, 12);
+      bytes[12] = bytes[13] = little ? 73 : 77;
+      view.setUint16(2, 42, little); view.setUint32(4, 8, little); view.setUint16(8, 2, little);
+      for (const [entry, tag, value] of [[10, 0x112, orientation], [22, 0x128, unit]]) {
+        view.setUint16(entry!, tag!, little); view.setUint16(entry! + 2, 3, little);
+        view.setUint32(entry! + 4, 1, little); view.setUint16(entry! + 8, value!, little);
+      }
+      const fs = createMemoryFileSystem(); await fs.writeFile("/image.jpg", bytes);
+      for (const [numeric, tags, expected] of [
+        [false, ["Orientation", "ResolutionUnit"], `${orientations[orientation]}\n${units[unit]}\n`],
+        [true, ["Orientation", "ResolutionUnit"], `${orientation}\n${unit}\n`],
+        [false, ["Orientation#", "ResolutionUnit"], `${orientation}\n${units[unit]}\n`],
+        [false, ["Orientation", "ResolutionUnit#"], `${orientations[orientation]}\n${unit}\n`],
+      ] as const) {
+        const { args } = createExiftoolArguments({ files: ["image.jpg"], tags, numeric, style: "values" }, { signal: new AbortController().signal });
+        assert.deepEqual(await invoke(args, fs), { exitCode: 0, stdout: expected, stderr: "" });
+        assert.equal(evalSyncExiftool(undefined, args, () => bytes), expected);
+      }
+      assert.deepEqual(await fs.readFile("/image.jpg"), bytes);
+    }
   }
 });

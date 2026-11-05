@@ -7,7 +7,7 @@ import { readBytes, writeBytes, withInputByteBudget } from "safe-bash-contracts/
 import { createOutputOperation, type OutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { shellValueByteLength } from "safe-bash-contracts/value";
-import { parseArguments } from "./arguments.js";
+import { parseArguments, type Invocation } from "./arguments.js";
 import { inspectPng, editPng, type MetadataTag } from "./png.js";
 import { inspectJpeg, editJpeg, jpegWriteTags } from "./jpeg.js";
 import { inspectPdf, editPdf, pdfWriteTags } from "./pdf.js";
@@ -38,6 +38,24 @@ function selected(tags: readonly MetadataTag[], names: readonly string[], duplic
     if (duplicates) values.push(...matching); else if (matching.length) values.push(matching[matching.length - 1]!);
   }
   return values;
+}
+const jpegPrintConversions: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  Orientation: {
+    "1": "Horizontal (normal)", "2": "Mirror horizontal", "3": "Rotate 180", "4": "Mirror vertical",
+    "5": "Mirror horizontal and rotate 270 CW", "6": "Rotate 90 CW",
+    "7": "Mirror horizontal and rotate 90 CW", "8": "Rotate 270 CW"
+  },
+  ResolutionUnit: { "1": "None", "2": "inches", "3": "cm" }
+};
+function printConverted(tags: readonly MetadataTag[], invocation: Invocation, resources: Resources): readonly MetadataTag[] {
+  if (invocation.numeric || invocation.binary) return tags;
+  resources.admit("work", tags.length * (invocation.valueConvTags.length + 1) * 64);
+  resources.admit("retained", tags.length * 512);
+  return tags.map(tag => {
+    const conversions = tag.chunkType === "JPEG" && tag.group === "IFD0" ? jpegPrintConversions[tag.name] : undefined;
+    if (!conversions || invocation.valueConvTags.includes(tag.name.toLowerCase())) return tag;
+    return { ...tag, value: conversions[tag.value] ?? "Unknown (" + tag.value + ")" };
+  });
 }
 export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): CommandDefinition {
   const limits = Object.freeze({ ...options.limits });
@@ -254,6 +272,7 @@ Limits:
             continue;
           }
           read++;
+          tags = printConverted(tags, invocation, resources);
           const chosen = selected(tags, invocation.tags, invocation.json ? invocation.groupFamily === 4 : invocation.duplicates && !invocation.csv, resources);
           if (invocation.xml || invocation.tabular || invocation.template !== undefined) {
             const values = invocation.template !== undefined ? selected(tags, [], false, resources) : chosen;
@@ -443,7 +462,7 @@ export function evalSyncExiftool(
         continue;
       }
       const metadata = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : inspectPdf(bytes, resources).tags;
-      const tags = [...systemTags(file, bytes.length, metadata, invocation, resources), ...metadata];
+      const tags = printConverted([...systemTags(file, bytes.length, metadata, invocation, resources), ...metadata], invocation, resources);
       const chosen = selected(tags, invocation.tags, invocation.json ? invocation.groupFamily === 4 : invocation.duplicates && !invocation.csv, resources);
       if (invocation.xml || invocation.tabular || invocation.template !== undefined) {
         const values = invocation.template !== undefined ? selected(tags, [], false, resources) : chosen;

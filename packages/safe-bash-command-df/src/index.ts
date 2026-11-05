@@ -1,5 +1,7 @@
+import { quote } from "safe-bash-command-fmt/quoting";
 import {
   commandRuntimeIdentity,
+  getCommandArguments,
   writeText,
   type CommandContext,
   type CommandDefinition,
@@ -306,9 +308,7 @@ export function evalSyncDf(
         if (showInodes || portability || printType) return undefined;
         outputFields ??= [];
         if (arg !== "--output") {
-          const list = arg.slice("--output=".length).split(",").filter(Boolean);
-          if (!list.length) return undefined;
-          for (const field of list) {
+          for (const field of arg.slice("--output=".length).split(",")) {
             if (!VALID_OUTPUT_FIELDS.has(field) || outputFields.includes(field)) return undefined;
             outputFields.push(field);
           }
@@ -569,22 +569,18 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
             if (showInodes || portability || printType) return outputConflict(showInodes ? "i" : portability ? "P" : "T");
             outputFields ??= [];
             if (arg !== "--output") {
-              const list = arg.slice("--output=".length).split(",").filter(Boolean);
-              if (list.length === 0) {
-                await writeText(context.stderr, "df: option '--output' requires a non-empty field list\n");
-                return { exitCode: 1 };
-              }
-              for (const f of list) {
-                if (!VALID_OUTPUT_FIELDS.has(f)) {
-                  await writeText(context.stderr, `df: '${f}': Crit: invalid field name for --output\n`);
+              let start = "--output=".length;
+              for (const f of arg.slice(start).split(",")) {
+                const reason = !VALID_OUTPUT_FIELDS.has(f) ? "unknown" : outputFields.includes(f) ? "used more than once" : undefined;
+                if (reason) {
+                  const bytes = getCommandArguments(context).bytes(i)!;
+                  const end = bytes.indexOf(44, start);
+                  const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
+                  const quoted = quote(bytes.subarray(start, end < 0 ? undefined : end), false, locale === "C.UTF-8" || locale === "C.utf8");
+                  await writeText(context.stderr, `df: option --output: field ${quoted} ${reason}\nTry 'df --help' for more information.\n`);
                   return { exitCode: 1 };
                 }
-                if (outputFields.includes(f)) {
-                  const locale = context.env.LC_ALL || context.env.LC_MESSAGES || context.env.LANG;
-                  const quoted = locale === "C.UTF-8" || locale === "C.utf8" ? `‘${f}’` : `'${f}'`;
-                  await writeText(context.stderr, `df: option --output: field ${quoted} used more than once\nTry 'df --help' for more information.\n`);
-                  return { exitCode: 1 };
-                }
+                start += f.length + 1;
                 outputFields.push(f);
               }
             }
@@ -701,7 +697,6 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
         }
         operands.push(arg);
       }
-
 
       for (const t of includeTypes) {
         if (excludeTypes.has(t)) {

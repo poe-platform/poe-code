@@ -12,6 +12,12 @@
       "workerd": "./dist/index.js",
       "browser": "./dist/index.js",
       "import": "./dist/index.js"
+    },
+    "./quoting": {
+      "types": "./dist/quoting.d.ts",
+      "workerd": "./dist/quoting.js",
+      "browser": "./dist/quoting.js",
+      "import": "./dist/quoting.js"
     }
   },
   "files": [

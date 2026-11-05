@@ -162,7 +162,7 @@ describe("obscure df, cal, ncal, whoami, egrep, fgrep, rgrep, less, more, and sy
       assert.equal(rBad.exitCode, 1);
       assert.equal(
         rBad.stderr,
-        "df: 'bogus': Crit: invalid field name for --output\n"
+        "df: option --output: field 'bogus' unknown\nTry 'df --help' for more information.\n"
       );
     });
   });

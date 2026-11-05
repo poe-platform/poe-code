@@ -4201,31 +4201,19 @@ fn cmd_df(
                     return output_conflict(if show_inodes { 'i' } else if portability { 'P' } else { 'T' });
                 }
                 let fields = output_fields.get_or_insert_with(Vec::new);
-                if arg != "--output" {
-                    let list: Vec<String> = arg["--output=".len()..]
-                        .split(',')
-                        .filter(|s| !s.is_empty())
-                        .map(|s| s.to_string())
-                        .collect();
-                    if list.is_empty() {
-                        return err_out(
-                            "df: option '--output' requires a non-empty field list\n",
-                            1,
-                        );
-                    }
-                    for f in list {
-                        if !VALID_FIELDS.contains(&f.as_str()) {
-                            return err_out(
-                                &format!("df: '{f}': Crit: invalid field name for --output\n"),
-                                1,
-                            );
-                        }
-                        if fields.contains(&f) {
-                            let locale = ["LC_ALL", "LC_MESSAGES", "LANG"].iter().find_map(|k| env.get(*k).filter(|v| !v.is_empty()));
-                            let quoted = super::coreutils::fmt_quote::quote(&f, false, matches!(locale.map(String::as_str), Some("C.UTF-8" | "C.utf8")));
-                            return err_out(&format!("df: option --output: field {quoted} used more than once\nTry 'df --help' for more information.\n"), 1);
-                        }
-                        fields.push(f);
+                if let Some(list) = arg.strip_prefix("--output=") {
+                    for field in list.split(',') {
+                        let reason = if !VALID_FIELDS.contains(&field) {
+                            "unknown"
+                        } else if fields.iter().any(|f| f == field) {
+                            "used more than once"
+                        } else {
+                            fields.push(field.to_owned());
+                            continue;
+                        };
+                        let locale = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|v| !v.is_empty()));
+                        let quoted = super::coreutils::fmt_quote::quote(field, false, matches!(locale.map(String::as_str), Some("C.UTF-8" | "C.utf8")));
+                        return err_out(&format!("df: option --output: field {quoted} {reason}\nTry 'df --help' for more information.\n"), 1);
                     }
                 }
             } else if arg == "--block-size" || arg.starts_with("--block-size=") {

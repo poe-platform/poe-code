@@ -109,6 +109,8 @@ const textCommands = ([
   ["diff", "-u", "--label", "base", "--label", "ours", "samples/base", "samples/ours"],
   ["diff3", "-m", "samples/ours", "samples/base", "samples/theirs"],
   ["find", "samples", "-type", "f", "-name", "theirs", "-print0"], ["ls", "-1", "samples"],
+  ["df", "--output="], ["df", "--output=size,"], ["df", "--output=,file"], ["df", "--output=file,,size"],
+  ["df", "--output=file,bogus", "--help"],
   ["df", "-TPi", "--output=bogus"], ["df", "-TP", "--output"], ["df", "--output", "-TP"],
   ["df", "--output", "--inodes", "--help"], ["df", "--portability", "--output=size,"],
   ["df", "--output=target", "--print-type", "--version"],
@@ -128,8 +130,11 @@ const textCommands = ([
 }));
 
 export function linuxCommands(text: string) {
-  const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1"];
+  const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1",
+    String.raw`df --output=$'target,\xff'`, "LC_ALL=C.UTF-8 df --output=’é",
+    "LC_ALL= LC_MESSAGES=C LC_CTYPE=C.UTF-8 df --output=é"];
   return [
+    { cmd: "df", args: ["--output=file,a'b\n💡"], script: String.raw`df --output=$'file,a\'b\n💡'`, input: "" },
     { cmd: "whoami", args: [], script: "EUID=" + userInfo().uid + " USER=unused whoami", input: "" },
     { cmd: "qrencode", args: ["-t", "ansiutf8i", "-m", "1", "Hello"], script: "qrencode -t ansiutf8i -m 1 Hello", input: "" },
     { cmd: "qrencode", args: ["-M", "-t", "ANSI256UTF8", "-m", "3", "1234"], script: "qrencode -M -t ANSI256UTF8 -m 3 1234", input: "" },

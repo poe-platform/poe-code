@@ -42,6 +42,8 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let aeMagnitude = 0;
     let sumAbs = 0;
     let sumSq = 0;
+    let fuzzSq = 0;
+    let fuzzChannels = 0;
     let maxAbs = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
     const correlationChannels = (metric === "ncc" || metric === "dpc") ? Array.from({ length: imgA.hasAlpha && imgB.hasAlpha ? 4 : 3 }, () => ({
@@ -117,6 +119,17 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const pdr = Math.abs(rA * alphaA - rB * alphaB);
                 const pdg = Math.abs(gA * alphaA - gB * alphaB);
                 const pdb = Math.abs(bA * alphaA - bB * alphaB);
+                if (metric === "fuzz") {
+                    // Fuzz averages squared error over only channels above tolerance.
+                    // Alpha participates only when both images have an alpha channel.
+                    for (let channel = 0; channel < (imgA.hasAlpha && imgB.hasAlpha ? 4 : 3); channel++) {
+                        const delta = channel === 0 ? pdr : channel === 1 ? pdg : channel === 2 ? pdb : da;
+                        if (delta > Math.abs(fuzz)) {
+                            fuzzSq += delta * delta;
+                            fuzzChannels++;
+                        }
+                    }
+                }
                 // AE sums channel magnitudes above fuzz, then averages over channels.
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
                 aeMagnitude += (aeR > fuzz ? aeR : 0) + (aeG > fuzz ? aeG : 0) + (aeB > fuzz ? aeB : 0) + (hasAlpha && da > fuzz ? da : 0);
@@ -160,6 +173,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "ae":
             distortion = aeMagnitude / (totalPixels * numCh * 255);
             metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
+            break;
+        case "fuzz":
+            distortion = fuzzChannels === 0 ? 0 : fuzzSq / (fuzzChannels * 255 * 255);
+            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mae":
             distortion = maeNorm;

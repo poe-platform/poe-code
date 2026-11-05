@@ -153,8 +153,8 @@ function decimalTime(value: number): string {
 }
 
 const supportedKeywords = new Set(["path", "linkpath", "size", "uid", "gid", "mtime", "atime", "ctime", "uname", "gname", "comment", "charset", "hdrcharset"]);
-const optionalKeywords = new Set(["SCHILY.fflags", "LIBARCHIVE.creationtime"]);
-const optionalKeywordPrefixes = ["LIBARCHIVE.xattr.", "SCHILY.xattr."];
+const unsupportedKeywords = new Set(["SCHILY.realsize", "SCHILY.filetype", "SCHILY.offset", "SCHILY.dev", "SCHILY.ino", "SCHILY.nlink", "SUN.holesdata", "LIBARCHIVE.symlinktype"]);
+const unsupportedKeywordPrefixes = ["GNU.sparse.", "GNU.volume."];
 
 export function parsePax(payload: Uint8Array): Map<string, string> {
   const result = new Map<string, string>();
@@ -172,8 +172,8 @@ export function parsePax(payload: Uint8Array): Map<string, string> {
     const key = text(record.subarray(0, equals));
     if (/[\0\n]/u.test(key)) fail("invalid PAX key/value");
     offset += size;
-    if (optionalKeywords.has(key) || optionalKeywordPrefixes.some(prefix => key.startsWith(prefix) && key.length > prefix.length)) continue;
-    if (!supportedKeywords.has(key)) fail(`unsupported PAX keyword: ${key}`);
+    if (unsupportedKeywords.has(key) || unsupportedKeywordPrefixes.some(prefix => key.startsWith(prefix))) fail(`unsupported PAX keyword: ${key}`);
+    if (!supportedKeywords.has(key)) continue;
     const value = text(record.subarray(equals + 1));
     if (value.includes("\0")) fail("invalid PAX key/value");
     if (key === "hdrcharset" && value !== "" && value !== "ISO-IR 10646 2000 UTF-8") fail("unsupported PAX header charset");

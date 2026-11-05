@@ -170,19 +170,17 @@ unsupported and produce failure. No option or archive data executes code.
   remain validated; overridden/deleted raw semantic fields are not decoded.
   Recognized keys: `path`, `linkpath`, `size`, `uid`, `gid`, `mtime`, `atime`,
   `ctime`, `uname`, `gname`, `comment`, `charset`, `hdrcharset`.
-  Known optional metadata is accepted and discarded: nonempty attribute names
-  under `LIBARCHIVE.xattr.` and `SCHILY.xattr.`, plus `SCHILY.fflags` and
-  `LIBARCHIVE.creationtime`. This is not restoration
+  Unknown metadata keywords are accepted and discarded, including vendor
+  attributes, flags, creation times, ACLs and security labels. This is not restoration
   of xattrs, ACLs, flags, creation time, security labels, or ownership.
   Record framing and UTF-8 keys are validated before classification; ignored
   values remain opaque bytes (including binary SCHILY xattrs), are not decoded
   as paths or retained in global/local state, and still consume header/archive
   limits. Supported values remain strict UTF-8 with no NUL.
-  Unclassified extensions remain rejected, including `GNU.sparse.*`,
-  `SCHILY.realsize`, `SCHILY.filetype`, `SUN.holesdata`, and volume extensions.
-  ACL, security-label, symlink-type and archived inode/device/link-count keys
-  outside the named xattr namespaces remain unclassified and rejected.
-  No blanket vendor-prefix exemption or sparse/layout fallback is provided.
+  Unsupported layout/type extensions remain rejected: `GNU.sparse.*`,
+  `GNU.volume.*`, `SCHILY.realsize`, `SCHILY.filetype`, `SCHILY.offset`,
+  `SUN.holesdata`, `LIBARCHIVE.symlinktype`, and the archived identity keys
+  `SCHILY.dev`, `SCHILY.ino`, `SCHILY.nlink`.
   Only UTF-8 header encoding is supported; `hdrcharset=BINARY` is rejected.
 - AppleDouble `._*` regular archive members remain ordinary files. They are not
   interpreted as macOS metadata or hidden from listing. Default macOS BSD tar

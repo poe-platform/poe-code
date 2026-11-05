@@ -3,6 +3,26 @@ import test from "node:test";
 import { createMemoryFileSystem, S3FileSystem, MockS3Client, createS3Transport, WebDavFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandDefinition, type FileSystem, type FileStat } from "safe-bash-contracts";
 import { createTarCommand, createTarCommands, tarCommands } from "./index.js";
+import { headerBytes, paxRecord } from "./format.js";
+
+for (const type of ["x", "g"]) test(`tar lists and extracts unknown ${type} PAX metadata`, async () => {
+  const fs = createMemoryFileSystem();
+  const metadata = paxRecord("vendor.meta", "hello");
+  const data = new TextEncoder().encode("one\n");
+  const entry = { name: "a.txt", type: "0", linkname: "", size: data.length, mode: 0o644, uid: 0, gid: 0, mtime: 0 };
+  await fs.writeFile("/archive.tar", Buffer.concat([
+    headerBytes({ ...entry, name: "PaxHeader", type, size: metadata.length }),
+    metadata, new Uint8Array(512 - metadata.length),
+    headerBytes(entry), data, new Uint8Array(512 - data.length), new Uint8Array(1024),
+  ]));
+  const listed = await run(createTarCommand(), ["-tf", "/archive.tar"], "", fs);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  assert.equal(listed.stdout, "a.txt\n");
+  await fs.mkdir("/dest");
+  const extracted = await run(createTarCommand(), ["-xf", "/archive.tar", "-C", "/dest"], "", fs);
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.deepEqual(await fs.readFile("/dest/a.txt"), data);
+});
 
 for (const mutation of ["growth", "shrink", "mtime", "canonical", "opaque-version", "none"]) test(`tar validates fallback source ${mutation}`, async () => {
   const fs = createMemoryFileSystem();

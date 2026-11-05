@@ -39,7 +39,7 @@ async function rejected(bytes: Uint8Array, diagnostic: RegExp, options: Paramete
 
 test("P01 optional vendor metadata is opaque, not file data, paths, ownership or permissions", async () => {
   const records = Buffer.concat([
-    ...["SCHILY.xattr.user.binary", "LIBARCHIVE.xattr.user.note", "SCHILY.xattr.GNU.sparse", "SCHILY.fflags", "LIBARCHIVE.creationtime"].map(key => rawRecord(key, opaque)),
+    ...["SCHILY.xattr.user.binary", "LIBARCHIVE.xattr.user.note", "SCHILY.xattr.GNU.sparse", "SCHILY.fflags", "LIBARCHIVE.creationtime", "vendor.meta", "VENDOR.unknown", "LIBARCHIVE.unknown", "SCHILY.xattr.", "LIBARCHIVE.xattr.", "SCHILY.acl.access", "RHT.security.selinux"].map(key => rawRecord(key, opaque)),
     rawRecord("LIBARCHIVE.xattr.com.apple.provenance", Buffer.from("AQIA889aSVAWdgE")),
     rawRecord("SCHILY.xattr.com.apple.provenance", Buffer.from("010200f3cf5a4950167601", "hex")),
     rawRecord("SCHILY.xattr.user.path", Buffer.from("../outside/sentinel\n20 path=escape\n")),
@@ -99,8 +99,8 @@ test("P04 opaque values never bypass malformed record framing, keys, checksum or
   await rejected(archive(member({ name: "metadata", type: "x", data: valid })), /orphan/);
 });
 
-test("P05 sparse, layout-changing and unclassified extensions remain fail-closed before publication", async () => {
-  for (const key of ["GNU.sparse.map", "GNU.sparse.major", "GNU.sparse.realsize", "SCHILY.realsize", "SCHILY.filetype", "SCHILY.offset", "SUN.holesdata", "GNU.volume.offset", "VENDOR.unknown", "LIBARCHIVE.unknown", "SCHILY.xattr.", "LIBARCHIVE.xattr.", "SCHILY.acl.access", "RHT.security.selinux", "SCHILY.dev", "SCHILY.ino", "SCHILY.nlink", "LIBARCHIVE.symlinktype"]) {
+test("P05 sparse and layout-changing extensions remain fail-closed before publication", async () => {
+  for (const key of ["GNU.sparse.map", "GNU.sparse.major", "GNU.sparse.realsize", "SCHILY.realsize", "SCHILY.filetype", "SCHILY.offset", "SUN.holesdata", "GNU.volume.offset", "SCHILY.dev", "SCHILY.ino", "SCHILY.nlink", "LIBARCHIVE.symlinktype"]) {
     for (const type of ["x", "g"] as const) {
       await rejected(archive(member({ name: "metadata", type, data: Buffer.concat([rawRecord("SCHILY.fflags", opaque), pax([key, "1"])]) }), member({ name: "file", data: payload })), /unsupported PAX keyword/);
     }

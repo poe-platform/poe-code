@@ -2533,20 +2533,38 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
-            if (norm === "saturate") {
+            if (norm === "colorize") {
                 if (saByte === 0) continue;
                 if (daByte === 0) {
                     out.set(src.data.subarray(sIdx, sIdx + 4), dIdx);
                     continue;
                 }
-                // HCL: replace chroma while preserving destination hue and Rec.601 luma.
-                const chroma = Math.max(sr, sg, sb) - Math.min(sr, sg, sb);
+                // HCL: retain source hue and chroma, replacing its Rec.601 luma.
+                const lumaShift = 0.298839 * (dr - sr) + 0.586811 * (dg - sg) + 0.114350 * (db - sb);
+                out[dIdx] = clampByteVal(sr + lumaShift);
+                out[dIdx + 1] = clampByteVal(sg + lumaShift);
+                out[dIdx + 2] = clampByteVal(sb + lumaShift);
+                out[dIdx + 3] = Math.max(saByte, daByte);
+                continue;
+            }
+            if (norm === "saturate" || norm === "hue") {
+                if (saByte === 0) continue;
+                if (daByte === 0) {
+                    out.set(src.data.subarray(sIdx, sIdx + 4), dIdx);
+                    continue;
+                }
+                // HCL: replace hue or chroma while preserving destination Rec.601 luma.
+                const sourceChroma = Math.max(sr, sg, sb) - Math.min(sr, sg, sb);
                 const destinationChroma = Math.max(dr, dg, db) - Math.min(dr, dg, db);
                 const luma = 0.298839 * dr + 0.586811 * dg + 0.114350 * db;
-                const scale = destinationChroma === 0 ? 0 : chroma / destinationChroma;
-                out[dIdx] = clampByteVal(luma + (destinationChroma === 0 ? 0.701161 * chroma : (dr - luma) * scale));
-                out[dIdx + 1] = clampByteVal(luma + (destinationChroma === 0 ? -0.298839 * chroma : (dg - luma) * scale));
-                out[dIdx + 2] = clampByteVal(luma + (destinationChroma === 0 ? -0.298839 * chroma : (db - luma) * scale));
+                const hueFromSource = norm === "hue";
+                const hueChroma = hueFromSource ? sourceChroma : destinationChroma;
+                const chroma = hueFromSource ? destinationChroma : sourceChroma;
+                const hueLuma = hueFromSource ? 0.298839 * sr + 0.586811 * sg + 0.114350 * sb : luma;
+                const scale = hueChroma === 0 ? 0 : chroma / hueChroma;
+                out[dIdx] = clampByteVal(luma + (hueChroma === 0 ? 0.701161 * chroma : ((hueFromSource ? sr : dr) - hueLuma) * scale));
+                out[dIdx + 1] = clampByteVal(luma + (hueChroma === 0 ? -0.298839 * chroma : ((hueFromSource ? sg : dg) - hueLuma) * scale));
+                out[dIdx + 2] = clampByteVal(luma + (hueChroma === 0 ? -0.298839 * chroma : ((hueFromSource ? sb : db) - hueLuma) * scale));
                 out[dIdx + 3] = Math.max(saByte, daByte);
                 continue;
             }

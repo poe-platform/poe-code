@@ -180,6 +180,7 @@ export async function parseCommonMarkInlines(
   let bracketCount = 0;
   let delimiterCount = 0;
   let serial = 0;
+  let inlineMathEnd = text.length, displayMathEnd = text.length;
   const append = (value: Inline | string, children: Node | null = null): Node => {
     context.charge("nodes", 1);
     context.charge("retainedBytes", 128 + (typeof value === "string" ? value.length * 2 : 0));
@@ -298,6 +299,27 @@ export async function parseCommonMarkInlines(
       append({ t: "Code", c: [attr(), literal] });
       i = close + count;
       continue;
+    }
+    if (char === "$" && extensions.tex_math_dollars) {
+      const display = text[i + 1] === "$", count = display ? 2 : 1, start = i + count;
+      const limit = display ? displayMathEnd : inlineMathEnd;
+      if (display || !unicodeWhitespace(text[start])) {
+        let end = start;
+        while (end < limit) {
+          context.checkpoint();
+          if (text[end] === "\\") {end += 2; continue;}
+          if (text[end] === "$" && (!display || text[end + 1] === "$")) break;
+          end++;
+        }
+        if (end < limit && (display || end > start && !unicodeWhitespace(text[end - 1]) && !digit(text[end + 1]))) {
+          context.charge("retainedBytes", (end - start) * 2);
+          append({t: "Math", c: [display ? "DisplayMath" : "InlineMath", text.slice(start, end)]});
+          i = end + count; continue;
+        }
+        // Later openers cannot find a closer in this already-scanned suffix.
+        if (end >= limit) {if (display) displayMathEnd = start; else inlineMathEnd = start;}
+      }
+      append(text.slice(i, start)); i = start; continue;
     }
     if (char === "*" || char === "_" || char === "^" && extensions.superscript || char === "~" && (extensions.strikeout || extensions.subscript)) {
       let end = i;
@@ -437,7 +459,7 @@ export async function parseCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < text.length && !"\\`*_~^[]!<& \t\n".includes(text[i]!) && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
+    while (i < text.length && !"\\`*_~^[]!<& \t\n".includes(text[i]!) && !(extensions.tex_math_dollars && text[i] === "$") && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
     append(text.slice(begin, i));
   }
   await emphasis(null);

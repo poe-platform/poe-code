@@ -32,6 +32,7 @@ export async function parseRetainedCommonMarkInlines(
     return Array.from({length: count}, (_, index) => view.getFloat64(index * 8, true));
   };
   const char = syntax.at.bind(syntax);
+  let inlineMathEnd = syntax.range.end, displayMathEnd = syntax.range.end;
   const literal = async (range: SourceRange) => ast.string(await ast.text.from(syntax.source.chunks(range)));
   // Nodes: value, literal flag, first child, previous, next.
   const root = await add([0, 0, 0, 0, 0]); let tail = root, delimiter = 0, bracket = 0, bracketCount = 0, delimiterCount = 0, serial = 0;
@@ -137,6 +138,27 @@ export async function parseRetainedCommonMarkInlines(
       const code = await ast.string(await ast.text.from((async function* () {for await (const text of syntax.source.chunks({start, end: stop})) yield text.replaceAll("\n", " ");})()));
       await append(await ast.tag("Code", await ast.value([["", [], []], code]))); i = close + count; continue;
     }
+    if (unit === "$" && extensions.tex_math_dollars) {
+      const display = await char(i + 1) === "$", count = display ? 2 : 1, start = i + count;
+      const limit = display ? displayMathEnd : inlineMathEnd;
+      if (display || !unicodeWhitespace(await char(start))) {
+        let end = start;
+        while (end < limit) {
+          await context.cooperate();
+          if (await char(end) === "\\") {end += 2; continue;}
+          if (await char(end) === "$" && (!display || await char(end + 1) === "$")) break;
+          end++;
+        }
+        if (end < limit && (display || end > start && !unicodeWhitespace(await char(end - 1)) && !digit(await char(end + 1)))) {
+          context.charge("retainedBytes", (end - start) * 2);
+          await append(await ast.tag("Math", await ast.value([await ast.tag(display ? "DisplayMath" : "InlineMath"), await literal({start, end})])));
+          i = end + count; continue;
+        }
+        // Later openers cannot find a closer in this already-scanned suffix.
+        if (end >= limit) {if (display) displayMathEnd = start; else inlineMathEnd = start;}
+      }
+      await appendRange(i, start); i = start; continue;
+    }
     if (unit === "*" || unit === "_" || unit === "^" && extensions.superscript || unit === "~" && (extensions.strikeout || extensions.subscript)) {
       let end = i; while (await char(end) === unit) {await context.cooperate(); end++;}
       const script = end - i === 1 && (unit === "^" && extensions.superscript || unit === "~" && extensions.subscript);
@@ -225,7 +247,7 @@ export async function parseRetainedCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < syntax.range.end && !"\\`*_~^[]!<& \t\n".includes((await char(i))!)) {
+    while (i < syntax.range.end && !"\\`*_~^[]!<& \t\n".includes((await char(i))!) && !(extensions.tex_math_dollars && await char(i) === "$")) {
       if (extensions.autolink_bare_uris && (await syntax.starts(i, "https://") || await syntax.starts(i, "http://") || await syntax.starts(i, "ftp://") || await syntax.starts(i, "www.") ||
         (letter(await char(i)) || digit(await char(i))) && !letter(await char(i - 1)) && !digit(await char(i - 1)) && !".-_+".includes(await char(i - 1) ?? ""))) break;
       await context.cooperate(); i++;

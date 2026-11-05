@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
-const expressions = ["u", "1-u", "p{i-1,j+1}", "u.p{w-1-i,h-1-j}.r", "p{p{0,0}.r*w,p{0,0}.g*h}.intensity", "a=p{0,0}.r;b=p{w-1,h-1}.g;a+b+u/2", "u[99].g+rand()", "p{-99,999}.a", "p{sqrt(-1),0}.hue", "(u.hue+u.saturation+u.lightness)/3", "sin(i/w)+cos(j/h)", "if(i<w/2,p{0,0},p{w-1,h-1})", "a=0;a=a+0.25;a+u", "u[-1].intensity"];
+const expressions = ["u", "1-u", "p{i-1,j+1}", "u.p{w-1-i,h-1-j}.r", "p{p{0,0}.r*w,p{0,0}.g*h}.intensity", "a=p{0,0}.r;b=p{w-1,h-1}.g;a+b+u/2", "u[0].g+rand()", "p{-99,999}.a", "p{sqrt(-1),0}.hue", "(u.hue+u.saturation+u.lightness)/3", "sin(i/w)+cos(j/h)", "if(i<w/2,p{0,0},p{w-1,h-1})", "a=0;a=a+0.25;a+u", "u[-1].intensity"];
 const operators = ["RGB", "RGBA", "B"].flatMap(channel => expressions.map(expression => ["-channel", channel, "-fx", expression]));
 async function fixture(width = 13, height = 17) {
     return sharp(Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 37 % 256), { raw: { width, height, channels: 4 } }).png().toBuffer();

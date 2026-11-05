@@ -6280,6 +6280,15 @@ fn convert_context_diff_to_unified(text: &str) -> String {
     out
 }
 
+fn patch_stream_text(bytes: &[u8]) -> Result<std::borrow::Cow<'_, str>, BuiltinOutcome> {
+    if bytes.contains(&0) {
+        return Err(err_out("patch: binary input is unsupported (NUL byte)\n", 2));
+    }
+    std::str::from_utf8(bytes)
+        .map(crate::vfs::shell_text)
+        .map_err(|_| err_out("patch: binary input is unsupported (invalid UTF-8)\n", 2))
+}
+
 fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut opts = PatchOpts {
         backup_if_mismatch: true,
@@ -6576,17 +6585,21 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         opts.fuzz = 0;
     }
 
-    let patch_text = if let Some(inf) = input_file.filter(|s| s != "-") {
+    let patch_bytes = if let Some(inf) = input_file.filter(|s| s != "-") {
         let full = resolve_posix_path(&opts.work_cwd, &inf);
         if fs.is_dir(&full) {
             return err_out("patch: patch input must be a regular file\n", 2);
         }
         match fs.read_file(&full) {
-            Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+            Ok(b) => b,
             Err(_) => return err_out("patch: patch input must be a regular file\n", 2),
         }
     } else {
-        stdin.to_string()
+        crate::vfs::stream_string_to_bytes(stdin)
+    };
+    let patch_text = match patch_stream_text(&patch_bytes) {
+        Ok(text) => text.into_owned(),
+        Err(error) => return error,
     };
     // A CR in a hunk is file content unless the patch itself uses CRLF throughout.
     opts.strip_cr = !binary && patch_text.ends_with("\r\n")
@@ -6652,7 +6665,7 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 }
             }
         }
-        Err(e) => err_out(&format!("patch: {e}\n"), 1),
+        Err(error) => error,
     }
 }
 
@@ -6750,7 +6763,7 @@ fn flush_patched_file(
         return Ok(());
     }
     if let Some(staged) = staged_writes {
-        staged.push((full, Some(content.into_bytes())));
+        staged.push((full, Some(crate::vfs::stream_string_to_bytes(&content))));
         return Ok(());
     }
     let parent = crate::vfs::dirname_posix_path(&full);
@@ -6758,7 +6771,7 @@ fn flush_patched_file(
         let _ = fs.mkdir_all(&parent);
         let _ = fs.chmod(&parent, 0o777);
     }
-    fs.write_file(&full, content.as_bytes())?;
+    fs.write_file(&full, &crate::vfs::stream_string_to_bytes(&content))?;
     if created_from_dev_null {
         let _ = fs.chmod(&full, 0o644);
     }
@@ -6902,11 +6915,17 @@ fn apply_unified_diff(
     opts: &PatchOpts,
     fs: &dyn SafeBashFs,
     stdout_patched: &mut String,
-) -> Result<(String, bool), String> {
+) -> Result<(String, bool), BuiltinOutcome> {
+    let io_error = |e: String| err_out(&format!("patch: {e}\n"), 1);
     let strip = opts.strip;
     let reverse = opts.reverse;
     let dry_run = opts.dry_run;
     let cwd = &opts.work_cwd;
+    if let Some(path) = output_override.filter(|p| *p != "-")
+        && let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, path))
+    {
+        patch_stream_text(&bytes)?;
+    }
     let action_verb = if dry_run { "checking" } else { "patching" };
     let transport_notice = if opts.strip_cr {
         "(Stripping trailing CRs from patch; use --binary to disable.)\n"
@@ -7007,7 +7026,7 @@ fn apply_unified_diff(
                             }
                         }
                     }
-                    let _ = fs.write_file(&rej_full, rej_body.as_bytes());
+                    let _ = fs.write_file(&rej_full, &crate::vfs::stream_string_to_bytes(&rej_body));
                 } else {
                     status_out.push_str(&format!(
                         "{file_failed_count} out of {} {hunk_word} FAILED\n",
@@ -7043,7 +7062,7 @@ fn apply_unified_diff(
                     stdout_patched,
                     &mut status_out,
                     &mut any_file_failed,
-                )?;
+                ).map_err(io_error)?;
             }
             let (dec_minus, is_ep) = decode_patch_header_path(minus_path);
             pending_minus_raw = dec_minus;
@@ -7081,13 +7100,14 @@ fn apply_unified_diff(
                 status_out.push_str(&format!("{transport_notice}{action_verb} file {target}\n"));
             }
             let full = resolve_posix_path(cwd, &target);
-            if !created_from_dev_null && let Ok(bytes) = fs.read_file(&full) {
-                let s = String::from_utf8_lossy(&bytes);
-                no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
-                file_lines = s.split_terminator('\n').map(|l| l.to_string()).collect();
-            } else {
-                no_trailing_newline = false;
-                file_lines = Vec::new();
+            no_trailing_newline = false;
+            file_lines.clear();
+            if let Ok(bytes) = fs.read_file(&full) {
+                let s = patch_stream_text(&bytes)?;
+                if !created_from_dev_null {
+                    no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
+                    file_lines.extend(s.split_terminator('\n').map(str::to_owned));
+                }
             }
             current_target = Some(target);
             prev_delta = 0;
@@ -7106,7 +7126,7 @@ fn apply_unified_diff(
                 if let Some(t) = &current_target {
                     let full = resolve_posix_path(cwd, t);
                     if let Ok(bytes) = fs.read_file(&full) {
-                        let s = String::from_utf8_lossy(&bytes);
+                        let s = patch_stream_text(&bytes)?;
                         no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
                         file_lines = s.split_terminator('\n').map(|l| l.to_string()).collect();
                     }
@@ -7408,7 +7428,7 @@ fn apply_unified_diff(
             stdout_patched,
             &mut status_out,
             &mut any_file_failed,
-        )?;
+        ).map_err(io_error)?;
         if any_file_failed {
             return Ok((status_out, true));
         }
@@ -7419,7 +7439,7 @@ fn apply_unified_diff(
                     if !parent.is_empty() && parent != "/" && !fs.exists(&parent) {
                         let _ = fs.mkdir_all(&parent);
                     }
-                    fs.write_file(&full, &bytes)?;
+                    fs.write_file(&full, &bytes).map_err(io_error)?;
                 } else {
                     let _ = fs.remove(&full, false);
                 }

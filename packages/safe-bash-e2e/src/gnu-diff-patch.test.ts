@@ -60,6 +60,56 @@ test("GNU diff and patch exchange unified diffs with TypeScript and Rust", async
         );
       }
     }
+    // Safe Bash admits UTF-8 patch text; a rejected byte stream must never change target bytes.
+    for (const [shell, view] of backends) {
+      const valid = Buffer.from("keep \uE080\nold\n");
+      const edited = Buffer.from("keep \uE080\nnew\n");
+      const delta = Buffer.from("--- work\n+++ work\n@@ -1,2 +1,2 @@\n keep \uE080\n-old\n+new\n");
+      for (const [byte, reason] of [[0xff, "invalid UTF-8"], [0, "NUL byte"]] as const) {
+        for (const badPatch of [false, true]) {
+          const corrupted = Buffer.from([byte, 10]);
+          const initial = badPatch ? valid : Buffer.concat([corrupted, valid]);
+          const payload = badPatch ? Buffer.concat([delta, corrupted]) : delta;
+          for (const named of [false, true]) {
+            await view.writeFile("/workspace/work", initial);
+            await view.writeFile("/workspace/delta", payload);
+            const result = await shell.exec("patch --batch --atomic " + (named ? "-i delta " : "") + "work", { stdin: named ? "" : payload });
+            assert.equal(result.exitCode, 2, shell.constructor.name + ": " + result.stdout + result.stderr);
+            assert.match(result.stderr, new RegExp(reason));
+            assert.deepEqual(Buffer.from(await view.readFile("/workspace/work")), initial);
+          }
+        }
+      }
+      const invalid = Buffer.from([0xff, 10]);
+      await view.writeFile("/workspace/work", invalid);
+      const create = await shell.exec("patch --batch work", { stdin: "--- /dev/null\n+++ work\n@@ -0,0 +1 @@\n+new\n" });
+      assert.equal(create.exitCode, 2, create.stdout + create.stderr);
+      assert.deepEqual(Buffer.from(await view.readFile("/workspace/work")), invalid);
+      await view.writeFile("/workspace/work", valid);
+      await view.writeFile("/workspace/existing-output", invalid);
+      const redirected = await shell.exec("patch --batch -o existing-output work", { stdin: delta });
+      assert.equal(redirected.exitCode, 2, redirected.stdout + redirected.stderr);
+      assert.deepEqual(Buffer.from(await view.readFile("/workspace/existing-output")), invalid);
+      await view.writeFile("/workspace/later", invalid);
+      const atomic = await shell.exec("patch --batch --atomic", { stdin: Buffer.concat([
+        delta, Buffer.from("--- later\n+++ later\n@@ -1 +1 @@\n-old\n+new\n"),
+      ]) });
+      assert.equal(atomic.exitCode, 2, atomic.stdout + atomic.stderr);
+      assert.deepEqual(Buffer.from(await view.readFile("/workspace/work")), valid);
+      assert.deepEqual(Buffer.from(await view.readFile("/workspace/later")), invalid);
+      await writeFile(cwd + "/work", valid);
+      await writeFile(cwd + "/delta", delta);
+      const reference = native("patch", ["--batch", "-i", "delta", "work"]);
+      assert.equal(reference.status, 0, reference.stderr.toString());
+      assert.deepEqual(await readFile(cwd + "/work"), edited);
+      for (const flags of [[], ["--atomic"], ["-o", "-"]]) {
+        await view.writeFile("/workspace/work", valid);
+        const result = await shell.exec("patch --batch " + flags.join(" ") + " work", { stdin: delta });
+        assert.equal(result.exitCode, 0, result.stderr);
+        if (flags.includes("-o")) assert.deepEqual(Buffer.from(result.stdoutBytes), edited);
+        assert.deepEqual(Buffer.from(await view.readFile("/workspace/work")), flags.includes("-o") ? valid : edited);
+      }
+    }
     for (const delta of [
       "--- work\n+++ work\n@@ -1 +1 @@\n-a\n+b\n",
       "1c1\n< a\n---\n> b\n",

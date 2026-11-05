@@ -1,7 +1,42 @@
 import { expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runMagickCli, runConvertCli, runConvertCliSync, runMontageCli, runMontageCliSync } from "./index.js";
+import { createConvertCommand, createMontageCommand, runMagickCli, runConvertCli, runConvertCliSync, runMontageCli, runMontageCliSync } from "./index.js";
+
+// Decoded RGBA from ImageMagick 7.1.2 Q16-HDRI: sticker.png -thumbnail SIZE png:-.
+// These exercise sampling + box filtering, box filtering alone, and final filtering alone.
+for (const [size, digest] of [
+    [80, "4752eee3485ad62cf3d5f3c86af83419128a8cb2611e91748a15d1578511ae09"],
+    [160, "1990427d3ea28d60b8a20761a13f2051be9dfaa9c3c35b623a90108a9569021c"],
+    [256, "2bc13bc6b5a3a6f4ee82f2e8ac3472cd3cbf8c6a89af849b60fdc469cb8dc0ae"]
+] as const) for (const mode of ["buffered", "retained", "sync", "convert", "montage"] as const) {
+    it(`matches native sticker thumbnail ${size}: ${mode}`, async () => {
+        const input = readFileSync(new URL("./fixtures/sticker.png", import.meta.url));
+        const filesystem = new MemoryFileSystem(), files = new Map([["/in.png", input]]);
+        await filesystem.writeFile("/in.png", input);
+        const args = ["/in.png", ...(mode === "montage" ? ["-tile", "1x1", "-geometry", `${size}x${size}+0+0`] : ["-thumbnail", `${size}x${size}`]), "/out.png"];
+        let result;
+        if (mode === "convert" || mode === "montage") {
+            const argumentValues = createCommandArguments(args);
+            const context = {
+                command: mode, args: argumentValues.args, argumentValues, cwd: "/", env: {},
+                signal: new AbortController().signal, fs: filesystem,
+                stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup() {}
+            } as unknown as CommandContext;
+            result = await (mode === "convert" ? createConvertCommand() : createMontageCommand()).execute(context);
+        } else {
+            result = mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        }
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(mode === "buffered" || mode === "sync" ? files.get("/out.png")! : await filesystem.readFile("/out.png"));
+        expect([output.width, output.height]).toEqual([size, size]);
+        expect(createHash("sha256").update(output.data).digest("hex")).toBe(digest);
+    });
+}
 
 // ImageMagick 7, RGB checkerboard PNG, -resize 4x4 (or montage -geometry 4x4+0+0).
 const resized = [124, 129, 126, 131, 129, 127, 128, 126, 126, 128, 127, 129, 131, 126, 129, 124]

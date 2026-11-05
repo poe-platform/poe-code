@@ -4,7 +4,27 @@ function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
 }
 
-function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: "lanczos3" | "mitchell") {
+function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: "lanczos3" | "mitchell", thumbnailFactor = 0) {
+    if (thumbnailFactor >= 3) {
+        // ThumbnailImage samples to 4x, box-filters to 2x, then applies the final
+        // filter. Compose the weights to retain HDRI precision without temporary rasters.
+        const sampled = thumbnailFactor >= 5 ? 4 * target : source;
+        const filtered = contributions(index, 2 * target, target, blur, false, kernel);
+        const boxes = Array.from(filtered.weights, (_, i) => {
+            const center = (filtered.first + i + 0.5) * sampled / (2 * target);
+            const support = sampled / (4 * target);
+            return { first: Math.max(0, Math.floor(center - support + 0.5 + 1e-12)),
+                end: Math.min(sampled, Math.floor(center + support + 0.5 + 1e-12)) };
+        });
+        const sourceIndex = (i: number) => Math.floor((i + 0.5 - 1e-12) * source / sampled);
+        const first = sourceIndex(boxes[0]!.first), last = sourceIndex(boxes[boxes.length - 1]!.end - 1);
+        const weights = new Float64Array(last - first + 1);
+        for (let i = 0; i < boxes.length; i++) {
+            const box = boxes[i]!;
+            for (let j = box.first; j < box.end; j++) weights[sourceIndex(j) - first]! += filtered.weights[i]! / (box.end - box.first);
+        }
+        return { first, weights };
+    }
     if (area) {
         const start = index * source, end = (index + 1) * source;
         const first = Math.floor(start / target), last = Math.ceil(end / target) - 1;
@@ -32,12 +52,13 @@ function contributions(index: number, source: number, target: number, blur: numb
 /** ImageMagick area scaling or Lanczos/Mitchell filtering, retaining floating point between passes. */
 export function* resizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, thumbnail: boolean, scale = false, kernel: "lanczos3" | "mitchell" = "lanczos3"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const blur = thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1;
+    const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
     for (let left = 0; left < width; left += 256) {
-        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale, kernel));
+        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale, kernel, thumbnailFactor));
         const rows = new Map<number, Float64Array>();
         for (let y = 0; y < height; y++) {
             yield;
-            const vertical = contributions(y, image.height, height, blur, scale, kernel), sums = new Float64Array(count * 4);
+            const vertical = contributions(y, image.height, height, blur, scale, kernel, thumbnailFactor), sums = new Float64Array(count * 4);
             for (let k = 0; k < vertical.weights.length; k++) {
                 const sy = vertical.first + k;
                 let row = rows.get(sy);
@@ -69,7 +90,11 @@ export function* resizePixelSteps(image: { width: number; height: number; hasAlp
             const data = new Uint8Array(count * 4);
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
-                for (let channel = 0; channel < 3; channel++) data[x * 4 + channel] = Math.round(Math.max(0, Math.min(255, Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha)));
+                for (let channel = 0; channel < 3; channel++) {
+                    const value = Math.max(0, Math.min(255, Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha));
+                    // Match the Q16-HDRI float quantum conversion at half-byte ties.
+                    data[x * 4 + channel] = thumbnail ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
+                }
                 data[x * 4 + 3] = Math.round(Math.max(0, Math.min(255, alpha * 255)));
             }
             yield { kind: "write", position: (y * width + left) * 4, data };

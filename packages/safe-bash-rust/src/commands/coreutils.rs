@@ -14529,7 +14529,7 @@ impl ParsedTabs {
     }
 
     fn next_stop(&self, column: usize, fallback_plus_one: bool) -> Option<usize> {
-        if let Some(&s) = self.stops.iter().find(|&&s| s > column) {
+        if let Some(&s) = self.stops.get(self.stops.partition_point(|&stop| stop <= column)) {
             return Some(s);
         }
         if self.repeat == 0 {

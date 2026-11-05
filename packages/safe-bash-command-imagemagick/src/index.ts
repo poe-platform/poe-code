@@ -2214,25 +2214,13 @@ function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: Rgba
     return layout.sigma === 0 ? base : yield* blurImageSteps(base, layout.sigma);
 }
 
-function* applyMagickSepiaToneSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const raw = parseFloat(threshStr);
-    const strength = Math.max(0, Math.min(1, (threshStr.endsWith("%") ? raw : raw / 255) / 100 || 0.8));
-    const out = new Uint8Array(img.data);
-    for (let i = 0; i < out.length; i += 4) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        const r = out[i]!;
-        const g = out[i + 1]!;
-        const b = out[i + 2]!;
-        const sr = Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b);
-        const sg = Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b);
-        const sb = Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b);
-        out[i] = clampByteVal(r * (1 - strength) + sr * strength);
-        out[i + 1] = clampByteVal(g * (1 - strength) + sg * strength);
-        out[i + 2] = clampByteVal(b * (1 - strength) + sb * strength);
-    }
-    return { ...img, data: out };
+function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [number, number, number] {
+    const blue = Math.max(threshold / 7, intensity - threshold / 6, 0);
+    return gray ? [blue, blue, blue] : [
+        Math.max(0, Math.min(255, intensity + 255 - threshold)),
+        Math.max(threshold / 7, Math.min(255, intensity + 255 - 7 * threshold / 6), 0),
+        blue
+    ];
 }
 
 function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -3872,7 +3860,7 @@ function* parseMagickIndexSpec(spec: string, length: number): Generator<number> 
 }
 
 type MagickHistogram = Float64Array[];
-type MagickAnalysisOperation = { end: number; luminance: boolean; lookup(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Uint8Array[] };
+type MagickAnalysisOperation = { end: number; luminance: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">): MagickPixelOperation["apply"] };
 function* accumulateMagickHistogram(data: Uint8Array, histogram: MagickHistogram): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
@@ -3899,11 +3887,47 @@ function parseConnectedComponents(tokens: readonly string[], state: MagickState,
 
 function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickState, start: number): MagickAnalysisOperation | undefined {
     const token = tokens[start];
+    if (token === "-sepia-tone") {
+        const argument = tokens[start + 1] ?? "80%", raw = parseFloat(argument);
+        const threshold = argument.endsWith("%") ? raw * 255 / 100 : raw;
+        return { end: start + 1, luminance: true, transform(histogram, image) {
+            const gray = image.space === "b-w" || image.space === "grey16";
+            const bins = histogram[4]!, count = image.width * image.height;
+            let low = 0, high = bins.length - 1, sum = 0;
+            for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > 0.02 * count) break; }
+            sum = 0;
+            for (; high > 0; high--) { sum += bins[high]!; if (sum > 0.01 * count) break; }
+            // Native SepiaToneImage normalizes the transformed luma, then increases HSV contrast.
+            // Tone is monotonic, so input luma percentiles also locate the toned percentiles.
+            const luma = (value: number) => {
+                const [r, g, b] = magickSepiaTone(value / 257, threshold, gray);
+                return Math.round(257 * (0.212656 * r + 0.715158 * g + 0.072186 * b)) / 257;
+            };
+            const black = luma(low), white = luma(high);
+            return function* (pixels) {
+                const { data16: ignored, ...metadata } = pixels;
+                const data = new Uint8Array(pixels.data);
+                for (let i = 0; i < data.length; i += 4) {
+                    if (i % 65536 === 0) yield;
+                    const intensity = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
+                    const tone = magickSepiaTone(intensity, threshold, gray);
+                    if (white > black) {
+                        for (let channel = 0; channel < 3; channel++) tone[channel] = Math.max(0, Math.min(255, (tone[channel]! - black) / (white - black) * 255));
+                        if (image.hasAlpha) data[i + 3] = clampByteVal((data[i + 3]! - black) / (white - black) * 255);
+                    }
+                    const brightness = Math.max(...tone) / 255;
+                    const contrast = 0.5 * brightness + 0.25 * (Math.sin(Math.PI * (brightness - 0.5)) + 1);
+                    for (let channel = 0; channel < 3; channel++) data[i + channel] = clampByteVal(brightness === 0 ? 0 : tone[channel]! * contrast / brightness);
+                }
+                return { ...metadata, data };
+            };
+        } };
+    }
     if (!["-auto-level", "-auto-gamma", "-normalize", "-contrast-stretch", "-linear-stretch", "-equalize"].includes(token ?? "")) return;
     let end = start;
     const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, lookup(histogram, image) {
+    return { end, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
         const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: 256 }, (_, value) => value));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
@@ -3970,7 +3994,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 }
             }
         }
-        return lookup;
+        return image => applyMagickLookup(image, lookup);
     } };
 }
 
@@ -4077,9 +4101,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-function") {
         const operation = tokens[++i] ?? "Polynomial", value = tokens[++i] ?? "1,0";
         apply = image => applyMagickFunctionSteps(image, operation, value, state.channels, signal);
-    } else if (token === "-sepia-tone" || token === "-solarize") {
-        const value = tokens[++i] ?? (token === "-sepia-tone" ? "80%" : "50%");
-        apply = image => token === "-sepia-tone" ? applyMagickSepiaToneSteps(image, value, signal) : applyMagickSolarizeSteps(image, value, signal);
+    } else if (token === "-solarize") {
+        const value = tokens[++i] ?? "50%";
+        apply = image => applyMagickSolarizeSteps(image, value, signal);
     } else if (token === "-posterize") {
         const levels = Number(tokens[++i] ?? 8);
         apply = image => applyMagickPosterizeSteps(image, levels, signal);
@@ -4450,7 +4474,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapSteps(stack, function* (image) {
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 ? 65536 : 256));
                 yield* accumulateMagickHistogram(image.data, histogram);
-                return yield* applyMagickLookup(image, analysisOperation.lookup(histogram, image));
+                return yield* analysisOperation.transform(histogram, image)(image);
             });
         }
         else if (t === "-colors") {
@@ -5465,8 +5489,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (offset % 1048576 === 0) await yieldTurn(signal);
                     await drainSteps(accumulateMagickHistogram(await backend.storage.read(image.position + offset, Math.min(16384, size - offset)), histogram), signal);
                 }
-                const lookup = analysisOperation.lookup(histogram, image);
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: pixels => applyMagickLookup(pixels, lookup) }, signal);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: analysisOperation.transform(histogram, image) }, signal);
             });
             continue;
         }

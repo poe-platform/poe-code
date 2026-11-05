@@ -169,7 +169,7 @@ export function xhtmlTree(root: XmlElement, ctx: AdapterContext, part: string): 
     // Explicit empty anchors retain their XML IDs without changing list geometry.
     if (["html", "body", "ul", "ol", "li", "blockquote", "hr", "dl", "dt", "dd"].includes(node.name) && attribute(node, "id")) {
       const anchor = tree.createElement("span", html.NS.HTML, [{name: "id", value: attribute(node, "id")}]);
-      if (["ul", "ol", "hr"].includes(node.name)) tree.appendChild(parent, anchor);
+      if (["ul", "ol", "hr", "dl"].includes(node.name)) tree.appendChild(parent, anchor);
       else if (node.name !== "html" && node.name !== "body") tree.appendChild(element, anchor);
     }
     if (["abbr", "bdi", "bdo", "mark", "time", "label", "small", "big", "dfn", "kbd"].includes(node.name) && attrs.length) {

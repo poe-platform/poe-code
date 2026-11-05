@@ -114,13 +114,13 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
       await ast.push(raw, await ast.value([key, await text(characters(xml.text(a)))]));
     }
     const id = await lookup(raw, "id"); let target = parent!;
-    if (["ul", "ol", "hr"].includes(tag) && await nonempty(id)) await anchor(target, id);
+    if (["ul", "ol", "hr", "dl"].includes(tag) && await nonempty(id)) await anchor(target, id);
     if (["abbr", "bdi", "bdo", "mark", "time", "label", "small", "big", "dfn", "kbd"].includes(tag) && await ast.count(raw)) target = await create("span", raw, target);
     const p = await create(tag, raw, target);
     if (ref === xml.reference(xml.root)) {rootId = id; rootAttributes = raw;}
     target = p;
     if (tag === "body") {if (ref === bodyReference) body = p; if (await ast.count(raw)) target = await create("div", raw, p); if (await nonempty(rootId)) await anchor(target, rootId);}
-    if (["li", "blockquote", "dl", "dt", "dd"].includes(tag) && await nonempty(id)) await anchor(target, id);
+    if (["li", "blockquote", "dt", "dd"].includes(tag) && await nonempty(id)) await anchor(target, id);
     let reverse = 0;
     for await (const child of xml.children(node)) reverse = await record([reverse, xml.reference(child)]);
     while (reverse) {const [prev, child] = await get(reverse, 2); task = await record([task, child!, target]); reverse = prev!;}
@@ -209,6 +209,21 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
         let style = "DefaultStyle";
         for (const [key, name] of Object.entries(listStyles)) if (await same(type, key)) {style = name; break;}
         await ast.push(flow, tag === "ul" ? await ast.tag("BulletList", items) : await ast.tag("OrderedList", await ast.value([[await number(await lookup(raw, "start")), style, "DefaultDelim"], items])));
+      } else if (tag === "dl") {
+        const items = await ast.array(); let term = await ast.array(), definitions = await ast.array(), started = false;
+        for await (const child of children(p)) {
+          const r = await get(child, F.Count), name = names[r[F.Tag]!];
+          if (name === "dt") {
+            if (await ast.count(definitions)) {
+              await ast.push(items, await ast.value([term, definitions]));
+              term = await ast.array(); definitions = await ast.array(); started = false;
+            }
+            if (started) await ast.push(term, await ast.tag("LineBreak"));
+            await copy(term, await trim(value(r[F.Inline]!))); started = true;
+          } else if (name === "dd") await ast.push(definitions, value(r[F.Flow]!));
+        }
+        if (started || await ast.count(definitions)) await ast.push(items, await ast.value([term, definitions]));
+        await ast.push(flow, await ast.tag("DefinitionList", items));
       } else if (tag === "figure") {
         let caption = 0; for await (const child of children(p)) {const r = await get(child, F.Count); if (names[r[F.Tag]!] === "figcaption") {caption = child; break;}}
         await ast.push(flow, await ast.tag("Figure", await ast.value([attrs, [null, caption ? await childFlow(caption) : await ast.array()], await childFlow(p, caption)])));

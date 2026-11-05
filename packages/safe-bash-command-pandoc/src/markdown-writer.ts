@@ -246,6 +246,16 @@ class Markdown {
           if(node.t === "BulletList") previousBullet = nodes[i - 1]?.t === "BulletList" && previousBullet === "-" ? "+" : "-";
           parts.push(this.join(rendered, loose ? "\n\n" : "\n")); break;
         }
+        case "DefinitionList": {
+          if (!this.selection.extensions.definition_lists) {this.loss(p, "DefinitionList"); break;}
+          const entries: string[] = [];
+          for (const [j, [term, definitions]] of node.c.entries()) {
+            const rendered = [this.inline(term, `${p}.c[${j}][0]`)];
+            for (const [k, definition] of definitions.entries()) rendered.push(this.indent(await this.blocks(definition, `${p}.c[${j}][1][${k}]`), ": ", "  "));
+            entries.push(this.join(rendered, "\n"));
+          }
+          parts.push(this.join(entries, "\n\n")); break;
+        }
         case "Table": {
           if(!this.selection.extensions.pipe_tables) throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", "Pipe tables are unavailable", this.selection.descriptor.name, p);
           const caption = this.selection.extensions.table_captions ? node.c[1] : undefined;
@@ -271,7 +281,6 @@ class Markdown {
         }
         case "Div": this.attrs(node.c[0], p); parts.push(await this.blocks(node.c[1], `${p}.c[1]`)); break;
         case "RawBlock": this.loss(p, "raw blocks"); parts.push(this.text(node.c[1], true, true)); break;
-        default: this.loss(p, node.t);
       }
     }
     return this.join(parts);

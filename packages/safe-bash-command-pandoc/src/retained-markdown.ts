@@ -284,6 +284,16 @@ class MarkdownTape {
         }
         continue;
       }
+      if (job.op === "definition") {
+        await this.push({op: "parts", node: 0, path: job.path, sep: "\n", parts: [
+          this.list(await this.at(job.node, 0), await this.path(job.path, "[0]"), "inline"),
+          this.list(await this.at(job.node, 1), await this.path(job.path, "[1]"), "definitionBody", {sep: "\n"})
+        ]}); continue;
+      }
+      if (job.op === "definitionBody") {
+        await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: ": ", rest: "  "});
+        await this.push(this.list(job.node, job.path, "block")); continue;
+      }
       if (job.op === "paragraph") {
         if (!(this.options.wrap === "auto" || this.options.wrap === undefined && this.options.columns !== undefined)) {await this.push(this.list(job.node, job.path, "inline", {task: job.task})); continue;}
         if (!job.stage) {
@@ -473,6 +483,9 @@ class MarkdownTape {
           }
           let loose = false; for await (const item of this.tree.children(items)) for await (const block of this.tree.children(item)) if (await this.tag(block) === "Para") loose = true;
           await this.push(this.list(items, await this.path(job.path, ".items"), "item", {first: job.first, number, delimiter, style: numberingStyle, sep: loose ? "\n\n" : "\n"})); continue;
+        }
+        if (tag === "DefinitionList" && this.selection.extensions.definition_lists) {
+          await this.push(this.list(content!, cp, "definition", {sep: "\n\n"})); continue;
         }
         if (tag === "Table") {await this.push({op: "table", node: content!, path: job.path}); continue;}
         await this.loss(job.path, tag);

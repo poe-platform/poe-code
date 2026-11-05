@@ -198,6 +198,15 @@ it("does not add a second LF when a final break already terminates output", asyn
   expect(await md([p(s("a"), {t: "LineBreak"})])).toBe("a\\\n");
 });
 
+it("writes definition lists with nested and multiple definitions", async () => {
+  const blocks: Block[] = [{t: "DefinitionList", c: [
+    [[s("Term")], [[{t: "Plain", c: [s("First")]}], [p(s("Second")), p(s("Continued"))]]],
+    [[s("Next")], [[{t: "DefinitionList", c: [[[s("Inner")], [[{t: "Plain", c: [s("Meaning")]}]]]]}]]]
+  ]}];
+  expect(await md(blocks, "markdown")).toBe("Term\n: First\n: Second\n\n  Continued\n\nNext\n: Inner\n  : Meaning\n");
+  await expect(md(blocks, "markdown-definition_lists")).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+});
+
 it("preserves wrapping, break adjacency and extension-specific escaping", async () => {
   const nodes: Inline[] = [s("1"), s("."), {t: "Space"}, s("www.example.com"), {t: "SoftBreak"}, {t: "Space"}, s("next"), {t: "Space"}, {t: "LineBreak"}, s("tail")];
   for (const to of ["commonmark", "gfm", "gfm-autolink_bare_uris-strikeout-task_lists"])

@@ -433,6 +433,22 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
                   c: [[number(value(node, "start"), 1), (Object.hasOwn(listStyles, value(node, "type")) ? listStyles[value(node, "type")]! : "DefaultStyle"), "DefaultDelim"], items]
                 }
           );
+        } else if (tag === "dl") {
+          const items: [Inline[], Block[][]][] = [];
+          let term: Inline[] = [], definitions: Block[][] = [], started = false;
+          for (const child of node.childNodes) {
+            if (!element(child)) continue;
+            if (child.tagName === "dt") {
+              if (definitions.length) {items.push([term, definitions]); term = []; definitions = []; started = false;}
+              const content = await inlines(child.childNodes);
+              while (content[0]?.t === "Space") content.shift();
+              while (content.at(-1)?.t === "Space") content.pop();
+              if (started) term.push({t: "LineBreak"});
+              term.push(...content); started = true;
+            } else if (child.tagName === "dd") definitions.push(await flow(child.childNodes));
+          }
+          if (started || definitions.length) items.push([term, definitions]);
+          result.push({t: "DefinitionList", c: items});
         } else if (tag === "figure") {
           const caption = node.childNodes.find((n) => element(n) && n.tagName === "figcaption");
           result.push({

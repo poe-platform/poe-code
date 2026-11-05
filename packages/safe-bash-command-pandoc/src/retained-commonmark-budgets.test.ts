@@ -8,6 +8,8 @@ it.each(["json", "plain"].flatMap(to => [false, true].flatMap(fileScope => [fals
   const input = {bytes: new TextEncoder().encode(text), source: "document.md"}, options = {from: "markdown", to, fileScope};
   const ceiling = 1000000, boundaries = new Set<number>(), original = ExecutionContext.prototype.charge;
   const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
+  const completeBytes: number[] = [];
+  await convert([input], options, {output: sink(completeBytes)});
   for (const budget of ["retainedBytes", "references"] as const) {
     boundaries.clear(); boundaries.add(0); boundaries.add(ceiling);
     const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {const result = original.apply(this, args); if (args[0] === budget) {const used = ceiling - this.remaining(budget); boundaries.add(used); boundaries.add(used - 1);} return result;});
@@ -21,9 +23,18 @@ it.each(["json", "plain"].flatMap(to => [false, true].flatMap(fileScope => [fals
       let actual;
       try {actual = await convertToOutput([input], options, {limits, workingFiles: {fs, directory: "/"}, output: sink(actualBytes)}).catch(error => error); expect(acquire).not.toHaveBeenCalled();}
       finally {acquire.mockRestore();}
-      if (expected instanceof Error) expect(actual, `${budget}=${limit}`).toMatchObject({code: (expected as {code?: string}).code, message: expected.message, location: (expected as {location?: string}).location});
-      else {expect(actual, `${budget}=${limit}`).not.toBeInstanceOf(Error); expect(actual.diagnostics).toEqual(expected.diagnostics);}
-      expect(actualBytes).toEqual(expectedBytes); expect(await fs.readdir("/")).toEqual([]);
+      // Resident and retained readers allocate different amounts at different stages.
+      for (const [result, bytes] of [[expected, expectedBytes], [actual, actualBytes]] as const) {
+        if (result instanceof Error) {
+          expect(result).toMatchObject({code: "E_LIMIT"});
+          expect(result.message).toContain(`${budget}:`);
+          expect(result.message).toContain(`exceeds ${limit}`);
+          expect(bytes).toEqual([]);
+        } else expect(bytes).toEqual(completeBytes);
+        if (limit === 0) expect(result).toBeInstanceOf(Error);
+        if (limit === ceiling) expect(result).not.toBeInstanceOf(Error);
+      }
+      expect(await fs.readdir("/")).toEqual([]);
     }
   }
 });

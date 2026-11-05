@@ -6467,17 +6467,19 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 
 interface MontageArguments {
     state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    padX: number; padY: number; borderW: number; operands: string[]; labels: string[];
+    padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments, void> {
     let cooperativeWork = 63;
     const state = createDefaultState();
+    state.gravity = "center";
     let tileCols: number | undefined;
     let tileRows: number | undefined;
-    let cellW: number | undefined;
-    let cellH: number | undefined;
-    let padX = 2;
-    let padY = 2;
+    let cellW: number | undefined = 120;
+    let cellH: number | undefined = 120;
+    let defaultGeometry = true;
+    let padX = 4;
+    let padY = 3;
     let borderW = 0;
     const operands: string[] = [];
     const labels: string[] = [];
@@ -6492,6 +6494,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             tileRows = g.height;
         }
         else if (t === "-geometry" || t === "-thumbnail") {
+            defaultGeometry = false;
             const g = parseMagickGeometry(argv[++i] ?? "+2+2");
             cellW = g.width;
             cellH = g.height;
@@ -6540,11 +6543,11 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels };
+    return { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry };
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels } = yield* parseMontageArguments(argv);
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry } = yield* parseMontageArguments(argv);
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -6704,7 +6707,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     yield;
                 let thumb = loaded;
                 if (cellW !== undefined || cellH !== undefined) {
-                    const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}`;
+                    const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`;
                     thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel));
                     if (thumb !== loaded) detachRgbaBuffer(loaded.data);
                 }
@@ -6780,7 +6783,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels } = await drainSteps(parseMontageArguments(argv), signal);
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry } = await drainSteps(parseMontageArguments(argv), signal);
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
@@ -6842,7 +6845,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 try {
                     const loaded = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index), visit: async image => {
                         if (cellW !== undefined || cellH !== undefined) {
-                            const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}`, state.kernel);
+                            const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`, state.kernel);
                             if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);
                         }
                         if (borderW > 0) image = await transformStoredImage(image, backend.storage, { kind: "extend", top: borderW, bottom: borderW, left: borderW, right: borderW, background: state.borderColor, extendWith: "background" }, signal);

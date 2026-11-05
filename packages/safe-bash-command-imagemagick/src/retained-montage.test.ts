@@ -118,7 +118,7 @@ it("preserves the output when cancellation interrupts source snapshotting", asyn
 it("preserves wide PNG tile alpha rounding across bounded spans", async () => {
     const fs = new MemoryFileSystem(), bytes = await sharp(Uint8Array.from({ length: 12001 * 3 * 4 }, (_, index) => index * 73 % 256), { raw: { width: 12001, height: 3, channels: 4 } }).png().toBuffer();
     await fs.writeFile("/input", bytes);
-    const files = new Map([["input", bytes]]), args = ["-background", "#98765473", "-border", "1", "-bordercolor", "#12345689", "input", "out.png"];
+    const files = new Map([["input", bytes]]), args = ["-geometry", "+4+3", "-background", "#98765473", "-border", "1", "-bordercolor", "#12345689", "input", "out.png"];
     expect(await runMontageCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runMontageCli(args, files));
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
 });

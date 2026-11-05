@@ -1962,7 +1962,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
               )
             };
-          } else if (filterComplex.includes("vstack") && loadedDocs.length >= 2) {
+          } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack")) && loadedDocs.length >= 2) {
             const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
               loadedDocs[0]!.timescale, budget
@@ -1971,78 +1971,40 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               loadedDocs[1]!.timescale, budget
             , context.signal);
-            const count = Math.min(f0.length, f1.length);
+            const vertical = filterComplex.includes("vstack");
+            const filter = vertical ? "vstack" : "hstack";
+            const spec = filterComplex.slice(filterComplex.indexOf(filter) + filter.length)
+              .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
+            const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
+            const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
+              ?.split("=")[1]?.trim() ?? options[1]?.trim();
+            const stopAtShortest = ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
+            const count = stopAtShortest || !f0.length || !f1.length
+              ? Math.min(f0.length, f1.length) : Math.max(f0.length, f1.length);
             const stacked: MediaVideoFrame[] = [];
             for (let i = 0; i < count; i++) {
-              const a = f0[i]!;
-              const b = f1[i]!;
-              if (a.width !== b.width) {
-                throw new Error(`Input 1 width ${b.width} does not match input 0 width ${a.width}`);
+              const a = f0[Math.min(i, f0.length - 1)]!;
+              const b = f1[Math.min(i, f1.length - 1)]!;
+              const timing = f0[i] ?? f1[i]!;
+              const axis = vertical ? "width" : "height";
+              if (a[axis] !== b[axis]) {
+                throw new Error(`Input 1 ${axis} ${b[axis]} does not match input 0 ${axis} ${a[axis]}`);
               }
-              const w = a.width;
-              const h = a.height + b.height;
+              const w = vertical ? a.width : a.width + b.width;
+              const h = vertical ? a.height + b.height : a.height;
               const outData = new Uint8Array(w * h * 4);
               for (let y = 0; y < a.height; y++) {
                 outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);
               }
               for (let y = 0; y < b.height; y++) {
-                outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (a.height + y) * w * 4);
+                outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (vertical ? (a.height + y) * w : y * w + a.width) * 4);
               }
               stacked.push({
                 width: w,
                 height: h,
                 data: outData,
-                ptsSeconds: a.ptsSeconds,
-                durationSeconds: a.durationSeconds,
-                keyframe: true
-              });
-            }
-            workingDoc = {
-              ...loadedDocs[0]!,
-              tracks: loadedDocs[0]!.tracks.map((t) =>
-                t.type === "video"
-                  ? {
-                      ...t,
-                      width: stacked[0]?.width ?? t.width,
-                      height: stacked[0]?.height ?? t.height,
-                      samples: [],
-                      decodedVideoFrames: stacked
-                    }
-                  : t
-              )
-            };
-          } else if (filterComplex.includes("hstack") && loadedDocs.length >= 2) {
-            const f0 = await ensureDecodedFrames(
-              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              loadedDocs[0]!.timescale, budget
-            , context.signal);
-            const f1 = await ensureDecodedFrames(
-              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              loadedDocs[1]!.timescale, budget
-            , context.signal);
-            const count = Math.min(f0.length, f1.length);
-            const stacked: MediaVideoFrame[] = [];
-            for (let i = 0; i < count; i++) {
-              const a = f0[i]!;
-              const b = f1[i]!;
-              if (a.height !== b.height) {
-                throw new Error(`Input 1 height ${b.height} does not match input 0 height ${a.height}`);
-              }
-              const w = a.width + b.width;
-              const h = a.height;
-              const outData = new Uint8Array(w * h * 4);
-              for (let y = 0; y < a.height; y++) {
-                outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);
-              }
-              for (let y = 0; y < b.height; y++) {
-                outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (y * w + a.width) * 4);
-              }
-              stacked.push({
-                width: w,
-                height: h,
-                data: outData,
-                ptsSeconds: a.ptsSeconds,
-                durationSeconds: a.durationSeconds,
+                ptsSeconds: timing.ptsSeconds,
+                durationSeconds: timing.durationSeconds,
                 keyframe: true
               });
             }

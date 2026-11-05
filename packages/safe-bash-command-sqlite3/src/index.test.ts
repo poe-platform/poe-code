@@ -147,6 +147,13 @@ test("sqlite3 JSON1 reports malformed input through the public command", async (
     "json_insert('not json', '$.a', 1)",
     "json_replace('not json', '$.a', 1)",
     "json_remove('not json', '$.a')",
+    "json_extract('not json', NULL)",
+    "json_type('not json', NULL)",
+    "json_array_length('not json', NULL)",
+    "json_set('not json', NULL, 1)",
+    "json_insert('not json', NULL, 1)",
+    "json_replace('not json', NULL, 1)",
+    "json_remove('not json', NULL)",
     "json_patch('not json', '{}')",
     "json_patch('{}', 'not json')",
   ]) {

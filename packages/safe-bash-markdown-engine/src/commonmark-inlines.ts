@@ -2,7 +2,7 @@ import { bareAutolink, filterGfmHtml } from "./gfm-syntax.js";
 import type { Inline, Attr } from "./ast-types.js";
 import type { BlockDefinition, PendingInline } from "./commonmark-blocks.js";
 import type { AdapterContext } from "./types.js";
-import { asciiPunctuation, whitespace, letter, digit, normalizeLabel, readLabel, readDestination, readTitle, entity, decodeSyntax, normalizeUri } from "./commonmark-syntax.js";
+import { asciiPunctuation, fencedDivAttributes, whitespace, letter, digit, normalizeLabel, readLabel, readDestination, readTitle, entity, decodeSyntax, normalizeUri } from "./commonmark-syntax.js";
 import { unicodePunctuation, unicodeWhitespace } from "./commonmark-characters.js";
 
 interface Node {
@@ -387,6 +387,33 @@ export async function parseCommonMarkInlines(
       if (!opener) { append(char); i++; continue; }
       bracket = opener.previous;
       bracketCount--;
+      if (!opener.image && extensions.bracketed_spans && text[i + 1] === "{") {
+        let end = i + 2, quote: string | undefined;
+        while (end < text.length) {
+          context.checkpoint();
+          const unit = text[end];
+          if (quote) {
+            if (unit === "\\") {end += 2; continue;}
+            if (unit === quote) quote = undefined;
+          } else if (unit === "}") break;
+          else if ((unit === '"' || unit === "'") && text[end - 1] === "=") quote = unit;
+          end++;
+        }
+        if (text[end] === "}") {
+          context.charge("retainedBytes", (end - i) * 2);
+          const attributes = fencedDivAttributes(text.slice(i + 1, end + 1), context);
+          if (attributes) {
+            await emphasis(opener.delimiter);
+            const first = opener.node.next;
+            if (first) first.previous = null;
+            opener.node.next = null;
+            tail = opener.node;
+            append({t: "Span", c: [attributes, []]}, first);
+            removeNode(opener.node);
+            i = end + 1; continue;
+          }
+        }
+      }
       if (!opener.active) { append(char); i++; continue; }
       let target = inlineTarget(text, i + 1, context);
       let reference: { label: string; style: "full" | "collapsed" | "shortcut" } | undefined;
@@ -519,6 +546,7 @@ export async function parseCommonMarkInlines(
       if (node.children) {
         const children = await materialize(node.children, depth + 1);
         if (value.t === "Emph" || value.t === "Strong" || value.t === "Strikeout" || value.t === "Superscript" || value.t === "Subscript") value = { t: value.t, c: children };
+        if (value.t === "Span") value = {t: "Span", c: [value.c[0], children]};
         if (value.t === "Quoted") value = {t: "Quoted", c: [value.c[0], children]};
         if (value.t === "Link" || value.t === "Image") value = { t: value.t, c: [value.c[0], children, value.c[2]] };
       }

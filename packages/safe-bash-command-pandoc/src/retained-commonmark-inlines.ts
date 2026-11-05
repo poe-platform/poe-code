@@ -1,6 +1,6 @@
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
-import {asciiPunctuation, digit, entity, letter, normalizeLabel} from "./commonmark-syntax.js";
+import {asciiPunctuation, fencedDivAttributes, digit, entity, letter, normalizeLabel} from "./commonmark-syntax.js";
 import {unicodePunctuation, unicodeWhitespace} from "./commonmark-characters.js";
 import type {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {SourceRange} from "./retained-source-text.js";
@@ -209,6 +209,34 @@ export async function parseRetainedCommonMarkInlines(
     if (unit === "]") {
       if (!bracket) {await appendRange(i, i + 1); i++; continue;}
       const opener = await get(bracket, 7); bracket = opener[6]!; bracketCount--;
+      if (!opener[2] && extensions.bracketed_spans && await char(i + 1) === "{") {
+        let end = i + 2, quote: string | undefined;
+        while (end < syntax.range.end) {
+          await context.cooperate();
+          const unit = await char(end);
+          if (quote) {
+            if (unit === "\\") {end += 2; continue;}
+            if (unit === quote) quote = undefined;
+          } else if (unit === "}") break;
+          else if ((unit === '"' || unit === "'") && await char(end - 1) === "=") quote = unit;
+          end++;
+        }
+        if (await char(end) === "}") {
+          context.bound("text", end - i); context.charge("retainedBytes", (end - i) * 2);
+          let text = "";
+          for await (const chunk of syntax.source.chunks({start: i + 1, end: end + 1})) text += chunk;
+          const attributes = fencedDivAttributes(text, context);
+          if (attributes) {
+            await emphasis(opener[5]!);
+            const first = (await get(opener[0]!, 5))[4]!;
+            if (first) await put(first + 24, [0]);
+            await put(opener[0]! + 32, [0]); tail = opener[0]!;
+            await append(await ast.tag("Span", await ast.value([attributes, await ast.array()])), false, first);
+            await removeNode(opener[0]!);
+            i = end + 1; continue;
+          }
+        }
+      }
       if (!opener[3]) {await appendRange(i, i + 1); i++; continue;}
       let target = await syntax.target(i + 1);
       if (!target && definition) {
@@ -309,7 +337,7 @@ export async function parseRetainedCommonMarkInlines(
     await flush();
     if (!fields[2]) {await push(value); node = fields[4]!; continue;}
     const children = await ast.array(), name = (await ast.name(value))!;
-    if (name === "Link" || name === "Image" || name === "Quoted") await ast.set((await ast.content(value))!, 1, children);
+    if (name === "Link" || name === "Image" || name === "Span" || name === "Quoted") await ast.set((await ast.content(value))!, 1, children);
     else await ast.replaceTag(value, name, children);
     frame = await add([frame, fields[4]!, out.position, depth, value.position]); out = children; node = fields[2]!; depth++;
   }

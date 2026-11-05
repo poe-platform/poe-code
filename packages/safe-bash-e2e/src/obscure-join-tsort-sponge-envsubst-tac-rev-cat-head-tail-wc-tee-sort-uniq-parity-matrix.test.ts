@@ -89,7 +89,7 @@ describe("obscure join, tsort, sponge, envsubst, tac, rev, cat, head, tail, wc, 
     });
   });
 
-  test("4. tsort topological sort, cycle detection, odd token count, directory no-op, and --help/--version prefixes", async () => {
+  test("4. tsort topological sort, cycle detection, odd token count, directory read errors, and --help/--version prefixes", async () => {
     await withE2EHarness(async (sh) => {
       const r = await sh.exec(`
         mkdir -p /work/dir
@@ -101,10 +101,10 @@ describe("obscure join, tsort, sponge, envsubst, tac, rev, cat, head, tail, wc, 
         tsort --ver
       `);
       assert.equal(r.exitCode, 0);
-      assert.equal(r.stderr, "");
+      assert.equal(r.stderr, "tsort: /work/dir: read error: Is a directory\n");
       assert.equal(
         r.stdout,
-        "a\nb\nc\nd\n---\ndir_rc=0\nUsage: tsort [OPTION] [FILE]\nWrite a topological ordering of whitespace-separated node pairs.\nWith no FILE, or FILE -, read standard input.\nOptions: --help --version\ntsort (virtual-bash)\n"
+        "a\nb\nc\nd\n---\ndir_rc=1\nUsage: tsort [OPTION] [FILE]\nWrite a topological ordering of whitespace-separated node pairs.\nWith no FILE, or FILE -, read standard input.\nOptions: --help --version\ntsort (virtual-bash)\n"
       );
 
       const rLoop = await sh.exec("printf 'x y\\ny x\\n' | tsort");

@@ -180,7 +180,7 @@ export class Reader {
         });
       }
       catch (error) {
-        if (error instanceof FsError) throw new TsortError(`${fileQuote(this.name, budget.context.env)}: ${fsDetail(error)}`);
+        if (error instanceof FsError) throw new TsortError(`${fileQuote(this.name, budget.context.env)}: read error: ${fsDetail(error)}`);
         throw error;
       }
       budget.retain(-this.chunk.length);

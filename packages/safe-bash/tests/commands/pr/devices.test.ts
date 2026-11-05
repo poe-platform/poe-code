@@ -103,7 +103,7 @@ for (const reason of [false, 0, "", null]) test(`character acquisition cancellat
   assert.deepEqual({ returned, reads }, { returned: 1, reads: 0 });
 });
 
-test("pr directory operands remain fatal rather than adopting tsort's directory quirk", async () => {
+test("pr rejects directory operands", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem(), env: { LC_ALL: "C", TZ: "UTC" } }).use(prCommands());
   try {
     const result = await shell.exec("pr -t .");

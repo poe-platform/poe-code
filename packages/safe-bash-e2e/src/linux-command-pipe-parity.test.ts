@@ -30,6 +30,21 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("tsort opens the operand as written and names it in read and graph errors", async () => {
+      for (const [name, contents] of [["odd names", "a b c"], ["loop's graph", "b a a b"]]) {
+        await writeFile(cwd + "/" + name, contents);
+        for (const fs of [ts.fs, rust.fs]) await fs.writeFile("/workspace/" + name, Buffer.from(contents));
+      }
+      for (const file of ["samples", "samples/base/", "samples/base/../ours", "absent/../samples", "", "not here", "odd names", "loop's graph"]) {
+        const reference = await runLinuxCommand("tsort", [file], "", cwd);
+        assert.equal(reference[0], 1);
+        const script = "tsort '" + file.replaceAll("'", "'\\''") + "'";
+        for (const shell of [ts.shell, rust]) {
+          const actual = await shell.exec(script);
+          assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], reference, script);
+        }
+      }
+    });
     await t.test("qrencode chooses stdout or numbered files from the format and output operand", async () => {
       const argsOnly = await runLinuxCommand("qrencode", [], "ignored", cwd);
       for (const shell of [ts.shell, rust]) {

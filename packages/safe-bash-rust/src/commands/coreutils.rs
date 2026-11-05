@@ -20785,20 +20785,18 @@ fn cmd_tsort(
         );
     }
     let reader_name = files.first().map(|s| s.as_str()).unwrap_or("-");
-    let raw_bytes = if files.is_empty() || files[0] == "-" {
+    let unicode = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()))
+        .is_some_and(|s| { let s = s.to_ascii_lowercase(); s.ends_with("utf-8") || s.ends_with("utf8") });
+    let label = fmt_quote::filename(reader_name, unicode);
+    let raw_bytes = if reader_name == "-" {
         crate::vfs::stream_string_to_bytes(stdin)
     } else {
-        let p = resolve_posix_path(cwd, &files[0]);
-        if fs.is_dir(&p) {
-            return ok_out("");
-        }
-        match fs.read_file(&p) {
-            Ok(b) => b,
-            Err(_) => {
-                return err_out(
-                    &format!("tsort: {}: No such file or directory\n", files[0]),
-                    1,
-                );
+        let path = crate::vfs::path::absolute_operand(cwd, reader_name);
+        match fs.read_file(&path) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                let stage = if e.starts_with("EISDIR:") || e.starts_with("EIO:") { "read error: " } else { "" };
+                return err_out(&format!("tsort: {label}: {stage}{}\n", file_error_reason(&e)), 1);
             }
         }
     };
@@ -20809,7 +20807,7 @@ fn cmd_tsort(
         .collect();
     if !tokens.len().is_multiple_of(2) {
         return err_out(
-            &format!("tsort: {reader_name}: input contains an odd number of tokens\n"),
+            &format!("tsort: {label}: input contains an odd number of tokens\n"),
             1,
         );
     }
@@ -20865,7 +20863,7 @@ fn cmd_tsort(
             break;
         }
         status = 1;
-        stderr.push_str(&format!("tsort: {reader_name}: input contains a loop:\n"));
+        stderr.push_str(&format!("tsort: {label}: input contains a loop:\n"));
         let mut loop_idx: Option<usize> = None;
         let mut link: Vec<Option<usize>> = vec![None; ordered.len()];
         loop {
@@ -22047,7 +22045,8 @@ mod tests {
         assert_eq!(join_order.stderr, "join: EINVAL: file 1 is not in sorted order\n");
 
         let tsort_dir = try_run_coreutil("tsort", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
-        assert_eq!(tsort_dir.exit_code, 0);
+        assert_eq!(tsort_dir.exit_code, 1);
+        assert_eq!(tsort_dir.stderr, "tsort: /work/dir: read error: Is a directory\n");
         assert_eq!(tsort_dir.stdout, "");
 
         let sponge_dir = try_run_coreutil("sponge", &args(&["/work/dir"]), "hi\n", "/work", &env, &vfs).unwrap();

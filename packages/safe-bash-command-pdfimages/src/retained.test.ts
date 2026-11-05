@@ -48,8 +48,22 @@ async function compareCommand(input: Uint8Array, flags: string[]) {
   expect({...result,stdout,stderr}).toEqual(reference);
   for(const [path,bytes] of expected)expect(await fs.readFile(`/${path}`),path).toEqual(bytes);
   expect(await fs.readdir("/tmp")).toEqual([]);
-  return { stdout, fs };
+  return { stdout, fs, files: expected };
 }
+
+it("writes 72 DPI to extracted files regardless of the image's scale on the page", async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([32,32]);
+  const image = doc.embedRgbImage(2,2,Uint8Array.from({length:12}, (_,i) => i*19));
+  for (const width of [2,16]) page.drawImage(image,{x:0,y:0,width,height:width});
+  const input = doc.save();
+  for (const [flag,ext] of [["-png","png"],["-tiff","tif"]] as const) {
+    const { files } = await compareCommand(input,[flag]);
+    const first = Buffer.from(files.get("out-000."+ext)!);
+    expect(first).toEqual(Buffer.from(files.get("out-001."+ext)!));
+    if (ext === "png") expect(first.includes(Buffer.from("7048597300000b1200000b1201","hex"))).toBe(true);
+  }
+});
+
 it.each([[],["-png"],["-tiff"],["-list"],["-u","-p","-print-filenames"],["-f","2","-l","2","-min-width","2","-png"],["-min-height","100"],["-f","8"]].map(flags=>({flags})))("preserves retained listing, selection and outputs for $flags",async ({flags})=>{
   const doc=PdfDocument.create();const first=doc.addPage([32,32]),second=doc.addPage([32,32]);const image=doc.embedRgbImage(2,2,new Uint8Array([255,0,0,0,255,0,0,0,255,255,255,255]));
   first.drawImage(image,{x:0,y:0,width:16,height:16});first.drawImage(image,{x:0,y:16,width:32,height:16});second.drawImage(image,{x:0,y:0,width:8,height:8});

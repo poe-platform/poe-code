@@ -8596,6 +8596,13 @@ test("pdfimages extracts the base image and its soft mask separately like Popple
       assert.equal(png[25], color);
       assert.deepEqual(Array.from(decodePng(png).data), rgba);
     }
+    // Poppler writes 72 DPI to each extracted file even when the placement PPI differs.
+    for (const [flag, ext] of [["-png", "png"], ["-tiff", "tif"]]) {
+      await run(flag + " f.pdf stamps");
+      const first = Buffer.from(await wasm.fs.readFile("/stamps-000." + ext));
+      assert.deepEqual(first, Buffer.from(await wasm.fs.readFile("/stamps-002." + ext)));
+      if (ext === "png") assert.ok(first.includes(Buffer.from("7048597300000b1200000b1201", "hex")));
+    }
     assert.equal(await run("-p -print-filenames f.pdf copy"), [0,1,2,3].map(i => "copy-001-00" + i + ".ppm\n").join(""));
     assert.deepEqual(Buffer.from(await wasm.fs.readFile("/copy-001-001.ppm")), Buffer.concat([
       Buffer.from("P6\n2 1\n255\n"), Buffer.from([255,255,255,64,64,64]),

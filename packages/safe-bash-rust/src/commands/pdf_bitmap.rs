@@ -473,7 +473,11 @@ impl Image {
         limit: usize,
         extracting: bool,
     ) -> Option<Vec<u8>> {
-        let dpi = self.ppi().map(|n| n as f64);
+        let dpi = if extracting {
+            [72.; 2]
+        } else {
+            self.ppi().map(|n| n as f64)
+        };
         if let Some(ranges) = self.rgb48 {
             let png = format == "PNG";
             let size = self

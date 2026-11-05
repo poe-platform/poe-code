@@ -305,7 +305,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
             }
             else if (usePng) {
                 ext = "png";
-                outBytes = (yield* encodePngSteps(img.bitmap));
+                outBytes = (yield* encodePngSteps(img.bitmap, 72));
             }
             else if (img.colorSpace === "gray" && img.bitsPerComponent === 1) {
                 ext = "pbm";
@@ -447,7 +447,7 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
         const native = decoded.nativeByteLength !== undefined;
         const ext = native && selection.useJpeg && decoded.encoding === "jpeg" ? "jpg" : native && selection.useJp2 && decoded.encoding === "jpx" ? "jp2" : native && selection.useJbig2 && decoded.encoding === "jbig2" ? "jb2e" : native && selection.useCcitt && decoded.encoding === "ccitt" ? "ccitt" : selection.useTiff ? "tif" : selection.usePng ? "png" : decoded.color.colorSpace === "gray" && decoded.bitsPerComponent === 1 ? "pbm" : "ppm";
         const base = `${selection.positionals[1]}-${selection.includePage ? String(metadata.pageNumber).padStart(3,"0") + "-" : ""}${String(idx).padStart(3,"0")}`;
-        const chunks = ext === "png" ? encodeRetainedPng(decoded.width,decoded.height,decoded.rows(),storage,{signal}) : ext === "tif" ? encodeRetainedTiff(decoded.width,decoded.height,decoded.rows(),storage,{signal}) : ext === "ppm" || ext === "pbm" ? encodePortableBitmapChunks(ext,decoded.width,decoded.height,decoded.rows(),{signal}) : decoded.nativeContents();
+        const chunks = ext === "png" ? encodeRetainedPng(decoded.width,decoded.height,decoded.rows(),storage,{signal,dpi:72}) : ext === "tif" ? encodeRetainedTiff(decoded.width,decoded.height,decoded.rows(),storage,{signal}) : ext === "ppm" || ext === "pbm" ? encodePortableBitmapChunks(ext,decoded.width,decoded.height,decoded.rows(),{signal}) : decoded.nativeContents();
         yield { name: `${base}.${ext}`, chunks };
         if (ext === "jb2e" && decoded.globalsByteLength !== undefined && !metadata.inline) yield { name: `${base}.jb2g`, chunks: decoded.nativeContents("globals") };
         if (ext === "ccitt") yield { name: `${base}.params`, chunks: text(faxParams(ccitt.k, ccitt.columns, ccitt.eol, ccitt.black)) };

@@ -5,7 +5,7 @@ import {RetainedCommonMarkLine} from "./retained-commonmark-line.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedSourceText, SourceRange} from "./retained-source-text.js";
 
-const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote"] as const;
+const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote", "definitionList", "definitionTerm", "definition"] as const;
 const fields = ["parent", "first", "last", "next", "previous", "startLine", "startColumn", "endLine", "endColumn", "firstLine", "lastLine", "lineCount", "infoStart", "infoEnd", "number", "marker", "style", "tight", "blank"] as const;
 type Field = typeof fields[number];
 type Node = Record<Field, number> & {kind: typeof kinds[number]; info: SourceRange};
@@ -187,7 +187,7 @@ export class RetainedCommonMarkBlocks {
     const containers = async function* (parser: RetainedCommonMarkBlocks) {for (let position = firstStack; position;) {const fields = await parser.get(position, 8); yield {position, fields}; position = fields[1]!;}};
     const parent = async () => {
       if (!lastStack) return this.root;
-      const top = await this.get(lastStack, 8); return ["quote", "item", "footnote"].includes(kinds[top[3]!]!) ? top[2]! : this.root;
+      const top = await this.get(lastStack, 8); return ["quote", "item", "footnote", "definition"].includes(kinds[top[3]!]!) ? top[2]! : this.root;
     };
     const finish = async () => {if (leaf?.kind === "paragraph") await this.extractDefinitions(leaf.node); leaf = undefined;};
     const push = async (node: number, kind: Node["kind"], indent = 0, list = 0, empty = false) => {
@@ -200,6 +200,7 @@ export class RetainedCommonMarkBlocks {
       context.bound("depth", depth + 1); context.charge("nodes", 1); context.charge("retainedBytes", 128);
       if (lastStack) {
         const top = await this.get(lastStack, 8);
+        if (kinds[top[3]!] === "definition") {if (top[6]) await this.set(top[2]!, "tight", 0); await this.put(lastStack + 48, [0]);}
         if (kinds[top[3]!] === "item") {if (top[6] && (await this.node(top[2]!)).first) await this.set(top[5]!, "tight", 0); await this.put(lastStack + 48, [0]);}
       }
       const node = await this.create(kind, {startLine: line.number, startColumn: await line.column(offset), endLine: line.number, endColumn: line.endColumn, ...initial}); await this.append(await parent(), node); return node;
@@ -249,7 +250,8 @@ export class RetainedCommonMarkBlocks {
         const siblingItem = failed && kinds[failed[3]!] === "item" && sibling;
         const at = line.text.start + offset + siblingIndent;
         const siblingFootnote = failed && kinds[failed[3]!] === "footnote" && await source.starts({start: at, end: line.text.end}, "[^") && await source.find({start: at + 2, end: line.text.end}, "]:") >= 0;
-        if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !await line.interrupts(offset, extensions.raw_html !== false, extensions.fancy_lists)) {
+        const siblingDefinition = extensions.definition_lists && siblingIndent <= 3 && [":", "~"].includes(await line.at(offset + siblingIndent) ?? "") && await line.at(offset + siblingIndent + 1) === " ";
+        if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !siblingDefinition && !await line.interrupts(offset, extensions.raw_html !== false, extensions.fancy_lists)) {
           await inline(leaf.node, line, offset + await line.spaces(offset)); await end(leaf.node, line);
           for await (const container of containers(this)) await end(container.fields[2]!, line); continue;
         }
@@ -284,7 +286,9 @@ export class RetainedCommonMarkBlocks {
         if (lastStack && kinds[(await this.get(lastStack, 4))[3]!] === "item") {
           for await (const container of containers(this)) if (kinds[container.fields[3]!] === "item") {deepest = container.position; await this.set(container.fields[2]!, "blank", 1);}
         }
-        if (deepest) await this.put(deepest + 48, [1]); continue;
+        if (deepest) await this.put(deepest + 48, [1]);
+        if (lastStack && kinds[(await this.get(lastStack, 4))[3]!] === "definition") await this.put(lastStack + 48, [1]);
+        continue;
       }
       if (leaf?.kind === "table") {
         const row = !await line.interrupts(offset, extensions.raw_html !== false, extensions.fancy_lists) ? await this.pipeRow(await line.rawFrom(offset)) : undefined;
@@ -317,6 +321,31 @@ export class RetainedCommonMarkBlocks {
             await this.set(leaf.node, "firstLine", 0); await this.set(leaf.node, "lastLine", 0); await this.set(leaf.node, "lineCount", 0);
             await this.append(leaf.node, header); await end(leaf.node, line); leaf = {kind: "table", node: leaf.node}; continue;
           }
+        }
+      }
+      const definitionIndent = await line.spaces(offset), definitionAt = offset + definitionIndent;
+      if (extensions.definition_lists && definitionIndent <= 3 && [":", "~"].includes(await line.at(definitionAt) ?? "") && await line.at(definitionAt + 1) === " ") {
+        if (leaf?.kind === "paragraph") await this.extractDefinitions(leaf.node);
+        const owner = await parent(), previousPosition = (await this.node(owner)).last;
+        const previous = previousPosition ? await this.node(previousPosition) : undefined;
+        if (previous?.kind === "paragraph" || previous?.kind === "definitionList") {
+          await finish();
+          let term = previous.kind === "paragraph" ? previousPosition : 0;
+          if (term) await this.remove(term);
+          let list = (await this.node(owner)).last;
+          if (!list || (await this.node(list)).kind !== "definitionList") list = await add("definitionList", line, definitionAt);
+          if (term) {
+            await this.put(term, [kinds.indexOf("definitionTerm")]);
+            await this.set(term, "next", 0); await this.append(list, term);
+          } else term = (await this.node(list)).last;
+          context.charge("nodes", 1); context.charge("retainedBytes", 128);
+          const lastDefinition = (await this.node(term)).last;
+          const lastBlock = lastDefinition ? (await this.node(lastDefinition)).last : 0;
+          const previousEnd = lastBlock ? (await this.node(lastBlock)).endLine : previous.endLine;
+          const node = await this.create("definition", {tight: Number(previousEnd + 1 === line.number), startLine: line.number, startColumn: await line.column(definitionAt), endLine: line.number, endColumn: line.endColumn});
+          await this.append(term, node); await end(list, line);
+          await push(node, "definition", definitionIndent + 4);
+          offset = definitionAt + 1 + Math.min(3, await line.spaces(definitionAt + 1));
         }
       }
       const initialIndent = await line.spaces(offset), underline = initialIndent <= 3 ? await line.setext(offset + initialIndent) : 0;

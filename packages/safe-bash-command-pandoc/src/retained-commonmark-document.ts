@@ -110,6 +110,15 @@ export async function assembleRetainedCommonMark(
       depth = view.getFloat64(24, true); tight = !!view.getFloat64(32, true); mode = view.getFloat64(40, true); taskNode = view.getFloat64(48, true); checked = !!view.getFloat64(56, true); continue;
     }
     const current = position, block = await parser.node(position); position = block.next;
+    if (mode === 2) {
+      const term = await inline(await parser.joined(current), block.lineCount, current), definitions = await ast.array();
+      await ast.push(out, await ast.value([term, definitions]));
+      await push(); out = definitions; position = block.first; mode = 3; depth++; continue;
+    }
+    if (mode === 3) {
+      const children = await ast.array(); await ast.push(out, children);
+      await push(); out = children; position = block.first; mode = 0; tight = !!block.tight; depth++; continue;
+    }
     if (mode === 1) {
       const children = await ast.array(); await ast.push(out, children); await push(); out = children; position = block.first; mode = 0; taskNode = 0;
       if (extensions.task_lists && position) {
@@ -160,6 +169,10 @@ export async function assembleRetainedCommonMark(
       if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;
       await ast.push(out, await ast.tag("CodeBlock", await ast.value([["", classes, []], await literal(range)])));
     } else if (block.kind === "table") await ast.push(out, await table(current));
+    else if (block.kind === "definitionList") {
+      const children = await ast.array(); await ast.push(out, await ast.tag("DefinitionList", children));
+      await push(); position = block.first; out = children; mode = 2; depth++; taskNode = 0;
+    }
     else if (block.kind === "quote" || block.kind === "list") {
       const children = await ast.array();
       await ast.push(out, block.kind === "quote" ? await ast.tag("BlockQuote", children) : Number.isNaN(block.number) ? await ast.tag("BulletList", children) :

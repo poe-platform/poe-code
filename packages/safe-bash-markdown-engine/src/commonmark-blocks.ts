@@ -10,7 +10,9 @@ export interface PendingInline {
   lines: { text: string; start: BlockPoint }[];
 }
 export interface PendingItem { blocks: PendingBlock[]; source: BlockSource }
+export interface PendingDefinition extends PendingItem { tight: boolean }
 export type PendingBlock =
+  | { kind: "definitionList"; items: {term: PendingInline; definitions: PendingDefinition[]}[]; source: BlockSource }
   | { kind: "footnote"; label: string; blocks: PendingBlock[]; source: BlockSource }
   | { kind: "table"; alignments: Alignment[]; header: string[]; rows: string[][]; source: BlockSource }
   | { kind: "paragraph"; inline: PendingInline; source: BlockSource }
@@ -40,6 +42,7 @@ interface Line {
 }
 type ListBlock = Extract<PendingBlock, { kind: "list" }>;
 type Container =
+  | { kind: "definition"; node: PendingDefinition; indent: number; blank: boolean; empty: boolean }
   | { kind: "footnote"; node: Extract<PendingBlock, { kind: "footnote" }>; indent: number; blank: boolean; empty: boolean }
   | { kind: "quote"; node: Extract<PendingBlock, { kind: "quote" }> }
   | { kind: "list"; node: ListBlock }
@@ -252,7 +255,7 @@ export async function parseCommonMarkBlocks(
   const range = (line: Line, offset: number): BlockSource => ({ source, start: point(line, offset), end: endPoint(line) });
   const blocks = (): PendingBlock[] => {
     const top = stack[stack.length - 1];
-    return top?.kind === "quote" || top?.kind === "item" || top?.kind === "footnote" ? top.node.blocks : document.blocks;
+    return top?.kind === "quote" || top?.kind === "item" || top?.kind === "footnote" || top?.kind === "definition" ? top.node.blocks : document.blocks;
   };
   const add = (node: PendingBlock): void => {
     context.bound("depth", stack.length + 1);
@@ -261,6 +264,8 @@ export async function parseCommonMarkBlocks(
     const item = stack[stack.length - 1];
     if (item?.kind === "item" && item.blank && item.node.blocks.length > 0) item.list.tight = false;
     if (item?.kind === "item") item.blank = false;
+    if (item?.kind === "definition" && item.blank) item.node.tight = false;
+    if (item?.kind === "definition") item.blank = false;
     blocks().push(node);
   };
   const push = (container: Container): void => {
@@ -374,7 +379,8 @@ export async function parseCommonMarkBlocks(
       const sibling = siblingIndent <= 3 ? marker(line.text, offset + siblingIndent, extensions.fancy_lists) : undefined;
       const siblingItem = failed?.kind === "item" && sibling;
       const siblingFootnote = failed?.kind === "footnote" && line.text.startsWith("[^", offset + siblingIndent) && line.text.includes("]:", offset + siblingIndent + 2);
-      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists)) {
+      const siblingDefinition = extensions.definition_lists && siblingIndent <= 3 && [":", "~"].includes(line.text[offset + siblingIndent] ?? "") && line.text[offset + siblingIndent + 1] === " ";
+      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !siblingDefinition && !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists)) {
         leaf.node.inline.lines.push(inlineLine(line, offset + spaces(line.text, offset)));
         leaf.node.source.end = endPoint(line);
         for (const container of stack) container.node.source.end = endPoint(line);
@@ -436,6 +442,8 @@ export async function parseCommonMarkBlocks(
         for (const container of stack) if (container.kind === "item") { deepest = container; blankItems.add(container.node); }
       }
       if (deepest) deepest.blank = true;
+      const top = stack[stack.length - 1];
+      if (top?.kind === "definition") top.blank = true;
       continue;
     }
     if (leaf?.kind === "table") {
@@ -472,6 +480,30 @@ export async function parseCommonMarkBlocks(
           leaf = { kind: "table", node };
           continue;
         }
+      }
+    }
+    const definitionIndent = spaces(line.text, offset), definitionAt = offset + definitionIndent;
+    if (extensions.definition_lists && definitionIndent <= 3 && [":", "~"].includes(line.text[definitionAt] ?? "") && line.text[definitionAt + 1] === " ") {
+      if (leaf?.kind === "paragraph") extractDefinitions(leaf.node);
+      const siblings = blocks(), previous = siblings[siblings.length - 1];
+      if (previous?.kind === "paragraph" || previous?.kind === "definitionList") {
+        finish();
+        const term = previous.kind === "paragraph" ? previous : undefined;
+        if (term) siblings.pop();
+        let list = siblings[siblings.length - 1];
+        if (list?.kind !== "definitionList") {
+          list = {kind: "definitionList", items: [], source: {...previous.source}};
+          add(list);
+        }
+        if (term) list.items.push({term: term.inline, definitions: []});
+        const lastDefinition = previous.kind === "definitionList" ? previous.items.at(-1)?.definitions.at(-1) : undefined;
+        const previousEnd = lastDefinition?.blocks.at(-1)?.source.end.line ?? previous.source.end.line;
+        const definition: PendingDefinition = {blocks: [], tight: previousEnd + 1 === line.number, source: range(line, definitionAt)};
+        context.charge("nodes", 1); context.charge("retainedBytes", 128);
+        list.items[list.items.length - 1]!.definitions.push(definition);
+        list.source.end = endPoint(line);
+        push({kind: "definition", node: definition, indent: definitionIndent + 4, blank: false, empty: false});
+        offset = definitionAt + 1 + Math.min(3, spaces(line.text, definitionAt + 1));
       }
     }
     const initialIndent = spaces(line.text, offset);

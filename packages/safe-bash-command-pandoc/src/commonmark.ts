@@ -71,6 +71,16 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           result.push({ t: "Table", c: [["", [], []], [null, []], block.alignments.map((alignment) => [alignment, { t: "ColWidthDefault" }]), [["", [], []], [await row(block.header)]], [[["", [], []], 0, [], rows]], [["", [], []], []]] });
           break;
         }
+        case "definitionList": {
+          const items: Extract<Block, {t: "DefinitionList"}>["c"][number][] = [];
+          for (const item of block.items) {
+            const definitions: Block[][] = [];
+            for (const definition of item.definitions) definitions.push(await assemble(definition.blocks, depth + 1, definition.tight));
+            items.push([await parseCommonMarkInlines(item.term, pending.definitions, context, extensions), definitions]);
+          }
+          result.push({t: "DefinitionList", c: items});
+          break;
+        }
         case "paragraph": result.push({ t: tight ? "Plain" : "Para", c: await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions) }); break;
         case "heading": result.push({ t: "Header", c: [block.level, ["", [], []], await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions)] }); break;
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;

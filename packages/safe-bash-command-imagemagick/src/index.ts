@@ -2226,7 +2226,7 @@ function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [
 function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const raw = parseFloat(threshStr);
-    const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw;
+    const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw / 257;
     const out = new Uint8Array(img.data);
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)

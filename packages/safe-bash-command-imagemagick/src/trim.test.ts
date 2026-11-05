@@ -26,6 +26,19 @@ for (const retained of [false, true]) {
         expect(output.data).toEqual(new Uint8Array(Array.from({ length: 9 }, () => [255, 0, 0, 255]).flat()));
     });
 
+    for (const background of ["white", "black", "red", "transparent"]) {
+        it(`trims uniform ${background} to transparent white (retained=${retained})`, async () => {
+            const input = await sharp({ create: { width: 5, height: 5, channels: 4, background } }).png().toBuffer();
+            const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/input.png", input);
+            const result = await runConvertCli(["input.png", "-trim", "+repage", "out.png"], retained ? { filesystem, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            expect([output.width, output.height]).toEqual([1, 1]);
+            expect(output.hasAlpha).toBe(true);
+            expect(output.data).toEqual(new Uint8Array([255, 255, 255, 0]));
+        });
+    }
     for (const [cornerX, cornerY] of [[0, 0], [4, 0], [0, 4], [4, 4]] as const)
     for (const fuzz of ["0%", "0.5%"]) {
         it(`trims a one-level corner difference (retained=${retained}, fuzz=${fuzz}, corner=${cornerX},${cornerY})`, async () => {

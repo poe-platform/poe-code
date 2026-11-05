@@ -50,9 +50,33 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
     if (parseCommonMarkMetadata(fmMatch[1]!, metadata)) text = rawText.slice(fmMatch[0].length);
   }
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
+  const notes = new Map<string, Extract<PendingBlock, {kind: "footnote"}>>();
+  function collect(blocks: readonly PendingBlock[], depth: number) {
+    context.bound("depth", depth);
+    for (const block of blocks) {
+      context.checkpoint();
+      if (block.kind === "footnote" && !notes.has(block.label)) {
+        context.bound("references", notes.size + 1);
+        context.charge("retainedBytes", block.label.length * 2 + 48);
+        notes.set(block.label, block);
+      }
+      if ("blocks" in block) collect(block.blocks, depth + 1);
+      if (block.kind === "list") for (const item of block.items) collect(item.blocks, depth + 1);
+      if (block.kind === "definitionList") for (const item of block.items) for (const definition of item.definitions) collect(definition.blocks, depth + 1);
+    }
+  }
+  if (extensions.footnotes) collect(pending.blocks, 1);
+  const active = new Set<string>();
   async function assemble(blocks: readonly PendingBlock[], depth: number, tight = false): Promise<Block[]> {
     context.bound("depth", depth);
     const result: Block[] = [];
+    const footnote = async (label: string): Promise<Inline | undefined> => {
+      const note = notes.get(label);
+      if (!note || active.has(label)) return undefined;
+      active.add(label);
+      try {return {t: "Note", c: await assemble(note.blocks, depth + 1)};}
+      finally {active.delete(label);}
+    };
     for (const block of blocks) {
       await context.cooperate();
       switch (block.kind) {
@@ -61,7 +85,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
             const values: Row[1][number][] = [];
             for (let i = 0; i < block.alignments.length; i++) {
               const text = cells[i] ?? "";
-              const inlines = text ? await parseCommonMarkInlines({ kind: "pendingInline", lines: [{ text, start: block.source.start }] }, pending.definitions, context, extensions) : [];
+              const inlines = text ? await parseCommonMarkInlines({ kind: "pendingInline", lines: [{ text, start: block.source.start }] }, pending.definitions, context, extensions, footnote) : [];
               values.push([["", [], []], "AlignDefault", 1, 1, inlines.length ? [{ t: "Plain", c: inlines }] : []]);
             }
             return [["", [], []], values];
@@ -76,13 +100,13 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           for (const item of block.items) {
             const definitions: Block[][] = [];
             for (const definition of item.definitions) definitions.push(await assemble(definition.blocks, depth + 1, definition.tight));
-            items.push([await parseCommonMarkInlines(item.term, pending.definitions, context, extensions), definitions]);
+            items.push([await parseCommonMarkInlines(item.term, pending.definitions, context, extensions, footnote), definitions]);
           }
           result.push({t: "DefinitionList", c: items});
           break;
         }
-        case "paragraph": result.push({ t: tight ? "Plain" : "Para", c: await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions) }); break;
-        case "heading": result.push({ t: "Header", c: [block.level, ["", [], []], await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions)] }); break;
+        case "paragraph": result.push({ t: tight ? "Plain" : "Para", c: await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote) }); break;
+        case "heading": result.push({ t: "Header", c: [block.level, ["", [], []], await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote)] }); break;
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;
         case "html": result.push({ t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal] }); break;
         case "code": {

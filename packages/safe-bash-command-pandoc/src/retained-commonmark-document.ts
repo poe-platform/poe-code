@@ -8,12 +8,13 @@ import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedRtfAst, RtfValue} from "./retained-rtf-ast.js";
 import type {SourceRange} from "./retained-source-text.js";
 
-/** Assemble pending blocks without a resident document or recursive traversal.
- * List-item and block continuations remain on the same caller-owned tape. */
+/** Assemble pending blocks without a resident document. List-item and block
+ * continuations use caller-owned tape; nested note calls obey the depth limit. */
 export async function assembleRetainedCommonMark(
   parser: RetainedCommonMarkBlocks, ast: RetainedRtfAst, tape: PagedStorage, context: AdapterContext,
   extensions: Readonly<Record<string, boolean>>,
-  imageTarget?: (target: RtfValue, line: number) => Promise<void>
+  imageTarget?: (target: RtfValue, line: number) => Promise<void>,
+  noteRoot = parser.root, active: readonly number[] = [], initialDepth = 1
 ): Promise<RtfValue> {
   const source = parser.source, definitions = parser.lookup.bind(parser);
   const literal = async (range: SourceRange) => ast.string(await ast.text.from(source.chunks(range)));
@@ -42,7 +43,23 @@ export async function assembleRetainedCommonMark(
           if (view.getFloat64(0, true) <= offset) {sourceLine = view.getFloat64(8, true); low = middle + 1;} else high = middle;
         }
         await imageTarget(target, sourceLine);
-      })
+      }), extensions.footnotes ? async label => {
+        let position = (await parser.node(parser.root)).first;
+        while (position) {
+          await context.cooperate();
+          const block = await parser.node(position);
+          if (block.kind === "footnote" && block.info.end - block.info.start === label.length && await source.starts(block.info, label)) {
+            if (active.includes(position)) return undefined;
+            context.bound("depth", depth + 1);
+            context.charge("retainedBytes", (active.length + 1) * 8);
+            return ast.tag("Note", await assembleRetainedCommonMark(parser, ast, tape, context, extensions, imageTarget, position, [...active, position], depth + 1));
+          }
+          if (block.first) {position = block.first; continue;}
+          while (position && !(await parser.node(position)).next) position = (await parser.node(position)).parent;
+          if (position) position = (await parser.node(position)).next;
+        }
+        return undefined;
+      } : undefined
     );
   };
   const attrs = () => ast.value(["", [], []]);
@@ -95,7 +112,7 @@ export async function assembleRetainedCommonMark(
     context.charge("retainedBytes", length * 2); return ast.string(value);
   };
   const root = await ast.array();
-  let position = (await parser.node(parser.root)).first, out = root, depth = 1, tight = false, mode = 0, taskNode = 0, checked = false, frame = 0;
+  let position = (await parser.node(noteRoot)).first, out = root, depth = initialDepth, tight = false, mode = 0, taskNode = 0, checked = false, frame = 0;
   const push = async () => {
     const bytes = new Uint8Array(64), view = new DataView(bytes.buffer);
     [frame, position, out.position, depth, Number(tight), mode, taskNode, Number(checked)].forEach((value, index) => view.setFloat64(index * 8, value, true));

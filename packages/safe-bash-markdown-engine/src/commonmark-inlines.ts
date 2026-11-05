@@ -156,7 +156,8 @@ function html(text: string, start: number, context: AdapterContext): number | un
  * recursive materialization. Definitions have already been discovered globally. */
 export async function parseCommonMarkInlines(
   pending: PendingInline, definitions: readonly BlockDefinition[], context: AdapterContext,
-  extensions: Readonly<Record<string, boolean>> = {}
+  extensions: Readonly<Record<string, boolean>> = {},
+  footnote?: (label: string) => Promise<Inline | undefined>
 ): Promise<Inline[]> {
   context.checkpoint(0);
   const size = pending.lines.reduce((n, line) => n + line.text.length + 1, -1);
@@ -313,10 +314,12 @@ export async function parseCommonMarkInlines(
       continue;
     }
     if (char === "[" || char === "!" && text[i + 1] === "[") {
-      if (char === "[" && text[i + 1] === "^" && context.footnoteReference) {
+      if (char === "[" && text[i + 1] === "^" && (footnote || context.footnoteReference)) {
         const end = text.indexOf("]", i + 2);
         const label = end < 0 ? "" : text.slice(i + 2, end);
-        if (label && context.footnoteReference(label)) {
+        const note = label ? await footnote?.(label) : undefined;
+        if (note) {append(note); i = end + 1; continue;}
+        if (label && context.footnoteReference?.(label)) {
           append({ t: "RawInline", c: ["mdq-footnote", label] }); i = end + 1; continue;
         }
       }

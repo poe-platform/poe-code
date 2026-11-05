@@ -58,6 +58,8 @@ checkboxes or text checkbox symbols in LaTeX, reStructuredText, RTF and CommonMa
 compatibility names use the documented engine features; they do not enable
 additional dialect-specific extensions, except that `markdown` and `md` output preserve
 alphabetic and Roman ordered-list numbering (disable with `-fancy_lists`).
+The `markdown` and `md` readers resolve footnotes (`[^note]` with a matching
+`[^note]:` definition), including multi-paragraph notes; disable with `-footnotes`.
 The `markdown` and `md` readers support definition lists with `:` or `~`
 markers, repeated definitions, and indented blocks; disable with `-definition_lists`.
 The `markdown` and `md` readers preserve fenced divs (`::: {.note}`), including

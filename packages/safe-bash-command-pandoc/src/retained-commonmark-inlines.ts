@@ -13,7 +13,8 @@ export async function parseRetainedCommonMarkInlines(
   extensions: Readonly<Record<string, boolean>> = {},
   definition?: (label: string) => Promise<{destination: SourceRange; title: SourceRange} | undefined>,
   counts: {lines: number; definitions: number} = {lines: 1, definitions: 0},
-  imageTarget?: (target: RtfValue, offset: number) => Promise<void>
+  imageTarget?: (target: RtfValue, offset: number) => Promise<void>,
+  footnote?: (label: string) => Promise<RtfValue | undefined>
 ): Promise<RtfValue> {
   context.checkpoint(0);
   const size = syntax.range.end - syntax.range.start;
@@ -148,6 +149,11 @@ export async function parseRetainedCommonMarkInlines(
       if (delimiter) await put(delimiter + 64, [entry]); delimiter = entry; i = end; continue;
     }
     if (unit === "[" || unit === "!" && await char(i + 1) === "[") {
+      if (unit === "[" && await char(i + 1) === "^" && footnote) {
+        const reference = await syntax.label(i);
+        const note = reference ? await footnote(reference.label.slice(1)) : undefined;
+        if (note) {await append(note); i = reference!.end; continue;}
+      }
       const image = unit === "!", node = await appendRange(i, i + (image ? 2 : 1));
       context.bound("references", ++bracketCount + delimiterCount); context.charge("retainedBytes", 96);
       if (bracket) await put(bracket + 32, [1]);

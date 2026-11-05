@@ -14,7 +14,7 @@ for (const retained of [false, true]) {
         ["alpha gradient", gradient.map((row, i) => [...row, [255, 128, 0, 64, 192, 255][i]!]), altered.map((row, i) => [...row, [240, 135, 0, 75, 180, 250][i]!]), "89.4889 (0.00136551)", 1],
         ["reversed gradient", gradient, [...gradient].reverse(), "65535 (1)", 1],
         ["different solids", [[255, 0, 0]], [[0, 0, 255]], "32767.5 (0.5)", 1],
-        ["identical solids", [[255, 0, 0]], [[255, 0, 0]], "32767.5 (0.5)", 0]
+        ["identical solids", [[255, 0, 0]], [[255, 0, 0]], "32767.5 (0.5)", 1]
     ] as const) {
         it(`reports NCC distortion for ${name}, retained=${retained}`, async () => {
             const images = await Promise.all([rowsA, rowsB].map(rows =>

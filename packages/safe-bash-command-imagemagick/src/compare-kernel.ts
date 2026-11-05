@@ -179,6 +179,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const ssim = ((2 * muA * muB + c1) * (2 * covAB + c2)) /
         ((muA * muA + muB * muB + c1) * (varA + varB + c2));
     let metricStr: string;
+    let exitCode = metric === "psnr" && mseNorm === 0 ? 1 : dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
     switch (metric) {
         case "ae":
             metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
@@ -200,6 +201,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "ssim": {
             const distortion = yield* compareSsimSteps(imgA, imgB);
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
         }
         case "dssim":
@@ -218,6 +220,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             const similarity = denominator === 0 ? 0 : covariance / denominator;
             const distortion = Math.abs(1 - similarity) < 2e-12 ? 0 : (1 - similarity) / 2;
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
         }
         case "rmse":
@@ -225,7 +228,6 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
             break;
     }
-    const exitCode = metric === "psnr" && mseNorm === 0 ? 1 : dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
     return { width, height, metric: metricStr, exitCode };
 }
 export function formatMetricNum(n: number): string {

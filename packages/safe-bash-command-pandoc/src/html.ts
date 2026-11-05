@@ -1,5 +1,6 @@
 import {
   Parser,
+  serializeOuter,
   defaultTreeAdapter as tree,
   type DefaultTreeAdapterTypes as H,
   type TreeAdapter,
@@ -253,6 +254,19 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
           continue;
         }
         const tag = node.tagName;
+        if (tag === "svg") {
+          const markup = serializeOuter(node);
+          // Account for serialized text, UTF-8 bytes, binary text and base64 output.
+          ctx.charge("retainedBytes", markup.length * 16 + 64);
+          const bytes = new TextEncoder().encode(markup);
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += 4096) {
+            await ctx.cooperate(4096);
+            binary += String.fromCharCode(...bytes.subarray(i, i + 4096));
+          }
+          result.push({ t: "Image", c: [empty, [], [`data:image/svg+xml;base64,${btoa(binary)}`, ""]] });
+          continue;
+        }
         if (dropped.has(tag)) continue;
         if (tag === "br") {
           result.push({ t: "LineBreak" });

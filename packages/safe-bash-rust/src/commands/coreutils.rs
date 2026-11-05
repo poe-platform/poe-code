@@ -89,7 +89,7 @@ fn coreutil(
         "iconv" => cmd_iconv(args, input.buffered()?, cwd, env, fs),
         "sponge" => cmd_sponge(args, input.buffered()?, cwd, fs),
         "seq" => cmd_seq(args),
-        "basename" | "dirname" => cmd_pathname(cmd, args, env.contains_key("POSIXLY_CORRECT")),
+        "basename" | "dirname" => cmd_pathname(cmd, args, env),
         "env" | "printenv" => cmd_printenv(args, env),
         "cal" | "ncal" => cmd_cal(cmd, args, env),
         "getconf" => cmd_getconf(args, cwd, fs),
@@ -4758,7 +4758,8 @@ pub(crate) fn yes_batch(args: &[String], posixly_correct: bool) -> Result<String
     Ok(if line.len() < 8192 { line.repeat(8192 / line.len()) } else { line })
 }
 
-fn cmd_pathname(cmd: &str, args: &[String], posix: bool) -> BuiltinOutcome {
+fn cmd_pathname(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
+    let posix = env.contains_key("POSIXLY_CORRECT");
     let base = cmd == "basename";
     let names: &[&str] = if base { &["multiple", "suffix", "zero", "help", "version"] } else { &["zero", "help", "version"] };
     let usage = |message: String| err_out(&format!("{cmd}: {message}\nTry '{cmd} --help' for more information.\n"), 1);
@@ -4805,7 +4806,10 @@ fn cmd_pathname(cmd: &str, args: &[String], posix: bool) -> BuiltinOutcome {
                         multiple = true;
                         break;
                     }
-                    _ => return usage(format!("invalid option -- '{flag}'")),
+                    _ => {
+                        let byte = crate::vfs::stream_string_to_bytes(flag.encode_utf8(&mut [0; 4]))[0];
+                        return usage(format!("invalid option -- '{}'", crate::vfs::bytes_to_stream_string(&[byte])));
+                    }
                 }
             }
         }
@@ -4813,10 +4817,13 @@ fn cmd_pathname(cmd: &str, args: &[String], posix: bool) -> BuiltinOutcome {
     if operands.is_empty() { return usage("missing operand".into()); }
     if base && !multiple && operands.len() > 1 {
         if operands.len() > 2 {
-            return usage(format!("extra operand {}", quote_bytes(&crate::vfs::stream_string_to_bytes(operands[2]))));
+            let ctype = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|&key| env.get(key).filter(|value| !value.is_empty()));
+            let unicode = ctype.is_some_and(|v| v.eq_ignore_ascii_case("C.UTF-8") || v.eq_ignore_ascii_case("C.utf8"));
+            return usage(format!("extra operand {}", fmt_quote::quote(operands[2], false, unicode)));
         }
         suffix = operands.pop();
     }
+    let suffix = suffix.filter(|s| !s.is_empty()).map(crate::vfs::stream_string_to_bytes);
     let mut out = String::new();
     for path in operands {
         let path_trimmed = path.trim_end_matches('/');
@@ -4824,7 +4831,12 @@ fn cmd_pathname(cmd: &str, args: &[String], posix: bool) -> BuiltinOutcome {
             out.push('/');
         } else if base {
             let name = path_trimmed.rsplit('/').next().unwrap();
-            out.push_str(suffix.filter(|s| *s != name).and_then(|s| name.strip_suffix(s)).unwrap_or(name));
+            if let Some(suffix) = &suffix {
+                let bytes = crate::vfs::stream_string_to_bytes(name);
+                if let Some(stem) = bytes.strip_suffix(suffix.as_slice()).filter(|s| !s.is_empty()) {
+                    out.push_str(&crate::vfs::bytes_to_stream_string(stem));
+                } else { out.push_str(name); }
+            } else { out.push_str(name); }
         } else if let Some((parent, _)) = path_trimmed.rsplit_once('/') {
             let dir = parent.trim_end_matches('/');
             out.push_str(if dir.is_empty() { "/" } else { dir });
@@ -4833,7 +4845,7 @@ fn cmd_pathname(cmd: &str, args: &[String], posix: bool) -> BuiltinOutcome {
         }
         out.push(if zero { '\0' } else { '\n' });
     }
-    ok_out(&out)
+    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
 }
 
 fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {

@@ -178,6 +178,9 @@ export function linuxCommands(text: string) {
     "env pwd -P ignored -L", "env POSIXLY_CORRECT=1 pwd ignored -P", "env pwd -- -L"]) {
     pipes.push('(root=$PWD; cd pwd-link && result=$(' + command + ') && printf "%s\\n" "${result#"$root"/}")');
   }
+  pipes.push(String.raw`basename $'a\xc3\xa9' $'\xa9'`, String.raw`basename --s=$'\xa9' $'a\xc3\xa9'`,
+    String.raw`dirname $'--bad\xff'`, String.raw`basename $'-a\xc3\xa9'`, String.raw`dirname $'-\xff'`,
+    String.raw`basename a b $'x\047y\n\xff'`, String.raw`LC_ALL=C.UTF-8 basename a b $'é\047’\xff'`);
   pipes.push("env POSIXLY_CORRECT=1 dirname a/b -z", "env POSIXLY_CORRECT= dirname a/b --", "env POSIXLY_CORRECT=1 dirname -z a/b --zero");
   pipes.push("pwd --logical", "command pwd --physical", "pwd -LPQ", "pwd --help", "builtin pwd -P --help -X",
     "command pwd -X --help", "pwd -- --help >/dev/null");

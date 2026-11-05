@@ -1,6 +1,6 @@
 import { pwdBuiltinHelp } from "../shell/pwd-help.js";
 import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
-import { byteLength } from "../byte-encoding.js";
+import { byteLength, concatBytes, equalBytes } from "../byte-encoding.js";
 import { writeDiagnostic } from "../escaping.js";
 import { FsError, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
 import { define, escapeBytes, output, requireOperands, UsageError } from "./internal.js";
@@ -153,7 +153,11 @@ async function pathName(context: CommandContext): Promise<CommandResult> {
   const argv = getCommandArguments(context);
   const base = context.command === "basename";
   const names = base ? ["multiple", "suffix", "zero", "help", "version"] : ["zero", "help", "version"];
-  const usage = (message: string) => new UsageError(`${message}\nTry '${context.command} --help' for more information.`);
+  const usage = async (...message: (string | Uint8Array)[]) => {
+    const parts = [context.command + ": ", ...message, `\nTry '${context.command} --help' for more information.\n`];
+    await output({ ...context, stdout: context.stderr }, concatBytes(parts.map(p => typeof p === "string" ? utf8Encoder.encode(p) : p)));
+    return { exitCode: 1 };
+  };
   const operands: number[] = [];
   let suffix: Uint8Array | undefined;
   let ended = false, multiple = false, zero = false;
@@ -167,14 +171,14 @@ async function pathName(context: CommandContext): Promise<CommandResult> {
     } else if (arg.startsWith("--")) {
       const equals = arg.indexOf("=");
       const prefix = arg.slice(2, equals < 0 ? undefined : equals);
-      if (!prefix) throw usage(`option '${arg}' is ambiguous; possibilities: '--${names.join("' '--")}'`);
+      if (!prefix) return usage("option '", argv.bytes(i)!, `' is ambiguous; possibilities: '--${names.join("' '--")}'`);
       const name = names.find(n => n.startsWith(prefix));
-      if (!name) throw usage(`unrecognized option '${arg}'`);
+      if (!name) return usage("unrecognized option '", argv.bytes(i)!, "'");
       if (name === "suffix") {
         suffix = equals < 0 ? argv.bytes(++i) : argv.bytes(i)!.subarray(equals + 1);
-        if (!suffix) throw usage("option '--suffix' requires an argument");
+        if (!suffix) return usage("option '--suffix' requires an argument");
         multiple = true;
-      } else if (equals >= 0) throw usage(`option '--${name}' doesn't allow an argument`);
+      } else if (equals >= 0) return usage(`option '--${name}' doesn't allow an argument`);
       else if (name === "zero") zero = true;
       else if (name === "multiple") multiple = true;
       else {
@@ -188,16 +192,20 @@ async function pathName(context: CommandContext): Promise<CommandResult> {
         else if (base && flag === "a") multiple = true;
         else if (base && flag === "s") {
           suffix = j + 1 < arg.length ? argv.bytes(i)!.subarray(j + 1) : argv.bytes(++i);
-          if (!suffix) throw usage("option requires an argument -- 's'");
+          if (!suffix) return usage("option requires an argument -- 's'");
           multiple = true;
           break;
-        } else throw usage(`invalid option -- '${flag}'`);
+        } else return usage("invalid option -- '", argv.bytes(i)!.subarray(j, j + 1), "'");
       }
     }
   }
-  if (!operands.length) throw usage("missing operand");
+  if (!operands.length) return usage("missing operand");
   if (base && !multiple && operands.length > 1) {
-    if (operands.length > 2) throw usage(`extra operand '${argv.args[operands[2]!]}'`);
+    if (operands.length > 2) {
+      const { quote } = await import("safe-bash-command-fmt/quoting");
+      const locale = (context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C").toLowerCase();
+      return usage("extra operand " + quote(argv.bytes(operands[2]!)!, false, locale === "c.utf-8" || locale === "c.utf8"));
+    }
     suffix = argv.bytes(operands.pop()!);
   }
   for (const i of operands) {
@@ -208,7 +216,7 @@ async function pathName(context: CommandContext): Promise<CommandResult> {
     else if (base) {
       start = end;
       while (start > 0 && operand[start - 1] !== 47) start--;
-      if (suffix?.length && suffix.length < end - start && suffix.every((byte, j) => byte === operand[end - suffix!.length + j])) end -= suffix.length;
+      if (suffix?.length && suffix.length < end - start && equalBytes(operand.subarray(end - suffix.length, end), suffix)) end -= suffix.length;
     } else {
       while (end > 0 && operand[end - 1] !== 47) end--;
       while (end > 1 && operand[end - 1] === 47) end--;

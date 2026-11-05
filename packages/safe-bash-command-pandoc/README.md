@@ -64,6 +64,8 @@ this with `-f markdown-smart`. Code and escaped punctuation remain literal.
 The `markdown` and `md` readers parse superscripts (`x^2^`) and subscripts
 (`H~2~O`); disable with `-superscript` and `-subscript`. Spaces inside these
 constructs must be escaped with a backslash.
+The `markdown` and `md` readers turn standalone images with nonempty alt text into
+figures, using the alt text as the caption. Disable this with `-f markdown-implicit_figures`.
 The `markdown` and `md` readers resolve footnotes (`[^note]` with a matching
 `[^note]:` definition), including multi-paragraph notes; disable with `-footnotes`.
 The `markdown` and `md` readers support definition lists with `:` or `~`

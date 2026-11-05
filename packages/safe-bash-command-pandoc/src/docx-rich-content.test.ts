@@ -169,6 +169,10 @@ Metrics from source [@arch2026].
   const html = new TextDecoder().decode(await fsMem.readFile("/work/report.html"));
   expect(html).toContain("Atlas Release Architecture and Verification Notes");
   expect(html).toContain("release-section");
+  const documentXml = new TextDecoder().decode(readZipArchiveEntries(await fsMem.readFile("/work/report.docx")).get("word/document.xml"));
+  expect(documentXml).toContain("<w:drawing ");
+  expect(documentXml).toContain(">Banner</w:t>");
+  expect(documentXml).toContain(">Sheet</w:t>");
   const wiki = new TextDecoder().decode(await fsMem.readFile("/work/report.wiki"));
   expect(wiki).toContain("= Summary =");
   const wikiToHtml = await convert([{ bytes: new TextEncoder().encode(wiki) }], { from: "mediawiki", to: "html" }, context);

@@ -133,6 +133,10 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
         if (block.t === "Header") {paragraph(target, runs(block.c[2]), properties, block.c[0]); if (list) list.pending = false;}
         else if (block.t === "Para" || block.t === "Plain") {paragraph(target, runs(block.c), properties); if (list) list.pending = false;}
         else if (block.t === "CodeBlock") {paragraph(target, [{text: block.c[1]}], properties); if (list) list.pending = false;}
+        else if (block.t === "Figure") {
+          await visit(block.c[2], target, indent, list);
+          await visit(block.c[1][1], target, indent);
+        }
         else if (block.t === "Div") await visit(block.c[1], target, indent, list);
         else if (block.t === "BlockQuote") await visit(block.c, target, indent + 720, list);
         else if (block.t === "HorizontalRule") paragraph(target, [], `<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="auto"/></w:pBdr>`);

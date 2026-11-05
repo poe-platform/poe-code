@@ -105,7 +105,14 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           result.push({t: "DefinitionList", c: items});
           break;
         }
-        case "paragraph": result.push({ t: tight ? "Plain" : "Para", c: await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote) }); break;
+        case "paragraph": {
+          const inlines = await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote);
+          const image = inlines.length === 1 ? inlines[0] : undefined;
+          if (extensions.implicit_figures && image?.t === "Image" && image.c[1].length) {
+            result.push({t: "Figure", c: [["", [], []], [null, [{t: "Plain", c: image.c[1]}]], [{t: "Plain", c: inlines}]]});
+          } else result.push({t: tight ? "Plain" : "Para", c: inlines});
+          break;
+        }
         case "heading": result.push({ t: "Header", c: [block.level, ["", [], []], await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote)] }); break;
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;
         case "html": result.push({ t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal] }); break;

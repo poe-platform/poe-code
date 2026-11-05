@@ -216,6 +216,10 @@ function renderMediawikiBlocks(blocks: readonly Block[]): string {
       case "HorizontalRule":
         out.push("----");
         break;
+      case "Figure":
+        out.push(renderMediawikiBlocks(block.c[2]).trim());
+        out.push(renderMediawikiBlocks(block.c[1][1]).trim());
+        break;
       case "Div":
         out.push(renderMediawikiBlocks(block.c[1]).trim());
         break;

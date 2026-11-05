@@ -174,6 +174,18 @@ export async function assembleRetainedCommonMark(
         if (await ast.count(inlines)) await ast.push(content, await ast.tag("Space"));
         for await (const child of ast.children(inlines)) await ast.push(content, child); inlines = content;
       }
+      if (block.kind === "paragraph" && extensions.implicit_figures && await ast.count(inlines) === 1) {
+        const image = (await ast.edge(inlines))!;
+        if (await ast.name(image) === "Image") {
+          const caption = (await ast.at((await ast.content(image))!, 1))!;
+          if (await ast.count(caption)) {
+            await ast.push(out, await ast.tag("Figure", await ast.value([
+              await attrs(), [null, [await ast.tag("Plain", caption)]], [await ast.tag("Plain", inlines)]
+            ])));
+            continue;
+          }
+        }
+      }
       await ast.push(out, block.kind === "heading" ? await ast.tag("Header", await ast.value([block.number, await attrs(), inlines])) : await ast.tag(tight ? "Plain" : "Para", inlines));
     } else if (block.kind === "thematicBreak") await ast.push(out, await ast.tag("HorizontalRule"));
     else if (block.kind === "html") {

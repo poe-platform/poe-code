@@ -1134,6 +1134,12 @@ export class Interpreter {
     }
     if (name === "fromdateiso8601" || name === "fromdate") { yield fromDateIso8601(input); return; }
     if (name === "todateiso8601" || name === "todate") { yield toDateIso8601(input); return; }
+    if (name === "repeat") {
+      while (true) {
+        { const _p = budget.tickSync(); if (_p) await _p; }
+        yield* this.run(args[0]!, input);
+      }
+    }
     if (name === "while" || name === "until") {
       // Keep filter continuations explicitly: branching updates use depth-first
       // order, and consumers can stop before evaluating later branches.

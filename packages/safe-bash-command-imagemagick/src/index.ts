@@ -4541,9 +4541,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-vignette") {
-            i++;
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background), signal);
+                return yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background, geometry), signal, { ...im, hasAlpha: true });
             });
         }
         else if (t === "-dither" || t === "+dither") {
@@ -5532,9 +5532,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
             steps.push(async (image, backend) => image ? transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) : undefined);
         } else if (!operandsOnly && token === "-vignette") {
-            i++;
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             const background = state.background;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background, geometry), signal, { ...image, hasAlpha: true }) : undefined);
         } else if (!operandsOnly && token === "-shadow") {
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background;
             steps.push(async (image, backend) => {

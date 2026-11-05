@@ -26,22 +26,83 @@ export function* shadowPixelSteps(source: { width: number; height: number }, lay
         yield { kind: "write", position: (y * layout.width + left) * 4, data };
     }
 }
-export function* vignettePixelSteps(source: { width: number; height: number }, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const size = source.width * source.height, cx = (source.width - 1) / 2, cy = (source.height - 1) / 2;
-    for (let start = 0; start < size; start += 1024) {
-        yield;
-        const count = Math.min(1024, size - start), bytes = yield { kind: "read", position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated vignette pixels");
-        const data = new Uint8Array(bytes);
-        for (let i = 0; i < count; i++) {
-            const x = (start + i) % source.width, y = Math.floor((start + i) / source.width);
-            const nx = (x - cx) / Math.max(1, cx), ny = (y - cy) / Math.max(1, cy);
-            const t = Math.max(0, Math.min(1, (Math.hypot(nx, ny) - 0.65) / 0.55)), offset = i * 4;
-            data[offset] = Math.max(0, Math.min(255, Math.round(data[offset]! * (1 - t) + background.r * t)));
-            data[offset + 1] = Math.max(0, Math.min(255, Math.round(data[offset + 1]! * (1 - t) + background.g * t)));
-            data[offset + 2] = Math.max(0, Math.min(255, Math.round(data[offset + 2]! * (1 - t) + background.b * t)));
+export function* vignettePixelSteps(source: { width: number; height: number }, background: RgbaColor,
+    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; isPercent: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const { width, height } = source, cx = width / 2, cy = height / 2;
+    const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasOffset ? geometry.y : height * 0.1;
+    const rx = cx - Math.ceil(insetX * (geometry.isPercent ? width / 100 : 1) - 0.5);
+    const ry = cy - Math.ceil(insetY * (geometry.isPercent ? height / 100 : 1) - 0.5);
+    const sigma = Math.abs(geometry.height ?? 1), radius = geometry.width ?? 0;
+    let half = 0;
+    if (sigma > 0) {
+        if (radius > 0) half = radius >= 1 ? Math.floor(radius) : Math.ceil(radius);
+        else {
+            let sum = 1 + 2 * Math.exp(-1 / (2 * sigma * sigma));
+            for (half = 2; half < 5000; half++) {
+                const edge = Math.exp(-half * half / (2 * sigma * sigma));
+                sum += 2 * edge;
+                if (edge / sum < 1 / 65535) { half--; break; }
+            }
         }
-        yield { kind: "write", position: start * 4, data };
+    }
+    if (!Number.isFinite(half) || half > 5000) throw new Error("Vignette blur radius exceeds 5000");
+    // ImageMagick's separable blur averages three Gaussian samples per tap.
+    const weights = new Float64Array(half * 2 + 1);
+    let total = 0;
+    for (let i = -half; i <= half; i++) {
+        let weight = sigma === 0 ? 1 : 0;
+        if (sigma > 0) for (let sub = -1; sub <= 1; sub++) weight += Math.exp(-((i + sub / 3) ** 2) / (2 * sigma * sigma));
+        weights[i + half] = weight; total += weight;
+    }
+    for (let i = 0; i < weights.length; i++) weights[i]! /= total;
+    const mask = (x: number, y: number): number => {
+        if (rx <= 0 || ry <= 0 || x <= cx - rx - 1 || x > cx + rx + 1 || y <= cy - ry - 1 || y > cy + ry + 1) return 0;
+        const dx = Math.abs(x - cx), dy = Math.abs(y - cy);
+        if ((dx / rx) ** 2 + (dy / ry) ** 2 <= 1) return 1;
+        // Closest point on the ellipse, followed by native fill/stroke coverage.
+        let low = 0, high = Math.hypot(rx * dx, ry * dy);
+        for (let i = 0; i < 32; i++) {
+            const t = (low + high) / 2;
+            if ((rx * dx / (t + rx * rx)) ** 2 + (ry * dy / (t + ry * ry)) ** 2 > 1) low = t;
+            else high = t;
+        }
+        const distance = Math.hypot(dx - rx * rx * dx / (high + rx * rx), dy - ry * ry * dy / (high + ry * ry));
+        const fill = distance < 1 ? (1 - distance) ** 2 : 0;
+        const stroke = distance <= 0.25 ? 1 : distance < 1.25 ? (1.25 - distance) ** 2 : 0;
+        return fill + stroke * (1 - fill);
+    };
+    for (let left = 0; left < width; left += 1024) {
+        const count = Math.min(1024, width - left), rows = new Map<number, Float64Array>();
+        for (let y = 0; y < height; y++) {
+            yield;
+            const coverage = new Float64Array(count);
+            for (let ky = -half; ky <= half; ky++) {
+                yield;
+                const sy = Math.max(0, Math.min(height - 1, y + ky));
+                let row = rows.get(sy);
+                if (!row) {
+                    const samples = new Float64Array(count + half * 2);
+                    for (let x = 0; x < samples.length; x++) samples[x] = mask(Math.max(0, Math.min(width - 1, left + x - half)), sy);
+                    row = new Float64Array(count);
+                    for (let x = 0; x < count; x++) for (let k = 0; k < weights.length; k++) row[x]! += samples[x + k]! * weights[k]!;
+                    if (rows.size >= 32) rows.delete(rows.keys().next().value!);
+                    rows.set(sy, row);
+                }
+                for (let x = 0; x < count; x++) coverage[x]! += row[x]! * weights[ky + half]!;
+            }
+            const position = (y * width + left) * 4, bytes = yield { kind: "read", position, length: count * 4 };
+            if (!bytes || bytes.length !== count * 4) throw new Error("Truncated vignette pixels");
+            const data = new Uint8Array(bytes);
+            for (let x = 0; x < count; x++) {
+                const foreground = coverage[x]!, back = (1 - foreground) * background.a / 255, alpha = foreground + back;
+                for (let channel = 0; channel < 3; channel++) {
+                    const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
+                    data[x * 4 + channel] = alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * back) / alpha);
+                }
+                data[x * 4 + 3] = Math.round(alpha * 255);
+            }
+            yield { kind: "write", position, data };
+        }
     }
 }
 

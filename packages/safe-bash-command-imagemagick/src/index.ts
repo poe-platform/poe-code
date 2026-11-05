@@ -1667,17 +1667,17 @@ function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number): num
   return data[offset + (ch & 3)]! / 255;
 }
 
-function propToChannel(prop: string, defaultCh: number): number {
+function propToChannel(prop: string): number {
   const p = prop.toLowerCase();
   if (p === "r" || p === "red") return 0;
   if (p === "g" || p === "green") return 1;
   if (p === "b" || p === "blue") return 2;
-  if (p === "a" || p === "o" || p === "alpha" || p === "opacity") return 3;
+  if (p === "a" || p === "o") return 3;
   if (p === "intensity" || p === "luma" || p === "luminance") return 4;
   if (p === "hue") return 5;
   if (p === "saturation") return 6;
   if (p === "lightness") return 7;
-  return defaultCh;
+  throw new Error(`Bad channel qualifier: ${prop}`);
 }
 
 function compileFxExpression(exprStr: string) {
@@ -2024,7 +2024,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           return ctx.vars.get(name)!;
         }
         if ((name === "mean" || name === "standard_deviation") && ctx.statistics) {
-          return ctx.statistics[propName ? `${name}.${propToChannel(propName, ctx.ch)}` : name] ?? 0;
+          return ctx.statistics[propName ? `${name}.${propToChannel(propName)}` : name] ?? 0;
         }
         if (name === "i") return ctx.x;
         if (name === "j") return ctx.y;
@@ -2056,7 +2056,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "saturation") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 6);
         if (name === "lightness") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 7);
 
-        const ch = propName ? propToChannel(propName, ctx.ch) : ctx.ch;
+        const ch = propName ? propToChannel(propName) : ctx.ch;
         return (ctx.sample ?? sampleFxImage)(targetImg, px, py, ch);
       };
     }

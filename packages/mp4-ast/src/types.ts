@@ -308,6 +308,8 @@ export interface MediaCodecDescription {
   readonly width?: number | undefined;
   readonly height?: number | undefined;
   readonly pixFmt?: string | undefined;
+  readonly fieldOrder?: "progressive" | "unknown" | "tt" | "bb" | undefined;
+  readonly h264PictureTiming?: { readonly delayBits: number; readonly nalLengthSize: number } | undefined;
   readonly colorSpace?: string | undefined;
   readonly colorRange?: string | undefined;
   readonly sarWidth?: number | undefined;
@@ -435,6 +437,7 @@ export interface MediaProbeStream {
   readonly pix_fmt?: string | undefined;
   readonly level?: number | undefined;
   readonly color_range?: string | undefined;
+  readonly field_order?: string | undefined;
   readonly color_space?: string | undefined;
   readonly sample_fmt?: string | undefined;
   readonly sample_rate?: string | undefined;

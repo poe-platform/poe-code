@@ -1,3 +1,4 @@
+import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream } from './probe-stream.js';
 import { mp4TextMetadataKeys, mp4ProbeMetadataKeys } from './mp4-metadata.js';
 import { sampleEntryHeader, applyCodecMetadata, finishCodecMetadata } from './mp4-codec-metadata.js';
@@ -138,7 +139,7 @@ function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
     if (state.childOffset !== undefined && state.childOffset < body.length) {
       for (const child of parseMp4Boxes(body.subarray(state.childOffset))) {
         if (state.kind === 'video') {
-          if (child.type === 'avcC') { avcC = parseAvcC(child.payload); applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payload.length, levelIdc: avcC.levelIdc, sps: avcC.sps[0] }); }
+          if (child.type === 'avcC') { avcC = parseAvcC(child.payload); applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payload.length, levelIdc: avcC.levelIdc, nalLengthSize: avcC.lengthSizeMinusOne + 1, sps: avcC.sps[0] }); }
           else if (child.type === 'hvcC') { hvcC = parseHvcC(child.payload); applyCodecMetadata(state, { ...hvcC, type: 'hvcC' }); }
           else if (child.type === 'av1C') { av1C = parseAv1C(child.payload); applyCodecMetadata(state, { ...av1C, type: 'av1C' }); }
           else if (child.type === 'vpcC') { vpcC = parseVpcC(child.payload); applyCodecMetadata(state, { ...vpcC, type: 'vpcC' }); }
@@ -1896,7 +1897,17 @@ export function buildProbeResultFromDoc(
   for (let idx = 0; idx < doc.tracks.length; idx++) {
     const track = doc.tracks[idx]!;
     const materialized = materializeTrackSamples(track);
-    const desc = materialized.codecDescriptions[0];
+    let desc = materialized.codecDescriptions[0];
+    const firstSample = materialized.samples[0];
+    if (firstSample && desc?.h264PictureTiming && desc.fieldOrder !== 'progressive') {
+      const steps = h264FieldOrderSteps({ payloadOffset: 0, payloadSize: firstSample.data.length }, desc.h264PictureTiming);
+      let next = steps.next();
+      while (!next.done) {
+        if (next.value.kind !== 'read') throw new Error('Unexpected H.264 timing step');
+        next = steps.next(firstSample.data.subarray(next.value.offset, next.value.offset + next.value.length));
+      }
+      if (next.value) desc = { ...desc, fieldOrder: next.value };
+    }
     let firstPts = materialized.samples[0]?.pts ?? 0;
     if (track.editList?.length) {
       // Edits place media on the movie timeline; only leading empty edits delay it.

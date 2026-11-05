@@ -42,6 +42,8 @@ export interface ParsedH264Sps {
   readonly maxNumReorderFrames?: number | undefined;
   readonly colorRange?: string | undefined;
   readonly colorSpace?: string | undefined;
+  readonly fieldOrder: "progressive" | "unknown";
+  readonly pictureTiming?: { readonly delayBits: number } | undefined;
 }
 
 const H264_PROFILES: Record<number, string> = {
@@ -198,6 +200,7 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
   let maxNumReorderFrames: number | undefined;
   let colorRange: string | undefined;
   let colorSpace: string | undefined;
+  let pictureTiming: ParsedH264Sps["pictureTiming"];
 
   const vuiPresent = bits.readBit();
   if (vuiPresent && bits.bitsRemaining > 0) {
@@ -239,6 +242,7 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
       }
     }
     let hrdPresent = false;
+    let delayBits = 0;
     // NAL and VCL HRD parameters have the same syntax.
     for (let kind = 0; kind < 2; kind++) {
       if (!bits.readBit()) continue;
@@ -250,10 +254,12 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
         bits.readUE(); // cpb_size_value_minus1
         bits.readBit(); // cbr_flag
       }
-      bits.readBits(20); // delay lengths and time_offset_length
+      bits.readBits(5); // initial_cpb_removal_delay_length_minus1
+      delayBits = bits.readBits(5) + 1 + bits.readBits(5) + 1;
+      bits.readBits(5); // time_offset_length
     }
     if (hrdPresent) bits.readBit(); // low_delay_hrd_flag
-    bits.readBit(); // pic_struct_present_flag
+    if (bits.readBit()) pictureTiming = { delayBits }; // pic_struct_present_flag
     if (bits.readBit()) { // bitstream_restriction_flag
       bits.readBit(); // motion_vectors_over_pic_boundaries_flag
       bits.readUE(); // max_bytes_per_pic_denom
@@ -304,7 +310,9 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
     maxNumRefFrames,
     maxNumReorderFrames,
     colorRange,
-    colorSpace
+    colorSpace,
+    fieldOrder: frameMbsOnlyFlag ? "progressive" : "unknown",
+    pictureTiming
   };
 }
 

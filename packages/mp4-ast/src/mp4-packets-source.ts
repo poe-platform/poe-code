@@ -1,3 +1,4 @@
+import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream, type ProbeSampleStats } from './probe-stream.js';
 import { mp4SourceText, probeMp4MetadataSource } from './mp4-metadata-source.js';
 import { scanMp4CodecDescriptions } from './mp4-codec-source.js';
@@ -218,6 +219,13 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     try {
       for (let i = 0; i < Math.min(depth, count); i++) await decodeSamples!.next();
       for await (const rawSample of reorderSpan > 0 ? frameSamples() : samples()) {
+        if (mode === 'streams' && stats.count === 0 && codec?.h264PictureTiming && codec.fieldOrder !== 'progressive') {
+          const timing = consumeMp4SampleSteps(source, h264FieldOrderSteps({
+            payloadOffset: rawSample.offset, payloadSize: rawSample.size
+          }, codec.h264PictureTiming), sampleOptions);
+          const order = await timing.next();
+          if (order.done && order.value) codec = { ...codec, fieldOrder: order.value };
+        }
         // Map media time to the movie timeline, retaining negative decoder preroll.
         const sample = { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset };
         // AAC packets wholly before the edit's media start only prime the decoder.

@@ -36,9 +36,9 @@ export async function* scanMp4CodecDescriptions(source: MediaProbeSource, range:
                 options.budget?.allocateMemory(spsLength);
                 const sps = new Uint8Array(spsLength);
                 for (let used = 0; used < spsLength; used += 16384) sps.set(await read(child.payloadOffset + 8 + used, Math.min(16384, spsLength - used)), used);
-                applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payloadSize, levelIdc: config[3] ?? 0, sps });
+                applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payloadSize, levelIdc: config[3] ?? 0, nalLengthSize: ((config[4] ?? 3) & 3) + 1, sps });
               } finally { options.budget?.releaseMemory(spsLength); }
-            } else applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payloadSize, levelIdc: config[3] ?? 0 });
+            } else applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payloadSize, levelIdc: config[3] ?? 0, nalLengthSize: ((config[4] ?? 3) & 3) + 1 });
           } else if (child.type === 'hvcC') applyCodecMetadata(state, { ...parseHvcC(await prefix(23)), type: 'hvcC' });
           else if (child.type === 'av1C') applyCodecMetadata(state, { ...parseAv1C(await prefix(4)), type: 'av1C' });
           else if (child.type === 'vpcC') applyCodecMetadata(state, { ...parseVpcC(await prefix(12)), type: 'vpcC' });

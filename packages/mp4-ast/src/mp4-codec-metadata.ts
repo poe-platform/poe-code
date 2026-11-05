@@ -7,7 +7,7 @@ export type Mp4CodecMetadata = Omit<MediaCodecDescription, 'avcC' | 'hvcC' | 'av
 type MutableMetadata = { -readonly [K in keyof Mp4CodecMetadata]: Mp4CodecMetadata[K] };
 export type CodecEntryState = { metadata: MutableMetadata; kind?: 'video' | 'audio'; childOffset?: number };
 export type CodecMetadataChild =
-  | { type: 'avcC'; extradataSize: number; levelIdc: number; sps?: Uint8Array | undefined }
+  | { type: 'avcC'; extradataSize: number; levelIdc: number; nalLengthSize: number; sps?: Uint8Array | undefined }
   | { type: 'hvcC'; generalLevelIdc: number; generalProfileIdc: number; bitDepthLumaMinus8: number }
   | { type: 'av1C'; seqProfile: number; seqLevelIdx0: number; highBitdepth: boolean }
   | { type: 'vpcC'; profile: number; level: number }
@@ -51,6 +51,8 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
       if (child.sps) {
         const sps = parseH264Sps(child.sps);
         metadata.maxNumReorderFrames = sps.maxNumReorderFrames;
+        metadata.fieldOrder = sps.fieldOrder;
+        if (sps.pictureTiming) metadata.h264PictureTiming = { ...sps.pictureTiming, nalLengthSize: child.nalLengthSize };
         metadata.colorRange = sps.colorRange; metadata.colorSpace = sps.colorSpace;
         metadata.profile = sps.profileName; metadata.width = sps.width || metadata.width; metadata.height = sps.height || metadata.height;
         metadata.pixFmt = sps.pixFmt; metadata.sarWidth = sps.sarWidth; metadata.sarHeight = sps.sarHeight;

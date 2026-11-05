@@ -9,7 +9,8 @@ export interface StoredTableMeta {
   name: string;
   tbl_name: string;
   rootpage: number;
-  sql: string;
+  sql: string | null;
+  indexPresorted?: boolean;
   withoutRowId?: boolean;
 }
 
@@ -728,7 +729,7 @@ export function writeSqliteDatabaseBytes(image: StoredDatabaseImage): Uint8Array
       });
     } else if (item.type === "index") {
       const idxRows = image.indexRows?.get(item.name) ?? [];
-      const built = buildIndexPages(idxRows, nextPageNumber);
+      const built = buildIndexPages(idxRows, nextPageNumber, item.indexPresorted);
       extraPageChunks.push(...built.pages);
       nextPageNumber += built.pages.length;
       masterEntries.push({
@@ -774,7 +775,7 @@ export function writeSqliteDatabaseBytes(image: StoredDatabaseImage): Uint8Array
         reMasterEntries.push({ ...item, rootpage: built.rootPage });
       } else if (item.type === "index") {
         const idxRows = image.indexRows?.get(item.name) ?? [];
-        const built = buildIndexPages(idxRows, pNum);
+        const built = buildIndexPages(idxRows, pNum, item.indexPresorted);
         reExtraChunks.push(...built.pages);
         pNum += built.pages.length;
         reMasterEntries.push({ ...item, rootpage: built.rootPage });

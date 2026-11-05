@@ -98,6 +98,7 @@ export interface TableDef {
   primaryKeyCols: string[];
   primaryKeyOrder?: { desc: boolean; collation: string | undefined }[] | undefined;
   uniqueColSets: string[][];
+  implicitIndexes?: { columns: string[]; order: { desc: boolean; collation: string | undefined }[]; primary: boolean }[] | undefined;
   fts5?: boolean | undefined;
   foreignKeys?: ForeignKeyDef[] | undefined;
 }
@@ -182,6 +183,7 @@ function cloneTableDef(t: TableDef): TableDef {
     strict: t.strict,
     primaryKeyCols: [...t.primaryKeyCols],
     primaryKeyOrder: t.primaryKeyOrder?.map((key) => ({ ...key })),
+    implicitIndexes: t.implicitIndexes?.map(index => ({ ...index, columns: [...index.columns], order: index.order.map(key => ({ ...key })) })),
     uniqueColSets: t.uniqueColSets.map((u) => [...u])
   };
 }
@@ -1919,6 +1921,44 @@ export class SqliteDatabase {
         };
       }, this);
       tableRows.set(tbl.name, rows);
+      const indexes: NonNullable<TableDef["implicitIndexes"]> = [];
+      for (const index of tbl.implicitIndexes ?? []) {
+        yield;
+        const columns = index.columns.map(name => tbl.columns.find(column => column.name.toLowerCase() === name.toLowerCase())!);
+        if (index.primary && !tbl.withoutRowId && columns.length === 1 && columns[0]!.type.toUpperCase() === "INTEGER") continue;
+        if (indexes.some(existing => existing.columns.length === index.columns.length && existing.columns.every((name, i) =>
+          name.toLowerCase() === index.columns[i]!.toLowerCase() &&
+          (existing.order[i]?.collation ?? columns[i]!.collate ?? "BINARY").toUpperCase() ===
+          (index.order[i]?.collation ?? columns[i]!.collate ?? "BINARY").toUpperCase()))) continue;
+        indexes.push(index);
+        if (index.primary && tbl.withoutRowId) continue;
+        const name = `sqlite_autoindex_${tbl.name}_${indexes.length}`;
+        const keyColumns = [...columns];
+        const order = [...index.order];
+        if (tbl.withoutRowId) {
+          for (let i = 0; i < tbl.primaryKeyCols.length; i++) {
+            const column = tbl.columns.find(column => column.name.toLowerCase() === tbl.primaryKeyCols[i]!.toLowerCase())!;
+            if (keyColumns.includes(column)) continue;
+            keyColumns.push(column);
+            order.push(tbl.primaryKeyOrder?.[i] ?? { desc: false, collation: column.collate });
+          }
+        }
+        const entries = yield* stepMap(tbl.rows, function* (row) {
+          yield;
+          const values = keyColumns.map(column => row.data[column.name] ?? null);
+          if (!tbl.withoutRowId) values.push(row.rowid);
+          return values;
+        }, this);
+        indexRows.set(name, yield* stepSort(entries, function* (left, right) {
+          for (let i = 0; i < left.length; i++) {
+            yield;
+            const comparison = compareSqlValues(left[i]!, right[i]!, order[i]?.collation ?? keyColumns[i]?.collate ?? "BINARY");
+            if (comparison) return order[i]?.desc ? -comparison : comparison;
+          }
+          return 0;
+        }, this));
+        master.push({ type: "index", name, tbl_name: tbl.name, rootpage: rootPageCounter++, sql: null, indexPresorted: true });
+      }
     }
 
     if ((hasAutoIncTable || seqRows.length > 0) && !this.findTable("sqlite_sequence")) {
@@ -2571,6 +2611,7 @@ export class SqliteDatabase {
       const primaryKeyCols: string[] = [];
       const primaryKeyOrder: NonNullable<TableDef["primaryKeyOrder"]> = [];
       const uniqueColSets: string[][] = [];
+      const implicitIndexes: NonNullable<TableDef["implicitIndexes"]> = [];
       const foreignKeys: ForeignKeyDef[] = [];
 
       for (const part of bodyParts) {
@@ -2631,28 +2672,32 @@ export class SqliteDatabase {
               if (direction === "ASC" || direction === "DESC") pIdx++;
             }
           }
+          implicitIndexes.push({ columns: primaryKeyCols, order: primaryKeyOrder, primary: true });
           continue;
         }
         if (firstWord === "UNIQUE") {
           pIdx += 1;
           const uCols: string[] = [];
+          const order: NonNullable<TableDef["primaryKeyOrder"]> = [];
           if (part[pIdx]?.value === "(") {
-            pIdx += 1;
+            pIdx++;
             while (pIdx < part.length && part[pIdx]?.value !== ")") {
               yield;
-              const colName = part[pIdx]!.value;
-              if (
-                colName !== "," &&
-                colName.toUpperCase() !== "ASC" &&
-                colName.toUpperCase() !== "DESC"
-              ) {
-                uCols.push(colName);
+              if (part[pIdx]!.value === ",") { pIdx++; continue; }
+              uCols.push(part[pIdx++]!.value);
+              let collation: string | undefined;
+              if (part[pIdx]?.value.toUpperCase() === "COLLATE") {
+                collation = part[pIdx + 1]?.value;
+                pIdx += 2;
               }
-              pIdx += 1;
+              const direction = part[pIdx]?.value.toUpperCase();
+              order.push({ desc: direction === "DESC", collation });
+              if (direction === "ASC" || direction === "DESC") pIdx++;
             }
           }
           if (uCols.length > 0) {
             uniqueColSets.push(uCols);
+            implicitIndexes.push({ columns: uCols, order, primary: false });
           }
           continue;
         }
@@ -2669,6 +2714,14 @@ export class SqliteDatabase {
         }
         if (colDef.unique) {
           uniqueColSets.push([colDef.name]);
+        }
+        for (let i = 1; i < part.length; i++) {
+          if (part[i]?.type !== "word") continue;
+          const keyword = part[i]!.value.toUpperCase();
+          if (keyword === "UNIQUE" || (keyword === "PRIMARY" && part[i + 1]?.value.toUpperCase() === "KEY")) {
+            implicitIndexes.push({ columns: [colDef.name], primary: keyword === "PRIMARY",
+              order: [{ desc: keyword === "PRIMARY" && part[i + 2]?.value.toUpperCase() === "DESC", collation: colDef.collate }] });
+          }
         }
       }
 
@@ -2693,6 +2746,7 @@ export class SqliteDatabase {
         primaryKeyCols,
         primaryKeyOrder,
         uniqueColSets,
+        implicitIndexes,
         foreignKeys
       });
       return;

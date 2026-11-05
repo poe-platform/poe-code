@@ -6693,7 +6693,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             if let Some((_,Some(_),prior)) = members.get(name) {
                 progress.push_str(if prior.is_none() { "  adding: " } else if freshen_mode { "freshening: " } else { "updating: " });
                 super::fs::write_display_name(&mut progress,zip_public_text(name),false);
-                if store_failed {progress.push_str(if verbose {" \n"} else {"\n"});return false;}
+                if store_failed {progress.push_str(if verbose && size != 0 {" \n"} else {"\n"});return false;}
                 if verbose {
                     if method != 0 { progress.push(' '); }
                     write!(progress,"\t(in={size}) (out={stored})").unwrap();

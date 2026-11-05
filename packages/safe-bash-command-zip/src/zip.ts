@@ -1209,7 +1209,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
         const updating = (await pendingProgress.get(entry.name))!;
         if (entry.name === invalidStoreName) {
           await flushProgress();
-          if (!parsed.quiet) await budget.output(`${updating ? "updating:" : "  adding:"} -${parsed.verbose ? " " : ""}\n`);
+          if (!parsed.quiet) await budget.output(`${updating ? "updating:" : "  adding:"} -${parsed.verbose && entry.size ? " " : ""}\n`);
           throw new ZipFailure(16, "Invalid command arguments", "zip -0 not supported for I/O on pipes or devices");
         }
         await append(entry, updating);

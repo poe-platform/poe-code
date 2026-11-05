@@ -46,6 +46,18 @@ test('JSON keeps raw JSON subtype, boxed real numbers, bigint and lone surrogate
  assert.equal(output,'[{"x":'+JSON.stringify(value)+',"n":9007199254740993}]\n');
 });
 
+test('JSON REAL values round trip at exponent and rounding boundaries',()=>{
+ const values = [Number.MIN_VALUE, Number.MAX_VALUE, 1e-300, 1e300, 1e-100, 1e100, 0.0001, 0.00001, 999999999999999.5, 1.2345678901234567];
+ for (const value of [...values, ...values.map(value => -value)]) {
+  for (const real of [value, new Number(value)]) {
+   // Bare integral numbers represent INTEGER; boxed numbers retain REAL type.
+   if (typeof real === 'number' && Number.isInteger(real)) continue;
+   const output = [...formatQueryParts({columns:['x'],rows:[[real]]},{...options,mode:'json'})].join('');
+   assert.equal(JSON.parse(output)[0].x, value);
+  }
+ }
+});
+
  test('column widths include null replacement and leave missing columns empty',()=>{
   assert.equal([...formatQueryParts({columns:['x'],rows:[[null],[]]},{...options,mode:'column',nullValue:'long'})].join(''),'x   \n----\nlong\n\n');
  });

@@ -1,5 +1,6 @@
 import {JsonText, toSqlString, type QueryResultSet, type SqlValue} from './engine.js';
 import {sqlQuoteParts} from './stream-output.js';
+import {formatReal} from './real-output.js';
 
 export interface QueryOutputOptions {
   mode: 'list' | 'csv' | 'column' | 'line' | 'json' | 'tabs' | 'html' | 'markdown' | 'box' | 'table' | 'quote' | 'ascii' | 'insert';
@@ -78,7 +79,10 @@ function* jsonString(parts: Iterable<string>): Generator<string> {
 function* jsonValue(value: SqlValue | undefined): Generator<string> {
   if (value instanceof JsonText) yield* textParts(value.valueOf());
   else if (typeof value === 'string' || value instanceof String || value instanceof Uint8Array) yield* jsonString(cellParts(value, ''));
-  else if (value instanceof Number) yield Number.isFinite(value.valueOf()) ? toSqlString(value) : 'null';
+  else if (value instanceof Number || (typeof value === 'number' && !Number.isInteger(value))) {
+    const number = value.valueOf();
+    yield Number.isFinite(number) ? formatReal(number, 20) : 'null';
+  }
   else if (typeof value === 'bigint') yield value.toString();
   else yield JSON.stringify(value ?? null);
 }

@@ -893,6 +893,25 @@ for (const limits of [undefined, { maxInputBytes: Infinity, maxOutputBytes: Infi
 }
 
 // Expected results checked against /usr/bin/sqlite3 3.43.2.
+for (const [mode, expected] of [
+  ["-json", '[{"precise":1.234567890123456691,"small":1.000000000000000082e-05,"large":1.0e+20,"overflow":9223372036854775810.0,"integer":9223372036854775807,"tiny":-9.99999999999999946e-21,"huge":1.000000000000000019e+30,"zero":0.0}]\n'],
+  ["-list", "1.23456789012346|1.0e-05|1.0e+20|9.22337203685478e+18|9223372036854775807|-1.0e-20|1.0e+30|0.0\n"]
+] as const) {
+  test(`sqlite3 REAL precision matches native in ${mode}`, async () => {
+    const sql = "SELECT 1.2345678901234567 AS precise, 1e-5 AS small, 1e20 AS large, 9223372036854775807+1 AS overflow, 9223372036854775807 AS integer, -1e-20 AS tiny, 1e30 AS huge, 0.0 AS zero;";
+    const result = await runSqlite3(createMemoryFileSystem(), [mode, ":memory:", sql]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(evalSyncSqlite3(undefined, [mode, ":memory:", sql]), expected);
+    if (mode === "-json") {
+      const [row] = JSON.parse(result.stdout);
+      assert.equal(row.precise, 1.2345678901234567);
+      assert.equal(row.overflow, 9223372036854775808);
+    }
+  });
+}
+
+// Expected results checked against /usr/bin/sqlite3 3.43.2.
 for (const [label, sql, expected] of [
   ["REAL arithmetic and aggregates", "SELECT 5.0 / 2, 10.0 / 4, CAST(5 AS REAL) / 2, 1.0 + 2.0, TOTAL(NULL), 5 / 2;", "2.5|2.5|2.5|3.0|0.0|2\n"],
   ["NULL boolean truth tables", "WITH t(x) AS (VALUES(NULL),(0),(1)) SELECT a.x AND b.x, a.x OR b.x FROM t a CROSS JOIN t b;", "|\n0|\n|1\n0|\n0|0\n0|1\n|1\n0|1\n1|1\n"],

@@ -1,4 +1,5 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { formatReal } from "./real-output.js";
 import { runSynchronously, runCooperatively, stepMap, stepFlatMap, stepFilter, stepSort, stepReduce, type SqlSteps, type StepResult } from "./execution.js";
 import {
   type SqlValue,
@@ -1221,11 +1222,10 @@ export function toSqlString(v: SqlValue): string {
     return v.toString();
   }
   if (v instanceof Number) {
-    const n = v.valueOf();
-    return Number.isFinite(n) && Number.isInteger(n) ? `${n}.0` : String(Number(n.toPrecision(15)));
+    return formatReal(v.valueOf(), 15);
   }
   if (typeof v === "number") {
-    return Number.isInteger(v) ? String(v) : String(Number(v.toPrecision(15)));
+    return Number.isInteger(v) ? String(v) : formatReal(v, 15);
   }
   const nulIdx = v.indexOf(0);
   const sub = nulIdx === -1 ? v : v.subarray(0, nulIdx);

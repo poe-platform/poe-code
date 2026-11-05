@@ -405,7 +405,7 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
           const codeAttr = code && element(code) ? attr(code) : empty;
           const attributes: Attr = [
             preAttr[0] || codeAttr[0],
-            [...new Set([...preAttr[1], ...codeAttr[1]])],
+            [...new Set([...preAttr[1], ...codeAttr[1]].map(name => name.startsWith("language-") ? name.slice(9) : name))],
             [...preAttr[2], ...codeAttr[2].filter(([key]) => !preAttr[2].some(([k]) => k === key))]
           ];
           result.push({ t: "CodeBlock", c: [attributes, await literal(node)] });

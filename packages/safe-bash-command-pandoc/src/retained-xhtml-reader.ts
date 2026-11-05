@@ -186,7 +186,18 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
         let code = empty; for await (const child of children(p)) {const r = await get(child, F.Count); if (names[r[F.Tag]!] === "code") {code = await attributes(value(r[F.Attributes]!), "code"); break;}}
         const a = []; for await (const v of ast.children(attrs)) a.push(v); const b = []; for await (const v of ast.children(code)) b.push(v);
         const classes = await ast.array(), pairs = await ast.array();
-        for (const source of [a[1]!, b[1]!]) for await (const item of ast.children(source)) {let found = false; for await (const prior of ast.children(classes)) if (await equalText(prior, item)) {found = true; break;} if (!found) await ast.push(classes, item);}
+        for (const source of [a[1]!, b[1]!]) for await (let item of ast.children(source)) {
+          const range = await ast.range(item);
+          let prefix = "";
+          for await (const chunk of ast.text.chunks(range)) {prefix += chunk.slice(0, 9 - prefix.length); if (prefix.length === 9) break;}
+          if (prefix === "language-") item = await ast.string(await ast.text.from((async function* () {
+            let skip = 9;
+            for await (const chunk of ast.text.chunks(range)) {yield chunk.slice(skip); skip = Math.max(0, skip - chunk.length);}
+          })()));
+          let found = false;
+          for await (const prior of ast.children(classes)) if (await equalText(prior, item)) {found = true; break;}
+          if (!found) await ast.push(classes, item);
+        }
         await copy(pairs, a[2]!); for await (const pair of ast.children(b[2]!)) {let found = false; for await (const prior of ast.children(a[2]!)) if (await equalText((await entry(prior))[0]!, (await entry(pair))[0]!)) {found = true; break;} if (!found) await ast.push(pairs, pair);}
         await ast.push(flow, await ast.tag("CodeBlock", await ast.value([[await nonempty(a[0]!) ? a[0]! : b[0]!, classes, pairs], lit])));
       } else if (tag === "ul" || tag === "ol") {

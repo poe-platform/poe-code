@@ -956,7 +956,10 @@ async function applyVideoFilterChain(
       const padding = parseInt(named.padding ?? "0", 10) || 0;
       const margin = parseInt(named.margin ?? "0", 10) || 0;
       const color = parseColorRgba(named.color ?? "black");
-      const perTile = cols * rows;
+      const nbFrames = Number(named.nb_frames ?? 0);
+      const perTile = Number.isInteger(nbFrames) && nbFrames > 0 && nbFrames <= cols * rows
+        ? nbFrames
+        : cols * rows;
       const tiledFrames: MediaVideoFrame[] = [];
       for (let base = 0; base < current.length; base += perTile) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }

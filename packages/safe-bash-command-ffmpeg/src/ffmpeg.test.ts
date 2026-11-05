@@ -13,6 +13,42 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("tile frame grouping", () => {
+  // Native FFmpeg with RGB input: occupied cells are white, unused cells black.
+  for (const [options, occupied] of [
+    ["", [4]],
+    [":nb_frames=0", [4]],
+    [":nb_frames=1", [1, 1, 1, 1]],
+    [":nb_frames=2", [2, 2]],
+    [":nb_frames=3", [3, 1]],
+    [":nb_frames=4", [4]]
+  ] as const) {
+    it(`matches native sheet counts and cells for tile=2x2${options}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=white:s=16x16:r=1:d=4",
+        "-vf", `tile=2x2${options}`, "/out_%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size, occupied.length);
+      for (const [index, count] of occupied.entries()) {
+        const sheet = decodeImage(vfs.store.get(`/out_${index + 1}.png`)!);
+        assert.equal(sheet.width, 32);
+        assert.equal(sheet.height, 32);
+        for (let y = 0; y < 32; y++) {
+          for (let x = 0; x < 32; x++) {
+            const cell = Math.floor(y / 16) * 2 + Math.floor(x / 16);
+            const offset = (y * 32 + x) * 4;
+            const value = cell < count ? 255 : 0;
+            assert.deepEqual([...sheet.data.subarray(offset, offset + 4)], [value, value, value, 255]);
+          }
+        }
+      }
+    });
+  }
+});
+
 describe("tile background", () => {
   for (const [option, background] of [
     ["", [0, 0, 0, 255]],

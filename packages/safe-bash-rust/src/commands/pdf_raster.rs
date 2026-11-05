@@ -471,118 +471,68 @@ impl Bitmap {
             return Some(());
         }
         self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
-        if let Some(mask) = mask {
-            let matrix = [a*scale, -b*scale, -c*scale, d*scale, (e+c-ox)*scale, (top-f-d)*scale];
-            let center = [(xs.start+xs.end) as f64/2., (ys.start+ys.end) as f64/2.];
-            let shape = pdf_cairo_image::Footprint::new(matrix);
-            let color = pdf_cairo_image::sampler(&im, matrix, center);
-            let mask = pdf_cairo_image::sampler(&mask, matrix, center);
-            let mul = |a: u32, b: u32| { let n = a*b+128; (n+(n>>8))>>8 };
-            for y in ys {
-                let coverage = shape.row(y, self.w);
-                let clip = self.clip_row(y, None)?;
-                for x in xs.clone() {
-                    let edge = mul(coverage.alpha(x).into(), clip_coverage(&clip,x).into());
-                    if edge == 0 { continue; }
-                    let alpha = mul(mask(x,y,&mut self.work)?[0].into(), edge);
-                    if alpha == 0 { continue; }
-                    let src = color(x,y,&mut self.work)?;
-                    let dest = &mut self.pixels[y*self.w+x];
-                    let old = u32::from(dest[3]);
-                    let out = alpha + mul(old,255-alpha);
-                    for k in 0..3 {
-                        let premul = mul(src[k].into(),alpha) + mul(mul(dest[k].into(),old),255-alpha);
-                        dest[k] = ((premul*255+out/2)/out).min(255) as u8;
-                    }
-                    dest[3] = out as u8;
+        // Cairo filters premultiplied channels. A PDF color key gives binary
+        // opacity; transparent source samples contribute no color.
+        if im.has_alpha {
+            for p in &mut im.pixels {
+                if p[3] == 0 {
+                    *p = [0; 4];
                 }
             }
-            return Some(());
         }
-        let (mut w, mut h) = (im.width, im.height);
-        let ax = a * scale / w as f64;
-        let ay = b * scale / w as f64;
-        let bx = c * scale / h as f64;
-        let by = d * scale / h as f64;
-        let (s1, s2) = (ax * ax + ay * ay, bx * bx + by * by);
-        let smooth = ((s1 + s2 + (s1 - s2).hypot(2. * (ax * bx + ay * by))) / 2.) as f32 <= 1.;
-        let mut wx = d.hypot(c) * w as f64 / (det * scale).abs();
-        let mut hy = b.hypot(a) * h as f64 / (det * scale).abs();
-        let linear = |pixels: &[[u8; 4]], w: usize, h: usize, x: f64, y: f64| {
-            let (x, y) = (x.clamp(0., (w - 1) as f64), y.clamp(0., (h - 1) as f64));
-            let mut sample = [0.; 4];
-            for j in 0..2 {
-                for i in 0..2 {
-                    let p = pixels[(y as usize + j).min(h - 1) * w + (x as usize + i).min(w - 1)];
-                    let alpha = f64::from(p[3])
-                        * if i == 1 { x.fract() } else { 1. - x.fract() }
-                        * if j == 1 { y.fract() } else { 1. - y.fract() };
-                    for k in 0..3 {
-                        sample[k] += f64::from(p[k]) * alpha;
-                    }
-                    sample[3] += alpha;
-                }
-            }
-            if sample[3] > 0. {
-                for k in 0..3 {
-                    sample[k] /= sample[3];
-                }
-            }
-            sample
+        let matrix = [
+            a * scale,
+            -b * scale,
+            -c * scale,
+            d * scale,
+            (e + c - ox) * scale,
+            (top - f - d) * scale,
+        ];
+        let center = [
+            (xs.start + xs.end) as f64 / 2.,
+            (ys.start + ys.end) as f64 / 2.,
+        ];
+        let shape = pdf_cairo_image::Footprint::new(matrix);
+        let image = pdf_cairo_image::sampler(&im, matrix, center);
+        let mask = mask
+            .as_ref()
+            .map(|m| pdf_cairo_image::sampler(m, matrix, center));
+        let mul = |a: u32, b: u32| {
+            let n = a * b + 128;
+            (n + (n >> 8)) >> 8
         };
-        while wx > 2. && w > 1 || hy > 2. && h > 1 {
-            let nw = if wx > 2. { w.div_ceil(2) } else { w };
-            let nh = if hy > 2. { h.div_ceil(2) } else { h };
-            self.work = self.work.checked_sub(nw * nh)?;
-            let mut level = Vec::with_capacity(nw * nh);
-            for y in 0..nh {
-                for x in 0..nw {
-                    level.push(
-                        linear(
-                            &im.pixels,
-                            w,
-                            h,
-                            (x as f64 + 0.5) * w as f64 / nw as f64 - 0.5,
-                            (y as f64 + 0.5) * h as f64 / nh as f64 - 0.5,
-                        )
-                        .map(|v| v.round() as u8),
-                    );
-                }
-            }
-            wx /= w as f64 / nw as f64;
-            hy /= h as f64 / nh as f64;
-            w = nw;
-            h = nh;
-            im.pixels = level;
-        }
         for y in ys {
+            let coverage = shape.row(y, self.w);
             let clip = self.clip_row(y, None)?;
             for x in xs.clone() {
-                let dy = top - (y as f64 + 0.5) / scale - f;
-                let dx = ox + (x as f64 + 0.5) / scale - e;
-                let (u, v) = ((d * dx - c * dy) / det, (-b * dx + a * dy) / det);
-                if !(0. ..=1.).contains(&u) || !(0. ..=1.).contains(&v) {
+                let mut opacity = mul(coverage.alpha(x).into(), clip_coverage(&clip, x).into());
+                if opacity == 0 {
                     continue;
                 }
-                let (u, v) = (u * w as f64, (1. - v) * h as f64);
-                let s = if smooth {
-                    linear(&im.pixels, w, h, u - 0.5, v - 0.5)
-                } else {
-                    im.pixels[(v as usize).min(h - 1) * w + (u as usize).min(w - 1)].map(f64::from)
-                };
+                if let Some(mask) = &mask {
+                    opacity = mul(mask(x, y, &mut self.work)?[0].into(), opacity);
+                    if opacity == 0 {
+                        continue;
+                    }
+                }
+                let src = image(x, y, &mut self.work)?;
+                let alpha = mul(src[3].into(), opacity);
+                if alpha == 0 {
+                    continue;
+                }
                 let dest = &mut self.pixels[y * self.w + x];
-                let alpha = s[3] / 255. * (f64::from(clip_coverage(&clip,x)) / 255.);
-                if alpha == 0. {
-                    continue;
-                }
-                let remain = f64::from(dest[3]) / 255. * (1. - alpha);
-                let total = alpha + remain;
+                let old = u32::from(dest[3]);
+                let out = alpha + mul(old, 255 - alpha);
                 for k in 0..3 {
-                    dest[k] = ((s[k] / 255. * alpha + f64::from(dest[k]) / 255. * remain) / total
-                        * 255.)
-                        .round() as u8;
+                    let color = if im.stencil {
+                        mul(im.pixels[0][k].into(), alpha)
+                    } else {
+                        mul(src[k].into(), opacity)
+                    };
+                    let premul = color + mul(mul(dest[k].into(), old), 255 - alpha);
+                    dest[k] = ((premul * 255 + out / 2) / out).min(255) as u8;
                 }
-                dest[3] = (total * 255.).round() as u8;
+                dest[3] = out as u8;
             }
         }
         Some(())

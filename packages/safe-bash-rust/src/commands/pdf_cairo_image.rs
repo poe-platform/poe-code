@@ -126,6 +126,14 @@ pub(super) fn sampler(
     move |x, y, work| {
         let (u, v) = (u(x, y), v(x, y));
         let pixel = |x: f64, y: f64| {
+            // Standalone stencils have transparent borders. Poppler fills the
+            // rectangle directly for a one-pixel stencil.
+            if image.stencil
+                && (image.width != 1 || image.height != 1)
+                && (x < 0. || x >= w || y < 0. || y >= h)
+            {
+                return [0; 4];
+            }
             image.pixels[(y as usize).min(image.height - 1) * image.width
                 + (x as usize).min(image.width - 1)]
         };

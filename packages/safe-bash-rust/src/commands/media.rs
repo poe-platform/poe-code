@@ -16886,6 +16886,37 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftocairo_filters_standalone_images_in_device_space() {
+        let fs = MemoryVfs::new();
+        // Full RGBA output from Poppler 24.02 on a transparent page.
+        for (kind, width, height, matrix, expected) in [
+            ("rgb", 24usize, 16, "7 0 0 5 3 5", "2321940c9a26c4b5085d1a6d8fa98d17d9ef8d488d9225533c77df47f720bc28"),
+            ("rgb", 4, 3, "2 7 -8 1 17 8", "bd2c27f4c9a62d6818b4841225271215d9e2b8e223abf6f647dad37d2eafe705"),
+            ("key", 24, 16, "2 7 -8 1 17 8", "748511e55605702e4a295d7f168676ebc6554a36f180faa1fc66509f36ca57ed"),
+            ("stencil", 4, 3, "12 0 0 7 3.25 6.375", "5ad4043a9c0eeb61855f3c0bfb3de18d7f6a3db82ed1792adb30bb608912ff68"),
+            ("stencil", 1, 1, "2 7 -8 1 17 8", "8ce5caa02c89288896451e96ed903061fb3f1cedf9c49fb676b269ac3c637ca0"),
+        ] {
+            let stencil = kind == "stencil";
+            let count = if stencil { width.div_ceil(8) * height } else { 3 * width * height };
+            let pixels: Vec<_> = (0..count).map(|i| if stencil { (i*37+i/3) as u8 } else { (i*23+i/7) as u8 }).collect();
+            let encoded = format!("{}>", hex_enc(&pixels));
+            let dict = if stencil { "/ImageMask true" } else if kind == "key" {
+                "/BitsPerComponent 8 /ColorSpace /DeviceRGB /Mask [0 127 0 160 0 180]"
+            } else { "/BitsPerComponent 8 /ColorSpace /DeviceRGB" };
+            let draw = format!("q 0.2 0.4 0.8 rg {matrix} cm /A Do Q");
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream",draw.len()),
+                &format!("<< /Type /XObject /Subtype /Image /Width {width} /Height {height} {dict} /Filter /ASCIIHexDecode /Length {} >>\nstream\n{encoded}\nendstream",encoded.len())], "");
+            fs.write_file("/image.pdf",pdf.as_bytes()).unwrap();
+            let r=cmd_media_doc("pdftocairo",&media_args(&["-png","-singlefile","-transp","-r","72","image.pdf","page"]), "", "/", &fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let png=png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(png.pixels.as_flattened())),expected,"{kind} {matrix}");
+        }
+    }
+
+    #[test]
     fn pdf_explicit_mask_uses_parent_id_and_its_own_resolution() {
         let fs = MemoryVfs::new();
         let image = "abcdefghijklmnopqrstuvwx0123456789AB";

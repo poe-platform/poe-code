@@ -556,7 +556,8 @@
             "@noble/hashes": "2.4.0",
             "safe-bash-io-engine": "*",
             "@poe-code/json-ast": "*",
-            "@poe-code/office-xml": "*"
+            "@poe-code/office-xml": "*",
+            "highlight.js": "^11.11.1"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",

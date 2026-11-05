@@ -18,7 +18,7 @@ for (const entry of await readdir(packages, { withFileTypes: true })) {
 }
 const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
 const external = Object.keys({ ...manifest.dependencies, ...manifest.devDependencies }).filter(name => workspaceNames.has(name));
-const notices = await Promise.all(["fengari", "sprintf-js", "citeproc"].map(async name =>
+const notices = await Promise.all(["fengari", "sprintf-js", "citeproc", "highlight.js"].map(async name =>
   readFile(path.join(path.dirname(require.resolve(name + "/package.json")), "LICENSE"), "utf8")));
 
 // Prepare portable adapters and embed third-party parsers. First-party engines

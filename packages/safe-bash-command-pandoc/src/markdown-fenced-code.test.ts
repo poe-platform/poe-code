@@ -27,8 +27,8 @@ for (const retained of [false, true]) {
     }
     const html = await render('```{.python #demo .numberLines title="A sample"}\nprint(1)\n```\n', "markdown", "html");
     expect(html).toContain('id="demo"');
-    expect(html).toContain('class="python numberLines"');
-    expect(html).toContain('print(1)');
+    expect(html).toContain('class="sourceCode python numberSource"');
+    expect(html).toContain('<span class="bu">print</span>(<span class="dv">1</span>)');
   });
   it.each(["commonmark", "gfm", "markdown-fenced_code_attributes"])(`keeps default info semantics for %s (retained=${retained})`, async from => {
     expect(JSON.parse(await render('```{.python #demo}\nprint(1)\n```\n', from)).blocks[0].c[0]).toEqual(["", ["{.python"], []]);

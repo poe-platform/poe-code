@@ -39,9 +39,14 @@ it("writes nested formatting, quotes, citations, multilingual text and meaningfu
 });
 it("preserves empty and code-only documents with text escaping separate from attribute escaping", async () => {
   expect(await html([])).toBe("");
-  const expected = '<pre><code id="a&quot;&amp;" class="html">&lt;b x="y"&gt;&amp;\n  z\n</code></pre>\n';
+  const text = '<b x="y">&\n  z\n';
   const actual = await html([{t: "CodeBlock", c: [[ 'a"&', ["html"], []], '<b x="y">&\n  z\n']}]);
-  dom(actual, expected); expect(actual).toBe(expected);
+  function content(node: DefaultTreeAdapterMap["node"]): string {
+    return "value" in node ? node.value : "childNodes" in node ? node.childNodes.map(content).join("") : "";
+  }
+  expect(content(parseFragment(actual))).toBe(text + "\n");
+  expect(actual).toContain('id="a&quot;&amp;"');
+  expect(actual).toContain('class="sourceCode xml"');
 });
 it("preserves list starts and tightness, nested blocks, definitions, lines and figures", async () => {
   const actual = await html([{t: "OrderedList", c: [[4, "LowerRoman", "Period"], [[{t: "Plain", c: [s("tight")]}], [p(s("loose"))]]]},
@@ -108,10 +113,10 @@ it("preserves carriage returns in DOM text and attributes; rejects unrepresentab
   await expect(html([p(s("a\0b"))])).rejects.toMatchObject({code: "E_CAPABILITY"});
 });
 it("covers original HTML corpus obligations for plain code, empty definitions and heading attributes", async () => {
-  const blocks: Block[] = [{t: "CodeBlock", c: [a, '<x>\n']}, {t: "CodeBlock", c: [["", ["haskell"], []], 'x < y & z']},
+  const blocks: Block[] = [{t: "CodeBlock", c: [a, '<x>\n']}, {t: "CodeBlock", c: [["", ["unknown-language"], []], 'x < y & z']},
     {t: "DefinitionList", c: [[[], [[{t: "Plain", c: [s("empty term")]}]]]]},
     {t: "Header", c: [3, ["safe", [], [["lang", "日本語"], ["data-label", '"<&']]], [s("heading")]]}];
-  const expected = '<pre><code>&lt;x&gt;\n</code></pre>\n<pre><code class="haskell">x &lt; y &amp; z</code></pre>\n<dl>\n<dt></dt>\n<dd>empty term</dd>\n</dl>\n<h3 id="safe" lang="日本語" data-label="&quot;&lt;&amp;">heading</h3>\n';
+  const expected = '<pre><code>&lt;x&gt;\n</code></pre>\n<pre><code class="unknown-language">x &lt; y &amp; z</code></pre>\n<dl>\n<dt></dt>\n<dd>empty term</dd>\n</dl>\n<h3 id="safe" lang="日本語" data-label="&quot;&lt;&amp;">heading</h3>\n';
   const actual = await html(blocks); expect(actual).toBe(expected); dom(actual, expected);
   await expect(html([{t: "Header", c: [2, ["", [], [["onclick", "x"]]], [s("x")]]}])).rejects.toMatchObject({code: "E_CAPABILITY"});
 });

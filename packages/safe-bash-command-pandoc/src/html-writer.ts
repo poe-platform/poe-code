@@ -1,3 +1,4 @@
+import {codeLanguage, highlightCode, highlightCss} from "./html-highlight.js";
 import { taskListItemState, taskListState } from "./task-list.js";
 import type { Alignment, Attr, Block, Caption, ColSpec, Inline, MetaValue, Row } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
@@ -12,6 +13,8 @@ const formatting = {Emph: "em", Underline: "u", Strong: "strong", Strikeout: "de
 class HtmlWriter {
   private readonly chunks: string[] = [];
   private length = 0;
+  private codeCount = 0;
+  private highlighted = false;
   private readonly reserved = new Set<string>();
   private readonly embeddedResources = new Map<string, Uint8Array>();
   private readonly headings = new Set<string>();
@@ -82,7 +85,10 @@ class HtmlWriter {
     if(Array.isArray(value)) {
       if(value.length === 3 && typeof value[0] === "string" && Array.isArray(value[1]) && Array.isArray(value[2]) && value[0]) this.reserved.add(value[0]);
       for(const child of value) this.reserve(child);
-    } else for(const child of Object.values(value)) this.reserve(child);
+    } else {
+      if ("t" in value && value.t === "CodeBlock") this.highlighted ||= !!codeLanguage((value as Extract<Block, {t: "CodeBlock"}>).c[0][1]);
+      for(const child of Object.values(value)) this.reserve(child);
+    }
   }
   unique(base: string, used = this.reserved): string {
     let id = base, suffix = 1;
@@ -222,7 +228,29 @@ class HtmlWriter {
           if (node.t === "Para") this.add("</p>\n");
           break;
         }
-        case "CodeBlock": this.add("<pre><code"); this.attrs(node.c[0]); this.add(">"); this.escape(node.c[1]); this.add("</code></pre>\n"); break;
+        case "CodeBlock": {
+          const [attr, source] = node.c, language = codeLanguage(attr[1]);
+          if (!language) {this.add("<pre><code"); this.attrs(attr); this.add(">"); this.escape(source); this.add("</code></pre>\n"); break;}
+          const id = attr[0] || this.unique(`cb${++this.codeCount}`);
+          this.add('<div class="sourceCode"'); this.attribute("id", id); this.add("><pre");
+          const classes = ["sourceCode", ...attr[1].map(name => name === "numberLines" ? "numberSource" : codeLanguage([name]) === language ? language : name)];
+          this.attrs(["", classes, attr[2]]); this.add('><code'); this.attribute("class", `sourceCode ${language}`); this.add(">");
+          let line = 0, open = false;
+          for (const token of highlightCode(source, language, this.context)) {
+            const parts = token.text.split("\n");
+            for (const [index, part] of parts.entries()) {
+              if (index) {if (open) this.add("</span>"); this.add("\n"); open = false;}
+              if (!part && index === parts.length - 1) continue;
+              if (!open) {
+                const anchor = this.unique(`${id}-${++line}`);
+                this.add("<span"); this.attribute("id", anchor); this.add("><a"); this.attribute("href", `#${anchor}`); this.add(' aria-hidden="true" tabindex="-1"></a>'); open = true;
+              }
+              if (part) {if (token.kind) this.add(`<span class="${token.kind}">`); this.escape(part); if (token.kind) this.add("</span>");}
+            }
+          }
+          if (open) this.add("</span>");
+          this.add("</code></pre></div>\n"); break;
+        }
         case "RawBlock":
           if (this.context.rawContent === undefined && ["html", "html5"].includes(node.c[0])) this.add(node.c[1]);
           else this.raw(node.c[0], node.c[1], p);
@@ -320,7 +348,7 @@ class HtmlWriter {
     if(dir !== undefined && !["ltr", "rtl", "auto"].includes(dir)) this.fail("Invalid dir metadata", undefined, "E_OPTION");
     if(this.context.standalone) {
       this.add('<!DOCTYPE html>\n<html'); if(lang !== undefined) this.attribute("lang", lang); if(dir !== undefined) this.attribute("dir", dir);
-      this.add('>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'); this.escape(title); this.add("</title>\n</head>\n<body>\n");
+      this.add('>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'); this.escape(title); this.add("</title>\n"); if (this.highlighted) this.add(highlightCss); this.add("</head>\n<body>\n");
     }
     if (this.context.toc && this.context.standalone) await this.contents();
     await this.blocks(document.blocks, "$.blocks");

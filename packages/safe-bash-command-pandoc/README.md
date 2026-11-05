@@ -93,7 +93,12 @@ assets: `--list-highlight-languages`, `--list-highlight-styles`,
 `--print-highlight-style STYLE` (all eight listed styles),
 `-D html` / `--print-default-template=html5`, and
 `--print-default-data-file=abbreviations` (also `templates/default.html5`).
-These static assets do not enable template conversion or syntax highlighting.
+HTML output highlights recognized fenced code languages by default, with line
+anchors and styles in standalone documents. Unknown languages remain plain code.
+Highlighting uses Highlight.js grammars with Pandoc token classes; token boundaries
+can differ from native Pandoc's Skylighting grammars. Highlighted blocks are held
+in memory individually, including when the rest of the document uses working files.
+The static inspection assets do not enable template conversion.
 Other templates/data files are unavailable; inspection never reads user files.
 `--completion=bash` and `--bash-completion` emit Bash completion for the
 TypeScript converter's supported options and configured format registry.

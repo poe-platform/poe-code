@@ -1,3 +1,4 @@
+import {codeLanguage, highlightCode, highlightCss} from "./html-highlight.js";
 import type {RetainedDocumentSidecars} from "./retained-json.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {RetainedOptions} from "./retained-options.js";
@@ -34,6 +35,8 @@ class HtmlTape {
   private readonly notes: IntegerTable;
   private sectionCount = 0;
   private noteCount = 0;
+  private codeCount = 0;
+  private highlighted = false;
   private readonly counters = [0, 0, 0, 0, 0, 0];
   constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
     private readonly context: ExecutionContext, private readonly options: ConversionOptions, private readonly resource?: HtmlResource, private readonly sidecars?: RetainedDocumentSidecars) {
@@ -137,11 +140,19 @@ class HtmlTape {
     for await (const child of this.tree.children(node)) if (await this.matches(child, value)) return true;
     return false;
   }
-  private async attrs(node: number, id?: TextRange): Promise<void> {
+  private async language(attrs: number): Promise<string | undefined> {
+    for await (const child of this.tree.children(await this.at(attrs, 1))) {
+      const name = await this.tree.smallText(child, 64), language = name === undefined ? undefined : codeLanguage([name]);
+      if (language) return language;
+    }
+    return undefined;
+  }
+  private async attrs(node: number, id?: TextRange, codeClass?: string): Promise<void> {
     id ??= await this.scalar(await this.at(node, 0));
     if (id.units) await this.attribute("id", id);
     const classes = await this.at(node, 1), entries = await this.at(node, 2);
-    if (await this.count(classes)) {
+    if (codeClass) await this.attribute("class", codeClass);
+    else if (await this.count(classes)) {
       const value = emptyText(); let count = 0;
       for await (const child of this.tree.children(classes)) {
         if (count++) await this.text.append(value, await this.text.from([" "]));
@@ -390,7 +401,36 @@ class HtmlTape {
         const skip = task ? {cursor: (await this.tree.describe(await this.at(content!, 1))).end, index: 2} : {};
         await this.sequence(this.list(content!, cp, "inline", skip), this.literal((task ? "</label>" : "") + (tag === "Para" ? "</p>\n" : "")));
       } else if (tag === "CodeBlock") {
-        await this.add("<pre><code"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.escape(await this.scalar(await this.at(content!, 1))); await this.add("</code></pre>\n");
+        const attrs = await this.at(content!, 0), language = await this.language(attrs), code = await this.at(content!, 1);
+        if (!language) {await this.add("<pre><code"); await this.attrs(attrs); await this.add(">"); await this.escape(await this.scalar(code)); await this.add("</code></pre>\n"); continue;}
+        let id = await this.scalar(await this.at(attrs, 0));
+        if (!id.units) id = await this.unique(await this.text.from([`cb${++this.codeCount}`]));
+        await this.add('<div class="sourceCode"'); await this.attribute("id", id); await this.add("><pre");
+        let classes = "sourceCode";
+        for await (const child of this.tree.children(await this.at(attrs, 1))) {
+          let name = "";
+          for await (const chunk of this.tree.scalarChunks(child)) {this.context.charge("retainedBytes", chunk.length * 2); name += chunk;}
+          classes += " " + (name === "numberLines" ? "numberSource" : codeLanguage([name]) === language ? language : name);
+        }
+        await this.attrs(attrs, emptyText(), classes); await this.add('><code'); await this.attribute("class", `sourceCode ${language}`); await this.add(">");
+        let source = "";
+        for await (const chunk of this.tree.scalarChunks(code)) {await this.context.cooperate(chunk.length); this.context.charge("retainedBytes", chunk.length * 2); source += chunk;}
+        let line = 0, open = false;
+        for (const token of highlightCode(source, language, this.context)) {
+          const parts = token.text.split("\n");
+          for (const [index, part] of parts.entries()) {
+            if (index) {if (open) await this.add("</span>"); await this.add("\n"); open = false;}
+            if (!part && index === parts.length - 1) continue;
+            if (!open) {
+              const base = await this.text.from(this.text.chunks(id)); await this.text.append(base, await this.text.from([`-${++line}`]));
+              const anchor = await this.unique(base), href = await this.text.from(["#"]); await this.text.append(href, anchor);
+              await this.add("<span"); await this.attribute("id", anchor); await this.add("><a"); await this.attribute("href", href); await this.add(' aria-hidden="true" tabindex="-1"></a>'); open = true;
+            }
+            if (part) {if (token.kind) await this.add(`<span class="${token.kind}">`); await this.escape(part); if (token.kind) await this.add("</span>");}
+          }
+        }
+        if (open) await this.add("</span>");
+        await this.add("</code></pre></div>\n");
       } else if (tag === "RawBlock") {
         if (this.options.rawContent === undefined && ["html", "html5"].includes(await this.tree.smallText(await this.at(content!, 0), 5) ?? "")) {
           await this.add(await this.scalar(await this.at(content!, 1)));
@@ -489,6 +529,12 @@ class HtmlTape {
     const end = (await this.tree.describe(blocks)).end;
     for (let position = blocks; position < end;) {
       const header = await this.tree.describe(position); await this.context.cooperate();
+      if (header.kind === "object" && this.options.standalone && !this.highlighted) {
+        const tag = await this.tree.property(position, "t");
+        if (tag !== undefined && await this.tree.smallText(tag, 9) === "CodeBlock") {
+          this.highlighted = !!await this.language(await this.at((await this.tree.property(position, "c"))!, 0));
+        }
+      }
       if (header.kind === "array" && header.children === 3) {
         const id = position + 32, classes = (await this.tree.describe(id)).end, entries = (await this.tree.describe(classes)).end;
         if ((await this.tree.describe(id)).kind === "string" && (await this.tree.describe(classes)).kind === "array" && (await this.tree.describe(entries)).kind === "array") {
@@ -518,7 +564,7 @@ class HtmlTape {
     }
     if (this.options.standalone) {
       await this.add('<!DOCTYPE html>\n<html'); if (lang) await this.attribute("lang", lang); if (dir) await this.attribute("dir", dir);
-      await this.add('>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'); await this.escape(title); await this.add("</title>\n</head>\n<body>\n");
+      await this.add('>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'); await this.escape(title); await this.add("</title>\n"); if (this.highlighted) await this.add(highlightCss); await this.add("</head>\n<body>\n");
     }
     if (this.options.toc && this.options.standalone) await this.contents();
     await this.push(this.list(blocks, await this.path(0, "$.blocks"), "block")); await this.run();

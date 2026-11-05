@@ -156,7 +156,9 @@ export async function assembleRetainedCommonMark(
       const syntax = new RetainedCommonMarkSyntax(source, block.info, context), decoded = await source.append(syntax.decoded(block.info)), info = await source.trim(decoded);
       const space = await source.find(info, " "), name = {start: info.start, end: space < 0 ? info.end : space}, classes = await ast.array();
       if (name.end > name.start) await ast.push(classes, await literal(name));
-      await ast.push(out, await ast.tag("CodeBlock", await ast.value([["", classes, []], await literal(await parser.joined(current, ""))])));
+      const range = await parser.joined(current, "");
+      if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;
+      await ast.push(out, await ast.tag("CodeBlock", await ast.value([["", classes, []], await literal(range)])));
     } else if (block.kind === "table") await ast.push(out, await table(current));
     else if (block.kind === "quote" || block.kind === "list") {
       const children = await ast.array();

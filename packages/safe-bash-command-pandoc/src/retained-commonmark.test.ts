@@ -5,6 +5,39 @@ import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
 import {createLuaFilterCapability} from "./lua-filters.js";
 
+const codeBlocks = [
+  {text: "```\nabc\n```", code: "abc"},
+  {text: "```\na\nb\n```", code: "a\nb"},
+  {text: "```\na\n\n```", code: "a\n"},
+  {text: "```\na\n\n\n```", code: "a\n\n"},
+  {text: "```\n```", code: ""},
+  {text: "```\n\n```", code: ""},
+  {text: "```\nabc", code: "abc"},
+  {text: "```\r\na\r\nb\r\n```", code: "a\nb"},
+  {text: "    abc\n", code: "abc"},
+  {text: "    a\n    b\n", code: "a\nb"},
+  {text: "    a\n\n    b\n\n", code: "a\n\nb"},
+  {text: "    abc", code: "abc"},
+];
+for (const retained of [false, true]) {
+  it.each(codeBlocks)(`matches Pandoc code block JSON (retained=${retained}) for $text`, async ({text, code}) => {
+    const input = {bytes: new TextEncoder().encode(text)}, options = {from: "commonmark", to: "json"};
+    let output = "";
+    if (retained) {
+      const fs = new MemoryFileSystem();
+      await convertToOutput([input], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+        async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}
+      }});
+      expect(await fs.readdir("/")).toEqual([]);
+    } else {
+      const result = await convert([input], options, {});
+      expect(result.kind).toBe("text");
+      if (result.kind === "text") output = result.text;
+    }
+    expect(JSON.parse(output).blocks).toEqual([{t: "CodeBlock", c: [["", [], []], code]}]);
+  });
+}
+
 const samples = [
   "---\na: { ? [one, two]: value }\n---\nbody",
   "---\nvalue: [null, !!merge '<<', !!timestamp 2001-12-15]\n---\nbody",

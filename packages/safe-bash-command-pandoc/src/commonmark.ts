@@ -77,7 +77,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
         case "html": result.push({ t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal] }); break;
         case "code": {
           const info = decodeSyntax(block.info, context).trim().split(" ")[0];
-          result.push({ t: "CodeBlock", c: [["", info ? [info] : [], []], block.literal] });
+          result.push({ t: "CodeBlock", c: [["", info ? [info] : [], []], block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal] });
           break;
         }
         case "quote": result.push({ t: "BlockQuote", c: await assemble(block.blocks, depth + 1) }); break;

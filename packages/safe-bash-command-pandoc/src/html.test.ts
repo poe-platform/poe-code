@@ -163,14 +163,13 @@ it("constructs original figure and malformed table AST with caption and cell spa
           ["AlignDefault", { t: "ColWidthDefault" }],
           ["AlignDefault", { t: "ColWidthDefault" }]
         ],
-        [empty, []],
+        [empty, [[empty, [cell("H", 1, 2)]]]],
         [
           [
             empty,
             0,
             [],
             [
-              [empty, [cell("H", 1, 2)]],
               [empty, [cell("A", 2), cell("B")]],
               [empty, [cell("C")]]
             ]

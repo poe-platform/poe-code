@@ -1,3 +1,4 @@
+import { checkLinearization } from "./linearization-check.js";
 import { linearizationReport } from "./linearization-report.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { PdfError, cosDict, dictGet, readCosXrefRevision, scanCosRangeObjects, type PdfCosDict, PdfFileSource, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
@@ -65,10 +66,9 @@ async function firstDictionary(document: PdfRetainedDocument, source: PdfFileSou
 }
 
 export async function* linearizationParts(document: PdfRetainedDocument, source: PdfFileSource, storage: PdfIndexStorage,
-  filename: string | undefined, pageCount: number, signal: AbortSignal, mode: "show" | "check" | "both"): AsyncGenerator<string> {
+  filename: string | undefined, pageCount: number, signal: AbortSignal, mode: "show" | "check" | "both" | "inspect", warnings: string[]): AsyncGenerator<string> {
   const dict = await firstDictionary(document, source, storage, signal);
-  if (!dict) { yield `${filename ?? "empty"} is not linearized\n`.repeat(mode === "both" ? 2 : 1); return; }
-  if (mode !== "show") { yield `${filename ?? "empty"}: no linearization errors\n`; if (mode === "check") return; }
+  if (!dict) { if (mode === "inspect") return; yield `${filename ?? "empty"} is not linearized\n`.repeat(mode === "both" ? 2 : 1); return; }
   async function number(key: string, fallback = 0) {
     const node = (await document.lookup(dictGet(dict!, key)))?.value; return node?.kind === "number" ? node.value : fallback;
   }
@@ -88,6 +88,33 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
       sharedOffset = shared?.kind === "number" ? shared.value : 0; outlineOffset = outline?.kind === "number" ? outline.value : undefined;
       decoded = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(entry.objectNumber, entry.generationNumber ?? 0), { signal });
       break;
+    }
+    if (mode !== "show") {
+      let mainXref = document.crossReference.xrefOffset;
+      const prev = dictGet(document.crossReference.trailer, "Prev");
+      if (prev?.kind === "number") mainXref = prev.value;
+      const validation = checkLinearization(values, source.size, await number("N"), decoded?.size ?? 0, sharedOffset, mainXref, outlineOffset);
+      let step = validation.next();
+      const pages = document.pages();
+      try {
+        while (!step.done) {
+          signal.throwIfAborted();
+          const request = step.value;
+          let bytes: Uint8Array = new Uint8Array();
+          if (!("kind" in request)) bytes = await decoded!.read(request.offset, request.length, signal);
+          else if (request.kind === "file") bytes = await source.read(request.offset, request.length, signal);
+          else {
+            const number = request.kind === "page" ? (await pages.next()).value?.reference?.objectNumber : request.number;
+            const entry = number === undefined ? undefined : await document.crossReference.index.get(number, signal);
+            const object = entry?.type === "uncompressed" ? await document.objects.get(number!, entry.generationNumber ?? 0) : undefined;
+            if (object) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
+          }
+          step = validation.next(bytes);
+        }
+      } finally { await pages.return(undefined); }
+      if (step.value) warnings.push(step.value);
+      else if (mode !== "inspect") yield `${filename ?? "empty"}: no linearization errors\n`;
+      if (mode === "check" || mode === "inspect") return;
     }
     const report = linearizationReport(filename ?? "empty", values, decoded?.size ?? 0, sharedOffset, outlineOffset);
     let step = report.next();

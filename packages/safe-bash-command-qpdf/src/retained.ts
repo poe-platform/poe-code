@@ -218,10 +218,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
         return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
       }
-      if (options.showLinearization) {
-        const parts = linearizationParts(document, source, storage, inputName, count, signal, options.showLinearization);
+      const linearizationWarnings: string[] = [];
+      if (options.showLinearization || options.check) {
+        const parts = linearizationParts(document, source, storage, inputName, count, signal, options.showLinearization || "inspect", linearizationWarnings);
         await publishInspection((async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })());
-        return { exitCode: 0 };
+        if (linearizationWarnings.length) await writeBytes(context.stderr, new TextEncoder().encode(`WARNING: ${inputName ?? "empty"}: ${linearizationWarnings[0]}\nqpdf: operation succeeded with warnings\n`), signal);
+        if (options.showLinearization) return { exitCode: linearizationWarnings.length && !options.warningExit0 ? 3 : 0 };
       }
       if (!options.check && (options.showPages || ((options.showObject || options.showXref) && !options.showNpages && !options.showEncryption))) {
         const number = options.showObject?.objNum ?? NaN, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
@@ -247,13 +249,13 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       const encryption = document.encryption;
       const message = options.check
-        ? `checking ${inputName ?? "empty"}\nPDF Version: ${document.crossReference.version}\nFile is ${encryption ? "encrypted" : "not encrypted"}\nFile is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n`
+        ? `checking ${inputName ?? "empty"}\nPDF Version: ${document.crossReference.version}\nFile is ${encryption ? "encrypted" : "not encrypted"}\nFile is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\n${linearizationWarnings.length ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`
         : options.showNpages ? `${count}\n`
         : encryptionReport(encryption);
       const bytes = new TextEncoder().encode(message);
       if (bytes.length > limits.maxOutputBytes) throw new RangeError("Output byte limit exceeded");
       await writeBytes(context.stdout, bytes, signal);
-      return { exitCode: 0 };
+      return { exitCode: linearizationWarnings.length && !options.warningExit0 ? 3 : 0 };
     }
     if (options.jsonVersion !== undefined) {
       try { editedGraph = await editRetainedDocument(document, storage, { ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), signal }); }

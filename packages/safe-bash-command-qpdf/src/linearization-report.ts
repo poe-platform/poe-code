@@ -5,7 +5,7 @@ type Bits = Generator<{ offset: number; length: number }, number, Uint8Array>;
 
 /** Hint tables store columns of bit-packed values, with each column byte-aligned.
  * Independent cursors let us print rows without retaining a page-sized array. */
-class HintBits {
+export class HintBits {
   position: number;
   private bytes: Uint8Array = new Uint8Array(0);
   private start = 0;
@@ -37,7 +37,7 @@ export function* linearizationReport(filename: string, values: Record<string, nu
   const adjusted = (offset: number) => offset >= values.H_offset! ? offset + values.H_length! : offset;
   yield `${filename}: linearization data:\n\n`;
   for (const key of ["file_size", "first_page_object", "first_page_end", "npages", "xref_zero_offset", "first_page", "H_offset", "H_length"]) yield `${key}: ${values[key]}\n`;
-  // Historical validation accepts dictionaries without a usable hint stream.
+  // Display partial dictionaries even when no hint stream is available.
   if (!size) return;
   yield "\nPage Offsets Hint Table\n\n";
   const page = new HintBits(size), header: Record<string, number> = {};

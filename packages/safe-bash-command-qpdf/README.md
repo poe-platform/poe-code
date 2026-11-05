@@ -62,7 +62,9 @@ caller-backed graph, preserving indirect values between transformations.
 
 `--show-linearization` prints the linearization dictionary fields and decoded page,
 shared-object, and outline hint tables. `--check-linearization` prints the validation
-result. Both preserve revision and repair ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
+result after checking file offsets and page/shared-object hint tables. Malformed
+linearization produces warnings and exit code `3` in both `--check-linearization`
+and `--check`; `--warning-exit-0` keeps the warnings but returns `0`. Both preserve revision and repair ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
 through caller-backed object and page indexes, preserving repair and password
 diagnostics without collecting input payloads. `--is-encrypted` and
 `--requires-password` scan retained input in bounded chunks and validate supplied

@@ -37,17 +37,17 @@ const containers = new Set([
   "div",
   "main",
   "section",
-  "article",
   "aside",
   "header",
-  "footer",
-  "nav",
   "address",
   "form",
   "fieldset"
 ]);
 const blocks = new Set([
   ...containers,
+  "article",
+  "footer",
+  "nav",
   "details",
   "summary",
   "p",
@@ -388,7 +388,7 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
           while (c.at(-1)?.t === "Space") c.pop();
           return c;
         };
-        if (tag === "details") {
+        if (["details", "article", "footer", "nav"].includes(tag)) {
           for (const block of await flow(node.childNodes)) result.push(block);
         } else if (tag === "summary") {
           result.push({ t: "Para", c: await inlineContent() });

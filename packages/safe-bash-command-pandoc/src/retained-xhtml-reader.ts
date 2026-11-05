@@ -8,8 +8,8 @@ import {PandocError} from "./errors.js";
 import type {AdapterContext} from "./types.js";
 
 const xhtml = "http://www.w3.org/1999/xhtml";
-const containers = new Set(["div", "main", "section", "article", "aside", "header", "footer", "nav", "address", "form", "fieldset"]);
-const blocks = new Set([...containers, "details", "summary", "p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "figure", "figcaption", "table", "dl", "dt", "dd"]);
+const containers = new Set(["div", "main", "section", "aside", "header", "address", "form", "fieldset"]);
+const blocks = new Set([...containers, "article", "footer", "nav", "details", "summary", "p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "figure", "figcaption", "table", "dl", "dt", "dd"]);
 const dropped = new Set(["head", "script", "style", "iframe", "object", "embed", "template", "noscript", "svg", "math", "base", "link", "meta", "input", "source", "track"]);
 const styles = {em: "Emph", i: "Emph", b: "Strong", strong: "Strong", u: "Underline", s: "Strikeout", del: "Strikeout", strike: "Strikeout", sup: "Superscript", sub: "Subscript"} as const;
 const names = ["", "#text", "html", "body", "br", "code", "tt", "samp", "var", "img", "a", "span", "caption", "thead", "tbody", "tfoot", "tr", "td", "th", "abbr", "bdi", "bdo", "mark", "time", "label", "small", "big", "dfn", "kbd", ...blocks, ...dropped, ...Object.keys(styles)];
@@ -180,7 +180,7 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
       else if (tag === "a" && await (async () => {for await (const pair of ast.children(raw)) if (await same((await entry(pair))[0]!, "href")) return true; return false;})()) await ast.push(inlines, await ast.tag("Link", await ast.value([await attributes(raw, tag, ["href", "title"]), content, [await lookup(raw, "href"), await lookup(raw, "title")]])));
       else if (tag === "span" || tag === "a" || tag === "mark") await ast.push(inlines, await ast.tag("Span", await ast.value([attrs, content])));
       else inlines = content;
-      if (tag === "details") flow = await childFlow(p);
+      if (["details", "article", "footer", "nav"].includes(tag)) flow = await childFlow(p);
       else if (tag === "summary") await ast.push(flow, await ast.tag("Para", await trim(content)));
       else if (tag === "p") {const para = await ast.tag("Para", await trim(content)); await ast.push(flow, await hasAttrs(attrs) ? await ast.tag("Div", await ast.value([attrs, [para]])) : para);}
       else if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag)) await ast.push(flow, await ast.tag("Header", await ast.value([Number(tag[1]), attrs, await trim(content)])));

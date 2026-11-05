@@ -43,7 +43,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, medianImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type RgbaImage = BaseRgbaImage & HslMetadata;
 type StoredRgbaImage = BaseStoredRgbaImage & HslMetadata;
@@ -529,6 +529,13 @@ function createDefaultState(): MagickState {
     channels: { r: true, g: true, b: true, a: false },
     channelExplicit: false
   };
+}
+
+function magickMedianRows(spec: string): number[] {
+  const geometry = parseMagickGeometry(spec);
+  const width = Math.max(1, Math.trunc(geometry.width ?? 1));
+  const height = Math.max(1, Math.trunc(geometry.height ?? geometry.width ?? 1));
+  return Array<number>(height).fill((width - 1) / 2);
 }
 
 type MorphologyStep = { mode: "min" | "max" | "median"; source: number } | { mode: "diff"; a: number; b: number };
@@ -5301,10 +5308,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-median") {
-            const r = Math.max(1, Math.round(Number(tokens[++i] ?? 3)));
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* medianImageSteps(im, r));
-            }));
+            const rows = magickMedianRows(tokens[++i] ?? "3");
+            stack = yield* mapSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, morphologyPixelSteps(im, rows, "median"), signal);
+            });
         }
         else if (t === "-morphology") {
             const method = (tokens[++i] ?? "dilate").toLowerCase();
@@ -6246,8 +6253,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const fuzz = state.alphaFuzz;
             steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal) : undefined);
         } else if (!operandsOnly && token === "-median") {
-            const size = Math.max(1, Math.round(Number(tokens[++i] ?? 3)));
-            transform(() => ({ kind: "median", size }));
+            const rows = magickMedianRows(tokens[++i] ?? "3");
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);
         } else if (!operandsOnly && token === "-extent") {
             const geometry = tokens[++i] ?? "100%", captured = { ...state };
             steps.push(async (image, backend) => {

@@ -1457,6 +1457,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let hlsListSize = 5;
       let hlsDeleteSegments = false;
       let hlsOmitEndlist = false;
+      let hlsIndependentSegments = false;
       let hlsDeleteThreshold = 1;
       let hlsSegmentFilename: string | undefined;
       let hlsSegmentType: string | undefined;
@@ -1511,10 +1512,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           if (!value.startsWith("+") && !value.startsWith("-")) {
             hlsDeleteSegments = false;
             hlsOmitEndlist = false;
+            hlsIndependentSegments = false;
           }
           for (const flag of value.replaceAll("-", "+-").split("+")) {
             if (flag === "delete_segments") hlsDeleteSegments = true;
             if (flag === "-delete_segments") hlsDeleteSegments = false;
+            if (flag === "independent_segments") hlsIndependentSegments = true;
+            if (flag === "-independent_segments") hlsIndependentSegments = false;
             if (flag === "omit_endlist") hlsOmitEndlist = true;
             if (flag === "-omit_endlist") hlsOmitEndlist = false;
           }
@@ -2481,13 +2485,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           let targetDuration = 0;
           for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
           const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
+          const independentSegments = hlsIndependentSegments && !!vTrk && workingDoc.tracks
+            .filter(track => track.type === "video")
+            .every(track => boundaries.slice(firstSegment, -1).every((start, index) => {
+              const first = track.samples.find(sample => sample.dts >= start * track.timescale);
+              return first?.isKeyframe && first.dts < boundaries[firstSegment + index + 1]! * track.timescale;
+            }));
           const playlistLines: string[] = [
             "#EXTM3U",
-            isFmp4 ? "#EXT-X-VERSION:7" : "#EXT-X-VERSION:3",
+            isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : "#EXT-X-VERSION:3",
             `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
             `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
           ];
 
+          if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
           if (isFmp4) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
 
           const retainedSegments: { path: string; duration: number }[] = [];

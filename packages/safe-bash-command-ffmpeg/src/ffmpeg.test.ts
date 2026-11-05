@@ -989,6 +989,49 @@ for (const type of ["mpegts", "fmp4"]) {
   });
 }
 
+describe("HLS independent_segments", () => {
+  for (const [flags, enabled] of [
+    [["independent_segments"], true],
+    [["omit_endlist+independent_segments"], true],
+    [["independent_segments", "+omit_endlist"], true],
+    [["independent_segments", "omit_endlist"], false],
+    [["independent_segments-independent_segments"], false],
+    [["independent_segments", "-independent_segments"], false],
+    [[], false]
+  ] as const) {
+    for (const type of ["mpegts", "fmp4"]) {
+      it(`handles ${JSON.stringify(flags)} with ${type}`, async () => {
+        const vfs = createTestVfs({ "/in.mp4": hlsH264 });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type,
+          ...flags.flatMap(flag => ["-hls_flags", flag]), "/out.m3u8"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const lines = new TextDecoder().decode(vfs.store.get("/out.m3u8")).split("\n");
+        assert.equal(lines[1], `#EXT-X-VERSION:${type === "fmp4" ? 7 : enabled ? 6 : 3}`);
+        assert.equal(lines.includes("#EXT-X-INDEPENDENT-SEGMENTS"), enabled);
+        if (enabled) assert.ok(lines.indexOf("#EXT-X-INDEPENDENT-SEGMENTS") < lines.findIndex(line => line.startsWith("#EXTINF:")));
+        assert.equal(lines.filter(line => line === "#EXTINF:1.000000,").length, 2);
+      });
+    }
+  }
+
+  it("does not advertise a segment starting with a dependent video sample", async () => {
+    const doc = parseMp4(hlsH264);
+    const input = serializeMp4({ ...doc, tracks: doc.tracks.map(track => ({
+      ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: index === 0 ? false : sample.isKeyframe }))
+    })) });
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_flags", "independent_segments", "/out.m3u8"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const playlist = new TextDecoder().decode(vfs.store.get("/out.m3u8"));
+    assert.ok(!playlist.includes("#EXT-X-INDEPENDENT-SEGMENTS"));
+    assert.ok(playlist.includes("#EXT-X-VERSION:3"));
+  });
+});
+
 describe("HLS fMP4 initialization", () => {
   for (const includeAudio of [false, true]) {
     it(`writes an initialization map and continuous fragments (audio=${includeAudio})`, async () => {

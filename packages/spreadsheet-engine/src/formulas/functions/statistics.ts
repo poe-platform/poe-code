@@ -13,7 +13,12 @@ import type { CellValue } from "@poe-code/spreadsheet-ast";
 const aggregates = ['AVEDEV', 'AVERAGE', 'AVERAGEA', 'COUNT', 'COUNTA', 'DEVSQ', 'GEOMEAN', 'HARMEAN', 'KURT', 'KURTP', 'MAX', 'MAXA', 'MEDIAN', 'MIN', 'MINA', 'MODE', 'MODE.MULT', 'SKEW', 'SKEWP', 'STDEV', 'STDEVA', 'STDEVP', 'STDEVPA', 'VAR', 'VARA', 'VARP', 'VARPA'];
 export function statisticalAggregate(name: string, values: readonly Value[], host: FunctionHost): Value {
   const xs: number[] = [], includeText = ['AVERAGEA','COUNTA','MAXA','MINA','STDEVA','STDEVPA','VARA','VARPA'].includes(name);
-  for (const value of values) {
+  for (let value of values) {
+    if (!includeText && value.kind === 'string') {
+      const number = numeric(value);
+      if (number === undefined) return error('#VALUE!');
+      value = numericResult(number);
+    }
     if (name === 'COUNTA') { for (const cell of collect(value,host)) { if (cell.kind === 'blank') continue; if (xs.length >= host.context.limits.cells) throw new SsconvertError('resource-limit','ssconvert calculation array limit exceeded'); xs.push(0); } continue; }
     const numbers = statisticalNumbers(value, host, includeText, name === 'COUNT');
     if (!Array.isArray(numbers)) return numbers;

@@ -25,8 +25,8 @@ it.each([
   ['=IF(TRUE)', { kind: "boolean", value: true }],
   ['=IF(,1/0,8)', n(8)],
   // parser.y:468 applies format_match_simple to quoted array constants.
-  ['=SUM(TRUE,"2",{3,"4";5,FALSE})', n(12)],
-  ['=PRODUCT(TRUE,"2")', n(0)],
+  ['=SUM(TRUE,"2",{3,"4";5,FALSE})', n(14)],
+  ['=PRODUCT(TRUE,"2")', n(2)],
   ['=1e308*10', { kind: "error", value: "#NUM!" }],
   ['=(-1)^0.5', { kind: "error", value: "#NUM!" }],
   ['=TABLE(,)', { kind: "error", value: "#REF!" }]

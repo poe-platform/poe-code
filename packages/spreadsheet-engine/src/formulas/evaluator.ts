@@ -332,6 +332,11 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         let failure: CellValue | undefined;
         const collect = (v: Value) => {
           if (v.kind === "set") { for (const child of v.values) collect(child); return; }
+          if (v.kind === "string") {
+            const number = numeric(v);
+            if (number === undefined) { failure ??= error("#VALUE!"); return; }
+            v = numericResult(number);
+          }
           for (const row of matrix(v).rows) for (const item of row) { tick(); if (item.kind === "error") { failure ??= item; return; } if (item.kind === "number") values.push(item.value); }
         };
         for (const arg of node.args) {

@@ -2364,7 +2364,8 @@ function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: 
     let cooperativeWork = 0;
     const raw = parseFloat(threshStr);
     const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw / 257;
-    const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
+    // Native palette solarize updates the RGB colormap, ignoring the channel mask.
+    const mask = img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     const out = new Uint8Array(img.data);
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)

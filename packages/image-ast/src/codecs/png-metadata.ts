@@ -109,6 +109,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
 
   return {
     format: "png",
+    ...(colorType === 3 ? {isPalette: true} : {}),
     width,
     height,
     space,

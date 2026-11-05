@@ -208,6 +208,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     width,
     height,
     data: rgba,
+    ...(meta.isPalette ? {isPalette: true} : {}),
     ...(data16 ? { data16 } : {}),
     format: "png",
     space: colorType === 0 && trns ? "srgb" : meta.space,

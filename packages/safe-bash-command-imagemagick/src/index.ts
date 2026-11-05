@@ -31,7 +31,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -3992,8 +3992,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out };
         };
     } else if (token === "-tint") {
-        i++;
-        apply = image => tintImageSteps(image, state.fill);
+        const strength = parseFloat(tokens[++i] ?? "100") / 100;
+        const fill = [state.fill.r, state.fill.g, state.fill.b];
+        // ImageMagick subtracts the fill luminance even at zero strength.
+        const intensity = 0.212656 * state.fill.r + 0.715158 * state.fill.g + 0.072186 * state.fill.b;
+        const vector = fill.map(channel => channel * strength - intensity);
+        apply = function* (image) {
+            const out = new Uint8Array(image.data);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) yield;
+                for (let channel = 0; channel < 3; channel++) {
+                    const value = out[idx + channel]!;
+                    const weight = value / 255 - 0.5;
+                    out[idx + channel] = clampByteVal(value + vector[channel]! * (1 - 4 * weight * weight));
+                }
+            }
+            return { ...image, data: out };
+        };
     }
     else if (token === "-negate" || token === "+negate") {
         const onlyGray = token === "+negate";

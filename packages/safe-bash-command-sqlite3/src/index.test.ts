@@ -1153,6 +1153,7 @@ for (const [mode, expected] of [
 
 // Expected results checked against /usr/bin/sqlite3 3.43.2.
 for (const [label, sql, expected] of [
+  ["LIKE rejects dangling escapes", "SELECT 'a!' LIKE 'a!' ESCAPE '!', 'a' LIKE 'a!' ESCAPE '!', 'a!' LIKE 'a!!' ESCAPE '!', like('a!', 'a!', '!'), like('a!', 'a', '!'), like('a!!', 'a!', '!'), 'a!' NOT LIKE 'a!' ESCAPE '!', 'abc!' LIKE '%!' ESCAPE '!', '' LIKE '!' ESCAPE '!', 'a😀' LIKE 'a😀' ESCAPE '😀', like('a😀', 'a😀', '😀'), 'a!' LIKE 'a!';", "0|0|1|0|0|1|1|0|0|0|0|1\n"],
   ["LIKE counts Unicode code points", "SELECT char(0x1F600) LIKE '_', char(0x1F600) LIKE '__', char(0xE000) LIKE '_', 'a😀b' LIKE 'a_b', '😀😀' LIKE '__', '😀' LIKE '%_', like('_', '😀'), '😀' NOT LIKE '_';", "1|0|1|1|1|1|1|0\n"],
   ["GLOB counts Unicode code points", "SELECT char(0x1F600) GLOB '?', char(0x1F600) GLOB '??', char(0xE000) GLOB '?', 'a😀b' GLOB 'a?b', '😀😀' GLOB '??', '😀' GLOB '*?', glob('?', '😀'), '😀' NOT GLOB '?', '😀' GLOB '[😀]', '😁' GLOB '[😀-😂]';", "1|0|1|1|1|1|1|0|1|1\n"],
   ["LIKE accepts Unicode escape characters", "SELECT 'a_c' LIKE 'a'||char(0x1F600)||'_c' ESCAPE char(0x1F600), like('a😀_c', 'a_c', '😀'), 'a%c' LIKE 'a😀%c' ESCAPE '😀', '😀' LIKE '😀😀' ESCAPE '😀', '😀' LIKE '😀', '😀' GLOB '😀';", "1|1|1|1|1|1\n"],

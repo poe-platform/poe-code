@@ -1306,9 +1306,10 @@ export function matchLike(str: string, pattern: string, caseInsensitive: boolean
   let regexStr = "^";
   for (let i = 0; i < characters.length; i += 1) {
     let c = characters[i]!;
-    const escaped = escapeChar && c === escapeChar && i + 1 < characters.length;
+    const escaped = escapeChar && c === escapeChar;
     if (escaped) {
       i += 1;
+      if (i === characters.length) return false;
       c = characters[i]!;
     }
     if (!escaped && c === "%") {

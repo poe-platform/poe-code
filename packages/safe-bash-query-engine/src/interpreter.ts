@@ -2,7 +2,7 @@ import { utf8ByteLength } from "./bytes.js";
 import { Budget, invalidateCachedValueMetrics, copyObject, hasCustomKeyOrder, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
-import type { Ast, BindingPattern } from "./parser.js";
+import { functions, type Ast, type BindingPattern } from "./parser.js";
 import { formatValue } from "./formats.js";
 import { scanRegex, substituteRegex, matchRegex } from "./regex.js";
 import { splitString } from "./split.js";
@@ -1005,6 +1005,19 @@ export class Interpreter {
         budget.value(next.value);
         yield next.value;
       }
+      return;
+    }
+    if (name === "builtins") {
+      const result: Json[] = [];
+      for (const [name, arities] of Object.entries(functions)) {
+        for (const arity of arities) {
+          budget.step();
+          budget.collection(result.length + 1);
+          result.push(`${name}/${arity}`);
+        }
+      }
+      budget.value(result);
+      yield result;
       return;
     }
     if (name === "env") {

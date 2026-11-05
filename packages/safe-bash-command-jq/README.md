@@ -7,6 +7,7 @@ filters such as `jq -c '-.a'` without an extra `--`. `env` and `$ENV` expose the
 Safe Bash command environment, never the host process environment. Use
 `jq -Rn '[inputs | split(",")]'` to collect raw input lines; `inputs` consumes
 the remaining values from the same input stream, including virtual files.
+Use `jq -cn 'builtins'` to list supported functions as `name/arity` strings.
 
 This private implementation ships inside Safe Bash; no separate installation is
 needed. Use the public command export to register jq explicitly:

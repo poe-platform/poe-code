@@ -288,8 +288,10 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
               [value(node, "href"), value(node, "title")]
             ]
           });
-        else if (tag === "span" || tag === "a")
-          result.push({ t: "Span", c: [attr(node), children] });
+        else if (tag === "span" || tag === "a" || tag === "mark") {
+          const attributes = attr(node);
+          result.push({ t: "Span", c: [tag === "mark" ? [attributes[0], ["mark", ...attributes[1]], attributes[2]] : attributes, children] });
+        }
         else {
           for (const child of children) {
             if (child.t === "Str") text(child.c);

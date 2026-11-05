@@ -13,6 +13,15 @@ function context(args: readonly string[], input = "a,b\nx,y\n") {
 function text(sink: ReturnType<typeof context>["stdout"]): string {
   return sink.write.mock.calls.map(call => new TextDecoder().decode(call[0])).join("");
 }
+it.each(["html", "json"])("preserves HTML mark highlighting in %s output", async to => {
+  const ctx = context(["-f", "html", "-t", to], "<p>A <mark>highlight</mark> B</p>");
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stderr)).toBe("");
+  if (to === "html") expect(text(ctx.stdout)).toBe('<p>A <span class="mark">highlight</span> B</p>\n');
+  else expect(JSON.parse(text(ctx.stdout)).blocks).toEqual([
+    {t: "Para", c: [{t: "Str", c: "A"}, {t: "Space"}, {t: "Span", c: [["", ["mark"], []], [{t: "Str", c: "highlight"}]]}, {t: "Space"}, {t: "Str", c: "B"}]}
+  ]);
+});
 it("thin command converts byte stdin using SDK format/options, with no ambient filesystem", async () => {
   const ctx = context(["-f", "csv", "--to=gfm"]);
   expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});

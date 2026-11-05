@@ -60,7 +60,9 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
   };
   const attributes = async (raw: RtfValue, tag: string, omit: readonly string[] = []) => {
     let id = await lookup(raw, "id"); if (!await nonempty(id) && tag === "a") id = await lookup(raw, "name");
-    const classes = await words(await lookup(raw, "class")), pairs = await ast.array();
+    const classes = await ast.array(), pairs = await ast.array();
+    if (tag === "mark") await ast.push(classes, await ast.value("mark"));
+    for await (const item of ast.children(await words(await lookup(raw, "class")))) await ast.push(classes, item);
     for await (const pair of ast.children(raw)) {
       const [key] = await entry(pair); let prefix = "";
       for await (const chunk of ast.text.chunks(await ast.range(key!))) {prefix += chunk.slice(0, 2 - prefix.length); if (prefix.length === 2) break;}
@@ -173,7 +175,7 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
       else if (tag === "img") await ast.push(inlines, await ast.tag("Image", await ast.value([await attributes(raw, tag, ["src", "alt", "title"]), await inlineText(await lookup(raw, "alt")), [await lookup(raw, "src"), await lookup(raw, "title")]])));
       else if (Object.hasOwn(styles, tag)) {const styled = await ast.tag(styles[tag as keyof typeof styles], content); await ast.push(inlines, await hasAttrs(attrs) ? await ast.tag("Span", await ast.value([attrs, [styled]])) : styled);}
       else if (tag === "a" && await (async () => {for await (const pair of ast.children(raw)) if (await same((await entry(pair))[0]!, "href")) return true; return false;})()) await ast.push(inlines, await ast.tag("Link", await ast.value([await attributes(raw, tag, ["href", "title"]), content, [await lookup(raw, "href"), await lookup(raw, "title")]])));
-      else if (tag === "span" || tag === "a") await ast.push(inlines, await ast.tag("Span", await ast.value([attrs, content])));
+      else if (tag === "span" || tag === "a" || tag === "mark") await ast.push(inlines, await ast.tag("Span", await ast.value([attrs, content])));
       else inlines = content;
       if (tag === "p") {const para = await ast.tag("Para", await trim(content)); await ast.push(flow, await hasAttrs(attrs) ? await ast.tag("Div", await ast.value([attrs, [para]])) : para);}
       else if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag)) await ast.push(flow, await ast.tag("Header", await ast.value([Number(tag[1]), attrs, await trim(content)])));

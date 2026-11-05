@@ -11,6 +11,12 @@ const read = (html: string, limits = {}) =>
     { from: "html" },
     { limits, yield: async () => {} }
   );
+it("preserves mark highlighting, attributes and nested formatting", async () => {
+  expect((await read('<p>A <mark>highlight</mark> B</p><mark id="note" class="custom" title="why"><em>nested</em></mark>')).blocks).toEqual([
+    para(str("A"), { t: "Space" }, { t: "Span", c: [["", ["mark"], []], [str("highlight")]] }, { t: "Space" }, str("B")),
+    plain({ t: "Span", c: [["note", ["mark", "custom"], [["title", "why"]]], [{ t: "Emph", c: [str("nested")] }]] })
+  ]);
+});
 it("converts original heading and inline AST, with quoted delimiters and duplicate attributes", async () => {
   expect(
     (

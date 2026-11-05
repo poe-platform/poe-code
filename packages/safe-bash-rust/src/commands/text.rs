@@ -6865,7 +6865,7 @@ fn format_context_reject_hunk(raw_hunk_lines: &[String], normal: bool) -> String
         let mut idx = 0usize;
         while idx < entries.len() {
             if entries[idx].0 == ' ' {
-                out.push_str(&format!("  {}\n", entries[idx].1));
+                out.push_str(&format!("  {}", entries[idx].1));
                 idx += 1;
                 continue;
             }
@@ -6883,7 +6883,7 @@ fn format_context_reject_hunk(raw_hunk_lines: &[String], normal: bool) -> String
             let mark = if !normal && has_rem && has_add { '!' } else { side };
             for &(k, text) in &entries[idx..end] {
                 if k == side {
-                    out.push_str(&format!("{mark} {text}\n"));
+                    out.push_str(&format!("{mark} {text}"));
                 }
             }
             idx = end;
@@ -7004,7 +7004,6 @@ fn apply_unified_diff(
                         } else {
                             for l in rh {
                                 rej_body.push_str(l);
-                                rej_body.push('\n');
                             }
                         }
                     }
@@ -7113,7 +7112,7 @@ fn apply_unified_diff(
                     }
                 }
             }
-            let hunk_header = line.to_string();
+            let hunk_header = format!("{line}\n");
             let (old_start, old_count, new_start, new_count) = parse_hunk_starts_and_counts(line);
             let (orig_start, orig_count) = if reverse {
                 (new_start, new_count)
@@ -7141,8 +7140,12 @@ fn apply_unified_diff(
                 {
                     break;
                 }
-                raw_hunk_lines.push(hl.to_string());
                 if hl.starts_with("\\ No newline at end of file") {
+                    if let Some(previous) = raw_hunk_lines.last_mut()
+                        && previous.ends_with('\n')
+                    {
+                        previous.pop();
+                    }
                     match last_sign {
                         '-' => old_no_nl = true,
                         '+' => new_no_nl = true,
@@ -7154,6 +7157,7 @@ fn apply_unified_diff(
                     idx += 1;
                     continue;
                 }
+                raw_hunk_lines.push(format!("{hl}\n"));
                 if let Some(rem) = hl.strip_prefix('-') {
                     hunk_old.push(rem.to_string());
                     hunk_entries.push((if reverse { '+' } else { '-' }, rem.to_string()));
@@ -7175,12 +7179,9 @@ fn apply_unified_diff(
                 }
                 idx += 1;
             }
-            if old_no_nl || new_no_nl {
-                no_trailing_newline = if reverse { old_no_nl } else { new_no_nl };
-            }
-
             if reverse {
                 std::mem::swap(&mut hunk_old, &mut hunk_new);
+                std::mem::swap(&mut old_no_nl, &mut new_no_nl);
             }
             let leading_ctx = hunk_entries.iter().take_while(|(k, _)| *k == ' ').count();
             let trailing_ctx = hunk_entries
@@ -7203,13 +7204,14 @@ fn apply_unified_diff(
                 trailing_ctx,
                 opts.ignore_ws,
                 opts.fuzz,
+                no_trailing_newline, old_no_nl,
             );
 
             if match_opt.is_none()
                 && !reverse
                 && !opts.force
                 && !hunk_new.is_empty()
-                && let Some(rev_pos) = find_subslice_pos(&file_lines, &hunk_new, expected_pos, opts.ignore_ws)
+                && let Some(rev_pos) = find_subslice_pos(&file_lines, &hunk_new, expected_pos, opts.ignore_ws, no_trailing_newline, new_no_nl)
             {
                 if opts.forward_only {
                     status_out.push_str("Reversed (or previously applied) patch detected!  Skipping patch.\n");
@@ -7223,6 +7225,7 @@ fn apply_unified_diff(
                 } else {
                     status_out.push_str("Reversed (or previously applied) patch detected!  Assuming -R.\n");
                     std::mem::swap(&mut hunk_old, &mut hunk_new);
+                    std::mem::swap(&mut old_no_nl, &mut new_no_nl);
                     for (k, _) in &mut hunk_entries {
                         if *k == '-' {
                             *k = '+';
@@ -7377,6 +7380,9 @@ fn apply_unified_diff(
                 blk
             };
             let new_slice_len = replacement.len();
+            if splice_end == file_lines.len() {
+                no_trailing_newline = new_no_nl && !replacement.is_empty() && opts.ifdef_guard.is_none();
+            }
             file_lines.splice(splice_start..splice_end, replacement);
             prev_delta = (pos as isize) - (unshifted_start as isize) + (new_slice_len as isize) - (old_slice_len as isize);
             continue;
@@ -7472,7 +7478,7 @@ fn parse_hunk_starts_and_counts(header: &str) -> (usize, usize, usize, usize) {
     (old_s, old_c, new_s, new_c)
 }
 
-fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: bool) -> Option<usize> {
+fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: bool, file_no_lf: bool, hunk_no_lf: bool) -> Option<usize> {
     let last = hay.len().checked_sub(needle.len())?;
     let start = hint.min(last);
     let matches = |pos: usize| {
@@ -7480,7 +7486,7 @@ fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: 
         if ignore_ws {
             slice.iter().zip(needle).all(|(a, b)| a.split_whitespace().eq(b.split_whitespace()))
         } else {
-            slice == needle
+            (needle.is_empty() || (file_no_lf && pos == last) == hunk_no_lf) && slice == needle
         }
     };
     if matches(start) { return Some(start); }
@@ -7495,6 +7501,7 @@ fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: 
     None
 }
 
+#[allow(clippy::too_many_arguments)]
 fn find_subslice_pos_with_fuzz(
     hay: &[String],
     needle: &[String],
@@ -7503,8 +7510,10 @@ fn find_subslice_pos_with_fuzz(
     trailing_ctx: usize,
     ignore_ws: bool,
     fuzz: usize,
+    file_no_lf: bool,
+    hunk_no_lf: bool,
 ) -> Option<(usize, usize, usize, usize)> {
-    if let Some(pos) = find_subslice_pos(hay, needle, hint, ignore_ws) {
+    if let Some(pos) = find_subslice_pos(hay, needle, hint, ignore_ws, file_no_lf, hunk_no_lf) {
         return Some((pos, 0, 0, 0));
     }
     let max_context = leading_ctx.max(trailing_ctx);
@@ -7513,7 +7522,7 @@ fn find_subslice_pos_with_fuzz(
         let sf = (tol + trailing_ctx).saturating_sub(max_context).min(trailing_ctx);
         if pf + sf < needle.len() {
             let trimmed = &needle[pf..needle.len() - sf];
-            if let Some(inner_pos) = find_subslice_pos(hay, trimmed, hint.saturating_add(pf), ignore_ws)
+            if let Some(inner_pos) = find_subslice_pos(hay, trimmed, hint.saturating_add(pf), ignore_ws, file_no_lf, hunk_no_lf && sf == 0)
                 && inner_pos >= pf
                 && inner_pos + trimmed.len() + sf <= hay.len()
             {

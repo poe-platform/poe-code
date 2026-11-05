@@ -143,6 +143,48 @@ test("GNU diff and patch exchange unified diffs with TypeScript and Rust", async
         assert.deepEqual(Buffer.from(result.stderrBytes), reference.stderr);
       }
     }
+    const missingLF = "\\ No newline at end of file\n";
+    for (const [n, [before, delta, flags, code]] of (
+      [
+        ["a\n", "1c1\n< a\n" + missingLF + "---\n> b\n", [], 1],
+        ["a", "1c1\n< a\n---\n> b\n", [], 1],
+        ["x\n", "1c1\n< a\n---\n> b\n" + missingLF, ["--reject-format=unified"], 1],
+        ["x\n", "1c1\n< a\n---\n> b\n" + missingLF, [], 1],
+        ["a\na", "1c1\n< a\n" + missingLF + "---\n> b\n", [], 0],
+        ["a\nz", "1c1\n< a\n---\n> b\n" + missingLF, [], 0],
+        ["b", "1c1\n< a\n---\n> b\n" + missingLF, ["-R"], 0]
+      ] as const
+    ).entries()) {
+      const name = "eof" + n;
+      await writeFile(cwd + "/" + name, before);
+      await writeFile(cwd + "/delta", delta);
+      const args = ["--batch", ...flags, "-i", "delta", name];
+      const reference = native("patch", args);
+      assert.equal(
+        reference.status,
+        code,
+        reference.stdout.toString() + reference.stderr.toString()
+      );
+      for (const [shell, view] of backends) {
+        await view.writeFile("/workspace/" + name, Buffer.from(before));
+        await view.writeFile("/workspace/delta", Buffer.from(delta));
+        const result = await shell.exec("patch " + args.join(" "));
+        assert.equal(
+          result.exitCode,
+          code,
+          shell.constructor.name + ": " + name + ": " + result.stdout
+        );
+        assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
+        assert.deepEqual(Buffer.from(result.stderrBytes), reference.stderr);
+        for (const suffix of code === 1 ? ["", ".rej", ".orig"] : [""]) {
+          assert.deepEqual(
+            Buffer.from(await view.readFile("/workspace/" + name + suffix)),
+            await readFile(cwd + "/" + name + suffix),
+            name + suffix
+          );
+        }
+      }
+    }
     // A failed normal hunk still allows later matching hunks to apply.
     for (const [name, flags, indexed] of [
       ["partial", [], false],

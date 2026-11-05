@@ -40,6 +40,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     ? "0x" + (rawTag.charCodeAt(0) | (rawTag.charCodeAt(1) << 8)).toString(16).padStart(4, "0")
     : "0x" +
     Array.from(rawTag.padEnd(4, " ").slice(0, 4))
+      .reverse()
       .map((c) => c.charCodeAt(0).toString(16).padStart(2, "0"))
       .join("");
 

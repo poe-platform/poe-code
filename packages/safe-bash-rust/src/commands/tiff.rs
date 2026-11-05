@@ -213,6 +213,7 @@ pub(super) struct Tiff<'a> {
     rows_per_strip: usize,
     tile: Option<(usize, usize)>,
     white_zero: bool,
+    lsb_first: bool,
     predictor: bool,
     offsets: Option<Field<'a>>,
     counts: Option<Field<'a>>,
@@ -256,10 +257,12 @@ impl<'a> Tiff<'a> {
         if width.max(1).saturating_mul(height.max(1)) > limit / 4 {
             return Err("image exceeds memory budget");
         }
-        let samples = get(277, 4);
-        let depth = get(258, 8);
+        let photo = get(262, 2);
+        let samples = get(277, if photo <= 1 { 1 } else { 4 });
+        let depth = get(258, if photo <= 1 && field(277).is_none() { 1 } else { 8 });
         if !(1..=4).contains(&samples)
-            || !matches!(depth, 8 | 16)
+            || !matches!(depth, 1 | 8 | 16)
+            || depth == 1 && (samples != 1 || photo > 1 || get(317, 1) != 1 || matches!(get(259, 1), 6 | 7) || (get(266, 1) == 2 && get(259, 1) != 1))
             || !matches!(get(259, 1), 1 | 5 | 6 | 7 | 8 | 32946 | 32773)
         {
             return Err("unsupported TIFF encoding");
@@ -282,7 +285,8 @@ impl<'a> Tiff<'a> {
             compression: get(259, 1),
             jpeg_tables: field(347).map_or(&[][..], |f| f.bytes),
             rows_per_strip: get(278, height).clamp(1, height.max(1)),
-            white_zero: get(262, 2) == 0,
+            white_zero: photo == 0,
+            lsb_first: get(266, 1) == 2,
             predictor: get(317, 1) == 2,
             tile,
             offsets: field(if tile.is_some() { 324 } else { 273 }),
@@ -344,6 +348,17 @@ impl<'a> Tiff<'a> {
         row: &mut [[u8; 4]],
         mut byte: impl FnMut() -> Result<u8, &'static str>,
     ) -> Result<(), &'static str> {
+        if self.depth == 1 {
+            for group in row.chunks_mut(8) {
+                let bits = byte()?;
+                let bits = if self.lsb_first { bits.reverse_bits() } else { bits };
+                for (bit, dst) in group.iter_mut().enumerate() {
+                    let g = if (bits & (128 >> bit) != 0) != self.white_zero { 255 } else { 0 };
+                    *dst = [g, g, g, 255];
+                }
+            }
+            return Ok(());
+        }
         let mut prev = [0u16; 4];
         for dst in row {
             let mut pixel = [0, 0, 0, 255];
@@ -392,7 +407,10 @@ impl<'a> Tiff<'a> {
         });
         let mut counts = counts.values(self.little);
         let mut offsets = offsets.values(self.little);
-        let bpp = self.samples * usize::from(self.depth / 8);
+        let row_bytes = |width: usize| {
+            if self.depth == 1 { Ok(width.div_ceil(8)) }
+            else { width.checked_mul(self.samples * usize::from(self.depth / 8)).ok_or("image exceeds memory budget") }
+        };
         let scratch = self.limit - self.width * self.height * 4;
         let mut work = self.limit.saturating_mul(8);
         let mut next = |expected: usize| -> Result<Option<Cow<'a, [u8]>>, &'static str> {
@@ -420,7 +438,7 @@ impl<'a> Tiff<'a> {
         self.row(std::slice::from_mut(&mut missing), || Ok(0))?;
         let mut pixels = vec![missing; self.width * self.height];
         if let Some((w, h)) = self.tile {
-            let stride = w.checked_mul(bpp).ok_or("image exceeds memory budget")?;
+            let stride = row_bytes(w)?;
             let expected = h.checked_mul(stride).ok_or("image exceeds memory budget")?;
             'tiles: for y in (0..self.height).step_by(h) {
                 for x in (0..self.width).step_by(w) {
@@ -429,7 +447,7 @@ impl<'a> Tiff<'a> {
                     };
                     let cols = w.min(self.width - x);
                     for (k, raw) in data.chunks(stride).take(h.min(self.height - y)).enumerate() {
-                        if let Some(raw) = raw.get(..cols * bpp) {
+                        if let Some(raw) = raw.get(..row_bytes(cols)?) {
                             let start = (y + k) * self.width + x;
                             let mut bytes = raw.iter();
                             self.row(&mut pixels[start..start + cols], || {
@@ -440,9 +458,9 @@ impl<'a> Tiff<'a> {
                 }
             }
         } else {
-            let total = pixels
-                .len()
-                .checked_mul(bpp)
+            let stride = row_bytes(self.width)?;
+            let total = self.height
+                .checked_mul(stride)
                 .ok_or("image exceeds memory budget")?;
             let mut decoded = Cow::Borrowed(&[][..]);
             let (mut pos, mut read) = (0usize, 0usize);
@@ -450,7 +468,7 @@ impl<'a> Tiff<'a> {
                 while pos == decoded.len() {
                     drop(std::mem::replace(&mut decoded, Cow::Borrowed(&[])));
                     let Some(data) =
-                        next((total - read).min(self.width * self.rows_per_strip * bpp))?
+                        next((total - read).min(stride * self.rows_per_strip))?
                     else {
                         return Ok(0);
                     };
@@ -528,6 +546,28 @@ mod tests {
                 .pixels,
             expected
         );
+    }
+
+    #[test]
+    fn bilevel_strips_respect_row_padding_fill_order_and_photometric_interpretation() {
+        for order in [1, 2] {
+            for photo in [0, 1] {
+                let fields = [(256u16,9u32),(257,2),(258,1),(259,1),(262,photo),(266,order),(273,8),(277,1),(279,4)];
+                let mut bytes = b"II*\0\x0c\0\0\0".to_vec();
+                for b in [0xaau8,0xff,0x55,0x7f] { bytes.push(if order == 2 { b.reverse_bits() } else { b }); }
+                bytes.extend_from_slice(&(fields.len() as u16).to_le_bytes());
+                for (tag,v) in fields {
+                    bytes.extend_from_slice(&tag.to_le_bytes()); bytes.extend_from_slice(&4u16.to_le_bytes());
+                    bytes.extend_from_slice(&1u32.to_le_bytes()); bytes.extend_from_slice(&v.to_le_bytes());
+                }
+                bytes.extend_from_slice(&[0;4]);
+                let image = Tiff::parse(&bytes, 4096).unwrap().decode().unwrap();
+                for (i,pixel) in image.pixels.iter().enumerate() {
+                    let g = if (i % 2 == 0) == (photo == 1) { 255 } else { 0 };
+                    assert_eq!(*pixel,[g,g,g,255], "pixel {i}, order {order}, photometric {photo}");
+                }
+            }
+        }
     }
 
     #[test]

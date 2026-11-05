@@ -104,6 +104,24 @@ async function runCmd(
   };
 }
 
+describe("aliceblue color source", () => {
+  for (const [color, alpha] of [["aliceblue", 255], ["AliceBlue", 255], ["aliceblue@0.5", 127]] as const) {
+    it(`renders ${color} with the native RGB values`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", `color=c=${color}:s=16x16:r=1:d=1`,
+        "-frames:v", "1", "-update", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const image = decodeImage(vfs.store.get("/out.png")!);
+      for (let offset = 0; offset < image.data.length; offset += 4) {
+        assert.deepEqual([...image.data.subarray(offset, offset + 4)], [240, 248, 255, alpha]);
+      }
+    });
+  }
+});
+
 describe("pad dimensions", () => {
   for (const filter of ["pad=8:8", "pad=8:32", "pad=32:8", "pad=w=iw/2:h=ih", "pad=width=iw:height=ih/2"]) {
     for (const existing of [false, true]) {

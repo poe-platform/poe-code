@@ -128,6 +128,7 @@ function parseColorRgba(colorStr: string): [number, number, number, number] {
     alpha = Math.floor(opacity * 255 / maximum);
   }
   const named: Record<string, [number, number, number, number]> = {
+    aliceblue: [240, 248, 255, 255],
     black: [0, 0, 0, 255],
     white: [255, 255, 255, 255],
     red: [255, 0, 0, 255],

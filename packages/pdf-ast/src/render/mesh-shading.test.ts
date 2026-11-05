@@ -14,7 +14,7 @@ describe("PDF.js mesh shading fixtures", () => {
   it.each(fixtures)("preserves curved patches and all reuse flags in $name", ({ name, colors }) => {
     const bytes = new Uint8Array(readFileSync(new URL(`../fixtures/pdfjs-${name}-allflags-withfunction.pdf`, import.meta.url)));
     const bitmap = PdfDocument.load(bytes).getPage(0).renderToBitmap({ scale: 400 / 792 });
-    expect([bitmap.width, bitmap.height]).toEqual([309, 400]);
+    expect([bitmap.width, bitmap.height]).toEqual([310, 400]);
     for (let i = 0; i < positions.length; i++) {
       const [x, y] = positions[i]!;
       const offset = (y! * bitmap.width + x!) * 4;

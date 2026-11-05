@@ -1127,8 +1127,8 @@ function *renderDisplayListLayerSteps(
   const pageTop = originY + displayList.height;
   const offsetX = window?.x ?? 0, offsetY = window?.y ?? 0;
   const toScreen = (x: number, y: number): StrokePoint => [(x - originX) * scale - offsetX, (pageTop - y) * scale - offsetY];
-  const width = window?.width ?? Math.max(1, Math.round(displayList.width * scale));
-  const height = window?.height ?? Math.max(1, Math.round(displayList.height * scale));
+  const width = window?.width ?? Math.max(1, Math.ceil(displayList.width * scale));
+  const height = window?.height ?? Math.max(1, Math.ceil(displayList.height * scale));
   for (const op of paintOperations(displayList)) {
     if (op.kind === "glyph" && !op.value.outline) {
       getStandardFontOutlines(op.value.fontName);
@@ -1434,7 +1434,7 @@ export function *renderDisplayListWindowSteps(displayList: PdfDisplayList, windo
 
 function rasterWindowScale(page: Pick<PdfDisplayList, "width" | "height">, window: PdfCropRect, options: PdfRasterWindowOptions): number {
   const scale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
-  const width = Math.max(1, Math.round(page.width * scale)), height = Math.max(1, Math.round(page.height * scale));
+  const width = Math.max(1, Math.ceil(page.width * scale)), height = Math.max(1, Math.ceil(page.height * scale));
   if (!Number.isFinite(scale) || scale <= 0 || ![width, height, window.x, window.y, window.width, window.height, window.x + window.width, window.y + window.height, window.width * window.height * 4].every(Number.isSafeInteger)
     || window.x < 0 || window.y < 0 || window.width <= 0 || window.height <= 0 || window.x + window.width > width || window.y + window.height > height) throw new RangeError("Invalid PDF raster window");
   return scale;
@@ -1502,8 +1502,8 @@ export function *renderDisplayListToBitmapSteps(
   let result = (yield* renderDisplayListLayerSteps(displayList, options, scaleX));
   const { width, height, data: rgba } = result;
   if (Math.abs(scaleX - scaleY) > 1e-6) {
-    const targetW = Math.max(1, Math.round(displayList.width * scaleX));
-    const targetH = Math.max(1, Math.round(displayList.height * scaleY));
+    const targetW = Math.max(1, Math.ceil(displayList.width * scaleX));
+    const targetH = Math.max(1, Math.ceil(displayList.height * scaleY));
     const resampled = new Uint8Array(targetW * targetH * 4);
     for (let y = 0; y < targetH; y++) {
     if (++work % 16384 === 0) yield;
@@ -2115,7 +2115,7 @@ export async function* encodeSvgSoftMaskChunks(mask:PdfSoftMask,page:Pick<PdfDis
   const scale=options.scale??1,tileSize=options.tileSize??128,chunkBytes=options.chunkBytes??65536,maximum=options.maxPixelWorkingBytes??Infinity;
   if(!Number.isFinite(scale)||scale<=0||!Number.isSafeInteger(tileSize)||tileSize<1||!Number.isSafeInteger(chunkBytes)||chunkBytes<1
     ||(maximum!==Infinity&&(!Number.isSafeInteger(maximum)||maximum<0)))throw new RangeError("Invalid SVG soft mask limits");
-  const width=Math.max(1,Math.round(page.width*scale)),height=Math.max(1,Math.round(page.height*scale)),scratch=tileSize*tileSize*4+chunkBytes*6;
+  const width=Math.max(1,Math.ceil(page.width*scale)),height=Math.max(1,Math.ceil(page.height*scale)),scratch=tileSize*tileSize*4+chunkBytes*6;
   if(![width,height,width*height*4,scratch].every(Number.isSafeInteger)||scratch>maximum)throw new PdfError("E_LIMIT","SVG soft mask working byte limit exceeded");
   const shared=new PdfStagingStorage(storage,options.maxStagingBytes);let source:PdfFileSource|undefined,failed=false;
   if(width*height*4>shared.maxBytes)throw new PdfError("E_LIMIT","SVG soft mask staging byte limit exceeded");

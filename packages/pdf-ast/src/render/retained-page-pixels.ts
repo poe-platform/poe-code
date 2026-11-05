@@ -38,9 +38,9 @@ export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: P
   const geometry = { width: Math.abs(x1 - x0), height: Math.abs(y1 - y0), origin: [Math.min(x0, x1), Math.min(y0, y1)] as const };
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale, scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-  const width = Math.max(1, Math.round(geometry.width * scaleX)), height = Math.max(1, Math.round(geometry.height * scaleX));
+  const width = Math.max(1, Math.ceil(geometry.width * scaleX)), height = Math.max(1, Math.ceil(geometry.height * scaleX));
   const resample = Math.abs(scaleX - scaleY) > 1e-6;
-  const targetHeight = resample ? Math.max(1, Math.round(geometry.height * scaleY)) : height;
+  const targetHeight = resample ? Math.max(1, Math.ceil(geometry.height * scaleY)) : height;
   if (![scaleX, scaleY].every(value => Number.isFinite(value) && value > 0)
     || ![width, height, targetHeight, width * height * 4, width * targetHeight * 4].every(Number.isSafeInteger)) throw new RangeError("Invalid retained raster dimensions");
   let crop = { x: 0, y: 0, width, height: targetHeight };

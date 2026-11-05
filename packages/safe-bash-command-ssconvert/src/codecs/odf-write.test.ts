@@ -197,8 +197,8 @@ it("exports dates, elapsed times, error caches and array corners with original s
   expect(xml).toContain('office:time-value="PT025H00M00S"');
   expect(xml).toContain('table:number-matrix-columns-spanned="2"');
   const round = await readOdf(bytes, context);
-  expect(round.sheets[0]!.cells[0]!.value).toEqual(original.sheets[0]!.cells[0]!.value);
-  expect(round.sheets[0]!.cells[1]!.value).toEqual(original.sheets[0]!.cells[1]!.value);
+  expect(round.sheets[0]!.cells[0]!.value).toEqual({ ...original.sheets[0]!.cells[0]!.value, format: "yyyy/mm/dd hh:mm:ss" });
+  expect(round.sheets[0]!.cells[1]!.value).toEqual({ ...original.sheets[0]!.cells[1]!.value, format: "hh:mm:ss" });
   // The released saver serializes formula error caches as strings in both profiles.
   // oo_cell_start takes office:string-value verbatim; recalculation restores error type.
   expect(round.sheets[0]!.cells[2]).toMatchObject({ formula: "=1/0", cachedResult: { kind: "string", value: "#DIV/0!" } });

@@ -2170,10 +2170,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const trimmed = item.trim();
                   if (trimmed.startsWith("volume=")) {
                     const volSpec = trimmed.slice("volume=".length).trim();
-                    const gain = parseFloat(volSpec);
-                    volFactor *= volSpec.endsWith("dB")
-                      ? Math.pow(10, (parseFloat(volSpec.slice(0, -2)) || 0) / 20)
-                      : Number.isNaN(gain) ? 1.0 : gain;
+                    const decibels = volSpec.endsWith("dB");
+                    const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", {});
+                    const factor = decibels ? Math.pow(10, gain / 20) : gain;
+                    if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
+                    volFactor *= factor;
                   } else if (trimmed.startsWith("atempo=")) {
                     const tempo = Number(trimmed.slice(7));
                     if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {

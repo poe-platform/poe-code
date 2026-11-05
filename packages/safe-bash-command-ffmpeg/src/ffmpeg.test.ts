@@ -754,6 +754,32 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  for (const expression of ["banana", "1junk", "", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "1/0", "(1+2", "sin(0)"]) {
+    for (const existing of [false, true]) {
+      it(`rejects volume=${expression} with existing output=${existing}`, async () => {
+        const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(0.125)] });
+        const original = new Uint8Array([1, 2, 3]);
+        const vfs = createTestVfs({ "/input.wav": input, ...(existing ? { "/output.wav": original } : {}) });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-af", `volume=${expression}`, "-c:a", "pcm_s16le", "/output.wav"], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("volume"), result.stderr);
+        assert.deepEqual(vfs.store.get("/output.wav"), existing ? original : undefined);
+      });
+    }
+  }
+
+  for (const [expression, gain] of [["0", 0], ["0.5", 0.5], ["2", 2], ["1e-1", 0.1], ["(1+2)/2", 1.5], ["6dB", 10 ** (6 / 20)], ["-6dB", 10 ** (-6 / 20)]] as const) {
+    it(`applies volume=${expression} to decoded samples`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(0.125)] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", `volume=${expression}`, "-c:a", "pcm_s16le", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const samples = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.equal(samples.length, 80);
+      assert.ok(samples.every(sample => Math.abs(sample - 0.125 * gain) < 0.0001));
+    });
+  }
+
   for (const tempo of [0.5, 8, 100]) {
     it(`honors atempo=${tempo} without clamping`, async () => {
       const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(16000).fill(0.25)] });

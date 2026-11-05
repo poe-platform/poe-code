@@ -8,6 +8,6 @@ export function* parseQpdfPageLabels(specs: readonly string[]): Generator<Retain
     const parsed = parts[1] !== undefined && parts[1].length > 0 ? Number.parseInt(parts[1], 10) : Number.NaN;
     const start = Number.isFinite(parsed) ? parsed || 1 : 1;
     const prefix = parts.length >= 3 ? parts[2] ?? "" : !Number.isFinite(parsed) ? parts[1] ?? "" : "";
-    yield { index, start, prefix, ...(style === "n" ? {} : { style }) };
+    yield { index, start, prefix, ...(style === "" || style === "n" ? {} : { style }) };
   }
 }

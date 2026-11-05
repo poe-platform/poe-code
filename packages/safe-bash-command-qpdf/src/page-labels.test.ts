@@ -8,7 +8,7 @@ it("preserves page-label defaults, prefixes, duplicate order and permissive nume
     { index: 6, style: "D", start: 1, prefix: "title" },
     { index: 0, start: 1, prefix: "zero" },
     { index: 1, style: "A", start: -2, prefix: "" },
-    { index: 0, style: "", start: 1, prefix: "" },
+    { index: 0, start: 1, prefix: "" },
     { index: 10000000000000000000, style: "D", start: 1, prefix: "" },
   ]);
 });

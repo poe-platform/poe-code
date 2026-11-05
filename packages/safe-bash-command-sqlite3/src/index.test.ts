@@ -51,6 +51,40 @@ async function runSqlite3(
   };
 }
 
+for (const op of ["=", "==", "!=", "<>"]) {
+  test(`sqlite3 ${op} compares literals without affinity and retains column affinity`, async () => {
+    const equal = op === "=" || op === "==";
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `
+      SELECT 1 ${op} '1', '1' ${op} 1, 1.0 ${op} '1', 1 ${op} 1.0,
+             '1' ${op} '1', NULL ${op} 1, (1 + 0) ${op} '1';
+      CREATE TABLE t(n INTEGER, r REAL, s TEXT, b BLOB);
+      INSERT INTO t VALUES (1, 1, '1', 1);
+      SELECT n ${op} '1', '1' ${op} n, r ${op} '1', s ${op} 1,
+             b ${op} '1', +n ${op} '1', n COLLATE BINARY ${op} '1'
+      FROM t AS item;
+      SELECT item.n ${op} '1' FROM t AS item;
+    `]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, equal ? "0|0|0|1|1||0\n1|1|1|1|0|0|1\n1\n" : "1|1|1|0|0||1\n0|0|0|0|1|1|0\n0\n");
+  });
+}
+
+test("sqlite3 comparison affinity survives filters, writes, casts and joined aliases", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `
+    CREATE TABLE t(n INTEGER, s TEXT);
+    INSERT INTO t VALUES (1, '01');
+    SELECT n, s = 1, n = s, CAST(1 AS TEXT) = 1, CAST('1' AS INTEGER) = '1'
+      FROM t WHERE n = '1';
+    SELECT a.n = '1', b.s = 1 FROM t a JOIN t b ON a.n = b.n;
+    UPDATE t SET n = 2 WHERE n = '1';
+    SELECT n FROM t;
+    DELETE FROM t WHERE n = '2';
+    SELECT count(*) FROM t;
+  `]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "1|0|1|1|1\n1|0\n2\n0\n");
+});
+
 test("sqlite3 persists genuine SQLite format 3 binary B-tree database files across invocations", async () => {
   const fs = createMemoryFileSystem();
   const res1 = await runSqlite3(fs, [

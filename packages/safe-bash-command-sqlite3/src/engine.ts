@@ -1180,18 +1180,27 @@ function arithmeticNumber(value: SqlValue): SqlValue {
 }
 
 // SQLite derives affinity from the declared type in this precedence order.
+function columnAffinity(declaredType: string): "INTEGER" | "TEXT" | "BLOB" | "REAL" | "NUMERIC" {
+  const type = declaredType.toUpperCase();
+  if (type.includes("INT")) return "INTEGER";
+  if (["CHAR", "CLOB", "TEXT"].some(part => type.includes(part))) return "TEXT";
+  if (type === "" || type.includes("BLOB")) return "BLOB";
+  if (["REAL", "FLOA", "DOUB"].some(part => type.includes(part))) return "REAL";
+  return "NUMERIC";
+}
+
 function applyColumnAffinity(storedValue: SqlValue, declaredType: string, strict: boolean): SqlValue {
   let value = storedValue instanceof String ? storedValue.valueOf() : storedValue;
   if (value === null || value instanceof Uint8Array) return value;
   const type = declaredType.toUpperCase();
   // STRICT ANY preserves the storage class; ordinary ANY has NUMERIC affinity.
   if (strict && type === "ANY") return value;
-  const integer = type.includes("INT");
-  if (!integer && ["CHAR", "CLOB", "TEXT"].some((part) => type.includes(part))) {
+  const affinity = columnAffinity(type);
+  if (affinity === "TEXT") {
     return toSqlString(value);
   }
-  if (!integer && (type === "" || type.includes("BLOB"))) return value;
-  const real = !integer && ["REAL", "FLOA", "DOUB"].some((part) => type.includes(part));
+  if (affinity === "BLOB") return value;
+  const real = affinity === "REAL";
   if (typeof value === "string") {
     const text = value.trim();
     if (!text || ![...text].every((char) => "0123456789.+-eE".includes(char)) || Number.isNaN(Number(text))) return value;
@@ -1672,6 +1681,8 @@ export class SqliteDatabase {
   ): Promise<QueryResultSet | null> {
     return runCooperatively(this.executeStatementSteps(sql), signal);
   }
+
+  private readonly rowTables = new WeakMap<Record<string, SqlValue>, TableDef>();
 
   public tables = new Map<string, TableDef>();
   public indexes = new Map<string, IndexDef>();
@@ -4087,6 +4098,7 @@ export class SqliteDatabase {
       bindings[`${tbl.name}.${column}`] = value;
       if (alias) bindings[`${alias}.${column}`] = value;
     }
+    this.rowTables.set(bindings, tbl);
     return bindings;
   }
 
@@ -4194,6 +4206,7 @@ export class SqliteDatabase {
       for (const other of source.rows) {
         yield;
         const ctx = { ...other, ...target };
+        this.rowTables.set(ctx, tbl);
         if (
           !whereExpr ||
           isTruthy(yield* this.evalExprSteps(whereExpr, ctx, positionalParams, _cteScope))
@@ -6180,6 +6193,7 @@ export class SqliteDatabase {
     const sameAliasAndName = alias.toLowerCase() === name.toLowerCase();
     const rows = yield* stepMap(this.preparing ? [] : tbl.rows, function* (r) {
       yield;
+      this.rowTables.set(r.data, tbl);
       const tablesMap: Record<string, Record<string, SqlValue>> = sameAliasAndName
         ? { [alias]: r.data }
         : { [alias]: r.data, [name]: r.data };
@@ -7128,7 +7142,7 @@ export class SqliteDatabase {
             : expr.right.kind === "collate"
               ? expr.right.collation
               : "BINARY";
-        const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
+        let l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
         if (
           (expr.op === "LIKE" || expr.op === "GLOB") &&
           expr.right.kind === "func" &&
@@ -7155,7 +7169,15 @@ export class SqliteDatabase {
             ? 1
             : 0;
         }
-        const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
+        let r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
+        if (["=", "==", "!=", "<>", "<", "<=", ">", ">=", "IS", "IS NOT"].includes(expr.op)) {
+          const leftAffinity = this.expressionAffinity(expr.left, row);
+          const rightAffinity = this.expressionAffinity(expr.right, row);
+          if (leftAffinity === "NUMERIC" && rightAffinity !== "NUMERIC") r = applyColumnAffinity(r, "NUMERIC", false);
+          else if (rightAffinity === "NUMERIC" && leftAffinity !== "NUMERIC") l = applyColumnAffinity(l, "NUMERIC", false);
+          else if (leftAffinity === "TEXT" && rightAffinity === undefined) r = applyColumnAffinity(r, "TEXT", false);
+          else if (rightAffinity === "TEXT" && leftAffinity === undefined) l = applyColumnAffinity(l, "TEXT", false);
+        }
         return this.applyBinary(expr.op, l, r, collation);
       }
       case "between": {
@@ -7331,6 +7353,34 @@ export class SqliteDatabase {
     }
   }
 
+  private expressionAffinity(expr: ExprNode, row: Record<string, SqlValue>): "NUMERIC" | "TEXT" | undefined {
+    if (expr.kind === "collate") return this.expressionAffinity(expr.expr, row);
+    let type: string | undefined;
+    if (expr.kind === "cast") {
+      type = expr.targetType;
+    } else if (expr.kind === "column") {
+      for (const scope of [row, ...this.outerRows.slice().reverse()]) {
+        const tables = (scope as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+        const sources = expr.table
+          ? Object.entries(tables ?? {}).filter(([name]) => name.toLowerCase() === expr.table!.toLowerCase()).map(([, data]) => data)
+          : ((scope as any).__sources as Record<string, SqlValue>[] | undefined) ?? [];
+        for (const source of this.rowTables.has(scope) || sources.length === 0 ? [scope, ...sources] : sources) {
+          const key = expr.table && source === scope ? `${expr.table}.${expr.name}` : expr.name;
+          if (!Object.keys(source).some(name => name.toLowerCase() === key.toLowerCase())) continue;
+          const table = this.rowTables.get(source);
+          const column = table?.columns.find(column => column.name.toLowerCase() === expr.name.toLowerCase());
+          type = column?.type;
+          if (!column && table && ["rowid", "_rowid_", "oid"].includes(expr.name.toLowerCase())) type = "INTEGER";
+          break;
+        }
+        if (type !== undefined) break;
+      }
+    }
+    if (type === undefined) return undefined;
+    const affinity = columnAffinity(type);
+    return affinity === "BLOB" ? undefined : affinity === "TEXT" ? "TEXT" : "NUMERIC";
+  }
+
   private applyUnary(op: string, v: SqlValue): SqlValue {
     if (op === "NOT") {
       if (v === null) {
@@ -7436,10 +7486,10 @@ export class SqliteDatabase {
         return integerResult(BigInt.asIntN(64, integerPrefix(l) | integerPrefix(r)));
       case "=":
       case "==":
-        return sqlEquals(l, r, collation) ? 1 : 0;
+        return compareSqlValues(l, r, collation) === 0 ? 1 : 0;
       case "!=":
       case "<>":
-        return sqlEquals(l, r, collation) ? 0 : 1;
+        return compareSqlValues(l, r, collation) !== 0 ? 1 : 0;
       case "<":
         return compareSqlValues(l, r, collation) < 0 ? 1 : 0;
       case "<=":

@@ -6,6 +6,27 @@ import { createMagickCommand, runConvertCli, runConvertCliSync, runMagickCli } f
 
 // ImageMagick 7.1.2-31 Q16-HDRI, RGBA [100,150,200,160], -depth 8 rgba:-.
 for (const mode of ["buffered", "retained", "sync"] as const) {
+  for (const [operation, integer, percentage] of [
+    ["And", [1, 1, 4], [0, 0, 128]],
+    ["Or", [20, 104, 239], [145, 229, 239]],
+    ["Xor", [19, 102, 235], [145, 229, 111]],
+  ] as const) {
+    it.each(["1000", "50%", "32767.5"])(`${mode}: ${operation} %s matches native Q16 bitwise evaluation`, async (operand) => {
+      const pixels = new Uint8Array([17, 101, 239].flatMap(value => [value, value, value, 255]));
+      const bytes = await sharp(pixels, { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
+      const files = new Map([["/in.png", bytes]]);
+      const filesystem = createMemoryFileSystem();
+      await filesystem.writeFile("/in.png", bytes);
+      const args = ["/in.png", "-channel", "RGB", "-evaluate", operation, operand, "/out.png"];
+      const result = mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+      const expected = operand === "1000" ? integer : percentage;
+      expect([...output.data]).toEqual(expected.flatMap(value => [value, value, value, 255]));
+    });
+  }
+
   // Native Q16: 50% is the quantum operand 32767.5, not the factor 0.5.
   for (const [operation, percentage, fractional] of [
     ["Multiply", [255, 255, 255], [9, 51, 120]],

@@ -1486,13 +1486,13 @@ function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string
                     next = Math.max(cur, vByte);
                     break;
                 case "and":
-                    next = cur & Math.round(vByte);
+                    next = ((cur * 257) & Math.round(vFactor)) / 257;
                     break;
                 case "or":
-                    next = cur | Math.round(vByte);
+                    next = ((cur * 257) | Math.round(vFactor)) / 257;
                     break;
                 case "xor":
-                    next = cur ^ Math.round(vByte);
+                    next = ((cur * 257) ^ Math.round(vFactor)) / 257;
                     break;
                 case "leftshift":
                     next = cur * 2 ** Math.round(vFactor);

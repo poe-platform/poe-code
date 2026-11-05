@@ -47,7 +47,11 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number): Generator<void
         if (!next.value) { yield; next = steps.next(); }
         else { const { position, length } = next.value; next = steps.next(image.data.subarray(position, position + length)); }
     }
-    return next.value ? yield* extractImageSteps(image, next.value) : image;
+    if (next.value) return {
+        ...yield* extractImageSteps(image, next.value),
+        virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
+    };
+    return image;
 }
 
 export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal): Promise<StoredRgbaImage> {
@@ -57,5 +61,9 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }
         else { const { position, length } = next.value; next = steps.next(await storage.read(image.position + position, length, { signal })); }
     }
-    return next.value ? transformStoredImage(image, storage, { kind: "extract", ...next.value }, signal) : image;
+    if (next.value) return {
+        ...await transformStoredImage(image, storage, { kind: "extract", ...next.value }, signal),
+        virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
+    };
+    return image;
 }

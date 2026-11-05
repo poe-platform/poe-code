@@ -10018,7 +10018,15 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 format!("{pfx_full}{sep}{num_str}.{ext}"),
             )
         };
-        let _ = fs.write_file(&dst, &bytes);
+        if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, &bytes).is_err() {
+            let (code, message) = if is_cairo {
+                (2, format!("Error opening output file {rel_dst}\n"))
+            } else {
+                (1, format!("Could not write image to {rel_dst}; exiting\n"))
+            };
+            stderr_progress.push_str(&message);
+            return err_out(&stderr_progress, code);
+        }
         if progress && !quiet {
             stderr_progress.push_str(&format!("{pno} {end_p} {rel_dst}\n"));
         }
@@ -16655,6 +16663,23 @@ mod media_unit_tests {
                 let pixel = im.pixels[6 * im.width + x];
                 assert!(pixel[..3].iter().zip(expected).all(|(a,b)| a.abs_diff(b) <= 2), "{cmd}: {pixel:?}");
             }
+        }
+    }
+
+    #[test]
+    fn pdf_raster_reports_unwritable_output_even_in_quiet_mode() {
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 8 8] >>",
+            "<< /Type /Page /Parent 2 0 R >>"], "");
+        fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
+        for (cmd, code, message) in [
+            ("pdftoppm", 1, "Could not write image to missing/out.jpg; exiting\n"),
+            ("pdftocairo", 2, "Error opening output file missing/out.jpg\n"),
+        ] {
+            let args = media_args(&["-q", "-jpeg", "-singlefile", "page.pdf", "missing/out"]);
+            let result = cmd_media_doc(cmd, &args, "", "/", &fs);
+            assert_eq!((result.exit_code, result.stderr.as_str()), (code, message));
         }
     }
 

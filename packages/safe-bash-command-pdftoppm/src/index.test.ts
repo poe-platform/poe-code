@@ -76,6 +76,16 @@ describe("safe-bash-command-pdftoppm", () => {
     expect([tags.get(262), tags.get(277), tags.get(279), bytes[tags.get(273)! + 27]]).toEqual([1, 1, 64, 77]);
   });
 
+  it.each([runPdftoppmCli, runPdftocairoCli])("writes asymmetric physical resolution into PDF page PNGs", async run => {
+    const files = new Map([["in.pdf", createSamplePdf(1, [12, 8])]]);
+    const result = await run(["-png", "-gray", "-rx", "72.5", "-ry", "144.25", "-singlefile", "in.pdf", "out"], files);
+    expect(result.exitCode).toBe(0);
+    const png = Buffer.from(files.get("out.png")!);
+    const at = png.indexOf("pHYs");
+    expect(at).toBeGreaterThan(0);
+    expect([png.readUInt32BE(at + 4), png.readUInt32BE(at + 8), png[at + 12]]).toEqual([2854, 5679, 1]);
+  });
+
   it("preserves each fractional resolution in TIFF output", async () => {
     const files = new Map([["in.pdf", createSamplePdf(1, [12, 8])]]);
     const result = await runPdftoppmCli(["-tiff", "-rx", "72.5", "-ry", "144.25", "-singlefile", "in.pdf", "out"], files);

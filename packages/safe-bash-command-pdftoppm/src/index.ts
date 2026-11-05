@@ -17,7 +17,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { PdfDocument, cosArray, cosNumber, cosStream, dictGet, dictSet, getDisplayListCropBox, type PdfCropRect, decodePngSteps, encodeJpegSteps, encodePbmSteps, encodePgmSteps, encodePngSteps, encodePpmSteps, encodeTiffSteps, renderDisplayListToSvgSteps, renderDisplayListToBitmapSteps } from "@poe-code/pdf-ast";
+import { PdfDocument, cosArray, cosNumber, cosStream, dictGet, dictSet, getDisplayListCropBox, type PdfCropRect, encodeJpegSteps, encodePbmSteps, encodePgmSteps, encodePngSteps, encodePpmSteps, encodeTiffSteps, renderDisplayListToSvgSteps, renderDisplayListToBitmapSteps } from "@poe-code/pdf-ast";
 
 export interface PdftoppmLimits {
   readonly maxInputBytes: number;
@@ -176,7 +176,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 }
             }
             if (format === "png")
-                renderedBytes = (yield* encodePngSteps(bitmap, cairo ? undefined : effDpiX, effDpiY));
+                renderedBytes = (yield* encodePngSteps(bitmap, effDpiX, effDpiY, cairo ? colorMode : "rgb"));
             else if (format === "tif")
                 renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression, effDpiY, colorMode === "gray" && !transparent));
             else if (format === "jpg")
@@ -478,31 +478,9 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
         return { exitCode: 0, stdout: "", stderr: "" };
     }
     if (format === "tif" && grayMode && !monoMode) forwardedArgs.push("-gray");
-    const snapBefore = new Map(files);
+    if (format === "png" && (grayMode || monoMode)) forwardedArgs.push("-png", monoMode ? "-mono" : "-gray");
     const rasterPositionals = positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
-    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options, true, format === "jpg" && grayMode));
-    if (res.exitCode !== 0 || (!grayMode && !monoMode)) {
-        return res;
-    }
-    const convertRgbaInPlace = (data: Uint8Array) => {
-        for (let p = 0; p < data.length; p += 4) {
-            const lum = Math.round(0.299 * data[p]! + 0.587 * data[p + 1]! + 0.114 * data[p + 2]!);
-            const v = monoMode ? (lum >= 128 ? 255 : 0) : lum;
-            data[p] = v;
-            data[p + 1] = v;
-            data[p + 2] = v;
-        }
-    };
-    for (const [k, v] of files.entries()) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        if (snapBefore.get(k) !== v && k.endsWith(".png")) {
-            const decoded = (yield* decodePngSteps(v));
-            convertRgbaInPlace(decoded.data);
-            files.set(k, (yield* encodePngSteps(decoded, undefined, undefined, monoMode ? "mono" : "gray")));
-        }
-    }
-    return res;
+    return yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options, true, format === "jpg" && grayMode);
 }
 export async function runPdftocairoCli(argv: readonly string[], files: Map<string, Uint8Array>, options: {
     readonly signal?: AbortSignal;
@@ -555,9 +533,8 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
             return { exitCode: plan.exitCode };
           }
           if (plan.format === "tif" && parsed.grayMode && !parsed.monoMode) plan = { ...plan, colorMode: "gray" };
-          // Preserve Cairo's existing PNG-file-only color conversion.
-          if (plan.format === "png" && plan.positionals[1] && plan.positionals[1] !== "-" && (parsed.grayMode || parsed.monoMode)) {
-            plan = { ...plan, colorMode: parsed.monoMode ? "mono" : "gray" };
+          if (parsed.format === "png" && (parsed.grayMode || parsed.monoMode)) {
+            plan = { ...plan, format: "png", colorMode: parsed.monoMode ? "mono" : "gray" };
           }
           return await executeRetainedRaster(context, plan, invocation.child(context.stdout).output, invocation.signal, maxInputBytes,
             name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }), true, parsed.grayMode);

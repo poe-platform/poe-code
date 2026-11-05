@@ -18,8 +18,8 @@ export function pngResolutionChunk(dpi: number, dpiY = dpi): Uint8Array {
   const view = new DataView(chunk.buffer);
   view.setUint32(0, 9);
   chunk.set([112, 72, 89, 115], 4);
-  view.setUint32(8, Math.floor(dpi / 0.0254));
-  view.setUint32(12, Math.floor(dpiY / 0.0254));
+  view.setUint32(8, Math.min(0xffffffff, dpi / 0.0254));
+  view.setUint32(12, Math.min(0xffffffff, dpiY / 0.0254));
   chunk[16] = 1;
   view.setUint32(17, (updatePngCrc(0xffffffff, chunk.subarray(4, 17)) ^ 0xffffffff) >>> 0);
   return chunk;

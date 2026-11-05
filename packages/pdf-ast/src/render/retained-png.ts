@@ -9,6 +9,7 @@ export interface PdfRetainedPngOptions {
   readonly colorMode?: "rgb" | "gray" | "mono";
   readonly dpi?: number | undefined;
   readonly dpiY?: number | undefined;
+  readonly pixelDensityDpi?: readonly [number, number];
   readonly chunkBytes?: number;
   /** Aggregate live pixel and compressed staging bytes. */
   readonly maxStagingBytes?: number;
@@ -33,7 +34,8 @@ export async function* encodeRetainedPng(width: number, height: number, input: A
   const chunkBytes = options.chunkBytes ?? 65536;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("Invalid PNG chunk size");
   const stagingLimit = maximum(options.maxStagingBytes); const outputLimit = maximum(options.maxOutputBytes);
-  const framingBytes = options.dpi === undefined ? 57 : 78;
+  const dpi = options.dpi ?? options.pixelDensityDpi?.[0], dpiY = options.dpiY ?? options.pixelDensityDpi?.[1];
+  const framingBytes = dpi === undefined ? 57 : 78;
   if (outputLimit < framingBytes) throw new PdfError("E_LIMIT", "PNG output byte limit exceeded");
   let opaque = options.alpha !== "rgba"; let inputBytes = 0;
   const expected = width * height * 4;
@@ -56,7 +58,7 @@ export async function* encodeRetainedPng(width: number, height: number, input: A
       deflatePngPixels(width, height, pixels.stream(0, pixels.size, signal), opaque, chunkBytes, signal, options.colorMode),
       { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: Math.min(stagingLimit - pixels.size, outputLimit - framingBytes, 0xffffffff), ...(signal ? { signal } : {}) });
     await pixels.close(); pixels = undefined;
-    yield* framePngChunks(width, height, opaque, compressed.size, compressed.stream(0, compressed.size, signal), chunkBytes, signal, options.dpi, options.dpiY, options.colorMode);
+    yield* framePngChunks(width, height, opaque, compressed.size, compressed.stream(0, compressed.size, signal), chunkBytes, signal, dpi, dpiY, options.colorMode);
   } catch (error) { failed = true; throw error; }
   finally {
     const results = await Promise.allSettled([compressed?.close(), pixels?.close()]);

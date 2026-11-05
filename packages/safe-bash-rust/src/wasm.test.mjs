@@ -6603,7 +6603,8 @@ test("zip reads, relocates and bounds members with ZIP64 central sizes and offse
     const archive=Buffer.from(a.stdoutBytes),central=archive.indexOf(Buffer.from("PK\x01\x02","binary"));
     const extra=central+46+archive.readUInt16LE(central+28);
     assert.equal(archive.readUInt16LE(extra),1);
-    for(const offset of [extra+4,extra+12,extra+20]){
+    const end64=archive.indexOf(Buffer.from("PK\x06\x06","binary"));assert.ok(end64>central);
+    for(const offset of [extra+4,extra+12,extra+20,end64+32,end64+40,end64+48]){
       const invalid=Buffer.from(archive);invalid.writeBigUInt64LE(2n**63n,offset);await rust.fs.writeFile("/bad.zip",invalid);
       const bad=await rust.exec("zip -qm bad.zip first");assert.notEqual(bad.exitCode,0);
       assert.deepEqual(Buffer.from(await rust.fs.readFile("/bad.zip")),invalid);

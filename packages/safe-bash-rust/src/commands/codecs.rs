@@ -3535,10 +3535,10 @@ pub(super) struct ZipRecord<'a> {
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, (0,0), &[], false, (false,false), &ZipRecords::new(), |_,_,_,_| {})
+    encode_zip_members(entries, (0,0), &[], false, (false,None), &ZipRecords::new(), |_,_,_,_| {})
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,allow_zip64): (bool,bool), retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64): (bool,Option<bool>), retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3602,7 +3602,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             &e.content
         };
         let stdin_member = e.mode & 0o170000 == 0o010000;
-        let wide = allow_zip64 && stdin_member;
+        let wide = zip64.unwrap_or(stdin_member);
         wide_archive |= wide && !descriptors;
         let compress = compression!=0 && level != 0 && !is_dir && !is_symlink && (!payload.is_empty() || stdin_member && descriptors)
             && (level == 9 || !store_suffixes.iter().any(|suffix| clean_name.ends_with(suffix)));
@@ -3658,8 +3658,8 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         out.extend_from_slice(extra);
         if wide {
             out.extend_from_slice(&[1,0,16,0]);
-            out.extend_from_slice(&(if descriptor {0} else {u64::from(sz)}).to_le_bytes());
-            out.extend_from_slice(&(if descriptor {0} else {stored.len() as u64}).to_le_bytes());
+            out.extend_from_slice(&(if descriptor && stdin_member {0} else {u64::from(sz)}).to_le_bytes());
+            out.extend_from_slice(&(if descriptor && (method!=0 || stdin_member) {0} else {stored.len() as u64}).to_le_bytes());
         }
         out.extend_from_slice(stored);
 
@@ -3694,9 +3694,9 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         central.extend_from_slice(&dos_date.to_le_bytes());
         central.extend_from_slice(&crc.to_le_bytes());
         central.extend_from_slice(&(stored.len() as u32).to_le_bytes());
-        central.extend_from_slice(&sz.to_le_bytes());
+        central.extend_from_slice(&(if zip64==Some(true) {u32::MAX} else {sz}).to_le_bytes());
         central.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        central.extend_from_slice(&(extra.len() as u16).to_le_bytes());
+        central.extend_from_slice(&((extra.len() + if zip64==Some(true) {12} else {0}) as u16).to_le_bytes());
         central.extend_from_slice(&0u16.to_le_bytes());
         central.extend_from_slice(&0u16.to_le_bytes());
         central.extend_from_slice(&text_attr.to_le_bytes());
@@ -3704,6 +3704,10 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         central.extend_from_slice(&local_offset.to_le_bytes());
         central.extend_from_slice(name_bytes);
         central.extend_from_slice(extra);
+        if zip64==Some(true) {
+            central.extend_from_slice(&[1,0,8,0]);
+            central.extend_from_slice(&u64::from(sz).to_le_bytes());
+        }
         count = count.saturating_add(1);
     }
 
@@ -3939,29 +3943,34 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
     if data[eocd + 4..eocd + 8] != [0; 4] {
         return Err("ZIP multi-disk archive requires an explicit VFS volume resolver".into());
     }
-    let total_entries = u16::from_le_bytes([data[eocd + 10], data[eocd + 11]]) as usize;
+    let mut total_entries = u16::from_le_bytes([data[eocd + 10], data[eocd + 11]]) as usize;
     let split = read(0..4)?.as_ref() == b"PK\x07\x08";
-    let disk_members = u16::from_le_bytes([data[eocd + 8],data[eocd + 9]]) as usize;
-    if disk_members != total_entries && !(split && disk_members == 65535) {
-        return Err(if split { "ZIP inconsistent per-disk member count" } else { "ZIP inconsistent member count" }.into());
-    }
-    let central_size = u32::from_le_bytes(data[eocd + 12..eocd + 16].try_into().unwrap()) as usize;
-    let central_offset = u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
+    let mut disk_members = u16::from_le_bytes([data[eocd + 8],data[eocd + 9]]) as usize;
+    let mut central_size = u32::from_le_bytes(data[eocd + 12..eocd + 16].try_into().unwrap()) as usize;
+    let mut central_offset = u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
     let cmt_len = u16::from_le_bytes([data[eocd + 20], data[eocd + 21]]) as usize;
 
     let end=tail_start+eocd;
-    let central_end=central_offset.checked_add(central_size).ok_or("corrupt central directory")?;
-    if end.checked_sub(76)==Some(central_end) {
-        // Info-ZIP emits both classic counts and a ZIP64 end for small named stdin archives.
+    let mut central_end=end;
+    if central_offset.checked_add(central_size)!=Some(end) {
+        central_end=end.checked_sub(76).ok_or("corrupt central directory")?;
         let wide=read(central_end..end)?;
-        if &wide[..4]!=b"PK\x06\x06" || wide[4..12]!=44u64.to_le_bytes() || wide[14..16]!=45u16.to_le_bytes()
-            || wide[16..24]!=[0;8] || wide[24..32]!=(disk_members as u64).to_le_bytes()
-            || wide[32..40]!=(total_entries as u64).to_le_bytes() || wide[40..48]!=(central_size as u64).to_le_bytes()
-            || wide[48..56]!=(central_offset as u64).to_le_bytes() || &wide[56..60]!=b"PK\x06\x07"
-            || wide[60..64]!=[0;4] || wide[64..72]!=(central_end as u64).to_le_bytes() || wide[72..76]!=1u32.to_le_bytes() {
+        if &wide[..4]!=b"PK\x06\x06" || &wide[56..60]!=b"PK\x06\x07" {return Err("corrupt central directory".into());}
+        if wide[4..12]!=44u64.to_le_bytes() || !(45..=46).contains(&u16::from_le_bytes(wide[14..16].try_into().unwrap()))
+            || wide[16..24]!=[0;8] || wide[60..64]!=[0;4] || wide[64..72]!=(central_end as u64).to_le_bytes() || wide[72..76]!=1u32.to_le_bytes() {
             return Err("ZIP inconsistent ZIP64 end record".into());
         }
-    } else if central_end != end {
+        for ((classic,sentinel),bytes) in [(&mut disk_members,u16::MAX as usize),(&mut total_entries,u16::MAX as usize),
+            (&mut central_size,u32::MAX as usize),(&mut central_offset,u32::MAX as usize)].into_iter().zip(wide[24..56].chunks_exact(8)) {
+            let value=usize::try_from(u64::from_le_bytes(bytes.try_into().unwrap())).map_err(|_|"ZIP64 value exceeds address space")?;
+            if *classic!=sentinel && *classic!=value {return Err("ZIP inconsistent ZIP64 end record".into());}
+            *classic=value;
+        }
+    }
+    if disk_members != total_entries && !(split && disk_members == 65535) {
+        return Err(if split { "ZIP inconsistent per-disk member count" } else { "ZIP inconsistent member count" }.into());
+    }
+    if central_offset.checked_add(central_size)!=Some(central_end) || total_entries>central_size/46 {
         return Err("corrupt central directory".into());
     }
 

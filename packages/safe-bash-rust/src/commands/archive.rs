@@ -5907,7 +5907,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
     let mut selected_action: &str = "add";
     let mut literal = false;
     let mut descriptors = false;
-    let mut allow_zip64 = true;
+    let mut zip64 = None;
     let mut split_size = 0;
     let mut split_verbose = false;
     let mut split_pause = false;
@@ -6024,6 +6024,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             let value = if let Some(v) = a.strip_prefix("--split-size=") { v }
                 else { i += 1; args.get(i).map_or("",String::as_str) };
             split_size = match zip_volumes::size(value) { Ok(s) => s, Err(e) => return zip_err(e) };
+        } else if a == "--force-zip64" || a == "--force-zip64-" { zip64=Some(a=="--force-zip64");
         } else if a == "--force-descriptors" { descriptors = true;
         } else if a == "--force-descriptors-" { return zip_err("option fd is not negatable");
         } else if a == "--split-pause" { split_pause = true; descriptors = true;
@@ -6157,7 +6158,12 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                         selected_action = "copy";
                         copy_mode = true;
                     }
-                    'f' if flags.as_str().starts_with("z-") => { flags.next(); flags.next(); allow_zip64 = false; }
+                    'f' if flags.as_str().starts_with('z') => {
+                        flags.next();
+                        let enabled=!flags.as_str().starts_with('-');
+                        if !enabled {flags.next();}
+                        zip64=Some(enabled);
+                    }
                     'f' if flags.as_str().starts_with('d') => {
                         flags.next();
                         if flags.as_str().starts_with('-') { return zip_err("option fd is not negatable"); }
@@ -6439,13 +6445,13 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,false),&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64),&retained,|_,_,_,_| {}), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,false),&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64),&retained,|_,_,_,_| {}), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
@@ -6653,7 +6659,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
     let savings = |size: u64, stored: u64| if size == 0 { 0 } else {
         (200 * (i128::from(size) - i128::from(stored)) / i128::from(size) + 1) / 2
     };
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptors || stdout_archive,allow_zip64), &retained,
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptors || stdout_archive,zip64), &retained,
         |name,method,size,stored| {
             if quiet { return; }
             let (size,stored) = (size as u64,stored as u64);

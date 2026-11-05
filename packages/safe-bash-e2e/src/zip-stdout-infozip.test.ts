@@ -66,7 +66,7 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
     await writeFile(cwd + "/-", "literal dash");
     for (const [shell, view] of [[js, fs], [rust, rust.fs]] as const) {
       await view.writeFile("/-", Buffer.from("literal dash"));
-      for (const args of [["-qm", "named.zip", "-"], ["-q", "-", "-"], ["-q"], ["-q", "-fz-", "-", "-"]]) {
+      for (const args of [["-qm", "named.zip", "-"], ["-q", "-", "-"], ["-q"], ["-q", "-fz-", "-", "-"], ["-qfz", "named.zip", "-"], ["-q", "--force-zip64", "named.zip", "src"], ["-q", "--force-zip64-", "named.zip", "-"]]) {
         const named = args.includes("named.zip");
         const reference = await native("zip", args, payload);
         assert.equal(reference.status, 0, reference.stderr.toString());
@@ -87,7 +87,7 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
         assert.equal(imported.exitCode, 0, imported.stderr);
         assert.deepEqual(Buffer.from(imported.stdoutBytes), Buffer.from(payload));
         assert.deepEqual(await view.readFile("/-"), new Uint8Array(Buffer.from("literal dash")));
-        if (named) await rm(cwd + "/named.zip");
+        if (named) { await rm(cwd + "/named.zip"); await view.unlink("/named.zip"); }
       }
     }
   } finally {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 import { SsconvertError } from "../../contracts.js";
-import { logGamma } from "./scientific.js";
+import { gamma, logGamma } from "./scientific.js";
 import { normalProbability, normalQuantile } from "./normal-distribution.js";
 import type { FunctionHost } from "./types.js";
 import { binomialProbability, sourceSmallABeta } from "./statistics-beta.js";
@@ -105,6 +105,36 @@ function binomialDensity(x: number, n: number, p: number, host: FunctionHost): n
   // Let the logarithmic path handle underflow in the separate power factors.
   return result[0] > 0 && Number.isFinite(result[0]) ? result[0] + result[1] : undefined;
 }
+/** Gnumeric's direct Poisson product, before powers/factorials need scaling. */
+function poissonDensity(x: number, mean: number, host: FunctionHost): number {
+  return mean ** x * capturedExp(-mean) / gamma(x + 1,host);
+}
+function directPoisson(x: number, mean: number, cumulative: boolean, lower: boolean, host: FunctionHost): number | undefined {
+  if (x < 0 || x > 140 || mean <= 0 || mean > 140) return undefined;
+  if (!cumulative) return Number.isInteger(x) ? poissonDensity(x,mean,host) : 0;
+  const count = Math.floor(x), shape = count + 1;
+  // Match pgamma's upper/lower series branches and accumulation order.
+  // Small means and the asymptotic region retain the general gamma path.
+  if (mean < 1) return undefined;
+  let term: number, total: number;
+  if (mean <= count && mean < .8 * (shape + 50)) {
+    term = mean / shape; total = term;
+    let denominator = shape;
+    do { host.tick(); term *= mean / ++denominator; total += term; }
+    while (term > total * Number.EPSILON);
+    const tail = total * poissonDensity(count,mean,host);
+    return lower ? 1 - tail : tail;
+  }
+  if (count < mean && shape < .8 * (mean + 50)) {
+    term = 1; total = 0;
+    for (let y = count; y >= 1 && term > total * Number.EPSILON; y--) {
+      host.tick(); term *= y / mean; total += term;
+    }
+    const tail = (1 + total) * poissonDensity(count,mean,host);
+    return lower ? tail : 1 - tail;
+  }
+  return undefined;
+}
 /** Released Hill inverse-t expansion when the smaller probability underflows. */
 function underflowStudentQuantile(x:number,df:number,lower:boolean,host:FunctionHost):number | undefined {
   host.tick();
@@ -127,7 +157,7 @@ export const distributions: Readonly<Record<string, Distribution>> = {
   rayleigh: { parameters:1, minimum:0, maximum:Infinity, valid:p => positive(p[0]), density:(x,p) => x <= 0 ? -Infinity : Math.log(x) - 2 * Math.log(p[0]!) - .5 * (x / p[0]!) ** 2, probability:(x,p,l,g) => selectTail(x <= 0 ? 0 : -.5 * (x / p[0]!) ** 2,false,l,g), quantile:(x,p,l,g) => p[0]! * Math.sqrt(-2 * (l ? logComplement(g ? x : Math.log(x)) : g ? x : Math.log(x))) },
   gumbel: { parameters:2, minimum:-Infinity, maximum:Infinity, valid:p => positive(p[1]), density:(x,p) => { const z = (x - p[0]!) / p[1]!; return -z - Math.exp(-z) - Math.log(p[1]!); }, probability:(x,p,l,g) => selectTail(-Math.exp(-(x - p[0]!) / p[1]!),true,l,g), quantile:(x,p,l,g) => p[0]! - p[1]! * Math.log(-(l ? g ? x : Math.log(x) : logComplement(g ? x : Math.log(x)))) },
   binom: { parameters:2, minimum:0, maximum:p => p[0]!, discrete:true, valid:p => integer(p[0]) && unit(p[1]), density:(x,p,h) => !Number.isInteger(x) || x < 0 || x > p[0]! ? -Infinity : p[1] === 0 ? x === 0 ? 0 : -Infinity : p[1] === 1 ? x === p[0] ? 0 : -Infinity : logChoose(p[0]!,x,h) + x * Math.log(p[1]!) + (p[0]! - x) * Math.log1p(-p[1]!), probability:(x,p,l,g,h) => { const k = Math.floor(x); if (k < 0) return l ? g ? -Infinity : 0 : g ? 0 : 1; if (k >= p[0]!) return l ? g ? 0 : 1 : g ? -Infinity : 0; if (p[1] === 0) return l ? g ? 0 : 1 : g ? -Infinity : 0; if (p[1] === 1) return l ? g ? -Infinity : 0 : g ? 0 : 1; return binomialProbability(k,p[0]! - k,p[1]!,1 - p[1]!,p[0]! * p[1]! - k,l,g,h); } },
-  pois: { parameters:1, minimum:0, maximum:Infinity, discrete:true, valid:p => nonnegative(p[0]), density:(x,p,h) => !Number.isInteger(x) || x < 0 ? -Infinity : p[0] === 0 ? x === 0 ? 0 : -Infinity : x * Math.log(p[0]!) - p[0]! - logGamma(x + 1,h), probability:(x,p,l,g,h) => x < 0 ? l ? g ? -Infinity : 0 : g ? 0 : 1 : p[0] === 0 ? l ? g ? 0 : 1 : g ? -Infinity : 0 : gammaProbability(p[0]!,Math.floor(x) + 1,!l,g,h) },
+  pois: { parameters:1, minimum:0, maximum:Infinity, discrete:true, valid:p => nonnegative(p[0]), density:(x,p,h) => !Number.isInteger(x) || x < 0 ? -Infinity : p[0] === 0 ? x === 0 ? 0 : -Infinity : x * Math.log(p[0]!) - p[0]! - logGamma(x + 1,h), probability:(x,p,l,g,h) => x === Infinity ? l ? g ? 0 : 1 : g ? -Infinity : 0 : x < 0 ? l ? g ? -Infinity : 0 : g ? 0 : 1 : p[0] === 0 ? l ? g ? 0 : 1 : g ? -Infinity : 0 : gammaProbability(p[0]!,Math.floor(x) + 1,!l,g,h) },
   geom: { parameters:1, minimum:0, maximum:Infinity, discrete:true, valid:p => positive(p[0]) && unit(p[0]), density:(x,p) => !Number.isInteger(x) || x < 0 ? -Infinity : p[0] === 1 ? x === 0 ? 0 : -Infinity : Math.log(p[0]!) + x * Math.log1p(-p[0]!), probability:(x,p,l,g) => selectTail(x < 0 ? 0 : (Math.floor(x) + 1) * Math.log1p(-p[0]!),false,l,g) },
   nbinom: { parameters:2, minimum:0, maximum:Infinity, discrete:true, valid:p => nonnegative(p[0]) && positive(p[1]) && unit(p[1]), density:(x,p,h) => !Number.isInteger(x) || x < 0 ? -Infinity : p[0] === 0 || p[1] === 1 ? x === 0 ? 0 : -Infinity : logGamma(x + p[0]!,h) - logGamma(p[0]!,h) - logGamma(x + 1,h) + p[0]! * Math.log(p[1]!) + x * Math.log1p(-p[1]!), probability:(x,p,l,g,h) => x < 0 ? l ? g ? -Infinity : 0 : g ? 0 : 1 : p[0] === 0 || p[1] === 1 ? l ? g ? 0 : 1 : g ? -Infinity : 0 : betaProbability(p[1]!,p[0]!,Math.floor(x) + 1,l,g,h) },
   hyper: { parameters:3, minimum:p => Math.max(0,p[2]! - p[1]!), maximum:p => Math.min(p[0]!,p[2]!), discrete:true, valid:p => integer(p[0]) && integer(p[1]) && integer(p[2]) && p[2]! <= p[0]! + p[1]!, density:(x,p,h) => Number.isInteger(x) ? logChoose(p[0]!,x,h) + logChoose(p[1]!,p[2]! - x,h) - logChoose(p[0]! + p[1]!,p[2]!,h) : -Infinity, probability:(x,p,l,g,h) => { const low = Math.max(0,p[2]! - p[1]!), high = Math.min(p[0]!,p[2]!), end = Math.floor(x); if (end < low || end >= high) return end < low === l ? g ? -Infinity : 0 : g ? 0 : 1; let total = -Infinity; for (let k = l ? low : Math.max(low,end + 1); k <= (l ? Math.min(end,high) : high); k++) { h.tick(); const term = distributions.hyper!.density(k,p,h), max = Math.max(total,term); total = max === -Infinity ? max : max + Math.log1p(Math.exp(Math.min(total,term) - max)); } return g ? total : Math.exp(total); } },
@@ -163,6 +193,10 @@ export function distributionValue(family: string, operation: string, x: number, 
   if (!d.valid(p) || Number.isNaN(x) || operation === 'q' && (log ? x > 0 : x < 0 || x > 1)) return NaN;
   if (family === 'binom' && operation === 'd' && !log) {
     const value = binomialDensity(x,p[0]!,p[1]!,host);
+    if (value !== undefined) return value;
+  }
+  if (family === 'pois' && !log && (operation === 'd' || operation === 'p')) {
+    const value = directPoisson(x,p[0]!,operation === 'p',lower,host);
     if (value !== undefined) return value;
   }
   if (operation === 'd') { const value = d.density(x,p,host); return log ? value : Math.exp(value); }

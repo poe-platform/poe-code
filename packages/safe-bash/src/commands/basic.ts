@@ -3,7 +3,7 @@ import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { byteLength } from "../byte-encoding.js";
 import { writeDiagnostic } from "../escaping.js";
 import { FsError, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
-import { define, escapeBytes, options, output, requireOperands, UsageError } from "./internal.js";
+import { define, escapeBytes, output, requireOperands, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
 import { printfInteger } from "./printf-integer.js";
@@ -140,68 +140,87 @@ export function basicCommands(): CommandDefinition[] {
       await output(context, `${directory}\n`);
       return { exitCode: 0 };
     }),
-    define("basename", async (context) => {
-      const arguments_ = getCommandArguments(context);
-      const operands: number[] = [];
-      let suffix: Uint8Array | undefined;
-      const parsed = options(arguments_.args, "as:z", {
-        m: "a", mu: "a", mul: "a", mult: "a", multi: "a", multip: "a", multipl: "a", multiple: "a",
-        s: "s", su: "s", suf: "s", suff: "s", suffi: "s", suffix: "s",
-        z: "z", ze: "z", zer: "z", zero: "z",
-      }, true,
-        index => { operands.push(index); },
-        (_key, index, offset) => { suffix = arguments_.bytes(index)!.subarray(offset); });
-      const multiple = parsed.flags.has("a") || parsed.flags.has("s");
-      requireOperands(parsed.operands, 1, multiple ? Infinity : 2);
-      if (!multiple && operands.length === 2) suffix = arguments_.bytes(operands[1]!)!;
-      for (const index of multiple ? operands : operands.slice(0, 1)) {
-        const operand = arguments_.bytes(index)!;
-        let end = operand.length;
-        while (end > 0 && operand[end - 1] === 47) end--;
-        let start = end;
-        while (start > 0 && operand[start - 1] !== 47) start--;
-        if (end === 0 && operand.length > 0) end = 1;
-        if (suffix?.length && suffix.length < end - start) {
-          let matches = true;
-          for (let offset = 0; offset < suffix.length; offset++) {
-            if (operand[end - suffix.length + offset] !== suffix[offset]) { matches = false; break; }
-          }
-          if (matches) end -= suffix.length;
-        }
-        const result = new Uint8Array(end - start + 1);
-        result.set(operand.subarray(start, end));
-        result[result.length - 1] = parsed.flags.has("z") ? 0 : 10;
-        await output(context, result);
-      }
-      return { exitCode: 0 };
-    }, 1, 1),
-    define("dirname", async (context) => {
-      const arguments_ = getCommandArguments(context);
-      const operands: number[] = [];
-      const parsed = options(arguments_.args, "z", { z: "z", ze: "z", zer: "z", zero: "z" }, context.env.POSIXLY_CORRECT !== undefined, index => { operands.push(index); });
-      requireOperands(parsed.operands);
-      for (const index of operands) {
-        const operand = arguments_.bytes(index)!;
-        let end = operand.length;
-        while (end > 0 && operand[end - 1] === 47) end--;
-        if (end === 0 && operand.length > 0) end = 1;
-        else {
-          while (end > 0 && operand[end - 1] !== 47) end--;
-          while (end > 1 && operand[end - 1] === 47) end--;
-        }
-        const result = new Uint8Array((end || 1) + 1);
-        if (end) result.set(operand.subarray(0, end));
-        else result[0] = 46;
-        result[result.length - 1] = parsed.flags.has("z") ? 0 : 10;
-        await output(context, result);
-      }
-      return { exitCode: 0 };
-    }, 1, 1),
+    define("basename", pathName, 1, 1),
+    define("dirname", pathName, 1, 1),
     printfCommand,
   ].map(command => {
     if (command.name === "echo") defaultEchoExecutors.add(command.execute);
     return { ...command, filesystemRequirements: command.name === "pwd" ? pwdRequirements : [] };
   });
+}
+
+async function pathName(context: CommandContext): Promise<CommandResult> {
+  const argv = getCommandArguments(context);
+  const base = context.command === "basename";
+  const names = base ? ["multiple", "suffix", "zero", "help", "version"] : ["zero", "help", "version"];
+  const usage = (message: string) => new UsageError(`${message}\nTry '${context.command} --help' for more information.`);
+  const operands: number[] = [];
+  let suffix: Uint8Array | undefined;
+  let ended = false, multiple = false, zero = false;
+  for (let i = 0; i < argv.args.length; i++) {
+    const arg = argv.args[i]!;
+    if (ended || arg === "-" || !arg.startsWith("-")) {
+      operands.push(i);
+      ended ||= base || context.env.POSIXLY_CORRECT !== undefined;
+    } else if (arg === "--") {
+      ended = true;
+    } else if (arg.startsWith("--")) {
+      const equals = arg.indexOf("=");
+      const prefix = arg.slice(2, equals < 0 ? undefined : equals);
+      if (!prefix) throw usage(`option '${arg}' is ambiguous; possibilities: '--${names.join("' '--")}'`);
+      const name = names.find(n => n.startsWith(prefix));
+      if (!name) throw usage(`unrecognized option '${arg}'`);
+      if (name === "suffix") {
+        suffix = equals < 0 ? argv.bytes(++i) : argv.bytes(i)!.subarray(equals + 1);
+        if (!suffix) throw usage("option '--suffix' requires an argument");
+        multiple = true;
+      } else if (equals >= 0) throw usage(`option '--${name}' doesn't allow an argument`);
+      else if (name === "zero") zero = true;
+      else if (name === "multiple") multiple = true;
+      else {
+        await output(context, gnuInformationSync(context.command, [`--${name}`])!);
+        return { exitCode: 0 };
+      }
+    } else {
+      for (let j = 1; j < arg.length; j++) {
+        const flag = arg[j];
+        if (flag === "z") zero = true;
+        else if (base && flag === "a") multiple = true;
+        else if (base && flag === "s") {
+          suffix = j + 1 < arg.length ? argv.bytes(i)!.subarray(j + 1) : argv.bytes(++i);
+          if (!suffix) throw usage("option requires an argument -- 's'");
+          multiple = true;
+          break;
+        } else throw usage(`invalid option -- '${flag}'`);
+      }
+    }
+  }
+  if (!operands.length) throw usage("missing operand");
+  if (base && !multiple && operands.length > 1) {
+    if (operands.length > 2) throw usage(`extra operand '${argv.args[operands[2]!]}'`);
+    suffix = argv.bytes(operands.pop()!);
+  }
+  for (const i of operands) {
+    const operand = argv.bytes(i)!;
+    let start = 0, end = operand.length;
+    while (end > 0 && operand[end - 1] === 47) end--;
+    if (!end && operand.length) end = 1;
+    else if (base) {
+      start = end;
+      while (start > 0 && operand[start - 1] !== 47) start--;
+      if (suffix?.length && suffix.length < end - start && suffix.every((byte, j) => byte === operand[end - suffix!.length + j])) end -= suffix.length;
+    } else {
+      while (end > 0 && operand[end - 1] !== 47) end--;
+      while (end > 1 && operand[end - 1] === 47) end--;
+    }
+    const length = !base && end === 0 ? 1 : end - start;
+    const result = new Uint8Array(length + 1);
+    if (!base && !end) result[0] = 46;
+    else result.set(operand.subarray(start, end));
+    result[length] = zero ? 0 : 10;
+    await output(context, result);
+  }
+  return { exitCode: 0 };
 }
 
 export async function formatPrintf(context: CommandContext, shellStartedAt = (context as CommandContext & { shellStartedAt?: number }).shellStartedAt ?? Date.now(), assignCount?: (name: string, count: number) => Promise<void>): Promise<CommandResult> {

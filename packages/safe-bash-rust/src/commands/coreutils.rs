@@ -89,8 +89,7 @@ fn coreutil(
         "iconv" => cmd_iconv(args, input.buffered()?, cwd, env, fs),
         "sponge" => cmd_sponge(args, input.buffered()?, cwd, fs),
         "seq" => cmd_seq(args),
-        "basename" => cmd_basename(args),
-        "dirname" => cmd_dirname(args, env.contains_key("POSIXLY_CORRECT")),
+        "basename" | "dirname" => cmd_pathname(cmd, args, env.contains_key("POSIXLY_CORRECT")),
         "env" | "printenv" => cmd_printenv(args, env),
         "cal" | "ncal" => cmd_cal(cmd, args, env),
         "getconf" => cmd_getconf(args, cwd, fs),
@@ -4759,139 +4758,80 @@ pub(crate) fn yes_batch(args: &[String], posixly_correct: bool) -> Result<String
     Ok(if line.len() < 8192 { line.repeat(8192 / line.len()) } else { line })
 }
 
-fn cmd_basename(args: &[String]) -> BuiltinOutcome {
-    let mut suffix = None;
+fn cmd_pathname(cmd: &str, args: &[String], posix: bool) -> BuiltinOutcome {
+    let base = cmd == "basename";
+    let names: &[&str] = if base { &["multiple", "suffix", "zero", "help", "version"] } else { &["zero", "help", "version"] };
+    let usage = |message: String| err_out(&format!("{cmd}: {message}\nTry '{cmd} --help' for more information.\n"), 1);
     let mut multiple = false;
-    let mut zero_term = false;
+    let mut suffix = None;
+    let mut zero = false;
+    let mut ended = false;
+    let mut operands = Vec::new();
     let mut words = args.iter();
-    while let Some(a) = words.as_slice().first() {
-        if !a.starts_with('-') || a == "-" { break; }
-        words.next();
-        match a.as_str() {
-            "--" => break,
-            "--multiple" => multiple = true,
-            "--zero" => zero_term = true,
-            "--suffix" => {
-                let Some(value) = words.next() else { return err_out("basename: option '--suffix' requires an argument\n", 1); };
-                suffix = Some(value.as_str());
-                multiple = true;
+    while let Some(arg) = words.next() {
+        if ended || !arg.starts_with('-') || arg == "-" {
+            operands.push(arg.as_str());
+            ended |= base || posix;
+        } else if arg == "--" {
+            ended = true;
+        } else if let Some(long) = arg.strip_prefix("--") {
+            let (prefix, value) = long.split_once('=').map_or((long, None), |(k, v)| (k, Some(v)));
+            if prefix.is_empty() {
+                return usage(format!("option '{arg}' is ambiguous; possibilities: '--{}'", names.join("' '--")));
             }
-            _ if a.starts_with("--suffix=") => { suffix = Some(&a[9..]); multiple = true; }
-            _ if a.starts_with("--") => return err_out(&format!("basename: unrecognized option '{a}'\n"), 1),
-            _ => for (offset, flag) in a[1..].char_indices() {
+            match names.iter().copied().find(|name| name.starts_with(prefix)) {
+                None => return usage(format!("unrecognized option '{arg}'")),
+                Some("suffix") => {
+                    let Some(value) = value.or_else(|| words.next().map(String::as_str)) else {
+                        return usage("option '--suffix' requires an argument".into());
+                    };
+                    suffix = Some(value);
+                    multiple = true;
+                }
+                Some(name) if value.is_some() => return usage(format!("option '--{name}' doesn't allow an argument")),
+                Some("multiple") => multiple = true,
+                Some("zero") => zero = true,
+                Some(name) => return gnu_information_sync(cmd, &[format!("--{name}")], posix).unwrap(),
+            }
+        } else {
+            for (offset, flag) in arg[1..].char_indices() {
                 match flag {
-                    'a' => multiple = true,
-                    'z' => zero_term = true,
-                    's' => {
-                        let attached = &a[offset + 2..];
-                        suffix = if attached.is_empty() {
-                            let Some(value) = words.next() else { return err_out("basename: option requires an argument -- 's'\n", 1); };
-                            Some(value.as_str())
-                        } else { Some(attached) };
+                    'z' => zero = true,
+                    'a' if base => multiple = true,
+                    's' if base => {
+                        let attached = &arg[offset + 2..];
+                        suffix = if !attached.is_empty() { Some(attached) } else { words.next().map(String::as_str) };
+                        if suffix.is_none() { return usage("option requires an argument -- 's'".into()); }
                         multiple = true;
                         break;
                     }
-                    _ => return err_out(&format!("basename: invalid option -- '{flag}'\n"), 1),
-                }
-            },
-        }
-    }
-    let operands = words.as_slice();
-    if operands.is_empty() {
-        return err_out("basename: missing operand\n", 1);
-    }
-    if !multiple && operands.len() > 2 {
-        return err_out(&format!("basename: extra operand '{}'\n", operands[2]), 1);
-    }
-    let term = if zero_term { '\0' } else { '\n' };
-    let (paths, suf) = if multiple {
-        (operands, suffix)
-    } else {
-        (&operands[..1], operands.get(1).map(String::as_str))
-    };
-    let mut out = String::new();
-    for path in paths {
-        let bytes = path.as_bytes();
-        let mut end = bytes.len();
-        while end > 0 && bytes[end - 1] == b'/' {
-            end -= 1;
-        }
-        let mut start = end;
-        while start > 0 && bytes[start - 1] != b'/' {
-            start -= 1;
-        }
-        if end == 0 && !bytes.is_empty() {
-            end = 1;
-        }
-        let mut base = &path[start..end];
-        if let Some(s) = suf
-            && !s.is_empty()
-            && base.len() > s.len()
-            && let Some(stripped) = base.strip_suffix(s)
-        {
-            base = stripped;
-        }
-        out.push_str(base);
-        out.push(term);
-    }
-    ok_out(&out)
-}
-
-fn cmd_dirname(args: &[String], posix: bool) -> BuiltinOutcome {
-    let mut zero_term = false;
-    let mut operands = Vec::new();
-    let mut ended = false;
-    for a in args {
-        if !ended && a == "--" {
-            ended = true;
-            continue;
-        }
-        if ended || !a.starts_with('-') || a == "-" {
-            ended |= posix;
-            operands.push(a);
-            continue;
-        }
-        if a == "--zero" {
-            zero_term = true;
-        } else if a.starts_with("--") {
-            return err_out(&format!("dirname: unrecognized option '{a}'\n"), 1);
-        } else {
-            for ch in a[1..].chars() {
-                if ch == 'z' {
-                    zero_term = true;
-                } else {
-                    return err_out(&format!("dirname: invalid option -- '{ch}'\n"), 1);
+                    _ => return usage(format!("invalid option -- '{flag}'")),
                 }
             }
         }
     }
-    if operands.is_empty() {
-        return err_out("dirname: missing operand\n", 1);
+    if operands.is_empty() { return usage("missing operand".into()); }
+    if base && !multiple && operands.len() > 1 {
+        if operands.len() > 2 {
+            return usage(format!("extra operand {}", quote_bytes(&crate::vfs::stream_string_to_bytes(operands[2]))));
+        }
+        suffix = operands.pop();
     }
-    let term = if zero_term { '\0' } else { '\n' };
     let mut out = String::new();
     for path in operands {
-        let bytes = path.as_bytes();
-        let mut end = bytes.len();
-        while end > 0 && bytes[end - 1] == b'/' {
-            end -= 1;
-        }
-        if end == 0 && !bytes.is_empty() {
-            end = 1;
-        } else {
-            while end > 0 && bytes[end - 1] != b'/' {
-                end -= 1;
-            }
-            while end > 1 && bytes[end - 1] == b'/' {
-                end -= 1;
-            }
-        }
-        if end > 0 {
-            out.push_str(&path[..end]);
+        let path_trimmed = path.trim_end_matches('/');
+        if path_trimmed.is_empty() && !path.is_empty() {
+            out.push('/');
+        } else if base {
+            let name = path_trimmed.rsplit('/').next().unwrap();
+            out.push_str(suffix.filter(|s| *s != name).and_then(|s| name.strip_suffix(s)).unwrap_or(name));
+        } else if let Some((parent, _)) = path_trimmed.rsplit_once('/') {
+            let dir = parent.trim_end_matches('/');
+            out.push_str(if dir.is_empty() { "/" } else { dir });
         } else {
             out.push('.');
         }
-        out.push(term);
+        out.push(if zero { '\0' } else { '\n' });
     }
     ok_out(&out)
 }

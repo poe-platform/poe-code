@@ -2356,7 +2356,7 @@ function parseCompose(raw: string): BlendMode {
 function magickCompositeMode(mode: string): { name: string; delegated: boolean } {
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
-    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "colordodge", "colorburn", "softlight", "saturate"].includes(name) };
+    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "colordodge", "colorburn", "saturate"].includes(name) };
 }
 
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2426,7 +2426,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx] = sr;
                 out[dIdx + 1] = sg;
                 out[dIdx + 2] = sb;
-                out[dIdx + 3] = saByte;
+                out[dIdx + 3] = dst.hasAlpha ? saByte : daByte;
                 continue;
             }
             if (norm === "dst" || norm === "dest") {
@@ -2453,6 +2453,21 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             }
             if (norm === "copyblue") {
                 out[dIdx + 2] = sb;
+                continue;
+            }
+            if (norm === "softlight") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    // ImageMagick SoftLight uses premultiplied channel values,
+                    // including its additional destination contribution.
+                    const sc = src.data[sIdx + c]! / 255 * sa;
+                    const dc = dst.data[dIdx + c]! / 255 * da;
+                    const blend = sc <= 0.5
+                        ? dc - (1 - 2 * sc) * dc * (1 - dc)
+                        : dc + (2 * sc - 1) * ((dc > 0.25 ? Math.sqrt(dc) : ((16 * dc - 12) * dc + 4) * dc) - dc);
+                    out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(255 * (dc * sa + da * blend + sc * (1 - da) + dc * (1 - sa)) / alpha);
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
             if (norm === "difference") {
@@ -2515,7 +2530,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx] = clampByteVal(sr * sa * (1 - da) + dr * da * (1 - sa));
                 out[dIdx + 1] = clampByteVal(sg * sa * (1 - da) + dg * da * (1 - sa));
                 out[dIdx + 2] = clampByteVal(sb * sa * (1 - da) + db * da * (1 - sa));
-                out[dIdx + 3] = clampByteVal(outA * 255);
+                out[dIdx + 3] = dst.hasAlpha ? clampByteVal(outA * 255) : daByte;
                 continue;
             }
             if (norm === "multiply" ||
@@ -2580,7 +2595,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
         const clipped = (yield* extractImageSteps(src, { left: sx0, top: sy0, width: sx1 - sx0, height: sy1 - sy0 }));
         return (yield* compositeImageSteps(dst, [rgbaToCompositeLayer(clipped, Math.max(0, ox), Math.max(0, oy), parseCompose(modeRaw))]));
     }
-    return { ...dst, data: out, hasAlpha: norm === "difference" ? dst.hasAlpha : true };
+    return { ...dst, data: out, hasAlpha: ["difference", "src", "source", "copy", "xor"].includes(norm) ? dst.hasAlpha : true };
 }
 
 function rgbaToCss(c: RgbaColor): string {
@@ -4985,7 +5000,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
 
 async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false): Promise<StoredRgbaImage> {
     const compositeMode = magickCompositeMode(mode);
-    let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && compositeMode.name !== "difference");
+    let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !["difference", "src", "source", "copy", "xor"].includes(compositeMode.name));
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));

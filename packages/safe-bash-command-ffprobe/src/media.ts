@@ -415,6 +415,25 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       ...(opts.countPackets ? { nb_read_packets: nb_read_packets ?? recordCount } : {})
     }, "stream", "stream_tags");
   };
+  // Resolve stream ordinals once, including for one-shot asynchronous metadata.
+  // Only retain selected metadata when it will also be printed.
+  const selectedIndices = opts.selectStreams && (includePackets || includeFrames) ? new Set<number>() : undefined;
+  const selectedStreams: Record<string, unknown>[] = [];
+  if (selectedIndices) {
+    yield { rows: probe.streams, render(row) {
+      const stream = prepareStream(row);
+      if (stream === undefined) return [];
+      selectedIndices.add((row as MediaProbeStream).index);
+      if (includeStreams) selectedStreams.push(stream);
+      return [];
+    } };
+  }
+  const streams = selectedIndices ? selectedStreams : probe.streams;
+  const prepareRecord = (row: unknown, section: string): Record<string, unknown> | undefined => {
+    const record = row as Record<string, unknown>;
+    if (selectedIndices && !selectedIndices.has(record.stream_index as number)) return;
+    return filterObject(record, section);
+  };
   const finalFormat = includeFormat && probe.format
     ? filterObject(probe.format as unknown as Record<string, unknown>, "format", "format_tags")
     : undefined;
@@ -438,7 +457,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (includePrograms) sections.push({ name: "programs", rows: [] });
     if (includePackets && probe.packets) sections.push({ name: "packets", rows: probe.packets });
     if (includeFrames && probe.frames) sections.push({ name: "frames", rows: probe.frames });
-    if (includeStreams) sections.push({ name: "streams", rows: probe.streams });
+    if (includeStreams) sections.push({ name: "streams", rows: streams });
     if (includeChapters) sections.push({ name: "chapters", rows: probe.chapters });
     if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
     const compact = paramMap.c === "1" || paramMap.compact === "1";
@@ -451,8 +470,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         yield "[";
         let firstRow = true;
         yield { rows: section.rows, *render(row) {
-          if (section.name === "streams") { row = prepareStream(row); if (row === undefined) return; }
-          else if (section.name === "packets" || section.name === "frames") row = filterObject(row as Record<string, unknown>, section.name === "packets" ? "packet" : "frame");
+          if (section.name === "streams") { row = selectedIndices ? row : prepareStream(row); if (row === undefined) return; }
+          else if (section.name === "packets" || section.name === "frames") {
+            row = prepareRecord(row, section.name === "packets" ? "packet" : "frame");
+            if (row === undefined) return;
+          }
           yield (firstRow ? "" : ",") + (compact ? "" : "\n    ");
           firstRow = false;
           yield* probeJsonSteps(row, compact, 2);
@@ -532,14 +554,17 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       if (!noWrappers) yield `[/${wrapper}]\n`;
     }
   }
-  if (includePackets && probe.packets) yield { rows: probe.packets, *render(row, index) {
-    yield* render(filterObject(row as Record<string, unknown>, "packet"), "packet", index);
+  let packetIndex = 0, frameIndex = 0;
+  if (includePackets && probe.packets) yield { rows: probe.packets, *render(row) {
+    const packet = prepareRecord(row, "packet");
+    if (packet !== undefined) yield* render(packet, "packet", packetIndex++);
   } };
-  if (includeFrames && probe.frames) yield { rows: probe.frames, *render(row, index) {
-    yield* render(filterObject(row as Record<string, unknown>, "frame"), "frame", index);
+  if (includeFrames && probe.frames) yield { rows: probe.frames, *render(row) {
+    const frame = prepareRecord(row, "frame");
+    if (frame !== undefined) yield* render(frame, "frame", frameIndex++);
   } };
-  if (includeStreams) yield { rows: probe.streams, *render(row) {
-    const stream = prepareStream(row);
+  if (includeStreams) yield { rows: streams, *render(row) {
+    const stream = selectedIndices ? row as Record<string, unknown> : prepareStream(row);
     if (stream !== undefined) yield* render(stream, "stream", streamIndex++);
   } };
   if (includeChapters && fmt !== "csv" && fmt !== "compact" && fmt !== "flat") yield { rows: probe.chapters, *render(row) {
@@ -791,7 +816,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
         const entryFilter = parseEntryFilter(showEntries);
         const mp4Records = !options.asts ? { packets: showPackets, frames: showFrames,
-          metadata: !(showPackets || showFrames) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
+          metadata: !!selectStreams || !(showPackets || showFrames) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
         const packetPlugins = mp4Records ? [registry.findByFormatName("mp4"), registry.findByFormatName("mov")] : [];
         let audioInput: AudioProbeInput | undefined;
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;

@@ -23,7 +23,7 @@ for (const fixture of ['packet-positions-faststart.mp4', 'packet-positions-inter
       });
       expect(result.exitCode, diagnostic).toBe(0);
       const frames = JSON.parse(output).frames;
-      expect(frames).toHaveLength(fixture === 'packet-positions-faststart.mp4' ? 5 : 14);
+      expect(frames).toHaveLength(5);
       for (const frame of frames.slice(0, 5)) {
         // Native ffprobe: video frames each last 2048 / 10240 seconds.
         const expected = { duration: 2048, ...(fields === 'duration' ? {} : { duration_time: '0.200000' }) };

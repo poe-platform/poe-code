@@ -6361,9 +6361,22 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let imgA: RgbaImage | StoredRgbaImage | undefined;
     let imgB: RgbaImage | StoredRgbaImage | undefined;
     try {
-        if(backend)yield {async run(){imgA=await parseStoredCompareInput(refSpec,state,backend,signal!);}};else imgA = (yield* parseInputOperandSteps(refSpec, files, state, stdinBytes));
+        // Compare consumes the first two images in the combined input sequence.
+        if (backend) yield { async run() {
+            await parseStoredCompareInput(refSpec, state, backend, signal!, { visit: async image => {
+                if (!imgA) imgA = image;
+                else if (!imgB) imgB = image;
+            } });
+        } };
+        else {
+            const images = yield* parseInputOperandsSteps(refSpec, files, state, stdinBytes);
+            imgA = images?.[0];
+            imgB = images?.[1];
+        }
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); } catch { /* Collection is best-effort. */ } }
-        if(backend)yield {async run(){imgB=await parseStoredCompareInput(candSpec,state,backend,signal!);}};else imgB = (yield* parseInputOperandSteps(candSpec, files, state, stdinBytes));
+        let candidate: RgbaImage | StoredRgbaImage | undefined;
+        if(backend)yield {async run(){candidate=await parseStoredCompareInput(candSpec,state,backend,signal!);}};else candidate = (yield* parseInputOperandSteps(candSpec, files, state, stdinBytes));
+        imgB = candidate ? imgB ?? candidate : undefined;
     }
     catch (err) {
         signal?.throwIfAborted();if(err instanceof CompareInputFailure)throw err.reason;

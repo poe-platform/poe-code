@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
+import { createCommandArguments, toByteSource, type CommandDefinition, type ByteSource } from "safe-bash-contracts";
 import { createAwkCommand, createAwkCommands, awkCommands } from "./index.js";
 
-async function run(command: CommandDefinition, args: string[], input = "", env: Record<string, string> = {}) {
+async function run(command: CommandDefinition, args: string[], input: string | ByteSource = "", env: Record<string, string> = {}) {
   const values = createCommandArguments(args);
   let stdout = "", stderr = "";
   const result = await command.execute({
     command: command.name, args: values.args, argumentValues: values, cwd: "/", env,
-    fs: createMemoryFileSystem(), stdin: toByteSource(input),
+    fs: createMemoryFileSystem(), stdin: typeof input === "string" ? toByteSource(input) : input,
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
     signal: new AbortController().signal,
@@ -221,4 +221,55 @@ for (const flag of ["--help", "-h"]) test(`awk ${flag} prints usage`, async () =
  assert.equal(result.exitCode, 0, result.stderr);
  assert.ok(result.stdout.includes("Usage: awk"));
  assert.equal(result.stderr, "");
+});
+
+for (const [separator, input, expected] of [
+  ["::", "a::b::c", "1 [a]\n2 [b]\n3 [c]\n"],
+  ["[,:]", "a,b:c", "1 [a]\n2 [b]\n3 [c]\n"],
+  [":+", "::a:::b::", "1 []\n2 [a]\n3 [b]\n"],
+  ["x*", "abxxcd", "1 [ab]\n2 [cd]\n"],
+  ["a|ab", "leftabright", "1 [left]\n2 [right]\n"],
+  ["^ab", "ababab", "1 []\n2 [abab]\n"],
+  ["END$", "aENDbEND", "1 [aENDb]\n"],
+  ["::", "", ""],
+] as const) test(`awk regex RS ${separator} works for stdin, chunks, and memory files`, async () => {
+  const program = `BEGIN { RS="${separator}" } { print NR,"[" $0 "]" }`;
+  for (const source of [input, {
+    async *[Symbol.asyncIterator]() {
+      for (const byte of new TextEncoder().encode(input)) yield Uint8Array.of(byte);
+    },
+  }]) {
+    const result = await run(createAwkCommand(), [program], source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+  assert.equal(await runMemoryAwk([program, "/records"], { "/records": input }), expected);
+});
+
+test("awk can change RS after regex records and use regex RS with getline", async () => {
+  const result = await run(createAwkCommand(), [
+    'BEGIN { RS="::"; getline x; print x; RS="," } { print $0 }',
+  ], "a::b,c");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "a\nb\nc\n");
+});
+
+for (const limits of [{ maxBufferBytes: 4 }, { maxRetainedBytes: 4 }]) {
+  test(`awk regex RS enforces ${Object.keys(limits)[0]}`, async () => {
+    const result = await run(createAwkCommand(limits), ['BEGIN { RS="::" } { print }'], "a::b::c");
+    assert.equal(result.exitCode, 2);
+    assert.ok(result.stderr.includes("limit exceeded"), result.stderr);
+  });
+}
+
+test("awk regex start anchors do not restart after changing RS", async () => {
+  const result = await run(createAwkCommand(), ['NR==1 { RS="^ab" } { print "[" $0 "]" }'], {
+    async *[Symbol.asyncIterator]() {
+      yield new TextEncoder().encode("first\n");
+      yield new TextEncoder().encode("ab");
+      yield new TextEncoder().encode("ab");
+    },
+  });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "[first]\n[abab]\n");
 });

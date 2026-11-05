@@ -2,6 +2,7 @@ import type { AwkRetention } from "./awk-retention.js";
 import { readBytes,type ByteSource } from "safe-bash-contracts";
 import { latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { Budget,ProgramError,getCachedLatin1Batch } from "safe-bash-io-engine/commands/text-programs/shared";
+import { BytePattern } from "safe-bash-regex-engine/text/regex";
 
 interface Scan {
   block: number;
@@ -27,9 +28,11 @@ export class Reader {
   offset = 0;
   buffered = 0;
   private ownedBytes = 0;
+  private consumedInput = false;
   ended = false;
   private closed = false;
   private closing?: Promise<void> | undefined;
+  private recordPattern?: { source: string; pattern: BytePattern } | undefined;
 
   constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">, private beforeRead?: (() => void | Promise<void>) | undefined) {
     this.iterator = source === undefined
@@ -130,6 +133,7 @@ export class Reader {
   }
 
   private consume(length: number): void {
+    if (length > 0) this.consumedInput = true;
     this.buffered -= length;
     while (length > 0) {
       const block = this.blocks[this.head]!;
@@ -220,7 +224,7 @@ export class Reader {
   readSync(separator: string): string | undefined | Promise<string | undefined> {
     if (this.closed) return undefined;
     if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
-    if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+    if (separator.length > 1) return this.readRegex(separator);
     if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
       const headBlock = this.blocks[this.head]!;
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
@@ -287,7 +291,7 @@ export class Reader {
     if (this.closed) return undefined;
     const budget = this.budget;
     budget.context.signal.throwIfAborted();
-    if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+    if (separator.length > 1) return this.readRegex(separator);
     if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
       const headBlock = this.blocks[this.head]!;
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
@@ -332,6 +336,54 @@ export class Reader {
     }
   }
 
+  private async readRegex(separator: string): Promise<string | undefined> {
+    const budget = this.budget;
+    if (this.recordPattern?.source !== separator) {
+      this.recordPattern = { source: separator, pattern: new BytePattern(separator, true, false, "awk") };
+    }
+    const pattern = this.recordPattern.pattern;
+    // An arbitrary ERE can extend a match across any number of chunks, or use
+    // an end anchor. Buffer to EOF so chunk boundaries cannot change records.
+    while (!this.ended && !this.closed) {
+      await this.fill();
+      const pending = budget.checkpointSync();
+      if (pending) await pending;
+    }
+    if (this.closed || this.buffered === 0) return undefined;
+    if (this.blocksLen - this.head > 1) {
+      // Coalesce once, rather than joining every remaining block per record.
+      budget.step(this.buffered);
+      const bytes = new Uint8Array(this.buffered);
+      let written = 0;
+      for (let index = this.head; index < this.blocksLen; index++) {
+        const block = this.blocks[index]!;
+        const start = index === this.head ? this.offset : 0;
+        bytes.set(block.subarray(start), written);
+        written += block.length - start;
+      }
+      this.retention.release(this.ownedBytes - this.buffered);
+      this.ownedBytes = this.buffered;
+      this.blocks = [bytes];
+      this.blockStrings.length = this.blockEnds.length = 0;
+      this.head = this.offset = this.blockEndIdx = 0;
+      this.blocksLen = 1;
+    }
+    // Keep ^ anchored to the input, even after earlier records were released.
+    const prefix = this.offset === 0 && this.consumedInput ? "\0" : "";
+    const text = prefix + (this.blockStrings[this.head] ??= latin1Text(this.blocks[this.head]!));
+    const start = this.offset + prefix.length;
+    let search = start;
+    while (search <= text.length) {
+      const match = await pattern.find(text, budget, search);
+      if (this.closed) return undefined;
+      if (!match) break;
+      // Like AWK field splitting, zero-width matches are not separators.
+      if (match.end > match.start) return this.finish(match.start - start, match.end - start);
+      search = match.end + 1;
+    }
+    return this.finish(this.buffered, this.buffered);
+  }
+
   close(): Promise<void> {
     if (this.closing) return this.closing;
     const wasEnded = this.ended;
@@ -351,6 +403,7 @@ export class Reader {
     this.budget = undefined!;
     this.retention = undefined!;
     this.beforeRead = undefined;
+    this.recordPattern = undefined;
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return resolvedVoid;
@@ -378,6 +431,7 @@ export class Reader {
     this.budget = undefined!;
     this.retention = undefined!;
     this.beforeRead = undefined;
+    this.recordPattern = undefined;
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return undefined;

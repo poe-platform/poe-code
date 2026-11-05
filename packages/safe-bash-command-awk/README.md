@@ -4,6 +4,8 @@ Use `awk --help` (or `awk -h`) for command usage.
 
 Run `awk` against an injected virtual filesystem with portable byte streams. Regular expressions count UTF-8 characters by default and in UTF-8 locales; C/POSIX locales retain byte matching. Use `-b` or `--characters-as-bytes` to force byte matching. String indexes and other string operations remain byte-oriented.
 
+Set `RS` to a multi-character extended regular expression to split records, for example `RS="::"` or `RS="[,:]"`. Regex separators ignore empty matches and buffer the remaining input to EOF, subject to buffer and retention limits. Single-byte separators and paragraph mode (`RS=""`) read incrementally.
+
 Transform text with `gensub`, sort arrays with `asort` and `asorti`, format epoch
 timestamps with `strftime` and `mktime`, and use GNU-style bitwise functions.
 Command pipes (`command | getline` and `print ... | command`) run through the

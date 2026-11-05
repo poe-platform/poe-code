@@ -175,6 +175,11 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
           const text = xlsxDateText(raw, format, date1904);
           if (text !== raw) { const bytes = new TextEncoder().encode(text); value = { position: await storage.append(bytes), size: bytes.length }; }
         }
+        if (type === "b" && value && value.size <= 5) {
+          const raw = new TextDecoder().decode(await storage.read(value.position, value.size));
+          const bytes = new TextEncoder().encode(raw === "1" || raw === "true" ? "TRUE" : "FALSE");
+          value = { position: await storage.append(bytes), size: bytes.length };
+        }
         if (value) await output.add(value);
         await document?.cell(value ?? empty);
       }

@@ -247,6 +247,8 @@ function parseXlsxRows(zipBytes: Uint8Array, displayDates = false): string[][] {
         if (cellType === "s") {
           const idx = Number.parseInt(raw, 10);
           rowCells.push(sharedStrings[idx] ?? "");
+        } else if (cellType === "b") {
+          rowCells.push(raw === "1" || raw === "true" ? "TRUE" : "FALSE");
         } else {
           const style = displayDates && cellType === "n" ? Number(parseXml(`<c ${attrs}/>`).attributes.find(attr => attr.localName === "s")?.value ?? 0) : undefined;
           const format = style === undefined ? undefined : styles[style];

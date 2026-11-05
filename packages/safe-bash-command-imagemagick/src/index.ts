@@ -45,7 +45,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type RgbaImage = BaseRgbaImage & HslMetadata;
 type StoredRgbaImage = BaseStoredRgbaImage & HslMetadata;
@@ -2358,7 +2358,7 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
 function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const layout = magickShadowLayout(image, geometry);
     const base = { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color), signal, layout), virtualCanvas: layout.virtualCanvas };
-    return layout.sigma === 0 ? base : yield* blurImageSteps(base, layout.sigma);
+    return layout.sigma === 0 ? base : yield* applyMagickRasterSteps(base, blurPixelSteps(base, { height: layout.sigma }, false), signal);
 }
 
 function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [number, number, number] {
@@ -6274,7 +6274,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const layout = magickShadowLayout(image, geometry);
                 const base = { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, background), signal, layout), virtualCanvas: layout.virtualCanvas };
-                return layout.sigma === 0 ? base : transformStoredImage(base, backend.storage, { kind: "blur", sigma: layout.sigma }, signal);
+                return layout.sigma === 0 ? base : transformStoredMagickRaster(base, backend, blurPixelSteps(base, { height: layout.sigma }, false), signal);
             });
         } else if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
             const method = (tokens[++i] ?? (token === "-morphology" ? "dilate" : "median")).toLowerCase();

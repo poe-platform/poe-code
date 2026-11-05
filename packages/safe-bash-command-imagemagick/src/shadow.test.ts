@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runMagickCli } from "./index.js";
+import { runMagickCli, runConvertCli, runConvertCliSync } from "./index.js";
 
 it.each([
     ["80x0+0+0", 5, [5, 5, 0, 0]],
@@ -51,3 +51,26 @@ it("clears shadow page offsets with +repage in both backends", async () => {
         expect((await runMagickCli(["identify", "-format", "%g", "/shadow.png"], backend)).stdout).toBe("5x5+0+0");
     }
 });
+
+// Complete alpha planes captured from native ImageMagick 7.1.2-31.
+const cases = [
+    { width: 3, height: 3, sigma: 0, impulse: true, alpha: [0, 0, 0, 0, 204, 0, 0, 0, 0] },
+    { width: 3, height: 3, sigma: 1, impulse: true, alpha: [0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 5, 3, 1, 0, 0, 3, 12, 19, 12, 3, 0, 0, 5, 19, 30, 19, 5, 0, 0, 3, 12, 19, 12, 3, 0, 0, 1, 3, 5, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0] },
+    { width: 7, height: 5, sigma: 2, impulse: false, alpha: [0, 1, 2, 3, 5, 6, 7, 7, 7, 6, 5, 3, 2, 1, 0, 1, 2, 5, 9, 13, 17, 19, 20, 19, 17, 13, 9, 5, 2, 1, 2, 5, 10, 18, 28, 36, 41, 42, 41, 36, 28, 18, 10, 5, 2, 3, 9, 18, 33, 49, 63, 72, 75, 72, 63, 49, 33, 18, 9, 3, 5, 13, 27, 48, 72, 92, 106, 110, 106, 92, 72, 48, 27, 13, 5, 6, 16, 34, 60, 90, 115, 132, 138, 132, 115, 90, 60, 34, 16, 6, 6, 17, 36, 65, 96, 124, 142, 148, 142, 124, 96, 65, 36, 17, 6, 6, 16, 34, 60, 90, 115, 132, 138, 132, 115, 90, 60, 34, 16, 6, 5, 13, 27, 48, 72, 92, 106, 110, 106, 92, 72, 48, 27, 13, 5, 3, 9, 18, 33, 49, 63, 72, 75, 72, 63, 49, 33, 18, 9, 3, 2, 5, 10, 18, 28, 36, 41, 42, 41, 36, 28, 18, 10, 5, 2, 1, 2, 5, 9, 13, 17, 19, 20, 19, 17, 13, 9, 5, 2, 1, 0, 1, 2, 3, 5, 6, 7, 7, 7, 6, 5, 3, 2, 1, 0] }
+];
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each(cases)(`matches native shadow alpha at sigma $sigma (${mode})`, async ({ width, height, sigma, impulse, alpha }) => {
+        const raw = Uint8Array.from(Array.from({ length: width * height }, (_, pixel) =>
+            [255, 0, 0, !impulse || pixel === 4 ? 255 : 0]).flat());
+        const input = await sharp(raw, { raw: { width, height, channels: 4 } }).png().toBuffer();
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["input.png", "-shadow", `80x${sigma}+0+0`, "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        expect([output.width, output.height]).toEqual([width + sigma * 4, height + sigma * 4]);
+        expect(Array.from(output.data).filter((_, index) => index % 4 === 3)).toEqual(alpha);
+    });
+}

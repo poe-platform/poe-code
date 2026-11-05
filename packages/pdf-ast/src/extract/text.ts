@@ -13,6 +13,8 @@ export interface ExtractTextOptions {
   readonly rejoinHyphens?: boolean | undefined;
   readonly discardDiagonal?: boolean | undefined;
   readonly clipText?: boolean | undefined;
+  /** Discard characters whose baseline advance lies outside these page bounds. */
+  readonly pageBounds?: readonly [number, number, number, number] | undefined;
   readonly colSpacing?: number | undefined;
   readonly fixedPitch?: number | undefined;
   readonly lineSpacing?: number | undefined;

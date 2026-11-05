@@ -36,6 +36,13 @@ export function glyphDirection(g: PdfPlacedGlyph): {
 
 export function textGlyphVisible(g: PdfPlacedGlyph, options: ExtractTextOptions): boolean {
   if (!g.unicode.length) return false;
+  if (options.pageBounds) {
+    const [x0, y0, x1, y1] = options.pageBounds;
+    const x = g.matrix[4], y = g.matrix[5], direction = glyphDirection(g);
+    const endX = x + direction.ux * g.advanceWidth, endY = y + direction.uy * g.advanceWidth;
+    if (Math.max(x, endX) < Math.min(x0, x1) || Math.min(x, endX) > Math.max(x0, x1)
+      || Math.max(y, endY) < Math.min(y0, y1) || Math.min(y, endY) > Math.max(y0, y1)) return false;
+  }
   if (options.discardDiagonal) {
     const direction = glyphDirection(g);
     if (Math.abs(direction.ux) > 0.1 && Math.abs(direction.uy) > 0.1) return false;

@@ -119,7 +119,7 @@ export async function executeRetainedText(context: CommandContext, plan: RawText
           continue;
         }
         const crop = geometry?.crop;
-        const textOptions={...(crop?{crop}:{}),rejoinHyphens:!plan.raw&&plan.removeHyphens,discardDiagonal:plan.nodiag,clipText:plan.clip,colSpacing:plan.colspacing,fixedPitch:plan.fixed,lineSpacing:plan.linespacing,signal};
+        const textOptions={pageBounds:(await page.attributes()).mediaBox,...(crop?{crop}:{}),rejoinHyphens:!plan.raw&&plan.removeHyphens,discardDiagonal:plan.nodiag,clipText:plan.clip,colSpacing:plan.colspacing,fixedPitch:plan.fixed,lineSpacing:plan.linespacing,signal};
         const raw = plan.raw?page.streamRawText(storage,textOptions):plan.layout?page.streamLayoutText(storage,textOptions):page.streamLogicalText(storage,textOptions);
         let lastByte: number | undefined;
         if (!plan.urls) { for await(const bytes of raw){lastByte=bytes.at(-1)??lastByte;yield bytes;} }

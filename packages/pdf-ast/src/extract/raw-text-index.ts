@@ -6,14 +6,14 @@ import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { PdfRect } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
-import { glyphDirection, mergeBBox } from "./text-glyphs.js";
+import { glyphDirection, mergeBBox, textGlyphVisible } from "./text-glyphs.js";
 import type { ExtractTextOptions } from "./text.js";
 
 /** Retained extraction may borrow replacement text from caller-owned storage.
  * An explicit actualText string takes precedence. Keep storage alive until create completes. */
 export type PdfRawTextGlyph = PdfTextGlyph;
 
-export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "clipText" | "mode" | "colSpacing"> {
+export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "clipText" | "pageBounds" | "mode" | "colSpacing"> {
   /** Page-rounded high-water allocation, including records and UTF-16 text. */
   readonly maxStorageBytes?: number;
   /** Required page geometry for logical column classification. */
@@ -145,14 +145,8 @@ export class PdfRawTextIndex {
     };
     const accept = async (glyph: PdfRawTextGlyph) => {
       this.assertOpen();
-      if (this.options.discardDiagonal) {
-        const direction = glyphDirection(glyph);
-        if (Math.abs(direction.ux) > 0.1 && Math.abs(direction.uy) > 0.1) return;
-      }
-      if (this.options.clipText && glyph.clipRect) {
-        const x = (glyph.bbox[0] + glyph.bbox[2]) / 2, y = (glyph.bbox[1] + glyph.bbox[3]) / 2;
-        if (x < glyph.clipRect[0] || x > glyph.clipRect[2] || y < glyph.clipRect[1] || y > glyph.clipRect[3]) return;
-      }
+      // Stored text is decoded below; visibility only needs a nonempty placeholder.
+      if (!textGlyphVisible({ ...glyph, unicode: " " }, this.options)) return;
       const text = glyphText(glyph, this.signal);
       try {
         let part = await text.next(); if (part.done) return;

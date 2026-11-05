@@ -12,7 +12,7 @@ interface BboxOptions { readonly tsv?: boolean; readonly raw: boolean; readonly 
  * line arrays. Text remains in caller backing until its word is emitted. */
 export async function* streamTextGeometryPage(page: PdfRetainedPage, storage: PdfIndexStorage, geometry: RawTextGeometry,
   options: BboxOptions): AsyncGenerator<Uint8Array, boolean, void> {
-  const index = await page.indexText(storage, { mode: options.raw ? "raw" : options.layout ? "layout" : "logical", colSpacing: options.colspacing, discardDiagonal: options.nodiag, clipText: options.clip, signal: options.signal });
+  const index = await page.indexText(storage, { pageBounds: (await page.attributes()).mediaBox, mode: options.raw ? "raw" : options.layout ? "layout" : "logical", colSpacing: options.colspacing, discardDiagonal: options.nodiag, clipText: options.clip, signal: options.signal });
   const encoder = new TextEncoder(), scale = options.resolution / 72; let failed = false, hasWords = false;
   function selected(box: PdfRect): PdfRect | undefined {
     const x = (box[0] + box[2]) / 2, y = (box[1] + box[3]) / 2, crop = geometry.crop;

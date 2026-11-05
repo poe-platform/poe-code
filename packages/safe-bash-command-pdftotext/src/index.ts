@@ -655,6 +655,7 @@ argv: readonly string[] = []): Generator<void, PdftotextCliResult> {
       }
     }
     const rawExtracted = page.extractPage({
+      pageBounds: page.getMediaBox(),
       mode,
       rejoinHyphens: mode === "logical" && args.removeHyphens,
       discardDiagonal: args.nodiag,

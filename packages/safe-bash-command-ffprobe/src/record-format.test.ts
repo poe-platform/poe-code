@@ -5,7 +5,7 @@ import { formatFfprobeResult, formatFfprobeResultChunks } from "./media.js";
 
 const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(2500)] });
 const probe = wavAst().probe(bytes, { showPackets: true, showFrames: true });
-for (const printFormat of ["json", "json=c=1", "json:compact=1", "csv", "compact", "flat", "default"]) {
+for (const printFormat of ["ini", "json", "json=c=1", "json:compact=1", "csv", "compact", "flat", "default"]) {
   it(`preserves ${printFormat} output with one-shot packet/frame iterators`, () => {
     const opts = { printFormat, showFormat: true, showStreams: true, showPackets: true, showFrames: true, showChapters: true, showPrograms: true };
     const expected = printFormat.startsWith("json")
@@ -14,6 +14,10 @@ for (const printFormat of ["json", "json=c=1", "json:compact=1", "csv", "compact
     const records = { ...probe, packets: (function* () { yield* probe.packets!; })(), frames: (function* () { yield* probe.frames!; })() };
     const parts = [...formatFfprobeResultChunks(records, opts)];
     expect(parts.join("")).toBe(expected);
+    if (printFormat === "ini") {
+      expect(expected).toContain("[packets_and_frames.packet.0]\n");
+      expect(expected).toContain("[packets_and_frames.frame.0]\n");
+    }
     if (printFormat.startsWith("json")) expect(parts.length).toBeGreaterThan(10);
   });
 }

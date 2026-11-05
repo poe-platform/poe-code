@@ -1,5 +1,5 @@
 import { parseReadIntervals, readPacketIntervals } from "./read-intervals.js";
-import { formatProbeText, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
+import { formatProbeText, iniSection, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
 import { PagedStorage, IntegerTable } from "@poe-code/safe-fs/storage";
 import { probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -537,9 +537,15 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return fmt === "flat" ? '"' + escaped + '"' : escaped;
   }
 
+  if (fmt === "ini") yield "# ffprobe output\n";
   let streamIndex = 0;
   function* render(section: Record<string, unknown>, name: string, index = 0): Generator<ProbeOutputPart> {
-    if (fmt === "csv" || fmt === "compact") {
+    if (fmt === "ini") {
+      const hierarchical = (paramMap.h ?? paramMap.hierarchical) !== "0";
+      const parent = includePackets && includeFrames && (name === "packet" || name === "frame") ? "packets_and_frames" : name + "s";
+      const path = name === "format" ? name : `${hierarchical ? parent + "." : ""}${name}.${index}`;
+      yield* iniSection(section, path);
+    } else if (fmt === "csv" || fmt === "compact") {
       const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
       const printSection = paramMap.p !== "0" && paramMap.print_section !== "0";
       let first = true;
@@ -582,13 +588,18 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     const frame = prepareRecord(row, "frame");
     if (frame !== undefined) yield* render(frame, "frame", frameIndex++);
   } };
+  if (fmt === "ini") {
+    if (includePrograms || includeStreams) yield "\n";
+    if (includeStreams) yield "\n";
+  }
   if (includeStreams) yield { rows: streams, *render(row) {
     const stream = selectedIndices ? row as Record<string, unknown> : prepareStream(row);
     if (stream !== undefined) yield* render(stream, "stream", streamIndex++);
   } };
+  let chapterIndex = 0;
   if (includeChapters && fmt !== "csv" && fmt !== "compact" && fmt !== "flat") yield { rows: probe.chapters, *render(row) {
     const chapter = row as MediaProbeResult["chapters"][number];
-    yield* render({ id: chapter.id, time_base: chapter.time_base, start: chapter.start, start_time: chapter.start_time, end: chapter.end, end_time: chapter.end_time, tags: chapter.tags }, "chapter");
+    yield* render({ id: chapter.id, time_base: chapter.time_base, start: chapter.start, start_time: chapter.start_time, end: chapter.end, end_time: chapter.end_time, tags: chapter.tags }, "chapter", chapterIndex++);
   } };
   if (finalFormat) yield* render(finalFormat, "format");
 }
@@ -644,11 +655,11 @@ function parseProbeArguments(args: readonly string[]) {
   const [head = "default", ...parameters] = printFormat.split(":");
   const equals = head.indexOf("=");
   const writer = (equals < 0 ? head : head.slice(0, equals)).toLowerCase();
-  if (!["json", "compact", "csv", "default", "flat"].includes(writer)) throw new Error(`Unknown output format ${writer}`);
+  if (!["json", "compact", "csv", "default", "flat", "ini"].includes(writer)) throw new Error(`Unknown output format ${writer}`);
   if (equals >= 0) parameters.unshift(head.slice(equals + 1));
   for (const parameter of parameters) {
     const key = parameter.split("=")[0]!;
-    if (!["c", "compact", "nokey", "nk", "noprint_wrappers", "nw", "print_section", "p", "item_sep", "s"].includes(key))
+    if (!(writer === "ini" && ["h", "hierarchical"].includes(key)) && !["c", "compact", "nokey", "nk", "noprint_wrappers", "nw", "print_section", "p", "item_sep", "s"].includes(key))
       throw new Error(`Unsupported writer option ${key}`);
   }
   if (!showFormat && !showStreams && !showPackets && !showFrames && !showChapters && !showPrograms && showEntries === undefined) {

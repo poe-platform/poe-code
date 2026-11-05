@@ -5,7 +5,7 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createFfprobeCommand } from "./media.js";
 import { probe } from "./probe.js";
 
-for (const writer of ["json", "default", "flat", "compact:s=||", "csv:s=||"]) it(`streams large WAV tag values through ${writer}`, async () => {
+for (const writer of ["ini", "json", "default", "flat", "compact:s=||", "csv:s=||"]) it(`streams large WAV tag values through ${writer}`, async () => {
   const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }, { tags: { title: ('héllo😀::"\\\n\r').repeat(20000) + "   ", artist: "small" } });
   const args = ["-of", writer, "-show_streams", "-show_format", "-show_entries", "stream_tags:format_tags", "/input.wav"];
   const expected = probe(bytes, args);

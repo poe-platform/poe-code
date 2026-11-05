@@ -1,7 +1,7 @@
 import type { MediaProbeText } from '@poe-code/mp4-ast';
 import { yieldTurn } from 'safe-bash-contracts/yield';
 
-export type ProbeTextStep = { text: MediaProbeText; mode: 'json' | 'plain' | 'flat' | 'csv' | 'compact'; separator?: string };
+export type ProbeTextStep = { text: MediaProbeText; mode: 'json' | 'plain' | 'flat' | 'csv' | 'compact' | 'ini'; separator?: string };
 export type ProbeOutputPart = string | ProbeTextStep;
 export function isProbeText(value: unknown): value is MediaProbeText {
   return typeof value === 'object' && value !== null && 'kind' in value && value.kind === 'text' && 'chunks' in value && typeof value.chunks === 'function';
@@ -76,6 +76,7 @@ export async function* formatProbeText(step: ProbeTextStep, signal?: AbortSignal
   }
   if (quoted || csvQuoted) yield '"';
   for await (const chunk of textChunks(step.text, signal)) {
+    if (step.mode === 'ini') { yield escapeIni(chunk); continue; }
     if (step.mode === 'plain') { yield chunk; continue; }
     if (step.mode === 'json') { yield JSON.stringify(chunk).slice(1, -1); continue; }
     if (step.mode === 'csv') { yield chunk.replaceAll('"', '""'); continue; }
@@ -89,4 +90,31 @@ export async function* formatProbeText(step: ProbeTextStep, signal?: AbortSignal
     yield escaped;
   }
   if (quoted || csvQuoted) yield '"';
+}
+
+export function escapeIni(text: string): string {
+  let escaped = "";
+  for (const character of text) {
+    const control = "\b\f\n\r\t".indexOf(character);
+    if (control >= 0) escaped += "\\" + "bfnrt"[control];
+    else if (character.charCodeAt(0) < 32) escaped += "\\x" + character.charCodeAt(0).toString(16).padStart(4, "0");
+    else if ("\\=#:".includes(character)) escaped += "\\" + character;
+    else escaped += character;
+  }
+  return escaped;
+}
+
+export function* iniSection(row: Record<string, unknown>, path: string, nested = false): Generator<ProbeOutputPart> {
+  yield `${nested ? "" : "\n"}[${path}]\n`;
+  for (const [key, value] of Object.entries(row)) {
+    if (value === undefined) continue;
+    if (value && typeof value === "object" && !isProbeText(value)) continue;
+    yield escapeIni(key) + "=";
+    yield isProbeText(value) ? { text: value, mode: "ini" } : escapeIni(String(value));
+    yield "\n";
+  }
+  for (const [key, value] of Object.entries(row)) {
+    if (value && typeof value === "object" && !isProbeText(value))
+      yield* iniSection(value as Record<string, unknown>, `${path}.${key}`, true);
+  }
 }

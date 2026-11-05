@@ -1,3 +1,4 @@
+import { escapeIni } from "./probe-text.js";
 import type { AudioAst } from "@poe-code/audio-ast";
 import { audioProbeRows, parseArguments } from "./probe.js";
 type Text = string | (() => AsyncIterable<string>);
@@ -109,6 +110,10 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
     yield (first ? "" : "\n") + "}\n"; return;
   }
   const enabled = (a: string, b: string, fallback: boolean) => { const value = settings.get(a) ?? settings.get(b); return value === undefined ? fallback : value === "1"; };
+  if (format === "ini") {
+    yield "# ffprobe output\n";
+    if (["stream", "stream_tags"].some(key => sections.has(key) && sections.get(key)?.length !== 0)) yield "\n\n";
+  }
   let streamIndex = 0;
   for await (const entry of rows) {
     const { section, row } = entry; tags = entry.tags;
@@ -118,7 +123,23 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
         else yield { key, value };
       }
     }
-    if (format === "compact" || format === "csv") {
+    if (format === "ini") {
+      const path = section === "stream" ? `${(settings.get("h") ?? settings.get("hierarchical")) === "0" ? "" : "streams."}stream.${streamIndex++}` : section;
+      yield `\n[${path}]\n`;
+      for (const [key, value] of Object.entries(row)) {
+        if (typeof value === "object") continue;
+        yield escapeIni(key) + "=" + escapeIni(String(value)) + "\n";
+      }
+      if (row.tags) {
+        yield `[${path}.tags]\n`;
+        for await (const field of tagFields(section)) {
+          for await (const part of parts(field.key)) yield escapeIni(part);
+          yield "=";
+          for await (const part of parts(field.value)) yield escapeIni(part);
+          yield "\n";
+        }
+      }
+    } else if (format === "compact" || format === "csv") {
       const separator = settings.get("item_sep") ?? settings.get("s") ?? (format === "csv" ? "," : "|");
       let first = true;
       if (enabled("print_section", "p", true)) { yield section; first = false; }

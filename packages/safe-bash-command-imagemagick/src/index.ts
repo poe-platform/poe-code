@@ -3822,7 +3822,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     let end = start;
     const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, luminance: token === "-normalize" && !independent, lookup(histogram, image) {
+    return { end, luminance: (token === "-normalize" || token === "-equalize") && !independent, lookup(histogram, image) {
         const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: 256 }, (_, value) => value));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
@@ -3854,12 +3854,17 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 if (high > low) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value * scale - low) / (high - low) * 255);
             }
         } else if (token === "-equalize") {
-            for (let channel = 0; channel < 3; channel++) {
-                let cumulative = 0, first = 0;
+            const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
+            for (let channel = 0; channel < 4; channel++) {
+                if (!active[channel]) continue;
+                const bins = histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 257 : 1;
+                // Native equalization subtracts the zero bin, not the first occupied bin.
+                const black = bins[0]!;
+                if (count === black) continue;
+                let cumulative = 0, bin = 0;
                 for (let value = 0; value < 256; value++) {
-                    cumulative += histogram[channel]![value]!;
-                    if (first === 0 && cumulative > 0) first = cumulative;
-                    lookup[channel]![value] = clampByteVal((cumulative - first) / Math.max(1, count - first) * 255);
+                    for (; bin <= value * scale; bin++) cumulative += bins[bin]!;
+                    lookup[channel]![value] = clampByteVal((cumulative - black) / (count - black) * 255);
                 }
             }
         } else {

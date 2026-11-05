@@ -5,6 +5,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
 // Frozen from the established whole-image interpreter before retained analysis.
+// Equalization vectors use native ImageMagick 7 output.
 // Normalize vectors corrected against ImageMagick 7.1.2 RGBA output.
 const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; hash: string }[] = [
   {
@@ -65,7 +66,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
     "operators": [
       "-equalize"
     ],
-    "hash": "afd5c77f4ef5b2135e30ccbd28d836a920a9c17db91384d380bb21b44c47dae1"
+    "hash": "f8d742a7d55f81221b09854b192711036fbeb5f3bfd4540dc71b7725549e237a"
   },
   {
     "channels": 4,
@@ -74,7 +75,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-equalize",
       "-auto-level"
     ],
-    "hash": "afd5c77f4ef5b2135e30ccbd28d836a920a9c17db91384d380bb21b44c47dae1"
+    "hash": "f8d742a7d55f81221b09854b192711036fbeb5f3bfd4540dc71b7725549e237a"
   },
   {
     "channels": 3,
@@ -134,7 +135,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
     "operators": [
       "-equalize"
     ],
-    "hash": "e236847187b4992d23fa85f9a8b538732f00b32957d577dc5282c3e6b4a59983"
+    "hash": "79b0a5b794971b91bce724c08da8a9846c874f3b552ff15dc5242bd8ea7a0924"
   },
   {
     "channels": 3,
@@ -143,7 +144,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-equalize",
       "-auto-level"
     ],
-    "hash": "e236847187b4992d23fa85f9a8b538732f00b32957d577dc5282c3e6b4a59983"
+    "hash": "79b0a5b794971b91bce724c08da8a9846c874f3b552ff15dc5242bd8ea7a0924"
   },
   {
     "channels": 4,
@@ -272,7 +273,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
     "operators": [
       "-equalize"
     ],
-    "hash": "54db08b5cce4c260bc4d74fd987e39bf6b29c772c3b7bdfede0315252706c56e"
+    "hash": "c3ae2fab99a8e189e6ad2c27a0787e4466434edd230d9494f6cae78a35f81529"
   },
   {
     "channels": 4,
@@ -281,7 +282,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-equalize",
       "-auto-level"
     ],
-    "hash": "54db08b5cce4c260bc4d74fd987e39bf6b29c772c3b7bdfede0315252706c56e"
+    "hash": "c3ae2fab99a8e189e6ad2c27a0787e4466434edd230d9494f6cae78a35f81529"
   }
 ];
 for (const { operators, hash, channels, constant } of vectors) {

@@ -1775,11 +1775,12 @@ function* executeQpdfCli(
       yield;
       const rot = page.getRotation();
       if (rot === 90 || rot === 180 || rot === 270) {
-        const { width: W, height: H } = page.getSize();
+        const [x0, y0, x1, y1] = page.getMediaBox();
+        const xSum = x0 + x1, ySum = y0 + y1;
         const mapPt = (x: number, y: number): [number, number] => {
-          if (rot === 90) return [y, W - x];
-          if (rot === 180) return [W - x, H - y];
-          return [H - y, x];
+          if (rot === 90) return [y, xSum - x];
+          if (rot === 180) return [xSum - x, ySum - y];
+          return [ySum - y, x];
         };
         const mapRectNode = (arrNode: PdfCosNode | undefined): PdfCosNode | undefined => {
           const arr = asArray(workingDoc.cos.resolve(arrNode));
@@ -1800,13 +1801,13 @@ function* executeQpdfCli(
 
         let cmCmd = "";
         if (rot === 90) {
-          cmCmd = `q\n0 -1 1 0 0 ${W} cm\n`;
-          dictSet(page.dict, "MediaBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(H), cosNumber(W)]));
+          cmCmd = `q\n0 -1 1 0 0 ${xSum} cm\n`;
+          dictSet(page.dict, "MediaBox", cosArray([y0, x0, y1, x1].map(value => cosNumber(value))));
         } else if (rot === 180) {
-          cmCmd = `q\n-1 0 0 -1 ${W} ${H} cm\n`;
+          cmCmd = `q\n-1 0 0 -1 ${xSum} ${ySum} cm\n`;
         } else if (rot === 270) {
-          cmCmd = `q\n0 1 -1 0 ${H} 0 cm\n`;
-          dictSet(page.dict, "MediaBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(H), cosNumber(W)]));
+          cmCmd = `q\n0 1 -1 0 ${ySum} 0 cm\n`;
+          dictSet(page.dict, "MediaBox", cosArray([y0, x0, y1, x1].map(value => cosNumber(value))));
         }
         for (const boxKey of ["CropBox", "BleedBox", "TrimBox", "ArtBox"] as const) {
           const mapped = mapRectNode(dictGet(page.dict, boxKey));

@@ -73,6 +73,7 @@ export interface ImageMetadata {
   readonly density: number;
   readonly hasAlpha: boolean;
   readonly compression?: "hevc" | "av1";
+  readonly resolution?: { readonly x: number; readonly y: number; readonly unit: "meter" | "unknown" };
   readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };

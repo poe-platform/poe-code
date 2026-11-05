@@ -13,6 +13,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let colorType = 6;
   let interlace = 0;
   let density = 72;
+  let resolution: ImageMetadata["resolution"];
   let hasTrns = false;
   let virtualCanvas: ImageMetadata["virtualCanvas"];
   let orientation: number | undefined;
@@ -35,8 +36,10 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       interlace = chunk[12]!;
     } else if (type === "pHYs" && len >= 9) {
       const chunk=yield {position:dataStart,length:9};
-      const ppuX = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength).getUint32(0, false);
+      const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
+      const ppuX = view.getUint32(0, false);
       const unit = chunk[8]!;
+      resolution = { x: ppuX, y: view.getUint32(4, false), unit: unit === 1 ? "meter" : "unknown" };
       if (unit === 1 && ppuX > 0) {
         density = Math.max(1, Math.round(ppuX * 0.0254));
       } else if (ppuX > 0) {
@@ -95,6 +98,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     depth,
     bitsPerSample: bitDepth,
     density,
+    ...(resolution === undefined ? {} : {resolution}),
     hasAlpha,
     ...(virtualCanvas === undefined ? {} : {virtualCanvas}),
     ...(orientation !== undefined ? { orientation } : {}),

@@ -936,12 +936,15 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const compression = ({ png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
   const page = meta.virtualCanvas ?? { width: meta.width, height: meta.height, x: 0, y: 0 };
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
+  const resolution = meta.resolution;
+  const resolutionScale = resolution?.unit === "meter" ? 100 : 1;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
     z: bitDepth, q: "16", r: `DirectClass ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath,
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
-    x: String(meta.density ?? 72), y: String(meta.density ?? 72),
+    x: String(resolution ? Number((resolution.x / resolutionScale).toPrecision(6)) : meta.density ?? 72),
+    y: String(resolution ? Number((resolution.y / resolutionScale).toPrecision(6)) : meta.density ?? 72),
     s: String(context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     g: `${page.width}x${page.height}${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
     C: compression, Q: String(context.quality ?? 92)
@@ -951,7 +954,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
     colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0)}.0`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
-    depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!
+    depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!,
+    "resolution.x": short.x!, "resolution.y": short.y!,
+    units: resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined"
   };
   let img: RgbaImage | undefined;
   let pixels: Record<string, string> | undefined;

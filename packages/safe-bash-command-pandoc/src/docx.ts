@@ -54,7 +54,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
     const definitions = new Map<number, ReturnType<InstanceType<typeof NumberingGraph>["resolve"]>>();
     const notes = new Map<string, ReturnType<typeof model.store.ref>>();
     const activeNotes = new Set<string>();
-    const identifiers = new Set<string>();
+    const identifiers = new Map<string, number>();
     for (const edge of model.part.rels.values()) {
       ctx.checkpoint();
       if (edge.is_external || !["http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes", "http://purl.oclc.org/ooxml/officeDocument/relationships/footnotes"].includes(edge.reltype)) continue;
@@ -175,9 +175,9 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       if (level >= 1 && level <= 6) {
         const base = headingIdentifier(inlines, ctx);
         let id = base;
-        for (let suffix = 1; identifiers.has(id); suffix++) {ctx.checkpoint(); id = `${base}-${suffix}`;}
+        for (let suffix = identifiers.get(base) ?? 1; identifiers.has(id); suffix++) {ctx.checkpoint(); id = `${base}-${suffix}`;}
         ctx.charge("references", 1); ctx.charge("retainedBytes", id.length * 2);
-        identifiers.add(id);
+        identifiers.set(base, (identifiers.get(base) ?? 0) + 1); identifiers.set(id, 1);
         return {t: "Header", c: [level, [id, [], []], inlines]};
       }
       return {t: "Para", c: inlines};

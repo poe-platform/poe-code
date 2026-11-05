@@ -16,11 +16,19 @@ it("round trips headings and styled paragraphs through built-in DOCX", async () 
   const result = await convert([{bytes: encode("# Orchard\n\n**Apple** and *Pear*")}], {from: "commonmark", to: "docx"}, context);
   if (result.kind !== "binary") throw new Error("Expected DOCX");
   const doc = await readDocument({bytes: result.bytes}, {from: "docx"}, context);
-  expect(doc.blocks[0]).toMatchObject({t: "Header", c: [1, ["", [], []], [{t: "Str", c: "Orchard"}]]});
+  expect(doc.blocks[0]).toMatchObject({t: "Header", c: [1, ["orchard", [], []], [{t: "Str", c: "Orchard"}]]});
   expect(JSON.stringify(doc.blocks)).toContain('"t":"Strong"');
   expect(JSON.stringify(doc.blocks)).toContain('"t":"Emph"');
   const plain = await convert([{bytes: result.bytes}], {from: "docx", to: "plain"}, context);
   expect(plain).toMatchObject({kind: "text", text: expect.stringContaining("Apple and Pear")});
+});
+it("assigns DOCX heading IDs from visible text and disambiguates collisions", async () => {
+  const source = "# 123 **Été** / fin.\n\n# A\n\n# A\n\n# A-1\n\n# A\n\n# 42\n\n# 42";
+  const file = await convert([{bytes: encode(source)}], {from: "commonmark", to: "docx"}, context);
+  if (file.kind !== "binary") throw new Error("Expected DOCX");
+  const doc = await readDocument({bytes: file.bytes}, {from: "docx"}, context);
+  expect(doc.blocks.map(block => block.t === "Header" && block.c[1][0])).toEqual(
+    ["été-fin.", "a", "a-1", "a-1-1", "a-2", "section", "section-1"]);
 });
 it("reads XLSX sheet names, sparse cells and cached formulas as tables", async () => {
   const cc: CapabilityContext = {signal: new AbortController().signal, own() {}, environment: {env: {}, locale: "C", timezone: "UTC"},

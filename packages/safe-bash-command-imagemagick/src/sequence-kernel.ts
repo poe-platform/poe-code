@@ -6,9 +6,10 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
     const horizontal = lut.width >= lut.height, length = Math.max(1, horizontal ? lut.width : lut.height), table = new Uint8Array(1024);
     for (let value = 0; value < 256; value++) {
         if (value % 64 === 0) yield;
-        const sample = Math.max(0, Math.min(length - 1, Math.round(value / 255 * (length - 1))));
-        const bytes = yield { kind: "read", image: 1, position: (horizontal ? sample : sample * lut.width) * 4, length: 4 };
-        table.set(bytes!, value * 4);
+        const sample = value / 255 * (length - 1), lower = Math.floor(sample), upper = Math.ceil(sample), fraction = sample - lower;
+        const a = (yield { kind: "read", image: 1, position: (horizontal ? lower : lower * lut.width) * 4, length: 4 })!;
+        const b = upper === lower ? a : (yield { kind: "read", image: 1, position: (horizontal ? upper : upper * lut.width) * 4, length: 4 })!;
+        for (let channel = 0; channel < 4; channel++) table[value * 4 + channel] = byte(a[channel]! + (b[channel]! - a[channel]!) * fraction);
     }
     for (let position = 0; position < size; position += 16384) {
         yield;

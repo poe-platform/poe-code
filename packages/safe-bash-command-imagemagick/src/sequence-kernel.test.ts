@@ -26,7 +26,7 @@ it.each(["mean", "average", "median", "min", "max", "add", "multiply", "unknown"
     const actual = run(evaluateSequencePixelSteps(size, frames.length, operation), frames, size), expected = new Uint8Array(size);
     for (let pixel = 0; pixel < size; pixel += 4) {
         const ranked = frames.map((data, index) => ({ data, index, sum: data.slice(pixel, pixel + 4).reduce((a, b) => a + b, 0) })).sort((a, b) => a.sum - b.sum || a.index - b.index);
-        for (let channel = 0; channel < 3; channel++) {
+        for (let channel = 0; channel < 4; channel++) {
             const values = frames.map(frame => frame[pixel + channel]!);
             let value = values[0]!;
             if (operation === "median") value = ranked[Math.floor(frames.length / 2)]!.data[pixel + channel]!;
@@ -37,7 +37,6 @@ it.each(["mean", "average", "median", "min", "max", "add", "multiply", "unknown"
             else if (operation === "max") value = Math.max(...values);
             expected[pixel + channel] = Math.max(0, Math.min(255, Math.round(value)));
         }
-        expected[pixel + 3] = frames[0]![pixel + 3]!;
     }
     expect(actual).toEqual(expected);
 });
@@ -45,8 +44,18 @@ it.each(["mean", "average", "median", "min", "max", "add", "multiply", "unknown"
 it.each([false, true])("uses the selected LUT axis and channel mask, vertical=%s", vertical => {
     const width = vertical ? 3 : 10001, height = vertical ? 10001 : 3, size = 4201 * 4;
     const source = Uint8Array.from({ length: size }, (_, i) => i % 256), lut = Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 59 % 256);
-    const expected = Uint8Array.from(source, (value, index) => index % 4 === 1 || index % 4 === 3 ? lut[Math.round(value / 255 * 10000) * (vertical ? width : 1) * 4 + index % 4]! : value);
+    const expected = Uint8Array.from(source, (value, index) => {
+        if (index % 4 !== 1 && index % 4 !== 3) return value;
+        const position = value / 255 * 10000, lower = Math.floor(position), upper = Math.ceil(position);
+        const a = lut[lower * (vertical ? width : 1) * 4 + index % 4]!, b = lut[upper * (vertical ? width : 1) * 4 + index % 4]!;
+        return Math.round(a + (b - a) * (position - lower));
+    });
     expect(run(clutPixelSteps(size, { width, height }, [false, true, false, true]), [source, lut], size)).toEqual(expected);
+});
+
+it("uses a single LUT pixel for every input value", () => {
+    const source = Uint8Array.of(0, 128, 255, 64), lut = Uint8Array.of(12, 34, 56, 78);
+    expect(run(clutPixelSteps(4, { width: 1, height: 1 }, [true, true, true, true]), [source, lut], 4)).toEqual(lut);
 });
 
 it("preserves interpolation rounding and missing channel samples", () => {

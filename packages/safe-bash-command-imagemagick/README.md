@@ -2,7 +2,7 @@
 
 ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`.
 
-Montage defaults to centered tiles in 120×120 cells, shrinking oversized images without enlarging smaller ones, with 4-pixel horizontal and 3-pixel vertical padding. Use `-geometry` to override the tile dimensions and spacing. Montage supports `-label` for subsequent images and `-set label` for images already read. It accepts `-font` for command compatibility; labels use the bundled bitmap glyphs rather than host fonts.
+Montage defaults to centered tiles in 120×120 cells, shrinking oversized images without enlarging smaller ones, with 4-pixel horizontal and 3-pixel vertical padding. Use `-geometry` to override the tile dimensions and spacing. `-mode Frame` adds beveled frames and soft shadows; `-mattecolor` sets the frame color, and `-mode Unframe` restores ordinary tiles. Montage supports `-label` for subsequent images and `-set label` for images already read. It accepts `-font` for command compatibility; labels use the bundled bitmap glyphs rather than host fonts.
 
 ## Quickstart
 

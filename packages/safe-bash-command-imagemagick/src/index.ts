@@ -1,3 +1,4 @@
+import { montageFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { resizePixelSteps } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
@@ -6481,7 +6482,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 
 interface MontageArguments {
     concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean; thumbnail: string | undefined;
+    frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean; thumbnail: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments, void> {
     let cooperativeWork = 63;
@@ -6497,6 +6498,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let padX = 4;
     let padY = 3;
     let borderW = 0;
+    let frame = false;
+    let matte = parseColor("#bdbdbd");
     const operands: string[] = [];
     const labels: string[] = [];
     let label = "";
@@ -6555,8 +6558,14 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-fill") {
             state.fill = parseColor(argv[++i] ?? "#000000");
         }
+        else if (t === "-mattecolor") {
+            matte = parseColor(argv[++i] ?? "#bdbdbd");
+        }
         else if (t === "-mode") {
-            if ((argv[++i] ?? "").toLowerCase() === "concatenate") {
+            const mode = (argv[++i] ?? "").toLowerCase();
+            frame = mode === "frame";
+            if (mode === "unframe") borderW = 0;
+            if (mode === "concatenate") {
                 concatenate = true;
                 state.gravity = "northwest";
                 cellW = cellH = undefined;
@@ -6572,11 +6581,11 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail };
+    return { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte };
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail } = yield* parseMontageArguments(argv);
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte } = yield* parseMontageArguments(argv);
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -6587,7 +6596,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -6719,7 +6728,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel, true));
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
-                if (borderW > 0) {
+                if (!frame && borderW > 0) {
                     const prev = thumb;
                     thumb = yield* createSolidRgbaImageSteps(prev.width + borderW * 2, prev.height + borderW * 2, state.borderColor);
                     yield* blitOverRgbaInPlaceSteps(thumb, prev, borderW, borderW);
@@ -6743,8 +6752,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max(cellW ?? 0, ...images.map((im) => im.width));
         const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
-        const slotW = maxThumbW + padX * 2;
-        const slotH = maxThumbH + padY * 2;
+        const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0);
+        const slotH = maxThumbH + padY * 2 + (frame ? 34 : 0);
         const rowWidths: number[] = [], rowHeights: number[] = [];
         if (concatenate) for (let index = 0; index < Math.min(images.length, cols * rows); index++) {
             if (++cooperativeWork % 64 === 0) yield;
@@ -6752,7 +6761,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             rowWidths[row] = (rowWidths[row] ?? 0) + image.width + padX * 2;
             rowHeights[row] = Math.max(rowHeights[row] ?? 0, image.height + padY * 2);
         }
-        const canvasW = Math.max(1, concatenate ? Math.max(0, ...rowWidths) : cols * slotW);
+        const canvasW = Math.max(1, concatenate ? Math.max(0, ...rowWidths) : cols * slotW + (frame ? 4 : 0));
         const canvasH = Math.max(1, concatenate ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
         let tileX = 0, tileY = 0;
         canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
@@ -6763,7 +6772,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const row = Math.floor(idx / cols);
             if (row >= rows)
                 break;
-            const im = images[idx]!;
+            let im = images[idx]!;
             images[idx] = undefined as unknown as RgbaImage;
             if (!anyTransparent) {
                 for (let k = 3; k < im.data.length; k += 4) {
@@ -6776,6 +6785,17 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             const cellX = (concatenate ? tileX : col * slotW) + padX;
             const cellY = (concatenate ? tileY : row * slotH) + padY;
+            if (frame) {
+                const previous = im;
+                im = yield* applyMagickRasterSteps(im, montageFramePixels(im, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
+                detachRgbaBuffer(previous.data);
+                const shadow = yield* applyMagickRasterSteps(im, montageShadowPixels(im), signal, { width: im.width + 20, height: im.height + 20, hasAlpha: true });
+                yield* blitOverRgbaInPlaceSteps(shadow, im, 0, 0);
+                detachRgbaBuffer(im.data);
+                yield* blitOverRgbaInPlaceSteps(canvas, shadow, cellX, cellY);
+                detachRgbaBuffer(shadow.data);
+                continue;
+            }
             const off = resolveGravityOffset(concatenate ? 0 : maxThumbW - im.width, (concatenate ? rowHeights[row]! - padY * 2 : maxThumbH) - im.height, state.gravity);
             tileX += im.width + padX * 2;
             yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left, cellY + off.top);
@@ -6798,12 +6818,12 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail } = await drainSteps(parseMontageArguments(argv), signal);
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte } = await drainSteps(parseMontageArguments(argv), signal);
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -6867,7 +6887,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`, state.kernel);
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true);
                         }
-                        if (borderW > 0) {
+                        if (!frame && borderW > 0) {
                             const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);
                             image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true);
                         }
@@ -6889,9 +6909,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
         }
         const n = fast ? paths.length : images.length, cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n))), rows = tileRows ?? Math.ceil(n / cols);
-        const slotW = maxThumbW + padX * 2, slotH = maxThumbH + padY * 2;
+        const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0), slotH = maxThumbH + padY * 2 + (frame ? 34 : 0);
         const rowHeights = new IntegerTable(backend.storage, 128);
-        let canvasWidth = cols * slotW, canvasHeight = rows * slotH;
+        let canvasWidth = cols * slotW + (frame ? 4 : 0), canvasHeight = rows * slotH;
         if (concatenate) {
             canvasWidth = canvasHeight = 0;
             let rowWidth = 0, rowHeight = 0;
@@ -6927,6 +6947,13 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 if (!image) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };
                 directPng = await sources.get(BigInt(index * 5 + 4)) === 1n;
             } else image = (await images.get(index))!;
+            if (frame) {
+                image = await transformStoredMagickRaster(image, backend, montageFramePixels(image, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
+                let shadow = await transformStoredMagickRaster(image, backend, montageShadowPixels(image), signal, { width: image.width + 20, height: image.height + 20, hasAlpha: true });
+                shadow = await compositeStoredMagick(shadow, image, backend, signal, 0, 0, "over", undefined, false, true);
+                canvas = await compositeStoredMagick(canvas, shadow, backend, signal, col * slotW + padX, row * slotH + padY, "over", undefined, false, true);
+                continue;
+            }
             const width = fast ? Number(await sources.get(BigInt(index * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt(index * 5 + 3))) : image.height;
             if (concatenate && col === 0) {
                 tileX = 0;

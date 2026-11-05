@@ -120,22 +120,43 @@ impl SedBuffer {
 
 struct SedFile<'a> {
     stream: crate::vfs::ChunkWriter<'a>,
-    buffer: SedBuffer,
+    pending: Vec<u8>,
+    unterminated: bool,
     unbuffered: bool,
 }
 
 impl SedFile<'_> {
     fn flush(&mut self) -> Result<(), String> {
-        if !self.buffer.text.is_empty() {
-            (self.stream)(Some(&crate::vfs::stream_string_to_bytes(&self.buffer.text)))?;
-            self.buffer.text.clear();
+        if self.pending.is_empty() { return Ok(()); }
+        let result = (self.stream)(Some(&self.pending));
+        self.pending.clear();
+        result
+    }
+
+    fn put(&mut self, mut bytes: &[u8]) -> Result<(), String> {
+        // GNU sed writes the pattern with fwrite and the delimiter separately.
+        // A full regular-file buffer can remain pending until the next write.
+        const BLOCK: usize = 4096;
+        if !self.pending.is_empty() {
+            let take = bytes.len().min(BLOCK - self.pending.len());
+            self.pending.extend_from_slice(&bytes[..take]);
+            bytes = &bytes[take..];
+            if bytes.is_empty() { return Ok(()); }
+            self.flush()?;
         }
+        let direct = bytes.len() / BLOCK * BLOCK;
+        if direct != 0 { (self.stream)(Some(&bytes[..direct]))?; }
+        self.pending.extend_from_slice(&bytes[direct..]);
         Ok(())
     }
 
     fn write(&mut self, record: &SedBuffer, delimiter: char) -> Result<(), String> {
-        self.buffer.write_record(&record.text, record.unterminated, delimiter);
-        if self.unbuffered || self.buffer.text.len() >= 65536 { self.flush()?; }
+        let separator = [delimiter as u8];
+        if self.unterminated { self.put(&separator)?; }
+        self.put(&crate::vfs::stream_string_to_bytes(&record.text))?;
+        if !record.unterminated { self.put(&separator)?; }
+        self.unterminated = record.unterminated;
+        if self.unbuffered { self.flush()?; }
         Ok(())
     }
 }
@@ -150,7 +171,7 @@ fn open_sed_files<'a>(cmds: &[SedCmd], fs: &'a dyn SafeBashFs, cwd: &str, mode: 
         if !files.contains_key(name) {
             let stream = fs.open_command_stream(&absolute_operand(cwd, name), false, false, mode, None)
                 .map_err(|err| format!("sed: couldn't open file {name}: {}\n", super::coreutils::file_error_reason(&err)))?;
-            files.insert(name.clone(), SedFile { stream, buffer: SedBuffer::default(), unbuffered });
+            files.insert(name.clone(), SedFile { stream, pending: Vec::new(), unterminated: false, unbuffered });
         }
     }
     Ok(())

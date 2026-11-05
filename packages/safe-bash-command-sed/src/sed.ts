@@ -26,9 +26,26 @@ interface Instruction {
   translation?: Map<string, string>;
 }
 
+interface SedFile {
+  unterminated: boolean;
+  pending: string[];
+  length: number;
+}
+
 interface OutputState {
   stdoutUnterminated: boolean;
-  readonly unterminatedFiles: Set<string>;
+  readonly files: Map<string, SedFile>;
+  readonly unbuffered: boolean;
+}
+
+async function flushFile(context: CommandContext, path: string, file: SedFile): Promise<void> {
+  const pending = file.pending;
+  file.pending = [];
+  file.length = 0;
+  // Preserve the output budget and partial writes at record boundaries.
+  for (const text of pending) {
+    await writeFileOutput(context, bytes(text), chunk => context.fs.appendFile(path, chunk, { signal: context.signal }));
+  }
 }
 
 interface CachedSedProgram {
@@ -39,7 +56,6 @@ interface CachedSedProgram {
 }
 const sedProgramCache = new Map<string, CachedSedProgram>();
 const EMPTY_STRINGS: readonly string[] = Object.freeze([]);
-const EMPTY_SET: Set<string> = new Set();
 
 async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget): Promise<Instruction[]> {
   const result: Instruction[] = [];
@@ -532,11 +548,27 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   const writeFile = async (file: string): Promise<void> => {
     if (stdoutLen > 0) await flushStdout();
     const path = virtualPath(context, file);
-    const terminated = record.terminated;
-    const text = (outputState.unterminatedFiles.has(path) ? separator : "") + pattern + (terminated ? separator : "");
-    await writeFileOutput(context, bytes(text), chunk => context.fs.appendFile(path, chunk, { signal: context.signal }));
-    if (terminated) outputState.unterminatedFiles.delete(path);
-    else outputState.unterminatedFiles.add(path);
+    const state = outputState.files.get(path)!;
+    const prefix = state.unterminated ? separator : "";
+    const suffix = record.terminated ? separator : "";
+    state.unterminated = !record.terminated;
+    const text = prefix + pattern + suffix;
+    if (!text.length) return;
+    let tail = 0;
+    if (!outputState.unbuffered) {
+      // GNU sed writes the pattern and separators separately into a 4 KiB file buffer.
+      tail = state.length;
+      for (const size of [prefix.length, pattern.length, suffix.length]) {
+        if (size) tail = tail && tail + size <= 4096 ? tail + size : (tail + size) % 4096;
+      }
+    }
+    if (state.length + text.length > tail) {
+      if (state.length) await flushFile(context, path, state);
+      const visible = text.length - tail;
+      if (visible) await writeFileOutput(context, bytes(text.slice(0, visible)), chunk => context.fs.appendFile(path, chunk, { signal: context.signal }));
+      if (tail) state.pending.push(text.slice(visible));
+    } else state.pending.push(text);
+    state.length = tail;
   };
   const matches = (address: Address): boolean | Promise<boolean> => {
     if (address.kind === "number") return number === address.number;
@@ -980,6 +1012,7 @@ async function executeSedGeneral(
     const budget = new Budget(context, options);
     const sources: string[] = [];
     const files: string[] = [];
+    let unbuffered = false;
     let quiet = false;
     let extended = false;
     let separate = false;
@@ -999,7 +1032,8 @@ async function executeSedGeneral(
       if (argument === "--") { ended = true; continue; }
       if (argument === "--null-data") { separator = "\0"; continue; }
       if (argument === "--quiet" || argument === "--silent") { quiet = true; continue; }
-      if (argument === "--unbuffered" || argument === "--posix") continue;
+      if (argument === "--unbuffered") { unbuffered = true; continue; }
+      if (argument === "--posix") continue;
       if (argument === "--regexp-extended") { extended = true; continue; }
       if (argument === "--in-place" || argument.startsWith("--in-place=")) {
         inPlace = argument === "--in-place" ? "" : argument.slice("--in-place=".length);
@@ -1027,7 +1061,7 @@ async function executeSedGeneral(
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;
         if (flag === "n") quiet = true;
-        else if (flag === "u") { /* unbuffered */ }
+        else if (flag === "u") unbuffered = true;
         else if (flag === "z") separator = "\0";
         else if (flag === "E" || flag === "r") extended = true;
         else if (flag === "s") separate = true;
@@ -1093,39 +1127,48 @@ async function executeSedGeneral(
         await assertPathRequirements(context, sedRequirements, ["script-read"], readFiles);
       }
     }
+    const outputState: OutputState = { stdoutUnterminated: false, files: new Map(), unbuffered };
     const prepareOutputs = async (): Promise<void> => {
-      if (outputFiles.length === 0) return;
-      const paths = new Set(outputFiles.map(file => virtualPath(context, file)));
-      for (const path of paths) await writeFileOutput(context, new Uint8Array(), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
-    };
-    const outputState: OutputState = { stdoutUnterminated: false, unterminatedFiles: outputFiles.length > 0 ? new Set() : EMPTY_SET };
-    if (inPlace !== undefined) {
-      if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
-      if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
-      await assertPathRequirements(context, sedRequirements, ["in-place"], files);
-      if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
-      const targets = await prepareInPlace(context, files, inPlace);
-      if (outputFiles.length > 0) await prepareOutputs();
-      for (const [index, target] of targets.entries()) {
-        if (target.backup?.type === "directory") {
-          await writeText(context.stderr, `sed: cannot rename ${files[index]}: Is a directory\n`);
-          return 4;
-        }
-        const result = await editInPlace(context, target, inPlace, budget, async stdin => {
-          let rewritten = "";
-          const child = Object.assign(Object.create(Object.getPrototypeOf(context)), context, { stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + decodeBytes(encodeBytes(chunk), "latin1")); } } }) as CommandContext;
-          outputState.stdoutUnterminated = false;
-          const result = await execute(program, child, ["-"], quiet, budget, separator, outputState, lineLength);
-          return { result, data: bytes(rewritten) };
-        });
-        if (result.quit || result.status) return result.status;
+      for (const file of outputFiles) {
+        const path = virtualPath(context, file);
+        if (outputState.files.has(path)) continue;
+        await writeFileOutput(context, new Uint8Array(), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
+        outputState.files.set(path, { pending: [], length: 0, unterminated: false });
       }
-      return 0;
+    };
+    try {
+      if (inPlace !== undefined) {
+        if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
+        if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
+        await assertPathRequirements(context, sedRequirements, ["in-place"], files);
+        if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
+        const targets = await prepareInPlace(context, files, inPlace);
+        if (outputFiles.length > 0) await prepareOutputs();
+        for (const [index, target] of targets.entries()) {
+          if (target.backup?.type === "directory") {
+            await writeText(context.stderr, `sed: cannot rename ${files[index]}: Is a directory\n`);
+            return 4;
+          }
+          const result = await editInPlace(context, target, inPlace, budget, async stdin => {
+            let rewritten = "";
+            const child = Object.assign(Object.create(Object.getPrototypeOf(context)), context, { stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + decodeBytes(encodeBytes(chunk), "latin1")); } } }) as CommandContext;
+            outputState.stdoutUnterminated = false;
+            const result = await execute(program, child, ["-"], quiet, budget, separator, outputState, lineLength);
+            return { result, data: bytes(rewritten) };
+          });
+          if (result.quit || result.status) return result.status;
+        }
+        return 0;
+      }
+      if (outputFiles.length > 0) await prepareOutputs();
+      if (separate) {
+        for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState, lineLength); if (result.quit || result.status) return result.status; }
+        return 0;
+      }
+      return (await execute(program, context, files, quiet, budget, separator, outputState, lineLength)).status;
+    } finally {
+      for (const [path, file] of outputState.files) {
+        if (file.length) await flushFile(context, path, file);
+      }
     }
-    if (outputFiles.length > 0) await prepareOutputs();
-    if (separate) {
-      for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState, lineLength); if (result.quit || result.status) return result.status; }
-      return 0;
-    }
-    return (await execute(program, context, files, quiet, budget, separator, outputState, lineLength)).status;
 }

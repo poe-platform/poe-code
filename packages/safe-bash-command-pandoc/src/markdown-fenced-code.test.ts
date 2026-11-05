@@ -30,8 +30,20 @@ for (const retained of [false, true]) {
     expect(html).toContain('class="sourceCode python numberSource"');
     expect(html).toContain('<span class="bu">print</span>(<span class="dv">1</span>)');
   });
+  it.each([
+    {info: "js {.numberLines startFrom=3}", attributes: ["", ["js", "numberLines"], [["startFrom", "3"]]]},
+    {info: 'js   {#demo .numberLines startFrom=3 title="A sample"}', attributes: ["demo", ["js", "numberLines"], [["startFrom", "3"], ["title", "A sample"]]]},
+    {info: "js {}", attributes: ["", ["js"], []]},
+    {info: "js {invalid}", attributes: ["", ["js"], []]},
+    {info: "js extra {.numberLines}", attributes: ["", ["js"], []]}
+  ])(`preserves attributes after a language in $info (retained=${retained})`, async ({info, attributes}) => {
+    for (const from of ["markdown", "md", "gfm+fenced_code_attributes"]) {
+      expect(JSON.parse(await render('```' + info + '\nconst x=1;\n```\n', from)).blocks).toEqual([{t: "CodeBlock", c: [attributes, "const x=1;"]}]);
+    }
+  });
   it.each(["commonmark", "gfm", "markdown-fenced_code_attributes"])(`keeps default info semantics for %s (retained=${retained})`, async from => {
     expect(JSON.parse(await render('```{.python #demo}\nprint(1)\n```\n', from)).blocks[0].c[0]).toEqual(["", ["{.python"], []]);
+    expect(JSON.parse(await render('```js {.numberLines startFrom=3}\nconst x=1;\n```\n', from)).blocks[0].c[0]).toEqual(["", ["js"], []]);
   });
   it(`preserves bare languages and empty attributes (retained=${retained})`, async () => {
     expect(JSON.parse(await render('```python\nprint(1)\n```\n')).blocks[0].c[0]).toEqual(["", ["python"], []]);

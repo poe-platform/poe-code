@@ -294,10 +294,12 @@ export async function assembleRetainedCommonMark(
       const space = await source.find(info, " "), name = {start: info.start, end: space < 0 ? info.end : space}, classes = await ast.array();
       if (name.end > name.start) await ast.push(classes, await literal(name));
       let attributes;
-      if (extensions.fenced_code_attributes && info.end > info.start && await source.unit(info.start) === "{" && await source.unit(info.end - 1) === "}") {
+      const attributeRange = await source.unit(info.start) === "{" ? info : await source.trim({start: name.end, end: info.end});
+      if (extensions.fenced_code_attributes && attributeRange.end > attributeRange.start && await source.unit(attributeRange.start) === "{" && await source.unit(attributeRange.end - 1) === "}") {
         context.bound("text", info.end - info.start); context.charge("retainedBytes", (info.end - info.start) * 2);
         let text = ""; for await (const chunk of source.chunks(info)) text += chunk;
-        attributes = fencedDivAttributes(text, context);
+        attributes = fencedDivAttributes(text.slice(attributeRange.start - info.start), context);
+        if (attributes && attributeRange.start > info.start) attributes = [attributes[0], [text.slice(0, name.end - name.start), ...attributes[1]], attributes[2]];
       }
       const range = await parser.joined(current, "");
       if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;

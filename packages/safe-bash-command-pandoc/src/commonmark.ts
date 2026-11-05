@@ -203,8 +203,10 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
         case "code": {
           const decoded = decodeSyntax(block.info, context).trim();
           const info = decoded.split(" ")[0];
-          const attributes = extensions.fenced_code_attributes && decoded.startsWith("{") && decoded.endsWith("}")
-            ? fencedDivAttributes(decoded, context) : undefined;
+          const attributeText = decoded.startsWith("{") ? decoded : decoded.slice(info?.length ?? 0).trimStart();
+          let attributes = extensions.fenced_code_attributes && attributeText.startsWith("{") && attributeText.endsWith("}")
+            ? fencedDivAttributes(attributeText, context) : undefined;
+          if (attributes && info && !decoded.startsWith("{")) attributes = [attributes[0], [info, ...attributes[1]], attributes[2]];
           result.push({ t: "CodeBlock", c: [attributes ?? ["", info ? [info] : [], []], block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal] });
           break;
         }

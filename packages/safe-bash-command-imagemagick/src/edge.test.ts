@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runMagickCli, runMagickCliSync, runConvertCli } from "./index.js";
 
 // Native ImageMagick 7.1.2: 8x8 gradient:black-white with red rectangle 2,2 5,5.
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIBAMAAAA2IaO4AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAbUExURQAAACQkJElJSf8AAG1tbZKSkra2ttvb2////0PA254AAAABYktHRAiG3pV6AAAAB3RJTUUH6gsFBDAlqE4ZDwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyNi0xMS0wNVQwNDo0ODozNyswMDowMJ4uOvcAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjYtMTEtMDVUMDQ6NDg6MzcrMDA6MDDvc4JLAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDI2LTExLTA1VDA0OjQ4OjM3KzAwOjAwuGajlAAAAClJREFUCNdjYAABQSBgUDI2VmJwMTZ2YQg1Ng5lSDM2TmMoBwKGDiAAAGTDCBsiD8KiAAAAAElFTkSuQmCC", "base64");
@@ -16,12 +17,39 @@ it.each(cases)(`matches native edge radius %s (retained=${retained})`, async (ra
 });
 
 for (const retained of [false, true])
-it(`preserves alpha across edge output chunks (retained=${retained})`, async () => {
+it(`preserves unselected alpha across edge output chunks (retained=${retained})`, async () => {
     const width = 1031, pixels = Uint8Array.from({ length: width * 4 }, (_, i) => i % 256);
     const input = await sharp(pixels, { raw: { width, height: 1, channels: 4 } }).png().toBuffer();
     const files = new Map([["input.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/input.png", input);
-    expect((await runConvertCli(["input.png", "-edge", "3", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
+    expect((await runConvertCli(["input.png", "-channel", "RGB", "-edge", "3", "+channel", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
     const actual = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
     expect(actual.data.filter((_, i) => i % 4 === 3)).toEqual(pixels.filter((_, i) => i % 4 === 3));
+});
+
+// ImageMagick 7.1.2: six opaque 2x2 color blocks, -edge 1, RGBA8 output.
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+for (const channel of [undefined, "RGB", "A"] as const)
+it(`${mode}: edge filters selected channels (${channel ?? "default RGBA"})`, async () => {
+    const colors = [[255,0,0], [0,255,0], [0,0,255], [255,255,0], [0,255,255], [255,0,255]];
+    const pixels = Uint8Array.from(Array.from({ length: 24 }, (_, i) => [...colors[Math.floor(i / 12) * 3 + Math.floor(i % 6 / 2)]!, 255]).flat());
+    const input = await sharp(pixels, { raw: { width: 6, height: 4, channels: 4 } }).png().toBuffer();
+    const files = new Map([["/input.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const args = ["/input.png", ...(channel ? ["-channel", channel] : []), "-edge", "1", "+channel", "/out.png"];
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!);
+    const rgb = [0,0,0, 255,0,0, 0,255,0, 0,255,0, 0,0,255, 0,0,0,
+        0,0,0, 255,0,0, 0,255,0, 0,255,0, 0,0,255, 0,0,0,
+        0,255,0, 255,255,0, 0,255,255, 0,255,255, 255,0,255, 255,0,0,
+        0,0,0, 255,0,0, 0,0,255, 0,255,0, 255,0,0, 0,0,0];
+    expect([...output.data]).toEqual(Array.from(pixels, (value, i) => i % 4 === 3
+        ? channel === "RGB" ? 255 : 0
+        : channel === "A" ? value : rgb[Math.floor(i / 4) * 3 + i % 4]!));
 });

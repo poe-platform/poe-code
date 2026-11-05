@@ -1,6 +1,7 @@
 // PDF page coordinates are in points from the bottom left. Rasterize the paths
 // at the horizontal resolution, then resample, rotate and crop the bitmap.
 use super::pdf_text_layout::Draw;
+use super::pdf_bitmap::Image;
 #[path = "pdf_glyph.rs"]
 mod pdf_glyph;
 use super::{PageSource, Value};
@@ -47,6 +48,64 @@ fn over_white(p: &mut [u8; 4]) {
     }
 }
 
+// Splash samples each stream at its own resolution, including a soft mask.
+fn splash_sampler<const N: usize>(
+    im: &Image,
+    [left, top, sw, sh]: [f64; 4],
+    xs: std::ops::Range<usize>,
+    ys: std::ops::Range<usize>,
+) -> impl FnMut(usize, usize, &mut usize) -> Option<[u8; N]> + '_ {
+    let (dx, dy) = (im.width as f64 / sw, im.height as f64 / sh);
+    let smooth = dx <= 1. && dy <= 1. && (im.interpolate || dx > 0.25 && dy > 0.25);
+    let mix = |a: u8, b: u8, t: f64| (f64::from(a) * (1. - t) + f64::from(b) * t) as u8;
+    // A reduced axis averages whole source samples; an enlarged axis repeats them.
+    let span = |i: usize, src: usize, dst: usize| {
+        let (i, src, dst) = (i as u64, src as u64, dst as u64);
+        if src > dst {
+            (i * src / dst) as usize..((i + 1) * src / dst) as usize
+        } else {
+            let end = ((i + 1) * src).div_ceil(dst) as usize;
+            end - 1..end
+        }
+    };
+    let mut v = (ys.start as f64 - top) * dy;
+    let start_u = (xs.start as f64 - left) * dx;
+    let mut u = start_u;
+    move |x, y, work| {
+        let value = if smooth {
+            let x0 = (u as usize).min(im.width - 1);
+            let y0 = (v as usize).min(im.height - 1);
+            let row = |j: usize, k: usize| {
+                let p = &im.pixels[j * im.width..][..im.width];
+                mix(p[x0][k], p[(x0 + 1).min(im.width - 1)][k], u.fract())
+            };
+            std::array::from_fn(|k| mix(row(y0, k), row((y0 + 1).min(im.height - 1), k), v.fract()))
+        } else {
+            let cols = span((x as f64 - left) as usize, im.width, sw as usize);
+            let rows = span((y as f64 - top) as usize, im.height, sh as usize);
+            let count = cols.len().checked_mul(rows.len())?;
+            *work = work.checked_sub(count)?;
+            let mut sum = [0u64; N];
+            for j in rows {
+                for p in &im.pixels[j * im.width..][cols.clone()] {
+                    for (total, &channel) in sum.iter_mut().zip(p) {
+                        *total += u64::from(channel);
+                    }
+                }
+            }
+            let reciprocal = (1 << 23) / count as u64;
+            sum.map(|n| ((n * reciprocal) >> 23) as u8)
+        };
+        if x + 1 == xs.end {
+            u = start_u;
+            v += dy;
+        } else {
+            u += dx;
+        }
+        Some(value)
+    }
+}
+
 struct Bitmap {
     white_background: bool,
     w: usize,
@@ -57,11 +116,12 @@ struct Bitmap {
 impl Bitmap {
     fn image(
         &mut self,
-        mut im: super::pdf_bitmap::Image,
+        mut im: Image,
+        mask: Option<Image>,
         ox: f64,
         top: f64,
         scale: f64,
-        splash: bool,
+        upright: bool,
     ) -> Option<()> {
         let [a, b, c, d, e, f] = im.matrix;
         let det = a * d - b * c;
@@ -69,7 +129,7 @@ impl Bitmap {
             return Some(());
         }
         // Splash scales an upright image across inclusive device bounds, then clips it.
-        if splash && a > 0. && d > 0. && b == 0. && c == 0. {
+        if upright {
             let left = ((e - ox) * scale).floor();
             let top_px = ((top - f - d) * scale).floor();
             let right = ((a + e - ox) * scale).floor() + 1.;
@@ -81,51 +141,20 @@ impl Bitmap {
             let xs = (left as usize).min(self.w)..(right as usize).min(self.w);
             let ys = (top_px as usize).min(self.h)..(bottom as usize).min(self.h);
             self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
-            let (dx, dy) = (im.width as f64 / sw, im.height as f64 / sh);
-            let smooth = dx <= 1. && dy <= 1. && (im.interpolate || dx > 0.25 && dy > 0.25);
-            let mix = |a: u8, b: u8, t: f64| (f64::from(a) * (1. - t) + f64::from(b) * t) as u8;
-            // A reduced axis averages whole source samples; an enlarged axis repeats them.
-            let span = |i: usize, src: usize, dst: usize| {
-                let (i, src, dst) = (i as u64, src as u64, dst as u64);
-                if src > dst {
-                    (i * src / dst) as usize..((i + 1) * src / dst) as usize
-                } else {
-                    let end = ((i + 1) * src).div_ceil(dst) as usize;
-                    end - 1..end
-                }
-            };
-            let masked = im.soft_mask.is_some();
-            let mut v = (ys.start as f64 - top_px) * dy;
+            let bounds = [left, top_px, sw, sh];
+            let mut rgb = splash_sampler::<3>(&im, bounds, xs.clone(), ys.clone());
+            let mut alpha = mask.as_ref()
+                .map(|m| splash_sampler::<1>(m, bounds, xs.clone(), ys.clone()));
             for y in ys {
-                let mut u = (xs.start as f64 - left) * dx;
                 for x in xs.clone() {
-                    let mut value: [u8; 4] = if smooth {
-                        let x0 = (u as usize).min(im.width - 1);
-                        let y0 = (v as usize).min(im.height - 1);
-                        let row = |j: usize, k: usize| {
-                            let p = &im.pixels[j * im.width..][..im.width];
-                            mix(p[x0][k], p[(x0 + 1).min(im.width - 1)][k], u.fract())
-                        };
-                        std::array::from_fn(|k| mix(row(y0, k), row((y0 + 1).min(im.height - 1), k), v.fract()))
-                    } else {
-                        let cols = span((x as f64 - left) as usize, im.width, sw as usize);
-                        let rows = span((y as f64 - top_px) as usize, im.height, sh as usize);
-                        let count = cols.len().checked_mul(rows.len())?;
-                        self.work = self.work.checked_sub(count)?;
-                        let mut sum = [0u64; 4];
-                        for j in rows {
-                            for p in &im.pixels[j * im.width..][cols.clone()] {
-                                for (total, &channel) in sum.iter_mut().zip(p) {
-                                    *total += u64::from(channel);
-                                }
-                            }
-                        }
-                        let reciprocal = (1 << 23) / count as u64;
-                        sum.map(|n| ((n * reciprocal) >> 23) as u8)
+                    let [r, g, b] = rgb(x, y, &mut self.work)?;
+                    let a = match &mut alpha {
+                        Some(sample) => sample(x, y, &mut self.work)?[0],
+                        None => 255,
                     };
+                    let value = [r, g, b, a];
                     let dest = &mut self.pixels[y * self.w + x];
-                    if !masked || value[3] == 255 {
-                        value[3] = 255;
+                    if value[3] == 255 {
                         *dest = value;
                     } else if value[3] != 0 {
                         let (alpha, prior) = (u32::from(value[3]), u32::from(dest[3]));
@@ -135,9 +164,7 @@ impl Bitmap {
                         }
                         dest[3] = total as u8;
                     }
-                    u += dx;
                 }
-                v += dy;
             }
             return Some(());
         }
@@ -505,8 +532,19 @@ impl PageSource<'_> {
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
                 Draw::Image(id, matrix) => {
-                    if let Some(image) = super::pdf_bitmap::Image::read(objects, id, matrix, opt.limit, super::ImageRead::Pixels)? {
-                        bitmap.image(image, ox, oy + ph, sx, opt.splash)?;
+                    let [a, b, c, d, _, _] = matrix;
+                    let upright = opt.splash && a > 0. && d > 0. && b == 0. && c == 0.;
+                    let mode = if upright { super::ImageRead::Raster } else { super::ImageRead::Pixels };
+                    if let Some(image) = Image::read(objects, id, matrix, opt.limit, mode)? {
+                        let mask = match (upright, image.soft_mask) {
+                            (true, Some(id)) => {
+                                let mask = Image::read(objects, id, matrix, opt.limit, mode)??;
+                                if mask.components != 1 { return None; }
+                                Some(mask)
+                            }
+                            _ => None,
+                        };
+                        bitmap.image(image, mask, ox, oy + ph, sx, upright)?;
                     }
                     return Some(());
                 }

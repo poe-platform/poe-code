@@ -8497,6 +8497,36 @@ test("pdftoppm paints embedded RGB and alpha pixels at page coordinates", async 
   } finally { wasm.dispose(); }
 });
 
+test("pdftoppm scales the soft mask at its own resolution and interpolation setting", async () => {
+  const { createHash } = await import("node:crypto");
+  const { PdfDocument, cosStream, cosName, cosNumber, cosBool, cosDict, dictSet } = await import("@poe-code/pdf-ast");
+  const wasm = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    // Complete output from Poppler 24.02. Both draws are scaled; the first is clipped.
+    for (const [width, height, interpolate, dpi, digest] of [
+      [7, 5, true, 72, "7ff8789334a34b4a5fc29bc9e108d2b5e0ea50aada6a317125d8caca4aa0e16c"],
+      [2, 1, false, 144, "2e62b096262dbb92a26e501337b3f3da3f2dfc9bcd9159548c9df93046743955"],
+      [2, 8, true, 36, "c4bf78b2270d3b7aeb926f0bd0eff268ab587d1c7807c143ec4dff4d30d2b10a"],
+      [4, 3, true, 360, "72a124807142f9ed0399df929599122bec2f9bc70f4dbff36fafd3106def1152"],
+    ]) {
+      const doc = PdfDocument.create(), page = doc.addPage([9, 7]);
+      const image = doc.embedRgbImage(4, 3, Uint8Array.from({length: 36}, (_, i) => i * 83 + 61));
+      const mask = cosStream(Uint8Array.from({length: width * height}, (_, i) => i * 71 + 31), {
+        dict: cosDict({ Type: cosName("XObject"), Subtype: cosName("Image"), Width: cosNumber(width),
+          Height: cosNumber(height), ColorSpace: cosName("DeviceGray"), BitsPerComponent: cosNumber(8),
+          Interpolate: cosBool(interpolate) }), compress: true,
+      });
+      dictSet(doc.cos.resolve(image.xobjectRef).dict, "SMask", doc.cos.allocateObject(mask));
+      page.drawImage(image, {x: -1, y: 2, width: 6, height: 3});
+      page.drawImage(image, {x: 3, y: 1, width: 5, height: 4});
+      await wasm.fs.writeFile("/f.pdf", doc.save());
+      const r = await wasm.exec("pdftoppm -singlefile -r " + dpi + " f.pdf out");
+      assert.equal(r.exitCode, 0, r.stderr);
+      assert.equal(createHash("sha256").update(await wasm.fs.readFile("/out.ppm")).digest("hex"), digest);
+    }
+  } finally { wasm.dispose(); }
+});
+
 test("pdfimages extracts the base image and its soft mask separately like Poppler", async () => {
   const { PdfDocument, encodePng, decodePng } = await import("@poe-code/pdf-ast");
   const doc = PdfDocument.create(), page = doc.addPage([20, 10]);

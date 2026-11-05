@@ -6,6 +6,7 @@ use super::{Matrix, ObjectId, Objects, PageSource, Value, pdf_text_layout::Draw}
 pub(in crate::commands::archive) enum ImageRead {
     List,
     Pixels,
+    Raster,
     Extract { fax: bool, jpeg: bool, tiff: bool },
 }
 
@@ -21,7 +22,7 @@ pub(in crate::commands::archive) struct Image {
     pub native: Option<NativeImage>,
     pub width: usize,
     pub height: usize,
-    components: usize,
+    pub(super) components: usize,
     length: usize,
     pub id: ObjectId,
     pub(super) interpolate: bool,
@@ -238,7 +239,7 @@ impl Image {
                 }
                 if components == 4 && !matches!(mode, ImageRead::Extract { tiff: true, .. }) {
                     for p in &mut pixels {
-                        *p = device_cmyk(*p, mode == ImageRead::Pixels);
+                        *p = device_cmyk(*p, matches!(mode, ImageRead::Pixels | ImageRead::Raster));
                     }
                 }
             }

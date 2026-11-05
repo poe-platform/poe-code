@@ -1,3 +1,4 @@
+import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { convertHslPixels, prepareHslOutput, formatHslPixel, hslTextPixel, type HslMetadata } from "./colorspace-hsl.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
@@ -721,12 +722,13 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     if (stack.length === 1)
         return stack[0]!;
     const base = stack[0]!;
-    const w = base.width;
-    const h = base.height;
+    const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
+    const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
-        return im.width === w && im.height === h ? im : (yield* applyMagickResizeSteps(im, `${w}x${h}!`, "bilinear"));
+        if (im.width === w && im.height === h) return im;
+        return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h), signal, { ...im, width: w, height: h });
     }));
-    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw), signal, base, normalized);
+    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw), signal, { ...base, width: w, height: h }, normalized);
 }
 
 function parseMagickConvolveKernel(spec: string): number[] {
@@ -5955,8 +5957,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     await result.push((await stack.get(stack.length - 1))!); return result;
                 } else if (stack.length > 1) {
+                    let width = 0, height = 0;
+                    for (let index = 0; index < stack.length; index++) {
+                        const image = (await stack.get(index))!;
+                        width = Math.max(width, image.width); height = Math.max(height, image.height);
+                    }
+                    for (let index = 0; index < stack.length; index++) {
+                        const image = (await stack.get(index))!;
+                        if (image.width !== width || image.height !== height)
+                            await stack.set(index, await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height), signal, { ...image, width, height }));
+                    }
                     const base = (await stack.get(0))!;
-                    for (let index = 1; index < stack.length; index++) await stack.set(index, await resize((await stack.get(index))!, base.width, base.height));
                     const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, stack.length, argument), signal, base, async index => (await stack.get(index))!);
                     stack.length = 0; await stack.push(result);
                 }

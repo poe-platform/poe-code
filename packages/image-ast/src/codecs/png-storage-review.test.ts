@@ -20,7 +20,7 @@ function png(extras: Uint8Array[] = [], compressed = deflateSync(Uint8Array.of(0
   return Buffer.concat([Uint8Array.of(137,80,78,71,13,10,26,10), chunk("IHDR", header), ...extras, chunk("IDAT", compressed), chunk("IEND", new Uint8Array())]);
 }
 function capabilities(bytes: Uint8Array) {
-  const backing = new Uint8Array(131072), borrowed = new Uint8Array(4096);
+  const backing = new Uint8Array(262144), borrowed = new Uint8Array(4096);
   let end = 8;
   const read = (bytes: Uint8Array, offset: number, length: number): Uint8Array => {
     expect(length).toBeLessThanOrEqual(4096);

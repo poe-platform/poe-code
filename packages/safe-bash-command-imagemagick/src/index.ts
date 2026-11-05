@@ -3860,22 +3860,24 @@ function* parseMagickIndexSpec(spec: string, length: number): Generator<number> 
 }
 
 type MagickHistogram = Float64Array[];
-type MagickAnalysisOperation = { end: number; luminance: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">): MagickPixelOperation["apply"] };
-function* accumulateMagickHistogram(data: Uint8Array, histogram: MagickHistogram): Generator<void, void, void> {
+type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">): MagickPixelOperation["apply"] };
+function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
         for (let channel = 0; channel < 4; channel++) histogram[channel]![data[i + channel]!]!++;
         // Keep ImageMagick's 16-bit histogram precision for fractional luma.
-        if (histogram[4]) histogram[4][Math.round(257 * (0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!))]!++;
+        if (histogram[4]) histogram[4][Math.round((data instanceof Uint16Array ? 1 : 257) * (0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!))]!++;
     }
 }
 function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(image.data);
+    const samples = lookup[0]!.length === 65536 ? image.data16 ?? image.data : image.data;
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
-        for (let channel = 0; channel < 4; channel++) data[i + channel] = lookup[channel]![data[i + channel]!]!;
+        for (let channel = 0; channel < 4; channel++) data[i + channel] = lookup[channel]![samples[i + channel]!]!;
     }
-    return { ...image, data };
+    const { data16: ignored, ...metadata } = image;
+    return { ...metadata, data };
 }
 function parseConnectedComponents(tokens: readonly string[], state: MagickState, start: number): number {
     const value = tokens[start + 1];
@@ -3927,8 +3929,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     let end = start;
     const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
-        const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: 256 }, (_, value) => value));
+    return { end, highDepth: token === "-equalize", luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
+        const levels = histogram[0]!.length;
+        const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
             const channelCount = image.hasAlpha ? 4 : 3;
@@ -3988,12 +3991,12 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
             for (let channel = 0; channel < 4; channel++) {
                 if (!active[channel]) continue;
-                const bins = histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 257 : 1;
+                const bins = histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 65535 / (levels - 1) : 1;
                 // Native equalization subtracts the zero bin, not the first occupied bin.
                 const black = bins[0]!;
                 if (count === black) continue;
                 let cumulative = 0, bin = 0;
-                for (let value = 0; value < 256; value++) {
+                for (let value = 0; value < levels; value++) {
                     for (; bin <= value * scale; bin++) cumulative += bins[bin]!;
                     lookup[channel]![value] = clampByteVal((cumulative - black) / (count - black) * 255);
                 }
@@ -4320,13 +4323,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     return { end: i, apply };
 }
 
-async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal): Promise<StoredRgbaImage> {
+async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
     const size = image.width * image.height * 4, position = backend.storage.allocate(size);
     let result = image;
     for (let offset = 0; offset < size; offset += 16384) {
         if (offset % 1048576 === 0) await yieldTurn(signal);
         const data = await backend.storage.read(image.position + offset, Math.min(16384, size - offset));
-        const transformed = await drainSteps(operation.apply({ ...image, width: data.length / 4, height: 1, data }), signal);
+        const bytes16 = highDepth && image.storedData16 ? await backend.storage.read(image.storedData16.position + offset * 2, data.length * 2) : undefined;
+        const data16 = bytes16 ? new Uint16Array(bytes16.buffer, bytes16.byteOffset, bytes16.byteLength / 2) : undefined;
+        const { storedData16: ignoredSource, ...inputMetadata } = image;
+        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(data16 ? {data16} : {}) }), signal);
         const { data: pixels, data16: ignored, ...metadata } = transformed;
         await backend.storage.write(position + offset, pixels);
         result = { ...metadata, width: image.width, height: image.height, position };
@@ -4477,8 +4483,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (analysisOperation) {
             i = analysisOperation.end;
             stack = yield* mapSteps(stack, function* (image) {
-                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 ? 65536 : 256));
-                yield* accumulateMagickHistogram(image.data, histogram);
+                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.data16 ? 65536 : 256));
+                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram);
                 return yield* analysisOperation.transform(histogram, image)(image);
             });
         }
@@ -4489,7 +4495,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return applyMagickRasterSteps(pixels, quantizePixelSteps(image.data.length, colors), signal);
             });
         }
-        else if (pixelOperation) { i = pixelOperation.end; stack = yield* mapSteps(stack, pixelOperation.apply); }
+        else if (pixelOperation) {
+            i = pixelOperation.end;
+            stack = yield* mapSteps(stack, image => {
+                const { data16: ignored, ...pixels } = image;
+                return pixelOperation.apply(pixels);
+            });
+        }
         else if (warpOperation) {
             i = warpOperation.end;
             stack = yield* mapSteps(stack, function* (image) {
@@ -5489,12 +5501,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i = analysisOperation.end;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 ? 65536 : 256)), size = image.width * image.height * 4;
+                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
                 for (let offset = 0; offset < size; offset += 16384) {
                     if (offset % 1048576 === 0) await yieldTurn(signal);
-                    await drainSteps(accumulateMagickHistogram(await backend.storage.read(image.position + offset, Math.min(16384, size - offset)), histogram), signal);
+                    const original = analysisOperation.highDepth ? image.storedData16 : undefined;
+                    const bytes = await backend.storage.read((original?.position ?? image.position) + offset * (original ? 2 : 1), Math.min(16384, size - offset) * (original ? 2 : 1));
+                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram), signal);
                 }
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: analysisOperation.transform(histogram, image) }, signal);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: analysisOperation.transform(histogram, image) }, signal, analysisOperation.highDepth);
             });
             continue;
         }

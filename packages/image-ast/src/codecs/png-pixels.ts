@@ -8,7 +8,7 @@ export function paethPredictor(a: number, b: number, c: number): number {
   return c;
 }
 
-export function writePngPixel(rawData: Uint8Array, rowStart: number, x: number, outIdx: number, rgba: Uint8Array, bitDepth: number, colorType: number, palette?: Uint8Array, trns?: Uint8Array): void {
+export function writePngPixel(rawData: Uint8Array, rowStart: number, x: number, outIdx: number, rgba: Uint8Array, bitDepth: number, colorType: number, palette?: Uint8Array, trns?: Uint8Array, rgba16?: Uint16Array): void {
   if (bitDepth === 8) {
     if (colorType === 6) {
       const idx = rowStart + x * 4;
@@ -92,6 +92,16 @@ export function writePngPixel(rawData: Uint8Array, rowStart: number, x: number, 
       rgba[outIdx + 1] = g;
       rgba[outIdx + 2] = g;
       rgba[outIdx + 3] = a;
+    }
+    if (rgba16) {
+      const samples = colorType === 6 ? 4 : colorType === 2 ? 3 : colorType === 4 ? 2 : 1;
+      const start = rowStart + x * samples * 2;
+      for (let channel = 0; channel < 4; channel++) {
+        const sample = channel === 3 ? samples - 1 : samples <= 2 ? 0 : channel;
+        rgba16[outIdx + channel] = channel === 3 && colorType !== 4 && colorType !== 6
+          ? rgba[outIdx + 3]! * 257
+          : rawData[start + sample * 2]! * 256 + rawData[start + sample * 2 + 1]!;
+      }
     }
   } else {
     const pixelsPerByte = 8 / bitDepth;

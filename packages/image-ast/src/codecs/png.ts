@@ -107,6 +107,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     : directRgbaInPlace
       ? new Uint8Array(expectedScanlineBytes)
       : new Uint8Array(width * height * 4);
+  const data16 = bitDepth === 16 ? new Uint16Array(width * height * 4) : undefined;
   const inflateTarget = (directRgbInPlace || directRgbaInPlace)
     ? rgba
     : new Uint8Array(expectedScanlineBytes);
@@ -172,7 +173,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
       for (let x = 0; x < subW; x++) {
         const dstX = x0 + x * dx;
         const outIdx = (dstY * width + dstX) * 4;
-        writePngPixel(rawData, rowStart, x, outIdx, rgba, bitDepth, colorType, palette, trns);
+        writePngPixel(rawData, rowStart, x, outIdx, rgba, bitDepth, colorType, palette, trns, data16);
       }
     }
     return curOffset;
@@ -207,6 +208,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     width,
     height,
     data: rgba,
+    ...(data16 ? { data16 } : {}),
     format: "png",
     space: colorType === 0 && trns ? "srgb" : meta.space,
     channels: colorType === 0 && trns ? 4 : meta.channels,

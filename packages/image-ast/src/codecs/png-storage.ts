@@ -138,6 +138,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
   };
   checkLimitInputPixels(width,height,options);
   const position = storage.allocate(width * height * 4);
+  const storedData16 = depth === 16 ? { position: storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
   const passes = metadata.isProgressive ? [[0,0,8,8], [4,0,8,8], [0,4,4,8], [2,0,4,4], [0,2,2,4], [1,0,2,2], [0,1,1,2]] : [[0,0,1,1]];
   const iterator = inflated(source, signal);
   let pending: Uint8Array = new Uint8Array();
@@ -175,12 +176,17 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
           }
           await cooperate(); await storage.write(rawPosition + y * rowBytes + offset, data, {signal});
         }
-        for (let x = 0; x < w; x += 128) {
-          const count = Math.min(128, w - x);
+        const pixelWindow = storedData16 ? 64 : 128;
+        for (let x = 0; x < w; x += pixelWindow) {
+          const count = Math.min(pixelWindow, w - x);
           const data = await readStorage(rawPosition + y * rowBytes + x * bits / 8, Math.ceil(count * bits / 8));
           const target = position + ((y0 + y * dy) * width + x0 + x * dx) * 4;
           const output = dx === 1 ? new Uint8Array(count * 4) : await readStorage(target, ((count - 1) * dx + 1) * 4);
-          for (let index = 0; index < count; index++) writePngPixel(data, 0, index, index * dx * 4, output, depth, color, palette, transparency);
+          const target16 = storedData16 ? storedData16.position + (target - position) * 2 : 0;
+          const bytes16 = storedData16 ? dx === 1 ? new Uint8Array(output.length * 2) : await readStorage(target16, output.length * 2) : undefined;
+          const output16 = bytes16 ? new Uint16Array(bytes16.buffer, bytes16.byteOffset, bytes16.byteLength / 2) : undefined;
+          for (let index = 0; index < count; index++) writePngPixel(data, 0, index, index * dx * 4, output, depth, color, palette, transparency, output16);
+          if (bytes16) await storage.write(target16, bytes16, {signal});
           await cooperate(); await storage.write(target, output, {signal});
         }
       }
@@ -189,7 +195,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     // codec diagnostics even after all expected pixels have been produced.
     while (!(await iterator.next()).done) signal.throwIfAborted();
   } finally {await iterator.return(undefined);}
-  return {...metadata, position, density, ...(virtualCanvas === undefined ? {} : {virtualCanvas}), ...(orientation === undefined ? {} : {orientation}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
+  return {...metadata, position, ...(storedData16 ? {storedData16} : {}), density, ...(virtualCanvas === undefined ? {} : {virtualCanvas}), ...(orientation === undefined ? {} : {orientation}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
 }
 
 export type StoredPngEncodeOptions = Omit<NonNullable<Parameters<typeof encodePngImage>[1]>, "consumeInput">;

@@ -2,6 +2,7 @@ import {deflateSync} from "node:zlib";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
+import {decodePngImage} from "./png.js";
 import {decodePngToStorage} from "./png-storage.js";
 
 function chunk(name: string, data: Uint8Array): Uint8Array {
@@ -154,4 +155,32 @@ it("rejects malformed sample layouts before allocating pixel backing", async () 
   try {await expect(decodePngToStorage(source(png(1,1,Uint8Array.of(0),255,6)),storage,new AbortController().signal)).rejects.toThrow("Unsupported PNG encoding");}
   finally {await storage.close();}
   expect(allocate).not.toHaveBeenCalled();
+});
+
+for (const interlace of [false, true])
+it.each([
+  {color: 0, samples: [0x1234], expected: [0x1234, 0x1234, 0x1234, 65535]},
+  {color: 2, samples: [0x1234, 0x5678, 0x9abc], expected: [0x1234, 0x5678, 0x9abc, 65535]},
+  {color: 4, samples: [0x1234, 0x5678], expected: [0x1234, 0x1234, 0x1234, 0x5678]},
+  {color: 6, samples: [0x1234, 0x5678, 0x9abc, 0xdef0], expected: [0x1234, 0x5678, 0x9abc, 0xdef0]}
+])(`retains low PNG sample bytes for color=$color, interlace=${interlace}`, async ({color, samples, expected}) => {
+  const width = 521, height = 3, raw: number[] = [];
+  const passes = interlace ? [[0,0,8,8], [4,0,8,8], [0,4,4,8], [2,0,4,4], [0,2,2,4], [1,0,2,2], [0,1,1,2]] : [[0,0,1,1]];
+  for (const [x0, y0, dx, dy] of passes) {
+    for (let y = y0!; y < height; y += dy!) {
+      raw.push(0);
+      for (let x = x0!; x < width; x += dx!) for (const sample of samples) raw.push(sample >>> 8, sample & 255);
+    }
+  }
+  const bytes = png(width, height, Uint8Array.from(raw), 16, color, [], interlace);
+  const buffered = decodePngImage(bytes), {storage} = backing();
+  expect(Array.from(buffered.data16!)).toEqual(Array.from({length: width * height * 4}, (_, i) => expected[i % 4]));
+  const read = vi.spyOn(storage, "read"), write = vi.spyOn(storage, "write");
+  try {
+    const retained = await decodePngToStorage(source(bytes), storage, new AbortController().signal);
+    expect(read.mock.calls.every(([,length]) => length <= 4096)).toBe(true);
+    expect(write.mock.calls.every(([,data]) => data.length <= 4096)).toBe(true);
+    const samples16 = await storage.read(retained.storedData16!.position, retained.storedData16!.length * 2);
+    expect(new Uint16Array(samples16.buffer, samples16.byteOffset, samples16.length / 2)).toEqual(buffered.data16);
+  } finally {await storage.close();}
 });

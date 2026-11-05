@@ -16,7 +16,7 @@ pub(in crate::commands::archive) enum NativeImage {
 
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
-    soft_mask: Option<ObjectId>,
+    pub(super) soft_mask: Option<ObjectId>,
     pub bilevel: bool,
     pub native: Option<NativeImage>,
     pub width: usize,

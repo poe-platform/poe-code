@@ -33,7 +33,22 @@ fn crop(w: usize, h: usize, [x, y, cw, ch]: [f64; 4]) -> [usize; 4] {
     };
     [x, y, span(cw, w - x), span(ch, h - y)]
 }
+fn div255(n: u32) -> u32 {
+    (n + (n >> 8) + 128) >> 8
+}
+
+fn over_white(p: &mut [u8; 4]) {
+    let alpha = u32::from(p[3]);
+    if alpha < 255 {
+        for c in &mut p[..3] {
+            *c = div255(alpha * u32::from(*c) + (255 - alpha) * 255) as u8;
+        }
+        p[3] = 255;
+    }
+}
+
 struct Bitmap {
+    white_background: bool,
     w: usize,
     h: usize,
     pixels: Vec<[u8; 4]>,
@@ -54,45 +69,77 @@ impl Bitmap {
             return Some(());
         }
         // Splash scales an upright image across inclusive device bounds, then clips it.
-        if splash && a > 0. && d > 0. && b == 0. && c == 0. && im.pixels.iter().all(|p| p[3] == 255) {
+        if splash && a > 0. && d > 0. && b == 0. && c == 0. {
             let left = ((e - ox) * scale).floor();
             let top_px = ((top - f - d) * scale).floor();
             let right = ((a + e - ox) * scale).floor() + 1.;
             let bottom = ((top - f) * scale).floor() + 1.;
-            let sw = right - left;
-            let sh = bottom - top_px;
-            if sw >= im.width as f64 && sh >= im.height as f64 {
-                let xs = (left as usize).min(self.w)..(right as usize).min(self.w);
-                let ys = (top_px as usize).min(self.h)..(bottom as usize).min(self.h);
-                self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
-                let dx = im.width as f64 / sw;
-                let dy = im.height as f64 / sh;
-                let smooth = im.interpolate || dx > 0.25 && dy > 0.25;
-                let mix = |a: u8, b: u8, t: f64| (f64::from(a) * (1. - t) + f64::from(b) * t) as u8;
-                let mut v = (ys.start as f64 - top_px) * dy;
-                for y in ys {
-                    let mut u = (xs.start as f64 - left) * dx;
-                    for x in xs.clone() {
-                        let value = if smooth {
-                            let x0 = (u as usize).min(im.width - 1);
-                            let y0 = (v as usize).min(im.height - 1);
-                            let row = |j: usize, k: usize| {
-                                let p = &im.pixels[j * im.width..][..im.width];
-                                mix(p[x0][k], p[(x0 + 1).min(im.width - 1)][k], u.fract())
-                            };
-                            std::array::from_fn(|k| if k == 3 {255} else {mix(row(y0,k), row((y0 + 1).min(im.height - 1),k), v.fract())})
-                        } else {
-                            let x0 = (((x as f64 - left + 1.) * dx).ceil() - 1.) as usize;
-                            let y0 = (((y as f64 - top_px + 1.) * dy).ceil() - 1.) as usize;
-                            im.pixels[y0.min(im.height - 1) * im.width + x0.min(im.width - 1)]
-                        };
-                        self.pixels[y * self.w + x] = value;
-                        u += dx;
-                    }
-                    v += dy;
-                }
-                return Some(());
+            let (sw, sh) = (right - left, bottom - top_px);
+            if !(1. ..=i32::MAX as f64).contains(&sw) || !(1. ..=i32::MAX as f64).contains(&sh) {
+                return None;
             }
+            let xs = (left as usize).min(self.w)..(right as usize).min(self.w);
+            let ys = (top_px as usize).min(self.h)..(bottom as usize).min(self.h);
+            self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
+            let (dx, dy) = (im.width as f64 / sw, im.height as f64 / sh);
+            let smooth = dx <= 1. && dy <= 1. && (im.interpolate || dx > 0.25 && dy > 0.25);
+            let mix = |a: u8, b: u8, t: f64| (f64::from(a) * (1. - t) + f64::from(b) * t) as u8;
+            // A reduced axis averages whole source samples; an enlarged axis repeats them.
+            let span = |i: usize, src: usize, dst: usize| {
+                let (i, src, dst) = (i as u64, src as u64, dst as u64);
+                if src > dst {
+                    (i * src / dst) as usize..((i + 1) * src / dst) as usize
+                } else {
+                    let end = ((i + 1) * src).div_ceil(dst) as usize;
+                    end - 1..end
+                }
+            };
+            let masked = im.soft_mask.is_some();
+            let mut v = (ys.start as f64 - top_px) * dy;
+            for y in ys {
+                let mut u = (xs.start as f64 - left) * dx;
+                for x in xs.clone() {
+                    let mut value: [u8; 4] = if smooth {
+                        let x0 = (u as usize).min(im.width - 1);
+                        let y0 = (v as usize).min(im.height - 1);
+                        let row = |j: usize, k: usize| {
+                            let p = &im.pixels[j * im.width..][..im.width];
+                            mix(p[x0][k], p[(x0 + 1).min(im.width - 1)][k], u.fract())
+                        };
+                        std::array::from_fn(|k| mix(row(y0, k), row((y0 + 1).min(im.height - 1), k), v.fract()))
+                    } else {
+                        let cols = span((x as f64 - left) as usize, im.width, sw as usize);
+                        let rows = span((y as f64 - top_px) as usize, im.height, sh as usize);
+                        let count = cols.len().checked_mul(rows.len())?;
+                        self.work = self.work.checked_sub(count)?;
+                        let mut sum = [0u64; 4];
+                        for j in rows {
+                            for p in &im.pixels[j * im.width..][cols.clone()] {
+                                for (total, &channel) in sum.iter_mut().zip(p) {
+                                    *total += u64::from(channel);
+                                }
+                            }
+                        }
+                        let reciprocal = (1 << 23) / count as u64;
+                        sum.map(|n| ((n * reciprocal) >> 23) as u8)
+                    };
+                    let dest = &mut self.pixels[y * self.w + x];
+                    if !masked || value[3] == 255 {
+                        value[3] = 255;
+                        *dest = value;
+                    } else if value[3] != 0 {
+                        let (alpha, prior) = (u32::from(value[3]), u32::from(dest[3]));
+                        let total = alpha + prior - div255(alpha * prior);
+                        for k in 0..3 {
+                            dest[k] = (((total - alpha) * u32::from(dest[k]) + alpha * u32::from(value[k])) / total) as u8;
+                        }
+                        dest[3] = total as u8;
+                    }
+                    u += dx;
+                }
+                v += dy;
+            }
+            return Some(());
         }
         let bounds = |values: [f64; 4], max: usize| {
             let lo = values.into_iter().fold(f64::INFINITY, f64::min).floor() as usize;
@@ -263,6 +310,7 @@ impl Bitmap {
                     continue;
                 }
                 let px = &mut self.pixels[y * self.w + x0 + x];
+                if self.white_background { over_white(px); }
                 let remain = f64::from(px[3]) / 255. * (1. - a);
                 let out = a + remain;
                 for i in 0..3 {
@@ -442,9 +490,10 @@ impl PageSource<'_> {
             return None;
         }
         let mut bitmap = Bitmap {
+            white_background: !opt.transparent,
             w,
             h,
-            pixels: vec![if opt.transparent { [0; 4] } else { [255; 4] }; w * h],
+            pixels: vec![if opt.transparent || opt.splash { [0; 4] } else { [255; 4] }; w * h],
             work: opt.limit.saturating_mul(4),
         };
         let mut faces = std::collections::BTreeMap::new();
@@ -605,7 +654,9 @@ impl PageSource<'_> {
                 } else {
                     by + iy
                 };
-                pixels.push(bitmap.pixels[src_y.min(h - 1) * w + bx + ix]);
+                let mut p = bitmap.pixels[src_y.min(h - 1) * w + bx + ix];
+                if bitmap.white_background { over_white(&mut p); }
+                pixels.push(p);
             }
         }
         if let Some((compression, dither)) = opt.tiff {

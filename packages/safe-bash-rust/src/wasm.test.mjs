@@ -8473,24 +8473,26 @@ test("magick writes pixel and alpha streams into a standard PDF from files and c
 });
 
 test("pdftoppm paints embedded RGB and alpha pixels at page coordinates", async () => {
-  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
-  const { pdftoppmCommands } = await import("@poe-platform/safe-bash/commands/pdftoppm");
+  const { createHash } = await import("node:crypto");
   const { PdfDocument, encodePng } = await import("@poe-code/pdf-ast");
   const doc = PdfDocument.create(), page = doc.addPage([15, 10]);
   const pixels = Uint8Array.from({length: 8 * 6 * 4}, (_, i) => (i * 73 + 19) % 256);
   const image = doc.embedPng(encodePng({width: 8, height: 6, data: pixels}));
   page.drawImage(image, { x: 1, y: 2, width: 8, height: 6 });
   page.drawImage(image, { x: 6, y: 1, width: 4, height: 3 });
-  const bytes = doc.save(), fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files: { "/f.pdf": bytes } });
-  await fs.writeFile("/f.pdf", bytes);
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(pdftoppmCommands({ replace: true }));
+  const wasm = new RustWasmBash({ cwd: "/", forceNative: true, files: { "/f.pdf": doc.save() } });
   try {
-    for (const options of ["-r 72", "-r 144", "-r 36", "-scale-to 4", "-r 72 -x 2 -W 8 -y 1 -H 4"]) {
-      const script = "pdftoppm -singlefile " + options + " f.pdf out";
-      const want = await shell.exec(script), got = await wasm.exec(script);
-      assert.equal(want.exitCode, 0, want.stderr);
-      assert.deepEqual([got.exitCode, got.stderr], [want.exitCode, want.stderr]);
-      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out.ppm")), Buffer.from(await fs.readFile("/out.ppm")), script);
+    // Digests of complete Poppler 24.02 pages, including overlapping translucent pixels.
+    for (const [options, expected] of [
+      ["-r 72", "5373597ceadf0f938276427db07282bcbdf76a7794e4048fba4a5efbd8a59de7"],
+      ["-r 144", "59bbff5aa8e8527804ddb3e6f0d52cfa4ca126e1cf4c78accc7940737d783393"],
+      ["-r 36", "b001f89b786faaaf4b8578c873c9149f31fc1c9e2872b1dc76ce93898dac91eb"],
+      ["-scale-to 4", "1fb219b7dddfbe6cb11ced99a955eb26a06728d13ad97973b7cbe7ea0734f3b7"],
+      ["-r 72 -x 2 -W 8 -y 1 -H 4", "a96a587097753c9c8f094efe9a741790e8d0aae20933d9e573ae4b8a469f3a22"],
+    ]) {
+      const r = await wasm.exec("pdftoppm -singlefile " + options + " f.pdf out");
+      assert.equal(r.exitCode, 0, r.stderr);
+      assert.equal(createHash("sha256").update(await wasm.fs.readFile("/out.ppm")).digest("hex"), expected, options);
     }
   } finally { wasm.dispose(); }
 });

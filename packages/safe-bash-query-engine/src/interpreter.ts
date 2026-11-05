@@ -1481,7 +1481,7 @@ export class Interpreter {
           let low = 0;
           let high = numberValue(length as Numeric);
           let found: number | undefined;
-          while (low < high) {
+          while (low !== high) {
             { const _p = budget.tickSync(); if (_p) await _p; }
             const middle = Math.floor((low + high - 1) / 2);
             const order = await compare(indexValue(input, middle), target, budget);
@@ -1831,15 +1831,20 @@ export class Interpreter {
       yield result; return;
     }
     const keyed: { key: Json; value: Json }[] = [];
+    const minimum = name === "min" || name === "min_by";
+    const extrema = minimum || name === "max" || name === "max_by";
+    let best: { key: Json; value: Json } | undefined;
     let keyBytes = 0;
     for (const value of input) {
       { const _p = budget.tickSync(); if (_p) await _p; } const key = args[0] ? await this.collect(args[0], value) : value;
       keyBytes += budget.value(key);
       if (keyBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-      keyed.push({ value, key });
+      if (extrema) {
+        if (!best || ((await compareMaybeSync(key, best.key, budget)) < 0) === minimum) best = { value, key };
+      } else keyed.push({ value, key });
     }
+    if (extrema) { yield best?.value ?? null; return; }
     await stableSort(keyed, budget, (left, right) => compareMaybeSync(left.key, right.key, budget));
-    if (name === "min" || name === "min_by" || name === "max" || name === "max_by") { yield keyed[name.startsWith("min") ? 0 : keyed.length - 1]?.value ?? null; return; }
     if (name === "sort" || name === "sort_by") { yield keyed.map(item => item.value); return; }
     if (name === "unique" || name === "unique_by") { yield keyed.filter((item, index) => index === 0 || !equal(item.key, keyed[index - 1]!.key, budget)).map(item => item.value); return; }
     if (name === "group_by") {

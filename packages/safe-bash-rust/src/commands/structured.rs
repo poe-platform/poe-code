@@ -1703,7 +1703,9 @@ fn jval_eq(a: &JVal, b: &JVal) -> bool {
     }
 }
 
-fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
+// jq treats a pair of NaNs as less-than in predicates, but keeps their input
+// order in stable sorts. Stop at that pair even inside an array or object.
+fn jq_order(a: &JVal, b: &JVal) -> Option<std::cmp::Ordering> {
     let rank = |v: &JVal| -> u8 {
         match v {
             JVal::Null => 0,
@@ -1718,16 +1720,20 @@ fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
     let ra = rank(a);
     let rb = rank(b);
     if ra != rb {
-        return ra.cmp(&rb);
+        return Some(ra.cmp(&rb));
     }
-    match (a, b) {
+    Some(match (a, b) {
+        (JVal::Number(x, _), JVal::Number(y, _)) if x.is_nan() || y.is_nan() => {
+            if x.is_nan() && y.is_nan() { return None; }
+            y.is_nan().cmp(&x.is_nan())
+        }
         (JVal::Number(x, a), JVal::Number(y, b)) => jq_number::compare(*x, a.as_deref(), *y, b.as_deref()),
         (JVal::Str(sa), JVal::Str(sb)) => sa.cmp(sb),
         (JVal::Array(aa), JVal::Array(ab)) => {
             for (x, y) in aa.iter().zip(ab.iter()) {
-                let c = compare_jval(x, y);
+                let c = jq_order(x, y)?;
                 if c != std::cmp::Ordering::Equal {
-                    return c;
+                    return Some(c);
                 }
             }
             aa.len().cmp(&ab.len())
@@ -1737,13 +1743,24 @@ fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
             let mut right: Vec<_> = b.iter().collect();
             left.sort_unstable_by(|x, y| x.0.cmp(&y.0));
             right.sort_unstable_by(|x, y| x.0.cmp(&y.0));
-            left.iter().map(|e| &e.0).cmp(right.iter().map(|e| &e.0)).then_with(|| {
-                left.iter().zip(right.iter()).map(|(x, y)| compare_jval(&x.1, &y.1))
-                    .find(|order| !order.is_eq()).unwrap_or(std::cmp::Ordering::Equal)
-            })
+            let keys = left.iter().map(|e| &e.0).cmp(right.iter().map(|e| &e.0));
+            if !keys.is_eq() { return Some(keys); }
+            for (x, y) in left.into_iter().zip(right) {
+                let order = jq_order(&x.1, &y.1)?;
+                if !order.is_eq() { return Some(order); }
+            }
+            std::cmp::Ordering::Equal
         }
         _ => std::cmp::Ordering::Equal,
-    }
+    })
+}
+
+fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
+    jq_order(a, b).unwrap_or(std::cmp::Ordering::Less)
+}
+
+fn sort_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
+    jq_order(a, b).unwrap_or(std::cmp::Ordering::Equal)
 }
 
 fn jq_length(input: &JVal) -> Result<f64, JqFault> {
@@ -1914,14 +1931,14 @@ fn try_eval_jq_builtin(
         "sort" => {
             if let JVal::Array(a) = input {
                 let mut s = a.clone();
-                s.sort_by(compare_jval);
+                s.sort_by(sort_jval);
                 return Ok(Some(vec![JVal::Array(s)]));
             }
         }
         "unique" => {
             if let JVal::Array(a) = input {
                 let mut s = a.clone();
-                s.sort_by(compare_jval);
+                s.sort_by(sort_jval);
                 s.dedup();
                 return Ok(Some(vec![JVal::Array(s)]));
             }
@@ -2540,7 +2557,7 @@ fn try_eval_jq_builtin(
                         for item in items {
                             keyed.push((JVal::Array(eval_jq(arg_expr, item, vars)?), item));
                         }
-                        keyed.sort_by(|a, b| compare_jval(&a.0, &b.0));
+                        keyed.sort_by(|a, b| sort_jval(&a.0, &b.0));
                         let result = if fname == "group_by" {
                             keyed.chunk_by(|a, b| a.0 == b.0)
                                 .map(|group| JVal::Array(group.iter().map(|(_, v)| (*v).clone()).collect())).collect()
@@ -3346,7 +3363,7 @@ fn delete_jq_paths_sorted(val: &mut JVal, paths: Vec<Vec<JVal>>) {
                 if let (Some(ai), Some(bi)) = (a_idx, b_idx) {
                     return bi.cmp(&ai);
                 }
-                return compare_jval(&a[k], &b[k]);
+                return sort_jval(&a[k], &b[k]);
             }
         }
         b.len().cmp(&a.len())

@@ -358,9 +358,10 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
             try {
               for (const target of iterateQpdfPageRange(spec.toRange, targetCount)) {
                 if (next.done) {
-                  repeat ??= iterateQpdfPageRange(spec.repeatRange || spec.fromRange, sourceCount);
+                  if (!spec.repeatRange) break;
+                  repeat ??= iterateQpdfPageRange(spec.repeatRange, sourceCount);
                   next = repeat.next();
-                  if (next.done) { repeat = iterateQpdfPageRange(spec.repeatRange || spec.fromRange, sourceCount); next = repeat.next(); }
+                  if (next.done) { repeat = iterateQpdfPageRange(spec.repeatRange, sourceCount); next = repeat.next(); }
                   if (next.done) break;
                 }
                 yield { targetIndex: target - 1, sourceIndex: next.value - 1 };

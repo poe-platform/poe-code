@@ -1723,7 +1723,7 @@ function* executeQpdfCli(
     const toPages = parseQpdfPageRange(stamp.toRange, workingDoc.getPageCount());
     const repeatPages = stamp.repeatRange
       ? parseQpdfPageRange(stamp.repeatRange, stampDoc.getPageCount())
-      : fromPages;
+      : [];
 
     const cloneMemo = new Map<number, PdfCosRef>();
     const cloneFromStampCos = (node: PdfCosNode): PdfCosNode => {

@@ -1109,7 +1109,7 @@ describe("safe-bash-command-qpdf", () => {
 
     const splitPct = await runQpdfCli(["src.pdf", "--split-pages", "100%%_part_%03d.pdf"], files);
     assert.equal(splitPct.exitCode, 0);
-    assert.equal(files.has("100%_part_001.pdf"), true);
+    assert.equal(files.has("100%%_part_%03d-1.pdf"), true);
 
     const copyRes = await runQpdfCli(["dst.pdf", "--copy-attachments-from", "src.pdf", "--", "merged.pdf"], files);
     assert.equal(copyRes.exitCode, 0);

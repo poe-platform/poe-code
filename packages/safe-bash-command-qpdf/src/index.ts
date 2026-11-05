@@ -1302,7 +1302,12 @@ function* executeQpdfCli(
       }
     }
     const linStatus = baseDoc.getPageCount() === 0 ? "empty" : isLin ? "linearized" : "not linearized";
-    const out = `checking ${inputFile ?? "empty"}\nPDF Version: ${cos.version}\nFile is ${cos.encryption ? "encrypted" : "not encrypted"}\nFile is ${linStatus}\n${linearizationWarning ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`;
+    const catalog = cos.resolveDict(cos.rootRef);
+    const extensions = cos.resolveDict(catalog && dictGet(catalog, "Extensions"));
+    const adobe = cos.resolveDict(extensions && dictGet(extensions, "ADBE"));
+    const extensionLevel = adobe && asNumber(cos.resolve(dictGet(adobe, "ExtensionLevel")))?.value;
+    const version = `${cos.version}${extensionLevel ? ` extension level ${extensionLevel}` : ""}`;
+    const out = `checking ${inputFile ?? "empty"}\nPDF Version: ${version}\n${encryptionReport(cos.encryption)}File is ${linStatus}\n${linearizationWarning ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`;
     const code = (repairedWarning || linearizationWarning) && !warningExit0 ? 3 : 0;
     return { exitCode: code, stdout: out, stderr: linearizationWarning ? `WARNING: ${inputFile ?? "empty"}: ${linearizationWarning}\nqpdf: operation succeeded with warnings\n` : "" };
   }

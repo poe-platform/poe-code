@@ -247,9 +247,19 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         await publishInspection(chunks);
         return { exitCode: 0 };
       }
+      let version = document.crossReference.version;
+      if (options.check) {
+        let node: PdfCosNode | undefined = document.crossReference.rootRef;
+        for (const key of ["Extensions", "ADBE", "ExtensionLevel"]) {
+          const resolved = await document.lookup(node);
+          node = resolved?.value.kind === "dict" ? dictGet(resolved.value, key) : undefined;
+        }
+        const level = (await document.lookup(node))?.value;
+        if (level?.kind === "number" && level.value) version += ` extension level ${level.value}`;
+      }
       const encryption = document.encryption;
       const message = options.check
-        ? `checking ${inputName ?? "empty"}\nPDF Version: ${document.crossReference.version}\nFile is ${encryption ? "encrypted" : "not encrypted"}\nFile is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\n${linearizationWarnings.length ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`
+        ? `checking ${inputName ?? "empty"}\nPDF Version: ${version}\n${encryptionReport(encryption)}File is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\n${linearizationWarnings.length ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`
         : options.showNpages ? `${count}\n`
         : encryptionReport(encryption);
       const bytes = new TextEncoder().encode(message);

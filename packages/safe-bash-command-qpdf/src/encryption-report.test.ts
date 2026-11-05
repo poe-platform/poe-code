@@ -8,13 +8,16 @@ import { createQpdfCommand, runQpdfCli, runQpdfCliSync } from "./index.js";
 const fixtures = JSON.parse(readFileSync(new URL("./fixtures/encryption-reports.json", import.meta.url), "utf8")) as {
   cases: { name: string; pdf: string; reports: Record<string, string> }[];
 };
-for (const fixture of fixtures.cases) for (const [password, expected] of [
+const checks = JSON.parse(readFileSync(new URL("./fixtures/encryption-check-reports.json", import.meta.url), "utf8")) as {
+  cases: Record<string, Record<string, string>>;
+};
+for (const mode of ["--show-encryption", "--check"]) for (const fixture of fixtures.cases) for (const [password, expected] of mode === "--check" ? Object.entries(checks.cases[fixture.name]!) : [
   ...Object.entries(fixture.reports),
   ...(fixture.reports.reader ? [undefined, "wrong"] : []).map(password => [password, "Incorrect password supplied\n" + fixture.reports.reader!.split("\n").filter(line => !line.startsWith("Supplied password")).map(line => line.startsWith("User password =") ? "User password = " : line).join("\n")] as const),
 ]) {
-  it(`matches native qpdf encryption report for ${fixture.name} with ${password} password on both paths`, async () => {
+  it(`matches native qpdf encryption report for ${mode} ${fixture.name} with ${password} password on both paths`, async () => {
     const input = new Uint8Array(Buffer.from(fixture.pdf, "base64"));
-    const args = [...(password === undefined ? [] : [`--password=${password}`]), "--show-encryption", "/in.pdf"];
+    const args = [...(password === undefined ? [] : [`--password=${password}`]), mode, "/in.pdf"];
     for (const run of [runQpdfCli, runQpdfCliSync]) {
       const result = await run(args, new Map([["/in.pdf", input]]));
       assert.equal(result.exitCode, 0, result.stderr);

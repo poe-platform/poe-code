@@ -5111,6 +5111,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = j;
             continue;
         }
+        if (t === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
+            const delay = Number(tokens[i + 2] ?? 0) * 10;
+            stack = yield* mapSteps(stack, function* (image) {
+                yield;
+                return { ...image, delay: Array(image.delay?.length ?? 1).fill(delay) };
+            });
+            i += 3;
+            continue;
+        }
         const setting = applyMagickReadSetting(tokens, state, i);
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
         const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i) : undefined;
@@ -6149,6 +6158,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 return stack;
             });
+            continue;
+        }
+        if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
+            const delay = Number(tokens[i + 2] ?? 0) * 10;
+            steps.push(async image => image ? {
+                ...image,
+                storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },
+            } : undefined);
+            i += 2;
             continue;
         }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);

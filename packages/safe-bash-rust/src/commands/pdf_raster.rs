@@ -402,12 +402,17 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
     if !png {
         return Some(raw);
     }
+    Some(encode_png(w, h, if bilevel { 1 } else { 8 },
+        if bilevel || format == "PNG8" { 0 } else if rgb { 2 } else { 6 }, dpi, &raw))
+}
+
+pub(super) fn encode_png(w: usize, h: usize, depth: u8, color: u8, dpi: Option<[f64; 2]>, raw: &[u8]) -> Vec<u8> {
     let mut out = b"\x89PNG\r\n\x1a\n".to_vec();
     let mut ihdr = [0; 13];
     ihdr[..4].copy_from_slice(&(w as u32).to_be_bytes());
     ihdr[4..8].copy_from_slice(&(h as u32).to_be_bytes());
-    ihdr[8] = if bilevel { 1 } else { 8 };
-    ihdr[9] = if bilevel || format == "PNG8" { 0 } else if rgb { 2 } else { 6 };
+    ihdr[8] = depth;
+    ihdr[9] = color;
     let phys = dpi.map(|[x,y]| {
         let mut field = [0u8; 9];
         field[..4].copy_from_slice(&((x / 0.0254) as u32).to_be_bytes());
@@ -415,7 +420,7 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
         field[8] = 1;
         field
     });
-    let compressed = crate::commands::codecs::zlib_compress(&raw);
+    let compressed = crate::commands::codecs::zlib_compress(raw);
     for (tag, data) in [(b"IHDR", ihdr.as_slice())].into_iter()
         .chain(phys.as_ref().map(|bytes| (b"pHYs", bytes.as_slice())))
         .chain([(b"IDAT", compressed.as_slice()), (b"IEND", &[][..])]) {
@@ -425,7 +430,7 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
         out.extend_from_slice(data);
         out.extend_from_slice(&crate::commands::archive::crc32_ieee(&out[start..]).to_be_bytes());
     }
-    Some(out)
+    out
 }
 
 impl PageSource<'_> {

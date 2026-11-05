@@ -74,10 +74,15 @@ pub(super) fn encode(
             _ => raw,
         }
     };
+    encode_strip(&strip, [width, height], dpi, color, samples, bits, codec, limit)
+}
+
+pub(super) fn encode_strip(strip: &[u8], [width, height]: [usize; 2], dpi: [f64; 2], color: &str,
+    samples: u32, bits: u32, codec: u32, limit: usize) -> Option<Vec<u8>> {
     let mut out = b"II*\0\0\0\0\0".to_vec();
     let strip_len = u32::try_from(strip.len()).ok()?;
     if strip.len().checked_add(8)? > limit { return None; }
-    out.extend_from_slice(&strip);
+    out.extend_from_slice(strip);
     if out.len() % 2 != 0 { out.push(0); }
     let bits_field = if samples == 1 { bits } else {
         let offset = u32::try_from(out.len()).ok()?;

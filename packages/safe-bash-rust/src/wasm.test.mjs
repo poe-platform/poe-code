@@ -8527,6 +8527,50 @@ test("pdftoppm scales the soft mask at its own resolution and interpolation sett
   } finally { wasm.dispose(); }
 });
 
+test("pdfimages writes both bytes of each 16-bit RGB PNG and TIFF sample", async () => {
+  const { PdfDocument, cosNumber, cosArray, dictSet } = await import("@poe-code/pdf-ast");
+  const { inflateSync } = await import("node:zlib");
+  const { createHash } = await import("node:crypto");
+  const doc = PdfDocument.create(), page = doc.addPage([7, 5]);
+  const image = doc.embedRgbImage(7, 5, Uint8Array.from({length: 7*5*6}, (_,i) => i*83+61));
+  const dict = doc.cos.resolve(image.xobjectRef).dict;
+  dictSet(dict, "BitsPerComponent", cosNumber(16));
+  dictSet(dict, "Decode", cosArray([0.2,0.8,0.2,0.8,0.2,0.8].map(n => cosNumber(n))));
+  page.drawImage(image, {x:0,y:0,width:7,height:5});
+  const wasm = new RustWasmBash({ cwd: "/", forceNative:true, files:{"/f.pdf":doc.save()} });
+  try {
+    for (const [flag, ext] of [["-png", "png"], ["-tiff", "tif"]]) {
+      const r = await wasm.exec("pdfimages " + flag + " f.pdf out");
+      assert.equal(r.exitCode, 0, r.stderr);
+      const file = Buffer.from(await wasm.fs.readFile("/out-000." + ext));
+      let samples;
+      if (ext === "png") {
+        assert.deepEqual([...file.subarray(24,26)], [16,2]);
+        const data = [];
+        for (let i = 8; i < file.length;) {
+          const length = file.readUInt32BE(i);
+          if (file.toString("ascii",i+4,i+8) === "IDAT") data.push(file.subarray(i+8,i+8+length));
+          i += 12 + length;
+        }
+        const raw = inflateSync(Buffer.concat(data)), rows = [];
+        for (let i = 0; i < raw.length; i += 43) { assert.equal(raw[i], 0); rows.push(raw.subarray(i+1,i+43)); }
+        samples = Buffer.concat(rows);
+      } else {
+        const tags = new Map(), dir = file.readUInt32LE(4);
+        for (let i = 0; i < file.readUInt16LE(dir); ++i) {
+          const at = dir + 2 + i*12;
+          tags.set(file.readUInt16LE(at), file.readUInt32LE(at+8));
+        }
+        const bits = tags.get(258);
+        assert.deepEqual([0,2,4].map(i=>file.readUInt16LE(bits+i)), [16,16,16]);
+        samples = file.subarray(tags.get(273), tags.get(273)+tags.get(279));
+      }
+      // Poppler 24.02 on little-endian Linux writes the same sample bytes to both containers.
+      assert.equal(createHash("sha256").update(samples).digest("hex"), "39b8424773180a05a472b1124f63473db8b78e523c13066077b55cd1cc811c60");
+    }
+  } finally { wasm.dispose(); }
+});
+
 test("pdfimages extracts the base image and its soft mask separately like Poppler", async () => {
   const { PdfDocument, encodePng, decodePng } = await import("@poe-code/pdf-ast");
   const doc = PdfDocument.create(), page = doc.addPage([20, 10]);

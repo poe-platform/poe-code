@@ -25,6 +25,7 @@ pub(in crate::commands::archive) struct Image {
     pub(super) soft_mask: Option<ObjectId>,
     fax: bool,
     bits: usize,
+    rgb48: Option<[(f64, f64); 3]>,
     pub native: Option<NativeImage>,
     pub width: usize,
     pub height: usize,
@@ -287,6 +288,16 @@ impl Image {
                 }
             }
         }
+        let mut rgb48 = (bits == 16
+            && components == 3
+            && matches!(
+                mode,
+                ImageRead::Extract {
+                    format: "PNG" | "TIFF",
+                    ..
+                }
+            ))
+        .then_some([(0., 1.); 3]);
         if !fax && !mono_extract && !pixels.is_empty() {
             if let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {
@@ -297,6 +308,10 @@ impl Image {
                 }
                 for (i, pair) in ranges.chunks_exact(2).enumerate() {
                     let (lo, hi) = (pair[0].number()?, pair[1].number()?);
+                    if let Some(wide) = &mut rgb48 {
+                        wide[i] = (lo, hi);
+                        continue;
+                    }
                     if (lo, hi) == (0., 1.) {
                         continue;
                     }
@@ -343,6 +358,7 @@ impl Image {
             soft_mask,
             fax,
             bits,
+            rgb48,
             jpeg,
             native,
             width,
@@ -432,6 +448,51 @@ impl Image {
         extracting: bool,
     ) -> Option<Vec<u8>> {
         let dpi = self.ppi().map(|n| n as f64);
+        if let Some(ranges) = self.rgb48 {
+            let png = format == "PNG";
+            let size = self
+                .width
+                .checked_mul(6)?
+                .checked_add(usize::from(png))?
+                .checked_mul(self.height)?;
+            if size > limit {
+                return None;
+            }
+            let mut raw = Vec::with_capacity(size);
+            for row in self.pixels.chunks_exact(self.width) {
+                if png {
+                    raw.push(0);
+                }
+                for p in row {
+                    for (sample, (lo, hi)) in p.iter().zip(ranges) {
+                        let v = (lo + f64::from(*sample) * (hi - lo) / 255.).clamp(0., 1.);
+                        // Poppler casts its 16.16 color to unsigned short and passes host-order bytes to both writers.
+                        raw.extend_from_slice(&((v * 65536.) as u32 as u16).to_le_bytes());
+                    }
+                }
+            }
+            return if png {
+                Some(super::pdf_raster::encode_png(
+                    self.width,
+                    self.height,
+                    16,
+                    2,
+                    Some(dpi),
+                    &raw,
+                ))
+            } else {
+                crate::commands::archive::tiff::encode_strip(
+                    &raw,
+                    [self.width, self.height],
+                    dpi,
+                    "rgb",
+                    3,
+                    16,
+                    1,
+                    limit,
+                )
+            };
+        }
         let color = match (self.bits, self.components) {
             (1, 1) => "mono",
             (_, 1) => "gray",

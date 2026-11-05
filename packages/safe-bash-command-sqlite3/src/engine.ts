@@ -5253,31 +5253,33 @@ export class SqliteDatabase {
     if (isAggregatedQuery) {
       if (hasGroupBy) {
         const groupExprs = this.splitTopLevelComma(groupByTokens!).map((gt) => {
-          return new ExprParser(gt).parseExpression();
+          const expr = new ExprParser(gt).parseExpression();
+          if (expr.kind === "literal" && typeof expr.value === "number" && Number.isInteger(expr.value)) {
+            return selectTargets[expr.value - 1]?.expr ?? expr;
+          } else if (expr.kind === "column" && !expr.table &&
+            !sourceSchema.some(source => source.columns.some(column => column.toLowerCase() === expr.name.toLowerCase()))) {
+            return selectTargets.find(target => target.alias.toLowerCase() === expr.name.toLowerCase())?.expr ?? expr;
+          }
+          return expr;
         });
+        const collations = groupExprs.map(expr => this.expressionCollation(expr, workingRows[0] ?? {}).toUpperCase());
         const groups = new Map<
           string,
           { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }
         >();
         for (const row of workingRows) {
           yield;
-          const keyVals = yield* stepMap(groupExprs, function* (ge) {
-            if (
-              ge.kind === "literal" &&
-              typeof ge.value === "number" &&
-              Number.isInteger(ge.value)
-            ) {
-              const idx1 = ge.value - 1;
-              if (selectTargets[idx1]) {
-                return yield* this.evalExprSteps(
-                  selectTargets[idx1]!.expr,
-                  row,
-                  positionalParams,
-                  cteScope
-                );
-              }
+          const keyVals = yield* stepMap(groupExprs, function* (ge, i) {
+            const value = yield* this.evalExprSteps(ge, row, positionalParams, cteScope);
+            if (typeof value !== "string" && !(value instanceof String)) return value;
+            const text = String(value);
+            if (collations[i] === "NOCASE") return foldAsciiCase(text);
+            if (collations[i] === "RTRIM") {
+              let end = text.length;
+              while (end > 0 && text[end - 1] === " ") end -= 1;
+              return text.slice(0, end);
             }
-            return yield* this.evalExprSteps(ge, row, positionalParams, cteScope);
+            return value;
           }, this);
           const keyStr = serializeSqlJson(
             keyVals.map((v) => {
@@ -7574,6 +7576,32 @@ export class SqliteDatabase {
         return yield* this.evalScalarFunction(expr.name, args);
       }
     }
+  }
+
+  private expressionCollation(expr: ExprNode, row: Record<string, SqlValue>): string {
+    // Explicit COLLATE anywhere in an expression takes precedence over a column.
+    const explicit = (node: ExprNode): string | undefined => {
+      if (node.kind === "collate") return node.collation;
+      for (const child of expressionChildren(node)) {
+        const collation = explicit(child);
+        if (collation !== undefined) return collation;
+      }
+      return undefined;
+    };
+    const collation = explicit(expr);
+    if (collation !== undefined) return collation;
+    while (expr.kind === "cast" || (expr.kind === "unary" && expr.op === "+")) expr = expr.expr;
+    if (expr.kind !== "column") return "BINARY";
+    const columnName = expr.name.toLowerCase();
+    const tables = (row as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+    const sources = expr.table
+      ? Object.entries(tables ?? {}).filter(([name]) => name.toLowerCase() === expr.table!.toLowerCase()).map(([, data]) => data)
+      : ((row as any).__sources as Record<string, SqlValue>[] | undefined) ?? [];
+    for (const source of this.rowTables.has(row) || sources.length === 0 ? [row, ...sources] : sources) {
+      const column = this.rowTables.get(source)?.columns.find(column => column.name.toLowerCase() === columnName);
+      if (column) return column.collate ?? "BINARY";
+    }
+    return "BINARY";
   }
 
   private expressionAffinity(expr: ExprNode, row: Record<string, SqlValue>): "NUMERIC" | "TEXT" | undefined {

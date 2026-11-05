@@ -68,7 +68,8 @@ npm --workspace=@poe-platform/safe-bash-e2e test
 # Run the multi-profile benchmark suite and regenerate benchmarks/COMPARISON_REPORT.md
 npm --workspace=@poe-platform/safe-bash-e2e run bench
 
-# Compare command status and bytes to Linux, and print median timings (Node 24+ includes the Git plugin case)
+# Compare status and bytes to real executables, then print median timings.
+# Put Pandoc 3.11 on PATH; use Node 24+ with Wasm JSPI to include the Git plugin.
 npm --workspace=safe-bash-e2e run bench -- --linux-commands --iterations 10 --warmup 2
 
 # Compare any two stored benchmark JSON runs

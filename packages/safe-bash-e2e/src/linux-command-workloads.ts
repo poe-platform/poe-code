@@ -222,11 +222,17 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
+  const pandocVersion = execFileSync(pandoc, ["--version"], { encoding: "utf8" }).split("\n")[0];
+  assert.equal(pandocVersion, "pandoc 3.11", "Put Pandoc 3.11 first on PATH for the Linux command benchmark");
   return [
-    ...["#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",
+    ...["- a\n- b\n", "#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",
       "start\n# Heading\nlast\n", "", "> First\n>\n> > Second\n\nlast\n",
       "A\n\n```js\na  b\n\n  c\n```\n\nZ\n", "> ```\n> a\n>\n> b\n> ```\n",
-      "```\n\n\na\n\n\n```\n", "```\na  \n   \n\n```\n", "```\n\n\n```\n\nlast\n"].map(input => ({
+      "```\n\n\na\n\n\n```\n", "```\na  \n   \n\n```\n", "```\n\n\n```\n\nlast\n",
+      "````\na\n```\nb\n````\n", "~~~txt\nplain\n~~~\n", "  ~~~\n  a\n b\n   c\n  ~~~\n",
+      "```\na\n```oops\nb\n```\n", "```\na\n    ```\nb\n```\n", "~~~~\n```\n~~~\nz\n",
+      "before\n~~~\na\n~~~\nafter\n", "    x\n    y\n", "before\n    x\n", "    x\n  \n    y\n\nend\n",
+      "  ~~~\n\tx\n  ~~~\n", "\tfoo\tbar\n"].map(input => ({
       cmd: pandoc, args: ["-f", "commonmark", "-t", "plain", "--wrap=none"],
       script: "pandoc -f commonmark -t plain --wrap=none", input,
     })),

@@ -30239,6 +30239,21 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
     } else {
         input.to_string()
     };
+    let cleaned = if cleaned.contains('\t') {
+        let mut expanded = String::with_capacity(cleaned.len());
+        let mut column = 0;
+        for ch in cleaned.chars() {
+            if ch == '\t' {
+                let width = 4 - column % 4;
+                expanded.extend(std::iter::repeat_n(' ', width));
+                column += width;
+            } else {
+                expanded.push(ch);
+                column = if matches!(ch, '\r' | '\n') { 0 } else { column + 1 };
+            }
+        }
+        expanded
+    } else { cleaned };
     let lines: Vec<&str> = cleaned.lines().collect();
     let heading = |line: &str| {
         let level = line.bytes().take_while(|&b| b == b'#').count();
@@ -30255,23 +30270,38 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
             i += 1;
             continue;
         }
+        if line.starts_with("    ") {
+            let mut code = String::new();
+            let mut end = 0;
+            while i < lines.len() {
+                let content = lines[i].strip_prefix("    ");
+                let blank = lines[i].trim_matches(' ').is_empty();
+                if content.is_none() && !blank { break; }
+                code.push_str(content.unwrap_or(""));
+                code.push('\n');
+                if !blank { end = code.len(); }
+                i += 1;
+            }
+            code.truncate(end);
+            blocks.push(PandocBlock::CodeBlock(String::new(), code));
+            continue;
+        }
         if trimmed.starts_with("<!--") && trimmed.ends_with("-->") {
             i += 1;
             continue;
         }
-        if let Some(fence_rest) = trimmed.strip_prefix("```") {
-            let lang = fence_rest.trim().to_string();
+        if let Some((indent, marker, width, info)) = mdq_fence(line) {
             i += 1;
             let mut code = String::new();
-            while i < lines.len() && !lines[i].trim().starts_with("```") {
-                code.push_str(lines[i]);
+            while i < lines.len() {
+                let line = lines[i];
+                i += 1;
+                if mdq_fence(line).is_some_and(|(_, m, n, tail)| m == marker && n >= width && tail.is_empty()) { break; }
+                let skip = line.bytes().take(indent).take_while(|&b| b == b' ').count();
+                code.push_str(&line[skip..]);
                 code.push('\n');
-                i += 1;
             }
-            if i < lines.len() {
-                i += 1;
-            }
-            blocks.push(PandocBlock::CodeBlock(lang, code));
+            blocks.push(PandocBlock::CodeBlock(info.split_whitespace().next().unwrap_or("").into(), code));
             continue;
         }
         if trimmed == "---" || trimmed == "***" || trimmed == "___" {
@@ -30286,26 +30316,12 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
             i += 1;
             continue;
         }
-        if i + 1 < lines.len() {
-            let next_trim = lines[i + 1].trim();
-            if next_trim.len() >= 3
-                && (next_trim.chars().all(|c| c == '=')
-                    || next_trim.chars().all(|c| c == '-')
-                    || next_trim.chars().all(|c| c == '~'))
-            {
-                let level = if next_trim.starts_with('=') {
-                    1
-                } else if next_trim.starts_with('-') {
-                    2
-                } else {
-                    3
-                };
-                let inlines = parse_pandoc_md_inlines(trimmed);
-                let id = pandoc_slug(&inlines_plain_text(&inlines));
-                blocks.push(PandocBlock::Header(level, id, inlines));
-                i += 2;
-                continue;
-            }
+        if let Some(level) = lines.get(i + 1).and_then(|line| mdq_setext(line)) {
+            let inlines = parse_pandoc_md_inlines(trimmed);
+            let id = pandoc_slug(&inlines_plain_text(&inlines));
+            blocks.push(PandocBlock::Header(level, id, inlines));
+            i += 2;
+            continue;
         }
         if table(trimmed, i) {
             let parse_pipe_row = |l: &str| -> Vec<String> {
@@ -30387,13 +30403,13 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
         while i < lines.len() {
             let lt = lines[i].trim();
             if lt.is_empty()
-                || heading(lt).is_some()
-                || lt.starts_with("```")
-                || lt.starts_with("- ")
-                || lt.starts_with("* ")
-                || lt.starts_with("> ")
-                || table(lt, i)
-                || lt == "---"
+                || !lines[i].starts_with("    ") && (heading(lt).is_some()
+                    || mdq_fence(lines[i]).is_some()
+                    || lt.starts_with("- ")
+                    || lt.starts_with("* ")
+                    || lt.starts_with("> ")
+                    || table(lt, i)
+                    || lt == "---")
             {
                 break;
             }

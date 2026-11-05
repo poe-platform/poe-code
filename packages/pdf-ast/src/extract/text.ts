@@ -10,7 +10,7 @@ import type {
 
 export interface ExtractTextOptions {
   readonly mode?: "logical" | "layout" | "raw" | "bbox" | undefined;
-  readonly rejoinHyphens?: boolean | undefined;
+  readonly rejoinHyphens?: boolean | "soft" | undefined;
   readonly discardDiagonal?: boolean | undefined;
   readonly clipText?: boolean | undefined;
   /** Discard characters whose baseline advance lies outside these page bounds. */
@@ -321,7 +321,7 @@ export function formatExtractedPageText(
         const lineText = b.lines[i]!.text;
         if (i === 0) {
           out = lineText;
-        } else if (rejoinHyphens && out.endsWith("-") && startsWithAsciiLower(lineText)) {
+        } else if (rejoinHyphens && (out.endsWith("\u00ad") || (rejoinHyphens !== "soft" && out.endsWith("-"))) && startsWithAsciiLower(lineText)) {
           out = out.slice(0, -1) + lineText;
         } else {
           out += "\n" + lineText;

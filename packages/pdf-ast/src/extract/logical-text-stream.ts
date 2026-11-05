@@ -2,7 +2,7 @@ import {PdfError} from '../errors.js';
 import type {PdfStoredTextBlock,PdfStoredTextLine} from './raw-text-index.js';
 export interface PdfLogicalTextOptions {
  readonly crop?:readonly [number,number,number,number];
- readonly rejoinHyphens?:boolean;
+ readonly rejoinHyphens?:boolean | "soft";
  readonly chunkBytes?:number;
  /** Formatter scratch only; the caller retains ownership of its text index. */
  readonly maxWorkingBytes?:number;
@@ -22,20 +22,20 @@ export async function* streamLogicalTextChunks(index:{blocks():AsyncIterable<Pdf
    if(crop&&!(x>=crop[0]&&x<=crop[2]&&y>=crop[1]&&y<=crop[3]))continue;
    if(seen)yield ' ';seen=true;for await(const part of word.text())if(part)yield part;
  }}
- let emitted=false,boundary=false,hyphen=false,work=0;
+ let emitted=false,boundary=false,hyphen="",work=0;
  for await(const block of index.blocks()){
   boundary=emitted;
   for await(const line of block.lines()){
    if(++work%64===0)await new Promise<void>(resolve=>setTimeout(resolve,0));options.signal?.throwIfAborted();
    const chunks=text(line);let failed=false;
    try{let next=await chunks.next();if(next.done)continue;
-    if(emitted){const first=next.value.charCodeAt(0),join=!boundary&&hyphen&&(options.rejoinHyphens??true)&&first>=97&&first<=122;
-     if(!join){if(hyphen)yield* encode('-');yield* encode(boundary?'\n\n':'\n');}hyphen=false;
+    if(emitted){const first=next.value.charCodeAt(0),join=!boundary&&hyphen&&(options.rejoinHyphens??true)&&(hyphen==="\u00ad"||options.rejoinHyphens!=="soft")&&first>=97&&first<=122;
+     if(!join){if(hyphen)yield* encode(hyphen);yield* encode(boundary?'\n\n':'\n');}hyphen="";
     }
     emitted=true;boundary=false;
-    while(!next.done){options.signal?.throwIfAborted();if(++work%64===0)await new Promise<void>(resolve=>setTimeout(resolve,0));if(hyphen)yield* encode('-');const part=next.value;hyphen=part.endsWith('-');yield* encode(hyphen?part.slice(0,-1):part);next=await chunks.next();}
+    while(!next.done){options.signal?.throwIfAborted();if(++work%64===0)await new Promise<void>(resolve=>setTimeout(resolve,0));if(hyphen)yield* encode(hyphen);const part=next.value;hyphen=part.endsWith('-')||part.endsWith('\u00ad')?part.slice(-1):'';yield* encode(hyphen?part.slice(0,-1):part);next=await chunks.next();}
    }catch(error){failed=true;throw error;}finally{await chunks.return().catch(error=>{if(!failed)throw error;});}
   }
  }
- if(hyphen)yield* encode('-');options.signal?.throwIfAborted();
+ if(hyphen)yield* encode(hyphen);options.signal?.throwIfAborted();
 }

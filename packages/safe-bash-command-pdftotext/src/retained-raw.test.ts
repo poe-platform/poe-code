@@ -2,7 +2,7 @@ import { FsError } from "safe-bash-contracts/errors";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { PdfDocument, PdfRetainedDocument, cosDict, cosName, cosString, cosArray, cosNumber, dictSet, dictGet } from "@poe-code/pdf-ast";
+import { PdfDocument, PdfRetainedDocument, cosDict, cosName, cosString, cosArray, cosNumber, cosStream, dictSet, dictGet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createPdftotextCommand, runPdftotextCli } from "./index.js";
@@ -233,7 +233,7 @@ for(const flags of [['-bbox'],['-bbox-layout'],['-layout','-bbox-layout'],['-col
   assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
 });
 
-for(const flags of [[],['-remove-hyphens','no'],['-htmlmeta'],['-urls'],['-x','15','-W','90'],['-enc','UCS-2','-eol','dos']])test(`retained logical text preserves bytes: ${flags.join(' ')}`,async()=>{
+for(const flags of [[],['-remove-hyphens','none'],['-htmlmeta'],['-urls'],['-x','15','-W','90'],['-enc','UCS-2','-eol','dos']])test(`retained logical text preserves bytes: ${flags.join(' ')}`,async()=>{
  const input=pdf(),args=[...flags,'input.pdf','-'],expected=await runPdftotextCli(args,new Map([['input.pdf',input]])),f=await fixture(input,args);
  assert.equal((await createPdftotextCommand().execute(f.context)).exitCode,expected.exitCode);assert.deepEqual(joined(f.stdout),encoded(expected.output,flags.includes('UCS-2')?'UCS-2':'UTF-8'));assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
  assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
@@ -362,5 +362,37 @@ for (const mode of [[], ["-raw"], ["-layout"], ["-htmlmeta"], ["-x", "1", "-W", 
     assert.ok(new TextDecoder().decode(joined(crop.stdout)).includes("Crop"));
     await plain.clean();
     await crop.clean();
+  });
+}
+
+for (const softHyphen of [false, true]) for (const mode of ["none", "soft", "all", "yes", "no", "auto"]) {
+  test(`remove-hyphens ${mode} matches Poppler through both APIs (soft=${softHyphen})`, async () => {
+    const doc = PdfDocument.create(); const page = doc.addPage();
+    page.drawText("hyphen-", { x: 20, y: 80, size: 12 });
+    page.drawText("ation", { x: 20, y: 65, size: 12 });
+    if (softHyphen) {
+      const cmap = doc.cos.allocateObject(cosStream(new TextEncoder().encode(
+        "/CIDInit /ProcSet findresource begin 12 dict begin begincmap\n" +
+        "1 begincodespacerange\n<00> <FF>\nendcodespacerange\n" +
+        "1 beginbfchar\n<2D> <00AD>\nendbfchar\n" +
+        "endcmap CMapName currentdict /CMap defineresource pop end end"
+      )));
+      const font = doc.cos.allocateObject(cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName("Helvetica"), ToUnicode: cmap }));
+      dictSet(page.getResourcesDict(), "Font", cosDict({ F1: font }));
+      dictSet(page.dict, "Contents", doc.cos.allocateObject(cosStream(new TextEncoder().encode(
+        "BT /F1 12 Tf 20 80 Td (hyphen-) Tj 0 -15 Td (ation) Tj ET"
+      ))));
+    }
+    const input = doc.save(), args = ["-remove-hyphens", mode, "-", "-"];
+    const valid = ["none", "soft", "all"].includes(mode);
+    const expected = valid ? (mode === "all" || (mode === "soft" && softHyphen) ? "hyphenation\n\n\f" : `hyphen${softHyphen ? "\u00ad" : "-"}\nation\n\n\f`) : "";
+    const stderr = valid ? "" : "Command Line Error: Invalid '-remove-hyphens' value\n";
+    const f = await fixture(input, args, true);
+    assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, valid ? 0 : 99);
+    assert.equal(new TextDecoder().decode(joined(f.stdout)), expected);
+    assert.equal(new TextDecoder().decode(joined(f.stderr)), stderr);
+    const result = await runPdftotextCli(args, new Map(), input);
+    assert.equal(result.exitCode, valid ? 0 : 99);
+    assert.equal(result.output, expected); assert.equal(result.stderr, stderr);
   });
 }

@@ -27,3 +27,14 @@ it('retires active word and hierarchy iterators after an early return',async()=>
  let closed=0;const index={async *blocks(){try{yield {kind:'paragraph' as const,bbox:[0,0,5,10] as const,async *lines(){try{yield {bbox:[0,0,5,10] as const,baselineY:0,async *words(){try{yield {bbox:[0,0,5,10] as const,fontSize:10,async *text(){try{yield 'a'.repeat(4096);}finally{closed++;}}};}finally{closed++;}}};}finally{closed++;}}};}finally{closed++;}}};
  const stream=streamLogicalTextChunks(index,{chunkBytes:16});await stream.next();await stream.return();expect(closed).toBe(4);
 });
+
+for (const hyphen of ["-", "\u00ad"]) for (const rejoinHyphens of [true, false, "soft"] as const) it(`joins ${JSON.stringify(hyphen)} with mode ${rejoinHyphens}`, async () => {
+ const glyphs = [glyph(`hyphen${hyphen}`, 0, 80), glyph('ation', 0, 65)];
+ const expected = rejoinHyphens === true || (rejoinHyphens === 'soft' && hyphen === '\u00ad') ? 'hyphenation' : `hyphen${hyphen}\nation`;
+ const display: PdfDisplayList = {pageIndex:0,width:200,height:200,rotation:0,glyphs,paths:[],images:[],operations:[],annotations:[]};
+ expect(formatExtractedPageText(extractPageFromDisplayList(display,{mode:'logical'}),{mode:'logical',rejoinHyphens})).toBe(expected);
+ const fs = createMemoryFileSystem(); await fs.mkdir('/scratch');
+ const index = await PdfRawTextIndex.create(glyphs,{fs,directory:'/scratch'},{mode:'logical',pageWidth:200});
+ try { let result = ''; for await (const bytes of streamLogicalTextChunks(index,{rejoinHyphens})) result += new TextDecoder().decode(bytes); expect(result).toBe(expected); }
+ finally { await index.close(); }
+});

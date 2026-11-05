@@ -10,7 +10,7 @@ import { encodePopplerChunks } from "./output-encoding.js";
 
 interface RawTextPlan {
   readonly raw: boolean;
-  readonly removeHyphens: boolean;
+  readonly removeHyphens: boolean | "soft";
   readonly layout: boolean;
   readonly colspacing?: number;
   readonly fixed?:number;

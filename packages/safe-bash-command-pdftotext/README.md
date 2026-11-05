@@ -8,7 +8,7 @@ Extract structured, layout-preserving, raw, XHTML bounding-box, HTML metadata, o
 
 | Mode / Option | CLI Flag | Description |
 | --- | --- | --- |
-| Logical Reading Order | *(default)* | Sorts multi-column flows, rejoins hyphenated line wraps, and emits page breaks (`\f`). |
+| Logical Reading Order | *(default)* | Sorts multi-column flows, rejoins hyphenated line wraps (`-remove-hyphens all`, the default; `soft` removes only soft hyphens, `none` preserves both), and emits page breaks (`\f`). |
 | Physical Layout | `-layout` / `-fixed <pitch>` | Preserves multi-column horizontal alignment and baseline vertical spacing. `-fixed` selects layout with indentation and column gaps measured in the supplied character pitch (points). |
 | Raw Content Order | `-raw` | Emits text in PDF content-stream operator order. |
 | XHTML Bounding Boxes | `-bbox` / `-bbox-layout` | Outputs `<doc>`, `<page>`, `<flow>`, `<block>`, `<line>`, and `<word>` coordinates scaled by `-r <dpi>`. |

@@ -212,7 +212,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
         previous = line;
         if (!source.size) continue;
         if (emitted) {
-          const rejoin = !blockBoundary && (options.rejoinHyphens ?? true) && tail?.[0] === 45 && line.first >= 97 && line.first <= 122;
+          const rejoin = !blockBoundary && (options.rejoinHyphens ?? true) === true && tail?.[0] === 45 && line.first >= 97 && line.first <= 122;
           if (!rejoin) { if (tail) yield* emit(tail); yield* emit(encoder.encode("\n")); }
           tail = undefined;
         }

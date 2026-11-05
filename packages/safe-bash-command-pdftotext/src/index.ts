@@ -54,7 +54,7 @@ interface ParsedArgs {
   cropbox: boolean;
   clip: boolean;
   urls: boolean;
-  removeHyphens: boolean;
+  removeHyphens: boolean | "soft";
   fixed?: number;
   linespacing?: number;
   eol: "unix" | "dos" | "mac";
@@ -206,19 +206,11 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (arg === "-urls") {
       res.urls = true;
     } else if (arg === "-remove-hyphens") {
-      const next = argv[i + 1];
-      if (next !== undefined && !next.startsWith("-")) {
-        i++;
-        if (next === "yes" || next === "auto") {
-          res.removeHyphens = true;
-        } else if (next === "no") {
-          res.removeHyphens = false;
-        } else {
-          invalidRemoveHyphens = true;
-        }
-      } else {
-        res.removeHyphens = true;
-      }
+      const next = argv[++i];
+      if (next === "all") res.removeHyphens = true;
+      else if (next === "none") res.removeHyphens = false;
+      else if (next === "soft") res.removeHyphens = "soft";
+      else invalidRemoveHyphens = true;
     } else if (arg === "-raw") {
       res.raw = true;
     } else if (arg === "-bbox") {
@@ -304,7 +296,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     return res;
   }
   if (invalidRemoveHyphens && !res.help && !res.version && !res.listenc) {
-    res.error = "Bad '-remove-hyphens' value on command line\n";
+    res.error = "Command Line Error: Invalid '-remove-hyphens' value\n";
     res.errorExitCode = 99;
     return res;
   }

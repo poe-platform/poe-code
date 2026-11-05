@@ -323,8 +323,8 @@ describe("safe-bash-command-pdftotext", () => {
     assert.equal(rawTsv.output.includes("###FLOW###"), false);
     assert.equal(rawTsv.output.includes("###LINE###"), false);
 
-    // 4. -remove-hyphens no preserves hyphens in logical mode; invalid -remove-hyphens exits 99 and respects -q
-    const keepHyphens = extractPdfToTextBytes(pdfBytes, ["-remove-hyphens", "no", "-"]);
+    // 4. -remove-hyphens none preserves hyphens in logical mode; invalid -remove-hyphens exits 99 and respects -q
+    const keepHyphens = extractPdfToTextBytes(pdfBytes, ["-remove-hyphens", "none", "-"]);
     assert.equal(keepHyphens.exitCode, 0);
     assert.match(keepHyphens.output, /hyphen-\nation/);
 

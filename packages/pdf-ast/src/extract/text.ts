@@ -1,4 +1,4 @@
-import { glyphDirection, mergeBBox, PdfTextGlyphNormalizer } from "./text-glyphs.js";
+import { textDirection, sameTextLine, textWordBreak, PdfTextGlyphOrder, mergeBBox, PdfTextGlyphNormalizer } from "./text-glyphs.js";
 import type {
   PdfDisplayList,
   PdfExtractedPage,
@@ -38,39 +38,24 @@ export function extractPageFromDisplayList(
     };
   }
 
-  const sortedGlyphs =
-    options.mode === "raw"
-      ? [...glyphs]
-      : [...glyphs].sort((a, b) => {
-          const da = glyphDirection(a);
-          const db = glyphDirection(b);
-          const sameDir = da.ux * db.ux + da.uy * db.uy > 0.85;
-          const tol = Math.max(a.fontSize, b.fontSize) * 0.45;
-          if (sameDir) {
-            const dn = db.normal - da.normal;
-            if (Math.abs(dn) > tol) return dn;
-            return da.along - db.along;
-          }
-          const dy = b.baselineY - a.baselineY;
-          if (Math.abs(dy) > tol) return dy;
-          return a.bbox[0] - b.bbox[0];
-        });
+  const order = new PdfTextGlyphOrder();
+  for (const glyph of glyphs) order.observe(glyph);
+  const sortedGlyphs = options.mode === "raw" ? [...glyphs] : glyphs
+    .filter(g => !textDirection(g).diagonal || (g.unicode !== " " && g.unicode !== "\t"))
+    .sort((a, b) => order.compare(a, b));
 
   const lineGlyphGroups: PdfPlacedGlyph[][] = [];
+  let previousNonSpace: PdfPlacedGlyph | undefined;
   for (const g of sortedGlyphs) {
+    const previous = previousNonSpace;
+    if (g.unicode !== " " && g.unicode !== "\t") previousNonSpace = g;
     const lastGroup = lineGlyphGroups[lineGlyphGroups.length - 1];
     if (!lastGroup) {
       lineGlyphGroups.push([g]);
       continue;
     }
-    const ref = lastGroup[0]!;
-    const dRef = glyphDirection(ref);
-    const dCur = glyphDirection(g);
-    const tol = Math.max(ref.fontSize, g.fontSize) * 0.45;
-    if (
-      dRef.ux * dCur.ux + dRef.uy * dCur.uy > 0.85 &&
-      Math.abs(dCur.normal - dRef.normal) <= tol
-    ) {
+    const ref = options.mode === "raw" && textDirection(g).diagonal ? previous ?? lastGroup[0]! : lastGroup[0]!;
+    if (sameTextLine(ref, g, options.mode === "raw")) {
       lastGroup.push(g);
     } else {
       lineGlyphGroups.push([g]);
@@ -80,7 +65,7 @@ export function extractPageFromDisplayList(
   const lines: PdfTextLine[] = [];
   for (const group of lineGlyphGroups) {
     if (options.mode !== "raw") {
-      group.sort((a, b) => glyphDirection(a).along - glyphDirection(b).along);
+      group.sort((a, b) => textDirection(a).along - textDirection(b).along);
     }
     const subLines: PdfPlacedGlyph[][] = [];
     for (const g of group) {
@@ -90,7 +75,7 @@ export function extractPageFromDisplayList(
         continue;
       }
       const prev = cur[cur.length - 1]!;
-      const gap = glyphDirection(g).along - (glyphDirection(prev).along + prev.advanceWidth);
+      const gap = textDirection(g).along - (textDirection(prev).along + textDirection(prev).advance);
       const colScale = options.colSpacing !== undefined && options.colSpacing > 0 ? options.colSpacing / 0.7 : 1.0;
       const colSplitThreshold = Math.max(prev.fontSize, g.fontSize) * 4.0 * colScale;
       if ((options.mode === "logical" || options.mode === "layout" || options.mode === undefined) && gap > colSplitThreshold) {
@@ -129,9 +114,7 @@ export function extractPageFromDisplayList(
         }
         if (curWordGlyphs.length > 0) {
           const prev = curWordGlyphs[curWordGlyphs.length - 1]!;
-          const gap = glyphDirection(g).along - (glyphDirection(prev).along + prev.advanceWidth);
-          const spaceThreshold = Math.max(prev.fontSize, g.fontSize) * 0.22;
-          if (gap > spaceThreshold) {
+          if (textWordBreak(prev, g, options.mode === "raw")) {
             flushWord();
           }
         }

@@ -6,7 +6,7 @@ import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { PdfRect } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
-import { glyphDirection, mergeBBox, textGlyphVisible } from "./text-glyphs.js";
+import { type PdfTextGeometry, textDirection, sameTextLine, textWordBreak, mergeBBox, textGlyphVisible } from "./text-glyphs.js";
 import type { ExtractTextOptions } from "./text.js";
 
 /** Retained extraction may borrow replacement text from caller-owned storage.
@@ -112,11 +112,12 @@ export class PdfRawTextIndex {
     const sorted=ordered?orderedTextGlyphs(source,backing,this.storage,orderOptions):undefined;
     const input=sorted?(this.options.mode === "logical"?logicalTextGlyphs(sorted,backing,this.storage,this.options.pageWidth??0,orderOptions):sorted):source;
     type Box = [number, number, number, number];
-    type Line = { direction: ReturnType<typeof glyphDirection>; referenceSize: number; baseline: number; firstWord: number; lastWord: number; count: number; bbox?: Box; fontSize: number; prefix: string; prefixStarted: boolean };
+    type Line = { baseline: number; firstWord: number; lastWord: number; count: number; bbox?: Box; fontSize: number; prefix: string; prefixStarted: boolean };
     type Block = { kind: number; firstLine: number; count: number; bbox: Box };
     let line: Line | undefined, block: Block | undefined, previousLine: { bbox: Box; baseline: number; fontSize: number } | undefined;
     let word: { position: number; start: number; units: number; bbox: Box; fontSize: number; fontPosition:number; fontUnits:number } | undefined;
-    let previousGlyph: { along: number; advance: number; fontSize: number } | undefined;
+    let previousGlyph: PdfTextGeometry | undefined;
+    let lineReference: PdfTextGeometry | undefined, lastGlyph: PdfTextGeometry | undefined;
     let wordCount = 0, lineCount = 0, lastLine = 0, lastBlock = 0, work = 0;
     const flushWord = async () => {
       if (!word || !line) return;
@@ -152,11 +153,14 @@ export class PdfRawTextIndex {
         let part = await text.next(); if (part.done) return;
         const possibleSpace = part.value === " " || part.value === "\t";
         const next = possibleSpace ? await text.next() : undefined;
-        const direction = glyphDirection(glyph);
-        if (line && (ordered ? (glyph as PdfOrderedTextGlyph).lineStart : !(line.direction.ux * direction.ux + line.direction.uy * direction.uy > 0.85 && Math.abs(direction.normal - line.direction.normal) <= Math.max(line.referenceSize, glyph.fontSize) * 0.45))) await flushLine();
-        line ??= { direction, referenceSize: glyph.fontSize, baseline: glyph.baselineY, firstWord: 0, lastWord: 0, count: 0, fontSize: 12, prefix: "", prefixStarted: false };
+        const direction = textDirection(glyph);
+        if (line && (ordered ? (glyph as PdfOrderedTextGlyph).lineStart : !sameTextLine(direction.diagonal ? lastGlyph! : lineReference!, glyph, true))) await flushLine();
+        const geometry: PdfTextGeometry = { matrix: [...glyph.matrix], bbox: [...glyph.bbox], baselineY: glyph.baselineY, fontSize: glyph.fontSize, advanceWidth: glyph.advanceWidth };
+        if (!line) { lineReference = geometry; lastGlyph = geometry; }
+        line ??= { baseline: glyph.baselineY, firstWord: 0, lastWord: 0, count: 0, fontSize: 12, prefix: "", prefixStarted: false };
+
         if (possibleSpace && next?.done) { await flushWord(); return; }
-        if (previousGlyph && direction.along - (previousGlyph.along + previousGlyph.advance) > Math.max(previousGlyph.fontSize, glyph.fontSize) * 0.22) await flushWord();
+        if (previousGlyph && textWordBreak(previousGlyph, glyph, !ordered)) await flushWord();
         const observe = (text: string) => {
           if (line!.prefix.length >= 2) return; const part = line!.prefixStarted ? text : text.trimStart();
           if (part.length) { line!.prefixStarted = true; line!.prefix += part.slice(0, 2 - line!.prefix.length); }
@@ -174,7 +178,7 @@ export class PdfRawTextIndex {
           part = lookahead ?? await text.next(); lookahead = undefined;
         }
         word.bbox = mergeBBox(word.bbox, glyph.bbox);
-        previousGlyph = { along: direction.along, advance: glyph.advanceWidth, fontSize: glyph.fontSize };
+        previousGlyph = geometry; lastGlyph = geometry;
       } finally { await text.return(); }
     };
     let pending: PdfRawTextGlyph | undefined;

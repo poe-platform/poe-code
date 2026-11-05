@@ -241,7 +241,7 @@ describe("safe-bash-command-pdftotext", () => {
     // Default extracts all three
     const allRes = extractPdfToTextBytes(pdfBytes, ["-"]);
     assert.match(allRes.output, /BodyInsideCropBox/);
-    assert.match(allRes.output, /DiagonalWatermark/);
+    assert.ok(allRes.output.split("\n").join("").includes("DiagonalWatermark"));
     assert.match(allRes.output, /BleedOutsideCropBox/);
 
     // -nodiag removes the watermark; -cropbox preserves ordinary bleed text.

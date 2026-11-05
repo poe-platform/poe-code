@@ -396,3 +396,25 @@ for (const softHyphen of [false, true]) for (const mode of ["none", "soft", "all
     assert.equal(result.output, expected); assert.equal(result.stderr, stderr);
   });
 }
+
+for (const [flags, expected] of [
+  [[], "dr\n\nop\n\ndi\n\nag\n\non\n\nal\n\nkeep horizontal\n\n\f"],
+  [["-raw"], "keep horizontal\nd r o p\nd i a g o n a l\f"],
+  [["-nodiag"], "keep horizontal\n\n\f"],
+  [["-raw", "-nodiag"], "keep horizontal\f"],
+  [["-raw", "-x", "0", "-y", "0", "-W", "300", "-H", "200"], "keep horizontal\nd r o p\nd i a g o n a l\f"],
+] as const) {
+  test(`Poppler diagonal grouping in memory and retained extraction: ${flags.join(" ")}`, async () => {
+    const doc = PdfDocument.create(), page = doc.addPage([300, 200]);
+    page.drawText("keep horizontal", { x: 20, y: 150, size: 12 });
+    page.drawText("drop diagonal", { x: 20, y: 80, size: 12, rotateRadians: Math.PI / 4 });
+    const input = doc.save(), args = [...flags, "input.pdf", "-"];
+    const result = await runPdftotextCli(args, new Map([["input.pdf", input]]));
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.output, expected);
+    const f = await fixture(input, args);
+    assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+    assert.equal(new TextDecoder().decode(joined(f.stdout)), expected);
+    await f.clean();
+  });
+}

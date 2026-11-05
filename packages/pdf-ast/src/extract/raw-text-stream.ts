@@ -4,7 +4,7 @@ import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
 import { PdfFileSource } from "../source.js";
 import { PdfStagingStorage } from "../staging-budget.js";
-import { glyphDirection, mergeBBox, textGlyphVisible } from "./text-glyphs.js";
+import { textDirection, sameTextLine, textWordBreak, mergeBBox, textGlyphVisible } from "./text-glyphs.js";
 import type { ExtractTextOptions } from "./text.js";
 
 export interface PdfRawTextOptions extends Omit<ExtractTextOptions, "mode"> {
@@ -98,6 +98,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
       const reference = pending;
       const line: Line = { baseline: reference.baselineY, left: Infinity, fontSize: 12, prefix: "", first: -1 };
       let originalWords = 0;
+      let previousGlyph = reference;
       async function* chunks(): AsyncGenerator<Uint8Array, void, void> {
         let wordPrevious: PdfPlacedGlyph | undefined, hasWords = false, prefixStarted = false, highSurrogate = "";
         function* text(value: string) {
@@ -123,8 +124,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
           if (glyph.unicode === " " || glyph.unicode === "\t") wordPrevious = undefined;
           else {
             if (wordPrevious) {
-              const gap = glyphDirection(glyph).along - (glyphDirection(wordPrevious).along + wordPrevious.advanceWidth);
-              if (gap > Math.max(wordPrevious.fontSize, glyph.fontSize) * 0.22) wordPrevious = undefined;
+              if (textWordBreak(wordPrevious, glyph, true)) wordPrevious = undefined;
             }
             if (!wordPrevious) {
               originalWords++;
@@ -134,12 +134,11 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
             line.left = Math.min(line.left, glyph.bbox[0]);
             for await (const part of glyphText(glyph, signal)) yield* text(part); wordPrevious = glyph;
           }
+          if (glyph.unicode !== " " && glyph.unicode !== "\t") previousGlyph = glyph;
           const next = await input.next();
           if (next.done) { exhausted = true; break; }
           pending = next.value;
-          const first = glyphDirection(reference), current = glyphDirection(pending);
-          if (!(first.ux * current.ux + first.uy * current.uy > 0.85
-            && Math.abs(current.normal - first.normal) <= Math.max(reference.fontSize, pending.fontSize) * 0.45)) break;
+          if (!sameTextLine(textDirection(pending).diagonal ? previousGlyph : reference, pending, true)) break;
         }
         if (highSurrogate) yield* encode(highSurrogate);
       }
@@ -152,9 +151,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
           }
         }
         function sameLine(glyph: PdfPlacedGlyph) {
-          const first = glyphDirection(reference), current = glyphDirection(glyph);
-          return first.ux * current.ux + first.uy * current.uy > 0.85
-            && Math.abs(current.normal - first.normal) <= Math.max(reference.fontSize, glyph.fontSize) * 0.45;
+          return sameTextLine(textDirection(glyph).diagonal ? previousGlyph : reference, glyph, true);
         }
         async function advance() { const next = await input.next(); pending = next.done ? undefined : next.value; if (next.done) exhausted = true; }
         while (pending && sameLine(pending)) {
@@ -166,8 +163,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
             let previous: PdfPlacedGlyph | undefined, high = "";
             while (pending && sameLine(pending) && pending.unicode !== " " && pending.unicode !== "\t") {
               const glyph = pending;
-              if (previous && glyphDirection(glyph).along - (glyphDirection(previous).along + previous.advanceWidth)
-                > Math.max(previous.fontSize, glyph.fontSize) * 0.22) break;
+              if (previous && textWordBreak(previous, glyph, true)) break;
               line.left = Math.min(line.left, glyph.bbox[0]);
               bounds[0] = Math.min(bounds[0]!, glyph.bbox[0]); bounds[1] = Math.min(bounds[1]!, glyph.bbox[1]);
               bounds[2] = Math.max(bounds[2]!, glyph.bbox[2]); bounds[3] = Math.max(bounds[3]!, glyph.bbox[3]);
@@ -179,7 +175,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
                 if (last >= 0xd800 && last <= 0xdbff) { high = value.at(-1)!; value = value.slice(0, -1); }
                 yield* encode(value);
               }
-              previous = glyph; await advance();
+              previous = glyph; previousGlyph = glyph; await advance();
             }
             if (high) yield* encode(high);
           }

@@ -31,7 +31,15 @@ fn flow_sequences_aliases_and_utf16_offsets_remain_distinct() {
         "lists: {work: {ship: &task {name: A, state: draft}}}\ncopy: *task\nvalues: [one, two]\n",
     );
     let document = scan(&source).unwrap();
-    assert!(document.nodes.iter().any(|n| n.kind == Kind::Alias));
+    assert_eq!(
+        document
+            .nodes
+            .iter()
+            .find(|n| n.kind == Kind::Alias)
+            .unwrap()
+            .text,
+        text("task")
+    );
     assert!(document.nodes.iter().any(|n| n.kind == Kind::Sequence));
     assert!(document.nodes.iter().any(|n| n.flow));
     let surrogate = [text("name: \""), vec![0xd800], text("\"\n")].concat();

@@ -132,7 +132,13 @@ pub fn scan(source: &[u16]) -> Result<Document, Error> {
                         source.get(start) == Some(&91),
                         None,
                     ),
-                    Event::Alias(_) => (Kind::Alias, vec![], false, false, None),
+                    Event::Alias(id) => (
+                        Kind::Alias,
+                        parser.anchor_names[&id].clone(),
+                        false,
+                        false,
+                        None,
+                    ),
                     _ => unreachable!(),
                 };
                 let index = nodes.len();

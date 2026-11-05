@@ -221,6 +221,23 @@ impl super::OpenRedirectFile for std::fs::File {
     }
 }
 
+impl super::FileReadHandle for std::sync::Mutex<std::fs::File> {
+    fn stat(&self) -> Result<FileStat, String> {
+        RealVfs::file_stat(self.lock().unwrap().metadata().map_err(mutation_error)?)
+    }
+    fn seek_end(&self) -> Result<u64, String> {
+        Ok(self.lock().unwrap().metadata().map_err(mutation_error)?.len())
+    }
+    fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> {
+        use std::io::{Read, Seek, SeekFrom};
+        let mut file = self.lock().unwrap();
+        file.seek(SeekFrom::Start(offset)).map_err(mutation_error)?;
+        let mut bytes = Vec::new();
+        (&mut *file).take(maximum as u64).read_to_end(&mut bytes).map_err(mutation_error)?;
+        Ok(bytes)
+    }
+}
+
 impl SafeBashFs for RealVfs {
     fn stat(&self, path: &str) -> Result<FileStat, String> {
         self.metadata(path, true)
@@ -273,6 +290,15 @@ impl SafeBashFs for RealVfs {
         #[cfg(unix)]
         std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode.unwrap_or(0));
         options.open(host).map(|f| Some(std::rc::Rc::new(f) as _)).map_err(mutation_error)
+    }
+
+    fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn super::FileReadHandle>, String> {
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
+        let file = std::fs::File::open(host).map_err(mutation_error)?;
+        let meta = file.metadata().map_err(mutation_error)?;
+        if meta.is_dir() && !allow_directory { return Err("EISDIR: illegal operation on a directory".into()); }
+        if !meta.is_file() && !meta.is_dir() { return Err("ENOTSUP: unsupported file type".into()); }
+        Ok(Box::new(std::sync::Mutex::new(file)))
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
@@ -608,6 +634,14 @@ mod tests {
 
         vfs.write_file("/nested/dir/hello.txt", b"real-vfs-bytes")
             .unwrap();
+        let held = vfs.open_read_file("/nested/dir/hello.txt", false).unwrap();
+        let original = held.stat().unwrap();
+        vfs.rename("/nested/dir/hello.txt", "/nested/dir/retained", false).unwrap();
+        vfs.write_file("/nested/dir/hello.txt", b"replacement").unwrap();
+        assert_eq!(held.read(5, 3).unwrap(), b"vfs");
+        assert_eq!(held.stat().unwrap().identity, original.identity);
+        drop(held);
+        vfs.rename("/nested/dir/retained", "/nested/dir/hello.txt", false).unwrap();
         assert!(vfs.exists("/nested/dir/hello.txt"));
         assert_eq!(
             vfs.read_file("/nested/dir/hello.txt").unwrap(),

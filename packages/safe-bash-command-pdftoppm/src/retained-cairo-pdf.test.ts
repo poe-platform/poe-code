@@ -46,3 +46,12 @@ it('preserves empty-document PostScript page errors',async()=>{
  await expect(runPdftocairoCli(args,new Map([['in.pdf',bytes]]))).rejects.toMatchObject({code:'E_CAPABILITY',message:'Page index out of bounds: 0'});
  await expect(createPdftocairoCommand().execute(f.context)).rejects.toMatchObject({code:'E_CAPABILITY',message:'Page index out of bounds: 0'});expect(await f.fs.readdir('/scratch')).toEqual([]);
 });
+
+it("orients retained PDF paper for each source page",async()=>{
+ const doc=PdfDocument.create();doc.addPage([216,144]);doc.addPage([144,216]);
+ const f=await fixture(doc.save(),["-pdf","-paper","A4","in.pdf","-"]);
+ expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(0);
+ const output=PdfDocument.load(new Uint8Array(Buffer.concat(f.stdout)));
+ expect(output.getPage(0).getSize()).toEqual({width:842,height:595});
+ expect(output.getPage(1).getSize()).toEqual({width:595,height:842});
+});

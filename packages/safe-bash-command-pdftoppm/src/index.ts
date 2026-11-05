@@ -417,8 +417,9 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
                 const [copied] = outDoc.copyPagesFrom(doc, [idx]);
                 if (copied && (hasCrop || hasPaper)) {
                     const origSize = copied.getSize();
-                    const effW = hasPaper ? paperW : cropW > 0 ? cropW : Math.max(1, origSize.width - cropX);
-                    const effH = hasPaper ? paperH : cropH > 0 ? cropH : Math.max(1, origSize.height - cropY);
+                    const landscape = origSize.width > origSize.height;
+                    const effW = hasPaper ? (landscape ? paperH : paperW) : cropW > 0 ? cropW : Math.max(1, origSize.width - cropX);
+                    const effH = hasPaper ? (landscape ? paperW : paperH) : cropH > 0 ? cropH : Math.max(1, origSize.height - cropY);
                     dictSet(copied.pageDict, "MediaBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
                     dictSet(copied.pageDict, "CropBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
                 }

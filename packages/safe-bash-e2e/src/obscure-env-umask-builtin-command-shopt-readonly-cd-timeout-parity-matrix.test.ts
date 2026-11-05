@@ -4,7 +4,7 @@ import { withE2EHarness } from "./harness.js";
 
 describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout parity matrix", () => {
   it("1. env short and long option diagnostics return exit code 125", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("env -z");
       assert.equal(r1.exitCode, 125);
       assert.equal(r1.stderr, "env: invalid option -- 'z'\n");
@@ -24,7 +24,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("2. env -S preserveLegacyStatus returns exit 2 on usage errors and exit 125 on split errors", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("env -S '-u'");
       assert.equal(r1.exitCode, 2);
       assert.equal(r1.stderr, "env: option requires an argument -- 'u'\n");
@@ -40,7 +40,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("3. env -u invalid name and env -0 with command return exit code 125", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("env -u 'A=B'");
       assert.equal(r1.exitCode, 125);
       assert.equal(r1.stderr, "env: cannot unset 'A=B': Invalid argument\n");
@@ -56,7 +56,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("4. env -C validates missing directories (ENOENT) and regular files (ENOTDIR)", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       await h.exec("mkdir -p /workspace/sub && printf 'hi' > /workspace/file.txt");
       const r1 = await h.exec("env -C /workspace/missing_dir pwd");
       assert.equal(r1.exitCode, 125);
@@ -73,7 +73,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("5. env -v (--debug) logs cleaning environ, unset, setenv, chdir, executing, and arg list", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       await h.exec("mkdir -p /workspace/d");
       const r = await h.exec("env -v -i -u OLD -C /workspace/d FOO=1 BAR=2 echo alpha beta");
       assert.equal(r.exitCode, 0);
@@ -97,7 +97,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("6. env - operand clears environment and prepends added variables in reverse addition order", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("export BASE=keep; env - FIRST=1 SECOND=2 THIRD=3");
       assert.equal(r1.exitCode, 0);
       assert.equal(r1.stdout, "THIRD=3\nSECOND=2\nFIRST=1\n");
@@ -109,7 +109,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("7. env -S expands only exported variables and injects options into the parsing stream", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r = await h.exec(
         "export EXP=exported_val; UNEXP=local_only; env -S '-i FOO=${EXP}_${UNEXP} printenv FOO'",
       );
@@ -119,7 +119,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("8. umask diagnoses invalid flags (exit 2), octal out of range (exit 1), and invalid symbolic modes (exit 1)", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("umask -z");
       assert.equal(r1.exitCode, 2);
       assert.equal(r1.stderr, "umask: -z: invalid option\n");
@@ -139,7 +139,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("9. umask supports symbolic +, -, = operators and permission triad copying (u, g, o, a)", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r = await h.exec(`
         umask 0022
         umask g+w,o-rx
@@ -159,7 +159,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("10. umask -S <mode> sets and prints symbolic mask and umask -p / -p -S / -Sp format reusable commands", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r = await h.exec(`
         umask -S u=rwx,g=rx,o=
         umask -p
@@ -177,7 +177,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("11. cd distinguishes Not a directory on regular files from No such file or directory", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       await h.exec("printf 'hello' > /workspace/plain.txt");
       const r1 = await h.exec("cd /workspace/plain.txt");
       assert.equal(r1.exitCode, 1);
@@ -190,7 +190,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("12. builtin runs shell builtins and rejects external commands even when shadowed by functions", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("echo() { printf 'fn\\n'; }; builtin echo via_builtin");
       assert.equal(r1.exitCode, 0);
       assert.equal(r1.stdout, "via_builtin\n");
@@ -202,7 +202,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("13. command -v and command -V exit 0 when at least one target is found and -V diagnoses missing targets", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("command -v echo nonexistent_xyz");
       assert.equal(r1.exitCode, 0);
       assert.equal(r1.stdout, "echo\n");
@@ -220,7 +220,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("14. shopt and shopt -o diagnose unsupported option names with the supported list", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("shopt bogus_opt");
       assert.equal(r1.exitCode, 1);
       assert.match(
@@ -238,7 +238,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("15. shopt and shopt -o list options in canonical order", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("shopt");
       assert.equal(r1.exitCode, 0);
       assert.deepEqual(
@@ -286,7 +286,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("16. bare assignment to readonly variable aborts script while declare/export/readonly return 1 and continue", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("readonly R=1; R=2; echo after:$?");
       assert.equal(r1.exitCode, 1);
       assert.equal(r1.stdout, "");
@@ -300,7 +300,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("17. unset on readonly variable and readonly function fails with exit code 1 without aborting script", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("readonly U=lock; unset U; echo rc:$?:$U");
       assert.equal(r1.exitCode, 0);
       assert.equal(r1.stdout, "rc:1:lock\n");
@@ -314,7 +314,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("18. timeout diagnoses missing or invalid duration, signal, and command with exit code 125", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("timeout");
       assert.equal(r1.exitCode, 125);
       assert.equal(r1.stderr, "timeout: missing duration\n");
@@ -334,7 +334,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("19. timeout nested outer preemption and --preserve-status exit codes match across backends", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("timeout 0.05 sh -c 'timeout 0.2 sleep 0.1; echo late'");
       assert.equal(r1.exitCode, 124);
       assert.equal(r1.stdout, "");
@@ -352,7 +352,7 @@ describe("obscure env, umask, builtin, command, shopt, readonly, cd, and timeout
   });
 
   it("20. sleep validates missing, invalid, negative, and NaN intervals with exit code 1", async () => {
-    await withE2EHarness("in-memory", async (h) => {
+    await withE2EHarness(async (h) => {
       const r1 = await h.exec("sleep");
       assert.equal(r1.exitCode, 1);
       assert.equal(r1.stderr, "sleep: missing operand\n");

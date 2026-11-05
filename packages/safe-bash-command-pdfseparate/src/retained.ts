@@ -38,10 +38,11 @@ export async function executeRetainedSeparate(context: CommandContext, plan: Pdf
       if (!(error instanceof PdfError)) throw error;
       return await diagnostic(`${error.code === "E_PASSWORD" || error.message === "Invalid PDF password" ? "Command Line Error: Incorrect password\n" : ""}${damaged}`);
     }
-    const end = plan.lastPage > 0 ? Math.min(count, plan.lastPage) : count;
-    if (plan.firstPage > count || (plan.lastPage > 0 && (plan.lastPage > count || plan.firstPage > plan.lastPage))) {
+    const end = plan.lastPage !== 0 ? Math.min(count, plan.lastPage) : count;
+    if (plan.firstPage > count || (plan.lastPage !== 0 && (plan.lastPage > count || plan.firstPage > plan.lastPage))) {
       return await diagnostic(`Command Line Error: Wrong page range given: the first page (${plan.firstPage}) can not be after the last page (${end}).\n`);
     }
+    if (plan.firstPage < 0) return await diagnostic(`Internal Error: Illegal pageNo: ${plan.firstPage}(${count})\n`);
     const spec = parsePdfseparateSpec(plan.pattern);
     if (end > plan.firstPage && !spec.hasPageSpec) return await diagnostic(`Error: '${plan.pattern}' must contain '%d' if more than one page should be extracted\n`);
     const doc = document; let outputBytes = 0;

@@ -105,3 +105,18 @@ it("awaits bounded output chunks with a slow retained writer", async () => {
   assert.equal((await createPdfseparateCommand().execute({ ...f.context, fs })).exitCode, 0);
   assert.ok(writes > 0); assert.ok(peak <= 65536); assert.equal(outstanding, 0); await f.clean();
 });
+
+for (const [flag, stderr] of [
+  ["-f", "Internal Error: Illegal pageNo: -1(3)\n"],
+  ["-l", "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (-1).\n"],
+]) {
+  it(`rejects negative ${flag} before retained publication`, async () => {
+    const f = await fixture(pdf(), [flag!, "-1", "in.pdf", "page-%d.pdf"]);
+    await f.fs.writeFile("/page-1.pdf", new TextEncoder().encode("original"));
+    assert.equal((await createPdfseparateCommand().execute(f.context)).exitCode, 99);
+    assert.equal(new TextDecoder().decode(Buffer.concat(f.stderr)), stderr);
+    assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: 0 });
+    assert.equal(new TextDecoder().decode(await f.fs.readFile("/page-1.pdf")), "original");
+    await f.clean();
+  });
+}

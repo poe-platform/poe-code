@@ -64,15 +64,16 @@ function* runPdfseparateCliSteps(argv: readonly string[], files: Map<string, Uin
       return { exitCode: 99, stdout: "", stderr: `${err instanceof PdfError && (err.code === "E_PASSWORD" || err.message === "Invalid PDF password") ? "Command Line Error: Incorrect password\n" : ""}Syntax Error: Could not extract page(s) from damaged file ('${srcPath}')\n` };
     }
     if (srcDoc.pageCount > limits.maxPages) throw new RangeError("Page limit exceeded");
-    const endPage = lastPage > 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
+    const endPage = lastPage !== 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
     if (firstPage > srcDoc.pageCount ||
-        (lastPage > 0 && (lastPage > srcDoc.pageCount || firstPage > lastPage))) {
+        (lastPage !== 0 && (lastPage > srcDoc.pageCount || firstPage > lastPage))) {
         return {
             exitCode: 99,
             stdout: "",
             stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
         };
     }
+    if (firstPage < 0) return { exitCode: 99, stdout: "", stderr: `Internal Error: Illegal pageNo: ${firstPage}(${srcDoc.pageCount})\n` };
     const spec = parsePdfseparateSpec(pattern);
     const hasPageSpec = spec.hasPageSpec;
     if (endPage > firstPage && !hasPageSpec) {

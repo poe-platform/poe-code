@@ -72,8 +72,8 @@ export function parsePdfseparateArgs(argv: readonly string[]): PdfseparatePlan |
           const token = argv[++i];
           const digits = token?.startsWith("-") ? token.slice(1) : token;
           if (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(token))) return { exitCode: 99, stdout: "", stderr: usage };
-          if (arg === "-f") firstPage = Math.max(1, Number(token));
-          else lastPage = Math.max(0, Number(token));
+          if (arg === "-f") firstPage = Number(token) || 1;
+          else lastPage = Number(token);
           continue;
         }
         if (arg.startsWith("-")) return { exitCode: 99, stdout: "", stderr: usage };

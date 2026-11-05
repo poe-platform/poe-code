@@ -36,3 +36,15 @@ it("bounds output, page count, filename width and cancellation", async () => {
   const controller = new AbortController(); controller.abort(new Error("cancelled"));
   await assert.rejects(runPdfseparateCli(["in.pdf", "out-%d.pdf"], new Map([["in.pdf", fixture()]]), controller.signal), /cancelled/);
 });
+
+for (const [flag, stderr] of [
+  ["-f", "Internal Error: Illegal pageNo: -1(3)\n"],
+  ["-l", "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (-1).\n"],
+]) {
+  it(`rejects negative ${flag} without changing files`, async () => {
+    const files = new Map([["in.pdf", fixture()], ["page-1.pdf", new TextEncoder().encode("original")]]);
+    const original = new Map(files);
+    assert.deepEqual(await runPdfseparateCli([flag!, "-1", "in.pdf", "page-%d.pdf"], files), { exitCode: 99, stdout: "", stderr });
+    assert.deepEqual(files, original);
+  });
+}

@@ -1418,7 +1418,6 @@ export class AwkRuntime {
     }
     const amount = number(first);
     const result = name === "int" ? Math.trunc(amount) : name === "sqrt" ? Math.sqrt(amount) : name === "exp" ? Math.exp(amount) : name === "log" ? Math.log(amount) : name === "sin" ? Math.sin(amount) : name === "cos" ? Math.cos(amount) : name === "atan2" ? Math.atan2(amount, number(values[1]!)) : NaN;
-    if (!Number.isFinite(result)) throw new ProgramError(`invalid mathematical result in '${name}'`);
     return numeric(result);
   }
 

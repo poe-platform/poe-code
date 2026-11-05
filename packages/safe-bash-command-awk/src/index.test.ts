@@ -26,6 +26,20 @@ test("standalone awk works with only portable filesystem and command contracts",
   assert.equal(result.stdout, "right\n");
 });
 
+for (const [program, expected] of [
+  ['BEGIN { print sqrt(-1) }', "nan\n"],
+  ['BEGIN { print log(0) }', "-inf\n"],
+  ['BEGIN { print log(-1) }', "nan\n"],
+  ['BEGIN { print exp(1000) }', "inf\n"],
+  ['BEGIN { x=exp(1000); print x, "value=" x, log(x), sin(x) }', "inf value=inf inf nan\n"],
+  ['BEGIN { printf "%#f|%010f|%+g|%G|%.101g\\n", exp(1000), exp(1000), sqrt(-1), log(0), exp(1000) }', "inf|       inf|nan|-INF|inf\n"],
+] as const) test(`awk preserves non-finite math results: ${program}`, async () => {
+  const result = await run(createAwkCommand(), [program]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+});
+
 for (const [program, input, expected] of [
   ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR }', "", "0 [] 0 0\n"],
   ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR; r=getline x; print r,"["x"]",NR,FNR }', "a\n", "1 [a] 1 1\n0 [] 1 1\n"],

@@ -228,10 +228,13 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
       part = value.kind === "string" ? value.text[0] ?? "\0" : String.fromCharCode(Math.trunc(amountOf(value)) & 255);
     } else {
       const amount = amountOf(value);
-      if (!Number.isFinite(amount)) throw new ProgramError("cannot format a non-finite number");
       // Charge requested rendering work before numeric formatting or padding.
       budget?.step(1 + (/[fFeEgG]/u.test(conversion) ? precision ?? 6 : 0));
-      if (/[fFeEgG]/u.test(conversion) && (precision ?? 6) > 100) {
+      if (!Number.isFinite(amount)) {
+        if (!"fFeEgG".includes(conversion)) throw new ProgramError("cannot format a non-finite number");
+        part = Number.isNaN(amount) ? "nan" : amount < 0 ? "-inf" : "inf";
+        flags = flags.replaceAll("0", "").replaceAll("#", "");
+      } else if (/[fFeEgG]/u.test(conversion) && (precision ?? 6) > 100) {
         part = preciseFloat(amount, precision!, conversion, flags.includes("#"), admit);
       } else if (conversion === "f" || conversion === "F") part = amount.toFixed(precision ?? 6);
       else if (conversion === "e" || conversion === "E") part = amount.toExponential(precision ?? 6);

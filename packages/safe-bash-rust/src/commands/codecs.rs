@@ -641,6 +641,36 @@ impl<'a> MsbBitReader<'a> {
 
 // TIFF and PDF pack LZW codes most significant bit first. Dictionary phrases
 // are spans of the decoded output, with at most 4096 codes in use.
+pub(super) fn tiff_lzw(input: &[u8]) -> Vec<u8> {
+    let mut writer = MsbBitWriter::new();
+    let mut table = std::collections::HashMap::new();
+    let mut width = 9;
+    writer.write_bits(256, width);
+    if let Some((&first, rest)) = input.split_first() {
+        let mut prefix = u16::from(first);
+        for &byte in rest {
+            if let Some(&phrase) = table.get(&(prefix, byte)) {
+                prefix = phrase;
+                continue;
+            }
+            writer.write_bits(prefix.into(), width);
+            let next = 258 + table.len() as u16;
+            table.insert((prefix, byte), next);
+            if next + 1 == 1 << width && width < 12 { width += 1; }
+            if next == 4093 {
+                writer.write_bits(256, width);
+                table.clear();
+                width = 9;
+            }
+            prefix = byte.into();
+        }
+        writer.write_bits(prefix.into(), width);
+        if 259 + table.len() == 1 << width && width < 12 { width += 1; }
+    }
+    writer.write_bits(257, width);
+    writer.finish()
+}
+
 pub(super) fn decode_lzw(
     input: &[u8],
     early_change: f64,

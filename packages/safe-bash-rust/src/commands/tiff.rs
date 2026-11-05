@@ -6,6 +6,105 @@ pub(super) fn signature(bytes: &[u8]) -> bool {
         && bytes.get(8..17) != Some(b"\n__IMG__:")
 }
 
+fn packbits(row: &[u8], out: &mut Vec<u8>) {
+    let mut i = 0;
+    while i < row.len() {
+        let run = row[i..].iter().take(128).take_while(|&&b| b == row[i]).count();
+        if run >= 3 {
+            out.extend([1u8.wrapping_sub(run as u8), row[i]]);
+            i += run;
+        } else {
+            let start = i;
+            i += 1;
+            while i < row.len() && i - start < 128
+                && !(i + 2 < row.len() && row[i] == row[i + 1] && row[i] == row[i + 2]) { i += 1; }
+            out.push((i - start - 1) as u8);
+            out.extend_from_slice(&row[start..i]);
+        }
+    }
+}
+
+pub(super) fn encode(
+    pixels: &[[u8; 4]], width: usize, dpi: [f64; 2], opt: &super::pdf_reader::RasterOptions<'_>,
+    compression: &str, dither: bool,
+) -> Option<Vec<u8>> {
+    let height = pixels.len() / width;
+    let samples: u32 = if opt.transparent { 4 } else if opt.color == "rgb" { 3 } else { 1 };
+    let mono = samples == 1 && opt.color == "mono";
+    let bits = if mono { 1 } else { 8 };
+    let codec = match compression { "none" => 1, "lzw" => 5, "jpeg" => 7, "deflate" => 32946, "packbits" => 32773, _ => return None };
+    let strip = if codec == 7 {
+        if samples == 4 || mono { return None; }
+        super::jpeg::encode(super::jpeg::Input::Page { width, height, pixels, quality: 75,
+            dpi: dpi.map(|v| v as u16), gray: samples == 1 }, opt.limit).ok()?
+    } else {
+        let stride = if mono { width.div_ceil(8) } else { width.checked_mul(samples as usize)? };
+        if stride.checked_mul(height)? > opt.limit { return None; }
+        let mut raw = Vec::new();
+        let mut row = Vec::with_capacity(stride);
+        for (y, line) in pixels.chunks_exact(width).enumerate() {
+            row.clear();
+            for (x, &[r, g, b, a]) in line.iter().enumerate() {
+                if samples == 4 {
+                    row.extend([r, g, b].map(|v| ((u16::from(v) * u16::from(a) + 127) / 255) as u8));
+                    row.push(a);
+                } else if samples == 3 {
+                    row.extend([r, g, b]);
+                } else {
+                    let gray = ((30 * u32::from(r) + 59 * u32::from(g) + 11 * u32::from(b) + 50) / 100) as u8;
+                    if mono {
+                        // Splash's default screen at ordinary raster resolutions.
+                        const SCREEN: [[u8; 4]; 4] = [[17,255,34,204],[153,85,170,102],[51,221,1,238],[187,119,136,68]];
+                        if x % 8 == 0 { row.push(0); }
+                        if gray >= if dither { SCREEN[y % 4][x % 4] } else { 128 } {
+                            row[x / 8] |= 128 >> (x % 8);
+                        }
+                    } else { row.push(gray); }
+                }
+            }
+            if codec == 32773 { packbits(&row, &mut raw); } else { raw.extend_from_slice(&row); }
+            if raw.len() > opt.limit { return None; }
+        }
+        match codec {
+            5 => crate::commands::codecs::tiff_lzw(&raw),
+            32946 => crate::commands::codecs::zlib_compress(&raw),
+            _ => raw,
+        }
+    };
+    let mut out = b"II*\0\0\0\0\0".to_vec();
+    let strip_len = u32::try_from(strip.len()).ok()?;
+    if strip.len().checked_add(8)? > opt.limit { return None; }
+    out.extend_from_slice(&strip);
+    if out.len() % 2 != 0 { out.push(0); }
+    let bits_field = if samples == 1 { bits } else {
+        let offset = u32::try_from(out.len()).ok()?;
+        for _ in 0..samples { out.extend_from_slice(&(bits as u16).to_le_bytes()); }
+        offset
+    };
+    let resolutions = u32::try_from(out.len()).ok()?;
+    for value in dpi {
+        let den = (f64::from(u32::MAX) / value.max(1.)).clamp(1., 65536.) as u32;
+        out.extend_from_slice(&((value * f64::from(den)).round() as u32).to_le_bytes());
+        out.extend_from_slice(&den.to_le_bytes());
+    }
+    let directory = u32::try_from(out.len()).ok()?;
+    out[4..8].copy_from_slice(&directory.to_le_bytes());
+    let ycbcr = codec == 7 && samples == 3;
+    let tags = [(256u16,4u16,1,width as u32), (257,4,1,height as u32),
+        (258,3,samples,bits_field), (259,3,1,codec),
+        (262,3,1,if samples == 1 {1} else if ycbcr {6} else {2}),
+        (273,4,1,8), (277,3,1,samples), (278,4,1,height as u32), (279,4,1,strip_len),
+        (282,5,1,resolutions), (283,5,1,resolutions.checked_add(8)?), (284,3,1,1), (296,3,1,2)];
+    out.extend_from_slice(&(tags.len() as u16 + u16::from(samples == 4 || ycbcr)).to_le_bytes());
+    for (tag, ty, count, value) in tags.into_iter().chain((samples == 4).then_some((338,3,1,1)))
+        .chain(ycbcr.then_some((530,3,2,0x00010001))) {
+        out.extend_from_slice(&tag.to_le_bytes()); out.extend_from_slice(&ty.to_le_bytes());
+        out.extend_from_slice(&count.to_le_bytes()); out.extend_from_slice(&value.to_le_bytes());
+    }
+    out.extend_from_slice(&0u32.to_le_bytes());
+    (out.len() <= opt.limit).then_some(out)
+}
+
 fn word(bytes: &[u8], little: bool) -> u32 {
     if little {
         bytes.iter().rev().fold(0, |n, b| n << 8 | u32::from(*b))

@@ -9485,6 +9485,7 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
 fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let is_cairo = cmd == "pdftocairo";
     let mut jpeg_quality = 75;
+    let mut tiff_compression = String::from("none");
     let mut ext = if is_cairo { "png" } else { "ppm" };
     let mut fmt = if is_cairo { "PNG" } else { "PPM" };
     let mut explicit_container = is_cairo;
@@ -9718,6 +9719,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                         99,
                     );
                 }
+                tiff_compression = comp;
                 i += 1;
             }
             "-aa" | "-aaVector" => {
@@ -9973,15 +9975,16 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         }
     }
     let options = pdf_reader::RasterOptions {
+        tiff: (fmt == "TIFF").then_some((&tiff_compression, !is_cairo)),
         jpeg: (fmt == "JPEG").then_some((jpeg_quality, is_cairo && color_mode == "gray")),
         format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
         scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
         crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
     };
-    let mut source = if matches!(fmt, "JPEG" | "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,pw_opt.as_deref().unwrap_or("")).ok() } else { None };
+    let mut source = if matches!(fmt, "TIFF" | "JPEG" | "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,pw_opt.as_deref().unwrap_or("")).ok() } else { None };
     let mut render = |pno| {
         if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
-        if fmt == "JPEG" { return None; }
+        if matches!(fmt, "JPEG" | "TIFF") { return None; }
         let (w, h) = compute_dims(pno);
         Some(write_image_bytes(&ImageMeta {
             fmt: fmt.to_string(), w, h,
@@ -16662,6 +16665,34 @@ mod media_unit_tests {
                                   (24, if gray { [28;3] } else { [0,0,254] })] {
                 let pixel = im.pixels[6 * im.width + x];
                 assert!(pixel[..3].iter().zip(expected).all(|(a,b)| a.abs_diff(b) <= 2), "{cmd}: {pixel:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn pdf_tiff_contains_decodable_page_pixels_in_each_compression() {
+        let stream = "1 0 0 rg 0 0 16 16 re f 0 0 1 rg 16 0 16 16 re f";
+        let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 32 16] >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents], "");
+        fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        for compression in ["none", "packbits", "deflate", "lzw", "jpeg"] {
+            for cmd in ["pdftoppm", "pdftocairo"] {
+                let mut args = vec!["-tiff", "-singlefile", "-tiffcompression", compression, "-rx", "72", "-ry", "144"];
+                let gray = cmd == "pdftocairo";
+                if gray { args.push("-gray"); }
+                args.extend(["in.pdf", "out"]);
+                let result = cmd_media_doc(cmd, &media_args(&args), "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{cmd} {compression}: {}", result.stderr);
+                let bytes = fs.read_file("/out.tif").unwrap();
+                let tiff = tiff::Tiff::parse(&bytes, 1 << 20).expect("decodable TIFF");
+                assert_eq!((tiff.width, tiff.height, tiff.samples, tiff.density), (32, 32, if gray {1} else {3}, 72));
+                let image = tiff.decode().unwrap();
+                for (x, rgb) in [(5, if gray {[77;3]} else {[255,0,0]}), (27, if gray {[28;3]} else {[0,0,255]})] {
+                    assert!(image.pixels[5 * 32 + x][..3].iter().zip(rgb).all(|(v,w)| v.abs_diff(w) <= 2), "{cmd} {compression}");
+                }
             }
         }
     }

@@ -65,8 +65,8 @@ it("preserves original expression pixel vectors", async () => {
         "4f69aa38af07940060b1b04a732dbffc4fe65aed0dd90e69c7430191fe87c816",
         "a66a4d8b34b0629b0c29a957f4e63a2c96b86e058bf2ae68fe54d339dda14e55",
         "c5b1aeecca47dd3f3d2971f820679e162efdee8146d63c99f1eb91a47396ef3f",
-        "58ac85c6ee52ec9f9fc7101172f6811f3aff65462b2a89fffd7202babf89746b",
-        "4843ce0ba2036c1e14daad4f7c6b973f3fa2305163c5ffd591cdbe9073ed97fa",
+        "c288e33471fa20be608785941e2dcb782b5a157ccbff73143212c2c842f3aec4",
+        "898fb440025d13de727b2426da1e1ff20bf14c2245866ed2bc53a5356d8129bb",
       ]
     `);
 });

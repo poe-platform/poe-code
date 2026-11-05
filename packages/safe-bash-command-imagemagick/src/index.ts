@@ -5137,10 +5137,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-fx") {
-            const expr = tokens[++i] ?? "u";
+            const expr = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             if (stack.length > 0) {
                 const base = stack[0]!;
-                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, state.channels), signal, base, stack)];
+                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels), signal, base, stack)];
             }
         }
         else if (t === "-shadow") {
@@ -6191,7 +6191,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const offset = explicit ? offsetOrText : "+0+0", text = explicit ? (tokens[++i] ?? "") : offsetOrText, settings = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, annotatePixelSteps(image, offset, text, settings), signal) : undefined);
         } else if (!operandsOnly && token === "-fx") {
-            const expression = tokens[++i] ?? "u", channels = state.channels;
+            const expression = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             stackStep(async (stack, backend) => {
                 const base = await stack.get(0); if (!base) return stack;
                 const frames = new Map<number, StoredRgbaImage>([[0, base]]), indices = new WeakMap<FxImage, number>(); indices.set(base, 0);

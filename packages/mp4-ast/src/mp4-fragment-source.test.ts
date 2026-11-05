@@ -55,7 +55,7 @@ it('matches resident fragmented tracks and handles clipping and truncated rows',
   for (const [index, traf] of moof.children!.filter(b => b.type === 'traf').entries()) {
     const track = document.tracks[index]!, samples = [];
     for await (const sample of media.scanMp4Fragment({ size:bytes.length,async read(offset,length){return bytes.subarray(offset,offset+length);} }, {offset:traf.offset+traf.headerSize,length:traf.payload.length}, {trackId:track.id,moofOffset:moof.offset,defaults,type:track.type})) samples.push(sample);
-    assert.deepEqual(samples.map(({offset,...sample})=>({...sample,data:bytes.subarray(offset,offset+sample.size)})),track.samples);
+    assert.deepEqual(samples.map(({offset,...sample})=>({...sample,offset,data:bytes.subarray(offset,offset+sample.size)})),track.samples);
   }
   const f = fixture(box('tfhd',[0x39,9,0,999999,3,7,0]),box('trun',[0x800,3,0xffffffff]));
   const result = [];

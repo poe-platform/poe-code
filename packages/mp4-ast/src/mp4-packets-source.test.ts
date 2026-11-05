@@ -1,6 +1,24 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
+import { readFileSync } from 'node:fs';
 import * as media from './index.js';
+
+// FFmpeg: testsrc=size=32x24:rate=5:duration=1, libx264, yuv420p, -g 5 -bf 2.
+// Interleaved adds 8 kHz AAC sine audio; fragmented remuxes it with
+// +frag_keyframe+empty_moov+default_base_moof. JSON is native ffprobe packet output.
+for (const layout of ['faststart', 'interleaved', 'fragmented']) it(`reports native file packet offsets: ${layout}`, async () => {
+  const bytes = readFileSync(new URL(`./fixtures/packet-positions-${layout}.mp4`, import.meta.url));
+  const expected = JSON.parse(readFileSync(new URL(`./fixtures/packet-positions-${layout}.json`, import.meta.url), 'utf8'));
+  const source = { size: bytes.length, async read(offset: number, length: number) { return bytes.subarray(offset, offset + length); } };
+  const packets = [];
+  for await (const packet of media.scanMp4Packets(source, { syncSamples() {
+    const keys = new Set<number>(); return { add(n: number) { keys.add(n); }, has(n: number) { return keys.has(n); } };
+  } })) packets.push(packet);
+  const byPosition = (a: { pos: string }, b: { pos: string }) => Number(a.pos) - Number(b.pos);
+  for (const actual of [packets, media.probeMp4(bytes, { showPackets: true }).packets!]) {
+    assert.deepEqual(actual.map(({ stream_index, size, pos }) => ({ stream_index, size, pos })).sort(byPosition), expected.sort(byPosition));
+  }
+});
 
 for(const fragmented of [false,true])it(`replays packet descriptors from caller ranges: fragmented=${fragmented}`,async()=>{
   assert.equal(typeof media.scanMp4Packets,'function');

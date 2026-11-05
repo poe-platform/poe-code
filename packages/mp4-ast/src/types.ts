@@ -205,6 +205,8 @@ export interface MediaAudioData {
 }
 
 export interface MediaSample {
+  /** Absolute source file offset when the sample was parsed from a container. */
+  readonly offset?: number;
   readonly data: Uint8Array;
   readonly dts: number; // in track timescale units
   readonly pts: number; // in track timescale units (dts + cts)

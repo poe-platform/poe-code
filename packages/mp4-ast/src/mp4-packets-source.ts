@@ -15,18 +15,17 @@ export interface Mp4PacketScanOptions extends Omit<Mp4SampleScanOptions, 'type' 
 }
 
 type ProbeSample = {
-  sample: Pick<Mp4SampleSpan, 'pts' | 'dts' | 'duration' | 'size' | 'isKeyframe'>;
+  sample: Pick<Mp4SampleSpan, 'pts' | 'dts' | 'duration' | 'size' | 'isKeyframe' | 'offset'>;
   track: { index: number; type: MediaTrackType; timescale: number; width: number | undefined; height: number | undefined; codec: Mp4CodecMetadata | undefined };
-  bytePos: number;
 };
 
 /** Replay packet descriptors without retaining tracks, boxes, table rows or payloads. */
 export async function* scanMp4Packets(source: MediaProbeSource, options: Mp4PacketScanOptions = {}): AsyncGenerator<MediaProbePacket, void> {
   for await (const record of scanProbeRecords(source, options, 'packets')) {
     if (!('sample' in record)) continue;
-    const { sample, track, bytePos } = record;
+    const { sample, track } = record;
     const scale = Math.max(1, track.timescale);
-    yield { codec_type: track.type, stream_index: track.index, pts: sample.pts, pts_time: (sample.pts / scale).toFixed(6), dts: sample.dts, dts_time: (sample.dts / scale).toFixed(6), duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), size: String(sample.size), pos: String(bytePos), flags: sample.isKeyframe ? 'K_' : '__' };
+    yield { codec_type: track.type, stream_index: track.index, pts: sample.pts, pts_time: (sample.pts / scale).toFixed(6), dts: sample.dts, dts_time: (sample.dts / scale).toFixed(6), duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), size: String(sample.size), pos: String(sample.offset), flags: sample.isKeyframe ? 'K_' : '__' };
   }
 }
 
@@ -165,23 +164,23 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     formatEnd = Math.max(formatEnd, start + probeDuration / Math.max(1, timescale));
     if (mode === 'summary') continue;
     const timestampOffset = result.value ? result.value.start - result.value.mediaStart : 0;
-    let bytePos = 0, cursor = 0, previousPts = -Infinity;
+    let cursor = 0, previousPts = -Infinity;
     const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasReorderedSamples: false };
     const packet = (sample: ProbeSample['sample']): ProbeSample => {
       if (mode === 'streams') {
         stats.count++; stats.totalBytes += sample.size; stats.ticks += sample.duration;
         stats.hasReorderedSamples ||= sample.pts < previousPts; previousPts = sample.pts;
       }
-      const record = { sample, track, bytePos }; bytePos += sample.size; return record;
+      return { sample, track };
     };
     for await (const rawSample of samples()) {
       // Map media time to the movie timeline, retaining negative decoder preroll.
       const sample = { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset };
       if (type !== 'subtitle' || !count || allPacked) { const row = packet(sample); if (mode !== 'streams') yield row; continue; }
       const start = Math.max(cursor, Math.round(sample.pts));
-      if (start > cursor) { const row = packet({ pts: cursor, dts: cursor, duration: start - cursor, size: 2, isKeyframe: true }); if (mode !== 'streams') yield row; cursor = start; }
+      if (start > cursor) { const row = packet({ offset: -1, pts: cursor, dts: cursor, duration: start - cursor, size: 2, isKeyframe: true }); if (mode !== 'streams') yield row; cursor = start; }
       const duration = Math.max(1, Math.round(sample.duration));
-      const row = packet({ pts: cursor, dts: cursor, duration, size: sample.size + 2, isKeyframe: true }); if (mode !== 'streams') yield row; cursor += duration;
+      const row = packet({ offset: sample.offset, pts: cursor, dts: cursor, duration, size: sample.size + 2, isKeyframe: true }); if (mode !== 'streams') yield row; cursor += duration;
     }
     if (mode === 'streams') yield buildProbeStream({ ...track, duration: probeDuration }, codec, stats, index, 'mp4');
   }

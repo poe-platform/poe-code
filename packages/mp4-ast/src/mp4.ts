@@ -465,7 +465,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       if (step.kind === 'read') answer = bytes.subarray(step.offset, step.offset + step.length);
       else if (step.kind === 'sync-add') syncSamples.add(step.sample);
       else if (step.kind === 'sync-has') answer = syncSamples.has(step.sample);
-      else { const { offset, ...sample } = step.sample; samples.push({ ...sample, data: bytes.subarray(offset, offset + sample.size) }); }
+      else { const { offset, ...sample } = step.sample; samples.push({ ...sample, offset, data: bytes.subarray(offset, offset + sample.size) }); }
     }
 
     // Reconstruct samples from fragmented MP4 (`moof` -> `traf` -> `tfhd`/`tfdt`/`trun`)
@@ -502,7 +502,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
               if (step.kind === 'read') answer = bytes.subarray(step.offset, step.offset + step.length);
               else if (step.kind === 'sample') {
                 const { offset, ...sample } = step.sample;
-                samples.push({ ...sample, data: bytes.subarray(offset, offset + sample.size) });
+                samples.push({ ...sample, offset, data: bytes.subarray(offset, offset + sample.size) });
               }
             }
           }
@@ -1933,7 +1933,7 @@ export function buildProbeResultFromDoc(
             duration: s.duration,
             duration_time: durTime,
             size: String(s.size),
-            pos: String(bytePos),
+            pos: String(s.offset ?? (doc.containerFormat === "mp4" || doc.containerFormat === "mov" ? -1 : bytePos)),
             flags: s.isKeyframe ? "K_" : "__"
           });
         }

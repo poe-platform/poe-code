@@ -2559,9 +2559,12 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 const [sStr, dStr] = (composeArgs || "50").split(/[xX,]/);
                 const wSrc = Math.max(0, (parseFloat(sStr || "50") || 0) / 100);
                 const wDst = dStr !== undefined ? Math.max(0, (parseFloat(dStr) || 0) / 100) : Math.max(0, 1 - wSrc);
-                out[dIdx] = clampByteVal(sr * wSrc + dr * wDst);
-                out[dIdx + 1] = clampByteVal(sg * wSrc + dg * wDst);
-                out[dIdx + 2] = clampByteVal(sb * wSrc + db * wDst);
+                const effSa = sa * wSrc;
+                const effDa = da * wDst;
+                const alpha = effSa + effDa;
+                out[dIdx] = alpha === 0 ? 0 : clampByteVal((sr * effSa + dr * effDa) / alpha);
+                out[dIdx + 1] = alpha === 0 ? 0 : clampByteVal((sg * effSa + dg * effDa) / alpha);
+                out[dIdx + 2] = alpha === 0 ? 0 : clampByteVal((sb * effSa + db * effDa) / alpha);
                 out[dIdx + 3] = clampByteVal(saByte * wSrc + daByte * wDst);
                 continue;
             }

@@ -1411,3 +1411,18 @@ test("sqlite3 keeps ordinary SQL errors at status 1", async () => {
     assert.equal(result.code, sql.includes("'UNIQUE") ? 0 : 1);
   }
 });
+
+test("sqlite3 NOCASE folds only ASCII in comparisons, constraints, indexes and sorting", async () => {
+  const cases = [
+    ["SELECT 'A' = 'a' COLLATE NOCASE, 'æ' = 'Æ' COLLATE NOCASE, 'é' = 'É' COLLATE NOCASE, 'Z' = 'z' COLLATE NOCASE;", "1|0|0|1\n"],
+    ["CREATE TABLE t(x TEXT COLLATE NOCASE UNIQUE); INSERT INTO t VALUES('æ'),('Æ'); SELECT count(*) FROM t;", "2\n"],
+    ["CREATE TABLE t(x TEXT); INSERT INTO t VALUES('æ'),('Æ'); CREATE UNIQUE INDEX idx ON t(x COLLATE NOCASE); INSERT INTO t VALUES('é'),('É'); SELECT count(*) FROM t;", "4\n"],
+    ["CREATE TABLE t(x TEXT); CREATE UNIQUE INDEX idx ON t(x COLLATE NOCASE); INSERT INTO t VALUES('A'); INSERT OR IGNORE INTO t VALUES('a'); SELECT count(*) FROM t;", "1\n"],
+    ["WITH t(x) AS (VALUES('a'),('B'),('A'),('b'),('æ'),('Æ')) SELECT x FROM t ORDER BY x COLLATE NOCASE;", "a\nA\nB\nb\nÆ\næ\n"],
+    ["SELECT 'A' LIKE 'a', 'æ' LIKE 'Æ', 'A' GLOB 'a', 'æ' GLOB 'Æ', 'A' = 'a' COLLATE BINARY;", "1|0|0|0|0\n"],
+  ];
+  for (const [sql, stdout] of cases) {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql!]),
+      { code: 0, stdout, stderr: "" }, sql);
+  }
+});

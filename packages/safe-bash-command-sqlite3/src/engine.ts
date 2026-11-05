@@ -1081,6 +1081,15 @@ function typeRank(v: SqlValue): number {
   return 3; // Uint8Array blob
 }
 
+function foldAsciiCase(value: string): string {
+  let folded = "";
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    folded += code >= 65 && code <= 90 ? String.fromCharCode(code + 32) : char;
+  }
+  return folded;
+}
+
 export function compareSqlValues(a: SqlValue, b: SqlValue, collation = "BINARY"): number {
   const rA = typeRank(a);
   const rB = typeRank(b);
@@ -1106,8 +1115,8 @@ export function compareSqlValues(a: SqlValue, b: SqlValue, collation = "BINARY")
       sA = sA.replace(/ +$/, "");
       sB = sB.replace(/ +$/, "");
     } else if (col === "NOCASE") {
-      sA = sA.toLowerCase();
-      sB = sB.toLowerCase();
+      sA = foldAsciiCase(sA);
+      sB = foldAsciiCase(sB);
     }
     return sA < sB ? -1 : sA > sB ? 1 : 0;
   }

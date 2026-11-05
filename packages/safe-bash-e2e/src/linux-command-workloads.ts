@@ -180,6 +180,9 @@ export function linuxCommands(text: string) {
     pipes.push("qrencode -tASCII " + options + " x");
   }
   pipes.push("qrencode -tASCII -v41 </dev/null", "qrencode -tASCII -v41 -r no-qr-input");
+  for (const [format, dpi] of [["PNG", "72"], ["PNG32", "0"], ["PNG32", "127"], ["PNG", "2147483647"]]) {
+    pipes.push(String.raw`qrencode -t ${format} -d ${dpi} -o - x | xxd -p -c 4096 | sed -n 's/.*70485973\(.\{18\}\).*/\1/p'`);
+  }
   pipes.push(String.raw`qrencode -t ASCII -l $'\xff' hello`, String.raw`qrencode $'--type=\xff' hello`);
   pipes.push(String.raw`ssh -GT -o$'Port=\xff' example.invalid`);
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);

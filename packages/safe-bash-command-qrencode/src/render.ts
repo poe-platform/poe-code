@@ -61,7 +61,8 @@ export function renderQr(
         space: "srgb",
         channels: 4,
         depth: "uchar",
-        density: dpi,
+        // qrencode truncates pixels per metre, while the PNG encoder rounds DPI.
+        density: Math.floor(dpi * 5000 / 127) * 0.0254,
         hasAlpha: true
       },
       { format: "png" }

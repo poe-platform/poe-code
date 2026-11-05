@@ -6346,6 +6346,17 @@ export class SqliteDatabase {
       const rows: SqlValue[][] = [];
       let idCounter = 1;
 
+      const pathLabel = (key: string): string => {
+        if (key.length === 0) return JSON.stringify(key);
+        for (let i = 0; i < key.length; i++) {
+          const char = key[i]!;
+          if ((char >= "a" && char <= "z") || (char >= "A" && char <= "Z")) continue;
+          if (i > 0 && char >= "0" && char <= "9") continue;
+          return JSON.stringify(key);
+        }
+        return key;
+      };
+
       const getTypeStr = (v: unknown): string => {
         if (v === null) {
           return "null";
@@ -6401,7 +6412,7 @@ export class SqliteDatabase {
         } else if (target && typeof target === "object") {
           for (const [k, item] of Object.entries(target)) {
             yield;
-            toRow(k, item, null, `${rootPath}.${k}`, rootPath);
+            toRow(k, item, null, `${rootPath}.${pathLabel(k)}`, rootPath);
           }
         } else if (target !== undefined) {
           toRow(null, target, null, rootPath, rootPath);
@@ -6421,7 +6432,7 @@ export class SqliteDatabase {
             });
           } else if (node && typeof node === "object") {
             for (const [k, child] of Object.entries(node)) {
-              walk(child, k, myId, `${fullkey}.${k}`, fullkey);
+              walk(child, k, myId, `${fullkey}.${pathLabel(k)}`, fullkey);
             }
           }
         };

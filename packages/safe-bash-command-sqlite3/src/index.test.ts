@@ -5,6 +5,26 @@ import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, 
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
 for (const fn of ["json_each", "json_tree"]) {
+  test(`sqlite3 ${fn} quotes special object keys in generated paths`, async () => {
+    const keys = [
+      ["alpha9", "alpha9"], ["Z", "Z"], ["a_b", '"a_b"'],
+      ["0abc", '"0abc"'], ["", '""'], ["a.b", '"a.b"'],
+      ["x y", '"x y"'], ['a"b', '"a\\"b"'], ["a\\b", '"a\\\\b"'],
+      ["é", '"é"'], ["a[b]", '"a[b]"'], ["a\nb", '"a\\nb"']
+    ];
+    for (const [key, segment] of keys) {
+      const doc = JSON.stringify({ [key!]: { "x y": [1] } });
+      const fullkey = `$.${segment}`;
+      assert.deepEqual(
+        await runSqlite3(createMemoryFileSystem(), [":memory:",
+          `SELECT fullkey, path FROM ${fn}('${doc}');`]),
+        { code: 0, stderr: "", stdout: fn === "json_each"
+          ? `${fullkey}|$\n`
+          : `$|$\n${fullkey}|$\n${fullkey}."x y"|${fullkey}\n${fullkey}."x y"[0]|${fullkey}."x y"\n` }
+      );
+    }
+  });
+
   test(`sqlite3 ${fn} returns no rows for SQL NULL`, async () => {
     assert.deepEqual(
       await runSqlite3(createMemoryFileSystem(), [":memory:",

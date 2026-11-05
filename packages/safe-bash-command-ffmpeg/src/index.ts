@@ -2058,9 +2058,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               loadedDocs[1]!.timescale, budget
             , context.signal);
-            const overlayMatch = /overlay(?:=(\d+):(\d+))?/.exec(filterComplex);
-            const ox = parseInt(overlayMatch?.[1] ?? "0", 10) || 0;
-            const oy = parseInt(overlayMatch?.[2] ?? "0", 10) || 0;
+            const overlaySpec = filterComplex.slice(filterComplex.indexOf("overlay") + "overlay".length)
+              .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
+            const positional = (overlaySpec.startsWith("=") ? overlaySpec.slice(1) : "").split(":");
+            const named: Record<string, string> = {};
+            for (const part of positional) {
+              const eqIdx = part.indexOf("=");
+              if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+            }
+            const ox = parseInt(named.x ?? positional[0] ?? "0", 10) || 0;
+            const oy = parseInt(named.y ?? positional[1] ?? "0", 10) || 0;
             const overlaid: MediaVideoFrame[] = f0.map((a, idx) => {
               const b = f1[Math.min(idx, f1.length - 1)];
               if (!b) return a;

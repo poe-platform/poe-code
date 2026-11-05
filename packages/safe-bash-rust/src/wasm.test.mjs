@@ -5193,6 +5193,24 @@ test("touch updates the selected host timestamps and preserves the other clock",
   } finally { await sh.dispose(); }
 });
 
+test("host file identity distinguishes equal device and inode numbers from different scopes", {skip: !WebAssembly.Suspending}, async () => {
+  const {MemoryFileSystem} = await import("@poe-code/safe-fs");
+  const fs = new MemoryFileSystem(), sh = new RustWasmBash({fs,cwd:"/"});
+  const first = Symbol(), second = Symbol();
+  try {
+    for (const path of ["/a","/b"]) await fs.writeFile(path,Uint8Array.of(42));
+    for (const op of ["stat","lstat"]) {
+      const original = fs[op].bind(fs);
+      fs[op] = async (path,options) => {
+        const st = await original(path,options);
+        return st.type === "file" ? {...st,dev:7,ino:23,identityScope:path === "/a" ? first : second} : st;
+      };
+    }
+    const result = await sh.exec("test /a -ef /b; echo $?; test /a -ef /a; echo $?; stat -c '%d %i' /b");
+    assert.equal(result.stdout,"1\n0\n7 23\n");
+  } finally { await sh.dispose(); }
+});
+
 test("moving a host file across mounts preserves bytes and metadata when creating or replacing", {skip: !WebAssembly.Suspending}, async () => {
   const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
   const src = new MemoryFileSystem(), dest = new MemoryFileSystem();

@@ -164,7 +164,7 @@ function bindExternalFs(shell,fs,options) {
   const x=shell.exports, table=x.__indirect_function_table, top=x.__stack_pointer.value;
   const free=freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x,free);
-  const slot=free.pop() ?? table.grow(1), handles=new Map(), publications=new Map(), removalScopes=new Map(), closeErrors=[];
+  const slot=free.pop() ?? table.grow(1), handles=new Map(), publications=new Map(), identityScopes=new Map(), closeErrors=[];
   let nextHandle=1;
   const discardTestStage=async obs=>{
     const stage=obs.testStage;
@@ -179,10 +179,15 @@ function bindExternalFs(shell,fs,options) {
     if(closeErrors.length===1)throw closeErrors[0];
     if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
   };
+  const scope=s=>{
+    if(!s.identityScope || !["object","symbol"].includes(typeof s.identityScope))return 0;
+    if(!identityScopes.has(s.identityScope))identityScopes.set(s.identityScope,identityScopes.size+1);
+    return identityScopes.get(s.identityScope);
+  };
   const statBytes=s=>{
     const type=s.filesystemType;
     const fixed=new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
-              s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,type===undefined?0:type==="memory"?1:2]).buffer);
+              s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,type===undefined?0:type==="memory"?1:2,scope(s)]).buffer);
     if(typeof type!=="string" || !type || type==="memory")return fixed;
     const name=encoder.encode(type),bytes=new Uint8Array(fixed.length+name.length);
     bytes.set(fixed);bytes.set(name,fixed.length);return bytes;
@@ -309,10 +314,6 @@ function bindExternalFs(shell,fs,options) {
             if(op==="retainMoveFile")throw fsOperationError("ENOTSUP","mv",path);
             status=-1;result=encoder.encode("ZIP move requires known source identity and revision");return;
           }
-          const scope=s=>{
-            if(!removalScopes.has(s.identityScope))removalScopes.set(s.identityScope,removalScopes.size+1);
-            return removalScopes.get(s.identityScope);
-          };
           const id=nextHandle++,p=statBytes(parent),e=statBytes(expected);
           publications.set(id,{path:op==="retainMoveFile"?path:canonical,parent,expected});
           if(op==="retainMoveFile"){

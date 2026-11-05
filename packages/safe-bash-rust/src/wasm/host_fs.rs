@@ -150,7 +150,7 @@ impl HostFs {
         Self::parse_stat(&data)
     }
     fn parse_stat(data: &[u8]) -> Result<FileStat, String> {
-        let (fixed, name) = data.split_at_checked(128).ok_or("EIO: invalid host stat")?;
+        let (fixed, name) = data.split_at_checked(136).ok_or("EIO: invalid host stat")?;
         let numbers: Vec<_> = fixed
             .chunks_exact(8)
             .map(|b| f64::from_le_bytes(b.try_into().unwrap()))
@@ -172,6 +172,7 @@ impl HostFs {
             block,
             preferred,
             type_tag,
+            scope,
         ] = numbers[..]
         else {
             return Err("EIO: invalid host stat".into());
@@ -193,8 +194,9 @@ impl HostFs {
             nlink: nlink.is_finite().then_some(nlink as usize),
             uid: uid.is_finite().then_some(uid as u32),
             gid: gid.is_finite().then_some(gid as u32),
-            identity: (dev.is_finite() && ino.is_finite())
-                .then_some(EntryIdentity::Unix(dev as u64, ino as u64)),
+            identity: (dev.is_finite() && ino.is_finite()).then_some(if scope > 0.0 {
+                EntryIdentity::Host { scope: scope as u64, dev: dev as u64, ino: ino as u64 }
+            } else { EntryIdentity::Unix(dev as u64, ino as u64) }),
             allocated_bytes: allocated.is_finite().then_some(allocated as u64),
             io_block_size: block.is_finite().then_some(block as u64),
             preferred_io_block_size: preferred.is_finite().then_some(preferred as u64),

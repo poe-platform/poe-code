@@ -406,7 +406,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         let mut row = String::new();
         if inode {
             match entry.stat.as_ref().and_then(|s| s.identity.as_ref()) {
-                Some(EntryIdentity::Memory(_, ino) | EntryIdentity::Unix(_, ino) | EntryIdentity::OverlayDirectory { ino, .. }) => write!(row, "{ino} ").unwrap(),
+                Some(EntryIdentity::Memory(_, ino) | EntryIdentity::Unix(_, ino) | EntryIdentity::Host { ino, .. } | EntryIdentity::OverlayDirectory { ino, .. }) => write!(row, "{ino} ").unwrap(),
                 None => row.push_str("? "),
             }
         }
@@ -3535,9 +3535,9 @@ fn cmd_stat(
                                 "g" => st.gid.map(u64::from),
                                 "h" => st.nlink.map(|n| n as u64),
                                 "i" => st.identity.as_ref().map(|id| match id {
-                                    EntryIdentity::Unix(_, ino) | EntryIdentity::Memory(_, ino) | EntryIdentity::OverlayDirectory { ino, .. } => *ino,
+                                    EntryIdentity::Unix(_, ino) | EntryIdentity::Memory(_, ino) | EntryIdentity::Host { ino, .. } | EntryIdentity::OverlayDirectory { ino, .. } => *ino,
                                 }),
-                                "d" | "D" => st.identity.as_ref().map(|id| match id { EntryIdentity::Unix(dev, _) => *dev, _ => 0 }),
+                                "d" | "D" => st.identity.as_ref().map(|id| match id { EntryIdentity::Unix(dev, _) | EntryIdentity::Host { dev, .. } => *dev, _ => 0 }),
                                 _ => None,
                             };
                             match value {

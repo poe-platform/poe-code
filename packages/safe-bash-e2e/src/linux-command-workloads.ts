@@ -240,7 +240,8 @@ export function linuxCommands(text: string) {
       cmd: pandoc, args: ["-f", "commonmark", "-t", "plain", "--wrap=none"],
       script: "pandoc -f commonmark -t plain --wrap=none", input,
     })),
-    ...["intro\n| one |\n|---|\n", "> intro\n> | a | b |\n> | --- | --- |\n"].map(input => ({
+    ...["| a | b |\n| nope--- | --- |\n", "| a | b |\n| --- |\n",
+      "intro\n| one |\n|---|\n", "> intro\n> | a | b |\n> | --- | --- |\n"].map(input => ({
       cmd: pandoc, args: ["-f", "gfm", "-t", "plain", "--wrap=none"],
       script: "pandoc -f gfm -t plain --wrap=none", input,
     })),

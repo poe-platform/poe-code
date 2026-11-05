@@ -27415,6 +27415,16 @@ fn mdq_setext(line: &str) -> Option<usize> {
     }
 }
 
+fn pipe_cell_alignment(cell: &str) -> Option<std::fmt::Alignment> {
+    let middle = cell.strip_prefix(':').unwrap_or(cell);
+    let middle = middle.strip_suffix(':').unwrap_or(middle);
+    (!middle.is_empty() && middle.bytes().all(|b| b == b'-')).then(|| match (cell.starts_with(':'), cell.ends_with(':')) {
+        (true, true) => std::fmt::Alignment::Center,
+        (_, true) => std::fmt::Alignment::Right,
+        _ => std::fmt::Alignment::Left,
+    })
+}
+
 fn mdq_pipe_row(line: &str) -> Option<Vec<String>> {
     if !line.contains('|') { return None; }
     let line = line.trim();
@@ -30234,7 +30244,10 @@ fn strip_html_comments(input: &str) -> String {
     out
 }
 
-fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: bool) -> Vec<PandocBlock> {
+#[derive(Clone, Copy, PartialEq)]
+enum PandocPipeTables { Disabled, CommonMark, Markdown }
+
+fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocPipeTables) -> Vec<PandocBlock> {
     let cleaned = if strip_comments {
         strip_html_comments(input)
     } else {
@@ -30260,8 +30273,6 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: bool) -
         let level = line.bytes().take_while(|&b| b == b'#').count();
         ((1..=6).contains(&level) && (line.len() == level || line[level..].starts_with([' ', '\t']))).then_some(level)
     };
-    let table = |line: &str, i: usize| pipe_tables && line.starts_with('|') && line.ends_with('|')
-        && lines.get(i + 1).is_some_and(|next| next.trim().starts_with('|') && next.contains("---"));
     let mut blocks = Vec::new();
     let mut i = 0usize;
     while i < lines.len() {
@@ -30324,22 +30335,21 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: bool) -
             i += 2;
             continue;
         }
-        if table(trimmed, i) {
-            let parse_pipe_row = |l: &str| -> Vec<String> {
-                let inner = l.trim().strip_prefix('|').unwrap_or(l.trim());
-                let inner = inner.strip_suffix('|').unwrap_or(inner);
-                inner.split('|').map(|c| c.trim().to_string()).collect()
-            };
-            let headers = parse_pipe_row(trimmed);
-            let align = parse_pipe_row(lines[i + 1]).iter().map(|cell| match (cell.starts_with(':'), cell.ends_with(':')) {
-                (true, true) => std::fmt::Alignment::Center,
-                (_, true) => std::fmt::Alignment::Right,
-                _ => std::fmt::Alignment::Left,
-            }).collect();
+        if pipe_tables != PandocPipeTables::Disabled
+            && let Some(delimiter) = lines.get(i + 1)
+            && !(pipe_tables == PandocPipeTables::CommonMark && delimiter.trim_start().starts_with("- "))
+            && let Some(mut headers) = mdq_pipe_row(trimmed)
+            && let Some(columns) = mdq_pipe_row(delimiter)
+            && !columns.is_empty()
+            && (pipe_tables == PandocPipeTables::Markdown || headers.len() == columns.len())
+            && let Some(align) = columns.iter().map(|s| pipe_cell_alignment(s)).collect::<Option<Vec<_>>>()
+        {
+            headers.resize_with(align.len(), String::new);
             i += 2;
             let mut rows = Vec::new();
-            while i < lines.len() && lines[i].trim().starts_with('|') {
-                rows.push(parse_pipe_row(lines[i]));
+            while let Some(mut row) = lines.get(i).and_then(|line| mdq_pipe_row(line)) {
+                row.truncate(align.len());
+                rows.push(row);
                 i += 1;
             }
             blocks.push(PandocBlock::Table(headers, rows, Some(align)));
@@ -30582,7 +30592,7 @@ fn parse_pandoc_latex(input: &str) -> Vec<PandocBlock> {
         }
         md_lines.push(s);
     }
-    parse_pandoc_markdown(&md_lines.join("\n"), false, true)
+    parse_pandoc_markdown(&md_lines.join("\n"), false, PandocPipeTables::Markdown)
 }
 
 fn parse_pandoc_rtf(input: &str) -> Vec<PandocBlock> {
@@ -30623,7 +30633,7 @@ fn parse_pandoc_rtf(input: &str) -> Vec<PandocBlock> {
             i += 1;
         }
     }
-    parse_pandoc_markdown(&cleaned, false, true)
+    parse_pandoc_markdown(&cleaned, false, PandocPipeTables::Markdown)
 }
 
 fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
@@ -31071,13 +31081,16 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String
                 }
                 parts.push(lines.join("\n"));
             }
-            PandocBlock::Table(headers, rows, _) => {
-                let mut t = Vec::new();
-                t.push(format!("| {} |", headers.join(" | ")));
-                t.push(format!("| {} |", vec!["---"; headers.len()].join(" | ")));
-                for r in rows {
-                    t.push(format!("| {} |", r.join(" | ")));
-                }
+            PandocBlock::Table(headers, rows, align) => {
+                let row = |cells: &[String]| format!("| {} |", cells.iter().map(|c| c.replace('|', "\\|")).collect::<Vec<_>>().join(" | "));
+                let mut t = vec![row(headers)];
+                let markers = (0..headers.len()).map(|i| match align.as_ref().and_then(|a| a.get(i)) {
+                    Some(std::fmt::Alignment::Right) => "---:",
+                    Some(std::fmt::Alignment::Center) => ":---:",
+                    _ => "---",
+                }).collect::<Vec<_>>();
+                t.push(format!("| {} |", markers.join(" | ")));
+                t.extend(rows.iter().map(|r| row(r)));
                 parts.push(t.join("\n"));
             }
             PandocBlock::HorizontalRule => {
@@ -31765,7 +31778,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "docx" | "odt" | "epub" | "epub3" => {
             let entries = read_office_archive(&raw_bytes);
             if let Some(md_bytes) = entries.get("__pandoc_source.md") {
-                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, true)
+                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown)
             } else if let Some(doc_xml) = entries.get("word/document.xml") {
                 parse_pandoc_html(&String::from_utf8_lossy(doc_xml))
             } else if let Some(content_xml) = entries.get("content.xml") {
@@ -31773,7 +31786,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
                 parse_pandoc_html(&String::from_utf8_lossy(ch_xml))
             } else {
-                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, true)
+                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown)
             }
         }
         _ => {
@@ -31786,7 +31799,10 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     }
                 }
             }
-            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, pipe_tables)
+            let tables = if !pipe_tables { PandocPipeTables::Disabled }
+                else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { PandocPipeTables::CommonMark }
+                else { PandocPipeTables::Markdown };
+            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, tables)
         }
     };
 
@@ -35536,6 +35552,32 @@ mod tests {
         let error = shell.exec("pandoc -f csv -t plain -o /out.txt /input.csv").unwrap_err();
         assert!(error.contains("maxOutputBytes"), "{error}");
         assert_eq!(fs.read_file("/out.txt").unwrap(), b"original");
+    }
+
+    #[test]
+    fn pandoc_pipe_rows_follow_the_selected_markdown_reader() {
+        let vfs = MemoryVfs::new();
+        for (format, input, expected) in [
+            ("gfm", "a | b\n-- | :-:\nx\\|y | z\nx | 3\nend", "  a      b\n  ----- ---\n  x|y    z\n  x      3\n\nend\n"),
+            ("gfm", "| a | b |\n| nope--- | --- |", "| a | b | | nope--- | --- |\n"),
+            ("gfm", "| a | b |\n| --- |", "| a | b | | --- |\n"),
+            ("gfm", "a | b\n- | -", "a | b\n\n- | -\n"),
+            ("markdown", "| a | b |\n| --- |", "  a\n  ---\n"),
+            ("markdown", "| a |\n| --- | --- |\n| x | yy |", "  a   \n  --- ----\n  x   yy\n"),
+        ] {
+            let result = cmd_pandoc(&args(&["-f", format, "-t", "plain", "--wrap=none"]), input, "/", &vfs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(result.stdout, expected, "{format}: {input}");
+        }
+    }
+
+    #[test]
+    fn pandoc_markdown_round_trip_keeps_literal_pipes_and_column_alignment() {
+        let vfs = MemoryVfs::new();
+        let input = "a | b\n--- | ---:\nx\\|y | z\n";
+        let written = cmd_pandoc(&args(&["-f", "gfm", "-t", "gfm"]), input, "/", &vfs);
+        let result = cmd_pandoc(&args(&["-f", "gfm", "-t", "plain"]), &written.stdout, "/", &vfs);
+        assert_eq!(result.stdout, "  a       b\n  ----- ---\n  x|y     z\n");
     }
 
     #[test]

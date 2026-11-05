@@ -215,19 +215,12 @@ fn table(head: &str, line: &str) -> Option<MdqBlock> {
     let aligns = delimiter
         .iter()
         .map(|s| {
-            let left = s.starts_with(':');
-            let right = s.ends_with(':');
-            let mid = s.strip_prefix(':').unwrap_or(s);
-            let mid = mid.strip_suffix(':').unwrap_or(mid);
-            (!mid.is_empty() && mid.bytes().all(|b| b == b'-')).then(|| {
-                match (left, right) {
-                    (true, true) => "center",
-                    (true, false) => "left",
-                    (false, true) => "right",
-                    _ => "none",
-                }
-                .into()
-            })
+            Some(match super::pipe_cell_alignment(s)? {
+                std::fmt::Alignment::Center => "center",
+                std::fmt::Alignment::Right => "right",
+                std::fmt::Alignment::Left if s.starts_with(':') => "left",
+                _ => "none",
+            }.into())
         })
         .collect::<Option<Vec<_>>>()?;
     Some(MdqBlock {

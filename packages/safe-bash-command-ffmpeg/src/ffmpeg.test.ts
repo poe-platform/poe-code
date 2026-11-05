@@ -122,6 +122,37 @@ describe("aliceblue color source", () => {
   }
 });
 
+describe("pad background alpha", () => {
+  for (const [color, alpha] of [["red@0.5", 127], ["red@0", 0], ["0xff000080", 128], ["red", 255]] as const) {
+    for (const filter of [`pad=4:4:1:1:color=${color}`, `pad=4:4:1:1:${color}`]) {
+      it(`preserves border and source RGBA pixels for ${filter}`, async () => {
+        const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+        const input = encodeImage({
+          width: 2, height: 2, channels: 4,
+          data: new Uint8Array([255, 128, 64, 0].flatMap((a) => [0, 0, 255, a])),
+          format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const vfs = createTestVfs({ "/input.png": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/input.png", "-vf", filter, "-frames:v", "1", "-update", "1", "/pad.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = decodeImage(vfs.store.get("/pad.png")!);
+        assert.equal(output.width, 4);
+        assert.equal(output.height, 4);
+        for (let y = 0; y < 4; y++) {
+          for (let x = 0; x < 4; x++) {
+            const offset = (y * 4 + x) * 4;
+            const source = x >= 1 && x <= 2 && y >= 1 && y <= 2;
+            const expected = source ? [0, 0, 255, [255, 128, 64, 0][(y - 1) * 2 + x - 1]] : [255, 0, 0, alpha];
+            assert.deepEqual([...output.data.subarray(offset, offset + 4)], expected);
+          }
+        }
+      });
+    }
+  }
+});
+
 describe("pad dimensions", () => {
   for (const filter of ["pad=8:8", "pad=8:32", "pad=32:8", "pad=w=iw/2:h=ih", "pad=width=iw:height=ih/2"]) {
     for (const existing of [false, true]) {

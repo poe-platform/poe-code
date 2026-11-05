@@ -738,7 +738,7 @@ async function applyVideoFilterChain(
           top: py,
           right: Math.max(0, pw - iw - px),
           bottom: Math.max(0, ph - ih - py),
-          background: { r: col[0], g: col[1], b: col[2], a: 255 },
+          background: { r: col[0], g: col[1], b: col[2], a: col[3] },
           extendWith: "background"
         });
         return {

@@ -11,8 +11,10 @@ function isWordChar(ch: string | undefined): boolean {
 }
 
 function matchesBoundary(instruction: Extract<Instruction, { kind: "boundary" }>, text: string, position: number): boolean {
-  const before = position > 0 && instruction.accepts(text[position - 1]!);
-  const after = position < text.length && instruction.accepts(text[position]!);
+  const previous = position > 1 && text.codePointAt(position - 2)! > 0xffff ? text.slice(position - 2, position) : text.slice(position - 1, position);
+  const next = text.codePointAt(position);
+  const before = position > 0 && instruction.accepts(previous);
+  const after = next !== undefined && instruction.accepts(String.fromCodePoint(next));
   const boundary = instruction.edge === "start" ? !before && after : instruction.edge === "end" ? before && !after : before !== after;
   return boundary === instruction.positive;
 }
@@ -463,12 +465,13 @@ export class Pattern {
       return { type: "character", ...(fold ? {} : { literal: character }),
         accepts: candidate => fold ? candidate.toLowerCase() === character.toLowerCase() : candidate === character };
     };
+    const wordChar = dialect === "jq" ? (character: string) => /^[\p{L}\p{M}\p{N}\p{Pc}]$/u.test(character) : isWordChar;
     const shorthand = (reference: string): ((character: string) => boolean) => {
       const alphabet = reference.toLowerCase();
       return character => {
-        const accepted = alphabet === "d" ? character >= "0" && character <= "9"
-          : alphabet === "s" ? " \t\n\r\f\v".includes(character)
-          : isWordChar(character);
+        const accepted = alphabet === "d" ? (dialect === "jq" ? /^\p{Nd}$/u.test(character) : character >= "0" && character <= "9")
+          : alphabet === "s" ? (dialect === "jq" ? /^[\p{Z}\t\n\r\f\v\u0085]$/u.test(character) : " \t\n\r\f\v".includes(character))
+          : wordChar(character);
         return reference === alphabet ? accepted : !accepted;
       };
     };
@@ -588,7 +591,7 @@ export class Pattern {
           if (dialect === "awk" && reference === "b") {
             return characterNode("\b");
           }
-          return { type: "boundary", accepts: isWordChar, positive: reference !== "B" && reference !== "Y",
+          return { type: "boundary", accepts: wordChar, positive: reference !== "B" && reference !== "Y",
             ...(reference === "<" ? { edge: "start" as const } : reference === ">" ? { edge: "end" as const } : {}) };
         }
         if ((dialect === "jq" || dialect === "sed" || dialect === "awk") && reference !== undefined && "dDsSwW".includes(reference)) {

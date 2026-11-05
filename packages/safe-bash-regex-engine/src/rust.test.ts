@@ -59,8 +59,8 @@ test("Rust named groups retain the shared capture API", async () => {
   assert.equal((await pattern.find("猫猫", budget))?.groups[pattern.groupNames.get("word")!], "猫猫");
 });
 
-test("the jq dialect retains ASCII classes and final-newline anchors", async () => {
-  assert.equal(await new Pattern("^\\w+$", true, false, "jq").find("猫", budget), undefined);
+test("the jq dialect uses Unicode classes and retains final-newline anchors", async () => {
+  assert.equal((await new Pattern("^\\w+$", true, false, "jq").find("猫", budget))?.groups[0], "猫");
   assert.equal((await new Pattern("a$", true, false, "jq").find("a\n", budget))?.groups[0], "a");
 });
 

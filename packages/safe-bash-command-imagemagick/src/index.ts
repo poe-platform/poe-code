@@ -2356,7 +2356,7 @@ function parseCompose(raw: string): BlendMode {
 function magickCompositeMode(mode: string): { name: string; delegated: boolean } {
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
-    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "colordodge", "colorburn", "hardlight", "softlight", "saturate"].includes(name) };
+    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "colordodge", "colorburn", "softlight", "saturate"].includes(name) };
 }
 
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2519,6 +2519,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             if (norm === "multiply" ||
                 norm === "screen" ||
                 norm === "overlay" ||
+                norm === "hardlight" ||
                 norm === "darken" ||
                 norm === "lighten" ||
                 norm === "exclusion") {
@@ -2548,10 +2549,12 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                             f = sc * dc;
                         else if (norm === "screen")
                             f = sc + dc - sc * dc;
+                        else if (norm === "hardlight")
+                            f = sc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
                         else
                             f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
                         const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
-                        const unpremul = gamma > 1e-6 && norm === "overlay" ? comp / gamma : comp;
+                        const unpremul = gamma > 1e-6 && (norm === "overlay" || norm === "hardlight") ? comp / gamma : comp;
                         out[dIdx + c] = clampByteVal(unpremul * 255);
                     }
                 }

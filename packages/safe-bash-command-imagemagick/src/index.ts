@@ -2182,12 +2182,13 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         return { ...plan, width, height, map: (px, py) => plan.map(px + x, py + y), virtualCanvas: { width, height, x, y } };
     };
     if (token === "-swirl") {
-        const maxR = Math.max(cx, cy, 1), radians = (Number(spec) * Math.PI) / 180;
+        const centerX = w / 2, centerY = h / 2, radius = Math.max(w, h) / 2, radians = (Number(spec) * Math.PI) / 180;
+        const scaleX = radius / centerX, scaleY = radius / centerY;
         return result((x, y) => {
-            const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy);
-            if (r >= maxR) return [x, y];
-            const factor = 1 - r / maxR, angle = factor * factor * radians, cos = Math.cos(angle), sin = Math.sin(angle);
-            return [cx + dx * cos - dy * sin, cy + dx * sin + dy * cos];
+            const dx = (x - centerX) * scaleX, dy = (y - centerY) * scaleY, r = Math.hypot(dx, dy);
+            if (r >= radius || radians === 0) return [x, y];
+            const factor = 1 - r / radius, angle = factor * factor * radians, cos = Math.cos(angle), sin = Math.sin(angle);
+            return [centerX + (dx * cos - dy * sin) / scaleX, centerY + (dx * sin + dy * cos) / scaleY];
         }, w, h, img.hasAlpha);
     }
     if (token === "-implode") {

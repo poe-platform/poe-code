@@ -24,7 +24,8 @@ pub(super) fn render(
     let cells: Vec<Vec<Vec<String>>> = std::iter::once(header)
         .chain(rows.iter().map(Vec::as_slice))
         .map(|row| {
-            let mut height = 1;
+            // A separator keeps even an empty multi-column row visible.
+            let mut height = usize::from(header.len() > 1);
             let cells = row
                 .iter()
                 .zip(&mut widths)

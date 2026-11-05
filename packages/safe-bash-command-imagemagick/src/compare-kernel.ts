@@ -31,7 +31,7 @@ export interface CompareResult {
 }
 /** Borrow input ranges until the next request; output chunks are owned by the receiver. */
 export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
-    const { metric, fuzz, highlightColor, lowlightColor, composeSrc, dissimilarityThreshold } = options;
+    const { metric, fuzz, highlightColor, lowlightColor = { r: 255, g: 255, b: 255, a: 204 }, composeSrc, dissimilarityThreshold } = options;
     const width = Math.max(imgA.width, imgB.width);
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
@@ -109,34 +109,17 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
                 aeMagnitude += (aeR > fuzz ? aeR : 0) + (aeG > fuzz ? aeG : 0) + (aeB > fuzz ? aeB : 0) + (hasAlpha && da > fuzz ? da : 0);
                 const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
-                if (maxDelta > fuzz) {
+                if (maxDelta > fuzz)
                     aeCount++;
-                    if (diffData) {
-                        diffData[outOff] = highlightColor.r;
-                        diffData[outOff + 1] = highlightColor.g;
-                        diffData[outOff + 2] = highlightColor.b;
-                        diffData[outOff + 3] = highlightColor.a;
-                    }
-                }
-                else if (diffData) {
-                    if (composeSrc) {
-                        diffData[outOff] = 0;
-                        diffData[outOff + 1] = 0;
-                        diffData[outOff + 2] = 0;
-                        diffData[outOff + 3] = 0;
-                    }
-                    else if (lowlightColor) {
-                        diffData[outOff] = lowlightColor.r;
-                        diffData[outOff + 1] = lowlightColor.g;
-                        diffData[outOff + 2] = lowlightColor.b;
-                        diffData[outOff + 3] = lowlightColor.a;
-                    }
-                    else {
-                        diffData[outOff] = Math.round(rA * 0.3 + 255 * 0.7);
-                        diffData[outOff + 1] = Math.round(gA * 0.3 + 255 * 0.7);
-                        diffData[outOff + 2] = Math.round(bA * 0.3 + 255 * 0.7);
-                        diffData[outOff + 3] = 255;
-                    }
+                if (diffData) {
+                    const color = maxDelta > fuzz ? highlightColor : lowlightColor;
+                    // ImageMagick makes the reference opaque before compositing
+                    // the highlight/lowlight overlay (80% opaque by default).
+                    const alpha = composeSrc ? 1 : color.a / 255;
+                    diffData[outOff] = Math.round(color.r * alpha + rA * (1 - alpha));
+                    diffData[outOff + 1] = Math.round(color.g * alpha + gA * (1 - alpha));
+                    diffData[outOff + 2] = Math.round(color.b * alpha + bA * (1 - alpha));
+                    diffData[outOff + 3] = composeSrc ? color.a : 255;
                 }
                 if (hasAlpha) {
                     sumAbs += pdr + pdg + pdb + da;

@@ -6265,7 +6265,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const state = createDefaultState();
     state.fuzz = 0;
     let metric = "rmse";
-    let highlightColor: RgbaColor = { r: 241, g: 0, b: 30, a: 255 };
+    let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
     let composeSrc = false;
     let dissimilarityThreshold: number | undefined;
@@ -6362,7 +6362,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
     const diff=outSpec.toLowerCase()!=="null:",diffPosition=backend&&diff?backend.storage.allocate(width*height*4):undefined;
     const diffData=!backend&&diff?new Uint8Array(width*height*4):undefined;
-    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor,composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),...(dissimilarityThreshold===undefined?{}:{dissimilarityThreshold})});
+    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),...(dissimilarityThreshold===undefined?{}:{dissimilarityThreshold})});
     let compared=comparison.next();
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}

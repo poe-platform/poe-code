@@ -34,7 +34,7 @@ it("scans and emits a multi-megabyte diff in bounded ordered chunks", () => {
             if (request) {
                 expect(request.position).toBe(written);
                 expect(request.data.length).toBeLessThanOrEqual(4096);
-                expect([...request.data.subarray(0, 4)]).toEqual([179, 179, 179, 255]);
+                expect([...request.data.subarray(0, 4)]).toEqual([204, 204, 204, 255]);
                 written += request.data.length;
             }
             else
@@ -62,7 +62,7 @@ it("accounts for premultiplied alpha and emits the configured difference color",
     }
     expect(next.value.metric).toBe("32767.5 (0.5)");
     expect(next.value.exitCode).toBe(1);
-    expect([...output!]).toEqual([7, 19, 31, 43]);
+    expect([...output!]).toEqual([213, 3, 5, 255]);
 });
 it("rejects incomplete pixel ranges before emitting a diff", () => {
     const image = { width: 2, height: 1, hasAlpha: false }, steps = compareImageSteps(image, image, { metric: "ae", fuzz: 0, highlightColor: { r: 0, g: 0, b: 0, a: 255 }, composeSrc: false, diff: true });

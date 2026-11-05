@@ -4,6 +4,45 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+test("sqlite3 text expressions preserve bytes after NUL", async () => {
+  const sql = `
+    SELECT hex(x'00FF'||x'4142'), hex(replace(x'61620063','b','Z')),
+           hex(upper(x'61620063')), hex(trim(x'20610020'));
+    SELECT hex(lower(x'41420043')), hex(CAST(x'00FF80' AS TEXT)),
+           hex((x'00FF'||'é')||x'80'), typeof(x'00FF'||'');
+    SELECT hex(upper(x'6100FF')), hex(replace(x'6100FF','a','Z'));
+    SELECT x'610062', CAST(x'610062' AS TEXT), upper(x'610062');
+  `;
+  const expected = "00FF4142|615A0063|41420043|6100\n61620063|00FF80|00FFC3A980|text\n4100FF|5A00FF\na|a|A\n";
+  assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+    code: 0, stdout: expected, stderr: ""
+  });
+  assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), expected);
+});
+
+test("sqlite3 text coercion round trips arbitrary bytes and valid Unicode", async () => {
+  for (const hex of [
+    Array.from({ length: 256 }, (_, byte) => byte.toString(16).padStart(2, "0")).join("").toUpperCase(),
+    "F09F9880EDA080C080F4908080E282", "EFBBBFC3A90080", "C280DFBFE0A080ED9FBFF48FBFBF"
+  ]) {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:",
+      `SELECT hex(CAST(CAST(x'${hex}' AS TEXT) AS BLOB)), octet_length(CAST(x'${hex}' AS TEXT));`
+    ]), { code: 0, stdout: `${hex}|${hex.length / 2}\n`, stderr: "" });
+  }
+});
+
+test("sqlite3 persists coerced text bytes without loss", async () => {
+  const fs = createMemoryFileSystem();
+  const created = await runSqlite3(fs, ["/bytes.db", `
+    CREATE TABLE t(v TEXT);
+    INSERT INTO t VALUES(x'00FF'||x'4142'), (CAST(x'EFBBBFC3A90080' AS TEXT));
+  `]);
+  assert.equal(created.code, 0);
+  assert.deepEqual(await runSqlite3(fs, ["/bytes.db", "SELECT typeof(v), hex(v) FROM t;"]), {
+    code: 0, stdout: "text|00FF4142\ntext|EFBBBFC3A90080\n", stderr: ""
+  });
+});
+
 for (const fn of ["substr", "substring"]) {
   test(`sqlite3 ${fn} slices BLOB bytes and preserves their type`, async () => {
     const sql = `
@@ -32,6 +71,17 @@ test("sqlite3 instr searches complete BLOB bytes", async () => {
       SELECT instr(NULL,x'61'), instr(x'61',NULL);
     `]),
     { code: 0, stdout: "4|4\n2|4\n0|2\n1|1|0|0\n|\n", stderr: "" }
+  );
+});
+
+test("sqlite3 length stops TEXT at NUL without truncating byte lengths", async () => {
+  assert.deepEqual(
+    await runSqlite3(createMemoryFileSystem(), [":memory:", `
+      SELECT length('a'||char(0)||'bc'), octet_length('a'||char(0)||'bc'), length(x'61006263');
+      SELECT length(char(0)||'abc'), length('é😀'||char(0)||'z'), octet_length('é😀'||char(0)||'z');
+      SELECT length(''), length('é😀'), length(NULL), length(123);
+    `]),
+    { code: 0, stdout: "1|4|4\n0|2|8\n0|2||3\n", stderr: "" }
   );
 });
 

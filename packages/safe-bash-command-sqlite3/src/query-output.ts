@@ -27,7 +27,11 @@ function* cellParts(value: SqlValue, nullValue: string): Generator<string> {
     const decoder = new TextDecoder(), zero = value.indexOf(0), end = zero < 0 ? value.length : zero;
     for (let offset = 0; offset < end; offset += 4096) yield decoder.decode(value.subarray(offset, Math.min(end, offset + 4096)), {stream: true});
     yield decoder.decode();
-  } else yield* textParts(value === null || value === undefined ? nullValue : toSqlString(value));
+  } else {
+    const text = value === null || value === undefined ? nullValue : toSqlString(value);
+    const zero = text.indexOf("\0");
+    yield* textParts(zero < 0 ? text : text.slice(0, zero));
+  }
 }
 
 function* cellLength(value: SqlValue, nullValue: string): Generator<string, number> {

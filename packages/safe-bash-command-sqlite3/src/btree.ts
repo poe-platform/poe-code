@@ -1,3 +1,4 @@
+import { decodeSqlText, encodeSqlText } from "./text-bytes.js";
 const SQLITE_MAGIC = "SQLite format 3\0";
 const DEFAULT_PAGE_SIZE = 4096;
 
@@ -23,9 +24,6 @@ export interface StoredDatabaseImage {
   indexRows?: Map<string, SqlValue[][]> | undefined;
   metaJson?: string | undefined;
 }
-
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
 export function isSqliteHeader(bytes: Uint8Array): boolean {
   if (bytes.byteLength < 100) {
@@ -167,7 +165,7 @@ function encodeRecordValue(val: SqlValue): { serialType: number; body: Uint8Arra
     return { serialType: 7, body: b };
   }
   if (typeof val === "string" || val instanceof String) {
-    const encoded = textEncoder.encode(String(val));
+    const encoded = encodeSqlText(String(val));
     return { serialType: encoded.byteLength * 2 + 13, body: encoded };
   }
   const u8 = val as Uint8Array;
@@ -272,7 +270,7 @@ export function decodeRecord(payload: Uint8Array): SqlValue[] {
       bPos += len;
     } else if (st >= 13 && st % 2 === 1) {
       const len = (st - 13) / 2;
-      values.push(textDecoder.decode(payload.subarray(bPos, bPos + len)));
+      values.push(decodeSqlText(payload.subarray(bPos, bPos + len)));
       bPos += len;
     } else {
       values.push(null);
@@ -584,8 +582,8 @@ function compareSqlValuesForBTree(a: SqlValue, b: SqlValue): number {
     return na - nb;
   }
   if (ra === 2) {
-    a = textEncoder.encode(String(a));
-    b = textEncoder.encode(String(b));
+    a = encodeSqlText(String(a));
+    b = encodeSqlText(String(b));
   }
   const ba = a as Uint8Array;
   const bb = b as Uint8Array;

@@ -1,3 +1,4 @@
+import { decodeSqlText, encodeSqlText } from "./text-bytes.js";
 import { canonicalizeJson, parseSqlJson } from "./json.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { formatReal } from "./real-output.js";
@@ -149,7 +150,6 @@ interface SnapshotState {
   schemaCookie: number;
 }
 
-const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
 export class SqliteConstraintError extends Error {
@@ -1121,8 +1121,8 @@ export function compareSqlValues(a: SqlValue, b: SqlValue, collation = "BINARY")
       sA = foldAsciiCase(sA);
       sB = foldAsciiCase(sB);
     }
-    a = textEncoder.encode(sA);
-    b = textEncoder.encode(sB);
+    a = encodeSqlText(sA);
+    b = encodeSqlText(sB);
   }
   const uA = a as Uint8Array;
   const uB = b as Uint8Array;
@@ -1261,9 +1261,7 @@ export function toSqlString(v: SqlValue): string {
   if (typeof v === "number") {
     return Number.isInteger(v) ? String(v) : formatReal(v, 15);
   }
-  const nulIdx = v.indexOf(0);
-  const sub = nulIdx === -1 ? v : v.subarray(0, nulIdx);
-  return textDecoder.decode(sub);
+  return decodeSqlText(v);
 }
 
 export function isTruthy(v: SqlValue): boolean {
@@ -7733,7 +7731,7 @@ export class SqliteDatabase {
       return toSqlString(v);
     }
     if (targetType.includes("BLOB") || targetType === "NONE") {
-      return v instanceof Uint8Array ? v : textEncoder.encode(toSqlString(v));
+      return v instanceof Uint8Array ? v : encodeSqlText(toSqlString(v));
     }
     if (targetType.includes("REAL") || targetType.includes("FLOA") || targetType.includes("DOUB")) {
       return new Number(toSqlNumber(v));
@@ -7774,14 +7772,20 @@ export class SqliteDatabase {
           return "text";
         }
         return "blob";
-      case "LENGTH":
+      case "LENGTH": {
         if (a0 === null) {
           return null;
         }
         if (a0 instanceof Uint8Array) {
           return a0.byteLength;
         }
-        return Array.from(toSqlString(a0)).length;
+        let length = 0;
+        for (const char of toSqlString(a0)) {
+          if (char === "\0") break;
+          length++;
+        }
+        return length;
+      }
       case "OCTET_LENGTH":
         if (a0 === null) {
           return null;
@@ -7789,7 +7793,7 @@ export class SqliteDatabase {
         if (a0 instanceof Uint8Array) {
           return a0.byteLength;
         }
-        return textEncoder.encode(toSqlString(a0)).byteLength;
+        return encodeSqlText(toSqlString(a0)).byteLength;
       case "UPPER":
         return a0 === null ? null : toSqlString(a0).toUpperCase();
       case "LOWER":
@@ -7940,7 +7944,7 @@ export class SqliteDatabase {
         if (a0 === null) {
           return "";
         }
-        const bytes = a0 instanceof Uint8Array ? a0 : textEncoder.encode(toSqlString(a0));
+        const bytes = a0 instanceof Uint8Array ? a0 : encodeSqlText(toSqlString(a0));
         let out = "";
         for (const b of bytes) {
           yield;

@@ -51,6 +51,17 @@ async function compareCommand(input: Uint8Array, flags: string[]) {
   return { stdout, fs, files: expected };
 }
 
+it("lists effective PPI with Poppler precision and ties to even", async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([3000,300]);
+  const image = doc.embedRgbImage(2,3,new Uint8Array(18));
+  for (const [width,height] of [[2304,48],[768,144],[0,24],[512,16],[0.000001,8]] as const)
+    page.drawImage(image,{x:0,y:0,width,height});
+  const {stdout} = await compareCommand(doc.save(),["-list"]);
+  expect(stdout.trimEnd().split("\n").slice(2).map(row => row.trim().split(/\s+/).slice(12,14))).toEqual([
+    ["0.062","4"],["0.188","2"],["inf","9"],["0.281","14"],["144000000","27"],
+  ]);
+});
+
 it("writes 72 DPI to extracted files regardless of the image's scale on the page", async () => {
   const doc = PdfDocument.create(), page = doc.addPage([32,32]);
   const image = doc.embedRgbImage(2,2,Uint8Array.from({length:12}, (_,i) => i*19));

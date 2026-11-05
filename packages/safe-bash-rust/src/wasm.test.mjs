@@ -8571,6 +8571,22 @@ test("pdfimages writes both bytes of each 16-bit RGB PNG and TIFF sample", async
   } finally { wasm.dispose(); }
 });
 
+test("pdfimages lists effective PPI with Poppler precision and ties to even", async () => {
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), page = doc.addPage([3000,300]);
+  const image = doc.embedRgbImage(2,3,new Uint8Array(18));
+  for (const [width,height] of [[2304,48],[768,144],[0,24],[512,16],[0.000001,8]])
+    page.drawImage(image,{x:0,y:0,width,height});
+  const wasm = new RustWasmBash({cwd:"/",forceNative:true,files:{"/f.pdf":doc.save()}});
+  try {
+    const r = await wasm.exec("pdfimages -list f.pdf");
+    assert.equal(r.exitCode,0,r.stderr);
+    assert.deepEqual(r.stdout.trimEnd().split("\n").slice(2).map(row => row.trim().split(/\s+/).slice(12,14)), [
+      ["0.062","4"],["0.188","2"],["inf","9"],["0.281","14"],["144000000","27"],
+    ]);
+  } finally { wasm.dispose(); }
+});
+
 test("pdfimages extracts the base image and its soft mask separately like Poppler", async () => {
   const { PdfDocument, encodePng, decodePng } = await import("@poe-code/pdf-ast");
   const doc = PdfDocument.create(), page = doc.addPage([20, 10]);

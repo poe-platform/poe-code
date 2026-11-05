@@ -203,6 +203,16 @@ function* parsePdfimagesArgs(argv: readonly string[]): Generator<void, Pdfimages
     return { listOnly, usePng, useJpeg, useTiff, useJp2, useJbig2, useCcitt, firstPage, lastPage, minWidth, minHeight, includePage, uniqueOnly, printFilenames, quiet, password, positionals, inputPath };
 }
 
+function formatPopplerPpi(ppi: number): string {
+  if (ppi === Infinity) return "inf";
+  if (ppi >= 1e21) return BigInt(ppi).toString(); // toFixed uses exponential notation here.
+  const digits = ppi < 1 ? 3 : 0;
+  // printf rounds exact halfway cases to even. For 0 or 3 decimal places,
+  // 5**digits is 1 modulo 4, so only the binary part of the scale is needed.
+  if ((ppi * 2 ** (digits + 1)) % 4 === 1) ppi -= 0.5 / 10 ** digits;
+  return ppi.toFixed(digits);
+}
+
 type ImageListing = Omit<import("@poe-code/pdf-ast").PdfExtractedImage, "bitmap">;
 function formatImageRow(img: ImageListing, idx: number): string {
         const objField = img.inline || !img.objectId
@@ -212,7 +222,7 @@ function formatImageRow(img: ImageListing, idx: number): string {
         const ratioStr = formatPopplerRatio(img.byteLength, img.width, img.height, img.components, img.bitsPerComponent).padStart(4);
         const interpStr = (img.interpolate ? "yes" : "no").padEnd(5);
         const colorCol = (img.colorSpaceLabel ?? img.colorSpace).padEnd(4);
-        return `${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(7)} ${String(img.width).padStart(5)} ${String(img.height).padStart(5)}  ${colorCol} ${String(img.components).padStart(4)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)}  ${interpStr} ${objField} ${String(img.xPpi).padStart(5)} ${String(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`;
+        return `${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(7)} ${String(img.width).padStart(5)} ${String(img.height).padStart(5)}  ${colorCol} ${String(img.components).padStart(4)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)}  ${interpStr} ${objField} ${formatPopplerPpi(img.xPpi).padStart(5)} ${formatPopplerPpi(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`;
 }
 
 function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, options: {
@@ -415,11 +425,10 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
           const resolve = async (key: string, alias?: string) => (await doc.lookup(dictGet(occurrence.dict, key) ?? (alias ? dictGet(occurrence.dict, alias) : undefined)))?.value;
           const mask = await resolve("ImageMask", "IM"), interpolate = await resolve("Interpolate", "I");
           const [a,b,c,d] = occurrence.matrix;
-          const ppi = (pixels: number, extent: number) => extent > 1e-6 ? Math.max(1, Math.round(pixels * 72 / extent)) : 72;
           const metadata: ImageListing = { pageNumber: occurrence.pageNumber, imageIndex: idx, type: occurrence.softMaskOf ? "smask" : mask?.kind === "boolean" && mask.value ? "stencil" : "image", objectId: ref ? { objNum: ref.objectNumber, genNum: ref.generationNumber } : undefined,
             inline: occurrence.inline, width: decoded.width, height: decoded.height, colorSpace: decoded.color.colorSpace, colorSpaceLabel: mask?.kind === "boolean" && mask.value ? "-" : decoded.color.colorSpaceLabel ?? decoded.color.colorSpace,
             components: decoded.color.components, bitsPerComponent: decoded.bitsPerComponent, encoding: decoded.encoding, interpolate: interpolate?.kind === "boolean" && interpolate.value,
-            xPpi: ppi(decoded.width, Math.hypot(a,b)), yPpi: ppi(decoded.height, Math.hypot(c,d)), byteLength: occurrence.byteLength };
+            xPpi: decoded.width * 72 / Math.sqrt(a*a + b*b), yPpi: decoded.height * 72 / Math.sqrt(c*c + d*d), byteLength: occurrence.byteLength };
           const filter = await resolve("Filter", "F"), parms = await resolve("DecodeParms", "DP");
           let parameter = parms;
           if (parms?.kind === "array") {

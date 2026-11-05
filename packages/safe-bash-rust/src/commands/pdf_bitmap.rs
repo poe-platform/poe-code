@@ -404,7 +404,16 @@ impl Image {
         idx: usize,
         parent: Option<ObjectId>,
     ) -> String {
-        let [x, y] = self.ppi();
+        let [a, b, c, d, _, _] = self.matrix;
+        let ppi = |pixels: usize, u: f64, v: f64| {
+            let value = pixels as f64 * 72. / (u * u + v * v).sqrt();
+            if value < 1. {
+                format!("{value:5.3}")
+            } else {
+                format!("{value:5.0}")
+            }
+        };
+        let (x, y) = (ppi(self.width, a, b), ppi(self.height, c, d));
         let (id, generation) = parent.unwrap_or(self.id);
         let kind = if parent.is_some() { "smask" } else { "image" };
         let (w, h, components) = (self.width, self.height, self.components);
@@ -449,7 +458,7 @@ impl Image {
             format!("{pct:.0}%")
         };
         format!(
-            "{page:4} {idx:5} {kind:<6} {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}   {id:6} {generation:2} {x:5} {y:5} {size:>5} {ratio:>4}\n"
+            "{page:4} {idx:5} {kind:<6} {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}   {id:6} {generation:2} {x} {y} {size:>5} {ratio:>4}\n"
         )
     }
     pub(in crate::commands::archive) fn bilevel(&self) -> bool {

@@ -776,11 +776,8 @@ function *decodeSamplesToRgbaProgram(
 }
 
 function computePpiFromCtm(width: number, height: number, ctm: Matrix6): { xPpi: number; yPpi: number } {
-  const dispW = Math.hypot(ctm[0], ctm[1]);
-  const dispH = Math.hypot(ctm[2], ctm[3]);
-  const xPpi = dispW > 1e-6 ? Math.max(1, Math.round((width * 72) / dispW)) : 72;
-  const yPpi = dispH > 1e-6 ? Math.max(1, Math.round((height * 72) / dispH)) : 72;
-  return { xPpi, yPpi };
+  const [a, b, c, d] = ctm;
+  return { xPpi: width * 72 / Math.sqrt(a*a + b*b), yPpi: height * 72 / Math.sqrt(c*c + d*d) };
 }
 
 export interface DecodedDisplayImage {

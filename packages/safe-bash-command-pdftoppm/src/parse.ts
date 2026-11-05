@@ -389,6 +389,7 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
     let paperW = 0;
     let paperH = 0;
     let origPageSizes = false;
+    let namedPaper = false;
     let password = "";
     const forwardedArgs: string[] = ["-scale-dimension-before-rotation"];
     const positionals: string[] = [];
@@ -464,6 +465,7 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
             i++;
         }
         else if (arg === "-paper") {
+            namedPaper = true;
             const pName = (argv[++i] ?? "").toLowerCase();
             if (pName === "letter") {
                 paperW = 612;
@@ -547,6 +549,9 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
         else {
             positionals.push(arg);
         }
+    }
+    if (origPageSizes && namedPaper) {
+        return { exitCode: 99, stdout: "", stderr: "Error: -origpagesizes and -paper may not be used together.\n" };
     }
     const inputPath = positionals[0] ?? (hasStdin ? "-" : undefined);
     if (!inputPath) {

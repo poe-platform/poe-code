@@ -6,7 +6,8 @@ for (const run of [runPdftocairoCli, runPdftocairoCliSync]) {
   it.each([
     { flags: ["-paper", "A4"], sizes: [[842, 595], [595, 842], [595, 842]] },
     { flags: ["-paperw", "900", "-paperh", "500"], sizes: [[500, 900], [900, 500], [900, 500]] },
-    { flags: ["-paper", "A4", "-origpagesizes"], sizes: [[216, 144], [144, 216], [144, 144]] },
+    { flags: ["-origpagesizes"], sizes: [[216, 144], [144, 216], [144, 144]] },
+    { flags: ["-paperw", "300", "-paperh", "400", "-origpagesizes"], sizes: [[216, 144], [144, 216], [144, 144]] },
   ])(`${run.name} orients PDF paper per source page: $flags`, async ({ flags, sizes }) => {
     const doc = PdfDocument.create();
     doc.addPage([216, 144]);
@@ -18,6 +19,26 @@ for (const run of [runPdftocairoCli, runPdftocairoCliSync]) {
     expect(sizes.map((_, index) => output.getPage(index).getSize())).toEqual(
       sizes.map(([width, height]) => ({ width, height })),
     );
+  });
+
+  it.each([
+    ["-paper", "A4", "-origpagesizes"],
+    ["-origpagesizes", "-paper", "A4"],
+  ])(`${run.name} rejects conflicting paper options %j`, async (...flags) => {
+    const doc = PdfDocument.create();
+    doc.addPage([72, 72]);
+    for (const existingOutput of [false, true]) {
+      const files = new Map([["in.pdf", doc.save()]]);
+      if (existingOutput) files.set("out.pdf", new Uint8Array([1, 2, 3]));
+      const before = new Map(files);
+      const result = await run(["-pdf", ...flags, "in.pdf", "out.pdf"], files);
+      expect(result).toEqual({
+        exitCode: 99,
+        stdout: "",
+        stderr: "Error: -origpagesizes and -paper may not be used together.\n",
+      });
+      expect(files).toEqual(before);
+    }
   });
 
   for (const format of ["ps", "eps"]) {

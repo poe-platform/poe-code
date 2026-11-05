@@ -606,7 +606,7 @@ describe("safe-bash-command-pdftoppm", () => {
     expect(a4Doc.getMetadata().title).toBe("Cairo Paper Test");
     expect(a4Doc.getPage(0).getSize()).toEqual({ width: 595, height: 842 });
 
-    const origRes = await runPdftocairoCli(["-pdf", "-paper", "A4", "-origpagesizes", "color.pdf", "orig.pdf"], files);
+    const origRes = await runPdftocairoCli(["-pdf", "-origpagesizes", "color.pdf", "orig.pdf"], files);
     expect(origRes.exitCode).toBe(0);
     const origDoc = PdfDocument.load(files.get("orig.pdf")!);
     expect(origDoc.getPage(0).getSize()).toEqual({ width: 80, height: 80 });

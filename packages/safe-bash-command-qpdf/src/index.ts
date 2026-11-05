@@ -1218,8 +1218,13 @@ function* executeQpdfCli(
     }
   }
 
-  if (!baseDoc.cos.resolveDict(baseDoc.cos.rootRef)) {
+  const catalog = baseDoc.cos.resolveDict(baseDoc.cos.rootRef);
+  if (!catalog) {
     return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile}: unable to find /Root dictionary\n` };
+  }
+
+  if (!baseDoc.cos.resolveDict(dictGet(catalog, "Pages"))) {
+    return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile ?? "empty"}: unable to find page tree\n` };
   }
 
   if (updateFromJsonFiles.length > 0) {

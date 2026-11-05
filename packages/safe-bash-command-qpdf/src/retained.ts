@@ -193,6 +193,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     }
     const root = await document.lookup(document.crossReference.rootRef);
     if (root?.value.kind !== "dict") return await diagnostic(`qpdf: ${inputName}: unable to find /Root dictionary\n`);
+    const pages = await document.lookup(dictGet(root.value, "Pages"));
+    if (pages?.value.kind !== "dict" || pages.stream) return await diagnostic(`qpdf: ${inputName ?? "empty"}: unable to find page tree\n`);
     if (options.updateFromJsonFiles.length) {
       jsonDocument = await QpdfJsonDocument.fromDocument(document, source, storage, { signal });
       for (const path of options.updateFromJsonFiles) {

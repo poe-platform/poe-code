@@ -62,8 +62,8 @@ export async function recoverPdfReferences(source: PdfFileSource, storage: PdfIn
       if (!trailer) continue;
       const root = dictGet(trailer, "Root"); if (root?.kind !== "ref") continue;
       const catalog = await lookup(root);
-      if (!catalog && !packed) continue;
-      if (catalog) {
+      if (!catalog && !packed && options.xrefMode !== "qpdf") continue;
+      if (catalog && options.xrefMode !== "qpdf") {
         if (catalog.kind !== "dict") continue;
         const pages = dictGet(catalog, "Pages");
         if (pages?.kind !== "dict") {

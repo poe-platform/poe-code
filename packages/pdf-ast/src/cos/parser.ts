@@ -21,7 +21,7 @@ import { CosByteLexer, type CosToken } from "./lexer.js";
 import { authenticateStandardEncryption, decryptCosDocumentSteps } from "./security.js";
 
 export interface ParseCosOptions {
-  /** Match qpdf: unknown xref entry types are null, and cannot supply a root. */
+  /** Match qpdf: unknown xref entries are null; recovery preserves declared roots. */
   readonly xrefMode?: "qpdf";
   /** Report tolerated syntax damage without changing recovery behavior. */
   readonly onWarning?: ((message: string) => void) | undefined;
@@ -792,6 +792,7 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
     const candidates = scanned.trailers.filter(dict => {
       const root = dictGet(dict, "Root");
       if (root?.kind !== "ref") return false;
+      if (options.xrefMode === "qpdf") return true;
       const catalog = objects.get(root.objectNumber)?.value;
       // Compressed roots can only be validated after authentication/unpacking.
       if (!catalog) return hasObjectStreams;

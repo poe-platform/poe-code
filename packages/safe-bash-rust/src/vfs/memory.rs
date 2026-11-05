@@ -639,7 +639,7 @@ impl MemoryVfs {
             revision,
             uid: (state.devices != Devices::Mounted).then_some(0), gid: (state.devices != Devices::Mounted).then_some(0),
             preferred_io_block_size: (device.is_none() || default_device && device == Some("null")).then_some(4096),
-            io_block_size: device.is_none().then_some(65536), filesystem_type: device.is_none().then_some("memory"),
+            io_block_size: device.is_none().then_some(65536), filesystem_type: device.is_none().then_some("memory".into()),
             nlink: (state.devices != Devices::Mounted).then(|| if device.is_some() { 1 } else if kind == VfsEntryKind::Directory {
                 2 + state.child_dirs.get(resolved).copied().unwrap_or(0)
             } else { 1 + state.extra_links.get(&ino).map_or(0, |g| g.extra) }),

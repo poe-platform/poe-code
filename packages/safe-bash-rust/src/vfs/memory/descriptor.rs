@@ -110,7 +110,7 @@ impl RetainedFile {
         FileStat {
             revision: Some(file.revision),
             nlink: Some(usize::from(file.linked) + state.extra_links.get(&self.ino).map_or(0, |g| g.extra)),
-            uid: Some(0), gid: Some(0), io_block_size: Some(65536), preferred_io_block_size: Some(4096), filesystem_type: Some("memory"),
+            uid: Some(0), gid: Some(0), io_block_size: Some(65536), preferred_io_block_size: Some(4096), filesystem_type: Some("memory".into()),
             identity: Some(EntryIdentity::Memory(self.fs.id, self.ino)),
             allocated_bytes: None,
             kind: VfsEntryKind::File,

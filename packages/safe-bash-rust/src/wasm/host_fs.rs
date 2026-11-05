@@ -150,7 +150,8 @@ impl HostFs {
         Self::parse_stat(&data)
     }
     fn parse_stat(data: &[u8]) -> Result<FileStat, String> {
-        let numbers: Vec<_> = data
+        let (fixed, name) = data.split_at_checked(128).ok_or("EIO: invalid host stat")?;
+        let numbers: Vec<_> = fixed
             .chunks_exact(8)
             .map(|b| f64::from_le_bytes(b.try_into().unwrap()))
             .collect();
@@ -170,7 +171,7 @@ impl HostFs {
             allocated,
             block,
             preferred,
-            memory,
+            type_tag,
         ] = numbers[..]
         else {
             return Err("EIO: invalid host stat".into());
@@ -197,7 +198,12 @@ impl HostFs {
             allocated_bytes: allocated.is_finite().then_some(allocated as u64),
             io_block_size: block.is_finite().then_some(block as u64),
             preferred_io_block_size: preferred.is_finite().then_some(preferred as u64),
-            filesystem_type: (memory == 1.0).then_some("memory"),
+            filesystem_type: match type_tag {
+                0.0 if name.is_empty() => None,
+                1.0 if name.is_empty() => Some("memory".into()),
+                2.0 => Some(std::str::from_utf8(name).map_err(|_| "EIO: invalid host filesystem type")?.to_owned().into()),
+                _ => return Err("EIO: invalid host stat".into()),
+            },
         })
     }
 }
@@ -399,10 +405,12 @@ impl SafeBashFs for HostFs {
     fn retain_removal(&self,path:&str,parent:FileStat,expected:FileStat)->Result<crate::vfs::RemovalReceipt<'_>,String>{
         self.mutable(path,false)?;
         let data=self.request("retainRemoval",path,&[],0,0)?;
-        if data.len()!=12+2*128 { return Err("EIO: invalid removal receipt".into()); }
+        if data.len()<16 { return Err("EIO: invalid removal receipt".into()); }
         let stamp=self.own_stamp(data[..4].to_vec())?;
-        let observed_parent=Self::parse_stat(&data[12..140])?;
-        let observed=Self::parse_stat(&data[140..])?;
+        let parent_len=u32::from_le_bytes(data[12..16].try_into().unwrap()) as usize;
+        let (parent_bytes,entry_bytes)=data[16..].split_at_checked(parent_len).ok_or("EIO: invalid removal receipt")?;
+        let observed_parent=Self::parse_stat(parent_bytes)?;
+        let observed=Self::parse_stat(entry_bytes)?;
         if parent.identity.is_none() || parent.identity!=observed_parent.identity || !expected.same_snapshot(&observed) {
             return Err("EAGAIN: ZIP move source changed during selection".into());
         }

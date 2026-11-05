@@ -919,7 +919,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
     buf.extend_from_slice(&st.ctime_ms.unwrap_or(f64::NAN).to_le_bytes());
     buf.extend_from_slice(&st.birthtime_ms.unwrap_or(f64::NAN).to_le_bytes());
     let fields = u32::from(st.uid.is_some()) | (u32::from(st.gid.is_some()) << 1)
-        | (u32::from(st.nlink.is_some()) << 2) | (u32::from(st.filesystem_type == Some("memory")) << 3) | (u32::from(st.revision.is_some()) << 4)
+        | (u32::from(st.nlink.is_some()) << 2) | (u32::from(st.filesystem_type.as_deref() == Some("memory")) << 3) | (u32::from(st.revision.is_some()) << 4)
         | (u32::from(st.preferred_io_block_size.is_some()) << 6);
     buf.extend_from_slice(&fields.to_le_bytes());
     buf.extend_from_slice(&st.uid.unwrap_or(0).to_le_bytes());

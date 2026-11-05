@@ -63,7 +63,7 @@ pub struct FileStat {
     pub gid: Option<u32>,
     pub io_block_size: Option<u64>,
     pub preferred_io_block_size: Option<u64>,
-    pub filesystem_type: Option<&'static str>,
+    pub filesystem_type: Option<std::borrow::Cow<'static, str>>,
     pub allocated_bytes: Option<u64>,
     pub identity: Option<EntryIdentity>,
     pub kind: VfsEntryKind,

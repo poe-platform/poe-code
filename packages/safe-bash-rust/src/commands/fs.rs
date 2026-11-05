@@ -3504,7 +3504,8 @@ fn cmd_stat(
                             st.size.to_string()
                         }
                         "F" => ftype.to_string(),
-                        "T" if filesystem => match st.filesystem_type {
+                        "T" if filesystem => match st.filesystem_type.as_deref() {
+                            Some("") => break Some("EIO: invalid filesystem type, stat".into()),
                             Some(name) => name.to_owned(),
                             None => break Some("ENOTSUP: filesystem does not expose its type, stat".into()),
                         },

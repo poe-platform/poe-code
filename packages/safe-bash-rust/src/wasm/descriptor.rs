@@ -14,7 +14,7 @@ enum Target {
     Regular(RetainedFile),
     ReadOnly(Box<dyn crate::vfs::FileReadHandle>),
     Device {
-        stat: FileStat,
+        stat: Box<FileStat>,
         name: String,
         mounted: bool,
     },
@@ -66,7 +66,7 @@ impl WasmSession {
             }
             if device {
                 Target::Device {
-                    stat,
+                    stat: Box::new(stat),
                     name: crate::vfs::basename_posix_path(&p),
                     mounted,
                 }
@@ -131,7 +131,7 @@ pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: 
         let p = resolved.as_deref().unwrap();
         let device = stream && st.mode & 0o170000 == 0o020000;
         let target = if null || device {
-            Target::Device { stat: st, name: crate::vfs::basename_posix_path(p), mounted: sess.profile == Profile::Devices }
+            Target::Device { stat: Box::new(st), name: crate::vfs::basename_posix_path(p), mounted: sess.profile == Profile::Devices }
         } else if stream {
             Target::ReadOnly(fs.open_stream_reader(p)?)
         } else {
@@ -282,7 +282,7 @@ pub unsafe extern "C" fn safe_bash_descriptor(
                 sess.last_output_buf = stat_bytes(match &d.target {
                     Target::ReadOnly(handle) => handle.stat()?,
                     Target::Regular(f) => f.stat(),
-                    Target::Device { stat, .. } => stat.clone(),
+                    Target::Device { stat, .. } => (**stat).clone(),
                 });
                 Ok(sess.last_output_buf.len() as u64)
             }

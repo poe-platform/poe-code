@@ -3,6 +3,24 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("stat -f reports the filesystem type supplied for each host path", {skip: !WebAssembly.Suspending}, async () => {
+  const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/"});
+  const types = {"/a":"ext4", "/b":"réseau", "/c":undefined, "/d":""};
+  for (const path of Object.keys(types)) await fs.writeFile(path, new Uint8Array());
+  for (const op of ["stat", "lstat"]) {
+    const original = fs[op].bind(fs);
+    fs[op] = async (path, ...args) => ({...await original(path, ...args), filesystemType:types[path]});
+  }
+  try {
+    const result = await bash.exec("stat -f -c '%n %T' /a /b /c /d", {fs});
+    assert.equal(result.stdout, "/a ext4\n/b réseau\n");
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /ENOTSUP: filesystem does not expose its type/);
+    assert.match(result.stderr, /EIO: invalid filesystem type/);
+  } finally { await bash.dispose(); }
+});
+
 test("sed backup on a caller filesystem keeps the original inode and open readers", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/",forceNative:true});

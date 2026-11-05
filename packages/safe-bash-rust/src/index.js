@@ -169,8 +169,14 @@ function bindExternalFs(shell,fs,options) {
     if(closeErrors.length===1)throw closeErrors[0];
     if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
   };
-  const statBytes=s=>new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
-              s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
+  const statBytes=s=>{
+    const type=s.filesystemType;
+    const fixed=new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
+              s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,type===undefined?0:type==="memory"?1:2]).buffer);
+    if(typeof type!=="string" || !type || type==="memory")return fixed;
+    const name=encoder.encode(type),bytes=new Uint8Array(fixed.length+name.length);
+    bytes.set(fixed);bytes.set(name,fixed.length);return bytes;
+  };
   const createStage=async(view,path,content,guard,metadata,name="file",parentDir=path.slice(0,path.lastIndexOf("/")),prefix=".zip")=>{
     const settings={signal:options.signal};
     for(let attempt=0;;attempt++){
@@ -287,9 +293,9 @@ function bindExternalFs(shell,fs,options) {
           };
           const id=nextHandle++,p=statBytes(parent),e=statBytes(expected);
           publications.set(id,{path:canonical,parent,expected});
-          result=new Uint8Array(12+p.length+e.length);const v=new DataView(result.buffer);
+          result=new Uint8Array(16+p.length+e.length);const v=new DataView(result.buffer);
           v.setUint32(0,id,true);v.setUint32(4,scope(parent),true);v.setUint32(8,scope(expected),true);
-          result.set(p,12);result.set(e,12+p.length);return;
+          v.setUint32(12,p.length,true);result.set(p,16);result.set(e,16+p.length);return;
         }
         if(op==="removeRetained"){
           const {path:canonical,parent,expected}=publications.get(flags);

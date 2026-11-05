@@ -961,6 +961,20 @@ export class Interpreter {
       yield* visit(input, []);
       return;
     }
+    if (name === "truncate_stream") {
+      // jq evaluates the event filter on null, retaining the input as the depth.
+      for await (const event of this.run(args[0]!, null)) {
+        const pending = budget.tickSync(); if (pending) await pending;
+        const path = indexValue(event, 0);
+        for await (const length of this.call("length", [], path)) {
+          if (await compare(length, input, budget) <= 0) continue;
+          const result = await this.set(event, [0], await sliceValue(path, input, null, budget));
+          budget.value(result);
+          yield result;
+        }
+      }
+      return;
+    }
     if (name === "fromstream") {
       let result: Json = null;
       for await (const event of this.run(args[0]!, input)) {

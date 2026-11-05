@@ -301,7 +301,8 @@ function penalty(grid: boolean[][]): number {
           score += 40;
       }
     }
-  score += Math.floor(Math.abs((100 * dark) / (n * n) - 50) / 5) * 10;
+  const percent = Math.round((100 * dark) / (n * n));
+  score += Math.floor(Math.abs(percent - 50) / 5) * 10;
   return score;
 }
 

@@ -40,15 +40,13 @@ async function run(
 const nativeAvailable = spawnSync("qrencode", ["--version"]).status === 0;
 
 test("all terminal renderers agree with native qrencode", { skip: !nativeAvailable }, async () => {
-  for (const type of ["ASCII", "ASCIIi", "UTF8", "UTF8i", "ANSI", "ANSI256", "ANSIUTF8"]) {
-    const args = ["-t", type, "-m", "2", "--micro", "12345"];
-    const result = await run(args);
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(
-      result.stdout.toString(),
-      execFileSync("qrencode", args, { encoding: "utf8" }),
-      type
-    );
+  for (const type of ["ASCII", "ASCIIi", "UTF8", "UTF8i", "ANSI", "ANSI256", "ANSIUTF8", "ANSIUTF8i", "ANSI256UTF8"]) {
+    for (const margin of ["0", "1", "2", "3"]) {
+      const args = ["-t", type, "-m", margin, "--micro", "12345"];
+      const result = await run(args);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout.toString(), execFileSync("qrencode", args, { encoding: "utf8" }), type + " margin " + margin);
+    }
   }
 });
 

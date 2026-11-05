@@ -12,7 +12,9 @@ export const outputTypes = [
   "UTF8i",
   "ANSI",
   "ANSI256",
-  "ANSIUTF8"
+  "ANSIUTF8",
+  "ANSIUTF8i",
+  "ANSI256UTF8"
 ] as const;
 export interface RenderOptions {
   readonly type: (typeof outputTypes)[number];
@@ -107,15 +109,18 @@ export function renderQr(
       text += "\x1b[0m\n";
     }
   } else {
-    const inverted = type === "UTF8i";
-    for (let y = 0; y < width; y += 2) {
-      if (type === "ANSIUTF8") text += "\x1b[40;37;1m";
+    const inverted = type === "UTF8i" || type === "ANSIUTF8i";
+    const colors = type === "ANSI256UTF8" ? "\x1b[38;5;231m\x1b[48;5;16m"
+      : type.startsWith("ANSI") ? "\x1b[40;37;1m" : "";
+    // The vertical quiet zone uses whole terminal rows, each two modules high.
+    for (let y = margin % 2; y < width; y += 2) {
+      text += colors;
       for (let x = 0; x < width; x++) {
         const top = dark(x, y) !== inverted,
           bottom = dark(x, y + 1) !== inverted;
         text += ["█", "▄", "▀", " "][Number(top) + 2 * Number(bottom)];
       }
-      if (type === "ANSIUTF8") text += "\x1b[0m";
+      if (colors) text += "\x1b[0m";
       text += "\n";
     }
   }

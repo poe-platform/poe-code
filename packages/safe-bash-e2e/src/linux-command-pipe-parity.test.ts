@@ -58,6 +58,18 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       }
     });
+    await t.test("qrencode rounds the dark-module percentage before choosing a mask", async () => {
+      for (const [level, data] of [["L", "0123456789"], ["M", "012345678901234567896"]] as const) {
+        const args = ["-t", "ASCII", "-m", "0", "-l", level, data];
+        const [code, bytes] = await runLinuxCommand("qrencode", args, "");
+        assert.equal(code, 0);
+        for (const shell of [rust, ts.shell]) {
+          const result = await shell.exec("qrencode " + args.join(" "));
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.deepEqual(Buffer.from(result.stdoutBytes), bytes);
+        }
+      }
+    });
     await t.test("qrencode selects the first operand and encodes binary or NUL-terminated input", async () => {
       const dash = Buffer.from([65, 0, 255, 66]);
       await writeFile(cwd + "/-", dash);

@@ -3790,8 +3790,9 @@ fn qr_penalty(grid: &[Vec<bool>]) -> i64 {
             }
         }
     }
-    let ratio_penalty = ((((100.0 * (dark as f64)) / ((n * n) as f64) - 50.0).abs()) / 5.0).floor() as i64 * 10;
-    score + ratio_penalty
+    let area = (n * n) as i64;
+    let percent = (100 * dark + area / 2) / area;
+    score + (percent - 50).abs() / 5 * 10
 }
 
 fn qr_matrix(bits: &[u8], version: usize, level: usize, micro: bool) -> Vec<Vec<bool>> {
@@ -4208,19 +4209,22 @@ fn qr_render(
             text.push_str("\x1b[0m\n");
         }
     } else {
-        let inv = rtype == "UTF8i";
-        let mut y = 0usize;
+        let inv = matches!(rtype, "UTF8i" | "ANSIUTF8i");
+        let colors = match rtype {
+            "ANSI256UTF8" => "\x1b[38;5;231m\x1b[48;5;16m",
+            "ANSIUTF8" | "ANSIUTF8i" => "\x1b[40;37;1m",
+            _ => "",
+        };
+        let mut y = margin % 2;
         while y < width {
-            if rtype == "ANSIUTF8" {
-                text.push_str("\x1b[40;37;1m");
-            }
+            text.push_str(colors);
             for x in 0..width {
                 let top = dark(x, y) != inv;
                 let bottom = dark(x, y + 1) != inv;
                 let idx = usize::from(top) + 2 * usize::from(bottom);
                 text.push_str(["█", "▄", "▀", " "][idx]);
             }
-            if rtype == "ANSIUTF8" {
+            if !colors.is_empty() {
                 text.push_str("\x1b[0m");
             }
             text.push('\n');
@@ -13205,7 +13209,7 @@ fn cmd_sox(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 }
 
 fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read input from a virtual file\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
+    const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read input from a virtual file\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8, ANSIUTF8i, ANSI256UTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
     if args.is_empty() { return err_out(QR_HELP, 1); }
     let parse_uint = |val: &str, min: usize, max: usize| -> Result<usize, String> {
         if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
@@ -13324,7 +13328,7 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             "o" => output_opt = Some(val),
             "r" => input_opt = Some(val),
             "t" => {
-                let Some(format) = ["PNG", "PNG32", "SVG", "EPS", "ASCII", "ASCIIi", "UTF8", "UTF8i", "ANSI", "ANSI256", "ANSIUTF8"]
+                let Some(format) = ["PNG", "PNG32", "SVG", "EPS", "ASCII", "ASCIIi", "UTF8", "UTF8i", "ANSI", "ANSI256", "ANSIUTF8", "ANSIUTF8i", "ANSI256UTF8"]
                     .into_iter().find(|name| val.eq_ignore_ascii_case(name)) else {
                     return err_out("qrencode: Unsupported output type\n", 1);
                 };
@@ -13404,7 +13408,7 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     if structured {
         if version == 0 { return err_out("Version number must be specified to encode structured symbols.\n", 1); }
         if output_opt.is_none() { return err_out("An output filename must be specified to store the structured images.\n", 1); }
-        if matches!(rtype.as_str(), "PNG32" | "ASCIIi") { return err_out("Unknown image type.\n", 1); }
+        if matches!(rtype.as_str(), "PNG32" | "ASCIIi" | "ANSI256UTF8") { return err_out("Unknown image type.\n", 1); }
     }
     if ignorecase && !byte_mode {
         let mut idx = 0usize;

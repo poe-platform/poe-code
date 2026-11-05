@@ -26,7 +26,7 @@ await shell.dispose();
 | Structured append | `qrencode -S -v 2 -r /message -o /part.png` |
 
 Formats: `PNG`, `PNG32`, `SVG`, `EPS`, `ASCII`, `ASCIIi`, `UTF8`, `UTF8i`,
-`ANSI`, `ANSI256`, and `ANSIUTF8`. `-o -` writes bytes to stdout for pipelines
+`ANSI`, `ANSI256`, `ANSIUTF8`, `ANSIUTF8i`, and `ANSI256UTF8`. `-o -` writes bytes to stdout for pipelines
 or redirection. PNG and PNG32 require an explicit output. Vector and terminal formats default to stdout. Terminal formats use
 one character pair or half-block per module; `-s` scales raster and vector output.
 

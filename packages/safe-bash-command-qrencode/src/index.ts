@@ -43,7 +43,7 @@ Generate QR codes from a string, stdin, or a virtual file.
   -o, --output FILE       Virtual output file (- for stdout)
   -r, --read-from FILE    Read input from a virtual file
   -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,
-                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8
+                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8, ANSIUTF8i, ANSI256UTF8
   -s, --size N            Module pixel size (default 3)
   -m, --margin N          Quiet zone (default 4, Micro QR 2)
   -l, --level L|M|Q|H     Error correction (default L)
@@ -330,7 +330,7 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
         if (parsed.structured) {
           if (!parsed.encode.version) return fail("Version number must be specified to encode structured symbols.");
           if (parsed.output === undefined) return fail("An output filename must be specified to store the structured images.");
-          if (type === "PNG32" || type === "ASCIIi") return fail("Unknown image type.");
+          if (type === "PNG32" || type === "ASCIIi" || type === "ANSI256UTF8") return fail("Unknown image type.");
         }
         if (parsed.ignorecase && !parsed.encode.byte) {
           data = data.slice();

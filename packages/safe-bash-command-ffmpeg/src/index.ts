@@ -2070,9 +2070,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (ox + x < 0) continue;
                   const srcOff = (y * b.width + x) * 4;
                   const dstOff = ((oy + y) * a.width + (ox + x)) * 4;
-                  outData[dstOff] = b.data[srcOff]!;
-                  outData[dstOff + 1] = b.data[srcOff + 1]!;
-                  outData[dstOff + 2] = b.data[srcOff + 2]!;
+                  const alpha = b.data[srcOff + 3]!;
+                  if (alpha === 0) continue;
+                  for (let channel = 0; channel < 3; channel++) {
+                    outData[dstOff + channel] = Math.round(
+                      (b.data[srcOff + channel]! * alpha + outData[dstOff + channel]! * (255 - alpha)) / 255
+                    );
+                  }
                   outData[dstOff + 3] = 255;
                 }
               }

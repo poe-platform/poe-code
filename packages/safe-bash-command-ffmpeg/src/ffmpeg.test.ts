@@ -13,6 +13,40 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("overlay alpha", () => {
+  // Decoded native FFmpeg PNG pixels for a green overlay on opaque red.
+  for (const [alpha, expected] of [
+    [0, [255, 0, 0, 255]],
+    [128, [127, 128, 0, 255]],
+    [255, [0, 255, 0, 255]]
+  ] as const) {
+    it(`matches native PNG pixels with overlay alpha ${alpha}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const red = [255, 0, 0, 255];
+      const vfs = createTestVfs({
+        "/base.png": encodeImage({ width: 8, height: 8, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data: Uint8Array.from(Array(64).fill(red).flat()) }, { format: "png" }).data,
+        "/logo.png": encodeImage({ width: 2, height: 2, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data: Uint8Array.from(Array(4).fill([0, 255, 0, alpha]).flat()) }, { format: "png" }).data
+      });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error", "-i", "/base.png", "-i", "/logo.png",
+        "-filter_complex", "[0:v][1:v]overlay=0:0:format=rgb",
+        "-frames:v", "1", "-update", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const image = decodeImage(vfs.store.get("/out.png")!);
+      assert.equal(image.width, 8);
+      assert.equal(image.height, 8);
+      for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+          const offset = (y * 8 + x) * 4;
+          assert.deepEqual([...image.data.subarray(offset, offset + 4)],
+            x < 2 && y < 2 ? expected : red, `pixel (${x}, ${y})`);
+        }
+      }
+    });
+  }
+});
+
 describe("overlay offsets", () => {
   for (const [options, ox, oy] of [
     ["x=2:y=2:format=rgb", 2, 2],

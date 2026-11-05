@@ -20832,7 +20832,7 @@ fn cmd_tsort(
         let u_idx = name_to_idx[&pair[0]];
         let v_idx = name_to_idx[&pair[1]];
         if u_idx != v_idx {
-            ordered[u_idx].edges.insert(0, v_idx);
+            ordered[u_idx].edges.push(v_idx);
             ordered[v_idx].count += 1;
         }
     }
@@ -20854,8 +20854,7 @@ fn cmd_tsort(
             out.push('\n');
             ordered[u_idx].printed = true;
             remaining -= 1;
-            let edges = ordered[u_idx].edges.clone();
-            for target_idx in edges {
+            for target_idx in std::mem::take(&mut ordered[u_idx].edges).into_iter().rev() {
                 ordered[target_idx].count -= 1;
                 if ordered[target_idx].count == 0 {
                     queue.push_back(target_idx);
@@ -20879,7 +20878,7 @@ fn cmd_tsort(
                     continue;
                 }
                 let cur_loop = loop_idx.unwrap();
-                if let Some(epos) = ordered[idx].edges.iter().position(|&t| t == cur_loop) {
+                if let Some(epos) = ordered[idx].edges.iter().rposition(|&t| t == cur_loop) {
                     if link[idx].is_some() {
                         while let Some(l_idx) = loop_idx {
                             let next_l = link[l_idx];
@@ -20900,11 +20899,11 @@ fn cmd_tsort(
                             link[l_idx] = None;
                             loop_idx = next_l;
                         }
+                        break;
                     } else {
                         link[idx] = loop_idx;
                         loop_idx = Some(idx);
                     }
-                    break;
                 }
             }
             if loop_idx.is_none() {

@@ -173,6 +173,8 @@ comment */ / 8, "\n" # trailing comment
     // Independent ready nodes sort by raw name bytes even with a mixture of UTF-8 and invalid bytes.
     { cmd: "tsort", args: [], script: "tsort", input: "x a\nx b\na c\nb c\n" },
     { cmd: "tsort", args: ["-"], script: "tsort -", input: "a b\nb a\n" },
+    { cmd: "tsort", args: ["--", "-"], script: "tsort -- -", input: "d b\nb a\ne d\nb f\na d\nf e\n" },
+    { cmd: "tsort", args: ["--"], script: "tsort --", input: "x a\nx b\n".repeat(15000) },
     { cmd: "tsort", args: [], script: "tsort", input: Buffer.from("c3a920c3a9207a207a20ff20ff2080208020412041", "hex") },
   ];
 }

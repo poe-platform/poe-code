@@ -2558,6 +2558,18 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx + 3] = clampByteVal(saByte + daByte);
                 continue;
             }
+            if (norm === "dividedst") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    // ImageMagick divides premultiplied channels, then unpremultiplies.
+                    const sc = src.data[sIdx + c]! / 255 * sa;
+                    const dc = dst.data[dIdx + c]! / 255 * da;
+                    const channel = dc === 0 ? sc + (1 - sa) : sc / dc + sc * (1 - da) + dc * (1 - sa);
+                    out[dIdx + c] = clampByteVal(255 * channel / (alpha || 1e-12));
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
             if (norm === "minus") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {

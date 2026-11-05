@@ -3937,9 +3937,10 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     let work = 0;
     const {baseToken,pageSpec,inlineGeom}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
-        if (!inlineGeom)
-            return imgs;
-        return yield* mapSteps(imgs, function* (im) { return yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel); });
+        return yield* mapSteps(imgs, function* (im) {
+            if (state.delay !== undefined) im = { ...im, delay: Array(im.delay?.length ?? 1).fill(state.delay) };
+            return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel) : im;
+        });
     }
     const lower = baseToken.toLowerCase();
     if (lower.startsWith("tile:")) {
@@ -4017,12 +4018,9 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             originalWidth: inputMeta?.width ?? img.width, originalHeight: inputMeta?.height ?? img.height, sceneIdx: pageIdx
         };
         img = Object.assign(img, { [magickInput]: source });
-        if (inlineGeom) {
-            img = (yield* applyInlineReadModifierSteps(img, inlineGeom, state.kernel));
-        }
         results.push(img);
     }
-    return results;
+    return yield* applyMod(results);
 }
 
 function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResult | undefined {
@@ -5868,8 +5866,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         const { data: encoded } = encodeImage(toEncode, {
             format,
             ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality,
-            ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : {}),
-            ...(state.delay === undefined ? {} : { delay: state.delay }),
+            ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : { delay: toEncode.delay?.[(finalImg as MagickImage)[magickInput]?.sceneIdx ?? 0] }),
             ...(state.loop === undefined ? {} : { loop: state.loop }),
             consumeInput: true
         } as any);
@@ -6565,7 +6562,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 } }
             };
         }
-        const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(state.delay === undefined ? {} : { delay: state.delay }), ...(state.loop === undefined ? {} : { loop: state.loop }) });
+        const scene = pageHeight === undefined ? (await stack.get(0))![magickInput]?.sceneIdx ?? 0 : 0;
+        const delay = pageHeight === undefined ? await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] : undefined;
+        const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }
@@ -6924,6 +6923,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+ if(state.delay!==undefined){const delay=state.delay;image={...image,storedDelay:{length:image.storedDelay?.length??image.delay?.length??1,async at(){return delay;}}};}
  if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal);}}
  return image;
  }

@@ -2473,7 +2473,7 @@ function parseCompose(raw: string): BlendMode {
 function magickCompositeMode(mode: string): { name: string; delegated: boolean } {
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
-    return { name, delegated: ["over", "srcover", "add", "lineardodge", "saturate"].includes(name) };
+    return { name, delegated: ["over", "srcover", "add", "lineardodge"].includes(name) };
 }
 
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2518,6 +2518,23 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                     out[dIdx + c] = alpha === 0 ? 0 : clampByteVal((dst.data[dIdx + c]! * da + src.data[sIdx + c]! * sourceAlpha) / alpha);
                 }
                 out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
+            if (norm === "saturate") {
+                if (saByte === 0) continue;
+                if (daByte === 0) {
+                    out.set(src.data.subarray(sIdx, sIdx + 4), dIdx);
+                    continue;
+                }
+                // HCL: replace chroma while preserving destination hue and Rec.601 luma.
+                const chroma = Math.max(sr, sg, sb) - Math.min(sr, sg, sb);
+                const destinationChroma = Math.max(dr, dg, db) - Math.min(dr, dg, db);
+                const luma = 0.298839 * dr + 0.586811 * dg + 0.114350 * db;
+                const scale = destinationChroma === 0 ? 0 : chroma / destinationChroma;
+                out[dIdx] = clampByteVal(luma + (destinationChroma === 0 ? 0.701161 * chroma : (dr - luma) * scale));
+                out[dIdx + 1] = clampByteVal(luma + (destinationChroma === 0 ? -0.298839 * chroma : (dg - luma) * scale));
+                out[dIdx + 2] = clampByteVal(luma + (destinationChroma === 0 ? -0.298839 * chroma : (db - luma) * scale));
+                out[dIdx + 3] = Math.max(saByte, daByte);
                 continue;
             }
             if (norm === "plus") {

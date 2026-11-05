@@ -1,4 +1,4 @@
-import { cosArray, cosDict, cosName, cosNumber, cosRef, dictGet, type PdfCosDict, type PdfCosNode } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosRef, cosStream, dictGet, type PdfCosDict, type PdfCosNode } from "../ast.js";
 import { PdfError } from "../errors.js";
 import { concatByteArrays, serializeCosNodeBytes, serializeCosNodeChunks, type SerializeCosStreamOptions } from "./writer.js";
 
@@ -95,7 +95,27 @@ export function* linearizedOutput(ids: readonly number[], options: Omit<Serializ
   // numbering remains stable when an encryption dictionary is appended later.
   const order = [...open, ...groups.flat(), ...otherShared, ...rest];
   const numbers = new Map(order.map((id, index) => [id, index + 3]));
-  const size = order.length + 3;
+  // Keep page sections and their hints unchanged. Objects in the remaining
+  // section can be packed without delaying access to any page. One object per
+  // stream bounds retained-writer memory to the object currently being read.
+  const packed = new Map<number, number>();
+  let size = order.length + 3;
+  if (options.objectStreams === "generate" && !options.encryptRef && !options.normalizeContent) {
+    for (const id of rest) {
+      if (outlineGroup.includes(id)) continue;
+      const object = yield* read(id);
+      if (object.streamLength === undefined) packed.set(id, size++);
+    }
+  }
+  let frontXrefNumber = 0, mainXrefNumber = 0;
+  if (packed.size) {
+    let number = 3;
+    for (const id of order) if (!packed.has(id)) numbers.set(id, number++);
+    for (const id of packed.keys()) packed.set(id, number++);
+    frontXrefNumber = number++; mainXrefNumber = number++;
+    for (const id of packed.keys()) numbers.set(id, number++);
+    size = number;
+  }
   if (size - 1 > (options.maxObjects ?? Infinity)) throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
   function remap(node: PdfCosNode, depth = 0): PdfCosNode {
     if (depth > (options.maxRecursionDepth ?? Infinity)) throw new PdfError("E_LIMIT", "PDF object graph nesting depth exceeded");
@@ -113,20 +133,45 @@ export function* linearizedOutput(ids: readonly number[], options: Omit<Serializ
   const nodeBytes = (node: PdfCosNode) => serializeCosNodeBytes(node, 0, options.maxRecursionDepth);
   const prefix = (number: number) => encoder.encode(`${number} 0 obj\n`);
   const suffix = encoder.encode("\nendobj\n\n");
+  function packedValue(id: number, value: PdfCosNode): PdfCosNode {
+    const head = encoder.encode(`${numbers.get(id)!} 0\n`);
+    return cosStream(concatByteArrays([head, nodeBytes(value)]), {
+      dict: cosDict({ Type: cosName("ObjStm"), N: cosNumber(1), First: cosNumber(head.length) }), compress: false,
+    });
+  }
   for (const id of order) {
-    const object = yield* read(id), value = remap(inherited.get(id) ?? object.value);
-    let length = prefix(numbers.get(id)!).length + suffix.length;
+    const object = yield* read(id);
+    let value = remap(inherited.get(id) ?? object.value);
+    if (packed.has(id)) value = packedValue(id, value);
+    let length = prefix(packed.get(id) ?? numbers.get(id)!).length + suffix.length;
     for (const bytes of serializeCosNodeChunks(value, { chunkBytes, maxRecursionDepth: options.maxRecursionDepth ?? Infinity })) length += bytes.length;
     if (object.streamLength !== undefined) length += 8 + object.streamLength + 10;
     lengths.set(id, length);
   }
   const fixed = (value: number) => ({ ...cosNumber(value), raw: String(value).padStart(10, "0") });
   let total = 0, hintOffset = 0, hintLength = 0, firstEnd = 0, mainXref = 0;
-  const linear = () => cosDict({ Linearized: cosNumber(1), L: fixed(total), H: cosArray([fixed(hintOffset), fixed(hintLength)]), O: cosNumber(numbers.get(pages[0]!)!), E: fixed(firstEnd), N: cosNumber(pages.length), T: fixed(mainXref + encoder.encode(`xref\n0 ${size}\n`).length - 1) });
+  const linear = () => cosDict({ Linearized: cosNumber(1), L: fixed(total), H: cosArray([fixed(hintOffset), fixed(hintLength)]), O: cosNumber(numbers.get(pages[0]!)!), E: fixed(firstEnd), N: cosNumber(pages.length), T: fixed(packed.size ? mainXref : mainXref + encoder.encode(`xref\n0 ${size}\n`).length - 1) });
   const trailer = (front: boolean) => cosDict({ Size: cosNumber(size), Root: remap(options.rootRef), Info: options.infoRef ? remap(options.infoRef) : undefined, Encrypt: options.encryptRef ? remap(options.encryptRef) : undefined, ID: options.idArray, Prev: front ? fixed(mainXref) : undefined });
-  const header = encoder.encode(`%PDF-${options.version ?? "1.7"}\n%\x81\x81\x81\x81\n\n`);
+  const version = options.version ?? "1.7";
+  const header = encoder.encode(`%PDF-${packed.size && Number.parseFloat(version) < 1.5 ? "1.5" : version}\n%\x81\x81\x81\x81\n\n`);
   const frontXref = header.length + prefix(1).length + nodeBytes(linear()).length + suffix.length;
   function xref(front: boolean) {
+    if (packed.size) {
+      const data = new Uint8Array(size * 7), view = new DataView(data.buffer);
+      const entry = (id: number, type: number, offset: number, index = 0) => {
+        data[id * 7] = type; view.setUint32(id * 7 + 1, offset); view.setUint16(id * 7 + 5, index);
+      };
+      entry(0, 0, 0, 65535); entry(1, 1, header.length); entry(2, 1, hintOffset);
+      for (const id of order) {
+        const container = packed.get(id);
+        entry(numbers.get(id)!, container ? 2 : 1, container ?? offsets.get(id) ?? 0);
+        if (container) entry(container, 1, offsets.get(id) ?? 0);
+      }
+      entry(frontXrefNumber, 1, frontXref); entry(mainXrefNumber, 1, mainXref);
+      const dict = trailer(front);
+      dict.entries.push({ key: cosName("Type"), value: cosName("XRef") }, { key: cosName("W"), value: cosArray([cosNumber(1), cosNumber(4), cosNumber(2)]) });
+      return concatByteArrays([prefix(front ? frontXrefNumber : mainXrefNumber), nodeBytes(cosStream(data, { dict, compress: false })), suffix, encoder.encode(`\nstartxref\n${front ? 0 : frontXref}\n%%EOF\n`)]);
+    }
     let text = `xref\n0 ${size}\n0000000000 65535 f \n`;
     for (let number = 1; number < size; number++) text += `${String(number === 1 ? header.length : number === 2 ? hintOffset : offsets.get(order[number - 3]!) ?? 0).padStart(10, "0")} 00000 n \n`;
     return concatByteArrays([encoder.encode(text + "trailer\n"), nodeBytes(trailer(front)), encoder.encode(`\n\nstartxref\n${front ? 0 : frontXref}\n%%EOF\n`)]);
@@ -170,8 +215,9 @@ export function* linearizedOutput(ids: readonly number[], options: Omit<Serializ
   function* bytes(data: Uint8Array): Work<void> { for (let at = 0; at < data.length; at += chunkBytes) yield data.slice(at, at + chunkBytes); }
   function* object(id: number): Work<void> {
     const value = yield* read(id);
-    yield* bytes(prefix(numbers.get(id)!));
-    for (const chunk of serializeCosNodeChunks(remap(inherited.get(id) ?? value.value), { chunkBytes, maxRecursionDepth: options.maxRecursionDepth ?? Infinity })) yield chunk;
+    yield* bytes(prefix(packed.get(id) ?? numbers.get(id)!));
+    const node = remap(inherited.get(id) ?? value.value);
+    for (const chunk of serializeCosNodeChunks(packed.has(id) ? packedValue(id, node) : node, { chunkBytes, maxRecursionDepth: options.maxRecursionDepth ?? Infinity })) yield chunk;
     if (value.streamLength !== undefined) { yield* bytes(encoder.encode("\nstream\n")); yield { stream: id }; yield* bytes(encoder.encode("\nendstream")); }
     yield* bytes(suffix);
   }

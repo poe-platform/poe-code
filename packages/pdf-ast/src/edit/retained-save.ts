@@ -188,7 +188,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       if (mayLinearize) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output);
       else yield* serializeRetainedCosDocumentChunks({ ...configured, objects: output() }, storage);
     }
-    if (options.objectStreams === "generate" && !options.normalizeContent) yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);
+    if (options.objectStreams === "generate" && !options.normalizeContent && !mayLinearize) yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);
     else yield* ordinary();
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), pages.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }

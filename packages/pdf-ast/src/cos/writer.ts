@@ -252,7 +252,7 @@ function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Genera
     throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
   }
 
-  if ((options.objectStreams !== "generate" || options.normalizeContent || options.encryptRef) && (options.linearize || sorted.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized")))) {
+  if (options.linearize || sorted.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized"))) {
     const objects = new Map(sorted.map(object => [object.objectNumber, object]));
     const work = linearizedOutput([...objects.keys()], options);
     let step = work.next();

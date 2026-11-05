@@ -11,7 +11,7 @@ function document() {
 }
 
 describe("PdfDocument streamed saves", () => {
-  it.each<SavePdfOptions>([{}, { normalizeContent: true }, { objectStreams: "generate" }, { linearize: true }, { incremental: true }])
+  it.each<SavePdfOptions>([{}, { normalizeContent: true }, { objectStreams: "generate" }, { linearize: true }, { linearize: true, objectStreams: "generate" }, { incremental: true }])
     ("matches buffered output for %j", async options => {
       const doc = PdfDocument.load(document().save());
       doc.setAuthor("Streaming author");

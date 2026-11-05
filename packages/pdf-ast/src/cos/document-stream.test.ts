@@ -93,11 +93,21 @@ describe("streamed PDF document output", () => {
     } finally { vi.unstubAllGlobals(); }
   });
 
-  it("does not require staging when object-stream generation takes precedence over linearization", async () => {
+  it("preserves linearization and object streams without staging", async () => {
     const options = { ...fixture(), objectStreams: "generate" as const, linearize: true };
     const chunks: Uint8Array[] = [];
     await serializeCosDocumentTo(options, { write: async chunk => { chunks.push(chunk); } });
-    expect(concatByteArrays(chunks)).toEqual(serializeCosDocument(options));
+    const bytes = concatByteArrays(chunks);
+    expect(bytes).toEqual(serializeCosDocument(options));
+    const parsed = parseCosDocument(bytes);
+    const linear = [...parsed.objects.values()].find(object => object.value.kind === "dict" && dictGet(object.value, "Linearized"));
+    expect(linear?.value.kind).toBe("dict");
+    if (linear?.value.kind === "dict") expect(dictGet(linear.value, "L")).toMatchObject({ value: bytes.length });
+    expect([...parsed.objects.values()].some(object => {
+      const type = object.value.kind === "stream" ? dictGet(object.value.dict, "Type") : undefined;
+      return type?.kind === "name" && type.decoded === "ObjStm";
+    })).toBe(true);
+    expect(PdfDocument.load(bytes).extractText()).toContain("Streamed PDF bytes");
   });
 
   it("streams linearized output without staging storage", async () => {

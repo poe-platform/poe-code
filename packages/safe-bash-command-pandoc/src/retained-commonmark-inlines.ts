@@ -338,7 +338,7 @@ export async function parseRetainedCommonMarkInlines(
         const label = await literal(auto.label), children = await ast.array(); await ast.push(children, await ast.tag("Str", label));
         const uri = syntax.uri((async function* () {if (auto.prefix) yield auto.prefix; yield* syntax.source.chunks(auto.label);})());
         const target = await ast.string(await ast.text.from(uri));
-        await append(await ast.tag("Link", await ast.value([["", [], []], children, [target, ""]])));
+        await append(await ast.tag("Link", await ast.value([["", extensions.autolinkClasses ? [auto.prefix === "mailto:" ? "email" : "uri"] : [], []], children, [target, ""]])));
         await deactivateLinks(); i = auto.end; continue;
       }
       if (unit === "<") {

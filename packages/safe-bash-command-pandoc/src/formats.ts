@@ -34,6 +34,7 @@ export interface FormatCapability extends Omit<
   readonly write: { readonly allowed: boolean; readonly available: boolean };
 }
 export interface FormatSelection {
+  readonly autolinkClasses?: boolean;
   readonly descriptor: FormatDescriptor;
   readonly extensions: Readonly<Record<string, boolean>>;
 }
@@ -142,7 +143,7 @@ export function createFormatRegistry(
         fail("E_EXTENSION", `Unsupported extension: ${extension}`);
       extensions[extension] = enabled;
     }
-    return { descriptor, extensions: Object.freeze(extensions) };
+    return { descriptor, extensions: Object.freeze(extensions), ...(selectedDirection === "read" && (name === "markdown" || name === "md") ? {autolinkClasses: true} : {}) };
   }
   return {
     parse,

@@ -536,7 +536,7 @@ export async function parseCommonMarkInlines(
       if (auto) {
         const target: [string, string] = [normalizeUri(auto.url, context), ""];
         context.autolink?.(target, auto.label, "bracketed");
-        append({ t: "Link", c: [attr(), [{ t: "Str", c: auto.label }], target] });
+        append({ t: "Link", c: [["", extensions.autolinkClasses ? [auto.url === "mailto:" + auto.label ? "email" : "uri"] : [], []], [{ t: "Str", c: auto.label }], target] });
         deactivateLinks();
         i = auto.end;
         continue;
@@ -571,7 +571,7 @@ export async function parseCommonMarkInlines(
       if (auto) {
         const target: [string, string] = [normalizeUri(auto.url, context), ""];
         if (!auto.label.startsWith("www.")) context.autolink?.(target, auto.label, "bare");
-        append({ t: "Link", c: [attr(), [{ t: "Str", c: auto.label }], target] });
+        append({ t: "Link", c: [["", extensions.autolinkClasses ? [auto.url === "mailto:" + auto.label ? "email" : "uri"] : [], []], [{ t: "Str", c: auto.label }], target] });
         deactivateLinks(); i = auto.end; continue;
       }
     }

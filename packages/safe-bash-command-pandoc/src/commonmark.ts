@@ -45,7 +45,7 @@ export function parseCommonMarkMetadata(text: string, metadata: Record<string, M
 
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
   const citationsState = {note: 0};
-  let extensions = selection?.extensions ?? {};
+  let extensions: Readonly<Record<string, boolean>> = {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false};
   const rawText = input.text ?? await context.decodeUtf8([input.bytes]);
   const metadata: Record<string, MetaValue> = {};
   let text = rawText;

@@ -219,6 +219,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             metricStr = `${formatSignificantMetric(psnr)} (${formatSignificantMetric(psnr / 120)})`;
             break;
         }
+        case "phase":
+            distortion = yield* comparePhaseSteps(imgA, imgB);
+            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
+            break;
         case "dssim":
         case "ssim": {
             distortion = yield* compareSsimSteps(imgA, imgB);
@@ -285,7 +290,7 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
             metric: `${formatSignificantMetric(count)} (${formatSignificantMetric(count / (imgA.width * imgA.height))}) @ ${offset.x},${offset.y} [${formatSignificantMetric(count)}]` };
     }
     const normalized = formatSignificantMetric(best.distortion);
-    const similarity = options.metric === "ssim" || options.metric === "ncc" || options.metric === "dpc" ? 1 - 2 * best.distortion : best.distortion;
+    const similarity = options.metric === "ssim" || options.metric === "ncc" || options.metric === "dpc" || options.metric === "phase" ? 1 - 2 * best.distortion : best.distortion;
     const metric = options.metric === "ae"
         ? `${formatSignificantMetric(best.distortion * imgA.width * imgA.height)} (${normalized})`
         : `${formatSignificantMetric(best.distortion * (options.metric === "psnr" ? 120 : 65535))} (${normalized})`;
@@ -363,5 +368,75 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage): Generator<Co
         }
     }
     const distortion = (1 - similarity / (width * height * channels)) / 2;
+    return Math.abs(distortion) < 1e-12 ? 0 : distortion;
+}
+
+// PHASE correlates LoG:0,1 edge surfaces per channel. Keep signed HDRI
+// values: rounding or clamping the convolution changes the metric.
+function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+    const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
+    const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
+    const kernel = Array.from({ length: 81 }, (_, i) => {
+        const radius = ((i % 9 - 4) ** 2 + (Math.floor(i / 9) - 4) ** 2) / 2;
+        return (1 - radius) * Math.exp(-radius) / Math.PI;
+    });
+    const positive = kernel.reduce((sum, weight) => sum + Math.max(0, weight), 0);
+    const negative = kernel.reduce((sum, weight) => sum - Math.min(0, weight), 0);
+    for (let i = 0; i < kernel.length; i++) kernel[i]! /= kernel[i]! >= 0 ? positive : negative;
+    const stats = Array.from({ length: channels }, () => ({ a: 0, b: 0, aa: 0, bb: 0, ab: 0 }));
+    for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1016) {
+        yield;
+        const count = Math.min(1016, width - left);
+        const surfaces: Float64Array[] = [];
+        for (const image of [0, 1] as const) {
+            const info = image === 0 ? imgA : imgB;
+            const surface = new Float64Array(count * channels);
+            const gamma = new Float64Array(count);
+            const start = Math.max(0, Math.min(info.width - 1, left - 4));
+            const end = Math.min(info.width, left + count + 4);
+            for (let v = -4; v <= 4; v++) {
+                const row = Math.max(0, Math.min(info.height - 1, Math.min(y, info.height - 1) + v));
+                const length = (end - start) * 4;
+                const bytes = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
+                if (!(bytes instanceof Uint8Array) || bytes.length !== length) throw new Error("Truncated comparison pixels");
+                for (let x = 0; x < count; x++) for (let u = -4; u <= 4; u++) {
+                    const column = Math.max(0, Math.min(info.width - 1, Math.min(left + x, info.width - 1) + u));
+                    const offset = (column - start) * 4;
+                    const weight = kernel[(v + 4) * 9 + u + 4]!;
+                    const alpha = info.hasAlpha ? bytes[offset + 3]! / 255 : 1;
+                    gamma[x]! += weight * alpha;
+                    for (let channel = 0; channel < channels; channel++)
+                        surface[x * channels + channel]! += weight * bytes[offset + channel]! / 255 * (channel === 3 ? 1 : alpha);
+                }
+            }
+            if (info.hasAlpha) for (let x = 0; x < count; x++) {
+                const divisor = gamma[x]!;
+                const reciprocal = (divisor < 0 ? -1 : 1) / Math.max(Math.abs(divisor), 1e-12);
+                for (let channel = 0; channel < 3; channel++) surface[x * channels + channel]! *= reciprocal;
+            }
+            // Q16-HDRI stores each convolved sample as a float Quantum.
+            for (let i = 0; i < surface.length; i++) surface[i] = Math.fround(surface[i]! * 65535) / 65535;
+            surfaces.push(surface);
+        }
+        for (let x = 0; x < count; x++) for (let channel = 0; channel < channels; channel++) {
+            const a = surfaces[0]![x * channels + channel]!, b = surfaces[1]![x * channels + channel]!;
+            const stat = stats[channel]!;
+            stat.a += a; stat.b += b; stat.aa += a * a; stat.bb += b * b; stat.ab += a * b;
+        }
+    }
+    const area = width * height;
+    let similarity = 0;
+    for (const stat of stats) {
+        const varianceA = area * stat.aa - stat.a * stat.a;
+        const varianceB = area * stat.bb - stat.b * stat.b;
+        let pearson: number;
+        if (varianceA < 1e-12 && varianceB < 1e-12) pearson = Math.abs(stat.a - stat.b) < 1e-12 ? 1 : 0;
+        else {
+            const denominator = Math.sqrt(Math.max(0, varianceA)) * Math.sqrt(Math.max(0, varianceB));
+            pearson = denominator < 1e-12 ? 0 : (area * stat.ab - stat.a * stat.b) / denominator;
+        }
+        similarity += Math.max(-1, Math.min(1, pearson));
+    }
+    const distortion = (1 - similarity / channels) / 2;
     return Math.abs(distortion) < 1e-12 ? 0 : distortion;
 }

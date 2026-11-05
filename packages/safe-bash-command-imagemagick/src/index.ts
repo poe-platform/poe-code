@@ -6288,7 +6288,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
             metric = rawMetric.toLowerCase();
-            if (!["ae", "mae", "mepp", "mse", "rmse", "fuzz", "pae", "psnr", "ssim", "dssim", "ncc", "dpc", "pdc"].includes(metric)) {
+            if (!["ae", "mae", "mepp", "mse", "rmse", "fuzz", "pae", "psnr", "ssim", "dssim", "ncc", "dpc", "pdc", "phase"].includes(metric)) {
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized metric type '${rawMetric}'\n` };
             }
         }
@@ -6416,7 +6416,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
       else{if(backend)yield {async run(){await backend.storage.write(diffPosition!+request.position,request.data);}};else diffData!.set(request.data,request.position);compared=comparison.next();}
     }}finally{comparison.return(undefined as never);}
     const {metric:metricStr,exitCode}=compared.value;
-    const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
+    const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" || metric === "phase" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
     const comparisonStderr = `${metricStr}\n` + (subimageSearch && searchScore > dissimilarityThreshold
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);

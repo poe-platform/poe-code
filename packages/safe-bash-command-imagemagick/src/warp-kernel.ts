@@ -1,9 +1,10 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 export interface WarpPlan {
     readonly width: number;
     readonly height: number;
     readonly hasAlpha: boolean;
+    readonly virtualCanvas?: RgbaImage["virtualCanvas"];
     map(x: number, y: number): readonly [number, number];
 }
 /** Bilinear sampling preserves the legacy edge extension, channel rounding and alpha. */

@@ -2119,7 +2119,16 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             else if (nums.length >= 7) { nx = nums[5]!; ny = nums[6]!; }
         }
         const radians = (angle * Math.PI) / 180, cos = Math.cos(radians), sin = Math.sin(radians);
-        return result((x, y) => { const dx = x - nx, dy = y - ny; return [ox + (dx * cos + dy * sin) / scaleX, oy + (-dx * sin + dy * cos) / scaleY]; });
+        const map: WarpPlan["map"] = (x, y) => { const dx = x - nx, dy = y - ny; return [ox + (dx * cos + dy * sin) / scaleX, oy + (-dx * sin + dy * cos) / scaleY]; };
+        if (token !== "+distort") return result(map);
+        // Transform pixel edges, then round outwards to include the best-fit border.
+        const corners = [-0.5, w - 0.5].flatMap(x => [-0.5, h - 0.5].map(y => {
+            const dx = (x - ox) * scaleX, dy = (y - oy) * scaleY;
+            return [nx + dx * cos - dy * sin, ny + dx * sin + dy * cos];
+        }));
+        const x = Math.floor(Math.min(...corners.map(point => point[0]!))), y = Math.floor(Math.min(...corners.map(point => point[1]!)));
+        const width = Math.ceil(Math.max(...corners.map(point => point[0]!))) - x + 1, height = Math.ceil(Math.max(...corners.map(point => point[1]!))) - y + 1;
+        return { ...result((px, py) => map(px + x, py + y), width, height), virtualCanvas: { width, height, x, y } };
     }
     if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
         let coefficients: number[];
@@ -4421,7 +4430,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = warpOperation.end;
             stack = yield* mapSteps(stack, function* (image) {
                 const plan = warpOperation.plan(image);
-                return plan ? yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, warpOperation.background), signal, plan) : image;
+                if (!plan) return image;
+                const output = yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, warpOperation.background), signal, plan);
+                return plan.virtualCanvas ? { ...output, virtualCanvas: plan.virtualCanvas } : output;
             });
         }
         else if (t === "-write" || t === "+write") {
@@ -5381,7 +5392,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const plan = warpOperation.plan(image);
-                return plan ? transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, warpOperation.background), signal, plan) : image;
+                if (!plan) return image;
+                const output = await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, warpOperation.background), signal, plan);
+                return plan.virtualCanvas ? { ...output, virtualCanvas: plan.virtualCanvas } : output;
             });
             continue;
         }

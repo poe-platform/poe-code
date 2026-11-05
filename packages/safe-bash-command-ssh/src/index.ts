@@ -822,6 +822,41 @@ const sshUsage = `usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b 
        ssh [-Q query_option]
 `;
 
+function sshVis(byte: number): string {
+  if (byte === 92) return "\\\\";
+  return byte >= 32 && byte < 127 || [7, 8, 9, 10, 13].includes(byte)
+    ? String.fromCharCode(byte) : "\\" + byte.toString(8).padStart(3, "0");
+}
+
+function sshConfigPort(body: Uint8Array): { bytes: Uint8Array; extra: boolean } | string {
+  let end = body.length;
+  while (end && [32, 9, 10, 12, 13].includes(body[end - 1]!)) end--;
+  if (!end) return 'no argument after keyword "port"';
+  const bytes: number[] = [];
+  let count = 0;
+  for (let i = 0; i < end && body[i] !== 35;) {
+    count++;
+    let quote = 0;
+    while (i < end) {
+      let c = body[i++]!;
+      const next = body[i];
+      if (c === 92 && (next === 39 || next === 34 || next === 92 || (!quote && next === 32))) {
+        c = body[i++]!;
+      } else if (quote === c) {
+        quote = 0;
+        continue;
+      } else if (!quote) {
+        if (c === 32 || c === 9) break;
+        if (c === 39 || c === 34) { quote = c; continue; }
+      }
+      if (count === 1) bytes.push(c);
+    }
+    if (quote) return "invalid quotes";
+    while (body[i] === 32 || body[i] === 9) i++;
+  }
+  return bytes.length ? { bytes: Uint8Array.from(bytes), extra: count > 1 } : "Missing argument.";
+}
+
 function* parseSsh(args: readonly string[], argv?: ReturnType<typeof getCommandArguments>): Generator<string, string | { status: number; stderr: string } | { badPort: number; offset: number }, number> {
   let dumpConfig = false;
   let port = 0;
@@ -841,18 +876,31 @@ function* parseSsh(args: readonly string[], argv?: ReturnType<typeof getCommandA
         if ("246AaCfGgKkMNnqsTtVvXxYy".includes(flag)) continue;
         if (!"BbcDEeFIiJLlmOoPpQRSWw".includes(flag)) {
           const byte = argv?.bytes(i)?.[j] ?? textEncoder.encode(arg.slice(j))[0]!;
-          const label = byte === 92 ? "\\\\" : (byte >= 32 && byte < 127 || [7, 8, 9, 10, 13].includes(byte))
-            ? String.fromCharCode(byte) : "\\" + byte.toString(8).padStart(3, "0");
+          const label = sshVis(byte);
           return { status: 255, stderr: `unknown option -- ${label}\r\n${sshUsage}` };
         }
         const offset = j + 1 < arg.length ? j + 1 : 0;
         const value = offset ? arg.slice(offset) : args[++i];
         if (value === undefined) return { status: 255, stderr: `option requires an argument -- ${flag}\r\n${sshUsage}` };
-        if (flag === "p" && !port) {
-          const numeric = /^[\t-\r ]*\+?[0-9]+$/u.exec(value);
-          port = numeric?.[0] === value ? Number(value) : 0;
-          if (!(port > 0 && port <= 65535)) port = yield value;
-          if (!port) return { badPort: i, offset };
+        const keyword = flag === "o" && /^[ \t\r\n]*port(?=[ \t\r\n=]|\f[ \t\r\n\f]*$|$)[ \t\r\n]*=?[ \t\r\n]*/i.exec(value);
+        const config = keyword ? sshConfigPort((argv?.bytes(i)?.subarray(offset) ?? textEncoder.encode(value)).subarray(keyword[0].length)) : undefined;
+        if (typeof config === "string") return { status: 255, stderr: `command-line line 0: ${config}\r\n` };
+        if (config || (flag === "p" && !port)) {
+          const word = config ? new TextDecoder("utf-8", { ignoreBOM: true }).decode(config.bytes) : value;
+          const numeric = /^[\t-\r ]*\+?[0-9]+$/u.exec(word);
+          let parsed = numeric?.[0] === word ? Number(word) : 0;
+          if (!(parsed > 0 && parsed <= 65535)) parsed = yield word;
+          if (!parsed) {
+            if (!config) return { badPort: i, offset };
+            let message = "command-line line 0: Bad port '";
+            for (const byte of config.bytes) {
+              message += sshVis(byte);
+              if (message.length >= 1021) break;
+            }
+            return { status: 255, stderr: (message + "'.").slice(0, 1021) + "\r\n" };
+          }
+          if (config?.extra) return { status: 255, stderr: "command-line line 0: keyword port extra arguments at end of line\r\n" };
+          port ||= parsed;
         } else if (flag === "l") user = value;
         else if (flag === "i") identityFile = value;
         break;

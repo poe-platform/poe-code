@@ -92,6 +92,7 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
 }
 
 const textCommands = ([
+  ...["Port", "Port\f", "Port=", 'Port ""', "Port #comment", "Port=bad", "Port bad extra", "Port 22 23", 'Port 22 "bad', "Port=é"].map(option => ["ssh", "-GT", "-F", "none", "-p25", "-o", option, "example.invalid"] as const),
   ["ssh", "-Gz", "example.invalid"], ["ssh", "--bad"], ["ssh", "-G1", "example.invalid"], ["ssh", "-GTb"], ["ssh", "-Q"],
   ["ssh", "-G?", "-p0", "example.invalid"], ["ssh", "-G", "example.invalid", "-W"],
   ["ssh", "-G", "-p", "65536", "example.invalid"], ["ssh", "-GTp0", "example.invalid"],
@@ -153,9 +154,11 @@ export function linuxCommands(text: string) {
   const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1",
     String.raw`df --output=$'target,\xff'`, "LC_ALL=C.UTF-8 df --output=’é",
     "LC_ALL= LC_MESSAGES=C LC_CTYPE=C.UTF-8 df --output=é"];
-  for (const options of ["-p1", "-p65535", "-p '+0008'", "-p ' 22'", "-p23 -p0", "-bpg -p44", "-Jjumps -p45", "-p www", "-p ssh", "-p null"]) {
+  for (const options of ["-p1", "-p65535", "-p '+0008'", "-p ' 22'", "-p23 -p0", "-bpg -p44", "-Jjumps -p45", "-p www", "-p ssh", "-p null",
+    "-oPort=24 -p25", "-p25 -oPort=24", "-o ' pOrT = 0024 # use this port'", "-o 'Port 2\"4\"'", "-oPort=www", "-oPort=24 -pbad", "-oPort=27 -oPort=28"]) {
     pipes.push("ssh -GT -F none " + options + " example.invalid | grep '^port '");
   }
+  pipes.push(String.raw`ssh -GT -o$'Port=\xff' example.invalid`);
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   return [

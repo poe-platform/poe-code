@@ -10530,6 +10530,47 @@ fn resolve_ssh_path(cwd: &str, target: &str) -> String {
     }
 }
 
+fn ssh_vis(byte: u8) -> String {
+    match byte {
+        b'\\' => "\\\\".to_string(),
+        7..=10 | 13 | 32..=126 => char::from(byte).to_string(),
+        _ => format!("\\{byte:03o}"),
+    }
+}
+
+fn ssh_config_port(option: &str) -> Option<Result<(String, bool), &'static str>> {
+    let ws = [' ', '\t', '\r', '\n'];
+    let line = option.trim_start_matches(ws).trim_end_matches([' ', '\t', '\r', '\n', '\x0c']);
+    let end = line.find([' ', '\t', '\r', '\n', '=']).unwrap_or(line.len());
+    if !line[..end].eq_ignore_ascii_case("port") { return None; }
+    let rest = line[end..].trim_start_matches(ws);
+    let rest = rest.strip_prefix('=').unwrap_or(rest).trim_start_matches(ws);
+    if rest.is_empty() { return Some(Err("no argument after keyword \"port\"")); }
+    let mut chars = rest.chars().peekable();
+    let mut value = String::new();
+    let mut count = 0;
+    while let Some(&first) = chars.peek() {
+        if first == '#' { break; }
+        count += 1;
+        let mut quote = None;
+        while let Some(mut c) = chars.next() {
+            if c == '\\' && chars.peek().is_some_and(|&n| matches!(n, '\'' | '"' | '\\') || (n == ' ' && quote.is_none())) {
+                c = chars.next().unwrap();
+            } else if quote == Some(c) {
+                quote = None;
+                continue;
+            } else if quote.is_none() {
+                if c == ' ' || c == '\t' { break; }
+                if c == '\'' || c == '"' { quote = Some(c); continue; }
+            }
+            if count == 1 { value.push(c); }
+        }
+        if quote.is_some() { return Some(Err("invalid quotes")); }
+        while chars.next_if(|c| matches!(c, ' ' | '\t')).is_some() {}
+    }
+    Some(if value.is_empty() { Err("Missing argument.") } else { Ok((value, count > 1)) })
+}
+
 fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const USAGE: &str = "usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
            [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
@@ -10560,10 +10601,17 @@ fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
                         let value = if pos + 1 < arg.len() { &arg[pos + 1..] }
                             else if let Some(value) = words.next() { value.as_str() }
                             else { return err_out(&format!("option requires an argument -- {flag}\r\n{USAGE}"), 255); };
-                        if flag == 'p' && port.is_none() {
-                            port = value.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']).parse::<u16>().ok().filter(|&n| n > 0);
-                            if port.is_none() && let Ok(data) = fs.read_file("/etc/services") {
-                                port = String::from_utf8_lossy(&data).lines().find_map(|line| {
+                        let config = if flag == 'o' { ssh_config_port(value) } else { None };
+                        let (config_value, extra) = match config.transpose() {
+                            Err(msg) => return err_out(&format!("command-line line 0: {msg}\r\n"), 255),
+                            Ok(Some((v, more))) => (Some(v), more),
+                            Ok(None) => (None, false),
+                        };
+                        if config_value.is_some() || (flag == 'p' && port.is_none()) {
+                            let value = config_value.as_deref().unwrap_or(value);
+                            let mut parsed = value.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']).parse::<u16>().ok().filter(|&n| n > 0);
+                            if parsed.is_none() && let Ok(data) = fs.read_file("/etc/services") {
+                                parsed = String::from_utf8_lossy(&data).lines().find_map(|line| {
                                     let mut fields = line.split('#').next()?.split_ascii_whitespace();
                                     let name = fields.next()?;
                                     let number = fields.next()?.strip_suffix("/tcp")?;
@@ -10571,7 +10619,19 @@ fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
                                     number.parse::<u16>().ok().filter(|&n| n > 0)
                                 });
                             }
-                            if port.is_none() { return err_out(&format!("Bad port '{value}'\n"), 255); }
+                            let Some(parsed) = parsed else {
+                                if config_value.is_none() { return err_out(&format!("Bad port '{value}'\n"), 255); }
+                                let mut msg = String::from("command-line line 0: Bad port '");
+                                for byte in crate::vfs::stream_string_to_bytes(value) {
+                                    msg.push_str(&ssh_vis(byte));
+                                    if msg.len() >= 1021 { break; }
+                                }
+                                msg.push_str("'.");
+                                msg.truncate(1021);
+                                return err_out(&(msg + "\r\n"), 255);
+                            };
+                            if extra { return err_out("command-line line 0: keyword port extra arguments at end of line\r\n", 255); }
+                            port.get_or_insert(parsed);
                         } else if flag == 'l' { user = value; }
                         else if flag == 'i' { identity = value; }
                         break;
@@ -10579,11 +10639,7 @@ fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     f if "246AaCfgKkMNnqsTtvXxYy".contains(f) => {}
                     _ => {
                         let byte = crate::vfs::stream_string_to_bytes(arg)[pos];
-                        let label = match byte {
-                            b'\\' => "\\\\".to_string(),
-                            7..=10 | 13 | 32..=126 => char::from(byte).to_string(),
-                            _ => format!("\\{byte:03o}"),
-                        };
+                        let label = ssh_vis(byte);
                         return err_out(&format!("unknown option -- {label}\r\n{USAGE}"), 255);
                     }
                 }

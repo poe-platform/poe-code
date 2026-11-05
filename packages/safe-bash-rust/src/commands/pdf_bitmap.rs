@@ -219,7 +219,7 @@ impl Image {
                     format!("{coding} {line} -X {columns} {polarity} -M\n"),
                 ));
             } else {
-                if count > limit / 4 || width > columns {
+                if format != Some("PNM") && (count > limit / 4 || width > columns) {
                     return None;
                 }
                 let inverted = match dict.get(b"Decode") {
@@ -236,7 +236,7 @@ impl Image {
                 };
                 let stride = columns.div_ceil(8);
                 use crate::commands::archive::fax;
-                let rows = fax::decode(
+                let mut rows = fax::decode(
                     &encoded,
                     fax::Coding::Pdf { k, eol, align },
                     columns,
@@ -244,25 +244,30 @@ impl Image {
                     false,
                     limit,
                 )?;
-                let mut pbm = (stencil && format == Some("PNM")).then(|| format!("P4\n{width} {height}\n").into_bytes());
-                for row in rows.chunks_exact(stride) {
-                    if let Some(out) = &mut pbm {
-                        let used = width.div_ceil(8);
-                        out.extend_from_slice(&row[..used]);
-                        let start = out.len() - used;
-                        let samples = &mut out[start..];
-                        // CCITT fills unused bits as white before applying BlackIs1.
-                        if width % 8 != 0 { samples[used-1] |= 255 >> (width % 8); }
-                        if !black { for b in samples { *b = !*b; } }
-                        continue;
+                if format == Some("PNM") {
+                    // pdfimages reads packed bytes contiguously, even when /Width
+                    // and the fax decoder's /Columns imply different row lengths.
+                    if columns % 8 != 0 {
+                        for row in rows.chunks_exact_mut(stride) {
+                            row[stride - 1] |= 255 >> (columns % 8);
+                        }
                     }
-                    pixels.extend((0..width).map(|x| {
-                        let bit = row[x / 8] & (128 >> (x % 8)) != 0;
-                        let v = if bit ^ !black ^ inverted { 255 } else { 0 };
-                        [v, v, v, 255]
-                    }));
+                    let mut out = format!("P4\n{width} {height}\n").into_bytes();
+                    let bytes = width.div_ceil(8).checked_mul(height)?;
+                    let size = out.len().checked_add(bytes)?;
+                    if size > limit { return None; }
+                    out.extend(rows.into_iter().take(bytes).map(|b| if black ^ inverted { !b } else { b }));
+                    out.resize(size, if inverted { 255 } else { 0 });
+                    native = Some(NativeImage::Pbm(out));
+                } else {
+                    for row in rows.chunks_exact(stride) {
+                        pixels.extend((0..width).map(|x| {
+                            let bit = row[x / 8] & (128 >> (x % 8)) != 0;
+                            let v = if bit ^ !black ^ inverted { 255 } else { 0 };
+                            [v, v, v, 255]
+                        }));
+                    }
                 }
-                native = pbm.map(NativeImage::Pbm);
             }
         } else if jpeg && mode != ImageRead::List {
             let data = objects.decode(&dict, encoded)?;

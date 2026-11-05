@@ -17091,6 +17091,35 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdfimages_preserves_fax_padding_bytes_across_scanlines() {
+        let fs = MemoryVfs::new();
+        let fax = "2e88e62184a4d70826b0dc004004>";
+        for (black, decode, expected) in [
+            (false, "0 1", "2fff02ffc97ff0ff"),
+            (false, "1 0", "d000fd0036800f00"),
+            (true, "0 1", "d000fd0036800f00"),
+            (true, "1 0", "2fff02ffc97ff0ff"),
+        ] {
+            for width in [9, 5, 19] {
+                let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
+                    "<< /Length 5 >>\nstream\n/A Do\nendstream",
+                    &format!("<< /Type /XObject /Subtype /Image /Width {width} /Height 4 /BitsPerComponent 1 /ColorSpace /DeviceGray /Filter [/ASCIIHexDecode /CCITTFaxDecode] /DecodeParms [null << /K -1 /Columns 9 /Rows 4 /BlackIs1 {black} >>] /Decode [{decode}] /Length {} >>\nstream\n{fax}\nendstream", fax.len())], "");
+                fs.write_file("/fax.pdf", pdf.as_bytes()).unwrap();
+                assert_eq!(cmd_media_doc("pdfimages", &media_args(&["fax.pdf","out"]), "", "/", &fs).exit_code, 0);
+                let file = fs.read_file("/out-000.pbm").unwrap();
+                let header = format!("P4\n{width} 4\n");
+                let wanted = match width {
+                    5 => expected[..8].to_owned(),
+                    19 => format!("{expected}{}", if decode == "1 0" { "ffffffff" } else { "00000000" }),
+                    _ => expected.to_owned(),
+                };
+                assert_eq!(hex_enc(file.strip_prefix(header.as_bytes()).unwrap()), wanted);
+            }
+        }
+    }
+
+    #[test]
     fn pdf_page_rasters_cover_partial_pixels_and_report_scaled_density() {
         let fs = MemoryVfs::new();
         let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",

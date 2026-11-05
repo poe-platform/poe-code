@@ -4499,16 +4499,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const white = parsePt(parts[1], 255);
         const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
         const inverse = token === "+level";
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
+            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const span = Math.max(1e-6, white - black);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
-                for (let c = 0; c < 3; c++) {
+                for (let c = 0; c < 4; c++) {
                     if (++pixelWork % 16384 === 0)
                         yield;
+                    if (!mask[c])
+                        continue;
                     const v = out[idx + c]!;
                     if (inverse) {
                         const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), 1 / gamma);

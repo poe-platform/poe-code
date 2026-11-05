@@ -395,6 +395,12 @@ function evalScaleDim(expr: string, iw: number, ih: number): number {
 }
 
 
+function roundToEven(value: number): number {
+  const lower = Math.floor(value);
+  // FFmpeg uses lrint: exact halves round to the nearest even integer.
+  return value - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(value);
+}
+
 function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>): number {
   let offset = 0;
   const source = expression.trim();
@@ -714,11 +720,11 @@ async function applyVideoFilterChain(
         const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n };
         const cx = Math.max(
           0,
-          Math.min(iw - cw, Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
+          Math.min(iw - cw, roundToEven(parseFilterExpression(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
         );
         const cy = Math.max(
           0,
-          Math.min(ih - ch, Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
+          Math.min(ih - ch, roundToEven(parseFilterExpression(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
         );
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
           left: cx,

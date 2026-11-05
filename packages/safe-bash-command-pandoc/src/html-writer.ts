@@ -386,7 +386,17 @@ class HtmlWriter {
     await this.blocks(document.blocks, "$.blocks");
     if(this.notes.length) {
       this.add('<section class="footnotes" role="doc-endnotes">\n<ol>\n');
-      for(let i = 0; i < this.notes.length; i++) {const note = this.notes[i]!; this.add("<li"); this.attribute("id", note.id); this.add(">"); await this.blocks(note.blocks, note.path); this.add("<a"); this.attribute("href", `#${note.ref}`); this.add(' class="footnote-back" role="doc-backlink">↩</a></li>\n');}
+      for(let i = 0; i < this.notes.length; i++) {
+        const note = this.notes[i]!, last = note.blocks.at(-1);
+        this.add("<li"); this.attribute("id", note.id); this.add(">");
+        if (last?.t === "Para") {
+          await this.blocks(note.blocks.slice(0, -1), note.path);
+          this.add("<p>"); await this.inlines(last.c, `${note.path}[${note.blocks.length - 1}].c`);
+        } else await this.blocks(note.blocks, note.path);
+        this.add("<a"); this.attribute("href", `#${note.ref}`); this.add(' class="footnote-back" role="doc-backlink">↩</a>');
+        if (last?.t === "Para") this.add("</p>");
+        this.add("</li>\n");
+      }
       this.add("</ol>\n</section>\n");
     }
     if(this.context.standalone) this.add("</body>\n</html>\n");

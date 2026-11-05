@@ -621,9 +621,21 @@ class HtmlTape {
       for (let i = 1; i <= this.noteCount; i++) {
         const note = await this.read<Note>(Number(await this.notes.get(BigInt(i))));
         await this.add("<li"); await this.attribute("id", note.id); await this.add(">");
-        await this.push(this.list(note.node, note.path, "block")); await this.run();
+        const end = (await this.tree.describe(note.node)).end;
+        let paragraph = false, index = 0;
+        for await (const node of this.tree.children(note.node)) {
+          const path = await this.path(note.path, `[${index++}]`);
+          paragraph = (await this.tree.describe(node)).end === end && await this.tag(node) === "Para";
+          if (paragraph) {
+            await this.add("<p>");
+            await this.push(this.list((await this.tree.property(node, "c"))!, await this.path(path, ".c"), "inline"));
+          } else await this.push({op: "block", node, path});
+          await this.run();
+        }
         await this.add("<a"); const href = await this.text.from(["#"]); await this.text.append(href, await this.text.from(this.text.chunks(note.ref)));
-        await this.attribute("href", href); await this.add(' class="footnote-back" role="doc-backlink">↩</a></li>\n');
+        await this.attribute("href", href); await this.add(' class="footnote-back" role="doc-backlink">↩</a>');
+        if (paragraph) await this.add("</p>");
+        await this.add("</li>\n");
       }
       await this.add("</ol>\n</section>\n");
     }

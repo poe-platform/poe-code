@@ -470,7 +470,8 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
+            "@poe-code/safe-fs": "*",
+            "@sqlite.org/sqlite-wasm": "3.50.4-build1"
           },
           "portable": true
         },

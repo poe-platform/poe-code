@@ -103,3 +103,12 @@ test("QR and Micro QR matrices match native qrencode", { skip: !nativeAvailable 
     assert.equal(actual, output, JSON.stringify({ text, args }));
   }
 });
+
+test("forced byte mode matches native across single-byte length and QR version boundaries", { skip: !nativeAvailable }, () => {
+  for (const length of [230, 231, 255, 256, 2048]) {
+    const data = Uint8Array.from({ length }, (_, i) => (i * 29 + 17) & 255);
+    const qr = encodeQr(data, { byte: true });
+    const rows = qr.modules.map(row => row.map(dark => dark ? "##" : "  ").join("") + "\n").join("");
+    assert.equal(rows, execFileSync("qrencode", ["-8tASCII", "-m", "0"], { input: data, encoding: "utf8" }), String(length));
+  }
+});

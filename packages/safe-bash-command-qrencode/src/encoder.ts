@@ -106,6 +106,25 @@ function* segments(
   options: EncodeOptions
 ): Generator<void, number[], void> {
   const micro = options.micro ?? false;
+  const bits: number[] = [];
+  if (options.append) {
+    put(bits, 3, 4);
+    put(bits, options.append[0], 4);
+    put(bits, options.append[1] - 1, 4);
+    put(bits, options.append[2], 8);
+  }
+  if (options.byte) {
+    const lengthBits = countBits(2, version, micro);
+    if (!lengthBits || data.length >= 2 ** lengthBits)
+      throw new QrEncodingError("Input is not supported by this symbol version");
+    put(bits, micro ? 2 : 4, micro ? version - 1 : 4);
+    put(bits, data.length, lengthBits);
+    for (let i = 0; i < data.length; i++) {
+      if (i % 256 === 0) yield;
+      put(bits, data[i]!, 8);
+    }
+    return bits;
+  }
   const costs = new Float64Array(data.length + 1).fill(Infinity);
   const starts = new Uint16Array(data.length + 1);
   const modes = new Uint8Array(data.length + 1);
@@ -114,7 +133,7 @@ function* segments(
     if (start % 16 === 0) yield;
     if (!Number.isFinite(costs[start])) continue;
     for (const mode of [0, 1, 2, 3] as const) {
-      if ((options.byte && mode !== 2) || (mode === 3 && !options.kanji)) continue;
+      if (mode === 3 && !options.kanji) continue;
       const cb = countBits(mode, version, micro);
       if (!cb) continue;
       const step = mode === 3 ? 2 : 1;
@@ -146,13 +165,6 @@ function* segments(
     const start = starts[end]!;
     parts.push({ start, end, mode: modes[end] as Mode });
     end = start;
-  }
-  const bits: number[] = [];
-  if (options.append) {
-    put(bits, 3, 4);
-    put(bits, options.append[0], 4);
-    put(bits, options.append[1] - 1, 4);
-    put(bits, options.append[2], 8);
   }
   for (const { start, end, mode } of parts.reverse()) {
     put(bits, micro ? mode : [1, 2, 4, 8][mode]!, micro ? version - 1 : 4);

@@ -3551,6 +3551,24 @@ fn qr_capacity(version: usize, level: usize, micro: bool) -> (usize, usize, usiz
 fn qr_segments(data: &[u8], version: usize, opts: QrEncodeOpts) -> Result<Vec<u8>, String> {
     const ALPHABET: &[u8] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
     let n = data.len();
+    let mut bits = Vec::new();
+    if let Some((idx, total, parity)) = opts.append {
+        qr_put_bits(&mut bits, 3, 4);
+        qr_put_bits(&mut bits, idx, 4);
+        qr_put_bits(&mut bits, total - 1, 4);
+        qr_put_bits(&mut bits, parity as usize, 8);
+    }
+    if opts.byte_mode {
+        let length_bits = qr_count_bits(2, version, opts.micro);
+        if length_bits == 0 || n >= 1 << length_bits {
+            return Err("Input is not supported by this symbol version".to_string());
+        }
+        qr_put_bits(&mut bits, if opts.micro { 2 } else { 4 }, if opts.micro { version - 1 } else { 4 });
+        qr_put_bits(&mut bits, n, length_bits);
+        bits.reserve(n * 8);
+        for &byte in data { qr_put_bits(&mut bits, byte as usize, 8); }
+        return Ok(bits);
+    }
     let mut costs = vec![f64::INFINITY; n + 1];
     let mut starts = vec![0usize; n + 1];
     let mut modes = vec![0usize; n + 1];
@@ -3560,7 +3578,7 @@ fn qr_segments(data: &[u8], version: usize, opts: QrEncodeOpts) -> Result<Vec<u8
             continue;
         }
         for mode in 0..4usize {
-            if (opts.byte_mode && mode != 2) || (mode == 3 && !opts.kanji) {
+            if mode == 3 && !opts.kanji {
                 continue;
             }
             let cb = qr_count_bits(mode, version, opts.micro);
@@ -3602,13 +3620,6 @@ fn qr_segments(data: &[u8], version: usize, opts: QrEncodeOpts) -> Result<Vec<u8
         cur = st;
     }
     parts.reverse();
-    let mut bits = Vec::new();
-    if let Some((idx, total, parity)) = opts.append {
-        qr_put_bits(&mut bits, 3, 4);
-        qr_put_bits(&mut bits, idx, 4);
-        qr_put_bits(&mut bits, total - 1, 4);
-        qr_put_bits(&mut bits, parity as usize, 8);
-    }
     for (start, end, mode) in parts {
         let mode_ind = if opts.micro { mode } else { [1, 2, 4, 8][mode] };
         let mode_len = if opts.micro { version - 1 } else { 4 };

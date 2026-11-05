@@ -1189,6 +1189,17 @@ fn parse_env_options(
     })
 }
 
+// BTreeMap has no insertion order. An env child receives the order its parent
+// would print, but only for names which remain exported at the time of use.
+fn exported_env_names(env: &BTreeMap<String, String>) -> Vec<&str> {
+    let exported = env.keys().map(String::as_str).filter(|k| crate::shell::is_exported_scalar(env, k));
+    let Some(order) = env.get("\0env_order") else { return exported.collect() };
+    let mut remaining: std::collections::BTreeSet<&str> = exported.collect();
+    let mut names: Vec<_> = order.split_terminator('\0').filter_map(|name| remaining.take(name)).collect();
+    names.extend(remaining);
+    names
+}
+
 fn run_env_command<F>(
     args: &[String],
     stdin: &mut String,
@@ -1265,11 +1276,7 @@ where
         }
     }
 
-    let inherited_names: Vec<String> = sub_env
-        .keys()
-        .filter(|k| crate::shell::is_exported_scalar(&sub_env, k))
-        .cloned()
-        .collect();
+    let inherited_names: Vec<String> = exported_env_names(&sub_env).into_iter().map(str::to_owned).collect();
     let mut added_names: Vec<String> = Vec::new();
     let mut offset = 0usize;
     while offset < parsed.operands.len() && parsed.operands[offset].contains('=') {
@@ -1360,6 +1367,12 @@ where
                 debug_stderr.push_str(&format!("   arg[{idx}]= '{op}'\n"));
             }
         }
+        let mut order = String::new();
+        for name in names {
+            order.push_str(&name);
+            order.push('\0');
+        }
+        sub_env.insert("\0env_order".to_string(), order);
         return exec_sub(&parsed.operands[offset..], stdin, &mut exec_cwd, &mut sub_env, &debug_stderr);
     }
 

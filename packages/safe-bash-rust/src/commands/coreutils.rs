@@ -4931,11 +4931,8 @@ fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutco
     let names = &args[offset..];
     if names.is_empty() {
         let mut out = String::new();
-        for (k, v) in env {
-            if !crate::shell::is_exported_scalar(env, k) {
-                continue;
-            }
-            out.push_str(&format!("{k}={v}{sep}"));
+        for k in super::exported_env_names(env) {
+            out.push_str(&format!("{k}={}{sep}", env[k]));
         }
         return ok_out(&out);
     }

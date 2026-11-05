@@ -18,6 +18,21 @@ function fixture(text: string | Uint8Array, filename = "/original.csv") {
     { signal: new AbortController().signal }) };
 }
 
+it.each([
+  [" a , b \n 1 , 2 \n", '" a "," b "\n1,2\n'],
+  ["a,b\n1,2\n", "a,b\n1,2\n"]
+])("normalizes numeric CSV padding while preserving text in %j", async (input, expected) => {
+  const f = fixture(input);
+  try {
+    const result = await runCommand([
+      "-I", "Gnumeric_stf:stf_csvtab", "-T", "Gnumeric_stf:stf_csv", "/original.csv", "/output.csv"
+    ], f.engine, { signal: new AbortController().signal,
+      stdout: { async write() {} }, stderr: { async write() {} } });
+    expect(result.exitCode).toBe(0);
+    expect(f.volume.readFileSync("/output.csv", "utf8")).toBe(expected);
+  } finally { await f.engine.dispose(); }
+});
+
 it.each(["\n", "\r\n", "\r"])("remembers unique input ending %j only for configurable export", async ending => {
   const f = fixture(["a,b", "1,2", "3,4", ""].join(ending));
   try {

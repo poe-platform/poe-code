@@ -329,13 +329,14 @@ describe("safe-bash-command-imagemagick", () => {
       files
     );
 
-    // Identical images -> AE = 0, PSNR = inf, SSIM distortion = 0
+    // Identical images -> AE = 0, PSNR = 120 (1), SSIM distortion = 0
     const idAe = await runCompareCli(["-metric", "AE", "/a.png", "/b.png", "null:"], files);
     expect(idAe.exitCode).toBe(0);
     expect((idAe.stderr || idAe.stdout).trim()).toBe("0 (0)");
 
     const idPsnr = await runMagickCli(["compare", "-metric", "PSNR", "/a.png", "/b.png", "null:"], files);
-    expect((idPsnr.stderr || idPsnr.stdout).trim()).toBe("inf");
+    expect(idPsnr.exitCode).toBe(1);
+    expect((idPsnr.stderr || idPsnr.stdout).trim()).toBe("120 (1)");
 
     const idSsim = await runCompareCli(["-metric", "SSIM", "/a.png", "/b.png", "null:"], files);
     expect(idSsim.stderr.trim()).toBe("0 (0)");

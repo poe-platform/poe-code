@@ -175,7 +175,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             metricStr = `${formatMetricNum(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
             break;
         case "psnr":
-            metricStr = mseNorm === 0 ? "inf" : formatMetricNum(10 * Math.log10(1 / mseNorm));
+            metricStr = mseNorm === 0 ? "120 (1)" : formatMetricNum(10 * Math.log10(1 / mseNorm));
             break;
         case "ssim": {
             const distortion = yield* compareSsimSteps(imgA, imgB);
@@ -193,7 +193,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
             break;
     }
-    const exitCode = dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
+    const exitCode = metric === "psnr" && mseNorm === 0 ? 1 : dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
     return { width, height, metric: metricStr, exitCode };
 }
 export function formatMetricNum(n: number): string {

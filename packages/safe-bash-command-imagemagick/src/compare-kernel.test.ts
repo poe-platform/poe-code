@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { compareImageSteps } from "./compare-kernel.js";
-for (const [metric, expected] of Object.entries({ ae: "0 (0)", mae: "0 (0)", mse: "0 (0)", rmse: "0 (0)", pae: "0 (0)", psnr: "inf", ssim: "0 (0)", dssim: "0", ncc: "1" }))
+for (const [metric, expected] of Object.entries({ ae: "0 (0)", mae: "0 (0)", mse: "0 (0)", rmse: "0 (0)", pae: "0 (0)", psnr: "120 (1)", ssim: "0 (0)", dssim: "0", ncc: "1" }))
     it(`preserves identical-image ${metric}`, () => {
         const image = { width: 3, height: 2, hasAlpha: false };
         const steps = compareImageSteps(image, image, { metric, fuzz: 0, highlightColor: { r: 241, g: 0, b: 30, a: 255 }, composeSrc: false, diff: false });
@@ -15,7 +15,7 @@ for (const [metric, expected] of Object.entries({ ae: "0 (0)", mae: "0 (0)", mse
             else
                 next = steps.next();
         }
-        expect(next.value).toEqual({ width: 3, height: 2, metric: expected, exitCode: 0 });
+        expect(next.value).toEqual({ width: 3, height: 2, metric: expected, exitCode: metric === "psnr" ? 1 : 0 });
     });
 it("scans and emits a multi-megabyte diff in bounded ordered chunks", () => {
     const image = { width: 2049, height: 513, hasAlpha: false }, steps = compareImageSteps(image, image, { metric: "ae", fuzz: 0, highlightColor: { r: 241, g: 0, b: 30, a: 255 }, composeSrc: false, diff: true });

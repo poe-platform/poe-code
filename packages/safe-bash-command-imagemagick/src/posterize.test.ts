@@ -1,7 +1,9 @@
+import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createConvertCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // magick -size 1x1 xc:<color> -posterize <levels> -depth 8 rgba:-
 for (const retained of [false, true]) {
@@ -29,3 +31,43 @@ for (const retained of [false, true]) {
         expect([...decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual(expected);
     });
 }
+
+// Opaque gray PNG expectations verified with native ImageMagick 7.1.2.
+for (const execution of ["command", "buffered", "sync"] as const) {
+    it.each([
+        [4, 1, [], [85, 85, 85, 170]],
+        [1, 4, [], [85, 85, 85, 170]],
+        [4, 4, [], [85, 85, 170, 170, 170, 85, 85, 170, 170, 170, 170, 170, 170, 85, 170, 170]],
+        [5, 3, [], [85, 170, 170, 170, 170, 85, 85, 170, 85, 85, 170, 170, 170, 170, 170]],
+        [4, 1, ["+dither"], [85, 85, 85, 85]],
+        [4, 1, ["-dither", "None"], [85, 85, 85, 85]],
+        [4, 1, ["+dither", "-dither", "Riemersma"], [85, 85, 85, 170]],
+    ] as const)(`${execution}: posterize dithering %ix%i %j`, async (width, height, options, expected) => {
+        const pixels = Uint8Array.from({ length: width * height * 4 }, (_, i) => i % 4 === 3 ? 255 : 127);
+        const input = await sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();
+        const files = new Map([["in.png", input]]), fs = new MemoryFileSystem();
+        await fs.writeFile("/in.png", input);
+        const args = ["in.png", ...options, "-posterize", "4", "out.png"];
+        const argumentValues = createCommandArguments(args);
+        const result = execution === "command" ? await createConvertCommand().execute({
+            command: "convert", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} },
+        }) : execution === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, files);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(execution === "command" ? await fs.readFile("/out.png") : files.get("out.png")!);
+        expect([...output.data]).toEqual(expected.flatMap(value => [value, value, value, 255]));
+    });
+}
+
+// Native ImageMagick RGBA hashes cover storage boundaries and clipped Hilbert quadrants.
+it.each([
+    [1031, 5, "0e9f3735b1e4a3595be95b02561886fb6c69dc98ecf0a4e0523b2de9c384de4d"],
+    [1, 4097, "109c0f8680a7d66a53efd9931dfa2bccbd8b1d690910dd89e78111d125a14198"],
+] as const)("retains native posterize dithering across %ix%i", async (width, height, expected) => {
+    const filesystem = new MemoryFileSystem();
+    const result = await runConvertCli(["-size", `${width}x${height}`, "xc:#7f7f7f", "-posterize", "4", "out.png"], { filesystem, cwd: "/" });
+    expect(result.exitCode).toBe(0);
+    const output = decodeImage(await filesystem.readFile("/out.png"));
+    expect(createHash("sha256").update(output.data).digest("hex")).toBe(expected);
+});

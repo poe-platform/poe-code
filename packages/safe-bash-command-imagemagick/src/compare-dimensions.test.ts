@@ -20,7 +20,7 @@ for (const [width, height] of [[2, 2], [3, 1], [2, 3], [1026, 1]] as const) {
                 const output = input === files ? files.get("diff.png")! : await filesystem.readFile("/diff.png");
                 expect(await sharp(output).metadata()).toMatchObject({ width: Math.max(3, width), height: Math.max(2, height) });
                 const pixels = await sharp(output).ensureAlpha().raw().toBuffer();
-                expect(Array.from(pixels)).toEqual(Array.from({ length: Math.max(3, width) * Math.max(2, height) }, () => [255, 179, 179, 255]).flat());
+                expect(Array.from(pixels)).toEqual(Array.from({ length: Math.max(3, width) * Math.max(2, height) }, () => [255, 204, 204, 255]).flat());
             }
             if (!native.error) {
                 const result = spawnSync("magick", ["compare", "-metric", metric, ...images.map(bytes => `inline:data:image/png;base64,${Buffer.from(bytes).toString("base64")}`), "null:"], { encoding: "utf8" });

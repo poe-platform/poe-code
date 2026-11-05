@@ -43,8 +43,8 @@ it.each([
         destination: { kind: "stream", sink: { async write(bytes) { chunks.push(...bytes); } } }
       }, { signal: new AbortController().signal });
       if (option === "charset=UTF-16") {
-        expect(chunks.slice(0, 2)).toEqual([255, 254]);
-        expect(new TextDecoder("utf-16le").decode(Uint8Array.from(chunks))).toBe(expected);
+        expect(chunks.slice(0, 2)).toEqual([254, 255]);
+        expect(new TextDecoder("utf-16be").decode(Uint8Array.from(chunks))).toBe(expected);
       } else expect(new TextDecoder().decode(Uint8Array.from(chunks))).toBe(expected);
     } finally { await engine.dispose(); }
   }

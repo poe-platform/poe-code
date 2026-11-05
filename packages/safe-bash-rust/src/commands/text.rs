@@ -421,7 +421,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let content = crate::vfs::bytes_to_stream_string(&bytes);
             let mut cmds_copy = parsed_cmds.clone();
             let mut out = SedBuffer::default();
-            let quit = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+            let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
                 Ok(result) => result,
                 Err(e) => return err_out(&e, 2),
             };
@@ -454,7 +454,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             };
             let mut cmds_copy = parsed_cmds.clone();
-            let quit = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+            let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
                 Ok(result) => result,
                 Err(e) => return err_out(&e, 2),
             };
@@ -471,26 +471,23 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return ok_out(&out.text);
     }
 
-    let mut combined_in = String::new();
-    if files.is_empty() {
-        combined_in.push_str(stdin);
-    } else {
-        for f in &files {
-            if f == "-" {
-                combined_in.push_str(stdin);
-                continue;
-            }
+    let mut inputs = Vec::new();
+    let mut stdin = stdin;
+    if files.is_empty() { files.push("-".into()); }
+    for f in &files {
+        let content = if f == "-" {
+            std::borrow::Cow::Borrowed(std::mem::take(&mut stdin))
+        } else {
             let full = resolve_posix_path(cwd, f);
             match fs.read_file(&full) {
-                Ok(b) => combined_in.push_str(&crate::vfs::bytes_to_stream_string(&b)),
+                Ok(b) => std::borrow::Cow::Owned(crate::vfs::bytes_to_stream_string(&b)),
                 Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
             }
-        }
+        };
+        inputs.push((f.as_str(), content));
     }
-
-    let cur_fname = files.first().map(|s| s.as_str()).unwrap_or("-");
     let mut out = SedBuffer::default();
-    let quit = match run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+    let quit = match run_sed_on_inputs(inputs.iter().map(|(name, text)| (*name, text.as_ref())), &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
         Ok(result) => result,
         Err(e) => return err_out(&e, 2),
     };
@@ -1363,9 +1360,7 @@ enum SedFlow {
 #[allow(clippy::too_many_arguments)]
 fn exec_sed_cmds(
     cmds: &mut [SedCmd],
-    raw_lines: &[&str],
-    last_unterminated: bool,
-    filename: &str,
+    records: &[(&str, &str, bool)],
     line_idx: &mut usize,
     pattern_space: &mut SedBuffer,
     hold_space: &mut SedBuffer,
@@ -1378,7 +1373,7 @@ fn exec_sed_cmds(
     line_length: usize,
     last_regex: &mut Option<(String, bool)>,
 ) -> SedFlow {
-    let total = raw_lines.len();
+    let total = records.len();
     let mut pc = 0usize;
     let mut branch_guard = 0usize;
 
@@ -1475,7 +1470,7 @@ fn exec_sed_cmds(
                 pattern_space.text.clear();
             }
             SedOp::Filename => {
-                out.write_record(filename, false, rec_term);
+                out.write_record(records[*line_idx].0, false, rec_term);
             }
             SedOp::List(width) => {
                 use std::fmt::Write;
@@ -1531,8 +1526,8 @@ fn exec_sed_cmds(
                 if let Err(e) = queue.flush(out, rec_term) { return SedFlow::Error(e); }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
-                    pattern_space.text = raw_lines[*line_idx].to_string();
-                    pattern_space.unterminated = *line_idx + 1 == total && last_unterminated;
+                    pattern_space.text = records[*line_idx].1.to_string();
+                    pattern_space.unterminated = records[*line_idx].2;
                     *subst_made = false;
                 } else {
                     return SedFlow::Delete;
@@ -1543,8 +1538,8 @@ fn exec_sed_cmds(
                 if *line_idx + 1 < total {
                     *line_idx += 1;
                     pattern_space.text.push(rec_term);
-                    pattern_space.text.push_str(raw_lines[*line_idx]);
-                    pattern_space.unterminated = *line_idx + 1 == total && last_unterminated;
+                    pattern_space.text.push_str(records[*line_idx].1);
+                    pattern_space.unterminated = records[*line_idx].2;
                     *subst_made = false;
                 } else {
                     return SedFlow::Delete;
@@ -1573,9 +1568,7 @@ fn exec_sed_cmds(
             SedOp::Group(inner) => {
                 match exec_sed_cmds(
                     inner,
-                    raw_lines,
-                    last_unterminated,
-                    filename,
+                    records,
                     line_idx,
                     pattern_space,
                     hold_space,
@@ -1682,9 +1675,8 @@ fn exec_sed_cmds(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn run_sed_on_text(
-    input: &str,
-    filename: &str,
+fn run_sed_on_inputs<'a>(
+    inputs: impl IntoIterator<Item = (&'a str, &'a str)>,
     cmds: &mut [SedCmd],
     quiet: bool,
     null_data: bool,
@@ -1693,19 +1685,20 @@ fn run_sed_on_text(
     queue: &mut SedQueue,
     out: &mut SedBuffer,
 ) -> Result<Option<i32>, String> {
-    if input.is_empty() {
-        return Ok(None);
-    }
     let rec_term = if null_data { '\0' } else { '\n' };
-    let had_trailing_delim = input.ends_with(rec_term);
-    let raw_lines: Vec<&str> = input.split_terminator(rec_term).collect();
-    let total = raw_lines.len();
+    let records: Vec<_> = inputs.into_iter().flat_map(|(name, input)| {
+        input.split_inclusive(rec_term).map(move |raw| match raw.strip_suffix(rec_term) {
+            Some(line) => (name, line, false),
+            None => (name, raw, true),
+        })
+    }).collect();
+    let total = records.len();
     let mut hold_space = SedBuffer::default();
     let mut line_idx = 0usize;
     let mut last_regex: Option<(String, bool)> = None;
 
     while line_idx < total {
-        let mut pattern_space = SedBuffer { text: raw_lines[line_idx].to_string(), unterminated: line_idx + 1 == total && !had_trailing_delim };
+        let mut pattern_space = SedBuffer { text: records[line_idx].1.to_string(), unterminated: records[line_idx].2 };
         let mut deleted = false;
         let mut quit = None;
         let mut subst_made = false;
@@ -1714,9 +1707,7 @@ fn run_sed_on_text(
         loop {
             match exec_sed_cmds(
                 cmds,
-                &raw_lines,
-                !had_trailing_delim,
-                filename,
+                &records,
                 &mut line_idx,
                 &mut pattern_space,
                 &mut hold_space,

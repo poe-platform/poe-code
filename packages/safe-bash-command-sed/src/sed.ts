@@ -395,11 +395,6 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     const next = await singleSource!.next();
     return next.done ? undefined : next.value;
   };
-  const prepareRecord = async (record: RecordLine): Promise<RecordLine> => {
-    if (record.terminated || files.length < 2) return record;
-    const next = await peekNextRecord();
-    return next !== undefined && next.fileIndex !== record.fileIndex ? { ...record, terminated: true } : record;
-  };
   let number = 0;
   let hold = "";
   let holdTerminated = true;
@@ -556,7 +551,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   try {
     while (currentRecord !== undefined) {
       budget.step(); number++;
-      record = currentRecord.terminated || files.length < 2 ? currentRecord : await prepareRecord(currentRecord);
+      record = currentRecord;
       pattern = record.text;
       substituted = false;
       deleted = false;
@@ -874,7 +869,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
               if (instruction.kind === "N") { const p = flush(false); if (p) await p; }
               return { status: 0, quit: false };
             }
-            record = next.terminated || files.length < 2 ? next : await prepareRecord(next); number++;
+            record = next; number++;
             pattern = instruction.kind === "N" ? joinSpace(pattern, record.text) : record.text;
             substituted = false;
             break;

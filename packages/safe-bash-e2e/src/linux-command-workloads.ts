@@ -192,6 +192,8 @@ export function linuxCommands(text: string) {
       ["sed -z -n 'p;P;p;=;l'", Buffer.from([255,0,195])],
       ["sed -z '1h;2G;3x'", "saved\0mid\0tail"],
       ["printf a >sed-first; printf b >sed-last; sed -sn 'p;p' sed-first sed-last", ""],
+      ["printf a >sed-first; printf b >sed-last; sed -n '1p' sed-first sed-last", ""],
+      ["printf a >sed-first; printf b >sed-last; sed -zn 'N;p' sed-first sed-last", ""],
       ["sed -n -e 'w sed-record' -e 's/old/new/w sed-record'; cat sed-record", "old"],
       ["sed -n 'N;l'", "first\nsecond\n"],
       ["sed -n -z 'N;l'", "first\npart\0second\0"],

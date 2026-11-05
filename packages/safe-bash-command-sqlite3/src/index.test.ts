@@ -1739,6 +1739,32 @@ test("sqlite3 NOCASE folds only ASCII in comparisons, constraints, indexes and s
   }
 });
 
+for (const [sql, stdout] of [
+  ["SELECT json('{a:1}'), json_extract('{a:1}', '$.a'), json_set('{a:1}', '$.b', 2);", '{"a":1}|1|{"a":1,"b":2}\n'],
+  ["SELECT json_valid('{a:1}'), json_valid('{a:1}', 2), json_valid('{a:1}', 3), json_valid('{a:1}', 4), json_valid('{a:1}', 6), json_valid('{}', 8);", "0|1|1|0|1|0\n"],
+  ["SELECT json('{/* comment */a:0x10,b:+2,c:.5,d:2.,e:[1,2,],}');", '{"a":16,"b":2,"c":0.5,"d":2.0,"e":[1,2]}\n'],
+  ["SELECT json('{a:''hello'',b:''line\\\ncontinued''}');", '{"a":"hello","b":"linecontinued"}\n'],
+  ["SELECT json('{a:Infinity,b:-Inf,c:NaN,d:QNaN,e:sNaN,é:1}');", '{"a":9e999,"b":-9e999,"c":null,"d":null,"e":null,"é":1}\n'],
+  ["SELECT json('{a:1,a:2}');", '{"a":1,"a":2}\n'],
+  ["SELECT json_type('{a:1}', '$.a'), json_array_length('{a:[1,2,]}', '$.a'), '{a:1}' -> 'a', '{a:1}' ->> 'a';", "integer|2|1|1\n"],
+  ["SELECT json_insert('{a:1}', '$.b', 2), json_replace('{a:1}', '$.a', 2), json_remove('{a:1,b:2}', '$.a'), json_patch('{a:1}', '{b:2}');", '{"a":1,"b":2}|{"a":2}|{"b":2}|{"a":1,"b":2}\n'],
+  ["SELECT key,value FROM json_each('{a:1,b:2}'); SELECT atom FROM json_tree('{a:[3,]}') WHERE atom IS NOT NULL;", "a|1\nb|2\n3\n"],
+  ["SELECT json_valid('{a:}'), json_valid('{a:}', 2), json_valid(NULL, 2);", "0|0|\n"],
+]) {
+  test(`sqlite3 JSON5 input: ${sql}`, async () => {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql!]),
+      { code: 0, stdout, stderr: "" });
+  });
+}
+
+for (const flags of [0, 16, -1]) {
+  test(`sqlite3 rejects invalid json_valid flags ${flags}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT json_valid('{}', ${flags});`]);
+    assert.equal(result.code, 1);
+    assert.ok(result.stderr.includes("FLAGS parameter to json_valid() must be between 1 and 15"));
+  });
+}
+
 for (const [doc, path, stdout] of [
   ['[10,20,30]', '$[1]', '1|20|integer|$[1]|$\n'],
   ['{"a":{"b":1}}', '$.a', 'a|{"b":1}|object|$.a|$\nb|1|integer|$.a.b|$.a\n'],
@@ -1753,3 +1779,28 @@ for (const [doc, path, stdout] of [
     { code: 0, stdout, stderr: "" });
   });
 }
+
+for (const [input, output] of [
+  [String.raw`{\u0061:'\u0062',v:'\v',x:'\x41'}`, String.raw`{"\u0061":"\u0062","v":"\u0009","x":"\u0041"}`],
+  [String.raw`{"a":"\u0061","b":"\/","c":1e+02}`, String.raw`{"a":"\u0061","b":"\/","c":1e+02}`],
+  ["// comment\n{ a: [1,], }", '{"a":[1]}'],
+]) {
+  test(`sqlite3 JSON5 canonical spelling: ${input}`, async () => {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT json('${input!.replaceAll("'", "''")}');`]),
+      { code: 0, stdout: output + "\n", stderr: "" });
+  });
+}
+
+for (const input of [String.raw`"\q"`, "[1,,2]", "{a:01}", "{a:}", "/* unterminated", "[1", "true false"]) {
+  test(`sqlite3 rejects malformed JSON5: ${input}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT json('${input}');`]);
+    assert.equal(result.code, 1);
+    assert.ok(result.stderr.includes("malformed JSON"));
+  });
+}
+
+test("sqlite3 preserves JSON5 infinities when modifying or extracting JSON", async () => {
+  assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "SELECT json_set('{a:Inf}', '$.b', 1), json_extract('{a:Inf,b:-Inf}', '$.a', '$.b'), json_patch('{a:Inf}', '{b:NaN}');"]),
+    { code: 0, stdout: '{"a":9e999,"b":1}|[9e999,-9e999]|{"a":9e999}\n', stderr: "" });
+});

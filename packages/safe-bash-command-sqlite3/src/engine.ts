@@ -1,3 +1,4 @@
+import { canonicalizeJson, parseSqlJson } from "./json.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { formatReal } from "./real-output.js";
 import { runSynchronously, runCooperatively, stepMap, stepFlatMap, stepFilter, stepSort, stepReduce, type SqlSteps, type StepResult } from "./execution.js";
@@ -12,6 +13,8 @@ export function serializeSqlJson(value: unknown, preserveRealType = true): strin
   if (value instanceof JsonText && preserveRealType) return value.valueOf();
   if (value instanceof String) return JSON.stringify(value.valueOf());
   if (typeof value === "bigint") return value.toString();
+  if (value === Infinity) return "9e999";
+  if (value === -Infinity) return "-9e999";
   if (value instanceof Number) {
     const number = value.valueOf();
     if (!Number.isFinite(number)) return "null";
@@ -6335,7 +6338,7 @@ export class SqliteDatabase {
       const rootPath = args[1] !== undefined ? toSqlString(args[1]) : "$";
       let parsed: unknown;
       try {
-        parsed = JSON.parse(rawJson);
+        parsed = parseSqlJson(rawJson);
       } catch {
         throw new Error("malformed JSON");
       }
@@ -7532,7 +7535,7 @@ export class SqliteDatabase {
         return null;
       }
       try {
-        const parsed = JSON.parse(toSqlString(l));
+        const parsed = parseSqlJson(toSqlString(l));
         const path =
           typeof r === "number"
             ? `$[${r}]`
@@ -8048,24 +8051,18 @@ export class SqliteDatabase {
         if (a0 === null) {
           return null;
         }
-        const text = toSqlString(a0);
-        JSON.parse(text);
-        let quoted = false;
-        let escaped = false;
-        let compact = "";
-        for (const char of text) {
-          if (quoted || ![" ", "\n", "\r", "\t"].includes(char)) compact += char;
-          if (!escaped && char === '"') quoted = !quoted;
-          escaped = quoted && !escaped && char === "\\";
-        }
-        return compact;
+        return canonicalizeJson(toSqlString(a0));
       }
       case "JSON_VALID": {
-        if (a0 === null) {
-          return null;
+        const flags = args.length > 1 ? Math.trunc(toSqlNumber(a1)) : 1;
+        if (flags < 1 || flags > 15) {
+          throw new Error("stepping, FLAGS parameter to json_valid() must be between 1 and 15");
         }
+        if (a0 === null) return null;
         try {
-          JSON.parse(toSqlString(a0));
+          if (flags & 2) parseSqlJson(toSqlString(a0));
+          else if (flags & 1) JSON.parse(toSqlString(a0));
+          else return 0;
           return 1;
         } catch {
           return 0;
@@ -8095,7 +8092,7 @@ export class SqliteDatabase {
           return null;
         }
         try {
-          const parsed = JSON.parse(toSqlString(a0));
+          const parsed = parseSqlJson(toSqlString(a0));
           if (args.length <= 2) {
             if (a1 === null) return null;
             const extracted = extractByJsonPath(parsed, toSqlString(a1));
@@ -8107,7 +8104,7 @@ export class SqliteDatabase {
             const v = extractByJsonPath(parsed, toSqlString(p));
             return v === undefined ? null : v;
           });
-          return new JsonText(JSON.stringify(arr));
+          return new JsonText(serializeSqlJson(arr));
         } catch (error) {
           if (error instanceof SyntaxError) {
             throw new Error("stepping, malformed JSON");
@@ -8120,7 +8117,7 @@ export class SqliteDatabase {
           return null;
         }
         try {
-          const parsed = JSON.parse(toSqlString(a0));
+          const parsed = parseSqlJson(toSqlString(a0));
           if (args.length > 1 && a1 === null) return null;
           const target =
             a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
@@ -8155,7 +8152,7 @@ export class SqliteDatabase {
           return null;
         }
         try {
-          const parsed = JSON.parse(toSqlString(a0));
+          const parsed = parseSqlJson(toSqlString(a0));
           if (args.length > 1 && a1 === null) return null;
           const target =
             a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
@@ -8177,7 +8174,7 @@ export class SqliteDatabase {
           return null;
         }
         try {
-          let cur = JSON.parse(toSqlString(a0));
+          let cur = parseSqlJson(toSqlString(a0));
           const mode = u === "JSON_SET" ? "set" : u === "JSON_INSERT" ? "insert" : "replace";
           for (let i = 1; i + 1 < args.length; i += 2) {
             yield;
@@ -8200,7 +8197,7 @@ export class SqliteDatabase {
           return null;
         }
         try {
-          let cur = JSON.parse(toSqlString(a0));
+          let cur = parseSqlJson(toSqlString(a0));
           for (let i = 1; i < args.length; i += 1) {
             yield;
             if (args[i] === null) return null;
@@ -8219,8 +8216,8 @@ export class SqliteDatabase {
           return null;
         }
         try {
-          const target = JSON.parse(toSqlString(a0));
-          const patch = JSON.parse(toSqlString(a1));
+          const target = parseSqlJson(toSqlString(a0));
+          const patch = parseSqlJson(toSqlString(a1));
           const applyMergePatch = (t: any, p: any): any => {
             if (p === null || typeof p !== "object" || Array.isArray(p)) {
               return p;
@@ -8235,7 +8232,7 @@ export class SqliteDatabase {
             }
             return res;
           };
-          return JSON.stringify(applyMergePatch(target, patch));
+          return serializeSqlJson(applyMergePatch(target, patch));
         } catch (error) {
           if (error instanceof SyntaxError) {
             throw new Error("stepping, malformed JSON");

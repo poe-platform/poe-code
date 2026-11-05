@@ -95,10 +95,19 @@ pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs:
             && same_file("/", logical, cwd, fs)
         { out.stdout = format!("{logical}\n"); return out; }
     }
-    let path = if physical || external.is_some() { fs.access_path(cwd, true) } else { Ok(cwd.to_owned()) };
+    let path = if physical || external.is_some() {
+        fs.access_path(cwd, true).and_then(|path| fs.stat(&path).map(|_| path))
+    } else { Ok(cwd.to_owned()) };
     match path {
         Ok(path) => out.stdout = format!("{path}\n"),
-        Err(e) => { out.stderr.push_str(&format!("{}: {e}\n", external.unwrap_or("pwd"))); out.exit_code = 1; }
+        Err(e) => {
+            let message = if e.starts_with("ENOENT") {
+                if external.is_some() { "couldn't find directory entry in '..' with matching i-node" }
+                else { "error retrieving current directory: getcwd: cannot access parent directories: No such file or directory" }
+            } else { &e };
+            out.stderr.push_str(&format!("{}: {message}\n", external.unwrap_or("pwd")));
+            out.exit_code = 1;
+        }
     }
     out
 }

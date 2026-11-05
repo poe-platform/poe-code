@@ -102,7 +102,18 @@ export function basicCommands(): CommandDefinition[] {
       assertCommandRequirements(context, pwdRequirements, [requiredMode]);
       if (requiredMode === "physical" && context.fs.capabilitiesFor) assertCommandRequirements(context, pwdRequirements, [requiredMode],
         await context.fs.capabilitiesFor(context.cwd, { signal: context.signal }));
-      let directory = requiredMode === "physical" ? await context.fs.realpath(context.cwd, { signal: context.signal }) : context.cwd;
+      let directory = context.cwd;
+      if (requiredMode === "physical") {
+        try { directory = await context.fs.realpath(context.cwd, { signal: context.signal }); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+          const message = external ? "couldn't find directory entry in '..' with matching i-node"
+            : "error retrieving current directory: getcwd: cannot access parent directories: No such file or directory";
+          await writeDiagnostic(context.stderr, `${name}: ${message}\n`, context.signal);
+          return { exitCode: 1 };
+        }
+      }
       context.signal.throwIfAborted();
       if (external && mode === "logical") {
         const logical = context.env.PWD;

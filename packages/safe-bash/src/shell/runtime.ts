@@ -8921,7 +8921,16 @@ export class Runtime {
           physical = flag === "P";
         }
       }
-      const path = physical ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.logicalCwd ?? state.cwd;
+      let path = state.logicalCwd ?? state.cwd;
+      if (physical) {
+        try { path = await this.fs.realpath(state.cwd, { signal: this.signal }); }
+        catch (error) {
+          this.signal.throwIfAborted();
+          if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+          await writeDiagnostic(stderr, "pwd: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory\n", this.signal);
+          return 1;
+        }
+      }
       await writeText(stdout, `${path}\n`);
       return 0;
     }

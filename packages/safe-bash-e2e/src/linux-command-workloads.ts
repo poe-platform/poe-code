@@ -176,6 +176,9 @@ export function linuxCommands(text: string) {
   for (const invocation of ["env pwd -X", "env pwd --unknown", "env pwd --physical=yes", "/usr/bin/pwd extra"]) {
     pipes.push("(cd pwd-link && " + invocation + " >/dev/null)");
   }
+  for (const invocation of ["pwd -L", "pwd -P", "env pwd -L", "/bin/pwd"]) {
+    pipes.push("(mkdir pwd-gone && cd pwd-gone && rmdir ../pwd-gone && " + invocation + " >/dev/null)");
+  }
   for (const options of ["-p1", "-p65535", "-p '+0008'", "-p ' 22'", "-p23 -p0", "-bpg -p44", "-Jjumps -p45", "-p www", "-p ssh", "-p null",
     "-oPort=24 -p25", "-p25 -oPort=24", "-o ' pOrT = 0024 # use this port'", "-o 'Port 2\"4\"'", "-oPort=www", "-oPort=24 -pbad", "-oPort=27 -oPort=28"]) {
     pipes.push("ssh -GT -F none " + options + " example.invalid | grep '^port '");

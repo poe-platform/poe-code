@@ -298,6 +298,22 @@ for (const mode of ["c", "x"]) test(`tar ${mode} rejects transformed traversal n
   await assert.rejects(fs.stat("/escape"));
 });
 
+for (const selection of [[], ["-T", "/empty-list"]]) test(`tar delete preserves the archive with empty selection ${selection.join(" ")}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new TextEncoder().encode("payload\n"));
+  await fs.link!("/a", "/b");
+  await fs.writeFile("/empty-list", new Uint8Array());
+  const created = await run(createTarCommand(), ["-cf", "/archive.tar", "a", "b"], "", fs);
+  assert.equal(created.exitCode, 0, created.stderr);
+  const before = await fs.readFile("/archive.tar");
+  const result = await run(createTarCommand(), ["--delete", "-f", "/archive.tar", ...selection], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const listed = await run(createTarCommand(), ["-tf", "/archive.tar"], "", fs);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  assert.equal(listed.stdout, "a\nb\n");
+  assert.deepEqual(await fs.readFile("/archive.tar"), before);
+});
+
 for (const mode of ["-rf", "-uf", "--delete", "-Af"]) test(`tar mutation ${mode} uses retained reads and staged publication`, async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/a", new Uint8Array(256 * 1024).fill(37));

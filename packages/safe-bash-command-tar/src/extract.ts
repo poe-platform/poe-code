@@ -361,7 +361,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       if (options.mode === "x") relative = relativeName(effectiveEntryName, options.strip);
       const name = entry.name.replace(/^\/+/u, "");
       const normalizedName = name.replace(/^(?:\.\/)+/u, "");
-      let selected = options.operands.length === 0;
+      let selected = options.operands.length === 0 && options.mode !== "delete";
       let root = resolvePath(options.cwd);
       for (let index = 0; index < options.operands.length; index++) {
         const operand = options.operands[index]!;

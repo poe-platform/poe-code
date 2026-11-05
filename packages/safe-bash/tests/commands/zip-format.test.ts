@@ -1321,7 +1321,8 @@ test("ZIP64 live expected size accepts the exact classic sentinel without payloa
     try {
       const header = (await iterator.next()).value!;
       const view = new DataView(header.buffer, header.byteOffset, header.byteLength);
-      assert.equal(view.getUint32(22, true), size >= 0xffffffff ? 0xffffffff : 0);
+      assert.equal(view.getUint32(22, true), Math.min(size, 0xffffffff));
+      assert.equal(view.getUint32(18, true), Math.min(size, 0xffffffff));
     } finally { await iterator.return?.(); }
   }
 });

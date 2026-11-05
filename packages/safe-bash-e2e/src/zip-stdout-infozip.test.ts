@@ -13,7 +13,7 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
   const out = fileURLToPath(new URL("../../../out/", import.meta.url));
   await mkdir(out, { recursive: true });
   const cwd = await mkdtemp(out + "infozip-");
-  const native = async (command: "zip" | "unzip", args: string[]) => {
+  const native = async (command: "zip" | "unzip" | "funzip", args: string[]) => {
     const proc = spawn("/usr/bin/" + command, args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
     const [[status], stdout, stderr] = await Promise.all([once(proc, "close"), buffer(proc.stdout), buffer(proc.stderr)]);
     return { status, stdout, stderr };
@@ -33,7 +33,7 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
     }
     for (const args of [["-", "src"], ["-q0", "-", "src"], ["-b", "absent", "-", "src"], ["-T", "-TT", "false", "-", "src"], ["-", "absent"]]) {
       const reference = await native("zip", args);
-      for (const shell of [js, rust]) {
+      for (const [shell, view] of [[js, fs], [rust, rust.fs]] as const) {
         const result = await shell.exec("zip " + args.join(" "));
         assert.equal(result.exitCode, reference.status, args.join(" "));
         assert.equal(result.stderr, reference.stderr.toString(), args.join(" "));
@@ -42,12 +42,20 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
           assert.deepEqual(bytes, reference.stdout);
           continue;
         }
+        await view.writeFile("/native.zip", reference.stdout);
+        const imported = await shell.exec("unzip -p native.zip src");
+        assert.equal(imported.exitCode, 0, imported.stderr);
+        assert.deepEqual(Buffer.from(imported.stdoutBytes), Buffer.from(payload));
+        assert.equal(bytes.readUInt16LE(4), reference.stdout.readUInt16LE(4)); // minimum extractor version
         assert.equal(bytes.readUInt16LE(6) & 8, reference.stdout.readUInt16LE(6) & 8); // data descriptor
         assert.equal(bytes.readUInt16LE(8), reference.stdout.readUInt16LE(8)); // compression method
         await writeFile(cwd + "/check.zip", bytes);
         const extracted = await native("unzip", ["-p", "check.zip", "src"]);
         assert.equal(extracted.status, 0, extracted.stderr.toString());
         assert.deepEqual(extracted.stdout, Buffer.from(payload));
+        const streamed = await native("funzip", ["check.zip"]);
+        assert.equal(streamed.status, 0, shell.constructor.name + ": " + args.join(" ") + ": " + streamed.stderr);
+        assert.deepEqual(streamed.stdout, Buffer.from(payload));
       }
     }
   } finally {

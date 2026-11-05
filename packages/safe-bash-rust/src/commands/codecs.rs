@@ -3608,7 +3608,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         let descriptor = descriptors && !is_dir;
         let (method, version, stored): (u16, u16, &[u8]) = if compress && (descriptor || compressed.len() < payload.len()) {
             (compression,match compression {12=>46,14=>63,_=>20}, &compressed)
-        } else { (0, if descriptor {20} else {10}, payload) };
+        } else { (0, 10, payload) };
         let flags:u16=0x800 | if descriptor {8} else {0} | if method==14 {2} else {0};
         report(&e.name,method,payload.len(),stored.len());
         let text_attr = u16::from(!document && compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
@@ -3629,9 +3629,9 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         out.extend_from_slice(&method.to_le_bytes());
         out.extend_from_slice(&dos_time.to_le_bytes());
         out.extend_from_slice(&dos_date.to_le_bytes());
-        if descriptor && !matches!(method,12|14) { out.extend_from_slice(&[0;12]); }
+        if descriptor && method == 8 { out.extend_from_slice(&[0;12]); }
         else {
-            out.extend_from_slice(&crc.to_le_bytes());
+            out.extend_from_slice(&(if descriptor && method == 0 {0} else {crc}).to_le_bytes());
             out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
             out.extend_from_slice(&sz.to_le_bytes());
         }

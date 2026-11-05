@@ -196,8 +196,8 @@ function format(method: number, flags: number, version: number): void {
     return;
   }
   if (method !== 0 && method !== 8 && method !== 12) fail("ZIP unsupported compression method");
-  // Info-ZIP uses version 10 for encrypted STORE, including descriptors.
-  if (version < (method === 12 ? 46 : method === 8 || flags & 8 && !(flags & 1) ? 20 : 10) || version > 20 && version !== 45 && version !== 46) fail("ZIP unsupported extraction version (including ZIP64)");
+  // Info-ZIP uses version 10 for STORE, including members with descriptors.
+  if (version < (method === 12 ? 46 : method === 8 ? 20 : 10) || version > 20 && version !== 45 && version !== 46) fail("ZIP unsupported extraction version (including ZIP64)");
 }
 
 function dosModified(date: number, time: number): Date {
@@ -765,6 +765,11 @@ async function writerMetadata(factory?: ZipMetadataFactory): Promise<{
     async close() { await spool.close(); }
   };
 }
+// STORE has no end marker. Forward readers need the payload length before its descriptor.
+function storedPayloadSize(entry: ZipEntry): number | undefined {
+  if (entry.method === 0 && !(entry.flags! & 1)) return entry.source ? entry.expectedSize : entry.size;
+}
+
 export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArchive, "close">, limits: ArchiveLimits, signal: AbortSignal, descriptors = false, forceZip64 = false, allowZip64 = true, metadataFactory?: ZipMetadataFactory): ByteSource {
   const chunkSize = admit(limits, signal);
   const originals = archive.entries;
@@ -851,8 +856,9 @@ export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArc
     const originalCentralExtra = entry.centralExtra ?? defaultExtras(entry, true);
     const originalCentralMetadata = extras(originalCentralExtra, rawName, comment, true, limits);
     const record = forceZip64 ? undefined : zipGrowRecords.get(entry);
+    const storedSize = storedPayloadSize(entry);
     const localValues = descriptor && wide
-      ? (entry.method === 12 || entry.method === 14) && !entry.source ? [entry.size, compressedLength(entry)] : [0, 0]
+      ? (entry.method === 12 || entry.method === 14) && !entry.source ? [entry.size, compressedLength(entry)] : [storedSize ?? 0, storedSize ?? 0]
       : [entry.size, compressedLength(entry)].filter(value => forceZip64 || entry.zip64 === true || value >= 0xffffffff);
     const localExtraSize = record ? originalLocalExtra.length : originalLocalExtra.length - (originalLocalMetadata.zip64 ? originalLocalMetadata.zip64.length + 4 : 0) + (localValues.length ? 4 + localValues.length * 8 : 0);
     const centralExtraSize = originalCentralExtra.length - (originalCentralMetadata.zip64 ? originalCentralMetadata.zip64.length + 4 : 0) + (member.values.length ? 4 + member.values.length * 8 : 0);
@@ -947,7 +953,7 @@ export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArc
     const offset = 0;
     const bytes = new Uint8Array(30 + rawName.length + localExtra.length);
     const view = new DataView(bytes.buffer);
-    const version = entry.method === 14 ? 63 : entry.method === 99 ? 51 : entry.method === 12 ? 46 : wide || item.offset >= 0xffffffff ? 45 : entry.method === 8 || flags & 9 ? 20 : 10;
+    const version = entry.method === 14 ? 63 : entry.method === 99 ? 51 : entry.method === 12 ? 46 : wide || item.offset >= 0xffffffff ? 45 : entry.method === 8 || flags & 1 ? 20 : 10;
     view.setUint32(offset, 0x04034b50, true);
     view.setUint16(offset + 4, version, true);
     view.setUint16(offset + 6, flags, true);
@@ -957,9 +963,10 @@ export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArc
     // Buffered BZIP2/LZMA have known compressed spans. Retain them with a
     // descriptor so streaming native readers can locate the member boundary.
     const knownCompressedSpan = (entry.method === 12 || entry.method === 14) && !entry.source;
+    const storedSize = storedPayloadSize(entry);
     view.setUint32(offset + 14, flags & 8 && !knownCompressedSpan ? 0 : entry.crc32, true);
-    view.setUint32(offset + 18, wide && (descriptor || forceZip64 || entry.zip64 === true || compressedLength(entry) >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownCompressedSpan ? 0 : compressedLength(entry), true);
-    view.setUint32(offset + 22, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.size >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownCompressedSpan ? 0 : entry.size, true);
+    view.setUint32(offset + 18, wide && (descriptor || forceZip64 || entry.zip64 === true || compressedLength(entry) >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownCompressedSpan ? storedSize ?? 0 : compressedLength(entry), true);
+    view.setUint32(offset + 22, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.size >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownCompressedSpan ? storedSize ?? 0 : entry.size, true);
     view.setUint16(offset + 26, rawName.length, true);
     view.setUint16(offset + 28, localExtra.length, true);
     bytes.set(rawName, offset + 30);
@@ -1070,7 +1077,7 @@ export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArc
     else signal.throwIfAborted();
     const { entry, rawName, wide, flags, centralExtra, comment, date, time, offset } = item;
     const member = zip64Member(entry.size, item.compressedSize, offset, forceZip64 || entry.zip64 === true, allowZip64 && (forceZip64 || entry.zip64 !== false), wide && Boolean(flags & 8));
-    const version = item.growVersion ?? (entry.method === 14 ? 63 : entry.method === 99 ? 51 : entry.method === 12 ? 46 : wide || member.wide ? 45 : entry.method === 8 || flags & 9 ? 20 : 10);
+    const version = item.growVersion ?? (entry.method === 14 ? 63 : entry.method === 99 ? 51 : entry.method === 12 ? 46 : wide || member.wide ? 45 : entry.method === 8 || flags & 1 ? 20 : 10);
     const central = 0;
     const bytes = new Uint8Array(46 + rawName.length + centralExtra.length + comment.length);
     const view = new DataView(bytes.buffer);

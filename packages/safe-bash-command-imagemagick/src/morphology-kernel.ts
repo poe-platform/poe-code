@@ -1,6 +1,6 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-/** Four-channel sliding histograms; rows gives the included half-width at each vertical offset. */
+/** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. */
 export function* morphologyPixelSteps(image: { width: number; height: number }, rows: readonly number[], mode: "min" | "max" | "median"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const ry = Math.floor(rows.length / 2);
@@ -15,13 +15,13 @@ export function* morphologyPixelSteps(image: { width: number; height: number }, 
                 const x = left + local;
                 for (let phase = 0; phase < (x === 0 ? 1 : 2); phase++) {
                     const delta = x === 0 || phase === 1 ? 1 : -1;
-                    for (let dy = -ry; dy <= ry; dy++) {
-                        const rx = rows[dy + ry]!;
-                        const first = x === 0 ? -rx : phase === 0 ? x - rx - 1 : x + rx;
-                        const last = x === 0 ? rx : first;
+                    for (let row = 0; row < rows.length; row++) {
+                        const rx = rows[row]!, before = Math.ceil(rx), after = Math.floor(rx);
+                        const first = x === 0 ? -before : phase === 0 ? x - before - 1 : x + after;
+                        const last = x === 0 ? after : first;
                         for (let column = first; column <= last; column++) {
                             if (++work % 4096 === 0) yield;
-                            const sx = Math.max(0, Math.min(width - 1, column)), sy = Math.max(0, Math.min(height - 1, y + dy));
+                            const sx = Math.max(0, Math.min(width - 1, column)), sy = Math.max(0, Math.min(height - 1, y + row - ry));
                             const bytes = yield { kind: "read", position: (sy * width + sx) * 4, length: 4 };
                             if (!bytes || bytes.length !== 4) throw new Error("Truncated morphology pixels");
                             for (let c = 0; c < 4; c++) histogram[c * 256 + bytes[c]!]! += delta;

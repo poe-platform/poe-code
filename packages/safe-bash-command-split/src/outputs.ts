@@ -1,4 +1,6 @@
 import { FsError, isFsError, type CommandContext, type FileStat, type WriteFileOptions } from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { quoteShellOperand } from "safe-bash-contracts/escaping";
 import { pathOf } from "safe-bash-io-engine/internal";
 import { Budget, interruptible } from "./io.js";
 
@@ -28,7 +30,7 @@ export class Outputs {
     return interruptible(() => this.context.fs.stat(path, { signal: this.budget.signal }), this.budget.signal);
   }
 
-  private async distinct(previous: Entry, current: Entry): Promise<void> {
+  private async distinct(previous: Entry, current: Entry, name: string): Promise<void> {
     await this.budget.step();
     let relation: "same" | "distinct" | "unknown" = "unknown";
     if (previous.path === current.path) relation = "same";
@@ -43,7 +45,10 @@ export class Outputs {
       const after = await interruptible(() => this.context.fs.realpath(current.path, { signal: this.budget.signal }), this.budget.signal);
       if (before === after) relation = "same";
     }
-    if (relation === "same") throw new FsError("EINVAL", { path: current.path, message: previous === this.input ? "output would overwrite input; aborting" : "output aliases an earlier output; aborting" });
+    if (relation === "same") {
+      if (previous === this.input) throw new PublicDiagnostic(`${quoteShellOperand(name)} would overwrite input; aborting`);
+      throw new FsError("EINVAL", { path: current.path, message: "output aliases an earlier output; aborting" });
+    }
     if (relation === "unknown") throw new FsError("ENOTSUP", { path: current.path, message: "cannot establish that existing output is distinct from input or earlier output" });
   }
 
@@ -77,8 +82,8 @@ export class Outputs {
     if (stat.type === "directory") throw new FsError("EISDIR", { path });
     if (stat.type !== "file") throw new FsError("ENOTSUP", { path, message: "output is not a regular file" });
     const current = { path, stat };
-    if (this.input) await this.distinct(this.input, current);
-    for (const previous of this.published) await this.distinct(previous, current);
+    if (this.input) await this.distinct(this.input, current, name);
+    for (const previous of this.published) await this.distinct(previous, current, name);
     return { path, flag: "w" };
   }
 

@@ -17301,7 +17301,7 @@ fn cmd_split(
         match write() {
             Ok(id) => { output_ids.insert(id); protected.push(out_path); }
             Err(e) => return BuiltinOutcome { stdout, stderr: if e == "would overwrite input; aborting" {
-                format!("split: '{file_name}' {e}\n")
+                format!("split: {} {e}\n", super::fs::shell_quoted_operand(&file_name))
             } else { format!("split: {file_name}: {e}\n") }, exit_code: 1 },
         }
         if parsed.verbose {

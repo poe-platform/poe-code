@@ -43,15 +43,16 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
     }
     await t.test("split refuses to overwrite its input before writing the colliding piece", async () => {
       const dir = cwd!;
-      for (const alias of ["same", "hard", "symlink", "late-hard"]) {
+      for (const alias of ["same", "hard", "symlink", "late-hard", "quoted-hard", "newline-hard"]) {
         const source = alias === "same" ? "effects/xaa" : "effects/source";
-        const output = alias === "late-hard" ? "effects/xab" : "effects/xaa";
+        const prefix = alias === "quoted-hard" ? "effects/a'b" : alias === "newline-hard" ? "effects/a\nb" : "effects/x";
+        const output = prefix + (alias === "late-hard" ? "ab" : "aa");
         await resetEffects(dir);
         if (alias === "same") await writeFile(dir + "/" + source, Buffer.from("abcdefghij"));
         else if (alias === "symlink") await symlink("source", dir + "/" + output);
         else await link(dir + "/" + source, dir + "/" + output);
         const original = await readFile(dir + "/" + source);
-        const args = ["-b", "4", source, "effects/x"];
+        const args = ["-b", "4", source, prefix];
         const reference = await runLinuxCommand("split", args, "", dir);
         assert.equal(reference[0], 1);
         assert.match(reference[2].toString(), /would overwrite input/);
@@ -62,10 +63,10 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
           if (alias === "same") await view.writeFile("/workspace/" + source, original);
           else if (alias === "symlink") await view.symlink!("source", "/workspace/" + output);
           else await view.link!("/workspace/" + source, "/workspace/" + output);
-          const result = await shell.exec("split " + args.join(" "));
+          const result = await shell.exec(`split -b 4 "${source}" "${prefix}"`);
           assert.equal(result.exitCode, reference[0], shell.constructor.name + ": " + alias);
           assert.deepEqual(Buffer.from(result.stdoutBytes), reference[1]);
-          assert.match(result.stderr, /would overwrite input/);
+          assert.deepEqual(Buffer.from(result.stderrBytes), reference[2], shell.constructor.name + ": " + alias);
           assert.deepEqual(await readEffects(dir, "split", view), expected);
         }
       }

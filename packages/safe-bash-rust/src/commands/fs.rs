@@ -973,7 +973,7 @@ fn display_operand(path: &str) -> String {
     out
 }
 
-fn shell_quoted_operand(path: &str) -> String {
+pub(super) fn shell_quoted_operand(path: &str) -> String {
     if path.contains('\'') && path.bytes().all(|b|
         (32..127).contains(&b) && !matches!(b, b'$' | 96 | b'\\' | b'"')) {
         return format!("\"{path}\"");

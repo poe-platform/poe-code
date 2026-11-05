@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { linuxCommands, linuxEnv, runLinuxCommand } from "./linux-command-workloads.js";
+import { linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const input = "alpha\nbeta\nbeta\n";
@@ -13,7 +13,7 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
     for (const { cmd, args, script } of linuxCommands) {
       await t.test(cmd, async t => {
         if (cmd === "git") {
-          if (!("Suspending" in WebAssembly)) return t.skip("The Git plugin needs WebAssembly Promise Integration");
+          if (!supportsHostPlugins) return t.skip("The Git plugin needs WebAssembly Promise Integration");
           ts.shell.use(gitCommands());
           rust.use(gitCommands());
         }

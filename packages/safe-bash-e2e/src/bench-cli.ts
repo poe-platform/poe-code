@@ -2,7 +2,7 @@ import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { linuxCommands, linuxEnv, runLinuxCommand } from "./linux-command-workloads.js";
+import { linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -80,7 +80,7 @@ async function main(): Promise<void> {
       console.log("Command\tLinux (spawn + pipes)\tTypeScript (warm)\tRust/Wasm (warm)");
       for (const { cmd, args: argv, script } of linuxCommands) {
         if (cmd === "git") {
-          if (!("Suspending" in WebAssembly)) {
+          if (!supportsHostPlugins) {
             console.log(script + "\tNot measured: the Git plugin needs WebAssembly Promise Integration");
             continue;
           }

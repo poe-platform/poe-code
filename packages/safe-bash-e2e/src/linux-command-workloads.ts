@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { buffer } from "node:stream/consumers";
 
+export const supportsHostPlugins = typeof Reflect.get(globalThis, "WebAssembly")?.Suspending === "function";
 export const linuxEnv = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
 export async function runLinuxCommand(cmd: string, args: readonly string[], input: string | Uint8Array) {
   const proc = spawn("/usr/bin/" + cmd, args, { env: linuxEnv });

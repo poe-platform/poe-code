@@ -821,6 +821,15 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
                 mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
                 rename:regular, atomicRename:regular, atomicRenameNoReplace:regular, symlinks:regular});
             },
+            async copyFile(source, destination, settings) {
+              admitPath(source, settings);
+              validatePath(destination, maxComponents);
+              // A backing copy cannot atomically resolve both paths through the shell's device overlay.
+              if (external && await deviceKind("/", false)) throw fsOperationError("ENOTSUP", "copyFile", source, destination);
+              const controls = stageControls(settings);
+              controls.signal.throwIfAborted();
+              return fs.copyFile(source, destination, controls);
+            },
             async rename(source, destination, settings) {
               admitPath(source, settings);
               validatePath(destination, maxComponents);

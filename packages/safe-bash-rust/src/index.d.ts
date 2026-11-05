@@ -1,4 +1,5 @@
 import type { CommandContext, CommandDefinition, CommandResult, RegisterCommandOptions } from "safe-bash-contracts/command";
+import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import type { FileSystem, ShellSessionState, ShellSessionHooks, ShellExecOptions } from "@poe-platform/safe-bash";
 
 export interface RustWasmFileInit {
@@ -124,7 +125,7 @@ export class WasmFileSystem {
   statfs(targetPath?: string): Promise<Record<string, number>>;
 }
 
-type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly invoke: NonNullable<CommandContext["invoke"]>; readonly fs: Required<Pick<FileSystem, "capabilitiesFor">> & Pick<WasmFileSystem, "readFile" | "readStream" | "writeFileConditional" | "createStagedFile" | "publishStagedFile" | "removeStagedFile" | "prepareDirectory" | "removeFileConditional" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm" | "capabilities" | "openReadFile" | "open" | "access" | "chmod" | "readlink" | "realpath" | "rename" | "symlink" | "unlink">};
+type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly invoke: NonNullable<CommandContext["invoke"]>; readonly fs: Required<Pick<FileSystem, "capabilitiesFor">> & Pick<WasmFileSystem, "readFile" | "readStream" | "writeFileConditional" | "createStagedFile" | "publishStagedFile" | "removeStagedFile" | "prepareDirectory" | "removeFileConditional" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm" | "capabilities" | "openReadFile" | "open" | "access" | "chmod" | "readlink" | "realpath" | "rename" | "copyFile" | "symlink" | "unlink">};
 type StreamMiddleware = (context: StreamCommandContext, next: () => Promise<CommandResult>) => CommandResult | Promise<CommandResult>;
 type StreamCommand = Omit<CommandDefinition, "execute"> & {
   readonly execute: (context: StreamCommandContext) => CommandResult | Promise<CommandResult>;
@@ -156,6 +157,7 @@ export class RustWasmBash {
     setup(host: {commands: StreamCommandRegistry; use(middleware: StreamMiddleware): void; provideCapabilities(defaults: NonNullable<CommandContext["capabilities"]>): void; registerFileSystem: RustWasmBash["registerFileSystem"]}): void | Promise<void>;
     dispose?(): void | Promise<void>;
   }): this;
+  use(plugin: VirtualShellPlugin): this;
   mountDevices(): void;
   mkdirAll(dirPath: string): void;
   writeFile(filePath: string, data: string | Uint8Array): void;

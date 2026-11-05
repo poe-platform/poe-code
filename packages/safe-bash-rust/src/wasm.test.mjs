@@ -5128,6 +5128,46 @@ test("realpath walks links before parent components and stays inside a mount", a
   } finally { bash.dispose(); }
 });
 
+test("plugin copyFile uses the invocation filesystem and preserves exclusive destinations", {skip: !WebAssembly.Suspending}, async () => {
+  const { MemoryFileSystem } = await import("@poe-code/safe-fs");
+  const external = new MemoryFileSystem();
+  await external.writeFile("/src", Uint8Array.of(2));
+  const bash = new RustWasmBash({files:{"/src": Uint8Array.of(1)}, deviceView:"provided"});
+  try {
+    bash.register({name:"plugin-copy", async execute({fs}) {
+      await fs.copyFile("/src", "/dst", {exclusive:true});
+      await assert.rejects(fs.copyFile("/src", "/dst", {exclusive:true}), {code:"EEXIST"});
+      return {exitCode:0};
+    }});
+    for (const [fs, value] of [[bash.fs, 1], [external, 2]]) {
+      const result = await bash.exec("plugin-copy", {fs});
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(await fs.readFile("/dst"), Uint8Array.of(value));
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("plugin copyFile cannot bypass the external filesystem device overlay", {skip: !WebAssembly.Suspending}, async () => {
+  const { MemoryFileSystem } = await import("@poe-code/safe-fs");
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", Uint8Array.of(7));
+  await fs.writeFile("/data", Uint8Array.of(1));
+  await fs.symlink("/dev/null", "/alias");
+  const bash = new RustWasmBash();
+  try {
+    bash.register({name:"copy-overlay", async execute(ctx) {
+      await assert.rejects(ctx.fs.copyFile("/data", "/alias"), {code:"ENOTSUP"});
+      await assert.rejects(ctx.fs.copyFile("/alias", "/data"), {code:"ENOTSUP"});
+      return {exitCode:0};
+    }});
+    const result = await bash.exec("copy-overlay", {fs});
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await fs.readFile("/dev/null"), Uint8Array.of(7));
+    assert.deepEqual(await fs.readFile("/data"), Uint8Array.of(1));
+  } finally { await bash.dispose(); }
+});
+
 test("copyFile preserves destinations on failed copies and applies the source mode", async () => {
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
     const bash = new RustWasmBash({profile, files: {"/dir/source": {content:"bytes",mode:0o640}, "/dest": {content:"keep",mode:0o600}}});

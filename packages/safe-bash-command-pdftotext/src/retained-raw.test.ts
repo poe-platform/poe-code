@@ -296,3 +296,27 @@ test("layout aligns multiple rows using text column widths", async () => {
     assert.equal(new TextDecoder().decode(joined(f.stdout)), expected);
   } finally { await f.clean(); }
 });
+
+// Poppler 26.09.0: lines separated by more than 1.5 font sizes form
+// independent blocks, which read across rows instead of down columns.
+for (const spacing of [15, 18, 18.1, 20]) for (const flags of [[], ["-f", "1", "-l", "1"], ["-f", "1", "-l", "1", "-nopgbrk"]]) {
+  test(`logical columns match Poppler at spacing ${spacing}: ${flags.join(" ")}`, async () => {
+    const doc = PdfDocument.create(), page = doc.addPage([300, 200]);
+    const left = ["Left one", "Left two", "Left three"], right = ["Right one", "Right two", "Right three"];
+    for (let row = 0; row < 3; row++) {
+      page.drawText(left[row]!, { x: 20, y: 170 - row * spacing, size: 12 });
+      page.drawText(right[row]!, { x: 170, y: 170 - row * spacing, size: 12 });
+    }
+    doc.addPage([300, 200]).drawText("Second page", { x: 20, y: 170, size: 12 });
+    const body = spacing <= 18 ? left.join("\n") + "\n\n" + right.join("\n") : left.flatMap((text, row) => [text, right[row]!]).join("\n\n");
+    const expected = body + "\n\n" + (flags.includes("-nopgbrk") ? "" : "\f") + (flags.length ? "" : "Second page\n\n\f");
+    const input = doc.save(), args = [...flags, "input.pdf", "-"];
+    assert.equal((await runPdftotextCli(args, new Map([["input.pdf", input]]))).output, expected);
+    const f = await fixture(input, args);
+    try {
+      assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+      assert.equal(new TextDecoder().decode(joined(f.stdout)), expected);
+      assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 0 });
+    } finally { await f.clean(); }
+  });
+}

@@ -157,9 +157,18 @@ export function extractPageFromDisplayList(
     const leftCol = lines.filter(l => l.bbox[2] <= midX + 18);
     const rightCol = lines.filter(l => l.bbox[0] >= midX - 18 && !leftCol.includes(l));
     if (leftCol.length >= 1 && rightCol.length >= 1 && leftCol.length + rightCol.length === lines.length) {
-      leftCol.sort((a, b) => b.baselineY - a.baselineY);
-      rightCol.sort((a, b) => b.baselineY - a.baselineY);
-      lines.splice(0, lines.length, ...leftCol, ...rightCol);
+      // Isolated column blocks read across rows in Poppler. Only promote
+      // columns containing lines close enough to form a multi-line block.
+      const connected = [leftCol, rightCol].some(column => column.some((line, index) => {
+        const previous = column[index - 1];
+        const gap = previous ? previous.baselineY - line.baselineY : 0;
+        return previous && gap > 0 && gap <= (previous.words[0]?.fontSize ?? 12) * 1.5;
+      }));
+      if (connected) {
+        leftCol.sort((a, b) => b.baselineY - a.baselineY);
+        rightCol.sort((a, b) => b.baselineY - a.baselineY);
+        lines.splice(0, lines.length, ...leftCol, ...rightCol);
+      }
     }
   }
 

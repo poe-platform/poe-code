@@ -27,5 +27,5 @@ export function* sharpenPixelSteps(image: { width: number; height: number; hasAl
     kernel[Math.floor(kernel.length / 2)] = -2 * sum;
     const scale = 1 - sum;
     for (let i = 0; i < kernel.length; i++) kernel[i]! /= scale;
-    yield* convolvePixelSteps(image, kernel, 0);
+    yield* convolvePixelSteps(image, { weights: kernel, width: 2 * half + 1, height: 2 * half + 1, x: half, y: half }, 0);
 }

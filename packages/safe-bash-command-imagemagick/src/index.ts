@@ -23,7 +23,7 @@ import { morphologyPixelSteps } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalPixelSteps } from "./charcoal-kernel.js";
 import { embossPixelSteps } from "./emboss-kernel.js";
-import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
+import { convolvePixelSteps, type ConvolveKernel, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
 export interface ConvertFileInput extends CompareFileInput { readonly stderr?: ByteSink; }
@@ -732,15 +732,22 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw), signal, { ...base, width: w, height: h }, normalized);
 }
 
-function parseMagickConvolveKernel(spec: string, normalize = true): number[] {
+function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
     const kernel = afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
     const sum = kernel.reduce((total, weight) => total + weight, 0);
-    return !normalize || sum === 0 ? kernel : kernel.map(weight => weight / sum);
+    const geometry = parseMagickGeometry(spec.includes(":") ? spec.slice(0, spec.indexOf(":")) : "");
+    const width = geometry.width ?? Math.max(1, Math.round(Math.sqrt(kernel.length)));
+    const height = geometry.height ?? width;
+    const x = geometry.hasOffset ? geometry.x : Math.floor((width - 1) / 2);
+    const y = geometry.hasOffset ? geometry.y : Math.floor((height - 1) / 2);
+    const weights = !normalize || sum === 0 ? kernel : kernel.map(weight => weight / sum);
+    return { weights: reverse ? weights.reverse() : weights, width, height,
+        x: reverse ? width - 1 - x : x, y: reverse ? height - 1 - y : y };
 }
 function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const kernel = parseMagickConvolveKernel(spec);
-    return kernel.length ? yield* applyMagickRasterSteps(img, convolvePixelSteps(img, kernel, 0), signal) : img;
+    return kernel.weights.length ? yield* applyMagickRasterSteps(img, convolvePixelSteps(img, kernel, 0), signal) : img;
 }
 
 function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -5331,10 +5338,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 kernelSpec = tokens[++i]!;
             }
             if (method.includes("convolve") || method.includes("correlate")) {
-                const kernel = parseMagickConvolveKernel(kernelSpec, false);
-                if (method.includes("convolve")) kernel.reverse();
+                const kernel = parseMagickConvolveKernel(kernelSpec, false, method.includes("convolve"));
                 stack = yield* mapSteps(stack, function* (im) {
-                    return kernel.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal) : im;
+                    return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal) : im;
                 });
             }
             else {
@@ -6202,9 +6208,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-statistic") spec = tokens[++i] ?? "3x3";
             else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
             if (token === "-morphology" && (method.includes("convolve") || method.includes("correlate"))) {
-                const kernel = parseMagickConvolveKernel(spec, false);
-                if (method.includes("convolve")) kernel.reverse();
-                steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
+                const kernel = parseMagickConvolveKernel(spec, false, method.includes("convolve"));
+                steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
             } else {
                 const plan = magickMorphologyPlan(method, spec);
                 steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal) : undefined);
@@ -6231,7 +6236,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-convolve") {
             const spec = tokens[++i] ?? "1";
             const kernel = parseMagickConvolveKernel(spec);
-            steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
+            steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);

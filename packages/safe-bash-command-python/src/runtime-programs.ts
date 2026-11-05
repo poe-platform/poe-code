@@ -4,5 +4,5 @@ type RuntimePrograms=typeof programs & {readonly pythonMetadataDiscovery:string}
 let decoded:Promise<RuntimePrograms>|undefined;
 /** Decode the fixed bootstrap once; no guest or caller files enter this cache. */
 export function loadPythonRuntimePrograms():Promise<RuntimePrograms>{
- return decoded??=new Response(new Blob([Uint8Array.from(atob(pythonRuntimeProgramsGzip),character=>character.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('gzip'))).json();
+ return decoded??=new Response(new Blob([Uint8Array.from(atob(pythonRuntimeProgramsGzip),character=>character.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('gzip'))).json() as Promise<RuntimePrograms>;
 }

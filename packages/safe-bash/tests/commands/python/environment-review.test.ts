@@ -1,3 +1,4 @@
+/// <reference lib="es2024.sharedmemory" />
 import assert from 'node:assert/strict';
 import { setImmediate as nextTurn } from 'node:timers/promises';
 import { test } from 'node:test';

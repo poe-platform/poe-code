@@ -3973,8 +3973,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const options = { brightness: (parts[0] ?? 100) / 100, saturation: (parts[1] ?? 100) / 100, hue: ((parts[2] ?? 100) - 100) * 1.8, lightness: 0 };
         apply = image => modulateImageSteps(image, options);
     } else if (token === "-brightness-contrast") {
-        const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), slope = 1 + (geometry.height ?? 0) / 100, offset = (geometry.width ?? 0) / 100 * 255;
-        apply = image => linearImageSteps(image, [slope], [offset]);
+        const [brightness = 0, contrast = 0] = (tokens[++i] ?? "0x0").split("x").map(value => parseFloat(value) || 0);
+        // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.
+        const slope = contrast < 0 ? 1 + contrast / 100 : 100 / Math.max(1e-12, 100 - contrast);
+        const offset = (brightness / 100 * 255 - 127.5) * slope + 127.5;
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        apply = function* (image) {
+            const out = new Uint8Array(image.data);
+            const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) yield;
+                for (let channel = 0; channel < 4; channel++) {
+                    if (mask[channel]) out[idx + channel] = clampByteVal(out[idx + channel]! * slope + offset);
+                }
+            }
+            return { ...image, data: out };
+        };
     } else if (token === "-threshold") {
         const raw = tokens[++i] ?? "50%", value = Math.round(raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw));
         apply = image => thresholdImageSteps(image, value, true);

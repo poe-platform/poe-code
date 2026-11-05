@@ -198,18 +198,7 @@ fn clip_coverage(row: &Option<ClipRow>, x: usize) -> u8 {
 // Poppler stores device color operands in 16.16. Its lexer accumulates the
 // fractional digits in order, which matters on exact fixed-point boundaries.
 fn cairo_component(value: &Value<'_>) -> Option<f64> {
-    let mut c = value.number()?.clamp(0., 1.);
-    if c > 0. && c < 1.
-        && let Some(frac) = value.word()?.split(|&b| b == b'.').nth(1)
-        && frac.iter().all(u8::is_ascii_digit)
-    {
-        let mut scale = 0.1;
-        c = 0.;
-        for &digit in frac {
-            c += f64::from(digit - b'0') * scale;
-            scale *= 0.1;
-        }
-    }
+    let c = value.number()?.clamp(0., 1.);
     let fixed = (c * 65536.) as u32;
     // Cairo takes the high byte of its rounded 16-bit solid color.
     Some(f64::from((fixed * 65535 + 32768) >> 24) / 255.)
@@ -870,9 +859,12 @@ impl PageSource<'_> {
             270 => (x1, y1),
             _ => (x0, y1),
         };
+        // The page matrix translates in device space after scaling.
+        let [u0, v0] = axis(-ox, -oy);
+        let (tx, ty) = (u0 - left as f64, v0 - top as f64);
         let point = |x, y| {
-            let [u, v] = axis(x - ox, y - oy);
-            [u - left as f64, v - top as f64]
+            let [u, v] = axis(x, y);
+            [u + tx, v + ty]
         };
         let page_clip = if opt.backend == RasterBackend::Cairo
             && (opt.cropbox || cropbox.is_none_or(|b| b == [x0, y0, x1, y1])) {

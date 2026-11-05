@@ -112,7 +112,27 @@ impl<'a> Value<'a> {
         }
     }
     fn number(&self) -> Option<f64> {
-        std::str::from_utf8(self.word()?).ok()?.parse().ok()
+        let token = std::str::from_utf8(self.word()?).ok()?;
+        let Some((whole, fraction)) = token.split_once('.') else {
+            return token.parse().ok();
+        };
+        let digits = whole.strip_prefix(['+', '-']).unwrap_or(whole);
+        if !digits.bytes().chain(fraction.bytes()).all(|b| b.is_ascii_digit()) {
+            return token.parse().ok();
+        }
+        let mut number = if digits.is_empty() && !fraction.is_empty() {
+            0.
+        } else {
+            digits.parse::<f64>().ok()?
+        };
+        // Poppler adds each decimal digit in sequence. Even one ulp can
+        // change which side of a fixed-point pixel boundary the value lands on.
+        let mut place = 0.1;
+        for digit in fraction.bytes() {
+            number += f64::from(digit - b'0') * place;
+            place *= 0.1;
+        }
+        Some(if whole.starts_with('-') { -number } else { number })
     }
     fn rectangle(&self) -> Option<[f64; 4]> {
         let Self::Array(items) = self else {

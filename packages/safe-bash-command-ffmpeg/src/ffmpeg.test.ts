@@ -124,7 +124,12 @@ describe("aliceblue color source", () => {
 
 describe("pad background alpha", () => {
   for (const [color, alpha] of [["red@0.5", 127], ["red@0", 0], ["0xff000080", 128], ["red", 255]] as const) {
-    for (const filter of [`pad=4:4:1:1:color=${color}`, `pad=4:4:1:1:${color}`]) {
+    for (const filter of [
+      `pad=4:4:1:1:color=${color}`,
+      `pad=4:4:1:1:${color}`,
+      `pad=4:4:x=(ow-iw)/2:y=(oh-ih)/2:color=${color}`,
+      `pad=4:4:(out_w-in_w)/2:(out_h-in_h)/2:${color}`
+    ]) {
       it(`preserves border and source RGBA pixels for ${filter}`, async () => {
         const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
         const input = encodeImage({
@@ -148,6 +153,24 @@ describe("pad background alpha", () => {
             assert.deepEqual([...output.data.subarray(offset, offset + 4)], expected);
           }
         }
+      });
+    }
+  }
+});
+
+describe("pad position expressions", () => {
+  for (const expression of ["unknown", "1junk", "1/0", "(ow-iw", "sin(0)"]) {
+    for (const axis of ["x", "y"]) {
+      it(`rejects unsupported ${axis}=${expression} without overwriting output`, async () => {
+        const vfs = createTestVfs({ "/pad.png": "original" });
+        const original = vfs.store.get("/pad.png");
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "lavfi", "-i", "color=c=blue:s=2x2:r=1:d=1",
+          "-vf", `pad=4:4:${axis}=${expression}`, "-frames:v", "1", "/pad.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("pad: invalid"), result.stderr);
+        assert.deepEqual(vfs.store.get("/pad.png"), original);
       });
     }
   }

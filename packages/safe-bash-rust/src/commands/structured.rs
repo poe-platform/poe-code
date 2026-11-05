@@ -31038,17 +31038,16 @@ fn render_pandoc_html(
                     body.push_str(&format!("<{group}>\n"));
                     for row in rows {
                         body.push_str("<tr>\n");
-                        let mut col = 0usize;
                         for c in row {
                             let content = render_pandoc_html(&c.blocks, false,false,false,ascii,"","","","");
                             body.push_str(&format!("<{cell}"));
-                            if let Some(a) = c.align.or_else(||table.cols.get(col).and_then(|c|c.0)) {
+                            if c.span.1>1 {body.push_str(&format!(" colspan=\"{}\"",c.span.1));}
+                            if c.span.0>1 {body.push_str(&format!(" rowspan=\"{}\"",c.span.0));}
+                            if let Some(a) = c.align.or_else(||table.cols.get(c.column).and_then(|c|c.0)) {
                                 let side = match a {std::fmt::Alignment::Right=>"right",std::fmt::Alignment::Center=>"center",std::fmt::Alignment::Left=>"left"};
                                 body.push_str(&format!(" style=\"text-align: {side};\""));
                             }
-                            if c.span.1>1 {body.push_str(&format!(" colspan=\"{}\"",c.span.1));}
                             body.push_str(&format!(">{}</{cell}>\n",content.trim_end_matches('\n')));
-                            col = col.saturating_add(c.span.1);
                         }
                         body.push_str("</tr>\n");
                     }

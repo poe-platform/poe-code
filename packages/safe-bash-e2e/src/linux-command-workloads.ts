@@ -177,6 +177,8 @@ export const pandocWordSample = "## Report\n\n**Bold** & *italic*, ~~old~~, `a <
 
 export const pandocWordTable = "| Name | Score | Note |\n| :---: | ---: | :---: |\n| **Ada** | 2 | [details](https://example.com) |\n| `Bob` | 3 | |";
 
+export const pandocMergedTable = '<table><thead><tr><th>Region</th><th>Team</th><th>Score</th></tr></thead><tbody><tr><td rowspan="3" colspan="2"><strong>North</strong></td><td>1</td></tr><tr><td>2</td></tr><tr><td>3</td></tr><tr><td>South</td><td rowspan="2">Blue</td><td>4</td></tr><tr><td>East</td><td>5</td></tr></tbody></table>';
+
 export function nativePandoc() {
   const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
   const pandocVersion = execFileSync(pandoc, ["--version"], { encoding: "utf8" }).split("\n")[0];
@@ -289,6 +291,8 @@ export function linuxCommands(text: string) {
     ...["json", "html"].map(to => ({
       cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeTable,
     })),
+    {cmd: pandoc, args: ["-f", "docx", "-t", "json"], script: "pandoc -f docx -t json",
+      input: execFileSync(pandoc, ["-f", "html", "-t", "docx"], {input: pandocMergedTable})},
     {cmd: pandoc, args: ["-f", "csv", "-t", "html"], script: "pandoc -f csv -t html", input: "Name,Score\nA & B,2\n"},
     ...["plain", "html"].map(to => ({
       cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeDocx,

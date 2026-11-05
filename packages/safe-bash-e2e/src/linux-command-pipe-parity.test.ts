@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, pandocWordSample, pandocWordTable, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, pandocMergedTable, pandocWordSample, pandocWordTable, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("native Pandoc recovers headings, formatting, code and links from DOCX exports", async () => {
   const pandoc = nativePandoc();
@@ -76,6 +76,30 @@ test("Word table imports preserve native Pandoc cells, headers and widths", asyn
         const actual = await shell.exec("pandoc " + options.join(" "), {stdin: docx});
         assert.equal(actual.exitCode, 0, actual.stderr);
         assert.equal(actual.stdout, expected.toString(), shell.constructor.name);
+      }
+    }
+  } finally {await ts.dispose(); await rust.dispose();}
+});
+
+test("Word table merges survive import and Word export", async () => {
+  const pandoc = nativePandoc();
+  const convert = async (from: string, to: string, input: string | Uint8Array) => {
+    const [status, output, error] = await runLinuxCommand(pandoc, ["-f", from, "-t", to, ...(to === "html" ? ["--wrap=none"] : [])], input);
+    assert.equal(status, 0, error.toString());
+    return output;
+  };
+  const docx = await convert("html", "docx", pandocMergedTable);
+  const ts = await SafeBashE2EHarness.create({backend: "typescript"});
+  const rust = new RustWasmBash({forceNative: true});
+  try {
+    for (const to of ["json", "html", "docx"]) {
+      const native = await convert("docx", to, docx);
+      const expected = to === "docx" ? await convert("docx", "json", native) : native;
+      for (const shell of to === "docx" ? [rust] : [ts.shell, rust]) {
+        const actual = await shell.exec(`pandoc -f docx -t ${to}${to === "html" ? " --wrap=none" : ""}`, {stdin: docx});
+        assert.equal(actual.exitCode, 0, actual.stderr);
+        const output = to === "docx" ? await convert("docx", "json", actual.stdoutBytes) : actual.stdoutBytes;
+        assert.equal(Buffer.from(output).toString(), expected.toString(), shell.constructor.name);
       }
     }
   } finally {await ts.dispose(); await rust.dispose();}

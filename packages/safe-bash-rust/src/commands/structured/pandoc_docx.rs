@@ -436,63 +436,101 @@ impl BodyReader<'_> {
                     |v| v == "1",
                 )
             });
+        let mut head = Vec::new();
+        let mut body = Vec::new();
+        let continuing = |tc: &XmlElement| {
+            child(tc, "w:tcPr")
+                .and_then(|p| child(p, "w:vMerge"))
+                .is_some_and(|v| attr(v, "w:val") != Some("restart"))
+        };
+        let mut previous_header = false;
         for (i, tr) in children(tbl).filter(|e| e.tag == "w:tr").enumerate() {
-            let mut row = Vec::new();
-            for tc in children(tr).filter(|e| e.tag == "w:tc") {
-                let props = child(tc, "w:tcPr");
-                if props.and_then(|p| child(p, "w:vMerge")).is_some() {
-                    return Err(UNSUPPORTED);
-                }
-                let span = props
-                    .and_then(|p| value(p, "w:gridSpan"))
-                    .map_or(Some(1), |v| v.parse::<usize>().ok())
-                    .filter(|n| *n > 0)
-                    .ok_or(INVALID)?;
-                let align = children(tc)
-                    .find(|p| p.tag != "w:tcPr")
-                    .filter(|p| p.tag == "w:p")
-                    .and_then(|p| child(p, "w:pPr"))
-                    .and_then(|p| value(p, "w:jc"))
-                    .and_then(|v| match v {
-                        "both" | "left" => Some(fmt::Alignment::Left),
-                        "right" => Some(fmt::Alignment::Right),
-                        "center" => Some(fmt::Alignment::Center),
-                        _ => None,
-                    });
-                let mut blocks = self.blocks(tc, depth + 1)?;
-                if blocks.len() == 1
-                    && let PandocBlock::Para(nodes) = &mut blocks[0]
-                {
-                    blocks[0] = PandocBlock::Plain(std::mem::take(nodes));
-                }
-                row.push(Cell {
-                    align,
-                    span: (1, span),
-                    blocks,
-                });
-            }
-            if i == 0 {
-                if table.cols.is_empty() {
-                    // Without a grid, Pandoc derives one default width per first-row cell.
-                    table.cols.resize(row.len(), (None, 0.));
-                }
-                if let Some(first) = row.first() {
-                    for col in table.cols.iter_mut().take(first.span.1) {
-                        col.0 = first.align;
-                    }
-                }
-            }
             let header = i == 0 && first_header
                 || child(tr, "w:trPr")
                     .and_then(|p| child(p, "w:tblHeader"))
-                    .is_some_and(|p| attr(p, "w:val") != Some("0"));
+                    .is_some_and(|p| attr(p, "w:val") != Some("0"))
+                || previous_header && children(tr).filter(|e| e.tag == "w:tc").any(continuing);
             if header {
-                if table.head.is_empty() {
-                    table.head.append(&mut table.body);
+                if head.is_empty() {
+                    head.append(&mut body);
                 }
-                table.head.push(row);
+                head.push(tr);
             } else {
-                table.body.push(row);
+                body.push(tr);
+            }
+            previous_header = header;
+        }
+        // A Word continuation extends whichever cell covers the same column above it.
+        // Scan physical cells, not every grid slot covered by their spans.
+        for (source, target) in [(head, &mut table.head), (body, &mut table.body)] {
+            let mut below: Vec<(usize, usize)> = Vec::new();
+            for tr in source.into_iter().rev() {
+                let mut row = Vec::new();
+                let mut next = Vec::new();
+                let mut lower = below.iter().peekable();
+                let mut column = 0usize;
+                for tc in children(tr).filter(|e| e.tag == "w:tc") {
+                    let props = child(tc, "w:tcPr");
+                    let span = props
+                        .and_then(|p| value(p, "w:gridSpan"))
+                        .map_or(Some(1), |v| v.parse::<usize>().ok())
+                        .filter(|n| *n > 0)
+                        .ok_or(INVALID)?;
+                    let start = column;
+                    column = column.checked_add(span).ok_or(INVALID)?;
+                    while lower.peek().is_some_and(|(end, _)| *end <= start) {
+                        lower.next();
+                    }
+                    let height = 1 + lower.peek().map_or(0, |(_, rows)| *rows);
+                    let merged = continuing(tc);
+                    next.push((column, if merged { height } else { 0 }));
+                    if merged {
+                        continue;
+                    }
+                    let align = children(tc)
+                        .find(|p| p.tag != "w:tcPr")
+                        .filter(|p| p.tag == "w:p")
+                        .and_then(|p| child(p, "w:pPr"))
+                        .and_then(|p| value(p, "w:jc"))
+                        .and_then(|v| match v {
+                            "both" | "left" => Some(fmt::Alignment::Left),
+                            "right" => Some(fmt::Alignment::Right),
+                            "center" => Some(fmt::Alignment::Center),
+                            _ => None,
+                        });
+                    let mut blocks = self.blocks(tc, depth + 1)?;
+                    if blocks.len() == 1
+                        && let PandocBlock::Para(nodes) = &mut blocks[0]
+                    {
+                        blocks[0] = PandocBlock::Plain(std::mem::take(nodes));
+                    }
+                    row.push(Cell {
+                        align,
+                        span: (height, span),
+                        column: start,
+                        blocks,
+                    });
+                }
+                target.push(row);
+                below = next;
+            }
+            target.reverse();
+        }
+        if let Some(row) = table.head.first().or(table.body.first()) {
+            if table.cols.is_empty() {
+                let count = row
+                    .iter()
+                    .try_fold(0usize, |n, c| n.checked_add(c.span.0))
+                    .ok_or(INPUT_LIMIT)?;
+                if count > self.remaining {
+                    return Err(INPUT_LIMIT);
+                }
+                table.cols.resize(count, (None, 0.));
+            }
+            if let Some(first) = row.first() {
+                for col in table.cols.iter_mut().take(first.span.1) {
+                    col.0 = first.align;
+                }
             }
         }
         Ok((!table.head.is_empty() || !table.body.is_empty()).then_some(PandocBlock::Table(table)))
@@ -760,22 +798,45 @@ impl Writer {
                 }
                 PandocBlock::Table(table) => {
                     let cols = table.cols.len().max(1);
-                    write!(self.document, r#"<w:tbl><w:tblPr><w:tblW w:type="auto" w:w="0"/><w:tblLook w:firstRow="{}"/></w:tblPr><w:tblGrid>"#,usize::from(!table.head.is_empty()))?;
-                    for (_,w) in &table.cols {write!(self.document, r#"<w:gridCol w:w="{}"/>"#, if *w>0. {(w*(9360. - 10.*(cols-1) as f64)).round() as usize} else {7920/cols})?;}
+                    let fraction: f64 = table.cols.iter().map(|(_, w)| w).sum();
+                    let kind = if fraction == 0. {"auto"} else {"pct"};
+                    write!(self.document, r#"<w:tbl><w:tblPr><w:tblW w:type="{kind}" w:w="{}"/><w:tblLook w:firstRow="{}"/></w:tblPr><w:tblGrid>"#, (fraction * 5000.).round_ties_even(), usize::from(!table.head.is_empty()))?;
+                    for (_,w) in &table.cols {
+                        let width = if fraction == 0. {1. / cols as f64} else {*w};
+                        write!(self.document, r#"<w:gridCol w:w="{}"/>"#, (7920. * width).floor())?;
+                    }
                     self.document.write_str("</w:tblGrid>")?;
+                    let mut continuing = std::collections::BTreeMap::<usize,(usize,usize)>::new();
                     for (i,row) in table.head.iter().chain(&table.body).enumerate() {
                         self.document.write_str("<w:tr>")?;
                         if i<table.head.len() {self.document.write_str(r#"<w:trPr><w:tblHeader w:val="on"/></w:trPr>"#)?;}
-                        let mut col = 0usize;
-                        for cell in row {
+                        let mut previous = std::mem::take(&mut continuing).into_iter().peekable();
+                        let mut starts = row.iter().peekable();
+                        while previous.peek().is_some() || starts.peek().is_some() {
+                            let carry = previous.peek().is_some_and(|(col,_)| starts.peek().is_none_or(|c| *col<c.column));
+                            let (col,width,end,cell) = if carry {
+                                let (col,(width,end)) = previous.next().unwrap();
+                                (col,width,end,None)
+                            } else {
+                                let cell = starts.next().unwrap();
+                                (cell.column,cell.span.1,i+cell.span.0,Some(cell))
+                            };
                             self.document.write_str("<w:tc>")?;
-                            if cell.span.1>1 {write!(self.document,r#"<w:tcPr><w:gridSpan w:val="{}"/></w:tcPr>"#,cell.span.1)?;}
-                            let jc = match cell.align.or_else(||table.cols.get(col).and_then(|c|c.0)) {
-                                Some(fmt::Alignment::Center)=>r#"<w:jc w:val="center"/>"#,Some(fmt::Alignment::Right)=>r#"<w:jc w:val="right"/>"#,Some(fmt::Alignment::Left)=>r#"<w:jc w:val="left"/>"#,None=>""};
-                            if cell.blocks.is_empty() {write!(self.document,"<w:p><w:pPr>{jc}</w:pPr></w:p>")?;}
-                            else {self.blocks(&cell.blocks,"Compact",depth,jc)?;}
+                            if width>1 || carry || end>i+1 {
+                                self.document.write_str("<w:tcPr>")?;
+                                if width>1 {write!(self.document,r#"<w:gridSpan w:val="{width}"/>"#)?;}
+                                if carry {self.document.write_str("<w:vMerge/>")?;}
+                                else if end>i+1 {self.document.write_str(r#"<w:vMerge w:val="restart"/>"#)?;}
+                                self.document.write_str("</w:tcPr>")?;
+                            }
+                            if end>i+1 {continuing.insert(col,(width,end));}
+                            if let Some(cell) = cell {
+                                let jc = match cell.align.or_else(||table.cols.get(col).and_then(|c|c.0)) {
+                                    Some(fmt::Alignment::Center)=>r#"<w:jc w:val="center"/>"#,Some(fmt::Alignment::Right)=>r#"<w:jc w:val="right"/>"#,Some(fmt::Alignment::Left)=>r#"<w:jc w:val="left"/>"#,None=>""};
+                                if cell.blocks.is_empty() {write!(self.document,"<w:p><w:pPr>{jc}</w:pPr></w:p>")?;}
+                                else {self.blocks(&cell.blocks,"Compact",depth,jc)?;}
+                            } else {self.document.write_str("<w:p/>")?;}
                             self.document.write_str("</w:tc>")?;
-                            col=col.saturating_add(cell.span.1);
                         }
                         self.document.write_str("</w:tr>")?;
                     }

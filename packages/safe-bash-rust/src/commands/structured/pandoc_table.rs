@@ -6,6 +6,7 @@ use std::fmt::Alignment;
 #[derive(Clone, Debug, Default)]
 pub(super) struct Cell {
     pub align: Option<Alignment>,
+    pub column: usize,
     pub blocks: Vec<PandocBlock>,
     pub span: (usize, usize),
 }
@@ -28,7 +29,8 @@ impl Table {
             .collect();
         let row = |r: Vec<String>| {
             r.into_iter()
-                .map(|text| {
+                .enumerate()
+                .map(|(column, text)| {
                     let nodes = if align.is_some() {
                         parse_pandoc_md_inlines(&text)
                     } else {
@@ -45,6 +47,7 @@ impl Table {
                     };
                     Cell {
                         align: None,
+                        column,
                         span: (1, 1),
                         blocks: if nodes.is_empty() {
                             vec![]

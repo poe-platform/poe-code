@@ -702,8 +702,13 @@ async function applyVideoFilterChain(
     } else if (name === "pad") {
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const pw = Math.max(iw, evalScaleDim(named.w ?? named.width ?? positional[0] ?? String(iw), iw, ih));
-      const ph = Math.max(ih, evalScaleDim(named.h ?? named.height ?? positional[1] ?? String(ih), iw, ih));
+      const width = named.w ?? named.width ?? positional[0] ?? String(iw);
+      const height = named.h ?? named.height ?? positional[1] ?? String(ih);
+      const pw = Number(width) === 0 ? iw : evalScaleDim(width, iw, ih);
+      const ph = Number(height) === 0 ? ih : evalScaleDim(height, iw, ih);
+      if (pw < iw || ph < ih) {
+        throw new Error("Padded dimensions cannot be smaller than input dimensions");
+      }
       const px = Math.max(0, Math.min(pw - iw, parseInt(named.x ?? positional[2] ?? "0", 10) || 0));
       const py = Math.max(0, Math.min(ph - ih, parseInt(named.y ?? positional[3] ?? "0", 10) || 0));
       const col = parseColorRgba(named.color ?? positional[4] ?? "black");

@@ -104,6 +104,46 @@ async function runCmd(
   };
 }
 
+describe("pad dimensions", () => {
+  for (const filter of ["pad=8:8", "pad=8:32", "pad=32:8", "pad=w=iw/2:h=ih", "pad=width=iw:height=ih/2"]) {
+    for (const existing of [false, true]) {
+      it(`rejects ${filter} and preserves ${existing ? "existing" : "absent"} output`, async () => {
+        const vfs = createTestVfs(existing ? { "/pad.png": "original" } : {});
+        const original = vfs.store.get("/pad.png");
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=1",
+          "-vf", filter, "-frames:v", "1", "/pad.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("Padded dimensions cannot be smaller than input dimensions"), result.stderr);
+        assert.equal(result.stdoutBytes.length, 0);
+        assert.deepEqual(vfs.store.get("/pad.png"), original);
+      });
+    }
+  }
+
+  for (const [filter, width, height] of [
+    ["pad=16:16", 16, 16],
+    ["pad=32:24", 32, 24],
+    ["pad=0:24", 16, 24],
+    ["pad=32:0", 32, 16],
+    ["scale=16:24,pad=32:0", 32, 24]
+  ] as const) {
+    it(`accepts ${filter}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=1",
+        "-vf", filter, "-frames:v", "1", "/pad.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const image = decodeImage(vfs.store.get("/pad.png")!);
+      assert.equal(image.width, width);
+      assert.equal(image.height, height);
+    });
+  }
+});
+
 describe("drawbox thickness", () => {
   for (const [options, thickness] of [
     ["x=2:y=2:w=12:h=12:color=red:t=1", 1],

@@ -13,3 +13,15 @@ Requires native `qpdf` and Poppler's `pdftoppm`. Keep generated files in the che
 7. Inspect a rendered smaller-stamp example visually. The blue rectangle must retain its original size and be centered with the stamp page; oversized stamps must shrink to fit. Confirm the red stripe's layering differs where the stamp overlaps it.
 
 The in-memory unit regressions in `src/retained-stamps.test.ts` also check native-derived placement matrices for both command paths, including nonzero origins and rotations.
+
+# Linearized multi-page output
+
+Requires native `qpdf` (validated with 12.4.2). Keep generated PDFs under `out/linearization` and remove them after validation.
+
+1. Build `@poe-code/pdf-ast` with `npm run build:workspaces -- --workspace=@poe-code/pdf-ast`.
+2. Create a three-page `PdfDocument` with widths 200, 300, and 400 and height 500. Save the input without linearization. Repeat with distinct text on each page, shared font resources, and inherited page attributes.
+3. Run `--linearize in.pdf out.pdf` through both `runQpdfCli` and `createQpdfCommand().execute` with a memory filesystem. Save each resulting byte array for native validation.
+4. Require native `qpdf --check-linearization FILE` to exit 0 and print `no linearization errors`. Also require `qpdf --check FILE` to exit 0. This checks `/L`, `/H`, `/O`, `/E`, `/N`, `/T`, page object counts/lengths, and shared-object hints against the actual file.
+5. Repeat for `--pages . 3,1,2 --`, re-linearizing an already linearized input, and `--encrypt reader owner 256 --` (pass `--password=reader` to native checks). Verify the page widths/order and extracted text remain correct.
+6. Include outlines both with and without `/PageMode /UseOutlines`, and a resource shared only by pages two and three. Require the same native checks to pass.
+7. Render the text fixture before and after linearization with `pdftoppm` and compare page pixels; inspect a rendered page. Empty PDFs must fail linearization instead of emitting a fake one-page hint table.

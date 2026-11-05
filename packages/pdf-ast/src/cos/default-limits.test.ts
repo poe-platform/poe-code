@@ -68,17 +68,18 @@ it("enforces object and decompression budgets for classic and repaired object st
 
 it.each([{ objectStreams: "generate" as const }, { linearize: true }])("retains finite output and object budgets when generating PDF structures: %j", mode => {
   const objects = [
-    { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog") }) },
-    { objectNumber: 2, generationNumber: 0, value: cosNumber(42) },
+    { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }) },
+    { objectNumber: 2, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Count: cosNumber(1), Kids: cosArray([cosRef(3)]) }) },
+    { objectNumber: 3, generationNumber: 0, value: cosDict({ Type: cosName("Page"), Parent: cosRef(2), MediaBox: cosArray([0, 0, 100, 100].map(value => cosNumber(value))) }) },
   ];
   const options = { objects, rootRef: cosRef(1), ...mode };
   const bytes = serializeCosDocument(options);
   expect(serializeCosDocument({ ...options, maxOutputBytes: Infinity, maxObjects: Infinity })).toEqual(bytes);
-  expect(serializeCosDocument({ ...options, maxOutputBytes: bytes.length, maxObjects: 4 })).toEqual(bytes);
+  expect(serializeCosDocument({ ...options, maxOutputBytes: bytes.length, maxObjects: 5 })).toEqual(bytes);
   for (const maxOutputBytes of [1, bytes.length - 1]) {
     expect(() => serializeCosDocument({ ...options, maxOutputBytes })).toThrow(expect.objectContaining({ code: "E_LIMIT" }));
   }
-  expect(() => serializeCosDocument({ ...options, maxObjects: 2 })).toThrow(expect.objectContaining({ code: "E_LIMIT" }));
+  expect(() => serializeCosDocument({ ...options, maxObjects: 3 })).toThrow(expect.objectContaining({ code: "E_LIMIT" }));
 });
 it.each([undefined, Infinity])("reads literal strings beyond the former token ceiling with limit %s", limit => {
   const size = 16_000_001;

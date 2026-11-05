@@ -25,12 +25,12 @@ describe("streamed PDF document output", () => {
     expect(chunks.every(chunk => chunk.length <= 7 && chunk.buffer.byteLength <= 7)).toBe(true);
     const actual = concatByteArrays(chunks);
     expect(actual).toEqual(expected);
-    // Captured from the committed writer before its chunk-output refactor.
+    // Ordinary output preserves the pre-streaming bytes; linearized output uses real hints.
     const hashes = {
       standard: "3141473a2d7e7cce05d0f9e18d864e71c0ab342ef18cb79adab50c4b792297b9",
       generated: "84b99aaa3aa5873d007f45e6da4db5e2292b73fb603c7cf4ac1ac17face230d8",
       normalized: "5208b946282dac16fd539af92647472bf819c1248e7dccdb31c6361d23029226",
-      linearized: "2a50b5d4c1de3968797d876ca10940496dcfd61157ccdc93b07e807690b720bf",
+      linearized: "357f850e02fde2d324894a80d0a57ef170a9bc23e3e37e0b3730bea39b277a27",
     };
     const kind = mode.linearize ? "linearized" : mode.normalizeContent ? "normalized" : mode.objectStreams ? "generated" : "standard";
     expect(createHash("sha256").update(actual).digest("hex")).toBe(hashes[kind]);
@@ -100,10 +100,10 @@ describe("streamed PDF document output", () => {
     expect(concatByteArrays(chunks)).toEqual(serializeCosDocument(options));
   });
 
-  it("rejects missing linearization storage before writing", async () => {
+  it("streams linearized output without staging storage", async () => {
     const write = vi.fn(async () => {});
-    await expect(serializeCosDocumentTo({ ...fixture(), linearize: true }, { write })).rejects.toMatchObject({ code: "E_CAPABILITY" });
-    expect(write).not.toHaveBeenCalled();
+    await expect(serializeCosDocumentTo({ ...fixture(), linearize: true }, { write })).resolves.toBeUndefined();
+    expect(write).toHaveBeenCalled();
   });
 
   it("enforces output budgets before a sink sees excess bytes", async () => {

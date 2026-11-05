@@ -185,12 +185,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
     const ref = document.crossReference;
     const configured = { ...options, rootRef: ref.rootRef, infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.objectStreams === "generate" && Number.parseFloat(options.version ?? ref.version) < 1.5 ? "1.5" : options.version ?? ref.version, signal };
     async function* ordinary() {
-      if (mayLinearize) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output, async number => {
-        const object = await objects.get(number);
-        if (!object || number !== pagesRef?.objectNumber) return object;
-        let length = 0; for await (const bytes of pageTree(pagesDict!, pagesRef!)) length += bytes.length;
-        return { objectNumber: number, generationNumber: object.generationNumber, body: { length, chunks: pageTree(pagesDict!, pagesRef!) } };
-      });
+      if (mayLinearize) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output);
       else yield* serializeRetainedCosDocumentChunks({ ...configured, objects: output() }, storage);
     }
     if (options.objectStreams === "generate" && !options.normalizeContent) yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);

@@ -58,7 +58,7 @@ export async function* encryptRetainedPdfChunks(source: PdfFileSource, storage: 
       finally { await payload.close().catch(error => { if (!streamFailed) throw error; }); }
     }
     const encryptRef = await objects.allocate(encryptDict), reference = document.crossReference;
-    yield* serializeLinearizedRetainedChunks(objects, storage, { rootRef: reference.rootRef, infoRef: reference.infoRef, encryptRef, idArray: cosArray([cosHexString(idBytes), cosHexString(idBytes)]), version: revision === 6 ? "2.0" : Number.parseFloat(reference.version) < 1.4 ? "1.4" : reference.version, signal, maxOutputBytes: options.maxOutputBytes }, () => objects.outputObjects(), number => objects.get(number));
+    yield* serializeLinearizedRetainedChunks(objects, storage, { rootRef: reference.rootRef, infoRef: reference.infoRef, encryptRef, idArray: cosArray([cosHexString(idBytes), cosHexString(idBytes)]), version: revision === 6 ? "2.0" : Number.parseFloat(reference.version) < 1.4 ? "1.4" : reference.version, signal, maxOutputBytes: options.maxOutputBytes }, () => objects.outputObjects());
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), document.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

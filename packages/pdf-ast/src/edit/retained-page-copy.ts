@@ -373,7 +373,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
       },
       chunks() {
         const configured = { ...options, rootRef: cosRef(1), infoRef: cosRef(3), signal };
-        return mayLinearize ? serializeLinearizedRetainedChunks(store, storage, configured, () => store.outputObjects(), number => store.get(number), [2, formRef?.objectNumber, attachmentNames?.objectNumber, pageLabels?.objectNumber].filter((number): number is number => number !== undefined))
+        return mayLinearize ? serializeLinearizedRetainedChunks(store, storage, configured, () => store.outputObjects(), [2, formRef?.objectNumber, attachmentNames?.objectNumber, pageLabels?.objectNumber].filter((number): number is number => number !== undefined))
           : serializeRetainedCosDocumentChunks({ ...configured, objects: store.outputObjects() }, storage);
       },
       close,

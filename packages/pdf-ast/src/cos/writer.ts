@@ -1,5 +1,5 @@
+import { linearizedOutput, type LinearizationObject } from "./linearized-writer.js";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
-import { PdfFileSource } from "../source.js";
 import { drainWork } from "../work.js";
 import {
   cosArray,
@@ -10,7 +10,6 @@ import {
   dictGet,
   formatPdfNumber,
   type PdfCosArray,
-  type PdfCosDict,
   type PdfCosNode,
   type PdfCosRef,
   type PdfIndirectObject,
@@ -215,12 +214,7 @@ export interface SerializeCosStreamOptions extends SerializeCosOptions {
   readonly signal?: AbortSignal | undefined;
 }
 
-interface PdfSerializationPatch {
-  readonly offset: number;
-  readonly bytes: Uint8Array;
-}
-
-function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Generator<Uint8Array | void, PdfSerializationPatch | undefined, void> {
+function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Generator<Uint8Array | void, void, void> {
   yield;
 
   let work = 0;
@@ -253,9 +247,33 @@ function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Genera
     throw new PdfError("E_LIMIT", "PDF object limit exceeded");
   }
 
-  let maxObjectNumber = sorted.length > 0 ? sorted[sorted.length - 1]!.objectNumber : 0;
+  const maxObjectNumber = sorted.length > 0 ? sorted[sorted.length - 1]!.objectNumber : 0;
   if (maxObjectNumber > maxObjects) {
     throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
+  }
+
+  if ((options.objectStreams !== "generate" || options.normalizeContent || options.encryptRef) && (options.linearize || sorted.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized")))) {
+    const objects = new Map(sorted.map(object => [object.objectNumber, object]));
+    const work = linearizedOutput([...objects.keys()], options);
+    let step = work.next();
+    while (!step.done) {
+      options.signal?.throwIfAborted();
+      if (step.value instanceof Uint8Array || step.value === undefined) { yield step.value; step = work.next(); continue; }
+      const request = step.value, object = objects.get("object" in request ? request.object : request.stream)!;
+      const node = object.value;
+      if ("stream" in request) {
+        if (node.kind === "stream") yield* emit(options.normalizeContent && node.decodedBytes ? node.decodedBytes : node.rawBytes);
+        step = work.next(); continue;
+      }
+      let value: LinearizationObject = { value: node };
+      if (node.kind === "stream") {
+        const bytes = options.normalizeContent && node.decodedBytes ? node.decodedBytes : node.rawBytes;
+        const entries = node.dict.entries.filter(entry => entry.key.decoded !== "Length" && !(options.normalizeContent && node.kind === "stream" && node.decodedBytes && ["Filter", "DecodeParms"].includes(entry.key.decoded)));
+        value = { value: { kind: "dict", entries: [...entries, { key: cosName("Length"), value: cosNumber(bytes.length) }] }, streamLength: bytes.length };
+      }
+      step = work.next(value);
+    }
+    return;
   }
 
   const rawVersion = options.version ?? "1.7";
@@ -378,107 +396,6 @@ function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Genera
     }
   }
 
-  const hasLinearizedObj = sorted.some(
-    o => o.value.kind === "dict" && dictGet(o.value, "Linearized") !== undefined
-  );
-  if (options.linearize || hasLinearizedObj) {
-    let linObj = sorted.find(
-      o => o.value.kind === "dict" && dictGet(o.value, "Linearized") !== undefined
-    );
-    let hintObj = sorted.find(
-      o =>
-        o.value.kind === "stream" &&
-        dictGet(o.value.dict, "Type")?.kind === "name" &&
-        (dictGet(o.value.dict, "Type") as any)?.decoded === "Hint"
-    );
-    let nextObjNum = maxObjectNumber + 1;
-    if (!linObj) {
-      linObj = {
-        objectNumber: nextObjNum++,
-        generationNumber: 0,
-        value: cosDict({ Linearized: cosNumber(1) }),
-      };
-      sorted.push(linObj);
-    }
-    if (!hintObj) {
-      const hintRaw = encodeFlate(new Uint8Array(64));
-      hintObj = {
-        objectNumber: nextObjNum++,
-        generationNumber: 0,
-        value: cosStream(hintRaw, {
-          dict: cosDict({
-            Type: cosName("Hint"),
-            S: cosNumber(32),
-            Filter: cosName("FlateDecode"),
-            Length: cosNumber(hintRaw.length),
-          }),
-          compress: false,
-        }),
-      };
-      sorted.push(hintObj);
-    }
-    if (nextObjNum - 1 > maxObjectNumber) {
-      maxObjectNumber = nextObjNum - 1;
-    }
-    if (maxObjectNumber > maxObjects) {
-      throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
-    }
-
-    // Find first Page object and total Page count
-    let pageCount = 0;
-    let firstPageObjNum = options.rootRef.objectNumber;
-    for (const o of sorted) {
-      if (++work % 16 === 0) yield;
-
-      if (o.value.kind === "dict") {
-        const t = dictGet(o.value, "Type");
-        if (t?.kind === "name" && t.decoded === "Page") {
-          if (pageCount === 0) firstPageObjNum = o.objectNumber;
-          pageCount++;
-        }
-      }
-    }
-    if (pageCount === 0) pageCount = 1;
-
-    // Order: linObj first, hintObj second, rootRef third, firstPageObj fourth, then the rest
-    const priorityNums = [
-      linObj.objectNumber,
-      hintObj.objectNumber,
-      options.rootRef.objectNumber,
-      firstPageObjNum,
-    ];
-    sorted.sort((a, b) => {
-      const pa = priorityNums.indexOf(a.objectNumber);
-      const pb = priorityNums.indexOf(b.objectNumber);
-      if (pa >= 0 && pb >= 0) return pa - pb;
-      if (pa >= 0) return -1;
-      if (pb >= 0) return 1;
-      return a.objectNumber - b.objectNumber;
-    });
-
-    const fixedNum = (n: number): import("../ast.js").PdfCosNumber => ({
-      kind: "number",
-      value: n,
-      isInteger: true,
-      raw: String(n).padStart(10, "0"),
-    });
-    const linIdx = sorted.indexOf(linObj);
-    if (linIdx >= 0) {
-      sorted[linIdx] = {
-        ...linObj,
-        value: cosDict({
-          Linearized: cosNumber(1),
-          L: fixedNum(0),
-          H: cosArray([fixedNum(0), fixedNum(0)]),
-          O: cosNumber(firstPageObjNum),
-          E: fixedNum(0),
-          N: cosNumber(pageCount),
-          T: fixedNum(0),
-        }),
-      };
-    }
-  }
-
   const objectOffsets = new Map<number, { offset: number; generation: number }>();
 
   for (const obj of sorted) {
@@ -527,56 +444,6 @@ function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Genera
   yield* emit(textEncoder.encode("trailer\n"));
   yield* emitNode(trailerDict);
   yield* emit(textEncoder.encode(`\n\nstartxref\n${xrefOffset}\n%%EOF`));
-  const linObjAfter = sorted.find(
-    o => o.value.kind === "dict" && dictGet(o.value, "Linearized") !== undefined
-  );
-  const hintObjAfter = sorted.find(
-    o =>
-      o.value.kind === "stream" &&
-      dictGet(o.value.dict, "Type")?.kind === "name" &&
-      (dictGet(o.value.dict, "Type") as any)?.decoded === "Hint"
-  );
-  if (linObjAfter && hintObjAfter) {
-    const linEntry = objectOffsets.get(linObjAfter.objectNumber);
-    const hintEntry = objectOffsets.get(hintObjAfter.objectNumber);
-    const oNode = dictGet(linObjAfter.value as PdfCosDict, "O");
-    const firstPageNum = oNode?.kind === "number" ? oNode.value : options.rootRef.objectNumber;
-    let hintLength = 120;
-    let endFirstPage = xrefOffset;
-    const sortedOffsets = [...objectOffsets.entries()].sort((a, b) => a[1].offset - b[1].offset);
-    for (let i = 0; i < sortedOffsets.length; i++) {
-      if (++work % 16 === 0) yield;
-
-      const [objNum, info] = sortedOffsets[i]!;
-      const nextOff = sortedOffsets[i + 1]?.[1].offset ?? xrefOffset;
-      if (objNum === hintObjAfter.objectNumber) {
-        hintLength = nextOff - info.offset;
-      }
-      if (objNum === firstPageNum) {
-        endFirstPage = nextOff;
-      }
-    }
-    const fixedNum = (n: number): import("../ast.js").PdfCosNumber => ({
-      kind: "number",
-      value: n,
-      isInteger: true,
-      raw: String(n).padStart(10, "0"),
-    });
-    const updatedLinDict = cosDict({
-      Linearized: cosNumber(1),
-      L: fixedNum(offset),
-      H: cosArray([fixedNum(hintEntry?.offset ?? 0), fixedNum(hintLength)]),
-      O: cosNumber(firstPageNum),
-      E: fixedNum(endFirstPage),
-      N: dictGet(linObjAfter.value as PdfCosDict, "N") ?? cosNumber(1),
-      T: fixedNum(xrefOffset),
-    });
-    const prefix = textEncoder.encode(`${linObjAfter.objectNumber} ${linObjAfter.generationNumber} obj\n`);
-    const updatedBody = serializeCosNodeBytes(updatedLinDict, 0, options.maxRecursionDepth);
-    if (linEntry) {
-      return { bytes: updatedBody, offset: linEntry.offset + prefix.length };
-    }
-  }
   return;
 }
 
@@ -590,70 +457,23 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
     yield;
     step = work.next();
   }
-  const bytes = concatByteArrays(chunks);
-  if (step.value) bytes.set(step.value.bytes, step.value.offset);
-  return bytes;
+  return concatByteArrays(chunks);
 }
 
-/** Stream ordinary output directly; linearization uses caller-owned staging. */
-export async function* serializeCosDocumentChunks(options: SerializeCosStreamOptions, storage?: PdfOutputStorage): AsyncGenerator<Uint8Array, void, void> {
-  const { signal } = options;
-  signal?.throwIfAborted();
-  const generatesObjectStream = options.objectStreams === "generate" && !options.encryptRef && !options.normalizeContent &&
-    options.objects.some(object => object.value.kind !== "stream" && object.generationNumber === 0 &&
-      !(object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined));
-  const linearized = !generatesObjectStream && (options.linearize || options.objects.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined));
-  if (linearized && !storage) throw new PdfError("E_CAPABILITY", "Linearized PDF output requires caller staging storage");
-  let patch: PdfSerializationPatch | undefined;
-  async function* chunks(): AsyncGenerator<Uint8Array, void, void> {
-    const work = serializeCosDocumentOutput(options);
-    let turns = 0;
-    try {
-      while (true) {
-        signal?.throwIfAborted();
-        const step = work.next();
-        if (step.done) { patch = step.value; return; }
-        if (step.value) yield step.value;
-        // Cooperative work must also yield to cancellation on memory backends.
-        if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
-      }
-    } finally { work.return(undefined); }
-  }
-  if (!linearized) {
-    for await (const chunk of chunks()) {
-      signal?.throwIfAborted();
-      yield chunk;
-      signal?.throwIfAborted();
-    }
-    return;
-  }
-  const staged = await PdfFileSource.fromStream(storage!.fs, storage!.directory, chunks(), {
-    ...(options.chunkBytes === undefined ? {} : { chunkBytes: options.chunkBytes }),
-    ...(storage!.cacheBytes === undefined ? {} : { cacheBytes: storage!.cacheBytes }),
-    ...(signal === undefined ? {} : { signal }),
-    maxInputBytes: options.maxOutputBytes ?? Infinity,
-  });
-  let failed = false;
+/** Layout is measured before output, so linearized bytes stream without patching. */
+export async function* serializeCosDocumentChunks(options: SerializeCosStreamOptions, _storage?: PdfOutputStorage): AsyncGenerator<Uint8Array, void, void> {
+  const work = serializeCosDocumentOutput(options);
+  let turns = 0;
   try {
-    if (patch && (patch.offset < 0 || patch.offset + patch.bytes.length > staged.size)) throw new PdfError("E_PARSE", "Invalid PDF linearization patch");
-    let offset = 0;
-    for await (const chunk of staged.stream()) {
-      if (patch) {
-        const start = Math.max(offset, patch.offset);
-        const end = Math.min(offset + chunk.length, patch.offset + patch.bytes.length);
-        if (end > start) chunk.set(patch.bytes.subarray(start - patch.offset, end - patch.offset), start - offset);
-      }
-      signal?.throwIfAborted();
-      yield chunk;
-      signal?.throwIfAborted();
-      offset += chunk.length;
+    while (true) {
+      options.signal?.throwIfAborted();
+      const step = work.next();
+      if (step.done) return;
+      if (step.value) yield step.value;
+      options.signal?.throwIfAborted();
+      if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
     }
-  } catch (error) {
-    failed = true;
-    throw error;
-  } finally {
-    await staged.close().catch(error => { if (!failed) throw error; });
-  }
+  } finally { work.return(); }
 }
 
 export async function serializeCosDocumentTo(options: SerializeCosStreamOptions,

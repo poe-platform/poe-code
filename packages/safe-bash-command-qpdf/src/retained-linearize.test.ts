@@ -26,15 +26,26 @@ for (const layout of [["--set-page-labels", "1:r/2/前", "3://Appendix", "--"], 
   if ((mode === "split" || mode === "split-selection")) args.push("--split-pages=2");
   if (mode === "rotations") args.push("--rotate=+90:1-z");
   if (mode === "removals") args.push("--remove-info", "--remove-metadata", "--remove-structure", "--remove-page-labels");
-  const files = new Map([["in.pdf", input]]), expected = await runQpdfCli(args, files);
+  const files = new Map([["in.pdf", input]]);
+  let expected;
+  if (mode === "empty" && layout.includes("--linearize") && !layout.includes("--object-streams=generate")) {
+    await assert.rejects(runQpdfCli(args, files), /Cannot linearize a PDF with no pages/);
+    expected = { exitCode: 2, stdout: "", stderr: "qpdf: Cannot linearize a PDF with no pages\n" };
+  } else expected = await runQpdfCli(args, files);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
   const guarded = new Proxy(fs, { get(owner, key) {
     if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file linearization I/O forbidden"); };
     const value = Reflect.get(owner, key); return typeof value === "function" ? value.bind(owner) : value;
   } });
   const carrier = createCommandArguments(args), stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
-  const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs: guarded, signal: new AbortController().signal,
+  const execution = createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs: guarded, signal: new AbortController().signal,
     stdin: (async function* () {})(), stdout: { async write(bytes: Uint8Array) { assert.ok(bytes.buffer.byteLength <= 65536); stdout.push(bytes.slice()); await Promise.resolve(); } }, stderr: { async write(bytes: Uint8Array) { stderr.push(bytes.slice()); } } });
+  if (expected.exitCode === 2 && mode === "empty") {
+    await assert.rejects(async () => execution, /Cannot linearize a PDF with no pages/);
+    assert.deepEqual(await fs.readdir("/scratch"), []);
+    return;
+  }
+  const result = await execution;
   assert.equal(result.exitCode, expected.exitCode); assert.equal(Buffer.concat(stderr).toString(), expected.stderr);
   for (const [name, bytes] of files) {
     if (name === "in.pdf" && mode !== "replace") continue;

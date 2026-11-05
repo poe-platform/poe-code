@@ -1,70 +1,51 @@
-import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosArray, cosDict, cosName, cosNumber, dictGet, type PdfCosNumber } from "../ast.js";
-import { encodeFlate } from "./filters.js";
-import type { PdfMutableObjectStore } from "./mutable-object-store.js";
+import { dictGet } from "../ast.js";
+import { PdfFileSource } from "../source.js";
+import { linearizedOutput } from "./linearized-writer.js";
+import { restoreStringFormats, type PdfMutableObjectStore } from "./mutable-object-store.js";
 import type { PdfIndexStorage } from "./object-index.js";
-import { serializeCosNodeChunks } from "./writer.js";
+import { parseCosRangeObject } from "./range-parser.js";
 import { serializeRetainedCosDocumentChunks, type PdfRetainedOutputObject, type PdfSerializedOutputObject, type SerializeRetainedCosOptions } from "./retained-writer.js";
 
 type OutputObject = PdfRetainedOutputObject | PdfSerializedOutputObject;
 
-/** Preserve ordinary writer linearization layout without collecting object
- * bodies or output bytes. Only the small fixed-width dictionary is patched. */
+/** Stage serialized bodies once so generated page trees and encrypted streams
+ * use the same layout as ordinary objects, without collecting stream bytes. */
 export async function* serializeLinearizedRetainedChunks(store: PdfMutableObjectStore, storage: PdfIndexStorage,
   options: Omit<SerializeRetainedCosOptions, "objects"> & { readonly linearize?: boolean },
-  objects: () => AsyncIterable<OutputObject>, getObject: (number: number) => Promise<OutputObject | undefined>, knownStructural: readonly number[] = []): AsyncGenerator<Uint8Array, void, void> {
+  objects: () => AsyncIterable<OutputObject>, knownStructural: readonly number[] = []): AsyncGenerator<Uint8Array, void, void> {
   const signal = options.signal ?? new AbortController().signal;
-  let linearized: PdfRetainedOutputObject | undefined, hint: PdfRetainedOutputObject | undefined, maximum = 0, addedHint = false, pageCount = 0, firstPage = options.rootRef.objectNumber;
-  for await (const identity of store.identities()) {
-    signal.throwIfAborted(); maximum = Math.max(maximum, identity.objectNumber);
+  let linearize = options.linearize;
+  if (!linearize) for await (const identity of store.identities()) {
     if (knownStructural.includes(identity.objectNumber)) continue;
     const object = (await store.get(identity.objectNumber))!;
-    if (object.value.kind !== "dict") continue;
-    const type = dictGet(object.value, "Type");
-    if (!object.stream && !linearized && dictGet(object.value, "Linearized") !== undefined) linearized = object;
-    if (object.stream && !hint && type?.kind === "name" && type.decoded === "Hint") hint = object;
-    if (!object.stream && type?.kind === "name" && type.decoded === "Page") { if (!pageCount) firstPage = object.objectNumber; pageCount++; }
+    if (!object.stream && object.value.kind === "dict" && dictGet(object.value, "Linearized")) { linearize = true; break; }
   }
-  if (!linearized && !options.linearize) { yield* serializeRetainedCosDocumentChunks({ ...options, objects: objects() }, storage); return; }
-  if (!linearized) {
-    const value = cosDict({ Linearized: cosNumber(1) });
-    linearized = { objectNumber: ++maximum, generationNumber: 0, value };
-  }
-  if (!hint) {
-    const bytes = encodeFlate(new Uint8Array(64)), value = cosDict({ Type: cosName("Hint"), S: cosNumber(32), Filter: cosName("FlateDecode"), Length: cosNumber(bytes.length) });
-    addedHint = true;
-    hint = { objectNumber: ++maximum, generationNumber: 0, value, stream: { length: bytes.length, chunks: [bytes] } };
-  }
-  const linNumber = linearized.objectNumber, linGeneration = linearized.generationNumber, hintNumber = hint.objectNumber;
-  const priorities = [linNumber, hintNumber, options.rootRef.objectNumber, firstPage].filter((number, index, all) => all.indexOf(number) === index);
-  function fixed(value: number): PdfCosNumber { return { kind: "number", value, isInteger: true, raw: String(value).padStart(10, "0") }; }
-  function dictionary(length: number, hintStart: number, hintLength: number, firstEnd: number, xref: number) {
-    return cosDict({ Linearized: cosNumber(1), L: fixed(length), H: cosArray([fixed(hintStart), fixed(hintLength)]), O: cosNumber(firstPage), E: fixed(firstEnd), N: cosNumber(pageCount || 1), T: fixed(xref) });
-  }
-  const placeholder = { objectNumber: linNumber, generationNumber: linGeneration, value: dictionary(0, 0, 0, 0, 0) };
-  async function* ordered() {
-    for (const number of priorities) {
-      // The linearization dictionary replaces even an aliased page-tree body.
-      const object = number === linNumber ? placeholder : number === hintNumber && addedHint ? hint : await getObject(number);
-      if (object) yield object;
-    }
-    for await (const object of objects()) if (!priorities.includes(object.objectNumber)) yield object;
-  }
-  const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
-  const base = backing.allocate(0), chunkBytes = Math.min(options.chunkBytes ?? 65536, 16384);
-  let failed = false, total = 0, linStart = 0, hintStart = 0, hintLength = 120, firstEnd = 0;
+  if (!linearize) { yield* serializeRetainedCosDocumentChunks({ ...options, objects: objects() }, storage); return; }
+  const offsets = new Map<number, number>();
+  const source = await PdfFileSource.fromStream(storage.fs, storage.directory,
+    serializeRetainedCosDocumentChunks({ ...options, objects: objects(), onObjectWritten(number, start) { offsets.set(number, start); } }, storage),
+    { signal, chunkBytes: Math.min(options.chunkBytes ?? 16384, 16384), maxInputBytes: options.maxOutputBytes ?? Infinity });
+  let failed = false;
   try {
-    const output = serializeRetainedCosDocumentChunks({ ...options, objects: ordered(), objectOrder: "provided", signal,
-      onObjectWritten(number, start, end) { if (number === linNumber) linStart = start; if (number === hintNumber) { hintStart = start; hintLength = end - start; } if (number === firstPage) firstEnd = end; },
-      async onComplete(length, xref) {
-        let at = base + linStart + new TextEncoder().encode(`${linNumber} ${linGeneration} obj\n`).length;
-        for (const bytes of serializeCosNodeChunks(dictionary(length, hintStart, hintLength, firstEnd || xref, xref), { chunkBytes: options.chunkBytes ?? 16384, maxRecursionDepth: options.maxRecursionDepth ?? Infinity, signal })) {
-          await backing.write(at, bytes); at += bytes.length;
+    const work = linearizedOutput([...offsets.keys()].sort((a, b) => a - b), options);
+    let step = work.next(), turns = 0;
+    while (!step.done) {
+      signal.throwIfAborted();
+      if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      if (step.value instanceof Uint8Array) { yield step.value; step = work.next(); }
+      else if (!step.value) step = work.next();
+      else {
+        const request = step.value, id = "object" in request ? request.object : request.stream;
+        const offset = offsets.get(id);
+        if (offset === undefined) { step = work.next({ value: { kind: "null" } }); continue; }
+        const object = await parseCosRangeObject(source, offset, { signal });
+        if ("object" in request) step = work.next({ value: restoreStringFormats(object.value), ...(object.stream ? { streamLength: object.stream.end - object.stream.start } : {}) });
+        else {
+          if (object.stream) yield* source.stream(object.stream.start, object.stream.end - object.stream.start, signal);
+          step = work.next();
         }
-      },
-    }, storage);
-    for await (const bytes of output) { signal.throwIfAborted(); await backing.write(backing.allocate(bytes.length), bytes); total += bytes.length; }
-    for (let at = 0; at < total; at += chunkBytes) { signal.throwIfAborted(); yield await backing.read(base + at, Math.min(chunkBytes, total - at)); }
+      }
+    }
   } catch (error) { failed = true; throw error; }
-  finally { await backing.close().catch(error => { if (!failed) throw error; }); }
+  finally { await source.close().catch(error => { if (!failed) throw error; }); }
 }

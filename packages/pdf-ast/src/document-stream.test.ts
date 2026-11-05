@@ -48,12 +48,12 @@ describe("PdfDocument streamed saves", () => {
     expect(PdfDocument.load(bytes).extractText()).not.toContain("Keep document features");
   });
 
-  it("releases linearization staging when a stream consumer stops early", async () => {
+  it("streams linearization without staging when a consumer stops early", async () => {
     const fs = createMemoryFileSystem();
     await fs.mkdir("/scratch");
     const iterator = document().saveStream({ linearize: true }, { fs, directory: "/scratch" });
     expect((await iterator.next()).done).toBe(false);
-    expect(await fs.readdir("/scratch")).toHaveLength(1);
+    expect(await fs.readdir("/scratch")).toEqual([]);
     await iterator.return();
     expect(await fs.readdir("/scratch")).toEqual([]);
   });

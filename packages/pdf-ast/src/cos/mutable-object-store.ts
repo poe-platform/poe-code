@@ -23,7 +23,7 @@ function maximum(value: number | undefined): number {
 
 // The general parser records input syntax in encoding, while the writer uses
 // format. Stored values must replay the syntax we chose when accepting them.
-function restoreStringFormats(value: PdfCosNode): PdfCosNode {
+export function restoreStringFormats(value: PdfCosNode): PdfCosNode {
   if (value.kind === "string") return { ...value, format: value.encoding ?? "literal" };
   if (value.kind === "array") for (let i = 0; i < value.items.length; i++) value.items[i] = restoreStringFormats(value.items[i]!);
   if (value.kind === "dict") for (let i = 0; i < value.entries.length; i++) { const entry = value.entries[i]!; value.entries[i] = { ...entry, value: restoreStringFormats(entry.value) }; }

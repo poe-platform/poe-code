@@ -79,7 +79,7 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
 export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>, retainedTags = false) {
   const { sections } = parsed;
   const unknownFlacDuration = audio.format === "flac" && audio.streams[0]!.samples === 0;
-  const stdinWav = audio.format === "wav" && isStdin(parsed.filename);
+  const stdinAudio = ["wav", "mp3"].includes(audio.format) && isStdin(parsed.filename);
   const serials = [
     ...new Set(
       audio.nodes.filter((node) => node.type === "OggS").map((node) => node.fields?.serial)
@@ -151,7 +151,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
         sample_rate: String(stream.sampleRate),
         channels: stream.channels,
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,
-        ...(!stdinWav && !unknownFlacDuration ? { duration: durations[index]!.toFixed(6) } : {}),
+        ...(!stdinAudio && !unknownFlacDuration ? { duration: durations[index]!.toFixed(6) } : {}),
         ...(!["flac", "opus", "vorbis"].includes(stream.codec)
           ? {
               bit_rate: String(
@@ -170,10 +170,10 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       filename: parsed.filename,
       nb_streams: audio.streams.length,
       format_name: audio.format === "m4a" ? "mov,mp4,m4a,3gp,3g2,mj2" : audio.format,
-      ...(!stdinWav && !unknownFlacDuration ? { duration: formatDuration.toFixed(6) } : {}),
-      ...(!stdinWav ? { size: String(size) } : {}),
-      ...(!unknownFlacDuration ? { bit_rate: String(stdinWav
-        ? audio.streams.reduce((total, stream) => total + Math.floor(stream.bitrate), 0)
+      ...(!stdinAudio && !unknownFlacDuration ? { duration: formatDuration.toFixed(6) } : {}),
+      ...(!stdinAudio ? { size: String(size) } : {}),
+      ...(!unknownFlacDuration ? { bit_rate: String(stdinAudio
+        ? audio.streams.reduce((total, stream) => total + (stream.codec === "mp3" ? Math.round(mp3Bitrate) : Math.floor(stream.bitrate)), 0)
         : formatDuration ? Math.floor((size * 8) / formatDuration) : 0) } : {}),
       ...(retainedTags || Object.keys(formatTags).length ? { tags: formatTags } : {})
     });

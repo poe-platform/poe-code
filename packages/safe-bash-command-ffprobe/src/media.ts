@@ -348,14 +348,14 @@ function parseEntryFilter(showEntries: string | undefined): Map<string, Set<stri
 
 function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): Generator<FormatStep> {
   const entryFilter = parseEntryFilter(opts.showEntries);
-  const stdinWav = probe.format?.format_name === "wav" && isStdin(probe.format.filename);
-  let wavBitrate = 0;
-  if (stdinWav) {
+  const stdinAudio = !!probe.format && ["wav", "mp3"].includes(probe.format.format_name) && isStdin(probe.format.filename);
+  let audioBitrate = 0;
+  if (stdinAudio) {
     const streams: MediaProbeStream[] = [];
     yield { rows: probe.streams, render(row) {
       const stream = row as MediaProbeStream;
       streams.push(stream);
-      wavBitrate += Number(stream.bit_rate ?? 0);
+      audioBitrate += Number(stream.bit_rate ?? 0);
       return [];
     } };
     probe = { ...probe, streams };
@@ -419,7 +419,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       : stream.nb_frames ?? "0";
     const { nb_read_frames, nb_read_packets, ...fields } = stream;
     const metadata: Record<string, unknown> = { ...fields };
-    if (stdinWav) { delete metadata.duration; delete metadata.duration_ts; }
+    if (stdinAudio) { delete metadata.duration; delete metadata.duration_ts; }
     return filterObject({ ...metadata,
       ...(opts.countFrames ? { nb_read_frames: nb_read_frames ?? recordCount } : {}),
       ...(opts.countPackets ? { nb_read_packets: nb_read_packets ?? recordCount } : {})
@@ -445,11 +445,13 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return filterObject(record, section);
   };
   const format: Record<string, unknown> = { ...probe.format };
-  if (stdinWav) {
+  if (stdinAudio) {
     delete format.duration;
     delete format.size;
-    format.bit_rate = String(wavBitrate);
+    format.bit_rate = String(audioBitrate);
   }
+  if (!stdinAudio && probe.format?.format_name === "mp3" && Number(format.duration) > 0)
+    format.bit_rate = String(Math.floor(Number(format.size) * 8 / Number(format.duration)));
   const finalFormat = includeFormat && probe.format
     ? filterObject(format, "format", "format_tags")
     : undefined;

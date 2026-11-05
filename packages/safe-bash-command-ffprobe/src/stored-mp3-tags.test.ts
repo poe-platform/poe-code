@@ -69,7 +69,7 @@ for (const { header, frameSize, bitrate } of [
     for (const route of ['retained', 'stream', 'stdin'] as const) {
       const result = JSON.parse(await run(bytes, 'json', route));
       expect(result.streams[0].bit_rate).toBe(bitrate);
-      expect(result.format.bit_rate).toBe(String(Math.floor(bytes.length * 8 / (2 * 1152 / Number(result.streams[0].sample_rate)))));
+      expect(result.format.bit_rate).toBe(route === 'stdin' ? bitrate : String(Math.floor(bytes.length * 8 / (2 * 1152 / Number(result.streams[0].sample_rate)))));
     }
   });
 }

@@ -6333,7 +6333,7 @@ export class SqliteDatabase {
 
     if (lower === "json_each" || lower === "json_tree") {
       const cols = ["key", "value", "type", "atom", "id", "parent", "fullkey", "path"];
-      if (this.preparing) return { columns: cols, rows: [] };
+      if (this.preparing || args[0] === null) return { columns: cols, rows: [] };
       const rawJson = toSqlString(args[0] ?? "");
       const rootPath = args[1] !== undefined ? toSqlString(args[1]) : "$";
       let parsed: unknown;

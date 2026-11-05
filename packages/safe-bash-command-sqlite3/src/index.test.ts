@@ -4,6 +4,26 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const fn of ["json_each", "json_tree"]) {
+  test(`sqlite3 ${fn} returns no rows for SQL NULL`, async () => {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `SELECT count(*) FROM ${fn}(NULL); SELECT count(*) FROM ${fn}(NULL, '$'); SELECT count(*) FROM ${fn}('null');`]),
+      { code: 0, stdout: "0\n0\n1\n", stderr: "" }
+    );
+  });
+
+  test(`sqlite3 ${fn} rejects malformed non-NULL JSON`, async () => {
+    for (const input of ["", "malformed"]) {
+      const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `SELECT count(*) FROM ${fn}('${input}');`]);
+      assert.equal(result.code, 1);
+      assert.equal(result.stdout, "");
+      assert.match(result.stderr, /malformed JSON/);
+    }
+  });
+}
+
 test("sqlite3 factories cannot cross runtime registries", async () => {
   const foreign = await import(new URL("../../safe-bash-contracts/src/command.ts?sqlite3-foreign-runtime", import.meta.url).href) as typeof import("safe-bash-contracts");
   assert.notEqual(foreign.commandRuntimeIdentity, commandRuntimeIdentity);

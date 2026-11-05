@@ -29,10 +29,13 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
       ["fold", "-w", "3"], ["rev"], ["fmt", "-w", "20"], ["strings", "-n", "2"],
       ["expand"], ["unexpand"], ["paste", "-s"], ["grep", "beta"], ["sed", "s/beta/z/g"],
       ["awk", "END {print NR}"], ["base64"], ["base32"], ["xxd", "-p"], ["od", "-An", "-tx1"],
-      ["sha512sum"], ["sha384sum"], ["sha256sum"], ["sha1sum"], ["md5sum"], ["cksum"],
+      ["sha512sum"], ["sha384sum"], ["sha256sum"], ["sha224sum"], ["sha1sum"], ["md5sum"], ["cksum"],
       ["basename", "/a/b"], ["dirname", "/a/b"], ["seq", "1", "4"], ["factor", "140"],
       ["expr", "7", "+", "4"], ["numfmt", "--to=iec", "1024"], ["tee"], ["true"], ["false"],
-      ["printf", "%04d", "7"], ["echo", "alpha", "beta"],
+      ["printf", "%04d", "7"], ["echo", "alpha", "beta"], ["printenv", "LC_ALL"],
+      ["dd", "bs=4", "count=2", "iflag=fullblock", "status=none"], ["shuf", "-i", "7-7"],
+      ["date", "-u", "-d", "@0", "+%Y-%m-%d"], ["pr", "-t", "-n"], ["pathchk", "-p", "a/b"],
+      ["iconv", "-f", "UTF-8", "-t", "UTF-16LE"], ["test", "3", "-gt", "2"], ["[", "x", "=", "y", "]"],
     ] as const) {
       await t.test(cmd, async () => {
         const [code, stdout, stderr] = await native(cmd,args,input);

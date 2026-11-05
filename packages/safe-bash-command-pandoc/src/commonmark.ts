@@ -69,12 +69,11 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
     rawText = expandPandocTabs()(rawText);
     context.charge("retainedBytes", rawText.length * 2);
   }
-  return parseCommonMarkSource(rawText, input.base, context, selection);
+  return parseCommonMarkSource(rawText, input.base, context, {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false, pandoc_code_blocks: true});
 };
 
-export async function parseCommonMarkSource(rawText: string, base: string | undefined, context: AdapterContext, selection?: FormatSelection) {
+export async function parseCommonMarkSource(rawText: string, base: string | undefined, context: AdapterContext, extensions: FormatSelection["extensions"] = {}) {
   const citationsState = {note: 0};
-  let extensions: Readonly<Record<string, boolean>> = {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false};
   const metadata: Record<string, MetaValue> = {};
   let text = rawText;
   if (extensions.pandoc_title_block) {

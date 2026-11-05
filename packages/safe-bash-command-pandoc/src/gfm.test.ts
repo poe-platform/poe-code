@@ -27,6 +27,15 @@ describe("declared GFM reader", () => {
     }
     expect(await read("~~x~~", "gfm-strikeout+strikeout")).toEqual([para([{ t: "Strikeout", c: [str("x")] }])]);
   });
+  it("keeps meaningful final newlines in closed, unclosed and indented Pandoc code blocks", async () => {
+    for (const [source, literal] of [
+      ["~~~lang\nx\n\n~~~", "x\n"], ["~~~lang\nx", "x\n"],
+      ["~~~lang\n~~~", ""], ["    x\n\n    y\n", "x\n\ny"]
+    ] as const) {
+      const [block] = await read(source, "commonmark");
+      expect(block?.t === "CodeBlock" && block.c[1], source).toBe(literal);
+    }
+  });
   it("uses the reader's pipe_tables default and gives explicit enables precedence", async () => {
     const input = "| a | b |\n| --- | --- |\n| 1 | 2 |";
     for (const [format, block] of [

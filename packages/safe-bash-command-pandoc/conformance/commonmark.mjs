@@ -76,7 +76,7 @@ assert.equal(examples.length, 652, "Pinned CommonMark 0.31.2 corpus must be comp
 assert.deepEqual(examples.map((example) => example.example), Array.from({ length: 652 }, (_, index) => index + 1));
 // The normative grammar receives literal tabs. The Pandoc command expands
 // them before invoking this parser; its preprocessing is checked against Pandoc.
-const reader = {format: "commonmark", read: (input, ctx, selection) => parseCommonMarkSource(input.text, input.base, ctx, selection)};
+const reader = {format: "commonmark", read: (input, ctx, selection) => parseCommonMarkSource(input.text, input.base, ctx, selection.extensions)};
 for (const example of examples) {
   const section = sections.get(example.section) ?? { total: 0, failed: 0 };
   section.total++;

@@ -212,7 +212,15 @@ export class RetainedCommonMarkBlocks {
       if (!lastStack) return this.root;
       const top = await this.get(lastStack, 8); return ["nativeDiv", "div", "quote", "item", "footnote", "definition"].includes(kinds[top[3]!]!) ? top[2]! : this.root;
     };
-    const finish = async () => {if (leaf?.kind === "paragraph") await this.extractDefinitions(leaf.node); leaf = undefined;};
+    const finish = async (closedFence = false) => {
+      if (leaf?.kind === "paragraph") await this.extractDefinitions(leaf.node);
+      if (extensions.pandoc_code_blocks && (leaf?.kind === "indent" || closedFence && leaf?.kind === "fence")) {
+        // Literal lines store the text and its ending as separate ranges.
+        const last = (await this.node(leaf.node)).lastLine;
+        if (last) await this.put(last + 8, [(await this.line(last)).range.start]);
+      }
+      leaf = undefined;
+    };
     const push = async (node: number, kind: Node["kind"], indent = 0, list = 0, empty = false) => {
       context.bound("depth", depth + 1); context.charge("retainedBytes", 64);
       const position = await this.record([lastStack, 0, node, kinds.indexOf(kind), indent, list, 0, Number(empty)]);
@@ -237,13 +245,13 @@ export class RetainedCommonMarkBlocks {
       const value = await prepareInline(line, offset); await this.addLine(node, value.range, line.number, value.column);
     };
     const end = async (node: number, line: RetainedCommonMarkLine) => {await this.set(node, "endLine", line.number); await this.set(node, "endColumn", line.endColumn);};
-    const prepareLiteral = async (line: RetainedCommonMarkLine, offset: number) => {
-      const raw = await line.rawFrom(offset), ending = line.ending || "\n";
+    const prepareLiteral = async (line: RetainedCommonMarkLine, offset: number, code: boolean) => {
+      const raw = await line.rawFrom(offset), ending = code && extensions.pandoc_code_blocks ? "\n" : line.ending || "\n";
       context.charge("retainedBytes", (raw.end - raw.start + ending.length) * 2);
       return {raw, ending};
     };
     const literal = async (node: number, line: RetainedCommonMarkLine, offset: number, prepared?: {raw: SourceRange; ending: string}) => {
-      const {raw, ending} = prepared ?? await prepareLiteral(line, offset);
+      const {raw, ending} = prepared ?? await prepareLiteral(line, offset, leaf?.kind !== "html");
       await this.addLine(node, raw); await this.addLine(node, await source.append([ending]));
     };
     while (cursor < range.end) {
@@ -290,7 +298,7 @@ export class RetainedCommonMarkBlocks {
       if (leaf?.kind === "fence") {
         const indent = await line.spaces(offset), at = offset + indent; let stop = at;
         while (await line.at(stop) === leaf.char) stop++;
-        if (indent <= 3 && stop - at >= leaf.length! && await line.spaces(stop) === line.length - stop) {await end(leaf.node, line); await finish();}
+        if (indent <= 3 && stop - at >= leaf.length! && await line.spaces(stop) === line.length - stop) {await end(leaf.node, line); await finish(true);}
         else {await literal(leaf.node, line, offset + Math.min(indent, leaf.indent!)); await end(leaf.node, line);} continue;
       }
       if (leaf?.kind === "html") {
@@ -301,7 +309,7 @@ export class RetainedCommonMarkBlocks {
         const indent = await line.spaces(offset);
         if (blank) {await literal(leaf.blanks!, line, offset + Math.min(indent, 4)); continue;}
         if (indent >= 4) {
-          const raw = await line.rawFrom(offset + 4), ending = line.ending || "\n";
+          const raw = await line.rawFrom(offset + 4), ending = extensions.pandoc_code_blocks ? "\n" : line.ending || "\n";
           let length = raw.end - raw.start + ending.length;
           for await (const pending of this.lines(leaf.blanks!)) length += pending.range.end - pending.range.start;
           context.charge("retainedBytes", length * 2);
@@ -535,8 +543,8 @@ export class RetainedCommonMarkBlocks {
           }
         }
         const html = extensions.raw_html !== false && indent <= 3 ? await line.html(at, false) : undefined;
-        if (html) {const value = await prepareLiteral(line, offset), node = await add("html", line, at); await literal(node, line, offset, value); if (html.end === null || !await line.closes(html.end)) leaf = {kind: "html", node, end: html.end}; break;}
-        if (indent >= 4) {const value = await prepareLiteral(line, offset + 4), node = await add("code", line, offset + 4); await literal(node, line, offset + 4, value); leaf = {kind: "indent", node, blanks: await this.create("row")}; break;}
+        if (html) {const value = await prepareLiteral(line, offset, false), node = await add("html", line, at); await literal(node, line, offset, value); if (html.end === null || !await line.closes(html.end)) leaf = {kind: "html", node, end: html.end}; break;}
+        if (indent >= 4) {const value = await prepareLiteral(line, offset + 4, true), node = await add("code", line, offset + 4); await literal(node, line, offset + 4, value); leaf = {kind: "indent", node, blanks: await this.create("row")}; break;}
         const value = await prepareInline(line, at), node = await add("paragraph", line, at); await this.addLine(node, value.range, line.number, value.column); leaf = {kind: "paragraph", node}; break;
       }
       for await (const container of containers(this)) {if (kinds[container.fields[3]!] === "item") await this.set(container.fields[2]!, "blank", 0); await end(container.fields[2]!, line);}

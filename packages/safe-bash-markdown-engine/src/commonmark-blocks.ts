@@ -291,7 +291,9 @@ export async function parseCommonMarkBlocks(
     context.charge("retainedBytes", literal.length * 2 + 48);
     return { text: literal, start: point(line, offset) };
   };
-  const finish = (): void => {
+  const finish = (closedFence = false): void => {
+    if (extensions.pandoc_code_blocks && (leaf?.kind === "indent" || closedFence && leaf?.kind === "fence"))
+      leaf.node.literal = leaf.node.literal.slice(0, -1);
     if (leaf?.kind === "paragraph") extractDefinitions(leaf.node);
     leaf = undefined;
   };
@@ -338,6 +340,7 @@ export async function parseCommonMarkBlocks(
       ending = text[cursor++]!;
       if (ending === "\r" && text[cursor] === "\n") ending += text[cursor++]!;
     }
+    const codeEnding = extensions.pandoc_code_blocks ? "\n" : ending || "\n";
     // Preserve the logical budget across changes to temporary storage.
     context.charge("retainedBytes", raw.length * 12 + 64);
     const tabs = raw.includes("\t");
@@ -413,9 +416,9 @@ export async function parseCommonMarkBlocks(
       while (line.text[end] === leaf.char) end++;
       if (indent <= 3 && end - at >= leaf.length && spaces(line.text, end) === line.text.length - end) {
         leaf.node.source.end = endPoint(line);
-        finish();
+        finish(true);
       } else {
-        const value = rawFrom(line, offset + Math.min(indent, leaf.indent)) + (ending || "\n");
+        const value = rawFrom(line, offset + Math.min(indent, leaf.indent)) + codeEnding;
         context.charge("retainedBytes", value.length * 2);
         leaf.node.literal += value;
         leaf.node.source.end = endPoint(line);
@@ -436,13 +439,13 @@ export async function parseCommonMarkBlocks(
     if (leaf?.kind === "indent") {
       const indent = spaces(line.text, offset);
       if (blank) {
-        const value = rawFrom(line, offset + Math.min(indent, 4)) + (ending || "\n");
+        const value = rawFrom(line, offset + Math.min(indent, 4)) + codeEnding;
         context.charge("retainedBytes", value.length * 2);
         leaf.blanks.push(value);
         continue;
       }
       if (indent >= 4) {
-        const value = leaf.blanks.join("") + rawFrom(line, offset + 4) + (ending || "\n");
+        const value = leaf.blanks.join("") + rawFrom(line, offset + 4) + codeEnding;
         context.charge("retainedBytes", value.length * 2);
         leaf.node.literal += value;
         leaf.blanks.length = 0;
@@ -711,7 +714,7 @@ export async function parseCommonMarkBlocks(
         break;
       }
       if (indent >= 4) {
-        const literal = rawFrom(line, offset + 4) + (ending || "\n");
+        const literal = rawFrom(line, offset + 4) + codeEnding;
         context.charge("retainedBytes", literal.length * 2);
         const node: Extract<PendingBlock, { kind: "code" }> = { kind: "code", info: "", literal, source: range(line, offset + 4) };
         add(node);

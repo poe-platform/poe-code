@@ -105,13 +105,20 @@ for (const flags of [["--from=1,x1", "--to=99"], ["--repeat=99"], ["--from=99"],
   const input = base.save(), other = stamp.save(encrypted ? { encrypt: { userPassword: "secret", ownerPassword: "owner" } } : {});
   const args = ["in.pdf", "out.pdf", "--overlay", "stamp.pdf", ...flags, "--"];
   let expected: unknown;
-  try { await runQpdfCli(args, new Map([["in.pdf", input], ["stamp.pdf", other]])); } catch (error) { expected = error; }
-  assert.ok(expected instanceof Error);
+  try { expected = await runQpdfCli(args, new Map([["in.pdf", input], ["stamp.pdf", other]])); } catch (error) { expected = error; }
+  if (encrypted) assert.ok(expected instanceof Error);
+  else assert.deepEqual(expected, { exitCode: 2, stdout: "", stderr: "qpdf: Page number '99' out of bounds (1..1)\n" });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input); await fs.writeFile("/stamp.pdf", other);
   const original = Uint8Array.of(1); await fs.writeFile("/out.pdf", original);
   const carrier = createCommandArguments(args);
-  await assert.rejects(async () => createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs,
-    signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} } }), { message: expected.message });
+  const errors: Uint8Array[] = [];
+  const execute = async () => createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs,
+    signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write() { assert.fail("Unexpected stdout"); } }, stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } } });
+  if (expected instanceof Error) await assert.rejects(execute, { message: expected.message });
+  else {
+    assert.equal((await execute()).exitCode, 2);
+    assert.equal(Buffer.concat(errors).toString(), "qpdf: Page number '99' out of bounds (1..1)\n");
+  }
   assert.deepEqual(await fs.readFile("/out.pdf"), original); assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 

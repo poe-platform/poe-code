@@ -18,7 +18,7 @@ Packet scans support `-read_intervals START%END` (comma-separated intervals), re
 Selecting `packet` or `frame` with `-show_entries` also requests those records without a separate show flag.
 The audio and ffmpeg plugins share this command implementation. Use `-` or `pipe:0` for stdin. Unknown flags fail explicitly.
 Without section flags, audio and video both print stream and format metadata to stdout using the selected writer.
-Ogg comments appear in stream tags with their original field names; M4A format tags include container brands. Xing MP3 bitrates include the header frame, matching native ffprobe.
+Ogg comments appear in stream tags with their original field names; M4A format tags include container brands. Xing MP3 bitrates include the header frame, matching native ffprobe. Audio format metadata includes `probe_score`, selectable with `-show_entries format=probe_score`; MP3 confidence depends on the number of validated frames.
 Writer options include `nk`, `nw`, `p` and `s` where applicable.
 
 `createFfprobeCommand`, `createFfprobeCommands`, `FfprobeCommandsOptions` and

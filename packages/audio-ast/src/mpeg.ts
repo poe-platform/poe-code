@@ -92,6 +92,7 @@ export function mpegStream(state: { samples: number; seconds: number; audioBytes
   let { samples, seconds, audioBytes } = state;
   const { sampleRate, channels, frames } = state;
   if (!frames) throw new Error("MP3 contains no MPEG frames");
+  first.fields.frames = frames;
   const vbr = first.fields?.vbr as Record<string, unknown> | undefined;
   const declared = vbr?.frames;
   if (typeof declared === "number" && declared > 0) {

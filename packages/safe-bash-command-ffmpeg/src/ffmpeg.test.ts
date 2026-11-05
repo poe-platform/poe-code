@@ -1940,3 +1940,43 @@ describe("stream language metadata", () => {
     assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.language), ["fra", "eng"]);
   });
 });
+
+for (const [rate, nativePrefix] of [
+  [16000, [0, 0.0546875, 0.16937255859375, 0.26300048828125]],
+  [44100, [0, 0.007781982421875, 0.030029296875, 0.063751220703125]]
+] as const) {
+  for (const length of [8000, 8001]) it(`interpolates ${length} samples when resampling 8000 Hz to ${rate} Hz`, async () => {
+    const tone = Float64Array.from({ length }, (_, i) => 0.5 * Math.sin(2 * Math.PI * 440 * i / 8000));
+    const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 8000, channels: [tone, tone.map(value => -value)] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-ar", String(rate), "-c:a", "pcm_s16le", "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, rate);
+    assert.equal(audio.channels, 2);
+    for (const [channel, samples] of audio.channelData.entries()) {
+      assert.equal(samples.length, Math.round(length * rate / 8000));
+      const sign = channel === 0 ? 1 : -1;
+      // FFmpeg 9.0.2's reflected start boundary, including fractional phases.
+      for (const [i, expected] of nativePrefix.entries()) {
+        assert.ok(Math.abs(samples[i]! - sign * expected) < 0.003, `sample ${i}: ${samples[i]} versus ${sign * expected}`);
+      }
+      let squaredError = 0;
+      for (let i = 200; i < rate - 200; i++) {
+        squaredError += (samples[i]! - sign * 0.5 * Math.sin(2 * Math.PI * 440 * i / rate)) ** 2;
+      }
+      const rmsError = Math.sqrt(squaredError / (rate - 400));
+      assert.ok(rmsError < 0.0001, `waveform RMS error: ${rmsError}`);
+    }
+  });
+}
+
+it("preserves constant audio when upsampling clips shorter than the filter", async () => {
+  for (const length of [1, 8]) {
+    const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(length).fill(0.25)] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-ar", "16000", "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const samples = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+    assert.equal(samples.length, length * 2);
+    for (const sample of samples) assert.ok(Math.abs(sample - 0.25) < 0.0001);
+  }
+});

@@ -1348,7 +1348,7 @@ export function matchGlob(str: string, pattern: string): boolean {
       const cls = pattern.slice(i + 1, j);
       const neg = cls.startsWith("!") || cls.startsWith("^");
       const body = neg ? cls.slice(1) : cls;
-      regexStr += `[${neg ? "^" : ""}${body.replace(/\\/g, "\\\\")}]`;
+      regexStr += `[${neg ? "^" : ""}${body.replaceAll("\\", "\\\\").replaceAll("]", "\\]")}]`;
       i = j;
     } else {
       regexStr += c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

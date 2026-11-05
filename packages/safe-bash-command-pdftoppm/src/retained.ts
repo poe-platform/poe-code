@@ -63,12 +63,12 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         const scaleToX = swapTargets ? plan.scaleToY : plan.scaleToX;
         const scaleToY = swapTargets ? plan.scaleToX : plan.scaleToY;
         let dpiX = plan.dpiX ?? plan.dpi, dpiY = plan.dpiY ?? plan.dpi;
-        if (plan.scaleTo > 0) dpiX = dpiY = plan.scaleTo * 72 / Math.max(ptW, ptH, 1);
+        if (plan.scaleTo > 0) dpiX = dpiY = plan.scaleTo * 72 / (Math.max(ptW, ptH) || 1);
         else {
           // Cairo keeps the DPI round-trip rounding; Splash snaps exact pixel targets.
           const rounding = cairo ? 1 : 1 - Number.EPSILON;
-          if (scaleToX > 0) { dpiX = (scaleToX * 72) / Math.max(ptW, 1) * rounding; if (scaleToY < 0) dpiY = dpiX; }
-          if (scaleToY > 0) { dpiY = (scaleToY * 72) / Math.max(ptH, 1) * rounding; if (scaleToX < 0) dpiX = dpiY; }
+          if (scaleToX > 0) { dpiX = (scaleToX * 72) / (ptW || 1) * rounding; if (scaleToY < 0) dpiY = dpiX; }
+          if (scaleToY > 0) { dpiY = (scaleToY * 72) / (ptH || 1) * rounding; if (scaleToX < 0) dpiX = dpiY; }
         }
         if(plan.format === "svg") {
           yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{...(cairo ? { dimensionUnit: "pt" as const } : {}),dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,onWarning,

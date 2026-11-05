@@ -44,6 +44,24 @@ test("retained invoice rendering evaluates once across tiles and preserves the c
     assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: 1 }); await f.clean();
   } finally { evaluate.mockRestore(); }
 });
+test("Poppler scales a subpoint page by its actual dimensions", async () => {
+  const doc = PdfDocument.create();
+  doc.addPage([0.5, 0.75]);
+  const input = doc.save();
+  for (const [cli, command] of [[runPdftoppmCli, createPdftoppmCommand()], [runPdftocairoCli, createPdftocairoCommand()]] as const) {
+    for (const [flags, size] of [[["-scale-to", "13"], [9, 13]], [["-scale-to-x", "15", "-scale-to-y", "17"], [15, 17]]] as const) {
+      const args = ["-png", "-singlefile", ...flags, "in.pdf", "page"];
+      const files = new Map([["in.pdf", input]]), f = await fixture(input, args);
+      assert.equal((await cli(args, files)).exitCode, 0);
+      assert.equal((await command.execute(f.context)).exitCode, 0);
+      for (const bytes of [files.get("page.png")!, await f.fs.readFile("/page.png")]) {
+        const { width, height } = decodePng(bytes);
+        assert.deepEqual([width, height], size);
+      }
+      await f.clean();
+    }
+  }
+});
 test("renders an embedded fax scan like Poppler pdftoppm at 72 dpi", async () => {
   const doc = PdfDocument.create(), page = doc.addPage([19, 7]);
   const scan = doc.cos.allocateObject(cosStream(Buffer.from("935cdc6ed249622466a0cd66ba492a4925001001", "hex"), {

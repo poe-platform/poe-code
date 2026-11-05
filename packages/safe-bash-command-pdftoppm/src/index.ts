@@ -114,7 +114,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         let effDpiX = dpiX ?? dpi;
         let effDpiY = dpiY ?? dpi;
         if (scaleTo > 0) {
-            const factor = (scaleTo * 72) / Math.max(ptW, ptH, 1);
+            const factor = (scaleTo * 72) / (Math.max(ptW, ptH) || 1);
             effDpiX = factor;
             effDpiY = factor;
         }
@@ -122,12 +122,12 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             // Cairo keeps the DPI round-trip rounding; Splash snaps exact pixel targets.
             const rounding = cairo ? 1 : 1 - Number.EPSILON;
             if (scaleToX > 0) {
-                effDpiX = (scaleToX * 72) / Math.max(ptW, 1) * rounding;
+                effDpiX = (scaleToX * 72) / (ptW || 1) * rounding;
                 if (scaleToY < 0)
                     effDpiY = effDpiX;
             }
             if (scaleToY > 0) {
-                effDpiY = (scaleToY * 72) / Math.max(ptH, 1) * rounding;
+                effDpiY = (scaleToY * 72) / (ptH || 1) * rounding;
                 if (scaleToX < 0)
                     effDpiX = effDpiY;
             }

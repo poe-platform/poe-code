@@ -25,7 +25,9 @@
     "test": "TSX_TSCONFIG_PATH=../safe-bash/tsconfig.json node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "yaml": "2.9.0"
+  },
   "devDependencies": {
     "safe-bash-contracts": "*",
     "safe-bash-query-engine": "*",

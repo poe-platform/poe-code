@@ -1027,6 +1027,19 @@ test("pagination preserves singleton and empty arrays with jq and slurp", async 
   }
 });
 
+test("config set and auth login retain the backend settings for the user's home directory", async () => {
+  const { backend, run } = createTestHarness();
+  await run("gh", ["config", "set", "editor", "vi"]);
+  assert.equal(backend.config.editor, "vi");
+  const env = { GH_CONFIG_DIR: "other" };
+  assert.equal((await run("gh", ["config", "get", "editor"], { env })).stdout, "");
+  await run("gh", ["auth", "login", "-p", "ssh"], { env });
+  assert.equal((await run("gh", ["config", "get", "git_protocol"], { env })).stdout, "ssh\n");
+  assert.equal((await run("gh", ["config", "get", "git_protocol"])).stdout, "https\n");
+  await run("gh", ["repo", "clone", "octocat/Hello-World", "scoped-clone"], { env });
+  assert.match((await run("git", ["remote", "-v"], { cwd: "/work/scoped-clone" })).stdout, /git@github.com:/u);
+});
+
 test("file and stdin inputs share invocation byte and file budgets", async () => {
   for (const limits of [{ maxInputBytes: 3 }, { maxFiles: 1 }]) {
     const { fs, run } = createTestHarness({ limits });

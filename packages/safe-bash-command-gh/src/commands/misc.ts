@@ -8,7 +8,7 @@ import {
   parseCommandArgs,
   type FlagSchema,
 } from "../args.js";
-import type { GitHubBackend } from "../backend.js";
+import { getGhConfigDir, type GitHubBackend } from "../backend.js";
 import { bytesToHex, decodeUtf8, sha1Sync } from "../crypto-ssh.js";
 import {
   findGitRoot,
@@ -1090,6 +1090,33 @@ LEARN MORE
     return 0;
   }
 
+  const { context } = env;
+  const dir = getGhConfigDir(context);
+  const path = resolvePath(context.cwd, dir + "/config.yml");
+  const resolvedDir = backend.configDir(context);
+  const scopes = backend.configOverrides.get(resolvedDir);
+  let bytes: Uint8Array | undefined;
+  try {
+    bytes = await context.fs.readFile(path, { signal: context.signal });
+  } catch (error) {
+    if (!isFsError(error) || error.code !== "ENOENT") throw error;
+  }
+  const file = new Map<string, string>();
+  if (bytes?.length) {
+    const { parseDocument, isMap, isScalar, isAlias } = await import("yaml");
+    const doc = parseDocument(decodeUtf8(bytes), { schema: "failsafe", uniqueKeys: false });
+    const reason = doc.errors.length ? "invalid yaml" : doc.contents && !isMap(doc.contents) ? "invalid format" : "";
+    if (reason) {
+      const msg = `invalid config file ${dir}/config.yml: ${reason}`;
+      await writeErr(`warning: failed to load config: ${msg}\nfailed to create root command: failed to read configuration: ${msg}\n\n`);
+      return 1;
+    }
+    if (isMap(doc.contents)) for (const { key, value } of doc.contents.items) {
+      if (isScalar(key) && typeof key.value === "string" && !file.has(key.value)) {
+        file.set(key.value, isScalar(value) ? String(value.value ?? "") : isAlias(value) ? value.source : "");
+      }
+    }
+  }
   const parsed = parseCommandArgs(rest, [{ short: "h", long: "host", type: "string" }]);
 
   const pos = [...parsed.positionals, ...parsed.passthrough];
@@ -1099,25 +1126,25 @@ LEARN MORE
     return 1;
   }
   const host = getStringFlag(parsed, "host") ?? "";
-  const config = backend.config;
+  const config = resolvedDir === backend.defaultConfigDir ? backend.config : undefined;
   const values = new Map(Object.entries({
-    api_host: "", git_protocol: config.gitProtocol, editor: config.editor, prompt: config.prompt,
-    prefer_editor_prompt: "disabled", pager: config.pager, http_unix_socket: config.httpUnixSocket,
-    browser: config.browser, clipboard: "enabled", color_labels: "disabled", accessible_colors: "disabled",
+    api_host: "", git_protocol: config?.gitProtocol ?? "https", editor: config?.editor ?? "", prompt: config?.prompt ?? "enabled",
+    prefer_editor_prompt: "disabled", pager: config?.pager ?? "", http_unix_socket: config?.httpUnixSocket ?? "",
+    browser: config?.browser ?? "", clipboard: "enabled", color_labels: "disabled", accessible_colors: "disabled",
     accessible_prompter: "disabled", spinner: "enabled", telemetry: "enabled",
   }));
-  const valueOf = (key: string, scope = host) => backend.configOverrides.get(scope)?.get(key)
-    ?? backend.configOverrides.get("")?.get(key) ?? values.get(key);
+  const valueOf = (key: string, scope = host) => scopes?.get(scope)?.get(key)
+    ?? scopes?.get("")?.get(key) ?? file.get(key) ?? values.get(key);
 
   if (sub === "list" || sub === "ls") {
-    const hosts = [...backend.configOverrides.keys()].filter(Boolean);
+    const hosts = [...scopes?.keys() ?? []].filter(Boolean);
     const scope = host || env.context.env.GH_HOST || (hosts.length === 1 ? hosts[0] : backend.defaultHost);
     await writeOut([...values.keys()].map(key => `${key}=${valueOf(key, key === "telemetry" ? "" : scope)}\n`).join(""));
     return 0;
   }
   const key = pos[0]!;
   if (sub === "get") {
-    const val = valueOf(key) ?? (key === "version" ? "1" : key === "aliases" ? "" : undefined);
+    const val = valueOf(key) ?? (file.size ? undefined : key === "version" ? "1" : key === "aliases" ? "" : undefined);
     if (val === undefined) {
       await writeErr(`could not find key "${key}"\n`);
       return 1;
@@ -1141,18 +1168,7 @@ LEARN MORE
       return 1;
     }
     if (!values.has(key)) await writeErr(`! warning: '${key}' is not a known configuration key\n`);
-    if (!host) {
-      // Keep the settings used by the other sandbox commands on the public backend.
-      switch (key) {
-        case "git_protocol": config.gitProtocol = val as typeof config.gitProtocol; return 0;
-        case "prompt": config.prompt = val as typeof config.prompt; return 0;
-        case "http_unix_socket": config.httpUnixSocket = val; return 0;
-        case "editor": case "pager": case "browser": config[key] = val; return 0;
-      }
-    }
-    let overrides = backend.configOverrides.get(host);
-    if (!overrides) backend.configOverrides.set(host, overrides = new Map());
-    overrides.set(key, val);
+    backend.setConfigValue(resolvedDir, host, key, val);
     return 0;
   }
 

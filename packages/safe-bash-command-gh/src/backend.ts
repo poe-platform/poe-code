@@ -1,3 +1,5 @@
+import { resolvePath } from "@poe-code/safe-fs/core";
+import type { CommandContext } from "safe-bash-contracts";
 import { bytesToHex, decodeUtf8, encodeUtf8, sha1Sync } from "./crypto-ssh.js";
 import { computeDiffBetweenFileMaps } from "./git-vfs.js";
 import type {
@@ -27,6 +29,11 @@ import type {
   GhWorkflow,
 } from "./types.js";
 
+export function getGhConfigDir(context: CommandContext): string {
+  const env = context.env;
+  return env.GH_CONFIG_DIR || (env.XDG_CONFIG_HOME || (env.HOME || "/home/user") + "/.config") + "/gh";
+}
+
 export class GitHubBackend {
   readonly users = new Map<string, GhUser>();
   readonly repos = new Map<string, GhRepo>();
@@ -41,7 +48,26 @@ export class GitHubBackend {
   readonly extensions = new Map<string, { readonly name: string; readonly repo: string; readonly version: string }>();
   readonly codespaces = new Map<string, GhCodespace>();
   readonly config: GhConfigState;
-  readonly configOverrides = new Map<string, Map<string, string>>();
+  readonly configOverrides = new Map<string, Map<string, Map<string, string>>>();
+  defaultConfigDir?: string;
+  configDir(context: CommandContext): string {
+    this.defaultConfigDir ??= resolvePath(context.cwd, (context.env.HOME || "/home/user") + "/.config/gh");
+    return resolvePath(context.cwd, getGhConfigDir(context));
+  }
+  setConfigValue(dir: string, host: string, key: string, value: string): void {
+    let hosts = this.configOverrides.get(dir);
+    if (!hosts) this.configOverrides.set(dir, hosts = new Map());
+    let values = hosts.get(host);
+    if (!values) hosts.set(host, values = new Map());
+    values.set(key, value);
+    if (host || dir !== this.defaultConfigDir) return;
+    switch (key) {
+      case "git_protocol": this.config.gitProtocol = value as GhConfigState["gitProtocol"]; break;
+      case "prompt": this.config.prompt = value as GhConfigState["prompt"]; break;
+      case "http_unix_socket": this.config.httpUnixSocket = value; break;
+      case "editor": case "pager": case "browser": this.config[key] = value; break;
+    }
+  }
   currentUser: string;
   defaultHost: string;
   readonly now: () => Date;

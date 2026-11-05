@@ -51,6 +51,9 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
       await symlink(target, cwd + "/" + name);
       for (const view of views) await view.symlink!(target, "/workspace/" + name);
     }
+    const ghConfig = Buffer.from('version: "1"\neditor: nano\nserial: 001\nbrowser: |-\n  first\n  second\naliases: { co: pr checkout }\n');
+    await writeFile(cwd + "/samples/config.yml", ghConfig);
+    for (const view of views) await view.writeFile("/workspace/samples/config.yml", ghConfig);
     const fdIgnore = Buffer.from("theirs\n");
     await writeFile(cwd + "/samples/.fdignore", fdIgnore);
     for (const view of views) await view.writeFile("/workspace/samples/.fdignore", fdIgnore);
@@ -175,19 +178,35 @@ export function linuxCommands(text: string) {
         "mkdir -p cache-flags/gh; XDG_CACHE_HOME=cache-flags gh " + args + "; rc=$?; test -d cache-flags/gh && printf '%s' \"$rc\""),
 
     ].map(script => ({
-      cmd: "env", args: ["GH_CONFIG_DIR=.gh-config", "XDG_STATE_HOME=.gh-state", "bash", "--noprofile", "--norc", "-c", script], script, input: "",
+      cmd: "env", args: ["GH_CONFIG_DIR=.gh-config", "XDG_STATE_HOME=.gh-state", "bash", "--noprofile", "--norc", "-c", script],
+      script: "(export GH_CONFIG_DIR=.gh-config XDG_STATE_HOME=.gh-state; " + script + ")", input: "",
     })),
+    ...["editor", "serial", "browser", "aliases", "missing"].map(key => {
+      const script = "GH_CONFIG_DIR=samples gh config get " + key;
+      return { cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" };
+    }),
+    ...[
+      "GH_CONFIG_DIR=samples gh config list",
+      "mkdir -p xdg/gh; cp samples/config.yml xdg/gh/config.yml; GH_CONFIG_DIR= XDG_CONFIG_HOME=xdg gh config get serial",
+      "mkdir -p gh-home/.config/gh; cp samples/config.yml gh-home/.config/gh/config.yml; HOME=gh-home GH_CONFIG_DIR= XDG_CONFIG_HOME= gh config get browser",
+      "mkdir -p reread; echo 'editor: first' >reread/config.yml; GH_CONFIG_DIR=reread gh config get editor; echo 'editor: changed' >reread/config.yml; GH_CONFIG_DIR=reread gh config get editor",
+      "mkdir -p broken; echo 'editor: [' >broken/config.yml; GH_CONFIG_DIR=broken gh config get editor",
+      "mkdir -p malformed-args; echo 'editor: [' >malformed-args/config.yml; GH_CONFIG_DIR=malformed-args gh config get",
+      "mkdir -p wrong-root; echo '[one]' >wrong-root/config.yml; GH_CONFIG_DIR=wrong-root gh config list",
+      "GH_CONFIG_DIR=scoped gh config set editor vim; GH_CONFIG_DIR=samples gh config get editor; GH_CONFIG_DIR=scoped gh config get editor",
+    ].map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" })),
     ...[["list"], ["ls"], ...["editor", "prompt", "color_labels", "spinner", "telemetry", "missing", "__proto__"].map(key => ["get", key]),
       ["get"], ["get", "editor", "extra"], ["set", "prompt", "sometimes"], ["set", "git_protocol", "SSH"], ["set", "telemetry", "yes"],
       ["set", "editor"], ["list", "extra"], ["set", "clipboard", "enabled", "-h", "host"], ["set", "api_host", "host"]].map(args => ({
       cmd: "env", args: ["GH_CONFIG_DIR=.gh-config", "XDG_STATE_HOME=.gh-state", "gh", "config", ...args],
-      script: ["gh", "config", ...args].join(" "), input: "",
+      script: ["GH_CONFIG_DIR=.gh-config", "XDG_STATE_HOME=.gh-state", "gh", "config", ...args].join(" "), input: "",
     })),
     ...["gh config set --host example.invalid editor nano; gh config get editor; gh config get -h example.invalid editor; gh config list",
       "gh config set test-custom sample; gh config get test-custom; gh config list -h empty.invalid",
       "gh config set -h example.invalid telemetry log; gh config get --host=example.invalid telemetry; gh config ls -h example.invalid",
     ].map(script => ({
-      cmd: "env", args: ["GH_CONFIG_DIR=.gh-roundtrip", "XDG_STATE_HOME=.gh-state", "bash", "--noprofile", "--norc", "-c", script], script, input: "",
+      cmd: "env", args: ["GH_CONFIG_DIR=.gh-roundtrip", "XDG_STATE_HOME=.gh-state", "bash", "--noprofile", "--norc", "-c", script],
+      script: "(export GH_CONFIG_DIR=.gh-roundtrip XDG_STATE_HOME=.gh-state; " + script + ")", input: "",
     })),
     { cmd: "whoami", args: [], script: "EUID=" + userInfo().uid + " USER=unused whoami", input: "" },
     { cmd: "qrencode", args: ["-t", "ansiutf8i", "-m", "1", "Hello"], script: "qrencode -t ansiutf8i -m 1 Hello", input: "" },

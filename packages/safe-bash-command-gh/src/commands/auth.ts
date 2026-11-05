@@ -13,16 +13,9 @@ import { findGitRoot } from "../git-vfs.js";
 import { formatCommandOutput } from "../template.js";
 import type { GhHostAuthEntry, GhLimits } from "../types.js";
 
-function getGhConfigDir(context: CommandContext): string {
-  if (context.env.GH_CONFIG_DIR) {
-    return resolvePath(context.cwd, context.env.GH_CONFIG_DIR);
-  }
-  const home = context.env.HOME || "/home/user";
-  return `${home.replace(/\/+$/u, "")}/.config/gh`;
-}
-
 async function persistHostsConfig(context: CommandContext, backend: GitHubBackend): Promise<void> {
-  const dir = getGhConfigDir(context);
+  const dir = context.env.GH_CONFIG_DIR ? resolvePath(context.cwd, context.env.GH_CONFIG_DIR)
+    : (context.env.HOME || "/home/user").replace(/\/+$/u, "") + "/.config/gh";
   await context.fs.mkdir(dir, { recursive: true, signal: context.signal });
   const lines: string[] = [];
   for (const [host, entries] of Object.entries(backend.config.hosts)) {
@@ -120,7 +113,7 @@ export async function handleAuthCommand(
     }
     backend.config.hosts[host] = entries;
     backend.currentUser = user;
-    backend.config.gitProtocol = protocol;
+    backend.setConfigValue(backend.configDir(context), "", "git_protocol", protocol);
     await persistHostsConfig(context, backend);
     await writeOut(`✓ Logged in as ${user} on ${host}\n`);
     return 0;

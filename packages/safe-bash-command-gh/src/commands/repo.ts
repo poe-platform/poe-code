@@ -264,6 +264,13 @@ export async function handleRepoCommand(
   rawArgs: readonly string[]
 ): Promise<number> {
   const { context, backend, git, ssh, openBrowser, limits, writeOut, writeErr } = env;
+  const useConfiguredSsh = () => {
+    const dir = backend.configDir(context);
+    const hosts = backend.configOverrides.get(dir);
+    const protocol = hosts?.get(backend.defaultHost)?.get("git_protocol") ?? hosts?.get("")?.get("git_protocol")
+      ?? (dir === backend.defaultConfigDir ? backend.config.gitProtocol : "https");
+    return protocol === "ssh";
+  };
   const subcommand = rawArgs[0];
   const restArgs = rawArgs.slice(1);
 
@@ -337,7 +344,7 @@ export async function handleRepoCommand(
     const useSsh =
       repoArg.startsWith("git@") ||
       repoArg.startsWith("ssh://") ||
-      backend.config.gitProtocol === "ssh";
+      useConfiguredSsh();
 
     await cloneRepositoryIntoVfs({
       context,
@@ -471,7 +478,7 @@ export async function handleRepoCommand(
         context,
         repo,
         targetDir: cloneTarget,
-        useSsh: backend.config.gitProtocol === "ssh",
+        useSsh: useConfiguredSsh(),
         ssh,
         git,
       });
@@ -542,7 +549,7 @@ export async function handleRepoCommand(
         context,
         repo: forkRepo,
         targetDir,
-        useSsh: backend.config.gitProtocol === "ssh",
+        useSsh: useConfiguredSsh(),
         ssh,
         git,
       });

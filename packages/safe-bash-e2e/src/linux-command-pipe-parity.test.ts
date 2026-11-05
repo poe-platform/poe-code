@@ -8,7 +8,7 @@ import { SafeBashE2EHarness, sb } from "./harness.js";
 import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
-  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, backend: "typescript" });
   const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });
   let cwd: string | undefined;
   try {
@@ -503,7 +503,7 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
 });
 
 test("yes produces bytes until its downstream reader closes the pipe", async () => {
-  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, backend: "typescript" });
   const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
   try {
     for (const script of [
@@ -540,7 +540,7 @@ test("yes produces bytes until its downstream reader closes the pipe", async () 
 });
 
 test("ssh-keygen creates fresh private Ed25519 keys usable by OpenSSH", async () => {
-  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ env: linuxEnv, backend: "typescript" });
   const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });
   let dir: string | undefined;
   try {
@@ -590,7 +590,7 @@ test("ssh-keygen creates fresh private Ed25519 keys usable by OpenSSH", async ()
 });
 
 test("gpg matches GnuPG when an export selects no keys", async () => {
-  const ts = await SafeBashE2EHarness.create({ fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ backend: "typescript" });
   ts.shell.use(sb.gpgCommands({ replace: true }));
   const rust = new RustWasmBash({ cwd: "/workspace", forceNative: true });
   let dir: string | undefined;
@@ -620,7 +620,7 @@ test("gpg matches GnuPG when an export selects no keys", async () => {
 
 test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached signature", async () => {
   const rust = new RustWasmBash({ cwd: "/workspace", forceNative: true });
-  const ts = await SafeBashE2EHarness.create({ fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ backend: "typescript" });
   let dir: string | undefined;
   try {
     dir = await createLinuxCommandDirectory(rust.fs);
@@ -769,7 +769,7 @@ test("safe-bash imports GnuPG certificates and verifies a binary signature from 
   const signature = Buffer.from("iIoEABYKADIWIQQ+6XPJzGFPQMXTbQpeuU5CiQ4JpwUCZZIcoBQcZml4dHVyZUBleGFtcGxlLm9yZwAKCRBeuU5CiQ4Jp2EiAP9z76fxDSvQQJT0Zodnfp9fQdk7N+7YWJ1OJUSgUYJbYwEA3bvN5DP+WGg6tQP6rClsmgEL19kiSxy+6QGaGNhLbws=", "base64");
   const payload = "signed fixture\n";
   const rust = new RustWasmBash({ cwd: "/workspace", forceNative: true });
-  const ts = await SafeBashE2EHarness.create({ fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ backend: "typescript" });
   let dir: string | undefined;
   try {
     dir = await createLinuxCommandDirectory(rust.fs);

@@ -59,7 +59,7 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
 
 ## Commands
 
-Use `SAFE_BASH_E2E_BACKEND=rust` to run the default in-memory harness with the Rust/Wasm shell. Tests that install JavaScript commands require a runtime with WebAssembly Promise Integration (on Node 24, pass `--experimental-wasm-jspi`). Set `SAFE_BASH_E2E_FORCE_NATIVE=0` to explicitly allow the TypeScript companion.
+Use `SAFE_BASH_E2E_BACKEND=rust` to run the harness with the Rust/Wasm shell, including tests that supply a filesystem. Side-by-side comparisons select each engine explicitly. Tests that supply a filesystem or install JavaScript commands require a runtime with WebAssembly Promise Integration (on Node 24, pass `--experimental-wasm-jspi`). Set `SAFE_BASH_E2E_FORCE_NATIVE=0` to explicitly allow the TypeScript companion.
 
 ```bash
 # Run all E2E and benchmark verification tests

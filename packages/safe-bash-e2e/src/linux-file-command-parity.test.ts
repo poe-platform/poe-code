@@ -4,14 +4,14 @@ import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
-import { SafeBashE2EHarness, sb } from "./harness.js";
+import { SafeBashE2EHarness } from "./harness.js";
 
 test("Linux file commands preserve the same bytes, links and permissions in TypeScript and Rust", async () => {
   const env = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
   const out = fileURLToPath(new URL("../../../out/", import.meta.url));
   await mkdir(out, { recursive: true });
   const cwd = await mkdtemp(out + "linux-files-");
-  const ts = await SafeBashE2EHarness.create({ env, fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ env, backend: "typescript" });
   const rust = new RustWasmBash({ env, cwd: "/workspace", forceNative: true });
   try {
     for (const script of [

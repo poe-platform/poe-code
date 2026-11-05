@@ -50,6 +50,7 @@ export interface E2EFileEntry {
 export type E2EFileInit = string | Uint8Array | E2EFileEntry;
 
 export interface E2EHarnessOptions {
+  readonly backend?: "typescript" | "rust";
   readonly files?: Readonly<Record<string, E2EFileInit>>;
   readonly directories?: readonly string[];
   readonly symlinks?: Readonly<Record<string, string>>;
@@ -128,20 +129,20 @@ export class SafeBashE2EHarness {
   }
 
   static async create(options: E2EHarnessOptions = {}): Promise<SafeBashE2EHarness> {
+    const dirsToCreate = new Set<string>(["/tmp", "/workspace", "/home/user"]);
+    if (options.cwd) dirsToCreate.add(sb.normalizePath(options.cwd));
+    for (const dir of options.directories ?? []) {
+      dirsToCreate.add(sb.normalizePath(dir));
+    }
+    for (const filePath of Object.keys(options.files ?? {})) {
+      for (const dir of parentDirectories(filePath)) dirsToCreate.add(dir);
+    }
+    for (const linkPath of Object.keys(options.symlinks ?? {})) {
+      for (const dir of parentDirectories(linkPath)) dirsToCreate.add(dir);
+    }
+    const sortedDirs = [...dirsToCreate].sort((a, b) => a.length - b.length);
     const seedIntoFs = async (fs: sb.FileSystem): Promise<void> => {
-      const dirsToCreate = new Set<string>(["/tmp", "/workspace", "/home/user"]);
-      if (options.cwd) dirsToCreate.add(sb.normalizePath(options.cwd));
-      for (const dir of options.directories ?? []) {
-        dirsToCreate.add(sb.normalizePath(dir));
-      }
-      for (const filePath of Object.keys(options.files ?? {})) {
-        for (const dir of parentDirectories(filePath)) dirsToCreate.add(dir);
-      }
-      for (const linkPath of Object.keys(options.symlinks ?? {})) {
-        for (const dir of parentDirectories(linkPath)) dirsToCreate.add(dir);
-      }
       if (!fs.capabilities?.readOnly) {
-        const sortedDirs = [...dirsToCreate].sort((a, b) => a.length - b.length);
         for (const dir of sortedDirs) {
           if (dir === "/") continue;
           if (!(await pathExists(fs, dir))) {
@@ -286,7 +287,7 @@ export class SafeBashE2EHarness {
       return { shell, shellFs };
     };
 
-    if (process.env.SAFE_BASH_E2E_BACKEND === "rust" && options.fs === undefined) {
+    if ((options.backend ?? process.env.SAFE_BASH_E2E_BACKEND) === "rust") {
       const recorder = options.benchmarkRecorder ?? new BenchmarkRecorder();
       const nativeRustPlugins = new Set([
         "xan-commands",
@@ -297,19 +298,20 @@ export class SafeBashE2EHarness {
       const hostPlugins = (options.plugins ?? []).filter(plugin => !nativeRustPlugins.has(plugin.name));
       const forceNative = process.env.SAFE_BASH_E2E_FORCE_NATIVE !== "0";
       const rustBash = new RustWasmBash({
-        deviceView: options.mountDev ? "provided" : "default",
+        fs: options.fs,
+        deviceView: options.mountDev && !options.fs ? "provided" : "default",
         cwd: options.cwd ?? "/workspace",
         limits: options.limits,
-        memoryFsOptions: options.memoryFsOptions,
+        memoryFsOptions: options.fs ? undefined : options.memoryFsOptions,
         forceNative,
         ShellLimitError: sb.ShellLimitError,
         ...(!forceNative && {
           companionFactory: () => {
-            const mfs = new sb.MemoryFileSystem(options.memoryFsOptions);
-            const { shell, shellFs } = buildTsShell(mfs, mfs);
+            const mfs = options.fs ? undefined : new sb.MemoryFileSystem(options.memoryFsOptions);
+            const { shell, shellFs } = buildTsShell(options.fs ?? mfs!, mfs);
             return { shell, fs: shellFs };
           },
-          companionSeed: (fs: unknown) => seedIntoFs(fs as sb.FileSystem),
+          companionSeed: options.fs ? undefined : (fs: unknown) => seedIntoFs(fs as sb.FileSystem),
         }),
         env: options.bareShell && !options.env
           ? {}
@@ -323,40 +325,32 @@ export class SafeBashE2EHarness {
             },
       });
       const fs = rustBash.fs as unknown as sb.FileSystem;
-      const dirsToCreate = new Set<string>(["/tmp", "/workspace", "/home/user"]);
-      if (options.cwd) dirsToCreate.add(sb.normalizePath(options.cwd));
-      for (const dir of options.directories ?? []) {
-        dirsToCreate.add(sb.normalizePath(dir));
-      }
-      for (const filePath of Object.keys(options.files ?? {})) {
-        for (const dir of parentDirectories(filePath)) dirsToCreate.add(dir);
-      }
-      for (const linkPath of Object.keys(options.symlinks ?? {})) {
-        for (const dir of parentDirectories(linkPath)) dirsToCreate.add(dir);
-      }
-      const sortedDirs = [...dirsToCreate].sort((a, b) => a.length - b.length);
-      for (const dir of sortedDirs) {
-        if (dir === "/") continue;
-        rustBash.mkdirAll(dir);
-      }
-      for (const [rawPath, init] of Object.entries(options.files ?? {})) {
-        const normalizedPath = sb.normalizePath(rawPath);
-        if (typeof init === "string" || init instanceof Uint8Array) {
-          rustBash.writeFile(normalizedPath, typeof init === "string" ? utf8Encoder.encode(init) : init);
-          rustBash.chmod(normalizedPath, 0o666);
-        } else {
-          rustBash.writeFile(normalizedPath, typeof init.content === "string" ? utf8Encoder.encode(init.content) : init.content);
-          rustBash.chmod(normalizedPath, init.mode ?? 0o666);
-          if (init.mtime !== undefined) {
-            rustBash.setMtime(normalizedPath, init.mtime.getTime());
+      if (options.fs) {
+        await seedIntoFs(options.fs);
+      } else {
+        for (const dir of sortedDirs) {
+          if (dir === "/") continue;
+          rustBash.mkdirAll(dir);
+        }
+        for (const [rawPath, init] of Object.entries(options.files ?? {})) {
+          const normalizedPath = sb.normalizePath(rawPath);
+          if (typeof init === "string" || init instanceof Uint8Array) {
+            rustBash.writeFile(normalizedPath, typeof init === "string" ? utf8Encoder.encode(init) : init);
+            rustBash.chmod(normalizedPath, 0o666);
+          } else {
+            rustBash.writeFile(normalizedPath, typeof init.content === "string" ? utf8Encoder.encode(init.content) : init.content);
+            rustBash.chmod(normalizedPath, init.mode ?? 0o666);
+            if (init.mtime !== undefined) {
+              rustBash.setMtime(normalizedPath, init.mtime.getTime());
+            }
           }
         }
+        for (const [rawLink, target] of Object.entries(options.symlinks ?? {})) {
+          const normalizedLink = sb.normalizePath(rawLink);
+          rustBash.symlink(target, normalizedLink);
+        }
+        if (options.mountDev) rustBash.mountDevices();
       }
-      for (const [rawLink, target] of Object.entries(options.symlinks ?? {})) {
-        const normalizedLink = sb.normalizePath(rawLink);
-        rustBash.symlink(target, normalizedLink);
-      }
-      if (options.mountDev) rustBash.mountDevices();
       if (forceNative) {
         for (const plugin of hostPlugins) rustBash.use(plugin);
       } else if (hostPlugins.length) {

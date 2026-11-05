@@ -1,3 +1,4 @@
+import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { SafeBashE2EHarness, sb, withE2EHarness } from "./harness.js";
@@ -384,6 +385,18 @@ test("transactional agent checkpoint: coordinated ShellSessionState + OverlayFil
     assert.equal(restored.stdout, "v=1 rows=1|stable\n");
   } finally {
     await h.dispose();
+  }
+});
+
+test("a supplied root stays live in the selected E2E engine", { skip: !Reflect.get(globalThis, "WebAssembly")?.Suspending }, async () => {
+  const fs = new sb.MemoryFileSystem();
+  for (const backend of ["rust", "typescript"] as const) {
+    const h = await SafeBashE2EHarness.create({ backend, fs, files: {"/workspace/input": backend} });
+    try {
+      assert.equal(h.shell instanceof RustWasmBash, backend === "rust");
+      await h.expectOk("cat input > result");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/workspace/result")), backend);
+    } finally { await h.dispose(); }
   }
 });
 

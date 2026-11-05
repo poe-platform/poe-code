@@ -2,7 +2,7 @@ import { rm } from "node:fs/promises";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
-import { SafeBashE2EHarness, sb } from "./harness.js";
+import { SafeBashE2EHarness } from "./harness.js";
 import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
@@ -74,7 +74,7 @@ async function main(): Promise<void> {
     assert.ok(Number.isSafeInteger(iterations) && iterations >= 1, "iterations must be a positive integer");
     assert.ok(Number.isSafeInteger(warmup) && warmup >= 0, "warmup must be a nonnegative integer");
     const text = "alpha\nbeta\nbeta\n".repeat(256);
-    const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
+    const ts = await SafeBashE2EHarness.create({ env: linuxEnv, backend: "typescript" });
     const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });
     let cwd: string | undefined;
     try {

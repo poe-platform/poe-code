@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
-import { SafeBashE2EHarness, sb } from "./harness.js";
+import { SafeBashE2EHarness } from "./harness.js";
 
 test("pdfimages lists and extracts inline LZW images like Poppler", async t => {
   const env = { ...process.env, LC_ALL: "C" };
@@ -17,7 +17,7 @@ test("pdfimages lists and extracts inline LZW images like Poppler", async t => {
   const out = fileURLToPath(new URL("../../../out/", import.meta.url));
   await mkdir(out, { recursive: true });
   const cwd = await mkdtemp(out + "pdfimages-");
-  const ts = await SafeBashE2EHarness.create({ fs: new sb.MemoryFileSystem() });
+  const ts = await SafeBashE2EHarness.create({ backend: "typescript" });
   const rust = new RustWasmBash({ cwd: "/workspace", forceNative: true });
   try {
     const pdf = await readFile(fixture);

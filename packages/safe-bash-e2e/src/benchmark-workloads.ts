@@ -54,12 +54,14 @@ export async function createProfileHarness(
     const upper = createMemoryFileSystem();
     const overlay = createOverlayFileSystem({ lower, upper });
     return SafeBashE2EHarness.create({
+      backend: "typescript",
       fs: overlay,
       cwd: "/workspace",
     });
   }
 
   const opts: E2EHarnessOptions = {
+    backend: "typescript",
     files: baseFiles,
     cwd: "/workspace",
     ...(profile === "strict-budgets-mount-dev"

@@ -28,3 +28,30 @@ for (const retained of [false, true]) {
         });
     }
 }
+
+// Native ImageMagick 7.1.2 Q16-HDRI: one red-channel change in RGB PNGs.
+for (const [size, step, metric, stderr, exitCode] of [
+    [64, 1, "AE", "0.00130719 (3.19138e-07)", 0],
+    [64, 1, "MAE", "0.0209147 (3.19138e-07)", 0],
+    [64, 1, "MSE", "8.20185e-05 (1.25152e-09)", 0],
+    [32, 1, "AE", "0.00130719 (1.27655e-06)", 1],
+    [32, 1, "MAE", "0.0836589 (1.27655e-06)", 1],
+    [32, 1, "MSE", "0.000328074 (5.00609e-09)", 0],
+    [32, 15, "MSE", "0.0738166 (1.12637e-06)", 1]
+] as const) {
+    it(`matches native ${metric} status for a ${step}-step change in ${size}x${size} RGB`, async () => {
+        const pixels = new Uint8Array(size * size * 3).fill(100);
+        const a = await sharp(pixels, { raw: { width: size, height: size, channels: 3 } }).png().toBuffer();
+        pixels[0] = 100 + step;
+        const b = await sharp(pixels, { raw: { width: size, height: size, channels: 3 } }).png().toBuffer();
+        const files = new Map([["a.png", a], ["b.png", b]]);
+        const filesystem = new MemoryFileSystem();
+        for (const [name, bytes] of files)
+            await filesystem.writeFile(`/${name}`, bytes);
+        for (const input of [files, { filesystem, cwd: "/" }]) {
+            const result = await runCompareCli(["-metric", metric, "a.png", "b.png", "null:"], input);
+            expect(result.stderr).toBe(`${stderr}\n`);
+            expect(result.exitCode).toBe(exitCode);
+        }
+    });
+}

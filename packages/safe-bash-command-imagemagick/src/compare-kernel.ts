@@ -202,6 +202,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "ae":
             distortion = aeMagnitude / (totalPixels * numCh * 255);
             metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
+            exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "fuzz":
             distortion = fuzzChannels === 0 ? 0 : fuzzSq / (fuzzChannels * 255 * 255);
@@ -216,10 +217,12 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "mae":
             distortion = maeNorm;
             metricStr = `${formatSignificantMetric(maeNorm * 65535)} (${formatSignificantMetric(maeNorm)})`;
+            exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mse":
             distortion = mseNorm;
             metricStr = `${formatSignificantMetric(mseNorm * 65535)} (${formatSignificantMetric(mseNorm)})`;
+            exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "pae":
             distortion = paeNorm;

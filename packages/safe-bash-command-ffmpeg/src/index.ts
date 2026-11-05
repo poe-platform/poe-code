@@ -2495,14 +2495,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const st = boundaries[sIdx]!;
             const en = boundaries[sIdx + 1]!;
             const actualDur = Math.max(0.04, en - st);
-            // Keep original packets and timestamps under the shared initialization segment.
-            const segmentDoc = isFmp4 ? {
+            // Segment on decode timestamps without applying edit lists or re-encoding packets.
+            const segmentDoc = {
               ...workingDoc,
               tracks: workingDoc.tracks.map(track => ({
                 ...track,
                 samples: track.samples.filter(sample => sample.dts >= st * track.timescale && sample.dts < en * track.timescale)
               }))
-            } : sliceMp4(workingDoc, { startSeconds: st, endSeconds: en, useEditList: false });
+            };
             let segBytes = segPlugin.serialize(segmentDoc, {
               fragmented: isFmp4,
               limits: options.limits,

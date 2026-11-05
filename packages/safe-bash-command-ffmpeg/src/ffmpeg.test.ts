@@ -965,6 +965,30 @@ describe("HLS omit_endlist", () => {
   }
 });
 
+// ffmpeg -f lavfi -i testsrc=size=32x32:rate=2:duration=2 -c:v libx264 -pix_fmt yuv420p -g 2 -keyint_min 2 -sc_threshold 0 input.mp4
+const hlsH264 = Buffer.from("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", "base64");
+
+for (const type of ["mpegts", "fmp4"]) {
+  it(`preserves H.264 packets and decode timestamps in ${type} HLS with an edit list`, async () => {
+    const source = parseMp4(hlsH264).tracks[0]!;
+    assert.ok(source.editList?.some(edit => edit.mediaTime > 0));
+    const vfs = createTestVfs({ "/in.mp4": hlsH264 });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type, "-hls_segment_filename", `/preserved_%03d.${type === "fmp4" ? "m4s" : "ts"}`, "/out.m3u8"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const tracks = [0, 1].map(i => type === "fmp4"
+      ? parseMp4(concatBytes([vfs.store.get("/init.mp4")!, vfs.store.get(`/preserved_00${i}.m4s`)!])).tracks[0]!
+      : parseMpegTs(vfs.store.get(`/preserved_00${i}.ts`)!).tracks[0]!);
+    assert.deepEqual(tracks.map(track => track.samples.length), [2, 2]);
+    assert.deepEqual(tracks.flatMap(track => track.samples.map(sample => [...sample.data])), source.samples.map(sample => [...sample.data]));
+    if (type === "fmp4") {
+      assert.deepEqual(tracks.flatMap(track => track.samples.map(sample => sample.dts / track.timescale)), source.samples.map(sample => sample.dts / source.timescale));
+      assert.deepEqual(tracks.flatMap(track => track.samples.map(sample => sample.pts / track.timescale)), source.samples.map(sample => sample.pts / source.timescale));
+    }
+  });
+}
+
 describe("HLS fMP4 initialization", () => {
   for (const includeAudio of [false, true]) {
     it(`writes an initialization map and continuous fragments (audio=${includeAudio})`, async () => {

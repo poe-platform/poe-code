@@ -86,7 +86,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   const glyph = (text: string, run: TextRun): Glyph => {
     charge("glyphs", 1); charge("layoutWork", 1);
     const cp = text.codePointAt(0)!;
-    if (!(cp >= 32 && cp <= 126 || cp >= 160 && cp <= 255 || cp >= 0x370 && cp <= 0x52f) || cp >= 0x483 && cp <= 0x489) unsupported("Unsupported script or combining sequence");
+    if (!(cp >= 32 && cp <= 126 || cp >= 160 && cp <= 255 || cp >= 0x370 && cp <= 0x52f || "‘’“”–—…".includes(text)) || cp >= 0x483 && cp <= 0x489) unsupported("Unsupported script or combining sequence");
     const candidates = run.font === undefined ? [...fonts.values()] : [fonts.get(run.font), ...fonts.values()];
     if (run.font !== undefined && !fonts.has(run.font)) unsupported("Unknown font identity");
     const font = candidates.find(candidate => candidate && coverage.get(candidate)!.has(cp) && (!parsedFonts.has(candidate) || parsedFonts.get(candidate)!.glyphForCodePoint(cp).id > 0));

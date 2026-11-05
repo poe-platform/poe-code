@@ -27,6 +27,12 @@ describe("public PDF byte engine", () => {
     expect(operators.includes("1 1 1 rg")).toBe(true);
     expect(pdf.getPages()[0]!.node.get(PDFName.of("Annots"))).toBeDefined();
   });
+  it("renders smart punctuation with supplied and standard fonts", async () => {
+    for (const resource of [font, {id: "mono", standard: "Helvetica" as const}]) {
+      const bytes = await renderPdf({fonts: [resource], blocks: [{...paragraph, runs: [{text: "‘single’ “double” – — …", font: "mono", size: 12}]}]});
+      expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
+    }
+  });
   it("rejects absent glyphs, unsupported scripts and unsafe links", async () => {
     for (const text of ["مرحبا", "a\u0301", "😀"]) await expect(renderPdf({fonts: [font], blocks: [{...paragraph, runs: [{text, font: "mono", size: 12}]}]})).rejects.toMatchObject({code: "E_CAPABILITY"});
     await expect(renderPdf({fonts: [font], blocks: [{...paragraph, runs: [{text: "x", font: "mono", size: 12, link: "javascript:alert(1)"}]}]})).rejects.toMatchObject({code: "E_CAPABILITY"});

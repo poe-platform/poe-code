@@ -42,7 +42,7 @@ dimensions and the configured image/work budgets.
 
 `limits` overrides individual ceilings. See [the exported model](src/model.ts)
 for the layout and callback types. The supported profile includes left-to-right
-Latin, Greek, and Cyrillic text, static images, and rectangular unspanned tables.
+Latin, Greek, and Cyrillic text with smart quotes, dashes, and ellipses, static images, and rectangular unspanned tables.
 Tagged accessibility, PDF/A, encryption, JavaScript, and attachments are unsupported.
 
 ## Environment variables

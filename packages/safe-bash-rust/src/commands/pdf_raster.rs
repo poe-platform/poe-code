@@ -8,6 +8,7 @@ type Point = [f64; 2];
 pub(in crate::commands::archive) struct RasterOptions<'a> {
     pub tiff: Option<(&'a str, bool)>,
     pub jpeg: Option<(u8, bool)>,
+    pub splash: bool,
     pub format: &'a str,
     pub color: &'a str,
     pub transparent: bool,
@@ -45,11 +46,53 @@ impl Bitmap {
         ox: f64,
         top: f64,
         scale: f64,
+        splash: bool,
     ) -> Option<()> {
         let [a, b, c, d, e, f] = im.matrix;
         let det = a * d - b * c;
         if det.abs() <= 1e-8 {
             return Some(());
+        }
+        // Splash scales an upright scan across inclusive device bounds, then clips it.
+        if splash && im.bilevel && a > 0. && d > 0. && b == 0. && c == 0. {
+            let left = ((e - ox) * scale).floor();
+            let top_px = ((top - f - d) * scale).floor();
+            let right = ((a + e - ox) * scale).floor() + 1.;
+            let bottom = ((top - f) * scale).floor() + 1.;
+            let sw = right - left;
+            let sh = bottom - top_px;
+            if sw >= im.width as f64 && sh >= im.height as f64 {
+                let xs = (left as usize).min(self.w)..(right as usize).min(self.w);
+                let ys = (top_px as usize).min(self.h)..(bottom as usize).min(self.h);
+                self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
+                let dx = im.width as f64 / sw;
+                let dy = im.height as f64 / sh;
+                let smooth = im.interpolate || dx > 0.25 && dy > 0.25;
+                let mix = |a: u8, b: u8, t: f64| (f64::from(a) * (1. - t) + f64::from(b) * t) as u8;
+                let mut v = (ys.start as f64 - top_px) * dy;
+                for y in ys {
+                    let mut u = (xs.start as f64 - left) * dx;
+                    for x in xs.clone() {
+                        let value = if smooth {
+                            let x0 = (u as usize).min(im.width - 1);
+                            let y0 = (v as usize).min(im.height - 1);
+                            let row = |j: usize| {
+                                let p = &im.pixels[j * im.width..][..im.width];
+                                mix(p[x0][0], p[(x0 + 1).min(im.width - 1)][0], u.fract())
+                            };
+                            mix(row(y0), row((y0 + 1).min(im.height - 1)), v.fract())
+                        } else {
+                            let x0 = (((x as f64 - left + 1.) * dx).ceil() - 1.) as usize;
+                            let y0 = (((y as f64 - top_px + 1.) * dy).ceil() - 1.) as usize;
+                            im.pixels[y0.min(im.height - 1) * im.width + x0.min(im.width - 1)][0]
+                        };
+                        self.pixels[y * self.w + x] = [value, value, value, 255];
+                        u += dx;
+                    }
+                    v += dy;
+                }
+                return Some(());
+            }
         }
         let bounds = |values: [f64; 4], max: usize| {
             let lo = values.into_iter().fold(f64::INFINITY, f64::min).floor() as usize;
@@ -413,7 +456,7 @@ impl PageSource<'_> {
             let (op, args, ctm) = match event {
                 Draw::Image(id, matrix) => {
                     if let Some(image) = super::pdf_bitmap::Image::read(objects, id, matrix, opt.limit, super::ImageRead::Pixels)? {
-                        bitmap.image(image, ox, oy + ph, sx)?;
+                        bitmap.image(image, ox, oy + ph, sx, opt.splash)?;
                     }
                     return Some(());
                 }

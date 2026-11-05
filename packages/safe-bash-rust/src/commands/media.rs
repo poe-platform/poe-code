@@ -9977,6 +9977,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         }
     }
     let options = pdf_reader::RasterOptions {
+        splash: !is_cairo,
         tiff: (fmt == "TIFF").then_some((&tiff_compression, !is_cairo)),
         jpeg: (fmt == "JPEG").then_some((jpeg_quality, is_cairo && color_mode == "gray")),
         format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
@@ -16699,8 +16700,14 @@ mod media_unit_tests {
         let r = run("pdftoppm",&["-gray","-r","72","-singlefile","scan.pdf","page"]);
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         let px = fs.read_file("/page.pgm").unwrap();
-        assert_eq!(&px[b"P5\n19 7\n255\n".len()..][..19], &[0;19]);
-        assert!(px[b"P5\n19 7\n255\n".len()..].contains(&255));
+        // Poppler pdftoppm 24.02 at 72 dpi, including its scanline interpolation.
+        assert_eq!(px, hex_dec(concat!(
+            "50350a313920370a3235350a00000000000000000000000000000000000000df",
+            "df150000009bdfdf630000004ddfdfb20000ff480600008febff8b1c00004bd5",
+            "ffcf330000ffa39f9f9fe7ffffc59f9f9fc5ffffe79f9f9f7f7f7febffffa57f",
+            "7f7fbfffffd27f7f7f92ff000055e6ffb72f000034afffd86700001277ff003c",
+            "ebffcc2f000026a8ffe27200000f65fff8",
+        )));
     }
 
     #[test]

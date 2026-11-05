@@ -17,7 +17,7 @@ pub(in crate::commands::archive) struct Image {
     components: usize,
     length: usize,
     pub id: ObjectId,
-    interpolate: bool,
+    pub(super) interpolate: bool,
     pub matrix: Matrix,
     pub pixels: Vec<[u8; 4]>,
 }

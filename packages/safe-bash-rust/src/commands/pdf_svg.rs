@@ -421,6 +421,7 @@ pub(in crate::commands::archive) fn render_svg(
         .raster(
             1,
             &RasterOptions {
+                splash: false,
                 tiff: None,
                 jpeg: None,
                 format: "RGBA",

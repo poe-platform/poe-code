@@ -824,10 +824,12 @@ type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
 
 function* magickPixelPropertiesSteps<Step=never>(
   img: Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>,
-  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},void>
+  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},void>,
+  statistics?: Record<string, number>
 ): Generator<void|Step, Record<string, string>, void> {
   const sums = [0, 0, 0];
   const squares = [0, 0, 0];
+  const means = [0, 0, 0, 0], moments = [0, 0, 0, 0];
   let min = 255;
   let max = 0;
   let opaque = true;
@@ -856,6 +858,11 @@ function* magickPixelPropertiesSteps<Step=never>(
     }
     for (let c = 0; c < (img.hasAlpha ? 4 : 3); c++) {
       const value = samples[i + c]!;
+      if (statistics) {
+        const n = (offset + i) / 4 + 1, delta = value / range - means[c]!;
+        means[c]! += delta / n;
+        moments[c]! += delta * (value / range - means[c]!);
+      }
       while (bitDepth < (chunk.data16 ? 16 : 8)) {
         const levels = 2 ** bitDepth - 1;
         if (Math.round(Math.round(value * levels / range) * range / levels) === value) break;
@@ -870,6 +877,22 @@ function* magickPixelPropertiesSteps<Step=never>(
       }
     }
   }
+  }
+  if (statistics) {
+    const channels = img.hasAlpha ? 4 : 3;
+    statistics.mean = 0;
+    statistics.standard_deviation = 0;
+    for (let c = 0; c < channels; c++) {
+      const deviation = Math.sqrt(Math.max(0, moments[c]! / Math.max(1, count - 1)));
+      statistics[`mean.${c}`] = means[c]!;
+      statistics[`standard_deviation.${c}`] = deviation;
+      statistics.mean += means[c]! / channels;
+      statistics.standard_deviation += deviation / channels;
+    }
+    if (!img.hasAlpha) {
+      statistics["mean.3"] = 1;
+      statistics["standard_deviation.3"] = 0;
+    }
   }
   const suffix = img.hasAlpha ? "Alpha" : "";
   const type = img.space === "cmyk" ? `ColorSeparation${suffix}`
@@ -920,6 +943,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   let img: RgbaImage | undefined;
   let pixels: Record<string, string> | undefined;
+  const statistics: Record<string, number> = {};
   const parts: string[] = [];
   // Only tokenize the original template. Expanded filenames and literal percent
   // escapes must never become new input, including for computed properties.
@@ -960,13 +984,14 @@ function* formatMagickPropertyStringSteps<Step=never>(
       } else if (["mean", "min", "max", "standard-deviation", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
-        pixels ??= yield* magickPixelPropertiesSteps(img);
+        pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics);
         parts.push(pixels[key]!);
       } else if (key.startsWith("fx:") || key.startsWith("pixel:") || key.startsWith("hex:")) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
         const fn = compileFxExpression(property.slice(property.indexOf(":") + 1));
-        const ctx: FxEvalContext = { stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+        if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics);
+        const ctx: FxEvalContext = { statistics, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
         if (key.startsWith("fx:")) {
           parts.push(formatMetricNum(fn(ctx)));
         } else {
@@ -994,9 +1019,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
 }
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
-function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,signal?:AbortSignal):Generator<IdentifyStep,string,void>{
+function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal):Generator<IdentifyStep,string,void>{
  const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,Uint8Array>();
- const context:FxEvalContext={stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
+ const statistics=fn.needsStatistics?yield*getStatistics():undefined;
+ const context:FxEvalContext={statistics,stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
   const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
   if(!Number.isFinite(position))return NaN;
@@ -1025,9 +1051,10 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,sig
 
 async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext,getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined;
+ const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
   if(!raster)yield {async run(){raster=await getRaster();}};
-  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,signal);
+  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal);
   if(!properties)properties=yield*magickPixelPropertiesSteps(raster!.image,function*(position,length):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
@@ -1036,7 +1063,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
     chunk={data,...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{})};
    }};
    return chunk;
-  });
+  },statistics);
   return properties[property.toLowerCase()]!;
  }
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);
@@ -1560,6 +1587,7 @@ type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"
 interface FxStack { readonly length: number; get(index: number): FxImage | undefined; indexOf(image: FxImage): number; reset?(): void }
 class FxFrameDemand {}
 interface FxEvalContext {
+  readonly statistics?: Readonly<Record<string, number>> | undefined;
   readonly stack: FxStack | readonly FxImage[];
   readonly sample?: typeof sampleFxImage;
   readonly x: number;
@@ -1622,7 +1650,9 @@ function propToChannel(prop: string, defaultCh: number): number {
   return defaultCh;
 }
 
-function compileFxExpression(exprStr: string): (ctx: FxEvalContext) => number {
+function compileFxExpression(exprStr: string) {
+  let needsStatistics = false;
+  const requireStatistics = () => { needsStatistics = true; };
   const statements = exprStr
     .split(";")
     .map((s) => s.trim())
@@ -1632,26 +1662,26 @@ function compileFxExpression(exprStr: string): (ctx: FxEvalContext) => number {
     const assignMatch = /^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^=].*)$/.exec(stmt);
     if (assignMatch) {
       const varName = assignMatch[1]!.toLowerCase();
-      const rhsFn = compileSingleFxExpr(assignMatch[2]!);
+      const rhsFn = compileSingleFxExpr(assignMatch[2]!, requireStatistics);
       return (ctx: FxEvalContext) => {
         const val = rhsFn(ctx);
         ctx.vars.set(varName, val);
         return val;
       };
     }
-    return compileSingleFxExpr(stmt);
+    return compileSingleFxExpr(stmt, requireStatistics);
   });
 
-  return (ctx: FxEvalContext) => {
+  return Object.assign((ctx: FxEvalContext) => {
     let last = 0;
     for (const fn of compiledStmts) {
       last = fn(ctx);
     }
     return last;
-  };
+  }, { needsStatistics });
 }
 
-function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
+function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: FxEvalContext) => number {
   type Tok = { type: "num" | "id" | "op" | "punc"; val: string };
   const tokens: Tok[] = [];
   let k = 0;
@@ -1958,9 +1988,13 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
         }
       }
 
+      if (name === "mean" || name === "standard_deviation") requireStatistics();
       return (ctx) => {
         if (ctx.vars.has(name) && !propName && !coordX) {
           return ctx.vars.get(name)!;
+        }
+        if ((name === "mean" || name === "standard_deviation") && ctx.statistics) {
+          return ctx.statistics[propName ? `${name}.${propToChannel(propName, ctx.ch)}` : name] ?? 0;
         }
         if (name === "i") return ctx.x;
         if (name === "j") return ctx.y;

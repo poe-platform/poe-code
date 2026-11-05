@@ -1,7 +1,7 @@
 import type { AdapterContext } from "./types.js";
 import { pipeRow } from "./gfm-syntax.js";
-import type { Alignment } from "./ast-types.js";
-import { normalizeLabel, romanListNumber } from "./commonmark-syntax.js";
+import type { Alignment, Attr } from "./ast-types.js";
+import { fencedDivAttributes, normalizeLabel, romanListNumber } from "./commonmark-syntax.js";
 
 export interface BlockPoint { line: number; column: number }
 export interface BlockSource { source: string; start: BlockPoint; end: BlockPoint }
@@ -12,6 +12,7 @@ export interface PendingInline {
 export interface PendingItem { blocks: PendingBlock[]; source: BlockSource }
 export interface PendingDefinition extends PendingItem { tight: boolean }
 export type PendingBlock =
+  | { kind: "div"; attributes: Attr; blocks: PendingBlock[]; source: BlockSource }
   | { kind: "definitionList"; items: {term: PendingInline; definitions: PendingDefinition[]}[]; source: BlockSource }
   | { kind: "footnote"; label: string; blocks: PendingBlock[]; source: BlockSource }
   | { kind: "table"; alignments: Alignment[]; header: string[]; rows: string[][]; source: BlockSource }
@@ -42,6 +43,7 @@ interface Line {
 }
 type ListBlock = Extract<PendingBlock, { kind: "list" }>;
 type Container =
+  | { kind: "div"; node: Extract<PendingBlock, { kind: "div" }> }
   | { kind: "definition"; node: PendingDefinition; indent: number; blank: boolean; empty: boolean }
   | { kind: "footnote"; node: Extract<PendingBlock, { kind: "footnote" }>; indent: number; blank: boolean; empty: boolean }
   | { kind: "quote"; node: Extract<PendingBlock, { kind: "quote" }> }
@@ -255,7 +257,7 @@ export async function parseCommonMarkBlocks(
   const range = (line: Line, offset: number): BlockSource => ({ source, start: point(line, offset), end: endPoint(line) });
   const blocks = (): PendingBlock[] => {
     const top = stack[stack.length - 1];
-    return top?.kind === "quote" || top?.kind === "item" || top?.kind === "footnote" || top?.kind === "definition" ? top.node.blocks : document.blocks;
+    return top?.kind === "div" || top?.kind === "quote" || top?.kind === "item" || top?.kind === "footnote" || top?.kind === "definition" ? top.node.blocks : document.blocks;
   };
   const add = (node: PendingBlock): void => {
     context.bound("depth", stack.length + 1);
@@ -360,7 +362,7 @@ export async function parseCommonMarkBlocks(
     for (; matched < stack.length; matched++) {
       context.checkpoint();
       const container = stack[matched]!;
-      if (container.kind === "list") continue;
+      if (container.kind === "list" || container.kind === "div") continue;
       const indent = spaces(line.text, offset);
       if (container.kind === "quote") {
         if (indent > 3 || line.text[offset + indent] !== ">") break;
@@ -434,6 +436,25 @@ export async function parseCommonMarkBlocks(
         continue;
       }
       finish();
+    }
+    if (extensions.fenced_divs && spaces(line.text, offset) <= 3) {
+      const at = offset + spaces(line.text, offset);
+      let stop = at;
+      while (line.text[stop] === ":") stop++;
+      if (stop - at >= 3) {
+        const tail = rawFrom(line, stop).trim();
+        const attributes = fencedDivAttributes(tail, context);
+        if (attributes) {
+          finish();
+          const node: Extract<PendingBlock, {kind: "div"}> = {kind: "div", attributes, blocks: [], source: range(line, at)};
+          add(node); push({kind: "div", node}); continue;
+        }
+        if (!tail) {
+          let index = stack.length - 1;
+          while (index >= 0 && stack[index]!.kind !== "div") index--;
+          if (index >= 0) {finish(); stack.length = index; continue;}
+        }
+      }
     }
     if (blank) {
       finish();
@@ -576,6 +597,14 @@ export async function parseCommonMarkBlocks(
         offset = item.content;
         if (item.empty) break;
         continue;
+      }
+      if (extensions.fenced_divs && indent <= 3 && line.text.startsWith(":::", at)) {
+        let stop = at + 3; while (line.text[stop] === ":") stop++;
+        const attributes = fencedDivAttributes(rawFrom(line, stop), context);
+        if (attributes) {
+          const node: Extract<PendingBlock, {kind: "div"}> = {kind: "div", attributes, blocks: [], source: range(line, at)};
+          add(node); push({kind: "div", node}); break;
+        }
       }
       if (at === line.text.length) break;
       const level = indent <= 3 ? heading(line.text, at) : 0;

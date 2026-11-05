@@ -90,6 +90,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           result.push({ t: "CodeBlock", c: [["", info ? [info] : [], []], block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal] });
           break;
         }
+        case "div": result.push({t: "Div", c: [block.attributes, await assemble(block.blocks, depth + 1)]}); break;
         case "quote": result.push({ t: "BlockQuote", c: await assemble(block.blocks, depth + 1) }); break;
         case "list": {
           const items: Block[][] = [];

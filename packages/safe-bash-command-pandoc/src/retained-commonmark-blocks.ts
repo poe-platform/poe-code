@@ -1,11 +1,11 @@
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
-import {asciiPunctuation, normalizeLabel} from "./commonmark-syntax.js";
+import {asciiPunctuation, fencedDivAttributes, normalizeLabel} from "./commonmark-syntax.js";
 import {RetainedCommonMarkLine} from "./retained-commonmark-line.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedSourceText, SourceRange} from "./retained-source-text.js";
 
-const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote", "definitionList", "definitionTerm", "definition"] as const;
+const kinds = ["root", "paragraph", "heading", "thematicBreak", "code", "html", "quote", "list", "item", "table", "row", "footnote", "definitionList", "definitionTerm", "definition", "div"] as const;
 const fields = ["parent", "first", "last", "next", "previous", "startLine", "startColumn", "endLine", "endColumn", "firstLine", "lastLine", "lineCount", "infoStart", "infoEnd", "number", "marker", "style", "tight", "blank"] as const;
 type Field = typeof fields[number];
 type Node = Record<Field, number> & {kind: typeof kinds[number]; info: SourceRange};
@@ -187,7 +187,7 @@ export class RetainedCommonMarkBlocks {
     const containers = async function* (parser: RetainedCommonMarkBlocks) {for (let position = firstStack; position;) {const fields = await parser.get(position, 8); yield {position, fields}; position = fields[1]!;}};
     const parent = async () => {
       if (!lastStack) return this.root;
-      const top = await this.get(lastStack, 8); return ["quote", "item", "footnote", "definition"].includes(kinds[top[3]!]!) ? top[2]! : this.root;
+      const top = await this.get(lastStack, 8); return ["div", "quote", "item", "footnote", "definition"].includes(kinds[top[3]!]!) ? top[2]! : this.root;
     };
     const finish = async () => {if (leaf?.kind === "paragraph") await this.extractDefinitions(leaf.node); leaf = undefined;};
     const push = async (node: number, kind: Node["kind"], indent = 0, list = 0, empty = false) => {
@@ -280,6 +280,30 @@ export class RetainedCommonMarkBlocks {
           await literal(leaf.node, line, offset + 4, {raw, ending}); leaf.blanks = await this.create("row"); await end(leaf.node, line); continue;
         }
         await finish();
+      }
+      if (extensions.fenced_divs && await line.spaces(offset) <= 3) {
+        const at = offset + await line.spaces(offset); let stop = at;
+        while (await line.at(stop) === ":") stop++;
+        if (stop - at >= 3) {
+          const info = await this.trim(await line.rawFrom(stop));
+          context.bound("text", info.end - info.start); context.charge("retainedBytes", (info.end - info.start) * 2);
+          let tail = ""; for await (const chunk of source.chunks(info)) tail += chunk;
+          if (fencedDivAttributes(tail, context)) {
+            await finish();
+            const node = await add("div", line, at, {infoStart: info.start, infoEnd: info.end});
+            await push(node, "div"); continue;
+          }
+          if (!tail) {
+            let closing = 0, closingDepth = -1, index = 0;
+            for await (const container of containers(this)) {
+              if (kinds[container.fields[3]!] === "div") {closing = container.fields[0]!; closingDepth = index;}
+              index++;
+            }
+            if (closingDepth >= 0) {
+              await finish(); await truncate(closing, closingDepth); continue;
+            }
+          }
+        }
       }
       if (blank) {
         await finish(); let deepest = 0;
@@ -384,6 +408,16 @@ export class RetainedCommonMarkBlocks {
           const node = await this.create("item", {startLine: line.number, startColumn: await line.column(at), endLine: line.number, endColumn: line.endColumn});
           await this.append(list[2]!, node); await push(node, "item", indent + item.indent, list[2]!, item.empty);
           offset = item.content; if (item.empty) break; continue;
+        }
+        if (extensions.fenced_divs && indent <= 3 && await source.starts({start: line.text.start + at, end: line.text.end}, ":::")) {
+          let stop = at + 3; while (await line.at(stop) === ":") stop++;
+          const info = await this.trim(await line.rawFrom(stop));
+          context.bound("text", info.end - info.start); context.charge("retainedBytes", (info.end - info.start) * 2);
+          let tail = ""; for await (const chunk of source.chunks(info)) tail += chunk;
+          if (fencedDivAttributes(tail, context)) {
+            const node = await add("div", line, at, {infoStart: info.start, infoEnd: info.end});
+            await push(node, "div"); break;
+          }
         }
         if (at === line.length) break;
         const level = indent <= 3 ? await line.heading(at) : 0;

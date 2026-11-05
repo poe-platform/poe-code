@@ -1,7 +1,7 @@
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
 import {upgradeRetainedCitations} from "./retained-citations.js";
-import {letter} from "./commonmark-syntax.js";
+import {fencedDivAttributes, letter} from "./commonmark-syntax.js";
 import type {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
 import {parseRetainedCommonMarkInlines} from "./retained-commonmark-inlines.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
@@ -173,9 +173,15 @@ export async function assembleRetainedCommonMark(
       const children = await ast.array(); await ast.push(out, await ast.tag("DefinitionList", children));
       await push(); position = block.first; out = children; mode = 2; depth++; taskNode = 0;
     }
-    else if (block.kind === "quote" || block.kind === "list") {
+    else if (block.kind === "div" || block.kind === "quote" || block.kind === "list") {
       const children = await ast.array();
-      await ast.push(out, block.kind === "quote" ? await ast.tag("BlockQuote", children) : Number.isNaN(block.number) ? await ast.tag("BulletList", children) :
+      let attributes;
+      if (block.kind === "div") {
+        context.bound("text", block.info.end - block.info.start); context.charge("retainedBytes", (block.info.end - block.info.start) * 2);
+        let text = ""; for await (const chunk of source.chunks(block.info)) text += chunk;
+        attributes = fencedDivAttributes(text, context);
+      }
+      await ast.push(out, block.kind === "div" ? await ast.tag("Div", await ast.value([attributes!, children])) : block.kind === "quote" ? await ast.tag("BlockQuote", children) : Number.isNaN(block.number) ? await ast.tag("BulletList", children) :
         await ast.tag("OrderedList", await ast.value([[block.number, await ast.tag(block.style === 1 ? "LowerRoman" : block.style === 2 ? "UpperRoman" : "Decimal"), await ast.tag(block.marker === 41 ? "OneParen" : "Period")], children])));
       await push(); position = block.first; out = children; depth++; tight = block.kind === "list" && !!block.tight; mode = block.kind === "list" ? 1 : 0; taskNode = 0;
     }

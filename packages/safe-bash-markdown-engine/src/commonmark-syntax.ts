@@ -1,5 +1,6 @@
 import { namedEntities } from "./entity-data.js";
 import { caseFoldExceptions } from "./commonmark-case-fold.js";
+import type { Attr } from "./ast-types.js";
 import type { AdapterContext } from "./types.js";
 
 export function asciiPunctuation(char: string | undefined): boolean {
@@ -152,4 +153,45 @@ export function romanListNumber(label: string): number | undefined {
     while (remaining >= value) {canonical += numeral; remaining -= value;}
   }
   return canonical === lower ? number : undefined;
+}
+
+/** Attributes on a Pandoc fenced-div opener, including its bare-class form. */
+export function fencedDivAttributes(text: string, context: AdapterContext): Attr | undefined {
+  text = text.trim();
+  while (text.endsWith(":")) text = text.slice(0, -1);
+  text = text.trimEnd();
+  if (!text) return;
+  const attr: [string, string[], [string, string][]] = ["", [], []];
+  if (!text.startsWith("{")) {
+    for (const char of text) {context.checkpoint(); if (whitespace(char)) return;}
+    attr[1].push(text); return attr;
+  }
+  if (!text.endsWith("}")) return;
+  let at = 1;
+  const end = text.length - 1;
+  while (at < end) {
+    context.checkpoint();
+    while (at < end && whitespace(text[at])) at++;
+    if (at === end) break;
+    const start = at;
+    while (at < end && !whitespace(text[at]) && text[at] !== "=") at++;
+    const name = text.slice(start, at);
+    if (!name) return;
+    if (text[at] === "=") {
+      at++;
+      const quote = text[at] === '"' || text[at] === "'" ? text[at++] : undefined;
+      let value = "";
+      while (at < end && (quote ? text[at] !== quote : !whitespace(text[at]))) {
+        context.checkpoint();
+        if (text[at] === "\\" && at + 1 < end && (text[at + 1] === quote || text[at + 1] === "\\")) at++;
+        value += text[at++];
+      }
+      if (quote && text[at++] !== quote) return;
+      attr[2].push([name, value]);
+    } else if (name.startsWith("#") && name.length > 1) attr[0] = name.slice(1);
+    else if (name.startsWith(".") && name.length > 1) attr[1].push(name.slice(1));
+    else return;
+    if (at < end && !whitespace(text[at])) return;
+  }
+  return attr;
 }

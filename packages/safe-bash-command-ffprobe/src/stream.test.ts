@@ -61,7 +61,7 @@ for (const route of ["stdin", "file"] as const) {
     const result = await run(route);
     expect(result.result?.exitCode, result.diagnostic).toBe(0); expect(result.closed).toBe(true);
     expect(result.admitted).toBe(result.size); expect(result.reads).toBe(513);
-    expect(JSON.parse(result.output)).toEqual({ programs: [], stream_groups: [], streams: [{ duration: "262.144000" }] });
+    expect(JSON.parse(result.output)).toEqual({ programs: [], stream_groups: [], streams: [route === "file" ? { duration: "262.144000" } : {}] });
   });
   it(`enforces ${route} admission limits incrementally and closes upstream`, async () => {
     const result = await run(route, { maxInput: 1024 });

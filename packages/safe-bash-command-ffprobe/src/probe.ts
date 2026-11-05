@@ -1,5 +1,9 @@
 import { parseAudio, type AudioAst } from "@poe-code/audio-ast";
 
+export function isStdin(path: string): boolean {
+  return ["-", "pipe:", "pipe:0", "/dev/stdin", "/dev/fd/0"].includes(path);
+}
+
 export function parseArguments(args: readonly string[]) {
   let filename = "",
     writer = "default",
@@ -74,6 +78,7 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
 
 export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>, retainedTags = false) {
   const { sections } = parsed;
+  const stdinWav = audio.format === "wav" && isStdin(parsed.filename);
   const serials = [
     ...new Set(
       audio.nodes.filter((node) => node.type === "OggS").map((node) => node.fields?.serial)
@@ -145,7 +150,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
         sample_rate: String(stream.sampleRate),
         channels: stream.channels,
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,
-        duration: durations[index]!.toFixed(6),
+        ...(!stdinWav ? { duration: durations[index]!.toFixed(6) } : {}),
         ...(!["flac", "opus", "vorbis"].includes(stream.codec)
           ? {
               bit_rate: String(
@@ -164,9 +169,10 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       filename: parsed.filename,
       nb_streams: audio.streams.length,
       format_name: audio.format === "m4a" ? "mov,mp4,m4a,3gp,3g2,mj2" : audio.format,
-      duration: formatDuration.toFixed(6),
-      size: String(size),
-      bit_rate: String(formatDuration ? Math.floor((size * 8) / formatDuration) : 0),
+      ...(!stdinWav ? { duration: formatDuration.toFixed(6), size: String(size) } : {}),
+      bit_rate: String(stdinWav
+        ? audio.streams.reduce((total, stream) => total + Math.floor(stream.bitrate), 0)
+        : formatDuration ? Math.floor((size * 8) / formatDuration) : 0),
       ...(retainedTags || Object.keys(formatTags).length ? { tags: formatTags } : {})
     });
     if (sections.has("format_tags") && sections.get("format_tags")?.length !== 0) row.tags = tags;

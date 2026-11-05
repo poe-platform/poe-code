@@ -9,7 +9,7 @@ import { resolveFfprobeLimits } from "./options.js";
 import { formatTaggedAudio, formatTaggedRows, type TaggedAudioRow, type StoredAudioTags } from "./tag-format.js";
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffMediaStream, withStagedProbeSource } from "./stream-input.js";
-import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
+import { isStdin, probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
 import { probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
@@ -45,9 +45,7 @@ export interface MediaCommandsOptions {
   readonly replace?: boolean | undefined;
 }
 
-export function isStdin(path: string): boolean {
-  return ["-", "pipe:", "pipe:0", "/dev/stdin", "/dev/fd/0"].includes(path);
-}
+export { isStdin } from "./probe.js";
 
 export function rethrowRuntimeError(context: CommandContext, error: unknown): void {
   context.signal.throwIfAborted();
@@ -350,6 +348,18 @@ function parseEntryFilter(showEntries: string | undefined): Map<string, Set<stri
 
 function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): Generator<FormatStep> {
   const entryFilter = parseEntryFilter(opts.showEntries);
+  const stdinWav = probe.format?.format_name === "wav" && isStdin(probe.format.filename);
+  let wavBitrate = 0;
+  if (stdinWav) {
+    const streams: MediaProbeStream[] = [];
+    yield { rows: probe.streams, render(row) {
+      const stream = row as MediaProbeStream;
+      streams.push(stream);
+      wavBitrate += Number(stream.bit_rate ?? 0);
+      return [];
+    } };
+    probe = { ...probe, streams };
+  }
 
   const filterObject = (
     obj: Record<string, unknown>,
@@ -408,7 +418,9 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         Math.max(1, (stream.channels ?? 1) * (stream.bits_per_sample ?? 16) / 8))))
       : stream.nb_frames ?? "0";
     const { nb_read_frames, nb_read_packets, ...fields } = stream;
-    return filterObject({ ...fields,
+    const metadata: Record<string, unknown> = { ...fields };
+    if (stdinWav) { delete metadata.duration; delete metadata.duration_ts; }
+    return filterObject({ ...metadata,
       ...(opts.countFrames ? { nb_read_frames: nb_read_frames ?? recordCount } : {}),
       ...(opts.countPackets ? { nb_read_packets: nb_read_packets ?? recordCount } : {})
     }, "stream", "stream_tags", "stream_disposition");
@@ -432,8 +444,14 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (selectedIndices && !selectedIndices.has(record.stream_index as number)) return;
     return filterObject(record, section);
   };
+  const format: Record<string, unknown> = { ...probe.format };
+  if (stdinWav) {
+    delete format.duration;
+    delete format.size;
+    format.bit_rate = String(wavBitrate);
+  }
   const finalFormat = includeFormat && probe.format
-    ? filterObject(probe.format as unknown as Record<string, unknown>, "format", "format_tags")
+    ? filterObject(format, "format", "format_tags")
     : undefined;
   const [fmtNameRaw, ...fmtParams] = opts.printFormat.split(":");
   const rawHead = fmtNameRaw ?? "default";

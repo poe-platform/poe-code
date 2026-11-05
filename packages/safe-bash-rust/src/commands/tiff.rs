@@ -216,6 +216,7 @@ pub(super) struct Tiff<'a> {
     tile: Option<(usize, usize)>,
     white_zero: bool,
     lsb_first: bool,
+    group3_mixed: bool,
     predictor: bool,
     offsets: Option<Field<'a>>,
     counts: Option<Field<'a>>,
@@ -261,12 +262,14 @@ impl<'a> Tiff<'a> {
         }
         let photo = get(262, 2);
         let samples = get(277, if photo <= 1 { 1 } else { 4 });
-        let depth = get(258, if get(259, 1) == 4 || photo <= 1 && field(277).is_none() { 1 } else { 8 });
+        let compression = get(259, 1);
+        let fax = matches!(compression, 2..=4);
+        let depth = get(258, if fax || photo <= 1 && field(277).is_none() { 1 } else { 8 });
         if !(1..=4).contains(&samples)
             || !matches!(depth, 1 | 8 | 16)
-            || get(259, 1) == 4 && depth != 1
-            || depth == 1 && (samples != 1 || photo > 1 || get(317, 1) != 1 || matches!(get(259, 1), 6 | 7) || (get(266, 1) == 2 && !matches!(get(259, 1), 1 | 4)))
-            || !matches!(get(259, 1), 1 | 4 | 5 | 6 | 7 | 8 | 32946 | 32773)
+            || fax && depth != 1
+            || depth == 1 && (samples != 1 || photo > 1 || get(317, 1) != 1 || matches!(get(259, 1), 6 | 7) || (get(266, 1) == 2 && !matches!(compression, 1..=4)))
+            || !matches!(compression, 1..=8 | 32946 | 32773)
         {
             return Err("unsupported TIFF encoding");
         }
@@ -285,11 +288,12 @@ impl<'a> Tiff<'a> {
             density: dpi.unwrap_or(72).max(1),
             orientation,
             limit,
-            compression: get(259, 1),
+            compression,
             jpeg_tables: field(347).map_or(&[][..], |f| f.bytes),
             rows_per_strip: get(278, height).clamp(1, height.max(1)),
             white_zero: photo == 0,
             lsb_first: get(266, 1) == 2,
+            group3_mixed: get(292, 0) & 1 != 0,
             predictor: get(317, 1) == 2,
             tile,
             offsets: field(if tile.is_some() { 324 } else { 273 }),
@@ -354,7 +358,7 @@ impl<'a> Tiff<'a> {
         if self.depth == 1 {
             for group in row.chunks_mut(8) {
                 let bits = byte()?;
-                let bits = if self.lsb_first && self.compression != 4 { bits.reverse_bits() } else { bits };
+                let bits = if self.lsb_first && self.compression == 1 { bits.reverse_bits() } else { bits };
                 for (bit, dst) in group.iter_mut().enumerate() {
                     let g = if (bits & (128 >> bit) != 0) != self.white_zero { 255 } else { 0 };
                     *dst = [g, g, g, 255];
@@ -427,10 +431,15 @@ impl<'a> Tiff<'a> {
                     .checked_sub(n.max(expected))
                     .ok_or("image decompression work limit exceeded")?;
             }
-            if self.compression == 4 {
+            if matches!(self.compression, 2..=4) {
+                let coding = match self.compression {
+                    2 => fax::Coding::Rle,
+                    3 => fax::Coding::Group3 { mixed: self.group3_mixed },
+                    _ => fax::Coding::Group4,
+                };
                 let width = self.tile.map_or(self.width, |(w, _)| w);
-                return fax::decode(&data[..n], width, expected, self.lsb_first, scratch)
-                    .map(|v| Some(Cow::Owned(v))).ok_or("invalid or oversized Group 4 TIFF strip");
+                return fax::decode(&data[..n], coding, width, expected, self.lsb_first, scratch)
+                    .map(|v| Some(Cow::Owned(v))).ok_or("invalid or oversized fax TIFF strip");
             }
             if matches!(self.compression, 6 | 7) {
                 return Ok(Some(Cow::Owned(self.jpeg_chunk(
@@ -557,9 +566,24 @@ mod tests {
     }
 
     #[test]
-    fn group4_decodes_libtiff_strips_in_either_fill_order() {
-        // Same 19x7 bitmap: one MSB-first strip, then three LSB-first strips.
-        for encoded in ["49492a001c000000935cdc6ed249622466a0cd66ba492a492500100109000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000040000000601030001000000010000001101040001000000080000001601030001000000070000001701040001000000140000001c010300010000000100000000000000", "49492a0024000000c93a3b764b92022000026485399835eb92a4000880c463c72e0002200a000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000040000000601030001000000010000000a01030001000000020000001101040003000000ae0000001601030001000000030000001701040003000000a20000001c0103000100000001000000000000000a0000000b0000000700000008000000120000001d000000"] {
+    fn decodes_libtiff_rle_group3_and_group4_strips() {
+        // Same 19x7 bitmap, encoded by libtiff with different strip and fax settings.
+        for encoded in [
+            // ref
+            "49492a001c000000935cdc6ed249622466a0cd66ba492a492500100109000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000040000000601030001000000010000001101040001000000080000001601030001000000070000001701040001000000140000001c010300010000000100000000000000",
+            // strips
+            "49492a0024000000c93a3b764b92022000026485399835eb92a4000880c463c72e0002200a000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000040000000601030001000000010000000a01030001000000020000001101040003000000ae0000001601030001000000030000001701040003000000a20000001c0103000100000001000000000000000a0000000b0000000700000008000000120000001d000000",
+            // tiff_ccitt-0
+            "49492a001e00000018ac775d00aceaba06ac300751d7035ed701785d87030a000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000020000000601030001000000010000000a01030001000000020000001101040003000000a800000016010300010000000300000017010400030000009c0000001c01030001000000010000000000000009000000090000000400000008000000110000001a000000",
+            // group3-0
+            "49492a002600000000880140d6bb2e0090555dd700c80a73008cba1e00bdae030088d77538000b000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000030000000601030001000000010000000a01030001000000020000001101040003000000bc0000001601030001000000030000001701040003000000b00000001c0103000100000001000000240104000100000000000000000000000c0000000c00000005000000080000001400000020000000",
+            // group3-1
+            "49492a002800000000180380c83a3b760130abbaae01009815e60008cc9a7500ec751d0018afeb700b000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000030000000601030001000000010000000a01030001000000020000001101040003000000be0000001601030001000000030000001701040003000000b20000001c0103000100000001000000240104000100000001000000000000000e0000000d00000005000000080000001600000023000000",
+            // group3-4
+            "49492a002a0000000080180080ac775d0080aceaba060080ac30078051d703805ed7010080785d8703000b000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000030000000601030001000000010000000a01030001000000020000001101040003000000c00000001601030001000000030000001701040003000000b40000001c0103000100000001000000240104000100000004000000000000000e0000000d00000006000000080000001600000023000000",
+            // group3-5
+            "49492a002c0000000080310080c83a3b76018059d5750d008059610e80c0ac590780bdae030080f1ba0e07000b000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000030000000601030001000000010000000a01030001000000020000001101040003000000c20000001601030001000000030000001701040003000000b60000001c0103000100000001000000240104000100000005000000000000000f0000000e00000006000000080000001700000025000000",
+        ] {
             let bytes = super::super::hex_dec(encoded);
             let image = Tiff::parse(&bytes, 4096).unwrap().decode().unwrap();
             for (y, row) in image.pixels.chunks_exact(19).enumerate() {

@@ -99,8 +99,16 @@ fn paint(line: &mut [u8], start: usize, end: usize, black: bool) {
     }
 }
 
+#[derive(Clone, Copy)]
+pub(super) enum Coding {
+    Rle,
+    Group3 { mixed: bool },
+    Group4,
+}
+
 pub(super) fn decode(
     data: &[u8],
+    coding: Coding,
     width: usize,
     bytes: usize,
     lsb: bool,
@@ -117,79 +125,113 @@ pub(super) fn decode(
     let mut out = vec![0; bytes];
     let mut previous: &[u8] = &[];
     for line in out.chunks_exact_mut(width.div_ceil(8)) {
-        let mut last = false;
-        let mut changes = (0..if previous.is_empty() { 0 } else { width })
-            .filter(|&x| {
-                let black = previous[x / 8] & (128 >> (x % 8)) != 0;
-                let changed = black != last;
-                last = black;
-                changed
-            })
-            .peekable();
-        let mut b = changes.next().unwrap_or(width);
-        let mut next = changes.next().unwrap_or(width);
-        let mut b_black = true;
-        let mut x = 0usize;
-        let mut first = true;
-        let mut black = false;
-        while x < width {
-            while b <= x && !first {
-                b = next;
-                next = changes.next().unwrap_or(width);
-                b_black = !b_black;
+        let one_dimensional = match coding {
+            Coding::Rle => {
+                bits.pos = bits.pos.checked_add(7)? & !7;
+                true
             }
-            let (b1, b2) = if b_black != black {
-                (b, next)
-            } else {
-                (next, *changes.peek().unwrap_or(&width))
-            };
-            let mut zeros = 0;
-            while bits.bit()? == 0 {
-                zeros += 1;
-                if zeros > 5 {
+            Coding::Group3 { mixed } => {
+                let start = bits.pos;
+                while bits.bit()? == 0 {}
+                if bits.pos - start < 12 {
                     return None;
-                } // Extension, premature EOFB or invalid mode.
+                }
+                !mixed || bits.bit()? == 1
             }
-            match zeros {
-                2 => {
-                    let middle = x + bits.run(black, width - x)?;
-                    let end = middle + bits.run(!black, width - middle)?;
-                    if end == x {
-                        return None;
-                    }
-                    paint(line, x, middle, black);
-                    paint(line, middle, end, !black);
-                    x = end;
+            Coding::Group4 => false,
+        };
+        if one_dimensional {
+            let mut black = false;
+            let mut x = 0;
+            while x < width {
+                let n = bits.run(black, width - x)?;
+                if n == 0 && (x != 0 || black) {
+                    return None;
                 }
-                3 => {
-                    paint(line, x, b2, black);
-                    x = b2;
-                }
-                _ => {
-                    let delta = match zeros {
-                        0 => 0,
-                        1 => 1,
-                        4 => 2,
-                        _ => 3,
-                    };
-                    let end = if delta == 0 {
-                        b1
-                    } else if bits.bit()? == 1 {
-                        b1.checked_add(delta)?
-                    } else {
-                        b1.checked_sub(delta)?
-                    };
-                    if end > width || end < x || end == x && !first {
-                        return None;
-                    }
-                    paint(line, x, end, black);
-                    x = end;
-                    black = !black;
-                }
+                paint(line, x, x + n, black);
+                x += n;
+                black = !black;
             }
-            first = false;
+        } else {
+            line_2d(&mut bits, previous, line, width)?;
         }
         previous = line;
     }
     Some(out)
+}
+
+fn line_2d(bits: &mut Bits<'_>, previous: &[u8], line: &mut [u8], width: usize) -> Option<()> {
+    let mut last = false;
+    let mut changes = (0..if previous.is_empty() { 0 } else { width })
+        .filter(|&x| {
+            let black = previous[x / 8] & (128 >> (x % 8)) != 0;
+            let changed = black != last;
+            last = black;
+            changed
+        })
+        .peekable();
+    let mut b = changes.next().unwrap_or(width);
+    let mut next = changes.next().unwrap_or(width);
+    let mut b_black = true;
+    let mut x = 0usize;
+    let mut first = true;
+    let mut black = false;
+    while x < width {
+        while b <= x && !first {
+            b = next;
+            next = changes.next().unwrap_or(width);
+            b_black = !b_black;
+        }
+        let (b1, b2) = if b_black != black {
+            (b, next)
+        } else {
+            (next, *changes.peek().unwrap_or(&width))
+        };
+        let mut zeros = 0;
+        while bits.bit()? == 0 {
+            zeros += 1;
+            if zeros > 5 {
+                return None;
+            } // Extension, premature EOFB or invalid mode.
+        }
+        match zeros {
+            2 => {
+                let middle = x + bits.run(black, width - x)?;
+                let end = middle + bits.run(!black, width - middle)?;
+                if end == x {
+                    return None;
+                }
+                paint(line, x, middle, black);
+                paint(line, middle, end, !black);
+                x = end;
+            }
+            3 => {
+                paint(line, x, b2, black);
+                x = b2;
+            }
+            _ => {
+                let delta = match zeros {
+                    0 => 0,
+                    1 => 1,
+                    4 => 2,
+                    _ => 3,
+                };
+                let end = if delta == 0 {
+                    b1
+                } else if bits.bit()? == 1 {
+                    b1.checked_add(delta)?
+                } else {
+                    b1.checked_sub(delta)?
+                };
+                if end > width || end < x || end == x && !first {
+                    return None;
+                }
+                paint(line, x, end, black);
+                x = end;
+                black = !black;
+            }
+        }
+        first = false;
+    }
+    Some(())
 }

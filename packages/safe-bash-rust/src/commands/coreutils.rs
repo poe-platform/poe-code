@@ -14447,16 +14447,16 @@ fn cmd_pr(
 }
 
 struct ParsedTabs {
-    stops: Vec<usize>,
-    repeat: usize,
+    stops: Vec<u64>,
+    repeat: u64,
     relative: bool,
 }
 
 impl ParsedTabs {
     fn parse(specs: &[String], cmd_name: &str) -> Result<Self, String> {
-        let mut stops: Vec<usize> = Vec::new();
-        let mut abs_repeat = 0usize;
-        let mut rel_repeat = 0usize;
+        let mut stops: Vec<u64> = Vec::new();
+        let mut abs_repeat = 0u64;
+        let mut rel_repeat = 0u64;
         for spec in specs {
             let mut marker: Option<char> = None;
             let entries: Vec<&str> = spec
@@ -14480,7 +14480,7 @@ impl ParsedTabs {
                 if !num_str.bytes().all(|b| b.is_ascii_digit()) {
                     return Err(format!("{cmd_name}: invalid number '{num_str}'\n"));
                 }
-                let n = match num_str.parse::<usize>() {
+                let n = match num_str.parse::<u64>() {
                     Ok(v) => v,
                     Err(_) => return Err(format!("{cmd_name}: invalid number '{num_str}'\n")),
                 };
@@ -14528,30 +14528,26 @@ impl ParsedTabs {
         })
     }
 
-    fn next_stop(&self, column: usize, fallback_plus_one: bool) -> Option<usize> {
+    fn next_stop(&self, column: u64) -> Option<u64> {
         if let Some(&s) = self.stops.get(self.stops.partition_point(|&stop| stop <= column)) {
             return Some(s);
         }
         if self.repeat == 0 {
-            return if fallback_plus_one {
-                Some(column + 1)
-            } else {
-                None
-            };
+            return None;
         }
         let origin = if self.relative {
             self.stops.last().copied().unwrap_or(0)
         } else {
             0
         };
-        Some(column + self.repeat - (column.saturating_sub(origin)) % self.repeat)
+        column.checked_add(self.repeat - (column - origin) % self.repeat)
     }
 }
 
 fn read_tab_inputs(
     mut files: Vec<String>, mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs,
     command: &str, write: &mut super::CommandWriter,
-    mut convert: impl FnMut(&[u8], bool, &mut dyn FnMut(u8, usize) -> bool) -> bool,
+    mut convert: impl FnMut(&[u8], bool, &mut dyn FnMut(u8, u64) -> bool) -> bool,
 ) -> BuiltinOutcome {
     if files.is_empty() { files.push("-".into()); }
     let mut out = ok_out("");
@@ -14561,9 +14557,9 @@ fn read_tab_inputs(
         let mut consume = |chunk: &[u8]| {
             writable = convert(chunk, name.is_none(), &mut |byte, mut count| {
                 while count != 0 {
-                    let n = count.min(16384 - bytes.len());
+                    let n = count.min((16384 - bytes.len()) as u64) as usize;
                     bytes.resize(bytes.len() + n, byte);
-                    count -= n;
+                    count -= n as u64;
                     if bytes.len() == 16384 {
                         if !write(1, &crate::vfs::bytes_to_stream_string(&bytes), &mut out) { return false; }
                         bytes.clear();
@@ -14693,12 +14689,12 @@ fn cmd_expand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
         Ok(t) => t,
         Err(msg) => return err_out(&msg, 1),
     };
-    let mut column = 0usize;
+    let mut column = 0u64;
     let mut initial = true;
     read_tab_inputs(files, stdin, cwd, fs, "expand", write, |chunk, _, emit| {
         for &b in chunk {
             if b == b'\t' && (!initial_only || initial) {
-                let stop = tabs.next_stop(column, true).unwrap_or(column + 1);
+                let stop = tabs.next_stop(column).unwrap_or_else(|| column.saturating_add(1));
                 if !emit(b' ', stop - column) { return false; }
                 column = stop;
             } else {
@@ -14710,7 +14706,7 @@ fn cmd_expand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
                     column = if b == 8 {
                         column.saturating_sub(1)
                     } else {
-                        column + 1
+                        column.saturating_add(1)
                     };
                     if b != b' ' && b != b'\t' {
                         initial = false;
@@ -14830,19 +14826,19 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
         Err(msg) => return err_out(&msg, 1),
     };
     let all = !first_only && (all_flag || has_t);
-    let mut column = 0usize;
+    let mut column = 0u64;
     let mut initial = true;
     let mut active = true;
-    let mut pending_start = 0usize;
+    let mut pending_start = 0u64;
     let mut pending_count = 0usize;
     let mut pending_tab = false;
 
     read_tab_inputs(files, stdin, cwd, fs, "unexpand", write, |chunk, eof, emit| {
-        let flush_blanks = |column, initial, pending_start, pending_count: &mut usize, pending_tab: &mut bool, emit: &mut dyn FnMut(u8, usize) -> bool| {
+        let flush_blanks = |column, initial, pending_start, pending_count: &mut usize, pending_tab: &mut bool, emit: &mut dyn FnMut(u8, u64) -> bool| {
             let convert_single = initial || *pending_count > 1 || *pending_tab;
             let mut pos = pending_start;
             while *pending_count != 0 && pos < column {
-                if let Some(stop) = tabs.next_stop(pos, false)
+                if let Some(stop) = tabs.next_stop(pos)
                     && stop <= column && (stop - pos > 1 || convert_single)
                 {
                     if !emit(b'\t', 1) { return false; }
@@ -14858,7 +14854,7 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
         };
         for &b in chunk {
             if active && (b == b' ' || b == b'\t') {
-                if let Some(stop) = tabs.next_stop(column, false) {
+                if let Some(stop) = tabs.next_stop(column) {
                     if pending_count == 0 {
                         pending_start = column;
                     }
@@ -14885,7 +14881,7 @@ fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
                 column = if b == 8 {
                     column.saturating_sub(1)
                 } else {
-                    column + 1
+                    column.saturating_add(1)
                 };
                 initial = false;
                 if !all {

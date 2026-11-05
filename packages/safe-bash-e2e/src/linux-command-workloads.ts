@@ -367,6 +367,8 @@ export function linuxCommands(text: string) {
     ] as const).map(([cmd, ...args]) => ({
       cmd, args, script: [cmd, ...args].join(" "), input: (" ".repeat(38) + "a       b\t \b\tZ\n\t  x\t\t\n").repeat(8),
     })),
+    { cmd: "expand", args: ["-t", "4,4294967296"], script: "expand -t 4,4294967296", input: "a\tb\n" },
+    { cmd: "unexpand", args: ["-t", "65536"], script: "unexpand -t 65536", input: "\t".repeat(65536) + "a\b\t Z\n" },
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",

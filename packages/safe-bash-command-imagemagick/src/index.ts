@@ -1045,6 +1045,10 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
   if(!Number.isFinite(position))return NaN;
   const data=samples.get(position);if(!data)throw new FxPixelDemand(position);
+  // ImageMagick discards hidden PNG colors only when alpha is exactly zero.
+  if(target.format === "png" && target.hasAlpha && (data.data16 ?? data.data)[3] === 0){
+   data.data.fill(0,0,3);data.data16?.fill(0,0,3);
+  }
   return sampleFxImage({...target,width:1,height:1,...data},0,0,ch);
  }};
  // The expression language has no loops or external effects. Replay after a
@@ -2024,6 +2028,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "j") return ctx.y;
         if (name === "w") return ctx.w;
         if (name === "h") return ctx.h;
+        if (name === "quantumrange") return 65535;
         if (name === "pi") return Math.PI;
         if (name === "e") return Math.E;
 
@@ -2031,6 +2036,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         const len = Math.max(1, ctx.stack.length);
         const targetIdx = rawIdx < 0 ? ((rawIdx % len) + len) % len : rawIdx;
         const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
+        if (name === "depth") return targetImg?.bitsPerSample ?? (targetImg?.depth === "ushort" ? 16 : targetImg?.depth === "bit" ? 1 : 8);
         if (propName === "w") return targetImg?.width ?? ctx.w;
         if (propName === "h") return targetImg?.height ?? ctx.h;
 

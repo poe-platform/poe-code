@@ -16860,23 +16860,28 @@ mod media_unit_tests {
     fn pdftocairo_samples_image_and_mask_at_their_own_resolution() {
         let fs = MemoryVfs::new();
         let stream = |dict: &str, data: &str| format!("<< {dict} /Length {} >>\nstream\n{data}\nendstream", data.len());
-        for (mask, interp, expected) in [
-            ("Mask", false, "ce1e2132b3ab06a30a4a325e858ee66f093fc258cf75da127a9d006129911048"),
-            ("Mask", true, "d3c9efbb21e857fb5264ff45fc8ca0cc55646cf8f588aa7919099f346ee7b9c6"),
-            ("SMask", false, "cbcefb046a6a5850fe145143cb321d9f2993a2d7532fc2dcc824b6c36e2d5101"),
-            ("SMask", true, "b5c447403eecf857da93ca04f4cb1f629119a2608b34a0c4261c946697026f23"),
+        for (matrix, mask, interp, expected) in [
+            ("12 0 0 7 3 5", "Mask", false, "ce1e2132b3ab06a30a4a325e858ee66f093fc258cf75da127a9d006129911048"),
+            ("12 0 0 7 3 5", "Mask", true, "d3c9efbb21e857fb5264ff45fc8ca0cc55646cf8f588aa7919099f346ee7b9c6"),
+            ("12 0 0 7 3 5", "SMask", false, "cbcefb046a6a5850fe145143cb321d9f2993a2d7532fc2dcc824b6c36e2d5101"),
+            ("12 0 0 7 3 5", "SMask", true, "b5c447403eecf857da93ca04f4cb1f629119a2608b34a0c4261c946697026f23"),
+            ("2 7 -8 1 17 8", "Mask", false, "5695ec1363a0c6f3f8fdb390e2da91c8d53b683a5afa07d4e9ceb571d694e21b"),
+            ("2 7 -8 1 17 8", "SMask", true, "7612562533747223bdac466a899f83bcb8900e3b7518e177bfa2151f5ece8af1"),
+            ("5.25 2.5 -3.125 8.25 9.75 5.5", "SMask", false, "b125a14630960c985c361b850e4258b8ad8a0677e2e4dacebc55f45b467d92e7"),
+            ("12 0 0 7 3.25 5.5", "Mask", true, "df25d299f20274b5975a0ae0efb47f0cb7bafe3c23c98e2774bbc6b5a142ccba"),
+            ("30 17 -6 5 2 4", "SMask", false, "cd273684df3ce2caed05caeb377dddd463735e245c6ab1ae5af0c3d3a15ea654"),
         ] {
             let (dict, bytes) = if mask == "Mask" { ("/ImageMask true", "V") } else { ("/ColorSpace /DeviceGray /BitsPerComponent 8", "y3") };
             let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
                 "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
-                &stream("", "q 12 0 0 7 3 5 cm /A Do Q"),
+                &stream("", &format!("q {matrix} cm /A Do Q")),
                 &stream(&format!("/Type /XObject /Subtype /Image /Width 4 /Height 3 /BitsPerComponent 8 /ColorSpace /DeviceRGB /{mask} 6 0 R"), "abcdefghijklmnopqrstuvwx0123456789AB"),
                 &stream(&format!("/Type /XObject /Subtype /Image /Width 2 /Height 1 {dict} /Interpolate {interp}"), bytes)], "");
             fs.write_file("/f.pdf", pdf.as_bytes()).unwrap();
             let r = cmd_media_doc("pdftocairo", &media_args(&["-png","-transp","-singlefile","-r","72","f.pdf","page"]), "", "/", &fs);
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
             let im = png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
-            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), expected, "{mask} interpolate={interp}");
+            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), expected, "{matrix} {mask} interpolate={interp}");
         }
     }
 

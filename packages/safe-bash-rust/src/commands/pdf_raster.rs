@@ -474,16 +474,16 @@ impl Bitmap {
         if let Some(mask) = mask {
             let matrix = [a*scale, -b*scale, -c*scale, d*scale, (e+c-ox)*scale, (top-f-d)*scale];
             let center = [(xs.start+xs.end) as f64/2., (ys.start+ys.end) as f64/2.];
+            let shape = pdf_cairo_image::Footprint::new(matrix);
             let color = pdf_cairo_image::sampler(&im, matrix, center);
             let mask = pdf_cairo_image::sampler(&mask, matrix, center);
             let mul = |a: u32, b: u32| { let n = a*b+128; (n+(n>>8))>>8 };
             for y in ys {
+                let coverage = shape.row(y, self.w);
                 let clip = self.clip_row(y, None)?;
                 for x in xs.clone() {
-                    let dx = ox+(x as f64+0.5)/scale-e;
-                    let dy = top-(y as f64+0.5)/scale-f;
-                    if !(0. ..=1.).contains(&((d*dx-c*dy)/det)) || !(0. ..=1.).contains(&((a*dy-b*dx)/det)) { continue; }
-                    let alpha = mul(mask(x,y)[0].into(), clip_coverage(&clip,x).into());
+                    let edge = mul(coverage.alpha(x).into(), clip_coverage(&clip,x).into());
+                    let alpha = mul(mask(x,y)[0].into(), edge);
                     if alpha == 0 { continue; }
                     let src = color(x,y);
                     let dest = &mut self.pixels[y*self.w+x];

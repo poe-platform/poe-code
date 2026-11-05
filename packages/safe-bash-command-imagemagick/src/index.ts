@@ -2533,17 +2533,17 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
-            if (norm === "colorize") {
+            if (norm === "colorize" || norm === "luminize") {
                 if (saByte === 0) continue;
                 if (daByte === 0) {
                     out.set(src.data.subarray(sIdx, sIdx + 4), dIdx);
                     continue;
                 }
-                // HCL: retain source hue and chroma, replacing its Rec.601 luma.
+                // HCL: Colorize takes source hue/chroma; Luminize takes source Rec.601 luma.
                 const lumaShift = 0.298839 * (dr - sr) + 0.586811 * (dg - sg) + 0.114350 * (db - sb);
-                out[dIdx] = clampByteVal(sr + lumaShift);
-                out[dIdx + 1] = clampByteVal(sg + lumaShift);
-                out[dIdx + 2] = clampByteVal(sb + lumaShift);
+                out[dIdx] = clampByteVal(norm === "colorize" ? sr + lumaShift : dr - lumaShift);
+                out[dIdx + 1] = clampByteVal(norm === "colorize" ? sg + lumaShift : dg - lumaShift);
+                out[dIdx + 2] = clampByteVal(norm === "colorize" ? sb + lumaShift : db - lumaShift);
                 out[dIdx + 3] = Math.max(saByte, daByte);
                 continue;
             }

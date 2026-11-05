@@ -1616,7 +1616,7 @@ function* applyMagickClutSteps(baseImg: RgbaImage, lutImg: RgbaImage, channels: 
     b: boolean;
     a: boolean;
 }, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    return yield* applyMagickRasterSteps(baseImg, clutPixelSteps(baseImg.width * baseImg.height * 4, lutImg, [channels.r, channels.g, channels.b, channels.a]), signal, baseImg, [baseImg, lutImg]);
+    return yield* applyMagickRasterSteps({ ...baseImg, space: "srgb", channels: baseImg.hasAlpha ? 4 : 3 }, clutPixelSteps(baseImg.width * baseImg.height * 4, lutImg, [channels.r, channels.g, channels.b, channels.a]), signal, baseImg, [baseImg, lutImg]);
 }
 
 type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
@@ -5946,7 +5946,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     stack.length--;
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
-                        await stack.set(index, await transformStoredMagickRaster(image, backend, clutPixelSteps(image.width * image.height * 4, lut, mask), signal, image, [image, lut]));
+                        await stack.set(index, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, clutPixelSteps(image.width * image.height * 4, lut, mask), signal, image, [image, lut]));
                     }
                 } else if (token === "-separate") {
                     const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];

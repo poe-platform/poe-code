@@ -32,3 +32,29 @@ it.each(samples)(`${mode}: interpolates CLUT endpoints and midpoint, vertical=${
   const output = decodeImage(mode === "map" ? files.get("/out.png")! : await fs.readFile("/out.png"));
   expect(output.data).toEqual(Uint8Array.from({ length: 64 }, (_, index) => expected[index % 4]!));
 });
+
+for (const mode of ["map", "command"] as const)
+for (const lookup of [[255, 0, 0, 255, 0, 0], [255, 0, 0, 0, 0, 255]])
+it(`${mode}: preserves color added by CLUT to a grayscale PNG (${lookup})`, async () => {
+  // Native ImageMagick 7.1.2: 4x4 gray(50%), depth 8, PNG color type 0.
+  const base = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAAAAACMmsGiAAAAEElEQVQI12NsYGBgYGJAIQAJ5ACImX8gxQAAAABJRU5ErkJggg==", "base64");
+  expect(base[25]).toBe(0);
+  const files = new Map<string, Uint8Array>([["/base.png", base], ["/lut.png", await sharp(Uint8Array.from(lookup), {
+    raw: { width: 2, height: 1, channels: 3 },
+  }).png().toBuffer()]]);
+  const fs = new MemoryFileSystem();
+  for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+  const args = ["/base.png", "/lut.png", "-clut", "/out.png"];
+  let stderr = "";
+  const result = mode === "map" ? await runConvertCli(args, files) : await createConvertCommand().execute({
+    command: "convert", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () {})(), signal: new AbortController().signal,
+    stdout: { write: async () => {} }, stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } },
+  });
+  expect(result.exitCode).toBe(0);
+  expect(stderr).toBe("");
+  const bytes = mode === "map" ? files.get("/out.png")! : await fs.readFile("/out.png");
+  const expected = lookup[3] === 255 ? [255, 0, 0, 255] : [127, 0, 128, 255];
+  expect(decodeImage(bytes).data).toEqual(Uint8Array.from({ length: 64 }, (_, index) => expected[index % 4]!));
+  expect([2, 3, 6]).toContain(bytes[25]);
+});

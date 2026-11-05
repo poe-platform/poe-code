@@ -1955,7 +1955,7 @@ export function buildProbeResultFromDoc(
             width: w,
             height: h,
             pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,
-            pict_type: track.type === "video" ? (s.isKeyframe ? "I" : "P") : undefined,
+            pict_type: undefined,
             sample_fmt: sampleFormat,
             nb_samples: track.type === "audio" ? s.duration : undefined,
             channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect,it } from 'vitest';
 import { createSyntheticMp4,probeMp4 } from '@poe-code/mp4-ast';
 import { MemoryFileSystem } from '@poe-code/safe-fs/core';
@@ -25,4 +26,23 @@ for(const writer of ['default','csv','compact','flat'])it(`formats selected fram
   const size=probe.frames![0]!.pkt_size;
   const expected=writer==='csv'?`frame,0,0,${size}\n`:writer==='compact'?`frame|stream_index=0|pts=0|pkt_size=${size}\n`:writer==='flat'?`frames.frame.0.stream_index=0\nframes.frame.0.pts=0\nframes.frame.0.pkt_size="${size}"\n`:`[FRAME]\nstream_index=0\npts=0\npkt_size=${size}\n[/FRAME]\n`;
   expect(output).toBe(expected);
+});
+
+for (const mixed of [false, true]) it(`emits B-frames in presentation order, mixed=${mixed}`, async () => {
+  const bytes = readFileSync(new URL('../../mp4-ast/src/fixtures/h264-b-frames.mp4', import.meta.url));
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input.mp4', bytes);
+  let output = '', diagnostic = '';
+  const result = await createFfprobeCommand().execute({
+    command: 'ffprobe',
+    ...createCommandArguments(['-v', 'error', '-select_streams', 'v:0', '-show_frames',
+      ...(mixed ? ['-show_packets'] : []), '-show_entries', 'frame=pts:packet=pts', '-of', 'json', '/input.mp4']),
+    cwd: '/', env: {}, fs, signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+    stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+  });
+  expect(result.exitCode, diagnostic).toBe(0);
+  const parsed = JSON.parse(output);
+  expect(parsed.frames).toEqual(Array.from({ length: 20 }, (_, i) => ({ pts: i * 1024 })));
+  if (mixed) expect(parsed.packets.slice(0, 5)).toEqual([0, 4096, 2048, 1024, 3072].map(pts => ({ pts })));
 });

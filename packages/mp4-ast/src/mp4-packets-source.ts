@@ -127,9 +127,14 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       }
     }
     let duration = 0, mediaEnd = 0, allPacked = true, count = 0, firstPts = 0;
+    let highestPts = -Infinity, reorderSpan = 0;
     for await (const sample of samples()) {
       if (!count) firstPts = sample.pts;
       count++; duration += sample.duration; mediaEnd = Math.max(mediaEnd, sample.pts + sample.duration);
+      if (mode === 'frames' && type === 'video') {
+        highestPts = Math.max(highestPts, sample.pts);
+        reorderSpan = Math.max(reorderSpan, highestPts - sample.pts);
+      }
       if (type === 'subtitle' && allPacked) {
         if (sample.size < 2) allPacked = false;
         else allPacked = new BinaryReader(await readMp4SampleRange(source, sample.offset, 2, work)).readU16BE() === sample.size - 2;
@@ -173,7 +178,34 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       }
       return { sample, track };
     };
-    for await (const rawSample of samples()) {
+    async function* frameSamples(): AsyncGenerator<Mp4SampleSpan, void> {
+      // The first pass bounds how far any future PTS can fall behind the highest
+      // PTS seen so far. Keep only that reorder window, never media payloads.
+      const pending: Mp4SampleSpan[] = [];
+      let highest = -Infinity;
+      try {
+        for await (const sample of samples()) {
+          highest = Math.max(highest, sample.pts);
+          // Descending order lets pop() emit the earliest sample; ties stay stable.
+          const index = pending.findIndex(row => row.pts <= sample.pts);
+          pending.splice(index < 0 ? pending.length : index, 0, sample);
+          budget.allocateMemory(128);
+          while (pending.length && pending[pending.length - 1]!.pts <= highest - reorderSpan) {
+            const next = pending.pop()!;
+            budget.releaseMemory(128);
+            yield next;
+          }
+        }
+        while (pending.length) {
+          const next = pending.pop()!;
+          budget.releaseMemory(128);
+          yield next;
+        }
+      } finally {
+        budget.releaseMemory(pending.length * 128);
+      }
+    }
+    for await (const rawSample of reorderSpan > 0 ? frameSamples() : samples()) {
       // Map media time to the movie timeline, retaining negative decoder preroll.
       const sample = { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset };
       if (type !== 'subtitle' || !count || allPacked) { const row = packet(sample); if (mode !== 'streams') yield row; continue; }

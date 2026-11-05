@@ -1257,6 +1257,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
     }
 
     if (!limitExceeded && state.dirty && state.dbPath !== ":memory:" && !state.readonly) {
+      if (db.inTransaction) await execSingleStmt("ROLLBACK");
       await saveDbToDisk(state.dbPath);
     }
 
@@ -1758,6 +1759,7 @@ export function evalSyncSqlite3(
       if (!writeFileSync || !writeFileSync(save.file, save.bytes)) return undefined;
     }
     if (state.dirty && state.dbPath !== ":memory:") {
+      if (db.inTransaction) db.executeStatement("ROLLBACK");
       if (!writeFileSync || !writeFileSync(state.dbPath, db.serializeToBytes())) return undefined;
     }
     return out;

@@ -1085,6 +1085,36 @@ for (const command of [".import /data t", ".restore /backup"]) {
   });
 }
 
+for (const ending of ["INSERT INTO t VALUES(1);", "", "COMMIT;"]) {
+  test(`sqlite3 exit preserves only committed rows: ${ending || "unfinished transaction"}`, async () => {
+    const fs = createMemoryFileSystem();
+    const result = await runSqlite3(fs, ["/db", `
+      CREATE TABLE t(x INT UNIQUE);
+      INSERT INTO t VALUES(1);
+      BEGIN;
+      INSERT INTO t VALUES(2);
+      ${ending}
+    `]);
+    const failed = ending.startsWith("INSERT");
+    assert.equal(result.code, failed ? 19 : 0, result.stderr);
+    if (failed) assert.match(result.stderr, /UNIQUE constraint failed: t.x/);
+    const reopened = await runSqlite3(fs, ["/db", "SELECT x FROM t ORDER BY x;"]);
+    assert.deepEqual(reopened, {
+      code: 0, stdout: ending === "COMMIT;" ? "1\n2\n" : "1\n", stderr: ""
+    });
+  });
+}
+
+test("sqlite3 sync exit rolls back unfinished transactions before persistence", () => {
+  const files = new Map<string, Uint8Array>();
+  const read = (path: string) => files.get(path);
+  const write = (path: string, bytes: Uint8Array) => { files.set(path, bytes); return true; };
+  assert.equal(evalSyncSqlite3(undefined, ["/db",
+    "CREATE TABLE t(x); INSERT INTO t VALUES(1); BEGIN; INSERT INTO t VALUES(2);"
+  ], read, write), "");
+  assert.equal(evalSyncSqlite3(undefined, ["/db", "SELECT x FROM t ORDER BY x;"], read, write), "1\n");
+});
+
 test("sqlite3 sync persists comment and CTE mutations", () => {
   const files = new Map<string, Uint8Array>();
   const read = (path: string) => files.get(path);

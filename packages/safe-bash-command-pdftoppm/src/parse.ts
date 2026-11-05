@@ -388,6 +388,8 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
     let hasCrop = false;
     let paperW = 0;
     let paperH = 0;
+    let customPaperW = false;
+    let customPaperH = false;
     let origPageSizes = false;
     let namedPaper = false;
     let password = "";
@@ -492,9 +494,11 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
             }
         }
         else if (arg === "-paperw") {
+            customPaperW = true;
             paperW = Math.max(1, Number.parseInt(argv[++i] ?? "0", 10) || 0);
         }
         else if (arg === "-paperh") {
+            customPaperH = true;
             paperH = Math.max(1, Number.parseInt(argv[++i] ?? "0", 10) || 0);
         }
         else if (arg === "-origpagesizes") {
@@ -555,6 +559,9 @@ export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boo
     }
     if (origPageSizes && namedPaper) {
         return { exitCode: 99, stdout: "", stderr: "Error: -origpagesizes and -paper may not be used together.\n" };
+    }
+    if (customPaperW !== customPaperH) {
+        return { exitCode: 99, stdout: "", stderr: "Error: both -paperw and -paperh must be specified.\n" };
     }
     const inputPath = positionals[0] ?? (hasStdin ? "-" : undefined);
     if (!inputPath) {

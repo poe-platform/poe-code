@@ -3,6 +3,28 @@ import { PdfDocument } from "@poe-code/pdf-ast";
 import { runPdftocairoCli, runPdftocairoCliSync } from "./index.js";
 
 for (const run of [runPdftocairoCli, runPdftocairoCliSync]) {
+  it.each([
+    ["-paperw", "300"],
+    ["-paperh", "400"],
+    ["-paper", "A4", "-paperw", "300"],
+    ["-paperh", "400", "-paper", "A4"],
+    ["-q", "-paperw", "300"],
+  ])(`${run.name} rejects an unpaired custom paper dimension %j`, async (...flags) => {
+    const doc = PdfDocument.create();
+    doc.addPage([144, 216]);
+    for (const existingOutput of [false, true]) {
+      const files = new Map([["in.pdf", doc.save()]]);
+      if (existingOutput) files.set("out.pdf", new Uint8Array([1, 2, 3]));
+      const before = new Map(files);
+      expect(await run(["-pdf", ...flags, "in.pdf", "out.pdf"], files)).toEqual({
+        exitCode: 99,
+        stdout: "",
+        stderr: "Error: both -paperw and -paperh must be specified.\n",
+      });
+      expect(files).toEqual(before);
+    }
+  });
+
   it.each(["A3", "A4", "letter", "legal", "match"])(`${run.name} accepts native paper spelling %s`, async paper => {
     const doc = PdfDocument.create();
     doc.addPage([144, 216]);

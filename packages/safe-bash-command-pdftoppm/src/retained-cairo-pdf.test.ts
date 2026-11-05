@@ -60,6 +60,24 @@ it.each(["a4", "Letter"])("rejects invalid paper %s before retained output publi
  expect(await f.fs.readdir("/scratch")).toEqual([]);
 });
 
+it.each([
+ ["-paperw", "300"],
+ ["-paperh", "400"],
+ ["-paper", "A4", "-paperw", "300"],
+])("rejects an unpaired paper dimension before retained publication %j", async (...flags) => {
+ for (const existingOutput of [false, true]) {
+  const f = await fixture(input(), ["-pdf", ...flags, "in.pdf", "out.pdf"]);
+  const existing = new Uint8Array([1, 2, 3]);
+  if (existingOutput) await f.fs.writeFile("/out.pdf", existing);
+  expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(99);
+  expect(f.error()).toBe("Error: both -paperw and -paperh must be specified.\n");
+  if (existingOutput) expect(await f.fs.readFile("/out.pdf")).toEqual(existing);
+  else await expect(f.fs.stat("/out.pdf")).rejects.toMatchObject({code: "ENOENT"});
+  expect(f.stdout).toEqual([]);
+  expect(await f.fs.readdir("/scratch")).toEqual([]);
+ }
+});
+
 it("orients retained PDF paper for each source page",async()=>{
  const doc=PdfDocument.create();doc.addPage([216,144]);doc.addPage([144,216]);
  const f=await fixture(doc.save(),["-pdf","-paper","A4","in.pdf","-"]);

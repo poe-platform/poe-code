@@ -1096,6 +1096,23 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
     const startPage = Math.max(1, options.firstPage ?? 1);
     const endPage = options.lastPage && options.lastPage > 0 ? Math.min(totalPages, options.lastPage) : totalPages;
     const extracted: PdfExtractedImage[] = [];
+    function codecParams(dict: PdfCosDict, filters: readonly string[], encoding: PdfExtractedImage["encoding"]) {
+        const node = dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP");
+        const array = doc.resolveArray(node);
+        return doc.resolveDict(array ? array.items[filters.findIndex(f => pdfImageCodec(f) === encoding)] : node);
+    }
+    function faxParams(dict: PdfCosDict | undefined) {
+        const value = (key: string) => dict && doc.resolve(dictGet(dict, key));
+        const k = value("K"), black = value("BlackIs1"), align = value("EncodedByteAlign");
+        const columns = value("Columns"), eol = value("EndOfLine");
+        return {
+            columns: columns?.kind === "number" ? columns.value : 1728,
+            endOfLine: eol?.kind === "boolean" && eol.value,
+            k: k?.kind === "number" ? k.value : 0,
+            blackIs1: black?.kind === "boolean" && black.value,
+            byteAlign: align?.kind === "boolean" && align.value,
+        };
+    }
     let imageIndex = 0;
     for (let pageNumber = startPage; pageNumber <= endPage; pageNumber++) {
         yield;
@@ -1131,11 +1148,7 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
             let ccittParams: PdfExtractedImage["ccittParams"];
             if (encoding === "jpx" || encoding === "jbig2" || encoding === "ccitt") {
                 rawEncodedBytes = (yield* extractRawJpegFromStreamSteps(doc, xobjStream, filters));
-                const dpNode = dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP");
-                const dpArr = doc.resolveArray(dpNode);
-                const dpDict = dpArr
-                    ? doc.resolveDict(dpArr.items[filters.findIndex(filter => resolveEncodingKind([filter]) === encoding)])
-                    : doc.resolveDict(dpNode);
+                const dpDict = codecParams(dict, filters, encoding);
                 if (encoding === "jbig2" && dpDict) {
                     const globalsStream = doc.resolve(dictGet(dpDict, "JBIG2Globals"));
                     if (globalsStream?.kind === "stream") {
@@ -1151,20 +1164,7 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
                         }
                     }
                 }
-                if (encoding === "ccitt") {
-                    const kNode = dpDict ? doc.resolve(dictGet(dpDict, "K")) : undefined;
-                    const biNode = dpDict ? doc.resolve(dictGet(dpDict, "BlackIs1")) : undefined;
-                    const baNode = dpDict ? doc.resolve(dictGet(dpDict, "EncodedByteAlign")) : undefined;
-                    const columns = dpDict ? doc.resolve(dictGet(dpDict, "Columns")) : undefined;
-                    const eol = dpDict ? doc.resolve(dictGet(dpDict, "EndOfLine")) : undefined;
-                    ccittParams = {
-                        columns: columns?.kind === "number" ? columns.value : 1728,
-                        endOfLine: eol?.kind === "boolean" && eol.value,
-                        k: kNode?.kind === "number" ? kNode.value : 0,
-                        blackIs1: biNode?.kind === "boolean" ? biNode.value : false,
-                        byteAlign: baNode?.kind === "boolean" ? baNode.value : false,
-                    };
-                }
+                if (encoding === "ccitt") ccittParams = faxParams(dpDict);
             }
             if (encoding === "jpeg")
                 rawJpegBytes = (yield* extractRawJpegFromStreamSteps(doc, xobjStream, filters));
@@ -1308,6 +1308,7 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
                             yPpi,
                             byteLength: node.data.byteLength,
                             bitmap: { width, height, data: rgba },
+                            ...(encoding === "ccitt" ? { ccittParams: faxParams(codecParams(dict, filters, encoding)) } : {}),
                             ...(encoding === "jpeg" ? { rawJpegBytes: encodedBytes } : {}),
                             ...(["jpx", "jbig2", "ccitt"].includes(encoding) ? { rawEncodedBytes: encodedBytes } : {}),
                         });
@@ -1416,15 +1417,6 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
         }
     }
     return extracted;
-}
-
-function resolveEncodingKind(
-  filters: readonly string[]
-): "image" | "jpeg" | "ccitt" | "jbig2" | "jpx" {
-  const steps = resolveEncodingKindSteps(filters);
-  let next = steps.next();
-  while (!next.done) next = steps.next();
-  return next.value;
 }
 
 export function decodeJpegToRgba(

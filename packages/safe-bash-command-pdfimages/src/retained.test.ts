@@ -129,10 +129,15 @@ it("validates later image decoders before publishing earlier outputs",async()=>{
   await expect(createPdfimagesCommand().execute({command:"pdfimages",args:args.args,argumentValues:args,cwd:"/",env:{},fs,stdin:(async function*(){})(),signal:new AbortController().signal,stdout:{write:async()=>{}},stderr:{write:async()=>{}}})).rejects.toThrow();
   expect((await fs.readdir("/")).map(entry=>entry.name).sort()).toEqual(["in.pdf","tmp"]);expect(await fs.readdir("/tmp")).toEqual([]);
 });
-it("preserves inline CCITT payloads and sidecar defaults",async()=>{
-  const {cosStream,dictSet}=await import("@poe-code/pdf-ast");const doc=PdfDocument.create();const page=doc.addPage([8,8]);
-  const prefix=new TextEncoder().encode("BI /W 8 /H 2 /BPC 1 /CS /G /F /CCF /DP << /K -1 /Columns 8 /Rows 2 >> ID ");const suffix=new TextEncoder().encode(" EI");const bytes=new Uint8Array(prefix.length+1+suffix.length);bytes.set(prefix);bytes[prefix.length]=255;bytes.set(suffix,prefix.length+1);
-  dictSet(page.pageDict,"Contents",doc.cos.allocateObject(cosStream(bytes)));await compareCommand(doc.save(),["-all","-print-filenames"]);
+it("writes the inline fax data and decode parameters reported by Poppler", async () => {
+  const { cosStream, dictSet } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), page = doc.addPage([9, 4]);
+  const fax = "2e88e62184a4d70826b0dc004004";
+  const draw = `BI /W 9 /H 4 /BPC 1 /CS /G /F [/AHx /CCF] /DP [null << /K -1 /Columns 9 /Rows 4 /BlackIs1 true >>] ID ${fax}> EI`;
+  dictSet(page.pageDict, "Contents", doc.cos.allocateObject(cosStream(new TextEncoder().encode(draw))));
+  const { files } = await compareCommand(doc.save(), ["-ccitt"]);
+  expect(new TextDecoder().decode(files.get("out-000.params"))).toBe("-4 -P -X 9 -W -M\n");
+  expect(Buffer.from(files.get("out-000.ccitt")!).toString("hex")).toBe(fax);
 });
 
 it.each([["-png"], ["-list"], ["-u", "-png"]].map(flags => ({ flags })))("extracts painted shared resources through the command: $flags", async ({ flags }) => {

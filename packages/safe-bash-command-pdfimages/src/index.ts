@@ -436,8 +436,7 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
             let slot = 0; for (; slot < filters.length; slot++) { const node = (await doc.lookup(filters[slot]))?.value; if (node?.kind === "name" && pdfImageCodec(node.decoded) === decoded.encoding) break; }
             parameter = (await doc.lookup(parms.items[slot]))?.value;
           }
-          // Buffered inline extraction exposes default CCITT sidecar parameters.
-          const value = async (key: string) => !occurrence.inline && parameter?.kind === "dict" ? (await doc.lookup(dictGet(parameter,key)))?.value : undefined;
+          const value = async (key: string) => parameter?.kind === "dict" ? (await doc.lookup(dictGet(parameter,key)))?.value : undefined;
           const k = await value("K"), black = await value("BlackIs1"), columns = await value("Columns"), eol = await value("EndOfLine");
           yield { decoded, metadata, idx: idx++, ccitt: { k: k?.kind === "number" ? k.value : 0, black: black?.kind === "boolean" && black.value, columns: columns?.kind === "number" ? columns.value : 1728, eol: eol?.kind === "boolean" && eol.value } };
         } catch (failure) { imageFailed = true; throw failure; } finally { await decoded.close().catch(failure => { if (!imageFailed) throw failure; }); }

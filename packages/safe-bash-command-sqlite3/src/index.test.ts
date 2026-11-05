@@ -1738,3 +1738,18 @@ test("sqlite3 NOCASE folds only ASCII in comparisons, constraints, indexes and s
       { code: 0, stdout, stderr: "" }, sql);
   }
 });
+
+for (const [doc, path, stdout] of [
+  ['[10,20,30]', '$[1]', '1|20|integer|$[1]|$\n'],
+  ['{"a":{"b":1}}', '$.a', 'a|{"b":1}|object|$.a|$\nb|1|integer|$.a.b|$.a\n'],
+  ['{"a":[10,20]}', '$.a[1]', '1|20|integer|$.a[1]|$.a\n'],
+  ['{"a.b":{"c.d":null}}', '$."a.b"."c.d"', 'c.d||null|$."a.b"."c.d"|$."a.b"\n'],
+  ['20', '$', '|20|integer|$|$\n'],
+  ['{"a":1}', '$.missing', ''],
+]) {
+  test(`sqlite3 json_tree preserves subtree root location at ${path}`, async () => {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:",
+      `SELECT key, value, type, fullkey, path FROM json_tree('${doc}', '${path}');`]),
+    { code: 0, stdout, stderr: "" });
+  });
+}

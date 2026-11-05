@@ -6423,7 +6423,17 @@ export class SqliteDatabase {
           }
         };
         if (target !== undefined) {
-          walk(target, null, null, rootPath, rootPath);
+          const segment = parseJsonPathSegments(rootPath).at(-1);
+          let key: SqlValue = null;
+          let parentPath = rootPath;
+          if (segment !== undefined) {
+            const parentEnd = typeof segment === "string"
+              ? rootPath.length - segment.length - (rootPath.endsWith(`."${segment}"`) ? 3 : 1)
+              : rootPath.lastIndexOf("[");
+            parentPath = rootPath.slice(0, parentEnd);
+            key = resolveJsonPathSegment(extractByJsonPath(parsed, parentPath), segment, rootPath) ?? null;
+          }
+          walk(target, key, null, rootPath, parentPath);
         }
       }
       return { columns: cols, rows };

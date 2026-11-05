@@ -215,15 +215,15 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             break;
         case "mae":
             distortion = maeNorm;
-            metricStr = `${formatSignificantMetric(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
+            metricStr = `${formatSignificantMetric(maeNorm * 65535)} (${formatSignificantMetric(maeNorm)})`;
             break;
         case "mse":
             distortion = mseNorm;
-            metricStr = `${formatSignificantMetric(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
+            metricStr = `${formatSignificantMetric(mseNorm * 65535)} (${formatSignificantMetric(mseNorm)})`;
             break;
         case "pae":
             distortion = paeNorm;
-            metricStr = `${formatSignificantMetric(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
+            metricStr = `${formatSignificantMetric(paeNorm * 65535)} (${formatSignificantMetric(paeNorm)})`;
             break;
         case "psnr": {
             const psnr = mseNorm === 0 ? 120 : 10 * Math.log10(1 / mseNorm);
@@ -262,7 +262,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         }
         case "rmse":
         default:
-            metricStr = `${formatSignificantMetric(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
+            metricStr = `${formatSignificantMetric(rmseNorm * 65535)} (${formatSignificantMetric(rmseNorm)})`;
             break;
     }
     return { width, height, metric: metricStr, exitCode, distortion };

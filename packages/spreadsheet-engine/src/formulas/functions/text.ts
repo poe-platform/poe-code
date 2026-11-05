@@ -133,7 +133,7 @@ function temporalNumber(source: string, host: Pick<FunctionHost, "context" | "bo
   if (!dateAllowed && (hour >= 24 || minute >= 60)) return undefined;
   return sign * (hour * 3600 + minute * 60 + second) / 86400;
 }
-export function matchNumber(source: string, host: Pick<FunctionHost, "context" | "book" | "tick">, separator?: string): number | boolean | undefined {
+export function matchNumber(source: string, host: Pick<FunctionHost, "context" | "book" | "tick">, separator?: string, grouping?: string): number | boolean | undefined {
   if (!["C", "C.UTF-8", "C.utf8", "en_US", "en_US.UTF-8", "de_DE", "de_DE.UTF-8", "de_DE.utf8"].includes(host.context.environment.locale)) unsupported("uncaptured number locale");
   const locale = formattingLocale(host.context.environment.locale);
   separator ??= locale.decimal;
@@ -145,7 +145,7 @@ export function matchNumber(source: string, host: Pick<FunctionHost, "context" |
   let text = source.trim(), sign = 1;
   if (text.startsWith("(") && text.endsWith(")")) { sign = -1; text = text.slice(1, -1).trim(); }
   if (text.startsWith("$")) text = text.slice(1).trim();
-  const grouping = separator === "." ? "," : ".";
+  grouping ??= locale.thousand;
   const parts = text.split(separator);
   if (parts.length > 2) return locale.decimal === "." ? temporalNumber(source, host) : undefined;
   const integral = parts[0]!.split(grouping);
@@ -320,10 +320,13 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
   T: (args, host) => { const value = scalarArg(args, 0, host); return value.kind === "string" || value.kind === "byte-string" ? value : blank; },
   VALUE: (args, host) => { const value = scalarArg(args, 0, host); if (value.kind === "blank" || value.kind === "number" || value.kind === "boolean") return value; const n = matchNumber(rendered(value), host); return n === undefined ? error("#VALUE!") : typeof n === "boolean" ? bool(n) : numericResult(n); },
   NUMBERVALUE: (args, host) => {
-    const separator = textArg(args, 1, host); if (![".", ","].includes(separator)) return error("#VALUE!");
+    const locale = formattingLocale(host.context.environment.locale);
+    const separator = args[1] === undefined ? locale.decimal : textArg(args, 1, host);
+    const grouping = args[2] === undefined ? locale.thousand : textArg(args, 2, host);
+    if (Array.from(separator).length !== 1 || Array.from(grouping).length !== 1 || separator === grouping) return error("#VALUE!");
     const value = scalarArg(args, 0, host); if (value.kind === "blank" || value.kind === "number" || value.kind === "boolean") return value;
     const source = rendered(value).trimStart();
-    const n = matchNumber(source, host, separator) ?? matchNumber(source, host); return n === undefined ? error("#VALUE!") : typeof n === "boolean" ? bool(n) : numericResult(n);
+    const n = matchNumber(source, host, separator, grouping) ?? matchNumber(source, host); return n === undefined ? error("#VALUE!") : typeof n === "boolean" ? bool(n) : numericResult(n);
   },
   ...Object.fromEntries(["FIXED", "DOLLAR"].map(name => [name, ((args, host) => {
     const n = numberArg(args, 0, host), decimals = Math.trunc(numberArg(args, 1, host, 2));

@@ -477,7 +477,7 @@ export const functionDescriptors: Readonly<Record<string, { readonly signature: 
     "group": "fn-string"
   },
   "NUMBERVALUE": {
-    "signature": "SS",
+    "signature": "S|SS",
     "flags": "GNM_FUNC_SIMPLE",
     "group": "fn-string"
   },

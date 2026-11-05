@@ -104,3 +104,26 @@ it("the composable plugin snapshots formats and refuses duplicate registration u
   expect(listing).toContain("Gnumeric_stf:stf_csvtab");
   expect(listing).not.toContain("Gnumeric_Excel");
 });
+
+it("converts NUMBERVALUE separator formulas through the CSV command", async () => {
+  const fs = new MemoryFileSystem();
+  const formulas = [
+    '=NUMBERVALUE("1,234.5",".",",")',
+    '=NUMBERVALUE("1.234,5",",",".")',
+    '=NUMBERVALUE("12 345,6",","," ")',
+    '=NUMBERVALUE("abc",".",",")',
+    '=NUMBERVALUE("1.234,5",",")'
+  ];
+  await fs.writeFile("/input.csv", new TextEncoder().encode(
+    formulas.map(formula => '"' + formula.split('"').join('""') + '"\n').join("")
+  ));
+  const result = await createSsconvertCommand({ formats: [csvFormat] }).execute({
+    command: "ssconvert", cwd: "/", env: {}, fs,
+    ...createCommandArguments(["-I", "Gnumeric_stf:stf_csvtab", "-T", "Gnumeric_stf:stf_csv", "/input.csv", "/output.csv"]),
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} }
+  });
+  expect(result.exitCode).toBe(0);
+  expect(new TextDecoder().decode(await fs.readFile("/output.csv")))
+    .toBe("1234.5\n1234.5\n12345.6\n#VALUE!\n#VALUE!\n");
+});

@@ -47,7 +47,7 @@ it.each<[string, CellValue]>([
   ['=LEFT("😀ab",2)', text("😀a")], ['=LEFT("abc",-1)', error("#VALUE!")],
   ['=LOWER("ÉABC")', text("éabc")], ['=LOWER("")', text("")],
   ['=MID("😀ab",2,1)', text("a")], ['=MID("abc",0,1)', error("#VALUE!")],
-  ['=NUMBERVALUE("1.234,5",",")', number(1234.5)], ['=NUMBERVALUE("1",";")', error("#VALUE!")],
+  ['=NUMBERVALUE("1.234,5",",")', error("#VALUE!")], ['=NUMBERVALUE("1",";")', number(1)],
   ['=PROPER("a2BC")', text("A2Bc")], ['=PROPER("")', text("")],
   ['=REPLACE("abcd",2,2,"x")', text("axd")], ['=REPLACE("a",0,1,"x")', error("#VALUE!")],
   ['=REPLACEB("Lévy",2,2,"x")', text("Lxvy")], ['=REPLACEB("Lévy",2,1,"x")', error("#VALUE!")],

@@ -559,7 +559,7 @@ const released: readonly (readonly [string, string | null, string, string])[] = 
   ],
   [
     "NUMBERVALUE",
-    "SS",
+    "S|SS",
     "GNM_FUNC_SIMPLE",
     "fn-string"
   ],

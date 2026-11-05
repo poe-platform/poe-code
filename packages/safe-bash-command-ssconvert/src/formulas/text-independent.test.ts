@@ -62,7 +62,7 @@ it.each<[string, CellValue]>([
   ['=FIXED(1234.5,1,TRUE)', s("1234.5")], ['=FIXED(1234,-2)', s("1,200")],
   ['=DOLLAR(-1234.5,1)', s("($1,234.5)")], ['=DOLLAR(1,128)', e("#VALUE!")],
   ['=TEXT(-12.5,"0.0;(0.0)")', s("(12.5)")], ['=TEXT(0.125,"0.0%")', s("12.5%")],
-  ['=VALUE("(1,234.5)")', n(-1234.5)], ['=NUMBERVALUE("1.234,5",",")', n(1234.5)],
+  ['=VALUE("(1,234.5)")', n(-1234.5)], ['=NUMBERVALUE("1.234,5",",")', e("#VALUE!")],
   ['=T(42)', { kind: "blank" }], ['=T("abc")', s("abc")],
   ['=TEXTJOIN("-",FALSE,{"a","","b"})', s("a--b")],
   ['=TEXTAFTER("abc","")', e("#N/A")], ['=TEXTBEFORE("abc","")', e("#N/A")],
@@ -218,4 +218,24 @@ it.each<[number, CellValue]>([
   [57344, s("\ue000")], [1114111.9, s("\u{10ffff}")], [1114112, e("#VALUE!")]
 ])("retains native UNICHAR boundary %s", (point, expected) => {
   expect(calculate(`=UNICHAR(${point})`)).toEqual(expected);
+});
+
+// Gnumeric 1.12.62 fn-string uses locale defaults for omitted separators.
+it.each<[string, CellValue]>([
+  ['=NUMBERVALUE("1,234.5",".",",")', n(1234.5)],
+  ['=NUMBERVALUE("1.234,5",",",".")', n(1234.5)],
+  ['=NUMBERVALUE("12 345,6",","," ")', n(12345.6)],
+  ['=NUMBERVALUE("abc",".",",")', e("#VALUE!")],
+  ['=NUMBERVALUE("1,234.5")', n(1234.5)],
+  ['=NUMBERVALUE("1234,5",",")', e("#VALUE!")],
+  ['=NUMBERVALUE("12;5",";",",")', n(12.5)],
+  ['=NUMBERVALUE("12😀345٫6","٫","😀")', n(12345.6)],
+  ['=NUMBERVALUE("12;345!6","!",";")', n(12345.6)],
+  ['=NUMBERVALUE("1",".",".")', e("#VALUE!")],
+  ['=NUMBERVALUE("1","..",",")', e("#VALUE!")],
+  ['=NUMBERVALUE("1",".","")', e("#VALUE!")],
+  ['=NUMBERVALUE()', e("#N/A")],
+  ['=NUMBERVALUE("1",".",","," ")', e("#N/A")]
+])("matches native NUMBERVALUE separators for %s", (formula, expected) => {
+  expect(calculate(formula)).toEqual(expected);
 });

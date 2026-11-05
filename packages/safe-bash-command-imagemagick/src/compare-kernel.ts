@@ -36,6 +36,8 @@ export interface CompareResult {
 export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
     if (options.subimageSearch) return yield* searchSubimageSteps(imgA, imgB, options);
     const { metric, fuzz, highlightColor, lowlightColor = { r: 255, g: 255, b: 255, a: 204 }, composeSrc } = options;
+    // ImageMagick adds the squared fuzz of both inputs for channel metrics.
+    const channelFuzzSquared = 2 * fuzz * fuzz;
     const width = Math.max(imgA.width, imgB.width);
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
@@ -128,7 +130,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     // Alpha participates only when both images have an alpha channel.
                     for (let channel = 0; channel < (imgA.hasAlpha && imgB.hasAlpha ? 4 : 3); channel++) {
                         const delta = channel === 0 ? pdr : channel === 1 ? pdg : channel === 2 ? pdb : da;
-                        if (delta > Math.abs(fuzz)) {
+                        if (delta * delta > channelFuzzSquared) {
                             fuzzSq += delta * delta;
                             fuzzChannels++;
                         }
@@ -141,11 +143,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     meppPeak = Math.max(meppPeak, pdr, pdg, pdb, alphaError);
                 }
                 // PDC counts a pixel once when any shared channel exceeds fuzz.
-                if (metric === "pdc" && Math.max(pdr, pdg, pdb, imgA.hasAlpha && imgB.hasAlpha ? da : 0) > Math.abs(fuzz))
+                if (metric === "pdc" && Math.max(pdr * pdr, pdg * pdg, pdb * pdb, imgA.hasAlpha && imgB.hasAlpha ? da * da : 0) > channelFuzzSquared)
                     pdcCount++;
                 // AE sums channel magnitudes above fuzz, then averages over channels.
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
-                aeMagnitude += (aeR > fuzz ? aeR : 0) + (aeG > fuzz ? aeG : 0) + (aeB > fuzz ? aeB : 0) + (hasAlpha && da > fuzz ? da : 0);
+                aeMagnitude += (aeR * aeR > channelFuzzSquared ? aeR : 0) + (aeG * aeG > channelFuzzSquared ? aeG : 0) + (aeB * aeB > channelFuzzSquared ? aeB : 0) + (hasAlpha && da * da > channelFuzzSquared ? da : 0);
                 const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
                 if (maxDelta > fuzz)
                     aeCount++;

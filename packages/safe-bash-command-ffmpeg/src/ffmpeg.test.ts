@@ -701,6 +701,38 @@ describe("decoded audio editing", () => {
 
 
 describe("native ffmpeg parity", () => {
+  for (const crop of ["100:100", "100:8", "8:100", "-1:8", "8:-1", "w=iw*2:h=ih"]) {
+    for (const existing of [false, true]) {
+      it(`rejects invalid crop ${crop} and preserves ${existing ? "existing" : "absent"} output`, async () => {
+        const original = new Uint8Array([1, 2, 3]);
+        const vfs = createTestVfs(existing ? { "/crop.png": original } : {});
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=1",
+          "-vf", `crop=${crop}`, "-frames:v", "1", "/crop.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("Invalid too big or non positive size"), result.stderr);
+        assert.equal(result.stdoutBytes.length, 0);
+        assert.deepEqual(vfs.store.get("/crop.png"), existing ? original : undefined);
+      });
+    }
+  }
+
+  for (const [crop, width, height] of [["16:16", 16, 16], ["8:4", 8, 4], ["w=iw/2:h=ih/2", 8, 8]] as const) {
+    it(`preserves valid crop dimensions for ${crop}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=1",
+        "-vf", `crop=${crop}`, "-frames:v", "1", "/crop.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const actual = decodeImage(vfs.store.get("/crop.png")!);
+      assert.equal(actual.width, width);
+      assert.equal(actual.height, height);
+    });
+  }
+
   for (const [scale, width, height] of [
     ["1:1", 1, 1],
     ["1:3", 1, 3],

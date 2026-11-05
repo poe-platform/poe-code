@@ -673,8 +673,11 @@ async function applyVideoFilterChain(
     } else if (name === "crop") {
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const cw = Math.min(iw, Math.max(1, evalScaleDim(named.w ?? positional[0] ?? String(iw), iw, ih)));
-      const ch = Math.min(ih, Math.max(1, evalScaleDim(named.h ?? positional[1] ?? String(ih), iw, ih)));
+      const cw = evalScaleDim(named.w ?? positional[0] ?? String(iw), iw, ih);
+      const ch = evalScaleDim(named.h ?? positional[1] ?? String(ih), iw, ih);
+      if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
+        throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
+      }
       const cx = Math.max(
         0,
         Math.min(iw - cw, parseInt(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), 10) || 0)

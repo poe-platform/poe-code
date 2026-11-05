@@ -868,6 +868,33 @@ describe("decoded audio editing", () => {
     });
   }
 
+  for (const channels of [1, 2]) {
+    for (const reversals of [1, 2, 3, 4]) {
+      it(`applies ${reversals} areverse filters to ${channels} PCM channels`, async () => {
+        const input = encodeWav({
+          sampleRate: 8000,
+          channels: Array.from({ length: channels }, (_, channel) =>
+            Float64Array.from({ length: 80 }, (_, i) => (channel === 0 ? i : -i) / 256))
+        });
+        const source = parseWav(input).tracks[0]!.decodedAudio!;
+        const vfs = createTestVfs({ "/input.wav": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/input.wav", "-af", Array(reversals).fill("areverse").join(","),
+          "-c:a", "pcm_s16le", "/output.wav"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+        assert.equal(output.sampleRate, source.sampleRate);
+        assert.equal(output.channels, channels);
+        for (const [channel, samples] of output.channelData.entries()) {
+          const expected = source.channelData[channel]!.slice();
+          if (reversals % 2 === 1) expected.reverse();
+          assert.deepEqual(samples, expected);
+        }
+      });
+    }
+  }
+
   it("mutes audible PCM samples with volume=0 without changing their count", async () => {
     const vfs = createTestVfs();
     const command = createFfmpegCommand();

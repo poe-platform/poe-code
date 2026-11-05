@@ -2177,7 +2177,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   } else if (trimmed.startsWith("atempo=")) {
                     tempoFactor *= Math.max(0.25, Math.min(4.0, parseFloat(trimmed.slice(7)) || 1.0));
                   } else if (trimmed === "areverse") {
-                    reverseAudio = true;
+                    reverseAudio = !reverseAudio;
                   } else {
                     throw new Error(`Unsupported audio filter: ${trimmed}`);
                   }

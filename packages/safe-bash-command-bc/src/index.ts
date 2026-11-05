@@ -12,6 +12,8 @@ import {
 
 const decoder = new TextDecoder("utf-8", { fatal: false });
 const encoder = new TextEncoder();
+// GNU bc print escapes: a, b, f, n, q, r, t, and backslash.
+const printEscapes: Readonly<Record<number, number>> = { 97: 7, 98: 8, 102: 12, 110: 10, 113: 34, 114: 13, 116: 9, 92: 92 };
 async function yieldTurn(signal: AbortSignal): Promise<void> {
   signal.throwIfAborted();
   await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -306,7 +308,11 @@ interface Token {
 }
 
 function tokenizeBc(source: string): Token[] {
-  const clean = source.replace(/\\\r?\n/gu, "");
+  // A continued line joins tokens and comments, but belongs to a quoted string until print interprets it.
+  const clean = source.includes("\\\n") || source.includes("\\\r\n")
+    ? source.replace(/"[^"]*(?:"|$)|\/\*[\s\S]*?(?:\*\/|$)|#(?:\\\r?\n|[^\n])*|\\\r?\n/gu,
+        span => span.startsWith('"') ? span : span.replace(/\\\r?\n/gu, ""))
+    : source;
   const tokens: Token[] = [];
   let i = 0;
   while (i < clean.length) {
@@ -332,20 +338,9 @@ function tokenizeBc(source: string): Token[] {
       continue;
     }
     if (ch === '"') {
-      let str = "";
-      i++;
-      while (i < clean.length && clean[i] !== '"') {
-        if (clean[i] === "\\" && i + 1 < clean.length) {
-          const esc = clean[i + 1]!;
-          if (esc === "n") { str += "\n"; i += 2; continue; }
-          if (esc === "t") { str += "\t"; i += 2; continue; }
-          if (esc === '"') { str += '"'; i += 2; continue; }
-          if (esc === "\\") { str += "\\"; i += 2; continue; }
-        }
-        str += clean[i++]!;
-      }
-      if (clean[i] === '"') i++;
-      tokens.push({ type: "string", value: str });
+      const end = clean.indexOf('"', i + 1);
+      tokens.push({ type: "string", value: clean.slice(i + 1, end < 0 ? clean.length : end) });
+      i = end < 0 ? clean.length : end + 1;
       continue;
     }
     if ((ch >= "0" && ch <= "9") || (ch >= "A" && ch <= "F") || (ch === "." && i + 1 < clean.length && ((clean[i + 1]! >= "0" && clean[i + 1]! <= "9") || (clean[i + 1]! >= "A" && clean[i + 1]! <= "F")))) {
@@ -787,21 +782,26 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     const funcs = new Map<string, { params: { name: string; array: boolean }[]; body: Stmt }>();
     const callStack: { scalars: Map<string, DecimalValue>; arrays: Map<string, Map<string, DecimalValue>> }[] = [];
     let steps = 0;
-    let outBuffer = "";
+    let outBuffer = new Uint8Array();
     let outputBytes = 0;
     const configuredWidth = Number(context.env.BC_LINE_LENGTH ?? 70);
     const lineLength = Number.isSafeInteger(configuredWidth) && (configuredWidth === 0 || configuredWidth > 1) ? configuredWidth : 70;
     let outputColumn = 0;
 
-    const appendOutput = (text: string): void => {
-      if (limits.maxOutputBytes !== Infinity) {
-        outputBytes += encoder.encode(text).byteLength;
-        if (outputBytes > limits.maxOutputBytes) {
-          throw new Error(`output exceeds maximum size (${limits.maxOutputBytes} bytes)`);
-        }
+    const appendOutput = (text: string | Uint8Array): void => {
+      const bytes = typeof text === "string" ? encoder.encode(text) : text;
+      const end = outputBytes + bytes.length;
+      if (end > limits.maxOutputBytes) {
+        throw new Error(`output exceeds maximum size (${limits.maxOutputBytes} bytes)`);
       }
-      outBuffer += text;
-      const newline = text.lastIndexOf("\n");
+      if (end > outBuffer.length) {
+        const grown = new Uint8Array(Math.min(limits.maxOutputBytes, Math.max(64, end, 2 * outBuffer.length)));
+        grown.set(outBuffer);
+        outBuffer = grown;
+      }
+      outBuffer.set(bytes, outputBytes);
+      outputBytes = end;
+      const newline = typeof text === "string" ? text.lastIndexOf("\n") : text.lastIndexOf(10);
       outputColumn = newline < 0 ? outputColumn + text.length : text.length - newline - 1;
     };
 
@@ -1083,7 +1083,15 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         case "print":
           for (const item of stmt.items) {
             if (item.kind === "str") {
-              appendOutput(item.value);
+              if (!item.value.includes("\\")) { appendOutput(item.value); continue; }
+              const bytes = encoder.encode(item.value);
+              let end = 0;
+              for (let i = 0; i < bytes.length; i++) {
+                if (bytes[i] !== 92) { bytes[end++] = bytes[i]!; continue; }
+                const escaped = printEscapes[bytes[++i]!];
+                if (escaped !== undefined) bytes[end++] = escaped;
+              }
+              appendOutput(bytes.subarray(0, end));
             } else {
               const v = await evalExpr(item);
               last = v;
@@ -1128,8 +1136,8 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     }
 
     context.signal.throwIfAborted();
-    if (outBuffer.length > 0) {
-      await writeText(context.stdout, outBuffer);
+    if (outputBytes) {
+      await context.stdout.write(outBuffer.subarray(0, outputBytes));
       context.signal.throwIfAborted();
     }
     if (executionFailure) throw executionFailure.error;

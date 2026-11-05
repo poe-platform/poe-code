@@ -10,7 +10,6 @@ use sort_record::Record as SortRecord;
 use super::{CommandFailure, CommandInput};
 use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
-use crate::shell::expand::decode_ansi_c_escapes;
 use crate::vfs::{
     SafeBashFs, dirname_posix_path, normalize_posix_path, resolve_posix_path, stream_string_to_bytes,
 };
@@ -5710,13 +5709,15 @@ fn format_bc_base(mut n: u128, obase: u32) -> String {
 
 fn extract_bc_defines(input: &str, bc: &mut BcEnv) -> String {
     let mut remaining = String::new();
-    let chars: Vec<char> = input.chars().collect();
-    let mut i = 0usize;
-    while i < chars.len() {
-        let rest: String = chars[i..].iter().collect();
-        let trimmed = rest.trim_start();
-        let skip_ws = rest.len() - trimmed.len();
-        if let Some(after_def) = trimmed.strip_prefix("define ") {
+    let mut rest = input;
+    while !rest.is_empty() {
+        if let Some(literal) = rest.strip_prefix('"') {
+            let size = literal.find('"').map_or(rest.len(), |end| end + 2);
+            remaining.push_str(&rest[..size]);
+            rest = &rest[size..];
+            continue;
+        }
+        if let Some(after_def) = rest.strip_prefix("define ") {
             if let Some(open_p) = after_def.find('(')
                 && let Some(close_p_rel) = after_def[open_p + 1..].find(')')
             {
@@ -5732,7 +5733,10 @@ fn extract_bc_defines(input: &str, bc: &mut BcEnv) -> String {
                     let body_sub = &after_params[open_b + 1..];
                     let mut depth = 1i32;
                     let mut end_b = None;
+                    let mut quoted = false;
                     for (bi, ch) in body_sub.char_indices() {
+                        if ch == '"' { quoted = !quoted; }
+                        if quoted { continue; }
                         if ch == '{' {
                             depth += 1;
                         } else if ch == '}' {
@@ -5746,16 +5750,15 @@ fn extract_bc_defines(input: &str, bc: &mut BcEnv) -> String {
                     if let Some(eb) = end_b {
                         let body = body_sub[..eb].trim().to_string();
                         bc.funcs.insert(fname, (params, body));
-                        let consumed_bytes = skip_ws + "define ".len() + close_p + 1 + open_b + 1 + eb + 1;
-                        let consumed_chars = rest[..consumed_bytes].chars().count();
-                        i += consumed_chars;
+                        rest = &body_sub[eb + 1..];
                         continue;
                     }
                 }
             }
         }
-        remaining.push(chars[i]);
-        i += 1;
+        let ch = rest.chars().next().unwrap();
+        remaining.push(ch);
+        rest = &rest[ch.len_utf8()..];
     }
     remaining
 }
@@ -6070,11 +6073,33 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
         }
         return BcFlow::None;
     }
+    if let Some(literal) = s.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
+        out.push_str(literal);
+        return BcFlow::None;
+    }
     if let Some(print_rest) = s.strip_prefix("print ") {
         for item in split_bc_args(print_rest) {
             let t = item.trim();
             if t.starts_with('"') && t.ends_with('"') && t.len() >= 2 {
-                out.push_str(&decode_ansi_c_escapes(&t[1..t.len() - 1]));
+                let mut bytes = crate::vfs::stream_string_to_bytes(&t[1..t.len() - 1]);
+                let mut end = 0;
+                let mut i = 0;
+                while i < bytes.len() {
+                    let byte = bytes[i];
+                    i += 1;
+                    let decoded = if byte == b'\\' {
+                        if i == bytes.len() { break; }
+                        i += 1;
+                        match bytes[i - 1] {
+                            b'a' => 7, b'b' => 8, b'f' => 12, b'n' => b'\n',
+                            b'q' => b'"', b'r' => b'\r', b't' => b'\t', b'\\' => b'\\',
+                            _ => continue,
+                        }
+                    } else { byte };
+                    bytes[end] = decoded;
+                    end += 1;
+                }
+                out.push_str(&crate::vfs::bytes_to_stream_string(&bytes[..end]));
             } else {
                 bc.last_str_out = None;
                 let v = eval_bc_val(t, bc, depth + 1);

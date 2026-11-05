@@ -46,7 +46,15 @@ const textCommands = ([
 export function linuxCommands(text: string) {
   return [
     ...textCommands.map(command => ({ ...command, input: text })),
-    { cmd: "bc", args: [], script: "bc", input: 'scale=4\nprint "# /* */: ", 1 /* a multiline\ncomment */ / 8, "\\n" # trailing comment\n' },
+    { cmd: "bc", args: [], script: "bc", input: String.raw`"literal:\n\q; define f(){return 1}"
+"continued\
+literal"
+print "byte:\é"
+print " | escaped:\a\b\f\n\q\r\t\z\\", "\n"
+scale=4
+print "# /* */: ", 1 /* a multiline
+comment */ / 8, "\n" # trailing comment
+` },
     // Independent ready nodes sort by raw name bytes even with a mixture of UTF-8 and invalid bytes.
     { cmd: "tsort", args: [], script: "tsort", input: Buffer.from("c3a920c3a9207a207a20ff20ff2080208020412041", "hex") },
   ];

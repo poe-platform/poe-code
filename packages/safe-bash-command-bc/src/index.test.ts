@@ -201,6 +201,13 @@ for (const [program, stdout, prefix] of [
   });
 }
 
+test("bc charges the remaining byte of a UTF-8 print escape against the output quota", async () => {
+  const program = String.raw`print "a", "\é", "b"`;
+  assert.deepEqual(await evaluate(program, { maxOutputBytes: 2 }), {
+    exitCode: 1, stdout: "a�", stderr: "bc: output exceeds maximum size (2 bytes)\n",
+  });
+});
+
 test("bc checks output quota before executing subsequent statements", async () => {
   assert.deepEqual(await evaluate('"ab"; 1/0', { maxOutputBytes: 100, limits: { maxOutputBytes: 1 } }), {
     exitCode: 1, stdout: "", stderr: "bc: output exceeds maximum size (1 bytes)\n",

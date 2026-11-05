@@ -1693,7 +1693,7 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%(-?\+?\s?0?\d*(?:\.\d+)?)([sdfeEgGxXpcqQ%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%(-?\+?\s?0?\d*(?:\.\d+)?)([sdfeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
@@ -1703,6 +1703,8 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
       out = raw === null || raw === undefined ? "" : toSqlString(raw);
     } else if (spec === "q") {
       out = raw === null || raw === undefined ? "(NULL)" : toSqlString(raw).replace(/'/g, "''");
+    } else if (spec === "w") {
+      out = raw === null ? "(NULL)" : toSqlString(raw).replaceAll('"', '""');
     } else if (spec === "Q") {
       out = raw === null || raw === undefined ? "NULL" : `'${toSqlString(raw).replace(/'/g, "''")}'`;
     } else if (spec === "c") {

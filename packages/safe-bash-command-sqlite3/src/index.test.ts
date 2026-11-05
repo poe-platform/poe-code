@@ -5,6 +5,18 @@ import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, 
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
 for (const fn of ["printf", "format"]) {
+  test(`sqlite3 ${fn} escapes identifier quotes with %w`, async () => {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `SELECT ${fn}('%w|%w|%w|%w|%w', 'a"b', 'plain', '', NULL, '""');
+         SELECT ${fn}('%w');
+         SELECT ${fn}('%w:%d|%8w|%-8w', 'a"b', 42, 'a"b', 'a"b');`]),
+      { code: 0, stderr: "", stdout: 'a""b|plain||(NULL)|""""\n(NULL)\na""b:42|    a""b|a""b    \n' }
+    );
+  });
+}
+
+for (const fn of ["printf", "format"]) {
   for (const [args, expected] of [
     ["'%e|%E|%g|%G',1234.5,0.000012345,1234.5,0.000012345", "1.234500e+03|1.234500E-05|1234.5|1.2345E-05"],
     ["'%.2e|%.3g|%.0g|%.3g|%.3g',1234.5,1234.5,12.3,0.00009999,999.9", "1.23e+03|1.23e+03|1e+01|0.0001|1e+03"],

@@ -111,9 +111,12 @@ async function document(bytes: Uint8Array, context: CapabilityContext): Promise<
       for (let at = 0; at < value.length; at++) if (value[at] === "\u0000") warnings.push({ position: offset + at, message: "Char 0x0 out of allowed range" });
       value = value.split("\u0000").join(" ");
     }
-    // libxml does not retain initial blank characters or blanks in html/head.
-    if (["#document", "html", "head"].includes(stack.at(-1)!.name) && [...value].every(c => " \t\n\r".includes(c))) return;
-    if (["#document", "html", "head"].includes(stack.at(-1)!.name) && kind === "#text") open("p");
+    if (["#document", "html", "head"].includes(stack.at(-1)!.name)) {
+      // libxml skips document-level blanks but retains them directly in html/head.
+      if ([...value].every(c => " \t\n\r".includes(c))) {
+        if (stack.at(-1)!.name === "#document") return;
+      } else if (kind === "#text") open("p");
+    }
     const parent = stack.at(-1)!;
     if (parent.name === "script" || parent.name === "style") kind = "#cdata";
     admit(value.length);

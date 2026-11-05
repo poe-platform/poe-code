@@ -2,6 +2,27 @@ import { expect, it } from "vitest";
 import { createEngine } from "@poe-code/spreadsheet-engine";
 import { htmlFormat } from "./index.js";
 
+it("preserves whitespace in html and head at its original row position", async () => {
+  const engine = createEngine({ formats: [htmlFormat] });
+  const operation = { signal: new AbortController().signal };
+  try {
+    const workbook = await engine.readWorkbook({ kind: "stream", filename: "formatted.html", source: [
+      new TextEncoder().encode(' \n<html>\n<head>\n<title>T</title>\n</head>\n<body>\n<table><tr><td>A</td></tr></table>\n</body>\n</html>\n')
+    ] }, {}, operation);
+    expect(workbook.sheets[0]!.cells.map(cell => [cell.row, cell.column, cell.value])).toEqual([
+      [0, 1, { kind: "string", value: "\n" }],
+      [1, 1, { kind: "string", value: "\n" }],
+      [2, 1, { kind: "string", value: "T" }],
+      [3, 1, { kind: "string", value: "\n" }],
+      [4, 1, { kind: "string", value: "\n" }],
+      [5, 1, { kind: "string", value: "\n" }],
+      [6, 0, { kind: "string", value: "A" }],
+      [7, 1, { kind: "string", value: "\n" }],
+      [8, 1, { kind: "string", value: "\n" }]
+    ]);
+  } finally { await engine.dispose(); }
+});
+
 it("reads and writes a table with only the HTML formats selected", async () => {
   const engine = createEngine({ formats: [htmlFormat] });
   const operation = { signal: new AbortController().signal };

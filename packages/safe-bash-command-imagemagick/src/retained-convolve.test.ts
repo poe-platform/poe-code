@@ -30,7 +30,7 @@ it.each([
     expect((await runConvertCli(["input.png", ...operator, spec, "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
     const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
     const expected = new Uint8Array(pixels.length);
-    for (let i = 3; i < expected.length; i += 4) expected[i] = center === 255 || (operator[0] === "-morphology" && kernel.includes("-4")) ? 0 : 255;
+    for (let i = 3; i < expected.length; i += 4) expected[i] = center === 255 ? 0 : 255;
     for (const index of [7, 11, 13, 17]) expected.fill(neighbor, index * 4, index * 4 + 3);
     expected.fill(center, 12 * 4, 12 * 4 + 3);
     expect(output.data).toEqual(expected);

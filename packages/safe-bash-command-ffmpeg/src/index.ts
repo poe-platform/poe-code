@@ -2485,7 +2485,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             "#EXTM3U",
             isFmp4 ? "#EXT-X-VERSION:7" : "#EXT-X-VERSION:3",
             `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
-            `#EXT-X-MEDIA-SEQUENCE:${firstSegment}`
+            `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
           ];
 
           if (isFmp4) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
@@ -2520,10 +2520,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               segBytes = segBytes.subarray(moof.offset);
             }
 
-            const segPattern = hlsSegmentFilename ?? `seg_%03d.${segExt}`;
+            const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
+            const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}%d.${segExt}`;
             const formattedSeg = segPattern.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
               const padLen = parseInt(widthDigits || "0", 10) || 0;
-              return String(sIdx).padStart(padLen, "0");
+              return String(sIdx + (outputStartNumber ?? 0)).padStart(padLen, "0");
             });
             const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
             const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)

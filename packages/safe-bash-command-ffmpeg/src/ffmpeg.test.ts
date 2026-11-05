@@ -1007,6 +1007,38 @@ describe("HLS fMP4 initialization", () => {
   }
 });
 
+describe("HLS start_number", () => {
+  for (const [pattern, names] of [
+    [undefined, ["out5.ts", "out6.ts"]],
+    ["/hls/part%d.ts", ["part5.ts", "part6.ts"]],
+    ["/hls/part%03d.ts", ["part005.ts", "part006.ts"]]
+  ] as const) {
+    for (const windowed of [false, true]) {
+      it(`starts sequences and filenames at five with ${pattern ?? "default names"} (windowed=${windowed})`, async () => {
+        const doc = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 2, frameCount: 4, includeAudio: false }));
+        const input = serializeMp4({ ...doc, tracks: doc.tracks.map(track => ({
+          ...track, samples: track.samples.map((sample, i) => ({ ...sample, isKeyframe: i % 2 === 0 }))
+        })) });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-start_number", "5",
+          ...(pattern ? ["-hls_segment_filename", pattern] : []),
+          ...(windowed ? ["-hls_list_size", "1", "-hls_flags", "delete_segments"] : []),
+          "-f", "hls", "/hls/out.m3u8"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(new TextDecoder().decode(vfs.store.get("/hls/out.m3u8")), [
+          "#EXTM3U", "#EXT-X-VERSION:3", "#EXT-X-TARGETDURATION:1",
+          `#EXT-X-MEDIA-SEQUENCE:${windowed ? 6 : 5}`,
+          ...names.slice(windowed ? 1 : 0).flatMap(name => ["#EXTINF:1.000000,", name]),
+          "#EXT-X-ENDLIST", ""
+        ].join("\n"));
+        for (const name of names) assert.ok(vfs.store.get(`/hls/${name}`)?.byteLength);
+      });
+    }
+  }
+});
+
 describe("HLS playlist windows", () => {
   for (const [seconds, size, first] of [[5, "2", 3], [5, undefined, 0], [7, undefined, 2], [7, "0", 0], [5, "10", 0], [5, "1", 4]] as const) {
     it(`retains the final window for ${seconds} segments and size ${size ?? "default"}`, async () => {

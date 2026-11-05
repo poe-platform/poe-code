@@ -711,8 +711,9 @@ async function applyVideoFilterChain(
     } else if (name === "crop") {
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const cw = evalScaleDim(named.w ?? positional[0] ?? String(iw), iw, ih);
-      const ch = evalScaleDim(named.h ?? positional[1] ?? String(ih), iw, ih);
+      const dimensions = { iw, ih, in_w: iw, in_h: ih };
+      const cw = roundToEven(parseFilterExpression(named.w ?? positional[0] ?? String(iw), "crop", dimensions));
+      const ch = roundToEven(parseFilterExpression(named.h ?? positional[1] ?? String(ih), "crop", dimensions));
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }

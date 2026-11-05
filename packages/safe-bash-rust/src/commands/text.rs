@@ -9040,7 +9040,7 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         return err_out("diff3: Binary input requires text comparison\n", 2);
     }
     let to_lines = |bytes: &[u8]| -> Vec<Diff3Line> {
-        let text = String::from_utf8_lossy(bytes);
+        let text = crate::vfs::bytes_to_stream_string(bytes);
         split_diff_lines(&text)
             .into_iter()
             .map(|(l, term)| Diff3Line {

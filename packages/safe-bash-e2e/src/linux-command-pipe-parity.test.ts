@@ -1,4 +1,4 @@
-import { rm } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -26,6 +26,26 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("diff3 compares and emits the original bytes of each variant", async () => {
+      const files = ["ours", "base", "theirs"];
+      // The valid UTF-8 encodes U+E080, which must also stay distinct from the raw 0x80 byte.
+      const inputs = ["800a", "ee82800a", "ff0a"].map(hex => Buffer.from(hex, "hex"));
+      for (const [i, name] of files.entries()) {
+        await writeFile(cwd + "/" + name, inputs[i]!);
+        for (const view of [ts.fs, rust.fs]) await view.writeFile("/workspace/" + name, inputs[i]!);
+      }
+      for (const flags of [[], ["-e"], ["-m", "-E"], ["-m"]]) {
+        for (const useStdin of [false, true]) {
+          const args = [...flags, "ours", useStdin ? "-" : "base", "theirs"];
+          const input = useStdin ? inputs[1]! : "";
+          const reference = await runLinuxCommand("diff3", args, input, cwd);
+          for (const shell of [ts.shell, rust]) {
+            const result = await shell.exec("diff3 " + args.join(" "), { stdin: input });
+            assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference, shell.constructor.name);
+          }
+        }
+      }
+    });
     await t.test("env preserves its listing order when passing entries to a child", async () => {
       const assignments = ["Z=first", "A=one", "M=", "Z=last"];
       const [code, listing, stderr] = await runLinuxCommand("env", ["-i", "-0", ...assignments], "");

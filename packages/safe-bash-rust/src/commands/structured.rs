@@ -2511,94 +2511,35 @@ fn try_eval_jq_builtin(
                     };
                     return Ok(Some(vec![JVal::Bool(res)]));
                 }
-                "sort_by" => {
-                    if let JVal::Array(a) = input {
-                        let mut keyed: Vec<(JVal, JVal)> = Vec::new();
-                        for item in a {
-                            let k = eval_jq(arg_expr, item, vars)?
-                                .into_iter()
-                                .next()
-                                .unwrap_or(JVal::Null);
-                            keyed.push((k, item.clone()));
+                "sort_by" | "group_by" | "unique_by" => {
+                    if let JVal::Array(items) = input {
+                        let mut keyed = Vec::with_capacity(items.len());
+                        for item in items {
+                            keyed.push((JVal::Array(eval_jq(arg_expr, item, vars)?), item));
                         }
                         keyed.sort_by(|a, b| compare_jval(&a.0, &b.0));
-                        return Ok(Some(vec![JVal::Array(
-                            keyed.into_iter().map(|(_, v)| v).collect(),
-                        )]));
-                    }
-                }
-                "group_by" => {
-                    if let JVal::Array(a) = input {
-                        let mut keyed: Vec<(JVal, JVal)> = Vec::new();
-                        for item in a {
-                            let k = eval_jq(arg_expr, item, vars)?
-                                .into_iter()
-                                .next()
-                                .unwrap_or(JVal::Null);
-                            keyed.push((k, item.clone()));
-                        }
-                        keyed.sort_by(|a, b| compare_jval(&a.0, &b.0));
-                        let mut groups: Vec<JVal> = Vec::new();
-                        let mut cur_key: Option<JVal> = None;
-                        let mut cur_group: Vec<JVal> = Vec::new();
-                        for (k, v) in keyed {
-                            if cur_key.as_ref() == Some(&k) {
-                                cur_group.push(v);
-                            } else {
-                                if !cur_group.is_empty() {
-                                    groups.push(JVal::Array(std::mem::take(&mut cur_group)));
-                                }
-                                cur_key = Some(k);
-                                cur_group.push(v);
-                            }
-                        }
-                        if !cur_group.is_empty() {
-                            groups.push(JVal::Array(cur_group));
-                        }
-                        return Ok(Some(vec![JVal::Array(groups)]));
-                    }
-                }
-                "unique_by" => {
-                    if let JVal::Array(a) = input {
-                        let mut keyed: Vec<(JVal, JVal)> = Vec::new();
-                        for item in a {
-                            let k = eval_jq(arg_expr, item, vars)?
-                                .into_iter()
-                                .next()
-                                .unwrap_or(JVal::Null);
-                            keyed.push((k, item.clone()));
-                        }
-                        keyed.sort_by(|a, b| compare_jval(&a.0, &b.0));
-                        keyed.dedup_by(|a, b| a.0 == b.0);
-                        return Ok(Some(vec![JVal::Array(
-                            keyed.into_iter().map(|(_, v)| v).collect(),
-                        )]));
+                        let result = if fname == "group_by" {
+                            keyed.chunk_by(|a, b| a.0 == b.0)
+                                .map(|group| JVal::Array(group.iter().map(|(_, v)| (*v).clone()).collect())).collect()
+                        } else {
+                            if fname == "unique_by" { keyed.dedup_by(|a, b| a.0 == b.0); }
+                            keyed.into_iter().map(|(_, v)| v.clone()).collect()
+                        };
+                        return Ok(Some(vec![JVal::Array(result)]));
                     }
                 }
                 "min_by" | "max_by" => {
-                    if let JVal::Array(a) = input {
-                        if a.is_empty() {
-                            return Ok(Some(vec![JVal::Null]));
-                        }
-                        let mut best_val = a[0].clone();
-                        let mut best_key = eval_jq(arg_expr, &a[0], vars)?
-                            .into_iter()
-                            .next()
-                            .unwrap_or(JVal::Null);
-                        for item in &a[1..] {
-                            let k = eval_jq(arg_expr, item, vars)?
-                                .into_iter()
-                                .next()
-                                .unwrap_or(JVal::Null);
-                            let ord = compare_jval(&k, &best_key);
-                            if (fname == "min_by" && ord == std::cmp::Ordering::Less)
-                                || (fname == "max_by" && !ord.is_lt())
-                            {
-                                best_key = k;
-                                best_val = item.clone();
+                    if let JVal::Array(items) = input {
+                        let mut best = None;
+                        for item in items {
+                            let key = JVal::Array(eval_jq(arg_expr, item, vars)?);
+                            if best.as_ref().is_none_or(|(prev, _)| {
+                                compare_jval(&key, prev).is_lt() == (fname == "min_by")
+                            }) {
+                                best = Some((key, item));
                             }
                         }
-                        return Ok(Some(vec![best_val]));
+                        return Ok(Some(vec![best.map_or(JVal::Null, |(_, v)| v.clone())]));
                     }
                 }
                 "join" => {

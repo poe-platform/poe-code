@@ -25,6 +25,7 @@ mod mdq_links;
 mod mdq_order;
 use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Target as MdqTarget};
 mod mdq_writer;
+mod pandoc_docx;
 mod pandoc_plain_table;
 mod pandoc_list;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
@@ -31822,12 +31823,14 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
             Some(b)
         }
-        "docx" | "odt" | "epub" | "epub3" => {
+        "docx" => match pandoc_docx::read(&raw_bytes, fs.shell_limits().max_input_bytes) {
+            Ok(blocks) => Some(blocks),
+            Err((status, message)) => return err_out(message, status),
+        },
+        "odt" | "epub" | "epub3" => {
             let entries = read_office_archive(&raw_bytes);
             if let Some(md_bytes) = entries.get("__pandoc_source.md") {
                 parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
-            } else if let Some(doc_xml) = entries.get("word/document.xml") {
-                Some(parse_pandoc_html(&String::from_utf8_lossy(doc_xml)))
             } else if let Some(content_xml) = entries.get("content.xml") {
                 Some(parse_pandoc_html(&String::from_utf8_lossy(content_xml)))
             } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
@@ -35761,6 +35764,23 @@ mod tests {
             ("commonmark", "☐", "☒"), ("gfm-task_lists", "☐", "☒")] {
             assert_eq!(run(to), format!("- before\n\n<!-- -->\n\n- {empty}\n- {check} after\n\n1.  first\n\n<!-- -->\n\n2)  second\n"), "{to}");
         }
+    }
+
+    #[test]
+    fn pandoc_docx_reads_wordprocessingml_instead_of_treating_it_as_html() {
+        let vfs = MemoryVfs::new();
+        let xml = r#"<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body><w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr><w:r><w:t>Report</w:t></w:r></w:p>
+<w:p><w:r><w:t>Literal **stars** &amp; </w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t>bold</w:t></w:r>
+<w:r><w:t> and </w:t></w:r><w:r><w:rPr><w:i/><w:b w:val="0"/></w:rPr><w:t>italic</w:t></w:r>
+<w:r><w:t>.</w:t></w:r></w:p><w:sectPr/></w:body></w:document>"#;
+        let rels = br#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>"#;
+        let styles = br#"<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/></w:style></w:styles>"#;
+        let zip = write_zip_stored(&[("_rels/.rels", rels), ("word/styles.xml", styles), ("word/document.xml", xml.as_bytes())]);
+        vfs.write_file("/input.docx", &zip).unwrap();
+        let result = cmd_pandoc(&args(&["/input.docx", "-t", "html", "--wrap=none"]), "", "/", &vfs);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(result.stdout, "<h2 id=\"report\">Report</h2>\n<p>Literal **stars** &amp; <strong>bold</strong> and <em>italic</em>.</p>\n");
     }
 
     #[test]

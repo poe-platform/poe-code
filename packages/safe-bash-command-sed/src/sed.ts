@@ -632,7 +632,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             continue;
           }
           case "q": quit = true; status = instruction.status ?? 0; pc = program.length; continue;
-          case "Q": deleted = true; quit = true; status = instruction.status ?? 0; pc = program.length; continue;
+          case "Q": return { status: instruction.status ?? 0, quit: true };
           case "z": pattern = ""; break;
           case "F": { const p = emit(`${record.file}${separator}`); if (p) await p; break; }
           case "a": append({ text: instruction.text! }); break;

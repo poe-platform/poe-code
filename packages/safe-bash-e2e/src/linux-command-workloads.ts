@@ -178,6 +178,9 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   return [
     ...([
+      ["sed -e p -e 'a queued' -e 'r samples/base' -e Q7", "first\nsecond\n"],
+      ["sed -n -e 'a queued' -e Q7", "first"],
+      ["sed -n -e p -e 'a queued' -e q7", "first\n"],
       ["sed -n 'N;l'", "first\nsecond\n"],
       ["sed -n -z 'N;l'", "first\npart\0second\0"],
       ["sed -n 'l 70'", "é0123456789".repeat(1024) + "\n"],

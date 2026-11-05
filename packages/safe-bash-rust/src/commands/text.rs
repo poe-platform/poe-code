@@ -1699,9 +1699,7 @@ fn run_sed_on_text(
                 }
                 SedFlow::Quit(code, silent) => {
                     quit = Some(code.unwrap_or(0));
-                    if silent {
-                        deleted = true;
-                    }
+                    if silent { return Ok((out, quit)); }
                     break;
                 }
                 SedFlow::Error(msg) => {

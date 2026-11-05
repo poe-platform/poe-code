@@ -30,7 +30,7 @@ export const sedRequirements: readonly CommandFileSystemRequirement[] = [
   { id: "script-file", description: "Read sed program files (-f)", capabilities: ["read"] },
   { id: "script-read", description: "Read files referenced by sed r instructions", capabilities: [], anyOf: [["streamingRead"], ["retainedRead"], ["read"]] },
   { id: "script-output", description: "Truncate and append files referenced by sed w instructions", capabilities: ["write", "append"], mutates: true },
-  { id: "in-place", description: "Inspect and conditionally rewrite retained files (-i)", capabilities: ["stat", "write", "retainedRead", "atomicFileMutation"], mutates: true },
+  { id: "in-place", description: "Replace edited files while preserving their hard links (-i)", capabilities: ["stat", "write", "retainedRead", "atomicFileMutation", "atomicFileStaging", "atomicStagingAncestry", "retainedStagingCleanup"], mutates: true },
   { id: "backup", description: "Conditionally write retained original bytes to backups (-iSUFFIX)", capabilities: ["write", "atomicFileMutation"], mutates: true },
 ];
 

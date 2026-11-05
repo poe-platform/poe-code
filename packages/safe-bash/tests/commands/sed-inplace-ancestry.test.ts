@@ -34,7 +34,7 @@ for (const suffix of ["", ".bak"]) {
             const operand = args[0];
             const trigger = phase === "read" ? ["openReadFile", "readStream", "readFile"].includes(String(property))
               : phase === "backup" ? ["copyFile", "writeFileConditional"].includes(String(property)) && (property === "copyFile" || operand === path + ".bak")
-              : ["writeFile", "writeFileConditional"].includes(String(property)) && operand === path;
+              : property === "publishStagedFile" && args[1] === path;
             if (!swapped && trigger) {
               swapped = true;
               await backing.rename("/work/visible", "/work/held");
@@ -56,7 +56,7 @@ for (const suffix of ["", ".bak"]) {
   }
 }
 
-for (const missing of ["writeFileConditional", "confineExtraction", "openReadFile"]) {
+for (const missing of ["writeFileConditional", "confineExtraction", "openReadFile", "createStagedFile", "publishStagedFile", "removeStagedFile"]) {
   test(`sed refuses in-place edits without ${missing} before any output`, async t => {
     const backing = await fixture({ file: "old\n", output: "keep" });
     const fs = new Proxy(backing, { get(target, property) {
@@ -115,7 +115,7 @@ for (const phase of ["read", "publication"]) {
       const member: unknown = Reflect.get(target, property, target);
       if (typeof member !== "function") return member;
       return async (...args: unknown[]) => {
-        if (!swapped && (phase === "read" ? property === "openReadFile" : property === "writeFileConditional")) {
+        if (!swapped && (phase === "read" ? property === "openReadFile" : property === "publishStagedFile")) {
           swapped = true;
           await backing.rename("/work/file", "/work/held");
           await backing.rename("/work/replacement", "/work/file");

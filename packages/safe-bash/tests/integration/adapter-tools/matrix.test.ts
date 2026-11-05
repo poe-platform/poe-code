@@ -13,8 +13,8 @@ const digest = createHash("sha256").update(payload).digest("hex");
 const options = { timeout: 20_000 };
 const todoPipeline = "find src -type f -name '*.txt' | xargs rg --no-heading --no-filename '^TODO' | sed 's/^TODO //' | awk '{ print $1 \":\" $2 }' | jq -R '.' | jq -s '.'";
 const sedConditionalWriteError = "sed: ENOTSUP: in-place editing requires retained reads and atomic conditional writes '/work/old.txt'\n";
-const sedRetainedReadError = "sed: ENOTSUP: Inspect and conditionally rewrite retained files (-i) requires unavailable filesystem capabilities: retainedRead, sed\n";
-const sedAtomicMutationError = "sed: ENOTSUP: Inspect and conditionally rewrite retained files (-i) requires unavailable filesystem capabilities: atomicFileMutation, sed\n";
+const sedRetainedReadError = "sed: ENOTSUP: Replace edited files while preserving their hard links (-i) requires unavailable filesystem capabilities: retainedRead, sed\n";
+const sedAtomicMutationError = "sed: ENOTSUP: Replace edited files while preserving their hard links (-i) requires unavailable filesystem capabilities: atomicFileMutation, atomicFileStaging, retainedStagingCleanup, sed\n";
 // These are independently declared provider guarantees, not runtime capability
 // probes that could silently turn a regression into a passing unsupported case.
 const profiles = {
@@ -22,7 +22,7 @@ const profiles = {
   real: { retainedReads: true, patchPublication: true, sedInPlaceError: sedConditionalWriteError },
   s3: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
   webdav: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
-  mount: { retainedReads: true, patchPublication: true, sedInPlaceError: sedConditionalWriteError },
+  mount: { retainedReads: true, patchPublication: true, sedInPlaceError: "sed: ENOTSUP: Replace edited files while preserving their hard links (-i) requires unavailable filesystem capabilities: atomicStagingAncestry, sed\n" },
   overlay: { retainedReads: true, patchPublication: true, sedInPlaceError: null },
 };
 const patchPublicationError = "patch: filesystem does not support race-safe patch publication\n";

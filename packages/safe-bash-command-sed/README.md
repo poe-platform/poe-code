@@ -15,7 +15,8 @@ Use `sed -n 'l 0'` to inspect control characters and non-ASCII bytes without lin
 Supported operations include addressed substitutions, print/delete, hold space,
 branches, program files (`-f`), extended regular expressions (`-E`), null-delimited
 records (`-z`), and in-place edits with optional backups (`-i.bak`). In-place
-editing requires filesystem support for confined, conditional publication.
+editing replaces the named file, leaving other hard links to its previous contents
+intact. It requires filesystem support for guarded staging and cleanup.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

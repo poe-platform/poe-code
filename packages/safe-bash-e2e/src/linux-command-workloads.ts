@@ -184,6 +184,7 @@ export function linuxCommands(text: string) {
       ["sed -n -l 5 'l'", Buffer.concat([Buffer.from("é💡\ue0ff"), Buffer.from([255,9,13,10])])],
       ["sed -n -l 4 'l0;l 7;l4294967295;l4294967299'", "abcdefghij\n"],
       ["cat >sed-list-edit; sed -s -n l sed-list-edit; sed -i.bak -e 'w sed-list-copy' -e l sed-list-edit; cat sed-list-edit sed-list-edit.bak sed-list-copy", Buffer.from([255,128,13,10])],
+      ["rm -rf sed-links; mkdir sed-links; cd sed-links; echo old >file; ln file peer; sed -i 's/old/new/' file; cat file peer; test ! file -ef peer", ""],
       ["rm -rf sed-directory; mkdir -p sed-directory/file.bak; cd sed-directory; echo old >file; sed -i.bak 's/old/new/' file; rc=$?; cat file; exit $rc", ""],
       ["cat >sed-list-input; sed -n l sed-list-input", Buffer.from([195,169,255,13,10])],
     ] as const).map(([script, input]) => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input })),

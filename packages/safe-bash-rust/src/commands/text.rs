@@ -106,6 +106,33 @@ struct SedCmd {
     range_start_line: usize,
 }
 
+fn read_sed_edit(fs: &dyn SafeBashFs, path: &str) -> Result<(Vec<u8>, crate::vfs::FileStat, crate::vfs::PublicationStamp), String> {
+    let (original, stamp) = fs.inspect_extraction(path, false)?;
+    let original = original.ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
+    if original.kind != crate::vfs::VfsEntryKind::File {
+        return Err("in-place editing requires regular files and directory parents".into());
+    }
+    for (end, _) in path.match_indices('/').skip(1) {
+        if fs.lstat(&path[..end])?.kind != crate::vfs::VfsEntryKind::Directory {
+            return Err("in-place editing requires directory ancestry".into());
+        }
+    }
+    let reader = fs.open_read_file(path, false)?;
+    if !original.same_snapshot(&reader.stat()?) { return Err(format!("EAGAIN: input changed: {path}")); }
+    let limit = fs.max_input_bytes();
+    if original.size > limit { return Err(fs.limit_error("maxInputBytes", limit)); }
+    let mut bytes = Vec::new();
+    while bytes.len() < original.size {
+        fs.command_descriptor_op()?;
+        let count = (original.size - bytes.len()).min(65536);
+        let chunk = reader.read(bytes.len() as u64, count)?;
+        if chunk.is_empty() || chunk.len() > count { return Err(format!("EAGAIN: input changed: {path}")); }
+        bytes.extend_from_slice(&chunk);
+    }
+    if !original.same_snapshot(&reader.stat()?) { return Err(format!("EAGAIN: input changed: {path}")); }
+    Ok((bytes, original, stamp))
+}
+
 fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut quiet = false;
     let mut extended = false;
@@ -314,28 +341,42 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if in_place && !files.is_empty() {
         for f in &files {
             let full = resolve_posix_path(cwd, f);
-            if let Ok(bytes) = fs.read_file(&full) {
-                let content = crate::vfs::bytes_to_stream_string(&bytes);
-                let mut cmds_copy = parsed_cmds.clone();
-                let (res, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
-                if let Some(em) = err_msg {
-                    return err_out(&em, code);
+            let (bytes, replacement) = if in_place_suffix.is_empty() {
+                let operand = absolute_operand(cwd, f);
+                if operand.split('/').any(|part| part == "..") || operand != full && fs.lstat(&operand).is_err() {
+                    return err_out(&format!("sed: invalid in-place operand: {f}\n"), 1);
                 }
-                if !in_place_suffix.is_empty() {
-                    let backup = format!("{full}{in_place_suffix}");
-                    if fs.lstat(&backup).is_ok_and(|stat| stat.kind == crate::vfs::VfsEntryKind::Directory) {
-                        return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4);
-                    }
-                    if let Err(e) = fs.write_file(&backup, &bytes) {
-                        return err_out(&format!("sed: {e}\n"), 4);
-                    }
-                }
-                if let Err(e) = fs.write_file(&full, &crate::vfs::stream_string_to_bytes(&res)) {
-                    return err_out(&format!("sed: {e}\n"), 4);
+                match read_sed_edit(fs, &full) {
+                    Ok((bytes, stat, stamp)) => (bytes, Some((stat, stamp))),
+                    Err(e) => return err_out(&format!("sed: {e}\n"), 1),
                 }
             } else {
-                return err_out(&format!("sed: ENOENT: no such file or directory, lstat '{full}'\n"), 1);
+                match fs.read_file(&full) {
+                    Ok(bytes) => (bytes, None),
+                    Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, lstat '{full}'\n"), 1),
+                }
+            };
+            let content = crate::vfs::bytes_to_stream_string(&bytes);
+            let mut cmds_copy = parsed_cmds.clone();
+            let (res, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
+            if let Some(em) = err_msg {
+                return err_out(&em, code);
             }
+            if !in_place_suffix.is_empty() {
+                let backup = format!("{full}{in_place_suffix}");
+                if fs.lstat(&backup).is_ok_and(|stat| stat.kind == crate::vfs::VfsEntryKind::Directory) {
+                    return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4);
+                }
+                if let Err(e) = fs.write_file(&backup, &bytes) {
+                    return err_out(&format!("sed: {e}\n"), 4);
+                }
+            }
+            let output = crate::vfs::stream_string_to_bytes(&res);
+            let publication = match replacement {
+                Some((stat, stamp)) => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
+                None => fs.write_file(&full, &output),
+            };
+            if let Err(e) = publication { return err_out(&format!("sed: {e}\n"), 4); }
         }
         for (wf, data) in write_files {
             let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data));

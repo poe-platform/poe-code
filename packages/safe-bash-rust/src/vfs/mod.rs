@@ -496,6 +496,11 @@ pub trait SafeBashFs: Send + Sync {
     fn remove_unchanged_entry(&self, _path: &str, _parent: &FileStat, _expected: &FileStat) -> Result<(), String> {
         Err("ENOTSUP: atomic source removal unavailable (use -k or -c)".into())
     }
+    fn remove_command_entry(&self, path: &str, parent: &FileStat, expected: &FileStat, _force: bool) -> Result<(), String> {
+        if expected.kind == VfsEntryKind::File && expected.revision.is_some() && matches!(expected.identity, Some(EntryIdentity::Memory(..))) {
+            self.remove_unchanged_file(path,parent,expected)
+        } else { self.remove_one(path,false) }
+    }
     fn remove_unchanged_file(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
         if expected.kind != VfsEntryKind::File { return Err(format!("EBUSY: input changed; input retained '{path}'")); }
         self.remove_unchanged_entry(path,parent,expected)

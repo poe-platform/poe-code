@@ -259,17 +259,15 @@ impl Remove<'_, '_> {
             let parent = self.fs.access_path(&dirname_posix_path(path),true)?;
             let canonical = child_disp_path(&parent,&basename_posix_path(path));
             let current = if self.plain && canonical == path { st.clone() } else {
-                self.inspect(&canonical)?.filter(|s| s.identity == st.identity && s.kind == st.kind)
+                self.inspect(&canonical)?.filter(|s| s.identity == st.identity && s.kind == st.kind && s.revision == st.revision)
                     .ok_or_else(|| format!("EAGAIN: resource temporarily unavailable, rm '{path}'"))?
             };
             let mut parent_stat = self.fs.inspect_command_entry("/",false,"lstat")?.1;
             for (end, _) in parent.match_indices('/').skip(1).chain((parent != "/").then_some((parent.len(),""))) {
                 parent_stat = self.fs.inspect_command_entry(&parent[..end],false,"lstat")?.1;
             }
-            let result = if current.kind == VfsEntryKind::File && current.revision.is_some() && matches!(current.identity,Some(EntryIdentity::Memory(_, _))) {
-                self.fs.remove_unchanged_file(&canonical,&parent_stat,&current)
-            } else if dir { self.fs.command_descriptor_op().and_then(|_| self.fs.remove_path(&canonical)) }
-            else { self.fs.remove_one(&canonical,false) };
+            let result = if dir { self.fs.command_descriptor_op().and_then(|_| self.fs.remove_path(&canonical)) }
+                else { self.fs.remove_command_entry(&canonical,&parent_stat,&current,self.force) };
             result.map_err(|e| copy_error(&e,"rm",&canonical))?;
         }
         self.removed(operand);

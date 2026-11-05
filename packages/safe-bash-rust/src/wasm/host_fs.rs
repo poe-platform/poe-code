@@ -693,6 +693,22 @@ impl SafeBashFs for HostFs {
         }
         self.request("mkdir", p, &[], 0, m).map(drop)
     }
+    fn remove_command_entry(&self, path: &str, parent: &FileStat, expected: &FileStat, force: bool) -> Result<(), String> {
+        self.mutable(path,false)?;
+        let bytes = self.request("inspectRm",path,&[],0,0)?;
+        let (header, stats) = bytes.split_at_checked(8).ok_or("EIO: invalid rm observation")?;
+        let stamp = self.own_stamp(header[..4].to_vec())?;
+        let (dir, entry) = stats.split_at_checked(u32::from_le_bytes(header[4..].try_into().unwrap()) as usize)
+            .ok_or("EIO: invalid rm parent")?;
+        if entry.is_empty() && force { return Ok(()); }
+        if entry.is_empty() { return Err(format!("ENOENT: no such file or directory '{path}'")); }
+        let mut current = Self::parse_stat(entry)?;
+        current.atime_ms = expected.atime_ms;
+        if current != *expected || parent.identity != Self::parse_stat(dir)?.identity {
+            return Err(format!("EAGAIN: entry changed, rm '{path}'"));
+        }
+        self.request("removeObserved",path,&[],stamp.version as u32,u32::from(force)).map(drop)
+    }
     fn remove_path(&self, p: &str) -> Result<(), String> {
         self.mutable(p, false)?;
         self.request("rm", p, &[], 1, 0).map(drop)

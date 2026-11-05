@@ -5253,6 +5253,27 @@ test("cp pins the inspected host source before replacing or backing up a destina
   }
 });
 
+test("rm never retries an atomic refusal with an unguarded delete", {skip: !WebAssembly.Suspending}, async () => {
+  const {createMountFileSystem,MemoryFileSystem} = await import("@poe-code/safe-fs");
+  const store = new MemoryFileSystem(), fs = createMountFileSystem({root:store,mounts:{}});
+  const sh = new RustWasmBash({fs,cwd:"/"});
+  try {
+    await store.writeFile("/file",Uint8Array.of(1));
+    const remove = fs.removeEntryConditional.bind(fs);
+    let calls = 0;
+    fs.removeEntryConditional = async (path,options) => {
+      calls++;
+      await store.rename(path,"/original");
+      await store.writeFile(path,Uint8Array.of(2));
+      return remove(path,options);
+    };
+    const r = await sh.exec("rm -f /file");
+    assert.equal(calls,1);
+    assert.equal(r.exitCode,1);
+    assert.deepEqual(await store.readFile("/file"),Uint8Array.of(2));
+  } finally { await sh.dispose(); }
+});
+
 test("moving a host file across mounts preserves bytes and metadata when creating or replacing", {skip: !WebAssembly.Suspending}, async () => {
   const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
   const src = new MemoryFileSystem(), dest = new MemoryFileSystem();

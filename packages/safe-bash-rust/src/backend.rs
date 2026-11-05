@@ -355,6 +355,11 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.remove_unchanged_entry(&host_text(path),parent,expected).map_err(quote_host_text)
     }
 
+    fn remove_command_entry(&self, path: &str, parent: &crate::vfs::FileStat, expected: &crate::vfs::FileStat, force: bool) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.remove_command_entry(&host_text(path),parent,expected,force).map_err(quote_host_text)
+    }
     fn remove_unchanged_file(&self, path: &str, parent: &crate::vfs::FileStat, expected: &crate::vfs::FileStat) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

@@ -256,8 +256,8 @@ function bindExternalFs(shell,fs,options) {
           if(typeof root!=="string")throw fsOperationError("EIO",op,path);
           result=encoder.encode(root);return;
         }
-        if(op==="inspectExtraction" || op==="inspectMoveDestination"){
-          const caps=await fs.capabilitiesFor?.(path,{...settings,create:true,...(op==="inspectMoveDestination" && {stagingAncestry:true})}) ?? fs.capabilities;
+        if(op==="inspectExtraction" || op==="inspectMoveDestination" || op==="inspectRm"){
+          const caps=await fs.capabilitiesFor?.(path,op==="inspectRm"?settings:{...settings,create:true,...(op==="inspectMoveDestination" && {stagingAncestry:true})}) ?? fs.capabilities;
           const ancestors=[];
           for(let end=0;end>=0;end=path.indexOf("/",end+1)){
             const dir=path.slice(0,end)||"/",stat=await fs.lstat(dir,settings);
@@ -278,6 +278,12 @@ function bindExternalFs(shell,fs,options) {
           const id=nextHandle++, guard={...(!exclusiveMove && {ancestors}),parent:ancestors.at(-1).stat,destination};
           publications.set(id,{path,guard,caps,exclusiveMove,allowTrusted:!!flags,retainedWriter:caps?.retainedStagingWrite===true && (!flags || caps.retainedStagingCleanup===true)});
           const bytes=destination && statBytes(destination);
+          if(op==="inspectRm"){
+            const parent=statBytes(guard.parent);
+            result=new Uint8Array(8+parent.length+(bytes?.length??0));
+            const header=new DataView(result.buffer);header.setUint32(0,id,true);header.setUint32(4,parent.length,true);
+            result.set(parent,8);if(bytes)result.set(bytes,8+parent.length);return;
+          }
           result=new Uint8Array(4+(bytes?.length??0));new DataView(result.buffer).setUint32(0,id,true);
           if(bytes)result.set(bytes,4);
           return;
@@ -342,6 +348,16 @@ function bindExternalFs(shell,fs,options) {
               now.identityScope===expected.identityScope && now.revision===expected.revision+mode)entry=now;
           }
           await fs.removeEntryConditional(canonical,{...settings,parent,expected:entry});return;
+        }
+        if(op==="removeObserved"){
+          const obs=publications.get(flags);
+          if(obs?.path!==path || !obs.guard.destination)throw fsOperationError("EAGAIN","rm",path);
+          const {parent,destination:expected,ancestors}=obs.guard;
+          if(expected.type==="directory")throw fsOperationError("EISDIR","rm",path);
+          const method=obs.caps?.atomicEntryRemoval?"removeEntryConditional":
+            expected.type==="file" && obs.caps?.atomicFileMutation?"removeFileConditional":"rm";
+          if(typeof fs[method]!=="function" || obs.caps?.remove===false)throw fsOperationError("ENOTSUP","rm",path);
+          await fs[method](path,{...settings,parent,expected,ancestors,...(method==="rm" && {recursive:false,force:!!mode})});return;
         }
         if(op==="removeExtraction"){
           const obs=publications.get(flags);

@@ -51,6 +51,30 @@ async function runSqlite3(
   };
 }
 
+for (const [ordering, values] of [
+  ["ASC NULLS LAST", [1, 2, null, null]],
+  ["DESC NULLS FIRST", [null, null, 2, 1]],
+  ["ASC NULLS FIRST", [null, null, 1, 2]],
+  ["DESC NULLS LAST", [2, 1, null, null]],
+  ["ASC", [null, null, 1, 2]],
+  ["DESC", [2, 1, null, null]]
+] as const) {
+  for (const outerOrder of ["", " ORDER BY rn"]) {
+    test(`sqlite3 window ORDER BY x ${ordering}${outerOrder}`, async () => {
+      const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", `
+        WITH t(x) AS (VALUES(1),(NULL),(2),(NULL))
+        SELECT x, ROW_NUMBER() OVER (ORDER BY x ${ordering}) AS rn,
+               RANK() OVER (ORDER BY x ${ordering}) AS rnk
+        FROM t${outerOrder};
+      `]);
+      assert.equal(result.code, 0, result.stderr);
+      assert.deepEqual(JSON.parse(result.stdout), values.map((x, i) => ({
+        x, rn: i + 1, rnk: values.findIndex((value) => value === x) + 1
+      })));
+    });
+  }
+}
+
 test("sqlite3 IS boolean literals tests truthiness, including negation and NULL", async () => {
   const result = await runSqlite3(createMemoryFileSystem(), [":memory:", `
     SELECT 2 IS TRUE, 0.5 IS TRUE, '1' IS TRUE, '0' IS FALSE;

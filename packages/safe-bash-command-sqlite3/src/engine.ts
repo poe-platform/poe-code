@@ -5193,7 +5193,7 @@ export class SqliteDatabase {
     const firstWindow = windowResults.keys().next().value;
     if (!orderByTokens?.length && firstWindow?.kind === "func" && firstWindow.over) {
       const sortSpecs = [
-        ...firstWindow.over.partitionBy.map((expr) => ({ expr, desc: false })),
+        ...firstWindow.over.partitionBy.map((expr) => ({ expr, desc: false, nulls: undefined })),
         ...firstWindow.over.orderBy
       ];
       if (sortSpecs.length > 0) {
@@ -5206,7 +5206,13 @@ export class SqliteDatabase {
         yield* stepSort(keyed, function* (a, b) {
           for (let i = 0; i < sortSpecs.length; i++) {
             yield;
-            const cmp = compareSqlValues(a.keys[i]!, b.keys[i]!);
+            const vA = a.keys[i]!;
+            const vB = b.keys[i]!;
+            const nulls = sortSpecs[i]!.nulls;
+            if (nulls && (vA === null) !== (vB === null)) {
+              return (vA === null) === (nulls === "FIRST") ? -1 : 1;
+            }
+            const cmp = compareSqlValues(vA, vB);
             if (cmp !== 0) return sortSpecs[i]!.desc ? -cmp : cmp;
           }
           return 0;
@@ -6460,6 +6466,9 @@ export class SqliteDatabase {
             yield;
             const vA = yield* this.evalExprSteps(ob.expr, gA.representative, positionalParams, cteScope, { group: gA.group });
             const vB = yield* this.evalExprSteps(ob.expr, gB.representative, positionalParams, cteScope, { group: gB.group });
+            if (ob.nulls && (vA === null) !== (vB === null)) {
+              return (vA === null) === (ob.nulls === "FIRST") ? -1 : 1;
+            }
             const cmp = compareSqlValues(vA, vB);
             if (cmp !== 0) {
               return ob.desc ? -cmp : cmp;

@@ -2511,6 +2511,19 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             const daByte = dst.data[dIdx + 3]!;
             const sa = saByte / 255;
             const da = daByte / 255;
+            if (norm === "dividesrc") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    const source = src.data[sIdx + c]! / 255 * sa;
+                    const destination = dst.data[dIdx + c]! / 255 * da;
+                    // ImageMagick divides premultiplied channels before alpha normalization.
+                    const channel = destination === 0 ? 1 - da
+                        : destination / source + destination * (1 - sa) + source * (1 - da);
+                    out[dIdx + c] = clampByteVal(Math.min(1, channel / Math.max(alpha, 1e-12)) * 255);
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
             if (norm === "dstover" || norm === "destover") {
                 const sourceAlpha = sa * (1 - da);
                 const alpha = da + sourceAlpha;

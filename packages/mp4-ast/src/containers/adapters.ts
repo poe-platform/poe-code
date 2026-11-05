@@ -500,14 +500,15 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
   };
 }
 
-export function serializeWav(doc: MediaDocument): Uint8Array {
+export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const audioTrack = doc.tracks.find((t) => t.type === "audio");
   const sampleRate = audioTrack?.codecDescriptions[0]?.sampleRate ?? audioTrack?.timescale ?? 44100;
   const channels = audioTrack?.codecDescriptions[0]?.channels ?? 2;
-  const bitsPerSample = 16;
+  let bitsPerSample = 16;
+  let formatTag = 1;
 
   let pcmBytes: Uint8Array;
-  const decodedAudio = audioTrack?.decodedAudio ?? (audioTrack?.samples.length &&
+  const decodedAudio = options.audioCodec === "copy" ? undefined : audioTrack?.decodedAudio ?? (audioTrack?.samples.length &&
     audioTrack.codecDescriptions[0]?.codecName === "aac" ? decodeAacTrack(doc, audioTrack) : undefined);
   if (decodedAudio) {
     const chData = decodedAudio.channelData;
@@ -517,7 +518,7 @@ export function serializeWav(doc: MediaDocument): Uint8Array {
     for (let i = 0; i < numSamples; i++) {
       for (let c = 0; c < channels; c++) {
         const val = Math.max(-1, Math.min(1, chData[c]?.[i] ?? 0));
-        pView.setInt16((i * channels + c) * 2, Math.round(val * 32767), true);
+        pView.setInt16((i * channels + c) * 2, Math.min(32767, Math.round(val * 32768)), true);
       }
     }
   } else if (
@@ -526,17 +527,20 @@ export function serializeWav(doc: MediaDocument): Uint8Array {
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
   ) {
     pcmBytes = concatBytes(audioTrack.samples.map((s) => s.data));
+    bitsPerSample = audioTrack.codecDescriptions[0]!.bitsPerSample ?? 16;
+    formatTag = audioTrack.codecDescriptions[0]!.codecName.startsWith("pcm_f") ? 3 : 1;
   } else {
     throw new Error("WAV encoding requires decoded PCM audio");
   }
 
-  const writer = new BinaryWriter(44 + pcmBytes.byteLength);
+  const padding = pcmBytes.byteLength % 2;
+  const writer = new BinaryWriter(44 + pcmBytes.byteLength + padding);
   writer.writeFourCC("RIFF");
-  writer.writeU32LE(36 + pcmBytes.byteLength);
+  writer.writeU32LE(36 + pcmBytes.byteLength + padding);
   writer.writeFourCC("WAVE");
   writer.writeFourCC("fmt ");
   writer.writeU32LE(16);
-  writer.writeU16LE(1); // PCM
+  writer.writeU16LE(formatTag);
   writer.writeU16LE(channels);
   writer.writeU32LE(sampleRate);
   writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
@@ -545,6 +549,7 @@ export function serializeWav(doc: MediaDocument): Uint8Array {
   writer.writeFourCC("data");
   writer.writeU32LE(pcmBytes.byteLength);
   writer.writeBytes(pcmBytes);
+  if (padding) writer.writeBytes(new Uint8Array(1));
   return writer.toUint8Array();
 }
 
@@ -630,8 +635,8 @@ export function wavAst(): MediaAstPlugin {
     parse(bytes, options) {
       return parseWav(bytes, options);
     },
-    serialize(doc) {
-      return serializeWav(doc);
+    serialize(doc, options) {
+      return serializeWav(doc, options);
     },
     probe(bytes, options) {
       if (!options?.showPackets && !options?.showFrames) return wavMetadata(readWavHeader(bytes), options?.filename);

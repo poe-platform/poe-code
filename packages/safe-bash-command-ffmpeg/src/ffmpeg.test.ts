@@ -1980,3 +1980,28 @@ it("preserves constant audio when upsampling clips shorter than the filter", asy
     for (const sample of samples) assert.ok(Math.abs(sample - 0.25) < 0.0001);
   }
 });
+
+for (const codec of ["copy", "pcm_s16le"]) {
+  it(`preserves PCM integers during WAV ${codec}`, async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from({ length: 160 }, (_, i) => [-1, -0.75, -0.5, 0, 0.5, 0.75, 1, 0.25][i % 8]!)
+    ] });
+    const vfs = createTestVfs({ "/input.wav": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", codec, "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(parseWav(vfs.store.get("/output.wav")!).tracks[0]!.samples.map(s => s.data),
+      parseWav(input).tracks[0]!.samples.map(s => s.data));
+  });
+}
+
+for (const bitsPerSample of [8, 24, 32] as const) {
+  it(`copies ${bitsPerSample}-bit WAV packets with their original precision`, async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from([-1, -0.5, 0, 1 / 2147483648, 1 - 1 / 2147483648])
+    ] }, { bitsPerSample });
+    const vfs = createTestVfs({ "/input.wav": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", "copy", "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(vfs.store.get("/output.wav"), input);
+  });
+}

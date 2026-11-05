@@ -75,3 +75,10 @@ it("accounts for decoded concat memory and rejects partially decoded tracks", ()
   const encoded = parseWav(serializeWav(audio()));
   assert.throws(() => concatMp4([audio(), { ...encoded, tracks: encoded.tracks.map((track) => ({ ...track, decodedAudio: undefined })) }]), /all segments/);
 });
+
+it("copies WAV PCM packets without passing through lossy decoded samples", () => {
+  const input = parseWav(serializeWav(audio()));
+  input.tracks[0]!.decodedAudio!.channelData[0]!.fill(0);
+  const output = parseWav(serializeWav(input, { audioCodec: "copy" }));
+  assert.deepEqual(output.tracks[0]!.samples, input.tracks[0]!.samples);
+});

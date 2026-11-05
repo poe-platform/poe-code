@@ -34,7 +34,7 @@ async function guarded<T>(ctx: AdapterContext, action: () => Promise<T>): Promis
 }
 export const docxReader: ReaderCapability = {format: "docx", async read(input, ctx) {
   return guarded(ctx, async () => {
-    const {Document: openDocument, Paragraph, Run, NumberingGraph, numberingAttribute, modelText, activeModelChildren} = await import("safe-bash-docx-engine/pandoc-adapter");
+    const {Document: openDocument, Paragraph, Run, NumberingGraph, numberingAttribute, numberingChild, modelText, activeModelChildren} = await import("safe-bash-docx-engine/pandoc-adapter");
     const model = await openDocument(input.bytes, await modelContext(ctx));
     const child = (node: XmlElement | undefined, name: string, part = model.part.partname.toString()): XmlElement | undefined =>
       node && activeModelChildren(model.store, part)(node).find(value => value.namespace === node.namespace && value.localName === name);
@@ -186,6 +186,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
     const appendParagraph = async (p: Paragraph, blocks: Block[], stack: ListFrame[]) => {
       const block = await paragraph(p);
       const node = p.store.node(p.ref);
+      if (!numbering && Number(numberingAttribute(numberingChild(numberingChild(numberingChild(node, "pPr"), "numPr"), "numId")) ?? 0)) throw new PandocError("E_PARSE", "read", "Missing DOCX numbering definitions", "docx");
       numbering?.project(node);
       const binding = numbering?.paragraph(node);
       if (!binding || !numbering) {

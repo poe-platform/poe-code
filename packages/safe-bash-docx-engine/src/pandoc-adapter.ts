@@ -9,5 +9,5 @@ export { Paragraph, Run, modelText } from "./block-model.js";
 export {characterizeRetainedRasterHeader} from "./retained-raster-header.js";
 export {Inches} from "./formatting-values.js";
 export {InvalidValueError} from "./archive.js";
-export {NumberingGraph, numberingAttribute} from "./numbering.js";
+export {NumberingGraph, numberingAttribute, numberingChild} from "./numbering.js";
 export { activeModelChildren } from "./model-active-children.js";

@@ -5253,6 +5253,31 @@ test("cp pins the inspected host source before replacing or backing up a destina
   }
 });
 
+test("noclobber on a host without descriptors publishes bytes once and preserves a competing file", {skip: !WebAssembly.Suspending}, async () => {
+  const {createMountFileSystem,MemoryFileSystem} = await import("@poe-code/safe-fs");
+  const store = new MemoryFileSystem(), fs = createMountFileSystem({root:store,mounts:{}});
+  const caps = fs.capabilitiesFor.bind(fs), write = fs.writeFile.bind(fs), puts = [];
+  fs.capabilitiesFor = async (path,opt) => ({...await caps(path,opt),open:false,permissions:false,exclusiveCreate:true});
+  fs.writeFile = async (path,bytes,opt) => {
+    if (path === "/raced" && bytes.length) await store.writeFile(path,Uint8Array.of(42));
+    puts.push([path,opt.flag,opt.mode,bytes.length]);
+    return write(path,bytes,opt);
+  };
+  const sh = new RustWasmBash({fs,cwd:"/"});
+  try {
+    const ok = await sh.exec("set -C; { printf one; printf two; } > /new; : > /empty");
+    assert.equal(ok.exitCode,0,ok.stderr);
+    assert.equal(new TextDecoder().decode(await store.readFile("/new")),"onetwo");
+    assert.deepEqual(puts,[["/new","wx",undefined,6],["/empty","wx",undefined,0]]);
+    for(const script of ["echo lost > /raced","{ touch /ran; } > /new","umask 077; : > /secret"]) {
+      const result = await sh.exec("set -C; "+script);
+      assert.equal(result.exitCode,1,script);
+    }
+    assert.deepEqual(await store.readFile("/raced"),Uint8Array.of(42));
+    for(const path of ["/ran","/secret"]) await assert.rejects(store.stat(path),{code:"ENOENT"});
+  } finally { await sh.dispose(); }
+});
+
 test("mkdir omits only the default mode on a mount without permissions", {skip: !WebAssembly.Suspending}, async () => {
   const {createMountFileSystem, MemoryFileSystem} = await import("@poe-code/safe-fs");
   const fs = createMountFileSystem({root:new MemoryFileSystem(),mounts:{"/remote":new MemoryFileSystem()}});

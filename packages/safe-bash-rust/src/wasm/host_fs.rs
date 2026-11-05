@@ -364,6 +364,20 @@ impl SafeBashFs for HostFs {
         self.request("canOpen", p, &[], 0, 0)
             .is_ok_and(|b| b.first() == Some(&1))
     }
+    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+        self.mutable(path, false)?;
+        self.request("beginExclusive", path, &[], 0, mode)?;
+        let fs = *self;
+        let path = path.to_owned();
+        let mut bytes = Vec::new();
+        Ok(Some(Box::new(move |chunk| {
+            if let Some(chunk) = chunk {
+                bytes.try_reserve(chunk.len()).map_err(|_| "ENOMEM: redirection too large")?;
+                bytes.extend_from_slice(chunk);
+                Ok(())
+            } else { fs.request("finishExclusive", &path, &bytes, 0, mode).map(drop) }
+        })))
+    }
     fn open_redirect_file(
         &self,
         p: &str,

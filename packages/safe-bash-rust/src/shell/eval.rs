@@ -10123,7 +10123,16 @@ impl<'a> EvalState<'a> {
             }
         } else { self.output_redirect_path(operand, kind)? };
         let null = self.is_default_null(&path);
-        if null || self.fs.supports_command_descriptor(&path) {
+        let descriptor = null || self.fs.supports_command_descriptor(&path);
+        if exclusive && !descriptor {
+            if let Some(stream) = self.fs.open_exclusive_redirect(&path, mode).map_err(error)? {
+                let output = Rc::new(ExclusiveOutput(RefCell::new(stream)));
+                opened.push((self.stage_depth, output.clone()));
+                return Ok(FdTarget::Exclusive { path, output });
+            }
+            return Ok(FdTarget::File { path, file: None, offset: None, image: None });
+        }
+        if descriptor {
             // The shell and the output adapter query capabilities; the descriptor
             // queries again for a nonexclusive open. Path lookup above accounts
             // for the first query (or the extra metadata lookup under noclobber).

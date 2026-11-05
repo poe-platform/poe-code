@@ -270,6 +270,7 @@ export function linuxCommands(text: string) {
       ["sed -n -l 5 'l'", Buffer.concat([Buffer.from("é💡\ue0ff"), Buffer.from([255,9,13,10])])],
       ["sed -n -l 4 'l0;l 7;l4294967295;l4294967299'", "abcdefghij\n"],
       ["cat >sed-list-edit; sed -s -n l sed-list-edit; sed -i.bak -e 'w sed-list-copy' -e l sed-list-edit; cat sed-list-edit sed-list-edit.bak sed-list-copy", Buffer.from([255,128,13,10])],
+      ["(rm -f exclusive; set -C; { printf one; printf two; } >exclusive; (printf overwrite >exclusive) 2>/dev/null; echo $?; cat exclusive; rm exclusive)", ""],
       ["rm -rf test-links; mkdir test-links; cd test-links; touch a b; ln a peer; ln -s peer sym; test a -ef peer; echo $?; [ sym -ef a ]; echo $?; [[ a -ef peer ]]; echo $?; test a -ef b; echo $?; test missing/../a -ef a; echo $?", ""],
       ["rm -rf sed-links; mkdir sed-links; cd sed-links; echo old >file; ln file peer; sed -i 's/old/new/' file; cat file peer; test ! file -ef peer", ""],
       ["rm -rf sed-backups; mkdir sed-backups; cd sed-backups; echo old >file; ln file peer; chmod 640 file; echo previous >file.bak; ln file.bak peer-backup; sed -i.bak 's/old/new/' file; cat file peer file.bak peer-backup; stat -c %a file file.bak; test peer -ef file.bak", ""],

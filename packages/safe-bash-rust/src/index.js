@@ -590,6 +590,17 @@ function bindExternalFs(shell,fs,options) {
           return;
         }
         if(op==="ftruncate"){await h.truncate(mode,settings);return;}
+        if(op==="beginExclusive" || op==="finishExclusive"){
+          const caps=await fs.capabilitiesFor?.(path,{...settings,creation:"exclusive"}) ?? fs.capabilities;
+          if(caps?.readOnly)throw fsOperationError("EROFS","writeFile",path);
+          if(caps?.exclusiveCreate!==true || !fs.writeFile || mode!==0o644 && caps.permissions!==true)
+            throw fsOperationError("ENOTSUP","writeFile",path);
+          if(op==="beginExclusive"){
+            try{await fs.lstat(path,settings);}catch(error){if(error?.code==="ENOENT")return;throw error;}
+            throw fsOperationError("EEXIST","writeFile",path);
+          }
+          await fs.writeFile(path,data,{...settings,flag:"wx",...(caps.permissions!==false && {mode})});return;
+        }
         if(op==="mktemp"){
           const caps=await fs.capabilitiesFor?.(path,{...settings,creation:"exclusive"}) ?? fs.capabilities;
           if(caps?.readOnly)throw fsOperationError("EROFS",op,path);

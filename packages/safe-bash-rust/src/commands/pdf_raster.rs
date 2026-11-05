@@ -591,7 +591,7 @@ impl Bitmap {
                 [(a, b), (c, d)] if boxes && a[0] == b[0] && c[0] == d[0] && a[1] == d[1] && b[1] == c[1] => Some((*a, *c)),
                 _ => None,
             };
-            let mut clipped = if aa && rect.is_none() { pdf_cairo_path::clipped_edges(&edges, self.page_clip) } else { Vec::new() };
+            let mut clipped = if !aa || rect.is_none() { pdf_cairo_path::clipped_edges(&edges, self.page_clip) } else { Vec::new() };
             let solid = color.map(|c| (c * 255.).round() as u8);
             let mut areas = vec![0.; x1 - x0];
             for y in y0..y1 {
@@ -603,7 +603,7 @@ impl Bitmap {
                     }
                 };
                 if !aa {
-                    pdf_cairo_path::mono_row(&edges, y, self.w, even, &mut self.work, |start, end| {
+                    pdf_cairo_path::mono_row(&clipped, y, even, &mut self.work, |start, end| {
                         for x in start.max(x0)..end.min(x1) { draw(x, 255); }
                     })?;
                     continue;

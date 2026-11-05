@@ -309,9 +309,8 @@ pub(super) fn area_alpha(area: f64) -> u8 {
 // Cairo's mono converter rounds half toward the smaller pixel and samples
 // the segment at 127/256 of the row. It joins spans one pixel apart.
 pub(super) fn mono_row(
-    edges: &[(Point, Point)],
+    edges: &[PolygonEdge],
     y: usize,
-    width: usize,
     even: bool,
     work: &mut usize,
     mut span: impl FnMut(usize, usize),
@@ -319,15 +318,13 @@ pub(super) fn mono_row(
     let pixel = |fixed: f64| ((fixed + 127.) / 256.).floor();
     let row = y as f64;
     let mut crossings = Vec::new();
-    for &(p, q) in edges {
-        if row < pixel(p[1].min(q[1])) || row >= pixel(p[1].max(q[1])) {
+    for edge in edges {
+        let (p, q) = (edge.p, edge.q);
+        if row < pixel(edge.top) || row >= pixel(edge.bottom) {
             continue;
         }
         let x = p[0] + ((row * 256. + 127. - p[1]) * (q[0] - p[0]) / (q[1] - p[1])).floor();
-        crossings.push((
-            pixel(x).clamp(0., width as f64),
-            if p[1] < q[1] { 1 } else { -1 },
-        ));
+        crossings.push((pixel(x), edge.direction));
     }
     *work = work.checked_sub(
         crossings

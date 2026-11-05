@@ -2228,20 +2228,19 @@ function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [
     ];
 }
 
-function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const raw = parseFloat(threshStr);
     const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw / 257;
+    const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     const out = new Uint8Array(img.data);
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        if (out[i]! > thresh)
-            out[i] = 255 - out[i]!;
-        if (out[i + 1]! > thresh)
-            out[i + 1] = 255 - out[i + 1]!;
-        if (out[i + 2]! > thresh)
-            out[i + 2] = 255 - out[i + 2]!;
+        for (let channel = 0; channel < 4; channel++) {
+            if (mask[channel] && out[i + channel]! > thresh)
+                out[i + channel] = 255 - out[i + channel]!;
+        }
     }
     return { ...img, data: out };
 }
@@ -4340,7 +4339,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickFunctionSteps(image, operation, value, state.channels, signal);
     } else if (token === "-solarize") {
         const value = tokens[++i] ?? "50%";
-        apply = image => applyMagickSolarizeSteps(image, value, signal);
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        apply = image => applyMagickSolarizeSteps(image, value, channels, signal);
     } else if (token === "-posterize") {
         const levels = Number(tokens[++i] ?? 8);
         apply = image => applyMagickPosterizeSteps(image, levels, signal);

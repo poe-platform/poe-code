@@ -1,10 +1,34 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 // ImageMagick Q16: magick -size 1x1 xc:'#804020' -solarize THRESHOLD -depth 8 rgba:-
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        { args: [], expected: [155, 105, 55, 95] },
+        { args: ["-channel", "RGB"], expected: [155, 105, 55, 160] },
+        { args: ["-channel", "RGBA"], expected: [155, 105, 55, 95] },
+        { args: ["-channel", "A"], expected: [100, 150, 200, 95] },
+        { args: ["-channel", "R"], expected: [155, 150, 200, 160] },
+        { args: ["-channel", "RGB", "+channel"], expected: [155, 105, 55, 95] },
+        { args: ["-alpha", "off"], expected: [155, 105, 55, 255] },
+    ])(`matches native solarize channels $args via ${mode}`, async ({ args, expected }) => {
+        const input = await sharp(Uint8Array.from([100, 150, 200, 160]), {
+            raw: { width: 1, height: 1, channels: 4 }
+        }).png().toBuffer();
+        const files = new Map([["/input.png", input]]);
+        const filesystem = new MemoryFileSystem();
+        if (mode === "retained") await filesystem.writeFile("/input.png", input);
+        const command = ["/input.png", ...args, "-solarize", "30%", "/out.png"];
+        const result = mode === "sync"
+            ? runConvertCliSync(command, files)
+            : await runConvertCli(command, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0 });
+        const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+        expect([...decodeImage(output).data]).toEqual(expected);
+    });
+
     it.each([
         ["128", [127, 191, 223, 255]],
         ["32768", [127, 64, 32, 255]],

@@ -101,7 +101,7 @@ packages/safe-bash-rust/
   - Text/formatting utilities (`fmt`, `column`, `csplit`, `split`, `shuf`, `od`, `pr`, `dd`, `iconv`, `dos2unix`, `bc`, `html-to-markdown`)
   - Structured data & tabular tools (`csvcut`, `csvgrep`, `csvstat`, `xan`, `sqlite3`)
   - Document & media engines (`ssconvert`, SVG/image tools)
-- As each command passes its existing `packages/safe-bash/tests/commands/<cmd>` parity and budget suite against the Rust implementation, retire the corresponding TypeScript `packages/safe-bash-command-<cmd>` workspace.
+- Retire a TypeScript command only after its Rust replacement matches the original command on the supported operations, passes the sandbox and budget tests, and works through the production JavaScript entry point.
 
 ### Phase 4: Retire Transitional Bridges & Consolidate
 - Remove the `js-fallback` Node worker bridge from `packages/safe-bash-rust`.
@@ -113,11 +113,12 @@ packages/safe-bash-rust/
 
 1. **Zero-Dep Enforcement**:
    - CI check verifying `cargo tree --edges normal` lists **only** workspace crates (no external crates.io dependencies) and `package.json` `dependencies` remains `{}`.
-2. **Parity Against Existing Test Suites**:
+2. **Parity against the original command**:
+   - Run the original executable on the same inputs as TypeScript and Rust. Record the version and compare exit status, stdout, stderr, and resulting files, including their bytes. Fix either implementation when it disagrees. Test intentional sandbox restrictions and safe-bash extensions separately.
    - Run the existing shell grammar, expansion, pipeline, redirection, VFS, and per-command test suites against the Rust engine.
 3. **Chaos & Resource Budget Scrutiny**:
    - Fuzz parser inputs, deep recursion, fork-bomb function loops, infinite streams (`/dev/zero | ...`), zip/tar bombs, symlink cycles, path traversal attempts, and concurrent cancellation to verify deterministic bounded termination.
 
 ### 4. `safe-bash-e2e` Parity & Performance Benchmark Suite
 - Maintain a dedicated workspace `packages/safe-bash-e2e` (100 E2E test suites / 2,008 scenarios) with an in-memory VFS fixture builder, multi-stage shell/pipeline scenario runner, and high-resolution performance profiler.
-- Record structured benchmark results across runs, backends (TypeScript `safe-bash`, hybrid `safe-bash-rust`, native zero-dep Rust, and Wasm), and optimization passes (tracking p50/p95/mean latency, ops/sec, throughput MB/s, and heap delta) so regressions and speedups are measurable at every step.
+- Record structured benchmark results across runs, backends (TypeScript `safe-bash`, hybrid `safe-bash-rust`, native zero-dep Rust, and Wasm), and optimization passes (tracking p50/p95/mean latency, ops/sec, throughput MB/s, and heap delta) so regressions and speedups are measurable at every step. Time the original executable on the same verified workload; label process startup and host filesystem costs separately from warm in-memory execution.

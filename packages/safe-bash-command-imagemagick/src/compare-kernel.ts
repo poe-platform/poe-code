@@ -45,6 +45,8 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let fuzzSq = 0;
     let fuzzChannels = 0;
     let maxAbs = 0;
+    let meppSum = 0;
+    let meppPeak = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
     const correlationChannels = (metric === "ncc" || metric === "dpc") ? Array.from({ length: imgA.hasAlpha && imgB.hasAlpha ? 4 : 3 }, () => ({
         rawA: 0, rawB: 0, sumA: 0, sumB: 0, squareA: 0, squareB: 0, product: 0
@@ -130,6 +132,12 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                         }
                     }
                 }
+                if (metric === "mepp") {
+                    // MEPP ignores fuzz and includes alpha only when both inputs have it.
+                    const alphaError = imgA.hasAlpha && imgB.hasAlpha ? da : 0;
+                    meppSum += pdr + pdg + pdb + alphaError;
+                    meppPeak = Math.max(meppPeak, pdr, pdg, pdb, alphaError);
+                }
                 // AE sums channel magnitudes above fuzz, then averages over channels.
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
                 aeMagnitude += (aeR > fuzz ? aeR : 0) + (aeG > fuzz ? aeG : 0) + (aeB > fuzz ? aeB : 0) + (hasAlpha && da > fuzz ? da : 0);
@@ -177,6 +185,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "fuzz":
             distortion = fuzzChannels === 0 ? 0 : fuzzSq / (fuzzChannels * 255 * 255);
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            exitCode = distortion > 1e-6 ? 1 : 0;
+            break;
+        case "mepp":
+            distortion = meppSum / (totalPixels * (imgA.hasAlpha && imgB.hasAlpha ? 4 : 3) * 255);
+            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)}, ${formatSignificantMetric(meppPeak / 255)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mae":

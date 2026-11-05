@@ -2139,12 +2139,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                 const dst = new Float32Array(targetSamples);
                 const srcCh = t.decodedAudio?.channelData[Math.min(c, (t.decodedAudio.channelData.length || 1) - 1)];
+                const rightCh = origCh === 2 && targetCh === 1 ? t.decodedAudio.channelData[1] : undefined;
                 if (srcCh && srcCh.length > 0) {
                   for (let i = 0; i < targetSamples; i++) {
                     if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                     const srcIdx = Math.min(srcCh.length - 1, Math.floor((i / targetSamples) * srcCh.length));
-                    dst[i] = Math.max(-1, Math.min(1, srcCh[srcIdx]! * volFactor));
+                    const sample = rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
+                    dst[i] = Math.max(-1, Math.min(1, sample * volFactor));
                   }
                 }
                 if (reverseAudio) dst.reverse();

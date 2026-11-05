@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { encodeWav } from "@poe-code/audio-ast";
 import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
 import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
 import {
@@ -540,6 +541,23 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  for (const [left, right, expected] of [[0.5, -0.5, 0], [0, 0.5, 0.25], [0.5, 0.5, 0.5]] as const) {
+    it(`mixes stereo ${left}, ${right} to mono ${expected}`, async () => {
+      const input = encodeWav({
+        sampleRate: 8000,
+        channels: [new Float64Array(800).fill(left), new Float64Array(800).fill(right)]
+      });
+      const vfs = createTestVfs({ "/stereo.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/stereo.wav", "-ac", "1", "/mono.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/mono.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(output.sampleRate, 8000);
+      assert.equal(output.channels, 1);
+      assert.equal(output.channelData[0]!.length, 800);
+      assert.ok(output.channelData[0]!.every(sample => sample === expected));
+    });
+  }
+
   it("mutes audible PCM samples with volume=0 without changing their count", async () => {
     const vfs = createTestVfs();
     const command = createFfmpegCommand();

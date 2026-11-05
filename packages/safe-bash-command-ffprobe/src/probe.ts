@@ -123,6 +123,17 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       : Object.fromEntries(Object.entries(row).filter(([key]) => fields.includes(key)));
   };
   const firstFrame = audio.nodes.find((node) => node.type === "MPEG");
+  // MP3 uses FFmpeg's common MPEG audio clock, including decoder delay when
+  // an encoder delay is available from the Xing/LAME header.
+  const mp3TimeBase = 14112000;
+  const encoderDelay = firstFrame?.fields?.encoderDelay;
+  const startPts = audio.format === "flac" ? 0 : audio.format === "mp3"
+    ? typeof encoderDelay === "number"
+      ? (encoderDelay + 529) * (mp3TimeBase / audio.streams[0]!.sampleRate)
+      : 0
+    : undefined;
+  const startTime = startPts === undefined ? undefined
+    : (startPts / (audio.format === "mp3" ? mp3TimeBase : audio.streams[0]!.sampleRate)).toFixed(6);
   const vbr = firstFrame?.fields?.vbr as { type?: string; bytes?: number } | undefined;
   const encodedSamples = Number(firstFrame?.fields?.encodedSamples);
   const mp3Bitrate =
@@ -178,6 +189,8 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
           ? { channel_layout: stream.channels === 1 ? "mono" : "stereo" }
           : {}),
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,
+        time_base: `1/${stream.codec === "mp3" ? mp3TimeBase : stream.sampleRate}`,
+        ...(startPts === undefined ? {} : { start_pts: startPts, start_time: startTime! }),
         ...(!stdinAudio && !unknownFlacDuration ? { duration: durations[index]!.toFixed(6) } : {}),
         ...(!["flac", "opus", "vorbis"].includes(stream.codec)
           ? {
@@ -200,6 +213,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       nb_stream_groups: 0,
       format_name: audio.format === "m4a" ? "mov,mp4,m4a,3gp,3g2,mj2" : audio.format,
       format_long_name: formatLongNames[audio.format],
+      ...(startTime === undefined ? {} : { start_time: startTime }),
       ...(!stdinAudio && !unknownFlacDuration ? { duration: formatDuration.toFixed(6) } : {}),
       ...(!stdinAudio ? { size: String(size) } : {}),
       ...(!unknownFlacDuration ? { bit_rate: String(stdinAudio

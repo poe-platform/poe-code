@@ -632,6 +632,10 @@ function bindExternalFs(shell,fs,options) {
           case "readlink":result=encoder.encode(await fs.readlink(path,settings));break;
           case "readdir":result=encoder.encode((await fs.readdir(path,settings)).map(e=>typeof e==="string"?e:e.name).join("\0"));break;
           case "chmod":await fs.chmod(path,mode,settings);break;
+          case "utimes":{
+            const times=new DataView(data.buffer,data.byteOffset,data.byteLength);
+            await fs.utimes(path,times.getFloat64(0,true),times.getFloat64(8,true),settings);break;
+          }
           default:throw fsOperationError("ENOTSUP",op,path);
         }
       }catch(error){

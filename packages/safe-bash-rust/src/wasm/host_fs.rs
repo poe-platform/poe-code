@@ -830,6 +830,19 @@ impl SafeBashFs for HostFs {
         }
         self.metadata("lstat", p, 0)
     }
+    fn set_times(&self, path: &str, atime: Option<f64>, mtime: Option<f64>) -> Result<(), String> {
+        self.mutable(path, true)?;
+        let times = match (atime, mtime) {
+            (Some(a), Some(m)) => [a, m],
+            (None, None) => return Ok(()),
+            _ => {
+                let st = self.stat(path)?;
+                [atime.unwrap_or(st.atime_ms), mtime.unwrap_or(st.mtime_ms)]
+            }
+        };
+        let bytes = [times[0].to_le_bytes(), times[1].to_le_bytes()].concat();
+        self.request("utimes", path, &bytes, 0, 0).map(drop)
+    }
     fn chmod(&self, p: &str, m: u32) -> Result<(), String> {
         self.mutable(p, true)?;
         self.request("chmod", p, &[], 0, m).map(drop)

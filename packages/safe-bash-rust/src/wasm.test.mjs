@@ -5178,6 +5178,21 @@ test("mktemp retries occupied names without following links, and propagates crea
   } finally { sh.dispose(); }
 });
 
+test("touch updates the selected host timestamps and preserves the other clock", {skip: !WebAssembly.Suspending}, async () => {
+  const {MemoryFileSystem} = await import("@poe-code/safe-fs");
+  const fs = new MemoryFileSystem(), sh = new RustWasmBash({fs,cwd:"/"});
+  try {
+    await fs.writeFile("/file",Uint8Array.of(42));
+    await fs.utimes("/file",123,456);
+    for(const [command,atime,mtime] of [["touch -a -d @123 /file",123000,456],["touch -m -d @456 /file",123000,456000]]) {
+      const result = await sh.exec(command);
+      assert.equal(result.exitCode,0,result.stderr);
+      const st = await fs.stat("/file");
+      assert.deepEqual([st.atimeMs,st.mtimeMs],[atime,mtime]);
+    }
+  } finally { await sh.dispose(); }
+});
+
 test("moving a host file across mounts preserves bytes and metadata when creating or replacing", {skip: !WebAssembly.Suspending}, async () => {
   const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
   const src = new MemoryFileSystem(), dest = new MemoryFileSystem();

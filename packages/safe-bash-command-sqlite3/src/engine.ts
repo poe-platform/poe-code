@@ -7630,6 +7630,13 @@ export class SqliteDatabase {
         const args = yield* stepMap(expr.args, function* (a) {
           return yield* this.evalExprSteps(a, row, positionalParams, cteScope, evaluation);
         }, this);
+        if (u === "NULLIF") {
+          // SQLite uses the first argument that defines a collation, left to right.
+          const collation = expr.args.map(arg => this.expressionCollation(arg, row, ""))
+            .find(Boolean) || "BINARY";
+          const first = args[0] ?? null;
+          return sqlEquals(first, args[1] ?? null, collation) === true ? null : first;
+        }
         return yield* this.evalScalarFunction(expr.name, args);
       }
     }
@@ -7855,8 +7862,6 @@ export class SqliteDatabase {
     const a1 = args[1] ?? null;
 
     switch (u) {
-      case "NULLIF":
-        return sqlEquals(a0, a1) === true ? null : a0;
       case "TYPEOF":
         if (a0 === null || a0 === undefined) {
           return "null";

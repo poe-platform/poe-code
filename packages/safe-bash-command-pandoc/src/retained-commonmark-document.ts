@@ -3,7 +3,6 @@ import {translate} from "./json.js";
 import {nativeDivBlocks} from "./html.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "./types.js";
-import {upgradeRetainedCitations} from "./retained-citations.js";
 import {fencedDivAttributes, letter} from "./commonmark-syntax.js";
 import type {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
 import {parseRetainedCommonMarkInlines} from "./retained-commonmark-inlines.js";
@@ -17,7 +16,7 @@ export async function assembleRetainedCommonMark(
   parser: RetainedCommonMarkBlocks, ast: RetainedRtfAst, tape: PagedStorage, context: AdapterContext,
   extensions: Readonly<Record<string, boolean>>,
   imageTarget?: (target: RtfValue, line: number) => Promise<void>,
-  noteRoot = parser.root, active: readonly number[] = [], initialDepth = 1
+  noteRoot = parser.root, active: readonly number[] = [], initialDepth = 1, citationsState = {note: 0}
 ): Promise<RtfValue> {
   const source = parser.source, definitions = parser.lookup.bind(parser);
   const literal = async (range: SourceRange) => ast.string(await ast.text.from(source.chunks(range)));
@@ -55,14 +54,14 @@ export async function assembleRetainedCommonMark(
             if (active.includes(position)) return undefined;
             context.bound("depth", depth + 1);
             context.charge("retainedBytes", (active.length + 1) * 8);
-            return ast.tag("Note", await assembleRetainedCommonMark(parser, ast, tape, context, extensions, imageTarget, position, [...active, position], depth + 1));
+            return ast.tag("Note", await assembleRetainedCommonMark(parser, ast, tape, context, extensions, imageTarget, position, [...active, position], depth + 1, citationsState));
           }
           if (block.first) {position = block.first; continue;}
           while (position && !(await parser.node(position)).next) position = (await parser.node(position)).parent;
           if (position) position = (await parser.node(position)).next;
         }
         return undefined;
-      } : undefined
+      } : undefined, citationsState
     );
   };
   const attrs = () => ast.value(["", [], []]);
@@ -124,7 +123,7 @@ export async function assembleRetainedCommonMark(
   for (;;) {
     context.bound("depth", depth);
     if (!position) {
-      if (!frame) {if (extensions.citations) await upgradeRetainedCitations(root, ast, source, context); return root;}
+      if (!frame) {return root;}
       const bytes = await tape.read(frame, 64), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       frame = view.getFloat64(0, true); position = view.getFloat64(8, true); out = {position: view.getFloat64(16, true)};
       depth = view.getFloat64(24, true); tight = !!view.getFloat64(32, true); mode = view.getFloat64(40, true); taskNode = view.getFloat64(48, true); checked = !!view.getFloat64(56, true); continue;

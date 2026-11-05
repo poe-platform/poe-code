@@ -1,7 +1,9 @@
 import {scanMarkdownRawTex} from "./markdown-raw-tex.js";
 export {scanMarkdownRawTex} from "./markdown-raw-tex.js";
 import { bareAutolink, filterGfmHtml } from "./gfm-syntax.js";
-import type { Inline, Attr } from "./ast-types.js";
+import {scanMarkdownCitation} from "./markdown-citations.js";
+export {scanMarkdownCitation} from "./markdown-citations.js";
+import type { Citation, Inline, Attr } from "./ast-types.js";
 import type { BlockDefinition, PendingInline } from "./commonmark-blocks.js";
 import type { AdapterContext } from "./types.js";
 import { asciiPunctuation, fencedDivAttributes, whitespace, letter, digit, normalizeLabel, readLabel, readDestination, readTitle, entity, decodeSyntax, normalizeUri } from "./commonmark-syntax.js";
@@ -161,7 +163,8 @@ function html(text: string, start: number, context: AdapterContext): number | un
 export async function parseCommonMarkInlines(
   pending: PendingInline, definitions: readonly BlockDefinition[], context: AdapterContext,
   extensions: Readonly<Record<string, boolean>> = {},
-  footnote?: (label: string) => Promise<Inline | undefined>
+  footnote?: (label: string) => Promise<Inline | undefined>,
+  citationsState = {note: 0}
 ): Promise<Inline[]> {
   context.checkpoint(0);
   const size = pending.lines.reduce((n, line) => n + line.text.length + 1, -1);
@@ -280,6 +283,31 @@ export async function parseCommonMarkInlines(
   for (let i = 0; i < text.length;) {
     if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
     const char = text[i]!;
+    const textualCitation = extensions.citations && (char === "@" || char === "-" && text[i + 1] === "@") && (i === 0 || !letter(text[i - 1]) && !digit(text[i - 1]) && !"_".includes(text[i - 1]!));
+    if ((char === "[" || textualCitation) && extensions.citations) {
+      let end = i + Number(!textualCitation);
+      const citations: Citation[] = [];
+      const parse = (value: string) => parseCommonMarkInlines({kind: "pendingInline", lines: [{text: value, start: pending.lines[0]!.start}]}, definitions, context, {...extensions, citations: false}, footnote);
+      for (;;) {
+        const item = await scanMarkdownCitation(end, position => text[position], context, !textualCitation);
+        if (!item) break;
+        context.charge("retainedBytes", 128);
+        citations.push({citationId: text.slice(item.idStart, item.idEnd),
+          citationPrefix: await parse(text.slice(item.start, item.prefixEnd).trim()),
+          citationSuffix: await parse((item.pageSpace < 0 ? text.slice(item.suffixStart, item.suffixEnd) : text.slice(item.suffixStart, item.pageSpace) + "\u00a0" + text.slice(item.pageSpace + 1, item.suffixEnd)).trim()),
+          citationMode: item.suppressed ? "SuppressAuthor" : textualCitation ? "AuthorInText" : "NormalCitation", citationNoteNum: citationsState.note + 1, citationHash: 0});
+        end = item.end;
+        if (textualCitation || text[end] === "]") break;
+        end++;
+      }
+      if (citations.length && (textualCitation || text[end] === "]")) {
+        citationsState.note++;
+        if (!textualCitation) end++;
+        const literal: Inline[] = [];
+        for (const part of text.slice(i, end).split(" ")) {if (literal.length) literal.push({t: "Space"}); if (part) literal.push({t: "Str", c: part});}
+        append({t: "Cite", c: [citations, literal]}); i = end; continue;
+      }
+    }
     if (char === "\\") {
       const rawEnd = extensions.raw_tex ? await scanMarkdownRawTex(i, position => text[position], context) : undefined;
       if (rawEnd !== undefined) {append({t: "RawInline", c: ["tex", text.slice(i, rawEnd)]}); i = rawEnd; continue;}
@@ -504,7 +532,7 @@ export async function parseCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < text.length && !"\\`*_~^[]!<& \t\n".includes(text[i]!) && !(extensions.smart && "'\"-.".includes(text[i]!)) && !(extensions.tex_math_dollars && text[i] === "$") && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
+    while (i < text.length && !"\\`*_~^[]!<& \t\n".includes(text[i]!) && !(extensions.smart && "'\"-.".includes(text[i]!)) && !(extensions.tex_math_dollars && text[i] === "$") && !(extensions.citations && (text[i] === "@" || text[i] === "-" && text[i + 1] === "@")) && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
     append(text.slice(begin, i));
   }
   await emphasis(null);

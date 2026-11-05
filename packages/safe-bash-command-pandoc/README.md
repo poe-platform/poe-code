@@ -447,7 +447,9 @@ citations and bibliography, import `createCiteprocFilterCapability` from
 `@poe-platform/safe-bash/commands/pandoc` and supply `{style, locale, references}`. Here
 `style` and `locale` are CSL XML strings and `references` is an array of CSL JSON
 items with unique string IDs. Pass the result as `filters`; `--citeproc` and `-C`
-then process citation-bearing Pandoc JSON, including author suppression, textual
+then process Markdown citations or citation-bearing Pandoc JSON. Markdown and `md`
+read citations by default; use `markdown-citations` to keep them literal or
+`gfm+citations` to enable them in GFM. Processing includes author suppression, textual
 citations and note styles, and append the bibliography. Prefixes and suffixes
 currently require plain text. No styles, locales or bibliography files are fetched.
 Use trusted CSL data: citeproc-js runs synchronously without instruction isolation.

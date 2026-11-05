@@ -133,7 +133,7 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
         const parser = new RetainedCommonMarkBlocks(source, tape, context, inputs[readerIndex]!.base, extensions); await parser.parse(range);
         const ast = new RetainedRtfAst(nodes, units => context.cooperate(units));
         const blocks = await assembleRetainedCommonMark(parser, ast, tape, context, {...extensions,
-          citations: !!(extensions.citations || await metadata.tree.property(metadata.tree.rootPosition, "bibliography") !== undefined || await metadata.tree.property(metadata.tree.rootPosition, "references") !== undefined)}, async (target, line) => {await astOrigins.seed(target.position, await sourceAt(line) + 1);});
+          citations: extensions.citations ?? (await metadata.tree.property(metadata.tree.rootPosition, "bibliography") !== undefined || await metadata.tree.property(metadata.tree.rootPosition, "references") !== undefined)}, async (target, line) => {await astOrigins.seed(target.position, await sourceAt(line) + 1);});
         if (envelope) {
           try {await metadata.validate();}
           catch (error) {if (error instanceof AstError) throw new PandocError(error.code, "convert", error.message, undefined, error.path); throw error;}

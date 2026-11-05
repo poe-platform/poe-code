@@ -1,9 +1,10 @@
 import {scanMarkdownRawTex} from "./commonmark-inlines.js";
+import {scanMarkdownCitation} from "./commonmark-inlines.js";
+import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
 import {asciiPunctuation, fencedDivAttributes, digit, entity, letter, normalizeLabel} from "./commonmark-syntax.js";
 import {unicodePunctuation, unicodeWhitespace} from "./commonmark-characters.js";
-import type {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {SourceRange} from "./retained-source-text.js";
 import type {RetainedRtfAst, RtfValue} from "./retained-rtf-ast.js";
 
@@ -15,7 +16,8 @@ export async function parseRetainedCommonMarkInlines(
   definition?: (label: string) => Promise<{destination: SourceRange; title: SourceRange} | undefined>,
   counts: {lines: number; definitions: number} = {lines: 1, definitions: 0},
   imageTarget?: (target: RtfValue, offset: number) => Promise<void>,
-  footnote?: (label: string) => Promise<RtfValue | undefined>
+  footnote?: (label: string) => Promise<RtfValue | undefined>,
+  citationsState = {note: 0}
 ): Promise<RtfValue> {
   context.checkpoint(0);
   const size = syntax.range.end - syntax.range.start;
@@ -119,6 +121,46 @@ export async function parseRetainedCommonMarkInlines(
   }
   for (let i = syntax.range.start; i < syntax.range.end;) {
     await context.cooperate(); const unit = (await char(i))!;
+    const textualCitation = extensions.citations && (unit === "@" || unit === "-" && await char(i + 1) === "@") && (!letter(await char(i - 1)) && !digit(await char(i - 1)) && await char(i - 1) !== "_");
+    if ((unit === "[" || textualCitation) && extensions.citations) {
+      let end = i + Number(!textualCitation), count = 0;
+      const citations = await ast.array();
+      const parse = async (range: SourceRange) => parseRetainedCommonMarkInlines(new RetainedCommonMarkSyntax(syntax.source, range, context), tape, ast, context, {...extensions, citations: false}, definition, counts, imageTarget, footnote);
+      for (;;) {
+        const item = await scanMarkdownCitation(end, char, context, !textualCitation);
+        if (!item) break;
+        const suffix = item.pageSpace < 0 ? {start: item.suffixStart, end: item.suffixEnd} : await syntax.source.append((async function* () {
+          yield* syntax.source.chunks({start: item.suffixStart, end: item.pageSpace});
+          yield "\u00a0";
+          yield* syntax.source.chunks({start: item.pageSpace + 1, end: item.suffixEnd});
+        })());
+        const citation = await ast.object();
+        for (const [name, value] of [
+          ["citationId", await literal({start: item.idStart, end: item.idEnd})],
+          ["citationPrefix", await parse(await syntax.source.trim({start: item.start, end: item.prefixEnd}))],
+          ["citationSuffix", await parse(await syntax.source.trim(suffix))],
+          ["citationMode", await ast.tag(item.suppressed ? "SuppressAuthor" : textualCitation ? "AuthorInText" : "NormalCitation")],
+          ["citationNoteNum", await ast.value(citationsState.note + 1)], ["citationHash", await ast.value(0)]
+        ] as const) await ast.push(citation, await ast.value([name, value]));
+        await ast.push(citations, citation); count++;
+        end = item.end;
+        if (textualCitation || await char(end) === "]") break;
+        end++;
+      }
+      if (count && (textualCitation || await char(end) === "]")) {
+        citationsState.note++;
+        if (!textualCitation) end++;
+        const fallback = await ast.array();
+        let start = i;
+        for (let at = i; at <= end; at++) {
+          if (at !== end && await char(at) !== " ") continue;
+          if (at > start) await ast.push(fallback, await ast.tag("Str", await literal({start, end: at})));
+          if (at !== end) await ast.push(fallback, await ast.tag("Space"));
+          start = at + 1;
+        }
+        await append(await ast.tag("Cite", await ast.value([citations, fallback]))); i = end; continue;
+      }
+    }
     if (unit === "\\") {
       const rawEnd = extensions.raw_tex ? await scanMarkdownRawTex(i, char, context) : undefined;
       if (rawEnd !== undefined) {await append(await ast.tag("RawInline", await ast.value(["tex", await literal({start: i, end: rawEnd})]))); i = rawEnd; continue;}
@@ -292,7 +334,7 @@ export async function parseRetainedCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < syntax.range.end && !"\\`*_~^[]!<& \t\n".includes((await char(i))!) && !(extensions.smart && "'\"-.".includes((await char(i))!)) && !(extensions.tex_math_dollars && await char(i) === "$")) {
+    while (i < syntax.range.end && !"\\`*_~^[]!<& \t\n".includes((await char(i))!) && !(extensions.smart && "'\"-.".includes((await char(i))!)) && !(extensions.tex_math_dollars && await char(i) === "$") && !(extensions.citations && (await char(i) === "@" || await char(i) === "-" && await char(i + 1) === "@"))) {
       if (extensions.autolink_bare_uris && (await syntax.starts(i, "https://") || await syntax.starts(i, "http://") || await syntax.starts(i, "ftp://") || await syntax.starts(i, "www.") ||
         (letter(await char(i)) || digit(await char(i))) && !letter(await char(i - 1)) && !digit(await char(i - 1)) && !".-_+".includes(await char(i - 1) ?? ""))) break;
       await context.cooperate(); i++;

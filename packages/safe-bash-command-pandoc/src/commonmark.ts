@@ -25,7 +25,6 @@ import type { ReaderCapability } from "./types.js";
 import { parseCommonMarkBlocks, type PendingBlock } from "./commonmark-blocks.js";
 import { parseCommonMarkInlines } from "./commonmark-inlines.js";
 import { decodeSyntax, fencedDivAttributes } from "./commonmark-syntax.js";
-import { upgradeBracketedCitationsInBlocks } from "./citeproc-filters.js";
 
 /** Resident YAML frontmatter semantics; the retained reader uses caller-backed
  * composition and conversion with matching metadata behavior. */
@@ -43,7 +42,8 @@ export function parseCommonMarkMetadata(text: string, metadata: Record<string, M
 }
 
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
-  const extensions = selection?.extensions ?? {};
+  const citationsState = {note: 0};
+  let extensions = selection?.extensions ?? {};
   const rawText = input.text ?? await context.decodeUtf8([input.bytes]);
   const metadata: Record<string, MetaValue> = {};
   let text = rawText;
@@ -51,6 +51,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
   if (fmMatch) {
     if (parseCommonMarkMetadata(fmMatch[1]!, metadata)) text = rawText.slice(fmMatch[0].length);
   }
+  extensions = {...extensions, citations: extensions.citations ?? (metadata.bibliography !== undefined || metadata.references !== undefined)};
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
   const notes = new Map<string, Extract<PendingBlock, {kind: "footnote"}>>();
   function collect(blocks: readonly PendingBlock[], depth: number) {
@@ -87,7 +88,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
             const values: Row[1][number][] = [];
             for (let i = 0; i < block.alignments.length; i++) {
               const text = cells[i] ?? "";
-              const inlines = text ? await parseCommonMarkInlines({ kind: "pendingInline", lines: [{ text, start: block.source.start }] }, pending.definitions, context, extensions, footnote) : [];
+              const inlines = text ? await parseCommonMarkInlines({ kind: "pendingInline", lines: [{ text, start: block.source.start }] }, pending.definitions, context, extensions, footnote, citationsState) : [];
               values.push([["", [], []], "AlignDefault", 1, 1, inlines.length ? [{ t: "Plain", c: inlines }] : []]);
             }
             return [["", [], []], values];
@@ -102,13 +103,13 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           for (const item of block.items) {
             const definitions: Block[][] = [];
             for (const definition of item.definitions) definitions.push(await assemble(definition.blocks, depth + 1, definition.tight));
-            items.push([await parseCommonMarkInlines(item.term, pending.definitions, context, extensions, footnote), definitions]);
+            items.push([await parseCommonMarkInlines(item.term, pending.definitions, context, extensions, footnote, citationsState), definitions]);
           }
           result.push({t: "DefinitionList", c: items});
           break;
         }
         case "paragraph": {
-          const inlines = await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote);
+          const inlines = await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote, citationsState);
           const image = inlines.length === 1 ? inlines[0] : undefined;
           if (extensions.implicit_figures && image?.t === "Image" && image.c[1].length) {
             result.push({t: "Figure", c: [["", [], []], [null, [{t: "Plain", c: image.c[1]}]], [{t: "Plain", c: inlines}]]});
@@ -119,7 +120,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           const lines = [...block.inline.lines], last = lines.at(-1);
           const heading = extensions.header_attributes && last ? headingAttributes(last.text, context) : undefined;
           if (heading && last) lines[lines.length - 1] = {...last, text: last.text.slice(0, heading.end)};
-          result.push({t: "Header", c: [block.level, heading?.attributes ?? ["", [], []], await parseCommonMarkInlines({...block.inline, lines}, pending.definitions, context, extensions, footnote)]});
+          result.push({t: "Header", c: [block.level, heading?.attributes ?? ["", [], []], await parseCommonMarkInlines({...block.inline, lines}, pending.definitions, context, extensions, footnote, citationsState)]});
           break;
         }
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;
@@ -162,10 +163,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
     return result;
   }
   const assembledBlocks = await assemble(pending.blocks, 1);
-  const finalBlocks = (extensions.citations || metadata.bibliography !== undefined || metadata.references !== undefined)
-    ? upgradeBracketedCitationsInBlocks(assembledBlocks)
-    : assembledBlocks;
-  return { blocks: finalBlocks, metadata, resources: [] };
+  return { blocks: assembledBlocks, metadata, resources: [] };
 };
 
 export const commonmarkReader: ReaderCapability = { format: "commonmark", read: readCommonMark };

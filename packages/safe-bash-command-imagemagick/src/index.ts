@@ -10,6 +10,7 @@ import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
 import { shadowPixelSteps, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
+import { embossPixelSteps } from "./emboss-kernel.js";
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
@@ -4562,9 +4563,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-emboss") {
-            i++;
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickRasterSteps(im, convolvePixelSteps(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128), signal));
+                return (yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry), signal));
             });
         }
         else if (t === "-charcoal" || t === "-sketch") {
@@ -5555,11 +5556,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = magickMorphologyPlan(method, spec);
                 steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal) : undefined);
             }
-        } else if (!operandsOnly && ["-convolve", "-edge", "-canny", "-emboss", "-charcoal", "-sketch"].includes(token)) {
+        } else if (!operandsOnly && token === "-emboss") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry), signal) : undefined);
+        } else if (!operandsOnly && ["-convolve", "-edge", "-canny", "-charcoal", "-sketch"].includes(token)) {
             const spec = tokens[++i] ?? "1", charcoal = token === "-charcoal" || token === "-sketch";
-            const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : token === "-emboss" ? [-2, -1, 0, -1, 1, 1, 0, 1, 2] : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
+            const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
             if (charcoal) transform(() => ({ kind: "blur", sigma: 1 }));
-            steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, token === "-emboss" ? 128 : 0), signal) : image);
+            steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
             if (charcoal) {
                 steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, { end: i, apply: pixels => negateImageSteps(pixels, { alpha: false }) }, signal) : undefined);
                 transform(() => ({ kind: "grayscale" }));

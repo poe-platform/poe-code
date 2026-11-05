@@ -29,6 +29,13 @@ export interface PdfimagesCliResult {
   readonly stderr: string;
 }
 
+function pdfOpenError(error: unknown): string {
+  if (error instanceof PdfError && (error.code === "E_PASSWORD" || error.message === "Invalid PDF password")) {
+    return "Command Line Error: Incorrect password\n";
+  }
+  return `PDF Error: ${(error as Error).message}\n`;
+}
+
 function faxParams(k = 0, columns = 1728, endOfLine = false, blackIs1 = false): string {
   return `${k < 0 ? "-4" : k > 0 ? "-2" : "-1"} ${endOfLine ? "-A" : "-P"} -X ${columns} ${blackIs1 ? "-W" : "-B"} -M\n`;
 }
@@ -229,7 +236,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         doc = PdfDocument.load(pdfBytes, { password, xrefMode: "qpdf" });
     }
     catch (err) {
-        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
+        return { exitCode: 1, stdout: "", stderr: quiet ? "" : pdfOpenError(err) };
     }
     const totalPages = doc.pageCount;
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -388,8 +395,8 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
     try { document = await PdfRetainedDocument.open(source, storage, { password: plan.password, recovery: "repair", xref: { xrefMode: "qpdf" }, signal }); }
     catch (failure) {
       signal.throwIfAborted();
-      if (failure instanceof PdfError && (failure.code === "E_LIMIT" || failure.code === "E_CAPABILITY")) throw failure;
-      return await error(`PDF Error: ${(failure as Error).message}\n`, 1);
+      if (failure instanceof PdfError && (failure.code === "E_LIMIT" || failure.code === "E_CAPABILITY" && failure.message !== "Invalid PDF password")) throw failure;
+      return await error(pdfOpenError(failure), 1);
     }
     let count = 0; for await (const ignored of document.pages()) count++;
     const endPage = plan.lastPage > 0 ? Math.min(count, plan.lastPage) : count;

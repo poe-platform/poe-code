@@ -10054,6 +10054,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     {
         return ok_out("Usage: pdfimages [options] <PDF-file> <image-root>\n       pdfimages -list [options] <PDF-file>\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n  -min-width <int> / -min-height <int> : ignore smaller images\n");
     }
+    let mut quiet = false;
     let mut list_mode = false;
     let mut page_nums = false;
     let mut unique = false;
@@ -10078,7 +10079,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             "-tiff" => tiff_mode = true,
             "-j" => jpeg_mode = true,
             "-all" => all_mode = true,
-            "-u" => unique=true, "-q" => {},
+            "-u" => unique=true, "-q" => quiet = true,
             "-ccitt" => ccitt_mode = true,
             "-jp2" | "-jbig2" => {}
             "-f" => {
@@ -10152,14 +10153,21 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     if !b.starts_with(b"%PDF-") {
         return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
     }
-    let doc = PdfDoc::parse(&b);
-    if let Some(ref enc_pw) = doc.encrypted {
-        let supplied = pw_opt.as_deref().unwrap_or("");
-        if !enc_pw.is_empty() && supplied != enc_pw {
-            return err_out("PDF Error: Invalid PDF password\n", 1);
+    let password = pw_opt.as_deref().unwrap_or("");
+    let incorrect_password = || err_out(if quiet { "" } else { "Command Line Error: Incorrect password\n" }, 1);
+    let source = match pdf_reader::PageSource::open(&b, password) {
+        Ok(source) => Ok(source),
+        Err(pdf_reader::PASSWORD) => return incorrect_password(),
+        Err(pdf_reader::UNSUPPORTED) => return err_out(if quiet { "" } else { "PDF Error: Unsupported PDF encryption\n" }, 1),
+        Err(_) => {
+            let doc = PdfDoc::parse(&b);
+            if doc.encrypted.as_ref().is_some_and(|p| !p.is_empty() && p != password) {
+                return incorrect_password();
+            }
+            Err(doc)
         }
-    }
-    let total_pages = doc.pages.len().max(1);
+    };
+    let total_pages = match &source { Ok(s) => s.len(), Err(doc) => doc.pages.len() }.max(1);
     let start_p = first_p.unwrap_or(1);
     let end_p = last_p.unwrap_or(total_pages).min(total_pages);
     if start_p > end_p {
@@ -10170,7 +10178,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             99,
         );
     }
-    if let Ok(mut source) = pdf_reader::PageSource::open(&b,pw_opt.as_deref().unwrap_or("")) {
+    let doc = match source { Err(doc) => doc, Ok(mut source) => {
         let mut idx = 0;
         let mut seen = std::collections::BTreeSet::new();
         let mut out = if list_mode {
@@ -10236,7 +10244,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             }
         }
         return ok_out(&out);
-    }
+    }};
     let mut all_imgs: Vec<(usize, u32, u32, String)> = Vec::new();
     for (pidx, pg) in doc.pages.iter().enumerate() {
         let pno = pidx + 1;
@@ -16670,6 +16678,27 @@ mod media_unit_tests {
                 let pixel = im.pixels[6 * im.width + x];
                 assert!(pixel[..3].iter().zip(expected).all(|(a,b)| a.abs_diff(b) <= 2), "{cmd}: {pixel:?}");
             }
+        }
+    }
+
+    #[test]
+    fn pdfimages_authenticates_before_listing_or_extracting() {
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Count 2 /Kids [3 0 R 4 0 R] >>",
+            "<< /Type /Page /Parent 2 0 R >>", "<< /Type /Page /Parent 2 0 R >>",
+            // Standard revision 3 credentials for reader/owner and the fixed file ID below.
+            "<< /Filter /Standard /V 2 /R 3 /Length 128 /P -1052 /U <94A57277391CA32F87E903F479F2A13A28BF4E5E4E758A4164004E56FFFA0108> /O <0CB58749C5346569E765906CAF64E4429A4C20D6E996FDEF963E9B5080F9E083> >>"],
+            "/Encrypt 5 0 R /ID [<BC0F227BE410D486C2F262EF0840C151> <BC0F227BE410D486C2F262EF0840C151>]");
+        fs.write_file("/locked.pdf", pdf.as_bytes()).unwrap();
+        for (args, code, msg) in [
+            (vec!["-list", "locked.pdf"], 1, "Command Line Error: Incorrect password\n"),
+            (vec!["-upw", "wrong", "locked.pdf", "out"], 1, "Command Line Error: Incorrect password\n"),
+            (vec!["-q", "-list", "locked.pdf"], 1, ""),
+            (vec!["-f","2","-opw","owner","-list","locked.pdf"], 0, ""),
+        ] {
+            let r = cmd_media_doc("pdfimages", &media_args(&args), "", "/", &fs);
+            assert_eq!((r.exit_code, r.stderr.as_str()), (code, msg));
+            if code != 0 { assert!(r.stdout.is_empty()); }
         }
     }
 

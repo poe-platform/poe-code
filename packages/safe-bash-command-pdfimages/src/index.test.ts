@@ -249,6 +249,9 @@ describe("safe-bash-command-pdfimages", () => {
     });
 
     const files = new Map<string, Uint8Array>([["-", encBytes]]);
+    expect(await runPdfimagesCli(["-list", "-upw", "wrong", "-"], files)).toEqual({
+      exitCode: 1, stdout: "", stderr: "Command Line Error: Incorrect password\n",
+    });
     const res = await runPdfimagesCli(["-all", "-upw", "u1", "-", "mixed"], files);
     expect(res.exitCode).toBe(0);
     expect(files.has("mixed-000.jpg")).toBe(true);

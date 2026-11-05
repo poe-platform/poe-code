@@ -2274,9 +2274,10 @@ export class SqliteDatabase {
       const rollbackSnapshot = rollbackOnConflict
         ? this.txSnapshot ?? this.savepoints.values().next().value ?? (yield* this.captureSnapshot())
         : null;
-      const snapshot = this.foreignKeys && this.foreignKeyDepth === 0 ? yield* this.captureSnapshot() : null;
+      const failOnConflict = tokens[1]?.value.toUpperCase() === "OR" && tokens[2]?.value.toUpperCase() === "FAIL";
+      const snapshot = this.foreignKeyDepth === 0 ? yield* this.captureSnapshot() : null;
       const existingRows = new Set<TableRow>();
-      if (snapshot) {
+      if (this.foreignKeys && snapshot) {
         for (const table of this.tables.values()) {
           for (const row of table.rows) { yield; existingRows.add(row); }
         }
@@ -2288,7 +2289,7 @@ export class SqliteDatabase {
         if (first === "UPDATE") result = yield* this.executeUpdate(tokens, positionalParams, cteScope);
         else if (first === "DELETE") result = yield* this.executeDelete(tokens, positionalParams, cteScope);
         else result = yield* this.executeInsert(sql, tokens, positionalParams, cteScope);
-        if (snapshot) yield* this.validateForeignKeys(snapshot, existingRows);
+        if (this.foreignKeys && snapshot) yield* this.validateForeignKeys(snapshot, existingRows);
         return result;
       } catch (error) {
         if (rollbackSnapshot && error instanceof SqliteConstraintError && error.message !== "FOREIGN KEY constraint failed") {
@@ -2296,7 +2297,7 @@ export class SqliteDatabase {
           this.inTransaction = false;
           this.txSnapshot = null;
           this.savepoints.clear();
-        } else if (snapshot) {
+        } else if (snapshot && !(failOnConflict && error instanceof SqliteConstraintError && error.message !== "FOREIGN KEY constraint failed")) {
           yield* this.restoreSnapshot(snapshot);
           [this.lastChanges, this.totalChanges, this.lastInsertRowid] = counters as [number, number, number];
         }

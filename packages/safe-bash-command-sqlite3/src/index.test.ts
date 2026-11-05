@@ -51,6 +51,18 @@ async function runSqlite3(
   };
 }
 
+for (const conflict of ["", "OR ABORT", "OR FAIL"]) {
+  test(`sqlite3 persists statement conflict behavior for INSERT ${conflict}`, async () => {
+    const fs = createMemoryFileSystem();
+    const result = await runSqlite3(fs, ["/db", `CREATE TABLE t(x INT UNIQUE);
+      INSERT INTO t VALUES(1); INSERT ${conflict} INTO t VALUES(2),(1),(3);`]);
+    assert.equal(result.code, 19);
+    assert.ok(result.stderr.includes("UNIQUE constraint failed: t.x"));
+    const reopened = await runSqlite3(fs, ["/db", "SELECT x FROM t ORDER BY x;"]);
+    assert.deepEqual(reopened, { code: 0, stdout: conflict === "OR FAIL" ? "1\n2\n" : "1\n", stderr: "" });
+  });
+}
+
 test("sqlite3 persists the rolled-back state after INSERT OR ROLLBACK fails", async () => {
   const fs = createMemoryFileSystem();
   const result = await runSqlite3(fs, ["/rollback.db"], `CREATE TABLE t(x INT UNIQUE);

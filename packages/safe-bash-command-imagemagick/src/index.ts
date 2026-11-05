@@ -478,6 +478,7 @@ interface MagickState {
   compose: BlendMode;
   composeRaw: string;
   composeArgs: string | undefined;
+  composeTile?: boolean;
   geometry: string | undefined;
   tile: string | undefined;
   strip: boolean;
@@ -4523,6 +4524,7 @@ if (t === "-seed") {
                 if (extra !== undefined || key !== "connected-components:verbose" || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                 state.connectedVerbose = value === "true";
             }
+            if (defStr.toLowerCase().startsWith("compose:tile=")) state.composeTile = defStr.slice("compose:tile=".length).toLowerCase() === "true";
             const m = /^compose:args=(.*)$/i.exec(defStr);
             if (m)
                 state.composeArgs = m[1]!;
@@ -5149,7 +5151,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 let overlay = origOverlay;
                 let gx = 0;
                 let gy = 0;
-                if (state.geometry) {
+                if (state.geometry && !state.composeTile) {
                     const g = parseMagickGeometry(state.geometry);
                     if (g.width !== undefined || g.height !== undefined) {
                         overlay = (yield* applyMagickResizeSteps(origOverlay, state.geometry, state.kernel));
@@ -5157,6 +5159,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                     gx = g.x;
                     gy = g.y;
+                }
+                if (state.composeTile) {
+                    const tiled = yield* createSolidRgbaImageSteps(base.width, base.height, { r: 0, g: 0, b: 0, a: 0 });
+                    for (let y = 0; y < base.height; y++) {
+                        for (let x = 0; x < base.width; x++) {
+                            if ((y * base.width + x) % 4096 === 0) yield;
+                            const source = ((y % overlay.height) * overlay.width + x % overlay.width) * 4;
+                            tiled.data.set(overlay.data.subarray(source, source + 4), (y * base.width + x) * 4);
+                        }
+                    }
+                    detachRgbaBuffer(overlay.data);
+                    overlay = tiled;
                 }
                 const pos = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, state.gravity);
                 let composed: RgbaImage;
@@ -5420,19 +5434,23 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     return { ...image, position, width, height, ...(token === "-splice" ? { hasAlpha: true } : {}) };
 }
 
-async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false): Promise<StoredRgbaImage> {
+async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false, tile = false): Promise<StoredRgbaImage> {
     const compositeMode = magickCompositeMode(mode);
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !["difference", "src", "source", "copy", "xor"].includes(compositeMode.name));
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));
     }
-    for (let y = Math.max(0, top); y < Math.min(base.height, top + overlay.height); y++) {
-        for (let x = Math.max(0, left); x < Math.min(base.width, left + overlay.width); x += 4096) {
+    const right = tile ? base.width : Math.min(base.width, left + overlay.width);
+    const bottom = tile ? base.height : Math.min(base.height, top + overlay.height);
+    for (let y = Math.max(0, top); y < bottom; y++) {
+        for (let x = Math.max(0, left); x < right;) {
             await yieldTurn(signal);
-            const count = Math.min(4096, Math.min(base.width, left + overlay.width) - x), destination = (y * base.width + x) * 4;
+            const sourceX = tile ? x % overlay.width : x - left;
+            const sourceY = tile ? y % overlay.height : y - top;
+            const count = Math.min(4096, right - x, overlay.width - sourceX), destination = (y * base.width + x) * 4;
             const dst: RgbaImage = { ...base, width: count, height: 1, data: new Uint8Array(await backend.storage.read(position + destination, count * 4)) };
-            const src: RgbaImage = { ...overlay, width: count, height: 1, data: new Uint8Array(await backend.storage.read(overlay.position + ((y - top) * overlay.width + x - left) * 4, count * 4)) };
+            const src: RgbaImage = { ...overlay, width: count, height: 1, data: new Uint8Array(await backend.storage.read(overlay.position + (sourceY * overlay.width + sourceX) * 4, count * 4)) };
             let result = dst;
             if (montageRounding) {
                 for (let pixel = 0; pixel < count * 4; pixel += 4) {
@@ -5450,6 +5468,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
             else result = await drainSteps(applyMagickCompositeLayerSteps(dst, src, mode, 0, 0, args, signal), signal);
             hasAlpha ||= result.hasAlpha;
             await backend.storage.write(position + destination, result.data);
+            x += count;
         }
     }
     return { ...base, position, hasAlpha };
@@ -5632,9 +5651,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
-                    if (settings.geometry) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal); }
-                    const offset = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
-                    result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs);
+                    if (settings.geometry && !settings.composeTile) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal); }
+                    const offset = settings.composeTile ? { x: 0, y: 0 } : gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
+                    result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, settings.composeTile);
                     await stack.remove([1]); await stack.set(0, result); return stack;
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
@@ -6173,6 +6192,9 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         const t = argv[i]!;
         if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define") {
             options.push(t, argv[++i] ?? "");
+        }
+        else if (t === "-tile" || t === "+tile") {
+            options.push("-define", `compose:tile=${t === "-tile"}`);
         }
         else if (t === "-dissolve") {
             options.push("-define", `compose:args=${argv[++i] ?? "100"}`, "-compose", "Dissolve");

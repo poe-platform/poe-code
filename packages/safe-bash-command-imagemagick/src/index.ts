@@ -4260,7 +4260,8 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     const token = tokens[start];
     if (token === "-sepia-tone") {
         const argument = tokens[start + 1] ?? "80%", raw = parseFloat(argument);
-        const threshold = argument.endsWith("%") ? raw * 255 / 100 : raw;
+        // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
+        const threshold = (argument.endsWith("%") ? raw * 65536 / 100 : raw) / 257;
         return { end: start + 1, luminance: true, transform(histogram, image) {
             const gray = image.space === "b-w" || image.space === "grey16";
             const bins = histogram[4]!, count = image.width * image.height;
@@ -4283,7 +4284,8 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     const intensity = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
                     const tone = magickSepiaTone(intensity, threshold, gray);
                     if (white > black) {
-                        for (let channel = 0; channel < 3; channel++) tone[channel] = Math.max(0, Math.min(255, (tone[channel]! - black) / (white - black) * 255));
+                        // Native normalization indexes its Q16 stretch map with rounded tone values.
+                        for (let channel = 0; channel < 3; channel++) tone[channel] = Math.max(0, Math.min(255, (Math.round(tone[channel]! * 257) / 257 - black) / (white - black) * 255));
                         if (image.hasAlpha) data[i + 3] = clampByteVal((data[i + 3]! - black) / (white - black) * 255);
                     }
                     const brightness = Math.max(...tone) / 255;

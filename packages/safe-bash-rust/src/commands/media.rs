@@ -10188,9 +10188,8 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         };
         let mut outputs = Vec::new();
         let mut remaining = fs.shell_limits().max_output_bytes;
-        let format = if tiff_mode { "TIFF" } else if png_mode || all_mode { "PNG" } else { "PNM" };
         for page in start_p..=end_p {
-            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, format } };
+            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, png: png_mode || all_mode, tiff: tiff_mode || all_mode } };
             let done = source.images(page, fs.max_input_bytes(), mode, |im, parent| {
                 let (w, h) = (im.width, im.height);
                 if w < min_width || h < min_height || unique && !seen.insert(im.id) {
@@ -10218,7 +10217,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                             }
                         }
                     } else {
-                        let (ext, format) = match format {
+                        let (ext, format) = match mode.format(im.components)? {
                             "TIFF" => ("tif", "TIFF"), "PNG" => ("png", "PNG"),
                             _ if im.bilevel() => ("pbm", "PBM"), _ => ("ppm", "PPM"),
                         };
@@ -16758,6 +16757,12 @@ mod media_unit_tests {
              "1f087cd871a3253f96325f39d6342938f57b919e361a89a7191402a7dd2353ed", "243c01db52968e6bfd3f8a0c85f016e520d29d2043f53ad11aa9c91a2c2cc8ea"),
             ("Gray", 16, 1, "0.2 0.8", "789c63b29df0d8acf38e7ed3558dea738a254c5d2880242e005ae62512>",
              "e12b70cee559b8d164a42b4401947c3213e38fecb6ad94d951233bde97166f3a", "d28c899851863d916a196610d78459e78d5c2488962df9c5447a65a36c4ca948"),
+            ("CMYK", 2, 4, "0 1 0 1 0 1 0 1", "789c63b29df0d8acf38e3e932b04e0a201f6ec0b11>",
+             "c67a702ff08259729a6feb3987b7a79b8e89ac69cf8f14b11b67dca4cd8c3b1e", "be33906bbee73023a4a51bb0e5474a8c963d0a1dc9a05855ed04a0eb786a74d9"),
+            ("CMYK", 8, 4, "0.2 0.8 0.2 0.8 0.2 0.8 0.2 0.8", "789c63b29df0d8acf38e7ed3558dea738a25c7a5720f08a7ede489dfc41ab1fa1f93081e40234900bfa71605>",
+             "1cf37296b59cc1103b14f542c9e84251acabb3dd33012377b017ef2f24b45a46", "12820ff49ef01c43a63cb669fa69520df1f767a5114a3fb5415f8fceba79749d"),
+            ("CMYK", 16, 4, "1 0 1 0 1 0 1 0", "789c63b29df0d8acf38e7ed3558dea738a25c7a5720f08a7ede489dfc41ab1fa5fe092ef5e733f384f7b69d3ffc8b4e3b65ee315f5aab30ac5c72473f60b316990098690460052503eaf>",
+             "ac1843c38f4f299fccfe0fac2a273aed72c904466362ae60f9a84a443c83908d", "d10ce37922d16b4393147c1a9627d6693713db7fedd81f2e2f3cbf5587a912b8"),
         ] {
             let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
                 "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 7 5] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
@@ -16772,6 +16777,14 @@ mod media_unit_tests {
                 assert_eq!(r.exit_code, 0, "{}", r.stderr);
                 assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(path).unwrap())), expected, "{color} {cmd}");
             }
+            let want = if components == 4 { "tif" } else { "png" };
+            for flags in [&["-all"][..], &["-png","-tiff"][..]] {
+                let mut args = flags.to_vec();
+                args.extend(["-print-filenames","in.pdf","auto"]);
+                let r = cmd_media_doc("pdfimages", &media_args(&args), "", "/", &fs);
+                assert_eq!(r.stdout, format!("auto-000.{want}\n"));
+            }
+
         }
     }
 

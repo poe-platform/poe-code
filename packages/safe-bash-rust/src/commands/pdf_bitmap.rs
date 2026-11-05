@@ -10,8 +10,24 @@ pub(in crate::commands::archive) enum ImageRead {
     Extract {
         fax: bool,
         jpeg: bool,
-        format: &'static str,
+        png: bool,
+        tiff: bool,
     },
+}
+
+impl ImageRead {
+    pub(in crate::commands::archive) fn format(self, components: usize) -> Option<&'static str> {
+        let Self::Extract { png, tiff, .. } = self else {
+            return None;
+        };
+        Some(if png && !(tiff && components == 4) {
+            "PNG"
+        } else if tiff {
+            "TIFF"
+        } else {
+            "PNM"
+        })
+    }
 }
 
 pub(in crate::commands::archive) enum NativeImage {
@@ -29,7 +45,7 @@ pub(in crate::commands::archive) struct Image {
     pub native: Option<NativeImage>,
     pub width: usize,
     pub height: usize,
-    pub(super) components: usize,
+    pub components: usize,
     length: usize,
     pub id: ObjectId,
     pub(super) interpolate: bool,
@@ -94,9 +110,10 @@ impl Image {
         let components = match dict.get(b"ColorSpace").and_then(Value::word) {
             Some(b"/DeviceRGB") => 3,
             Some(b"/DeviceGray") => 1,
-            Some(b"/DeviceCMYK") if jpeg => 4,
+            Some(b"/DeviceCMYK") => 4,
             _ => return Some(None),
         };
+        let format = mode.format(components);
         if width == 0 || height == 0 {
             return None;
         }
@@ -260,7 +277,7 @@ impl Image {
             } else {
                 false
             };
-            if mono_extract && matches!(mode, ImageRead::Extract { format: "PNM", .. }) {
+            if mono_extract && format == Some("PNM") {
                 let mut out = format!("P4\n{width} {height}\n").into_bytes();
                 out.extend(bytes.iter().map(|b| if invert { *b } else { !b }));
                 native = Some(NativeImage::Pbm(out));
@@ -281,6 +298,8 @@ impl Image {
                             let v = sample(x);
                             let v = if invert { !v } else { v };
                             [v, v, v, 255]
+                        } else if components == 4 {
+                            std::array::from_fn(|k| sample(x * 4 + k))
                         } else {
                             [sample(x * 3), sample(x * 3 + 1), sample(x * 3 + 2), 255]
                         });
@@ -288,16 +307,9 @@ impl Image {
                 }
             }
         }
-        let mut rgb48 = (bits == 16
-            && components == 3
-            && matches!(
-                mode,
-                ImageRead::Extract {
-                    format: "PNG" | "TIFF",
-                    ..
-                }
-            ))
-        .then_some([(0., 1.); 3]);
+        let mut rgb48 = (bits == 16 && components == 3 && matches!(format, Some("PNG" | "TIFF")))
+            .then_some([(0., 1.); 3]);
+        let mut ink_ranges = [(0., 1.); 4];
         if !fax && !mono_extract && !pixels.is_empty() {
             if let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {
@@ -310,6 +322,10 @@ impl Image {
                     let (lo, hi) = (pair[0].number()?, pair[1].number()?);
                     if let Some(wide) = &mut rgb48 {
                         wide[i] = (lo, hi);
+                        continue;
+                    }
+                    if components == 4 && matches!(format, Some("PNG" | "PNM")) {
+                        ink_ranges[i] = (lo, hi);
                         continue;
                     }
                     if (lo, hi) == (0., 1.) {
@@ -327,9 +343,19 @@ impl Image {
                     }
                 }
             }
-            if components == 4 && !matches!(mode, ImageRead::Extract { format: "TIFF", .. }) {
+            if components == 4 && format != Some("TIFF") {
+                let render = format.is_none();
                 for p in &mut pixels {
-                    *p = device_cmyk(*p, matches!(mode, ImageRead::Pixels | ImageRead::Raster));
+                    let ink = std::array::from_fn(|i| {
+                        let (lo, hi) = ink_ranges[i];
+                        let v = (lo + (hi - lo) * f64::from(p[i]) / 255.).clamp(0., 1.);
+                        if render {
+                            v
+                        } else {
+                            (v * 65536.).floor() / 65536.
+                        }
+                    });
+                    *p = device_cmyk(ink, render);
                 }
             }
         }
@@ -531,7 +557,7 @@ impl Image {
 }
 
 // Interpolate the RGB values of the sixteen DeviceCMYK ink combinations.
-fn device_cmyk(ink: [u8; 4], render: bool) -> [u8; 4] {
+fn device_cmyk([c, m, y, k]: [f64; 4], render: bool) -> [u8; 4] {
     const RGB: [[f64; 3]; 16] = [
         [1., 1., 1.],
         [0.1373, 0.1216, 0.1255],
@@ -551,13 +577,6 @@ fn device_cmyk(ink: [u8; 4], render: bool) -> [u8; 4] {
         [0., 0., 0.],
     ];
     // pdfimages uses 16-bit fixed point color values. Splash converts a row directly to bytes.
-    let [c, m, y, k] = ink.map(|v| {
-        if render {
-            f64::from(v) / 255.
-        } else {
-            f64::from((u32::from(v) << 16) / 255) / 65536.
-        }
-    });
     let mut rgb = [0.; 3];
     for (i, corner) in RGB.iter().enumerate() {
         let w = (if i & 8 == 0 { 1. - c } else { c })

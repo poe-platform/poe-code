@@ -9501,6 +9501,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
     let mut force_num = false;
     let mut set_pageno: Option<usize> = None;
     let mut progress = false;
+    let mut dpi = 0.;
     let mut dpi_x = 150.0f64;
     let mut dpi_y = 150.0f64;
     let mut scale_before_rotation = false;
@@ -9674,17 +9675,15 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 i += 1;
             }
             "-r" => {
-                let v = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
-                dpi_x = v;
-                dpi_y = v;
+                dpi = args[i + 1].parse().unwrap();
                 i += 1;
             }
             "-rx" => {
-                dpi_x = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
+                dpi_x = args[i + 1].parse().unwrap();
                 i += 1;
             }
             "-ry" => {
-                dpi_y = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
+                dpi_y = args[i + 1].parse().unwrap();
                 i += 1;
             }
             "-scale-dimension-before-rotation" if !is_cairo => scale_before_rotation = true,
@@ -9807,6 +9806,13 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         }
         i += 1;
     }
+    // Poppler applies -r only when at least one axis still has the default DPI.
+    if dpi != 0. && (dpi_x == 150. || dpi_y == 150.) {
+        dpi_x = dpi;
+        dpi_y = dpi;
+    }
+    if dpi_x < 0. || (is_cairo && dpi_x == 0.) { dpi_x = 1.; }
+    if dpi_y < 0. || (is_cairo && dpi_y == 0.) { dpi_y = 1.; }
     if !is_cairo && pos.len() > 2 {
         return err_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n", 99);
     }
@@ -17275,6 +17281,11 @@ mod media_unit_tests {
     fn pdf_scale_targets_match_poppler_on_fractional_and_rotated_pages() {
         let fs = MemoryVfs::new();
         for (cmd, bounds, rotation, flags, size) in [
+            ("pdftoppm", "288 144", 0, "-r 72 -rx 36", (288, 144)),
+            ("pdftocairo", "288 144", 0, "-ry 18 -rx 36 -r 72", (144, 36)),
+            ("pdftoppm", "288 144", 0, "-rx 150 -ry 18 -r 72", (288, 144)),
+            ("pdftocairo", "288 144", 0, "-ry 18 -r 72 -r 0", (600, 36)),
+            ("pdftoppm", "288 144", 0, "-rx 0.25 -ry 0.75", (1, 2)),
             ("pdftoppm", "0.5 0.75", 0, "-scale-to 13", (9, 13)),
             ("pdftocairo", "0.25 13.3", 0, "-scale-to 13", (1, 14)),
             ("pdftoppm", "0.25 13.3", 0, "-scale-to 13", (1, 13)),

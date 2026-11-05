@@ -60,7 +60,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
 } = {}, cairo = false, grayscaleJpeg = false): Generator<void, PdftoppmCliResult, void> {
     const parsed = yield* parsePdftoppmArgsSteps(argv, files.has("-"));
     if (!("inputPath" in parsed)) return parsed;
-    const { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX: requestedX, scaleToY: requestedY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath } = parsed;
+    const { format, colorMode, dpiX, dpiY, scaleTo, scaleToX: requestedX, scaleToY: requestedY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath } = parsed;
     let cooperativeWork = 63;
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
@@ -111,8 +111,8 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const swapTargets = scaleDimensionBeforeRotation && (rot === 90 || rot === 270);
         const scaleToX = swapTargets ? requestedY : requestedX;
         const scaleToY = swapTargets ? requestedX : requestedY;
-        let effDpiX = dpiX ?? dpi;
-        let effDpiY = dpiY ?? dpi;
+        let effDpiX = dpiX;
+        let effDpiY = dpiY;
         if (scaleTo > 0) {
             const factor = (scaleTo * 72) / (Math.max(ptW, ptH) || 1);
             effDpiX = factor;

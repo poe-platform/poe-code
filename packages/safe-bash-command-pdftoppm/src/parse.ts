@@ -34,9 +34,8 @@ const RESOLUTION_FLAGS = new Set(["-r", "-rx", "-ry"]);
 export interface PdftoppmPlan {
   readonly format: "ppm" | "pgm" | "pbm" | "png" | "svg" | "jpg" | "tif";
   readonly colorMode: "rgb" | "gray" | "mono";
-  readonly dpi: number;
-  readonly dpiX: number | undefined;
-  readonly dpiY: number | undefined;
+  readonly dpiX: number;
+  readonly dpiY: number;
   readonly scaleTo: number;
   readonly scaleToX: number;
   readonly scaleToY: number;
@@ -75,9 +74,9 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     let format: "ppm" | "pgm" | "pbm" | "png" | "svg" | "jpg" | "tif" = "ppm";
     let explicitContainer: "png" | "tif" | "jpg" | "svg" | undefined;
     let colorMode: "rgb" | "gray" | "mono" = "rgb";
-    let dpi = 150;
-    let dpiX: number | undefined;
-    let dpiY: number | undefined;
+    let dpi = 0;
+    let dpiX = 150;
+    let dpiY = 150;
     let scaleTo = 0;
     let scaleToX = 0;
     let scaleToY = 0;
@@ -267,13 +266,13 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
             sep = argv[++i] ?? "-";
         }
         else if (arg === "-r") {
-            dpi = Math.max(1, Number(argv[++i] ?? "150") || 150);
+            dpi = Number(argv[++i]) || 0;
         }
         else if (arg === "-rx") {
-            dpiX = Math.max(1, Number(argv[++i] ?? "150") || 150);
+            dpiX = Number(argv[++i]) || 150;
         }
         else if (arg === "-ry") {
-            dpiY = Math.max(1, Number(argv[++i] ?? "150") || 150);
+            dpiY = Number(argv[++i]) || 150;
         }
         else if (arg === "-scale-dimension-before-rotation") {
             scaleDimensionBeforeRotation = true;
@@ -329,7 +328,9 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     if (!inputPath || positionals.length > 2) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
     }
-    return { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX, scaleToY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, jpegColorSpace, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath };
+    // Poppler applies -r only when at least one axis still has the default DPI.
+    if (dpi !== 0 && (dpiX === 150 || dpiY === 150)) dpiX = dpiY = dpi;
+    return { format, colorMode, dpiX: dpiX < 0 ? 1 : dpiX, dpiY: dpiY < 0 ? 1 : dpiY, scaleTo, scaleToX, scaleToY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, jpegColorSpace, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath };
 }
 
 const VALID_CAIRO_ANTIALIAS = new Set([

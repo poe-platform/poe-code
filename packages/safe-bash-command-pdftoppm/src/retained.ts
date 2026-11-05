@@ -62,7 +62,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         const swapTargets = plan.scaleDimensionBeforeRotation && (attributes.rotation === 90 || attributes.rotation === 270);
         const scaleToX = swapTargets ? plan.scaleToY : plan.scaleToX;
         const scaleToY = swapTargets ? plan.scaleToX : plan.scaleToY;
-        let dpiX = plan.dpiX ?? plan.dpi, dpiY = plan.dpiY ?? plan.dpi;
+        let { dpiX, dpiY } = plan;
         if (plan.scaleTo > 0) dpiX = dpiY = plan.scaleTo * 72 / (Math.max(ptW, ptH) || 1);
         else {
           // Cairo keeps the DPI round-trip rounding; Splash snaps exact pixel targets.

@@ -44,6 +44,30 @@ test("retained invoice rendering evaluates once across tiles and preserves the c
     assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: 1 }); await f.clean();
   } finally { evaluate.mockRestore(); }
 });
+test("Poppler resolves general and per-axis DPI after parsing every flag", async () => {
+  const doc = PdfDocument.create();
+  doc.addPage([288, 144]);
+  const input = doc.save();
+  for (const [cli, command] of [[runPdftoppmCli, createPdftoppmCommand()], [runPdftocairoCli, createPdftocairoCommand()]] as const) {
+    for (const [flags, size] of [
+      [["-r", "72", "-rx", "36"], [288, 144]],
+      [["-ry", "18", "-rx", "36", "-r", "72"], [144, 36]],
+      [["-ry", "18", "-rx", "150", "-r", "72"], [288, 144]],
+      [["-ry", "18", "-r", "72", "-r", "0"], [600, 36]],
+      [["-rx", "0.25", "-ry", "0.75"], [1, 2]],
+    ] as const) {
+      const args = ["-png", "-singlefile", ...flags, "in.pdf", "page"];
+      const files = new Map([["in.pdf", input]]), f = await fixture(input, args);
+      assert.equal((await cli(args, files)).exitCode, 0);
+      assert.equal((await command.execute(f.context)).exitCode, 0);
+      for (const bytes of [files.get("page.png")!, await f.fs.readFile("/page.png")]) {
+        const { width, height } = decodePng(bytes);
+        assert.deepEqual([width, height], size, flags.join(" "));
+      }
+      await f.clean();
+    }
+  }
+});
 test("Poppler scales a subpoint page by its actual dimensions", async () => {
   const doc = PdfDocument.create();
   doc.addPage([0.5, 0.75]);

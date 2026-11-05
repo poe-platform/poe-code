@@ -4144,7 +4144,7 @@ fn qr_render(
 ) -> Vec<u8> {
     let n = modules.len();
     let width = n + 2 * margin;
-    let pixels = width * size;
+    let pixels = width.saturating_mul(size);
     let dark = |x: usize, y: usize| -> bool {
         if x >= margin && y >= margin && x - margin < n && y - margin < n {
             modules[y - margin][x - margin]
@@ -13222,15 +13222,16 @@ fn cmd_sox(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read input from a virtual file\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8, ANSIUTF8i, ANSI256UTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
     if args.is_empty() { return err_out(QR_HELP, 1); }
-    let parse_uint = |val: &str, min: usize, max: usize| -> Result<usize, String> {
-        if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
-            return Err(format!("Invalid number: {val}"));
+    // Linux atoi saturates at long bounds before narrowing to int.
+    let integer = |val: &str| -> i32 {
+        let val = val.trim_start_matches([' ', '\t', '\r', '\n', '\x0b', '\x0c']);
+        let digits = val.strip_prefix(['-', '+']).unwrap_or(val);
+        let mut number = 0i64;
+        for byte in digits.bytes().take_while(u8::is_ascii_digit) {
+            let digit = (byte - b'0') as i64;
+            number = number.saturating_mul(10).saturating_add(if val.starts_with('-') { -digit } else { digit });
         }
-        let n = val.parse::<usize>().map_err(|_| format!("Number out of range: {val}"))?;
-        if n < min || n > max {
-            return Err(format!("Number out of range: {val}"));
-        }
-        Ok(n)
+        number as i32
     };
     let parse_color = |val: &str| -> Result<[u8; 4], String> {
         if (val.len() != 6 && val.len() != 8) || !val.bytes().all(|b| b.is_ascii_hexdigit()) {
@@ -13349,26 +13350,19 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
                 };
                 rtype = format.to_string();
             }
-            "s" => match parse_uint(&val, 1, 0x7fffffff) {
-                Ok(v) => size = v,
-                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-            },
-            "m" => match parse_uint(&val, 0, 0x7fffffff) {
-                Ok(v) => margin_opt = Some(v),
-                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-            },
-            "d" => match parse_uint(&val, 1, 109093169) {
-                Ok(v) => dpi = v as u32,
-                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-            },
-            "v" => if val == "auto" {
-                version = 0;
-            } else {
-                match parse_uint(&val, 0, 40) {
-                    Ok(v) => version = v,
-                    Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+            "s" | "m" | "d" | "v" => {
+                let number = integer(&val);
+                if number < i32::from(key == "s") {
+                    let label = match key { "s" => "size", "m" => "margin", "d" => "DPI", _ => "version" };
+                    return err_out(&format!("Invalid {label}: {number}\n"), 1);
                 }
-            },
+                match key {
+                    "s" => size = number as usize,
+                    "m" => margin_opt = Some(number as usize),
+                    "d" => dpi = number as u32,
+                    _ => version = number as usize,
+                }
+            }
             "l" => match val.as_bytes().first().map(u8::to_ascii_uppercase) {
                 Some(b'L') => level = 0,
                 Some(b'M') => level = 1,
@@ -13391,9 +13385,6 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     if output_opt.is_none() && matches!(rtype.as_str(), "PNG" | "PNG32") {
         return err_out("No output filename is given.\n", 1);
     }
-    if micro && (version > 4 || level == 3 || structured) {
-        return err_out("qrencode: Unsupported Micro QR version, level, or structured append\n", 1);
-    }
     let input_limit = if structured { 113_424usize } else { 7089usize };
     let mut data = if let Some(op) = &operand_opt {
         if crate::vfs::stream_byte_len(op) > input_limit { return err_out("qrencode: Input exceeds byte limit\n", 1); }
@@ -13415,6 +13406,10 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
         return err_out("qrencode: Input exceeds byte limit\n", 1);
     }
     if data.is_empty() && operand_opt.is_none() { return err_out("No input data.\n", 1); }
+    let max_version = if micro { 4 } else { 40 };
+    if version > max_version { return err_out(&format!("Version number should be less or equal to {max_version}.\n"), 1); }
+    if micro && structured { return err_out("Micro QR Code does not support structured symbols.\n", 1); }
+    if micro && level == 3 { return err_out("Failed to encode the input data: Invalid argument\n", 1); }
     if !byte_mode && let Some(nul) = data.iter().position(|&b| b == 0) { data.truncate(nul); }
     if data.is_empty() { return err_out("Failed to encode the input data: Invalid argument\n", 1); }
     if structured {
@@ -13466,7 +13461,7 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
         let max_mem = (64 * 1024 * 1024usize)
             .saturating_sub(data.len().saturating_mul(64))
             .saturating_sub(n.saturating_mul(n).saturating_mul(16));
-        if pixels > 0x7fff_ffff || estimate > max_mem {
+        if (raster || vector) && pixels > 0x7fff_ffff || estimate > max_mem {
             return err_out("qrencode: QR output exceeds memory budget\n", 1);
         }
         let rendered = qr_render(sym, &rtype, size, margin, dpi, fg, bg);

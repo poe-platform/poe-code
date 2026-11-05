@@ -173,6 +173,13 @@ export function linuxCommands(text: string) {
     pipes.push("ssh -GT -F none " + options + " example.invalid | grep '^port '");
   }
   pipes.push("{ ssh -GT -F none -o Port=24 example.invalid >/dev/null; cat; } <samples/base");
+  for (const options of ["-m2px", "-m nope", "--margin=-1", "-m ' +4294967297pad'", "-m9223372036854775809",
+    "-s0", "-s-2147483649", "-s2147483648", "-s2147483647", "--size=oops",
+    "-v2tail", "-v41 -v1", "-v41", "-v41 -M", "-v-1", "-v-9223372036854775809",
+    "-M -S", "-M -lH", "--dpi=-1", "--dpi=0"]) {
+    pipes.push("qrencode -tASCII " + options + " x");
+  }
+  pipes.push("qrencode -tASCII -v41 </dev/null", "qrencode -tASCII -v41 -r no-qr-input");
   pipes.push(String.raw`qrencode -t ASCII -l $'\xff' hello`, String.raw`qrencode $'--type=\xff' hello`);
   pipes.push(String.raw`ssh -GT -o$'Port=\xff' example.invalid`);
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);

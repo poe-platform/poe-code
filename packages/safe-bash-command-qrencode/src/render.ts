@@ -41,8 +41,7 @@ export function renderQr(
       ? n * n * 240 + 4096
       : width * width * 48 + 4096;
   if (
-    !Number.isSafeInteger(pixels) ||
-    pixels > 0x7fffffff ||
+    ((raster || vector) && (!Number.isSafeInteger(pixels) || pixels > 0x7fffffff)) ||
     !Number.isSafeInteger(estimate) ||
     estimate > maxMemoryBytes
   )

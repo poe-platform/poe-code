@@ -60,13 +60,13 @@ Generate QR codes from a string, stdin, or a virtual file.
   -h, --help             Show help
 `;
 
-function integer(value: string, min: number, max = 0x7fffffff): number {
-  if (!value.length || [...value].some((c) => c < "0" || c > "9"))
-    throw new Error(`Invalid number: ${value}`);
-  const result = Number(value);
-  if (!Number.isSafeInteger(result) || result < min || result > max)
-    throw new Error(`Number out of range: ${value}`);
-  return result;
+// qrencode uses Linux atoi: strtol saturates before narrowing to a signed int.
+function integer(value: string): number {
+  const [, sign, digits] = /^[ \t\r\n\v\f]*([+-]?)0*([1-9][0-9]*)?/.exec(value)!;
+  const magnitude = BigInt(digits?.slice(0, 20) || "0");
+  const limit = sign === "-" ? 1n << 63n : (1n << 63n) - 1n;
+  const absolute = magnitude > limit ? limit : magnitude;
+  return Number(BigInt.asIntN(32, sign === "-" ? -absolute : absolute));
 }
 function color(value: string): number[] {
   if (
@@ -162,11 +162,17 @@ function parse(args: readonly string[]) {
       const selected = outputTypes.find(format => format.toLowerCase() === attached.toLowerCase());
       if (!selected) return { invalidValue: { label: "image type", index: i, offset: valueOffset } };
       type = selected;
-    } else if (key === "s") size = integer(attached, 1);
-    else if (key === "m") margin = integer(attached, 0);
-    else if (key === "d") dpi = integer(attached, 1, 109093169);
-    else if (key === "v") version = attached === "auto" ? 0 : integer(attached, 0, 40);
-    else if (key === "l") {
+    } else if (key === "s" || key === "m" || key === "d" || key === "v") {
+      const number = integer(attached);
+      if (number < (key === "s" ? 1 : 0)) {
+        const label = { s: "size", m: "margin", d: "DPI", v: "version" }[key];
+        return { diagnostic: `Invalid ${label}: ${number}` };
+      }
+      if (key === "s") size = number;
+      else if (key === "m") margin = number;
+      else if (key === "d") dpi = number;
+      else version = number;
+    } else if (key === "l") {
       const selected = attached[0]?.toUpperCase();
       if (selected !== "L" && selected !== "M" && selected !== "Q" && selected !== "H")
         return { invalidValue: { label: "level", index: i, offset: valueOffset } };
@@ -277,6 +283,7 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
       try {
         const carrier = getCommandArguments(context),
           parsed = parse(carrier.args);
+        if (parsed.diagnostic !== undefined) return fail(parsed.diagnostic);
         if (parsed.invalidValue) {
           const { label, index, offset } = parsed.invalidValue;
           await writeBytes(context.stderr, new TextEncoder().encode(`Invalid ${label}: `), context.signal);
@@ -300,8 +307,6 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
         const type = parsed.render.type;
         if (parsed.output === undefined && (type === "PNG" || type === "PNG32"))
           return fail("No output filename is given.");
-        if (parsed.encode.micro && (parsed.encode.version > 4 || parsed.encode.level === "H" || parsed.structured))
-          throw new Error("Unsupported Micro QR version, level, or structured append");
         if (limits.maxMemoryBytes < 2 * 1024 * 1024)
           throw new Error("QR encoding exceeds memory budget");
         const inputLimit = Math.min(
@@ -344,6 +349,10 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
         if (data.length * 64 + 2 * 1024 * 1024 > limits.maxMemoryBytes)
           throw new Error("QR encoding exceeds memory budget");
         if (!data.length && parsed.operand === undefined) return fail("No input data.");
+        const maxVersion = parsed.encode.micro ? 4 : 40;
+        if (parsed.encode.version > maxVersion) return fail(`Version number should be less or equal to ${maxVersion}.`);
+        if (parsed.encode.micro && parsed.structured) return fail("Micro QR Code does not support structured symbols.");
+        if (parsed.encode.micro && parsed.encode.level === "H") return fail("Failed to encode the input data: Invalid argument");
         if (!parsed.encode.byte) {
           const nul = data.indexOf(0);
           if (nul >= 0) data = data.subarray(0, nul);

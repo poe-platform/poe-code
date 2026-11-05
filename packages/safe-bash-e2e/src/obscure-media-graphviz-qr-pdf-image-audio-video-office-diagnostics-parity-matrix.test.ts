@@ -111,7 +111,7 @@ describe("obscure media, graphviz, qr, pdf, image, audio/video & office diagnost
       await h.expectFail(
         "qrencode -M -v 5 -o - 'hello'",
         1,
-        "qrencode: Unsupported Micro QR version, level, or structured append\n"
+        "Version number should be less or equal to 4.\n"
       );
       await h.expectFail(
         "qrencode -S -v 1 -t ASCII 'hello'",

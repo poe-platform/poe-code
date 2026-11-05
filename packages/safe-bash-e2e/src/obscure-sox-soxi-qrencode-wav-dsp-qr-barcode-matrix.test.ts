@@ -129,7 +129,7 @@ describe("Obscure Sox Soxi Qrencode WAV DSP QR Barcode Matrix E2E", () => {
     try {
       const r = await h.exec("qrencode -o - --strict-version -v 1 -l H \"THIS PAYLOAD IS MUCH TOO LONG FOR VERSION 1 HIGH ECC SYMBOL\" 2>&1 || echo \"strict:$?\"\nqrencode -o - -M -l H \"123\" 2>&1 || echo \"micro_h:$?\"\nqrencode -S -v 1 \"NO-OUTPUT-FILE\" 2>&1 || echo \"struct_no_out:$?\"\nqrencode --foreground=GGGGGG \"BAD-COLOR\" 2>&1 || echo \"bad_color:$?\"");
       assert.equal(r.exitCode, 0);
-      assert.equal(r.stdout, "qrencode: Input does not fit the requested QR symbol\nstrict:1\nqrencode: Unsupported Micro QR version, level, or structured append\nmicro_h:1\nNo output filename is given.\nstruct_no_out:1\nqrencode: Colors must be RRGGBB or RRGGBBAA\nbad_color:1\n");
+      assert.equal(r.stdout, "qrencode: Input does not fit the requested QR symbol\nstrict:1\nFailed to encode the input data: Invalid argument\nmicro_h:1\nNo output filename is given.\nstruct_no_out:1\nqrencode: Colors must be RRGGBB or RRGGBBAA\nbad_color:1\n");
     } finally {
       await h.dispose();
     }

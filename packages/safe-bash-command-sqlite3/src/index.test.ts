@@ -22,6 +22,18 @@ for (const fn of ["printf", "format"]) {
 }
 
 for (const fn of ["printf", "format"]) {
+  for (const spec of ["x", "X"]) {
+    test(`sqlite3 ${fn} formats %${spec} as unsigned 64-bit hexadecimal`, async () => {
+      const values = ["-1", "-255", "0", "255", "4294967296",
+        "9223372036854775807", "-9223372036854775808"];
+      const expected = "ffffffffffffffff|ffffffffffffff01|0|ff|100000000|7fffffffffffffff|8000000000000000\n";
+      assert.deepEqual(
+        await runSqlite3(createMemoryFileSystem(), [":memory:",
+          `SELECT ${values.map(value => `${fn}('%${spec}', ${value})`).join(", ")};`]),
+        { code: 0, stderr: "", stdout: spec === "X" ? expected.toUpperCase() : expected }
+      );
+    });
+  }
   test(`sqlite3 ${fn} formats pointers as unsigned 64-bit uppercase hexadecimal`, async () => {
     // Expected output verified with native SQLite.
     const values = ["255", "0", "-1", "-255", "4294967296",

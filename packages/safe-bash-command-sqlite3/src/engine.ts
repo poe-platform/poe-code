@@ -1710,14 +1710,11 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
       out = s[0] ?? "";
     } else if (spec === "d") {
       out = String(Math.trunc(toSqlNumber(raw)));
-    } else if (spec === "x") {
-      out = (Math.trunc(toSqlNumber(raw)) >>> 0).toString(16);
-    } else if (spec === "X") {
-      out = (Math.trunc(toSqlNumber(raw)) >>> 0).toString(16).toUpperCase();
-    } else if (spec === "p") {
+    } else if (spec === "x" || spec === "X" || spec === "p") {
       const integer = integerPrefix(raw);
       const clamped = integer < INT64_MIN ? INT64_MIN : integer > INT64_MAX ? INT64_MAX : integer;
-      out = BigInt.asUintN(64, clamped).toString(16).toUpperCase();
+      out = BigInt.asUintN(64, clamped).toString(16);
+      if (spec !== "x") out = out.toUpperCase();
     } else if (spec === "f") {
       const precMatch = /\.(\d+)/.exec(flags);
       const prec = precMatch ? Number(precMatch[1]) : 6;

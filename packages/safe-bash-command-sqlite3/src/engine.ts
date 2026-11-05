@@ -1336,7 +1336,7 @@ export function matchGlob(str: string, pattern: string): boolean {
       regexStr += "[\\s\\S]";
     } else if (c === "[") {
       let j = i + 1;
-      if (pattern[j] === "^" || pattern[j] === "!") {
+      if (pattern[j] === "^") {
         j += 1;
       }
       if (pattern[j] === "]") {
@@ -1346,7 +1346,7 @@ export function matchGlob(str: string, pattern: string): boolean {
         j += 1;
       }
       const cls = pattern.slice(i + 1, j);
-      const neg = cls.startsWith("!") || cls.startsWith("^");
+      const neg = cls.startsWith("^");
       const body = neg ? cls.slice(1) : cls;
       regexStr += `[${neg ? "^" : ""}${body.replaceAll("\\", "\\\\").replaceAll("]", "\\]")}]`;
       i = j;

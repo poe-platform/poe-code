@@ -1165,6 +1165,7 @@ for (const escape of ["''", "'!!'", "'😀😀'", "'!' || '!'"]) {
 
 // Expected results checked against /usr/bin/sqlite3 3.43.2.
 for (const [label, sql, expected] of [
+  ["GLOB treats exclamation marks as literal class members", "SELECT '!' GLOB '[!a]', 'a' GLOB '[!a]', 'b' GLOB '[!a]', '!' GLOB '[!]', 'a' GLOB '[!]', glob('[!a]', 'a'), 'a' NOT GLOB '[!a]', 'b' GLOB '[^a]', 'a' GLOB '[^a]', '!' GLOB '[^!]', 'a' GLOB '[^!]';", "1|1|0|1|0|1|0|1|0|0|1\n"],
   ["GLOB classes accept literal brackets", "SELECT ']' GLOB '[]]', 'a' GLOB '[]a]', ']' GLOB '[]a]', 'b' GLOB '[]a]', '[' GLOB '[[]', ']' GLOB '[^]]', 'a' GLOB '[^]]', 'a' GLOB '[^]a]', 'b' GLOB '[^]a]', glob('[]]', ']'), ']' NOT GLOB '[]]';", "1|1|1|0|1|0|1|0|1|1|0\n"],
   ["LIKE rejects dangling escapes", "SELECT 'a!' LIKE 'a!' ESCAPE '!', 'a' LIKE 'a!' ESCAPE '!', 'a!' LIKE 'a!!' ESCAPE '!', like('a!', 'a!', '!'), like('a!', 'a', '!'), like('a!!', 'a!', '!'), 'a!' NOT LIKE 'a!' ESCAPE '!', 'abc!' LIKE '%!' ESCAPE '!', '' LIKE '!' ESCAPE '!', 'a😀' LIKE 'a😀' ESCAPE '😀', like('a😀', 'a😀', '😀'), 'a!' LIKE 'a!';", "0|0|1|0|0|1|1|0|0|0|0|1\n"],
   ["LIKE ESCAPE preserves NULL and evaluated single characters", "SELECT 'a_c' LIKE 'a!_c' ESCAPE NULL, NULL LIKE 'a!_c' ESCAPE '!', 'a_c' LIKE NULL ESCAPE '!', 'a_c' LIKE 'a!_c' ESCAPE substr('!!', 1, 1), 'a_c' NOT LIKE 'a!_c' ESCAPE '!';", "|||1|0\n"],

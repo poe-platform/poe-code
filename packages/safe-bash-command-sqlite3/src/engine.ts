@@ -1693,11 +1693,15 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%(-?\+?\s?0?\d*(?:\.\d+)?)([sdfeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%([-+ 0]*\d*(?:\.\d+)?)([sdfeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
     const raw: SqlValue = args[argIdx++] ?? null;
+    let flagEnd = 0;
+    while (flagEnd < flags.length && "-+ 0".includes(flags[flagEnd]!)) flagEnd++;
+    const modifiers = flags.slice(0, flagEnd);
+    const width = Number(flags.slice(flagEnd).split(".")[0]);
     let out = "";
     if (spec === "s") {
       out = raw === null || raw === undefined ? "" : toSqlString(raw);
@@ -1712,6 +1716,10 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
       out = s[0] ?? "";
     } else if (spec === "d") {
       out = String(Math.trunc(toSqlNumber(raw)));
+      const sign = out.startsWith("-") ? "-" : modifiers.includes("+") ? "+" : "";
+      if (out.startsWith("-")) out = out.slice(1);
+      if (modifiers.includes("0")) out = out.padStart(Math.max(0, width - sign.length), "0");
+      out = sign + out;
     } else if (spec === "x" || spec === "X" || spec === "p") {
       const integer = integerPrefix(raw);
       const clamped = integer < INT64_MIN ? INT64_MIN : integer > INT64_MAX ? INT64_MAX : integer;
@@ -1759,14 +1767,10 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
         }
       }
     }
-    const widthMatch = /^(-?)(0?)(\d+)/.exec(flags);
-    if (widthMatch) {
-      const leftAlign = widthMatch[1] === "-";
-      const padChar = widthMatch[2] === "0" && !leftAlign ? "0" : " ";
-      const width = Number(widthMatch[3]);
-      if (out.length < width) {
-        out = leftAlign ? out.padEnd(width, " ") : out.padStart(width, padChar);
-      }
+    if (out.length < width) {
+      const leftAlign = modifiers.includes("-");
+      const padChar = modifiers.includes("0") && !leftAlign ? "0" : " ";
+      out = leftAlign ? out.padEnd(width, " ") : out.padStart(width, padChar);
     }
     return out;
   });

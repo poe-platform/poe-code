@@ -5,6 +5,22 @@ import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, 
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
 for (const fn of ["printf", "format"]) {
+  for (const [args, expected] of [
+    ["'%08d|%+08d', -12, 12", "-0000012|+0000012"],
+    ["'%+08d|%+08d|%+08d', -12, 0, NULL", "-0000012|+0000000|+0000000"],
+    ["'%8d|%+8d|%-+8d|%0+8d', -12, 12, 12, 12", "     -12|     +12|+12     |+0000012"],
+    ["'%+d|%02d', 12, -123", "+12|-123"],
+  ]) {
+    test(`sqlite3 ${fn} places integer signs before zero padding: ${args}`, async () => {
+      assert.deepEqual(
+        await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${fn}(${args});`]),
+        { code: 0, stdout: `${expected}\n`, stderr: "" }
+      );
+    });
+  }
+}
+
+for (const fn of ["printf", "format"]) {
   test(`sqlite3 ${fn} escapes identifier quotes with %w`, async () => {
     assert.deepEqual(
       await runSqlite3(createMemoryFileSystem(), [":memory:",

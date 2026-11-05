@@ -43,7 +43,7 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
   builtins: [0],
   trim: [0], ltrim: [0], rtrim: [0],
-  path: [1], leaf_paths: [0], fabs: [0], env: [0], inputs: [0], input_filename: [0], fromstream: [1], tostream: [0], truncate_stream: [1],
+  path: [1], leaf_paths: [0], fabs: [0], env: [0], inputs: [0], input_filename: [0], input_line_number: [0], fromstream: [1], tostream: [0], truncate_stream: [1],
   walk: [1], test: [1, 2], match: [1, 2], in: [1], IN: [1, 2], INDEX: [1, 2], isempty: [1], nth: [1, 2], pick: [1], sqrt: [0], todate: [0], fromdate: [0],
   explode: [0], implode: [0], utf8bytelength: [0], floor: [0], ceil: [0], round: [0], abs: [0], index: [1], rindex: [1],
   while: [2], until: [2], fromdateiso8601: [0], todateiso8601: [0], strftime: [1], strflocaltime: [1], strptime: [1], gmtime: [0], mktime: [0],

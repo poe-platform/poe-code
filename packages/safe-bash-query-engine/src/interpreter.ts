@@ -997,6 +997,10 @@ export class Interpreter {
       }
       return;
     }
+    if (name === "input_line_number") {
+      yield budget.inputLocation.line;
+      return;
+    }
     if (name === "input_filename") {
       yield budget.inputLocation.name;
       return;

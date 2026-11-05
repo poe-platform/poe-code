@@ -8,7 +8,8 @@ Safe Bash command environment, never the host process environment. Use
 `jq -Rn '[inputs | split(",")]'` to collect raw input lines; `inputs` consumes
 the remaining values from the same input stream, including virtual files.
 `input_filename` returns the current file operand, `"<stdin>"` for standard input,
-or `null` before reading an input source.
+or `null` before reading an input source. `input_line_number` returns the current
+input line count, or `0` before reading input.
 Use `jq -cn 'builtins'` to list supported functions as `name/arity` strings.
 
 This private implementation ships inside Safe Bash; no separate installation is

@@ -1419,7 +1419,7 @@ fn eval_arith_ast(
     match node {
         ArithNode::Num(n, _) => Ok(*n),
         ArithNode::Var(name, _) => {
-            let resolved_key = resolve_var_key_mut(name, env, visiting)?;
+            let resolved_key = resolve_var_key_mut(name, &[], env, visiting)?;
             resolve_arith_var_resolved(name, &resolved_key, env, visiting)
         }
         ArithNode::Group(inner, _) => eval_arith_ast(inner, env, visiting),
@@ -1428,7 +1428,7 @@ fn eval_arith_ast(
                 let ArithNode::Var(var, _) = arg.as_ref() else {
                     return Err("Arithmetic increment/decrement requires a variable".to_string());
                 };
-                let resolved_key = resolve_var_key_mut(var, env, visiting)?;
+                let resolved_key = resolve_var_key_mut(var, &[], env, visiting)?;
                 let cur = resolve_arith_var_resolved(var, &resolved_key, env, visiting)?;
                 let next = if op == "++" {
                     cur.wrapping_add(1)
@@ -1458,11 +1458,11 @@ fn eval_arith_ast(
         ArithNode::Assign { op, target, right, .. } => {
             if op == "=" {
                 let rhs = eval_arith_ast(right, env, visiting)?;
-                let resolved_key = resolve_var_key_mut(target, env, visiting)?;
+                let resolved_key = resolve_var_key_mut(target, &[], env, visiting)?;
                 set_arith_var_resolved(resolved_key, rhs, env)?;
                 return Ok(rhs);
             }
-            let resolved_key = resolve_var_key_mut(target, env, visiting)?;
+            let resolved_key = resolve_var_key_mut(target, &[], env, visiting)?;
             let cur = resolve_arith_var_resolved(target, &resolved_key, env, visiting)?;
             let rhs = eval_arith_ast(right, env, visiting)?;
             let next = apply_arith_binary(op.trim_end_matches('='), cur, rhs, right.start())?;
@@ -1962,7 +1962,7 @@ pub fn expand_parameter_expr(
                     expand_tilde_prefix(def_raw, env, false, true)
                 };
                 let def = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
-                let resolved = resolve_var_key_mut(var, env, &mut BTreeSet::new())?;
+                let resolved = resolve_var_key_mut(var, pos_args, env, &mut BTreeSet::new())?;
                 let base = resolved
                     .split_once('[')
                     .map(|(b, _)| b)
@@ -2026,7 +2026,7 @@ pub fn expand_parameter_expr(
                     expand_tilde_prefix(def_raw, env, false, true)
                 };
                 let def = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
-                let resolved = resolve_var_key_mut(var, env, &mut BTreeSet::new())?;
+                let resolved = resolve_var_key_mut(var, pos_args, env, &mut BTreeSet::new())?;
                 let base = resolved
                     .split_once('[')
                     .map(|(b, _)| b)
@@ -3101,7 +3101,7 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
         }
         return false;
     }
-    let resolved = resolve_var_key_for_lookup(name, env);
+    let resolved = resolve_var_key_for_lookup(name, env, pos_args);
     if resolved == "RANDOM" {
         return !env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false)
             || env.contains_key("RANDOM");
@@ -3672,21 +3672,34 @@ fn lookup_array_elements(
     Some(entries.into_iter().map(|(_, v)| v).collect())
 }
 
-fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>) -> String {
+fn expand_subscript_key(raw: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -> String {
+    if let Some(literal) = raw.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')) {
+        return literal.to_string();
+    }
+    let word = raw.strip_prefix('"').and_then(|s| s.strip_suffix('"')).unwrap_or(raw);
+    let Some(rest) = word.strip_prefix('$') else { return word.to_string(); };
+    let (name, suffix) = if let Some((name, suffix)) = rest.strip_prefix('{').and_then(|s| s.split_once('}')) {
+        (name, suffix)
+    } else if rest.as_bytes().first().is_some_and(u8::is_ascii_digit) {
+        rest.split_at(1)
+    } else {
+        let end = rest.bytes().take_while(|b| b.is_ascii_alphanumeric() || *b == b'_').count();
+        rest.split_at(end)
+    };
+    let value = match name.parse::<usize>() {
+        Ok(0) => env.get("0").map(String::as_str).unwrap_or("virtual-bash"),
+        Ok(n) => pos_args.get(n - 1).map(String::as_str).unwrap_or(""),
+        Err(_) => env.get(name).map(String::as_str).unwrap_or(""),
+    };
+    format!("{value}{suffix}")
+}
+
+fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -> String {
     if let Some((base, sub_rest)) = name.split_once('[')
         && let Some(raw_sub) = sub_rest.strip_suffix(']')
     {
         let resolved_base = resolve_nameref_base(base, env);
-        let unq = raw_sub.trim_matches('"').trim_matches('\'');
-        let clean_sub = if let Some(var_name) = unq.strip_prefix('$') {
-            let vn = var_name
-                .strip_prefix('{')
-                .and_then(|s| s.strip_suffix('}'))
-                .unwrap_or(var_name);
-            env.get(vn).cloned().unwrap_or_default()
-        } else {
-            unq.to_string()
-        };
+        let clean_sub = expand_subscript_key(raw_sub, env, pos_args);
         let is_assoc = env
             .get(&format!("\0assoc__{resolved_base}"))
             .map(|v| v == "1")
@@ -3748,6 +3761,7 @@ pub(super) fn indexed_array_index(base: &str, idx: i64, env: &BTreeMap<String, S
 
 fn resolve_var_key_mut(
     name: &str,
+    pos_args: &[String],
     env: &mut BTreeMap<String, String>,
     visiting: &mut BTreeSet<String>,
 ) -> Result<String, String> {
@@ -3755,16 +3769,7 @@ fn resolve_var_key_mut(
         && let Some(raw_sub) = sub_rest.strip_suffix(']')
     {
         let resolved_base = resolve_nameref_base(base, env).to_string();
-        let unq = raw_sub.trim_matches('"').trim_matches('\'');
-        let clean_sub = if let Some(var_name) = unq.strip_prefix('$') {
-            let vn = var_name
-                .strip_prefix('{')
-                .and_then(|s| s.strip_suffix('}'))
-                .unwrap_or(var_name);
-            env.get(vn).cloned().unwrap_or_default()
-        } else {
-            unq.to_string()
-        };
+        let clean_sub = expand_subscript_key(raw_sub, env, pos_args);
         let is_assoc = env
             .get(&format!("\0assoc__{resolved_base}"))
             .map(|v| v == "1")
@@ -3914,7 +3919,7 @@ pub fn lookup_var(
         }
         return vals.join(" ");
     }
-    let key = resolve_var_key_for_lookup(name, env);
+    let key = resolve_var_key_for_lookup(name, env, pos_args);
     if key == "RANDOM" || key == "RANDOM[0]" {
         return read_dynamic_random(env).unwrap_or_default();
     }

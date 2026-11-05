@@ -177,6 +177,9 @@ export function linuxCommands(text: string) {
   const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1",
     String.raw`df --output=$'target,\xff'`, "LC_ALL=C.UTF-8 df --output=’é",
     "LC_ALL= LC_MESSAGES=C LC_CTYPE=C.UTF-8 df --output=é"];
+  pipes.push('declare -A routes=([health]=live); route() { printf "%s\\n" "${routes[$1]:-missing}"; }; route health; route absent',
+    'declare -A a=(); seed() { : "${a[$1]:=set}"; }; seed "two words"; printf "%s\\n" "${a[two words]}"',
+    'set -- 2; a=(zero one two); printf "%s\\n" "${a[$1]}"');
   for (const command of ["pwd", "command pwd -L", "pwd -P", "env pwd", "env pwd --logical", "/usr/bin/pwd", "exec pwd", "timeout 10 pwd", "env pwd --phys",
     "env POSIXLY_CORRECT=1 pwd", "env -u PWD pwd -L", 'env PWD="$PWD/." pwd -L', 'env PWD="$PWD//" pwd -L',
     "env pwd -P ignored -L", "env POSIXLY_CORRECT=1 pwd ignored -P", "env pwd -- -L"]) {

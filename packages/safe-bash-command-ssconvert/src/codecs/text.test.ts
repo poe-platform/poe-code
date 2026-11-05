@@ -33,13 +33,13 @@ it.each([
   } finally { await f.engine.dispose(); }
 });
 
-it.each(["\n", "\r\n", "\r"])("remembers unique input ending %j only for configurable export", async ending => {
+it.each(["\n", "\r\n", "\r"])("preserves unique input ending %j for text exports", async ending => {
   const f = fixture(["a,b", "1,2", "3,4", ""].join(ending));
   try {
     for (const [type, options, separator, outputEnding] of [
       ["stf_assistant", undefined, ",", ending],
       ["stf_assistant", "separator=|", "|", ending],
-      ["stf_csv", undefined, ",", "\n"],
+      ["stf_csv", undefined, ",", ending],
       ["stf_assistant", "eol=unix", ",", "\n"],
       ["stf_assistant", "eol=windows", ",", "\r\n"],
       ["stf_assistant", "eol=mac", ",", "\r"]

@@ -207,7 +207,7 @@ async function collect(source: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
 }
 
 function configurableOptions(args: Parameters<NonNullable<Codec["write"]>>, plainCsv = false): TextOptions {
-  const options: TextOptions = { separator: ",", quote: '"', eol: plainCsv ? "\n" : args[0].textExportEol ?? "\n", mode: "auto", whitespace: true,
+  const options: TextOptions = { separator: ",", quote: '"', eol: args[0].textExportEol ?? "\n", mode: "auto", whitespace: true,
     format: "automatic", charset: "UTF-8", transliterate: !plainCsv };
   const context = args[2];
   for (const text of args[1]) for (const [key, value] of exportOptionPairs(text)) {

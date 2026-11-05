@@ -207,6 +207,7 @@ impl ScanEdge {
 // Keep the original slope for the interior portion of a clipped edge. The
 // portions outside the page run down its sides to preserve the winding count.
 pub(super) struct PolygonEdge {
+    rank: usize,
     p: Point,
     q: Point,
     direction: i32,
@@ -224,6 +225,7 @@ pub(super) fn clipped_edges(edges: &[(Point, Point)], clip: Point) -> Vec<Polygo
         }
         let mut side = |x, top, bottom| {
             result.push(PolygonEdge {
+                rank: usize::MAX,
                 p: [x, top],
                 q: [x, bottom],
                 direction,
@@ -269,6 +271,7 @@ pub(super) fn clipped_edges(edges: &[(Point, Point)], clip: Point) -> Vec<Polygo
         }
         if top < bottom {
             result.push(PolygonEdge {
+                rank: usize::MAX,
                 p,
                 q,
                 direction,
@@ -283,7 +286,7 @@ pub(super) fn clipped_edges(edges: &[(Point, Point)], clip: Point) -> Vec<Polygo
 // Fill all subpaths together: winding can change at every crossing, so the
 // leftmost and rightmost edges alone do not describe holes or intersections.
 pub(super) fn path_row(
-    edges: &[PolygonEdge],
+    edges: &mut [PolygonEdge],
     y: usize,
     x0: usize,
     areas: &mut [f64],
@@ -292,22 +295,23 @@ pub(super) fn path_row(
 ) -> Option<()> {
     let active: Vec<_> = edges
         .iter()
-        .filter_map(|e| {
+        .enumerate()
+        .filter_map(|(i, e)| {
             let mut row = RowEdge::new(e.p, e.q, y as f64 * 15., e.top, e.bottom)?;
             row.direction = e.direction;
-            Some(row)
+            Some((i, row))
         })
         .collect();
     let mut crossings = Vec::with_capacity(active.len());
-    let mut full = active.iter().all(|e| e.from == 0 && e.to == 15);
+    let mut full = active.iter().all(|(_, e)| e.from == 0 && e.to == 15);
     areas.fill(0.);
     for sub in 0..15 {
         crossings.clear();
         crossings.extend(
             active
                 .iter()
-                .filter(|e| e.from <= sub && sub < e.to)
-                .map(|e| (e.sample(sub), e)),
+                .filter(|(_, e)| e.from <= sub && sub < e.to)
+                .map(|(i, e)| (e.sample(sub), e, *i)),
         );
         *work = work.checked_sub(
             crossings
@@ -316,8 +320,12 @@ pub(super) fn path_row(
         )?;
         crossings.sort_by(|a, b| {
             a.0.total_cmp(&b.0)
-                .then_with(|| (a.1.start_x / a.1.den).total_cmp(&(b.1.start_x / b.1.den)))
+                .then_with(|| edges[a.2].rank.cmp(&edges[b.2].rank))
         });
+        // Cairo keeps the active list in its previous order when samples tie.
+        for (rank, &(_, _, i)) in crossings.iter().enumerate() {
+            edges[i].rank = rank;
+        }
         if full {
             full = crossings
                 .windows(2)
@@ -325,7 +333,7 @@ pub(super) fn path_row(
         }
         let mut winding = 0;
         let mut left = None;
-        for (i, &(right_x, right)) in crossings.iter().enumerate() {
+        for (i, &(right_x, right, _)) in crossings.iter().enumerate() {
             left.get_or_insert((right_x, right));
             winding += right.direction;
             if (if even { winding % 2 } else { winding }) != 0

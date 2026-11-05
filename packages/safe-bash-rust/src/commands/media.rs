@@ -16707,6 +16707,34 @@ mod media_unit_tests {
         }
     }
 
+    #[test]
+    fn pdfimages_soft_mask_uses_its_own_size_and_the_parent_object_id() {
+        let fs = MemoryVfs::new();
+        let draw = "q 4 0 0 2 0 0 cm /A Do /A Do Q";
+        let pdf = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 8 4] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
+            &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len()),
+            "<< /Type /XObject /Subtype /Image /Width 2 /Height 1 /BitsPerComponent 8 /ColorSpace /DeviceRGB /SMask 6 0 R /Length 6 >>\nstream\nABCxyz\nendstream",
+            "<< /Type /XObject /Subtype /Image /Width 3 /Height 1 /BitsPerComponent 8 /ColorSpace /DeviceGray /Interpolate true /Length 3 >>\nstream\nAz~\nendstream",
+        ], "");
+        fs.write_file("/mask.pdf", pdf.as_bytes()).unwrap();
+        let run = |args: &[&str]| cmd_media_doc("pdfimages", &media_args(args), "", "/", &fs);
+        let list = run(&["-list", "mask.pdf"]);
+        assert_eq!(list.exit_code, 0, "{}", list.stderr);
+        assert_eq!(list.stdout.lines().skip(2).collect::<Vec<_>>(), [
+            "   1     0 image       2     1  rgb     3   8  image  no         5  0    36    36    6B 100%",
+            "   1     1 smask       3     1  gray    1   8  image  yes        5  0    54    36    3B 100%",
+            "   1     2 image       2     1  rgb     3   8  image  no         5  0    36    36    6B 100%",
+            "   1     3 smask       3     1  gray    1   8  image  yes        5  0    54    36    3B 100%",
+        ]);
+        let out = run(&["mask.pdf", "out"]);
+        assert_eq!(out.exit_code, 0, "{}", out.stderr);
+        assert_eq!(fs.read_file("/out-002.ppm").unwrap(), b"P6\n2 1\n255\nABCxyz");
+        assert_eq!(fs.read_file("/out-003.ppm").unwrap(), b"P6\n3 1\n255\nAAAzzz~~~");
+    }
+
     fn embedded_jpeg_pdf(jpeg: &[u8], color: &str, filters: &str, hex: bool) -> Vec<u8> {
         let bytes = if hex { [hex_enc(jpeg).as_bytes(), b">"].concat() } else { jpeg.to_vec() };
         let info = image_header::jpeg(jpeg).unwrap();

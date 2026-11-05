@@ -2330,17 +2330,46 @@ function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: 
     return { ...img, data: out };
 }
 
-function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.min(256, Math.round(levelsRaw)));
     const step = 255 / (levels - 1);
-    const out = new Uint8Array(img.data);
     type PaletteNode = { children: PaletteNode[]; color?: number[] };
     let palette: PaletteNode | undefined;
-    for (let i = 0; i < out.length; i += 4) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        if (img.hasAlpha && out[i + 3]! < 255 && levels <= 16) {
+    // Native posterize uses Riemersma only for palettes with 2–16 levels.
+    dither &&= levels <= 16;
+    const errors = new Float64Array(16 * 4);
+    const weights = Float64Array.from({ length: 16 }, (_, i) => 16 ** (-1 - i / 15));
+    function* pixels(x: number, y: number, xi: number, yi: number, xj: number, yj: number, size: number): Generator<number> {
+        // Skip whole Hilbert quadrants outside a rectangular image.
+        if (Math.min(x, x + xi, x + xj, x + xi + xj) >= img.width ||
+            Math.min(y, y + yi, y + yj, y + yi + yj) >= img.height ||
+            Math.max(x, x + xi, x + xj, x + xi + xj) <= 0 ||
+            Math.max(y, y + yi, y + yj, y + yi + yj) <= 0) return;
+        if (size === 1) {
+            yield (Math.floor(y + (yi + yj) / 2) * img.width + Math.floor(x + (xi + xj) / 2)) * 4;
+            return;
+        }
+        yield* pixels(x, y, xj / 2, yj / 2, xi / 2, yi / 2, size / 2);
+        yield* pixels(x + xi / 2, y + yi / 2, xi / 2, yi / 2, xj / 2, yj / 2, size / 2);
+        yield* pixels(x + (xi + xj) / 2, y + (yi + yj) / 2, xi / 2, yi / 2, xj / 2, yj / 2, size / 2);
+        yield* pixels(x + xi / 2 + xj, y + yi / 2 + yj, -xj / 2, -yj / 2, -xi / 2, -yi / 2, size / 2);
+    }
+    function* scan(): Generator<number> {
+        for (let i = 0; i < img.width * img.height * 4; i += 4) yield i;
+    }
+    const extent = 2 ** Math.ceil(Math.log2(Math.max(img.width, img.height, 1)));
+    for (const i of dither ? pixels(0, 0, 0, extent, extent, 0, extent) : scan()) {
+        if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
+        const input = (yield { kind: "read", position: i, length: 4 })!;
+        const out = new Uint8Array(4);
+        const alpha = img.hasAlpha ? input[3]! / 255 : 1;
+        const target = [input[0]! * alpha, input[1]! * alpha, input[2]! * alpha, input[3]!];
+        if (dither) for (let channel = 0; channel < 4; channel++) {
+            for (let entry = 0; entry < 16; entry++) target[channel]! += weights[entry]! * errors[entry * 4 + channel]!;
+            target[channel] = Math.max(0, Math.min(255, target[channel]!));
+        }
+        if (dither && img.hasAlpha && target[3]! < 255) {
             // ImageMagick searches the parent of the deepest matching RGBA
             // octree node, using associated alpha for both lookup and distance.
             if (!palette) {
@@ -2357,8 +2386,6 @@ function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: 
                     node.color = color;
                 }
             }
-            const alpha = out[i + 3]! / 255;
-            const target = [out[i]! * alpha, out[i + 1]! * alpha, out[i + 2]! * alpha, out[i + 3]!];
             const bytes = target.map(Math.round);
             let node = palette, parent = palette;
             for (let bit = 7; bit > 0; bit--) {
@@ -2380,16 +2407,20 @@ function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: 
                 if (!candidate.color) continue;
                 const color = candidate.color, candidateAlpha = color[3]! / 255;
                 let error = (color[3]! - target[3]!) ** 2;
-                for (let channel = 0; channel < 3; channel++) error += (color[channel]! * candidateAlpha - target[channel]! * alpha) ** 2;
+                for (let channel = 0; channel < 3; channel++) error += (color[channel]! * candidateAlpha - target[channel]! * (target[3]! / 255)) ** 2;
                 if (error <= distance) { distance = error; closest = color; }
             }
-            for (let channel = 0; channel < 4; channel++) out[i + channel] = clampByteVal(closest[channel]!);
+            for (let channel = 0; channel < 4; channel++) out[channel] = clampByteVal(closest[channel]!);
         } else {
-            for (let channel = 0; channel < 4; channel++) out[i + channel] = clampByteVal(Math.round((out[i + channel]! / 255) * (levels - 1)) * step);
+            for (let channel = 0; channel < 4; channel++) out[channel] = clampByteVal(Math.round(((dither ? target[channel]! : input[channel]!) / 255) * (levels - 1)) * step);
         }
+        if (dither) {
+            errors.copyWithin(0, 4);
+            const outputAlpha = img.hasAlpha ? out[3]! / 255 : 1;
+            for (let channel = 0; channel < 4; channel++) errors[60 + channel] = target[channel]! - out[channel]! * (channel === 3 ? 1 : outputAlpha);
+        }
+        yield { kind: "write", position: i, data: out };
     }
-    const { data16: ignored, ...metadata } = img;
-    return { ...metadata, data: out };
 }
 
 function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
@@ -4463,7 +4494,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickSolarizeSteps(image, value, channels, signal);
     } else if (token === "-posterize") {
         const levels = Number(tokens[++i] ?? 8);
-        apply = image => applyMagickPosterizeSteps(image, levels, signal);
+        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, signal), signal);
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
@@ -5941,6 +5972,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-colors") {
             const colors = Number(tokens[++i]);
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, colors), signal) : undefined);
+            continue;
+        }
+        if (!operandsOnly && token === "-posterize") {
+            const levels = Number(tokens[++i] ?? 8), dither = state.dither;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, signal), signal) : undefined);
             continue;
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);

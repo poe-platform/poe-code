@@ -197,7 +197,7 @@ fn is_which_executable(fs: &dyn SafeBashFs, full_path: &str, registered: &impl F
 }
 
 pub(crate) fn is_external_command(name: &str) -> bool {
-    is_known_command(name) && !is_pure_shell_builtin(name)
+    matches!(name, "sh" | "bash" | "zsh") || (is_known_command(name) && !is_pure_shell_builtin(name))
 }
 
 fn is_pure_shell_builtin(name: &str) -> bool {

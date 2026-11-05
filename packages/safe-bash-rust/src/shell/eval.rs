@@ -5658,7 +5658,6 @@ impl<'a> EvalState<'a> {
                 }
                 let outer = matches!(io, ChildIo::Inherit { .. }).then(|| sub_eval.forwarded_output.take());
                 let res = if mode == DispatchMode::EnvShebang && let Some(target) = sub_words.first() && !target.contains('/')
-                    && !matches!(target.as_str(), "sh" | "bash" | "zsh")
                     && !custom_ref.contains_key(target)
                     && !crate::commands::search::is_external_command(target)
                 {

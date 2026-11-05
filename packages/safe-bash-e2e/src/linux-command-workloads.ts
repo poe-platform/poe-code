@@ -68,7 +68,7 @@ const textCommands = ([
   ["jq", "-Rr", "ascii_upcase"], ["rg", "-n", "beta", "-"], ["cmp", "-s", "-", "/dev/null"],
   ["comm", "--nocheck-order", "-23", "-", "/dev/null"], ["join", "--nocheck-order", "-a", "1", "-", "/dev/null"],
   ["getopt", "-o", "ab:", "--", "-a", "-b", "two words"], ["getconf", "CHAR_BIT"],
-  ["envsubst", "--variables", "$HOME:$PATH"],
+  ["envsubst", "--variables", "$HOME:$PATH"], ["which", "-a", "sh", "bash"],
   ["openssl", "dgst", "-sha256"], ["realpath", "-m", "/missing/../result"], ["readlink", "-m", "/absent/../result"],
   ["hexdump", "-C"], ["file", "-b", "--mime-type", "-"], ["column", "-t"], ["more"],
   ["env", "-i", "A=one", "B=two", "printenv", "B", "A"], ["timeout", "2", "cat"], ["xargs", "-n", "32", "echo"],

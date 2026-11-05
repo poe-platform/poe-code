@@ -499,10 +499,44 @@ export function encodePngImage(
   ];
 
   const retainedChunks = chunks.filter((chunk, index) => index === 0 || (chunk[4]! & 32) === 0 || !excludePngChunk(String.fromCharCode(...chunk.subarray(4, 8)), options?.pngExcludeChunks));
-  const totalLength = retainedChunks.reduce((s, c) => s + c.length, 0);
+  return joinPngChunks(retainedChunks);
+}
+
+/** Encode MSB-first, byte-aligned bitmap rows with two RGBA palette entries. */
+export function encodeBitmapPng(width: number, height: number, bitmap: Uint8Array, foreground: readonly number[],
+  background: readonly number[], pixelsPerMeter: number): Uint8Array {
+  const stride = Math.ceil(width / 8);
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 ||
+      width > 0x7fffffff || height > 0x7fffffff || bitmap.length !== stride * height ||
+      foreground.length !== 4 || background.length !== 4) throw new Error("Invalid PNG bitmap");
+  const raw = new Uint8Array((stride + 1) * height);
+  for (let y = 0; y < height; y++) raw.set(bitmap.subarray(y * stride, (y + 1) * stride), y * (stride + 1) + 1);
+  const ihdr = new Uint8Array(13);
+  const header = new DataView(ihdr.buffer);
+  header.setUint32(0, width);
+  header.setUint32(4, height);
+  ihdr[8] = 1;
+  ihdr[9] = 3;
+  const phys = new Uint8Array(9);
+  const resolution = new DataView(phys.buffer);
+  resolution.setUint32(0, pixelsPerMeter);
+  resolution.setUint32(4, pixelsPerMeter);
+  phys[8] = 1;
+  return joinPngChunks([
+    PNG_SIGNATURE, makeChunk("IHDR", ihdr),
+    makeChunk("PLTE", Uint8Array.of(foreground[0]!, foreground[1]!, foreground[2]!, background[0]!, background[1]!, background[2]!)),
+    makeChunk("tRNS", Uint8Array.of(foreground[3]!, background[3]!)),
+    makeChunk("pHYs", phys),
+    makeChunk("IDAT", transformBytes(raw, { direction: "encode", format: "zlib", level: 6 })),
+    makeChunk("IEND", new Uint8Array(0))
+  ]);
+}
+
+function joinPngChunks(chunks: Uint8Array[]): Uint8Array {
+  const totalLength = chunks.reduce((s, c) => s + c.length, 0);
   const out = new Uint8Array(totalLength);
   let pos = 0;
-  for (const c of retainedChunks) {
+  for (const c of chunks) {
     out.set(c, pos);
     pos += c.length;
   }

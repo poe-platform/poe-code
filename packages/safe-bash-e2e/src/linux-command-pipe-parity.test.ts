@@ -1,4 +1,5 @@
 import { link, lstat, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { inflateSync } from "node:zlib";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -32,6 +33,30 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("indexed QR PNGs preserve native palette, transparency, and every packed pixel", async () => {
+      const contents = (png: Buffer) => {
+        const metadata = [png.subarray(0, 8)], compressed: Buffer[] = [];
+        for (let offset = 8; offset < png.length;) {
+          const length = png.readUInt32BE(offset);
+          assert.ok(offset + length + 12 <= png.length);
+          if (png.toString("ascii", offset + 4, offset + 8) === "IDAT") compressed.push(png.subarray(offset + 8, offset + 8 + length));
+          else metadata.push(png.subarray(offset, offset + 12 + length));
+          offset += 12 + length;
+        }
+        return [...metadata, inflateSync(Buffer.concat(compressed))];
+      };
+      for (const options of [["-s1", "-m0"], ["-s4", "-m3", "--foreground=11223300", "--background=ffeecc80"]]) {
+        const args = [...options, "-o", "-", "Hello"];
+        const [code, png, stderr] = await runLinuxCommand("qrencode", args, "", cwd);
+        assert.equal(code, 0, stderr.toString());
+        const expected = contents(png);
+        for (const shell of [ts.shell, rust]) {
+          const result = await shell.exec("qrencode " + args.join(" "));
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.deepEqual(contents(Buffer.from(result.stdoutBytes)), expected);
+        }
+      }
+    });
     await t.test("a legacy inline host does not replace other accounts in an existing hosts.yml", async () => {
       for (const shell of [ts.shell, rust]) {
         const result = await shell.exec("export GH_CONFIG_DIR=gh-mixed; mkdir -p gh-mixed; " +

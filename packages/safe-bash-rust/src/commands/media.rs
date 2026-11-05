@@ -4091,17 +4091,27 @@ fn qr_fmt_ratio(v: u8) -> String {
     }
 }
 
-pub(super) enum PngEncoding { PixelsPerMeter(u32), Density(u32), SplitDensity(u32, Option<u8>), Mermaid }
+pub(super) enum PngEncoding { Palette(u32, [u8; 4], [u8; 4]), PixelsPerMeter(u32), Density(u32), SplitDensity(u32, Option<u8>), Mermaid }
 
 pub(super) fn pixel_png<const N: usize>(width: usize, height: usize, encoding: PngEncoding, pixel: impl Fn(usize, usize) -> [u8; N]) -> Vec<u8> {
-    let mut raw = Vec::with_capacity((width * N + 1) * height);
+    let indexed = matches!(encoding, PngEncoding::Palette(..));
+    let mut raw = Vec::with_capacity((if indexed { width.div_ceil(8) } else { width * N } + 1) * height);
     for y in 0..height {
-        raw.push(1); // Sub filter: store the channel difference from the pixel to the left.
-        let mut prev = [0; N];
-        for x in 0..width {
-            let rgba = pixel(x, y);
-            for i in 0..N { raw.push(rgba[i].wrapping_sub(prev[i])); }
-            prev = rgba;
+        if indexed {
+            raw.push(0);
+            let start = raw.len();
+            raw.resize(start + width.div_ceil(8), 0xff);
+            for x in 0..width {
+                if pixel(x, y)[0] == 0 { raw[start + x / 8] &= !(0x80 >> (x % 8)); }
+            }
+        } else {
+            raw.push(1); // Sub filter: store the channel difference from the pixel to the left.
+            let mut prev = [0; N];
+            for x in 0..width {
+                let rgba = pixel(x, y);
+                for i in 0..N { raw.push(rgba[i].wrapping_sub(prev[i])); }
+                prev = rgba;
+            }
         }
     }
     let mut out = b"\x89PNG\r\n\x1a\n".to_vec();
@@ -4115,12 +4125,16 @@ pub(super) fn pixel_png<const N: usize>(width: usize, height: usize, encoding: P
     let mut header = [0; 13];
     header[..4].copy_from_slice(&(width as u32).to_be_bytes());
     header[4..8].copy_from_slice(&(height as u32).to_be_bytes());
-    header[8..10].copy_from_slice(&[8, match N { 1 => 0, 2 => 4, 3 => 2, 4 => 6, _ => unreachable!() }]);
+    header[8..10].copy_from_slice(&if indexed { [1, 3] } else { [8, match N { 1 => 0, 2 => 4, 3 => 2, 4 => 6, _ => unreachable!() }] });
     chunk(b"IHDR", &header);
+    if let PngEncoding::Palette(_, fg, bg) = encoding {
+        chunk(b"PLTE", &[fg[0], fg[1], fg[2], bg[0], bg[1], bg[2]]);
+        chunk(b"tRNS", &[fg[3], bg[3]]);
+    }
     match encoding {
         PngEncoding::Mermaid=>chunk(b"IDAT",&crate::commands::codecs::zlib_pixel_runs(&raw)),
-        PngEncoding::PixelsPerMeter(value)|PngEncoding::Density(value)|PngEncoding::SplitDensity(value,_)=>{
-            let ppm = if matches!(encoding, PngEncoding::PixelsPerMeter(_)) { value } else { (value as f64 / 0.0254).round() as u32 }.to_be_bytes();
+        PngEncoding::Palette(value,..)|PngEncoding::PixelsPerMeter(value)|PngEncoding::Density(value)|PngEncoding::SplitDensity(value,_)=>{
+            let ppm = if matches!(encoding, PngEncoding::PixelsPerMeter(_) | PngEncoding::Palette(..)) { value } else { (value as f64 / 0.0254).round() as u32 }.to_be_bytes();
             let mut phys=[1;9];phys[..4].copy_from_slice(&ppm);phys[4..8].copy_from_slice(&ppm);
             chunk(b"pHYs",&phys);
             if let PngEncoding::SplitDensity(dpi,orientation)=encoding {
@@ -4154,6 +4168,9 @@ fn qr_render(
     };
     if rtype == "PNG" || rtype == "PNG32" {
         let ppm = (u64::from(dpi) * 5000 / 127) as u32;
+        if rtype == "PNG" {
+            return pixel_png(pixels, pixels, PngEncoding::Palette(ppm, fg, bg), |x, y| [u8::from(!dark(x / size, y / size))]);
+        }
         return pixel_png(pixels, pixels, PngEncoding::PixelsPerMeter(ppm), |x, y| if dark(x / size, y / size) { fg } else { bg });
     }
     let mut text = String::new();
@@ -16285,7 +16302,7 @@ mod media_unit_tests {
     #[test]
     fn qr_png_carries_colored_modules_and_physical_resolution() {
         let fs = MemoryVfs::new();
-        let args = media_args(&["-m", "0", "-s", "1", "-d", "300", "--foreground=10203040", "--background=ffeecc99", "-o", "qr.png", "Hello"]);
+        let args = media_args(&["-t", "PNG32", "-m", "0", "-s", "1", "-d", "300", "--foreground=10203040", "--background=ffeecc99", "-o", "qr.png", "Hello"]);
         assert_eq!(cmd_media_doc("qrencode", &args, "", "/", &fs).exit_code, 0);
         let png = fs.read_file("/qr.png").unwrap();
         assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n");

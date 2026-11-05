@@ -27,7 +27,7 @@ await shell.dispose();
 
 Formats: `PNG`, `PNG32`, `SVG`, `EPS`, `ASCII`, `ASCIIi`, `UTF8`, `UTF8i`,
 `ANSI`, `ANSI256`, `ANSIUTF8`, `ANSIUTF8i`, and `ANSI256UTF8`. `-o -` writes bytes to stdout for pipelines
-or redirection. PNG and PNG32 require an explicit output. Vector and terminal formats default to stdout. Terminal formats use
+or redirection. PNG stores a one-bit palette with foreground and background transparency. PNG32 stores RGBA pixels. Both require an explicit output. Vector and terminal formats default to stdout. Terminal formats use
 one character pair or half-block per module; `-s` scales raster and vector output.
 
 QR versions 1–40 support error correction `-l L|M|Q|H`. The first letter selects the level regardless of case, so `--level=high` is equivalent to `-l H`. Use `-v` to select

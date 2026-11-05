@@ -1,4 +1,4 @@
-import { encodeImage } from "@poe-code/image-ast/portable";
+import { encodeBitmapPng, encodeImage } from "@poe-code/image-ast/portable";
 import type { QrSymbol } from "./encoder.js";
 
 export const outputTypes = [
@@ -48,6 +48,20 @@ export function renderQr(
     throw new Error("QR output exceeds memory budget");
   const dark = (x: number, y: number): boolean => symbol.modules[y - margin]?.[x - margin] ?? false;
   if (raster) {
+    const ppm = Math.floor(dpi * 5000 / 127);
+    if (type === "PNG") {
+      const stride = Math.ceil(pixels / 8);
+      const bitmap = new Uint8Array(stride * pixels).fill(0xff);
+      for (let y = 0; y < pixels; y++) {
+        for (let x = 0; x < pixels; x++) {
+          if (dark(Math.floor(x / size), Math.floor(y / size))) {
+            const i = y * stride + (x >>> 3);
+            bitmap[i] = bitmap[i]! & ~(0x80 >>> (x & 7));
+          }
+        }
+      }
+      return encodeBitmapPng(pixels, pixels, bitmap, fg, bg, ppm);
+    }
     const data = new Uint8Array(pixels * pixels * 4);
     for (let y = 0; y < pixels; y++)
       for (let x = 0; x < pixels; x++)
@@ -62,7 +76,7 @@ export function renderQr(
         channels: 4,
         depth: "uchar",
         // qrencode truncates pixels per metre, while the PNG encoder rounds DPI.
-        density: Math.floor(dpi * 5000 / 127) * 0.0254,
+        density: ppm * 0.0254,
         hasAlpha: true
       },
       { format: "png" }

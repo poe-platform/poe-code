@@ -167,3 +167,140 @@ pub(super) fn write_symbols(writer: &mut MsbBitWriter, symbols: &[u16], alphabet
         }
     }
 }
+
+// Equal rotations have identical last bytes but their order determines the
+// primary index in the block header. Preserve bzip2's fallback-sort tie order.
+fn sort_bucket(mut bucket: &mut [usize], rank: &[usize], seed: &mut usize) {
+    while bucket.len() > 10 {
+        *seed = (*seed * 7621 + 1) % 32768;
+        let n = bucket.len();
+        let pivot = rank[bucket[match *seed % 3 {
+            0 => 0,
+            1 => (n - 1) / 2,
+            _ => n - 1,
+        }]];
+        let (mut i, mut j) = (0, n);
+        let (mut left, mut right) = (0, n);
+        loop {
+            while i < j && rank[bucket[i]] <= pivot {
+                if rank[bucket[i]] == pivot {
+                    bucket.swap(i, left);
+                    left += 1;
+                }
+                i += 1;
+            }
+            while i < j && rank[bucket[j - 1]] >= pivot {
+                j -= 1;
+                if rank[bucket[j]] == pivot {
+                    right -= 1;
+                    bucket.swap(j, right);
+                }
+            }
+            if i == j {
+                break;
+            }
+            j -= 1;
+            bucket.swap(i, j);
+            i += 1;
+        }
+        if left == right {
+            return;
+        }
+        let low = i - left;
+        let high = right - j;
+        let span = low.min(left);
+        for k in 0..span {
+            bucket.swap(k, i - span + k);
+        }
+        let span = high.min(n - right);
+        for k in 0..span {
+            bucket.swap(i + k, n - span + k);
+        }
+        let (a, b) = bucket.split_at_mut(low);
+        let b = &mut b[n - low - high..];
+        // Process the shorter side first, bounding recursion and preserving
+        // the sequence of pivots used for this bucket.
+        if low <= high {
+            sort_bucket(a, rank, seed);
+            bucket = b;
+        } else {
+            sort_bucket(b, rank, seed);
+            bucket = a;
+        }
+    }
+    for gap in [4, 1] {
+        for i in (0..bucket.len().saturating_sub(gap)).rev() {
+            let entry = bucket[i];
+            let mut j = i;
+            while j + gap < bucket.len() && rank[entry] > rank[bucket[j + gap]] {
+                bucket[j] = bucket[j + gap];
+                j += gap;
+            }
+            bucket[j] = entry;
+        }
+    }
+}
+
+pub(super) fn rotations(block: &[u8]) -> Vec<usize> {
+    let n = block.len();
+    let mut counts = [0; 256];
+    for &b in block {
+        counts[usize::from(b)] += 1;
+    }
+    let mut end = 0;
+    for k in &mut counts {
+        end += *k;
+        *k = end;
+    }
+    let mut order = vec![0; n];
+    for (i, &b) in block.iter().enumerate() {
+        let slot = &mut counts[usize::from(b)];
+        *slot -= 1;
+        order[*slot] = i;
+    }
+    let mut heads = vec![false; n + 1];
+    for i in counts {
+        heads[i] = true;
+    }
+    heads[n] = true;
+    let mut rank = vec![0; n];
+    let mut width = 1;
+    while width < n {
+        // Rank the second half of every doubled prefix using the buckets
+        // from the previous pass. Only tied prefixes need another sort.
+        let mut class = 0;
+        for (i, &pos) in order.iter().enumerate() {
+            if heads[i] {
+                class = i;
+            }
+            rank[if pos < width {
+                pos + (n - width)
+            } else {
+                pos - width
+            }] = class;
+        }
+        let mut split = false;
+        let mut start = 0;
+        while start < n {
+            let mut end = start + 1;
+            while !heads[end] {
+                end += 1;
+            }
+            if end > start + 1 {
+                sort_bucket(&mut order[start..end], &rank, &mut 0);
+                for i in start + 1..end {
+                    if rank[order[i - 1]] != rank[order[i]] {
+                        heads[i] = true;
+                        split = true;
+                    }
+                }
+            }
+            start = end;
+        }
+        if !split {
+            break;
+        }
+        width *= 2;
+    }
+    order
+}

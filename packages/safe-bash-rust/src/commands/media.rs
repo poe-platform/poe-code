@@ -17211,6 +17211,62 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdf_rasters_paint_into_the_rotated_device_coordinates_at_each_resolution() {
+        let fs = MemoryVfs::new();
+        // Dimensions and decoded pixels from Poppler 24.02.
+        let triangle = "0.1 0.7 0.3 rg 1 2 m 12 3 l 4 9 l h f";
+        let image = "q 9 0 0 6 2 2 cm /I Do Q";
+        for (cmd, rotation, draw, flags, size, digest) in [
+            ("pdftocairo", 0, triangle, "-png -singlefile -transp -rx 108 -ry 60", (24, 10), "50847c3bdc71f2f0c3bd6c33543a883a651caaa127077171d82c5ae8d9dded15"),
+            ("pdftoppm", 0, image, "-png -singlefile -rx 108 -ry 60", (24, 10), "17b18e5629e76147e11443ed69c6b28a865fa2f37cc3b5ee2a66eaedd625b87e"),
+            ("pdftocairo", 90, triangle, "-png -singlefile -transp -rx 85 -ry 131 -cropbox -x 2 -y 1 -W 9 -H 10", (8, 10), "42c3c91a7092c91c517350d64e67b5bad14b4da0e467440e342853f4928baae6"),
+            ("pdftoppm", 90, image, "-png -singlefile -rx 85 -ry 131 -cropbox -x 2 -y 1 -W 9 -H 10", (9, 10), "23ad3d283c45ebeb509a6c3705261fccbc38621b00fac06728995bacb1144b4d"),
+            ("pdftocairo", 180, triangle, "-png -singlefile -transp -scale-to-x 21 -scale-to-y 12", (21, 12), "0ee0c6110fad0b115e6b5977cd5081b8e1dac9da29978de397b8375d9455bfc8"),
+            ("pdftoppm", 180, image, "-png -singlefile -scale-to-x 21 -scale-to-y 12", (21, 12), "b0746518dd534667f57ecc2f513f8c656147aa1b5bc63a1265092581b7725291"),
+            ("pdftocairo", 270, triangle, "-png -singlefile -transp -r 72", (12, 16), "4ac41784beceda861c8e78273dd7f67f5d34a85eee7d373247c9a78b6cb46120"),
+            ("pdftoppm", 270, image, "-png -singlefile -r 72", (12, 16), "006c73935e9e504c2829522bc9da9e4cf686fd3eb29d779749c1a613423ec2b4"),
+            ("pdftocairo", 0, image, "-png -singlefile -transp -rx 85 -ry 131 -cropbox -x 2 -y 1 -W 9 -H 10", (9, 10), "96d135444a4cba3535a68290a9205d0f7864329903c5b81fb988b068d1c69a13"),
+            ("pdftocairo", 270, image, "-png -singlefile -transp -rx 85 -ry 131 -cropbox -x 2 -y 1 -W 9 -H 10", (8, 10), "478a6cde8f5eee368c847d053706d941e75a887d5e2eb04a30f6511830bf56db"),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+                &format!("<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [-0.25 0.5 15.25 11.75] /CropBox [1.25 1.75 12 10.125] /Rotate {rotation} >>"),
+                "<< /Type /Page /Parent 2 0 R /Resources << /XObject << /I 5 0 R >> >> /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len()),
+                "<< /Type /XObject /Subtype /Image /Width 3 /Height 2 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Length 18 >>\nstream\nabcdefghijklmnopqr\nendstream"], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            let mut args = flags.split_whitespace().collect::<Vec<_>>();
+            args.extend(["in.pdf", "page"]);
+            let result = cmd_media_doc(cmd, &media_args(&args), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let im = png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!((im.width, im.height), size, "{cmd} {rotation} {flags}");
+            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), digest, "{cmd} {rotation} {flags}");
+        }
+    }
+
+    #[test]
+    fn pdftocairo_transforms_stroke_widths_with_the_page_and_content_matrix() {
+        let fs = MemoryVfs::new();
+        for (rotation, rx, ry, draw, digest) in [
+            (0, "144", "90", "0.1 0.7 0.3 RG 2 w 1 2 m 12 2 l S", "b8ea6eb8524a37d785236d4a5d2e3d4415585015007ecdca379df16d2eb002c0"),
+            (90, "90", "180", "0.1 0.7 0.3 RG 2 w 4 2 m 4 9 l S", "db31365f9ecb9b42349d3ae6912e7314ec5d9daa97efb88c9b351b1d69f4c0cc"),
+            (180, "144", "90", "0.1 0.7 0.3 RG 2 w 1 2 m 12 9 l S", "649ad245a6a3e4a8cc0c409a9e16eeb30faabb633693dc848e682acaab6a688e"),
+            (270, "90", "180", "0.1 0.7 0.3 RG 2 w 1.2 0.2 -0.15 0.7 2 1 cm 1 2 m 9 8 l S", "be8418904c2a8b8d8b41704a8f7bf8ab0e30af1a80744e7c3403c6c06c655ff5"),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+                &format!("<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 20 16] /Rotate {rotation} >>"),
+                "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len())], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            let args = media_args(&["-png", "-transp", "-singlefile", "-rx", rx, "-ry", ry, "in.pdf", "page"]);
+            let r = cmd_media_doc("pdftocairo", &args, "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let im = png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), digest, "{rotation}: {draw}");
+        }
+    }
+
+    #[test]
     fn pdf_page_rasters_cover_partial_pixels_and_report_scaled_density() {
         let fs = MemoryVfs::new();
         let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",

@@ -70,20 +70,23 @@ impl RowEdge {
 
 impl Footprint {
     pub(super) fn new([a, b, c, d, e, f]: [f64; 6]) -> Self {
-        let corners = [
-            [e, f],
-            [e + a, f + b],
-            [e + a + c, f + b + d],
-            [e + c, f + d],
-        ]
-        .map(|p| p.map(|v| (v * 256.).round_ties_even()));
-        Self(corners)
+        // cairo_rectangle starts at PDF (0,0) and appends relative edges.
+        // Cairo rounds that origin and each delta separately to 24.8.
+        let fixed = |x: f64| (x * 256.).round_ties_even();
+        let (x, y) = (fixed(e + c), fixed(f + d));
+        let [a, b, c, d] = [a, b, c, d].map(fixed);
+        Self([
+            [x - c, y - d],
+            [x - c + a, y - d + b],
+            [x + a, y + b],
+            [x, y],
+        ])
     }
 
-    pub(super) fn row(&self, y: usize, width: usize) -> Coverage {
+    pub(super) fn row(&self, y: usize, width: usize, clip: Point) -> Coverage {
         let [a, b, c, d] = self.0;
         if (a[0] == b[0] && a[1] == d[1]) || (a[1] == b[1] && a[0] == d[0]) {
-            return Coverage::rectangle(a, c, y);
+            return Coverage::rectangle(a, c, y, clip);
         }
         let start = y as f64 * 15.;
         let mut lines = [ScanEdge::default(); 2];
@@ -127,12 +130,31 @@ impl Footprint {
 }
 
 impl Coverage {
-    pub(super) fn rectangle(a: Point, c: Point, y: usize) -> Self {
+    pub(super) fn rectangle(a: Point, c: Point, y: usize, clip: Point) -> Self {
+        let left = a[0].min(c[0]);
+        let top = a[1].min(c[1]);
+        let right = a[0].max(c[0]);
+        let bottom = a[1].max(c[1]);
         let y = y as f64 * 256.;
+        // A fractional clip through the box's integer paint bounds uses
+        // Cairo's polygon compositor, even if the box itself fits inside.
+        if (right / 256.).ceil() * 256. > clip[0] && clip[0] % 256. != 0.
+            || (bottom / 256.).ceil() * 256. > clip[1] && clip[1] % 256. != 0.
+        {
+            let from = ((top - y) * 15. / 256. + 0.5).floor();
+            let to = ((bottom.min(clip[1]) - y) * 15. / 256. + 0.5).floor();
+            return Self::Spans(std::array::from_fn(|i| {
+                if (i as f64) >= from && (i as f64) < to {
+                    (left, right.min(clip[0]))
+                } else {
+                    (0., 0.)
+                }
+            }));
+        }
         Self::Box {
-            left: a[0].min(c[0]),
-            right: a[0].max(c[0]),
-            height: (a[1].max(c[1]).min(y + 256.) - a[1].min(c[1]).max(y)).max(0.),
+            left,
+            right,
+            height: (bottom.min(y + 256.) - top.max(y)).max(0.),
         }
     }
 

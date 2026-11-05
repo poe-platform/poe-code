@@ -1,5 +1,4 @@
-// PDF page coordinates are in points from the bottom left. Rasterize the paths
-// at the horizontal resolution, then resample, rotate and crop the bitmap.
+// Map PDF page coordinates (points from the bottom left) into output pixels before rasterizing.
 use super::pdf_text_layout::Draw;
 use super::pdf_bitmap::{Image, ImageStream};
 #[path = "pdf_cairo_image.rs"]
@@ -216,6 +215,7 @@ fn cairo_component(value: &Value<'_>) -> Option<f64> {
 }
 
 struct Bitmap {
+    page_clip: Point,
     backend: RasterBackend,
     form_clips: Vec<[Point; 4]>,
     clip_antialias: bool,
@@ -441,38 +441,23 @@ impl Bitmap {
         &mut self,
         mut im: Image,
         mask: Option<Image>,
-        ox: f64,
-        top: f64,
-        scale: f64,
-        splash: bool,
+        matrix: [f64; 6],
         limit: usize,
     ) -> Option<()> {
-        let [a, b, c, d, e, f] = im.matrix;
+        let [a, b, c, d, e, f] = matrix;
         let det = a * d - b * c;
         if det.abs() <= 1e-8 {
             return Some(());
         }
         // Splash scales an upright image across inclusive device bounds, then clips it.
-        if splash && !(a > 0. && b == 0. && c == 0.) {
-            return self.transformed_image(
-                &im,
-                mask.as_ref(),
-                [
-                    a * scale,
-                    -b * scale,
-                    -c * scale,
-                    d * scale,
-                    c * scale + (e * scale - ox * scale),
-                    -d * scale + (top * scale - f * scale),
-                ],
-                limit,
-            );
+        if self.backend == RasterBackend::Splash && !(a > 0. && b == 0. && c == 0.) {
+            return self.transformed_image(&im, mask.as_ref(), matrix, limit);
         }
-        if splash {
-            let left = ((e - ox) * scale).floor();
-            let top_px = ((top - f - d.max(0.)) * scale).floor();
-            let right = ((a + e - ox) * scale).floor() + 1.;
-            let bottom = ((top - f - d.min(0.)) * scale).floor() + 1.;
+        if self.backend == RasterBackend::Splash {
+            let left = e.floor();
+            let top_px = (f + d.min(0.)).floor();
+            let right = (a + e).floor() + 1.;
+            let bottom = (f + d.max(0.)).floor() + 1.;
             let (sw, sh) = (right - left, bottom - top_px);
             if !(1. ..=i32::MAX as f64).contains(&sw) || !(1. ..=i32::MAX as f64).contains(&sh) {
                 return None;
@@ -515,11 +500,11 @@ impl Bitmap {
             lo.min(max)..hi.min(max)
         };
         let xs = bounds(
-            [e, a + e, a + c + e, c + e].map(|x| (x - ox) * scale),
+            [e, a + e, a + c + e, c + e],
             self.w,
         );
         let ys = bounds(
-            [f, b + f, b + d + f, d + f].map(|y| (top - y) * scale),
+            [f, b + f, b + d + f, d + f],
             self.h,
         );
         if xs.is_empty() || ys.is_empty() {
@@ -535,14 +520,6 @@ impl Bitmap {
                 }
             }
         }
-        let matrix = [
-            a * scale,
-            -b * scale,
-            -c * scale,
-            d * scale,
-            (e + c - ox) * scale,
-            (top - f - d) * scale,
-        ];
         let center = [
             (xs.start + xs.end) as f64 / 2.,
             (ys.start + ys.end) as f64 / 2.,
@@ -553,7 +530,7 @@ impl Bitmap {
             .as_ref()
             .map(|m| pdf_cairo_image::sampler(m, matrix, center));
         for y in ys {
-            let coverage = shape.row(y, self.w);
+            let coverage = shape.row(y, self.w, self.page_clip);
             let clip = self.clip_row(y, None)?;
             for x in xs.clone() {
                 let mut opacity = mul255(coverage.alpha(x).into(), clip_coverage(&clip, x).into());
@@ -578,7 +555,7 @@ impl Bitmap {
         Some(())
     }
 
-    fn paint(&mut self, paths: &[Vec<Point>], color: [f64; 3], even: bool, aa: bool) -> Option<()> {
+    fn paint(&mut self, paths: &[Vec<Point>], color: [f64; 3], even: bool, aa: bool, boxes: bool) -> Option<()> {
         let mut lo = [self.w as f64, self.h as f64];
         let mut hi = [0f64; 2];
         let mut edges = vec![];
@@ -612,7 +589,7 @@ impl Bitmap {
             // Horizontal segments have already been dropped. A rectangle leaves
             // two opposing vertical edges with matching endpoints.
             let rect = match &edges[..] {
-                [(a, b), (c, d)] if a[0] == b[0] && c[0] == d[0] && a[1] == d[1] && b[1] == c[1] => Some((*a, *c)),
+                [(a, b), (c, d)] if boxes && a[0] == b[0] && c[0] == d[0] && a[1] == d[1] && b[1] == c[1] => Some((*a, *c)),
                 _ => None,
             };
             let solid = color.map(|c| (c * 255.).round() as u8);
@@ -631,7 +608,7 @@ impl Bitmap {
                     })?;
                     continue;
                 }
-                let box_row = rect.map(|(a, c)| pdf_cairo_path::Coverage::rectangle(a, c, y));
+                let box_row = rect.map(|(a, c)| pdf_cairo_path::Coverage::rectangle(a, c, y, self.page_clip));
                 if box_row.is_none() {
                     pdf_cairo_path::path_row(
                         &edges,
@@ -840,13 +817,13 @@ impl PageSource<'_> {
         } else {
             [ox, oy, ox + pw, oy + ph]
         };
-        let mut boxpt = [
-            (dx.max(cx) - ox).clamp(0., pw) - (cx.min(dx) - ox).clamp(0., pw),
-            (dy.max(cy) - oy).clamp(0., ph) - (cy.min(dy) - oy).clamp(0., ph),
-        ];
-        if quarter {
-            boxpt.swap(0, 1);
-        }
+        let (x0, x1) = (cx.min(dx).clamp(ox, ox + pw), cx.max(dx).clamp(ox, ox + pw));
+        let (y0, y1) = (cy.min(dy).clamp(oy, oy + ph), cy.max(dy).clamp(oy, oy + ph));
+        let mut boxpt = [x1 - x0, y1 - y0];
+        // pdftoppm sizes the unrotated page, then swaps the slice dimensions.
+        // pdftocairo sizes the rotated page. Both use output-axis DPI when drawing.
+        let splash = opt.backend == RasterBackend::Splash;
+        if quarter && !splash { boxpt.swap(0, 1); }
         let [mut sx, mut sy] = opt.dpi.map(|n| n / 72.);
         let [max, tx, ty] = opt.scale;
         if max > 0 {
@@ -866,18 +843,35 @@ impl PageSource<'_> {
                 }
             }
         }
-        let w = (pw * sx).ceil().max(1.) as usize;
-        let h = (ph * sx).ceil().max(1.) as usize;
-        let resample = (sx - sy).abs() > 1e-6;
-        let target_h = if resample {
-            (ph * sy).ceil().max(1.) as usize
-        } else {
-            h
+        let mut size = [(boxpt[0] * sx).ceil().max(1.) as usize, (boxpt[1] * sy).ceil().max(1.) as usize];
+        if quarter && splash { size.swap(0, 1); }
+        let [left, top, w, h] = crop(size[0], size[1], opt.crop);
+        if w.checked_mul(h)? > opt.limit / 4 { return None; }
+        let axis = |x: f64, y: f64| {
+            let [u, v] = match rot {
+                90 => [y, x],
+                180 => [-x, y],
+                270 => [-y, -x],
+                _ => [x, -y],
+            };
+            [u * sx, v * sy]
         };
-        if w.checked_mul(h.max(target_h))? > opt.limit / 4 {
-            return None;
-        }
+        let (ox, oy) = match rot {
+            90 => (x0, y0),
+            180 => (x1, y0),
+            270 => (x1, y1),
+            _ => (x0, y1),
+        };
+        let point = |x, y| {
+            let [u, v] = axis(x - ox, y - oy);
+            [u - left as f64, v - top as f64]
+        };
+        let page_clip = if opt.backend == RasterBackend::Cairo
+            && (opt.cropbox || cropbox.is_none_or(|b| b == [x0, y0, x1, y1])) {
+            [(boxpt[0] * sx - left as f64).min(w as f64), (boxpt[1] * sy - top as f64).min(h as f64)]
+        } else { [w as f64, h as f64] };
         let mut bitmap = Bitmap {
+            page_clip: page_clip.map(|v| (v * 256.).round_ties_even()),
             backend: opt.backend,
             form_clips: vec![],
             clip_antialias: opt.antialias,
@@ -898,12 +892,7 @@ impl PageSource<'_> {
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
                 Draw::BeginForm([x0, y0, x1, y1], [a, b, c, d, e, f]) => {
-                    let pt = |x, y| {
-                        [
-                            (a * x + c * y + e - ox) * sx,
-                            (oy + ph - (b * x + d * y + f)) * sx,
-                        ]
-                    };
+                    let pt = |x, y| point(a * x + c * y + e, b * x + d * y + f);
                     bitmap
                         .form_clips
                         .push([pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1)]);
@@ -957,7 +946,11 @@ impl PageSource<'_> {
                             }
                             _ => None,
                         };
-                        bitmap.image(image, mask, ox, oy + ph, sx, opt.backend == RasterBackend::Splash, opt.limit)?;
+                        let [a, b, c, d, e, f] = image.matrix;
+                        let [xx, yx] = axis(a, b);
+                        let [xy, yy] = axis(-c, -d);
+                        let [tx, ty] = point(e + c, f + d);
+                        bitmap.image(image, mask, [xx, yx, xy, yy, tx, ty], opt.limit)?;
                     }
                     return Some(());
                 }
@@ -975,25 +968,15 @@ impl PageSource<'_> {
                             family,
                             byte,
                             &mut bitmap.work,
-                            |x, y| {
-                                [
-                                    (x * matrix[0] + y * matrix[2] + matrix[4] - ox) * sx,
-                                    (ph - (x * matrix[1] + y * matrix[3] + matrix[5] - oy)) * sx,
-                                ]
-                            },
+                            |x, y| point(x * matrix[0] + y * matrix[2] + matrix[4], x * matrix[1] + y * matrix[3] + matrix[5]),
                         )?;
-                        bitmap.paint(&outline, fill, false, opt.text_aa)?;
+                        bitmap.paint(&outline, fill, false, opt.text_aa, true)?;
                     }
                     return Some(());
                 }
             };
             let n = |i: usize| args.get(i)?.number();
-            let pt = |x: f64, y: f64| {
-                [
-                    (x * ctm[0] + y * ctm[2] + ctm[4] - ox) * sx,
-                    (ph - (x * ctm[1] + y * ctm[3] + ctm[5] - oy)) * sx,
-                ]
-            };
+            let pt = |x, y| point(x * ctm[0] + y * ctm[2] + ctm[4], x * ctm[1] + y * ctm[3] + ctm[5]);
             match op {
                 b"q" => {
                     if stack.len() >= 256 {
@@ -1049,20 +1032,45 @@ impl PageSource<'_> {
                 }
                 b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" | b"S" | b"s" => {
                     if op != b"S" && op != b"s" {
-                        bitmap.paint(&paths, fill, op.ends_with(b"*"), opt.antialias)?;
+                        bitmap.paint(&paths, fill, op.ends_with(b"*"), opt.antialias, true)?;
                     }
                     if !matches!(op, b"f" | b"F" | b"f*") {
-                        let half = width * sx * ctm[0].hypot(ctm[1]) / 2.;
+                        let [xx, yx] = axis(ctm[0], ctm[1]);
+                        let [xy, yy] = axis(ctm[2], ctm[3]);
+                        let det = xx * yy - xy * yx;
+                        let cairo = opt.backend == RasterBackend::Cairo;
+                        let adjusted = cairo && (width * (xx + xy)).abs() <= 1.
+                            && (width * (yx + yy)).abs() <= 1. && det != 0.;
+                        let half = if adjusted {
+                            ((yy - xy) / det).abs().min(((xx - yx) / det).abs()) / 2.
+                        } else { width / 2. };
+                        let fixed = |v: f64| (v * 256.).round_ties_even() / 256.;
                         let mut outlines = vec![];
                         for path in &paths {
                             for seg in path.windows(2) {
-                                let [a, b] = [seg[0], seg[1]];
+                                let mut a = seg[0];
+                                let mut b = seg[1];
+                                if cairo {
+                                    if adjusted && ((b[0] - a[0]).abs() < 0.5 || (b[1] - a[1]).abs() < 0.5) {
+                                        a = a.map(|v| v.floor() + 0.5);
+                                        b = b.map(|v| v.floor() + 0.5);
+                                    } else {
+                                        a = a.map(fixed);
+                                        b = b.map(fixed);
+                                    }
+                                }
                                 let (x, y) = (b[0] - a[0], b[1] - a[1]);
-                                let len = x.hypot(y);
+                                // Normalize the tangent in user space; the line width is
+                                // specified there, even for unequal DPI or a sheared CTM.
+                                let (ux, uy) = (yy * x - xy * y, xx * y - yx * x);
+                                let len = ux.hypot(uy);
                                 if len == 0. {
                                     continue;
                                 }
-                                let (nx, ny) = (-y / len * half, x / len * half);
+                                let (u, v) = (-uy / len * half, ux / len * half);
+                                let mut normal = [xx * u + xy * v, yx * u + yy * v];
+                                if cairo { normal = normal.map(fixed); }
+                                let [nx, ny] = normal;
                                 outlines.push(vec![
                                     [a[0] + nx, a[1] + ny],
                                     [b[0] + nx, b[1] + ny],
@@ -1071,7 +1079,7 @@ impl PageSource<'_> {
                                 ]);
                             }
                         }
-                        bitmap.paint(&outlines, stroke, false, opt.antialias)?;
+                        bitmap.paint(&outlines, stroke, false, opt.antialias, xy == 0. && yx == 0.)?;
                     }
                     paths.clear();
                 }
@@ -1080,39 +1088,12 @@ impl PageSource<'_> {
             }
             Some(())
         })?;
-        let [bx, by, bw, bh] = crop(
-            w,
-            target_h,
-            [
-                (cx.min(dx) - ox) * sx,
-                (ph - (dy.max(cy) - oy)) * sy,
-                ((dx - cx).abs() * sx).ceil(),
-                ((dy - cy).abs() * sy).ceil(),
-            ],
-        );
-        let (rw, rh) = if quarter { (bh, bw) } else { (bw, bh) };
-        let [left, top, ow, oh] = crop(rw, rh, opt.crop);
-        let mut pixels = Vec::with_capacity(ow * oh);
-        for y in top..top + oh {
-            for x in left..left + ow {
-                let (ix, iy) = match rot {
-                    90 => (y, bh - 1 - x),
-                    180 => (bw - 1 - x, bh - 1 - y),
-                    270 => (bw - 1 - y, x),
-                    _ => (x, y),
-                };
-                let src_y = if resample {
-                    ((by + iy) as f64 / target_h as f64 * h as f64).floor() as usize
-                } else {
-                    by + iy
-                };
-                let mut p = bitmap.pixels[src_y.min(h - 1) * w + bx + ix];
-                if bitmap.white_background { over_white(&mut p, bitmap.backend); }
-                pixels.push(p);
-            }
+        let mut pixels = bitmap.pixels;
+        if bitmap.white_background {
+            for p in &mut pixels { over_white(p, bitmap.backend); }
         }
         if let Some((compression, dither)) = opt.tiff {
-            return crate::commands::archive::tiff::encode(&pixels, ow, [sx * 72., sy * 72.], if opt.transparent { "rgba" } else { opt.color }, compression, dither, opt.limit);
+            return crate::commands::archive::tiff::encode(&pixels, w, [sx * 72., sy * 72.], if opt.transparent { "rgba" } else { opt.color }, compression, dither, opt.limit);
         }
         if let Some((quality, gray)) = opt.jpeg {
             use crate::commands::archive::jpeg;
@@ -1123,10 +1104,10 @@ impl PageSource<'_> {
                 }
             }
             return jpeg::encode(jpeg::Input::Page {
-                width: ow, height: oh, pixels: &pixels, quality,
+                width: w, height: h, pixels: &pixels, quality,
                 dpi: [(sx * 72.) as u16, (sy * 72.) as u16], gray,
             }, opt.limit).ok();
         }
-        encode(ow, oh, &pixels, opt.format, opt.color, (opt.format == "PNG").then_some([sx * 72., sy * 72.]))
+        encode(w, h, &pixels, opt.format, opt.color, (opt.format == "PNG").then_some([sx * 72., sy * 72.]))
     }
 }

@@ -17,6 +17,8 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let hasTrns = false;
   let virtualCanvas: ImageMetadata["virtualCanvas"];
   let orientation: number | undefined;
+  let backgroundColor: ImageMetadata["backgroundColor"];
+  let palette: Uint8Array | undefined;
 
   let pos = 8;
   while (pos + 8 <= size) {
@@ -34,6 +36,22 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       bitDepth = chunk[8]!;
       colorType = chunk[9]!;
       interlace = chunk[12]!;
+    } else if (type === "PLTE" && len <= 768) {
+      palette = yield {position:dataStart,length:len};
+    } else if (type === "bKGD") {
+      const length = colorType === 3 ? 1 : colorType === 0 || colorType === 4 ? 2 : 6;
+      if (len === length) {
+        const chunk = yield {position:dataStart,length};
+        const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
+        if (colorType === 3) {
+          const index = chunk[0]! * 3;
+          if (palette && index + 2 < palette.length) backgroundColor = {r:palette[index]!,g:palette[index+1]!,b:palette[index+2]!,a:255};
+        } else {
+          const scale = 255 / (2 ** bitDepth - 1);
+          const r = Math.round(view.getUint16(0) * scale);
+          backgroundColor = {r,g:length === 2 ? r : Math.round(view.getUint16(2) * scale),b:length === 2 ? r : Math.round(view.getUint16(4) * scale),a:255};
+        }
+      }
     } else if (type === "pHYs" && len >= 9) {
       const chunk=yield {position:dataStart,length:9};
       const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
@@ -98,6 +116,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     depth,
     bitsPerSample: bitDepth,
     density,
+    ...(backgroundColor === undefined ? {} : {backgroundColor}),
     ...(resolution === undefined ? {} : {resolution}),
     hasAlpha,
     ...(virtualCanvas === undefined ? {} : {virtualCanvas}),

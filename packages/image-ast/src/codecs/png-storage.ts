@@ -1,11 +1,10 @@
 import {pngMetadataSteps} from "./png-metadata.js";
-import {exifMetadataSteps} from "./exif-metadata.js";
 import {PNG_SIGNATURE, makeChunk, canvasChunk} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
 import type {RgbaImage, SharpInputOptions, ImageDelayReader} from "../ast.js";
-import {isPngBytes, readPngMetadata, type encodePngImage} from "./png.js";
+import {isPngBytes, type encodePngImage} from "./png.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 
 /** Borrowed range bytes remain valid until the next read. The source stays caller-owned. */
@@ -50,15 +49,6 @@ async function* chunks(source: ImageByteSource, signal: AbortSignal) {
   }
 }
 
-async function exif(source:ImageByteSource,start:number,length:number,signal:AbortSignal) {
-  const steps=exifMetadataSteps(length,start);let next=steps.next(),work=0;
-  while(!next.done) {
-    if(++work%64===0)await defaultRuntime.yieldTurn(signal);
-    next=steps.next(await range(source,next.value.position,next.value.length,signal));
-  }
-  return next.value;
-}
-
 /** Read original PNG metadata without decoding pixels or reading compressed payloads. */
 export async function readPngMetadataFromSource(source:ImageByteSource,signal:AbortSignal) {
   signal.throwIfAborted();
@@ -92,31 +82,13 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
   signal.throwIfAborted();
   if (!Number.isSafeInteger(source.size) || source.size < 24 || !isPngBytes(await range(source, 0, 8, signal))) throw new Error("Invalid PNG header");
   let header: Uint8Array | undefined, palette: Uint8Array | undefined, transparency: Uint8Array | undefined;
-  let virtualCanvas: StoredRgbaImage["virtualCanvas"];
-  let density = 72, orientation: number | undefined;
   for await (const chunk of chunks(source, signal)) {
     if (chunk.name === "IHDR" && chunk.length >= 13) header = await range(source, chunk.start, 13, signal);
     else if (chunk.name === "PLTE") palette = await range(source, chunk.start, Math.min(chunk.length, 768), signal);
     else if (chunk.name === "tRNS") transparency = await range(source, chunk.start, Math.min(chunk.length, 256), signal);
-    else if (chunk.name === "pHYs" && chunk.length >= 9) {
-      const data = await range(source, chunk.start, 9, signal); const x = new DataView(data.buffer).getUint32(0);
-      if (x > 0) density = data[8] === 1 ? Math.max(1, Math.round(x * 0.0254)) : x;
-    } else if (chunk.name === "caNv" && chunk.length === 16) {
-      const bytes = await range(source, chunk.start, 16, signal), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-      virtualCanvas = {width:view.getUint32(0),height:view.getUint32(4),x:view.getInt32(8),y:view.getInt32(12)};
-    } else if (chunk.name === "eXIf") {
-      const metadata = await exif(source, chunk.start, chunk.length, signal);
-      density = metadata.density ?? density; orientation = metadata.orientation ?? orientation;
-    }
   }
   if (!header) throw new Error("Invalid PNG header");
-  // Reuse the buffered metadata policy with a bounded synthetic header; payloads
-  // and ancillary chunks remain in the caller's source.
-  const metadataBytes = new Uint8Array(transparency ? 45 : 33);
-  metadataBytes.set([137,80,78,71,13,10,26,10]);
-  metadataBytes.set([0,0,0,13,73,72,68,82], 8); metadataBytes.set(header, 16);
-  if (transparency) metadataBytes.set([0,0,0,0,116,82,78,83], 33);
-  const {size: ignoredSize, ...metadata} = readPngMetadata(metadataBytes);
+  const {size: ignoredSize, ...metadata} = await readPngMetadataFromSource(source, signal);
   const {width, height} = metadata, depth = header[8]!, color = header[9]!;
   if (width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 8)) throw new Error(`Invalid PNG dimensions: ${width}x${height}`);
   const allowedDepths: Record<number, readonly number[]> = {0: [1,2,4,8,16], 2: [8,16], 3: [1,2,4,8], 4: [8,16], 6: [8,16]};
@@ -195,7 +167,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     // codec diagnostics even after all expected pixels have been produced.
     while (!(await iterator.next()).done) signal.throwIfAborted();
   } finally {await iterator.return(undefined);}
-  return {...metadata, position, ...(storedData16 ? {storedData16} : {}), density, ...(virtualCanvas === undefined ? {} : {virtualCanvas}), ...(orientation === undefined ? {} : {orientation}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
+  return {...metadata, position, ...(storedData16 ? {storedData16} : {}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
 }
 
 export type StoredPngEncodeOptions = Omit<NonNullable<Parameters<typeof encodePngImage>[1]>, "consumeInput">;

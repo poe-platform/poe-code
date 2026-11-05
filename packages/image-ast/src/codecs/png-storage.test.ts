@@ -42,6 +42,19 @@ function backing() {
   return {fs, storage};
 }
 
+it.each([
+  {depth:4,color:0,raw:[0,0x90],extras:[chunk("bKGD",Uint8Array.of(0,15))],backgroundColor:{r:255,g:255,b:255,a:255}},
+  {depth:8,color:2,raw:[0,10,20,30],extras:[chunk("bKGD",Uint8Array.of(0,40,0,50,0,60))],backgroundColor:{r:40,g:50,b:60,a:255}},
+  {depth:16,color:0,raw:[0,255,255],extras:[chunk("bKGD",Uint8Array.of(128,128))],backgroundColor:{r:128,g:128,b:128,a:255}},
+  {depth:8,color:3,raw:[0,0],extras:[chunk("PLTE",Uint8Array.of(10,20,30)),chunk("bKGD",Uint8Array.of(0))],backgroundColor:{r:10,g:20,b:30,a:255}},
+])("preserves PNG background metadata at depth=$depth color=$color", async ({depth,color,raw,extras,backgroundColor}) => {
+  const bytes=png(1,1,Uint8Array.from(raw),depth,color,extras), {storage}=backing();
+  try {
+    expect(decodePngImage(bytes).backgroundColor).toEqual(backgroundColor);
+    expect((await decodePngToStorage(source(bytes),storage,new AbortController().signal)).backgroundColor).toEqual(backgroundColor);
+  } finally {await storage.close();}
+});
+
 it("decodes a zlib PNG wider than the working window through bounded borrowed ranges and caller backing", async () => {
   const width = 2053, height = 23, row = 1 + width * 4;
   const raw = new Uint8Array(row * height);

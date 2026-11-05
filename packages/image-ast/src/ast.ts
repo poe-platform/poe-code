@@ -36,6 +36,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly backgroundColor?: RgbaColor;
   readonly width: number;
   readonly height: number;
   readonly data: Uint8Array;
@@ -64,6 +65,7 @@ export interface RgbaImage {
 }
 
 export interface ImageMetadata {
+  readonly backgroundColor?: RgbaColor;
   readonly format: ImageFormat;
   readonly width: number;
   readonly height: number;

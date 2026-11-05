@@ -471,6 +471,7 @@ interface MagickState {
   sizeHeight: number;
   hasSize: boolean;
   background: RgbaColor;
+  backgroundExplicit?: boolean;
   virtualPixel?: VirtualPixelMethod;
   fill: RgbaColor;
   stroke: RgbaColor;
@@ -2289,13 +2290,26 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     let i = start;
     const distort = token === "-distort" || token === "+distort";
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
-    const background = state.background, virtualPixel = state.virtualPixel ?? (distort ? "edge" : undefined);
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => {
+    const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort ? "edge" : undefined);
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample">) => {
         if (token === "-shear") {
             const plan = shearPlan(image, spec);
             return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, background) };
         }
         const plan = magickWarpPlan(image, token, spec, args);
+        if (plan && token === "-wave") {
+            let color = backgroundExplicit ? background : image.backgroundColor ?? background;
+            const gray = image.space === "b-w" || image.space === "grey16";
+            // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.
+            if (!backgroundExplicit && image.backgroundColor && gray && (image.bitsPerSample ?? 8) < 8) {
+                const value = Math.round(color.b * (2 ** image.bitsPerSample! - 1) / 255);
+                color = { r: value, g: value, b: value, a: color.a };
+            }
+            // Wave always uses background virtual pixels. Explicit background mode
+            // promotes grayscale to RGB; otherwise native's gray cache uses blue.
+            if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
+            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, plan, color, "background") };
+        }
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) } : undefined;
     } };
 }
@@ -4840,6 +4854,7 @@ if (t === "-seed") {
         }
         else if (t === "-background") {
             state.background = parseColor(tokens[++i] ?? "#ffffff");
+            state.backgroundExplicit = true;
         }
         else if (t === "-fill") {
             state.fill = parseColor(tokens[++i] ?? "#000000");
@@ -4983,7 +4998,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = warpOperation.plan(image);
                 if (!plan) return image;
                 const output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
-                return plan.virtualCanvas ? { ...output, virtualCanvas: plan.virtualCanvas } : output;
+                return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
             });
         }
         else if (t === "-write" || t === "+write") {
@@ -5988,7 +6003,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image);
                 if (!plan) return image;
                 const output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
-                return plan.virtualCanvas ? { ...output, virtualCanvas: plan.virtualCanvas } : output;
+                return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
             });
             continue;
         }

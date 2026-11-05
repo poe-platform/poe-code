@@ -213,6 +213,8 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     space: colorType === 0 && trns ? "srgb" : meta.space,
     channels: colorType === 0 && trns ? 4 : meta.channels,
     depth: meta.depth,
+    ...(meta.bitsPerSample === undefined ? {} : {bitsPerSample: meta.bitsPerSample}),
+    ...(meta.backgroundColor === undefined ? {} : {backgroundColor: meta.backgroundColor}),
     density: meta.density,
     hasAlpha: meta.hasAlpha,
     ...(meta.virtualCanvas === undefined ? {} : {virtualCanvas: meta.virtualCanvas}),

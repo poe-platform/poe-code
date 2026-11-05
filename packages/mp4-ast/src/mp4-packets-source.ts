@@ -109,7 +109,10 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       const text = mp4SourceText(source, offset, length, work);
       for await (const chunk of text.chunks()) if (chunk) { handlerName = text; break; }
     }
-    const track = { index, id, type, timescale, width: width ?? codec?.width, height: height ?? codec?.height, codec, enabled, rotation, language, handlerName };
+    const sizeReader = await read(await first(stbl, 'stsz'), 12);
+    sizeReader.skip(8);
+    const declaredSampleCount = (tables.stsz?.payloadSize ?? 0) >= 12 ? sizeReader.readU32BE() : 0;
+    const track = { index, id, type, declaredSampleCount, timescale, width: width ?? codec?.width, height: height ?? codec?.height, codec, enabled, rotation, language, handlerName };
     let defaults: Mp4FragmentDefaults = { defaultSampleDescriptionIndex: 1, defaultSampleDuration: type === 'video' ? 3000 : 1024, defaultSampleSize: 0, defaultSampleFlags: 0 };
     if (mvex?.children) for await (const box of scanMp4Boxes(source, { ...mvex.children, ...work })) {
       if (box.type !== 'trex' || box.payloadSize < 24) continue;

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
 import * as api from './index.js';
+import { buildProbeResultFromDoc } from './mp4.js';
 const syncSamples=()=>{const keys=new Set<number>();return{add(n:number){keys.add(n);},has(n:number){return keys.has(n);}};};
 async function resident(value:unknown):Promise<unknown>{
   if(value&&typeof value==='object'&&'kind'in value&&value.kind==='text'&&'chunks'in value){let s='';for await(const chunk of (value as api.MediaProbeText).chunks())s+=chunk;return s;}
@@ -111,3 +112,13 @@ for (const reader of ['resident', 'source']) {
     });
   }
 }
+
+for (const fragmented of [false, true]) it(`edited documents discard original declared counts: fragmented=${fragmented}`, () => {
+  const doc = api.parseMp4(api.createSyntheticMp4({ frameCount: 10, fps: 10, includeAudio: false, fragmented }));
+  const sliced = api.sliceMp4(doc, { startSeconds: 0, endSeconds: 0.5, useEditList: false });
+  const joined = api.concatMp4([doc, doc]);
+  for (const edited of [sliced, joined]) {
+    assert.equal(buildProbeResultFromDoc(edited, 0).streams[0]!.nb_frames,
+      String(edited.tracks[0]!.samples.length));
+  }
+});

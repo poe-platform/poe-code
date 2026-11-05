@@ -456,6 +456,10 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       const box = findBox(stbl?.children, name);
       if (box) tables[name] = { payloadOffset: box.offset + box.headerSize, payloadSize: box.payload.length };
     }
+    const sizeTable = findBox(stbl?.children, "stsz");
+    const sizeReader = new BinaryReader(sizeTable?.payload ?? new Uint8Array());
+    sizeReader.skip(8);
+    const declaredSampleCount = (sizeTable?.payload.length ?? 0) >= 12 ? sizeReader.readU32BE() : 0;
     const samples: MediaSample[] = [], syncSamples = new Set<number>();
     const steps = mp4SampleTableSteps(bytes.length, tables, { type, budget });
     let answer: Uint8Array | boolean | undefined;
@@ -553,6 +557,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       volume,
       codecDescriptions,
       editList: editList.length > 0 ? editList : undefined,
+      declaredSampleCount,
       samples,
       decodedVideoFrames
     });
@@ -1603,6 +1608,7 @@ export function concatMp4(
       duration,
       codecDescriptions: mergedCodecDescriptions[idx]!,
       editList: undefined,
+      declaredSampleCount: undefined,
       samples,
       decodedVideoFrames:
         mergedDecodedFrames[idx]!.length > 0 ? mergedDecodedFrames[idx]! : undefined
@@ -1770,6 +1776,7 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       duration: editList ? Math.round(editList[0]!.segmentDuration * ts / movieTimescale) : runningDts,
       codecDescriptions: materialized.codecDescriptions,
       editList,
+      declaredSampleCount: undefined,
       samples: slicedSamples,
       decodedVideoFrames: slicedDecodedFrames
     });

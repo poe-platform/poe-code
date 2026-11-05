@@ -44,11 +44,21 @@ export function parseSimpleSeparatedRows(text: string, sep: string): string[][] 
 
 
 export function formatSimpleCsv(rows: readonly (readonly (string | CellValue)[])[]): string {
+  let width = 1;
+  for (const row of rows) {
+    for (let index = row.length - 1; index >= width; index--) {
+      const value = row[index]!;
+      if (typeof value === "string" ? value !== "" : value.kind !== "blank") {
+        width = index + 1;
+        break;
+      }
+    }
+  }
   let output = "";
   for (const row of rows) {
-    for (let index = 0; index < row.length; index++) {
+    for (let index = 0; index < width; index++) {
       if (index) output += ",";
-      const value = row[index]!;
+      const value = row[index] ?? "";
       appendTextField(typeof value === "string" ? value : rendered(value),
         { mode: "auto", quote: '"', whitespace: true }, text => { output += text; });
     }

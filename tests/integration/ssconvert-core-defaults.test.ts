@@ -5,6 +5,28 @@ import {
 } from "../../packages/safe-bash/src/core.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 
+it.each([
+  ["a,\n1,\n", "a\n1\n"],
+  ['a,,""\n1,,\n', "a\n1\n"],
+  ["a,b\n1,2\n", "a,b\n1,2\n"],
+  ["a,,c,\n1,,,\n", "a,,c\n1,,\n"],
+  ["a,\n1,2\n", "a,\n1,2\n"],
+  ["a\n1,2\n", "a,\n1,2\n"]
+])("exports populated CSV width for %j", async (input, expected) => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.csv", new TextEncoder().encode(input));
+  const shell = new Shell({ fs });
+  shell.register(createSsconvertCommand());
+  try {
+    for (const extra of ["", "--recalc"]) {
+      const result = await shell.exec(`ssconvert ${extra} -I Gnumeric_stf:stf_csvtab -T Gnumeric_stf:stf_csv /input.csv /output.csv`);
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toBe("");
+      expect(new TextDecoder().decode(await fs.readFile("/output.csv"))).toBe(expected);
+    }
+  } finally { await shell.dispose(); }
+});
+
 it.each(["plugin", "single", "collection"] as const)(
   "recalculates long SYLK formulas through the zero-argument core %s factory", async factory => {
     const fs = new MemoryFileSystem();

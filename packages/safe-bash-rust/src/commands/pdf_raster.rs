@@ -824,26 +824,32 @@ impl PageSource<'_> {
         // pdftocairo sizes the rotated page. Both use output-axis DPI when drawing.
         let splash = opt.backend == RasterBackend::Splash;
         if quarter && !splash { boxpt.swap(0, 1); }
-        let [mut sx, mut sy] = opt.dpi.map(|n| n / 72.);
         let [max, tx, ty] = opt.scale;
+        let mut dpi = opt.dpi;
+        let mut target = [tx, ty];
         if max > 0 {
-            sx = max as f64 / boxpt[0].max(boxpt[1]).max(1.);
-            sy = sx;
+            let long = usize::from(boxpt[1] >= boxpt[0]);
+            if boxpt[long] == 0. { return None; }
+            dpi = [72. * max as f64 / boxpt[long]; 2];
+            target = [0; 2];
+            target[long] = max;
         } else {
-            if tx > 0 {
-                sx = tx as f64 / boxpt[0].max(1.);
-                if ty < 0 {
-                    sy = sx;
-                }
-            }
-            if ty > 0 {
-                sy = ty as f64 / boxpt[1].max(1.);
-                if tx < 0 {
-                    sx = sy;
+            for i in 0..2 {
+                if target[i] > 0 {
+                    if boxpt[i] == 0. { return None; }
+                    dpi[i] = 72. * target[i] as f64 / boxpt[i];
+                    if target[1 - i] < 0 { dpi[1 - i] = dpi[i]; }
                 }
             }
         }
-        let mut size = [(boxpt[0] * sx).ceil().max(1.) as usize, (boxpt[1] * sy).ceil().max(1.) as usize];
+        let [sx, sy] = dpi.map(|n| n / 72.);
+        let mut size = [0, 1].map(|i| {
+            // Splash uses explicit targets verbatim, while Cairo rounds the scaled page.
+            let pixels = if splash && target[i] > 0 { target[i] as f64 }
+                else if splash && max > 0 { boxpt[i] * (dpi[i] / 72.) }
+                else { boxpt[i] * dpi[i] / 72. };
+            pixels.ceil().max(1.) as usize
+        });
         if quarter && splash { size.swap(0, 1); }
         let [left, top, w, h] = crop(size[0], size[1], opt.crop);
         if w.checked_mul(h)? > opt.limit / 4 { return None; }
@@ -1093,7 +1099,7 @@ impl PageSource<'_> {
             for p in &mut pixels { over_white(p, bitmap.backend); }
         }
         if let Some((compression, dither)) = opt.tiff {
-            return crate::commands::archive::tiff::encode(&pixels, w, [sx * 72., sy * 72.], if opt.transparent { "rgba" } else { opt.color }, compression, dither, opt.limit);
+            return crate::commands::archive::tiff::encode(&pixels, w, dpi, if opt.transparent { "rgba" } else { opt.color }, compression, dither, opt.limit);
         }
         if let Some((quality, gray)) = opt.jpeg {
             use crate::commands::archive::jpeg;
@@ -1105,9 +1111,9 @@ impl PageSource<'_> {
             }
             return jpeg::encode(jpeg::Input::Page {
                 width: w, height: h, pixels: &pixels, quality,
-                dpi: [(sx * 72.) as u16, (sy * 72.) as u16], gray,
+                dpi: dpi.map(|v| v as u16), gray,
             }, opt.limit).ok();
         }
-        encode(w, h, &pixels, opt.format, opt.color, (opt.format == "PNG").then_some([sx * 72., sy * 72.]))
+        encode(w, h, &pixels, opt.format, opt.color, (opt.format == "PNG").then_some(dpi))
     }
 }

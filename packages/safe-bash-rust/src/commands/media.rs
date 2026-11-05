@@ -17267,6 +17267,30 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdf_scale_targets_match_poppler_on_fractional_and_rotated_pages() {
+        let fs = MemoryVfs::new();
+        for (cmd, bounds, rotation, flags, size) in [
+            ("pdftoppm", "0.5 0.75", 0, "-scale-to 13", (9, 13)),
+            ("pdftocairo", "0.25 13.3", 0, "-scale-to 13", (1, 14)),
+            ("pdftoppm", "0.25 13.3", 0, "-scale-to 13", (1, 13)),
+            ("pdftoppm", "29 51", 90, "-scale-to-x 15 -scale-to-y 17", (17, 15)),
+            ("pdftocairo", "0.5 0.75", 90, "-scale-to-x 29 -scale-to-y -1", (29, 20)),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+                &format!("<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 {bounds}] /Rotate {rotation} >>"),
+                "<< /Type /Page /Parent 2 0 R >>"], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            let mut args = vec!["-png", "-singlefile"];
+            args.extend(flags.split_whitespace());
+            args.extend(["in.pdf", "page"]);
+            let result = cmd_media_doc(cmd, &media_args(&args), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let im = png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!((im.width, im.height), size, "{cmd} {bounds} {rotation} {flags}");
+        }
+    }
+
+    #[test]
     fn pdf_page_rasters_cover_partial_pixels_and_report_scaled_density() {
         let fs = MemoryVfs::new();
         let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",

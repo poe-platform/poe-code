@@ -394,18 +394,44 @@ interface StoredGpgKey {
 const KEYRING_PATH = "/home/user/.gnupg/keyring.json";
 
 async function loadKeyring(context: CommandContext): Promise<StoredGpgKey[]> {
+  const { fs, signal } = context;
   try {
-    const raw = await context.fs.readFile(KEYRING_PATH);
-    return JSON.parse(textDecoder.decode(raw)) as StoredGpgKey[];
-  } catch {
-    return [];
+    if ((await fs.lstat(KEYRING_PATH, {signal})).type !== "file") throw new PublicDiagnostic("keyring is not a regular file");
+  } catch (error) {
+    if (error instanceof FsError && error.code === "ENOENT") return [];
+    throw error;
   }
+  const raw = await fs.readFile(KEYRING_PATH, {signal});
+  try {
+    const keys = JSON.parse(textDecoder.decode(raw)) as StoredGpgKey[];
+    if (Array.isArray(keys) && keys.every(key => typeof key?.uid === "string" && typeof key.keyIdHex === "string" && typeof key.pubHex === "string")) return keys;
+  } catch { /* A parser diagnostic could quote private file contents. */ }
+  throw new PublicDiagnostic("invalid keyring");
 }
 
-async function saveKeyring(context: CommandContext, keys: StoredGpgKey[]): Promise<void> {
-  await context.fs.mkdir("/home/user/.gnupg", { recursive: true });
+async function saveKeyring(context: CommandContext, keys: StoredGpgKey[], previous: number): Promise<void> {
+  const { fs, signal } = context;
+  const dir = "/home/user/.gnupg";
+  await fs.mkdir(dir, { recursive: true, mode: 0o700, signal });
+  const caps = await fs.capabilitiesFor?.(KEYRING_PATH, {create:true, stagingResolution:true, signal}) ?? fs.capabilities;
+  if (!caps.permissions || !caps.atomicFileStaging || !caps.retainedStagingCleanup || !caps.guardedStagingPublication ||
+      !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile) throw new PublicDiagnostic("private keyring publication is unsupported");
+  const target = await fs.prepareStagingResolution(KEYRING_PATH, {signal});
+  if (target.path !== KEYRING_PATH || target.destination && target.destination.type !== "file") throw new PublicDiagnostic("invalid keyring path");
+  if (JSON.stringify(await loadKeyring(context)) !== JSON.stringify(keys.slice(0, previous))) throw new PublicDiagnostic("keyring changed during update");
   const bytes = textEncoder.encode(JSON.stringify(keys, null, 2));
-  await writeFileOutput(context, bytes, data => context.fs.writeFile(KEYRING_PATH, data, { signal: context.signal }));
+  await writeFileOutput(context, bytes, async data => {
+    const stage = await fs.createStagedFile!(dir + "/.gpg-" + crypto.randomUUID(), "keyring", {type:"file", data}, {
+      mode:0o600, parent:target.parent, retainCleanup:true, signal,
+    });
+    try {
+      await fs.publishStagedFile!(stage, KEYRING_PATH, {
+        parent:target.parent, destination:target.destination, ancestors:target.ancestors, commitGuard:target.validate, signal,
+      });
+    } finally {
+      try { await stage.cleanup!.remove(); } finally { await stage.cleanup!.close(); }
+    }
+  });
 }
 
 async function ensureKeyForUid(context: CommandContext, uid: string): Promise<{ seed: Uint8Array; pubKey: Uint8Array; uid: string; keyIdHex: string }> {
@@ -435,7 +461,7 @@ async function ensureKeyForUid(context: CommandContext, uid: string): Promise<{ 
     seedHex: bytesToHex(realSeed),
     pubHex: bytesToHex(realPub),
   });
-  await saveKeyring(context, keys);
+  await saveKeyring(context, keys, keys.length - 1);
   return { seed: realSeed, pubKey: realPub, uid, keyIdHex };
 }
 
@@ -671,11 +697,12 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
             .join("");
           const imported = JSON.parse(textDecoder.decode(base64ToBytes(b64))) as StoredGpgKey[];
           const existing = await loadKeyring(context);
+          const previous = existing.length;
           for (const { uid, keyIdHex, pubHex } of imported) {
             if (typeof uid !== "string" || typeof keyIdHex !== "string" || typeof pubHex !== "string") throw new PublicDiagnostic("invalid public key");
             if (!existing.some(e => e.keyIdHex === keyIdHex)) existing.push({ uid, keyIdHex, pubHex });
           }
-          await saveKeyring(context, existing);
+          await saveKeyring(context, existing, previous);
           await writeText(context.stderr, `gpg: Total number processed: ${imported.length}\ngpg:               imported: ${imported.length}\n`);
           return { exitCode: 0 };
         }

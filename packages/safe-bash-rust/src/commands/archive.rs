@@ -9362,15 +9362,26 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Value::Object(fields)
         }).collect()))
     };
-    let load_keyring = || match fs.read_file(keyring_path) {
-        Ok(raw) => parse_keyring_bytes(&raw),
-        Err(e) if e.starts_with("ENOENT") || e.contains("No such file or directory") => Ok(Vec::new()),
-        Err(e) => Err(e),
+    let load_keyring = || {
+        match fs.lstat(keyring_path) {
+            Err(e) if e.starts_with("ENOENT") || e.contains("No such file or directory") => return Ok(Vec::new()),
+            Err(e) => return Err(e),
+            Ok(st) if st.kind != crate::vfs::VfsEntryKind::File || st.mode & 0o170000 != 0o100000 => return Err("keyring is not a regular file".into()),
+            Ok(_) => {}
+        }
+        parse_keyring_bytes(&fs.read_file(keyring_path)?)
     };
-    let save_keyring = |keys: &[(String, String, String, String)]| {
-        fs.mkdir_all("/home/user/.gnupg")?;
-        let json = serialize_keys(keys, false);
-        fs.write_file(keyring_path, json.as_bytes())
+    let save_keyring = |keys: &[(String, String, String, String)], previous: usize| {
+        let dir = "/home/user/.gnupg";
+        fs.mkdir_all("/home/user")?;
+        match fs.create_temp(dir, true, 0o700) {
+            Err(e) if e.starts_with("EEXIST") || e.ends_with("(os error 17)") => {}
+            other => other?,
+        }
+        let receipt = fs.observe_publication(keyring_path, fs.generation(), crate::vfs::PublicationMode::Replace)?;
+        if fs.lstat(dir)?.kind != crate::vfs::VfsEntryKind::Directory { return Err("invalid keyring directory".into()); }
+        if load_keyring()? != keys[..previous] { return Err("keyring changed during update".into()); }
+        fs.replace_file_entry_with_mode(keyring_path, serialize_keys(keys, false).as_bytes(), 0o600, receipt.version)
     };
     let ensure_key = |uid: &str| -> Result<(String, String, String, String), String> {
         let mut keys = load_keyring()?;
@@ -9385,7 +9396,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
         let entry = (uid.to_string(), kid, openssl_hex_encode(&seed), openssl_hex_encode(&pub_b));
         keys.push(entry.clone());
-        save_keyring(&keys)?;
+        save_keyring(&keys, keys.len() - 1)?;
         Ok(entry)
     };
 
@@ -9587,13 +9598,14 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let imported = match parse_keyring_bytes(&decoded) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let cnt = imported.len();
         let mut existing = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let previous = existing.len();
         for (uid, kid, _, pk) in imported {
             let entry = (uid, kid, String::new(), pk);
             if !existing.iter().any(|(_, k, _, _)| k == &entry.1) {
                 existing.push(entry);
             }
         }
-        if let Err(e) = save_keyring(&existing) { return err_out(&format!("gpg: {e}\n"), 2); }
+        if let Err(e) = save_keyring(&existing, previous) { return err_out(&format!("gpg: {e}\n"), 2); }
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: format!("gpg: Total number processed: {cnt}\ngpg:               imported: {cnt}\n"),

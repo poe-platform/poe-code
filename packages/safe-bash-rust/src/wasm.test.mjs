@@ -16179,3 +16179,65 @@ test("GPG public key transfer permits verification but cannot grant signing auth
     } finally { owner.dispose?.(); recipient.dispose?.(); independent.dispose?.(); }
   }
 });
+
+test("GPG keyring writes are private and replace the entry without updating aliases", async () => {
+  const { MemoryFileSystem, Shell, agentCommands, gpgCommands } = await import("@poe-platform/safe-bash");
+  const memory = new MemoryFileSystem();
+  const js = new Shell({ fs: memory, cwd: "/" }).use(agentCommands()).use(gpgCommands({replace:true}));
+  const wasm = new RustWasmBash({ forceNative: true, cwd: "/" });
+  const dir = "/home/user/.gnupg", file = dir + "/keyring.json";
+  try {
+    for (const [shell, fs] of [[wasm, wasm.fs], [js, memory]]) {
+      const first = await shell.exec("gpg --quick-generate-key alpha");
+      assert.equal(first.exitCode, 0, first.stderr);
+      assert.equal((await fs.stat(file)).mode & 0o777, 0o600);
+      assert.equal((await fs.stat(dir)).mode & 0o777, 0o700);
+      const original = await fs.readFile(file);
+      await fs.link(file, "/old-ring");
+      await fs.chmod(file, 0o644);
+      const added = await shell.exec("gpg --quick-generate-key beta");
+      assert.equal(added.exitCode, 0, added.stderr);
+      assert.equal((await fs.stat(file)).mode & 0o777, 0o600);
+      assert.ok(Buffer.from(await fs.readFile("/old-ring")).equals(Buffer.from(original)), "aliased ring received new key material");
+      await fs.rm(file);
+      await fs.symlink("/absent", file);
+      assert.notEqual((await shell.exec("gpg --quick-generate-key gamma")).exitCode, 0);
+      await assert.rejects(fs.stat("/absent"), {code:"ENOENT"});
+      await fs.rm(file);
+      await fs.writeFile(file, Buffer.from("corrupt"), {mode:0o600});
+      assert.notEqual((await shell.exec("gpg --quick-generate-key gamma")).exitCode, 0);
+      assert.equal(Buffer.from(await fs.readFile(file)).toString(), "corrupt");
+    }
+  } finally { wasm.dispose(); }
+});
+
+test("GPG rejects competing keyring replacements and cleans up its private stage", {skip:!WebAssembly.Suspending}, async () => {
+  const { MemoryFileSystem, Shell, agentCommands, gpgCommands } = await import("@poe-platform/safe-bash");
+  const rust = new RustWasmBash({forceNative:true});
+  const dir = "/home/user/.gnupg", file = dir + "/keyring.json";
+  try {
+    for (const engine of ["Wasm", "TypeScript"]) {
+      const fs = new MemoryFileSystem();
+      const shell = engine === "Wasm" ? rust : new Shell({fs}).use(agentCommands()).use(gpgCommands({replace:true}));
+      const run = uid => shell.exec("gpg --quick-generate-key " + uid, {fs});
+      const first = await run("alpha");
+      assert.equal(first.exitCode, 0, first.stderr);
+      const competing = Buffer.from("[]");
+      const publish = fs.publishStagedFile.bind(fs);
+      let raced = false;
+      fs.publishStagedFile = async (stage, path, options) => {
+        raced = true;
+        await fs.writeFile(file, competing);
+        return publish(stage, path, options);
+      };
+      assert.notEqual((await run("beta")).exitCode, 0);
+      assert.equal(raced, true);
+      assert.deepEqual((await fs.readdir(dir)).map(e => e.name), ["keyring.json"]);
+      assert.ok(Buffer.from(await fs.readFile(file)).equals(competing));
+      fs.capabilitiesFor = () => ({...fs.capabilities, permissions:false});
+      raced = false;
+      assert.notEqual((await run("gamma")).exitCode, 0);
+      assert.equal(raced, false);
+    }
+  } finally { rust.dispose(); }
+});

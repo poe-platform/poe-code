@@ -5,6 +5,20 @@ import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, 
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
 for (const fn of ["printf", "format"]) {
+  test(`sqlite3 ${fn} alternate hexadecimal forms match native SQLite`, async () => {
+    // Expected output verified with native SQLite.
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `SELECT ${fn}('%#x|%#X|%#x|%#X|%#x|%#x', 255, 255, 0, 0, NULL, -1);
+         SELECT ${fn}('%#8x|%-#8x|%#08x|%0#8X|%#.6x|%#08.6x', 255, 255, 255, 255, 255, 255);
+         SELECT ${fn}('%#08x|%#.0x|%#x:%d|%x|%X', 0, 0, 255, 42, 255, 255);`]),
+      { code: 0, stderr: "", stdout:
+        "0xff|0XFF|0|0|0|0xffffffffffffffff\n    0xff|0xff    |0x000000ff|0X000000FF|0x0000ff|0x000000ff\n00000000|0|0xff:42|ff|FF\n" }
+    );
+  });
+}
+
+for (const fn of ["printf", "format"]) {
   for (const [args, expected] of [
     ["'%08d|%+08d', -12, 12", "-0000012|+0000012"],
     ["'%+08d|%+08d|%+08d', -12, 0, NULL", "-0000012|+0000000|+0000000"],

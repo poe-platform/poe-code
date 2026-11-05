@@ -41,3 +41,32 @@ it.each([
     expect(Buffer.from(actual.data).equals(native.data)).toBe(true);
   }
 });
+
+for (const mode of ["buffered", "retained"] as const)
+it.each([
+  { options: ["-thumbnail", "4x4"], width: 128, height: 126, size: 4 },
+  { options: ["-geometry", "120x120+4+3", "-thumbnail", "4x4"], width: 128, height: 126, size: 120 },
+  { options: ["-thumbnail", "4x4", "-geometry", "120x120+4+3"], width: 128, height: 126, size: 120 },
+  { options: ["-geometry", "+4+3", "-thumbnail", "4x4"], width: 12, height: 10, size: 4 },
+])(`keeps thumbnail resizing separate from tile geometry via ${mode}: $options`, async ({ options, width, height, size }) => {
+  const bytes = await sharp({ create: { width: 8, height: 8, channels: 3, background: "red" } }).png().toBuffer();
+  const files = new Map([["input.png", bytes]]);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.png", bytes);
+  const args = ["-tile", "1x1", ...options];
+  const result = await runMontageCli([...args, "input.png", "png:-"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+  expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+  const actual = decodeImage(result.stdoutBytes!);
+  expect([actual.width, actual.height]).toEqual([width, height]);
+  let redPixels = 0;
+  for (let i = 0; i < actual.data.length; i += 4) if (actual.data[i + 1] === 0) redPixels++;
+  expect(redPixels).toBe(size * size);
+  if (nativeAvailable) {
+    const reference = spawnSync("magick", ["montage", "-font", font, ...args,
+      `inline:data:image/png;base64,${Buffer.from(bytes).toString("base64")}`, "png:-"]);
+    expect(reference.status, reference.stderr.toString()).toBe(0);
+    const native = decodeImage(reference.stdout);
+    expect([actual.width, actual.height]).toEqual([native.width, native.height]);
+    expect(Buffer.from(actual.data).equals(native.data)).toBe(true);
+  }
+});

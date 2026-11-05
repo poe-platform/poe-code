@@ -6467,7 +6467,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 
 interface MontageArguments {
     state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean;
+    padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean; thumbnail: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments, void> {
     let cooperativeWork = 63;
@@ -6478,6 +6478,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let cellW: number | undefined = 120;
     let cellH: number | undefined = 120;
     let defaultGeometry = true;
+    let thumbnail: string | undefined;
     let padX = 4;
     let padY = 3;
     let borderW = 0;
@@ -6493,7 +6494,10 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             tileCols = g.width;
             tileRows = g.height;
         }
-        else if (t === "-geometry" || t === "-thumbnail") {
+        else if (t === "-thumbnail") {
+            thumbnail = argv[++i];
+        }
+        else if (t === "-geometry") {
             defaultGeometry = false;
             const g = parseMagickGeometry(argv[++i] ?? "+2+2");
             cellW = g.width;
@@ -6543,11 +6547,11 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry };
+    return { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail };
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry } = yield* parseMontageArguments(argv);
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail } = yield* parseMontageArguments(argv);
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -6558,7 +6562,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -6706,10 +6710,15 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 let thumb = loaded;
+                if (thumbnail !== undefined) {
+                    thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel);
+                    if (thumb !== loaded) detachRgbaBuffer(loaded.data);
+                }
                 if (cellW !== undefined || cellH !== undefined) {
+                    const previous = thumb;
                     const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`;
                     thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel));
-                    if (thumb !== loaded) detachRgbaBuffer(loaded.data);
+                    if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
                 if (borderW > 0) {
                     const prev = thumb;
@@ -6783,12 +6792,12 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry } = await drainSteps(parseMontageArguments(argv), signal);
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail } = await drainSteps(parseMontageArguments(argv), signal);
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -6844,6 +6853,10 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const path = paths[index]!;
                 try {
                     const loaded = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index), visit: async image => {
+                        if (thumbnail !== undefined) {
+                            const resize = magickResizeOptions(image, thumbnail, state.kernel);
+                            if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);
+                        }
                         if (cellW !== undefined || cellH !== undefined) {
                             const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`, state.kernel);
                             if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);

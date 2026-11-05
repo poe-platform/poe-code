@@ -882,9 +882,12 @@ function parseQpdfArguments(argv: readonly string[]) {
       const rangePart = firstColon === -1 ? "1-z" : spec.slice(firstColon + 1);
       const relative = rawAngle.startsWith("+") || rawAngle.startsWith("-");
       const sign: 1 | -1 = rawAngle.startsWith("-") ? -1 : 1;
-      const absDeg = ((Math.abs(Number.parseInt(rawAngle, 10)) % 360) as 0 | 90 | 180 | 270);
+      const absDeg = Math.abs(Number.parseInt(rawAngle, 10) || 0) % 360;
+      if (absDeg % 90 !== 0) {
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid parameter to rotate (angle must be a multiple of 90): ${spec}\n` } };
+      }
       rotateSpecs.push({
-        angle: absDeg,
+        angle: absDeg as 0 | 90 | 180 | 270,
         relative,
         sign,
         range: rangePart || "1-z"

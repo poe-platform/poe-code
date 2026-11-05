@@ -37,6 +37,7 @@ it.each(samples.map((text, index) => ({text, index})))("assembles backed Markdow
 });
 
 const originSamples = [
+  "![one](a.png)\n![two](b.png) {#custom .loud}\n======",
   "![one](a.png)\ntext\n![two](b.png)",
   "> ![quote](q.png)\n> continued ![next](n.png)\n\n- [x] ![task](t.png)",
   "![outer ![inner](i.png)](o.png)\n![ref]\n\n[ref]: r.png",
@@ -48,7 +49,7 @@ it.each(originSamples)("preserves image source lines for %j", async text => {
   const store = () => {const value = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1); stores.push(value); return value;};
   try {
     const source = new RetainedSourceText(store(), units => context.cooperate(units)); await source.append([text]);
-    const extensions = {pipe_tables: true, task_lists: true};
+    const extensions = {pipe_tables: true, task_lists: true, header_attributes: true};
     const blocks = new RetainedCommonMarkBlocks(source, store(), context, "input", extensions); await blocks.parse({start: 0, end: text.length});
     const ast = new RetainedRtfAst(store(), units => context.cooperate(units));
     const actual: {url: string; line: number}[] = [], expected: typeof actual = [];

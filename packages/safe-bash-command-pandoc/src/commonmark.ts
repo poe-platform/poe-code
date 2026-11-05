@@ -1,3 +1,4 @@
+import {headingAttributes} from "./heading-attributes.js";
 import {nativeDivBlocks} from "./html.js";
 import { parseDocument } from "yaml";
 import { filterGfmHtml } from "./gfm-syntax.js";
@@ -114,7 +115,13 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           } else result.push({t: tight ? "Plain" : "Para", c: inlines});
           break;
         }
-        case "heading": result.push({ t: "Header", c: [block.level, ["", [], []], await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote)] }); break;
+        case "heading": {
+          const lines = [...block.inline.lines], last = lines.at(-1);
+          const heading = extensions.header_attributes && last ? headingAttributes(last.text, context) : undefined;
+          if (heading && last) lines[lines.length - 1] = {...last, text: last.text.slice(0, heading.end)};
+          result.push({t: "Header", c: [block.level, heading?.attributes ?? ["", [], []], await parseCommonMarkInlines({...block.inline, lines}, pending.definitions, context, extensions, footnote)]});
+          break;
+        }
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;
         case "html": {
           const divs = extensions.native_divs ? await nativeDivBlocks(block.literal, context) : undefined;

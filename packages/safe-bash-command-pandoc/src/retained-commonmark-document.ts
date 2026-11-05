@@ -1,3 +1,4 @@
+import {headingAttributes} from "./heading-attributes.js";
 import {translate} from "./json.js";
 import {nativeDivBlocks} from "./html.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
@@ -27,7 +28,7 @@ export async function assembleRetainedCommonMark(
     if (imageTarget && position !== undefined) {
       index = tape.allocate(lines * 16); let offset = 0, original = 0;
       for await (const line of parser.lines(position)) original += line.range.end - line.range.start + 1;
-      const removed = original - 1 - (range.end - range.start);
+      const removed = (await parser.node(position)).kind === "heading" ? 0 : original - 1 - (range.end - range.start);
       for await (const line of parser.lines(position)) {
         const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
         view.setFloat64(0, offset, true); view.setFloat64(8, line.line, true);
@@ -169,6 +170,15 @@ export async function assembleRetainedCommonMark(
           }
         })());
       } else range = await parser.joined(current);
+      let heading;
+      if (block.kind === "heading" && extensions.header_attributes && range.end > range.start && await source.unit(range.end - 1) === "}") {
+        let start = range.end;
+        while (start > range.start && await source.unit(start - 1) !== "\n") {context.checkpoint(); start--;}
+        context.bound("text", range.end - start); context.charge("retainedBytes", (range.end - start) * 2);
+        let text = ""; for await (const chunk of source.chunks({start, end: range.end})) text += chunk;
+        heading = headingAttributes(text, context);
+        if (heading) range = {start: range.start, end: start + heading.end};
+      }
       let inlines = await inline(range, block.lineCount, current);
       if (current === taskNode) {
         const content = await ast.array();
@@ -188,7 +198,7 @@ export async function assembleRetainedCommonMark(
           }
         }
       }
-      await ast.push(out, block.kind === "heading" ? await ast.tag("Header", await ast.value([block.number, await attrs(), inlines])) : await ast.tag(tight ? "Plain" : "Para", inlines));
+      await ast.push(out, block.kind === "heading" ? await ast.tag("Header", await ast.value([block.number, heading?.attributes ?? await attrs(), inlines])) : await ast.tag(tight ? "Plain" : "Para", inlines));
     } else if (block.kind === "thematicBreak") await ast.push(out, await ast.tag("HorizontalRule"));
     else if (block.kind === "html") {
       const range = await parser.joined(current, "");

@@ -8092,8 +8092,11 @@ export class SqliteDatabase {
             return v === undefined ? null : v;
           });
           return new JsonText(JSON.stringify(arr));
-        } catch {
-          return null;
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw new Error("stepping, malformed JSON");
+          }
+          throw error;
         }
       }
       case "JSON_TYPE": {
@@ -8123,8 +8126,11 @@ export class SqliteDatabase {
             return "text";
           }
           return Array.isArray(target) ? "array" : "object";
-        } catch {
-          return null;
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw new Error("stepping, malformed JSON");
+          }
+          throw error;
         }
       }
       case "JSON_ARRAY_LENGTH": {
@@ -8136,8 +8142,11 @@ export class SqliteDatabase {
           const target =
             a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
           return Array.isArray(target) ? target.length : 0;
-        } catch {
-          return null;
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw new Error("stepping, malformed JSON");
+          }
+          throw error;
         }
       }
       case "JSON_SET":
@@ -8157,8 +8166,11 @@ export class SqliteDatabase {
             cur = setByJsonPath(cur, p, v, mode);
           }
           return serializeSqlJson(cur);
-        } catch {
-          return null;
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw new Error("stepping, malformed JSON");
+          }
+          throw error;
         }
       }
       case "JSON_REMOVE": {
@@ -8172,8 +8184,11 @@ export class SqliteDatabase {
             cur = removeByJsonPath(cur, toSqlString(args[i] ?? "$"));
           }
           return serializeSqlJson(cur);
-        } catch {
-          return null;
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw new Error("stepping, malformed JSON");
+          }
+          throw error;
         }
       }
       case "JSON_PATCH": {
@@ -8198,8 +8213,11 @@ export class SqliteDatabase {
             return res;
           };
           return JSON.stringify(applyMergePatch(target, patch));
-        } catch {
-          return null;
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw new Error("stepping, malformed JSON");
+          }
+          throw error;
         }
       }
       default:

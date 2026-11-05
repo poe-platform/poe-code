@@ -79,6 +79,35 @@ for (const [sql, stdout] of [
   });
 }
 
+test("sqlite3 JSON1 reports malformed input through the public command", async () => {
+  for (const expression of [
+    "json_extract('not json', '$')",
+    "json_type('not json')",
+    "json_array_length('not json')",
+    "json_set('not json', '$.a', 1)",
+    "json_insert('not json', '$.a', 1)",
+    "json_replace('not json', '$.a', 1)",
+    "json_remove('not json', '$.a')",
+    "json_patch('not json', '{}')",
+    "json_patch('{}', 'not json')",
+  ]) {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${expression};`]),
+      { code: 1, stdout: "", stderr: "Error: stepping, malformed JSON\n" },
+      expression
+    );
+  }
+});
+
+test("sqlite3 JSON1 preserves validation and SQL NULL behavior", async () => {
+  assert.deepEqual(
+    await runSqlite3(createMemoryFileSystem(), [":memory:",
+      "SELECT json_valid('not json'), json_valid('{}'), json_extract(NULL, '$'), json_type(NULL), json_array_length(NULL), json_set(NULL, '$.a', 1), json_insert(NULL, '$.a', 1), json_replace(NULL, '$.a', 1), json_remove(NULL, '$.a'), json_patch(NULL, '{}'), json_patch('{}', NULL);"
+    ]),
+    { code: 0, stdout: "0|1|||||||||\n", stderr: "" }
+  );
+});
+
 test("sqlite3 JSON1 treats quoted object names as single path components", async () => {
   const cases = [
     [`json_extract('{"a.b":42}', '$."a.b"')`, "42"],

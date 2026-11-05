@@ -1,3 +1,4 @@
+import {htmlMath} from "./html-math.js";
 import {codeLanguage, highlightCode, highlightCss} from "./html-highlight.js";
 import type {RetainedDocumentSidecars} from "./retained-json.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
@@ -374,9 +375,15 @@ class HtmlTape {
           await this.add("<code"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.escape(await this.scalar(await this.at(content!, 1))); await this.add("</code>");
         } else if (tag === "Math") {
           const inline = await this.tag(await this.at(content!, 0)) === "InlineMath";
-          await this.add(`<span class="math ${inline ? "inline" : "display"}">`); const math = await this.text.from([inline ? "\\(" : "\\["]);
-          await this.text.append(math, await this.scalar(await this.at(content!, 1)));
-          await this.text.append(math, await this.text.from([inline ? "\\)" : "\\]"])); await this.escape(math); await this.add("</span>");
+          await this.add(`<span class="math ${inline ? "inline" : "display"}">`);
+          let source = "";
+          for await (const chunk of this.tree.scalarChunks(await this.at(content!, 1))) {
+            await this.context.cooperate(chunk.length); this.context.charge("retainedBytes", chunk.length * 2); source += chunk;
+          }
+          for (const token of htmlMath(source, inline, this.context)) {
+            if (token.markup) await this.add(token.text); else await this.escape(token.text);
+          }
+          await this.add("</span>");
         } else if (tag === "RawInline") await this.raw(content!, job.path);
         else if (tag === "Span") {
           const task = await this.task(content!);

@@ -1,3 +1,4 @@
+import {htmlMath} from "./html-math.js";
 import {codeLanguage, highlightCode, highlightCss} from "./html-highlight.js";
 import { taskListItemState, taskListState } from "./task-list.js";
 import type { Alignment, Attr, Block, Caption, ColSpec, Inline, MetaValue, Row } from "./ast-types.js";
@@ -147,7 +148,13 @@ class HtmlWriter {
           this.add('">'); await this.inlines(node.c[1], `${p}.c[1]`); this.add("</span>"); break;
         }
         case "Code": this.add("<code"); this.attrs(node.c[0]); this.add(">"); this.escape(node.c[1]); this.add("</code>"); break;
-        case "Math": this.add(`<span class="math ${node.c[0] === "InlineMath" ? "inline" : "display"}">`); this.escape(node.c[0] === "InlineMath" ? `\\(${node.c[1]}\\)` : `\\[${node.c[1]}\\]`); this.add("</span>"); break;
+        case "Math":
+          this.add(`<span class="math ${node.c[0] === "InlineMath" ? "inline" : "display"}">`);
+          this.context.charge("retainedBytes", node.c[1].length * 2);
+          for (const token of htmlMath(node.c[1], node.c[0] === "InlineMath", this.context)) {
+            if (token.markup) this.add(token.text); else this.escape(token.text);
+          }
+          this.add("</span>"); break;
         case "RawInline": this.raw(node.c[0], node.c[1], p); break;
         case "Span": {
           const taskState = taskListState(node);

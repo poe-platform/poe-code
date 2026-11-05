@@ -43,7 +43,9 @@ prefixes, 72-character rules, and a final newline even for empty documents.
 Bullet lists use the compact spacing of Pandoc 3.11.
 Both `html` and `html5` accept HTML input and produce HTML5 output.
 HTML MathML preserves inline/display equations, fractions, roots and scripts as
-math nodes; other MathML containers retain their text. Markdown output uses
+math nodes; other MathML containers retain their text. HTML output renders simple
+TeX math as text, emphasis, subscripts and superscripts. Unsupported formulas
+retain escaped dollar-delimited TeX with a warning. Markdown output uses
 TeX dollar delimiters. The `markdown` and `md` readers parse `$inline$` and
 `$$display$$` math; `-tex_math_dollars` disables this extension.
 The shell command infers omitted input and output formats from file extensions.

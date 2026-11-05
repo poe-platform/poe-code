@@ -25,7 +25,7 @@ for (const retained of [false, true]) {
         {t: "Math", c: [{t: "DisplayMath"}, "y^2"]}
       ]);
     }
-    expect(await render("$x$ and $$y$$", "markdown", "html")).toBe('<p><span class="math inline">\\(x\\)</span> and <span class="math display">\\[y\\]</span></p>\n');
+    expect(await render("$x$ and $$y$$", "markdown", "html")).toBe('<p><span class="math inline"><em>x</em></span> and <span class="math display"><em>y</em></span></p>\n');
   });
   it(`preserves literal dollars and extension controls (retained=${retained})`, async () => {
     for (const from of ["markdown-tex_math_dollars", "gfm", "commonmark"]) {

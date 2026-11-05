@@ -158,6 +158,30 @@ it("resolves numbered, named auto-number and symbol notes with multiline bodies"
   expect(p?.t === "Para" && p.c.filter(i => i.t === "Note").map(i => i.c)).toEqual([[para("seven"), para("second")], [para("named")], [para("auto")], [para("star")], [para("dagger")]]);
   await expect(read("[1]_\n\n.. [1] [1]_")).rejects.toMatchObject({code: "E_LIMIT"});
 });
+it.each([" ", "   ", "\t", "\n"])("attaches RST footnotes across %j whitespace", async space => {
+  const result = await json(`See note${space}[1]_.\n\n.. [1] The note.`);
+  expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([
+    {t: "Para", c: [str("See"), {t: "Space"}, str("note"),
+      {t: "Note", c: [{t: "Para", c: [str("The"), {t: "Space"}, str("note.")]}]}, str(".")]}
+  ]);
+});
+it("preserves whitespace before ordinary and escaped brackets", async () => {
+  for (const source of ["See note [1].", "See note \\[1]_ ."]) {
+    const paragraph = (await read(source)).blocks[0];
+    expect(paragraph?.t === "Para" && paragraph.c.slice(0, 4)).toEqual([
+      str("See"), {t: "Space"}, str("note"), {t: "Space"}
+    ]);
+  }
+});
+it("attaches footnote links through the standalone HTML command", async () => {
+  const stdout: Uint8Array[] = [];
+  expect(await createStandalonePandocCommand().execute({
+    args: ["-f", "rst", "-t", "html"], stdin: [bytes("See note [1]_.\n\n.. [1] The note.")],
+    stdout: {write: async chunk => {stdout.push(chunk);}}, stderr: {write: async () => {}},
+    signal: new AbortController().signal
+  })).toEqual({exitCode: 0});
+  expect(new TextDecoder().decode(Buffer.concat(stdout))).toContain("See note<a");
+});
 it("maps code, image and admonition directives without executing content", async () => {
   const doc = await read(".. code:: typescript\n   :number-lines: 4\n\n   console.log('literal');\n\n.. image:: plot.png\n   :alt: A plot\n   :width: 20px\n\n.. note:: Be careful\n\n   **body**");
   expect(doc.blocks.map(b => b.t)).toEqual(["CodeBlock", "Para", "Div"]);

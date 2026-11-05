@@ -99,7 +99,12 @@ export async function rstInlines(text: string, at: RstLine, host: RstInlineHost,
       }
       if (c === "[") {
         const end = await find(text, "]_", i + 1, context);
-        if (end > i + 1 && endBoundary(text, end + 2)) {append(out, await host.note(text.slice(i + 1, end), locate(i), stack, depth + 1)); i = end + 2; continue;}
+        if (end > i + 1 && endBoundary(text, end + 2)) {
+          const note = await host.note(text.slice(i + 1, end), locate(i), stack, depth + 1);
+          while (out.at(-1)?.t === "Space" || out.at(-1)?.t === "SoftBreak") out.pop();
+          append(out, note);
+          i = end + 2; continue;
+        }
       }
       let tick = i, prefix: string | undefined;
       if (c === ":") {

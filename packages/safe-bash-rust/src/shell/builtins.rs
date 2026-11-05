@@ -13,6 +13,15 @@ pub struct BuiltinOutcome {
     pub exit_code: i32,
 }
 
+pub(super) fn same_file(cwd: &str, left: &str, right: &str, fs: &dyn SafeBashFs) -> bool {
+    let identity = |operand: &str| {
+        if operand.is_empty() { return None; }
+        let path = crate::vfs::path::absolute_operand(cwd, operand);
+        fs.stat(&fs.access_path(&path, true).ok()?).ok()?.identity
+    };
+    matches!((identity(left), identity(right)), (Some(a), Some(b)) if a == b)
+}
+
 pub fn resolve_physical_path(cwd: &str, path: &str, fs: &dyn SafeBashFs) -> String {
     let logical = resolve_posix_path(cwd, path);
     let mut cur = String::new();
@@ -2619,12 +2628,7 @@ fn eval_posix_test(
                     (Err(_), Ok(_)) => true,
                     _ => false,
                 },
-                "-ef" => {
-                    stat_nonempty(left).is_ok()
-                        && stat_nonempty(right).is_ok()
-                        && resolve_physical_path(cwd, left, fs)
-                            == resolve_physical_path(cwd, right, fs)
-                }
+                "-ef" => same_file(cwd, left, right, fs),
                 _ => false,
             },
         }
@@ -2829,13 +2833,7 @@ fn eval_test_primary(
                     _ => false,
                 }
             }
-            "-ef" => {
-                let lp = resolve_posix_path(cwd, left);
-                let rp = resolve_posix_path(cwd, right);
-                fs.stat(&lp).is_ok()
-                    && fs.stat(&rp).is_ok()
-                    && resolve_physical_path(cwd, left, fs) == resolve_physical_path(cwd, right, fs)
-            }
+            "-ef" => same_file(cwd, left, right, fs),
             _ => false,
         };
     }

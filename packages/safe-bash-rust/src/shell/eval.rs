@@ -3,7 +3,7 @@ use crate::budget::ExecutionBudget;
 use crate::commands::{ChildIo, CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input};
 use crate::shell::builtins::{
     BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
-    path_targets, resolve_physical_path, try_run_builtin,
+    path_targets, same_file, try_run_builtin,
 };
 use crate::shell::expand::{
     apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes,
@@ -11481,12 +11481,7 @@ impl<'a> EvalState<'a> {
                     (Err(_), Ok(_)) => true,
                     _ => false,
                 },
-                "-ef" => {
-                    stat_nonempty(&left).is_ok()
-                        && stat_nonempty(&right).is_ok()
-                        && resolve_physical_path(self.cwd, &left, self.fs)
-                            == resolve_physical_path(self.cwd, &right, self.fs)
-                }
+                "-ef" => same_file(self.cwd, &left, &right, self.fs),
                 _ => false,
             };
             return Ok(if ok { 0 } else { 1 });

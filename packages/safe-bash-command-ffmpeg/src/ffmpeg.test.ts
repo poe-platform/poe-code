@@ -316,6 +316,9 @@ describe("transpose directions", () => {
 describe("drawbox position expressions", () => {
   for (const options of [
     "x=iw-2:y=ih-2:w=2:h=2:color=red:t=fill",
+    "x=iw-w:y=ih-h:w=2:h=2:color=red:t=fill",
+    "x=iw-w:y=ih-h:w=iw/2:h=ih/2:color=red:t=fill",
+    "in_w-w:in_h-h:in_w/2:in_h/2:red:fill",
     "in_w-2:in_h-2:2:2:red:fill",
     "x=(iw-2)/2+1:y=ih/2:w=2:h=2:color=red:t=fill",
     "x=2.9:y=2.1:w=2:h=2:color=red:t=fill"

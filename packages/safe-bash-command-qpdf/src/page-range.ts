@@ -26,21 +26,21 @@ export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Ge
   if (suffix !== -1 && rangeSpec.includes(",", suffix)) {
     throw new QpdfPageRangeError(`error at * in numeric range ${rangeSpec.slice(0, suffix)}*${rangeSpec.slice(suffix)}: expected :even or :odd`);
   }
-  const ranges: RangePart[] = [];
   let groupParity: "odd" | "even" | undefined;
+  rangeSpec = rangeSpec.trim();
+  if (rangeSpec.endsWith(":odd")) { groupParity = "odd"; rangeSpec = rangeSpec.slice(0, -4); }
+  else if (rangeSpec.endsWith(":even")) { groupParity = "even"; rangeSpec = rangeSpec.slice(0, -5); }
+  const ranges: RangePart[] = [];
   for (const raw of rangeSpec.trim().split(",").filter(part => part.length > 0)) {
     const excluded = raw.startsWith("x");
-    let part = (excluded ? raw.slice(1) : raw).trim(), parity: "odd" | "even" | undefined;
-    if (part.endsWith(":odd")) { parity = "odd"; part = part.slice(0, -4); }
-    else if (part.endsWith(":even")) { parity = "even"; part = part.slice(0, -5); }
+    const part = (excluded ? raw.slice(1) : raw).trim();
     if (part.includes("-")) {
       const [left, right] = part.split("-", 2);
       const first = parseSingleTokenPageNumber(left ?? "1", totalPages), last = parseSingleTokenPageNumber(right ?? "z", totalPages), direction = first <= last ? 1 : -1;
-      ranges.push({ first: first + (parity === "even" ? direction : 0), last, step: direction * (parity ? 2 : 1), excluded });
+      ranges.push({ first, last, step: direction, excluded });
     } else {
       const page = parseSingleTokenPageNumber(part, totalPages);
       ranges.push({ first: page, last: page, step: 1, excluded });
-      if (!excluded && parity) groupParity = parity;
     }
   }
   let position = 0;

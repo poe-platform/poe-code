@@ -46,7 +46,8 @@ export async function* encodeGifFromStorage(
       ? await image.storedDelay?.at(frame, {signal})
       : undefined;
     signal.throwIfAborted();
-    yield gifFrameHeader(image, options, layout, frame, transparent, frameDelay);
+    const frameDisposal = await image.storedDisposal?.at(frame, {signal});
+    yield gifFrameHeader(image, options, layout, frame, transparent, frameDelay, frameDisposal);
     const codes = new GifCodes();
     codes.code(256);
     for (let i = 0; i < layout.framePixels; i++) {

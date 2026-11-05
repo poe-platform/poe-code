@@ -4962,6 +4962,14 @@ async function prepareStoredHslOutput(image: StoredRgbaImage, format: ImageForma
     return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHslOutput(frame, format) }, signal);
 }
 
+function parseMagickDisposal(value: string): number {
+    const names = ["undefined", "none", "background", "previous"];
+    const disposal = names.indexOf(value.toLowerCase());
+    if (disposal >= 0) return disposal;
+    if (["0", "1", "2", "3"].includes(value)) return Number(value);
+    return 0;
+}
+
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
@@ -5116,6 +5124,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapSteps(stack, function* (image) {
                 yield;
                 return { ...image, delay: Array(image.delay?.length ?? 1).fill(delay) };
+            });
+            i += 3;
+            continue;
+        }
+        if (t === "-set" && tokens[i + 1]?.toLowerCase() === "dispose") {
+            const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
+            stack = yield* mapSteps(stack, function* (image) {
+                yield;
+                return { ...image, disposal };
             });
             i += 3;
             continue;
@@ -5850,10 +5867,12 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             const fh = stack[0]!.height;
             const combined = new Uint8Array(fw * fh * stack.length * 4);
             const delays: number[] = [];
+            const disposals: number[] = [];
             for (let idx = 0; idx < stack.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const outputFrame = yield* prepareHslOutput(stack[idx]!, format);
+                disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 1);
                 delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
                 const frame = outputFrame.width === fw && outputFrame.height === fh
                     ? outputFrame
@@ -5867,6 +5886,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 pages: stack.length,
                 pageHeight: fh,
                 delay: delays,
+                disposal: disposals,
                 data: combined
             };
             encodePageHeight = fh;
@@ -6166,6 +6186,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 ...image,
                 storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },
             } : undefined);
+            i += 2;
+            continue;
+        }
+        if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "dispose") {
+            const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
+            steps.push(async image => image ? { ...image, disposal } : undefined);
             i += 2;
             continue;
         }
@@ -6573,6 +6599,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             pageHeight = first.height;
             const { storedData16: ignored, ...metadata } = first;
             image = { ...metadata, position, height: first.height * stack.length, pages: stack.length, pageHeight,
+                storedDisposal: { length: stack.length, async at(index) {
+                    const frame = (await stack.get(index))!;
+                    return typeof frame.disposal === "number" ? frame.disposal : 1;
+                } },
                 storedDelay: { length: stack.length, async at(index) {
                     const frame = (await stack.get(index))!;
                     const scene = frame[magickInput]?.sceneIdx ?? 0;

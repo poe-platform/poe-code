@@ -56,6 +56,7 @@ export interface RgbaImage {
   readonly pages?: number;
   readonly sourcePages?: number;
   readonly pageHeight?: number;
+  readonly disposal?: number | readonly number[];
   readonly delay?: readonly number[];
   readonly loop?: number;
   readonly bitsPerSample?: number;

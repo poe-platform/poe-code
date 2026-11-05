@@ -23,6 +23,7 @@ export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16"> {
   readonly storedData16?: {readonly position:number;readonly length:number};
   /** Frame delays can remain in caller storage instead of an unbounded metadata array. */
   readonly storedDelay?: ImageDelayReader;
+  readonly storedDisposal?: ImageDelayReader;
 }
 
 async function range(source: ImageByteSource, position: number, length: number, signal: AbortSignal): Promise<Uint8Array> {

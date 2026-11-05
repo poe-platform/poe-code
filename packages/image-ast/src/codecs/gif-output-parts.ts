@@ -5,7 +5,7 @@ export interface GifOptions {
   readonly delay?: number | readonly number[];
   readonly loop?: number;
 }
-export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop">;
+export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal">;
 /** The wire palette is fixed at 256 entries, independent of raster size. */
 export class GifPalette {
   readonly bytes = new Uint8Array(768);
@@ -146,7 +146,8 @@ export function gifFrameHeader(
   layout: ReturnType<typeof gifLayout>,
   frame: number,
   transparent: boolean,
-  frameDelay = image.delay?.[frame]
+  frameDelay = image.delay?.[frame],
+  frameDisposal = typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame]
 ) {
   const { width, frameHeight, frames } = layout,
     delay = Array.isArray(options.delay)
@@ -155,14 +156,14 @@ export function gifFrameHeader(
         ? options.delay
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
     centiseconds = Math.max(0, Math.round(delay / 10));
-  const gce = frames > 1 || transparent || options.delay !== undefined,
+  const gce = frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined,
     out = new Uint8Array(gce ? 19 : 11);
   if (gce)
     out.set([
       33,
       249,
       4,
-      (frames > 1 ? 4 : 0) | 1,
+      ((frameDisposal ?? (frames > 1 ? 1 : 0)) << 2) | 1,
       centiseconds & 255,
       (centiseconds >>> 8) & 255,
       255,

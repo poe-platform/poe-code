@@ -47,7 +47,7 @@ it.skipIf(native.error !== undefined)("matches native search metrics for a multi
     const pixels = Buffer.from([255,0,0, 255,0,0, 255,0,0, 255,0,0, 255,0,0, 10,20,30, 40,50,60, 255,0,0, 255,0,0, 70,80,90, 100,110,120, 255,0,0]);
     const a = await sharp(pixels, { raw: { width: 4, height: 3, channels: 3 } }).png().toBuffer();
     const b = await sharp(Buffer.from([10,20,31, 40,50,60, 70,80,90, 100,110,120]), { raw: { width: 2, height: 2, channels: 3 } }).png().toBuffer();
-    for (const metric of ["AE", "MAE", "MSE", "RMSE", "PAE", "PSNR", "SSIM", "DSSIM", "NCC", "DPC", "PDC", "PHASE"]) {
+    for (const metric of ["AE", "MAE", "MSE", "RMSE", "PAE", "PSNR", "SSIM", "DSSIM", "NCC", "DPC", "PDC", "PHASE", "PHASH"]) {
         const result = await runCompareCli(["-metric", metric, "-subimage-search", "a.png", "b.png", "null:"], new Map([["a.png", a], ["b.png", b]]));
         const reference = spawnSync("magick", ["compare", "-metric", metric, "-subimage-search", ...[a, b].map(bytes => `inline:data:image/png;base64,${Buffer.from(bytes).toString("base64")}`), "null:"], { encoding: "utf8" });
         expect(result.exitCode, metric).toBe(reference.status);

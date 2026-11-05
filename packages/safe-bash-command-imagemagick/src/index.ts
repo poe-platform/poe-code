@@ -6278,7 +6278,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (t === "--help" || t === "-help" || t === "-h") {
             return {
                 exitCode: 0,
-                stdout: "Usage: compare [-metric AE|MAE|MEPP|MSE|RMSE|Fuzz|PSNR|SSIM|PAE|NCC|DPC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
+                stdout: "Usage: compare [-metric AE|MAE|MEPP|MSE|RMSE|Fuzz|PSNR|SSIM|PAE|NCC|DPC|PHASH] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
                 stderr: ""
             };
         }
@@ -6288,7 +6288,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
             metric = rawMetric.toLowerCase();
-            if (!["ae", "mae", "mepp", "mse", "rmse", "fuzz", "pae", "psnr", "ssim", "dssim", "ncc", "dpc", "pdc", "phase"].includes(metric)) {
+            if (!["ae", "mae", "mepp", "mse", "rmse", "fuzz", "pae", "psnr", "ssim", "dssim", "ncc", "dpc", "pdc", "phase", "phash"].includes(metric)) {
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized metric type '${rawMetric}'\n` };
             }
         }

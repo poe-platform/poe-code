@@ -1,4 +1,5 @@
 import type { RgbaColor } from "@poe-code/image-ast/portable";
+import { perceptualHashSteps } from "./compare-phash.js";
 export interface CompareImage {
     readonly width: number;
     readonly height: number;
@@ -182,6 +183,17 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let distortion = rmseNorm;
     let exitCode = metric === "psnr" && mseNorm === 0 ? 1 : (aeCount > 0 ? 1 : 0);
     switch (metric) {
+        case "phash": {
+            const a = yield* perceptualHashSteps(imgA, 0);
+            const b = yield* perceptualHashSteps(imgB, 1);
+            const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
+            distortion = 0;
+            for (let i = 0; i < Math.min(a.length, b.length); i++) distortion += (a[i]! - b[i]!) ** 2;
+            distortion /= channels;
+            metricStr = `${formatSignificantMetric(distortion)} (${formatSignificantMetric(distortion)})`;
+            exitCode = distortion > 1e-6 ? 1 : 0;
+            break;
+        }
         case "pdc":
             distortion = pdcCount / totalPixels;
             metricStr = `${formatSignificantMetric(pdcCount)} (${formatSignificantMetric(distortion)})`;
@@ -293,7 +305,7 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
     const similarity = options.metric === "ssim" || options.metric === "ncc" || options.metric === "dpc" || options.metric === "phase" ? 1 - 2 * best.distortion : best.distortion;
     const metric = options.metric === "ae"
         ? `${formatSignificantMetric(best.distortion * imgA.width * imgA.height)} (${normalized})`
-        : `${formatSignificantMetric(best.distortion * (options.metric === "psnr" ? 120 : 65535))} (${normalized})`;
+        : `${formatSignificantMetric(best.distortion * (options.metric === "psnr" ? 120 : options.metric === "phash" ? 1 : 65535))} (${normalized})`;
     return { ...best, width: imgA.width, height: imgA.height, metric: `${metric} @ ${offset.x},${offset.y} [${formatSignificantMetric(similarity)}]` };
 }
 export function formatMetricNum(n: number): string {

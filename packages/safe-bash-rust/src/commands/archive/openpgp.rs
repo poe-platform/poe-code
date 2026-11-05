@@ -208,16 +208,17 @@ fn verify(
     })
 }
 
-pub(super) struct Certificate<'a> {
-    pub uid: &'a str,
-    pub public: &'a [u8; 32],
+pub(super) struct Certificate {
+    pub uid: String,
+    pub public: [u8; 32],
     pub fingerprint: [u8; 20],
-    pub bytes: &'a [u8],
+    pub bytes: Vec<u8>,
     pub created: u32,
+    pub certified: u32,
     pub expires: Option<u64>,
 }
 
-pub(super) fn read_certificate<'a>(rest: &mut &'a [u8]) -> Option<Certificate<'a>> {
+pub(super) fn read_certificate(rest: &mut &[u8]) -> Option<Certificate> {
     let start = *rest;
     let body = take_packet(rest, 6)?;
     if body.first() != Some(&4) {
@@ -240,25 +241,26 @@ pub(super) fn read_certificate<'a>(rest: &mut &'a [u8]) -> Option<Certificate<'a
     }
     Some(Certificate {
         created,
+        certified: binding.time,
         expires: (binding.key_lifetime != 0)
             .then_some(u64::from(created) + u64::from(binding.key_lifetime)),
-        uid,
-        public,
+        uid: uid.into(),
+        public: *public,
         fingerprint,
-        bytes: &start[..start.len() - rest.len()],
+        bytes: start[..start.len() - rest.len()].to_vec(),
     })
 }
 
 pub(super) fn verify_message(
     mut signature: &[u8],
-    cert: &Certificate<'_>,
+    cert: &Certificate,
     input: &[u8],
 ) -> Option<Verified> {
     let body = take_packet(&mut signature, 2)?;
     if !signature.is_empty() {
         return None;
     }
-    let signed = verify(body, 0, &cert.fingerprint, cert.public, input)?;
+    let signed = verify(body, 0, &cert.fingerprint, &cert.public, input)?;
     (signed.time >= cert.created).then_some(signed)
 }
 

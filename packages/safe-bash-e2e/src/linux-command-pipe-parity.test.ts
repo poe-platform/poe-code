@@ -399,6 +399,14 @@ test("safe-bash imports GnuPG certificates and verifies a binary signature from 
         const res = await shell.exec("gpg --import", { stdin: cert });
         assert.equal(res.exitCode, 0, res.stderr);
         assert.deepEqual(Buffer.from((await shell.exec("gpg --export " + id)).stdoutBytes), exported[1]);
+        const list = await runLinuxCommand("gpg", [...opts, "--list-keys", id], "", dir);
+        assert.equal((await shell.exec("gpg --list-keys " + id)).stdout, list[1].toString());
+        const cols = await runLinuxCommand("gpg", [...opts, "--with-colons", "--list-keys", id], "", dir);
+        const fields = (text: string) => text.split("\n").filter(l => /^(pub|uid|fpr):/.test(l)).map(l => {
+          const f = l.split(":");
+          return f[0] === "pub" ? f.slice(0, 7) : [f[0], f[1], f[5], f[9]];
+        });
+        assert.deepEqual(fields((await shell.exec("gpg --with-colons --list-keys " + id)).stdout), fields(cols[1].toString()));
       }
     }
     await writeFile(dir + "/fixture.sig", signature);

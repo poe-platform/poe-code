@@ -158,7 +158,7 @@ async function verifyOpenPgpDetachedSignature(
   signature: Uint8Array,
   payload: Uint8Array,
   keys: readonly StoredGpgKey[],
-): Promise<{ valid: boolean; signerUid: string; keyIdHex: string; validSig?: string; expired?: number }> {
+): Promise<{ valid: boolean; signerUid: string; keyIdHex: string; validSig?: string; expired?: number; imported?: boolean }> {
   const pkt = signature[0]! & 128 ? signature : base64ToBytes(textDecoder.decode(signature)
     .split("\n").map(l => l.trim()).filter(l => !l.startsWith("-----") && !l.startsWith("=") && !l.includes(":")).join(""));
   for (const k of keys) {
@@ -169,7 +169,7 @@ async function verifyOpenPgpDetachedSignature(
       const time = signed.time;
       const fp = bytesToHex(cert.fp).toUpperCase();
       const date = new Date(time * 1000).toISOString().slice(0, 10);
-      return { valid: true, signerUid: k.uid, keyIdHex: fp.slice(-16),
+      return { valid: true, signerUid: k.uid, keyIdHex: fp.slice(-16), imported: !k.seedHex,
         ...(cert.expires && cert.expires <= Date.now() / 1000 ? { expired: cert.expires } : {}), validSig: `${fp} ${date} ${time} 0 4 0 22 ${signed.hashAlgorithm} 00 ${fp}` };
     }
   }
@@ -596,19 +596,26 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
 
         if (listKeys) {
           const keys = await loadKeyring(context);
-          const filtered = positionals.length === 0
-            ? keys
-            : keys.filter(k => positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())));
           const lines: string[] = [];
-          for (const k of filtered) {
+          for (const k of keys) {
             if (listSecret && !k.seedHex) continue;
-            const kind = k.seedHex ? "sec" : "pub";
+            const cert = k.certHex || k.seedHex ? await certificate(k) : undefined;
+            const fp = cert ? bytesToHex(cert.fp).toUpperCase() : "";
+            if (positionals.length && !positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase()) || fp === q.toUpperCase())) continue;
+            const expired = cert?.expires !== undefined && cert.expires <= Date.now() / 1000;
+            const kind = listSecret ? "sec" : "pub";
+            const validity = expired ? "e" : k.seedHex ? "u" : "-";
             if (withColons) {
-              lines.push(`${kind}:u:255:22:${k.keyIdHex}:1790553600:::u:::scESC:::+:::23::0:`);
-              lines.push(`uid:u::::1790553600::${k.keyIdHex}::${k.uid}::::::::::0:`);
+              const escaped = k.uid.replace(/[:\\\x00-\x1f\x7f]/gu, c => "\\x" + c.charCodeAt(0).toString(16).padStart(2, "0"));
+              lines.push(`${kind}:${validity}:255:22:${k.keyIdHex}:${cert?.created ?? ""}:${cert?.expires ?? ""}::${k.seedHex ? "u" : "-"}:::${expired ? "sc" : "scSC"}:::::ed25519:::0:`);
+              if (fp) lines.push(`fpr:::::::::${fp}:`);
+              lines.push(`uid:${validity}::::${cert?.certified ?? ""}::::${escaped}::::::::::0:`);
             } else {
-              lines.push(`${kind}   ed25519/${k.keyIdHex} 2026-09-28 [SC]`);
-              lines.push(`uid                 [ultimate] ${k.uid}`);
+              const date = (t: number) => new Date(t * 1000).toISOString().slice(0, 10);
+              const end = cert?.expires ? ` [${expired ? "expired" : "expires"}: ${date(cert.expires)}]` : "";
+              const label = expired ? "expired" : k.seedHex ? "ultimate" : "unknown";
+              lines.push(`${kind}   ed25519 ${cert ? date(cert.created) : ""} [SC]${end}`,
+                "      " + (fp || k.keyIdHex), `uid           [${label.padStart(8)}] ${k.uid}`, "");
             }
           }
           await writeText(context.stdout, lines.length > 0 ? `${lines.join("\n")}\n` : "");
@@ -697,7 +704,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           }
           await writeText(
             context.stderr,
-            `gpg: Signature made using EDDSA key ${res.keyIdHex}\ngpg: Good signature from "${res.signerUid}" [${res.expired ? "expired" : "ultimate"}]\n`,
+            `gpg: Signature made using EDDSA key ${res.keyIdHex}\ngpg: Good signature from "${res.signerUid}" [${res.expired ? "expired" : res.imported ? "unknown" : "ultimate"}]\n`,
           );
           return { exitCode: 0 };
         }

@@ -743,7 +743,7 @@ describe("obscure crypto, checksum, base64/base32, openssl, gpg, ssh, and ssh-ke
       echo "GEN:$?"
 
       gpg --list-keys --with-colons "bot@example.com" > /tmp/cols.txt
-      grep -q "^sec:" /tmp/cols.txt && grep -q "^uid:" /tmp/cols.txt && grep -q "Release Bot <bot@example.com>" /tmp/cols.txt
+      grep -q "^pub:" /tmp/cols.txt && grep -q "^uid:" /tmp/cols.txt && grep -q "Release Bot <bot@example.com>" /tmp/cols.txt
       echo "COLS:$?"
 
       gpg --batch --yes --status-fd 2 -u "bot@example.com" --armor --detach-sign -o /tmp/artifact.sig /tmp/artifact.txt 2>/tmp/sign.err

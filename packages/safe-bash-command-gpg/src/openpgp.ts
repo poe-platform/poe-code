@@ -159,7 +159,7 @@ export async function readCertificates(bytes: Uint8Array) {
     const binding = await verify(r.packet(2), 0x13, fp, publicKey, certInput(body, uidBytes));
     const created = new DataView(body.buffer, body.byteOffset, body.length).getUint32(1);
     if (binding.time < created) throw invalid();
-    certs.push({ uid, publicKey, fp, created, expires: binding.lifetime ? created + binding.lifetime : undefined, bytes: bytes.subarray(start, r.at) });
+    certs.push({ uid, publicKey, fp, created, certified: binding.time, expires: binding.lifetime ? created + binding.lifetime : undefined, bytes: bytes.subarray(start, r.at) });
   }
   if (!certs.length) throw invalid();
   return certs;

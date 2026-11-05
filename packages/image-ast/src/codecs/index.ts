@@ -452,7 +452,8 @@ export function encodeImage(
       const data = encodeGifImage(img, {
         ...(options.pageHeight !== undefined ? { pageHeight: options.pageHeight } : {}),
         ...(options.delay !== undefined ? { delay: options.delay } : {}),
-        ...(options.loop !== undefined ? { loop: options.loop } : {})
+        ...(options.loop !== undefined ? { loop: options.loop } : {}),
+        ...(options.optimizeFrames ? { optimizeFrames: true } : {})
       });
       return { data, format: "gif", channels: 4 };
     }

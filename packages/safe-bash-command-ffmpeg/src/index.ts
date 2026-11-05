@@ -874,6 +874,8 @@ async function applyVideoFilterChain(
       const bw = parseInt(named.w ?? named.width ?? positional[2] ?? "16", 10) || 16;
       const bh = parseInt(named.h ?? named.height ?? positional[3] ?? "16", 10) || 16;
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
+      const thicknessOption = named.t ?? named.thickness ?? positional[5] ?? "3";
+      const thickness = thicknessOption === "fill" ? Infinity : parseInt(thicknessOption, 10);
       current = await mapWork(current, async (f) => {
   let work = 0;
 
@@ -884,6 +886,7 @@ async function applyVideoFilterChain(
           for (let x = Math.max(0, bx); x < Math.min(f.width, bx + bw); x++) {
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
+            if (Math.min(x - bx, y - by, bx + bw - 1 - x, by + bh - 1 - y) >= thickness) continue;
             const idx = (y * f.width + x) * 4;
             nextData[idx] = col[0];
             nextData[idx + 1] = col[1];

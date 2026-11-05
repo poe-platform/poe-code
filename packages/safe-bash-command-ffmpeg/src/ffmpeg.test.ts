@@ -103,6 +103,40 @@ async function runCmd(
   };
 }
 
+describe("drawbox thickness", () => {
+  for (const [options, thickness] of [
+    ["x=2:y=2:w=12:h=12:color=red:t=1", 1],
+    ["x=2:y=2:w=12:h=12:color=red:thickness=2", 2],
+    ["2:2:12:12:red:1", 1],
+    ["x=2:y=2:w=12:h=12:color=red", 3],
+    ["x=2:y=2:w=12:h=12:color=red:t=fill", 12],
+    ["x=2:y=2:w=12:h=12:color=red:t=0", 0],
+    ["x=2:y=2:w=12:h=12:color=red:t=1.5", 1]
+  ] as const) {
+    it(`matches native decoded pixels for ${options}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-v", "error", "-f", "lavfi", "-i", "color=c=black:s=16x16:r=1:d=1",
+        "-vf", `drawbox=${options}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const image = decodeImage(vfs.store.get("/out.png")!);
+      assert.equal(image.width, 16);
+      assert.equal(image.height, 16);
+      // Native FFmpeg's RGB output has the same border mask (YUV conversion
+      // slightly changes the red channel, so compare foreground membership).
+      for (let y = 0; y < 16; y++) {
+        for (let x = 0; x < 16; x++) {
+          const border = x >= 2 && x < 14 && y >= 2 && y < 14
+            && Math.min(x - 2, y - 2, 13 - x, 13 - y) < thickness;
+          assert.equal(image.data[(y * 16 + x) * 4]! > 200, border, `pixel (${x},${y})`);
+        }
+      }
+    });
+  }
+});
+
 describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
   it("inspects MP4 streams and format with ffprobe in json, default, csv, and flat formats", async () => {
     const mp4 = createSyntheticMp4({

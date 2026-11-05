@@ -1,7 +1,9 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runMagickCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createImagemagickCommand, runMagickCli, runConvertCliSync } from "./index.js";
 
 // Dimensions and alpha bytes captured from ImageMagick 7.1.2.
 const cases = [
@@ -42,3 +44,26 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         }
     });
 }
+
+// Native ImageMagick 7.1.2 geometry for the reported 32x24 input.
+it.each([
+    [1, 34, 26], [5, 36, 28], [17, 40, 34], [30, 42, 38],
+    [45, 42, 42], [89, 26, 34], [90, 24, 32],
+])("preserves the public command rotation canvas at %s degrees", async (angle, width, height) => {
+    const fs = createMemoryFileSystem();
+    const input = await sharp({ create: { width: 32, height: 24, channels: 4, background: "red" } }).png().toBuffer();
+    await fs.writeFile("/input.png", input);
+    const result = await createImagemagickCommand().execute({
+        command: "magick",
+        args: createCommandArguments(["/input.png", "-background", "yellow", "-rotate", String(angle), "/output.png"]).args,
+        cwd: "/", env: {}, fs, stdin: (async function* () {})(),
+        signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    });
+    expect(result.exitCode).toBe(0);
+    const output = decodeImage(await fs.readFile("/output.png"));
+    expect([output.width, output.height]).toEqual([width, height]);
+    expect([...output.data.slice(0, 4)]).toEqual(angle === 90 ? [255, 0, 0, 255] : [255, 255, 0, 255]);
+    const center = (Math.floor(height / 2) * width + Math.floor(width / 2)) * 4;
+    expect([...output.data.slice(center, center + 4)]).toEqual([255, 0, 0, 255]);
+});

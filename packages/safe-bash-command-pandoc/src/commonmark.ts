@@ -1,5 +1,5 @@
 import {markdownTitleBlock} from "./markdown-title-block.js";
-import {headingAttributes} from "./heading-attributes.js";
+import {headingAttributes, headingIdentifier} from "./heading-attributes.js";
 import {nativeDivBlocks} from "./html.js";
 import { parseDocument } from "yaml";
 import { filterGfmHtml } from "./gfm-syntax.js";
@@ -71,6 +71,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
     for (const block of blocks) {
       context.checkpoint();
       if (block.kind === "footnote" && !notes.has(block.label)) {
+  const identifiers = new Set<string>();
         context.bound("references", notes.size + 1);
         context.charge("retainedBytes", block.label.length * 2 + 48);
         notes.set(block.label, block);
@@ -162,7 +163,19 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           const lines = [...block.inline.lines], last = lines.at(-1);
           const heading = extensions.header_attributes && last ? headingAttributes(last.text, context) : undefined;
           if (heading && last) lines[lines.length - 1] = {...last, text: last.text.slice(0, heading.end)};
-          result.push({t: "Header", c: [block.level, heading?.attributes ?? ["", [], []], await parseCommonMarkInlines({...block.inline, lines}, pending.definitions, context, extensions, footnote, citationsState)]});
+          const inlines = await parseCommonMarkInlines({...block.inline, lines}, pending.definitions, context, extensions, footnote, citationsState);
+          let attributes: import("./ast-types.js").Attr = heading?.attributes ?? ["", [], []];
+          if (!attributes[0] && extensions.auto_identifiers) {
+            const base = headingIdentifier(inlines, context);
+            let id = base;
+            for (let suffix = 1; identifiers.has(id); suffix++) {context.checkpoint(); id = `${base}-${suffix}`;}
+            attributes = [id, attributes[1], attributes[2]];
+          }
+          if (attributes[0] && !identifiers.has(attributes[0])) {
+            context.charge("references", 1); context.charge("retainedBytes", attributes[0].length * 2);
+            identifiers.add(attributes[0]);
+          }
+          result.push({t: "Header", c: [block.level, attributes, inlines]});
           break;
         }
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;

@@ -93,7 +93,9 @@ nested blocks, IDs, classes and key/value attributes; disable with `-fenced_divs
 HTML div blocks retain their IDs, classes, attributes and child structure in the
 `markdown` and `md` readers; disable with `-native_divs`.
 Markdown headings preserve IDs, classes and key/value attributes (`# Heading {#custom .loud}`);
-disable with `-f markdown-header_attributes`.
+disable with `-f markdown-header_attributes`. Headings without explicit IDs receive
+unique Pandoc identifiers in the AST, including JSON output; disable automatic IDs
+with `-f markdown-auto_identifiers`.
 Fenced code blocks also preserve IDs, classes and key/value attributes
 (`{#demo .python}` after the opening fence); disable with `-fenced_code_attributes`.
 HTML output places code-block attributes on `<pre>` and renders custom keys as

@@ -1,3 +1,5 @@
+import {BackedTextSet} from "./backed-text-set.js";
+import {retainedHeadingIdentifier} from "./retained-heading-identifier.js";
 import {headingAttributes} from "./heading-attributes.js";
 import {translate} from "./json.js";
 import {nativeDivBlocks} from "./html.js";
@@ -16,7 +18,8 @@ export async function assembleRetainedCommonMark(
   parser: RetainedCommonMarkBlocks, ast: RetainedRtfAst, tape: PagedStorage, context: AdapterContext,
   extensions: Readonly<Record<string, boolean>>,
   imageTarget?: (target: RtfValue, line: number) => Promise<void>,
-  noteRoot = parser.root, active: readonly number[] = [], initialDepth = 1, citationsState = {note: 0}
+  noteRoot = parser.root, active: readonly number[] = [], initialDepth = 1, citationsState = {note: 0},
+  identifiers = new BackedTextSet(tape, ast.text)
 ): Promise<RtfValue> {
   const source = parser.source, definitions = parser.lookup.bind(parser);
   const literal = async (range: SourceRange) => ast.string(await ast.text.from(source.chunks(range)));
@@ -54,7 +57,7 @@ export async function assembleRetainedCommonMark(
             if (active.includes(position)) return undefined;
             context.bound("depth", depth + 1);
             context.charge("retainedBytes", (active.length + 1) * 8);
-            return ast.tag("Note", await assembleRetainedCommonMark(parser, ast, tape, context, extensions, imageTarget, position, [...active, position], depth + 1, citationsState));
+            return ast.tag("Note", await assembleRetainedCommonMark(parser, ast, tape, context, extensions, imageTarget, position, [...active, position], depth + 1, citationsState, identifiers));
           }
           if (block.first) {position = block.first; continue;}
           while (position && !(await parser.node(position)).next) position = (await parser.node(position)).parent;
@@ -242,7 +245,21 @@ export async function assembleRetainedCommonMark(
           }
         }
       }
-      await ast.push(out, block.kind === "heading" ? await ast.tag("Header", await ast.value([block.number, heading?.attributes ?? await attrs(), inlines])) : await ast.tag(tight ? "Plain" : "Para", inlines));
+      if (block.kind === "heading") {
+        const attributes = await ast.value(heading?.attributes ?? ["", [], []]);
+        let id = await ast.range((await ast.at(attributes, 0))!);
+        if (!id.units && extensions.auto_identifiers) {
+          const base = await retainedHeadingIdentifier(ast, inlines);
+          id = base;
+          for (let suffix = 1; await identifiers.has(id); suffix++) {
+            id = await ast.text.from(ast.text.chunks(base));
+            await ast.text.append(id, await ast.text.from([`-${suffix}`]));
+          }
+          await ast.set(attributes, 0, await ast.string(id));
+        }
+        if (id.units) await identifiers.add(id);
+        await ast.push(out, await ast.tag("Header", await ast.value([block.number, attributes, inlines])));
+      } else await ast.push(out, await ast.tag(tight ? "Plain" : "Para", inlines));
     } else if (block.kind === "thematicBreak") await ast.push(out, await ast.tag("HorizontalRule"));
     else if (block.kind === "html") {
       const range = await parser.joined(current, "");

@@ -2585,6 +2585,17 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             const daByte = dst.data[dIdx + 3]!;
             const sa = saByte / 255;
             const da = daByte / 255;
+            if (norm === "bumpmap") {
+                // Native Rec.709 intensity scales alpha even when the source is transparent.
+                const intensity = (0.212656 * sr + 0.715158 * sg + 0.072186 * sb) / 255;
+                if (saByte !== 0) {
+                    out[dIdx] = clampByteVal(dr * intensity);
+                    out[dIdx + 1] = clampByteVal(dg * intensity);
+                    out[dIdx + 2] = clampByteVal(db * intensity);
+                }
+                out[dIdx + 3] = clampByteVal(daByte * intensity);
+                continue;
+            }
             if (norm === "dividesrc") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {

@@ -3978,7 +3978,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-threshold") {
         const raw = tokens[++i] ?? "50%", value = Math.round(raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw));
         apply = image => thresholdImageSteps(image, value, true);
-    } else if (token === "-tint" || token === "-colorize") {
+    } else if (token === "-colorize") {
+        const strength = parseFloat(tokens[++i] ?? "100") / 100;
+        const fill = [state.fill.r, state.fill.g, state.fill.b];
+        apply = function* (image) {
+            const out = new Uint8Array(image.data);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) yield;
+                for (let channel = 0; channel < 3; channel++) {
+                    out[idx + channel] = clampByteVal(out[idx + channel]! * (1 - strength) + fill[channel]! * strength);
+                }
+            }
+            return { ...image, data: out };
+        };
+    } else if (token === "-tint") {
         i++;
         apply = image => tintImageSteps(image, state.fill);
     }

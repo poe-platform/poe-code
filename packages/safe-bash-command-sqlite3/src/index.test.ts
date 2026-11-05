@@ -36,6 +36,26 @@ test("sqlite3 shell BLOB literals use lowercase hex while SQL quote stays upperc
   });
 });
 
+test("sqlite3 shell BLOB literals use lowercase hex while SQL quote stays uppercase", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:"], [
+    "CREATE TABLE t(x);",
+    "INSERT INTO t VALUES(x'00FF');",
+    "SELECT quote(x) FROM t;",
+    ".mode quote",
+    "SELECT x FROM t;",
+    ".mode insert t",
+    "SELECT x FROM t;",
+    ".dump"
+  ].join("\n"));
+  assert.deepEqual(result, {
+    code: 0,
+    stdout: "X'00FF'\nX'00ff'\nINSERT INTO t VALUES(X'00ff');\n" +
+      "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\n" +
+      "INSERT INTO t VALUES(X'00ff');\nCOMMIT;\n",
+    stderr: ""
+  });
+});
+
 test("sqlite3 text expressions preserve bytes after NUL", async () => {
   const sql = `
     SELECT hex(x'00FF'||x'4142'), hex(replace(x'61620063','b','Z')),

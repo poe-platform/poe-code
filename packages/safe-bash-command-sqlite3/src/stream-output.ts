@@ -30,7 +30,7 @@ export function* sqlQuoteParts(value: SqlValue): Generator<string> {
     yield "X'";
     for (let offset = 0; offset < value.length; offset += 4096) {
       let text = '';
-      for (const byte of value.subarray(offset, offset + 4096)) text += byte.toString(16).toUpperCase().padStart(2, '0');
+      for (const byte of value.subarray(offset, offset + 4096)) text += byte.toString(16).padStart(2, '0');
       yield text;
     }
     yield "'";

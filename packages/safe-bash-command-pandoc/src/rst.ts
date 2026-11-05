@@ -242,7 +242,9 @@ class RstReader {
       for (const cell of pending) {
         const content = dedent(trimLines(cell));
         this.context.bound("tableFieldText", content.reduce((n, l) => n + l.text.length, 0));
-        cells.push([rstAttr(), "AlignDefault", 1, 1, await this.blocks(content, depth + 1)] as const);
+        const blocks = await this.blocks(content, depth + 1);
+        if (blocks.length === 1 && blocks[0]?.t === "Para") blocks[0] = {t: "Plain", c: blocks[0].c};
+        cells.push([rstAttr(), "AlignDefault", 1, 1, blocks] as const);
       }
       rows.push([rstAttr(), cells]); pending = columns.map(() => []);
     };

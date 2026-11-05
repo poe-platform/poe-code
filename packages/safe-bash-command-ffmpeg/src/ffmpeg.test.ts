@@ -849,6 +849,21 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  for (const filter of ["volume=1", "areverse"]) {
+    it(`preserves every PCM sample at unchanged rate with ${filter}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 800 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 1000 * i / 8000))] });
+      const expected = parseWav(input).tracks[0]!.decodedAudio!;
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", filter, "-c:a", "pcm_s16le", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const actual = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(actual.sampleRate, 8000);
+      assert.equal(actual.channels, 1);
+      assert.equal(actual.channelData[0]!.length, 800);
+      assert.deepEqual(actual.channelData[0], filter === "areverse" ? expected.channelData[0]!.slice().reverse() : expected.channelData[0]);
+    });
+  }
+
   it("matches constant volume gains when evaluating arithmetic on a sine wave", async () => {
     const input = encodeWav({ sampleRate: 16000, channels: [Float64Array.from({ length: 8000 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 440 * i / 16000))] });
     const vfs = createTestVfs({ "/input.wav": input });

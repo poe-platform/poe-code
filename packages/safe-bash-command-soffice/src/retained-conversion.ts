@@ -85,13 +85,15 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
           output = { position, size: archive.size };
         } else if (format === "html" || format === "pdf") output = text;
         else {
-          const position = storage.allocate(text.size + 1);
+          const prefix = docxConversion(input) && format === "txt" ? Uint8Array.of(0xef, 0xbb, 0xbf) : new Uint8Array();
+          const position = storage.allocate(prefix.length + text.size + 1);
+          await storage.write(position, prefix);
           for (let offset = 0; offset < text.size; offset += 16384) {
             signal.throwIfAborted();
-            await storage.write(position + offset, new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset))));
+            await storage.write(position + prefix.length + offset, new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset))));
           }
-          await storage.write(position + text.size, Uint8Array.of(10));
-          output = { position, size: text.size + 1 };
+          await storage.write(position + prefix.length + text.size, Uint8Array.of(10));
+          output = { position, size: prefix.length + text.size + 1 };
         }
       } else if (input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx")) {
         const position = storage.allocate(0);

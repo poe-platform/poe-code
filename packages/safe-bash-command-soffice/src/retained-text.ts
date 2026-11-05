@@ -39,6 +39,7 @@ export async function catRetainedText(inputs: readonly string[], context: Retain
         if (retained) { yield* rtf.stream(retained); yield Uint8Array.of(10); continue; }
         const document = documents.get(resolvePath(cwd, input));
         if (document) {
+          if (input.toLowerCase().endsWith(".docx")) yield Uint8Array.of(0xef, 0xbb, 0xbf);
           for (let offset = 0; offset < document.size; offset += 16384) {
             await checkpoint();
             yield new Uint8Array(await storage.read(document.position + offset, Math.min(16384, document.size - offset)));

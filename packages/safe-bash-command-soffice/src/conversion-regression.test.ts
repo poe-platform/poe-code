@@ -130,7 +130,7 @@ for (const extension of ["pptx", "odp"]) {
     } else {
       assert.ok(readZipArchiveEntries(output).has("word/document.xml"));
       const cat = await runSofficeCli(["--cat", "/deck.docx"], files);
-      assert.equal(cat.stdout, "Title & summary\nFirst point\nSecond point\nConclusion\n");
+      assert.equal(cat.stdout, "\uFEFFTitle & summary\nFirst point\nSecond point\nConclusion\n");
     }
   });
 }

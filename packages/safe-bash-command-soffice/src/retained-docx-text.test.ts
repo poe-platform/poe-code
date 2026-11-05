@@ -25,7 +25,7 @@ for (const format of ["cat", "txt", "md", "csv"]) for (const xml of [
     const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
   } });
   let stdout = '', stderr = '';
-  const result = await runSofficeFileCli(args, { filesystem, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
+  const result = await runSofficeFileCli(args, { filesystem, stdout: { async write(bytes) { stdout += new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   assert.deepEqual({ ...result, stdout, stderr }, expected);
   if (format !== 'cat' && !result.exitCode) assert.deepEqual(await fs.readFile('/input.' + format), files.get('/input.' + format));
   assert.deepEqual((await fs.readdir('/')).map(entry => entry.name).sort(), format === 'cat' ? ['input.docx'] : ['input.docx', 'input.' + format].sort());
@@ -41,7 +41,7 @@ for (const target of ["media/pic.png", "word/media/pic.png", "/word/media/pic.pn
   await fs.writeFile("/input.docx", bytes);
   const expected = await runSofficeCli(["--cat", "/input.docx"], new Map([["/input.docx", bytes]]));
   let stdout = "";
-  const actual = await runSofficeFileCli(["--cat", "/input.docx"], { filesystem: fs, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+  const actual = await runSofficeFileCli(["--cat", "/input.docx"], { filesystem: fs, stdout: { async write(bytes) { stdout += new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes); } }, stderr: { async write() {} } });
   assert.equal(actual.exitCode, expected.exitCode); assert.equal(stdout, expected.stdout);
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input.docx"]);
 });

@@ -18,6 +18,7 @@ HTML/HTM inputs parse headings, paragraphs, lists, and tables and decode HTML en
 for TXT, PDF, DOCX, and `--cat` output. Scripts, styles, and document metadata are omitted.
 Asynchronous DOCX conversion preserves bullet and decimal list markers in TXT and PDF,
 and emits nested HTML lists with their starting numbers.
+DOCX TXT exports and `--cat` output include the UTF-8 BOM used by LibreOffice.
 TXT and Markdown inputs also produce valid DOCX archives; CSV and XLSX inputs produce DOCX tables.
 Tabular text (comma- or tab-separated), Markdown pipe tables, and HTML/HTM tables
 export to real XLSX workbooks or CSV with StarCalc filter options. Markdown alignment

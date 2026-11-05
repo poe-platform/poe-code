@@ -951,7 +951,7 @@ function* runSofficeSteps(
         if (lower.endsWith(".pdf")) {
           chunks.push(PdfDocument.load(bytes).extractText());
         } else if (lower.endsWith(".docx")) {
-          chunks.push(parseDocxBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
+          chunks.push("\uFEFF" + parseDocxBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if ([".odt", ".ods", ".odp"].some(ext => lower.endsWith(ext))) {
           chunks.push(parseOdtBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if (lower.endsWith(".xlsx")) {
@@ -1037,6 +1037,12 @@ function* runSofficeSteps(
           outBytes = buildDocxFromBlocks(blocks);
         } else {
           outBytes = renderBlocksToText(blocks, lowerIn.endsWith(".docx") && targetExt === "txt" ? "\n" : "\n\n");
+          if (lowerIn.endsWith(".docx") && targetExt === "txt") {
+            const encoded = new Uint8Array(outBytes.length + 3);
+            encoded.set([0xef, 0xbb, 0xbf]);
+            encoded.set(outBytes, 3);
+            outBytes = encoded;
+          }
         }
       } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
         const rows = lowerIn.endsWith(".xlsx")
@@ -1212,7 +1218,7 @@ export async function runSofficeCli(
     await fs.mkdir(resolvePath(cwd), { recursive: true });
     let stdout = "", stderr = "";
     const context = { fs, cwd, env: {}, signal,
-      stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+      stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes); } },
       stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } } };
     const result = parsed.catMode && !parsed.convertSpec
       ? await catRetainedText(parsed.inputs, context, context.stdout, resolveLimits({}), () => {})

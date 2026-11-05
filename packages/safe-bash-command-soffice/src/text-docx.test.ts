@@ -14,7 +14,7 @@ for (const mode of ["sync", "async"]) test(`plain text DOCX conversion emits an 
   const restored = await runSofficeCli(["--cat", "/note.docx"], files);
   assert.equal(restored.exitCode, 0);
   assert.equal(restored.stderr, "");
-  assert.equal(restored.stdout, "Hello LibreOffice\nLine Two\n");
+  assert.equal(restored.stdout, "\uFEFFHello LibreOffice\nLine Two\n");
 });
 
 for (const run of [runSofficeCliSync, runSofficeCli]) test(`Markdown to DOCX preserves heading and paragraph content (${run.name})`, async () => {
@@ -24,7 +24,7 @@ for (const run of [runSofficeCliSync, runSofficeCli]) test(`Markdown to DOCX pre
   const xml = new TextDecoder().decode(readZipArchiveEntries(files.get("/note.docx")!).get("word/document.xml"));
   assert.ok(xml.includes('w:val="Heading1"'), xml);
   const restored = await runSofficeCli(["--cat", "/note.docx"], files);
-  assert.equal(restored.stdout, "Heading\nBody text\n");
+  assert.equal(restored.stdout, "\uFEFFHeading\nBody text\n");
 });
 
 for (const run of [runSofficeCliSync, runSofficeCli]) {
@@ -42,7 +42,7 @@ for (const run of [runSofficeCliSync, runSofficeCli]) {
     assert.ok(xml.includes("<w:tbl>"), xml);
     const restored = await run(["--cat", "/data.docx"], files);
     assert.equal(restored.exitCode, 0, restored.stderr);
-    assert.equal(restored.stdout, "Name\tValue\nAlice & Bob\t42\n");
+    assert.equal(restored.stdout, "\uFEFFName\tValue\nAlice & Bob\t42\n");
   });
 }
 
@@ -84,5 +84,5 @@ for (const extension of ["txt", "md"]) test(`${extension} exports readable DOCX 
   }
   const cat = await runSofficeCli(["--headless", "--cat", output], new Map([[output, bytes]]));
   assert.equal(cat.exitCode, 0, cat.stderr);
-  assert.equal(cat.stdout, "Heading\nHello <world> & café\n");
+  assert.equal(cat.stdout, "\uFEFFHeading\nHello <world> & café\n");
 });

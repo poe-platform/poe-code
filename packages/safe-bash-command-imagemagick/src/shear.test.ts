@@ -1,10 +1,18 @@
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import fixtures from "./shear-fixtures.json";
 import { runConvertCli } from "./index.js";
 
 // Dimensions and interior pixels from ImageMagick 7's sequential X/Y shear.
 const cases = [
+    { geometry: "0x-20", width: 9, height: 10, pixels: [] },
+    { geometry: "15x-20", width: 11, height: 11, pixels: [] },
+    { geometry: "30x-20", width: 13, height: 12, pixels: [] },
+    { geometry: "15x20", width: 11, height: 10, pixels: [] },
+    { geometry: "-15x20", width: 11, height: 11, pixels: [] },
+    { geometry: "-15x-20", width: 11, height: 10, pixels: [] },
+    { geometry: "15.5x-20.5", width: 11, height: 11, pixels: [] },
     { geometry: "45x45", width: 16, height: 9, pixels: [[5, 1, 0], [8, 4, 255], [1, 7, 255]] },
     { geometry: "30x20", width: 13, height: 9, pixels: [[5, 1, 0], [6, 4, 255], [11, 1, 255]] },
     { geometry: "-30x20", width: 13, height: 12, pixels: [[2, 2, 0], [6, 5, 255], [11, 2, 255]] },
@@ -30,6 +38,7 @@ it.each(cases.flatMap(test => [false, true].map(retained => ({ ...test, retained
             const offset = (y! * width + x!) * 4;
             expect(Array.from(output.data.slice(offset, offset + 4))).toEqual([value, value, value, 255]);
         }
+        expect(Array.from(output.data)).toEqual(fixtures[geometry as keyof typeof fixtures].flatMap(value => [value, value, value, 255]));
         if (geometry === "0x0") expect(output.data).toEqual(data);
     }
 );

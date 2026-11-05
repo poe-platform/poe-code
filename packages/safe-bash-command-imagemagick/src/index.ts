@@ -2116,7 +2116,9 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
     if (token === "-shear") {
-        const g = parseMagickGeometry(spec), tx = Math.tan(((g.width ?? 0) * Math.PI) / 180), ty = Math.tan(((g.height ?? 0) * Math.PI) / 180);
+        // Shear takes signed angles, not dimensions followed by offsets.
+        const [xAngle = "0", yAngle = "0"] = spec.toLowerCase().split("x");
+        const tx = Math.tan((parseFloat(xAngle) || 0) * Math.PI / 180), ty = Math.tan((parseFloat(yAngle) || 0) * Math.PI / 180);
         // ImageMagick shears X by -tx, then Y by ty using the sheared X.
         const width = Math.max(1, Math.round(w + Math.abs(tx) * h)), height = Math.max(1, Math.round(Math.abs(ty) * w + Math.abs(1 - tx * ty) * h));
         return result((x, y) => {

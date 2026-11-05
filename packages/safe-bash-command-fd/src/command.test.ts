@@ -89,7 +89,7 @@ for (const name of ['.gitignore', '.ignore', '.fdignore']) {
   }
   test(`fd tolerates invalid UTF-8 in ${name} and applies valid ignore rules`, async () => {
     const fs = new MemoryFileSystem();
-    await fs.mkdir('/work');
+    await fs.mkdir('/work/.git', {recursive:true});
     for (const file of ['keep.txt', 'skip.txt']) await fs.writeFile('/work/' + file, new Uint8Array());
     await fs.writeFile('/work/' + name, new Uint8Array([
       ...new TextEncoder().encode('# caf'), 0xe9, 10,
@@ -99,10 +99,21 @@ for (const name of ['.gitignore', '.ignore', '.fdignore']) {
   });
 }
 
-async function runIgnoreSearch(fs: MemoryFileSystem) {
+test('gitignore needs a repository unless --no-require-git is set', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work/sub', {recursive:true});
+  await fs.writeFile('/work/sub/.gitignore', new TextEncoder().encode('needle\n'));
+  await fs.writeFile('/work/sub/needle', new Uint8Array());
+  for (const [flags, stdout] of [[[], 'sub/needle\n'], [['--no-require-git'], '']] as const)
+    assert.deepEqual(await runIgnoreSearch(fs, [...flags, 'needle']), { exitCode:0, stdout, stderr:'' });
+  await fs.writeFile('/work/.git', new TextEncoder().encode('gitdir: elsewhere\n'));
+  assert.deepEqual(await runIgnoreSearch(fs, ['--no-ignore-parent', 'needle', 'sub']), { exitCode:0, stdout:'', stderr:'' });
+});
+
+async function runIgnoreSearch(fs: MemoryFileSystem, args = ['-t', 'f']) {
   const { createFdCommand } = await import('./index.js');
   let stdout = '', stderr = '';
-  const result = await createFdCommand().execute({ command: 'fd', args: ['-t', 'f'], cwd: '/work', env: {}, fs,
+  const result = await createFdCommand().execute({ command: 'fd', args, cwd: '/work', env: {}, fs,
     signal: new AbortController().signal, stdin: (async function*(){})(),
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },

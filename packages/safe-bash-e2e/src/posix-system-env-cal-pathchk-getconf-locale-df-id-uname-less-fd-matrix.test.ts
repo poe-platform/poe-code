@@ -354,6 +354,7 @@ describe("POSIX system, environment, and file inspection matrix (cal, pathchk, g
   it("18. fd respects .gitignore and hidden files by default and includes them with -H (--hidden) and -I (--no-ignore)", async () => {
     await withE2EHarness(async (h) => {
       await h.fs.mkdir("/workspace/app/dist", { recursive: true });
+      await h.fs.mkdir("/workspace/app/.git");
       await h.writeText("/workspace/app/.gitignore", "dist/\n*.log\n");
       await h.writeText("/workspace/app/.env", "SECRET=1\n");
       await h.writeText("/workspace/app/main.ts", "console.log(1);\n");

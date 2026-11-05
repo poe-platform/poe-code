@@ -61,7 +61,7 @@ describe("obscure rg grep find fd xargs diff patch vfs symlinks perms matrix", (
   it("06 fd --no-ignore-parent vs parent .gitignore with -H and -t filters", async () => {
     const h = await SafeBashE2EHarness.create();
     try {
-      const r = await h.exec("mkdir -p parent_repo/sub_pkg\nprintf '*.log\\n' > parent_repo/.gitignore\nprintf 'debug_trace\\n' > parent_repo/sub_pkg/app.log\nprintf 'code\\n' > parent_repo/sub_pkg/main.ts\necho \"DEFAULT_IGNORE:\"\n(cd parent_repo/sub_pkg && fd . | sort)\necho \"NO_IGNORE_PARENT:\"\n(cd parent_repo/sub_pkg && fd --no-ignore-parent . | sort)");
+      const r = await h.exec("mkdir -p parent_repo/.git parent_repo/sub_pkg\nprintf '*.log\\n' > parent_repo/.gitignore\nprintf 'debug_trace\\n' > parent_repo/sub_pkg/app.log\nprintf 'code\\n' > parent_repo/sub_pkg/main.ts\necho \"DEFAULT_IGNORE:\"\n(cd parent_repo/sub_pkg && fd . | sort)\necho \"NO_IGNORE_PARENT:\"\n(cd parent_repo/sub_pkg && fd --no-ignore-parent . | sort)");
       assert.equal(r.exitCode, 0);
       assert.equal(r.stdout, "DEFAULT_IGNORE:\nmain.ts\nNO_IGNORE_PARENT:\napp.log\nmain.ts\n");
     } finally {

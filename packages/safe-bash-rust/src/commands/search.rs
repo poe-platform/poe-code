@@ -6085,6 +6085,7 @@ struct FdConfig {
     show_hidden: bool,
     respect_ignore: bool,
     no_ignore_vcs: bool,
+    require_git: bool,
     follow: bool,
     full_path: bool,
     absolute_path: bool,
@@ -6120,6 +6121,7 @@ where
     let mut no_ignore_vcs = false;
     let mut no_ignore_parent = false;
     let mut custom_ignore_files: Vec<String> = Vec::new();
+    let mut require_git = true;
     let mut unrestricted = false;
     let mut follow = false;
     let mut full_path = false;
@@ -6195,6 +6197,7 @@ where
                 "help" => help = true, "version" => version = true,
                 "hidden" => show_hidden = true, "no-ignore" => respect_ignore = false,
                 "no-ignore-vcs" => no_ignore_vcs = true, "no-ignore-parent" => no_ignore_parent = true,
+                "require-git" => require_git = true, "no-require-git" => require_git = false,
                 "unrestricted" => unrestricted = true,
                 "no-hidden" => { show_hidden = false; unrestricted = false; }
                 "ignore" => { respect_ignore = true; unrestricted = false; }
@@ -6357,6 +6360,7 @@ where
         show_hidden: show_hidden || unrestricted,
         respect_ignore: respect_ignore && !unrestricted,
         no_ignore_vcs,
+        require_git,
         follow,
         full_path,
         absolute_path,
@@ -6449,11 +6453,13 @@ where
                 continue;
             }
         }
-        if cfg.respect_ignore && !no_ignore_parent {
+        let mut git_start = (!cfg.require_git).then_some(0);
+        if cfg.respect_ignore && (!no_ignore_parent || (cfg.require_git && !cfg.no_ignore_vcs)) {
             for (slash, _) in full.match_indices('/') {
                 if full == "/" { break; }
                 let dir = if slash == 0 { "/" } else { &full[..slash] };
-                if let Err(e) = IgnoreFile::load(&mut rules, fs, dir, None, cfg.no_ignore_vcs) {
+                if cfg.require_git && !cfg.no_ignore_vcs && rg_ignore::repository_marker(fs, dir) { git_start = Some(rules.len()); }
+                if !no_ignore_parent && let Err(e) = IgnoreFile::load(&mut rules, fs, dir, None, cfg.no_ignore_vcs || git_start.is_none()) {
                     if visit(Err(e.message())) { break 'roots; }
                     continue 'roots;
                 }
@@ -6469,6 +6475,7 @@ where
             prefix_cwd,
             &cfg,
             &mut rules,
+            git_start,
             fs,
             &mut std::collections::BTreeSet::new(),
             &mut visit,
@@ -6493,6 +6500,7 @@ fn walk_fd(
     prefix_cwd: bool,
     cfg: &FdConfig,
     rules: &mut Vec<IgnoreFile>,
+    mut git_start: Option<usize>,
     fs: &dyn SafeBashFs,
     ancestors: &mut std::collections::BTreeSet<String>,
     visit: &mut dyn FnMut(Result<(&str, bool, bool), String>) -> bool,
@@ -6522,7 +6530,7 @@ fn walk_fd(
         if cfg.excludes.iter().any(|ex| ex.matches(rel, is_dir, true) || ex.matches(&base, is_dir, true)) {
             return Ok(false);
         }
-        if IgnoreFile::ignored(rules, full, is_dir) {
+        if IgnoreFile::ignored(rules, full, is_dir, git_start) {
             return Ok(false);
         }
 
@@ -6633,7 +6641,8 @@ fn walk_fd(
             } else { e }))),
             Ok(entries) => entries,
         };
-        if cfg.respect_ignore && let Err(error) = IgnoreFile::load(rules, fs, full, (depth > 0).then_some(entries.as_slice()), cfg.no_ignore_vcs) {
+        if cfg.require_git && entries.iter().any(|name| name == ".git") { git_start = Some(rules.len()); }
+        if cfg.respect_ignore && let Err(error) = IgnoreFile::load(rules, fs, full, (depth > 0).then_some(entries.as_slice()), cfg.no_ignore_vcs || git_start.is_none()) {
             return match error { RuleError::Read(e) => Ok(visit(Err(e))), RuleError::Pattern(e) => Err(e) };
         }
         let inherited = rules.len();
@@ -6664,6 +6673,7 @@ fn walk_fd(
                 prefix_cwd,
                 cfg,
                 rules,
+                git_start,
                 fs,
                 ancestors,
                 visit,
@@ -7631,6 +7641,7 @@ mod tests {
     #[test]
     fn fd_ignore_rules_keep_their_base_and_source_priority() {
         let fs = MemoryVfs::new();
+        fs.mkdir_all("/work/.git").unwrap();
         fs.mkdir_all("/work/sub").unwrap();
         for (path, data) in [
             (".fdignore", "!sub/pinned\n/local\n"), ("sub/.gitignore", "pinned\nignored\n"),
@@ -7644,6 +7655,24 @@ mod tests {
             let r = try_run_search_command("fd", &args(&[flags, "--ignore-file", "rules"]), "",
                 &mut "/work".to_owned(), &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, ""), "{flags}");
+        }
+    }
+
+    #[test]
+    fn fd_gitignore_outside_repositories_is_opt_in() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work/sub").unwrap();
+        fs.write_file("/work/sub/.gitignore", b"needle\n").unwrap();
+        fs.write_file("/work/sub/needle", b"").unwrap();
+        for (marker, opts, expected) in [
+            (false, vec!["needle", "sub"], "sub/needle\n"),
+            (false, vec!["--no-require-git", "needle", "sub"], ""),
+            (true, vec!["--no-ignore-parent", "needle", "sub"], ""),
+        ] {
+            if marker { fs.write_file("/work/.git", b"gitdir: elsewhere\n").unwrap(); }
+            let r = try_run_search_command("fd", &args(&opts), "", &mut "/work".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{opts:?}");
         }
     }
 

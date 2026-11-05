@@ -47,6 +47,14 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
     const fdIgnore = Buffer.from("theirs\n");
     await writeFile(cwd + "/samples/.fdignore", fdIgnore);
     for (const view of views) await view.writeFile("/workspace/samples/.fdignore", fdIgnore);
+    for (const dir of ["fd-repo/.git", "fd-repo/nested/.git"]) {
+      await mkdir(cwd + "/" + dir, { recursive: true });
+      for (const view of views) await view.mkdir("/workspace/" + dir, { recursive: true });
+    }
+    for (const [file, contents] of [["fd-repo/.gitignore", "needle\n"], ["fd-repo/needle", ""], ["fd-repo/nested/needle", ""]] as const) {
+      await writeFile(cwd + "/" + file, contents);
+      for (const view of views) await view.writeFile("/workspace/" + file, Buffer.from(contents));
+    }
     const publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICFS+NGbeR0kRTJC4V8uq2y3z/p7al7TAJeWDgaYgdsS parity\n";
     await writeFile(cwd + "/samples/ed25519.pub", publicKey);
     for (const view of views) await view.writeFile("/workspace/samples/ed25519.pub", Buffer.from(publicKey));
@@ -124,6 +132,10 @@ export function linuxCommands(text: string) {
     ...[["-u", "fdignore"], ["-u", "--ignore", "fdignore"], ["-H", "-u", "--ignore", "fdignore"],
       ["-u", "--no-hidden", "theirs"], ["-I", "-u", "--no-hidden", "theirs"], ["--no-hidden", "-u", "fdignore"]].map(options => ({
       cmd: "fdfind", args: [...options, "samples"], script: "fd " + options.join(" ") + " samples", input: "",
+    })),
+    ...[["needle", "fd-repo"], ["needle", "fd-repo/nested"], ["--no-require-git", "needle", "fd-repo"],
+      ["--no-require-git", "--require-git", "needle", "fd-repo"]].map(args => ({
+      cmd: "fdfind", args, script: "fd " + args.join(" "), input: "",
     })),
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({

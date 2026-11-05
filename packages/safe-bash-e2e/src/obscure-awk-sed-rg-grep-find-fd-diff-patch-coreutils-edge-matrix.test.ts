@@ -53,7 +53,7 @@ describe("obscure awk sed rg grep find fd diff patch coreutils edge matrix", () 
 
   it("07 fd --and multi-pattern and --no-ignore-parent", async () => {
     await withE2EHarness(async (h) => {
-      const res = await h.exec("mkdir -p parent_ig/sub\nprintf '*.log\\n' > parent_ig/.gitignore\ntouch parent_ig/sub/auth_service.log parent_ig/sub/auth_helper.ts parent_ig/sub/db_service.ts\nfd auth --and service parent_ig/sub\nfd --no-ignore-parent auth --and service parent_ig/sub");
+      const res = await h.exec("mkdir -p parent_ig/.git parent_ig/sub\nprintf '*.log\\n' > parent_ig/.gitignore\ntouch parent_ig/sub/auth_service.log parent_ig/sub/auth_helper.ts parent_ig/sub/db_service.ts\nfd auth --and service parent_ig/sub\nfd --no-ignore-parent auth --and service parent_ig/sub");
       assert.equal(res.exitCode, 0);
       assert.equal(res.stdout.trim(), "parent_ig/sub/auth_service.log");
     });

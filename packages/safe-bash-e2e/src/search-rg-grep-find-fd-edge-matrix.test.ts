@@ -639,6 +639,7 @@ describe("safe-bash e2e: search (rg, grep, find, fd) edge matrix", () => {
   it("19. fd ignore rules (.gitignore, .ignore, .fdignore), parent ignore inheritance, -H, -I, and -u/-uu", async () => {
     await withE2EHarness(
       {
+        directories: ["/parent/.git"],
         files: {
           "/parent/.gitignore": "*.bak\n",
           "/parent/sub/.ignore": "!keep.bak\n*.cache\n",

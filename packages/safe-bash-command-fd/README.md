@@ -47,8 +47,10 @@ Hidden entries are skipped by default. `.gitignore`, `.ignore`, and `.fdignore`
 are read entirely from the supplied VFS, including parent directories unless
 `--no-ignore-parent` is set. `.fdignore` overrides `.ignore`, which overrides
 `.gitignore`; nested rules override parent rules of the same kind. Negation
-cannot reinclude descendants of a pruned directory. Gitignore rules apply even
-without a Git repository; no ambient global ignore file or host Git config is read.
+cannot reinclude descendants of a pruned directory. By default, `.gitignore` rules apply only inside the
+virtual repository that contains them. A nested repository starts its own set of
+Git rules. Use `--no-require-git` to apply them across repository boundaries and
+outside repositories. Host Git configuration and global ignore files are never read.
 `--ignore-file PATH` adds a VFS ignore file with patterns relative to the working
 directory (including `-C`). Repeated files are applied in order, with later rules
 taking precedence over earlier files and directory ignore files. Explicit files

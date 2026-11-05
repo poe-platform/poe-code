@@ -161,9 +161,10 @@ impl IgnoreFile {
         self.rules.iter().rev().find(|(glob, _)| glob.matches(relative, directory, false)).map(|(_, include)| *include)
     }
 
-    pub(super) fn ignored(files: &[Self], path: &str, directory: bool) -> bool {
+    pub(super) fn ignored(files: &[Self], path: &str, directory: bool, git_start: Option<usize>) -> bool {
         let mut decision = None;
-        for file in files {
+        for (index, file) in files.iter().enumerate() {
+            if file.priority == 0 && git_start.is_none_or(|start| index < start) { continue; }
             if decision.is_some_and(|(priority, _)| priority > file.priority) { continue; }
             let outside;
             let relative = if let Some(relative) = path.strip_prefix(file.base.trim_end_matches('/')).and_then(|p| p.strip_prefix('/')) {

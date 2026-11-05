@@ -262,7 +262,7 @@ describe("obscure grep, rg, find, fd, xargs, and which search parity matrix", ()
   it("16. fd -e extension, -t type, -E exclude, -H hidden, -I no-ignore, and -g glob", async () => {
     const env = createEnv();
     const res = await env.exec(`
-      mkdir -p repo/dist
+      mkdir -p repo/.git repo/dist
       printf 'dist/\\n' > repo/.gitignore
       touch repo/main.rs repo/lib.rs repo/.secret.rs repo/dist/out.rs repo/readme.md
       fd -e rs . repo | sort

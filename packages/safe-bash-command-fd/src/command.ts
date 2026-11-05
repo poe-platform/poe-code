@@ -131,18 +131,30 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
   const customRules: Rule[] = [];
   for (const file of a.ignoreFiles)
     for (const rule of await readRules(resolvePath(context.cwd,file),context.cwd,3)) customRules.push(rule);
-  const load=async (dir: string, inherited: Rule[], present?: ReadonlySet<string>): Promise<Rule[]> => {
-    if (!a.ignore) return inherited;
-    const rules=[...inherited];
+  const load=async (dir: string, inherited: Rule[], repository: boolean, present?: ReadonlySet<string>, read=true): Promise<[Rule[], boolean]> => {
+    if (!a.ignore) return [inherited,repository];
+    let root=false;
+    if (a.ignoreVcs && a.requireGit) {
+      if (present) root=present.has('.git');
+      else {
+        const marker=posixPath.join(dir,'.git');
+        await admit(marker,['metadata']);
+        try { await fs.lstat(marker,io); root=true; }
+        catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error) && error.code==='ENOENT')) throw error; }
+      }
+    }
+    repository ||= root;
+    if (!read) return [inherited,repository];
+    const rules=root ? inherited.filter(rule=>rule.priority!==0) : [...inherited];
     for (const [name,priority] of [['.gitignore',0],['.ignore',1],['.fdignore',2]] as const) {
-      if (name==='.gitignore' && !a.ignoreVcs) continue;
+      if (name==='.gitignore' && (!a.ignoreVcs || (a.requireGit && !repository))) continue;
       if (present && !present.has(name)) continue;
       const path=posixPath.join(dir,name);
       try {
         for (const rule of await readRules(path,dir,priority)) rules.push(rule);
       } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error) && (error.code==='ENOENT' || error.code==='EISDIR'))) throw error; }
     }
-    return rules;
+    return [rules,repository];
   };
   const accepted=async(path: string,name: string,directory: boolean,rules: Rule[],searchRoot: string): Promise<boolean> => {
     if (!a.hidden && name.startsWith('.')) return false;
@@ -162,7 +174,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
     for (const pattern of a.patterns) if (pattern && !await matcher.pattern(pattern,a.fullPath ? path : name,a.mode,a.caseMode)) return false;
     return true;
   };
-  const walk=async(dir: string,label: string,depth: number,rules: Rule[],ancestors: Set<string>,prefixCwd: boolean,searchRoot: string): Promise<boolean> => {
+  const walk=async(dir: string,label: string,depth: number,rules: Rule[],repository: boolean,ancestors: Set<string>,prefixCwd: boolean,searchRoot: string): Promise<boolean> => {
     signal.throwIfAborted(); if (depth > maxDepth) throw new Error('traversal depth limit exceeded'); if (depth>=a.maxDepth) return false;
     await admit(dir,['metadata','directory']);
     const canonical=await fs.realpath(dir,io);
@@ -170,8 +182,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
     ancestors.add(canonical);
     try {
       const entries=await fs.readdir(dir,{signal,...(Number.isFinite(maximum) ? {maxEntries:maximum-visited} : {})});
-      const present = depth > 0 ? new Set(entries.map(e => e.name)) : undefined;
-      const local=await load(dir,rules,present);
+      const [local,inRepo]=await load(dir,rules,repository,new Set(entries.map(e => e.name)));
       entries.sort((l,r)=>l.name<r.name ? -1 : l.name>r.name ? 1 : 0);
       for (const entry of entries) {
         signal.throwIfAborted();
@@ -207,7 +218,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
           if (a.quiet || found>=a.maxResults) return true;
           if (a.prune && directory) continue;
         }
-        if (directory && await walk(path,display,depth+1,local,ancestors,prefixCwd,searchRoot)) return true;
+        if (directory && await walk(path,display,depth+1,local,inRepo,ancestors,prefixCwd,searchRoot)) return true;
         } catch(error) { signal.throwIfAborted(); if (!isFsErrorInstance(error) || error.code === 'EFBIG' || error.code === 'EPIPE') throw error; await report(error); }
       }
       return false;
@@ -222,12 +233,13 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       await admit(path,['metadata']);
       if ((await fs.stat(path,io)).type!=='directory') throw new Error(`search path '${root}' is not a directory`);
       let inherited: Rule[]=[...customRules];
-      if (a.ignoreParent) {
+      let repository=false;
+      if (a.ignore && (a.ignoreParent || (a.requireGit && a.ignoreVcs))) {
         const parents: string[]=[]; let parent=posixPath.dirname(path);
         if (path!=='/') { while (true) { parents.unshift(parent); if (parent==='/') break; parent=posixPath.dirname(parent); } }
-        for (const dir of parents) inherited=await load(dir,inherited);
+        for (const dir of parents) [inherited,repository]=await load(dir,inherited,repository,undefined,a.ignoreParent);
       }
-      if (await walk(path,root==='.' ? '' : root,0,inherited,new Set(),root==='.',path)) break;
+      if (await walk(path,root==='.' ? '' : root,0,inherited,repository,new Set(),root==='.',path)) break;
     } catch(error) {
       await report(error);
       if (isFsErrorInstance(error) && (error.code === 'EFBIG' || error.code === 'EPIPE')) return {exitCode: 1};

@@ -4,7 +4,7 @@ const BAD: &str = "invalid PDF content stream";
 const LARGE: &str = "PDF output byte limit exceeded";
 // Binary image data can itself contain " EI". For unfiltered images start
 // looking for the terminator only after the last expected scanline.
-fn inline<'a>(c: &mut Cursor<'a>, tokens: &mut usize) -> Result<(Dict<'a>, &'a [u8]), String> {
+pub(super) fn inline<'a>(c: &mut Cursor<'a>, tokens: &mut usize) -> Result<(Dict<'a>, &'a [u8]), String> {
     let mut dict: Dict = vec![];
     loop {
         let key = c.word().ok_or(BAD)?;

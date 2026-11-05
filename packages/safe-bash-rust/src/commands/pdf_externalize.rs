@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 
 const LARGE: &str = "PDF output byte limit exceeded";
 const BAD: &str = "invalid PDF image";
-fn image_dict(entries: &Dict<'_>) -> Value<'static> {
+pub(super) fn image_dict(entries: &Dict<'_>) -> Value<'static> {
     let mut fields: Dict = vec![
         (b"Type".into(), Value::Word(b"/XObject".as_slice().into())),
         (b"Subtype".into(), Value::Word(b"/Image".as_slice().into())),

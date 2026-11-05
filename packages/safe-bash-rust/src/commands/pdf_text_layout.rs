@@ -1,6 +1,6 @@
 // Position simple-font text using PDF text and graphics matrices (PDF 32000-1 §9).
 use super::super::{Cursor, text};
-use super::{PageSource, Value};
+use super::{PageSource, Value, pdf_bitmap::ImageStream};
 use std::{collections::BTreeMap, rc::Rc};
 #[path = "pdf_font_widths.rs"]
 pub(in super::super) mod widths;
@@ -82,7 +82,7 @@ struct Resources<'a> {
 pub(super) enum Draw<'a, 'b> {
     BeginForm([f64; 4], Matrix),
     EndForm,
-    Image(super::ObjectId, Matrix),
+    Image(ImageStream<'a>, Matrix),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
         byte: u8,
@@ -213,6 +213,11 @@ impl<'a> PageSource<'a> {
                 };
                 let num = |i: usize| args.get(i)?.number();
                 emit(Draw::Operator(op, &args, st.ctm), &mut self.objects)?;
+                if op == b"BI" {
+                    let (fields, pixels) = super::pdf_content_edit::inline(&mut c, &mut self.objects.tokens).ok()?;
+                    let dict = super::pdf_externalize::image_dict(&fields);
+                    emit(Draw::Image(ImageStream::Inline(dict, pixels), st.ctm), &mut self.objects)?;
+                }
                 if op == b"Do"
                     && let Some(id) = args
                         .last()
@@ -263,7 +268,7 @@ impl<'a> PageSource<'a> {
                             scopes.pop();
                         }
                     } else {
-                        emit(Draw::Image(id, st.ctm), &mut self.objects)?;
+                        emit(Draw::Image(ImageStream::Object(id), st.ctm), &mut self.objects)?;
                     }
                 }
                 match op {

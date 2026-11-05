@@ -14,7 +14,7 @@ impl<'a> Objects<'a> {
         None
     }
 
-    pub(super) fn decode(&mut self, dict: &Value<'a>, mut bytes: Cow<'a, [u8]>) -> Option<Cow<'a, [u8]>> {
+    pub(super) fn decode<'b>(&mut self, dict: &Value<'a>, mut bytes: Cow<'b, [u8]>) -> Option<Cow<'b, [u8]>> {
         if let Some(filter) = dict.get(b"Filter").or_else(|| dict.get(b"F")) {
             let filters = match self.filter_value(filter.clone())? {
                 Value::Array(v) => v,

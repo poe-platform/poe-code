@@ -1,7 +1,7 @@
 // PDF page coordinates are in points from the bottom left. Rasterize the paths
 // at the horizontal resolution, then resample, rotate and crop the bitmap.
 use super::pdf_text_layout::Draw;
-use super::pdf_bitmap::Image;
+use super::pdf_bitmap::{Image, ImageStream};
 #[path = "pdf_glyph.rs"]
 mod pdf_glyph;
 use super::{PageSource, Value};
@@ -844,12 +844,12 @@ impl PageSource<'_> {
                     bitmap.form_clips.pop()?;
                     return Some(());
                 }
-                Draw::Image(id, matrix) => {
+                Draw::Image(stream, matrix) => {
                     let mode = if opt.splash { super::ImageRead::Raster } else { super::ImageRead::Pixels };
-                    if let Some(image) = Image::read(objects, id, matrix, opt.limit, mode)? {
+                    if let Some(image) = Image::read(objects, stream, matrix, opt.limit, mode)? {
                         let mask = match (opt.splash, image.soft_mask) {
                             (true, Some(id)) => {
-                                let mask = Image::read(objects, id, matrix, opt.limit, mode)??;
+                                let mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode)??;
                                 if mask.components != 1 { return None; }
                                 Some(mask)
                             }

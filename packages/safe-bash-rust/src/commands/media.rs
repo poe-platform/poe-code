@@ -10192,7 +10192,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, png: png_mode || all_mode, tiff: tiff_mode || all_mode } };
             let done = source.images(page, fs.max_input_bytes(), mode, |im, parent| {
                 let (w, h) = (im.width, im.height);
-                if w < min_width || h < min_height || unique && !seen.insert(im.id) {
+                if w < min_width || h < min_height || unique && im.id.is_some_and(|id| !seen.insert(id)) {
                     return Some(());
                 }
                 if list_mode {
@@ -16734,6 +16734,35 @@ mod media_unit_tests {
             let r = cmd_media_doc("pdftoppm", &media_args(&["-r",dpi,"-singlefile","in.pdf","out"]), "", "/", &fs);
             assert_eq!(r.exit_code, 0, "{matrix}: {}", r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.ppm").unwrap())), expected, "{matrix}");
+        }
+    }
+
+    #[test]
+    fn pdf_inline_images_list_extract_and_render_without_an_object_id() {
+        let fs = MemoryVfs::new();
+        let pixels = b" EI xy"; // A whitespace-delimited EI inside the six RGB samples.
+        let packed = crate::commands::codecs::zlib_compress(pixels);
+        for (filter, data) in [
+            ("", pixels.as_slice()),
+            ("/F /Fl", packed.as_slice()),
+            ("/F [/A85 /Fl]", br#"Gaq]Ooi.lg"98T6!Pe~>"#.as_slice()),
+        ] {
+            let prefix = format!("q 8 0 0 5 2 1 cm BI /W 2 /H 1 /BPC 8 /CS /RGB {filter} ID ");
+            let body = format!("{prefix}{} EI Q", "_".repeat(data.len()));
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 16 16] /Resources << >> /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{body}\nendstream",body.len())], "");
+            let start = pdf.find(&body).unwrap() + prefix.len();
+            let mut pdf = pdf.into_bytes(); pdf[start..start+data.len()].copy_from_slice(data);
+            fs.write_file("/inline.pdf",&pdf).unwrap();
+            let run = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+            let listing = run("pdfimages", &["-list","inline.pdf"]);
+            assert_eq!(listing.exit_code,0,"{}",listing.stderr);
+            assert_eq!(listing.stdout.lines().nth(2), Some("   1     0 image       2     1  rgb     3   8  image  no   [inline]      18    14    0B 0.0%"));
+            let r = run("pdfimages", &["inline.pdf","out"]); assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(fs.read_file("/out-000.ppm").unwrap(),b"P6\n2 1\n255\n EI xy");
+            let r = run("pdftoppm",&["-r","72","-singlefile","inline.pdf","page"]); assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/page.ppm").unwrap())),"128964115c7de083b02c2d86599cd4f0be36e343f704ffab633a3be42aa9c549");
         }
     }
 

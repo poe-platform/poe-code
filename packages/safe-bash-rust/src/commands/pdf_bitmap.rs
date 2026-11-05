@@ -1,4 +1,4 @@
-// Sampled PDF image XObjects.
+// Sampled PDF images in XObjects and inline content.
 use super::super::uint;
 use super::{Matrix, ObjectId, Objects, PageSource, Value, pdf_text_layout::Draw};
 
@@ -36,6 +36,11 @@ pub(in crate::commands::archive) enum NativeImage {
     Jpeg(Vec<u8>),
 }
 
+pub(super) enum ImageStream<'a> {
+    Object(ObjectId),
+    Inline(Value<'static>, &'a [u8]),
+}
+
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
     pub(super) soft_mask: Option<ObjectId>,
@@ -47,7 +52,7 @@ pub(in crate::commands::archive) struct Image {
     pub height: usize,
     pub components: usize,
     length: usize,
-    pub id: ObjectId,
+    pub id: Option<ObjectId>,
     pub(super) interpolate: bool,
     pub matrix: Matrix,
     pub pixels: Vec<[u8; 4]>,
@@ -56,15 +61,27 @@ pub(in crate::commands::archive) struct Image {
 impl Image {
     pub(super) fn read(
         objects: &mut Objects<'_>,
-        id: ObjectId,
+        stream: ImageStream<'_>,
         matrix: Matrix,
         limit: usize,
         mode: ImageRead,
     ) -> Option<Option<Self>> {
-        let (mut dict, cursor) = objects.object(id)?;
-        if dict.get(b"Subtype").and_then(Value::word) != Some(b"/Image") {
-            return Some(None);
-        }
+        let (id, dict, length, encoded) = match stream {
+            ImageStream::Object(id) => {
+                let (mut dict, cursor) = objects.object(id)?;
+                if dict.get(b"Subtype").and_then(Value::word) != Some(b"/Image") {
+                    return Some(None);
+                }
+                let length = objects.stream(&dict, cursor)?.len();
+                let bytes = if mode == ImageRead::List {
+                    std::borrow::Cow::Borrowed(&[][..])
+                } else {
+                    objects.raw_stream(id, &mut dict, cursor)?
+                };
+                (Some(id), dict, length, bytes)
+            }
+            ImageStream::Inline(dict, bytes) => (None, dict, 0, bytes.into()),
+        };
         let filters = match dict.get(b"Filter") {
             None => vec![],
             Some(v) => match objects.filter_value(v.clone())? {
@@ -127,11 +144,9 @@ impl Image {
         let mono_extract =
             bits == 1 && components == 1 && matches!(mode, ImageRead::Extract { .. });
         let count = width.checked_mul(height)?;
-        let length = objects.stream(&dict, cursor)?.len();
         let mut pixels = Vec::new();
         let mut native = None;
         if fax && mode != ImageRead::List {
-            let encoded = objects.raw_stream(id, &mut dict, cursor)?;
             let outer = match objects.filter_value(dict.get(b"Filter")?.clone())? {
                 Value::Array(mut a) => {
                     a.pop()?;
@@ -216,7 +231,7 @@ impl Image {
                 }
             }
         } else if jpeg && mode != ImageRead::List {
-            let data = objects.decoded_stream(id)?;
+            let data = objects.decode(&dict, encoded)?;
             if data.len() > limit {
                 return None;
             }
@@ -257,7 +272,7 @@ impl Image {
             if count > limit / 4 {
                 return None;
             }
-            let bytes = objects.decoded_stream(id)?;
+            let bytes = objects.decode(&dict, encoded)?;
             let stride = width
                 .checked_mul(components)?
                 .checked_mul(bits)?
@@ -414,7 +429,7 @@ impl Image {
             }
         };
         let (x, y) = (ppi(self.width, a, b), ppi(self.height, c, d));
-        let (id, generation) = parent.unwrap_or(self.id);
+        let object = parent.or(self.id).map_or_else(|| "[inline]  ".to_owned(), |(id, gen_num)| format!(" {id:6} {gen_num:2}"));
         let kind = if parent.is_some() { "smask" } else { "image" };
         let (w, h, components) = (self.width, self.height, self.components);
         let color = match components {
@@ -458,7 +473,7 @@ impl Image {
             format!("{pct:.0}%")
         };
         format!(
-            "{page:4} {idx:5} {kind:<6} {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}   {id:6} {generation:2} {x} {y} {size:>5} {ratio:>4}\n"
+            "{page:4} {idx:5} {kind:<6} {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}  {object} {x} {y} {size:>5} {ratio:>4}\n"
         )
     }
     pub(in crate::commands::archive) fn bilevel(&self) -> bool {
@@ -622,16 +637,17 @@ impl PageSource<'_> {
             .objects
             .page_dict(*self.pages.get(page.checked_sub(1)?)?, &self.tree)?;
         self.draw_page(&node, |event, objects| {
-            if let Draw::Image(id, matrix) = event
-                && let Some(image) = Image::read(objects, id, matrix, limit, mode)?
+            if let Draw::Image(stream, matrix) = event
+                && let Some(image) = Image::read(objects, stream, matrix, limit, mode)?
             {
+                let id = image.id;
                 let soft_mask = image.soft_mask;
                 handle(image, None)?;
                 if mode != ImageRead::Pixels
                     && let Some(mask) = soft_mask
-                    && let Some(mask_image) = Image::read(objects, mask, matrix, limit, mode)?
+                    && let Some(mask_image) = Image::read(objects, ImageStream::Object(mask), matrix, limit, mode)?
                 {
-                    handle(mask_image, Some(id))?;
+                    handle(mask_image, id)?;
                 }
             }
             Some(())

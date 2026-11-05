@@ -144,6 +144,37 @@ describe("pad dimensions", () => {
   }
 });
 
+describe("transpose directions", () => {
+  // Native FFmpeg's pixel order for a 3x2 image containing rows 1,2,3 / 4,5,6.
+  for (const [dir, order] of [
+    [0, [1, 4, 2, 5, 3, 6]],
+    [1, [4, 1, 5, 2, 6, 3]],
+    [2, [3, 6, 2, 5, 1, 4]],
+    [3, [6, 3, 5, 2, 4, 1]]
+  ] as const) {
+    for (const filter of [`transpose=${dir}`, `transpose=dir=${dir}`]) {
+      it(`matches native decoded pixels for ${filter}`, async () => {
+        const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+        const pixel = (n: number) => [n * 30, n * 20, n * 10, 255];
+        const input = encodeImage({
+          width: 3, height: 2, channels: 4,
+          data: new Uint8Array([1, 2, 3, 4, 5, 6].flatMap(pixel)),
+          format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const vfs = createTestVfs({ "/input.png": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-v", "error", "-i", "/input.png", "-vf", filter, "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = decodeImage(vfs.store.get("/out.png")!);
+        assert.equal(output.width, 2);
+        assert.equal(output.height, 3);
+        assert.deepEqual(output.data, new Uint8Array(order.flatMap(pixel)));
+      });
+    }
+  }
+});
+
 describe("drawbox thickness", () => {
   for (const [options, thickness] of [
     ["x=2:y=2:w=12:h=12:color=red:t=1", 1],

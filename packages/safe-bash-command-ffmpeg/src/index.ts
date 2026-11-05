@@ -749,11 +749,10 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "transpose") {
       const dir = named.dir ?? positional[0] ?? "1";
-      const angle = dir === "2" ? 270 : 90;
+      const angle = dir === "0" || dir === "2" ? 270 : 90;
       current = await mapWork(current, async (f) => {
-
-
-        const out = rotateImage(makeRgbaImg(f.width, f.height, f.data), angle);
+        const rotated = rotateImage(makeRgbaImg(f.width, f.height, f.data), angle);
+        const out = dir === "0" || dir === "3" ? flipImage(rotated) : rotated;
         return {
           ...f,
           width: out.width,

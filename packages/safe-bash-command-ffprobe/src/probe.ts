@@ -201,8 +201,8 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
             }
           : {})
       });
-      if (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0)
-        row.tags = filter("stream_tags", stream.tags ?? audio.tags) as Record<string, string>;
+      if (stream.tags && sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0)
+        row.tags = filter("stream_tags", stream.tags) as Record<string, string>;
       if (sections.get("stream_tags")?.length === 0) delete row.tags;
       rows.push({ section: "stream", row });
     }

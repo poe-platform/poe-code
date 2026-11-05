@@ -1,3 +1,4 @@
+import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
@@ -10,7 +11,12 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
   const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
   try {
     for (const { cmd, args, script } of linuxCommands) {
-      await t.test(cmd, async () => {
+      await t.test(cmd, async t => {
+        if (cmd === "git") {
+          if (!("Suspending" in WebAssembly)) return t.skip("The Git plugin needs WebAssembly Promise Integration");
+          ts.shell.use(gitCommands());
+          rust.use(gitCommands());
+        }
         const [code, stdout, stderr] = await runLinuxCommand(cmd,args,input);
         for (const shell of [ts.shell, rust]) {
           const result = await shell.exec(script, { stdin: input });

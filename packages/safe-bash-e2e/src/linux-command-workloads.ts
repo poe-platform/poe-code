@@ -29,6 +29,12 @@ export const linuxCommands = ([
   ["dd", "bs=4", "count=2", "iflag=fullblock", "status=none"], ["shuf", "-i", "7-7"],
   ["date", "-u", "-d", "@0", "+%Y-%m-%d"], ["pr", "-t", "-n"], ["pathchk", "-p", "a/b"],
   ["iconv", "-f", "UTF-8", "-t", "UTF-16LE"], ["test", "3", "-gt", "2"], ["[", "x", "=", "y", "]"],
+  ["jq", "-Rr", "ascii_upcase"], ["rg", "-n", "beta", "-"], ["cmp", "-s", "-", "/dev/null"],
+  ["comm", "--nocheck-order", "-23", "-", "/dev/null"], ["join", "--nocheck-order", "-a", "1", "-", "/dev/null"],
+  ["getopt", "-o", "ab:", "--", "-a", "-b", "two words"], ["getconf", "CHAR_BIT"],
+  ["envsubst", "--variables", "$HOME:$PATH"],
+  ["openssl", "dgst", "-sha256"], ["realpath", "-m", "/missing/../result"], ["readlink", "-m", "/absent/../result"],
+  ["git", "hash-object", "--stdin"],
 ] as const).map(([cmd, ...args]) => ({
   cmd, args, script: [cmd, ...args.map(arg => "'" + arg.replaceAll("'", "'\\''") + "'")].join(" ")
 }));

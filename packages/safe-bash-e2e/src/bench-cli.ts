@@ -1,3 +1,4 @@
+import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
@@ -78,6 +79,14 @@ async function main(): Promise<void> {
       console.log(`Median milliseconds, ${Buffer.byteLength(input)} stdin bytes, ${iterations} samples after ${warmup} warmups.`);
       console.log("Command\tLinux (spawn + pipes)\tTypeScript (warm)\tRust/Wasm (warm)");
       for (const { cmd, args: argv, script } of linuxCommands) {
+        if (cmd === "git") {
+          if (!("Suspending" in WebAssembly)) {
+            console.log(script + "\tNot measured: the Git plugin needs WebAssembly Promise Integration");
+            continue;
+          }
+          ts.shell.use(gitCommands());
+          rust.use(gitCommands());
+        }
         const expected = await runLinuxCommand(cmd, argv, input);
         const samples: number[][] = [[], [], []];
         for (let round = 0; round < warmup + iterations; round++) {

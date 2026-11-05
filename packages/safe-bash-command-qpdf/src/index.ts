@@ -1408,7 +1408,7 @@ function* executeQpdfCli(
       return { exitCode: 0, stdout: bytesToLatin1(found.data), stdoutBytes: found.data, stderr: "" };
     }
     const outLines = entries.map((e) => `${e.key} -> ${e.reference?.objectNumber ?? 0},${e.reference?.generationNumber ?? 0}`);
-    return { exitCode: 0, stdout: outLines.length > 0 ? outLines.join("\n") + "\n" : "", stderr: "" };
+    return { exitCode: 0, stdout: outLines.length > 0 ? outLines.join("\n") + "\n" : `${inputFile ?? ""} has no embedded files\n`, stderr: "" };
   }
 
   if (jsonVersion !== undefined) {

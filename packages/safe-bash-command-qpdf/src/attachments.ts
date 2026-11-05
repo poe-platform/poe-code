@@ -93,10 +93,11 @@ export async function* retainedAttachments(document: PdfRetainedDocument, storag
 }
 
 export async function* attachmentChunks(document: PdfRetainedDocument, storage: PdfIndexStorage, key: string | undefined,
-  signal: AbortSignal): AsyncGenerator<Uint8Array> {
-  let found = false;
+  signal: AbortSignal, inputName: string): AsyncGenerator<Uint8Array> {
+  let found = false, hasAttachments = false;
   try {
     for await (const attachment of retainedAttachments(document, storage, signal)) {
+      hasAttachments = true;
       const selected = key !== undefined && !found && (attachment.key === key || attachment.filename === key);
       if (selected) found = true;
       for await (const bytes of document.objects.decodeStream(attachment.reference.objectNumber, attachment.reference.generationNumber)) {
@@ -105,6 +106,7 @@ export async function* attachmentChunks(document: PdfRetainedDocument, storage: 
       if (key === undefined) yield* encodeDisplayParts([attachment.key, " -> ", `${attachment.reference.objectNumber},${attachment.reference.generationNumber}`, "\n"], signal);
     }
     if (key !== undefined && !found) throw new QpdfMissingAttachment(key);
+    if (key === undefined && !hasAttachments) yield* encodeDisplayParts([inputName, " has no embedded files\n"], signal);
   } catch (error) {
     if (error instanceof PdfError && error.message.startsWith("Unsupported streaming PDF filter: ")) {
       throw new PdfError(error.code, `Unsupported PDF filter: ${error.message.slice("Unsupported streaming PDF filter: ".length)}`);

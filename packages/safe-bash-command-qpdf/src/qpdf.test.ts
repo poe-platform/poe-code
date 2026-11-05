@@ -576,7 +576,7 @@ describe("safe-bash-command-qpdf", () => {
     );
     assert.equal(remRes.exitCode, 0);
     const listAfter = await runQpdfCli(["--list-attachments", "/cleaned.pdf"], files);
-    assert.equal(listAfter.stdout.trim(), "");
+    assert.equal(listAfter.stdout, "/cleaned.pdf has no embedded files\n");
   });
 
   it("supports --copy-attachments-from, --replace on duplicate attachments, --remove-info/metadata/structure/acroform, and strict --json selectors", async () => {

@@ -244,7 +244,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         return { exitCode: 0 };
       }
       if (!options.check && !options.showNpages && !options.showEncryption && (options.listAttachments || options.showAttachmentKey !== undefined)) {
-        const chunks = attachmentChunks(document, storage, options.showAttachmentKey, signal);
+        const chunks = attachmentChunks(document, storage, options.showAttachmentKey, signal, inputName ?? "");
         await publishInspection(chunks);
         return { exitCode: 0 };
       }

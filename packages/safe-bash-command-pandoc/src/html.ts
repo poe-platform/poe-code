@@ -48,6 +48,8 @@ const containers = new Set([
 ]);
 const blocks = new Set([
   ...containers,
+  "details",
+  "summary",
   "p",
   "h1",
   "h2",
@@ -386,7 +388,11 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
           while (c.at(-1)?.t === "Space") c.pop();
           return c;
         };
-        if (tag === "p") {
+        if (tag === "details") {
+          for (const block of await flow(node.childNodes)) result.push(block);
+        } else if (tag === "summary") {
+          result.push({ t: "Para", c: await inlineContent() });
+        } else if (tag === "p") {
           const paragraph: Block = { t: "Para", c: await inlineContent() };
           const attributes = attr(node);
           result.push(

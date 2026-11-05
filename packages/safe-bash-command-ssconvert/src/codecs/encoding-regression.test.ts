@@ -17,6 +17,34 @@ it("encodes CP437 letters and escapes unrepresentable Unicode scalars", () => {
     .toEqual(new Uint8Array([130, 224, ...new TextEncoder().encode("\\U0001f600\n")]));
 });
 
+// The compatibility target is Gnumeric 1.12.61 on Debian/glibc, not the host's
+// iconv implementation. In particular, C and C.UTF-8 have different mappings.
+it.each([
+  ["C", "?\n?\n?\n?\n?\n?\nEUR\nss\n"],
+  ["C.UTF-8", "e\nL\no\nz\no\nn\nEUR\nss\n"]
+])("exports Latin letters using the pinned %s ASCII profile", async (locale, expected) => {
+  const input = "é\nŁ\nó\nź\nø\nñ\n€\nß\n";
+  const fs = Volume.fromJSON({ "/input.csv": input });
+  const engine = createEngine({ codecs: [], limits: context.limits,
+    environment: { ...context.environment, locale }, filesystem: {
+      async read(path) { return [new Uint8Array(fs.readFileSync(path) as Uint8Array)]; },
+      async write(path, bytes) { fs.writeFileSync(path, bytes); }
+    } });
+  try {
+    const result = await engine.convert({
+      input: { kind: "resource", uri: "/input.csv" },
+      destination: { kind: "resource", uri: "/output.csv" },
+      exportType: "Gnumeric_stf:stf_assistant",
+      exportOptions: ["charset=ASCII transliterate-mode=transliterate"]
+    }, { signal: context.signal });
+    expect(result.exitCode).toBe(0);
+    expect(result.diagnostics).toEqual([]);
+    expect(new Uint8Array(fs.readFileSync("/output.csv") as Uint8Array))
+      .toEqual(new TextEncoder().encode(expected));
+    expect(fs.readFileSync("/input.csv", "utf8")).toBe(input);
+  } finally { await engine.dispose(); }
+});
+
 it("decodes the native LATIN10 alias instead of silently importing Latin-1", async () => {
   const book = await readText(new Uint8Array([170, 10]), context, "LATIN10");
   expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: "Ș" });

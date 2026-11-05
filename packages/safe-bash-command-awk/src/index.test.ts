@@ -26,6 +26,16 @@ test("standalone awk works with only portable filesystem and command contracts",
   assert.equal(result.stdout, "right\n");
 });
 
+for (const [program, input, expected] of [
+  ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR }', "", "0 [] 0 0\n"],
+  ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR; r=getline x; print r,"["x"]",NR,FNR }', "a\n", "1 [a] 1 1\n0 [] 1 1\n"],
+  ['{ x="seed"; r=getline x; print r,"["x"]",NR,FNR,$0 }', "a\n", "0 [] 1 1 a\n"],
+] as const) test(`getline clears its target at stdin EOF: ${program}`, async () => {
+  const result = await run(createAwkCommand(), [program], input);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+});
+
 for (const [program, expected] of [
   ['BEGIN { a = "hello"; b = a ("-") "world"; print b }', "hello-world\n"],
   ['BEGIN { prefix = "value="; x = 2; print prefix (x + 1) }', "value=3\n"],

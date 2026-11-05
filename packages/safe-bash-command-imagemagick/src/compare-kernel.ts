@@ -39,6 +39,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
     let aeCount = 0;
+    let pdcCount = 0;
     let aeMagnitude = 0;
     let sumAbs = 0;
     let sumSq = 0;
@@ -138,6 +139,9 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     meppSum += pdr + pdg + pdb + alphaError;
                     meppPeak = Math.max(meppPeak, pdr, pdg, pdb, alphaError);
                 }
+                // PDC counts a pixel once when any shared channel exceeds fuzz.
+                if (metric === "pdc" && Math.max(pdr, pdg, pdb, imgA.hasAlpha && imgB.hasAlpha ? da : 0) > Math.abs(fuzz))
+                    pdcCount++;
                 // AE sums channel magnitudes above fuzz, then averages over channels.
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
                 aeMagnitude += (aeR > fuzz ? aeR : 0) + (aeG > fuzz ? aeG : 0) + (aeB > fuzz ? aeB : 0) + (hasAlpha && da > fuzz ? da : 0);
@@ -178,6 +182,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let distortion = rmseNorm;
     let exitCode = metric === "psnr" && mseNorm === 0 ? 1 : (aeCount > 0 ? 1 : 0);
     switch (metric) {
+        case "pdc":
+            distortion = pdcCount / totalPixels;
+            metricStr = `${formatSignificantMetric(pdcCount)} (${formatSignificantMetric(distortion)})`;
+            exitCode = pdcCount > 0 ? 1 : 0;
+            break;
         case "ae":
             distortion = aeMagnitude / (totalPixels * numCh * 255);
             metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
@@ -270,6 +279,11 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
     }
     if (!best) throw new Error("geometry does not contain image");
     if (options.diff) yield* compareImageSteps(imgA, imgB, { ...options, subimageSearch: false, offset });
+    if (options.metric === "pdc") {
+        const count = best.distortion * imgB.width * imgB.height;
+        return { ...best, width: imgA.width, height: imgA.height, distortion: count,
+            metric: `${formatSignificantMetric(count)} (${formatSignificantMetric(count / (imgA.width * imgA.height))}) @ ${offset.x},${offset.y} [${formatSignificantMetric(count)}]` };
+    }
     const normalized = formatSignificantMetric(best.distortion);
     const similarity = options.metric === "ssim" || options.metric === "ncc" || options.metric === "dpc" ? 1 - 2 * best.distortion : best.distortion;
     const metric = options.metric === "ae"

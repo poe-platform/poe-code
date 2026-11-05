@@ -2560,19 +2560,20 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
     const dh = dst.height;
     const sw = src.width;
     const sh = src.height;
-    for (let sy = 0; sy < sh; sy++) {
+    const extendSource = ["src", "source", "copy"].includes(norm);
+    for (let sy = extendSource ? -top : 0; sy < (extendSource ? dh - top : sh); sy++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
         const dy = top + sy;
         if (dy < 0 || dy >= dh)
             continue;
-        for (let sx = 0; sx < sw; sx++) {
+        for (let sx = extendSource ? -left : 0; sx < (extendSource ? dw - left : sw); sx++) {
             if (++cooperativeWork % 65536 === 0)
                 yield;
             const dx = left + sx;
             if (dx < 0 || dx >= dw)
                 continue;
-            const sIdx = (sy * sw + sx) * 4;
+            const sIdx = (Math.max(0, Math.min(sh - 1, sy)) * sw + Math.max(0, Math.min(sw - 1, sx))) * 4;
             const dIdx = (dy * dw + dx) * 4;
             const sr = src.data[sIdx]!;
             const sg = src.data[sIdx + 1]!;
@@ -5718,16 +5719,21 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));
     }
-    const right = tile ? base.width : Math.min(base.width, left + overlay.width);
-    const bottom = tile ? base.height : Math.min(base.height, top + overlay.height);
-    for (let y = Math.max(0, top); y < bottom; y++) {
-        for (let x = Math.max(0, left); x < right;) {
+    const extendSource = !generic && ["src", "source", "copy"].includes(compositeMode.name);
+    const right = tile || extendSource ? base.width : Math.min(base.width, left + overlay.width);
+    const bottom = tile || extendSource ? base.height : Math.min(base.height, top + overlay.height);
+    for (let y = extendSource ? 0 : Math.max(0, top); y < bottom; y++) {
+        for (let x = extendSource ? 0 : Math.max(0, left); x < right;) {
             await yieldTurn(signal);
-            const sourceX = tile ? x % overlay.width : x - left;
-            const sourceY = tile ? y % overlay.height : y - top;
-            const count = Math.min(4096, right - x, overlay.width - sourceX), destination = (y * base.width + x) * 4;
+            const sourceX = tile ? x % overlay.width : Math.max(0, Math.min(overlay.width - 1, x - left));
+            const sourceY = tile ? y % overlay.height : Math.max(0, Math.min(overlay.height - 1, y - top));
+            const repeatEdge = extendSource && !tile && (x < left || x >= left + overlay.width);
+            const count = Math.min(4096, right - x, repeatEdge ? (x < left ? left - x : right - x) : overlay.width - sourceX), destination = (y * base.width + x) * 4;
             const dst: RgbaImage = { ...base, width: count, height: 1, data: new Uint8Array(await backend.storage.read(position + destination, count * 4)) };
-            const src: RgbaImage = { ...overlay, width: count, height: 1, data: new Uint8Array(await backend.storage.read(overlay.position + (sourceY * overlay.width + sourceX) * 4, count * 4)) };
+            const sourceData = await backend.storage.read(overlay.position + (sourceY * overlay.width + sourceX) * 4, repeatEdge ? 4 : count * 4);
+            const src: RgbaImage = { ...overlay, width: count, height: 1, data: new Uint8Array(count * 4) };
+            if (repeatEdge) for (let pixel = 0; pixel < count; pixel++) src.data.set(sourceData, pixel * 4);
+            else src.data.set(sourceData);
             let result = dst;
             if (montageRounding) {
                 for (let pixel = 0; pixel < count * 4; pixel += 4) {

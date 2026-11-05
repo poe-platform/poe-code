@@ -53,7 +53,7 @@ it("preserves convolution pixel vectors", async () => {
         "0e4cbf0ead81e2f99a18d2ed821ad0e8d22a203905b2f540d64966aaecbe12a2",
         "0e4cbf0ead81e2f99a18d2ed821ad0e8d22a203905b2f540d64966aaecbe12a2",
         "b20cddf7067f385b76e0cda06265cf6450f6df2494cef006227bbcdbbc5f1ad8",
-        "92119206879ae24b655884c183c54c96b493a495cf7e8874085f1bfb7170d2c4",
+        "77903c92ea1c3596a1a8edd6957fddc01f8f06ee2f6391fdd4a27d02f160bc5e",
         "92119206879ae24b655884c183c54c96b493a495cf7e8874085f1bfb7170d2c4",
       ]
     `);

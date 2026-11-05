@@ -3,7 +3,7 @@ import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -85,14 +85,15 @@ async function main(): Promise<void> {
       // Load identical packets in all three keyrings before measuring read-only exports.
       const cert = Buffer.from("mDMEauv7aBYJKwYBBAHaRw8BAQdAOPtHCoglkXfM3zavnYk5Hd153HqtNGaZmJB+rFZpW1y0HUJlbmNobWFyayA8YmVuY2hAZXhhbXBsZS5vcmc+iHgEExYIACAFAmrr+2gWIQQDgj5FDqhWKfZOfkB9amSI+xuFYAIbAwAKCRB9amSI+xuFYL3SAQCtuswMTC+Ur3+aP/jOLuag8pI5oCdmBQ4cZEh+mxqcMgEA621hsUx42JDArmULLSAVPMTh2L5pDYUtaGe3ZhXxUwA=", "base64");
       const gpgOptions = ["--batch", "--no-autostart", "--no-options", "--homedir", "."];
-      const [imported, , diagnostic] = await runLinuxCommand("gpg", [...gpgOptions, "--import"], cert, cwd);
-      assert.equal(imported, 0, diagnostic.toString());
-      for (const shell of [ts.shell, rust]) {
-        const result = await shell.exec("gpg --import", { stdin: cert });
-        assert.equal(result.exitCode, 0, result.stderr);
+      for (const [bytes, selector] of [[cert, "bench@example.org"], [gpgDistributionKey, "528897B826403ADA"]] as const) {
+        const [imported, , diagnostic] = await runLinuxCommand("gpg", [...gpgOptions, "--import"], bytes, cwd);
+        assert.equal(imported, 0, diagnostic.toString());
+        for (const shell of [ts.shell, rust]) {
+          const result = await shell.exec("gpg --import", { stdin: bytes });
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        workloads.push({ cmd: "gpg", args: [...gpgOptions, "--export", selector], script: "gpg --export " + selector, input: "" });
       }
-      workloads.push({ cmd: "gpg", args: [...gpgOptions, "--export", "bench@example.org"],
-        script: "gpg --export bench@example.org", input: "" });
       const binary = codecInput();
       for (const [compress, decompress, cat] of linuxCodecs) {
         const [status, packed, errors] = await runLinuxCommand(compress, ["-c"], binary);

@@ -4479,7 +4479,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-gamma") {
             const gammaVal = Math.max(0.1, Number(tokens[++i] ?? 1.0));
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* gammaImageSteps(im, gammaVal, gammaVal));
+                return (yield* gammaImageSteps(im, 1, gammaVal));
             }));
         }
         else if (t === "-raise" || t === "+raise") {
@@ -5356,7 +5356,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             transform(() => ({ kind: "rotate", angle, background }));
         } else if (!operandsOnly && token === "-gamma") {
             const gamma = Math.max(0.1, Number(tokens[++i] ?? 1));
-            transform(() => ({ kind: "gamma", gamma, gammaOut: gamma }));
+            transform(() => ({ kind: "gamma", gamma: 1, gammaOut: gamma }));
         } else if (!operandsOnly && ["-colorspace", "-grayscale"].includes(token)) {
             const space = (tokens[++i] ?? "gray").toLowerCase();
             if (space.includes("gray") || space.includes("grey") || space === "rec709luma" || space === "rec601luma") transform(() => ({ kind: "grayscale" }));

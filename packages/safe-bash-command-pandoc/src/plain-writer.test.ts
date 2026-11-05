@@ -65,14 +65,14 @@ it("shares CLI/SDK bytes, wrap rejection and limits for identical JSON AST/optio
     expect(sdk.kind === "text" && new TextEncoder().encode(sdk.text)).toEqual(write.mock.calls[0]![0]);
   }
 });
-it("preserves line blocks, inline code, definitions, figure content and alternative captions", async () => {
+it("preserves line blocks, inline code, definitions, figure body content", async () => {
   expect(await plain(d(
     {t: "Plain", c: [s("one"), {t: "Space"}, {t: "Emph", c: []}, {t: "Code", c: [a, "  a\tb  "]}, {t: "SoftBreak"}, s("two")]},
     {t: "LineBlock", c: [[s("三")], [], [s("أربعة")]]},
     {t: "DefinitionList", c: [[[s("term")], [[p(s("first")), p(s("second"))]]]]},
     {t: "Figure", c: [a, [[s("short")], [p(s("caption"))]], [p({t: "Image", c: [a, [s("alt")], ["image.png", "image title"]]})]]},
     {t: "BlockQuote", c: [p(s("quoted"))]}, {t: "HorizontalRule"}
-  ))).toMatchObject({text: `one   a\tb   two\n三\n\nأربعة\n\nterm\n  first\n\n  second\n\nalt "image title"\n\nshort\n\ncaption\n\n  quoted\n\n${"-".repeat(72)}\n`, diagnostics: []});
+  ))).toMatchObject({text: `one   a\tb   two\n三\n\nأربعة\n\nterm\n  first\n\n  second\n\nalt "image title"\n\n  quoted\n\n${"-".repeat(72)}\n`, diagnostics: []});
 });
 it("preserves raw block source, bounds diagnostics, and accepts a bounded columns policy", async () => {
   const document = d({t: "RawBlock", c: ["latex", "a\\quad b"]});

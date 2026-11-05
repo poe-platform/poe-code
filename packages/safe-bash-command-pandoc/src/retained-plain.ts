@@ -233,11 +233,33 @@ class PlainTape {
           if (ordered) list.start = await this.number(await this.at(await this.at(content!, 0), 0));
           await this.push(list); continue;
         }
-        if (tag === "Figure" || tag === "Table") {
+        if (tag === "Figure") {
+          const body = await contentPart("blocks", 2), attr = await this.at(content!, 0);
+          if ((await this.tree.describe(body.node)).children === 1) {
+            const block = await this.at(body.node, 0);
+            if (await this.tag(block) === "Plain") {
+              const inlines = (await this.tree.property(block, "c"))!;
+              if ((await this.tree.describe(inlines)).children === 1) {
+                const image = await this.at(inlines, 0);
+                if (await this.tag(image) === "Image") {
+                  const imageAttr = await this.at((await this.tree.property(image, "c"))!, 0);
+                  if (await this.tree.smallText(await this.at(imageAttr, 0), 1) === "" && !(await this.tree.describe(await this.at(attr, 1))).children && !(await this.tree.describe(await this.at(attr, 2))).children) {
+                    const caption = await contentPart("caption", 1);
+                    await this.push({...this.post(job.node, job.path, "surround"), first: "[", rest: "]"});
+                    await this.push({op: "blocks", node: await this.at(caption.node, 1), path: await this.path(caption.path, "[1]")});
+                    continue;
+                  }
+                }
+              }
+            }
+          }
+          await this.push(body); continue;
+        }
+        if (tag === "Table") {
           const caption = await contentPart("caption", 1);
-          const body = tag === "Figure" ? await contentPart("blocks", 2) : {op: "tableRows", node: content!, path: cp};
+          const body = {op: "tableRows", node: content!, path: cp};
           // Table always includes its rows after a nonempty caption, even if empty.
-          await this.push({op: tag === "Table" ? "table" : "parts", node: content!, path: cp, parts: [body, caption], sep: tag === "Figure" ? "\n\n" : "\n", skip: true}); continue;
+          await this.push({op: "table", node: content!, path: cp, parts: [body, caption], sep: "\n", skip: true}); continue;
         }
         await this.push({op: "inlines", node: content!, path: cp}); continue;
       }

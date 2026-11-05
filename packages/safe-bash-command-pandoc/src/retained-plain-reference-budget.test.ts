@@ -17,7 +17,8 @@ const fixtures: Block[][] = [
   [{t: "Figure", c: [attr, [[str("short")], [para(str("long"))]], [para(str("body"))]]}],
   [{t: "Table", c: [attr, [[str("short")], [para(str("long"))]], [["AlignDefault", {t: "ColWidthDefault"}]], [attr, [row("head")]], [[attr, 0, [row("body-head")], [row("body")]]], [attr, [row("foot")]]]}],
   [{t: "Table", c: [attr, [null, []], [], [attr, [[attr, []]]], [[attr, 0, [], [[attr, []]]]], [attr, [[attr, []]]]]}],
-  [para({t: "RawInline", c: ["html", ""]}), {t: "RawBlock", c: ["latex", "raw\n"]}]
+  [para({t: "RawInline", c: ["html", ""]}), {t: "RawBlock", c: ["latex", "raw\n"]}],
+  [{t: "Figure", c: [attr, [[str("short")], [para(str("long caption"))]], [{t: "Plain", c: [{t: "Image", c: [attr, [str("alt")], ["photo.png", "title"]]}]}]]}]
 ];
 it.each(fixtures.map((blocks, index) => ({blocks, index})))("retains plain reference thresholds for fixture $index", async ({blocks}) => {
   const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {});

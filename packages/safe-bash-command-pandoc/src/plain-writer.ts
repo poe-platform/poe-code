@@ -91,7 +91,15 @@ class Plain {
         case "LineBlock": {const lines: string[] = []; for(const [j, line] of node.c.entries()) lines.push(await this.inline(line, `${p}.c[${j}]`)); value = this.join(lines, "\n"); break;}
         case "BlockQuote": {const content = await this.blocks(node.c, `${p}.c`); if(content) value = this.indent(content, "  ", "  "); break;}
         case "Div": value = await this.blocks(node.c[1], `${p}.c[1]`); break;
-        case "Figure": value = this.join([await this.blocks(node.c[2], `${p}.c[2]`), await this.caption(node.c[1], `${p}.c[1]`)].filter(Boolean), "\n\n"); break;
+        case "Figure": {
+          const body = node.c[2], block = body[0];
+          // Pandoc's implicit image figure uses the long caption as its label.
+          // Other figures project only their body.
+          if (body.length === 1 && block?.t === "Plain" && block.c.length === 1 && block.c[0]?.t === "Image" && !block.c[0].c[0][0] && !node.c[0][1].length && !node.c[0][2].length) {
+            value = this.join(["[", await this.blocks(node.c[1][1], `${p}.c[1][1]`), "]"]);
+          } else value = await this.blocks(body, `${p}.c[2]`);
+          break;
+        }
         case "BulletList": case "OrderedList": {
           const items = node.t === "BulletList" ? node.c : node.c[1];
           const rendered: string[] = [];

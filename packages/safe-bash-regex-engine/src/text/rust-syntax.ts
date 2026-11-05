@@ -17,7 +17,7 @@ export function simpleCaseFold(text: string): string {
 const word = (char: string): boolean => /^[\p{Alphabetic}\p{M}\p{Nd}\p{Pc}\p{Join_Control}]$/u.test(char);
 const asciiWord = (char: string): boolean => /^[A-Za-z0-9_]$/u.test(char);
 
-function property(name: string, insensitive: boolean): (char: string) => boolean {
+export function unicodeProperty(name: string, insensitive: boolean): (char: string) => boolean {
   // The host only classifies one scalar using a validated Unicode property.
   // No user expression or repetition reaches its regular-expression matcher.
   if (!name || [...name].some(c => !" _-=0123456789".includes(c) && !(c >= "A" && c <= "Z") && !(c >= "a" && c <= "z"))) throw new ProgramError("invalid Unicode character class");
@@ -72,7 +72,7 @@ export function parseRustPattern(source: string, ignoreCase: boolean, maximumDep
         name = source.slice(at, end); at = end + 1;
       } else name = scalar();
       let accepts: (char: string) => boolean;
-      try { accepts = property(name, flags.has("i")); }
+      try { accepts = unicodeProperty(name, flags.has("i")); }
       catch { return fail("Regex error: error parsing pattern 0", at, true); }
       return char === "p" ? accepts : value => !accepts(value);
     }

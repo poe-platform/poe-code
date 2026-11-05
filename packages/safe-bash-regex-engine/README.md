@@ -10,7 +10,9 @@ require the Node.js `Buffer` global. Sed, awk and query patterns accept shorthan
 classes (`\d`, `\s`, `\w` and their uppercase complements) inside brackets.
 Sed BRE supports `\(?:...\)` without allocating a capture. Query patterns support
 inline and scoped `i`, `m` and `s` flags for case folding, multiline anchors and
-dot-all matching; scoped flags restore the enclosing settings.
+dot-all matching; scoped flags restore the enclosing settings. Query patterns also
+accept Unicode category and script classes such as `\p{L}`, `\p{N}` and
+`\p{Han}`, including `\P{...}` complements and properties inside brackets.
 Large and deeply nested patterns use the caller's compilation budget. Parsing
 and compilation avoid recursive traversal, and cancelled compilation can be
 retried without exposing a partial program.

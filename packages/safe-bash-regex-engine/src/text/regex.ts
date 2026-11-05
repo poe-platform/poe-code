@@ -2,7 +2,7 @@ import { decodeByteText, encodeByteText, byteTextPosition, type DecodedByteText 
 import { Budget, ProgramError } from "./budget.js";
 import { ReplacementBuffer } from "./replacement-buffer.js";
 import type { RegexNode as Node } from "./regex-syntax.js";
-import { parseRustPattern } from "./rust-syntax.js";
+import { parseRustPattern, unicodeProperty } from "./rust-syntax.js";
 
 function isWordChar(ch: string | undefined): boolean {
   if (ch === undefined) return false;
@@ -472,6 +472,16 @@ export class Pattern {
         return reference === alphabet ? accepted : !accepted;
       };
     };
+    const propertyEscape = (): ((character: string) => boolean) | undefined => {
+      const reference = source[offset];
+      if (dialect !== "jq" || (reference !== "p" && reference !== "P") || source[offset + 1] !== "{") return;
+      const end = source.indexOf("}", offset + 2);
+      if (end < 0) throw new ProgramError("Unicode escape not closed");
+      const name = source.slice(offset + 2, end);
+      const accepts = unicodeProperty(name, insensitive);
+      offset = end + 1;
+      return reference === "p" ? accepts : character => !accepts(character);
+    };
     const escaped = (): string => {
       const character = offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : undefined;
       offset += character?.length ?? 1;
@@ -511,6 +521,16 @@ export class Pattern {
           if (source[offset] === "-" && source[offset + 1] !== "]") throw new ProgramError("character class cannot be a range endpoint");
           continue;
         }
+        if (source[offset] === "\\") {
+          offset++;
+          const accepts = propertyEscape();
+          if (accepts) {
+            tests.push(accepts);
+            if (source[offset] === "-" && source[offset + 1] !== "]") throw new ProgramError("character class cannot be a range endpoint");
+            continue;
+          }
+          offset--;
+        }
         const readBracketChar = (): string => {
           const ch = String.fromCodePoint(source.codePointAt(offset)!);
           offset += ch.length;
@@ -529,6 +549,11 @@ export class Pattern {
         if (source[offset] === "-" && source[offset + 1] !== "]" && source[offset + 1] !== undefined) {
           offset++;
           if (source[offset] === "\\" && "dDsSwW".includes(source[offset + 1] ?? " ")) throw new ProgramError("character class cannot be a range endpoint");
+          if (source[offset] === "\\") {
+            offset++;
+            if (propertyEscape()) throw new ProgramError("character class cannot be a range endpoint");
+            offset--;
+          }
           const end = readBracketChar();
           if (start > end) throw new ProgramError("reversed character range");
           tests.push(character => character >= start && character <= end);
@@ -545,6 +570,8 @@ export class Pattern {
       offset += token?.length ?? 1;
       if (token === "[") return bracket();
       if (token === "\\") {
+        const accepts = propertyEscape();
+        if (accepts) return { type: "character", accepts };
         const reference = source[offset];
         if ((dialect === "sed" || dialect === "jq") && reference !== undefined && /^[1-9]$/u.test(reference)) {
           const index = Number(reference);

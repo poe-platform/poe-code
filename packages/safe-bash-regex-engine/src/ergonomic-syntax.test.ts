@@ -45,3 +45,23 @@ for (const dialect of ["jq", "rust"] as const) {
     assert.equal((await new Pattern(source!, true, false, dialect).find(input!, budget))?.groups[0], expected);
   });
 }
+
+for (const [source, input, expected] of [
+  ["\\p{L}+", "123café", "café"],
+  ["\\p{N}+", "a١٢", "١٢"],
+  ["\\p{Han}+", "a漢𠀀", "漢𠀀"],
+  ["\\P{L}+", "café123", "123"],
+  ["[\\p{L}\\p{N}_]+", "!é١_", "é١_"],
+  ["[^\\p{Han}]+", "漢abc", "abc"],
+  ["[\\P{L}]+", "é12", "12"],
+  ["(?i)\\p{Lu}+", "éABC", "éABC"],
+  ["\\p{L}+", "123", undefined],
+] as const) test(`jq Unicode property: ${source}`, async () => {
+  assert.equal((await new Pattern(source, true, false, "jq").find(input, budget))?.groups[0], expected);
+});
+
+for (const source of ["\\p{", "\\p{}", "\\p{NotAProperty}", "[a-\\p{L}]", "[\\p{L}-z]"]) {
+  test(`jq rejects invalid Unicode class: ${source}`, () => {
+    assert.throws(() => new Pattern(source, true, false, "jq"));
+  });
+}

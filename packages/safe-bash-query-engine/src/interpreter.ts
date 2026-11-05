@@ -1125,9 +1125,16 @@ export class Interpreter {
       }
       return;
     }
-    if (name === "in") {
-      for await (const container of this.run(args[0]!, input)) {
-        yield* this.run({ kind: "call", name: "has", args: [{ kind: "literal", value: input }] }, container);
+    if (name === "has" || name === "in") {
+      for await (const argument of this.run(args[0]!, input)) {
+        const container = name === "has" ? input : argument;
+        const key = name === "has" ? argument : input;
+        if (container === null) yield false;
+        else if (isObject(container) && typeof key === "string") yield Object.hasOwn(container, key);
+        else if (Array.isArray(container) && isNumber(key)) {
+          const index = Math.trunc(numberValue(key));
+          yield index >= 0 && index < container.length;
+        } else throw new JqError(`Cannot check whether ${type(container)} has a ${type(key)} key`);
       }
       return;
     }
@@ -1628,15 +1635,10 @@ export class Interpreter {
       }
       return;
     }
-    if (name === "has" || name === "contains") {
+    if (name === "contains") {
       for await (const argument of this.run(args[0]!, input)) {
-        if (name === "contains") {
-          if (type(input) !== type(argument)) throw new JqError("contains requires matching types");
-          yield contains(input, argument, budget);
-        } else if (input === null) yield false;
-        else if (isObject(input) && typeof argument === "string") yield Object.hasOwn(input, argument);
-        else if (Array.isArray(input) && isNumber(argument)) yield Math.trunc(numberValue(argument)) >= 0 && Math.trunc(numberValue(argument)) < input.length;
-        else throw new JqError("has requires object/string or array/number");
+        if (type(input) !== type(argument)) throw new JqError("contains requires matching types");
+        yield contains(input, argument, budget);
       }
       return;
     }

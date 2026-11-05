@@ -361,6 +361,21 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         }) {
             return flow;
         }
+        if let Some(filter) = args && matches!(name, "has" | "in") {
+            return visit_jq(filter, input, vars, &mut |value| {
+                let (container, key) = if name == "has" { (input, &value) } else { (&value, input) };
+                let found = match (container, key) {
+                    (JVal::Null, _) => false,
+                    (JVal::Object(keys), JVal::Str(k)) => keys.iter().any(|(name, _)| name == k),
+                    (JVal::Array(items), JVal::Number(n, _)) => {
+                        let index = n.trunc();
+                        index >= 0.0 && index < items.len() as f64
+                    }
+                    _ => return Err(format!("Cannot check whether {} has a {} key", container.type_name(), key.type_name()).into()),
+                };
+                emit(JVal::Bool(found))
+            });
+        }
         if let ("bsearch", Some(filter)) = (name, args) {
             return visit_jq(filter, input, vars, &mut |target| {
                 let mut low = 0.0;

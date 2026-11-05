@@ -42,6 +42,22 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       }
     });
+    for (const [engine, shell] of [["TypeScript", ts.shell], ["Rust", rust]] as const) {
+      await t.test(engine + " jq membership matches the executable", async () => {
+        for (const [filter, input] of [
+          ['has("a")', "false"], ['has(1,"a",null)', "null"], ["has(empty)", "1"],
+          ['has("a","b")', '{"a":null}'], ["has(0,0.9,-0.1,1,-1,nan,infinite,1e30)", "[1]"],
+          ["has(null)", "{}"], ["has({})", "[]"], ['has(0,error("bad"))', "[0]"],
+          ['first(has(0,error("bad")))', "[0]"], ['in([1,2],null,"x")', "1"],
+          ['in({"x":0},{},null)', '"x"'], ["in(empty)", "false"],
+          ['def has(k): "shadow"; [has(0), in([0])]', "0"],
+        ]) {
+          const reference = await runLinuxCommand("jq", ["-c", filter], input + "\n", cwd);
+          const actual = await shell.exec("jq -c '" + filter + "'", { stdin: input + "\n" });
+          assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], reference, filter + " on " + input);
+        }
+      });
+    }
     await t.test("jq binary search streams search keys and uses jq length and indexing rules", async () => {
       for (const [filter, input] of [
         ["bsearch(1,0,2)", "[1,1,1,1]"], ["bsearch(empty)", "false"],

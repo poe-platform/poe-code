@@ -2440,21 +2440,6 @@ fn try_eval_jq_builtin(
                     }
                     return Ok(Some(vec![res]));
                 }
-                "in" => {
-                    let mut out = Vec::new();
-                    for container in eval_jq(arg_expr, input, vars)? {
-                        let res = match (&container, input) {
-                            (JVal::Object(o), JVal::Str(ks)) => o.iter().any(|(ek, _)| ek == ks),
-                            (JVal::Array(a), JVal::Number(n, _)) => {
-                                let idx = *n as isize;
-                                idx >= 0 && (idx as usize) < a.len()
-                            }
-                            _ => false,
-                        };
-                        out.push(JVal::Bool(res));
-                    }
-                    return Ok(Some(out));
-                }
                 "strftime" | "strflocaltime" => {
                     let fmt = eval_jq(arg_expr, input, vars)?
                         .first()
@@ -2532,21 +2517,6 @@ fn try_eval_jq_builtin(
                         }
                         return Ok(Some(vec![JVal::Array(out)]));
                     }
-                }
-                "has" => {
-                    let k = eval_jq(arg_expr, input, vars)?
-                        .into_iter()
-                        .next()
-                        .unwrap_or(JVal::Null);
-                    let res = match (input, k) {
-                        (JVal::Object(o), JVal::Str(ks)) => o.iter().any(|(ek, _)| ek == &ks),
-                        (JVal::Array(a), JVal::Number(n, _)) => {
-                            let idx = n as isize;
-                            idx >= 0 && (idx as usize) < a.len()
-                        }
-                        _ => false,
-                    };
-                    return Ok(Some(vec![JVal::Bool(res)]));
                 }
                 "sort_by" | "group_by" | "unique_by" | "min_by" | "max_by" if !matches!(input, JVal::Array(_)) => {
                     return Err(jq_sort_input_error(input, fname, arg_expr, vars));

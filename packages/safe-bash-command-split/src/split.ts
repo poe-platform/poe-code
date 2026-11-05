@@ -57,6 +57,10 @@ class LineBytes {
   }
 }
 
+function chunkBoundary(length: number, count: number, index: number): number {
+  return Math.floor(length / count) * index + Math.min(index, length % count);
+}
+
 async function run(context: CommandContext, limits: SplitLimits): Promise<void> {
   const args = parseArguments(context.args, limits, getCommandArguments(context));
   if ("information" in args) {
@@ -104,6 +108,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
         { const s = budget.step(1); if (s) await s; }
         if (chunkInput[offset] !== args.separator && offset + 1 !== chunkInput.length) continue;
         const index = record++ % size;
+        if (args.selectedChunk && index !== args.selectedChunk - 1) { start = offset + 1; continue; }
         const ranges = records.get(index) ?? [];
         ranges.push([start, offset + 1]);
         records.set(index, ranges);
@@ -111,9 +116,17 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       }
     }
     let files = 0;
-    let chunkIndex = 0;
-    let chunkOffset = 0;
-    const chunkSize = chunkInput ? Math.floor(chunkInput.length / size) : 0;
+    let chunkIndex = args.selectedChunk ? args.selectedChunk - 1 : 0;
+    let chunkOffset = chunkInput ? chunkBoundary(chunkInput.length, size, chunkIndex) : 0;
+    const lineBoundary = async (data: Uint8Array, end: number) => {
+      while (end < data.length && end > 0 && data[end - 1] !== args.separator) {
+        const step = budget.step();
+        if (step) await step;
+        end++;
+      }
+      return end;
+    };
+    if (chunkInput && chunkIndex && args.chunkMode === "lines") chunkOffset = await lineBoundary(chunkInput, chunkOffset);
     while (true) {
       if (chunkInput && chunkIndex === size) break;
       const chunks = chunkInput ? (async function* (): AsyncGenerator<Uint8Array> {
@@ -123,14 +136,8 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
           }
           return;
         }
-        let end = chunkSize * (chunkIndex + 1) + Math.min(chunkIndex + 1, chunkInput.length % size);
-        if (args.chunkMode === "lines") {
-          end = Math.max(end, chunkOffset);
-          while (end < chunkInput.length && end > 0 && chunkInput[end - 1] !== args.separator) {
-            { const s = budget.step(1); if (s) await s; }
-            end++;
-          }
-        }
+        let end = chunkBoundary(chunkInput.length, size, chunkIndex + 1);
+        if (args.chunkMode === "lines") end = await lineBoundary(chunkInput, Math.max(end, chunkOffset));
         while (chunkOffset < end) {
           const next = Math.min(end, chunkOffset + limits.maxChunkBytes);
           yield chunkInput.slice(chunkOffset, next);
@@ -144,13 +151,9 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       if (first.done && !chunkInput) break;
       chunkIndex++;
       if (args.selectedChunk) {
-        if (chunkIndex === args.selectedChunk) {
-          if (!first.done) { budget.output(first.value.length); await context.stdout.write(first.value); }
-          for await (const chunk of chunks) { budget.output(chunk.length); await context.stdout.write(chunk); }
-          break;
-        }
-        for await (const ignoredChunk of chunks) { /* Advance to the selected chunk. */ }
-        continue;
+        if (!first.done) { budget.output(first.value.length); await context.stdout.write(first.value); }
+        for await (const chunk of chunks) { budget.output(chunk.length); await context.stdout.write(chunk); }
+        break;
       }
       if (first.done && args.elideEmpty) continue;
       budget.check(++files, limits.maxFiles, "file");
@@ -232,24 +235,15 @@ export function evalSyncSplit(
         }
         return decodeSyncSlice(merged);
       }
-      const chunkSize = Math.floor(src.length / size);
-      const rem = src.length % size;
-      if (args.chunkMode === "bytes") {
-        const start = chunkSize * ci + Math.min(ci, rem);
-        const end = chunkSize * (ci + 1) + Math.min(ci + 1, rem);
-        return decodeSyncSlice(src.subarray(start, end));
-      }
-      let chunkOffset = 0;
-      for (let idx = 0; idx <= ci; idx++) {
-        let end = chunkSize * (idx + 1) + Math.min(idx + 1, rem);
-        end = Math.max(end, chunkOffset);
-        while (end < src.length && end > 0 && src[end - 1] !== args.separator) {
-          end++;
+      const boundary = (index: number, minimum: number) => {
+        let end = Math.max(minimum, chunkBoundary(src.length, size, index));
+        if (args.chunkMode === "lines") {
+          while (end > 0 && end < src.length && src[end - 1] !== args.separator) end++;
         }
-        if (idx === ci) return decodeSyncSlice(src.subarray(chunkOffset, end));
-        chunkOffset = end;
-      }
-      return "";
+        return end;
+      };
+      const start = boundary(ci, 0);
+      return decodeSyncSlice(src.subarray(start, boundary(ci + 1, start)));
     }
     if (!writeFileSync) return undefined;
     const names = new Names(args, limits);
@@ -318,11 +312,9 @@ export function evalSyncSplit(
           chunks.push(merged);
         }
       } else {
-        const chunkSize = Math.floor(src.length / size);
-        const rem = src.length % size;
         let chunkOffset = 0;
         for (let idx = 0; idx < size; idx++) {
-          let end = chunkSize * (idx + 1) + Math.min(idx + 1, rem);
+          let end = chunkBoundary(src.length, size, idx + 1);
           if (args.chunkMode === "lines") {
             end = Math.max(end, chunkOffset);
             while (end < src.length && end > 0 && src[end - 1] !== args.separator) end++;

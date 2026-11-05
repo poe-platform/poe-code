@@ -87,6 +87,10 @@ const textCommands = ([
 export function linuxCommands(text: string) {
   return [
     ...textCommands.map(command => ({ ...command, input: text })),
+    ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
+      cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",
+      input: Buffer.from([0xff, 0, 1, 2, 3, 4, 124, 124, 5, 124, 6, 7, 8]),
+    })),
     { cmd: "bc", args: [], script: "bc", input: String.raw`"literal:\n\q; define f(){return 1}"
 "continued\
 literal"

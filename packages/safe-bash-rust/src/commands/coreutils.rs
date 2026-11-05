@@ -17107,9 +17107,16 @@ fn cmd_split(
         stream_string_to_bytes(stdin)
     };
 
+    let boundary = |index: usize, minimum: usize| {
+        let mut end = minimum.max(raw_bytes.len() / parsed.size * index + index.min(raw_bytes.len() % parsed.size));
+        if parsed.chunk_mode == SplitChunkMode::Lines && end > 0 && end < raw_bytes.len() && raw_bytes[end - 1] != parsed.separator {
+            end += raw_bytes[end..].iter().position(|&b| b == parsed.separator).map_or(raw_bytes.len() - end, |n| n + 1);
+        }
+        end
+    };
     if parsed.selected_chunk > 0 {
         let target_idx = parsed.selected_chunk - 1;
-        let out_slice: Vec<u8> = match parsed.chunk_mode {
+        let out_slice: std::borrow::Cow<'_, [u8]> = match parsed.chunk_mode {
             SplitChunkMode::RoundRobin => {
                 let mut out = Vec::new();
                 let mut start = 0usize;
@@ -17124,32 +17131,11 @@ fn cmd_split(
                     rec += 1;
                     start = off + 1;
                 }
-                out
+                out.into()
             }
             SplitChunkMode::Bytes | SplitChunkMode::Lines => {
-                let chunk_size = raw_bytes.len() / parsed.size;
-                let rem = raw_bytes.len() % parsed.size;
-                let mut chunk_offset = 0usize;
-                let mut selected = Vec::new();
-                for idx in 0..parsed.size {
-                    let mut end = chunk_size * (idx + 1) + (idx + 1).min(rem);
-                    if parsed.chunk_mode == SplitChunkMode::Lines {
-                        end = end.max(chunk_offset);
-                        while end < raw_bytes.len()
-                            && end > 0
-                            && raw_bytes[end - 1] != parsed.separator
-                        {
-                            end += 1;
-                        }
-                    }
-                    let slice = &raw_bytes[chunk_offset..end.min(raw_bytes.len())];
-                    if idx == target_idx {
-                        selected = slice.to_vec();
-                        break;
-                    }
-                    chunk_offset = end.min(raw_bytes.len());
-                }
-                selected
+                let start = boundary(target_idx, 0);
+                (&raw_bytes[start..boundary(target_idx + 1, start)]).into()
             }
         };
         return ok_out(&crate::vfs::bytes_to_stream_string(&out_slice));
@@ -17213,21 +17199,9 @@ fn cmd_split(
                 chunks = buckets;
             }
             SplitChunkMode::Bytes | SplitChunkMode::Lines => {
-                let chunk_size = raw_bytes.len() / parsed.size;
-                let rem = raw_bytes.len() % parsed.size;
                 let mut chunk_offset = 0usize;
                 for idx in 0..parsed.size {
-                    let mut end = chunk_size * (idx + 1) + (idx + 1).min(rem);
-                    if parsed.chunk_mode == SplitChunkMode::Lines {
-                        end = end.max(chunk_offset);
-                        while end < raw_bytes.len()
-                            && end > 0
-                            && raw_bytes[end - 1] != parsed.separator
-                        {
-                            end += 1;
-                        }
-                    }
-                    let clamped = end.min(raw_bytes.len());
+                    let clamped = boundary(idx + 1, chunk_offset);
                     chunks.push(raw_bytes[chunk_offset..clamped].to_vec());
                     chunk_offset = clamped;
                 }

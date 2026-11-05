@@ -200,3 +200,10 @@ test("verbose and unbuffered options emit file creation diagnostics and accept f
     assert.deepEqual(await files(rejected.fs), {});
   }
 });
+
+test("selecting a later empty line chunk does not spend the work budget on earlier chunks", async () => {
+  const input = "x".repeat(6000) + "\n";
+  const result = await run(["-n", "l/8192/8192"], input, { limits: { maxSteps: input.length + 2 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+});

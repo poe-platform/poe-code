@@ -4,6 +4,44 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosStream, cosArray, cosDict, cosName, dictGet, dictSet, serializeCosDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
+import { PDFDocument, StandardFonts } from "pdf-lib";
+
+// qpdf 12.4.2 --show-xref on these deterministic pdf-lib documents.
+const nativeXrefs = [
+  "1/0: uncompressed; offset = 16\n2/0: uncompressed; offset = 76\n3/0: uncompressed; offset = 126\n4/0: uncompressed; offset = 596\n5/0: uncompressed; offset = 694\n6/0: uncompressed; offset = 889\n",
+  "1/0: compressed; stream = 7, index = 0\n2/0: compressed; stream = 7, index = 1\n3/0: compressed; stream = 7, index = 2\n4/0: compressed; stream = 7, index = 3\n5/0: compressed; stream = 7, index = 4\n6/0: uncompressed; offset = 16\n7/0: uncompressed; offset = 180\n8/0: uncompressed; offset = 642\n"
+];
+
+for (const compressed of [false, true]) for (const retained of [false, true]) for (const incremental of [false, true]) {
+  it(`matches native qpdf xref output (compressed=${compressed}, retained=${retained}, incremental=${incremental})`, async () => {
+    const document = await PDFDocument.create();
+    document.setCreationDate(new Date("2020-01-01T00:00:00Z"));
+    document.setModificationDate(new Date("2020-01-01T00:00:00Z"));
+    const font = await document.embedFont(StandardFonts.Helvetica);
+    document.addPage([200, 300]).drawText("PAGE 1", { x: 30, y: 250, font });
+    let input = await document.save({ useObjectStreams: compressed });
+    if (incremental) {
+      const text = new TextDecoder().decode(input);
+      const previous = Number(text.slice(text.lastIndexOf("startxref") + 9).split("%%EOF")[0]!.trim());
+      input = new Uint8Array(Buffer.concat([input, Buffer.from(`xref\n0 1\n0000000000 65535 f \ntrailer\n<< /Root 2 0 R /Size ${compressed ? 9 : 7} /Prev ${previous} >>\nstartxref\n${input.length}\n%%EOF\n`)]));
+    }
+    const args = ["--show-xref", "in.pdf"];
+    let output: string;
+    if (retained) {
+      const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
+      const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+      const result = await createQpdfCommand().execute({ command: "qpdf", args, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+        stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } }, stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } } });
+      assert.equal(result.exitCode, 0); assert.equal(Buffer.concat(stderr).toString(), "");
+      output = Buffer.concat(stdout).toString();
+      assert.deepEqual(await fs.readdir("/scratch"), []);
+    } else {
+      const result = await runQpdfCli(args, new Map([["in.pdf", input]]));
+      assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); output = result.stdout;
+    }
+    assert.equal(output, nativeXrefs[compressed ? 1 : 0]);
+  });
+}
 
 for (const mode of ["plain", "encrypted", "empty", "compressed", "repaired", "broken-previous", "incremental", "inline"]) for (const flags of [["--show-xref"], ["--show-xref", "--show-object=1"], ["--check", "--show-xref"]]) {
   it(`inspects ${mode} retained input with exact diagnostics: ${flags.join(" ")}`, async () => {

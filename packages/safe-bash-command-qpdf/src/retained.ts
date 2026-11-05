@@ -224,7 +224,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
           const parts = pageDisplayParts(document, storage, highest, options.withImages, signal);
           chunks = (async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })();
         } else if (options.showXref) {
-          const parts = xrefDisplayParts(document, source, storage, highest, signal);
+          const parts = xrefDisplayParts(document, highest, signal);
           chunks = (async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })();
         } else if (selectedLength !== undefined && (options.rawStreamData || options.filteredStreamData)) chunks = document.objects.decodeStream(number, generation, { raw: !options.filteredStreamData });
         else {

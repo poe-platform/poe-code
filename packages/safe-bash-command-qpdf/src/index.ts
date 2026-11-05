@@ -1280,15 +1280,16 @@ function* executeQpdfCli(
 
   if (showXref) {
     const lines: string[] = [];
-    const revEntries = baseDoc.cos.revisions[0]?.entries;
+    const revEntries = new Map(baseDoc.cos.revisions.flatMap(revision => [...revision.entries]).reverse());
     for (const [objNum, obj] of [...baseDoc.cos.objects.entries()].sort((a, b) => a[0] - b[0])) {
       const xEntry = revEntries?.get(objNum);
       if (xEntry?.type === "compressed") {
         lines.push(
-          `${objNum}/0: compressed; stream = ${xEntry.objectStreamNumber}; index = ${xEntry.indexInObjectStream}; type = ${obj.value.kind}`
+          `${objNum}/0: compressed; stream = ${xEntry.objectStreamNumber}, index = ${xEntry.indexInStream ?? xEntry.indexInObjectStream}`
         );
       } else {
-        lines.push(`${objNum}/${obj.generationNumber}: uncompressed; type = ${obj.value.kind}`);
+        const offset = xEntry?.offset ?? obj.span?.start;
+        lines.push(`${objNum}/${obj.generationNumber}: uncompressed; ${offset === undefined ? `type = ${obj.value.kind}` : `offset = ${offset}`}`);
       }
     }
     return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };

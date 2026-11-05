@@ -27,6 +27,7 @@ decoded PCM input, such as WAV or a `lavfi` source. Unsupported audio filters fa
 without creating or replacing the output. Stream copying remains supported. Global metadata defaults to the first input;
 `-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying.
 Explicit `-metadata key=value` tags override copied metadata.
+`-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N.
 Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.

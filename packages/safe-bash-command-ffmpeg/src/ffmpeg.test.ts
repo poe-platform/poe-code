@@ -1843,3 +1843,50 @@ describe("global metadata mapping", () => {
     }
   }
 });
+
+describe("chapter mapping", () => {
+  for (const sync of [false, true]) {
+    for (const mapping of [undefined, "-1", "0", "1"]) {
+      it(`${sync ? "sync" : "async"} serializes chapter mapping ${mapping ?? "by default"}`, async () => {
+        const base = parseMp4(createSyntheticMp4({ frameCount: 2, includeAudio: true, metadata: { title: "Keep me" } }));
+        const chapters = [
+          { id: 0, startTimeSeconds: 0, endTimeSeconds: 0.04, title: "Opening" },
+          { id: 1, startTimeSeconds: 0.04, endTimeSeconds: base.durationSeconds, title: "Ending" }
+        ];
+        const input = serializeMp4({ ...base, chapters });
+        assert.equal(parseMp4(input).chapters?.length, 2);
+        const vfs = createTestVfs({ "/in.mp4": input, "/empty.mp4": serializeMp4(base) });
+        const args = ["-i", "/in.mp4", "-i", "/empty.mp4",
+          ...(sync ? [] : ["-map", "0:a"]),
+          ...(mapping === undefined ? [] : ["-map_chapters", mapping]),
+          "-c", "copy", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const output = parseMp4(vfs.store.get("/out.mp4")!);
+        assert.deepEqual(output.chapters?.map(ch => [ch.startTimeSeconds, ch.title]) ?? [],
+          mapping === "-1" || mapping === "1" ? [] : chapters.map(ch => [ch.startTimeSeconds, ch.title]));
+        assert.equal(output.metadata.title, "Keep me");
+        assert.deepEqual(output.tracks.find(t => t.type === "audio")?.samples.map(s => [s.data, s.duration, s.pts]),
+          base.tracks.find(t => t.type === "audio")?.samples.map(s => [s.data, s.duration, s.pts]));
+      });
+    }
+    for (const mapping of ["2", "oops", "1.5", ""]) {
+      it(`${sync ? "sync" : "async"} rejects invalid chapter source ${mapping}`, async () => {
+        const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ frameCount: 1 }) });
+        const args = ["-i", "/in.mp4", "-map_chapters", mapping, "-c", "copy", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
+        } else {
+          assert.notEqual((await runCmd(createFfmpegCommand(), args, vfs)).exitCode, 0);
+        }
+        assert.equal(vfs.store.has("/out.mp4"), false);
+      });
+    }
+  }
+});

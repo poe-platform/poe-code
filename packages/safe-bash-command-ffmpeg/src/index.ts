@@ -1112,6 +1112,7 @@ export function evalSyncFfmpeg(
     let rotation: number | undefined;
     let noOverwrite = true;
     const vfFilters: string[] = [];
+    let chapterSource: number | undefined;
     let metadataSource: number | undefined;
     const metadata: Record<string, string> = {};
     let outputTarget: string | undefined;
@@ -1120,8 +1121,12 @@ export function evalSyncFfmpeg(
       const arg = args[i]!;
       if (arg === "-y") noOverwrite = false;
       else if (arg === "-n") noOverwrite = true;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode" || arg === "-map_chapters") i++;
-      else if (arg === "-map_metadata") {
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
+      else if (arg === "-map_chapters") {
+        const value = args[++i];
+        chapterSource = value?.trim() ? Number(value) : NaN;
+        if (!Number.isSafeInteger(chapterSource)) return undefined;
+      } else if (arg === "-map_metadata") {
         const value = args[++i];
         metadataSource = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(metadataSource)) return undefined;
@@ -1260,6 +1265,10 @@ export function evalSyncFfmpeg(
           return t;
         }),
       };
+    }
+    if (chapterSource !== undefined) {
+      if (chapterSource >= loadedDocs.length) return undefined;
+      workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
     }
     if (metadataSource !== undefined && metadataSource >= loadedDocs.length) return undefined;
     const sourceMetadata = metadataSource === undefined ? loadedDocs[0]!.metadata
@@ -1401,6 +1410,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       const vfFilters: string[] = [];
       const afFilters: string[] = [];
       let filterComplex: string | undefined;
+      let chapterSource: number | undefined;
       let metadataSource: number | undefined;
       const metadata: Record<string, string> = {};
       let outputTarget: string | undefined;
@@ -1419,8 +1429,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           hlsSegmentFilename = args[++i];
         } else if (arg === "-hls_segment_type") {
           hlsSegmentType = args[++i];
-        } else if (arg === "-hls_list_size" || arg === "-hls_flags" || arg === "-map_chapters") {
+        } else if (arg === "-hls_list_size" || arg === "-hls_flags") {
           i++;
+        } else if (arg === "-map_chapters") {
+          const value = args[++i];
+          chapterSource = value?.trim() ? Number(value) : NaN;
+          if (!Number.isSafeInteger(chapterSource)) {
+            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid chapter input index\n"), context.signal);
+            return { exitCode: 1 };
+          }
         } else if (arg === "-map_metadata") {
           const value = args[++i];
           metadataSource = value?.trim() ? Number(value) : NaN;
@@ -2264,6 +2281,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           };
         }
 
+        if (chapterSource !== undefined) {
+          if (chapterSource >= loadedDocs.length) {
+            throw new Error(`Invalid chapter input index: ${chapterSource}`);
+          }
+          workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
+        }
         if (metadataSource !== undefined && metadataSource >= loadedDocs.length) {
           throw new Error(`Invalid metadata input index: ${metadataSource}`);
         }

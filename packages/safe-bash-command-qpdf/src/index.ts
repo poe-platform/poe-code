@@ -1236,7 +1236,7 @@ function* executeQpdfCli(
           const w = asNumber(dictGet(streamDict!, "Width"))?.value ?? 0;
           const h = asNumber(dictGet(streamDict!, "Height"))?.value ?? 0;
           const refStr = ref ? `${ref.objectNumber} ${ref.generationNumber} R` : "inline";
-          lines.push(`    /${entry.key.decoded}: ${refStr} (${w} x ${h})`);
+          lines.push(`    /${entry.key.decoded}: ${refStr}, ${w} x ${h}`);
         } else if (subtype === "Form" && streamDict) {
           if (ref && visitedForms.has(ref.objectNumber)) continue;
           if (ref) visitedForms.add(ref.objectNumber);
@@ -1249,8 +1249,9 @@ function* executeQpdfCli(
       const p = pages[idx]!;
       lines.push(`page ${idx + 1}: ${p.ref.objectNumber} ${p.ref.generationNumber} R`);
       if (withImages) {
-        lines.push("  images:");
+        const imageStart = lines.length;
         collectImagesFromResources(p.getResourcesDict());
+        if (lines.length > imageStart) lines.splice(imageStart, 0, "  images:");
       }
       lines.push("  content:");
       const contentsNode = dictGet(p.dict, "Contents");

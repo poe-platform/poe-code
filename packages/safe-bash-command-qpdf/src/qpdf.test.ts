@@ -237,7 +237,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(showPagesRes.exitCode, 0);
     assert.match(showPagesRes.stdout, /page 1:/);
     assert.match(showPagesRes.stdout, /images:/);
-    assert.match(showPagesRes.stdout, /\(2 x 2\)/);
+    assert.match(showPagesRes.stdout, /, 2 x 2/);
 
     // 2. --overlay and --linearize
     const overlayRes = await runQpdfCli(
@@ -379,7 +379,7 @@ describe("safe-bash-command-qpdf", () => {
       files
     );
     assert.equal(showImgRes.exitCode, 0);
-    assert.match(showImgRes.stdout, /\/NestedIm1:.*\(8 x 6\)/);
+    assert.match(showImgRes.stdout, /\/NestedIm1:.*, 8 x 6/);
   });
 
   it("bakes /AP /N Form XObject appearance streams during --flatten-annotations and honors /F flags for --flatten-annotations=print", async () => {

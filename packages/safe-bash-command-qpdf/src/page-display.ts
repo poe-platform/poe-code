@@ -7,7 +7,7 @@ async function* imageParts(document: PdfRetainedDocument, page: PdfCosDict, stor
   const values = new PdfMutableObjectStore(storage, { signal });
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const visited = new IntegerTable(backing, 64);
-  let top = -1, failed = false, work = 0;
+  let top = -1, failed = false, work = 0, hasImages = false;
   async function pageResources() {
     const direct = await document.lookup(dictGet(page, "Resources"));
     if (direct?.value.kind === "dict") return { value: direct.value, inherited: false };
@@ -60,8 +60,9 @@ async function* imageParts(document: PdfRetainedDocument, page: PdfCosDict, stor
       if (subtype?.kind !== "name") continue;
       if (subtype.decoded === "Image") {
         const width = dictGet(value, "Width"), height = dictGet(value, "Height");
+        if (!hasImages) { yield "  images:\n"; hasImages = true; }
         yield "    /"; yield entry.key.decoded;
-        yield `: ${reference ? `${reference.objectNumber} ${reference.generationNumber} R` : "inline"} (${width?.kind === "number" ? width.value : 0} x ${height?.kind === "number" ? height.value : 0})\n`;
+        yield `: ${reference ? `${reference.objectNumber} ${reference.generationNumber} R` : "inline"}, ${width?.kind === "number" ? width.value : 0} x ${height?.kind === "number" ? height.value : 0}\n`;
       } else if (subtype.decoded === "Form") {
         if (reference) {
           if (await visited.get(BigInt(reference.objectNumber)) !== undefined) continue;
@@ -82,7 +83,7 @@ export async function* pageDisplayParts(document: PdfRetainedDocument, storage: 
   for await (const page of document.pages()) {
     const ref = page.reference ?? { objectNumber: ++highest, generationNumber: 0 };
     yield `page ${++count}: ${ref.objectNumber} ${ref.generationNumber} R\n`;
-    if (withImages) { yield "  images:\n"; yield* imageParts(document, page.dict, storage, signal); }
+    if (withImages) yield* imageParts(document, page.dict, storage, signal);
     yield "  content:\n";
     const contents = dictGet(page.dict, "Contents");
     for (const node of contents?.kind === "array" ? contents.items : contents ? [contents] : []) {

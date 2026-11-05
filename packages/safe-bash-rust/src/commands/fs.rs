@@ -4198,9 +4198,8 @@ fn cmd_df(
             } else if arg == "--total" {
                 show_total = true;
             } else if arg == "--output" || arg.starts_with("--output=") {
-                if arg == "--output" {
-                    output_fields = Some(VALID_FIELDS.iter().map(|s| (*s).to_string()).collect());
-                } else {
+                let fields = output_fields.get_or_insert_with(Vec::new);
+                if arg != "--output" {
                     let list: Vec<String> = arg["--output=".len()..]
                         .split(',')
                         .filter(|s| !s.is_empty())
@@ -4212,15 +4211,20 @@ fn cmd_df(
                             1,
                         );
                     }
-                    for f in &list {
+                    for f in list {
                         if !VALID_FIELDS.contains(&f.as_str()) {
                             return err_out(
                                 &format!("df: '{f}': Crit: invalid field name for --output\n"),
                                 1,
                             );
                         }
+                        if fields.contains(&f) {
+                            let locale = ["LC_ALL", "LC_MESSAGES", "LANG"].iter().find_map(|k| env.get(*k).filter(|v| !v.is_empty()));
+                            let quoted = super::coreutils::fmt_quote::quote(&f, false, matches!(locale.map(String::as_str), Some("C.UTF-8" | "C.utf8")));
+                            return err_out(&format!("df: option --output: field {quoted} used more than once\nTry 'df --help' for more information.\n"), 1);
+                        }
+                        fields.push(f);
                     }
-                    output_fields = Some(list);
                 }
             } else if arg == "--block-size" || arg.starts_with("--block-size=") {
                 let val = if arg == "--block-size" {
@@ -4519,7 +4523,7 @@ fn cmd_df(
 
     let is_custom_output = output_fields.is_some();
     let active_fields: Vec<String> = if let Some(cols) = output_fields {
-        cols
+        if cols.is_empty() { VALID_FIELDS.iter().map(|s| (*s).to_string()).collect() } else { cols }
     } else if show_inodes {
         if print_type {
             vec![
@@ -4683,7 +4687,7 @@ fn cmd_df(
         .iter()
         .enumerate()
         .map(|(col, h)| {
-            let mut max_w = h.len().max(if col == 0 { 14 } else { 5 });
+            let mut max_w = h.len().max(if matches!(active_fields[col].as_str(), "file" | "target") { 0 } else if col == 0 { 14 } else { 5 });
             for r in &data_rows {
                 max_w = max_w.max(r[col].len());
             }

@@ -307,11 +307,14 @@ export function evalSyncDf(
       } else if (arg === "--print-type") printType = true;
       else if (arg === "--total") showTotal = true;
       else if (arg === "--output" || arg.startsWith("--output=")) {
-        if (arg === "--output") outputFields = [...DEFAULT_OUTPUT_FIELDS];
-        else {
+        outputFields ??= [];
+        if (arg !== "--output") {
           const list = arg.slice("--output=".length).split(",").filter(Boolean);
-          if (list.length === 0 || list.some(f => !VALID_OUTPUT_FIELDS.has(f))) return undefined;
-          outputFields = list;
+          if (!list.length) return undefined;
+          for (const field of list) {
+            if (!VALID_OUTPUT_FIELDS.has(field) || outputFields.includes(field)) return undefined;
+            outputFields.push(field);
+          }
         }
       } else if (arg === "--block-size" || arg.startsWith("--block-size=")) {
         const val = arg === "--block-size" ? args[++i] : arg.slice("--block-size=".length);
@@ -425,7 +428,7 @@ export function evalSyncDf(
     return `${pct}%`;
   };
   const activeFields = outputFields
-    ? outputFields
+    ? (outputFields.length ? outputFields : DEFAULT_OUTPUT_FIELDS)
     : showInodes
       ? (printType ? ["source", "fstype", "itotal", "iused", "iavail", "ipcent", "target"] : ["source", "itotal", "iused", "iavail", "ipcent", "target"])
       : (printType ? ["source", "fstype", "size", "used", "avail", "pcent", "target"] : ["source", "size", "used", "avail", "pcent", "target"]);
@@ -480,7 +483,7 @@ export function evalSyncDf(
     }));
   }
   const widths = headerRow.map((h, col) => {
-    let max = Math.max(h.length, col === 0 ? 14 : 5);
+    let max = Math.max(h.length, activeFields[col] === "file" || activeFields[col] === "target" ? 0 : col === 0 ? 14 : 5);
     for (const r of dataRows) max = Math.max(max, r[col]!.length);
     return max;
   });
@@ -568,9 +571,8 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
           } else if (arg === "--print-type") printType = true;
           else if (arg === "--total") showTotal = true;
           else if (arg === "--output" || arg.startsWith("--output=")) {
-            if (arg === "--output") {
-              outputFields = [...DEFAULT_OUTPUT_FIELDS];
-            } else {
+            outputFields ??= [];
+            if (arg !== "--output") {
               const list = arg.slice("--output=".length).split(",").filter(Boolean);
               if (list.length === 0) {
                 await writeText(context.stderr, "df: option '--output' requires a non-empty field list\n");
@@ -581,8 +583,14 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
                   await writeText(context.stderr, `df: '${f}': Crit: invalid field name for --output\n`);
                   return { exitCode: 1 };
                 }
+                if (outputFields.includes(f)) {
+                  const locale = context.env.LC_ALL || context.env.LC_MESSAGES || context.env.LANG;
+                  const quoted = locale === "C.UTF-8" || locale === "C.utf8" ? `‘${f}’` : `'${f}'`;
+                  await writeText(context.stderr, `df: option --output: field ${quoted} used more than once\nTry 'df --help' for more information.\n`);
+                  return { exitCode: 1 };
+                }
+                outputFields.push(f);
               }
-              outputFields = list;
             }
           } else if (arg === "--block-size" || arg.startsWith("--block-size=")) {
             const val = arg === "--block-size" ? context.args[++i] : arg.slice("--block-size=".length);
@@ -828,7 +836,7 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
 
       let activeFields: string[];
       if (outputFields) {
-        activeFields = outputFields;
+        activeFields = outputFields.length ? outputFields : [...DEFAULT_OUTPUT_FIELDS];
       } else if (showInodes) {
         activeFields = printType
           ? ["source", "fstype", "itotal", "iused", "iavail", "ipcent", "target"]
@@ -937,7 +945,7 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
       }
 
       const widths = headerRow.map((h, col) => {
-        let max = Math.max(h.length, col === 0 ? 14 : 5);
+        let max = Math.max(h.length, activeFields[col] === "file" || activeFields[col] === "target" ? 0 : col === 0 ? 14 : 5);
         for (const r of dataRows) {
           max = Math.max(max, r[col]!.length);
         }

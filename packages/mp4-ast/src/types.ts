@@ -485,8 +485,10 @@ export interface MediaProbeFrame {
   readonly pkt_dts_time: string;
   readonly best_effort_timestamp: number;
   readonly best_effort_timestamp_time: string;
-  readonly pkt_duration: number;
-  readonly pkt_duration_time: string;
+  readonly duration?: number;
+  readonly duration_time?: string;
+  readonly pkt_duration?: number;
+  readonly pkt_duration_time?: string;
   readonly pkt_size: string;
   readonly width?: number | undefined;
   readonly height?: number | undefined;

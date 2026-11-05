@@ -1948,8 +1948,9 @@ export function buildProbeResultFromDoc(
             pkt_dts_time: dtsTime,
             best_effort_timestamp: s.pts,
             best_effort_timestamp_time: ptsTime,
-            pkt_duration: s.duration,
-            pkt_duration_time: durTime,
+            ...(doc.containerFormat === "gif"
+              ? { duration: s.duration, duration_time: durTime }
+              : { pkt_duration: s.duration, pkt_duration_time: durTime }),
             pkt_size: String(s.size),
             width: w,
             height: h,

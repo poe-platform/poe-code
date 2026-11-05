@@ -1,14 +1,17 @@
+import { rm } from "node:fs/promises";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
-  const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
+  const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });
+  let cwd: string | undefined;
   try {
+    cwd = await createLinuxCommandDirectory(ts.fs, rust.fs);
     for (const { cmd, args, script, input } of linuxCommands("alpha\nbeta\nbeta\n")) {
       await t.test(cmd, async t => {
         if (cmd === "git") {
@@ -16,7 +19,7 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
           ts.shell.use(gitCommands());
           rust.use(gitCommands());
         }
-        const [code, stdout, stderr] = await runLinuxCommand(cmd,args,input);
+        const [code, stdout, stderr] = await runLinuxCommand(cmd, args, input, cwd);
         for (const shell of [ts.shell, rust]) {
           const result = await shell.exec(script, { stdin: input });
           assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], [code, stdout, stderr]);
@@ -70,6 +73,7 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
       });
     }
   } finally {
+    if (cwd) await rm(cwd, { recursive: true, force: true });
     await ts.dispose();
     await rust.dispose();
   }

@@ -1,8 +1,9 @@
+import { rm } from "node:fs/promises";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -74,8 +75,10 @@ async function main(): Promise<void> {
     assert.ok(Number.isSafeInteger(warmup) && warmup >= 0, "warmup must be a nonnegative integer");
     const text = "alpha\nbeta\nbeta\n".repeat(256);
     const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
-    const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
+    const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });
+    let cwd: string | undefined;
     try {
+      cwd = await createLinuxCommandDirectory(ts.fs, rust.fs);
       const workloads: { cmd: string; args: readonly string[]; script: string; input: string | Buffer; decoder?: string }[] =
         linuxCommands(text);
       const binary = codecInput();
@@ -96,18 +99,18 @@ async function main(): Promise<void> {
           ts.shell.use(gitCommands());
           rust.use(gitCommands());
         }
-        const expected = await runLinuxCommand(cmd, argv, input);
+        const expected = await runLinuxCommand(cmd, argv, input, cwd);
         const samples: number[][] = [[], [], []];
         for (let round = 0; round < warmup + iterations; round++) {
           for (let offset = 0; offset < 3; offset++) {
             const engine = (round + offset) % 3;
             const start = performance.now();
             const result = engine === 0
-              ? await runLinuxCommand(cmd, argv, input)
+              ? await runLinuxCommand(cmd, argv, input, cwd)
               : await (engine === 1 ? ts.shell : rust).exec(script, { stdin: input });
             const elapsed = performance.now() - start;
-            const observed = "exitCode" in result
-              ? ([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)] as const) : result;
+            const observed: readonly [number, Buffer, Buffer] = "exitCode" in result
+              ? [result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)] : result;
             if (decoder) {
               assert.equal(observed[0], expected[0], script);
               assert.deepEqual(observed[2], expected[2], script);
@@ -126,6 +129,7 @@ async function main(): Promise<void> {
         console.log([script, Buffer.byteLength(input), ...medians].join("\t"));
       }
     } finally {
+      if (cwd) await rm(cwd, { recursive: true, force: true });
       await ts.dispose();
       await rust.dispose();
     }

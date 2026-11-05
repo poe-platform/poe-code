@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import type { FileSystem } from "@poe-platform/safe-bash";
 import { once } from "node:events";
 import { buffer } from "node:stream/consumers";
 
 export const supportsHostPlugins = typeof Reflect.get(globalThis, "WebAssembly")?.Suspending === "function";
 export const linuxEnv = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
-export async function runLinuxCommand(cmd: string, args: readonly string[], input: string | Uint8Array) {
-  const proc = spawn("/usr/bin/" + cmd, args, { env: linuxEnv });
+export async function runLinuxCommand(cmd: string, args: readonly string[], input: string | Uint8Array, cwd?: string): Promise<readonly [number, Buffer, Buffer]> {
+  const proc = spawn("/usr/bin/" + cmd, args, { cwd, env: linuxEnv, argv0: cmd });
   const finished = once(proc, "close");
   proc.stdin.on("error", (error: NodeJS.ErrnoException) => {
     if (error.code !== "EPIPE") throw error;
@@ -14,7 +17,38 @@ export async function runLinuxCommand(cmd: string, args: readonly string[], inpu
   proc.stdin.end(input);
   const [[code], stdout, stderr] = await Promise.all([finished, buffer(proc.stdout), buffer(proc.stderr)]);
   assert(typeof code === "number", cmd + " exited without a status");
-  return [code, stdout, stderr] as const;
+  return [code, stdout, stderr];
+}
+
+// Hand the native files and archives to both virtual filesystems before timing commands.
+export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mkdir" | "writeFile">[]) {
+  const out = fileURLToPath(new URL("../../../out/", import.meta.url));
+  await mkdir(out, { recursive: true });
+  const cwd = await mkdtemp(out + "linux-commands-");
+  try {
+    await mkdir(cwd + "/samples");
+    for (const view of views) await view.mkdir("/workspace/samples", { recursive: true });
+    for (const [name, line] of [["base", "base"], ["ours", "edited here"], ["theirs", "edited there"]]) {
+      const path = "/samples/" + name;
+      const bytes = Buffer.from("header\n" + line + "\nfooter\n");
+      await writeFile(cwd + path, bytes);
+      for (const view of views) await view.writeFile("/workspace" + path, bytes);
+    }
+    for (const [cmd, args, extension] of [
+      ["tar", ["-cf", "-", "samples/base", "samples/ours"], "tar"],
+      ["zip", ["-q", "-", "samples/base", "samples/ours"], "zip"],
+    ] as const) {
+      const [code, bytes, stderr] = await runLinuxCommand(cmd, args, "", cwd);
+      assert.equal(code, 0, stderr.toString());
+      const path = "/sample." + extension;
+      await writeFile(cwd + path, bytes);
+      for (const view of views) await view.writeFile("/workspace" + path, bytes);
+    }
+    return cwd;
+  } catch (error) {
+    await rm(cwd, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 const textCommands = ([
@@ -39,6 +73,12 @@ const textCommands = ([
   ["env", "-i", "A=one", "B=two", "printenv", "B", "A"], ["timeout", "2", "cat"], ["xargs", "-n", "32", "echo"],
   ["egrep", "^be", "-"], ["fgrep", "beta", "-"], ["rgrep", "beta", "-"],
   ["git", "hash-object", "--stdin"],
+  ["diff", "-u", "--label", "base", "--label", "ours", "samples/base", "samples/ours"],
+  ["diff3", "-m", "samples/ours", "samples/base", "samples/theirs"],
+  ["find", "samples", "-type", "f", "-name", "theirs", "-print0"], ["ls", "-1", "samples"],
+  ["du", "-b", "samples/base"], ["stat", "-c", "%n %s", "samples/theirs"], ["hd", "samples/ours"],
+  ["tar", "-xOf", "sample.tar", "samples/base"], ["unzip", "-p", "sample.zip", "samples/ours"],
+  ["less", "samples/theirs"],
 ] as const).map(([cmd, ...args]) => ({
   cmd, args, script: [cmd, ...args.map(arg => "'" + arg.replaceAll("'", "'\\''") + "'")].join(" ")
 }));

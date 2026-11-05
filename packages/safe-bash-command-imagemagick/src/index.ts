@@ -7,6 +7,7 @@ import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHist
 import { StoredImageStack, magickInput, type MagickFormatContext } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
+import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
@@ -4556,7 +4557,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 state.dither = dMode !== "none";
             }
         }
-        else if (t === "-edge" || t === "-canny") {
+        else if (t === "-canny") {
+            const spec = tokens[++i] ?? "0x1+10%+30%";
+            stack = yield* mapSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, cannyPixelSteps(im, spec), signal, { ...im, hasAlpha: false });
+            });
+        }
+        else if (t === "-edge") {
             i++;
             stack = yield* mapSteps(stack, function* (im) {
                 return (yield* applyMagickRasterSteps(im, convolvePixelSteps(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0), signal));
@@ -5559,7 +5566,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-emboss") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry), signal) : undefined);
-        } else if (!operandsOnly && ["-convolve", "-edge", "-canny", "-charcoal", "-sketch"].includes(token)) {
+        } else if (!operandsOnly && token === "-canny") {
+            const spec = tokens[++i] ?? "0x1+10%+30%";
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cannyPixelSteps(image, spec), signal, { ...image, hasAlpha: false }) : undefined);
+        } else if (!operandsOnly && ["-convolve", "-edge", "-charcoal", "-sketch"].includes(token)) {
             const spec = tokens[++i] ?? "1", charcoal = token === "-charcoal" || token === "-sketch";
             const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
             if (charcoal) transform(() => ({ kind: "blur", sigma: 1 }));

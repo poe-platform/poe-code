@@ -92,6 +92,64 @@ test("GNU diff and patch exchange unified diffs with TypeScript and Rust", async
         }
       }
     }
+    const original = "delete first\ndelete second\nkeep\nlast\n";
+    const edited = "keep\nnew first\nnew second\nlast";
+    await writeFile(cwd + "/before", original);
+    await writeFile(cwd + "/after", edited);
+    const normal = native("diff", ["before", "after"]);
+    assert.equal(normal.status, 1, normal.stderr.toString());
+    await writeFile(cwd + "/delta", normal.stdout);
+    for (const reverse of [false, true]) {
+      const before = reverse ? edited : original;
+      await writeFile(cwd + "/work", before);
+      const args = ["--batch", ...(reverse ? ["-R"] : []), "-i", "delta", "work"];
+      const reference = native("patch", args);
+      assert.equal(reference.status, 0, reference.stderr.toString());
+      for (const [shell, view] of backends) {
+        await view.writeFile("/workspace/work", Buffer.from(before));
+        await view.writeFile("/workspace/delta", normal.stdout);
+        const result = await shell.exec("patch " + args.join(" "));
+        assert.equal(result.exitCode, reference.status, result.stdout + result.stderr);
+        assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
+        assert.deepEqual(Buffer.from(result.stderrBytes), reference.stderr);
+        assert.deepEqual(
+          Buffer.from(await view.readFile("/workspace/work")),
+          await readFile(cwd + "/work")
+        );
+      }
+    }
+    // A failed normal hunk still allows later matching hunks to apply.
+    for (const [name, flags, indexed] of [
+      ["partial", [], false],
+      ["indexed", ["--reject-format=unified"], true]
+    ] as const) {
+      const before = "x\ny\nc\n";
+      const delta =
+        (indexed ? "Index: " + name + "\n" : "") + "1c1\n< a\n---\n> A\n3c3\n< c\n---\n> C\n";
+      await writeFile(cwd + "/" + name, before);
+      await writeFile(cwd + "/delta", delta);
+      const args = ["--batch", ...flags, "-i", "delta", ...(indexed ? [] : [name])];
+      const reference = native("patch", args);
+      assert.equal(reference.status, 1, reference.stderr.toString());
+      for (const [shell, view] of backends) {
+        await view.writeFile("/workspace/" + name, Buffer.from(before));
+        await view.writeFile("/workspace/delta", Buffer.from(delta));
+        const result = await shell.exec("patch " + args.join(" "));
+        assert.equal(
+          result.exitCode,
+          reference.status,
+          shell.constructor.name + ": " + result.stdout
+        );
+        assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
+        assert.deepEqual(Buffer.from(result.stderrBytes), reference.stderr);
+        for (const suffix of ["", ".orig", ".rej"]) {
+          assert.deepEqual(
+            Buffer.from(await view.readFile("/workspace/" + name + suffix)),
+            await readFile(cwd + "/" + name + suffix)
+          );
+        }
+      }
+    }
     const pair = ["first", "second"]
       .map((name) => `--- ${name}\r\n+++ ${name}\r\n@@ -1 +1 @@\r\n-a\r\n+b\r\n`)
       .join("");

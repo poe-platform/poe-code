@@ -6078,6 +6078,7 @@ struct PatchOpts {
     posix: bool,
     reject_format: Option<String>,
     was_context_diff: bool,
+    was_normal_diff: bool,
     strip_cr: bool,
     backup_suffix: String,
     backup_prefix: Option<String>,
@@ -6595,15 +6596,43 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     } else {
         patch_text
     };
-    opts.was_context_diff = patch_text.contains("***************");
-    let normalized_patch = convert_context_diff_to_unified(&patch_text);
+    let mut normal_index = None;
+    let mut lines = patch_text.split_terminator('\n').peekable();
+    while let Some(&line) = lines.peek() {
+        if line.starts_with("--- ") || line.starts_with("*** ") || line.starts_with("@@ ") {
+            break;
+        }
+        if let Some(path) = line.strip_prefix("Index: ") {
+            let (decoded, _) = decode_patch_header_path(path);
+            normal_index = Some(resolve_patch_target_path(&decoded, opts.strip, &opts.work_cwd, fs));
+        }
+        if normal_diff_ranges(line).is_some() {
+            opts.was_normal_diff = true;
+            break;
+        }
+        lines.next();
+    }
+    let normalized_patch = if opts.was_normal_diff {
+        if target_file.is_none() && normal_index.is_none() {
+            return err_out("patch: **** Only garbage was found in the patch input.\n", 2);
+        }
+        match convert_normal_diff_to_unified(lines) {
+            Ok(patch) => patch,
+            Err(e) => return err_out(e, 2),
+        }
+    } else {
+        normal_index = None;
+        opts.was_context_diff = patch_text.contains("***************");
+        convert_context_diff_to_unified(&patch_text)
+    };
 
     let mut stdout_patched = String::new();
     match apply_unified_diff(
         &normalized_patch,
-        target_file.as_deref(),
+        target_file.as_deref().or(normal_index.as_deref()),
         output_file.as_deref(),
         reject_file.as_deref(),
+        normal_index.as_deref(),
         &opts,
         fs,
         &mut stdout_patched,
@@ -6736,27 +6765,61 @@ fn flush_patched_file(
     Ok(())
 }
 
-fn parse_normal_diff_cmd(line: &str) -> Option<(char, usize, usize)> {
+fn normal_diff_ranges(line: &str) -> Option<(char, usize, usize, usize, usize)> {
     let line = line.strip_suffix('\r').unwrap_or(line);
-    for op in ['a', 'c', 'd'] {
-        if let Some((lhs, rhs)) = line.split_once(op)
-            && !lhs.is_empty()
-            && !rhs.is_empty()
-            && lhs.chars().all(|c| c.is_ascii_digit() || c == ',')
-            && rhs.chars().all(|c| c.is_ascii_digit() || c == ',')
-        {
-            let a_start = lhs
-                .split(',')
-                .next()
-                .and_then(|s| s.parse::<usize>().ok())?;
-            let b_start = rhs
-                .split(',')
-                .next()
-                .and_then(|s| s.parse::<usize>().ok())?;
-            return Some((op, a_start, b_start));
+    let at = line.find(['a', 'c', 'd'])?;
+    let op = line.as_bytes()[at] as char;
+    let range = |part: &str, empty: bool| {
+        let (first, last) = part.split_once(',').unwrap_or((part, part));
+        if ![first, last].iter().all(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())) {
+            return None;
+        }
+        let start = first.parse::<usize>().ok()?;
+        let end = last.parse::<usize>().ok()?;
+        let count = if empty {
+            if part.contains(',') { return None; }
+            0
+        } else {
+            end.checked_sub(start)?.checked_add(1)?
+        };
+        Some((start, count))
+    };
+    let (old, removed) = range(&line[..at], op == 'a')?;
+    let (new, added) = range(&line[at + 1..], op == 'd')?;
+    Some((op, old, removed, new, added))
+}
+
+fn convert_normal_diff_to_unified<'a>(
+    mut lines: std::iter::Peekable<impl Iterator<Item = &'a str>>,
+) -> Result<String, &'static str> {
+    // Normal diffs have no filename headers. GNU uses /dev/null for both reject names.
+    let mut out = String::from("--- /dev/null\n+++ /dev/null\n");
+    let range = |start, count| if count == 1 { format!("{start}") } else { format!("{start},{count}") };
+    while let Some(line) = lines.next() {
+        if line.is_empty() { continue; }
+        let (op, old, removed, new, added) = normal_diff_ranges(line)
+            .ok_or("patch: malformed normal patch command\n")?;
+        out.push_str(&format!("@@ -{} +{} @@\n", range(old, removed), range(new, added)));
+        for (prefix, sign, count) in [('<', '-', removed), ('>', '+', added)] {
+            if prefix == '>' && op == 'c' && !matches!(lines.next(), Some("---" | "---\r")) {
+                return Err("patch: missing normal change separator\n");
+            }
+            for _ in 0..count {
+                let rest = lines.next().and_then(|l| l.strip_prefix(prefix))
+                    .ok_or("patch: malformed normal patch body\n")?;
+                let text = if rest.is_empty() { "" } else {
+                    rest.strip_prefix([' ', '\t']).ok_or("patch: malformed normal patch body\n")?
+                };
+                out.push(sign);
+                out.push_str(text);
+                out.push('\n');
+                if lines.next_if(|l| l.starts_with("\\ No newline at end of file")).is_some() {
+                    out.push_str("\\ No newline at end of file\n");
+                }
+            }
         }
     }
-    None
+    Ok(out)
 }
 
 fn resolve_patch_target_path(chosen_raw: &str, strip: Option<usize>, cwd: &str, fs: &dyn SafeBashFs) -> String {
@@ -6770,7 +6833,7 @@ fn resolve_patch_target_path(chosen_raw: &str, strip: Option<usize>, cwd: &str, 
     chosen_raw.rsplit('/').next().unwrap_or(chosen_raw).to_string()
 }
 
-fn format_context_reject_hunk(raw_hunk_lines: &[String]) -> String {
+fn format_context_reject_hunk(raw_hunk_lines: &[String], normal: bool) -> String {
     let header = raw_hunk_lines.first().map(|s| s.as_str()).unwrap_or("");
     let (old_s, old_c, new_s, new_c) = parse_hunk_starts_and_counts(header);
     let ctx_range = |s: usize, c: usize| -> String {
@@ -6792,10 +6855,12 @@ fn format_context_reject_hunk(raw_hunk_lines: &[String]) -> String {
             entries.push((' ', c));
         }
     }
-    let mut out = format!("***************\n*** {} ****\n", ctx_range(old_s, old_c));
+    let old_suffix = if normal { "" } else { " ****" };
+    let new_suffix = if normal { " -----" } else { " ----" };
+    let mut out = format!("***************\n*** {}{old_suffix}\n", ctx_range(old_s, old_c));
     for side in ['-', '+'] {
         if side == '+' {
-            out.push_str(&format!("--- {} ----\n", ctx_range(new_s, new_c)));
+            out.push_str(&format!("--- {}{new_suffix}\n", ctx_range(new_s, new_c)));
         }
         let mut idx = 0usize;
         while idx < entries.len() {
@@ -6815,7 +6880,7 @@ fn format_context_reject_hunk(raw_hunk_lines: &[String]) -> String {
                 }
                 end += 1;
             }
-            let mark = if has_rem && has_add { '!' } else { side };
+            let mark = if !normal && has_rem && has_add { '!' } else { side };
             for &(k, text) in &entries[idx..end] {
                 if k == side {
                     out.push_str(&format!("{mark} {text}\n"));
@@ -6833,6 +6898,7 @@ fn apply_unified_diff(
     explicit_target: Option<&str>,
     output_override: Option<&str>,
     reject_file: Option<&str>,
+    normal_index: Option<&str>,
     opts: &PatchOpts,
     fs: &dyn SafeBashFs,
     stdout_patched: &mut String,
@@ -6852,97 +6918,6 @@ fn apply_unified_diff(
     } else {
         None
     };
-
-    if !patch_text.contains("@@ ") {
-        let index_target = patch_text
-            .split_terminator('\n')
-            .find_map(|l| l.strip_prefix("Index: "))
-            .map(|p| {
-                let (dec, _) = decode_patch_header_path(p);
-                resolve_patch_target_path(&dec, strip, cwd, fs)
-            });
-        let normal_target = explicit_target
-            .map(|s| s.to_string())
-            .or(index_target);
-        if let Some(target) = normal_target {
-            let p_lines: Vec<&str> = patch_text.split_terminator('\n').collect();
-            let full = resolve_posix_path(cwd, &target);
-            let mut file_lines: Vec<String> = fs
-                .read_file(&full)
-                .map(|b| String::from_utf8_lossy(&b).split_terminator('\n').map(|s| s.to_string()).collect())
-                .unwrap_or_default();
-            let mut p_idx = 0usize;
-            let mut applied_any = false;
-            let mut offset: isize = 0;
-            let mut normal_mismatch = false;
-            while p_idx < p_lines.len() {
-                if let Some((op, a_start, b_start)) = parse_normal_diff_cmd(p_lines[p_idx]) {
-                    p_idx += 1;
-                    let mut old_lines = Vec::new();
-                    let mut new_lines = Vec::new();
-                    while p_idx < p_lines.len() && parse_normal_diff_cmd(p_lines[p_idx]).is_none() {
-                        if let Some(r) = p_lines[p_idx].strip_prefix("< ") {
-                            old_lines.push(r.to_string());
-                        } else if let Some(a) = p_lines[p_idx].strip_prefix("> ") {
-                            new_lines.push(a.to_string());
-                        }
-                        p_idx += 1;
-                    }
-                    if reverse {
-                        std::mem::swap(&mut old_lines, &mut new_lines);
-                    }
-                    let base_start = if reverse { b_start } else { a_start };
-                    if !old_lines.is_empty() {
-                        let hint = ((base_start.saturating_sub(1) as isize) + offset).max(0) as usize;
-                        if let Some(pos) = find_subslice_pos(&file_lines, &old_lines, hint) {
-                            if pos != hint {
-                                normal_mismatch = true;
-                            }
-                            let old_len = old_lines.len();
-                            let new_len = new_lines.len();
-                            file_lines.splice(pos..pos + old_len, new_lines);
-                            offset += (new_len as isize) - (old_len as isize);
-                        }
-                    } else if !new_lines.is_empty() {
-                        let ins_pos = if (op == 'a' && !reverse) || (op == 'd' && reverse) {
-                            ((base_start as isize) + offset).clamp(0, file_lines.len() as isize) as usize
-                        } else {
-                            ((base_start.saturating_sub(1) as isize) + offset)
-                                .clamp(0, file_lines.len() as isize) as usize
-                        };
-                        let new_len = new_lines.len();
-                        file_lines.splice(ins_pos..ins_pos, new_lines);
-                        offset += new_len as isize;
-                    }
-                    applied_any = true;
-                } else {
-                    p_idx += 1;
-                }
-            }
-            if applied_any {
-                let should_backup = opts.always_backup || (opts.backup_if_mismatch && normal_mismatch);
-                flush_patched_file(
-                    &target,
-                    output_override,
-                    &file_lines,
-                    false,
-                    false,
-                    false,
-                    should_backup,
-                    opts,
-                    fs,
-                    &mut staged_writes,
-                    stdout_patched,
-                )?;
-                let msg = if let Some(out_ov) = output_override {
-                    format!("{transport_notice}{action_verb} file {out_ov} (read from {target})\n")
-                } else {
-                    format!("{transport_notice}{action_verb} file {target}\n")
-                };
-                return Ok((msg, false));
-            }
-        }
-    }
 
     let mut current_target: Option<String> = None;
     let mut current_old_hdr = String::new();
@@ -7009,7 +6984,7 @@ fn apply_unified_diff(
                     ));
                     let rej_full = resolve_posix_path(cwd, rt);
                     let use_ctx = opts.reject_format.as_deref() == Some("context")
-                        || (opts.reject_format.is_none() && opts.was_context_diff);
+                        || (opts.reject_format.is_none() && (opts.was_normal_diff || opts.was_context_diff));
                     let (r_old, r_new) = if reverse {
                         (new_hdr, old_hdr)
                     } else {
@@ -7020,9 +6995,12 @@ fn apply_unified_diff(
                     } else {
                         format!("--- {r_old}\n+++ {r_new}\n")
                     };
+                    if let Some(index) = normal_index {
+                        rej_body.insert_str(0, &format!("Index: {index}\n"));
+                    }
                     for rh in file_rej_hunks {
                         if use_ctx {
-                            rej_body.push_str(&format_context_reject_hunk(rh));
+                            rej_body.push_str(&format_context_reject_hunk(rh, opts.was_normal_diff));
                         } else {
                             for l in rh {
                                 rej_body.push_str(l);
@@ -7077,8 +7055,8 @@ fn apply_unified_diff(
         if let Some(plus_path) = line.strip_prefix("+++ ") {
             let (raw_plus_owned, plus_epoch) = decode_patch_header_path(plus_path);
             let raw_plus = raw_plus_owned.as_str();
-            let old_is_null = pending_minus_raw == "/dev/null" || pending_minus_epoch;
-            let new_is_null = raw_plus == "/dev/null" || plus_epoch;
+            let old_is_null = !opts.was_normal_diff && (pending_minus_raw == "/dev/null" || pending_minus_epoch);
+            let new_is_null = !opts.was_normal_diff && (raw_plus == "/dev/null" || plus_epoch);
             delete_to_dev_null = if reverse { old_is_null } else { new_is_null };
             created_from_dev_null = if reverse { new_is_null } else { old_is_null };
             let chosen_raw = if raw_plus == "/dev/null" {

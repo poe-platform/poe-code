@@ -1,3 +1,5 @@
+#[path = "fax.rs"]
+mod fax;
 use super::png_pixels::Raster;
 use std::borrow::Cow;
 
@@ -259,11 +261,12 @@ impl<'a> Tiff<'a> {
         }
         let photo = get(262, 2);
         let samples = get(277, if photo <= 1 { 1 } else { 4 });
-        let depth = get(258, if photo <= 1 && field(277).is_none() { 1 } else { 8 });
+        let depth = get(258, if get(259, 1) == 4 || photo <= 1 && field(277).is_none() { 1 } else { 8 });
         if !(1..=4).contains(&samples)
             || !matches!(depth, 1 | 8 | 16)
-            || depth == 1 && (samples != 1 || photo > 1 || get(317, 1) != 1 || matches!(get(259, 1), 6 | 7) || (get(266, 1) == 2 && get(259, 1) != 1))
-            || !matches!(get(259, 1), 1 | 5 | 6 | 7 | 8 | 32946 | 32773)
+            || get(259, 1) == 4 && depth != 1
+            || depth == 1 && (samples != 1 || photo > 1 || get(317, 1) != 1 || matches!(get(259, 1), 6 | 7) || (get(266, 1) == 2 && !matches!(get(259, 1), 1 | 4)))
+            || !matches!(get(259, 1), 1 | 4 | 5 | 6 | 7 | 8 | 32946 | 32773)
         {
             return Err("unsupported TIFF encoding");
         }
@@ -351,7 +354,7 @@ impl<'a> Tiff<'a> {
         if self.depth == 1 {
             for group in row.chunks_mut(8) {
                 let bits = byte()?;
-                let bits = if self.lsb_first { bits.reverse_bits() } else { bits };
+                let bits = if self.lsb_first && self.compression != 4 { bits.reverse_bits() } else { bits };
                 for (bit, dst) in group.iter_mut().enumerate() {
                     let g = if (bits & (128 >> bit) != 0) != self.white_zero { 255 } else { 0 };
                     *dst = [g, g, g, 255];
@@ -423,6 +426,11 @@ impl<'a> Tiff<'a> {
                 work = work
                     .checked_sub(n.max(expected))
                     .ok_or("image decompression work limit exceeded")?;
+            }
+            if self.compression == 4 {
+                let width = self.tile.map_or(self.width, |(w, _)| w);
+                return fax::decode(&data[..n], width, expected, self.lsb_first, scratch)
+                    .map(|v| Some(Cow::Owned(v))).ok_or("invalid or oversized Group 4 TIFF strip");
             }
             if matches!(self.compression, 6 | 7) {
                 return Ok(Some(Cow::Owned(self.jpeg_chunk(
@@ -546,6 +554,21 @@ mod tests {
                 .pixels,
             expected
         );
+    }
+
+    #[test]
+    fn group4_decodes_libtiff_strips_in_either_fill_order() {
+        // Same 19x7 bitmap: one MSB-first strip, then three LSB-first strips.
+        for encoded in ["49492a001c000000935cdc6ed249622466a0cd66ba492a492500100109000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000040000000601030001000000010000001101040001000000080000001601030001000000070000001701040001000000140000001c010300010000000100000000000000", "49492a0024000000c93a3b764b92022000026485399835eb92a4000880c463c72e0002200a000001030001000000130000000101030001000000070000000201030001000000010000000301030001000000040000000601030001000000010000000a01030001000000020000001101040003000000ae0000001601030001000000030000001701040003000000a20000001c0103000100000001000000000000000a0000000b0000000700000008000000120000001d000000"] {
+            let bytes = super::super::hex_dec(encoded);
+            let image = Tiff::parse(&bytes, 4096).unwrap().decode().unwrap();
+            for (y, row) in image.pixels.chunks_exact(19).enumerate() {
+                for (x, &pixel) in row.iter().enumerate() {
+                    let v = if y == 3 || y > 0 && (x+y)%7 < 3 {255} else {0};
+                    assert_eq!(pixel, [v,v,v,255], "{x},{y}");
+                }
+            }
+        }
     }
 
     #[test]

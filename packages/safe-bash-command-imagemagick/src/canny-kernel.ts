@@ -64,7 +64,8 @@ export function* cannyPixelSteps(image: { width: number; height: number }, spec:
             directions[i] = Math.abs(slope) > 2.41421356237 ? 0 : Math.abs(slope) < 0.414213562373 ? 2 : slope < 0 ? 1 : 3;
         }
     }
-    const magnitude = (x: number, y: number): number => x < 0 || x >= width || y < 0 || y >= height ? 0 : scratch[y * width + x]!;
+    // ImageMagick clamps gradient-cache neighbors at the image boundary.
+    const magnitude = (x: number, y: number): number => scratch[Math.max(0, Math.min(height - 1, y)) * width + Math.max(0, Math.min(width - 1, x))]!;
     let maximum = 0;
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;
@@ -76,20 +77,31 @@ export function* cannyPixelSteps(image: { width: number; height: number }, spec:
             maximum = Math.max(maximum, values[i]!);
         }
     }
-    // Reuse the direction buffer as the visited edge mask. Each pixel is queued once.
+    // Reuse the direction buffer as the visited edge mask.
     directions.fill(0);
-    const queue = new Uint32Array(size);
-    let end = 0;
-    for (let i = 0; i < size; i++) {
-        if (i % 1024 === 0) yield;
-        if (values[i]! >= upper * maximum) { directions[i] = 255; queue[end++] = i; }
-    }
-    for (let head = 0; head < end; head++) {
-        if (head % 1024 === 0) yield;
-        const i = queue[head]!, x = i % width, y = Math.floor(i / width);
-        for (let sy = Math.max(0, y - 1); sy <= Math.min(height - 1, y + 1); sy++) for (let sx = Math.max(0, x - 1); sx <= Math.min(width - 1, x + 1); sx++) {
-            const next = sy * width + sx;
-            if (!directions[next] && values[next]! >= lower * maximum) { directions[next] = 255; queue[end++] = next; }
+    const stack = new Uint32Array(size);
+    let visited = 0;
+    for (let seed = 0; seed < size; seed++) {
+        if (seed % 1024 === 0) yield;
+        if (directions[seed] || values[seed]! < upper * maximum) continue;
+        directions[seed] = 255;
+        stack[0] = seed;
+        let end = 1;
+        while (end > 0) {
+            if (visited++ % 1024 === 0) yield;
+            const i = stack[--end]!;
+            let x = i % width, y = Math.floor(i / width);
+            // Native TraceEdges moves the current point as it discovers neighbors.
+            for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+                const sx = x + dx, sy = y + dy;
+                if ((dx === 0 && dy === 0) || sx < 0 || sx >= width || sy < 0 || sy >= height) continue;
+                const next = sy * width + sx;
+                if (!directions[next] && values[next]! >= lower * maximum) {
+                    directions[next] = 255;
+                    stack[end++] = next;
+                    x = sx; y = sy;
+                }
+            }
         }
     }
     for (let position = 0; position < size; position += 1024) {

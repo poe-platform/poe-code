@@ -10,11 +10,22 @@ const cases = [
     { geometry: "0x1+10%+30%", rows: ["00000", "01100", "01100", "00000", "00000"] },
     { geometry: "0x2+10%+30%", rows: ["11111", "10010", "10010", "11111", "10010"] },
 ];
+// Opaque 5x5 grayscale patterns, verified with ImageMagick 7.1.2-31 Q16-HDRI
+// at 0x1+10%+30%; checkerboard also matches the 7.1.2-32 reproduction.
+const patterns = [
+    { name: "checkerboard", pixel: (x: number, y: number) => (x + y) % 2 === 0 ? 255 : 0, rows: ["10001", "00000", "00000", "00011", "10010"] },
+    { name: "vertical split", pixel: (x: number) => x < 2 ? 0 : 255, rows: ["01000", "01000", "01000", "01000", "01000"] },
+    { name: "diagonal", pixel: (x: number, y: number) => x === y ? 255 : 0, rows: ["10100", "00110", "11000", "01011", "00010"] },
+    { name: "ramp", pixel: (x: number, y: number) => (x * 47 + y * 83) % 256, rows: ["10011", "00000", "10000", "00111", "00010"] },
+];
 for (const mode of ["buffered", "retained", "sync"] as const) {
-    it.each(cases)(`detects native Canny edges via ${mode}: $geometry`, async ({ geometry, rows }) => {
+    it.each([
+        ...cases.map(test => ({ ...test, name: "point", pixel: (x: number, y: number) => x === 2 && y === 2 ? 255 : 0 })),
+        ...patterns.map(test => ({ ...test, geometry: "0x1+10%+30%" })),
+    ])(`detects native Canny edges via ${mode}: $name $geometry`, async ({ geometry, rows, pixel }) => {
         const pixels = new Uint8Array(5 * 5 * 4);
         for (let i = 3; i < pixels.length; i += 4) pixels[i] = 255;
-        pixels.fill(255, 12 * 4, 13 * 4);
+        for (let i = 0; i < 25; i++) pixels.fill(pixel(i % 5, Math.floor(i / 5)), i * 4, i * 4 + 3);
         const input = await sharp(pixels, { raw: { width: 5, height: 5, channels: 4 } }).png().toBuffer();
         const files = new Map([["input.png", input]]);
         const filesystem = new MemoryFileSystem();

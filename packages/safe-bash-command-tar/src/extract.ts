@@ -395,19 +395,14 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }
       if (options.mode === "t") {
-        let baseName = entry.name;
-        if (options.strip > 0) {
-          const stripped = relativeName(entry.name, options.strip);
-          if (stripped === undefined) {
-            await reader.discard(entry.size); await reader.padding(entry.size); continue;
-          }
-          baseName = entry.name.endsWith("/") && stripped ? `${stripped}/` : stripped;
-        }
         const shown = options.showTransformedNames ? {
           ...entry,
-          name: await transformedNames.apply(baseName),
+          name: await transformedNames.apply(entry.name),
           linkname: entry.linkname ? await transformedNames.apply(entry.linkname) : entry.linkname,
-        } : { ...entry, name: baseName };
+        } : entry;
+        if (options.showTransformedNames && options.strip > 0) {
+          shown.name = (relativeName(shown.name, options.strip) ?? "") + (entry.name.endsWith("/") ? "/" : "");
+        }
         await budget.output(options.verbose ? verbose(shown, options) : `${quoteName(shown.name, options.quotingStyle)}\n`);
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }

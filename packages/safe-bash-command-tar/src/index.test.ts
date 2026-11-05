@@ -293,12 +293,30 @@ for (const show of [false, true]) test(`tar strips short members and displays ex
   const flags = ["--strip-components=1", ...(show ? ["--show-transformed-names"] : [])];
   const listed = await run(createTarCommand(), ["-tf", "/out.tar", ...flags], "", fs);
   assert.equal(listed.exitCode, 0, listed.stderr);
-  assert.equal(listed.stdout, "a\n");
+  assert.equal(listed.stdout, show ? "/\na\n" : "src/\nsrc/a\n");
   const extracted = await run(createTarCommand(), ["-xvf", "/out.tar", "-C", "/out", "--xform=s,a,b,", ...flags], "", fs);
   assert.equal(extracted.exitCode, 0, extracted.stderr);
   assert.equal(extracted.stdout, show ? "b\n" : "src/a\n");
   assert.equal(new TextDecoder().decode(await fs.readFile("/out/b")), "payload");
 });
+
+for (const strip of [1, 2]) for (const show of [false, true]) for (const verbose of [false, true]) {
+  test(`tar stdin listing preserves stripped members (strip=${strip}, show=${show}, verbose=${verbose})`, async () => {
+    const names = ["sub/", "sub/b.txt"];
+    const archive = Buffer.concat([
+      ...names.map(name => headerBytes({ name, type: name.endsWith("/") ? "5" : "0", linkname: "", size: 0, mode: 0o755, uid: 0, gid: 0, mtime: 0 })),
+      new Uint8Array(1024),
+    ]);
+    const result = await run(createTarCommand(), [verbose ? "-tvf" : "-tf", "-", `--strip-components=${strip}`, ...(show ? ["--show-transformed-names"] : [])], archive.toString());
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    const expected = show ? ["/", strip === 1 ? "b.txt" : ""] : names;
+    if (verbose) {
+      assert.equal(result.stdout.split("\n").length, 3);
+      for (const [index, name] of expected.entries()) assert.ok(result.stdout.split("\n")[index]!.endsWith(` ${name}`), result.stdout);
+    } else assert.equal(result.stdout, expected.join("\n") + "\n");
+  });
+}
 
 test("positional exclusions share their pattern work budget", async () => {
   const fs = createMemoryFileSystem();

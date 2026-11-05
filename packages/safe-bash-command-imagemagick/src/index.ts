@@ -839,8 +839,9 @@ function* magickPixelPropertiesSteps<Step=never>(
   load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},void>,
   statistics?: Record<string, number>
 ): Generator<void|Step, Record<string, string>, void> {
-  const sums = [0, 0, 0];
-  const squares = [0, 0, 0];
+  const channels = img.hasAlpha ? 4 : 3;
+  const sums = new Array<number>(channels).fill(0);
+  const squares = new Array<number>(channels).fill(0);
   const means = [0, 0, 0, 0], moments = [0, 0, 0, 0];
   let min = 65535;
   let max = 0;
@@ -868,7 +869,7 @@ function* magickPixelPropertiesSteps<Step=never>(
     if (colors.size <= 256) {
       colors.add(((chunk.data[i]! * 256 + chunk.data[i + 1]!) * 256 + chunk.data[i + 2]!) * 256 + (img.hasAlpha ? chunk.data[i + 3]! : 255));
     }
-    for (let c = 0; c < (img.hasAlpha ? 4 : 3); c++) {
+    for (let c = 0; c < channels; c++) {
       const value = samples[i + c]!;
       if (statistics) {
         const n = (offset + i) / 4 + 1, delta = value / range - means[c]!;
@@ -880,18 +881,15 @@ function* magickPixelPropertiesSteps<Step=never>(
         if (Math.round(Math.round(value * levels / range) * range / levels) === value) break;
         bitDepth++;
       }
-      if (c < 3) {
-        const v = chunk.data16 ? value : value * 257;
-        sums[c]! += v;
-        squares[c]! += v * v;
-        min = Math.min(min, v);
-        max = Math.max(max, v);
-      }
+      const v = chunk.data16 ? value : value * 257;
+      sums[c]! += v;
+      squares[c]! += v * v;
+      min = Math.min(min, v);
+      max = Math.max(max, v);
     }
   }
   }
   if (statistics) {
-    const channels = img.hasAlpha ? 4 : 3;
     statistics.mean = 0;
     statistics.standard_deviation = 0;
     for (let c = 0; c < channels; c++) {
@@ -911,9 +909,9 @@ function* magickPixelPropertiesSteps<Step=never>(
     : gray ? (bilevel ? "Bilevel" : `Grayscale${suffix}`)
     : `${colors.size <= 256 ? "Palette" : "TrueColor"}${suffix}`;
   const deviation = sums.reduce((sum, value, c) => sum + Math.sqrt(Math.max(0,
-    (squares[c]! - value * value / count) / Math.max(1, count - 1))), 0) / 3;
+    (squares[c]! - value * value / count) / Math.max(1, count - 1))), 0) / channels;
   return {
-    mean: String(Number((sums.reduce((sum, value) => sum + value, 0) / (count * 3)).toPrecision(6))),
+    mean: String(Number((sums.reduce((sum, value) => sum + value, 0) / (count * channels)).toPrecision(6))),
     min: String(min),
     max: String(max),
     "standard-deviation": String(Number(deviation.toPrecision(6))),

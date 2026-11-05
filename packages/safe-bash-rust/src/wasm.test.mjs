@@ -6587,6 +6587,37 @@ for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lz
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip writes a dash archive to stdout, keeping progress on stderr and literal dash files intact",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"}),host=new MemoryFileSystem();
+  try{
+    for(const fs of [ref,rust.fs,host]){
+      await fs.writeFile("/src",Uint8Array.of(0,8,255));await fs.utimes("/src",1700000000000,1700000000000);
+      await fs.writeFile("/-",Uint8Array.of(200));await fs.mkdir("/scratch");
+    }
+    // Info-ZIP Zip 3.0, LC_ALL=C, TZ=UTC, stdout connected to a pipe.
+    const adding="  adding: src (deflated -66%)\n";
+    for(const [flags,method,stderr] of [["",8,adding],["-q0",0,""],["-T -TT false",8,"\tzip warning: can't use -T on stdout, -T ignored\n"+adding],["-b scratch",8,adding],["-b missing",8,adding]]){
+      for(const [shell,fs] of [[js,ref],[rust,rust.fs],[rust,host]]){
+        const cmd="zip "+flags+" - src",r=await shell.exec(cmd,{fs});
+        assert.equal(r.exitCode,0,r.stderr);assert.equal(r.stderr,stderr,cmd);
+        const bytes=Buffer.from(r.stdoutBytes);assert.equal(bytes.readUInt32LE(0),0x04034b50,cmd);
+        assert.equal(bytes.readUInt16LE(6)&8,8,cmd);assert.equal(bytes.readUInt16LE(8),method,cmd);
+        await ref.writeFile("/check.zip",bytes);
+        const extracted=await js.exec("unzip -p check.zip src");assert.equal(extracted.exitCode,0,extracted.stderr);assert.deepEqual(extracted.stdoutBytes,Uint8Array.of(0,8,255));
+        assert.deepEqual(await fs.readFile("/-"),Uint8Array.of(200));
+        await assert.rejects(fs.lstat("/src.zip"),{code:"ENOENT"});assert.deepEqual(await fs.readdir("/scratch"),[]);
+      }
+    }
+    for(const [shell,fs] of [[js,ref],[rust,rust.fs],[rust,host]]){
+      const r=await shell.exec("zip - missing",{fs});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[12,"","\tzip warning: name not matched: missing\n\nzip error: Nothing to do! (-)\n"]);
+      await assert.rejects(shell.exec("zip -qm - src",{fs,limits:{maxOutputBytes:8}}),/maxOutputBytes/);
+      assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(0,8,255));
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("zip validates its temporary directory before writing the archive or removing sources",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

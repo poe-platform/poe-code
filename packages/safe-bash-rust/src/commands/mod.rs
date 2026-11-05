@@ -993,7 +993,7 @@ where
         exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
     };
     if cmd == "zip" {
-        return Ok(Some(archive::cmd_zip(args, stdin, cwd, fs, &mut |words| {
+        return Ok(Some(archive::cmd_zip(args, stdin, cwd, fs, write, &mut |words| {
             exec_with_copy(words, "", &mut cwd.clone(), &mut env.clone()).exit_code == 0
         })));
     }

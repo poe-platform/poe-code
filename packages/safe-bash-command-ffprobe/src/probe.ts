@@ -150,6 +150,9 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
           : {}),
         sample_rate: String(stream.sampleRate),
         channels: stream.channels,
+        ...(["flac", "mp3"].includes(stream.codec) && stream.channels <= 2
+          ? { channel_layout: stream.channels === 1 ? "mono" : "stereo" }
+          : {}),
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,
         ...(!stdinAudio && !unknownFlacDuration ? { duration: durations[index]!.toFixed(6) } : {}),
         ...(!["flac", "opus", "vorbis"].includes(stream.codec)

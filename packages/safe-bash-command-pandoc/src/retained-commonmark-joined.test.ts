@@ -7,7 +7,7 @@ import {createLuaFilterCapability} from "./lua-filters.js";
 const encode = (text: string) => new TextEncoder().encode(text);
 it.each([
   ["", ""], ["first", "second"], ["first\n", "\nsecond\n"],
-  ["[ref]", "[ref]: /target 'title'\n"], ["![ref]", "[ref]: p.svg\n"],
+  ["    before", "\tfoo\tbar\n\t𐐀\tx"], ["[ref]", "[ref]: /target 'title'\n"], ["![ref]", "[ref]: p.svg\n"],
   ["---\ntitle: first", "---\nbody"], ["---\ntitle: first\n---\nbody", "---\ntitle: second\n---\nbody"],
   ["---\nmap: {a: first, shared: before}\nlist: [1, 2]\n---\nbody", "---\nmap: {b: second, shared: after}\nlist: [3]\n---\nbody"],
   ["```", "still code\n```"], ["> first", "> second"], ["a".repeat(20000), "b".repeat(20000)]

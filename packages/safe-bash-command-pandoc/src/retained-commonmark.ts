@@ -10,6 +10,7 @@ import {PandocError} from "./errors.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {RetainedSourceText, type SourceRange} from "./retained-source-text.js";
 import {RetainedRtfAst} from "./retained-rtf-ast.js";
+import {expandPandocTabs} from "./commonmark.js";
 import {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
 import {assembleRetainedCommonMark} from "./retained-commonmark-document.js";
 import {readRetainedYamlMetadata} from "./retained-yaml-metadata.js";
@@ -87,10 +88,11 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
       const bytes = await tape.read(descriptors + index * 32, 32), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       return {start: view.getFloat64(0, true), end: view.getFloat64(8, true), line: view.getFloat64(16, true), blocks: view.getFloat64(24, true)};
     };
+    let anyTabs = false;
     for (const [index, input] of inputs.entries()) {
       const start = source.length;
       context.charge("references", 1);
-      await context.decodeUtf8To(retainInput("bytes" in input ? [input.bytes] : input.chunks, context, tape, ["inputBytes"], true), async chunk => {await source.append([chunk]);}, [], false);
+      await context.decodeUtf8To(retainInput("bytes" in input ? [input.bytes] : input.chunks, context, tape, ["inputBytes"], true), async chunk => {anyTabs ||= chunk.includes("\t"); await source.append([chunk]);}, [], false);
       context.charge("retainedBytes", (source.length - start) * 2);
       await put(index, [start, source.length, 1]);
     }
@@ -130,6 +132,11 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
     const parse = async (range: SourceRange) => {
       try {
         astOrigins.clear(); origins.clear();
+        if (anyTabs && (!fileScope || await source.find(range, "\t") !== -1)) {
+          const expand = expandPandocTabs(), original = range;
+          range = await source.append((async function* () {for await (const chunk of source.chunks(original)) yield expand(chunk);})());
+          context.charge("retainedBytes", (range.end - range.start) * 2);
+        }
         const ast = new RetainedRtfAst(nodes, units => context.cooperate(units));
         const title = await ast.object(), authors = await ast.array();
         if (extensions.pandoc_title_block) range = {start: await markdownTitleBlock(offset => source.unit(offset), range, context, async (name, value) => {

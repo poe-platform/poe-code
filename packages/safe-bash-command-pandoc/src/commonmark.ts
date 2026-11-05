@@ -44,10 +44,32 @@ export function parseCommonMarkMetadata(text: string, metadata: Record<string, M
   } catch {return false;}
 }
 
+// Columns count Unicode characters, including when a storage page splits a surrogate pair.
+export function expandPandocTabs() {
+  let column = 0;
+  return (text: string) => {
+    let result = "", start = 0;
+    for (let i = 0; i < text.length; i++) {
+      const unit = text.charCodeAt(i);
+      if (unit === 9) {
+        const spaces = 4 - column % 4;
+        result += text.slice(start, i) + " ".repeat(spaces);
+        start = i + 1; column += spaces;
+      } else if (unit === 10 || unit === 13) column = 0;
+      else if (unit < 0xdc00 || unit > 0xdfff) column++;
+    }
+    return start ? result + text.slice(start) : text;
+  };
+}
+
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
   const citationsState = {note: 0};
   let extensions: Readonly<Record<string, boolean>> = {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false};
-  const rawText = input.text ?? await context.decodeUtf8([input.bytes]);
+  let rawText = input.text ?? await context.decodeUtf8([input.bytes]);
+  if (rawText.includes("\t")) {
+    rawText = expandPandocTabs()(rawText);
+    context.charge("retainedBytes", rawText.length * 2);
+  }
   const metadata: Record<string, MetaValue> = {};
   let text = rawText;
   if (extensions.pandoc_title_block) {

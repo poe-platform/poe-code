@@ -2146,16 +2146,17 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         if (nums.length === 1) angle = nums[0]!;
         else if (nums.length === 2) { scaleX = scaleY = nums[0] || 1; angle = nums[1]!; }
         else if (nums.length >= 3) {
-            ox = nx = nums[0]!; oy = ny = nums[1]!;
+            ox = nx = nums[0]! - 0.5; oy = ny = nums[1]! - 0.5;
             if (nums.length === 3) angle = nums[2]!;
             else if (nums.length === 4 || nums.length === 6) { scaleX = scaleY = nums[2] || 1; angle = nums[3]!; }
             else { scaleX = nums[2] || 1; scaleY = nums[3] || 1; angle = nums[4]!; }
-            if (nums.length === 6) { nx = nums[4]!; ny = nums[5]!; }
-            else if (nums.length >= 7) { nx = nums[5]!; ny = nums[6]!; }
+            if (nums.length === 6) { nx = nums[4]! - 0.5; ny = nums[5]! - 0.5; }
+            else if (nums.length >= 7) { nx = nums[5]! - 0.5; ny = nums[6]! - 0.5; }
         }
         const radians = (angle * Math.PI) / 180, cos = Math.cos(radians), sin = Math.sin(radians);
         const map: WarpPlan["map"] = (x, y) => { const dx = x - nx, dy = y - ny; return [ox + (dx * cos + dy * sin) / scaleX, oy + (-dx * sin + dy * cos) / scaleY]; };
-        if (token !== "+distort") return result(map);
+        const derivatives = () => [cos / scaleX, sin / scaleX, -sin / scaleY, cos / scaleY] as const;
+        if (token !== "+distort") return { ...result(map), derivatives };
         // Transform pixel edges, then round outwards to include the best-fit border.
         const corners = [-0.5, w - 0.5].flatMap(x => [-0.5, h - 0.5].map(y => {
             const dx = (x - ox) * scaleX, dy = (y - oy) * scaleY;
@@ -2163,7 +2164,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         }));
         const x = Math.floor(Math.min(...corners.map(point => point[0]!))), y = Math.floor(Math.min(...corners.map(point => point[1]!)));
         const width = Math.ceil(Math.max(...corners.map(point => point[0]!))) - x + 1, height = Math.ceil(Math.max(...corners.map(point => point[1]!))) - y + 1;
-        return { ...result((px, py) => map(px + x, py + y), width, height), virtualCanvas: { width, height, x, y } };
+        return { ...result((px, py) => map(px + x, py + y), width, height), derivatives, virtualCanvas: { width, height, x, y } };
     }
     if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
         let coefficients: number[];
@@ -2193,7 +2194,13 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     }
     if (method === "barrel" && nums.length >= 3) {
         const a = nums[0] ?? 0, b = nums[1] ?? 0, c = nums[2] ?? 0, d = nums[3] ?? 1 - a - b - c, ox = nums[4] ?? cx, oy = nums[5] ?? cy, radius = Math.min(w, h) / 2;
-        return result((x, y) => { const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy), factor = a * r * r * r + b * r * r + c * r + d; return [ox + dx * factor * radius, oy + dy * factor * radius]; });
+        return { ...result((x, y) => { const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy), factor = a * r * r * r + b * r * r + c * r + d; return [ox + dx * factor * radius, oy + dy * factor * radius]; }),
+            derivatives(x, y) {
+                const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy);
+                const factor = ((a * r + b) * r + c) * r + d, gradient = r > 0 ? (3 * a * r * r + 2 * b * r + c) / r : 0;
+                return [factor + dx * dx * gradient, dx * dy * gradient, dx * dy * gradient, factor + dy * dy * gradient];
+            }
+        };
     }
     return;
 }

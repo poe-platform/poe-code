@@ -75,8 +75,8 @@ it.each([["-distort", "45"], ["+distort", "45"], ["+distort", "0"]])("samples de
 it.each([
     ["edge", [0, 0, 0, 255]], ["background", [255, 0, 0, 255]],
     ["transparent", [0, 0, 0, 0]], ["black", [0, 0, 0, 255]],
-    ["white", [255, 255, 255, 255]], ["gray", [128, 128, 128, 255]],
-    ["tile", [255, 255, 255, 255]], ["mirror", [0, 0, 0, 255]],
+    ["white", [255, 255, 255, 255]], ["gray", [132, 132, 132, 255]],
+    ["tile", [223, 223, 223, 255]], ["mirror", [0, 0, 0, 255]],
 ] as const)("honors virtual-pixel %s in both backends", async (method, expected) => {
     for (const retained of [false, true]) {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();

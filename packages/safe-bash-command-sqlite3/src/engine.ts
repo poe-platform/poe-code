@@ -5343,6 +5343,9 @@ export class SqliteDatabase {
     );
     const emptyCtx: Record<string, SqlValue> = {};
     const emptyGroup: Record<string, SqlValue>[] = [];
+    const distinctCollations = distinct
+      ? selectTargets.map(target => this.expressionCollation(target.expr, groupedRows[0]?.representative ?? {}).toUpperCase())
+      : [];
 
     // Build projection rows + augmented sort contexts
     let projected: {
@@ -5408,7 +5411,18 @@ export class SqliteDatabase {
     if (distinct) {
       const seen = new Set<string>();
       finalProjected = yield* stepFilter(projected, function* (p) { yield;
-        const k = serializeSqlJson(p.values, false);
+        const keys = yield* stepMap(p.values, function* (value, i) { yield;
+          if (typeof value !== "string" && !(value instanceof String)) return value;
+          const text = String(value);
+          if (distinctCollations[i] === "NOCASE") return foldAsciiCase(text);
+          if (distinctCollations[i] === "RTRIM") {
+            let end = text.length;
+            while (end > 0 && text[end - 1] === " ") end -= 1;
+            return text.slice(0, end);
+          }
+          return value;
+        }, this);
+        const k = serializeSqlJson(keys, false);
         if (seen.has(k)) {
           return false;
         }

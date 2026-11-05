@@ -1512,6 +1512,11 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                 case "mean":
                     next = (cur + vByte) / 2;
                     break;
+                case "rms":
+                case "rootmeansquare":
+                    // Evaluate squares Q16 values; only evaluate-sequence takes the root.
+                    next = cur * cur * 257 + vByte;
+                    break;
                 case "subtract":
                     next = cur - vByte;
                     break;
@@ -4575,7 +4580,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
         if (!["add", "addmodulus", "mean", "subtract", "multiply", "divide", "pow", "exp", "exponential", "log", "inverselog", "set", "min", "max",
             "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
-            "threshold", "thresholdblack", "thresholdwhite"].includes(operation)) {
+            "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };

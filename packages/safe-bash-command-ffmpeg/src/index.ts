@@ -1001,8 +1001,6 @@ async function applyVideoFilterChain(
         return out;
       }, signal);
     } else if (name === "drawbox") {
-      const bx = parseInt(named.x ?? positional[0] ?? "0", 10) || 0;
-      const by = parseInt(named.y ?? positional[1] ?? "0", 10) || 0;
       const bw = parseInt(named.w ?? named.width ?? positional[2] ?? "16", 10) || 16;
       const bh = parseInt(named.h ?? named.height ?? positional[3] ?? "16", 10) || 16;
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
@@ -1012,6 +1010,9 @@ async function applyVideoFilterChain(
       current = await mapWork(current, async (f) => {
   let work = 0;
 
+        const variables = { iw: f.width, ih: f.height, in_w: f.width, in_h: f.height };
+        const bx = Math.trunc(parseFilterExpression(named.x ?? positional[0] ?? "0", "drawbox", variables));
+        const by = Math.trunc(parseFilterExpression(named.y ?? positional[1] ?? "0", "drawbox", variables));
         const nextData = new Uint8Array(f.data);
         for (let y = Math.max(0, by); y < Math.min(f.height, by + bh); y++) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }

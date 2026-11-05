@@ -274,6 +274,49 @@ describe("transpose directions", () => {
   }
 });
 
+describe("drawbox position expressions", () => {
+  for (const options of [
+    "x=iw-2:y=ih-2:w=2:h=2:color=red:t=fill",
+    "in_w-2:in_h-2:2:2:red:fill",
+    "x=(iw-2)/2+1:y=ih/2:w=2:h=2:color=red:t=fill",
+    "x=2.9:y=2.1:w=2:h=2:color=red:t=fill"
+  ]) {
+    it(`places the box in the bottom-right corner for ${options}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=white:s=8x8:r=1:d=1",
+        "-vf", `scale=4:4,drawbox=${options}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const image = decodeImage(vfs.store.get("/out.png")!);
+      for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 4; x++) {
+          const offset = (y * 4 + x) * 4;
+          assert.deepEqual([...image.data.slice(offset, offset + 4)],
+            x >= 2 && y >= 2 ? [255, 0, 0, 255] : [255, 255, 255, 255], `pixel (${x},${y})`);
+        }
+      }
+    });
+  }
+
+  for (const expression of ["unknown", "1junk", "1/0", "(iw-2", "sin(0)"]) {
+    for (const axis of ["x", "y"]) {
+      it(`rejects ${axis}=${expression} without overwriting output`, async () => {
+        const vfs = createTestVfs({ "/out.png": "original" });
+        const original = vfs.store.get("/out.png");
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "lavfi", "-i", "color=c=white:s=4x4:r=1:d=1",
+          "-vf", `drawbox=${axis}=${expression}:w=2:h=2:t=fill`, "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("drawbox: invalid"), result.stderr);
+        assert.deepEqual(vfs.store.get("/out.png"), original);
+      });
+    }
+  }
+});
+
 describe("drawbox thickness", () => {
   for (const [options, thickness] of [
     ["x=2:y=2:w=12:h=12:color=red:t=1", 1],

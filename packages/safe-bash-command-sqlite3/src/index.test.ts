@@ -21,6 +21,21 @@ for (const fn of ["printf", "format"]) {
   }
 }
 
+for (const fn of ["printf", "format"]) {
+  test(`sqlite3 ${fn} formats pointers as unsigned 64-bit uppercase hexadecimal`, async () => {
+    // Expected output verified with native SQLite.
+    const values = ["255", "0", "-1", "-255", "4294967296",
+      "9223372036854775807", "-9223372036854775808", "NULL", "'255'", "255.9"];
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `SELECT ${values.map(value => `${fn}('%p', ${value})`).join(", ")};
+         SELECT ${fn}('%08p|%-4p|%p:%d', 255, 255, 255, 42);`]),
+      { code: 0, stderr: "", stdout:
+        "FF|0|FFFFFFFFFFFFFFFF|FFFFFFFFFFFFFF01|100000000|7FFFFFFFFFFFFFFF|8000000000000000|0|FF|FF\n000000FF|FF  |FF:42\n" }
+    );
+  });
+}
+
 for (const fn of ["json_each", "json_tree"]) {
   test(`sqlite3 ${fn} quotes special object keys in generated paths`, async () => {
     const keys = [

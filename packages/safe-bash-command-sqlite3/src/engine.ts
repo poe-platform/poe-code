@@ -1693,7 +1693,7 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%(-?\+?\s?0?\d*(?:\.\d+)?)([sdfeEgGxXcqQ%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%(-?\+?\s?0?\d*(?:\.\d+)?)([sdfeEgGxXpcqQ%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
@@ -1714,6 +1714,10 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
       out = (Math.trunc(toSqlNumber(raw)) >>> 0).toString(16);
     } else if (spec === "X") {
       out = (Math.trunc(toSqlNumber(raw)) >>> 0).toString(16).toUpperCase();
+    } else if (spec === "p") {
+      const integer = integerPrefix(raw);
+      const clamped = integer < INT64_MIN ? INT64_MIN : integer > INT64_MAX ? INT64_MAX : integer;
+      out = BigInt.asUintN(64, clamped).toString(16).toUpperCase();
     } else if (spec === "f") {
       const precMatch = /\.(\d+)/.exec(flags);
       const prec = precMatch ? Number(precMatch[1]) : 6;

@@ -112,7 +112,7 @@ async function main(): Promise<void> {
           ts.shell.use(gitCommands());
           rust.use(gitCommands());
         }
-        if (mutation) await resetEffects(cwd);
+        if (mutation) await resetEffects(cwd, undefined, cmd);
         const expected = await runLinuxCommand(cmd, argv, input, cwd);
         if (mutation) assert.equal(expected[0], 0, expected[2].toString());
         const effects: Awaited<ReturnType<typeof observeMutation>> | undefined = mutation ? await observeMutation(cwd, cmd, expected) : undefined;
@@ -122,7 +122,7 @@ async function main(): Promise<void> {
           for (let offset = 0; offset < 3; offset++) {
             const engine = (round + offset) % 3;
             const view = engine === 1 ? ts.fs : engine === 2 ? rust.fs : undefined;
-            if (mutation) await resetEffects(cwd, view);
+            if (mutation) await resetEffects(cwd, view, cmd);
             const start = performance.now();
             const result = engine === 0
               ? await runLinuxCommand(cmd, argv, input, cwd)

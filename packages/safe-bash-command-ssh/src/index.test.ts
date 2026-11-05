@@ -178,6 +178,21 @@ test("SSHSIG authorization checks identity, namespace, key and comment lines", a
   assert.notEqual((await runCmd(cmd, fs, ["-Y", "find-principals", "-f", "/allowed", "-s", "/message.sig"])).exitCode, 0);
 });
 
+test("ssh-keygen preserves a prior backup when the filesystem refuses a hard link", async t => {
+  const fs = createMemoryFileSystem();
+  const original = new TextEncoder().encode("host ssh-ed25519 key\n");
+  const prior = new TextEncoder().encode("previous backup");
+  await fs.writeFile("/hosts", original);
+  await fs.writeFile("/hosts.old", prior);
+  t.mock.method(fs, "link", async () => { throw new Error("hard links unavailable"); });
+  const result = await runCmd(createSshKeygenCommand(), fs, ["-R", "host", "-f", "hosts"]);
+  assert.notEqual(result.exitCode, 0);
+  assert.equal(result.stdout, "");
+  assert.deepEqual(await fs.readFile("/hosts"), original);
+  assert.deepEqual(await fs.readFile("/hosts.old"), prior);
+  assert.deepEqual((await fs.readdir("/")).map(e => e.name).sort(), ["hosts", "hosts.old"]);
+});
+
 test("ssh-keygen bounds every file input without modifying oversized known_hosts", async () => {
   const fs = createMemoryFileSystem();
   const large = new Uint8Array(65).fill(65);

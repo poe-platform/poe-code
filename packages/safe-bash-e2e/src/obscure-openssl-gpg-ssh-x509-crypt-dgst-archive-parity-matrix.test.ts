@@ -482,7 +482,7 @@ describe("obscure openssl, gpg, ssh, ssh-keygen, x509, crypt, dgst, and archive 
         `);
         assert.equal(res.exitCode, 0, res.stderr);
         assert.match(res.stdout, /github\.com,192\.30\.255\.112 ssh-ed25519/);
-        assert.match(res.stdout, /# Host github\.com found: removed/);
+        assert.match(res.stdout, /# Host github\.com found: line 2/);
         assert.match(res.stdout, /MISSING_RC=1/);
         assert.match(res.stdout, /gitlab\.com ssh-ed25519/);
       },

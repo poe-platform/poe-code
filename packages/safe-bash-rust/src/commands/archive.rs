@@ -10595,6 +10595,33 @@ fn cmd_ssh(args: &[String]) -> BuiltinOutcome {
     ok_out(&format!("ssh:{user}@{destination}:{port} {}\n", remote_cmd.join(" ")))
 }
 
+fn known_host_match<'a>(line: &'a str, host_bytes: &[u8], host_lower: &[u8], only_matching: bool) -> Option<(bool, &'static str, &'a str, &'a str)> {
+    let mut words = line.split_ascii_whitespace();
+    let first = words.next()?;
+    let (marker, patterns) = match first {
+        "@revoked" => ("REVOKED", words.next()),
+        "@cert-authority" => ("CA", words.next()),
+        _ if first.starts_with(['@', '#']) => return only_matching.then_some((false, "", "", "")),
+        _ => ("", Some(first)),
+    };
+    let patterns = patterns?;
+    let matched = if patterns.starts_with('|') {
+        let (salt, mac) = patterns.strip_prefix("|1|")?.split_once('|')?;
+        if salt.len() != 28 { return None; }
+        let key = base64_decode(salt).ok()?;
+        if key.len() != 20 || ssh_b64_wrap(&key, 0) != salt { return None; }
+        ssh_b64_wrap(&openssl_hmac("sha1", &key, host_bytes), 0) == mac
+    } else { ssh_matches_patterns(host_lower, &crate::vfs::stream_string_to_bytes(patterns).to_ascii_lowercase()) };
+    if only_matching && !matched { return Some((false, marker, "", "")); }
+    let (kind, blob) = (words.next()?, words.next()?);
+    let base = kind.strip_suffix("-cert-v01@openssh.com").unwrap_or(kind);
+    if !(matches!(base, "ssh-ed25519" | "ssh-dss" | "ssh-rsa" | "rsa-sha2-256" | "rsa-sha2-512"
+        | "ecdsa-sha2-nistp256" | "ecdsa-sha2-nistp384" | "ecdsa-sha2-nistp521")
+        || matches!(kind, "sk-ssh-ed25519@openssh.com" | "sk-ssh-ed25519-cert-v01@openssh.com"
+            | "sk-ecdsa-sha2-nistp256@openssh.com" | "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com")) { return None; }
+    Some((matched, marker, kind, blob))
+}
+
 fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut file_arg: Option<String> = None;
     let mut comment = "user@safe-bash".to_string();
@@ -10603,8 +10630,9 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
     let mut derive_pub = false;
     let mut quiet = false;
     let mut show_fp = false;
-    let mut find_host: Option<String> = None;
-    let mut remove_host: Option<String> = None;
+    let mut host = None;
+    let mut finding = false;
+    let mut removing = false;
     let mut y_action: Option<String> = None;
     let mut namespace = "file".to_string();
     let mut namespace_provided = false;
@@ -10630,11 +10658,13 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
             "-l" => show_fp = true,
             "-F" if i + 1 < args.len() => {
                 i += 1;
-                find_host = Some(args[i].clone());
+                finding = true;
+                host = Some(&args[i]);
             }
             "-R" if i + 1 < args.len() => {
                 i += 1;
-                remove_host = Some(args[i].clone());
+                removing = true;
+                host = Some(&args[i]);
             }
             "-Y" if i + 1 < args.len() => {
                 i += 1;
@@ -10670,42 +10700,53 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
             .map_err(|_| format!("ENOENT: no such file or directory, readFile '{full}'"))
     };
 
-    if let Some(host) = find_host {
+    if let Some(host) = host {
         let file = file_arg.as_deref().unwrap_or("/home/user/.ssh/known_hosts");
-        let bytes = match fs.read_file(&resolve_ssh_path(cwd, file)) {
+        let path = match file.strip_prefix("~/") {
+            Some(rest) => format!("/home/user/{rest}"),
+            None => crate::vfs::path::absolute_operand(cwd, file),
+        };
+        let bytes = match fs.read_file(&path) {
+            Err(e) if removing && e.starts_with("EISDIR:") => Vec::new(),
             Ok(bytes) => bytes,
             Err(e) if e.starts_with("EISDIR:") => return err_out("", 1),
             Err(e) => return err_out(&format!("Cannot stat {file}: {}\r\n", super::coreutils::file_error_reason(&e)), 255),
         };
         let mut out = String::new();
-        let host_bytes = crate::vfs::stream_string_to_bytes(&host);
+        let host_bytes = crate::vfs::stream_string_to_bytes(host);
         let host_lower = host_bytes.to_ascii_lowercase();
         let locale = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()));
         let utf8 = locale.is_some_and(|s| s.to_ascii_lowercase().replace('-', "").contains("utf8"));
-        for (index, raw) in bytes.split(|&b| b == b'\n').enumerate() {
+        let mut kept = Vec::new();
+        let mut found = false;
+        let mut errors = String::new();
+        for (index, chunk) in bytes.split_inclusive(|&b| b == b'\n').enumerate() {
+            let raw = chunk.strip_suffix(b"\n").unwrap_or(chunk);
             let raw = raw.split(|&b| b == 0).next().unwrap_or_default();
             let line = crate::vfs::bytes_to_stream_string(raw);
-            let mut words = line.split_ascii_whitespace();
-            let Some(first) = words.next() else { continue; };
-            let (marker, patterns) = match first {
-                "@revoked" => ("REVOKED", words.next()),
-                "@cert-authority" => ("CA", words.next()),
-                _ if first.starts_with(['@', '#']) => continue,
-                _ => ("", Some(first)),
+            let before = kept.len();
+            if removing && !finding {
+                kept.extend_from_slice(raw);
+                kept.push(b'\n');
+            }
+            let content = line.trim_start_matches([' ', '\t']);
+            if content.is_empty() || content.starts_with('#') { continue; }
+            let Some((matched, marker, kind, blob)) = known_host_match(&line, &host_bytes, &host_lower, finding) else {
+                if removing && finding { out.push_str(&line); out.push('\n'); }
+                if removing { errors.push_str(&format!("{file}:{}: invalid line\r\n", index + 1)); }
+                continue;
             };
-            let (Some(patterns), Some(kind), Some(blob)) = (patterns, words.next(), words.next()) else { continue; };
-            let base = kind.strip_suffix("-cert-v01@openssh.com").unwrap_or(kind);
-            if !(matches!(base, "ssh-ed25519" | "ssh-dss" | "ssh-rsa" | "rsa-sha2-256" | "rsa-sha2-512"
-                | "ecdsa-sha2-nistp256" | "ecdsa-sha2-nistp384" | "ecdsa-sha2-nistp521")
-                || matches!(kind, "sk-ssh-ed25519@openssh.com" | "sk-ssh-ed25519-cert-v01@openssh.com"
-                    | "sk-ecdsa-sha2-nistp256@openssh.com" | "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com")) { continue; }
-            if patterns.starts_with('|') {
-                let Some((salt, mac)) = patterns.strip_prefix("|1|").and_then(|s| s.split_once('|')) else { continue; };
-                if salt.len() != 28 { continue; }
-                let Ok(key) = base64_decode(salt) else { continue; };
-                if key.len() != 20 || ssh_b64_wrap(&key, 0) != salt ||
-                    ssh_b64_wrap(&openssl_hmac("sha1", &key, &host_bytes), 0) != mac { continue; }
-            } else if !ssh_matches_patterns(&host_lower, &crate::vfs::stream_string_to_bytes(patterns).to_ascii_lowercase()) { continue; }
+            if !matched { continue; }
+            if removing {
+                if !marker.is_empty() {
+                    if finding { out.push_str(&line); out.push('\n'); }
+                    continue;
+                }
+                kept.truncate(before);
+                found = true;
+                if !quiet { out.push_str(&format!("# Host {host} found: line {}\n", index + 1)); }
+                continue;
+            }
             let record = if show_fp {
                 if kind != "ssh-ed25519" { continue; }
                 let Some((pk, _)) = parse_openssh_ed25519_pubkey(&format!("{kind} {blob}")) else { continue; };
@@ -10719,30 +10760,37 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
             out.push_str(&record);
             out.push('\n');
         }
-        return BuiltinOutcome { exit_code: i32::from(out.is_empty()), stdout: out, stderr: String::new() };
-    }
-
-    if let Some(host) = remove_host {
-        let kh_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/known_hosts"));
-        let kh_text = fs
-            .read_file(&kh_path)
-            .ok()
-            .map(|b| String::from_utf8_lossy(&b).to_string())
-            .unwrap_or_default();
-        let remaining: Vec<&str> = kh_text
-            .split('\n')
-            .filter(|l| {
-                let t = l.trim();
-                t.is_empty()
-                    || t.starts_with('#')
-                    || !t.split_whitespace()
-                        .next()
-                        .map(|h| h.split(',').any(|x| x == host))
-                        .unwrap_or(false)
-            })
-            .collect();
-        let _ = fs.write_file(&kh_path, format!("{}\n", remaining.join("\n")).as_bytes());
-        return ok_out(&format!("# Host {host} found: removed\n{kh_path} updated.\n"));
+        if !removing { return BuiltinOutcome { exit_code: i32::from(out.is_empty()), stdout: out, stderr: String::new() }; }
+        if !errors.is_empty() {
+            errors.push_str(&format!("{file} is not a valid known_hosts file.\r\n"));
+            if !finding { errors.push_str("Not replacing existing known_hosts file because of errors\r\n"); }
+            return BuiltinOutcome { exit_code: 1, stdout: out, stderr: errors };
+        }
+        if !found { return BuiltinOutcome { exit_code: i32::from(finding), stdout: out, stderr: format!("Host {host} not found in {file}\r\n") }; }
+        if finding { return ok_out(&out); }
+        let replace = || -> Result<(), String> {
+            let mode = fs.stat(&path)?.mode & 0o777;
+            let mut nonce = [0; 16];
+            crate::vfs::memory::fill_random(&mut nonce)?;
+            let temp = format!("{path}.{}", hex_encode(&nonce));
+            fs.create_file(&temp, &kept, 0o600)?;
+            let backup = format!("{path}.old");
+            let result = (|| {
+                fs.chmod(&temp, mode)?;
+                let staged = format!("{temp}.old");
+                fs.hard_link(&path, &staged)?;
+                let publish = fs.rename(&staged, &backup, false);
+                // A rename onto another link to the same inode leaves both names in place.
+                let _ = fs.remove_one(&staged, false);
+                publish.map_err(|e| format!("unlink {file}.old: {}", super::coreutils::file_error_reason(&e)))?;
+                fs.rename(&temp, &path, false)
+            })();
+            if result.is_err() { let _ = fs.remove_one(&temp, false); }
+            result
+        };
+        if let Err(e) = replace() { return err_out(&format!("{e}\r\n"), 255); }
+        out.push_str(&format!("{file} updated.\nOriginal contents retained as {file}.old\n"));
+        return ok_out(&out);
     }
 
     if let Some(action) = y_action {

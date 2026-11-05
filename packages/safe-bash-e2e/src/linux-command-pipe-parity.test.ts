@@ -114,18 +114,96 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
     for (const { cmd, args, script, input } of linuxMutations) {
       const dir = cwd;
       await t.test(script, async () => {
-        await resetEffects(dir);
+        await resetEffects(dir, undefined, cmd);
         const reference = await runLinuxCommand(cmd, args, input, dir);
         assert.equal(reference[0], 0, reference[2].toString());
         const expected = await observeMutation(dir, cmd, reference);
         for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
-          await resetEffects(dir, view);
+          await resetEffects(dir, view, cmd);
           const result = await shell.exec(script, { stdin: input });
           const observed = await observeMutation(dir, cmd, [result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], view);
           assert.deepEqual(observed, expected, shell.constructor.name);
         }
       });
     }
+    await t.test("ssh-keygen preserves linked originals and replaces an existing backup", async () => {
+      for (const symbolic of [false, true]) {
+        const file = "effects/alias";
+        const args = ["-q", "-R", "host", "-f", file];
+        await resetEffects(cwd!, undefined, "ssh-keygen");
+        if (symbolic) await symlink("source", cwd + "/" + file);
+        else await link(cwd + "/effects/source", cwd + "/" + file);
+        await writeFile(cwd + "/" + file + ".old", "prior backup");
+        const reference = await runLinuxCommand("ssh-keygen", args, "", cwd);
+        assert.equal(reference[0], 0, reference[2].toString());
+        const expected = await readEffects(cwd!, "ssh-keygen");
+        for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+          await resetEffects(cwd!, view, "ssh-keygen");
+          const path = "/workspace/" + file;
+          if (symbolic) await view.symlink!("source", path);
+          else await view.link!("/workspace/effects/source", path);
+          await view.writeFile(path + ".old", Buffer.from("prior backup"));
+          const result = await shell.exec("ssh-keygen " + args.join(" "));
+          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference);
+          assert.deepEqual(await readEffects(cwd!, "ssh-keygen", view), expected);
+          if (!symbolic) assert.equal((await view.stat(path + ".old")).ino, (await view.stat("/workspace/effects/source")).ino);
+        }
+      }
+    });
+    await t.test("ssh-keygen combining lookup and removal selects the last host and never writes", async () => {
+      const file = "effects/source";
+      for (const options of ["-R absent -F host", "-F absent -R host", "-R host -F absent", "-q -F absent -R host", "-R unused -F broken"]) {
+        const args = [...options.split(" "), "-f", file];
+        await resetEffects(cwd!, undefined, "ssh-keygen");
+        const malformed = Buffer.from("broken junk x\nunrelated junk y\n");
+        if (options.endsWith("broken")) await writeFile(cwd + "/" + file, malformed);
+        const reference = await runLinuxCommand("ssh-keygen", args, "", cwd);
+        const expected = await readEffects(cwd!, "ssh-keygen");
+        for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+          await resetEffects(cwd!, view, "ssh-keygen");
+          if (options.endsWith("broken")) await view.writeFile("/workspace/" + file, malformed);
+          const result = await shell.exec("ssh-keygen " + args.join(" "));
+          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference);
+          assert.deepEqual(await readEffects(cwd!, "ssh-keygen", view), expected);
+        }
+      }
+    });
+    await t.test("ssh-keygen leaves the original intact if the backup is a directory", async () => {
+      const file = "effects/source";
+      const args = ["-R", "host", "-f", file];
+      await resetEffects(cwd!, undefined, "ssh-keygen");
+      await mkdir(cwd + "/" + file + ".old", { mode: 0o700 });
+      const before = await readEffects(cwd!, "ssh-keygen");
+      const reference = await runLinuxCommand("ssh-keygen", args, "", cwd);
+      assert.equal(reference[0], 255);
+      assert.deepEqual((await readEffects(cwd!, "ssh-keygen")).filter(e => before.some(b => b.name === e.name)), before);
+      for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+        await resetEffects(cwd!, view, "ssh-keygen");
+        await view.mkdir("/workspace/" + file + ".old", { mode: 0o700 });
+        const result = await shell.exec("ssh-keygen " + args.join(" "));
+        assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference);
+        assert.deepEqual(await readEffects(cwd!, "ssh-keygen", view), before);
+      }
+    });
+    await t.test("ssh-keygen refuses to replace invalid known_hosts or create a missing file", async () => {
+      for (const name of ["broken", "missing"]) {
+        const original = Buffer.from("host ssh-ed25519 x\nmalformed\nhost ssh-rsa y\n");
+        const file = "effects/" + name;
+        await resetEffects(cwd!);
+        if (name === "broken") await writeFile(cwd + "/" + file, original);
+        const args = ["-R", "host", "-f", file];
+        const reference = await runLinuxCommand("ssh-keygen", args, "", cwd);
+        assert.notEqual(reference[0], 0);
+        const expected = await readEffects(cwd!, "ssh-keygen");
+        for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+          await resetEffects(cwd!, view);
+          if (name === "broken") await view.writeFile("/workspace/" + file, original);
+          const result = await shell.exec("ssh-keygen " + args.join(" "));
+          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference);
+          assert.deepEqual(await readEffects(cwd!, "ssh-keygen", view), expected);
+        }
+      }
+    });
     await t.test("split preserves a UTF-8 byte order mark at the start of the selected chunk", async () => {
       const input = Buffer.from("abcd\uFEFFx");
       const args = ["-n", "2/2"];

@@ -183,6 +183,8 @@ export const linuxMutations = ([
   ["mktemp", "--suffix=.data", "effects/slot.XXXXXX"],
   ["mktemp", "-d", "--suffix=.data", "effects/slot.XXXXXX"],
   ["csplit", "-f", "effects/x", "effects/source", "/middle/"],
+  ["ssh-keygen", "-R", "host", "-f", "effects/source"],
+  ["ssh-keygen", "-R", "absent", "-f", "effects/source"],
   ["install", "-m", "0751", "effects/source", "effects/installed"],
   ["cp", "-p", "effects/source", "effects/copy"], ["mv", "effects/source", "effects/moved"],
   ["chmod", "0710", "effects/source"], ["truncate", "-s", "+4", "effects/source"],
@@ -193,9 +195,9 @@ export const linuxMutations = ([
 
 
 
-export async function resetEffects(cwd: string, view?: FileSystem | WasmFileSystem) {
+export async function resetEffects(cwd: string, view?: FileSystem | WasmFileSystem, command?: string) {
   const dir = (view ? "/workspace" : cwd) + "/effects";
-  const bytes = Buffer.from("ff00610a6d6964646c650a80", "hex");
+  const bytes = command === "ssh-keygen" ? Buffer.from("# keep\nHost,alias ssh-ed25519 a\n@revoked host ssh-rsa b\n@cert-authority host ssh-rsa c\n|1|AAECAwQFBgcICQoLDA0ODxAREhM=|6tbkAfZDulNpJ/cQ7aCK0Bbfp+g= ssh-rsa d\nend ssh-rsa e") : Buffer.from("ff00610a6d6964646c650a80", "hex");
   if (view) {
     await view.rm(dir, { recursive: true, force: true });
     await view.mkdir(dir + "/empty", { recursive: true });
@@ -222,7 +224,7 @@ export async function readEffects(cwd: string, cmd: string, view?: FileSystem | 
       : type === "symlink" ? (view ? await view.readlink!(path) : await readlink(path))
       : type === "directory" ? (view ? (await view.readdir(path)).map(e => e.name) : await readdir(path)).sort() : undefined;
     // Only compare permissions or times the command explicitly sets or preserves, independent of host umask.
-    const mode = (cmd === "cp" || cmd === "mv" || cmd === "chmod" || cmd === "install" || cmd === "mkdir" || cmd === "mktemp") && name !== "empty" ? stat.mode & 0o7777 : undefined;
+    const mode = ((cmd === "ssh-keygen" && name.startsWith("source")) || cmd === "cp" || cmd === "mv" || cmd === "chmod" || cmd === "install" || cmd === "mkdir" || cmd === "mktemp") && name !== "empty" ? stat.mode & 0o7777 : undefined;
     const mtime = ["cp", "mv", "touch"].includes(cmd) && type === "file" ? stat.mtimeMs : undefined;
     return { name, type, contents, mode, mtime };
   }));

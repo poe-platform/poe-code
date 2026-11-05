@@ -326,13 +326,12 @@ export function evalSyncSshKeygen(
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
   writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
-  cwd = "/",
+  ignoredCwd = "/",
 ): string | undefined {
   try {
     let fileArg: string | undefined;
     let derivePub = false;
     let showFingerprint = false;
-    let removeHost: string | undefined;
     let yAction: string | undefined;
     let namespace = "file";
     let signerIdentity: string | undefined;
@@ -347,8 +346,7 @@ export function evalSyncSshKeygen(
       else if (a === "-t" && i + 1 < opArgs.length) i++;
       else if (a === "-y") derivePub = true;
       else if (a === "-l") showFingerprint = true;
-      else if (a === "-F") return undefined;
-      else if (a === "-R" && i + 1 < opArgs.length) removeHost = opArgs[++i];
+      else if (a === "-F" || a === "-R") return undefined;
       else if (a === "-Y" && i + 1 < opArgs.length) yAction = opArgs[++i];
       else if (a === "-n" && i + 1 < opArgs.length) namespace = opArgs[++i]!;
       else if (a === "-I" && i + 1 < opArgs.length) signerIdentity = opArgs[++i];
@@ -356,21 +354,6 @@ export function evalSyncSshKeygen(
       else if (a === "-q") continue;
       else if (!a.startsWith("-")) positionalFiles.push(a);
       else return undefined;
-    }
-
-    if (removeHost !== undefined) {
-      if (!writeFileSync) return undefined;
-      const khRaw = fileArg ?? "/home/user/.ssh/known_hosts";
-      if (!khRaw || khRaw.endsWith("/") || khRaw.endsWith("/.") || khRaw.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(khRaw)) return undefined;
-      const khPath = khRaw.startsWith("/") ? khRaw : (cwd === "/" ? "/" + khRaw : cwd + "/" + khRaw);
-      const khBytes = readFileSync?.(khRaw) ?? new Uint8Array(0);
-      const khText = syncSshDecoder.decode(khBytes);
-      const remaining = khText
-        .split("\n")
-        .filter(l => l.trim().length === 0 || l.startsWith("#") || !l.split(/\s+/)[0]?.split(",").includes(removeHost!));
-      const outBytes = syncSshEncoder.encode(`${remaining.join("\n")}\n`);
-      if (!writeFileSync(khRaw, outBytes)) return undefined;
-      return `# Host ${removeHost} found: removed\n${khPath} updated.\n`;
     }
 
     if (yAction !== undefined) {

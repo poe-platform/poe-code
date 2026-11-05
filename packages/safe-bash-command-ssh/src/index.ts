@@ -263,6 +263,29 @@ function fingerprintLabel(bytes: Uint8Array, utf8: boolean): string {
   return label;
 }
 
+const asciiFold = (s: string) => s.replace(/[A-Z]/g, c => c.toLowerCase());
+
+async function knownHostMatch(text: string, query: Uint8Array<ArrayBuffer>, host: string, onlyMatching: boolean) {
+  const fields = /^[ \t]*(?:(@[^ \t]+)[ \t]+)?([^ \t]+)(?:[ \t]+([^ \t]+)[ \t]+([^ \t\r]+)(?:[ \t]+([\s\S]*))?)?/u.exec(text);
+  if (!fields) return undefined;
+  const [, marker, hosts, type] = fields;
+  if (marker && marker !== "@cert-authority" && marker !== "@revoked") return onlyMatching ? false : undefined;
+  let matched: boolean;
+  if (hosts!.startsWith("|")) {
+    const parts = hosts!.split("|");
+    if (parts.length !== 4 || parts[1] !== "1" || parts[2]!.length !== 28) return undefined;
+    const salt = base64ToBytes(parts[2]!);
+    if (salt.length !== 20 || bytesToBase64(salt) !== parts[2]) return undefined;
+    const hmac = await crypto.subtle.importKey("raw", Uint8Array.from(salt), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+    const digest = await crypto.subtle.sign("HMAC", hmac, query);
+    matched = parts[3] === bytesToBase64(new Uint8Array(digest));
+  } else matched = matchesPatterns(host, asciiFold(hosts!));
+  if (!matched && onlyMatching) return false;
+  if (!type) return undefined;
+  if (!/^(?:(?:ssh-(?:rsa|ed25519|dss)|rsa-sha2-(?:256|512)|ecdsa-sha2-nistp(?:256|384|521))(?:-cert-v01@openssh\.com)?|sk-(?:ssh-ed25519|ecdsa-sha2-nistp256)(?:-cert-v01)?@openssh\.com)$/u.test(type)) return undefined;
+  return matched && fields;
+}
+
 function matchesPatterns(value: string, patterns: string): boolean {
   let matched = false;
   for (const pattern of patterns.split(",")) {
@@ -399,7 +422,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
       let encrypt = false;
       let keyType = "ed25519";
       let findHost: Uint8Array<ArrayBuffer> | undefined;
-      let removeHost: string | undefined;
+      let removing = false, finding = false;
       let yAction: string | undefined;
       let namespace = "file";
       let namespaceProvided = false;
@@ -416,8 +439,8 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         else if (a === "-t" && i + 1 < args.length) keyType = args[++i]!;
         else if (a === "-y") derivePub = true;
         else if (a === "-l") showFingerprint = true;
-        else if (a === "-F" && i + 1 < args.length) findHost = Uint8Array.from(getCommandArguments(context).bytes(++i)!);
-        else if (a === "-R" && i + 1 < args.length) removeHost = args[++i];
+        else if (a === "-F" && i + 1 < args.length) { finding = true; findHost = Uint8Array.from(getCommandArguments(context).bytes(++i)!); }
+        else if (a === "-R" && i + 1 < args.length) { removing = true; findHost = Uint8Array.from(getCommandArguments(context).bytes(++i)!); }
         else if (a === "-Y" && i + 1 < args.length) yAction = args[++i];
         else if (a === "-n" && i + 1 < args.length) { namespace = args[++i]!; namespaceProvided = true; }
         else if (a === "-I" && i + 1 < args.length) signerIdentity = args[++i];
@@ -433,21 +456,34 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
       try {
         if (findHost !== undefined) {
           const file = fileArg ?? "/home/user/.ssh/known_hosts";
+          const path = !file || file.startsWith("/") ? file : file.startsWith("~/") ? "/home/user/" + file.slice(2) : context.cwd.replace(/\/$/, "") + "/" + file;
           let bytes: Uint8Array;
-          try { bytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, file), maxBytes); }
+          try { bytes = await readLimitedFile(context, path, maxBytes); }
           catch (error) {
             context.signal.throwIfAborted();
             if (!(error instanceof FsError)) throw error;
-            if (error.code === "EISDIR") return { exitCode: 1 };
-            if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error;
-            await writeText(context.stderr, `Cannot stat ${file}: ${error.code === "ENOENT" ? "No such file or directory" : "Not a directory"}\r\n`);
-            return { exitCode: 255 };
+            if (error.code === "EISDIR") {
+              if (!removing) return { exitCode: 1 };
+              bytes = new Uint8Array();
+            } else {
+              if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error;
+              await writeText(context.stderr, `Cannot stat ${file}: ${error.code === "ENOENT" ? "No such file or directory" : "Not a directory"}\r\n`);
+              return { exitCode: 255 };
+            }
           }
           const byteText = new TextDecoder("latin1");
-          const asciiFold = (s: string) => s.replace(/[A-Z]/g, c => c.toLowerCase());
           const host = asciiFold(byteText.decode(findHost));
           const utf8 = /utf-?8/i.test(context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C");
-          let found = false;
+          let found = false, invalid = false, retained = 0;
+          const remaining = removing && !finding ? new Uint8Array(bytes.length + 1) : undefined;
+          const removedLines: number[] = [];
+          const printRemovedLines = async () => {
+            for (const number of removedLines) {
+              await writeText(context.stdout, "# Host ");
+              await context.stdout.write(findHost);
+              await writeText(context.stdout, ` found: line ${number}\n`);
+            }
+          };
           for (let start = 0, number = 1; start < bytes.length; number++) {
             context.signal.throwIfAborted();
             const lf = bytes.indexOf(10, start);
@@ -456,32 +492,36 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
             const nul = line.indexOf(0);
             if (nul >= 0) line = line.subarray(0, nul);
             start = end + 1;
-            const fields = /^[ \t]*(?:(@[^ \t]+)[ \t]+)?([^ \t#]+)[ \t]+([^ \t]+)[ \t]+([^ \t\r]+)(?:[ \t]+([\s\S]*))?/u.exec(byteText.decode(line));
+            const before = retained;
+            if (remaining) { remaining.set(line, retained); retained += line.length; remaining[retained++] = 10; }
+            const text = byteText.decode(line);
+            if (/^[ \t]*(?:#|$)/u.test(text)) continue;
+            const fields = await knownHostMatch(text, findHost, host, finding);
+            if (fields === undefined && removing) {
+              if (finding) { await context.stdout.write(line); await writeText(context.stdout, "\n"); }
+              invalid = true;
+              await writeText(context.stderr, `${file}:${number}: invalid line\r\n`);
+            }
             if (!fields) continue;
-            const [, marker, hosts, type, key, comment] = fields;
-            if (marker && marker !== "@cert-authority" && marker !== "@revoked") continue;
-            if (!/^(?:(?:ssh-(?:rsa|ed25519|dss)|rsa-sha2-(?:256|512)|ecdsa-sha2-nistp(?:256|384|521))(?:-cert-v01@openssh\.com)?|sk-(?:ssh-ed25519|ecdsa-sha2-nistp256)(?:-cert-v01)?@openssh\.com)$/u.test(type!)) continue;
-            if (hosts!.startsWith("|")) {
-              const parts = hosts!.split("|");
-              if (parts.length !== 4 || parts[1] !== "1" || parts[2]!.length !== 28) continue;
-              const salt = base64ToBytes(parts[2]!);
-              if (salt.length !== 20 || bytesToBase64(salt) !== parts[2]) continue;
-              const hmac = await crypto.subtle.importKey("raw", Uint8Array.from(salt), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
-              const digest = await crypto.subtle.sign("HMAC", hmac, findHost);
-              if (parts[3] !== bytesToBase64(new Uint8Array(digest))) continue;
-            } else if (!matchesPatterns(host, asciiFold(hosts!))) continue;
+            const [, marker, , type, key, comment] = fields;
+            if (removing && marker) {
+              if (finding) { await context.stdout.write(line); await writeText(context.stdout, "\n"); }
+              continue;
+            }
             let fingerprint: string | undefined;
-            if (showFingerprint) {
+            if (!removing && showFingerprint) {
               const parsed = type === "ssh-ed25519" && parseOpenSshEd25519PublicKey(type + " " + key);
               if (!parsed) continue;
               fingerprint = await computeFingerprintSha256(parsed.pubKey);
             }
-            if (!quiet) {
+            if (!quiet && remaining) removedLines.push(number);
+            if (!quiet && !remaining) {
               await writeText(context.stdout, "# Host ");
               await context.stdout.write(findHost);
-              await writeText(context.stdout, ` found: line ${number} ${marker === "@revoked" ? "REVOKED" : marker ? "CA" : ""}\n`);
+              await writeText(context.stdout, ` found: line ${number}${removing ? "" : " "}${marker === "@revoked" ? "REVOKED" : marker ? "CA" : ""}\n`);
             }
-            if (fingerprint) {
+            if (removing) retained = before;
+            else if (fingerprint) {
               const label = comment ? " " + fingerprintLabel(line.subarray(line.length - comment.length), utf8) : "";
               await writeText(context.stdout, `${fingerprintLabel(findHost, utf8)} ED25519 ${fingerprint}${label}\n`);
             } else {
@@ -490,21 +530,46 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
             }
             found = true;
           }
-          return { exitCode: found ? 0 : 1 };
-        }
-
-        if (removeHost !== undefined) {
-          const khPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/known_hosts");
-          const khText = textDecoder.decode(await readLimitedFile(context, khPath, maxBytes).catch(error => {
-            if (error instanceof FsError && error.code === "ENOENT") return new Uint8Array(0);
-            throw error;
-          }));
-          const remaining = khText
-            .split("\n")
-            .filter(l => l.trim().length === 0 || l.startsWith("#") || !l.split(/\s+/)[0]?.split(",").includes(removeHost!));
-          const outBytes = textEncoder.encode(`${remaining.join("\n")}\n`);
-          await writeFileOutput(context, outBytes, data => context.fs.writeFile(khPath, data, { signal: context.signal }));
-          await writeText(context.stdout, `# Host ${removeHost} found: removed\n${khPath} updated.\n`);
+          if (!removing) return { exitCode: found ? 0 : 1 };
+          if (invalid) {
+            await printRemovedLines();
+            await writeText(context.stderr, `${file} is not a valid known_hosts file.\r\n${finding ? "" : "Not replacing existing known_hosts file because of errors\r\n"}`);
+            return { exitCode: 1 };
+          }
+          if (!found) {
+            await writeText(context.stderr, "Host ");
+            await context.stderr.write(findHost);
+            await writeText(context.stderr, ` not found in ${file}\r\n`);
+            return { exitCode: finding ? 1 : 0 };
+          }
+          if (!remaining) return { exitCode: 0 };
+          const fs = context.fs, io = { signal: context.signal };
+          const mode = (await fs.stat(path, io)).mode & 0o777;
+          const temp = path + "." + crypto.randomUUID();
+          let owned = false, linked = false;
+          try {
+            await writeFileOutput(context, remaining.subarray(0, retained), async data => {
+              await fs.writeFile(temp, data, { ...io, mode: 0o600, flag: "wx" });
+              owned = true;
+            });
+            if (!fs.chmod || !fs.link) throw new PublicDiagnostic("known_hosts replacement requires chmod and link");
+            await fs.chmod(temp, mode, io);
+            await fs.link(path, temp + ".old", io);
+            linked = true;
+            try { await fs.rename(temp + ".old", path + ".old", io); }
+            catch (error) {
+              if (!(error instanceof FsError && error.code === "EISDIR")) throw error;
+              await writeText(context.stderr, `unlink ${file}.old: Is a directory\r\n`);
+              return { exitCode: 255 };
+            }
+            await fs.rename(temp, path, io);
+            owned = false;
+          } finally {
+            if (linked) await fs.rm(temp + ".old", { force: true });
+            if (owned) await fs.rm(temp, { force: true });
+          }
+          await printRemovedLines();
+          await writeText(context.stdout, `${file} updated.\nOriginal contents retained as ${file}.old\n`);
           return { exitCode: 0 };
         }
 

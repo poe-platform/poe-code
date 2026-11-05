@@ -477,6 +477,7 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
       const feet: Row[] = [];
       const bodies: TableBody[] = [];
       let width = 0;
+      let complexCells = false;
       let caption: Block[] = [];
       let inferHead = !node.childNodes.some(child => element(child) && child.tagName === "thead");
       async function rows(nodes: readonly H.ChildNode[], leadingHead = false): Promise<Row[]> {
@@ -502,12 +503,14 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
                 for (let i = 0; i < c; i++)
                   occupied[column + i] = Math.max(occupied[column + i] ?? 0, r);
                 column += c;
+                const content = await flow(cell.childNodes);
+                if (content.length > 1 || content.some(block => block.t !== "Plain" && block.t !== "Para")) complexCells = true;
                 cells.push([
                   attr(cell, ["rowspan", "colspan"]),
                   "AlignDefault",
                   r,
                   c,
-                  await flow(cell.childNodes)
+                  content
                 ]);
               }
             width = Math.max(width, column, occupied.length);
@@ -540,6 +543,7 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
           column++;
         }
       }
+      if (!column && complexCells) for (let i = 0; i < width; i++) specs[i] = ["AlignDefault", {t: "ColWidth", c: 1 / width}];
       return {
         t: "Table",
         c: [attr(node), [null, caption], specs, [empty, heads], bodies, [empty, feet]]

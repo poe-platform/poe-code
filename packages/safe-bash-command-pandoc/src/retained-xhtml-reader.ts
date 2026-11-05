@@ -244,6 +244,7 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
   async function table(p: number, attrs: RtfValue) {
     const heads = await ast.array(), feet = await ast.array(), bodies = await ast.array(); let width = 0, caption = await ast.array();
     let inferHead = true;
+    let complexCells = false;
     for await (const child of children(p)) if (names[(await get(child, F.Count))[F.Tag]!] === "thead") inferHead = false;
     const rows = async (parent: number, leadingHead = false) => {
       const result = await ast.array(), occupied = new IntegerTable(storage, 64); let columns = 0;
@@ -258,7 +259,9 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
           ctx.bound("tableCells", column + cols); ctx.charge("references", cols);
           for (let i = 0; i < cols; i++) await occupied.set(BigInt(column + i), BigInt(Math.max(rows, Number(await occupied.get(BigInt(column + i)) ?? 0n))));
           columns = Math.max(columns, column + cols);
-          column += cols; await ast.push(cells, await ast.value([await attributes(raw, tag, ["rowspan", "colspan"]), "AlignDefault", rows, cols, await childFlow(cell)]));
+          const content = await childFlow(cell), count = await ast.count(content);
+          if (count > 1 || count === 1 && !["Plain", "Para"].includes((await ast.name((await ast.at(content, 0))!))!)) complexCells = true;
+          column += cols; await ast.push(cells, await ast.value([await attributes(raw, tag, ["rowspan", "colspan"]), "AlignDefault", rows, cols, content]));
         }
         width = Math.max(width, column, columns); for (let column = 0; column < columns; column++) await occupied.set(BigInt(column), BigInt(Math.max(0, Number(await occupied.get(BigInt(column)) ?? 0n) - 1)));
         await ast.push(header && await ast.count(cells) ? heads : result, await ast.value([await attributes(value(row[F.Attributes]!), "tr"), cells]));
@@ -277,7 +280,8 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
         await ast.push(specs, await ast.value(["AlignDefault", columnWidth === undefined ? await ast.tag("ColWidthDefault") : await ast.tag("ColWidth", await ast.value(columnWidth))]));
       }
     }
-    while (await ast.count(specs) < width) await ast.push(specs, await ast.value(["AlignDefault", await ast.tag("ColWidthDefault")]));
+    const equalWidths = complexCells && !await ast.count(specs);
+    while (await ast.count(specs) < width) await ast.push(specs, await ast.value(["AlignDefault", equalWidths ? await ast.tag("ColWidth", await ast.value(1 / width)) : await ast.tag("ColWidthDefault")]));
     return ast.tag("Table", await ast.value([attrs, [null, caption], specs, [empty, heads], bodies, [empty, feet]]));
   }
   const result = await childFlow(body), identifiers = new BackedTextSet(storage, ast.text);

@@ -175,7 +175,7 @@ describe("obscure df, cal, ncal, whoami, egrep, fgrep, rgrep, less, more, and sy
         df --output=file,source,fstype,target /tmp/sub/a.txt /missing/file /var/log/b.txt /proc
       `);
       assert.equal(r.exitCode, 1);
-      assert.equal(r.stderr, "df: '/missing/file': No such file or directory\n");
+      assert.equal(r.stderr, "df: /missing/file: No such file or directory\n");
       const rows = r.stdout
         .trim()
         .split("\n")

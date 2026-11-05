@@ -93,7 +93,7 @@ export function unicodeLocale(context: Pick<CommandContext, "env">): boolean {
   throw new FmtError('PROFILE', 'Unavailable fmt byte/locale profile');
 }
 
-export function quote(bytes: Uint8Array, shell: boolean, unicode = false): string {
+export function quote(bytes: Uint8Array, shell: boolean | "filename", unicode = false): string {
   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   const units: { text: string; bytes: Uint8Array; valid: boolean }[] = [];
   for (let offset = 0; offset < bytes.length;) {
@@ -125,6 +125,11 @@ export function quote(bytes: Uint8Array, shell: boolean, unicode = false): strin
     }
     return false;
   };
+  if (shell === "filename" && units.length && bytes[0] !== 35 && bytes[0] !== 126
+    && !(bytes.length === 1 && (bytes[0] === 123 || bytes[0] === 125))
+    && units.every(unit => printable(unit) && !" !\"'$&()*:;<=>?[\\^`|".includes(unit.text))) {
+    return units.map(unit => unit.text).join("");
+  }
   if (shell && bytes.includes(39) && units.every((unit, index) =>
     printable(unit) && !'!"$&()*;<=>?[^`|\\{}'.includes(unit.text) && (index === 0 || !"#~".includes(unit.text))
   )) return `"${units.map(unit => unit.text).join("")}"`;

@@ -1,3 +1,4 @@
+import { isFsError } from "safe-bash-contracts/errors";
 import { quote } from "safe-bash-command-fmt/quoting";
 import {
   commandRuntimeIdentity,
@@ -210,6 +211,7 @@ async function computeVfsUsage(
 export const dfExecutorOptions = new WeakMap<CommandDefinition["execute"], DfCommandsOptions>();
 
 export interface SyncDfVfsNode {
+  readonly path?: string;
   readonly type: "file" | "directory" | "symlink";
   readonly size: number;
   readonly children?: ReadonlyArray<{ readonly name: string; readonly type: "file" | "directory" | "symlink"; readonly size: number }>;
@@ -390,9 +392,14 @@ export function evalSyncDf(
   if (operands.length > 0) {
     for (const op of operands) {
       if ((op.length > 1 && (op.endsWith("/") || op.endsWith("/.") || op.includes("/./"))) || /(?:^|\/)\.\.(?:\/|$)/u.test(op)) return undefined;
-      const resolved = resolveVfsPath(cwd, op);
+      if (!op) return undefined;
+      let resolved = resolveVfsPath(cwd, op);
       const isMountTarget = mountTable.some(m => m.target === resolved);
-      if (!isMountTarget && !inspectNode(resolved)) return undefined;
+      if (!isMountTarget) {
+        const node = inspectNode(resolved);
+        if (!node) return undefined;
+        resolved = node.path ?? resolved;
+      }
       let best = mountTable[0]!;
       for (const m of mountTable) {
         if (resolved === m.target || (m.target !== "/" && resolved.startsWith(m.target + "/"))) {
@@ -521,7 +528,7 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
       let outputFields: string[] | undefined;
       const includeTypes = new Set<string>();
       const excludeTypes = new Set<string>();
-      const operands: string[] = [];
+      const operands: number[] = [];
       let endOfOptions = false;
 
       const outputConflict = async (flag: string) => {
@@ -695,7 +702,7 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
           }
           continue;
         }
-        operands.push(arg);
+        operands.push(i);
       }
 
       for (const t of includeTypes) {
@@ -764,19 +771,31 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
       const selected: SelectedRow[] = [];
 
       if (operands.length > 0) {
-        for (const op of operands) {
+        for (const index of operands) {
+          const op = context.args[index]!;
           const needsRawCheck = (op.length > 1 && (op.endsWith("/") || op.endsWith("/.") || op.includes("/./"))) || /(?:^|\/)\.\.(?:\/|$)/u.test(op);
           const rawTarget = op.startsWith("/") ? op : (context.cwd.endsWith("/") ? context.cwd + op : `${context.cwd}/${op}`);
-          const resolved = resolveVfsPath(context.cwd, op);
+          let resolved = resolveVfsPath(context.cwd, op);
           const isMountTarget = !needsRawCheck && mountTable.some((m) => m.target === resolved);
-          if (!isMountTarget) {
+          let reason = op ? undefined : "No such file or directory";
+          if (!reason && !isMountTarget) {
             try {
-              await context.fs.lstat(needsRawCheck ? rawTarget : resolved, { signal: context.signal });
-            } catch {
-              await writeText(context.stderr, `df: '${op}': No such file or directory\n`);
-              exitCode = 1;
-              continue;
+              resolved = await context.fs.realpath(rawTarget, { signal: context.signal });
+            } catch (error) {
+              if (!isFsError(error)) throw error;
+              if (error.code === "ENOENT") reason = "No such file or directory";
+              else if (error.code === "ENOTDIR") reason = "Not a directory";
+              else if (error.code === "ELOOP") reason = "Too many levels of symbolic links";
+              else if (error.code === "EACCES") reason = "Permission denied";
+              else throw error;
             }
+          }
+          if (reason) {
+            const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
+            const name = quote(getCommandArguments(context).bytes(index)!, "filename", locale === "C.UTF-8" || locale === "C.utf8");
+            await writeText(context.stderr, `df: ${name}: ${reason}\n`);
+            exitCode = 1;
+            continue;
           }
           // Find deepest matching mount
           let best = mountTable[0]!;

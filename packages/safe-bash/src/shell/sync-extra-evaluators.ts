@@ -6304,6 +6304,7 @@ const syncExtraRuntimeMethods = {
     return out;
   },
   tryInspectMemoryNodeSync(path: string, charge = true, followFinal = true): {
+    path: string;
     type: "file" | "directory" | "symlink";
     size: number;
     mode: number;
@@ -6339,7 +6340,7 @@ const syncExtraRuntimeMethods = {
         entries?: Map<string, RawMemNode>;
       };
       const mem = this.backingFs as unknown as {
-        resolve: (p: string, s: string, o?: { followFinal?: boolean }) => { node: RawMemNode };
+        resolve: (p: string, s: string, o?: { followFinal?: boolean }) => { path: string; node: RawMemNode };
         permission: (n: unknown, m: number, s: string, p: string) => void;
       };
       const resolved = mem.resolve(path, "stat", followFinal ? undefined : { followFinal: false });
@@ -6364,10 +6365,10 @@ const syncExtraRuntimeMethods = {
           }
           children.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
         }
-        return { type: "directory", size: 0, mode, ino, nlink: dirLinks, uid: 0, gid: 0, dev: 0, atimeMs, mtimeMs, ctimeMs, birthtimeMs, filesystemType: "memory", ioBlockSize: 4096, children };
+        return { path: resolved.path, type: "directory", size: 0, mode, ino, nlink: dirLinks, uid: 0, gid: 0, dev: 0, atimeMs, mtimeMs, ctimeMs, birthtimeMs, filesystemType: "memory", ioBlockSize: 4096, children };
       }
       const size = node.type === "file" ? (node.byteLength ?? node.data?.byteLength ?? 0) : shellValueByteLength(node.target ?? "");
-      return { type: node.type, size, mode, ino, nlink: node.nlink ?? 1, uid: 0, gid: 0, dev: 0, atimeMs, mtimeMs, ctimeMs, birthtimeMs, filesystemType: "memory", ioBlockSize: 4096, ...(node.target !== undefined ? { target: node.target } : {}) };
+      return { path: resolved.path, type: node.type, size, mode, ino, nlink: node.nlink ?? 1, uid: 0, gid: 0, dev: 0, atimeMs, mtimeMs, ctimeMs, birthtimeMs, filesystemType: "memory", ioBlockSize: 4096, ...(node.target !== undefined ? { target: node.target } : {}) };
     } catch {
       if (charge) this.budget.fileSystemOperation();
       return undefined;

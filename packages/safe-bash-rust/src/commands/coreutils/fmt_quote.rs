@@ -23,7 +23,7 @@ fn units(mut bytes: &[u8], unicode: bool) -> impl Iterator<Item = (&[u8], Option
     })
 }
 
-pub(super) fn filename(text: &str, unicode: bool) -> String {
+pub(in crate::commands) fn filename(text: &str, unicode: bool) -> String {
     let bytes = crate::vfs::stream_string_to_bytes(text);
     let bare = !bytes.is_empty() && !matches!(bytes.as_slice(), b"{" | b"}")
         && !matches!(bytes[0], b'#' | b'~') && units(&bytes, unicode).all(|(_, ch)| ch.is_some_and(|c|

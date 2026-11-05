@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { hostname, userInfo } from "node:os";
 import { spawn } from "node:child_process";
-import { chmod, lstat, mkdir, mkdtemp, readdir, readFile, readlink, rm, utimes, writeFile } from "node:fs/promises";
+import { chmod, lstat, mkdir, mkdtemp, readdir, readFile, readlink, rm, symlink, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { WasmFileSystem } from "@poe-code/safe-bash-rust";
 import type { FileSystem } from "@poe-platform/safe-bash";
@@ -25,7 +25,7 @@ export async function runLinuxCommand(cmd: string, args: readonly string[], inpu
 }
 
 // Hand the native files and archives to both virtual filesystems before timing commands.
-export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mkdir" | "writeFile">[]) {
+export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mkdir" | "writeFile" | "symlink">[]) {
   const out = fileURLToPath(new URL("../../../out/", import.meta.url));
   await mkdir(out, { recursive: true });
   const cwd = await mkdtemp(out + "linux-commands-");
@@ -35,6 +35,7 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
     for (const view of views) {
       await view.mkdir("/workspace/samples", { recursive: true });
       await view.mkdir("/etc", { recursive: true });
+      await view.mkdir("/proc", { recursive: true });
       await view.writeFile("/etc/hostname", Buffer.from(hostname() + "\n"));
       await view.writeFile("/etc/passwd", Buffer.from(`${username}:x:${uid}:${gid}::/:/bin/sh\n`));
     }
@@ -43,6 +44,10 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
       const bytes = Buffer.from("header\n" + line + "\nfooter\n");
       await writeFile(cwd + path, bytes);
       for (const view of views) await view.writeFile("/workspace" + path, bytes);
+    }
+    for (const [name, target] of [["df-link", "samples/base"], ["df-dangling", "not-there"], ["df-loop", "df-loop"], ["df-proc", "/proc"]]) {
+      await symlink(target, cwd + "/" + name);
+      for (const view of views) await view.symlink!(target, "/workspace/" + name);
     }
     const fdIgnore = Buffer.from("theirs\n");
     await writeFile(cwd + "/samples/.fdignore", fdIgnore);
@@ -109,6 +114,10 @@ const textCommands = ([
   ["diff", "-u", "--label", "base", "--label", "ours", "samples/base", "samples/ours"],
   ["diff3", "-m", "samples/ours", "samples/base", "samples/theirs"],
   ["find", "samples", "-type", "f", "-name", "theirs", "-print0"], ["ls", "-1", "samples"],
+  ["df", "--output=file,target", "df-proc", "df-proc/../", "/"],
+  ["df", "--output=file", "df-link", "df-dangling", "samples/base", "df-loop", "/"],
+  ["df", "--output=file", "", "missing", "samples/base/", "samples/base/../ours", "df-link/", "/"],
+  ["df", "--output=file", "x:y", "what's missing", "two words", "#bad", "df-link"],
   ["df", "--output="], ["df", "--output=size,"], ["df", "--output=,file"], ["df", "--output=file,,size"],
   ["df", "--output=file,bogus", "--help"],
   ["df", "-TPi", "--output=bogus"], ["df", "-TP", "--output"], ["df", "--output", "-TP"],

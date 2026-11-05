@@ -4437,16 +4437,24 @@ fn cmd_df(
             let resolved = resolve_posix_path(cwd, op);
             let needs_walk = op.len() > 1 && (op.ends_with('/') || op.ends_with("/.") || op.contains("/./"))
                 || op.split('/').any(|part| part == "..");
-            let missing = if needs_walk {
-                fs.inspect_command_entry(&absolute_operand(cwd, op), false, "lstat").is_err()
+            let entry = if op.is_empty() {
+                Err("ENOENT: empty path".into())
+            } else if !needs_walk && mounts.iter().any(|m| m.target == resolved) {
+                Ok(resolved)
             } else {
-                !mounts.iter().any(|m| m.target == resolved) && fs.inspect_command_entry(&resolved, false, "lstat").is_err()
+                fs.inspect_command_entry(&absolute_operand(cwd, op), true, "stat").map(|(path, _)| path)
             };
-            if missing {
-                stderr.push_str(&format!("df: '{op}': No such file or directory\n"));
-                exit_code = 1;
-                continue;
-            }
+            let resolved = match entry {
+                Ok(path) => path,
+                Err(error) => {
+                    let locale = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|v| !v.is_empty()));
+                    let name = super::coreutils::fmt_quote::filename(op, matches!(locale.map(String::as_str), Some("C.UTF-8" | "C.utf8")));
+                    let reason = super::coreutils::file_error_reason(&error);
+                    stderr.push_str(&format!("df: {name}: {reason}\n"));
+                    exit_code = 1;
+                    continue;
+                }
+            };
             let mut best = mounts[0].clone();
             for m in &mounts {
                 if resolved == m.target
@@ -7131,9 +7139,9 @@ mod tests {
         fs.write_file("/w/tree/file", b"x").unwrap();
         fs.symlink("tree/dir", "/w/link").unwrap();
         let run = |p: &str| cmd_df(&args(&["--output=target", p]), "/w", &BTreeMap::new(), &fs);
-        for path in ["/proc/", "tree/file/.", "missing/../tree"] {
+        for (path, reason) in [("/proc/", "No such file or directory"), ("tree/file/.", "Not a directory"), ("missing/../tree", "No such file or directory")] {
             let result = run(path);
-            assert_eq!((result.exit_code, result.stderr), (1, format!("df: '{path}': No such file or directory\n")));
+            assert_eq!((result.exit_code, result.stderr), (1, format!("df: {path}: {reason}\n")));
         }
         assert_eq!(run("/proc").exit_code, 0);
         assert_eq!(run("link/../file").exit_code, 0);

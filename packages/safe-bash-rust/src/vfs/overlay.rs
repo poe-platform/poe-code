@@ -572,7 +572,20 @@ impl SafeBashFs for OverlayVfs {
         self.copy_up_directories(&parent, || upper.install_overlay_batch(lower,versions,files,parents))
     }
 
-    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
+    fn publish_zip_volumes(&self,files:Vec<(String,Vec<u8>,u32)>,_guards:&[super::PublicationStamp],
+        temporary:Option<(&str,u64)>,stamp:u64)->Result<(),String>{
+        let Some((dir,_))=temporary else {return self.replace_file_batch(files,stamp)};
+        let upper=self.upper.memory_backend().ok_or("ENOTSUP: owned ZIP staging unavailable")?;
+        let version=upper.generation();
+        if self.generation()!=stamp {return Err("EAGAIN: filesystem changed before staging".into());}
+        let copies=self.prepare_parent(&format!("{}/archive.zip",dir.trim_end_matches('/')))? as u64;
+        let next=upper.stage_zip_volumes(dir,&files,version.wrapping_add(copies),|path|match self.lstat(path){
+            Ok(_)=>Ok(false),Err(e) if e.starts_with("ENOENT:")=>Ok(!self.is_deleted(path)),Err(e)=>Err(e),
+        })?;
+        self.replace_file_batch(files,stamp.wrapping_add(next.wrapping_sub(version)))
+    }
+
+    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, _check_only: bool,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
         let upper=self.upper.memory_backend().ok_or("ENOTSUP: owned validation staging unavailable")?;
         let version=upper.generation();

@@ -294,21 +294,26 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.add_output_bytes(data.len())?;
         self.inner.replace_file_entry_with_mode(&host_text(path), data, mode, version).map_err(quote_host_text)
     }
-    fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
-        for (path, bytes, _) in &mut files {
+    fn replace_file_batch(&self, files: Vec<(String,Vec<u8>,u32)>, version:u64) -> Result<(),String>{
+        self.publish_zip_volumes(files,&[],None,version)
+    }
+    fn publish_zip_volumes(&self, mut files:Vec<(String,Vec<u8>,u32)>, guards:&[crate::vfs::PublicationStamp],
+        temporary:Option<(&str,u64)>, version:u64)->Result<(),String>{
+        for (path,bytes,_) in &mut files {
             self.budget.limits.check_path(path)?;
             self.budget.tick_fs_op()?;
             self.budget.add_output_bytes(bytes.len())?;
-            if let std::borrow::Cow::Owned(p) = host_text(path) { *path = p; }
+            if let std::borrow::Cow::Owned(p)=host_text(path) { *path=p; }
         }
-        self.inner.replace_file_batch(files, version).map_err(quote_host_text)
+        let dir=temporary.map(|(p,id)|(host_text(p),id));
+        self.inner.publish_zip_volumes(files,guards,dir.as_ref().map(|(p,id)|(p.as_ref(),*id)),version).map_err(quote_host_text)
     }
-    fn validate_staged_file(&self, path: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, path: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, check_only: bool,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         let temp=temporary.map(|(dir,id)|(host_text(dir),id));
-        self.inner.validate_staged_file(&host_text(path), temp.as_ref().map(|(p,id)|(p.as_ref(),*id)), bytes, stamp, &mut |p| check(&quote_host_text(p.into())))
+        self.inner.validate_staged_file(&host_text(path), temp.as_ref().map(|(p,id)|(p.as_ref(),*id)), bytes, stamp, check_only, &mut |p| check(&quote_host_text(p.into())))
             .map_err(quote_host_text)
     }
     fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {

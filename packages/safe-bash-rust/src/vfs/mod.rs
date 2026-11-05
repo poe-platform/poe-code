@@ -453,9 +453,14 @@ pub trait SafeBashFs: Send + Sync {
     fn replace_file_batch(&self, _files: Vec<(String, Vec<u8>, u32)>, _version: u64) -> Result<(), String> {
         Err("ZIP split publication requires atomic owned staging".into())
     }
+    fn publish_zip_volumes(&self, files: Vec<(String,Vec<u8>,u32)>, _guards:&[PublicationStamp],
+        temporary:Option<(&str,u64)>, version:u64) -> Result<(),String> {
+        if temporary.is_some() {return Err("ZIP split publication requires atomic owned staging".into());}
+        self.replace_file_batch(files,version)
+    }
     /// Run a virtual checker on owned temporary bytes. Return the publication
     /// stamp adjusted only for this stage's own filesystem mutations.
-    fn validate_staged_file(&self, _destination: &str, _temporary: Option<(&str,u64)>, _bytes: &[u8], _stamp: u64,
+    fn validate_staged_file(&self, _destination: &str, _temporary: Option<(&str,u64)>, _bytes: &[u8], _stamp: u64, _check_only: bool,
         _check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
         Err("ENOTSUP: owned validation staging unavailable".into())
     }

@@ -415,11 +415,24 @@ impl SafeBashFs for HostFs {
             })
         })
     }
-    fn validate_staged_file(&self, path: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
+    fn publish_zip_volumes(&self, files:Vec<(String,Vec<u8>,u32)>, guards:&[crate::vfs::PublicationStamp],
+        temporary:Option<(&str,u64)>, _version:u64)->Result<(),String>{
+        if files.len()!=guards.len() { return Err("ENOTSUP: split publication requires a receipt per volume".into()); }
+        for (disk,((_,data,_),guard)) in files.iter().zip(guards).enumerate() {
+            self.request("stageVolume",&format!(".zip-volume-{}",disk+1),data,guard.version as u32,temporary.map_or(0,|(_,id)|id as u32))?;
+        }
+        for guard in guards {self.request("validateVolume","",&[],guard.version as u32,0)?;}
+        for ((path,_,mode),guard) in files.into_iter().zip(guards) {
+            self.replace_file_entry_with_mode(&path,&[],mode,guard.version)?;
+        }
+        Ok(())
+    }
+    fn validate_staged_file(&self, path: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, check_only: bool,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
         let file = self.request("stageForTest", path, bytes, stamp as u32, temporary.map_or(0,|(_,id)|id as u32))?;
         let file = std::str::from_utf8(&file).map_err(|_| "EIO: invalid staging path")?;
         let valid = check(file);
+        if check_only { self.request("discardCheckedArchive",path,&[],stamp as u32,valid.into())?; }
         Ok((valid,stamp))
     }
     fn observe_publication(

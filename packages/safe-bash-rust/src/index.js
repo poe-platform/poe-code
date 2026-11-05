@@ -200,11 +200,11 @@ function bindExternalFs(shell,fs,options) {
   };
   const statBytes=s=>new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
               s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
-  const createStage=async(view,path,content,guard,metadata,name="file",parentDir=path.slice(0,path.lastIndexOf("/")))=>{
+  const createStage=async(view,path,content,guard,metadata,name="file",parentDir=path.slice(0,path.lastIndexOf("/")),prefix=".zip")=>{
     const settings={signal:options.signal};
     for(let attempt=0;;attempt++){
       try{
-        const temporary=parentDir+(name==="archive.zip"?"/.zip-"+(attempt+1):"/.safe-bash-stage-"+nextHandle++);
+        const temporary=parentDir+(name==="archive.zip"?"/"+prefix+"-"+(attempt+1):"/.safe-bash-stage-"+nextHandle++);
         if(temporary===path)continue;
         return await view.createStagedFile(temporary,name,content,
           {...settings,retainCleanup:true,...metadata,parent:guard.parent});
@@ -440,18 +440,31 @@ function bindExternalFs(shell,fs,options) {
           publications.set(id,{path,parent,expected,write});
           new DataView(result.buffer).setUint32(0,id,true);return;
         }
-        if(op==="stageForTest"){
+        if(op==="stageForTest" || op==="stageVolume"){
           const obs=publications.get(flags),r=obs?.resolution;
-          if(!r || path!==obs.path || obs.testStage)throw fsOperationError("ENOTSUP",op,path);
+          if(!r || op==="stageForTest" && path!==obs.path || obs.testStage)throw fsOperationError("ENOTSUP",op,path);
           r.validate();
           const temp=mode?publications.get(mode):undefined;
           if(mode && !temp?.parent)throw fsOperationError("EAGAIN",op,path);
           const stage=await createStage(fs,r.path,{type:"file",data},temp??r,{mode:r.destination?r.destination.mode&0o7777:0o644},
-            "archive.zip",temp?(temp.dir==="/"?"":temp.dir):undefined);
+            "archive.zip",temp?(temp.dir==="/"?"":temp.dir):undefined,op==="stageVolume"?path:".zip");
           obs.temp=temp;
           obs.testStage=stage;
           if(stage.writer)obs.testStage={...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}};
           result=encoder.encode(stage.file.path);return;
+        }
+        if(op==="validateVolume" || op==="discardCheckedArchive"){
+          const obs=publications.get(flags),stage=obs?.testStage;
+          if(!stage)throw fsOperationError("EAGAIN",op,path);
+          if(op==="validateVolume" || mode){
+            obs.resolution.validate();
+            if(obs.temp && await fs.realpath(obs.temp.name,settings)!==obs.temp.dir)throw fsOperationError("EAGAIN",op,path);
+            const actual=await fs.lstat(stage.file.path,settings),expected=stage.file.stat;
+            if(["identityScope","opaqueIdentity","opaqueVersion","dev","ino","revision","mode","size","nlink","mtimeMs","ctimeMs"].some(k=>actual[k]!==expected[k]))
+              throw fsOperationError("EAGAIN",op,stage.file.path);
+          }
+          if(op==="discardCheckedArchive")await discardTestStage(obs);
+          return;
         }
         if(op==="replaceEntry" || op==="publish" && publications.get(flags)?.resolution){
           const obs=publications.get(flags);

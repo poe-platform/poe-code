@@ -6287,7 +6287,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
     }
     if split_pause && split_size != 0 { return zip_err("split pause requires an explicit volume prompt capability"); }
     let version = fs.generation();
-    let replacement = if !show_files && split_size == 0 {
+    let mut replacement = if !show_files {
         match fs.observe_publication(&dest_full,version,crate::vfs::PublicationMode::Replace) {
             Ok(stamp)=>Some(stamp),Err(e)=>return err_out(&format!("zip: {e}\n"),2)
         }
@@ -6332,12 +6332,26 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
         if copy_mode || delete_mode { return err_out(&format!("zip: cannot read {arch_name}\n"),1); }
         Vec::new()
     };
-    let mut publish = |bytes: Vec<u8>, sources: &[_]| {
+    let mut publish = |mut bytes: Vec<u8>, sources: &[_]| {
         let mut stamp = replacement.as_ref().map_or(version,|r|r.version);
         let mut report=String::new();
-        if (test_archive || temporary.is_some()) && arch_name!="-" {
+        let temp=temporary.as_ref().map(|(_,dir,_,r)|(dir.as_str(),r.version));
+        let split=if split_size!=0 {
+            let data=if test_archive {bytes.clone()}else{std::mem::take(&mut bytes)};
+            match zip_volumes::prepare(fs,&dest_full,data,(split_size,split_verbose),sources,version,replacement.take().unwrap()) {
+                Ok(parts)=>Some(parts),Err(e)=>return err_out(&format!("zip: {e}\n"),2)
+            }
+        } else {None};
+        if (test_archive || temporary.is_some() && split.is_none()) && arch_name!="-" {
             let mut checker_changes = 0;
-            let result = fs.validate_staged_file(&dest_full, temporary.as_ref().map(|(_,dir,_,r)|(dir.as_str(),r.version)), &bytes, stamp, &mut |path| {
+            let candidate;
+            if split.is_some() {
+                candidate=match fs.observe_publication(&dest_full,version,crate::vfs::PublicationMode::Replace) {
+                    Ok(guard)=>guard,Err(e)=>return err_out(&format!("zip: {e}\n"),2)
+                };
+                stamp=candidate.version;
+            }
+            let result = fs.validate_staged_file(&dest_full, if split.is_some(){None}else{temp}, &bytes, stamp, split.is_some(), &mut |path| {
                 if !test_archive { return true; }
                 let mut remaining = fs.shell_limits().max_expansion_bytes;
                 let mut words = vec![checker[0].clone()];
@@ -6383,10 +6397,10 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
         }
         if let Some((name,dir,id,_))=&temporary
             && !fs.inspect_command_entry(name,true,"realpath").is_ok_and(|(p,st)|p==*dir && st.identity==*id) {
-            return err_out("zip: ZIP temporary path changed before publication\n",2);
+            return err_out(if split.is_some() {"zip: ZIP split staging parent changed before publication\n"} else {"zip: ZIP temporary path changed before publication\n"},2);
         }
-        let result = if split_size != 0 {
-            zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources,stamp)
+        let result = if let Some(parts)=split {
+            fs.publish_zip_volumes(parts.files,&parts.guards,temp,stamp).map(|()|parts.report)
         } else if let Some(st) = &dest && st.nlink.is_some_and(|n| n > 1) {
             if st.mode & 0o200 == 0 { return err_out(&format!("zip: EACCES: permission denied, access '{dest_full}'\n"),2); }
             fs.publish_file(&dest_full,&bytes,&[],stamp).map(|_| String::new())

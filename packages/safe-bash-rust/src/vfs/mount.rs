@@ -335,7 +335,7 @@ impl SafeBashFs for MountVfs {
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         fs.replace_file_entry(&rel, data, local_version)
     }
-    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, check_only: bool,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
         let dest=self.resolve(destination,false,WalkPurpose::AllowMissingParents)?;
         let (mount,fs,local)=self.location(&dest);
@@ -346,7 +346,7 @@ impl SafeBashFs for MountVfs {
             if where_!=mount { return Err("EXDEV: ZIP staging directory is on a different mount".into()); }
             Some((path,id))
         }else{None};
-        let (valid,next)=fs.validate_staged_file(&local,local_temp.as_ref().map(|(p,id)|(p.as_str(),*id)),bytes,version,&mut |path|{
+        let (valid,next)=fs.validate_staged_file(&local,local_temp.as_ref().map(|(p,id)|(p.as_str(),*id)),bytes,version,check_only,&mut |path|{
             let full=format!("{}{path}",mount.trim_end_matches('/'));
             self.location(&full).0==mount && check(&full)
         })?;
@@ -355,7 +355,11 @@ impl SafeBashFs for MountVfs {
         Ok((valid,stamp.wrapping_add(delta)))
     }
 
-    fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
+    fn replace_file_batch(&self, files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
+        self.publish_zip_volumes(files,&[],None,version)
+    }
+    fn publish_zip_volumes(&self,mut files:Vec<(String,Vec<u8>,u32)>,guards:&[super::PublicationStamp],
+        temporary:Option<(&str,u64)>,version:u64)->Result<(),String>{
         let Some((first, _, _)) = files.first() else { return Ok(()); };
         let (backend, _) = self.route(first, false)?;
         let local_version = backend.generation();
@@ -365,7 +369,12 @@ impl SafeBashFs for MountVfs {
             *path = local;
         }
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
-        backend.replace_file_batch(files, local_version)
+        let dir=if let Some((p,id))=temporary {
+            let (_,fs,local)=self.location(p);
+            if !std::ptr::eq(fs,backend) {return Err("EXDEV: ZIP staging directory is on a different mount".into());}
+            Some((local,id))
+        } else {None};
+        backend.publish_zip_volumes(files,guards,dir.as_ref().map(|(p,id)|(p.as_str(),*id)),local_version)
     }
     fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
         let (fs, rel) = self.route(path, false)?;

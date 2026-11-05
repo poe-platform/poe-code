@@ -6659,6 +6659,51 @@ test("zip -b uses staging even without -T and leaves a read-only temporary direc
   }
 });
 
+test("split zip tests the complete candidate beside the destination and stages each volume under -b",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem();let baseline;
+  for(const [sh,supplied] of [[new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),ref],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
+    const fs=supplied??sh.fs,volumes=[];let checked;
+    if(supplied){const create=fs.createStagedFile.bind(fs);fs.createStagedFile=async(dir,...args)=>{
+      if(dir.includes("/.zip-volume-"))volumes.push(dir);return create(dir,...args);
+    };}
+    sh.register({name:"checkzip",async execute(ctx){checked=ctx.args[0];return {exitCode:0};}});
+    try{
+      await fs.mkdir("/scratch");await fs.writeFile("/src",new Uint8Array(160000).fill(7));await fs.utimes("/src",1700000000000,1700000000000);
+      const r=await sh.exec("zip -q0T -TT checkzip -b scratch -s64k work.zip src",{fs});
+      assert.equal(r.exitCode,0,r.stderr);assert.equal(checked,"/.zip-1/archive.zip");
+      if(supplied)assert.deepEqual(volumes,[1,2,3].map(i=>"/scratch/.zip-volume-"+i+"-1"));
+      assert.deepEqual(await fs.readdir("/scratch"),[]);
+      const parts=await Promise.all(["/work.z01","/work.z02","/work.zip"].map(p=>fs.readFile(p)));
+      if(baseline)assert.deepEqual(parts,baseline);else baseline=parts;
+    }finally{await sh.dispose();}
+  }
+});
+
+test("split zip cleans every owned stage and preserves competing volume writes on a supplied filesystem",async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  for(const race of [false,true]){
+    const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"});
+    try{
+      await fs.mkdir("/scratch");await fs.writeFile("/src",new Uint8Array(160000).fill(72));
+      const create=fs.createStagedFile.bind(fs);let sawThird=false;
+      fs.createStagedFile=async(dir,...args)=>{
+        if(dir==="/scratch/.zip-volume-3-1"){
+          sawThird=true;
+          assert.deepEqual((await fs.readdir("/scratch")).map(e=>e.name).sort(),[".zip-volume-1-1",".zip-volume-2-1"]);
+          if(race)await fs.writeFile("/work.z02",Uint8Array.of(99));else throw Object.assign(new Error("cannot stage third volume"),{code:"ENOSPC"});
+        }
+        return create(dir,...args);
+      };
+      const r=await sh.exec("zip -q0m -b scratch -s64k work.zip src",{fs});
+      assert.ok(sawThird);assert.equal(r.exitCode,2);assert.deepEqual(await fs.readdir("/scratch"),[]);
+      for(const p of ["/work.zip","/work.z01",...race?[]:["/work.z02"]])await assert.rejects(fs.lstat(p),{code:"ENOENT"});
+      if(race)assert.deepEqual(await fs.readFile("/work.z02"),Uint8Array.of(99));
+      assert.equal((await fs.lstat("/src")).size,160000);
+    }finally{await sh.dispose();}
+  }
+});
+
 test("zip validates literal -TT arguments even without an integrity test",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

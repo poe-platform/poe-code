@@ -486,22 +486,49 @@ impl MemoryVfs {
         }
     }
 
-    pub(super) fn check_in_owned_stage(&self, parent: &str, bytes: &[u8], stamp: u64,
-        available: impl Fn(&str) -> Result<bool,String>, check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
-        let stat = self.lstat(parent)?;
+    fn create_archive_stage(&self, parent:(&str,&FileStat), prefix:&str, bytes:&[u8], mode:u32,
+        available:&impl Fn(&str)->Result<bool,String>) -> Result<[(String,FileStat);3],String> {
         let attempts=self.state.read().map_err(|_| "EIO: input/output error")?.limits.max_entries.saturating_add(1);
         for seq in 1..=attempts {
-            let dir = format!("{}/.zip-{seq}", parent.trim_end_matches('/'));
+            let dir=format!("{}/{prefix}-{seq}",parent.0.trim_end_matches('/'));
             if !available(&dir)? { continue; }
-            let entries = match self.create_owned_stage(&dir, "archive.zip", StageContent::File(bytes), &stat, 0o600, [None;2]) {
+            match self.create_owned_stage(&dir,"archive.zip",StageContent::File(bytes),parent.1,mode,[None;2]) {
                 Err(e) if e.starts_with("EEXIST:") => continue,
-                result => result?,
-            };
-            let valid = self.generation() == stamp.wrapping_add(1) && check(&entries[2].0);
-            self.finish_owned_stage(entries.each_ref().map(|(p,s)| (p.as_str(),s)), StageAction::Remove { retained:true })?;
-            return Ok((valid, stamp.wrapping_add(2)));
+                result => return result,
+            }
         }
         Err("EEXIST: no available staging path".into())
+    }
+
+    pub(super) fn check_in_owned_stage(&self, parent: &str, bytes: &[u8], stamp: u64,
+        available: impl Fn(&str) -> Result<bool,String>, check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
+        let stat=self.lstat(parent)?;
+        let entries=self.create_archive_stage((parent,&stat),".zip",bytes,0o600,&available)?;
+        let valid=self.generation()==stamp.wrapping_add(1) && check(&entries[2].0);
+        self.finish_owned_stage(entries.each_ref().map(|(p,s)|(p.as_str(),s)),StageAction::Remove{retained:true})?;
+        Ok((valid,stamp.wrapping_add(2)))
+    }
+
+    pub(super) fn stage_zip_volumes(&self,parent:&str,files:&[(String,Vec<u8>,u32)],mut stamp:u64,
+        available:impl Fn(&str)->Result<bool,String>)->Result<u64,String>{
+        let stat=self.lstat(parent)?;
+        let mut stages=Vec::with_capacity(files.len());
+        let mut result=Ok(());
+        for (i,(_,bytes,mode)) in files.iter().enumerate() {
+            if self.generation()!=stamp { result=Err("EAGAIN: filesystem changed before ZIP staging".into()); break; }
+            match self.create_archive_stage((parent,&stat),&format!(".zip-volume-{}",i+1),bytes,*mode,&available){
+                Ok(stage)=>{stages.push(stage);stamp=stamp.wrapping_add(1);}
+                Err(e)=>{result=Err(e);break;}
+            }
+        }
+        // All volumes must fit before any destination changes. The in-memory
+        // batch already owns their bytes; release the stages before installing it.
+        for stage in stages.into_iter().rev() {
+            if let Err(e)=self.finish_owned_stage(stage.each_ref().map(|(p,s)|(p.as_str(),s)),StageAction::Remove{retained:true}) {
+                if result.is_ok(){result=Err(e);}
+            } else {stamp=stamp.wrapping_add(1);}
+        }
+        result.map(|()|stamp)
     }
 
     fn bump_generation(&self) {
@@ -1556,10 +1583,16 @@ impl SafeBashFs for MemoryVfs {
         Ok(self.generation())
     }
 
-    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, _check_only: bool,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
         let parent = match temporary { Some((dir,_))=>dir.to_owned(),None=>self.access_path(&super::dirname_posix_path(destination),true)? };
         self.check_in_owned_stage(&parent,bytes,stamp, |_| Ok(true),check)
+    }
+
+    fn publish_zip_volumes(&self,files:Vec<(String,Vec<u8>,u32)>,_guards:&[super::PublicationStamp],
+        temporary:Option<(&str,u64)>,version:u64)->Result<(),String>{
+        let next=if let Some((dir,_))=temporary {self.stage_zip_volumes(dir,&files,version,|_|Ok(true))?} else {version};
+        self.replace_file_batch(files,next)
     }
 
     fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
@@ -2450,6 +2483,21 @@ mod tests {
         fs.commit_file_edit("/f", &linked, b"abc", b"def", true).unwrap();
         assert_eq!(fs.read_file("/alias").unwrap(), b"def");
         assert_eq!(fs.stat("/alias").unwrap().identity, original.identity);
+    }
+
+    #[test]
+    fn split_volumes_must_all_fit_in_the_staging_directory_before_replacement() {
+        let fs=MemoryVfs::new();
+        fs.mkdir_all("/scratch").unwrap();
+        fs.write_file("/a.z01",b"old").unwrap();
+        let used=fs.state.read().unwrap().entry_count();
+        fs.set_max_entries(used+5); // three private directories and three files need six slots
+        let files=["/a.z01","/a.z02","/a.zip"].map(|p|(p.to_string(),vec![1],0o644)).to_vec();
+        let error=fs.publish_zip_volumes(files,&[],Some(("/scratch",0)),fs.generation()).unwrap_err();
+        assert!(error.starts_with("ENOSPC:"),"{error}");
+        assert_eq!(fs.read_file("/a.z01").unwrap(),b"old");
+        assert!(fs.read_dir("/scratch").unwrap().is_empty());
+        assert!(!fs.exists("/a.z02") && !fs.exists("/a.zip"));
     }
 
     #[test]

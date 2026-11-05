@@ -159,6 +159,45 @@ describe("pad background alpha", () => {
 });
 
 describe("pad position expressions", () => {
+  for (const [position, left, top] of [
+    ["-1:-1", 1, 1],
+    ["-2:0", 1, 0],
+    ["0:-3", 0, 1],
+    ["x=-1:y=2", 1, 2],
+    ["x=2:y=-1", 2, 1],
+    ["0:0", 0, 0],
+    ["2:2", 2, 2],
+    ["(ow-iw)/2:(oh-ih)/2", 1, 1]
+  ] as const) {
+    for (const size of [5, 6]) {
+      it(`places source pixels for pad=${size}:${size}:${position}`, async () => {
+        const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+        const input = encodeImage({
+          width: 3, height: 3, channels: 4,
+          data: new Uint8Array(Array.from({ length: 9 }, () => [0, 0, 255, 255]).flat()),
+          format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const vfs = createTestVfs({ "/input.png": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/input.png", "-vf", `pad=${size}:${size}:${position}:color=red`,
+          "-frames:v", "1", "/pad.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = decodeImage(vfs.store.get("/pad.png")!);
+        assert.equal(output.width, size);
+        assert.equal(output.height, size);
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const offset = (y * size + x) * 4;
+            const source = x >= left && x < left + 3 && y >= top && y < top + 3;
+            assert.deepEqual([...output.data.subarray(offset, offset + 4)],
+              source ? [0, 0, 255, 255] : [255, 0, 0, 255], `pixel (${x}, ${y})`);
+          }
+        }
+      });
+    }
+  }
+
   for (const expression of ["unknown", "1junk", "1/0", "(ow-iw", "sin(0)"]) {
     for (const axis of ["x", "y"]) {
       it(`rejects unsupported ${axis}=${expression} without overwriting output`, async () => {

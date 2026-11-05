@@ -752,8 +752,10 @@ async function applyVideoFilterChain(
         throw new Error("Padded dimensions cannot be smaller than input dimensions");
       }
       const variables = { iw, ih, ow: pw, oh: ph, in_w: iw, in_h: ih, out_w: pw, out_h: ph };
-      const px = Math.max(0, Math.min(pw - iw, Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? "0", "pad", variables))));
-      const py = Math.max(0, Math.min(ph - ih, Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? "0", "pad", variables))));
+      const x = Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? "0", "pad", variables));
+      const y = Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? "0", "pad", variables));
+      const px = x < 0 ? Math.trunc((pw - iw) / 2) : Math.min(pw - iw, x);
+      const py = y < 0 ? Math.trunc((ph - ih) / 2) : Math.min(ph - ih, y);
       const col = parseColorRgba(named.color ?? positional[4] ?? "black");
       current = await mapWork(current, async (f) => {
 

@@ -88,7 +88,7 @@ Archive operations
   -g grows by retaining validated local records when only adding members;
   replacements/deletions rebuild. Publication uses owned atomic staging or
   conditional byte publication with opaque host identities and versions.
-  -b directory selects the VFS staging directory, also spooling stdout archives.
+  -b directory selects the staging directory for named archives; stdout ignores it.
   Cross-provider publication must be supported by the filesystem; no host copy.
   -J removes a prefix only after validating the complete embedded ZIP and CRCs.
   -T checks integrity with registered virtual unzip before replacement.

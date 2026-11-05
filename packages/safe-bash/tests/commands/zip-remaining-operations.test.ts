@@ -407,23 +407,15 @@ for (const flag of ["-DF", "-g", "-b.", "-J", "-lf=run"]) test(`${flag} pre-abor
   } });
   await assert.rejects(execute("zip", guarded, [flag, "sample.zip", "b", ...(flag === "-DF" ? ["-O", "diff.zip"] : [])], {}, { signal: controller.signal }), reason => reason === false);
 });
-test("temp path stdout spools inside VFS and cleans before completion", async () => {
+test("Info-ZIP 3.0 ignores -b for stdout pipes, even when the directory is missing", async () => {
   const fs = await sources();
-  await fs.mkdir("/scratch");
-  let staged = false;
-  const guarded = new Proxy(fs, { get(target, property) {
-    const value = Reflect.get(target, property);
-    if (property === "createStagedFile") return (path: string, ...args: unknown[]) => {
-      assert.ok(path.startsWith("/scratch/.zip-"), path); staged = true; return Reflect.apply(value, target, [path, ...args]);
-    };
-    return typeof value === "function" ? value.bind(target) : value;
-  } });
-  const result = await execute("zip", guarded, ["-b", "/scratch", "-", "b"]);
+  const result = await execute("zip", fs, ["-b", "/missing", "-", "b"]);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(staged, true);
+  assert.equal(result.stderr, "  adding: b (deflated -66%)\n");
+  assert.equal(result.stdout.readUInt16LE(6) & 8, 8);
+  assert.equal(result.stdout.readUInt16LE(8), 8);
   const archive = await readZipArchive(result.stdout, settings({}), new AbortController().signal);
   assert.deepEqual(archive.entries.map(entry => entry.name), ["b"]);
-  assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 for (const version of [10, 20, 45, 46]) test(`grow preserves admitted STORE extraction version ${version}`, async () => {
   const bytes = Buffer.from(await archiveBytes([{ name: "a", body: Buffer.from("old") }]));
@@ -538,17 +530,18 @@ for (const action of [[], ["-u"], ["-f"], ["-d"], ["-U"], ["-FS"]]) test(`temp s
   assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
   assert.deepEqual(await fs.readdir("/scratch"), []);
 });
-for (const outcome of ["reject", "cancel"]) test(`temp stdout ${outcome} cleans owned staging`, async () => {
+for (const outcome of ["reject", "cancel"]) test(`piped stdout ${outcome} preserves move sources`, async () => {
   const fs = await sources();
   await fs.mkdir("/scratch");
   const controller = new AbortController();
   const reason = new Error("stdout refused");
-  const run = execute("zip", fs, ["-b/scratch", "-", "b"], {}, {
+  const run = execute("zip", fs, ["-mb/scratch", "-", "b"], {}, {
     signal: controller.signal,
     stdout: { async write() { if (outcome === "cancel") controller.abort(reason); throw reason; } },
   });
   if (outcome === "cancel") await assert.rejects(run, error => error === reason);
   else assert.equal((await run).exitCode, 2);
+  assert.equal(Buffer.from(await fs.readFile("/work/b")).toString(), "new");
   assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 test("test command cannot replace staged bytes and still publish with stale identity", async () => {
@@ -668,7 +661,7 @@ for (const flag of ["-g", "-DF"]) test(`${flag} does not silently lose untouched
   assert.equal(result.exitCode, 0, result.stderr + result.stdout);
   assert.deepEqual(await names(fs, flag === "-DF" ? "/work/out.zip" : "/work/sample.zip"), flag === "-DF" ? ["b"] : ["a", "a", "b"]);
 });
-test("stdout spooling registered cleanup waits for owned staging retirement", async () => {
+test("registered cleanup waits for named archive staging retirement", async () => {
   const fs = await sources();
   await fs.mkdir("/scratch");
   let release!: () => void;
@@ -677,7 +670,7 @@ test("stdout spooling registered cleanup waits for owned staging retirement", as
   const removing = new Promise<void>(resolve => { acquired = resolve; });
   const callbacks: (() => void | Promise<void>)[] = [];
   const controller = new AbortController();
-  const reason = new Error("retire stdout spool");
+  const reason = new Error("cancel staged archive test");
   const guarded = new Proxy(fs, { get(target, property) {
     const value = Reflect.get(target, property);
     if (property === "createStagedFile") return async (...args: Parameters<NonNullable<typeof fs.createStagedFile>>) => {
@@ -690,9 +683,9 @@ test("stdout spooling registered cleanup waits for owned staging retirement", as
     };
     return typeof value === "function" ? value.bind(target) : value;
   } });
-  const execution = execute("zip", guarded, ["-b/scratch", "-", "b"], {}, {
+  const execution = execute("zip", guarded, ["-b/scratch", "-T", "-TT", "verify", "sample.zip", "b"], {}, {
     signal: controller.signal, registerCleanup(callback) { callbacks.push(callback); },
-    stdout: { async write() { controller.abort(reason); throw reason; } },
+    async invoke() { controller.abort(reason); throw reason; },
   });
   const rejected = assert.rejects(execution, error => error === reason);
   await removing;

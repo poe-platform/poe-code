@@ -17,9 +17,15 @@ function parseSingleTokenPageNumber(tok: string, totalPages: number): number {
 
 interface RangePart { readonly first: number; readonly last: number; readonly step: number; readonly excluded: boolean }
 
+export class QpdfPageRangeError extends Error {}
+
 /** Expand on demand. Later exclusions filter earlier ranges without a page set;
  * the compact descriptors grow only with the caller's range expression. */
 export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Generator<number, void, void> {
+  const suffix = rangeSpec.indexOf(":");
+  if (suffix !== -1 && rangeSpec.includes(",", suffix)) {
+    throw new QpdfPageRangeError(`error at * in numeric range ${rangeSpec.slice(0, suffix)}*${rangeSpec.slice(suffix)}: expected :even or :odd`);
+  }
   const ranges: RangePart[] = [];
   let groupParity: "odd" | "even" | undefined;
   for (const raw of rangeSpec.trim().split(",").filter(part => part.length > 0)) {

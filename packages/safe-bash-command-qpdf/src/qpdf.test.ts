@@ -646,7 +646,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.doesNotMatch(txt, /ShouldBeIgnoredInvisible/);
   });
 
-  it("supports --rotate with :even/:odd range suffixes and per-subrange :odd/:even in --pages", async () => {
+  it("supports --rotate with parity suffixes and separate parity ranges in --pages", async () => {
     const doc = PdfDocument.create();
     for (let i = 1; i <= 6; i++) {
       const p = doc.addPage([200, 200]);
@@ -663,7 +663,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(rotDoc.getPage(3).getRotation(), 90); // Page 4
 
     const subRes = await runQpdfCli(
-      ["--empty", "/sub.pdf", "--pages", "/six.pdf", "1-4:even,5-6:odd", "--"],
+      ["--empty", "/sub.pdf", "--pages", "/six.pdf", "1-4:even", "/six.pdf", "5-6:odd", "--"],
       files
     );
     assert.equal(subRes.exitCode, 0);

@@ -1,6 +1,6 @@
 import { parseQpdfPageLabels } from "./page-labels.js";
 import { formatSplitName } from "./split.js";
-import { parseQpdfPageRange } from "./page-range.js";
+import { parseQpdfPageRange, QpdfPageRangeError } from "./page-range.js";
 export { parseQpdfPageRange, iterateQpdfPageRange } from "./page-range.js";
 import { displayNodeParts } from "./display.js";
 import { executeRetainedQpdf } from "./retained.js";
@@ -2596,6 +2596,10 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     }
 
     return { exitCode: res.exitCode };
+  } catch (error) {
+    if (!(error instanceof QpdfPageRangeError)) throw error;
+    await writeBytes(context.stderr, new TextEncoder().encode(`qpdf: ${error.message}\n`), invocation.signal);
+    return { exitCode: 2 };
   } finally {
     await invocation.close();
   }

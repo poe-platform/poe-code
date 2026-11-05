@@ -47,12 +47,13 @@ test('SDK execution fallback receives literal command arguments',async()=>{
 });
 
 for (const [args, expected] of [
-  [['-p', '-g', '*sub/*.txt'], 'sub/file.txt\n'],
-  [['-p', '^(\\./)?sub/file\\.txt$'], 'sub/file.txt\n'],
-  [['-p', '^sub/file'], 'sub/file.txt\n'],
-  [['-p', 'work'], ''],
+  [['-p', '-g', '*sub/*.txt'], ''],
+  [['-p', '^(\\./)?sub/file\\.txt$'], ''],
+  [['-p', '^sub/file'], ''],
+  [['-p', 'work'], 'exec.sh\nlink.txt\nsub/\nsub/file.txt\n'],
   [['-p', '-a', '^/work/sub/file'], '/work/sub/file.txt\n'],
-  [['-p', '^\\./sub/file', './sub'], './sub/file.txt\n'],
+  [['-Hp', '^\\./sub/file', './sub'], ''],
+  [['-p', '^/work/sub/file', './sub'], './sub/file.txt\n'],
   [['-H', '-e', 'bashrc'], ''],
   [['-e', 'txt'], 'link.txt\nsub/file.txt\n'],
   [['-t', 'd', '-t', 'x'], 'exec.sh\nsub/\n'],

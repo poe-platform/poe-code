@@ -6598,7 +6598,7 @@ fn walk_fd(
             }
 
             if matches && !cfg.patterns.is_empty() {
-                let subject = if cfg.full_path { if cfg.absolute_path { full } else { disp } } else { &base };
+                let subject = if cfg.full_path { full } else { &base };
                 let folded;
                 let subject = if cfg.fold_subject { folded = subject.to_lowercase(); &folded } else { subject };
                 matches = cfg.patterns.iter().all(|pattern| match pattern {
@@ -7674,14 +7674,15 @@ mod tests {
     }
 
     #[test]
-    fn fd_compiles_patterns_in_the_last_selected_mode_and_matches_display_paths() {
+    fn fd_compiles_patterns_in_the_last_selected_mode_and_matches_absolute_paths() {
         let fs = MemoryVfs::new();
         fs.mkdir_all("/w/b").unwrap();
         for name in ["AÄ.txt", "aä.txt", "a.X", "b/a.x", "b/b.x"] { fs.write_file(&format!("/w/{name}"), b"").unwrap(); }
         for (argv, stdout, stderr) in [
-            (vec!["-gp", "*.x"], "a.X\n", ""),
+            (vec!["-gp", "*.x"], "", ""),
             (vec!["-gp", "**/*.x"], "a.X\nb/a.x\nb/b.x\n", ""),
-            (vec!["-gp", "b/{a,b}.x"], "b/a.x\nb/b.x\n", ""),
+            (vec!["-gp", "b/{a,b}.x"], "", ""),
+            (vec!["-gp", "/w/b/{a,b}.x"], "b/a.x\nb/b.x\n", ""),
             (vec!["-Fg", "*.X"], "a.X\n", ""), (vec!["-gF", "*.X"], "", ""),
             (vec!["-F", "ä"], "AÄ.txt\naä.txt\n", ""), (vec!["-F", "Ä"], "AÄ.txt\n", ""),
             (vec!["(?i)A.X"], "a.X\nb/a.x\n", ""), (vec!["(?-i)a.x"], "b/a.x\n", ""),

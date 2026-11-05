@@ -83,7 +83,7 @@ export function evalSyncFd(
   }
   if (
     a.help || a.version || a.exec.length > 0 || a.batch || a.details || (a.print0 && !allowNullBytes) ||
-    a.within !== undefined || a.before !== undefined || a.ignoreFiles.length > 0
+    (a.fullPath && a.mode === "glob") || a.within !== undefined || a.before !== undefined || a.ignoreFiles.length > 0
   ) {
     return undefined;
   }
@@ -185,7 +185,7 @@ export function evalSyncFd(
           const lower = entry.name.toLowerCase();
           extOk = a.extensions.some(ext => lower.length > ext.length + 1 && lower.endsWith(`.${ext.toLowerCase()}`));
         }
-        const subject = a.fullPath ? (a.absolute ? childAbs : childRel) : entry.name;
+        const subject = a.fullPath ? childAbs : entry.name;
         if (depthOk && typeOk && sizeOk && extOk && matchFns.every(fn => fn(subject))) {
           const prefixCwd = rootArg === ".";
           const rawOut = a.absolute

@@ -115,6 +115,9 @@ export function linuxCommands(text: string) {
       script: "gpg --batch -q --export missing", input: "" },
     { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-u", "missing-signer", "--detach-sign"],
       script: "gpg --batch -u missing-signer --detach-sign", input: text },
+    ...([["-Ip", "^/.*/samples/base$"], ["-IpF", "/samples/base"], ["-Ipg", "*/base"], ["-Ipg", "**/samples/base"]] as const).map(([flags, pattern]) => ({
+      cmd: "fdfind", args: [flags, pattern, "samples"], script: "fd " + flags + " '" + pattern + "' samples", input: "",
+    })),
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",

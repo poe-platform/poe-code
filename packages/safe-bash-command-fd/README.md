@@ -35,8 +35,8 @@ For explicit registration, import `fdCommands` or `createFdCommand` from
 | Execute registered commands | `fd -e ts -x wc -l '{}' ';'`, `fd -e ts -X wc -l '{}' ';'` |
 
 `-s` forces sensitive matching and `-i` forces insensitive matching. Smart case
-considers all required patterns. Full-path matching uses the displayed relative
-path unless `-a` requests absolute paths. Extensions are case insensitive and
+considers all required patterns. `-p` matches the absolute path inside the virtual
+filesystem. Output stays relative for relative search roots unless you add `-a`. Extensions are case insensitive and
 include symlinks; a leading dot alone does not count as an extension. Types can be
 repeated to combine types; `executable` includes executable files, while `empty`
 restricts results to empty files or directories. Sizes use integer

@@ -2,7 +2,35 @@ import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts/command";
-import { createMagickCommand, runMagickCli } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync, runMagickCli } from "./index.js";
+
+// ImageMagick 7.1.2-31 Q16-HDRI, RGBA [100,150,200,160], -depth 8 rgba:-.
+for (const mode of ["buffered", "retained", "sync"] as const) {
+  for (const [operation, value, expected] of [
+    ["Multiply", "0.5", [50, 75, 100, 80]],
+    ["Divide", "2", [50, 75, 100, 80]],
+    ["Pow", "2", [39, 88, 157, 100]],
+  ] as const) {
+    it.each([
+      [[], expected[3]],
+      [["-channel", "RGB"], 160],
+      [["-channel", "RGBA"], expected[3]],
+      [["-channel", "RGB", "+channel"], expected[3]],
+      [["-alpha", "off"], 255],
+    ] as const)(`${mode}: ${operation} ${value} matches native channel selection %j`, async (channel, alpha) => {
+      const bytes = await sharp(new Uint8Array([100, 150, 200, 160]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+      const files = new Map([["/in.png", bytes]]);
+      const filesystem = createMemoryFileSystem();
+      await filesystem.writeFile("/in.png", bytes);
+      const args = ["/in.png", ...channel, "-evaluate", operation, value, "/out.png"];
+      const result = mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+      expect([...output.data]).toEqual([...expected.slice(0, 3), alpha]);
+    });
+  }
+}
 
 for (const mode of ["map", "retained", "command"] as const) {
   it.each([

@@ -4386,6 +4386,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     let i = start, apply: MagickPixelOperation["apply"];
     if (token === "-colorspace" || token === "-grayscale") {
         const space = (tokens[++i] ?? "gray").toLowerCase();
+        if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
+            throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
+        }
         if (space === "cmyk") throw new Error("unsupported colorspace 'CMYK'");
         if (space === "lab") throw new Error("unsupported colorspace 'Lab'");
         apply = function* (image) {
@@ -4410,14 +4413,29 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (linearize) return image;
             }
             if (space === "hsl") return yield* convertHslPixels(image, true);
-            if (!space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
+            if (token !== "-grayscale" && !space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
             const out = new Uint8Array(image.data);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                // ImageMagick computes luma directly from the encoded RGB values.
-                const gray = clampByteVal(space === "rec601luma"
-                    ? 0.298839 * out[idx]! + 0.586811 * out[idx + 1]! + 0.11435 * out[idx + 2]!
-                    : 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!);
+                let r = out[idx]!, g = out[idx + 1]!, b = out[idx + 2]!;
+                // Luminance uses linear light; luma uses encoded sRGB samples.
+                if (space === "rec601luminance" || space === "rec709luminance") {
+                    r = 255 * (r / 255 <= 0.04045 ? r / 255 / 12.92 : ((r / 255 + 0.055) / 1.055) ** 2.4);
+                    g = 255 * (g / 255 <= 0.04045 ? g / 255 / 12.92 : ((g / 255 + 0.055) / 1.055) ** 2.4);
+                    b = 255 * (b / 255 <= 0.04045 ? b / 255 / 12.92 : ((b / 255 + 0.055) / 1.055) ** 2.4);
+                }
+                let intensity: number;
+                switch (space) {
+                    case "average": case "mean": intensity = (r + g + b) / 3; break;
+                    case "brightness": intensity = Math.max(r, g, b); break;
+                    case "lightness": intensity = (Math.min(r, g, b) + Math.max(r, g, b)) / 2; break;
+                    // Native MS squares Q16 quantum values before clipping.
+                    case "ms": intensity = (r * r + g * g + b * b) * 257 / 3; break;
+                    case "rms": intensity = Math.sqrt((r * r + g * g + b * b) / 3); break;
+                    case "rec601luma": case "rec601luminance": intensity = 0.298839 * r + 0.586811 * g + 0.11435 * b; break;
+                    default: intensity = 0.212656 * r + 0.715158 * g + 0.072186 * b;
+                }
+                const gray = clampByteVal(intensity);
                 out[idx] = out[idx + 1] = out[idx + 2] = gray;
             }
             const { data16: ignored, ...metadata } = image;

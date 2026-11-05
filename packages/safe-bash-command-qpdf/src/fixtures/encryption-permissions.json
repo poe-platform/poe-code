@@ -52,6 +52,12 @@
     },
     {
       "flags": [
+        "--form=n"
+      ],
+      "report": "R = 6\nP = -260\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: not allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
         "--assemble=n"
       ],
       "report": "R = 6\nP = -1028\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: not allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"

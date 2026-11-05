@@ -933,6 +933,7 @@ function parseQpdfArguments(argv: readonly string[]) {
         if (sub === "--extract=n") cfg.permissions.copy = false;
         if (sub === "--annotate=n") cfg.permissions.addNotes = false;
         if (sub === "--assemble=n") cfg.permissions.assemble = false;
+        if (sub === "--form=n") cfg.permissions.fillForms = false;
         i++;
       }
       encryptConfig = cfg;

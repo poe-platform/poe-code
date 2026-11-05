@@ -1,3 +1,4 @@
+import { DocxNumbering } from "./retained-docx-numbering.js";
 import { OfficeXml, SpanMap, type OfficeElement } from "./retained-office-xml.js";
 import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { retainLower } from "./retained-lower.js";
@@ -36,14 +37,16 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     const indexed = new OfficeXml(xml, storage, signal);
     try { await indexed.retain(); return indexed; } catch (error) { await xml.close().catch(() => {}); throw error; }
   };
+  let numbering: SofficeSnapshot | undefined;
   let document: SofficeSnapshot | undefined, rels: SofficeSnapshot | undefined, styles: SofficeSnapshot | undefined;
   const codec = createZipCodec(), limits = resolveOfficeResources({ archiveLimits: { chunkSize: 16384 } }).archiveLimits;
   await codec.readZipArchive({ size: source.size, read: (offset, maximum) => storage.read(source.position + offset, Math.min(16384, maximum, source.size - offset)) }, limits, signal, {
     storage, async onEntry(entry) {
-      const selected = !!documentBlocks || entry.name === "word/document.xml" || entry.name === "word/_rels/document.xml.rels" || !!markup && entry.name === "word/styles.xml";
+      const selected = entry.name === "word/numbering.xml" || !!documentBlocks || entry.name === "word/document.xml" || entry.name === "word/_rels/document.xml.rels" || !!markup && entry.name === "word/styles.xml";
       const position = storage.allocate(0); let size = 0;
       for await (const bytes of codec.decodeZipEntry(entry, limits, signal)) if (selected) { await storage.append(bytes); size += bytes.length; }
       const span = { position, size };
+      if (entry.name === "word/numbering.xml") numbering = span;
       if (entry.name === "word/document.xml") document = span;
       if (entry.name === "word/styles.xml") styles = span;
       if (entry.name === "word/_rels/document.xml.rels") rels = span;
@@ -132,8 +135,19 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     }
     return 0;
   };
+  let numberingXml: OfficeXml | undefined;
   let failed = true;
   try {
+    numberingXml = numbering ? await open(numbering) : undefined;
+    const lists = numberingXml ? new DocxNumbering(numberingXml, storage, signal) : undefined;
+    await lists?.retain();
+    const htmlLists: { id: number; level: number; ordered: boolean }[] = [];
+    const closeLists = async (level = -1) => {
+      while (htmlLists.length && htmlLists.at(-1)!.level > level) {
+        const list = htmlLists.pop()!;
+        await output.add(await literal(`</li>\n</${list.ordered ? "ol" : "ul"}>\n`));
+      }
+    };
     if ((markup || documentBlocks) && document && styles) {
       const owner = await open(styles); let styleFailed = true;
       try {
@@ -162,6 +176,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     if (markup) await output.add(await literal(html ? `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${escapeHtmlText(markup.title)}</title></head><body>\n` : docxDocumentPrefix));
     for await (const block of xml.elements(0, xml.count, ["p", "tbl"])) {
       if (await xml.name(block.name) === "tbl") {
+        await closeLists();
         const table = new RetainedSpans(storage, signal); let rows = 0;
         documentBlocks?.beginTable();
         for await (const row of xml.elements(block.open + 1, block.end, ["tr"])) {
@@ -189,7 +204,25 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
           else await addBlock(await table.finish());
         }
       } else {
-        const value = await text(block); if (value.size) await addBlock(value, await heading(block));
+        const value = await text(block), list = await lists?.next(xml, block);
+        if (html && list) {
+          await closeLists(list.level);
+          const current = htmlLists.at(-1);
+          if (current?.level === list.level && (current.id !== list.id || current.ordered !== list.ordered)) await closeLists(list.level - 1);
+          if (htmlLists.at(-1)?.level === list.level) await output.add(await literal("</li>\n"));
+          else {
+            await output.add(await literal(list.ordered ? `<ol start="${list.number}">\n` : "<ul>\n"));
+            htmlLists.push(list);
+          }
+          await output.add(await literal(list.ordered ? `<li value="${list.number}">` : "<li>"));
+          await output.add(await escaped(value));
+        } else {
+          await closeLists();
+          if (value.size || list) {
+            const marked = list?.marker ? await retain((async function* () { yield encoder.encode(list.marker + " "); yield* read(value); })()) : value;
+            await addBlock(marked, await heading(block));
+          }
+        }
         for await (const drawing of xml.elements(block.open + 1, block.end, ["drawing", "pict"])) {
           let reference: XmlRange | undefined;
           for (let index = drawing.first; index < drawing.end; index++) {
@@ -218,7 +251,11 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
         }
       }
     }
+    await closeLists();
     if (markup) await output.add(await literal(html ? "</body></html>\n" : docxDocumentSuffix));
     const result = await output.finish(); failed = false; return result;
-  } finally { await xml.xml.close().catch(error => { if (!failed) throw error; }); }
+  } finally {
+    try { await numberingXml?.xml.close().catch(error => { if (!failed) throw error; }); }
+    finally { await xml.xml.close().catch(error => { if (!failed) throw error; }); }
+  }
 }

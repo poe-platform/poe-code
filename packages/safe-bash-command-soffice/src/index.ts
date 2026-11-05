@@ -8,7 +8,7 @@ import type { ByteSink } from "safe-bash-contracts/io";
 import { parseHtmlBlocks, escapeHtmlText, type DocBlock } from "./html.js";
 import { parseMarkdownTableRows } from "./text-table.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { resolvePath } from "@poe-code/safe-fs/core";
+import { MemoryFileSystem, resolvePath } from "@poe-code/safe-fs/core";
 import { convertOds, starCalcCsvOptions } from "./spreadsheet.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -1200,6 +1200,35 @@ export async function runSofficeCli(
 ): Promise<SofficeCliResult> {
   const signal = options.signal ?? new AbortController().signal;
   signal.throwIfAborted();
+  const parsed = parseSofficeArguments(argv, cwd);
+  if (!("exitCode" in parsed) && parsed.inputs.length && parsed.inputs.some(input => input.toLowerCase().endsWith(".docx")) &&
+      (parsed.convertSpec || parsed.inputs.every(input => input.toLowerCase().endsWith(".docx")))) {
+    const fs = new MemoryFileSystem();
+    for (const [path, bytes] of files) {
+      const absolute = resolvePath(cwd, path);
+      await fs.mkdir(absolute.slice(0, absolute.lastIndexOf("/")) || "/", { recursive: true });
+      await fs.writeFile(absolute, bytes);
+    }
+    await fs.mkdir(resolvePath(cwd), { recursive: true });
+    let stdout = "", stderr = "";
+    const context = { fs, cwd, env: {}, signal,
+      stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } } };
+    const result = parsed.catMode && !parsed.convertSpec
+      ? await catRetainedText(parsed.inputs, context, context.stdout, resolveLimits({}), () => {})
+      : await tryRetainedTextConversion(parsed, context, resolveLimits({}), () => {});
+    if (result) {
+      if (parsed.convertSpec) {
+        const format = parsed.convertSpec.split(":")[0]!.toLowerCase();
+        for (const input of parsed.inputs) {
+          const basename = input.split("/").at(-1)!, dot = basename.lastIndexOf(".");
+          const path = resolvePath(cwd, parsed.outdir, `${dot >= 0 && dot < basename.length - 1 ? basename.slice(0, dot) : basename}.${format}`);
+          if (await fs.stat(path).catch(() => undefined)) files.set(path, await fs.readFile(path));
+        }
+      }
+      return { exitCode: result.exitCode, stdout, stderr: "stderr" in result ? result.stderr : stderr };
+    }
+  }
   const steps = runSofficeSteps(argv, files, cwd, signal);
   try {
     let step = steps.next();

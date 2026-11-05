@@ -61,6 +61,13 @@ describe("PDF.js standard security authentication", () => {
 });
 
 describe("PDF.js encrypted document regressions", () => {
+  it.each(["issue19484_1", "issue19484_2"])("rejects nonstandard short V4 keys in %s", name => {
+    const bytes = new Uint8Array(readFileSync(new URL(`../fixtures/pdfjs-${name}.pdf`, import.meta.url)));
+    for (const password of [undefined, "", "wrong"]) {
+      expect(() => PdfDocument.load(bytes, password === undefined ? {} : { password })).toThrow("Invalid PDF password");
+    }
+  });
+
   it.each(["SªSL\u00adprep", "SaSLprep"])("opens pypdf's R5 SASLprep password %j", password => {
     const doc = PdfDocument.load(new Uint8Array(readFileSync(new URL("../fixtures/pypdf-r5-saslprep.pdf", import.meta.url))), { password });
     expect(doc.extractText()).toContain("Independent reader check");
@@ -75,7 +82,7 @@ describe("PDF.js encrypted document regressions", () => {
     expect(doc.getPage(0).extractText()).toContain(text);
   });
 
-  it.each(["empty_protected", "issue19484_1", "issue19484_2"])("opens and evaluates %s", name => {
+  it.each(["empty_protected"])("opens and evaluates %s", name => {
     const doc = PdfDocument.load(new Uint8Array(readFileSync(new URL(`../fixtures/pdfjs-${name}.pdf`, import.meta.url))));
     expect(doc.pageCount).toBeGreaterThan(0);
     expect(doc.getPage(0).evaluateDisplayList()).toBeDefined();

@@ -64,3 +64,44 @@ for (const operation of ["--check", "--decrypt"]) for (const password of [undefi
     assert.deepEqual(await fs.readdir("/scratch"), []);
   });
 }
+
+for (const name of ["issue19484_1", "issue19484_2"]) for (const password of [undefined, "", "wrong"]) {
+  it(`rejects unauthenticated ${name} with ${JSON.stringify(password)} password on both paths`, async () => {
+    const input = new Uint8Array(readFileSync(new URL(`../../pdf-ast/src/fixtures/pdfjs-${name}.pdf`, import.meta.url)));
+    const options = password === undefined ? [] : [`--password=${password}`];
+    for (const run of [runQpdfCli, runQpdfCliSync]) {
+      for (const args of [["in.pdf", "out.pdf"], ["in.pdf", "-"], ["--check", "in.pdf"]]) {
+        const files = new Map([["in.pdf", input]]);
+        const result = await run([...options, ...args], files);
+        assert.equal(result.exitCode, 2);
+        assert.equal(result.stderr, "qpdf: in.pdf: invalid password\n");
+        assert.equal(result.stdout, "");
+        assert.deepEqual([...files.keys()], ["in.pdf"]);
+        assert.deepEqual(files.get("in.pdf"), input);
+      }
+      const report = await run([...options, "--show-encryption", "in.pdf"], new Map([["in.pdf", input]]));
+      assert.equal(report.exitCode, 0);
+      assert.ok(report.stdout.startsWith("Incorrect password supplied\n"));
+      assert.ok(!report.stdout.includes("Supplied password is"));
+      for (const predicate of ["--is-encrypted", "--requires-password"]) {
+        const result = await run([...options, predicate, "in.pdf"], new Map([["in.pdf", input]]));
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+      }
+    }
+    for (const operation of [[], ["--check"], ["--decrypt"]]) {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
+      const args = [...options, ...operation, "/in.pdf", ...(operation.includes("--check") ? [] : ["/out.pdf"])];
+      const carrier = createCommandArguments(args), output: Uint8Array[] = [], errors: Uint8Array[] = [];
+      const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+        stdin: (async function* () {})(), stdout: { async write(bytes: Uint8Array) { output.push(bytes); } }, stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } } });
+      assert.equal(result.exitCode, 2);
+      assert.equal(Buffer.concat(output).toString(), "");
+      assert.equal(Buffer.concat(errors).toString(), "qpdf: /in.pdf: invalid password\n");
+      await assert.rejects(fs.stat("/out.pdf"), { code: "ENOENT" });
+      assert.deepEqual(await fs.readFile("/in.pdf"), input);
+      assert.deepEqual(await fs.readdir("/scratch"), []);
+    }
+  });
+}

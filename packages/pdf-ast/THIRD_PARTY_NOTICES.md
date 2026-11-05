@@ -319,6 +319,8 @@ and ES2022 compatibility; it does not modify globals. The R5/R6 password hash
 adapter in `src/cos/security.ts` uses PDF.js's PDF17/PDF20 implementation.
 Local inspection additions retain the authenticated password identity and recovered
 user-password bytes, and check whether a user password also matches the owner.
+The security adapter uses 128-bit file keys for V4, matching qpdf instead of
+PDF.js's acceptance of nonstandard short V4 keys.
 The AES256 length cases in `src/cos/security-writer.test.ts` are adapted from
 PDF.js `test/unit/crypto_spec.js`, with independent Node AES validation.
 

@@ -189,6 +189,9 @@ export function derivePdfEncryptionKey(
   try {
     // An absent crypt-filter dictionary denotes the default Identity filters.
     if (!dict.get("CF")) dict.set("CF", new Dict());
+    // V4 uses a 128-bit file key, even when /Length declares a shorter key.
+    // Match qpdf rather than PDF.js's tolerance for nonstandard short V4 keys.
+    if (dict.get("V") === 4) dict.set("Length", 128);
     const revision = dict.get("R");
     let factory: CipherTransformFactory;
     try {

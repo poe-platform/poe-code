@@ -30090,6 +30090,37 @@ enum PandocInline {
     Link(Vec<PandocInline>, String),
 }
 
+#[derive(Clone, Debug, Default)]
+struct PandocAttr {
+    id: String,
+    classes: Vec<String>,
+    properties: Vec<(String, String)>,
+}
+
+impl PandocAttr {
+    fn json(&self) -> JVal {
+        JVal::Array(vec![
+            JVal::Str(self.id.clone()),
+            JVal::Array(self.classes.iter().cloned().map(JVal::Str).collect()),
+            JVal::Array(self.properties.iter().map(|(k, v)| JVal::Array(vec![JVal::Str(k.clone()), JVal::Str(v.clone())])).collect()),
+        ])
+    }
+
+    fn from_json(value: &JVal) -> Option<Self> {
+        let JVal::Array(fields) = value else { return None };
+        let [JVal::Str(id), JVal::Array(classes), JVal::Array(properties)] = fields.as_slice() else { return None };
+        Some(Self {
+            id: id.clone(),
+            classes: classes.iter().map(|c| match c { JVal::Str(s) => Some(s.clone()), _ => None }).collect::<Option<_>>()?,
+            properties: properties.iter().map(|pair| {
+                let JVal::Array(pair) = pair else { return None };
+                let [JVal::Str(k), JVal::Str(v)] = pair.as_slice() else { return None };
+                Some((k.clone(), v.clone()))
+            }).collect::<Option<_>>()?,
+        })
+    }
+}
+
 #[derive(Clone, Debug)]
 enum PandocBlock {
     Header(usize, String, Vec<PandocInline>),
@@ -30097,7 +30128,7 @@ enum PandocBlock {
     BulletList(Vec<(Option<bool>, Vec<PandocInline>)>),
     OrderedList(Vec<Vec<PandocInline>>),
     BlockQuote(Vec<PandocBlock>),
-    CodeBlock(String, String),
+    CodeBlock(PandocAttr, String),
     Table(Vec<String>, Vec<Vec<String>>, Option<Vec<std::fmt::Alignment>>),
     HorizontalRule,
 }
@@ -30294,8 +30325,8 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
                 if !blank { end = code.len(); }
                 i += 1;
             }
-            code.truncate(end);
-            blocks.push(PandocBlock::CodeBlock(String::new(), code));
+            code.truncate(end.saturating_sub(1));
+            blocks.push(PandocBlock::CodeBlock(PandocAttr::default(), code));
             continue;
         }
         if trimmed.starts_with("<!--") && trimmed.ends_with("-->") {
@@ -30308,12 +30339,16 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
             while i < lines.len() {
                 let line = lines[i];
                 i += 1;
-                if mdq_fence(line).is_some_and(|(_, m, n, tail)| m == marker && n >= width && tail.is_empty()) { break; }
+                if mdq_fence(line).is_some_and(|(_, m, n, tail)| m == marker && n >= width && tail.is_empty()) {
+                    code.pop(); // Only a closing fence consumes the final newline.
+                    break;
+                }
                 let skip = line.bytes().take(indent).take_while(|&b| b == b' ').count();
                 code.push_str(&line[skip..]);
                 code.push('\n');
             }
-            blocks.push(PandocBlock::CodeBlock(info.split_whitespace().next().unwrap_or("").into(), code));
+            let classes = info.split_whitespace().take(1).map(str::to_owned).collect();
+            blocks.push(PandocBlock::CodeBlock(PandocAttr { classes, ..Default::default() }, code));
             continue;
         }
         if trimmed == "---" || trimmed == "***" || trimmed == "___" {
@@ -30713,7 +30748,7 @@ fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
     JVal::Array(arr)
 }
 
-fn pandoc_doc_to_json(blocks: &[PandocBlock]) -> String {
+fn pandoc_blocks_to_json(blocks: &[PandocBlock]) -> JVal {
     let mut b_arr = Vec::new();
     for b in blocks {
         match b {
@@ -30740,10 +30775,23 @@ fn pandoc_doc_to_json(blocks: &[PandocBlock]) -> String {
                     ("c".to_string(), pandoc_inlines_to_json(inlines)),
                 ]));
             }
+            PandocBlock::CodeBlock(attr, code) => b_arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("CodeBlock".into())),
+                ("c".into(), JVal::Array(vec![attr.json(), JVal::Str(code.clone())])),
+            ])),
+            PandocBlock::BlockQuote(children) => b_arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("BlockQuote".into())),
+                ("c".into(), pandoc_blocks_to_json(children)),
+            ])),
+            PandocBlock::HorizontalRule => b_arr.push(JVal::Object(vec![("t".into(), JVal::Str("HorizontalRule".into()))])),
             _ => {}
         }
     }
-    let blocks_json = JVal::Array(b_arr).to_json_string(true, false, 0);
+    JVal::Array(b_arr)
+}
+
+fn pandoc_doc_to_json(blocks: &[PandocBlock]) -> String {
+    let blocks_json = pandoc_blocks_to_json(blocks).to_json_string(true, false, 0);
     format!("{{\"pandoc-api-version\":[1,23,1,2],\"meta\":{{}},\"blocks\":{blocks_json}}}\n")
 }
 
@@ -30803,6 +30851,10 @@ fn parse_pandoc_json(input: &str) -> Vec<PandocBlock> {
     let Some(JVal::Array(blocks)) = jval_obj_get(&root, "blocks") else {
         return Vec::new();
     };
+    parse_pandoc_json_blocks(blocks)
+}
+
+fn parse_pandoc_json_blocks(blocks: &[JVal]) -> Vec<PandocBlock> {
     let mut out = Vec::new();
     for b in blocks {
         if let JVal::Object(m) = b {
@@ -30810,7 +30862,20 @@ fn parse_pandoc_json(input: &str) -> Vec<PandocBlock> {
                 Some(JVal::Str(s)) => s.as_str(),
                 _ => "",
             };
-            if t == "Header" {
+            if t == "HorizontalRule" {
+                out.push(PandocBlock::HorizontalRule);
+            } else if t == "BlockQuote" {
+                if let Some(JVal::Array(children)) = jval_obj_get(m, "c") {
+                    out.push(PandocBlock::BlockQuote(parse_pandoc_json_blocks(children)));
+                }
+            } else if t == "CodeBlock" {
+                if let Some(JVal::Array(fields)) = jval_obj_get(m, "c")
+                    && let [attr, JVal::Str(code)] = fields.as_slice()
+                    && let Some(attr) = PandocAttr::from_json(attr)
+                {
+                    out.push(PandocBlock::CodeBlock(attr, code.clone()));
+                }
+            } else if t == "Header" {
                 if let Some(JVal::Array(c)) = jval_obj_get(m, "c")
                     && c.len() >= 3
                 {
@@ -30970,16 +31035,13 @@ fn render_pandoc_html(
                 let inner_html = render_pandoc_html(inner, false, false, false, ascii, "", "", "", "");
                 body.push_str(&format!("<blockquote>{inner_html}</blockquote>\n"));
             }
-            PandocBlock::CodeBlock(lang, code) => {
-                if lang.is_empty() {
-                    body.push_str(&format!("<pre><code>{}</code></pre>\n", html_escape_pandoc(code, ascii)));
-                } else {
-                    body.push_str(&format!(
-                        "<pre><code class=\"{}\">{}</code></pre>\n",
-                        html_escape_pandoc(lang, ascii),
-                        html_escape_pandoc(code, ascii)
-                    ));
-                }
+            PandocBlock::CodeBlock(attr, code) => {
+                body.push_str("<pre");
+                if !attr.id.is_empty() { body.push_str(&format!(" id=\"{}\"", html_escape_pandoc(&attr.id, ascii))); }
+                if !attr.classes.is_empty() { body.push_str(&format!(" class=\"{}\"", html_escape_pandoc(&attr.classes.join(" "), ascii))); }
+                body.push_str("><code>");
+                body.push_str(&html_escape_pandoc(code, ascii));
+                body.push_str("</code></pre>\n");
             }
             PandocBlock::Table(headers, rows, _) => {
                 body.push_str("<table>\n<colgroup>");
@@ -31096,8 +31158,9 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String
             PandocBlock::HorizontalRule => {
                 parts.push("---".to_string());
             }
-            PandocBlock::CodeBlock(lang, code) => {
-                parts.push(format!("```{lang}\n{code}```"));
+            PandocBlock::CodeBlock(attr, code) => {
+                let lang = attr.classes.first().map_or("", String::as_str);
+                parts.push(format!("```{lang}\n{code}\n```"));
             }
             PandocBlock::BlockQuote(inner) => {
                 let inner_md = render_pandoc_markdown(inner, bracket_links);
@@ -35578,6 +35641,19 @@ mod tests {
         let written = cmd_pandoc(&args(&["-f", "gfm", "-t", "gfm"]), input, "/", &vfs);
         let result = cmd_pandoc(&args(&["-f", "gfm", "-t", "plain"]), &written.stdout, "/", &vfs);
         assert_eq!(result.stdout, "  a       b\n  ----- ---\n  x|y     z\n");
+    }
+
+    #[test]
+    fn pandoc_json_preserves_nested_quotes_rules_and_literal_code() {
+        let vfs = MemoryVfs::new();
+        let source = "> a\n>\n> > ~~~foo\n> > one\n> >\n> > ~~~\n\n---\n";
+        let wire = concat!(r#"{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"BlockQuote","c":[{"t":"Para","c":[{"t":"Str","c":"a"}]},{"t":"BlockQuote","c":[{"t":"CodeBlock","c":[["",["foo"],[]],"one\n"]}]}]},{"t":"HorizontalRule"}]}"#, "\n");
+        let run = |from, to, input| cmd_pandoc(&args(&["-f", from, "-t", to]), input, "/", &vfs).stdout;
+        assert_eq!(run("commonmark", "json", source), wire);
+        let attributed = wire.replace(r#"["",["foo"],[]]"#, r#"["fig",["foo","bar"],[["lang","en"]]]"#);
+        assert_eq!(run("json", "json", &attributed), attributed);
+        assert_eq!(run("json", "plain", wire), run("commonmark", "plain", source));
+        assert_eq!(run("commonmark", "html", "    a\n    b\n"), "<pre><code>a\nb</code></pre>\n");
     }
 
     #[test]

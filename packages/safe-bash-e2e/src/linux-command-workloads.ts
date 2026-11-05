@@ -245,6 +245,14 @@ export function linuxCommands(text: string) {
       cmd: pandoc, args: ["-f", "gfm", "-t", "plain", "--wrap=none"],
       script: "pandoc -f gfm -t plain --wrap=none", input,
     })),
+    ...["    x\n\n    y\n", "~~~lang\nx", "~~~lang\r\nx\r\n\r\n~~~", "> a\n>\n> > ~~~foo\n> > one\n> >\n> > ~~~\n\n---\n"].map(input => ({
+      cmd: pandoc, args: ["-f", "commonmark", "-t", "json"], script: "pandoc -f commonmark -t json", input,
+    })),
+    ...["json", "plain"].map(to => ({
+      cmd: pandoc, args: ["-f", "json", "-t", to], script: `pandoc -f json -t ${to}`,
+      input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "BlockQuote", c: [
+        {t: "CodeBlock", c: [["fig", ["foo", "bar"], [["lang", "en"]]], "one\n"]}]}]}),
+    })),
     ...["commonmark+pipe_tables", "commonmark+pipe_tables-pipe_tables", "gfm-pipe_tables"].map(format => ({
       cmd: "bash", args: ["--noprofile", "--norc", "-c", '"$1" -f "$2" -t html | grep -c "<table"', "bash", pandoc, format],
       script: `pandoc -f ${format} -t html | grep -c '<table'`, input: "| a | b |\n| --- | --- |\n| 1 | 2 |\n",

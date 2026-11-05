@@ -341,7 +341,7 @@ export async function assembleRetainedCommonMark(
         } else attributes = fencedDivAttributes(text, context);
       }
       await ast.push(out, block.kind === "div" || block.kind === "nativeDiv" ? await ast.tag("Div", await ast.value([attributes!, children])) : block.kind === "quote" ? await ast.tag("BlockQuote", children) : Number.isNaN(block.number) ? await ast.tag("BulletList", children) :
-        await ast.tag("OrderedList", await ast.value([[block.number, await ast.tag(block.style === 1 ? "LowerRoman" : block.style === 2 ? "UpperRoman" : "Decimal"), await ast.tag(block.marker === 41 ? "OneParen" : "Period")], children])));
+        await ast.tag("OrderedList", await ast.value([[block.number, await ast.tag(block.style === 1 ? "LowerRoman" : block.style === 2 ? "UpperRoman" : block.style === 3 ? "LowerAlpha" : "Decimal"), await ast.tag(block.marker === 41 ? "OneParen" : "Period")], children])));
       await push(); position = block.first; out = children; depth++; tight = block.kind === "list" && !!block.tight; mode = block.kind === "list" ? 1 : 0; taskNode = 0;
     }
   }

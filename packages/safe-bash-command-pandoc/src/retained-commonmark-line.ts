@@ -78,17 +78,25 @@ export class RetainedCommonMarkLine {
     if (end - offset < 3 || char === "`" && await this.source.find({start: this.text.start + end, end: this.text.end}, "`") !== -1) return;
     return {char, length: end - offset};
   }
-  async marker(offset: number, fancy = false): Promise<RetainedMarker | undefined> {
+  async marker(offset: number, fancy = false, listStyle = 0): Promise<RetainedMarker | undefined> {
     let end = offset, start = NaN, style = 0, char = await this.at(end);
     if (char === "-" || char === "+" || char === "*") end++;
     else {
       let value = 0;
       while (end - offset < 10) {const digit = await this.at(end); if (digit === undefined || digit < "0" || digit > "9") break; value = value * 10 + Number(digit); end++;}
       if (end === offset && fancy) {
-        let label = "";
-        while (end - offset < 16) {const c = await this.at(end); if (!c || !"ivxlcdmIVXLCDM".includes(c)) break; label += c; end++;}
-        const number = romanListNumber(label); if (number === undefined) return;
-        value = number; style = label === label.toLowerCase() ? 1 : 2;
+        const next = await this.at(offset + 1);
+        // A single lowercase letter starts an alphabetic list, except i.
+        // Continuations retain the enclosing list's alphabetic or Roman style.
+        if (char && char >= "a" && char <= "z" && (next === "." || next === ")") &&
+            (listStyle === 3 || char !== "i" && (listStyle !== 1 || !"vxlcdm".includes(char)))) {
+          value = char.charCodeAt(0) - 96; style = 3; end++;
+        } else {
+          let label = "";
+          while (end - offset < 16) {const c = await this.at(end); if (!c || !"ivxlcdmIVXLCDM".includes(c)) break; label += c; end++;}
+          const number = romanListNumber(label); if (number === undefined) return;
+          value = number; style = label === label.toLowerCase() ? 1 : 2;
+        }
       }
       if (end === offset || (!style && end - offset > 9) || await this.at(end) !== "." && await this.at(end) !== ")") return;
       start = value; char = await this.at(end++);

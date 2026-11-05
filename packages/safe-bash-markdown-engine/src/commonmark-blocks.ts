@@ -23,7 +23,7 @@ export type PendingBlock =
   | { kind: "code"; info: string; literal: string; source: BlockSource }
   | { kind: "html"; literal: string; source: BlockSource }
   | { kind: "quote"; blocks: PendingBlock[]; source: BlockSource }
-  | { kind: "list"; start: number | null; marker: string; style?: "LowerRoman" | "UpperRoman" | undefined; tight: boolean; items: PendingItem[]; source: BlockSource };
+  | { kind: "list"; start: number | null; marker: string; style?: "LowerRoman" | "UpperRoman" | "LowerAlpha" | undefined; tight: boolean; items: PendingItem[]; source: BlockSource };
 export interface BlockDefinition {
   label: string;
   destination: string;
@@ -57,7 +57,7 @@ type Leaf =
   | { kind: "fence"; node: Extract<PendingBlock, { kind: "code" }>; char: string; length: number; indent: number }
   | { kind: "indent"; node: Extract<PendingBlock, { kind: "code" }>; blanks: string[] }
   | { kind: "html"; node: Extract<PendingBlock, { kind: "html" }>; end: readonly string[] | null };
-interface Marker { style?: "LowerRoman" | "UpperRoman" | undefined; start: number | null; marker: string; content: number; indent: number; empty: boolean }
+interface Marker { style?: "LowerRoman" | "UpperRoman" | "LowerAlpha" | undefined; start: number | null; marker: string; content: number; indent: number; empty: boolean }
 
 function spaces(text: string, offset: number): number {
   let end = offset;
@@ -130,7 +130,7 @@ function fence(text: string, offset: number): { char: string; length: number } |
   if (end - offset < 3 || (char === "`" && text.indexOf("`", end) !== -1)) return;
   return { char, length: end - offset };
 }
-function marker(text: string, offset: number, fancy = false): Marker | undefined {
+function marker(text: string, offset: number, fancy = false, listStyle?: Marker["style"]): Marker | undefined {
   let end = offset;
   let start: number | null = null;
   let style: Marker["style"];
@@ -139,10 +139,18 @@ function marker(text: string, offset: number, fancy = false): Marker | undefined
   else {
     while (text[end] !== undefined && text[end]! >= "0" && text[end]! <= "9" && end - offset < 10) end++;
     if (end === offset && fancy) {
-      while (end - offset < 16 && text[end] && "ivxlcdmIVXLCDM".includes(text[end]!)) end++;
-      const label = text.slice(offset, end), number = romanListNumber(label);
-      if (number === undefined) return;
-      start = number; style = label === label.toLowerCase() ? "LowerRoman" : "UpperRoman";
+      const next = text[offset + 1];
+      // A single lowercase letter starts an alphabetic list, except i.
+      // Continuations retain the enclosing list's alphabetic or Roman style.
+      if (char && char >= "a" && char <= "z" && (next === "." || next === ")") &&
+          (listStyle === "LowerAlpha" || char !== "i" && (listStyle !== "LowerRoman" || !"vxlcdm".includes(char)))) {
+        start = char.charCodeAt(0) - 96; style = "LowerAlpha"; end++;
+      } else {
+        while (end - offset < 16 && text[end] && "ivxlcdmIVXLCDM".includes(text[end]!)) end++;
+        const label = text.slice(offset, end), number = romanListNumber(label);
+        if (number === undefined) return;
+        start = number; style = label === label.toLowerCase() ? "LowerRoman" : "UpperRoman";
+      }
     }
     if (end === offset || (!style && end - offset > 9) || (text[end] !== "." && text[end] !== ")")) return;
     start ??= Number(text.slice(offset, end));
@@ -575,7 +583,8 @@ export async function parseCommonMarkBlocks(
           offset = end + 2 + spaces(line.text, end + 2); continue;
         }
       }
-      const item = indent <= 3 && !rule(line.text, at) ? marker(line.text, at, extensions.fancy_lists) : undefined;
+      let item = indent <= 3 && !rule(line.text, at) ? marker(line.text, at, extensions.fancy_lists) : undefined;
+      if (item && top?.kind === "list" && item.marker === top.node.marker && item.style !== top.node.style) item = marker(line.text, at, extensions.fancy_lists, top.node.style);
       if (top?.kind === "list" && (!item || (item.start !== null) !== (top.node.start !== null) || item.marker !== top.node.marker || item.style !== top.node.style)) {
         stack.pop();
         const parent = stack[stack.length - 1];

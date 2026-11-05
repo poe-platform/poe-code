@@ -30,6 +30,41 @@ for (const retained of [false, true]) {
       ]]}
     ]);
   });
+  it.each([
+    ["a", "b", 1, "LowerAlpha", "a"],
+    ["d", "e", 4, "LowerAlpha", "a"],
+    ["h", "i", 8, "LowerAlpha", "a"],
+    ["i", "ii", 1, "LowerRoman", "i"],
+    ["iv", "v", 4, "LowerRoman", "i"],
+    ["ix", "x", 9, "LowerRoman", "i"],
+    ...["c", "l", "m", "v", "x", "z"].map(label => [label, label, label.charCodeAt(0) - 96, "LowerAlpha", "a"])
+  ])(`disambiguates alphabetic and Roman markers (retained=${retained}): %s`, async (first, second, start, style, type) => {
+    for (const delimiter of [".", ")"]) {
+      const text = `${first}${delimiter} First\n${second}${delimiter} Second\n`;
+      expect(JSON.parse(await render(text)).blocks).toEqual([
+        {t: "OrderedList", c: [[start, {t: style}, {t: delimiter === "." ? "Period" : "OneParen"}], [
+          [{t: "Plain", c: [{t: "Str", c: "First"}]}],
+          [{t: "Plain", c: [{t: "Str", c: "Second"}]}]
+        ]]}
+      ]);
+      expect(await render(text, "markdown", "html5")).toBe(
+        `<ol${start === 1 ? "" : ` start="${start}"`} type="${type}">\n<li>First</li>\n<li>Second</li>\n</ol>\n`
+      );
+    }
+  });
+  it.each(["commonmark", "gfm", "markdown-fancy_lists"])(`keeps alphabetic markers literal in %s (retained=${retained})`, async from => {
+    for (const delimiter of [".", ")"]) {
+      const text = `a${delimiter} Alpha\nb${delimiter} Beta\n`;
+      expect(JSON.parse(await render(text, from)).blocks[0].t).toBe("Para");
+      expect(await render(text, from, "html5")).toBe(`<p>${text.trimEnd()}</p>\n`);
+    }
+  });
+  it(`starts a new style when the delimiter changes (retained=${retained})`, async () => {
+    const blocks = JSON.parse(await render("h. First\ni) Second\n")).blocks;
+    expect(blocks.map((block: {c: unknown[]}) => block.c[0])).toEqual([
+      [8, {t: "LowerAlpha"}, {t: "Period"}], [1, {t: "LowerRoman"}, {t: "OneParen"}]
+    ]);
+  });
   it(`renders the reported Roman list as HTML (retained=${retained})`, async () => {
     const html = await render("iv. First\nv. Second\n", "markdown", "html");
     expect(html).toContain('<ol start="4" type="i">');
@@ -56,18 +91,18 @@ for (const retained of [false, true]) {
   });
 }
 
-it("reads Roman lists through the standalone command", async () => {
+it.each([["iv", "v", 4, "i"], ["a", "b", 1, "a"], ["d", "e", 4, "a"]])("reads %s lists through the standalone command", async (first, second, start, type) => {
   let output = "";
   const errors: Uint8Array[] = [];
   const result = await createStandalonePandocCommand().execute({
     args: ["-f", "markdown", "-t", "html"],
-    stdin: [new TextEncoder().encode("iv. First\nv. Second\n")],
+    stdin: [new TextEncoder().encode(`${first}. First\n${second}. Second\n`)],
     signal: new AbortController().signal,
     stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
     stderr: {async write(bytes) {errors.push(bytes);}}
   });
   expect(result.exitCode).toBe(0);
   expect(errors).toEqual([]);
-  expect(output).toContain('<ol start="4" type="i">');
+  expect(output).toContain(`<ol${start === 1 ? "" : ` start="${start}"`} type="${type}">`);
   expect(output).toContain("<li>Second</li>");
 });

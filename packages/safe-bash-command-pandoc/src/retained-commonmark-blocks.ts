@@ -409,9 +409,10 @@ export class RetainedCommonMarkBlocks {
             if (valid) {const node = await add("footnote", line, at, {infoStart: line.text.start + at + 2, infoEnd: stop}); await push(node, "footnote", 4); offset = stop - line.text.start + 2; offset += await line.spaces(offset); continue;}
           }
         }
-        const item = indent <= 3 && !await line.rule(at) ? await line.marker(at, extensions.fancy_lists) : undefined;
-        if (top && kinds[top[3]!] === "list") {
-          const list = await this.node(top[2]!);
+        const list = top && kinds[top[3]!] === "list" ? await this.node(top[2]!) : undefined;
+        let item = indent <= 3 && !await line.rule(at) ? await line.marker(at, extensions.fancy_lists) : undefined;
+        if (item && list && item.marker === list.marker && item.style !== list.style) item = await line.marker(at, extensions.fancy_lists, list.style);
+        if (list && top) {
           if (!item || Number.isNaN(item.start) !== Number.isNaN(list.number) || item.marker !== list.marker || item.style !== list.style) {
             await truncate(top[0]!, depth - 1);
             const parent = lastStack ? await this.get(lastStack, 8) : undefined, previous = list.last ? await this.node(list.last) : undefined;

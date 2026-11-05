@@ -922,6 +922,10 @@ function parseQpdfArguments(argv: readonly string[]) {
       while (i < argv.length && argv[i] !== "--") {
         const sub = argv[i]!;
         if (sub === "--print=none") cfg.permissions.print = cfg.permissions.printHighRes = false;
+        if (sub === "--print=low") {
+          cfg.permissions.print = true;
+          cfg.permissions.printHighRes = false;
+        }
         if (sub === "--modify=none") cfg.permissions.modify = cfg.permissions.addNotes = cfg.permissions.fillForms = cfg.permissions.assemble = false;
         if (sub === "--extract=n") cfg.permissions.copy = false;
         if (sub === "--annotate=n") cfg.permissions.addNotes = false;

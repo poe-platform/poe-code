@@ -4,6 +4,19 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+test("sqlite3 instr searches complete BLOB bytes", async () => {
+  assert.deepEqual(
+    await runSqlite3(createMemoryFileSystem(), [":memory:", `
+      SELECT instr(x'61626300FF',x'00FF'), instr(x'61620063',x'63');
+      SELECT instr(x'00FF80',x'FF'), instr(x'41C3A942',x'42');
+      SELECT instr(x'FF80',x'FE'), instr(x'616162',x'6162');
+      SELECT instr(x'',x''), instr(x'61',x''), instr(x'',x'61'), instr(x'61',x'6162');
+      SELECT instr(NULL,x'61'), instr(x'61',NULL);
+    `]),
+    { code: 0, stdout: "4|4\n2|4\n0|2\n1|1|0|0\n|\n", stderr: "" }
+  );
+});
+
 test("sqlite3 instr counts Unicode characters for text and bytes for blobs", async () => {
   assert.deepEqual(
     await runSqlite3(createMemoryFileSystem(), [":memory:", `

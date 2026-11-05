@@ -99,7 +99,9 @@ metadata defaults), `standalone`, `metadata`, `metadataJson` (ordered maps; null
 deletes keys), `metadataFiles` (explicit JSON inputs), `rawContent` (`reject`,
 `escape`, or `retain`), `lossy`, and `failIfWarnings`. The CLI defaults to lossy
 conversion, projecting unsupported container attributes with diagnostics; the SDK
-remains strict unless `lossy: true` is selected. `--fail-if-warnings` rejects these
+remains strict unless `lossy: true` is selected. HTML raw blocks pass through HTML
+output unchanged by default; use `rawContent: "escape"` or `"reject"` to override
+this behavior. Conversion does not sanitize raw HTML. `--fail-if-warnings` rejects these
 diagnostics, and `--lossy` remains accepted for compatibility. Plain, CommonMark, and GFM output accept
 `wrap` (`none`, `auto`, or `preserve`) and positive `columns` (default 72 when
 wrapping is requested). Markdown wrapping preserves inline code, links, and fenced

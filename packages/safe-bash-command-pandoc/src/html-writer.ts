@@ -223,7 +223,10 @@ class HtmlWriter {
           break;
         }
         case "CodeBlock": this.add("<pre><code"); this.attrs(node.c[0]); this.add(">"); this.escape(node.c[1]); this.add("</code></pre>\n"); break;
-        case "RawBlock": this.raw(node.c[0], node.c[1], p); this.add("\n"); break;
+        case "RawBlock":
+          if (this.context.rawContent === undefined && ["html", "html5"].includes(node.c[0])) this.add(node.c[1]);
+          else this.raw(node.c[0], node.c[1], p);
+          this.add("\n"); break;
         case "Header": {
           const section = this.sectionByNode.get(node) ?? this.section(node);
           const id = section.id, level = Math.min(node.c[0], 6);

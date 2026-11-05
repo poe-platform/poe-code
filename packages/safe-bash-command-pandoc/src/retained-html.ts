@@ -391,7 +391,12 @@ class HtmlTape {
         await this.sequence(this.list(content!, cp, "inline", skip), this.literal((task ? "</label>" : "") + (tag === "Para" ? "</p>\n" : "")));
       } else if (tag === "CodeBlock") {
         await this.add("<pre><code"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.escape(await this.scalar(await this.at(content!, 1))); await this.add("</code></pre>\n");
-      } else if (tag === "RawBlock") {await this.raw(content!, job.path); await this.add("\n");}
+      } else if (tag === "RawBlock") {
+        if (this.options.rawContent === undefined && ["html", "html5"].includes(await this.tree.smallText(await this.at(content!, 0), 5) ?? "")) {
+          await this.add(await this.scalar(await this.at(content!, 1)));
+        } else await this.raw(content!, job.path);
+        await this.add("\n");
+      }
       else if (tag === "Header") {
         const known = await this.sectionByNode.get(BigInt(job.node)), section = known === undefined ? await this.section(job.node) : await this.read<Section>(Number(known));
         const level = Math.min(await this.number(await this.at(content!, 0)), 6), inner = await child(2);

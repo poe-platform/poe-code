@@ -196,3 +196,12 @@ it("streams transformed JSON through the HTML command path", async () => {
   } finally {acquire.mockRestore();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each(["html", "html5"])("passes through %s raw blocks in streamed HTML output", async format => {
+  const blocks: Block[] = [{t: "RawBlock", c: [format, "<aside>hello</aside>"]}];
+  const result = await writeDocument({blocks, metadata: {}, resources: []}, {to: "html"}, {});
+  expect(result).toMatchObject({text: "<aside>hello</aside>\n", diagnostics: []});
+  await compare(blocks, {failIfWarnings: true});
+  await compare(blocks, {lossy: true});
+  await compare(blocks, {rawContent: "escape"});
+});

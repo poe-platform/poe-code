@@ -73,9 +73,10 @@ it("rejects active URI schemes, controls and active/reserved attributes before p
   }
   expect(publish).not.toHaveBeenCalled();
 });
-it("declares raw policy: reject by default, escape explicitly, retain HTML with warning", async () => {
+it("passes through HTML raw blocks by default and honors explicit raw policy", async () => {
   const blocks: Block[] = [{t: "RawBlock", c: ["html", '<script src="x">bad()</script>']}];
-  await expect(html(blocks)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  expect(await html(blocks)).toBe('<script src="x">bad()</script>\n');
+  await expect(html(blocks, {rawContent: "reject"})).rejects.toMatchObject({code: "E_CAPABILITY"});
   expect(await html(blocks, {rawContent: "escape"})).toBe('&lt;script src="x"&gt;bad()&lt;/script&gt;\n');
   const result = await writeDocument(doc(blocks), {to: "html", rawContent: "retain"} as WriteOptions, {});
   expect(result).toMatchObject({text: '<script src="x">bad()</script>\n', diagnostics: [expect.objectContaining({code: "W_RAW_CONTENT", location: "$.blocks[0]"})]});

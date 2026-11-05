@@ -256,3 +256,11 @@ it.each(["markdown", "mkd", "mdown", "mdwn"])("infers .%s input and output throu
     expect(text(ctx.stderr)).toBe("");
   }
 });
+
+it.each(["html", "html5"])("passes HTML RawBlock markup through %s without warnings", async to => {
+  const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "RawBlock", c: ["html", "<aside>hello</aside>"]}]});
+  const ctx = context(["-f", "json", "-t", to, "--fail-if-warnings"], input);
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("<aside>hello</aside>\n");
+  expect(text(ctx.stderr)).toBe("");
+});

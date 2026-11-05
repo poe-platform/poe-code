@@ -197,6 +197,7 @@ pub(super) fn write(
     cwd: &str,
     dir: &str,
     writes: Vec<(&str, String)>,
+    umask: u32,
 ) -> Result<(), String> {
     let mut missing = Vec::new();
     let mut display = config_path(dir, "");
@@ -228,7 +229,7 @@ pub(super) fn write(
     }
     for display in missing.into_iter().rev() {
         let path = resolve_posix_path(cwd, &display);
-        if let Err((code, _)) = fs.mkdir(&path, false, 0o771) {
+        if let Err((code, _)) = fs.mkdir(&path, false, 0o771 & !umask) {
             if code == "EEXIST" {
                 fs.command_descriptor_op()?;
                 if fs.lstat(&path)?.kind == VfsEntryKind::Directory {
@@ -244,7 +245,7 @@ pub(super) fn write(
             &resolve_posix_path(cwd, &display),
             contents.as_bytes(),
             false,
-            0o600,
+            0o600 & !umask,
         )
         .map_err(|e| disk_error("open", &display, e))?;
     }

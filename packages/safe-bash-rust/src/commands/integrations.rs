@@ -4502,7 +4502,8 @@ fn cmd_gh_inner(
                         Ok(out) => writes.push((name, out)), Err(e) => return error(format!("{stderr}{e}\n")),
                     }
                     if !host.is_empty() && config.original.is_none() { writes.push(("config.yml", default_config().into())); }
-                    if let Err(e) = super::gh_config::write(fs, cwd, &display_dir, writes) {
+                    let umask = env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+                    if let Err(e) = super::gh_config::write(fs, cwd, &display_dir, writes, umask) {
                         return error(format!("{stderr}{e}\n"));
                     }
                     if host.is_empty() {

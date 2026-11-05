@@ -1,4 +1,5 @@
 import { dirname, isFsError, joinPath, resolvePath } from "@poe-code/safe-fs/core";
+import { creationUmask } from "safe-bash-contracts/runtime-control";
 import type { CommandContext } from "safe-bash-contracts";
 import { Document, isAlias, isMap, isScalar, parseDocument, Scalar, YAMLMap } from "yaml";
 import defaultLines from "./config-defaults.json" with { type: "json" };
@@ -83,6 +84,8 @@ export async function readGhConfig(context: CommandContext, dir: string) {
 
 export async function writeGhConfig(context: CommandContext, dir: string, writes: [string, string][]) {
   const options = { signal: context.signal };
+  const mask: unknown = Reflect.get(context.fs, creationUmask);
+  const umask = typeof mask === "number" ? mask : 0o022;
   const missing: string[] = [];
   let display = joinPath(dir, ".");
   let op = "mkdir";
@@ -104,7 +107,7 @@ export async function writeGhConfig(context: CommandContext, dir: string, writes
     for (display of missing.reverse()) {
       const path = resolvePath(context.cwd, display);
       try {
-        await context.fs.mkdir(path, { ...options, mode: 0o771 });
+        await context.fs.mkdir(path, { ...options, mode: 0o771 & ~umask });
       } catch (error) {
         if (!isFsError(error) || error.code !== "EEXIST" || (await context.fs.lstat(path, options)).type !== "directory") throw error;
       }
@@ -112,7 +115,7 @@ export async function writeGhConfig(context: CommandContext, dir: string, writes
     op = "open";
     for (const [name, contents] of writes) {
       display = joinPath(dir, name);
-      await context.fs.writeFile(resolvePath(context.cwd, display), new TextEncoder().encode(contents), { ...options, mode: 0o600 });
+      await context.fs.writeFile(resolvePath(context.cwd, display), new TextEncoder().encode(contents), { ...options, mode: 0o600 & ~umask });
     }
   } catch (error) {
     if (!isFsError(error)) throw error;

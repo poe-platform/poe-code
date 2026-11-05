@@ -51,6 +51,22 @@ async function runSqlite3(
   };
 }
 
+for (const [args, hex] of [
+  ["-1", "EFBFBD"],
+  ["1114112", "EFBFBD"],
+  ["0", "00"],
+  ["65", "41"],
+  ["1114111", "F48FBFBF"],
+  ["65,-1,66,1114112,67", "41EFBFBD42EFBFBD43"],
+]) {
+  test(`sqlite3 CHAR matches native output for ${args}`, async () => {
+    assert.deepEqual(
+      await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT hex(char(${args}));`]),
+      { code: 0, stdout: `${hex}\n`, stderr: "" }
+    );
+  });
+}
+
 for (const [sql, stdout] of [
   ["SELECT char(0xE000) < char(0x1F600), hex(char(0xE000)), hex(char(0x1F600));", "1|EE8080|F09F9880\n"],
   ["WITH t(x) AS (VALUES(char(0xE000)),(char(0x1F600))) SELECT hex(x) FROM t ORDER BY x;", "EE8080\nF09F9880\n"],

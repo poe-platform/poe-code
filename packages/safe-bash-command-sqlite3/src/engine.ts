@@ -7813,7 +7813,8 @@ export class SqliteDatabase {
       case "CHAR":
         return args
           .map((x) => {
-            return String.fromCodePoint(Math.max(0, Math.trunc(toSqlNumber(x))));
+            const codePoint = Math.trunc(toSqlNumber(x));
+            return String.fromCodePoint(codePoint >= 0 && codePoint <= 0x10ffff ? codePoint : 0xfffd);
           })
           .join("");
       case "UNICODE":

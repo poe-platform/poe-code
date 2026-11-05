@@ -3,14 +3,30 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 interface ColorBin { count: number; sums: number[]; color: number[] }
 
 /** A bounded histogram and population median cuts shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
+    const prepare = (source: Uint8Array): Uint8Array => {
+        if (!grayscale) return source;
+        const data = new Uint8Array(source);
+        for (let i = 0; i < data.length; i += 4) {
+            const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
+            data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.round(luma);
+            // ImageMagick's two-color gray shortcut produces an opaque bilevel image.
+            if (requested === 2) data[i + 3] = 255;
+        }
+        return data;
+    };
     let bins = new Map<number, ColorBin>(), mask = 0xffffffff, precision = 8;
     const key = (data: Uint8Array, i: number) => (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
     for (let position = 0; position < length; position += 4096) {
         yield;
-        const size = Math.min(4096, length - position), data = yield { kind: "read", position, length: size };
-        if (!data || data.length !== size) throw new Error("Truncated quantization pixels");
+        const size = Math.min(4096, length - position), source = yield { kind: "read", position, length: size };
+        if (!source || source.length !== size) throw new Error("Truncated quantization pixels");
+        const data = prepare(source);
+        if (grayscale && requested === 2) {
+            yield { kind: "write", position, data };
+            continue;
+        }
         for (let i = 0; i < size; i += 4) {
             const id = key(data, i);
             let bin = bins.get(id);
@@ -33,6 +49,7 @@ export function* quantizePixelSteps(length: number, requested: number): Generato
             bins = reduced;
         }
     }
+    if (grayscale && requested === 2) return;
     const pending = [{ colors: [...bins.values()], budget: requested }];
     while (pending.length) {
         yield;
@@ -71,8 +88,8 @@ export function* quantizePixelSteps(length: number, requested: number): Generato
         yield;
         const size = Math.min(4096, length - position), source = yield { kind: "read", position, length: size };
         if (!source || source.length !== size) throw new Error("Truncated quantization pixels");
-        const data = new Uint8Array(size);
-        for (let i = 0; i < size; i += 4) data.set(bins.get(key(source, i))!.color, i);
+        const data = new Uint8Array(size), pixels = prepare(source);
+        for (let i = 0; i < size; i += 4) data.set(bins.get(key(pixels, i))!.color, i);
         yield { kind: "write", position, data };
     }
 }

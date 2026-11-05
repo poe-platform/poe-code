@@ -496,6 +496,7 @@ interface MagickState {
   strip: boolean;
   adjoin: boolean;
   dither: boolean;
+  quantizeGray?: boolean;
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
@@ -4836,6 +4837,12 @@ if (t === "-seed") {
             state.seed = Number(tokens[++i] ?? 0);
             if (!Number.isSafeInteger(state.seed) || state.seed < 0) throw new Error("Invalid random seed");
         }
+        else if (t === "-quantize") {
+            state.quantizeGray = (tokens[++i] ?? "").toLowerCase() === "gray";
+        }
+        else if (t === "+quantize") {
+            state.quantizeGray = false;
+        }
         else if (t === "-channel") {
             state.channels = parseChannelMask(tokens[++i] ?? "rgb");
             state.channelExplicit = true;
@@ -4991,7 +4998,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const colors = Number(tokens[++i]);
             stack = yield* mapSteps(stack, image => {
                 const { data16: ignored, hslSamples: ignoredHsl, ...pixels } = image;
-                return applyMagickRasterSteps(pixels, quantizePixelSteps(image.data.length, colors), signal);
+                return applyMagickRasterSteps(pixels, quantizePixelSteps(image.data.length, colors, state.quantizeGray), signal);
             });
         }
         else if (pixelOperation) {
@@ -6016,8 +6023,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-colors") {
-            const colors = Number(tokens[++i]);
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, colors), signal) : undefined);
+            const colors = Number(tokens[++i]), grayscale = state.quantizeGray;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale), signal) : undefined);
             continue;
         }
         if (!operandsOnly && token === "-ordered-dither") {

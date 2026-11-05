@@ -20,6 +20,29 @@ const operators = [
 async function fixture(width = 13, height = 17) {
     return sharp(Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 37 % 256), { raw: { width, height, channels: 4 } }).png().toBuffer();
 }
+// Center-column grayscale values from ImageMagick 7: gradient:black-white -implode AMOUNT -depth 8 gray:-.
+const implodeGradients = [
+    { width: 9, height: 9, amount: 0.5, expected: [0, 29, 53, 77, 111, 176, 209, 234, 255] },
+    { width: 9, height: 9, amount: -0.5, expected: [0, 35, 73, 109, 136, 151, 178, 214, 252] },
+    { width: 9, height: 17, amount: 0.5, expected: [0, 15, 28, 41, 53, 65, 78, 93, 117, 153, 178, 193, 206, 218, 230, 242, 255] },
+    { width: 9, height: 17, amount: -0.5, expected: [0, 17, 35, 54, 73, 92, 108, 122, 132, 139, 149, 163, 179, 198, 217, 236, 254] },
+    { width: 17, height: 9, amount: 0.5, expected: [0, 28, 53, 76, 107, 179, 211, 234, 255] },
+    { width: 17, height: 9, amount: -0.5, expected: [0, 35, 74, 109, 136, 150, 177, 213, 252] },
+    { width: 9, height: 9, amount: 0, expected: [0, 32, 64, 96, 128, 159, 191, 223, 255] }
+];
+it.each(implodeGradients.flatMap(test => [false, true].map(retained => ({ ...test, retained }))))("implodes a $width x $height gradient: $amount, retained=$retained", async ({ width, height, amount, expected, retained }) => {
+    const pixels = Uint8Array.from({ length: width * height * 4 }, (_, i) => i % 4 === 3 ? 255 : Math.round(Math.floor(i / (width * 4)) * 255 / (height - 1)));
+    const input = await sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input", input);
+    expect((await runConvertCli(["input", "-implode", String(amount), "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
+    const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
+    expect([output.width, output.height]).toEqual([width, height]);
+    // Allow 8-bit rounding differences from native's higher precision gradient.
+    for (let y = 0; y < height; y++) expect(Math.abs(output.data[(y * width + Math.floor(width / 2)) * 4]! - expected[y]!)).toBeLessThanOrEqual(2);
+    if (amount === 0) expect(output.data).toEqual(pixels);
+    expect(output.data.slice(0, width * 4)).toEqual(pixels.slice(0, width * 4));
+});
 it("preserves original warp pixel vectors", async () => {
     const bytes = await fixture(), hashes: string[] = [];
     for (const args of operators) {
@@ -29,15 +52,15 @@ it("preserves original warp pixel vectors", async () => {
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "24a13489b9de007feed9e5d4f6a834d03810db31fe0863564782d752f5dc8b85",
-        "4fd4c275a8dbaddb339dac9bc77fb109f30a65eb7d39dfc094f0335dfcb9d2ed",
+        "11440be1e7e9b7bcf02c2d0aaaf4d1d90966b400741f5ae85f06aaaac8188ea7",
+        "116d3462ccf768f24658418b99ba5898ab7062a25169c2f600588896f04d8635",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "99c653dd662b8c626d4a8e7805f131b0557aa341214b6c12013fe8b21ab28494",
         "d709039ae624768e3c4d527c76427b16f371b42a29ff53f32c67f1f39d1dda1e",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
-        "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
-        "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
-        "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
+        "a2438ed8af7f4af00ec3b693031bd1a759a05be10f9326fefa386b5c2e6445fb",
+        "3e97302cac19fa0980690a60d3cd9a507e96f88e246e79b99ba4e3dec13246b5",
+        "7ebd46e3abaf8ae1b04c5782c77704d7342b65641574184d852f716c0d5bfe1c",
         "b958c5233bb2ac64389fe3d47aab74438f9fff65b477369e02e793dc1cf7f675",
         "223871a9b691c254322c22473f53211879d912f52a3df4e60f76a6541dca66fc",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
@@ -58,7 +81,7 @@ it("preserves original warp pixel vectors", async () => {
         "da2d034ea0ed3462f5d6efae70dd76e417ab9adf90d29ad158fd33ea7877b877",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
-        "2f969155aa23a3c8fe9c52cb02b8915800aa21e7e23fc5f030f19f82089400cd",
+        "115f376638fd55f9382700eb175c06dd4485da526f9db73745a8d932513e4517",
       ]
     `);
 });

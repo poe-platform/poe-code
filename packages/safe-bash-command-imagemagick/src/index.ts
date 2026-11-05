@@ -2074,8 +2074,13 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
     if (token === "-shear") {
         const g = parseMagickGeometry(spec), tx = Math.tan(((g.width ?? 0) * Math.PI) / 180), ty = Math.tan(((g.height ?? 0) * Math.PI) / 180);
-        const width = Math.max(1, Math.round(w + Math.abs(tx) * h)), height = Math.max(1, Math.round(h + Math.abs(ty) * w)), det = 1 - tx * ty || 1;
-        return result((x, y) => { const dx = x - (width - 1) / 2, dy = y - (height - 1) / 2; return [cx + (dx - tx * dy) / det, cy + (dy - ty * dx) / det]; }, width, height);
+        // ImageMagick shears X by -tx, then Y by ty using the sheared X.
+        const width = Math.max(1, Math.round(w + Math.abs(tx) * h)), height = Math.max(1, Math.round(Math.abs(ty) * w + Math.abs(1 - tx * ty) * h));
+        return result((x, y) => {
+            const dx = x - (width - 1) / 2, dy = y - (height - 1) / 2;
+            const sourceY = dy - ty * dx;
+            return [cx + dx + tx * sourceY, cy + sourceY];
+        }, width, height);
     }
     if (token === "-swirl") {
         const maxR = Math.max(cx, cy, 1), radians = (Number(spec) * Math.PI) / 180;
@@ -2087,12 +2092,13 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         }, w, h, img.hasAlpha);
     }
     if (token === "-implode") {
-        const maxR = Math.min(cx, cy, 1), exponent = 1 / (1 - Math.max(-0.95, Math.min(0.95, Number(spec))));
+        const centerX = w / 2, centerY = h / 2, radius = Math.max(w, h) / 2, amount = Number(spec);
+        const scaleX = radius / centerX, scaleY = radius / centerY;
         return result((x, y) => {
-            const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy);
-            if (!(r < maxR && r > 0)) return [x, y];
-            const scale = maxR * Math.pow(r / maxR, exponent) / r;
-            return [cx + dx * scale, cy + dy * scale];
+            const dx = x - centerX, dy = y - centerY, r = Math.hypot(dx * scaleX, dy * scaleY);
+            if (!(r < radius && r > 0)) return [x, y];
+            const scale = Math.pow(Math.sin(Math.PI * r / radius / 2), -amount);
+            return [centerX + dx * scale, centerY + dy * scale];
         }, w, h, img.hasAlpha);
     }
     if (token === "-wave") {

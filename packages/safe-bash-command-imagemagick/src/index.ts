@@ -1,3 +1,4 @@
+import { resizePixelSteps } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
@@ -2929,7 +2930,20 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height">,geomStr:string
     };
 }
 
-function* applyMagickResizeSteps(img:RgbaImage,geomStr:string,kernel:ResizeKernel):Generator<void,RgbaImage,void>{const options=magickResizeOptions(img,geomStr,kernel);return options?yield*resizeImageSteps(img,options):img;}
+function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel, thumbnail = false): Generator<void, RgbaImage, void> {
+    const options = magickResizeOptions(img, geomStr, kernel);
+    if (!options || (options.width === img.width && options.height === img.height)) return img;
+    if (kernel !== "lanczos3") return yield* resizeImageSteps(img, options);
+    const width = options.width!, height = options.height!;
+    return yield* applyMagickRasterSteps(img, resizePixelSteps(img, width, height, thumbnail), undefined, { ...img, width, height });
+}
+
+async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false): Promise<StoredRgbaImage> {
+    const width = options.width!, height = options.height!;
+    if (width === image.width && height === image.height) return image;
+    if (options.kernel !== "lanczos3") return transformStoredImage(image, backend.storage, { kind: "resize", ...options }, signal);
+    return transformStoredMagickRaster(image, backend, resizePixelSteps(image, width, height, thumbnail), signal, { ...image, width, height });
+}
 
 function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, left: number, top: number) {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
@@ -4761,7 +4775,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "100%";
             const k = t === "-sample" ? "nearest" : state.kernel;
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickResizeSteps(im, geom, k));
+                return (yield* applyMagickResizeSteps(im, geom, k, t === "-thumbnail"));
             }));
         }
         else if (t === "-crop") {
@@ -5581,7 +5595,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
-                    if (settings.geometry) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await transformStoredImage(overlay, backend.storage, { kind: "resize", ...resize }, signal); }
+                    if (settings.geometry) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal); }
                     const offset = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
                     result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs);
                     await stack.remove([1]); await stack.set(0, result); return stack;
@@ -5764,8 +5778,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
-            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel;
-            transform(image => { const options = magickResizeOptions(image, geometry, kernel); return options ? { kind: "resize", ...options } : undefined; });
+            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail";
+            steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail) : image; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";
             transform(() => ({ kind }));
@@ -5893,7 +5907,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let frame = (await stack.get(index))!;
                 if (frame.width !== first.width || frame.height !== first.height) {
                     const resize = magickResizeOptions(frame, `${first.width}x${first.height}!`, state.kernel)!;
-                    frame = await transformStoredImage(frame, backend.storage, { kind: "resize", ...resize }, signal);
+                    frame = await resizeStoredMagickImage(frame, backend, resize, signal);
                 }
                 for (let offset = 0; offset < size; offset += 16384) {
                     await yieldTurn(signal);
@@ -6255,7 +6269,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await transformStoredImage(image,backend.storage,{kind:"resize",...resize},signal);}}
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal);}}
  return image;
  }
 }
@@ -6672,13 +6686,13 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     yield;
                 let thumb = loaded;
                 if (thumbnail !== undefined) {
-                    thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel);
+                    thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel, true);
                     if (thumb !== loaded) detachRgbaBuffer(loaded.data);
                 }
                 if (cellW !== undefined || cellH !== undefined) {
                     const previous = thumb;
                     const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`;
-                    thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel));
+                    thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel, true));
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
                 if (borderW > 0) {
@@ -6810,11 +6824,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     const loaded = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index), visit: async image => {
                         if (thumbnail !== undefined) {
                             const resize = magickResizeOptions(image, thumbnail, state.kernel);
-                            if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);
+                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true);
                         }
                         if (cellW !== undefined || cellH !== undefined) {
                             const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`, state.kernel);
-                            if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);
+                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true);
                         }
                         if (borderW > 0) {
                             const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);

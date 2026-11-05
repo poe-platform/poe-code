@@ -11,6 +11,7 @@ import {
   type VirtualShellPlugin,
 } from "safe-bash-contracts";
 import { certify, concat, readCertificates, sign, validPoint, verifyMessage } from "./openpgp.js";
+import { creationUmask } from "safe-bash-contracts/runtime-control";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -491,6 +492,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       let symmetric = false;
       let decrypt = false;
       let armor = false;
+      let overwrite = false;
       let withColons = false;
       let passphrase: string | undefined;
       let passphraseFile: string | undefined;
@@ -504,7 +506,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         const a = args[i]!;
         if (a === "--") { positionals.push(...args.slice(i + 1)); break; }
         else if (a === "--version") version = true;
-        else if (a === "--detach-sign" || a === "-b" || a === "-bsau" || a === "-bsa") detachSign = true;
+        else if (a === "--detach-sign" || a === "-b" || a === "-bsa") { detachSign = true; if (a === "-bsa") armor = true; }
         else if (a === "--verify") verify = true;
         else if (a === "-c" || a === "--symmetric") symmetric = true;
         else if (a === "-d" || a === "--decrypt") decrypt = true;
@@ -516,9 +518,13 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         else if (a === "-q" || a === "--quiet") quiet = true;
         else if (a === "--import") importKeys = true;
         else if (a === "--with-colons") withColons = true;
-        else if ((a === "-u" || a === "--local-user") && i + 1 < args.length) signerUid = args[++i]!;
+        else if ((a === "-u" || a === "--local-user" || a === "-bsau") && i + 1 < args.length) {
+          if (a === "-bsau") { armor = true; detachSign = true; }
+          signerUid = args[++i]!;
+        }
         else if (a.startsWith("-bsau") && a.length > 5) {
           detachSign = true;
+          armor = true;
           signerUid = a.slice(5);
         } else if (a === "--status-fd" && i + 1 < args.length) statusFd = args[++i];
         else if (a.startsWith("--status-fd=")) statusFd = a.slice("--status-fd=".length);
@@ -541,8 +547,9 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           continue;
         }
         else if ((a === "-o" || a === "--output") && i + 1 < args.length) outFile = args[++i];
-        else if (a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
-        else if (a.startsWith("-")) {
+        else if (a === "--yes") overwrite = true;
+        else if (a === "--batch" || a === "--no-tty" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
+        else if (a !== "-" && a.startsWith("-")) {
           await writeText(context.stderr, `gpg: unknown option: ${a}\n`);
           return { exitCode: 2 };
         }
@@ -555,6 +562,20 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       }
 
       try {
+        const signedData = async (paths: string[]) => {
+          if (!paths.length) return collectSourceBytes(context.stdin, maxBytes, context.signal);
+          const parts = [];
+          let remaining = maxBytes, usedStdin = false;
+          for (const path of paths) {
+            if (path === "-" && usedStdin) continue;
+            const data = path === "-" ? await collectSourceBytes(context.stdin, remaining, context.signal)
+              : await readLimitedFile(context, pathPosix.resolve(context.cwd, path), remaining);
+            usedStdin ||= path === "-";
+            remaining -= data.byteLength;
+            parts.push(data);
+          }
+          return parts.length === 1 ? parts[0]! : concat(...parts);
+        };
         const resolvePassphrase = async (): Promise<string> => {
           if (passphraseFile) {
             const raw = await readLimitedFile(context, pathPosix.resolve(context.cwd, passphraseFile), maxBytes);
@@ -681,9 +702,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         }
 
         if (detachSign) {
-          const payload = positionals[0]
-            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
-            : await collectSourceBytes(context.stdin, maxBytes, context.signal);
+          const payload = await signedData(positionals);
           let key: StoredGpgKey | undefined;
           for (const k of await loadKeyring(context)) {
             if (k.seedHex && (signerUid === undefined || await matchesSelectors(k, [signerUid]))) { key = k; break; }
@@ -695,17 +714,26 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           }
           const cert = await certificate(key);
           const time = Math.floor(Date.now() / 1000);
-          const signature = armorPacket("SIGNATURE", await sign(0, cert.fp, time, await privateKey(key), payload));
-          if (statusFd) {
-            await writeText(context.stderr, `[GNUPG:] SIG_CREATED D 22 8 00 ${time} ${bytesToHex(cert.fp).toUpperCase()}\n`);
+          const packet = await sign(0, cert.fp, time, await privateKey(key), payload);
+          const signature = armor ? textEncoder.encode(armorPacket("SIGNATURE", packet)) : packet;
+          const last = positionals.at(-1);
+          const dest = outFile ?? (last && last !== "-" ? last + (armor ? ".asc" : ".sig") : undefined);
+          if (dest !== undefined && dest !== "-") {
+            const mask = Reflect.get(context.fs, creationUmask);
+            const mode = 0o666 & ~(typeof mask === "number" ? mask : 0o022);
+            try {
+              await writeFileOutput(context, signature, data =>
+                context.fs.writeFile(pathPosix.resolve(context.cwd, dest), data, { signal: context.signal, mode, flag: overwrite ? "w" : "wx" }));
+            } catch (e) {
+              if (e instanceof FsError && e.code === "EEXIST") throw new PublicDiagnostic("signing failed: File exists");
+              throw e;
+            }
           }
-          if (outFile) {
-            await writeFileOutput(context, textEncoder.encode(signature), data =>
-              context.fs.writeFile(pathPosix.resolve(context.cwd, outFile!), data, { signal: context.signal }),
-            );
-          } else {
-            await writeText(context.stdout, signature);
+          if (statusFd === "1" || statusFd === "2") {
+            await writeText(statusFd === "1" ? context.stdout : context.stderr,
+              `[GNUPG:] SIG_CREATED D 22 8 00 ${time} ${bytesToHex(cert.fp).toUpperCase()}\n`);
           }
+          if (dest === "-" || dest === undefined) await context.stdout.write(signature);
           return { exitCode: 0 };
         }
 
@@ -713,9 +741,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           const sigPath = positionals[0];
           if (!sigPath) throw new PublicDiagnostic("missing signature file for --verify");
           const signature = await readLimitedFile(context, pathPosix.resolve(context.cwd, sigPath), maxBytes);
-          const dataBytes = positionals[1]
-            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[1]), maxBytes)
-            : await collectSourceBytes(context.stdin, maxBytes, context.signal);
+          const dataBytes = await signedData(positionals.slice(1));
           const res = await verifyOpenPgpDetachedSignature(signature, dataBytes, await loadKeyring(context));
           if (!res.valid) {
             await writeText(context.stderr, `gpg: BAD signature from "${res.signerUid}"\n`);

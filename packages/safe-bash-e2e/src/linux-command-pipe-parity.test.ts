@@ -377,6 +377,41 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
       assert.equal(statusLine(peerStatus), valid);
       const fields = valid.split(" ");
       assert.equal(signature.stderr, `[GNUPG:] SIG_CREATED D 22 8 00 ${fields[4]} ${fields[2]}\n`);
+      const fs = shell === rust ? rust.fs : ts.fs;
+      await fs.writeFile("/workspace/first", payload);
+      const last = Buffer.from("signed tail");
+      await fs.writeFile("/workspace/last", last);
+      const all = Buffer.concat([payload, last]);
+      for (const [opts, data, file, armored] of [
+        ["--detach-sign", payload, "", false],
+        ["--detach-sign -", payload, "", false],
+        ["-bsau " + who + " -o - first last", all, "", true],
+        ["--detach-sign first last", all, "last.sig", false],
+        ["--armor --detach-sign first", payload, "first.asc", true],
+      ] as const) {
+        const result = await shell.exec("umask 077; gpg " + opts, { stdin: payload });
+        assert.equal(result.exitCode, 0, result.stderr);
+        const bytes = file ? await fs.readFile("/workspace/" + file) : result.stdoutBytes;
+        assert.ok(bytes.length > 0);
+        assert.equal((bytes[0]! & 128) !== 0, !armored, opts);
+        if (file) {
+          assert.equal(result.stdout, "");
+          assert.equal((await fs.stat("/workspace/" + file)).mode & 0o777, 0o600);
+          const refused = await shell.exec("gpg --batch " + opts);
+          assert.deepEqual([refused.exitCode, refused.stderr], [2, "gpg: signing failed: File exists\n"]);
+          assert.deepEqual(await fs.readFile("/workspace/" + file), bytes);
+          assert.equal((await shell.exec("gpg --batch --yes " + opts)).exitCode, 0);
+        }
+        await writeFile(dir + "/output.sig", bytes);
+        const checked = await runLinuxCommand("gpg", [...options, "--verify", "output.sig", "-"], data, dir);
+        assert.equal(checked[0], 0, checked[2].toString());
+      }
+      const own = await shell.exec("gpg --verify last.sig first last");
+      assert.equal(own.exitCode, 0, own.stderr);
+      assert.notEqual((await shell.exec("gpg --verify last.sig last first")).exitCode, 0);
+      const failed = await shell.exec("gpg --status-fd=2 --detach-sign -o unavailable/sig first");
+      assert.equal(failed.exitCode, 2);
+      assert.ok(!failed.stderr.includes("SIG_CREATED"));
       const modified = await runLinuxCommand("gpg", [...options, "--verify", "signature.asc", "-"], "changed", dir);
       assert.notEqual(modified[0], 0);
     }

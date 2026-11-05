@@ -90,7 +90,7 @@ test("gpg preserves noninteractive armor options and literal option-like filenam
   const fs = createMemoryFileSystem();
   await fs.writeFile("/-payload", new TextEncoder().encode("message"));
   assert.equal((await runGpg(fs, ["--quick-generate-key", "Signer"])).exitCode, 0);
-  const result = await runGpg(fs, ["--batch", "--yes", "--no-tty", "--armor", "--detach-sign", "--", "-payload"]);
+  const result = await runGpg(fs, ["--batch", "--yes", "--no-tty", "--armor", "--detach-sign", "-o", "-", "--", "-payload"]);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.match(result.stdout, /-----BEGIN PGP SIGNATURE-----/);
   await fs.writeFile("/signature", new TextEncoder().encode(result.stdout));
@@ -133,7 +133,7 @@ test("gpg generates Ed25519 keys, lists keys, signs detached PGP signatures, and
 test("gpg requires the signing public key in the verification keyring", async () => {
   const fs = createMemoryFileSystem();
   assert.equal((await runGpg(fs, ["--quick-generate-key", "Alice"])).exitCode, 0);
-  const sign = await runGpg(fs, ["--detach-sign", "-u", "Alice"], "message");
+  const sign = await runGpg(fs, ["--armor", "--detach-sign", "-u", "Alice"], "message");
   assert.equal(sign.exitCode, 0);
   const clean = createMemoryFileSystem();
   await clean.writeFile("/signature", new TextEncoder().encode(sign.stdout));
@@ -148,7 +148,7 @@ test("gpg requires the signing public key in the verification keyring", async ()
 test("gpg rejects a cryptographically valid signature with a forged hashed key ID", async () => {
   const fs = createMemoryFileSystem();
   assert.equal((await runGpg(fs, ["--quick-generate-key", "Attacker"])).exitCode, 0);
-  const sign = await runGpg(fs, ["--detach-sign", "-u", "Attacker"], "message");
+  const sign = await runGpg(fs, ["--armor", "--detach-sign", "-u", "Attacker"], "message");
   const keys = JSON.parse(new TextDecoder().decode(await fs.readFile("/home/user/.gnupg/keyring.json"))) as { seedHex: string; pubHex: string; keyIdHex: string }[];
   const key = keys[0]!;
   const packet = Buffer.from(sign.stdout.split("\n").filter(l => l && !l.startsWith("-") && !l.startsWith("=")).join(""), "base64");
@@ -193,7 +193,7 @@ test("gpg bounds import, signing, signature and payload file inputs", async () =
 test("gpg bounds verification payload files after reading a valid signature", async () => {
   const fs = createMemoryFileSystem();
   assert.equal((await runGpg(fs, ["--quick-generate-key", "Signer"])).exitCode, 0);
-  const sign = await runGpg(fs, ["--detach-sign"], "message");
+  const sign = await runGpg(fs, ["--armor", "--detach-sign"], "message");
   assert.equal(sign.exitCode, 0);
   await fs.writeFile("/signature", new TextEncoder().encode(sign.stdout));
   await fs.writeFile("/large", new Uint8Array(513));

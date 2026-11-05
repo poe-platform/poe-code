@@ -1966,7 +1966,7 @@ test("Wave 235: pandoc conversion/-o, wkhtmltopdf file output, gpg -o, and ssh-k
     wk1=$(wkhtmltopdf /tmp/w235.html /tmp/w235.pdf && head -c 5 /tmp/w235.pdf)
     gpg --quick-generate-key "dev@example.com" >/dev/null 2>&1
     g1=$(gpg --armor --export -o /tmp/w235_pub.asc && head -n 1 /tmp/w235_pub.asc)
-    g2=$(gpg -u "dev@example.com" --detach-sign -o /tmp/w235.sig /tmp/w235.md && head -n 1 /tmp/w235.sig)
+    g2=$(gpg -a -u "dev@example.com" --detach-sign -o /tmp/w235.sig /tmp/w235.md && head -n 1 /tmp/w235.sig)
     ssh-keygen -t ed25519 -f /tmp/w235_key -N "" -q >/dev/null
     s1=$(ssh-keygen -Y sign -f /tmp/w235_key -n file /tmp/w235.md | head -n 1)
     s2=$(head -n 1 /tmp/w235.md.sig)

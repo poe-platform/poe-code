@@ -47,7 +47,7 @@ pub fn try_run_archive_command(
         })),
         "unzip" => Some(cmd_unzip(args, stdin, cwd, fs)),
         "openssl" => Some(cmd_openssl(args, stdin, cwd, env, fs)),
-        "gpg" => Some(cmd_gpg(args, stdin, cwd, fs)),
+        "gpg" => Some(cmd_gpg(args, stdin, cwd, env, fs)),
         "ssh" => Some(cmd_ssh(args)),
         "ssh-keygen" => Some(cmd_ssh_keygen(args, stdin, cwd, fs)),
         "dot" | "neato" => Some(cmd_graphviz(cmd, args, stdin, cwd, fs)),
@@ -9281,7 +9281,7 @@ impl GpgKey {
     }
 }
 
-fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut version = false;
     let mut detach_sign = false;
     let mut verify = false;
@@ -9294,6 +9294,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut symmetric = false;
     let mut decrypt = false;
     let mut armor = false;
+    let mut overwrite = false;
     let mut with_colons = false;
     let mut passphrase: Option<String> = None;
     let mut passphrase_file: Option<String> = None;
@@ -9311,8 +9312,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             break;
         } else if a == "--version" {
             version = true;
-        } else if matches!(a, "--detach-sign" | "-b" | "-bsau" | "-bsa") {
+        } else if matches!(a, "--detach-sign" | "-b" | "-bsa") {
             detach_sign = true;
+            armor |= a == "-bsa";
         } else if a == "--verify" {
             verify = true;
         } else if a == "-c" || a == "--symmetric" {
@@ -9332,11 +9334,14 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             import_keys = true;
         } else if a == "--with-colons" {
             with_colons = true;
-        } else if (a == "-u" || a == "--local-user") && i + 1 < args.len() {
+        } else if (a == "-u" || a == "--local-user" || a == "-bsau") && i + 1 < args.len() {
             i += 1;
+            detach_sign |= a == "-bsau";
+            armor |= a == "-bsau";
             signer_uid = Some(args[i].clone());
         } else if let Some(rest) = a.strip_prefix("-bsau") && !rest.is_empty() {
             detach_sign = true;
+            armor = true;
             signer_uid = Some(rest.to_string());
         } else if a == "--status-fd" && i + 1 < args.len() {
             i += 1;
@@ -9372,8 +9377,10 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             out_file = Some(args[i].clone());
         } else if matches!(a, "-q" | "--quiet") {
             quiet = true;
-        } else if matches!(a, "--batch" | "--yes" | "--no-tty" | "-s" | "--sign" | "--help" | "-h") {
-        } else if a.starts_with('-') {
+        } else if a == "--yes" {
+            overwrite = true;
+        } else if matches!(a, "--batch" | "--no-tty" | "-s" | "--sign" | "--help" | "-h") {
+        } else if a != "-" && a.starts_with('-') {
             return err_out(&format!("gpg: unknown option: {a}\n"), 2);
         } else {
             positionals.push(a.to_string());
@@ -9457,6 +9464,19 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             .map_err(|_| format!("ENOENT: no such file or directory, readFile '{full}'"))
     };
 
+    let signed_data = |paths: &[String]| -> Result<Vec<u8>, String> {
+        if paths.is_empty() { return Ok(crate::vfs::stream_string_to_bytes(stdin)); }
+        let mut out = Vec::new();
+        let mut source = Some(stdin);
+        for path in paths {
+            if path == "-" {
+                if let Some(data) = source.take() { out.extend(crate::vfs::stream_string_to_bytes(data)); }
+            } else {
+                out.extend(read_gpg_file(path)?);
+            }
+        }
+        Ok(out)
+    };
     let resolve_passphrase = || -> Result<String, String> {
         if let Some(ref pf) = passphrase_file {
             let raw = read_gpg_file(pf)?;
@@ -9698,14 +9718,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     if detach_sign {
-        let payload = if let Some(p0) = positionals.first() {
-            match read_gpg_file(p0) {
-                Ok(b) => b,
-                Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
-            }
-        } else {
-            crate::vfs::stream_string_to_bytes(stdin)
-        };
+        let payload = match signed_data(&positionals) { Ok(data) => data, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let keys = match load_keyring() { Ok(keys) => keys, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let Some(key) = keys.iter().find(|k| !k.seed.is_empty() && signer_uid.as_ref().is_none_or(|q| k.matches_selector(q))) else {
             let who = signer_uid.map(|q| format!("skipped \"{q}\"")).unwrap_or_else(|| "no default secret key".into());
@@ -9716,19 +9729,31 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let time = (crate::vfs::now_ms() / 1000.) as u32;
         let fingerprint = openssl_hex_encode(&cert.fingerprint).to_uppercase();
         let pkt_bytes = openpgp::sign(0, &cert.fingerprint, time, &seed, &payload);
-        let b64 = openssl_b64_encode(&pkt_bytes, true);
-        let crc = pgp_crc24(&pkt_bytes);
-        let arm = format!("-----BEGIN PGP SIGNATURE-----\n\n{b64}\n{crc}\n-----END PGP SIGNATURE-----\n");
-        let stderr_msg = if status_fd.is_some() {
-            format!("[GNUPG:] SIG_CREATED D 22 8 00 {time} {fingerprint}\n")
+        let bytes = if armor {
+            let b64 = openssl_b64_encode(&pkt_bytes, true);
+            let crc = pgp_crc24(&pkt_bytes);
+            format!("-----BEGIN PGP SIGNATURE-----\n\n{b64}\n{crc}\n-----END PGP SIGNATURE-----\n").into_bytes()
+        } else { pkt_bytes };
+        let dest = out_file.or_else(|| positionals.last().filter(|p| *p != "-").map(|p| format!("{p}.{}", if armor { "asc" } else { "sig" })));
+        let mut result = ok_out("");
+        if let Some(to) = dest.filter(|p| p != "-") {
+            let path = resolve_ssh_path(cwd, &to);
+            let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+            let write = fs.access_path(&path, false).and_then(|entry| fs.create_file(&entry, &bytes, mode));
+            if let Err(e) = write {
+                if e.starts_with("EEXIST") || e.ends_with("(os error 17)") {
+                    if !overwrite { return err_out("gpg: signing failed: File exists\n", 2); }
+                    if let Err(e) = fs.write_file(&path, &bytes) { return err_out(&format!("gpg: signing failed: {e}\n"), 2); }
+                } else { return err_out(&format!("gpg: signing failed: {e}\n"), 2); }
+            }
         } else {
-            String::new()
-        };
-        if let Some(ref to) = out_file {
-            let _ = fs.write_file(&resolve_posix_path(cwd, to), arm.as_bytes());
-            return BuiltinOutcome { stdout: String::new(), stderr: stderr_msg, exit_code: 0 };
+            result.stdout = crate::vfs::bytes_to_stream_string(&bytes);
         }
-        return BuiltinOutcome { stdout: arm, stderr: stderr_msg, exit_code: 0 };
+        if let Some(fd) = status_fd {
+            let status = format!("[GNUPG:] SIG_CREATED D 22 8 00 {time} {fingerprint}\n");
+            if fd == "1" { result.stdout.insert_str(0, &status); } else if fd == "2" { result.stderr = status; }
+        }
+        return result;
     }
 
     if verify {
@@ -9739,14 +9764,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Ok(b) => b,
             Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
-        let data_bytes = if let Some(p1) = positionals.get(1) {
-            match read_gpg_file(p1) {
-                Ok(b) => b,
-                Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
-            }
-        } else {
-            crate::vfs::stream_string_to_bytes(stdin)
-        };
+        let data_bytes = match signed_data(&positionals[1..]) { Ok(data) => data, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let pkt = if sig_raw.first().is_some_and(|b| b & 128 != 0) {
             sig_raw
         } else {

@@ -35,6 +35,8 @@ for (const fragmented of [false, true]) test(`B-frame presentation order, fragme
   const frames: api.MediaProbeFrame[] = [];
   for await (const frame of api.scanMp4Frames(source, options)) frames.push(frame);
   assert.deepEqual(frames.map(frame => frame.pts), Array.from({ length: 20 }, (_, i) => i * 1024));
+  assert.deepEqual(frames.map(frame => frame.pkt_dts), [...packets.slice(2).map(packet => packet.dts), undefined, undefined]);
+  assert.deepEqual(frames.map(frame => frame.pkt_dts_time), [...packets.slice(2).map(packet => packet.dts_time), undefined, undefined]);
   for (const frame of frames) {
     const packet = packets.find(packet => packet.pts === frame.pts)!;
     assert.equal(frame.pkt_size, packet.size);

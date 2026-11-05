@@ -485,8 +485,8 @@ export interface MediaProbeFrame {
   readonly key_frame: number;
   readonly pts: number;
   readonly pts_time: string;
-  readonly pkt_dts: number;
-  readonly pkt_dts_time: string;
+  readonly pkt_dts?: number;
+  readonly pkt_dts_time?: string;
   readonly best_effort_timestamp: number;
   readonly best_effort_timestamp_time: string;
   readonly duration?: number;

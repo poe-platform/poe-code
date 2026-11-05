@@ -46,3 +46,26 @@ for (const mixed of [false, true]) it(`emits B-frames in presentation order, mix
   expect(parsed.frames).toEqual(Array.from({ length: 20 }, (_, i) => ({ pts: i * 1024 })));
   if (mixed) expect(parsed.packets.slice(0, 5)).toEqual([0, 4096, 2048, 1024, 3072].map(pts => ({ pts })));
 });
+
+for (const fixture of ['packet-positions-faststart.mp4', 'packet-positions-interleaved.mp4', 'h264-b-frames.mp4']) it(`reports decoded frame DTS for ${fixture}`, async () => {
+  const bytes = readFileSync(new URL(`../../mp4-ast/src/fixtures/${fixture}`, import.meta.url));
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input.mp4', bytes);
+  let output = '', diagnostic = '';
+  const result = await createFfprobeCommand().execute({
+    command: 'ffprobe',
+    ...createCommandArguments(['-v', 'error', '-select_streams', 'v:0', '-show_frames',
+      '-show_entries', 'frame=media_type,pts,pkt_dts,pkt_dts_time', '-of', 'json', '/input.mp4']),
+    cwd: '/', env: {}, fs, signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+    stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+  });
+  expect(result.exitCode, diagnostic).toBe(0);
+  // Native ffprobe emits two delayed frames without a packet DTS at EOF.
+  const count = fixture === 'h264-b-frames.mp4' ? 20 : 5;
+  const step = count === 20 ? 1024 : 2048;
+  expect(JSON.parse(output).frames.filter((frame: { media_type: string }) => frame.media_type === 'video')).toEqual(Array.from({ length: count }, (_, i) => ({
+    media_type: 'video', pts: i * step,
+    ...(i < count - 2 ? { pkt_dts: i * step, pkt_dts_time: (i * step / 10240).toFixed(6) } : {})
+  })));
+});

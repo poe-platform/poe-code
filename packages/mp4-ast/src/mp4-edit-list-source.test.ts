@@ -57,6 +57,6 @@ for (const delayed of [false, true]) it(`preserves the edit-list empty delay: ${
   assert.equal(packet.pts, delayed ? 5120 : 4096);
   assert.equal(packet.dts, delayed ? 1024 : 0);
   assert.equal(frame.pts, packet.pts);
-  assert.equal(frame.pkt_dts, packet.dts);
-  assert.equal(frame.pkt_dts_time, packet.dts_time);
+  assert.equal(frame.pkt_dts, frame.pts);
+  assert.equal(frame.pkt_dts_time, frame.pts_time);
 });

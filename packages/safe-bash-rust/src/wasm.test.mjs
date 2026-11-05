@@ -8495,26 +8495,35 @@ test("pdftoppm paints embedded RGB and alpha pixels at page coordinates", async 
   } finally { wasm.dispose(); }
 });
 
-test("pdfimages lists and extracts the painted image from a real PDF, retaining its soft mask", async () => {
-  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
-  const { pdfimagesCommands } = await import("@poe-platform/safe-bash/commands/pdfimages");
-  const { PdfDocument, encodePng } = await import("@poe-code/pdf-ast");
+test("pdfimages extracts the base image and its soft mask separately like Poppler", async () => {
+  const { PdfDocument, encodePng, decodePng } = await import("@poe-code/pdf-ast");
   const doc = PdfDocument.create(), page = doc.addPage([20, 10]);
   const image = doc.embedPng(encodePng({width: 2, height: 1, data: Uint8Array.of(220, 11, 33, 255, 7, 99, 166, 64)}));
   page.drawImage(image, { x: 8, y: 0, width: 2, height: 1 });
   page.drawImage(image, { x: 0, y: 0, width: 8, height: 4 });
-  const bytes = doc.save(), fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files: { "/f.pdf": bytes } });
-  await fs.mkdir("/tmp", { recursive: true });
-  await fs.writeFile("/f.pdf", bytes);
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(pdfimagesCommands({ replace: true }));
+  const wasm = new RustWasmBash({ cwd: "/", forceNative: true, files: { "/f.pdf": doc.save() } });
   try {
-    for (const args of ["-list f.pdf", "-u -list f.pdf", "-tiff -u f.pdf tiff", "-min-width 3 -list f.pdf", "-png -print-filenames f.pdf img", "-p -print-filenames f.pdf copy"]) {
-      const script = "pdfimages " + args, want = await shell.exec(script), got = await wasm.exec(script);
-      assert.equal(want.exitCode, 0, want.stderr);
-      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+    const run = async args => {
+      const r = await wasm.exec("pdfimages " + args);
+      assert.equal(r.exitCode, 0, r.stderr);
+      return r.stdout;
+    };
+    const list = (await run("-list f.pdf")).trimEnd().split("\n").slice(2).map(row => row.trim().split(/\s+/));
+    assert.deepEqual(list.map(r => [r[2], r[5], r[10], r[12]]), [
+      ["image", "rgb", String(image.xobjectRef.objectNumber), "72"], ["smask", "gray", String(image.xobjectRef.objectNumber), "72"],
+      ["image", "rgb", String(image.xobjectRef.objectNumber), "18"], ["smask", "gray", String(image.xobjectRef.objectNumber), "18"],
+    ]);
+    assert.equal((await run("-min-width 3 -list f.pdf")).trimEnd().split("\n").length, 2);
+    assert.equal(await run("-u -png -print-filenames f.pdf img"), "img-000.png\nimg-001.png\n");
+    for (const [i, color, rgba] of [[0, 2, [220,11,33,255,7,99,166,255]], [1, 0, [255,255,255,255,64,64,64,255]]]) {
+      const png = await wasm.fs.readFile("/img-00" + i + ".png");
+      assert.equal(png[25], color);
+      assert.deepEqual(Array.from(decodePng(png).data), rgba);
     }
-    for (const path of ["/img-000.png", "/img-001.png", "/copy-001-000.ppm", "/tiff-000.tif"])
-      assert.deepEqual(Buffer.from(await wasm.fs.readFile(path)), Buffer.from(await fs.readFile(path)), path);
+    assert.equal(await run("-p -print-filenames f.pdf copy"), [0,1,2,3].map(i => "copy-001-00" + i + ".ppm\n").join(""));
+    assert.deepEqual(Buffer.from(await wasm.fs.readFile("/copy-001-001.ppm")), Buffer.concat([
+      Buffer.from("P6\n2 1\n255\n"), Buffer.from([255,255,255,64,64,64]),
+    ]));
   } finally { wasm.dispose(); }
 });
 

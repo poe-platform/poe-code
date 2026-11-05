@@ -9339,10 +9339,10 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 Some(())
             };
             if let Some(source) = source.as_mut() {
-                source.images(pno, fs.max_input_bytes(), pdf_reader::ImageRead::Pixels, |im| {
+                source.images(pno, fs.max_input_bytes(), pdf_reader::ImageRead::Pixels, |im, _| {
                     let bytes = if image_fmt == "jpg" {
                         jpeg::encode(jpeg::Input::Pdf {width:im.width, height:im.height, pixels:&im.pixels},limit).ok()?
-                    } else { im.encode("PNG", limit)? };
+                    } else { im.encode("PNG", limit, false)? };
                     emit(im.width,im.height,bytes)
                 }).ok_or("PDF Error: Invalid or oversized PDF image\n")?;
             } else if let Some(pg) = doc.pages.get(pno-1) {
@@ -10190,13 +10190,13 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         let mut remaining = fs.shell_limits().max_output_bytes;
         for page in start_p..=end_p {
             let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, tiff: tiff_mode } };
-            let done = source.images(page, fs.max_input_bytes(), mode, |im| {
+            let done = source.images(page, fs.max_input_bytes(), mode, |im, parent| {
                 let (w, h) = (im.width, im.height);
                 if w < min_width || h < min_height || unique && !seen.insert(im.id) {
                     return Some(());
                 }
                 if list_mode {
-                    out.push_str(&im.listing(page, idx));
+                    out.push_str(&im.listing(page, idx, parent));
                 } else {
                     let root = &pos[1];
                     let base = if page_nums { format!("{root}-{page:03}-{idx:03}") } else { format!("{root}-{idx:03}") };
@@ -10219,7 +10219,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                         let (ext, format) = if tiff_mode { ("tif", "TIFF") }
                             else if png_mode || all_mode { ("png", "PNG") }
                             else if im.bilevel { ("pbm", "PBM") } else { ("ppm", "PPM") };
-                        stage(ext, im.encode(format, fs.max_input_bytes())?)?;
+                        stage(ext, im.encode(format, fs.max_input_bytes(), true)?)?;
                     }
                 }
                 idx += 1;

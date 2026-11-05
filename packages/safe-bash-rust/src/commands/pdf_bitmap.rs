@@ -16,6 +16,7 @@ pub(in crate::commands::archive) enum NativeImage {
 
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
+    soft_mask: Option<ObjectId>,
     pub bilevel: bool,
     pub native: Option<NativeImage>,
     pub width: usize,
@@ -261,9 +262,9 @@ impl Image {
                 })
                 .collect();
         }
-        if !pixels.is_empty()
-            && (mode == ImageRead::Pixels || !jpeg && !bilevel)
-            && let Some(mask) = dict.get(b"SMask").and_then(Value::reference)
+        let soft_mask = dict.get(b"SMask").and_then(Value::reference);
+        if mode == ImageRead::Pixels
+            && let Some(mask) = soft_mask
         {
             let (m, _) = objects.object(mask)?;
             if m.get(b"Width")?.number()? != width as f64
@@ -283,6 +284,7 @@ impl Image {
         }
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
+            soft_mask,
             bilevel,
             jpeg,
             native,
@@ -297,9 +299,15 @@ impl Image {
         }))
     }
 
-    pub(in crate::commands::archive) fn listing(&self, page: usize, idx: usize) -> String {
+    pub(in crate::commands::archive) fn listing(
+        &self,
+        page: usize,
+        idx: usize,
+        parent: Option<ObjectId>,
+    ) -> String {
         let [x, y] = self.ppi();
-        let (id, generation) = self.id;
+        let (id, generation) = parent.unwrap_or(self.id);
+        let kind = if parent.is_some() { "smask" } else { "image" };
         let (w, h, components) = (self.width, self.height, self.components);
         let color = match components {
             1 => "gray",
@@ -341,7 +349,7 @@ impl Image {
             format!("{pct:.0}%")
         };
         format!(
-            "{page:4} {idx:5} image  {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}   {id:6} {generation:2} {x:5} {y:5} {size:>5} {ratio:>4}\n"
+            "{page:4} {idx:5} {kind:<6} {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}   {id:6} {generation:2} {x:5} {y:5} {size:>5} {ratio:>4}\n"
         )
     }
     fn ppi(&self) -> [usize; 2] {
@@ -360,97 +368,43 @@ impl Image {
         &self,
         format: &str,
         limit: usize,
+        extracting: bool,
     ) -> Option<Vec<u8>> {
-        if self.jpeg {
-            let dpi = self.ppi().map(|n| n as f64);
-            let color = match self.components {
-                1 => "gray",
-                4 => "cmyk",
-                _ => "rgb",
-            };
-            if format == "TIFF" {
-                return crate::commands::archive::tiff::encode(
-                    &self.pixels,
-                    self.width,
-                    dpi,
-                    color,
-                    "none",
-                    false,
-                    limit,
-                );
-            }
-            return super::pdf_raster::encode(
-                self.width,
-                self.height,
-                &self.pixels,
-                if format == "PNG"
-                    && self.components == 1
-                    && self.pixels.iter().all(|p| p[3] == 255)
-                {
-                    "PNG8"
-                } else {
-                    format
-                },
-                "rgb",
-                Some(dpi),
-            );
-        }
-        if self.bilevel {
-            let dpi = self.ppi().map(|v| v as f64);
-            if format == "TIFF" {
-                return crate::commands::archive::tiff::encode(
-                    &self.pixels,
-                    self.width,
-                    dpi,
-                    "mono",
-                    "none",
-                    false,
-                    limit,
-                );
-            }
-            return super::pdf_raster::encode(
-                self.width,
-                self.height,
-                &self.pixels,
-                if format == "PNG" { "PNG1" } else { format },
-                "mono",
-                Some(dpi),
-            );
-        }
+        let dpi = self.ppi().map(|n| n as f64);
+        let color = match (self.bilevel, self.components) {
+            (true, _) => "mono",
+            (_, 1) => "gray",
+            (_, 4) => "cmyk",
+            _ => "rgb",
+        };
         if format == "TIFF" {
-            let w = self.width as u32;
-            let h = self.height as u32;
-            let size = w.checked_mul(h)?.checked_mul(3)?;
-            let mut out = b"II\x2a\0\x08\0\0\0\x0c\0".to_vec();
-            for (tag, ty, count, val) in [
-                (256u16, 4u16, 1u32, w),
-                (257, 4, 1, h),
-                (258, 3, 3, 158),
-                (259, 3, 1, 1),
-                (262, 3, 1, 2),
-                (273, 4, 1, 180),
-                (277, 3, 1, 3),
-                (278, 4, 1, h),
-                (279, 4, 1, size),
-                (282, 5, 1, 164),
-                (283, 5, 1, 172),
-                (296, 3, 1, 2),
-            ] {
-                out.extend_from_slice(&tag.to_le_bytes());
-                out.extend_from_slice(&ty.to_le_bytes());
-                out.extend_from_slice(&count.to_le_bytes());
-                out.extend_from_slice(&val.to_le_bytes());
-            }
-            out.extend_from_slice(&[0, 0, 0, 0, 8, 0, 8, 0, 8, 0]);
-            for n in [self.ppi()[0] as u32, 1, self.ppi()[0] as u32, 1] {
-                out.extend_from_slice(&n.to_le_bytes());
-            }
-            for px in &self.pixels {
-                out.extend_from_slice(&px[..3]);
-            }
-            return Some(out);
+            return crate::commands::archive::tiff::encode(
+                &self.pixels,
+                self.width,
+                dpi,
+                color,
+                "none",
+                false,
+                limit,
+            );
         }
-        super::pdf_raster::encode(self.width, self.height, &self.pixels, format, "rgb", None)
+        let format = match (format, color) {
+            ("PNG", "mono") => "PNG1",
+            ("PNG", "gray")
+                if (extracting || self.jpeg) && self.pixels.iter().all(|p| p[3] == 255) =>
+            {
+                "PNG8"
+            }
+            _ => format,
+        };
+        super::pdf_raster::encode(
+            self.width,
+            self.height,
+            &self.pixels,
+            format,
+            "rgb",
+            (extracting || self.bilevel || self.jpeg).then_some(dpi),
+        )
     }
 }
 
@@ -508,7 +462,7 @@ impl PageSource<'_> {
         page: usize,
         limit: usize,
         mode: ImageRead,
-        mut handle: impl FnMut(Image) -> Option<()>,
+        mut handle: impl FnMut(Image, Option<ObjectId>) -> Option<()>,
     ) -> Option<()> {
         let node = self
             .objects
@@ -517,7 +471,14 @@ impl PageSource<'_> {
             if let Draw::Image(id, matrix) = event
                 && let Some(image) = Image::read(objects, id, matrix, limit, mode)?
             {
-                handle(image)?;
+                let soft_mask = image.soft_mask;
+                handle(image, None)?;
+                if mode != ImageRead::Pixels
+                    && let Some(mask) = soft_mask
+                    && let Some(mask_image) = Image::read(objects, mask, matrix, limit, mode)?
+                {
+                    handle(mask_image, Some(id))?;
+                }
             }
             Some(())
         })

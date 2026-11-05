@@ -1,5 +1,5 @@
 use super::structured::{JVal, parse_json_stream};
-use crate::vfs::{SafeBashFs, resolve_posix_path};
+use crate::vfs::{SafeBashFs, VfsEntryKind, dirname_posix_path, resolve_posix_path};
 use config_mutations_rust::yaml::document::{Document, Kind, mapping_slot, scan};
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
@@ -56,11 +56,33 @@ fn decode_yaml(bytes: Vec<u8>) -> Option<String> {
     text.chars().all(|c| matches!(c, '\t' | '\n' | '\r' | '\u{20}'..='\u{7e}' | '\u{85}' | '\u{a0}'..='\u{fffd}' | '\u{10000}'..)).then_some(text)
 }
 
+// gh uses Go's filepath.Join, which cleans relative paths without expanding them against cwd.
+fn config_path(dir: &str, name: &str) -> String {
+    let mut parts = Vec::new();
+    for part in dir.split('/').chain(std::iter::once(name)) {
+        match part {
+            "" | "." => {}
+            ".." if parts.last().is_some_and(|p| *p != "..") => {
+                parts.pop();
+            }
+            ".." if dir.starts_with('/') => {}
+            _ => parts.push(part),
+        }
+    }
+    if dir.starts_with('/') {
+        format!("/{}", parts.join("/"))
+    } else if parts.is_empty() {
+        ".".into()
+    } else {
+        parts.join("/")
+    }
+}
+
 pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, String> {
     let mut config = Config::default();
     let mut remaining = fs.max_input_bytes();
     for name in ["config.yml", "hosts.yml"] {
-        let display = format!("{}/{name}", dir.trim_end_matches('/'));
+        let display = config_path(dir, name);
         let path = resolve_posix_path(cwd, &display);
         let load_error = |msg: String| {
             format!(
@@ -168,6 +190,65 @@ pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, 
         config.original = Some(String::new());
     }
     Ok(config)
+}
+
+pub(super) fn write(
+    fs: &dyn SafeBashFs,
+    cwd: &str,
+    dir: &str,
+    writes: Vec<(&str, String)>,
+) -> Result<(), String> {
+    let mut missing = Vec::new();
+    let mut display = config_path(dir, "");
+    let disk_error = |op, at: &str, error: String| {
+        let reason = match error.split(':').next() {
+            Some("EACCES") => "permission denied",
+            Some("EROFS") => "read-only file system",
+            Some("EEXIST") => "file exists",
+            Some("ENOTDIR") => "not a directory",
+            _ => return error,
+        };
+        format!("failed to write config to disk: {op} {at}: {reason}")
+    };
+    loop {
+        fs.command_descriptor_op()?;
+        match fs.stat(&resolve_posix_path(cwd, &display)) {
+            Ok(stat) if stat.kind == VfsEntryKind::Directory => break,
+            Ok(_) => return Err(disk_error("mkdir", &display, "ENOTDIR".into())),
+            Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => {
+                let parent = dirname_posix_path(&display);
+                if parent == display {
+                    return Err(e);
+                }
+                missing.push(display);
+                display = parent;
+            }
+            Err(e) => return Err(disk_error("mkdir", &display, e)),
+        }
+    }
+    for display in missing.into_iter().rev() {
+        let path = resolve_posix_path(cwd, &display);
+        if let Err((code, _)) = fs.mkdir(&path, false, 0o771) {
+            if code == "EEXIST" {
+                fs.command_descriptor_op()?;
+                if fs.lstat(&path)?.kind == VfsEntryKind::Directory {
+                    continue;
+                }
+            }
+            return Err(disk_error("mkdir", &display, code));
+        }
+    }
+    for (name, contents) in writes {
+        let display = config_path(dir, name);
+        fs.write_command_path(
+            &resolve_posix_path(cwd, &display),
+            contents.as_bytes(),
+            false,
+            0o600,
+        )
+        .map_err(|e| disk_error("open", &display, e))?;
+    }
+    Ok(())
 }
 
 pub(super) fn default_config() -> &'static str {

@@ -1094,7 +1094,7 @@ LEARN MORE
   const dir = getGhConfigDir(context);
   const resolvedDir = backend.configDir(context);
   const scopes = backend.configOverrides.get(resolvedDir);
-  const { readGhConfig, setConfig, defaultConfig } = await import("../config-file.js");
+  const { readGhConfig, writeGhConfig, setConfig, defaultConfig } = await import("../config-file.js");
   const { values: file, hosts: diskHosts, source, hostSource, error: msg } = await readGhConfig(context, dir);
   if (msg) {
     await writeErr(`warning: failed to load config: ${msg}\nfailed to create root command: failed to read configuration: ${msg}\n\n`);
@@ -1158,18 +1158,10 @@ LEARN MORE
     } else {
       writes.push(["config.yml", setConfig(source ?? defaultConfig, host, key, val)]);
     }
-    await context.fs.mkdir(resolvedDir, { recursive: true, mode: 0o771, signal: context.signal });
-    for (const [name, updated] of writes) {
-      const path = resolvePath(resolvedDir, name);
-      try {
-        await context.fs.writeFile(path, new TextEncoder().encode(updated), { mode: 0o600, signal: context.signal });
-      } catch (error) {
-        if (!isFsError(error)) throw error;
-        const reason = error.code === "EACCES" ? "permission denied" : error.code === "EROFS" ? "read-only file system" : undefined;
-        if (!reason) throw error;
-        await writeErr(`failed to write config to disk: open ${dir}/${name}: ${reason}\n`);
-        return 1;
-      }
+    const failure = await writeGhConfig(context, dir, writes);
+    if (failure) {
+      await writeErr(`failed to write config to disk: ${failure}\n`);
+      return 1;
     }
     if (!host) {
       scopes?.get("")?.delete(key);

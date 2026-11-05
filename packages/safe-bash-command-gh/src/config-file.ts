@@ -1,4 +1,4 @@
-import { isFsError, resolvePath } from "@poe-code/safe-fs/core";
+import { dirname, isFsError, joinPath, resolvePath } from "@poe-code/safe-fs/core";
 import type { CommandContext } from "safe-bash-contracts";
 import { Document, isAlias, isMap, isScalar, parseDocument, Scalar, YAMLMap } from "yaml";
 import defaultLines from "./config-defaults.json" with { type: "json" };
@@ -36,7 +36,7 @@ export async function readGhConfig(context: CommandContext, dir: string) {
   let hostsNode: unknown;
   const hosts: [string, Map<string, string>][] = [];
   for (const name of ["config.yml", "hosts.yml"]) {
-    const display = dir.replace(/\/+$/u, "") + "/" + name;
+    const display = joinPath(dir, name);
     let bytes: Uint8Array;
     try {
       bytes = await context.fs.readFile(resolvePath(context.cwd, display), { signal: context.signal });
@@ -79,6 +79,48 @@ export async function readGhConfig(context: CommandContext, dir: string) {
     }
   }
   return { values, hosts, hostSource, source: values.size ? source : undefined, error: "" };
+}
+
+export async function writeGhConfig(context: CommandContext, dir: string, writes: [string, string][]) {
+  const options = { signal: context.signal };
+  const missing: string[] = [];
+  let display = joinPath(dir, ".");
+  let op = "mkdir";
+  try {
+    for (;;) {
+      try {
+        const stat = await context.fs.stat(resolvePath(context.cwd, display), options);
+        if (stat.type !== "directory") return `mkdir ${display}: not a directory`;
+        break;
+      } catch (error) {
+        if (!isFsError(error) || error.code !== "ENOENT") throw error;
+        const parent = dirname(display);
+        if (parent === display) throw error;
+        missing.push(display);
+        display = parent;
+      }
+    }
+    // A recursive VFS mkdir may follow a dangling link and create its target.
+    for (display of missing.reverse()) {
+      const path = resolvePath(context.cwd, display);
+      try {
+        await context.fs.mkdir(path, { ...options, mode: 0o771 });
+      } catch (error) {
+        if (!isFsError(error) || error.code !== "EEXIST" || (await context.fs.lstat(path, options)).type !== "directory") throw error;
+      }
+    }
+    op = "open";
+    for (const [name, contents] of writes) {
+      display = joinPath(dir, name);
+      await context.fs.writeFile(resolvePath(context.cwd, display), new TextEncoder().encode(contents), { ...options, mode: 0o600 });
+    }
+  } catch (error) {
+    if (!isFsError(error)) throw error;
+    const reason = error.code === "EACCES" ? "permission denied" : error.code === "EROFS" ? "read-only file system" :
+      error.code === "EEXIST" ? "file exists" : undefined;
+    if (!reason) throw error;
+    return `${op} ${display}: ${reason}`;
+  }
 }
 
 export const defaultConfig = defaultLines.join("\n") + "\n";

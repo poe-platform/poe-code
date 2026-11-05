@@ -4502,17 +4502,8 @@ fn cmd_gh_inner(
                         Ok(out) => writes.push((name, out)), Err(e) => return error(format!("{stderr}{e}\n")),
                     }
                     if !host.is_empty() && config.original.is_none() { writes.push(("config.yml", default_config().into())); }
-                    if let Err((code, at)) = fs.mkdir(&dir, true, 0o771) { return error(format!("{stderr}{code}: {at}\n")); }
-                    for (name, out) in writes {
-                        let display = format!("{}/{name}", display_dir.trim_end_matches('/'));
-                        if let Err(e) = fs.write_command_path(&resolve_posix_path(cwd, &display), out.as_bytes(), false, 0o600) {
-                            let diagnostic = match e.split(':').next() {
-                                Some("EACCES") => format!("failed to write config to disk: open {display}: permission denied"),
-                                Some("EROFS") => format!("failed to write config to disk: open {display}: read-only file system"),
-                                _ => e,
-                            };
-                            return error(format!("{stderr}{diagnostic}\n"));
-                        }
+                    if let Err(e) = super::gh_config::write(fs, cwd, &display_dir, writes) {
+                        return error(format!("{stderr}{e}\n"));
                     }
                     if host.is_empty() {
                         let mut map = states().lock().unwrap();

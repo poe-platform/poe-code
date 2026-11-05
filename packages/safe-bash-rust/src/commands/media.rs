@@ -16713,14 +16713,16 @@ mod media_unit_tests {
     fn pdftoppm_transforms_the_image_and_its_soft_mask_together() {
         let fs = MemoryVfs::new();
         // Poppler 24.02: rotations, reflections, shears, clipped and subpixel draws.
-        for (matrix, expected) in [
-            ("0 5 -3 0 5 1", "db992da7ed934c1a6f1a54610bc921039cd0318939b7f3c8f1299c7c302209d3"),
-            ("-6 0 0 4 7 1", "08e0ebf404cc3e21b075af1917f0acb7a4e68507136653684ef46f45eec42737"),
-            ("6 0 0 -4 1 6", "e7934873191b0cc115d26d2b82a50923d26ea268a8f963a1f15b0f16b3d83826"),
-            ("4 3 -2 4 4 1", "3ed30633bdb7d28dff973832b70c4b00961520504fd60d0621560c6f51876cae"),
-            ("4 -2 3 3 -2 3", "97cde93f55cf3457d3b797a66e967d1ad17ea5d1bf2f9283d6183cccd65b96b8"),
-            ("0.3 0.1 0.2 0.4 2.1 3.2", "b4836883224a7b4b6d18cc60ae800dbb7748f6c3e8a239db4ac32e27f86e68fa"),
-            ("2 5 -3 -2 5 2", "4fb8833288029632543fc2c0a456cfa02f9bfc5135a2f243874bebe0d02b00f0"),
+        for (matrix, dpi, expected) in [
+            ("0 5 -3 0 5 1", "72", "db992da7ed934c1a6f1a54610bc921039cd0318939b7f3c8f1299c7c302209d3"),
+            ("-6 0 0 4 7 1", "72", "08e0ebf404cc3e21b075af1917f0acb7a4e68507136653684ef46f45eec42737"),
+            ("6 0 0 -4 1 6", "72", "e7934873191b0cc115d26d2b82a50923d26ea268a8f963a1f15b0f16b3d83826"),
+            ("4 3 -2 4 4 1", "72", "3ed30633bdb7d28dff973832b70c4b00961520504fd60d0621560c6f51876cae"),
+            ("4 -2 3 3 -2 3", "72", "97cde93f55cf3457d3b797a66e967d1ad17ea5d1bf2f9283d6183cccd65b96b8"),
+            ("0.3 0.1 0.2 0.4 2.1 3.2", "72", "b4836883224a7b4b6d18cc60ae800dbb7748f6c3e8a239db4ac32e27f86e68fa"),
+            ("2 5 -3 -2 5 2", "72", "4fb8833288029632543fc2c0a456cfa02f9bfc5135a2f243874bebe0d02b00f0"),
+            ("-0.3 -2.7 -5.8 -2.8 6.7 7.9", "144", "4f74d9b6852ee625d151629e54ed10b5532fc0154487a8a27b986caa838241e5"),
+            ("0.3 0.1 0.2 0.4 2.1 3.2", "360", "0777fd1169ddf8fb930a3075f91525d832660580e8a0e9b51e9daf91e2cbc6c7"),
         ] {
             let draw = format!("q {matrix} cm /A Do Q");
             let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
@@ -16729,7 +16731,7 @@ mod media_unit_tests {
                 "<< /Type /XObject /Subtype /Image /Width 4 /Height 3 /BitsPerComponent 8 /ColorSpace /DeviceRGB /SMask 6 0 R /Length 36 >>\nstream\nABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\nendstream",
                 "<< /Type /XObject /Subtype /Image /Width 7 /Height 5 /BitsPerComponent 8 /ColorSpace /DeviceGray /Interpolate true /Length 35 >>\nstream\nABCDEFGHIJKLMNOPQRSTUVWXYZ123456789\nendstream"], "");
             fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
-            let r = cmd_media_doc("pdftoppm", &media_args(&["-r","72","-singlefile","in.pdf","out"]), "", "/", &fs);
+            let r = cmd_media_doc("pdftoppm", &media_args(&["-r",dpi,"-singlefile","in.pdf","out"]), "", "/", &fs);
             assert_eq!(r.exit_code, 0, "{matrix}: {}", r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.ppm").unwrap())), expected, "{matrix}");
         }

@@ -6,6 +6,22 @@ use std::{collections::BTreeMap, rc::Rc};
 pub(in super::super) mod widths;
 
 use super::{ID, Matrix, concat};
+// Poppler accumulates decimal digits left to right. A one-ulp matrix difference
+// can move a transformed pixel center across a source-sample boundary.
+fn matrix_number(value: &Value<'_>) -> Option<f64> {
+    let token = std::str::from_utf8(value.word()?).ok()?;
+    let Some((whole, fraction)) = token.split_once('.') else { return value.number(); };
+    if !fraction.bytes().all(|b| b.is_ascii_digit()) { return value.number(); }
+    let digits = whole.trim_start_matches(['-', '+']);
+    let mut n = if digits.is_empty() && !fraction.is_empty() { 0. } else { digits.parse::<f64>().ok()? };
+    let mut place = 0.1;
+    for digit in fraction.bytes() {
+        n += f64::from(digit - b'0') * place;
+        place *= 0.1;
+    }
+    Some(if whole.starts_with('-') { -n } else { n })
+}
+
 fn shift(m: &mut Matrix, x: f64, y: f64) {
     m[4] += m[0] * x + m[2] * y;
     m[5] += m[1] * x + m[3] * y;
@@ -206,7 +222,8 @@ impl<'a> PageSource<'a> {
                     }
                     b"ET" => in_text = false,
                     b"cm" | b"Tm" => {
-                        let m = [num(0)?, num(1)?, num(2)?, num(3)?, num(4)?, num(5)?];
+                        let entry = |i: usize| matrix_number(args.get(i)?);
+                        let m = [entry(0)?, entry(1)?, entry(2)?, entry(3)?, entry(4)?, entry(5)?];
                         if op == b"cm" {
                             st.ctm = concat(m, st.ctm);
                         } else {

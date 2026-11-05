@@ -48,6 +48,7 @@ export interface RgbaImage {
   readonly hasAlpha: boolean;
   readonly isPremultiplied?: boolean;
   readonly wasPremultiplied?: boolean;
+  readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;
@@ -72,6 +73,7 @@ export interface ImageMetadata {
   readonly density: number;
   readonly hasAlpha: boolean;
   readonly compression?: "hevc" | "av1";
+  readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;

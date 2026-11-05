@@ -894,6 +894,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const bitDepth = String(meta.bitsPerSample ?? (meta.depth === "ushort" ? 16 : meta.depth === "bit" ? 1 : 8));
   const space = meta.space === "b-w" || meta.space === "grey16" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
   const compression = ({ png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
+  const page = meta.virtualCanvas ?? { width: meta.width, height: meta.height, x: 0, y: 0 };
+  const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
     z: bitDepth, q: bitDepth, r: `DirectClass ${space}`,
@@ -901,13 +903,13 @@ function* formatMagickPropertyStringSteps<Step=never>(
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(meta.density ?? 72), y: String(meta.density ?? 72),
     s: String(context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
-    g: `${meta.width}x${meta.height}+0+0`, P: `${meta.width}x${meta.height}`,
+    g: `${page.width}x${page.height}${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
     C: compression, Q: String(context.quality ?? 92)
   };
   const properties: Record<string, string> = {
     colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : ""}`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
-    depth: bitDepth, size: short.b!, compression, quality: short.Q!
+    depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!
   };
   let img: RgbaImage | undefined;
   let pixels: Record<string, string> | undefined;
@@ -2143,15 +2145,17 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     return { end: i, background: state.background, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => magickWarpPlan(image, token, spec, args) };
 }
 
-function magickShadowLayout(image: Pick<RgbaImage, "width" | "height">, geometry: string) {
-    const g = parseMagickGeometry(geometry), opacity = Math.max(0, Math.min(100, g.width ?? 80)) / 100, sigma = Math.max(0.5, g.height ?? 3);
-    const pad = Math.max(2, Math.ceil(sigma * 2) + Math.max(Math.abs(g.x), Math.abs(g.y)));
-    return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad + Math.round(g.x), offsetY: pad + Math.round(g.y), opacity, sigma };
+function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: string) {
+    const g = parseMagickGeometry(geometry), opacity = Math.max(0, Math.min(100, g.width ?? 80)) / 100, sigma = Math.max(0, g.height ?? 3);
+    const pad = Math.floor(sigma * 2 + 0.5), x = Math.round(g.x), y = Math.round(g.y);
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad, offsetY: pad, opacity, sigma,
+        virtualCanvas: { width: Math.max(0, page.width + pad + x), height: Math.max(0, page.height + pad + y), x: page.x + x - pad, y: page.y + y - pad } };
 }
 function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const layout = magickShadowLayout(image, geometry);
-    const base = yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color), signal, layout);
-    return yield* blurImageSteps(base, layout.sigma);
+    const base = { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color), signal, layout), virtualCanvas: layout.virtualCanvas };
+    return layout.sigma === 0 ? base : yield* blurImageSteps(base, layout.sigma);
 }
 
 function* applyMagickSepiaToneSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -4571,8 +4575,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "+repage" || t === "-repage") {
-            if (t === "-repage")
-                i++;
+            if (t === "-repage") i++;
+            else stack = yield* mapSteps(stack, function* (image) {
+                yield;
+                const { virtualCanvas: ignoredCanvas, ...reset } = image;
+                return reset;
+            });
         }
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
             const geom = tokens[++i] ?? "100%";
@@ -5435,7 +5443,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
-        if (!operandsOnly && token === "+repage") continue;
+        if (!operandsOnly && token === "+repage") {
+            steps.push(async image => {
+                if (!image) return;
+                const { virtualCanvas: ignoredCanvas, ...reset } = image;
+                return reset;
+            });
+            continue;
+        }
         if (!operandsOnly && token === "-repage") { i++; continue; }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
             const path = tokens[++i] ?? "", quality = state.quality, adjoin = state.adjoin;
@@ -5524,8 +5539,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const layout = magickShadowLayout(image, geometry), base = await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, background), signal, layout);
-                return transformStoredImage(base, backend.storage, { kind: "blur", sigma: layout.sigma }, signal);
+                const layout = magickShadowLayout(image, geometry);
+                const base = { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, background), signal, layout), virtualCanvas: layout.virtualCanvas };
+                return layout.sigma === 0 ? base : transformStoredImage(base, backend.storage, { kind: "blur", sigma: layout.sigma }, signal);
             });
         } else if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
             const method = (tokens[++i] ?? (token === "-morphology" ? "dilate" : "median")).toLowerCase();

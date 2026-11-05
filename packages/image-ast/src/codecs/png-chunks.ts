@@ -42,3 +42,10 @@ export function makeChunk(type: string, data: Uint8Array): Uint8Array {
   }
   return out;
 }
+
+export function canvasChunk(canvas: { width: number; height: number; x: number; y: number }): Uint8Array {
+  const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
+  view.setUint32(0, canvas.width); view.setUint32(4, canvas.height);
+  view.setInt32(8, canvas.x); view.setInt32(12, canvas.y);
+  return makeChunk("caNv", bytes);
+}

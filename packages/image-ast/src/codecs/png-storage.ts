@@ -1,6 +1,6 @@
 import {pngMetadataSteps} from "./png-metadata.js";
 import {exifMetadataSteps} from "./exif-metadata.js";
-import {PNG_SIGNATURE, makeChunk} from "./png-chunks.js";
+import {PNG_SIGNATURE, makeChunk, canvasChunk} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
@@ -92,6 +92,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
   signal.throwIfAborted();
   if (!Number.isSafeInteger(source.size) || source.size < 24 || !isPngBytes(await range(source, 0, 8, signal))) throw new Error("Invalid PNG header");
   let header: Uint8Array | undefined, palette: Uint8Array | undefined, transparency: Uint8Array | undefined;
+  let virtualCanvas: StoredRgbaImage["virtualCanvas"];
   let density = 72, orientation: number | undefined;
   for await (const chunk of chunks(source, signal)) {
     if (chunk.name === "IHDR" && chunk.length >= 13) header = await range(source, chunk.start, 13, signal);
@@ -100,6 +101,9 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     else if (chunk.name === "pHYs" && chunk.length >= 9) {
       const data = await range(source, chunk.start, 9, signal); const x = new DataView(data.buffer).getUint32(0);
       if (x > 0) density = data[8] === 1 ? Math.max(1, Math.round(x * 0.0254)) : x;
+    } else if (chunk.name === "caNv" && chunk.length === 16) {
+      const bytes = await range(source, chunk.start, 16, signal), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      virtualCanvas = {width:view.getUint32(0),height:view.getUint32(4),x:view.getInt32(8),y:view.getInt32(12)};
     } else if (chunk.name === "eXIf") {
       const metadata = await exif(source, chunk.start, chunk.length, signal);
       density = metadata.density ?? density; orientation = metadata.orientation ?? orientation;
@@ -185,7 +189,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     // codec diagnostics even after all expected pixels have been produced.
     while (!(await iterator.next()).done) signal.throwIfAborted();
   } finally {await iterator.return(undefined);}
-  return {...metadata, position, density, ...(orientation === undefined ? {} : {orientation}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
+  return {...metadata, position, density, ...(virtualCanvas === undefined ? {} : {virtualCanvas}), ...(orientation === undefined ? {} : {orientation}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
 }
 
 export type StoredPngEncodeOptions = Omit<NonNullable<Parameters<typeof encodePngImage>[1]>, "consumeInput">;
@@ -223,6 +227,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const physical = new Uint8Array(9), physicalView = new DataView(physical.buffer);
   physicalView.setUint32(0,Math.round(density / 0.0254)); physicalView.setUint32(4,Math.round(density / 0.0254)); physical[8] = 1;
   signal.throwIfAborted(); yield makeChunk("pHYs",physical);
+  if (image.virtualCanvas !== undefined) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
   const orientation = options.orientation ?? image.orientation;
   if (orientation !== undefined) {signal.throwIfAborted(); yield makeChunk("eXIf",buildExifApp1Segment({orientation,density}).subarray(6));}
   const encoder = createByteCodec({direction:"encode",format:"zlib",chunkSize:4084,level:Math.max(0,Math.min(9,options.compressionLevel ?? 6))});

@@ -1,5 +1,5 @@
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, makeChunk} from "./png-chunks.js";
+import {PNG_SIGNATURE, makeChunk, canvasChunk} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
@@ -213,6 +213,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     depth: meta.depth,
     density: meta.density,
     hasAlpha: meta.hasAlpha,
+    ...(meta.virtualCanvas === undefined ? {} : {virtualCanvas: meta.virtualCanvas}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
   };
@@ -361,6 +362,7 @@ export function encodePngImage(
     makeChunk("IHDR", ihdr),
     makeChunk("pHYs", phys),
     ...exifChunk,
+    ...(img.virtualCanvas === undefined ? [] : [canvasChunk(img.virtualCanvas)]),
     makeChunk("IDAT", compressed),
     makeChunk("IEND", new Uint8Array(0))
   ];

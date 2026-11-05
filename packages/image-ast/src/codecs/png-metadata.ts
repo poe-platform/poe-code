@@ -14,6 +14,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let interlace = 0;
   let density = 72;
   let hasTrns = false;
+  let virtualCanvas: ImageMetadata["virtualCanvas"];
   let orientation: number | undefined;
 
   let pos = 8;
@@ -41,6 +42,10 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       } else if (ppuX > 0) {
         density = ppuX;
       }
+    } else if (type === "caNv" && len === 16) {
+      const chunk = yield {position:dataStart,length:16};
+      const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
+      virtualCanvas = {width:view.getUint32(0),height:view.getUint32(4),x:view.getInt32(8),y:view.getInt32(12)};
     } else if (type === "tRNS") {
       hasTrns = true;
     } else if (type === "eXIf" && len >= 8) {
@@ -91,6 +96,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     bitsPerSample: bitDepth,
     density,
     hasAlpha,
+    ...(virtualCanvas === undefined ? {} : {virtualCanvas}),
     ...(orientation !== undefined ? { orientation } : {}),
     isProgressive: interlace === 1,
     size

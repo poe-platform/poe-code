@@ -64,28 +64,28 @@ it("preserves original warp pixel vectors", async () => {
         "b958c5233bb2ac64389fe3d47aab74438f9fff65b477369e02e793dc1cf7f675",
         "223871a9b691c254322c22473f53211879d912f52a3df4e60f76a6541dca66fc",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
-        "bf3da0da585cd643e1139fe32ce9273ee7d04f57bda3504a4d38d8e1ea372ad0",
-        "33bca571f8761edc788e2e61d63b83ee593e23bd88620ccfaf0cd648360fce03",
-        "3b61c10dd18d2598ede2542b93bc25e7f4178b7e51fe522c3f61a5303e032ac7",
-        "70dea9efb2c8f7f7f67ab9507121bf989f3f62e27e62152cbc1cd773cc8fb458",
-        "811a7cbf48170b7653b70734ba6318b907035db26910b28c494068ab42c5e36f",
-        "f437dc4b0eff315f9efa895d38621f42f5b6b7fa6f5791d8b30df15ed53b5cae",
-        "9aed31f4adba21d5f54a988f2debced346f09b7d0c23ef9f561f679c47f83cb3",
+        "807b4750796fed884682bf768aa9a2663cf91c996632014241d9304a5c4a0755",
+        "5f566bb4894fe3b47171a603ff784ad7c6c97494f9e2c13f46365c45eaf6278a",
+        "0741f21faf9c02c68bc335588df07466455fc2248ed31387f90a2e0b07300ad4",
+        "1f0f7258957e43df202b7a84a4cc9749275995143fa7a6c919eebf798e92624c",
+        "a5197ef5bbf0049d2b113cb56a6e71d1fbf5e7d278ca9f04677440c52f1b99ba",
+        "87ec62817d2e7b3e4aac49ed74ec4c418a455ca75b63ed3901b37a69b23c14bb",
+        "2a9dc881bca93b2fc40147b4642e697fca78f0f2abdff208993bbdcc26909bc2",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "c0239f6d04c352eba5cfc269ce48d47d032d378a2714021351ba4078ed2cb8e6",
-        "0fecef32077e81961f816bb327c1defc87bcc8883f124e749552ed4ebc86f766",
-        "7f7c51880416d2b2908cd8f2d8fdb1c7f291db8187b77b4660de25754a51641b",
+        "d727355fd4065b4bfc499e3e10b9d93449714c3108a4e31e88031eaa83d15396",
+        "74ea60d5b775e2f841ed5d7d5a76f98becce68f55ceee925213b4b02e151eb74",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
-        "c24d9707762f9f56d04209e90a94f74d57746217043e7ef79a0397fedfd4720e",
-        "68486c7f81159a6abd108d3ddffb86706b064cb1bab0f0c9f62dec42f3bca8bc",
-        "da2d034ea0ed3462f5d6efae70dd76e417ab9adf90d29ad158fd33ea7877b877",
+        "7e99bcd3e0359e8bc1e5415518605a07b9e962afd2bbd746e1b49485af33146d",
+        "e9db4fb84f90e82f46e84e6bd99c0c13a9253679f83434db41bf52d9b4c655bc",
+        "66892eba6bface414bbf31ff87948ba1844329bbc1e625720fd308ce9e280e32",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "b8e628a1d313e036dd1febb5b675c10a4624be6a2d9962fc25116f99d521e12e",
       ]
     `);
 });
-it.each(operators.flatMap(args => (["-shear", "-swirl", "-wave"].includes(args[0]!) ? [[13, 17], [1031, 17], [1, 1]] : [[13, 17], [1, 1]]).map(([width, height]) => ({ width: width!, height: height!, args }))))("retains $width x $height $args", async ({ width, height, args }) => {
+it.each([...operators, ...["edge", "background", "transparent", "black", "white", "gray", "tile", "mirror"].map(method => ["-virtual-pixel", method, "+distort", "SRT", "45"])].flatMap(args => (["-shear", "-swirl", "-wave"].includes(args[0]!) ? [[13, 17], [1031, 17], [1, 1]] : [[13, 17], [1, 1]]).map(([width, height]) => ({ width: width!, height: height!, args }))))("retains $width x $height $args", async ({ width, height, args }) => {
     const bytes = await fixture(width, height), fs = new MemoryFileSystem(), files = new Map([["input", bytes]]);
     await fs.writeFile("/input", bytes);
     const filesystem = new Proxy(fs, { get(target, key) {

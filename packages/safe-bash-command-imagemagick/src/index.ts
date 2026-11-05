@@ -16,7 +16,7 @@ import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
 import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
-import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
+import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalPixelSteps } from "./charcoal-kernel.js";
@@ -465,6 +465,7 @@ interface MagickState {
   sizeHeight: number;
   hasSize: boolean;
   background: RgbaColor;
+  virtualPixel?: VirtualPixelMethod;
   fill: RgbaColor;
   stroke: RgbaColor;
   strokeWidth: number;
@@ -2197,14 +2198,14 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     let i = start;
     const distort = token === "-distort" || token === "+distort";
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
-    const background = state.background;
+    const background = state.background, virtualPixel = state.virtualPixel ?? (distort ? "edge" : undefined);
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => {
         if (token === "-shear") {
             const plan = shearPlan(image, spec);
             return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, background) };
         }
         const plan = magickWarpPlan(image, token, spec, args);
-        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background) } : undefined;
+        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) } : undefined;
     } };
 }
 
@@ -4643,6 +4644,14 @@ if (t === "-seed") {
         }
         else if (t === "+size") {
             state.hasSize = false;
+        }
+        else if (t === "-virtual-pixel") {
+            const method = (tokens[++i] ?? "").toLowerCase();
+            if (method !== "edge" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror") throw new Error(`Unsupported virtual-pixel method: ${method}`);
+            state.virtualPixel = method;
+        }
+        else if (t === "+virtual-pixel") {
+            delete state.virtualPixel;
         }
         else if (t === "-background") {
             state.background = parseColor(tokens[++i] ?? "#ffffff");

@@ -3935,12 +3935,17 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
             const channelCount = image.hasAlpha ? 4 : 3;
-            let sum = 0;
-            for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < 256; value++) sum += histogram[channel]![value]! * value;
-            const mean = sum / Math.max(1, image.width * image.height * channelCount * 255);
-            if (mean > 0 && mean < 1) {
+            const sums = [0, 0, 0, 0];
+            for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < 256; value++) sums[channel]! += histogram[channel]![value]! * value;
+            const sharedMean = sums.reduce((sum, value) => sum + value, 0) / (count * channelCount * 255);
+            // Explicit channels use independent RGB means; native leaves alpha unchanged.
+            const active = [channels.r, channels.g, channels.b, !independent && image.hasAlpha];
+            for (let channel = 0; channel < channelCount; channel++) {
+                if (!active[channel]) continue;
+                const mean = independent ? sums[channel]! / (count * 255) : sharedMean;
+                if (mean <= 0 || mean >= 1) continue;
                 const exponent = Math.log(0.5) / Math.log(mean);
-                for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal(Math.pow(value / 255, exponent) * 255);
+                for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal(Math.pow(value / 255, exponent) * 255);
             }
         } else if (token === "-auto-level") {
             const mins = [255, 255, 255, 255], maxs = [0, 0, 0, 0], active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];

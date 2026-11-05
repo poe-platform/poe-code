@@ -31,7 +31,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -3970,8 +3970,32 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
         const parts = (tokens[++i] ?? "100,100,100").split(",").map(Number);
-        const options = { brightness: (parts[0] ?? 100) / 100, saturation: (parts[1] ?? 100) / 100, hue: ((parts[2] ?? 100) - 100) * 1.8, lightness: 0 };
-        apply = image => modulateImageSteps(image, options);
+        const brightness = (parts[0] ?? 100) / 100, saturation = (parts[1] ?? 100) / 100, hueShift = ((parts[2] ?? 100) - 100) * 3 / 100;
+        // ImageMagick defaults to HSL modulation; image-ast uses libvips LCh.
+        apply = function* (image) {
+            const out = new Uint8Array(image.data);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
+                const r = out[idx]! / 255, g = out[idx + 1]! / 255, b = out[idx + 2]! / 255;
+                const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min;
+                const lightness = (max + min) / 2;
+                const sat = delta === 0 ? 0 : delta / (lightness <= 0.5 ? max + min : 2 - max - min);
+                let hue = delta === 0 ? 0 : max === r ? (g - b) / delta : max === g ? 2 + (b - r) / delta : 4 + (r - g) / delta;
+                hue = ((hue + hueShift) % 6 + 6) % 6;
+                const light = lightness * brightness;
+                const chroma = (1 - Math.abs(2 * light - 1)) * sat * saturation;
+                const secondary = chroma * (1 - Math.abs(hue % 2 - 1));
+                const offset = light - chroma / 2;
+                const red = hue < 1 || hue >= 5 ? chroma : hue < 2 || hue >= 4 ? secondary : 0;
+                const green = hue < 1 ? secondary : hue < 3 ? chroma : hue < 4 ? secondary : 0;
+                const blue = hue < 2 ? 0 : hue < 3 ? secondary : hue < 5 ? chroma : secondary;
+                out[idx] = clampByteVal((red + offset) * 255);
+                out[idx + 1] = clampByteVal((green + offset) * 255);
+                out[idx + 2] = clampByteVal((blue + offset) * 255);
+            }
+            const { data16: ignored, ...metadata } = image;
+            return { ...metadata, data: out };
+        };
     } else if (token === "-brightness-contrast") {
         const [brightness = 0, contrast = 0] = (tokens[++i] ?? "0x0").split("x").map(value => parseFloat(value) || 0);
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.

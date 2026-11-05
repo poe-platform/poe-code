@@ -1677,6 +1677,8 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, paramsRaw: s
                 const amp = params[2] ?? 0.5;
                 const bias = params[3] ?? 0.5;
                 y = amp * Math.sin(2 * Math.PI * (freq * x + phase / 360)) + bias;
+                // Match native Q16-HDRI float storage before rounding to a byte.
+                y = Math.fround(Math.max(0, Math.min(1, y)) * 65535) / 65535;
             }
             else if (fn === "arcsin") {
                 const w = params[0] ?? 1;

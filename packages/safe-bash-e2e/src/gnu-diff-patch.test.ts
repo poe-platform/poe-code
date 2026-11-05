@@ -152,6 +152,12 @@ test("GNU diff and patch exchange unified diffs with TypeScript and Rust", async
         ["x\n", "1c1\n< a\n---\n> b\n" + missingLF, [], 1],
         ["a\na", "1c1\n< a\n" + missingLF + "---\n> b\n", [], 0],
         ["a\nz", "1c1\n< a\n---\n> b\n" + missingLF, [], 0],
+        ["a", "1c1\n< a\n---\n> b\n", ["-l"], 0],
+        ["a\r\n", "1c1\n< a \r\n---\n> b\n", ["-l"], 1],
+        ["left\u00a0right\n", "1c1\n< left right\n---\n> b\n", ["-l"], 1],
+        [" a\n", "1c1\n< a\n---\n> b\n", ["-l"], 1],
+        ["\ta\t  b  ", "1c1\n<   a b\n---\n> c\n", ["-l"], 0],
+        ["old\ntail", "--- w\n+++ w\n@@ -1,2 +1,2 @@\n-old\n+new\n tail\n", ["-l"], 0],
         ["b", "1c1\n< a\n---\n> b\n" + missingLF, ["-R"], 0]
       ] as const
     ).entries()) {

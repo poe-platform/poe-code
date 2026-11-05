@@ -200,9 +200,9 @@ periodically to observe cancellation.
   to match, only the expected position is considered. This is a deterministic
   subset, not every native patch placement heuristic.
 - `-l`, `--ignore-whitespace`, and GNU's `--ignore-white-space` compare each
-  nonempty horizontal space/tab run loosely. Missing runs, other characters,
-  and final newline presence must still match; actual context and literal
-  additions are preserved, including their original whitespace.
+  run of spaces and tabs as one space and ignore trailing blanks and the final
+  newline when matching. Other characters must match exactly. Copied context
+  and literal additions keep their original whitespace.
 - `/dev/null` headers create/delete files. Creation accepts a missing target or
   an existing empty regular file; a nonempty target can trigger reversal or
   rejected hunks. Creation hunks contain no old content. Missing target parents

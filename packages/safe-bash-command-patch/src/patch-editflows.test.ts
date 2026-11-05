@@ -57,7 +57,7 @@ for (const option of ["-l", "--ignore-whitespace", "--ignore-white-space"]) test
   assert.equal(await contents(result.fs, "target"), "head\tspace\nnew   value\ntail space");
 });
 
-for (const before of ["oldvalue\n", "old\rvalue\n", "old\vvalue\n", "old value", " old value\n"]) test(`loose blanks retain nonblank and EOF distinctions ${JSON.stringify(before)}`, async () => {
+for (const before of ["oldvalue\n", "old\rvalue\n", "old\vvalue\n", " old value\n"]) test(`loose blanks retain nonblank and leading blank distinctions ${JSON.stringify(before)}`, async () => {
   const result = await run("patch", ["-l"], { files: { target: before }, input: replacement.replace("-old", "-old value") });
   assert.equal(result.exitCode, 1, result.stderr);
   assert.equal(await contents(result.fs, "target"), before);

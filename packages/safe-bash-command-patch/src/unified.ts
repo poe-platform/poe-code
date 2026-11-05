@@ -227,8 +227,9 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
         if (actual === undefined) return false;
         const expectedLine = oldLines[lineIndex]!.text;
         if (ignoreWhitespace) budget.step(actual.length + expectedLine.length);
-        if (!budget.equal(ignoreWhitespace ? actual.replace(/[ \t]+(?=\r?\n|$)/gu, "").replace(/[ \t]+/gu, " ") : actual,
-          ignoreWhitespace ? expectedLine.replace(/[ \t]+(?=\r?\n|$)/gu, "").replace(/[ \t]+/gu, " ") : expectedLine)) return false;
+        const loose = (line: string) => line.replace(/[ \t]+/gu, " ").replace(/ ?\n?$/u, "");
+        if (!budget.equal(ignoreWhitespace ? loose(actual) : actual,
+          ignoreWhitespace ? loose(expectedLine) : expectedLine)) return false;
         { const c = budget.checkpoint(); if (c) await c; }
       }
       if (position < cursor) misordered = true;

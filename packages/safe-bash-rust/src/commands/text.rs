@@ -7380,7 +7380,7 @@ fn apply_unified_diff(
                 blk
             };
             let new_slice_len = replacement.len();
-            if splice_end == file_lines.len() {
+            if splice_end == file_lines.len() && trailing_ctx == 0 {
                 no_trailing_newline = new_no_nl && !replacement.is_empty() && opts.ifdef_guard.is_none();
             }
             file_lines.splice(splice_start..splice_end, replacement);
@@ -7484,7 +7484,13 @@ fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: 
     let matches = |pos: usize| {
         let slice = &hay[pos..pos + needle.len()];
         if ignore_ws {
-            slice.iter().zip(needle).all(|(a, b)| a.split_whitespace().eq(b.split_whitespace()))
+            slice.iter().zip(needle).all(|(a, b)| {
+                let blank = [' ', '\t'];
+                let a = a.trim_end_matches(blank);
+                let b = b.trim_end_matches(blank);
+                a.starts_with(blank) == b.starts_with(blank)
+                    && a.split(blank).filter(|s| !s.is_empty()).eq(b.split(blank).filter(|s| !s.is_empty()))
+            })
         } else {
             (needle.is_empty() || (file_no_lf && pos == last) == hunk_no_lf) && slice == needle
         }

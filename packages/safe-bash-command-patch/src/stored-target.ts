@@ -20,24 +20,18 @@ export async function* targetBytes(line: TargetLine): ByteSource {
 
 async function* normalized(line: TargetLine, whitespace: boolean): ByteSource {
   if (!whitespace) { yield* targetBytes(line); return; }
-  let pending = false, cr = false;
+  let pending = false;
   let output: number[] = [];
   for await (const block of targetBytes(line)) {
     for (const byte of block) {
-      if (cr) {
-        if (byte !== 10 && pending) output.push(32);
-        output.push(13); cr = false; pending = false;
-      }
       if (byte === 32 || byte === 9) pending = true;
-      else if (byte === 13 && pending) cr = true;
-      else {
-        if (pending && byte !== 10) output.push(32);
+      else if (byte !== 10) {
+        if (pending) output.push(32);
         pending = false; output.push(byte);
       }
       if (output.length >= 4096) { yield Uint8Array.from(output); output = []; }
     }
   }
-  if (cr) output.push(32, 13);
   if (output.length) yield Uint8Array.from(output);
 }
 

@@ -198,6 +198,9 @@ interface AddAttachmentSpec {
   key: string;
   filename: string;
   description?: string;
+  mimetype?: string;
+  creationdate?: string;
+  moddate?: string;
   replace?: boolean;
 }
 
@@ -740,6 +743,9 @@ function parseQpdfArguments(argv: readonly string[]) {
         }
         else if (sub.startsWith("--filename=")) spec.filename = sub.slice("--filename=".length);
         else if (sub.startsWith("--description=")) spec.description = sub.slice("--description=".length);
+        else if (sub.startsWith("--mimetype=")) spec.mimetype = sub.slice("--mimetype=".length);
+        else if (sub.startsWith("--creationdate=")) spec.creationdate = sub.slice("--creationdate=".length);
+        else if (sub.startsWith("--moddate=")) spec.moddate = sub.slice("--moddate=".length);
         else if (sub === "--replace") spec.replace = true;
       }
       if (i + 1 < argv.length && argv[i + 1] === "--") i++;
@@ -2379,7 +2385,12 @@ function* executeQpdfCli(
           cosStream(attBytes, {
             dict: cosDict({
               Type: cosName("EmbeddedFile"),
-              Params: cosDict({ Size: cosNumber(attBytes.byteLength) })
+              ...(addSpec.mimetype !== undefined ? { Subtype: cosName(addSpec.mimetype) } : {}),
+              Params: cosDict({
+                Size: cosNumber(attBytes.byteLength),
+                ...(addSpec.creationdate !== undefined ? { CreationDate: cosString(addSpec.creationdate) } : {}),
+                ...(addSpec.moddate !== undefined ? { ModDate: cosString(addSpec.moddate) } : {})
+              })
             })
           })
         );

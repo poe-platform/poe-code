@@ -12,6 +12,9 @@ export interface RetainedAttachmentInput {
   readonly key: string;
   readonly filename: string;
   readonly description?: string;
+  readonly mimetype?: string;
+  readonly creationdate?: string;
+  readonly moddate?: string;
   readonly replace?: boolean;
   readonly length: number;
   readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
@@ -88,7 +91,15 @@ export async function editRetainedAttachments(document: PdfRetainedDocument, tar
       }
       {
         const embedded = await target.allocate();
-        await target.set({ objectNumber: embedded.objectNumber, generationNumber: 0, value: cosDict({ Type: cosName("EmbeddedFile"), Params: cosDict({ Size: cosNumber(attachment.length) }) }), stream: { length: attachment.length, chunks: admitted() } });
+        await target.set({ objectNumber: embedded.objectNumber, generationNumber: 0, value: cosDict({
+          Type: cosName("EmbeddedFile"),
+          ...(attachment.mimetype !== undefined ? { Subtype: cosName(attachment.mimetype) } : {}),
+          Params: cosDict({
+            Size: cosNumber(attachment.length),
+            ...(attachment.creationdate !== undefined ? { CreationDate: cosString(attachment.creationdate) } : {}),
+            ...(attachment.moddate !== undefined ? { ModDate: cosString(attachment.moddate) } : {})
+          })
+        }), stream: { length: attachment.length, chunks: admitted() } });
         const spec = cosDict({ Type: cosName("Filespec"), F: cosString(attachment.filename), UF: cosString(attachment.filename), EF: cosDict({ F: embedded, UF: embedded }) });
         if (attachment.description) dictSet(spec, "Desc", cosString(attachment.description));
         const reference = await target.allocate(spec);

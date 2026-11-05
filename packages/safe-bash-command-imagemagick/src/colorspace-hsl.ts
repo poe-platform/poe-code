@@ -2,7 +2,7 @@ import type { RgbaImage } from "@poe-code/image-ast/portable";
 import { formatMetricNum } from "./compare-kernel.js";
 
 export interface HslMetadata {
-    magickColorspace?: "HSL";
+    magickColorspace?: "HSL" | "RGB";
     // Preserve native HDRI precision for expressions; codecs use the integer planes.
     hslSamples?: Float64Array;
     storedHslSamples?: number;

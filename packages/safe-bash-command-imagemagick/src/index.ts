@@ -741,19 +741,19 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
         .split(/[\s,]+/)
         .filter((s) => s.length > 0)
         .map(Number);
-    if (m.length < 9)
+    if (m.length < 9 && m.length !== 1 && m.length !== 4)
         return img;
     const out = new Uint8Array(img.data);
-    const cols = m.length >= 16 ? Math.round(Math.sqrt(m.length)) : 3;
+    const cols = m.length < 9 || m.length >= 16 ? Math.round(Math.sqrt(m.length)) : 3;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const r = out[i]!;
-        const g = out[i + 1]!;
-        const b = out[i + 2]!;
-        out[i] = clampByteVal((m[0] ?? 1) * r + (m[1] ?? 0) * g + (m[2] ?? 0) * b);
-        out[i + 1] = clampByteVal((m[cols] ?? 0) * r + (m[cols + 1] ?? 1) * g + (m[cols + 2] ?? 0) * b);
-        out[i + 2] = clampByteVal((m[cols * 2] ?? 0) * r + (m[cols * 2 + 1] ?? 0) * g + (m[cols * 2 + 2] ?? 1) * b);
+        for (let row = 0; row < Math.min(cols, 3); row++) {
+            let value = 0;
+            for (let col = 0; col < Math.min(cols, 3); col++)
+                value += (m[row * cols + col] ?? (row === col ? 1 : 0)) * img.data[i + col]!;
+            out[i + row] = clampByteVal(value);
+        }
     }
     return { ...img, data: out };
 }
@@ -4294,8 +4294,27 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (space === "cmyk") throw new Error("unsupported colorspace 'CMYK'");
         if (space === "lab") throw new Error("unsupported colorspace 'Lab'");
         apply = function* (image) {
-            if (space === "hsl") return yield* convertHslPixels(image, true);
+            if (image.magickColorspace === "RGB" && space === "rgb") return image;
+            if (image.magickColorspace === "HSL" && space === "hsl") return image;
             if (image.magickColorspace === "HSL") image = yield* convertHslPixels(image, false);
+            if (space === "rgb" || image.magickColorspace === "RGB") {
+                const linearize = space === "rgb";
+                const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
+                const input = image.data16 ?? image.data, range = image.data16 ? 65535 : 255;
+                for (let idx = 0; idx < data.length; idx++) {
+                    if (idx % 65536 === 0) yield;
+                    let value = input[idx]! / range;
+                    if (idx % 4 !== 3) value = linearize
+                        ? value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+                        : value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+                    data[idx] = clampByteVal(value * 255);
+                    data16[idx] = Math.round(value * 65535);
+                }
+                const { magickColorspace: ignored, ...metadata } = image;
+                image = { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
+                if (linearize) return image;
+            }
+            if (space === "hsl") return yield* convertHslPixels(image, true);
             if (!space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
             const out = new Uint8Array(image.data);
             for (let idx = 0; idx < out.length; idx += 4) {

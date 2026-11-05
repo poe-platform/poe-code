@@ -158,7 +158,7 @@ async function verifyOpenPgpDetachedSignature(
   armor: string,
   payload: Uint8Array,
   keys: readonly StoredGpgKey[],
-): Promise<{ valid: boolean; signerUid: string; keyIdHex: string }> {
+): Promise<{ valid: boolean; signerUid: string; keyIdHex: string; validSig?: string }> {
   const b64 = armor
     .split("\n")
     .map(l => l.trim())
@@ -168,8 +168,11 @@ async function verifyOpenPgpDetachedSignature(
   for (const k of keys) {
     if (!k.certHex && !k.seedHex) continue;
     const cert = await certificate(k);
-    if (await verifyMessage(pkt, cert.fp, cert.publicKey, payload)) {
-      return { valid: true, signerUid: k.uid, keyIdHex: bytesToHex(cert.fp.subarray(12)).toUpperCase() };
+    const time = await verifyMessage(pkt, cert.fp, cert.publicKey, payload);
+    if (time !== undefined) {
+      const fp = bytesToHex(cert.fp).toUpperCase();
+      const date = new Date(time * 1000).toISOString().slice(0, 10);
+      return { valid: true, signerUid: k.uid, keyIdHex: fp.slice(-16), validSig: `${fp} ${date} ${time} 0 4 0 22 8 00 ${fp}` };
     }
   }
   if (pkt.byteLength < 10 || pkt[0] !== 0xc2) {
@@ -691,7 +694,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           if (statusFd) {
             await writeText(
               context.stdout,
-              `[GNUPG:] GOODSIG ${res.keyIdHex} ${res.signerUid}\n[GNUPG:] VALIDSIG ${res.keyIdHex} 2026-09-28 1609459200\n`,
+              `[GNUPG:] GOODSIG ${res.keyIdHex} ${res.signerUid}\n[GNUPG:] VALIDSIG ${res.validSig ?? `${res.keyIdHex} 2026-09-28 1609459200`}\n`,
             );
           }
           await writeText(

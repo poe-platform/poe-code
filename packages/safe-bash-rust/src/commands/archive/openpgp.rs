@@ -192,11 +192,16 @@ pub(super) fn read_certificate<'a>(rest: &mut &'a [u8]) -> Option<Certificate<'a
     })
 }
 
-pub(super) fn verify_message(mut signature: &[u8], cert: &Certificate<'_>, input: &[u8]) -> bool {
-    let Some(body) = take_packet(&mut signature, 2) else {
-        return false;
-    };
-    signature.is_empty() && verify(body, 0, &cert.fingerprint, cert.public, input)
+pub(super) fn verify_message(
+    mut signature: &[u8],
+    cert: &Certificate<'_>,
+    input: &[u8],
+) -> Option<u32> {
+    let body = take_packet(&mut signature, 2)?;
+    if !signature.is_empty() || !verify(body, 0, &cert.fingerprint, cert.public, input) {
+        return None;
+    }
+    Some(u32::from_be_bytes(body.get(8..12)?.try_into().ok()?))
 }
 
 #[cfg(test)]

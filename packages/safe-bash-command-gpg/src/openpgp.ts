@@ -134,6 +134,9 @@ export async function verifyMessage(bytes: Uint8Array, fp: Uint8Array, pub: Uint
   try {
     const r = new Reader(bytes);
     const body = r.packet(2);
-    return r.at === bytes.length && await verify(body, 0, fp, pub, payload);
-  } catch { return false; }
+    if (r.at === bytes.length && await verify(body, 0, fp, pub, payload)) {
+      return new DataView(body.buffer, body.byteOffset, body.length).getUint32(8);
+    }
+  } catch { /* malformed signature */ }
+  return undefined;
 }

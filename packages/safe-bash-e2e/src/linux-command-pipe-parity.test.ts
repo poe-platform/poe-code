@@ -319,9 +319,10 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
       const generated = await shell.exec(`gpg --quick-generate-key '${uid}' ed25519 sign 0`);
       assert.equal(generated.exitCode, 0, generated.stderr);
       const payload = Buffer.from([0xff, 0, 9, 10]);
-      const signature = await shell.exec(`gpg -a -u '${uid}' --detach-sign`, { stdin: payload });
+      const signature = await shell.exec(`gpg -a --status-fd=2 -u '${uid}' --detach-sign`, { stdin: payload });
       assert.equal(signature.exitCode, 0, signature.stderr);
       await writeFile(dir + "/signature.asc", signature.stdoutBytes);
+      let peerStatus = "";
       for (const flags of ["", "-a"]) {
         const cert = await shell.exec("gpg " + flags + " --export " + who);
         assert.equal(cert.exitCode, 0, cert.stderr);
@@ -345,14 +346,20 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
         const importedAgain = await peer.exec("gpg --import", { stdin: reexported[1] });
         assert.equal(importedAgain.exitCode, 0, importedAgain.stderr);
         await peer.exec("cat > /peer.sig", { stdin: signature.stdoutBytes });
-        const peerVerified = await peer.exec("gpg --verify /peer.sig", { stdin: payload });
+        const peerVerified = await peer.exec("gpg --status-fd=1 --verify /peer.sig", { stdin: payload });
         assert.equal(peerVerified.exitCode, 0, peerVerified.stderr);
+        peerStatus = peerVerified.stdout;
         assert.equal(cert.stdout.startsWith("-----BEGIN"), flags === "-a");
       }
       const verified = await runLinuxCommand("gpg", [...options, "--status-fd=1", "--verify", "signature.asc", "-"], payload, dir);
       assert.equal(verified[0], 0, verified[2].toString());
       assert.ok(verified[1].toString().includes(uid));
-      assert.match(verified[1].toString(), /VALIDSIG [A-F0-9]{40}/);
+      const statusLine = (output: string) => output.split("\n").find(line => line.startsWith("[GNUPG:] VALIDSIG "));
+      const valid = statusLine(verified[1].toString());
+      assert.ok(valid);
+      assert.equal(statusLine(peerStatus), valid);
+      const fields = valid.split(" ");
+      assert.equal(signature.stderr, `[GNUPG:] SIG_CREATED D 22 8 00 ${fields[4]} ${fields[2]}\n`);
       const modified = await runLinuxCommand("gpg", [...options, "--verify", "signature.asc", "-"], "changed", dir);
       assert.notEqual(modified[0], 0);
     }

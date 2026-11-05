@@ -9686,13 +9686,13 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let bytes = match key.certificate_bytes() { Ok(b) => b, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let Some(cert) = openpgp::read_certificate(&mut &bytes[..]) else { return err_out("gpg: invalid certificate\n", 2); };
         let time = (crate::vfs::now_ms() / 1000.) as u32;
-        let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
+        let fingerprint = openssl_hex_encode(&cert.fingerprint).to_uppercase();
         let pkt_bytes = openpgp::sign(0, &cert.fingerprint, time, &seed, &payload);
         let b64 = openssl_b64_encode(&pkt_bytes, true);
         let crc = pgp_crc24(&pkt_bytes);
         let arm = format!("-----BEGIN PGP SIGNATURE-----\n\n{b64}\n{crc}\n-----END PGP SIGNATURE-----\n");
         let stderr_msg = if status_fd.is_some() {
-            format!("[GNUPG:] SIG_CREATED D 22 8 00 {time} {kid}\n")
+            format!("[GNUPG:] SIG_CREATED D 22 8 00 {time} {fingerprint}\n")
         } else {
             String::new()
         };
@@ -9731,12 +9731,13 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if key.certificate.is_empty() && key.seed.is_empty() { continue; }
             let Ok(bytes) = key.certificate_bytes() else { continue };
             if let Some(cert) = openpgp::read_certificate(&mut &bytes[..])
-                && openpgp::verify_message(&pkt, &cert, &data_bytes) {
+                && let Some(time) = openpgp::verify_message(&pkt, &cert, &data_bytes) {
+                let (y, m, d) = super::coreutils::civil_from_days(i64::from(time) / 86400);
                 let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
                 let fp = openssl_hex_encode(&cert.fingerprint).to_uppercase();
                 let uid = cert.uid;
                 return BuiltinOutcome {
-                    stdout: if status_fd.is_some() { format!("[GNUPG:] GOODSIG {kid} {uid}\n[GNUPG:] VALIDSIG {fp}\n") } else { String::new() },
+                    stdout: if status_fd.is_some() { format!("[GNUPG:] GOODSIG {kid} {uid}\n[GNUPG:] VALIDSIG {fp} {y:04}-{m:02}-{d:02} {time} 0 4 0 22 8 00 {fp}\n") } else { String::new() },
                     stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [ultimate]\n"),
                     exit_code: 0,
                 };

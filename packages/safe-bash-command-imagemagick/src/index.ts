@@ -512,7 +512,7 @@ function createDefaultState(): MagickState {
 }
 
 type MorphologyStep = { mode: "min" | "max" | "median"; source: number } | { mode: "diff"; a: number; b: number };
-function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rx: number; ry: number; steps: MorphologyStep[] } {
+function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: number[]; steps: MorphologyStep[] } {
   let rx = 1;
   let ry = 1;
   const colonIdx = kernelSpec.indexOf(":");
@@ -525,6 +525,12 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rx: numb
     rx = Math.max(1, Math.round(Number(sizePart)));
     ry = rx;
   }
+
+  const disk = (colonIdx < 0 ? kernelSpec : kernelSpec.slice(0, colonIdx)).toLowerCase() === "disk";
+  const radius = Number(sizePart) || 4.5;
+  if (disk) ry = Math.max(0, Math.floor(radius));
+  const rows = Array.from({ length: ry * 2 + 1 }, (_, row) =>
+    disk ? Math.floor(Math.sqrt(radius * radius - (row - ry) ** 2)) : rx);
 
   const filter = (source: number, mode: "min" | "max" | "median"): MorphologyStep => ({ source, mode });
   const diff = (a: number, b: number): MorphologyStep => ({ mode: "diff", a, b });
@@ -541,7 +547,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rx: numb
     case "bottomhat": steps = [filter(0, "max"), filter(1, "min"), diff(2, 0)]; break;
     default: steps = [filter(0, "max")];
   }
-  return { rx, ry, steps };
+  return { rows, steps };
 }
 function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array): Generator<void, Uint8Array, void> {
     const result = new Uint8Array(a.length);
@@ -559,7 +565,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
             images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data) });
         } else {
             const source = images[step.source]!;
-            images.push(yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rx, plan.ry, step.mode), signal));
+            images.push(yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rows, step.mode), signal));
         }
     }
     return images.at(-1)!;
@@ -4925,7 +4931,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
             images.push({ ...image, position });
         } else {
             const source = images[step.source]!;
-            images.push(await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, plan.rx, plan.ry, step.mode), signal));
+            images.push(await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, plan.rows, step.mode), signal));
         }
     }
     return images.at(-1)!;

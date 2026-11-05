@@ -2479,6 +2479,9 @@ function magickCompositeMode(mode: string): { name: string; delegated: boolean }
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const { name: norm, delegated } = magickCompositeMode(modeRaw);
+    const modulation = norm === "modulate" ? (composeArgs || "100").toLowerCase().replaceAll(",", "x").split("x") : [];
+    const lumaScale = Number.parseFloat(modulation[0] ?? "100") / 100;
+    const chromaScale = Number.parseFloat(modulation[1] ?? "100") / 100;
     const out = new Uint8Array(dst.data);
     const dw = dst.width;
     const dh = dst.height;
@@ -2554,6 +2557,19 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                     out[dIdx + 2] = clampByteVal((sb * effSa + db * effDa * (1 - effSa)) / outA);
                     out[dIdx + 3] = clampByteVal(outA * 255);
                 }
+                continue;
+            }
+            if (norm === "modulate") {
+                if (saByte === 0) continue;
+                // Native Q16 watermark uses a truncated intensity offset from midpoint.
+                const offset = Math.trunc((0.212656 * sr + 0.715158 * sg + 0.072186 * sb) * 257 - 32768);
+                if (offset === 0) continue;
+                const lumaShift = lumaScale * offset / 32768 * 255;
+                // Scaling HCL chroma at fixed hue scales RGB distance from Rec.601 luma.
+                const luma = 0.298839 * dr + 0.586811 * dg + 0.114350 * db;
+                out[dIdx] = clampByteVal(luma + (dr - luma) * chromaScale + lumaShift);
+                out[dIdx + 1] = clampByteVal(luma + (dg - luma) * chromaScale + lumaShift);
+                out[dIdx + 2] = clampByteVal(luma + (db - luma) * chromaScale + lumaShift);
                 continue;
             }
             if (norm === "blend") {
@@ -6199,7 +6215,10 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         else if (t === "-dissolve") {
             options.push("-define", `compose:args=${argv[++i] ?? "100"}`, "-compose", "Dissolve");
         }
-        else if (t === "-blend" || t === "-watermark") {
+        else if (t === "-watermark") {
+            options.push("-define", `compose:args=${argv[++i] ?? "50"}`, "-compose", "Modulate");
+        }
+        else if (t === "-blend") {
             options.push("-define", `compose:args=${argv[++i] ?? "50"}`, "-compose", "Blend");
         }
         else if (t.startsWith("-")) {

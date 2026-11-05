@@ -227,6 +227,7 @@ export function linuxCommands(text: string) {
   const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
   const pandocVersion = execFileSync(pandoc, ["--version"], { encoding: "utf8" }).split("\n")[0];
   assert.equal(pandocVersion, "pandoc 3.11", "Put Pandoc 3.11 first on PATH for the Linux command benchmark");
+  const nativeDocx = execFileSync(pandoc, ["-f", "gfm", "-t", "docx"], {input: "# Report\n\nBody with **bold** and *italic*.\n"});
   return [
     ...["- a\n- b\n", "#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",
       "| a | b |\n| --- | --- |\n| 1 | 2 |\n", "before\n| one |\n|---|\nafter\n",
@@ -265,6 +266,9 @@ export function linuxCommands(text: string) {
     })),
     ...["markdown", "gfm", "commonmark+task_lists"].map(from => ({
       cmd: pandoc, args: ["-f", from, "-t", "json"], script: `pandoc -f ${from} -t json`, input: "1. [x] text\n",
+    })),
+    ...["plain", "html"].map(to => ({
+      cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeDocx,
     })),
     ...["json", "html"].map(to => ({
       cmd: pandoc, args: ["-f", "json", "-t", to, "--wrap=none"], script: `pandoc -f json -t ${to} --wrap=none`,

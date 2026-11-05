@@ -2475,7 +2475,7 @@ function* executeQpdfCli(
       for (let k = startIdx; k <= endIdx; k++) indices.push(k);
       (yield* subDoc.copyPagesFromSteps(workingDoc, indices));
       const splitName = formatSplitName(finalTarget, total, splitPagesGroup, startIdx + 1, endIdx + 1);
-      let bytes = (yield* subDoc.saveSteps({ normalizeContent: qdf, linearize }));
+      let bytes = (yield* subDoc.saveSteps({ normalizeContent: qdf, linearize, objectStreams: objectStreamsMode }));
       if (encryptConfig && !decrypt) {
         bytes = (yield* encryptCosDocumentSteps((yield* parseCosDocumentSteps(bytes)), encryptConfig));
       }

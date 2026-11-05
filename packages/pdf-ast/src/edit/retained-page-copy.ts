@@ -1,3 +1,4 @@
+import { serializeRetainedObjectStreams } from "../cos/retained-object-streams.js";
 import { serializeLinearizedRetainedChunks } from "../cos/retained-linearization.js";
 import { PdfMergeOutlines } from "./retained-merge-outlines.js";
 import { PdfMergeLabels } from "./retained-merge-labels.js";
@@ -16,6 +17,8 @@ import { PdfRetainedDocument } from "../retained-document.js";
 export interface CopyRetainedPageOptions {
   /** Linearize the copied output for progressive loading. */
   readonly linearize?: boolean;
+  /** Control packing copied objects into object streams. */
+  readonly objectStreams?: "generate" | "disable" | "preserve";
   /** Emit streams decoded by earlier edits without their encoded filters. */
   readonly normalizeContent?: boolean;
   /** Override a source page's rotation before cloning its indirect values.
@@ -375,6 +378,10 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
       },
       chunks() {
         const configured = { ...options, rootRef: cosRef(1), infoRef: cosRef(3), signal };
+        if (options.objectStreams === "generate" && !options.normalizeContent && !mayLinearize) {
+          return serializeRetainedObjectStreams(store, storage, configured, () => store.outputObjects(),
+            () => serializeRetainedCosDocumentChunks({ ...configured, objects: store.outputObjects() }, storage));
+        }
         return mayLinearize ? serializeLinearizedRetainedChunks(store, storage, configured, () => store.outputObjects(), [2, formRef?.objectNumber, attachmentNames?.objectNumber, pageLabels?.objectNumber].filter((number): number is number => number !== undefined))
           : serializeRetainedCosDocumentChunks({ ...configured, objects: store.outputObjects() }, storage);
       },

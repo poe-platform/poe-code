@@ -1,4 +1,4 @@
-import { rm, writeFile } from "node:fs/promises";
+import { link, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -41,6 +41,48 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("split refuses to overwrite its input before writing the colliding piece", async () => {
+      const dir = cwd!;
+      for (const alias of ["same", "hard", "symlink", "late-hard"]) {
+        const source = alias === "same" ? "effects/xaa" : "effects/source";
+        const output = alias === "late-hard" ? "effects/xab" : "effects/xaa";
+        await resetEffects(dir);
+        if (alias === "same") await writeFile(dir + "/" + source, Buffer.from("abcdefghij"));
+        else if (alias === "symlink") await symlink("source", dir + "/" + output);
+        else await link(dir + "/" + source, dir + "/" + output);
+        const original = await readFile(dir + "/" + source);
+        const args = ["-b", "4", source, "effects/x"];
+        const reference = await runLinuxCommand("split", args, "", dir);
+        assert.equal(reference[0], 1);
+        assert.match(reference[2].toString(), /would overwrite input/);
+        assert.deepEqual(await readFile(dir + "/" + source), original);
+        const expected = await readEffects(dir, "split");
+        for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+          await resetEffects(dir, view);
+          if (alias === "same") await view.writeFile("/workspace/" + source, original);
+          else if (alias === "symlink") await view.symlink!("source", "/workspace/" + output);
+          else await view.link!("/workspace/" + source, "/workspace/" + output);
+          const result = await shell.exec("split " + args.join(" "));
+          assert.equal(result.exitCode, reference[0], shell.constructor.name + ": " + alias);
+          assert.deepEqual(Buffer.from(result.stdoutBytes), reference[1]);
+          assert.match(result.stderr, /would overwrite input/);
+          assert.deepEqual(await readEffects(dir, "split", view), expected);
+        }
+      }
+    });
+    await t.test("split keeps its first piece when a later output aliases it", async () => {
+      for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+        await resetEffects(cwd!, view);
+        await view.writeFile("/workspace/effects/xaa", Buffer.from("old"));
+        await view.link!("/workspace/effects/xaa", "/workspace/effects/xab");
+        const source = await view.readFile("/workspace/effects/source");
+        const result = await shell.exec("split -b 4 effects/source effects/x");
+        assert.equal(result.exitCode, 1, result.stderr);
+        assert.match(result.stderr, /aliases an earlier output/);
+        for (const name of ["xaa", "xab"]) assert.deepEqual(Buffer.from(await view.readFile("/workspace/effects/" + name)), Buffer.from(source.subarray(0, 4)));
+        assert.deepEqual(await view.readFile("/workspace/effects/source"), source);
+      }
+    });
     await t.test("diff3 compares and emits the original bytes of each variant", async () => {
       const files = ["ours", "base", "theirs"];
       // The valid UTF-8 encodes U+E080, which must also stay distinct from the raw 0x80 byte.

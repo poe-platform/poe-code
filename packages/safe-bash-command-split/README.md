@@ -9,6 +9,7 @@ large counts do not allocate buffers beyond the input actually read. Long option
 `--by=2` and `--verb`; ambiguous prefixes such as `--ver` are rejected.
 Separators must be one byte (or `\0` for NUL). As in GNU split on signed-char
 targets, bytes `0x80`–`0xff` are accepted and use newline boundaries.
+If an output names the input or aliases an earlier piece, `split` stops before overwriting it. Completed pieces stay in place.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

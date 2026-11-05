@@ -6427,6 +6427,32 @@ test("a supplied filesystem keeps redirected descriptors on the opened file afte
   }finally{await bash.dispose();}
 });
 
+test("split checks the opened output before truncation if its name is redirected to the input", {skip:!WebAssembly.Suspending}, async () => {
+  const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), shell = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    const input = Uint8Array.of(1, 2, 3, 4);
+    await fs.writeFile("/source", input);
+    await fs.writeFile("/xaa", Uint8Array.of(5));
+    const open = fs.open.bind(fs);
+    let raced = false;
+    fs.open = async (path, options) => {
+      if (path === "/xaa" && options.access === "write" && !raced) {
+        raced = true;
+        await fs.unlink(path);
+        await fs.link("/source", path);
+      }
+      return open(path, options);
+    };
+    const result = await shell.exec("split -b 2 source x", {fs});
+    assert.equal(raced, true);
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.match(result.stderr, /would overwrite input/);
+    assert.deepEqual(await fs.readFile("/source"), input);
+    assert.deepEqual((await fs.readdir("/")).map(e => e.name).sort(), ["source", "xaa"]);
+  } finally { await shell.dispose(); }
+});
+
 test("command output on a supplied filesystem preserves creation and existing modes",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const run=async(sh)=>{

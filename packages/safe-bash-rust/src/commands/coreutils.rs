@@ -11,7 +11,7 @@ use super::{CommandFailure, CommandInput};
 use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{
-    SafeBashFs, dirname_posix_path, normalize_posix_path, resolve_posix_path, stream_string_to_bytes,
+    SafeBashFs, dirname_posix_path, resolve_posix_path, stream_string_to_bytes,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -17073,24 +17073,39 @@ fn cmd_split(
         Ok(p) => p,
         Err(msg) => return err_out(&msg, 1),
     };
-    let text = if parsed.input == "-" {
-        stdin.to_string()
-    } else {
-        let path = resolve_posix_path(cwd, &parsed.input);
-        if fs.is_dir(&path) {
-            return err_out(
-                &format!("split: illegal operation on a directory '{path}'\n"),
-                1,
-            );
+    let input_path = (parsed.input != "-").then(|| resolve_posix_path(cwd, &parsed.input));
+    let mut input_id = None;
+    let raw_bytes = if let Some(path) = &input_path {
+        if fs.is_dir(path) {
+            return err_out(&format!("split: illegal operation on a directory '{path}'\n"), 1);
         }
-        match fs.read_file(&path) {
-            Ok(bytes) => crate::vfs::bytes_to_stream_string(&bytes),
-            Err(_) => {
-                return err_out(&format!("split: no such file or directory, stat '{path}'\n"), 1);
+        let read = || -> Result<_, String> {
+            if fs.supports_command_descriptor(path)
+                && let Some(handle) = fs.open_redirect_file(path, crate::vfs::RedirectAccess::Read, None)?
+            {
+                let st = handle.stat()?;
+                if st.mode & 0o170000 != 0o100000 { return Err("input is not a regular file".into()); }
+                let mut bytes = Vec::new();
+                while bytes.len() < st.size {
+                    let chunk = handle.read_at(bytes.len(), (st.size - bytes.len()).min(65536))?;
+                    if chunk.is_empty() { break; }
+                    bytes.extend_from_slice(&chunk);
+                }
+                Ok((st.identity, bytes))
+            } else {
+                let st = fs.stat(path)?;
+                if st.mode & 0o170000 != 0o100000 { return Err("input is not a regular file".into()); }
+                Ok((st.identity, fs.read_file(path)?))
             }
+        };
+        match read() {
+            Ok((id, bytes)) => { input_id = id; bytes }
+            Err(e) if !e.starts_with("ENOENT:") => return err_out(&format!("split: {e}\n"), 1),
+            Err(_) => return err_out(&format!("split: no such file or directory, stat '{path}'\n"), 1),
         }
+    } else {
+        stream_string_to_bytes(stdin)
     };
-    let raw_bytes = stream_string_to_bytes(&text);
 
     if parsed.selected_chunk > 0 {
         let target_idx = parsed.selected_chunk - 1;
@@ -17223,6 +17238,9 @@ fn cmd_split(
     let mut names = SplitNames::new(&parsed);
     let mut files_written = 0usize;
     let mut stdout = String::new();
+    let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+    let mut output_ids = BTreeSet::new();
+    let mut protected: Vec<_> = input_path.iter().cloned().collect();
     for chunk in chunks {
         if chunk.is_empty() && parsed.elide_empty {
             continue;
@@ -17238,17 +17256,58 @@ fn cmd_split(
             Err(msg) => return err_out(&msg, 1),
         };
         let out_path = resolve_posix_path(cwd, &file_name);
-        if fs.is_dir(&out_path) {
-            return err_out(&format!("split: {file_name}: Is a directory\n"), 1);
-        }
-        if let Err(e) = fs.write_file(&out_path, &chunk) {
-            return err_out(&format!("split: {file_name}: {e}\n"), 1);
+        let write = || -> Result<_, String> {
+            let entry = fs.access_path(&out_path, true)?;
+            let version = fs.generation();
+            match fs.lstat(&entry) {
+                Err(e) if e.starts_with("ENOENT:") => {
+                    fs.create_file(&entry, &chunk, mode)?;
+                    return Ok(fs.lstat(&entry)?.identity);
+                }
+                Err(e) => return Err(e),
+                Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => return Err("Is a directory".into()),
+                Ok(_) => {}
+            }
+            let check = |id: &Option<crate::vfs::EntryIdentity>| -> Result<(), String> {
+                if input_path.as_ref() == Some(&entry) || (id.is_some() && id == &input_id) {
+                    return Err("would overwrite input; aborting".into());
+                }
+                if output_ids.contains(id) && id.is_some() {
+                    return Err("output aliases an earlier output; aborting".into());
+                }
+                if (id.is_none() && !protected.is_empty()) || (input_path.is_some() && input_id.is_none()) || output_ids.contains(&None) {
+                    return Err("cannot establish distinct output identity".into());
+                }
+                Ok(())
+            };
+            // Inspect the same open file that is later truncated, even if the path is replaced.
+            if fs.supports_command_descriptor(&entry) {
+                let handle = fs.open_redirect_file(&entry, crate::vfs::RedirectAccess::Write, None)?
+                    .ok_or("output is not a regular file")?;
+                let st = handle.stat()?;
+                if st.mode & 0o170000 != 0o100000 { return Err("output is not a regular file".into()); }
+                let id = st.identity;
+                check(&id)?;
+                handle.truncate_to(0)?;
+                handle.write_at(Some(0), &chunk)?;
+                Ok(id)
+            } else {
+                let stamp = fs.observe_publication(&entry, version, crate::vfs::PublicationMode::Write)?;
+                check(&fs.lstat(&entry)?.identity)?;
+                fs.publish_file(&entry, &chunk, &protected, stamp.version)?;
+                Ok(fs.lstat(&entry)?.identity)
+            }
+        };
+        match write() {
+            Ok(id) => { output_ids.insert(id); protected.push(out_path); }
+            Err(e) => return BuiltinOutcome { stdout, stderr: if e == "would overwrite input; aborting" {
+                format!("split: '{file_name}' {e}\n")
+            } else { format!("split: {file_name}: {e}\n") }, exit_code: 1 },
         }
         if parsed.verbose {
             stdout.push_str(&format!("creating file '{file_name}'\n"));
         }
     }
-    let _ = (BTreeSet::<u8>::new(), normalize_posix_path);
     ok_out(&stdout)
 }
 

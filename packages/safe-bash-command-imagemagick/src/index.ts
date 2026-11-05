@@ -6305,7 +6305,22 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             lowlightColor = parseColor(argv[++i] ?? "#ffffff");
         }
         else if (t === "-compose") {
-            const cm = (argv[++i] ?? "over").toLowerCase();
+            const rawCompose = argv[++i] ?? "";
+            const cm = rawCompose.trim().toLowerCase().split("-").join("").split("_").join("");
+            // ImageMagick compose names, including legacy aliases and our Source alias.
+            if (![
+                "atop", "blend", "blur", "bumpmap", "changemask", "clear", "colorburn", "colordodge", "colorize",
+                "copyalpha", "copyblack", "copyblue", "copy", "copycyan", "copygreen", "copymagenta", "copyred", "copyyellow",
+                "darken", "darkenintensity", "difference", "displace", "dissolve", "distort", "dividedst", "dividesrc",
+                "dstatop", "dst", "dstin", "dstout", "dstover", "exclusion", "freeze", "hardlight", "hardmix", "hue", "in",
+                "intensity", "interpolate", "lightenintensity", "lighten", "linearburn", "lineardodge", "linearlight", "luminize",
+                "mathematics", "minusdst", "minussrc", "modulate", "modulusadd", "modulussubtract", "multiply", "negate", "none",
+                "out", "overlay", "over", "pegtoplight", "pinlight", "plus", "reflect", "replace", "rmse", "saturate", "screen",
+                "saliencyblend", "seamlessblend", "softburn", "softdodge", "softlight", "srcatop", "srcin", "srcout", "srcover",
+                "src", "stamp", "stereo", "vividlight", "xor", "copyopacity", "add", "subtract", "minus", "divide", "undefined", "source"
+            ].includes(cm)) {
+                return { exitCode: 2, stdout: "", stderr: `compare: unrecognized compose operator '${rawCompose}'\n` };
+            }
             if (cm === "src" || cm === "source" || cm === "copy")
                 composeSrc = true;
         }

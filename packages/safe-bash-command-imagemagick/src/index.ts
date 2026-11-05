@@ -3523,7 +3523,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
     const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, state.background));
-    let hasAlpha = canvas.hasAlpha;
+    let hasAlpha = state.background.a < 255;
     let cursor = 0;
     for (const im of stack) {
         if (++work % 16384 === 0)
@@ -3694,13 +3694,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                     tiled.data.set(pattern.data.subarray(source, source + 4), (y * tiled.width + x) * 4);
                 }
             }
-            return tiled;
+            return { ...tiled, hasAlpha: pattern.hasAlpha };
         })));
     }
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
         const colorStr = baseToken.slice(baseToken.indexOf(":") + 1) || "white";
         const c = parseColor(colorStr);
-        return yield* applyMod([(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c))]);
+        return yield* applyMod([{ ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c)), hasAlpha: c.a < 255 }]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
         const radial = lower.startsWith("radial-gradient:");
@@ -4428,7 +4428,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-negate" || token === "+negate") {
         const onlyGray = token === "+negate";
-        const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
+        const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
@@ -4446,7 +4446,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx + 1] = 255 - g;
                 if (ch.b)
                     out[idx + 2] = 255 - b;
-                if (ch.a)
+                if (ch.a && im.hasAlpha)
                     out[idx + 3] = 255 - out[idx + 3]!;
             }
             return { ...im, data: out };
@@ -5788,6 +5788,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let width = 0, height = 0;
                 for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
                 result = await createStoredCanvas(width, height, settings.background, backend, signal);
+                if (append) result = { ...result, hasAlpha: settings.background.a < 255 };
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
                     const frame = (await stack.get(n))!, offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, settings.gravity);
@@ -6411,7 +6412,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   image=await tile(pattern);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
-  image=await createStoredCanvas(width,height,color,backend,signal);
+  image={...await createStoredCanvas(width,height,color,backend,signal),hasAlpha:color.a<255};
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")||lower.startsWith("plasma:")){
   const width=Math.max(1,Math.round(state.sizeWidth)),height=Math.max(1,Math.round(state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");

@@ -70,6 +70,15 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       }
     });
+    await t.test("qrencode reads clustered short options and diagnoses the first unknown byte", async () => {
+      for (const script of ["qrencode -8itASCII Hi", "qrencode -iV --bad", "qrencode --version", "qrencode -Mit UTF8 123", "qrencode -abc", "qrencode -é", "qrencode -8é", "qrencode $'-8\\xff'"]) {
+        const expected = await runLinuxCommand("bash", ["--noprofile", "--norc", "-c", script], "", cwd);
+        for (const shell of [rust, ts.shell]) {
+          const result = await shell.exec(script);
+          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], expected, script);
+        }
+      }
+    });
     await t.test("qrencode selects the first operand and encodes binary or NUL-terminated input", async () => {
       const dash = Buffer.from([65, 0, 255, 66]);
       await writeFile(cwd + "/-", dash);

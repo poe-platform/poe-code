@@ -92,8 +92,9 @@ function parse(args: readonly string[]) {
     strict = false;
   let foreground = [0, 0, 0, 255],
     background = [255, 255, 255, 255],
-    assistance = false,
     end = false;
+  let assistance: string | undefined;
+  let shortOffset = 1;
   const aliases: Record<string, string> = {
     output: "o",
     "read-from": "r",
@@ -109,7 +110,8 @@ function parse(args: readonly string[]) {
     ignorecase: "i",
     "8bit": "8",
     micro: "M",
-    help: "h"
+    help: "h",
+    version: "V"
   };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
@@ -122,29 +124,35 @@ function parse(args: readonly string[]) {
       continue;
     }
     const long = arg.startsWith("--"),
-      eq = arg.indexOf("=");
-    const name = long ? arg.slice(2, eq < 0 ? undefined : eq) : arg.slice(1, 2);
+      eq = long ? arg.indexOf("=") : -1;
+    const name = long ? arg.slice(2, eq < 0 ? undefined : eq) : arg[shortOffset]!;
     const key = aliases[name] ?? name;
     let attached = long
       ? eq < 0
         ? undefined
         : arg.slice(eq + 1)
-      : arg.length > 2
-        ? arg.slice(2)
+      : arg.length > shortOffset + 1
+        ? arg.slice(shortOffset + 1)
         : undefined;
     if (!["o", "r", "t", "s", "m", "d", "l", "v", "foreground", "background"].includes(key)) {
-      if (attached !== undefined) throw new Error(`Unexpected option value: ${arg}`);
-      if (key === "h") assistance = true;
-      else if (key === "8") byte = true;
+      if (long && attached !== undefined) throw new Error(`Unexpected option value: ${arg}`);
+      if (key === "h" || key === "V") {
+        assistance = key === "h" ? help : "qrencode version 4.1.1\nCopyright (C) 2006-2017 Kentaro Fukuchi\n";
+        break;
+      } else if (key === "8") byte = true;
       else if (key === "k") kanji = true;
       else if (key === "i") ignorecase = true;
       else if (key === "c") ignorecase = false;
       else if (key === "S") structured = true;
       else if (key === "M") micro = true;
       else if (key === "strict-version") strict = true;
+      else if (!long) return { invalidShortOption: { index: i, offset: shortOffset } };
       else throw new Error(`Unknown option: ${arg}`);
+      if (!long && ++shortOffset < arg.length) i--;
+      else shortOffset = 1;
       continue;
     }
+    shortOffset = 1;
     attached ??= args[++i];
     if (attached === undefined) throw new Error(`Missing value for ${arg}`);
     if (key === "o") output = attached;
@@ -267,12 +275,18 @@ export function createQrencodeCommand(options: QrencodeCommandsOptions = {}): Co
       try {
         const carrier = getCommandArguments(context),
           parsed = parse(carrier.args);
+        if (parsed.invalidShortOption) {
+          const { index, offset } = parsed.invalidShortOption;
+          await writeBytes(context.stderr, new TextEncoder().encode("qrencode: invalid option -- '"), context.signal);
+          await writeBytes(context.stderr, carrier.bytes(index)!.subarray(offset, offset + 1), context.signal);
+          return fail("'\nTry \"qrencode --help\" for more information.");
+        }
         if (!carrier.args.length) {
           await writeBytes(context.stderr, new TextEncoder().encode(help), context.signal);
           return { exitCode: 1 };
         }
         if (parsed.assistance) {
-          await writeBytes(context.stdout, new TextEncoder().encode(help), context.signal);
+          await writeBytes(context.stdout, new TextEncoder().encode(parsed.assistance), context.signal);
           return { exitCode: 0 };
         }
         const type = parsed.render.type;

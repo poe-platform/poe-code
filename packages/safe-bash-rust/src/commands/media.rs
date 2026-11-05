@@ -13248,7 +13248,7 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     let mut strict = false;
     let mut fg = [0u8, 0, 0, 255];
     let mut bg = [255u8, 255, 255, 255];
-    let mut help = false;
+    let mut short_offset = 1usize;
     let mut end = false;
     let mut i = 0usize;
     while i < args.len() {
@@ -13264,14 +13264,14 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             continue;
         }
         let is_long = arg.starts_with("--");
-        let eq = arg.find('=');
+        let eq = if is_long { arg.find('=') } else { None };
         let raw_name = if is_long {
             match eq {
                 Some(pos) => &arg[2..pos],
                 None => &arg[2..],
             }
         } else {
-            &arg[1..2]
+            arg.get(short_offset..short_offset + 1).unwrap_or("")
         };
         let key = match raw_name {
             "output" => "o",
@@ -13289,21 +13289,18 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             "8bit" => "8",
             "micro" => "M",
             "help" => "h",
+            "version" => "V",
             other => other,
         };
-        let mut attached: Option<String> = if is_long {
-            eq.map(|pos| arg[pos + 1..].to_string())
-        } else if arg.len() > 2 {
-            Some(arg[2..].to_string())
-        } else {
-            None
-        };
+        let attached = if is_long { eq.map(|pos| &arg[pos + 1..]) }
+            else { arg.get(short_offset + 1..).filter(|v| !v.is_empty()) };
         if !matches!(key, "o" | "r" | "t" | "s" | "m" | "d" | "l" | "v" | "foreground" | "background") {
-            if attached.is_some() {
+            if is_long && attached.is_some() {
                 return err_out(&format!("qrencode: Unexpected option value: {arg}\n"), 1);
             }
             match key {
-                "h" => help = true,
+                "h" => return ok_out(QR_HELP),
+                "V" => return ok_out("qrencode version 4.1.1\nCopyright (C) 2006-2017 Kentaro Fukuchi\n"),
                 "8" => byte_mode = true,
                 "k" => kanji = true,
                 "i" => ignorecase = true,
@@ -13311,19 +13308,26 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
                 "S" => structured = true,
                 "M" => micro = true,
                 "strict-version" => strict = true,
+                _ if !is_long => {
+                    let bytes = crate::vfs::stream_string_to_bytes(arg);
+                    let ch = crate::vfs::bytes_to_stream_string(&bytes[short_offset..short_offset + 1]);
+                    return err_out(&format!("qrencode: invalid option -- '{ch}'\nTry \"qrencode --help\" for more information.\n"), 1);
+                }
                 _ => return err_out(&format!("qrencode: Unknown option: {arg}\n"), 1),
             }
-            i += 1;
+            if !is_long && short_offset + 1 < arg.len() { short_offset += 1; }
+            else { short_offset = 1; i += 1; }
             continue;
         }
-        if attached.is_none() {
-            i += 1;
-            let Some(nx) = args.get(i) else {
-                return err_out(&format!("qrencode: Missing value for {arg}\n"), 1);
-            };
-            attached = Some(nx.clone());
-        }
-        let val = attached.unwrap();
+        short_offset = 1;
+        let val = match attached {
+            Some(v) => v.to_owned(),
+            None => {
+                i += 1;
+                let Some(v) = args.get(i) else { return err_out(&format!("qrencode: Missing value for {arg}\n"), 1); };
+                v.clone()
+            }
+        };
         match key {
             "o" => output_opt = Some(val),
             "r" => input_opt = Some(val),
@@ -13372,9 +13376,6 @@ fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             _ => {}
         }
         i += 1;
-    }
-    if help {
-        return ok_out(QR_HELP);
     }
     if output_opt.is_none() && matches!(rtype.as_str(), "PNG" | "PNG32") {
         return err_out("No output filename is given.\n", 1);

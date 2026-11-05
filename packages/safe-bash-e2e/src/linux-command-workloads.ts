@@ -105,7 +105,7 @@ export function linuxCommands(text: string) {
     { cmd: "whoami", args: [], script: "EUID=" + userInfo().uid + " USER=unused whoami", input: "" },
     { cmd: "qrencode", args: ["-t", "ansiutf8i", "-m", "1", "Hello"], script: "qrencode -t ansiutf8i -m 1 Hello", input: "" },
     { cmd: "qrencode", args: ["-M", "-t", "ANSI256UTF8", "-m", "3", "1234"], script: "qrencode -M -t ANSI256UTF8 -m 3 1234", input: "" },
-    { cmd: "qrencode", args: ["-8", "-t", "ASCII"], script: "qrencode -8 -t ASCII", input: Buffer.from([65, 0, 255, 66]) },
+    { cmd: "qrencode", args: ["-8tASCII"], script: "qrencode -8tASCII", input: Buffer.from([65, 0, 255, 66]) },
     { cmd: "qrencode", args: ["-M", "-t", "UTF8", "12345"], script: "qrencode -M -t UTF8 12345", input: "" },
     ...pipes.map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" })),
     // Keep the host keybox in the private benchmark directory.

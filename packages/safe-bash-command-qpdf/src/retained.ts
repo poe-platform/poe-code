@@ -65,7 +65,7 @@ export interface RetainedQpdfOptions extends QpdfJsonOptions {
   showEncryption: boolean;
   isEncrypted: boolean;
   requiresPassword: boolean;
-  showObject: { objNum: number; genNum: number } | undefined;
+  showObject: "trailer" | { objNum: number; genNum: number } | undefined;
   rawStreamData: boolean;
   filteredStreamData: boolean;
 }
@@ -200,19 +200,20 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       await reconstruct();
     }
     if (options.showLinearization || options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages || options.showXref || options.listAttachments || options.showAttachmentKey !== undefined) {
+      const objectNumber = options.showObject === "trailer" ? undefined : options.showObject?.objNum;
       let count = 0, linearized = false, highest = 0, inlineCount = 0;
-      let inlinePage: PdfCosNode | undefined, selectedValue: PdfCosNode | undefined, selectedLength: number | undefined;
+      let inlinePage: PdfCosNode | undefined, selectedValue: PdfCosNode | undefined = options.showObject === "trailer" ? document.crossReference.trailer : undefined, selectedLength: number | undefined;
       try {
         for await (const object of retainedCosObjects(document, storage, { signal })) {
           highest = Math.max(highest, object.objectNumber);
-          if (object.objectNumber === options.showObject?.objNum) { selectedValue = object.value; selectedLength = object.stream?.length; }
+          if (object.objectNumber === objectNumber) { selectedValue = object.value; selectedLength = object.stream?.length; }
           if (!object.stream && object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined) linearized = true;
           // Loading a buffered document authenticates every encrypted stream.
           if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
         }
         for await (const page of document.pages()) {
           count++;
-          if (!page.reference && highest + ++inlineCount === options.showObject?.objNum) inlinePage = page.dict;
+          if (!page.reference && highest + ++inlineCount === objectNumber) inlinePage = page.dict;
         }
       } catch (error) {
         signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
@@ -226,7 +227,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         if (options.showLinearization) return { exitCode: linearizationWarnings.length && !options.warningExit0 ? 3 : 0 };
       }
       if (!options.check && (options.showPages || ((options.showObject || options.showXref) && !options.showNpages && !options.showEncryption))) {
-        const number = options.showObject?.objNum ?? NaN, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
+        const number = objectNumber ?? NaN, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
         let chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
         if (options.showPages) {
           const parts = pageDisplayParts(document, storage, highest, options.withImages, signal);

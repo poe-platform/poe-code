@@ -571,7 +571,7 @@ function parseQpdfArguments(argv: readonly string[]) {
   let isEncrypted = false;
   let requiresPassword = false;
   let showXref = false;
-  let showObject: { objNum: number; genNum: number } | undefined;
+  let showObject: "trailer" | { objNum: number; genNum: number } | undefined;
   let filteredStreamData = false;
   let rawStreamData = false;
   let listAttachments = false;
@@ -722,7 +722,7 @@ function parseQpdfArguments(argv: readonly string[]) {
     } else if (arg.startsWith("--show-object=")) {
       const val = arg.slice("--show-object=".length);
       const [oStr, gStr] = val.split(",");
-      showObject = {
+      showObject = val === "trailer" ? "trailer" : {
         objNum: Number.parseInt(oStr ?? "1", 10),
         genNum: Number.parseInt(gStr ?? "0", 10)
       };
@@ -1389,7 +1389,7 @@ function* executeQpdfCli(
   }
 
   if (showObject) {
-    const node = baseDoc.cos.getObject(showObject.objNum);
+    const node = showObject === "trailer" ? baseDoc.cos.revisions[0]?.trailer : baseDoc.cos.getObject(showObject.objNum);
     if (node?.kind === "stream" && (filteredStreamData || rawStreamData)) {
       const bytes = filteredStreamData ? baseDoc.cos.decodeStream(node) : node.rawBytes;
       return { exitCode: 0, stdout: bytesToLatin1(bytes), stdoutBytes: bytes, stderr: "" };

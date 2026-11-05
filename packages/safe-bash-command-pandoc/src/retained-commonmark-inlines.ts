@@ -1,3 +1,4 @@
+import {markdownNativeSpan} from "./commonmark-inlines.js";
 import {scanMarkdownRawTex} from "./commonmark-inlines.js";
 import {scanMarkdownCitation} from "./commonmark-inlines.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
@@ -39,6 +40,7 @@ export async function parseRetainedCommonMarkInlines(
   const literal = async (range: SourceRange) => ast.string(await ast.text.from(syntax.source.chunks(range)));
   // Nodes: value, literal flag, first child, previous, next.
   const root = await add([0, 0, 0, 0, 0]); let tail = root, delimiter = 0, bracket = 0, bracketCount = 0, delimiterCount = 0, serial = 0;
+  let spanStack = 0, spanDepth = 0;
   const append = async (value: RtfValue, text = false, children = 0) => {
     context.charge("nodes", 1); context.charge("retainedBytes", 128 + (text ? (await ast.range(value)).units * 2 : 0));
     const node = await add([value.position, Number(text), children, tail, 0]); await put(tail + 32, [node]); tail = node; return node;
@@ -316,6 +318,28 @@ export async function parseRetainedCommonMarkInlines(
       if (unit === "<") {
         const end = await syntax.html(i);
         if (end !== undefined) {
+          const prefix = extensions.native_spans ? (await syntax.small({start: i, end: Math.min(end, i + 7)}, 7)).toLowerCase() : "";
+          if (prefix.startsWith("<span") || prefix.startsWith("</span")) {
+            context.bound("text", end - i); context.charge("retainedBytes", (end - i) * 2);
+            let tag = "";
+            for await (const chunk of syntax.source.chunks({start: i, end})) tag += chunk;
+            const span = markdownNativeSpan(tag, context);
+            if (span === "close" && spanStack && (await get(spanStack, 5))[4] === bracket) {
+              const opener = await get(spanStack, 5); spanStack = opener[0]!; spanDepth--;
+              await emphasis(opener[3]!);
+              const first = (await get(opener[1]!, 5))[4]!;
+              if (first) await put(first + 24, [0]);
+              await put(opener[1]! + 32, [0]); tail = opener[1]!;
+              await append(await ast.tag("Span", await ast.value([{position: opener[2]!}, await ast.array()])), false, first);
+              await removeNode(opener[1]!); i = end; continue;
+            }
+            if (span && span !== "close") {
+              context.bound("depth", ++spanDepth);
+              const node = await append(await ast.tag("RawInline", await ast.value(["html", tag])));
+              spanStack = await add([spanStack, node, (await ast.value(span)).position, delimiter, bracket]);
+              i = end; continue;
+            }
+          }
           if (extensions.raw_html === false || Object.hasOwn(extensions, "raw_html") && await syntax.filteredHtml({start: i, end})) await appendRange(i, end);
           else await append(await ast.tag("RawInline", await ast.value(["html", await literal({start: i, end})])));
           i = end; continue;

@@ -72,6 +72,8 @@ The `markdown` and `md` readers support definition lists with `:` or `~`
 markers, repeated definitions, and indented blocks; disable with `-definition_lists`.
 The `markdown` and `md` readers parse bracketed spans (`[text]{#id .class}`),
 including nested inline content and key/value attributes; disable with `-bracketed_spans`.
+Inline HTML `<span>` tags also preserve attributes and Markdown children as native spans;
+disable with `-native_spans`.
 The `markdown` and `md` readers preserve fenced divs (`::: {.note}`), including
 nested blocks, IDs, classes and key/value attributes; disable with `-fenced_divs`.
 HTML div blocks retain their IDs, classes, attributes and child structure in the

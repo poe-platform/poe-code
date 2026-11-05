@@ -1,3 +1,5 @@
+import {markdownNativeSpan} from "./markdown-native-span.js";
+export {markdownNativeSpan} from "./markdown-native-span.js";
 import {scanMarkdownRawTex} from "./markdown-raw-tex.js";
 export {scanMarkdownRawTex} from "./markdown-raw-tex.js";
 import { bareAutolink, filterGfmHtml } from "./gfm-syntax.js";
@@ -180,6 +182,7 @@ export async function parseCommonMarkInlines(
   }
   const root: Node = { value: "", children: null, previous: null, next: null };
   let tail = root;
+  const spans: {node: Node; attributes: Attr; delimiter: Delimiter | null; bracket: Bracket | null}[] = [];
   let delimiter: Delimiter | null = null;
   let bracket: Bracket | null = null;
   let bracketCount = 0;
@@ -504,6 +507,23 @@ export async function parseCommonMarkInlines(
       const end = html(text, i, context);
       if (end !== undefined) {
         const literal = text.slice(i, end);
+        if (extensions.native_spans) {
+          const span = markdownNativeSpan(literal, context);
+          if (span === "close" && spans.length && spans[spans.length - 1]!.bracket === bracket) {
+            const opener = spans.pop()!;
+            await emphasis(opener.delimiter);
+            const first = opener.node.next;
+            if (first) first.previous = null;
+            opener.node.next = null; tail = opener.node;
+            append({t: "Span", c: [opener.attributes, []]}, first);
+            removeNode(opener.node); i = end; continue;
+          }
+          if (span && span !== "close") {
+            context.bound("depth", spans.length + 1);
+            spans.push({node: append({t: "RawInline", c: ["html", literal]}), attributes: span, delimiter, bracket});
+            i = end; continue;
+          }
+        }
         if (extensions.raw_html === false || Object.hasOwn(extensions, "raw_html") && filterGfmHtml(literal, context) !== literal) append(literal);
         else append({ t: "RawInline", c: ["html", literal] });
         i = end; continue;

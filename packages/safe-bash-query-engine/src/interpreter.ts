@@ -942,6 +942,25 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "tostream") {
+      async function* visit(value: Json, path: (string | number)[]): AsyncGenerator<Json> {
+        const pending = budget.tickSync(); if (pending) await pending;
+        budget.collection(path.length);
+        if (path.length > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+        let lastPath: (string | number)[] | undefined;
+        if (Array.isArray(value) || isObject(value)) {
+          for await (const [key, child] of entries(value, budget)) {
+            lastPath = [...path, key];
+            yield* visit(child, lastPath);
+          }
+        }
+        const event: Json = lastPath ? [lastPath] : [path, value];
+        budget.value(event);
+        yield event;
+      }
+      yield* visit(input, []);
+      return;
+    }
     if (name === "fromstream") {
       let result: Json = null;
       for await (const event of this.run(args[0]!, input)) {

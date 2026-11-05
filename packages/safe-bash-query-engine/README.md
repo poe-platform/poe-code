@@ -18,6 +18,7 @@ English timezone data. `todate` and `fromdate` alias the ISO-8601 conversions.
 `env` and `$ENV` read only the environment supplied by the command context;
 standalone query sessions default to an empty environment.
 
+`tostream` emits path/value leaves and container end markers from JSON values.
 `fromstream(events)` reconstructs JSON values from jq stream events, including
 nested containers; use `jq -cn --stream 'fromstream(inputs)'` to rebuild input documents.
 

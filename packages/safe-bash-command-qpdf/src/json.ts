@@ -29,6 +29,8 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
     })();
   }
+  const include = (key: string) => !options.jsonKeys.length || options.jsonKeys.includes(key);
+  const includeObjects = include(options.jsonVersion === 1 ? "objects" : "qpdf");
   const selected = (number: number, generation: number) => !options.jsonObjectSelectors.length || options.jsonObjectSelectors.some(item => item.kind === "obj" && item.objNum === number && item.genNum === generation);
   async function* objects() {
     for await (const number of qpdfObjectOrder(sourceDocument, source, storage, signal)) {
@@ -52,6 +54,17 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       yield [`obj:${object.objectNumber} ${object.generationNumber} R`, value];
     }
     if (!options.jsonObjectSelectors.length || options.jsonObjectSelectors.some(item => item.kind === "trailer")) yield ["trailer", jsonRecord({ value: cosJson(cosDict({ Root: document.crossReference.rootRef, ...(document.crossReference.infoRef ? { Info: document.crossReference.infoRef } : {}), Size: cosNumber(maximum + 1) }), storage, signal) })];
+  }
+  async function* objectInfoEntries(): AsyncGenerator<readonly [string, JsonValue]> {
+    for await (const object of objects()) {
+      if (!selected(object.objectNumber, object.generationNumber)) continue;
+      const dict = object.stream && object.value.kind === "dict" ? object.value : undefined;
+      const filter = dict && dictGet(dict, "Filter"), length = dict && dictGet(dict, "Length");
+      yield [`${object.objectNumber} ${object.generationNumber} R`, jsonRecord({ stream: jsonRecord({
+        filter: filter ? cosJson(filter, storage, signal) : null, is: Boolean(dict),
+        length: length ? cosJson(length, storage, signal) : null
+      }) })];
+    }
   }
   async function pageObject(index: number) {
     if (!count) return "obj:0 0 R";
@@ -101,14 +114,14 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     async function* fileEntries() {
       for (const name of inputNames) {
         if (name === options.outputFile && name !== "-") { yield { name, chunks: [] }; continue; }
-        if (options.jsonStreamDataMode !== "file" || !name.startsWith(prefix)) continue;
+        if (!includeObjects || options.jsonStreamDataMode !== "file" || !name.startsWith(prefix)) continue;
         const number = Number(name.slice(prefix.length));
         if (!Number.isSafeInteger(number) || number < 1 || String(number) !== name.slice(prefix.length)) continue;
         const entry = await document.crossReference.index.get(number, signal);
         if (!entry || !selected(number, entry.generationNumber ?? 0)) continue;
         if ((await document.objects.get(number, entry.generationNumber ?? 0))?.stream) yield { name, chunks: [] };
       }
-      if (options.jsonStreamDataMode !== "file") return;
+      if (!includeObjects || options.jsonStreamDataMode !== "file") return;
       for await (const object of objects()) if (object.stream && selected(object.objectNumber, object.generationNumber)) {
         async function* admitted() {
           let size = 0;
@@ -122,19 +135,19 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     files = await PdfStagedOutputs.create(storage, fileEntries(), { signal, maxNameChars: Infinity });
     // Buffered JSON visits/decode-validates objects before summaries. Retain
     // formatted object bytes so later metadata can precede them in the output.
-    objectJson = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks({ kind: "object", entries: objectEntries() }, signal), { signal, maxInputBytes: maxOutputBytes });
-    const objectValue: JsonValue = { kind: "formatted", chunks: objectJson.stream(0, objectJson.size, signal) };
+    if (includeObjects) objectJson = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks({ kind: "object", entries: objectEntries() }, signal), { signal, maxInputBytes: maxOutputBytes });
+    const objectValue: JsonValue = objectJson ? { kind: "formatted", chunks: objectJson.stream(0, objectJson.size, signal) } : jsonRecord({});
     async function summary(value: JsonValue): Promise<JsonValue> {
       const source = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks(value, signal), { signal, maxInputBytes: maxOutputBytes });
       summaries.push(source); return { kind: "formatted", chunks: source.stream(0, source.size, signal) };
     }
-    const attachmentValue = await summary({ kind: "object", entries: attachments() });
+    const attachmentValue = include("attachments") ? await summary({ kind: "object", entries: attachments() }) : jsonRecord({});
     const root = (await document.lookup(document.crossReference.rootRef))?.value;
     const form = root?.kind === "dict" ? (await document.lookup(dictGet(root, "AcroForm")))?.value : undefined;
     const appearances = form?.kind === "dict" ? (await document.lookup(dictGet(form, "NeedAppearances")))?.value : undefined;
-    const fieldValue = await summary({ kind: "array", values: fields() });
-    const outlineValue = await summary({ kind: "array", values: outlines() });
-    const labelValue = await summary({ kind: "array", values: labels() });
+    const fieldValue = await summary({ kind: "array", values: include("acroform") ? fields() : [] });
+    const outlineValue = await summary({ kind: "array", values: include("outlines") ? outlines() : [] });
+    const labelValue = await summary({ kind: "array", values: include("pagelabels") ? labels() : [] });
     const metadata: Record<string, JsonValue> = { pdfversion: document.crossReference.version,
       ...(options.jsonVersion === 2 ? { maxobjectid: maximum } : {}), pages: options.jsonKeys.includes("pages") ? { kind: "array", values: pageValues() } : count,
       pagelabels: labelValue, outlines: outlineValue,
@@ -143,7 +156,13 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     };
     const payload = options.jsonVersion === 1 ? jsonRecord({ version: 1, ...metadata, objects: objectValue })
       : jsonRecord({ version: 2, qpdf: { kind: "array", values: [jsonRecord(metadata), objectValue] } });
-    json = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks(payload, signal), { signal, maxInputBytes: maxOutputBytes });
+    const sections: Record<string, JsonValue> = { ...metadata, objects: objectValue,
+      objectinfo: { kind: "object", entries: objectInfoEntries() },
+      qpdf: { kind: "array", values: [jsonRecord({ jsonversion: 2, pdfversion: document.crossReference.version, maxobjectid: maximum }), objectValue] }
+    };
+    const selectedPayload: Record<string, JsonValue> = { version: options.jsonVersion ?? 2, parameters: jsonRecord({ decodelevel: "generalized" }) };
+    for (const key of options.jsonKeys) selectedPayload[key] = sections[key]!;
+    json = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks(options.jsonKeys.length ? jsonRecord(selectedPayload) : payload, signal), { signal, maxInputBytes: maxOutputBytes });
     let total = json.size;
     for await (const entry of files.entries()) {
       if (entry.name === options.outputFile && options.outputFile !== "-") continue;

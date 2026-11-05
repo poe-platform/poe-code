@@ -931,7 +931,7 @@ describe("safe-bash-command-qpdf", () => {
     );
     assert.equal(jsonRes.exitCode, 0);
     const parsed = JSON.parse(jsonRes.stdout);
-    const header = parsed.qpdf[0];
+    const header = parsed;
     assert.equal(Array.isArray(header.pages), true);
     assert.equal(header.pages[0].pageposfrom1, 1);
     assert.equal(header.acroform.hasacroform, true);

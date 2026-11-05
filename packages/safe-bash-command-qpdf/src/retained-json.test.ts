@@ -106,7 +106,7 @@ for (const count of [64, 256]) it(`bounds outstanding JSON writes for ${count} p
   const args = ["in.pdf", "--json=2", "--json-key=pages", "--json-stream-data=inline"], carrier = createCommandArguments(args);
   const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs: guarded, signal: new AbortController().signal,
     stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write(bytes: Uint8Array) { assert.ok(bytes.buffer.byteLength <= 65536); output += bytes.length; await Promise.resolve(); } }, stderr: { async write() {} } });
-  assert.equal(result.exitCode, 0); assert.ok(output > count * 100); assert.ok(peak > 0); assert.deepEqual(await fs.readdir("/scratch"), []);
+  assert.equal(result.exitCode, 0); assert.ok(output > count * 50); assert.ok(peak > 0); assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 
 for (const title of ["chapter", "", "decode-first"]) it(`preserves out-of-range JSON outline diagnostics for ${JSON.stringify(title)}`, async () => {

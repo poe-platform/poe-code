@@ -27,6 +27,7 @@ import {
   decodePdfString,
   cosDict,
   cosNumber,
+  cosNull,
   cosArray,
   cosName,
   cosString,
@@ -1334,6 +1335,9 @@ function* executeQpdfCli(
         stderr: "qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n"
       };
     }
+    const include = (key: string) => !jsonKeys.length || jsonKeys.includes(key);
+    const includeObjects = include(jsonVersion === 1 ? "objects" : "qpdf");
+    const objectInfo: Record<string, unknown> = {};
     const objectsMap: Record<string, unknown> = {};
     const hasSelector = jsonObjectSelectors.length > 0;
     const matchesSelector = (objNum: number, genNum: number) =>
@@ -1341,6 +1345,14 @@ function* executeQpdfCli(
       jsonObjectSelectors.some((s) => s.kind === "obj" && s.objNum === objNum && s.genNum === genNum);
     for (const [objNum, obj] of baseDoc.cos.objects.entries()) {
       if (!matchesSelector(objNum, obj.generationNumber)) continue;
+      if (jsonKeys.includes("objectinfo")) {
+        const dict = obj.value.kind === "stream" ? obj.value.dict : undefined;
+        objectInfo[`${objNum} ${obj.generationNumber} R`] = { stream: {
+          filter: dict ? cosNodeToJson(dictGet(dict, "Filter") ?? cosNull()) : null,
+          is: Boolean(dict), length: dict ? cosNodeToJson(dictGet(dict, "Length") ?? cosNull()) : null
+        } };
+      }
+      if (!includeObjects) continue;
       if (obj.value.kind === "stream") {
         const streamObj: Record<string, unknown> = {
           dict: cosNodeToJson(obj.value.dict)
@@ -1372,12 +1384,12 @@ function* executeQpdfCli(
     }
     const attachmentsJson: Record<string, unknown> = {};
     const rootDictForJson = asDict(baseDoc.cos.resolve(baseDoc.cos.rootRef));
-    for (const att of collectDocumentAttachments(baseDoc)) {
+    for (const att of include("attachments") ? collectDocumentAttachments(baseDoc) : []) {
       attachmentsJson[att.key] = { filename: att.filename };
     }
     const acroDictJson = rootDictForJson ? asDict(baseDoc.cos.resolve(dictGet(rootDictForJson, "AcroForm"))) : undefined;
     const needAppJson = acroDictJson ? baseDoc.cos.resolve(dictGet(acroDictJson, "NeedAppearances")) : undefined;
-    const acroFieldsJson = baseDoc.getFormFields().map(f => ({
+    const acroFieldsJson = (include("acroform") ? baseDoc.getFormFields() : []).map(f => ({
       name: f.name,
       type: f.type,
       value: f.value
@@ -1415,11 +1427,11 @@ function* executeQpdfCli(
         cur = dictGet(d, "Next");
       }
     };
-    if (outlinesRootJson) collectJsonOutlines(dictGet(outlinesRootJson, "First"));
+    if (include("outlines") && outlinesRootJson) collectJsonOutlines(dictGet(outlinesRootJson, "First"));
 
     const pagelabelsJson: Array<{ index: number; start: number; prefix?: string; style?: string }> = [];
     const plTreeJson = rootDictForJson ? asDict(baseDoc.cos.resolve(dictGet(rootDictForJson, "PageLabels"))) : undefined;
-    for (const { index: plIdx, dict: vDict } of collectNumberTreeDicts(baseDoc, plTreeJson)) {
+    for (const { index: plIdx, dict: vDict } of include("pagelabels") ? collectNumberTreeDicts(baseDoc, plTreeJson) : []) {
       const stNode = baseDoc.cos.resolve(dictGet(vDict, "St"));
       const pNode = baseDoc.cos.resolve(dictGet(vDict, "P"));
       const sNode = baseDoc.cos.resolve(dictGet(vDict, "S"));
@@ -1467,7 +1479,15 @@ function* executeQpdfCli(
               objectsMap
             ]
           };
-    const jsonOut = JSON.stringify(payload, null, 2) + "\n";
+    const sections: Record<string, unknown> = {
+      pages: pagesVal, pagelabels: pagelabelsJson, outlines: outlinesJson,
+      acroform: acroformSection, encrypt: { encrypted: Boolean(baseDoc.cos.encryption) },
+      attachments: attachmentsJson, objects: objectsMap, objectinfo: objectInfo,
+      qpdf: [{ jsonversion: 2, pdfversion: baseDoc.cos.version, maxobjectid: baseDoc.cos.maxObjectNumber }, objectsMap]
+    };
+    const selectedPayload: Record<string, unknown> = { version: jsonVersion, parameters: { decodelevel: "generalized" } };
+    for (const key of jsonKeys) selectedPayload[key] = sections[key];
+    const jsonOut = JSON.stringify(jsonKeys.length ? selectedPayload : payload, null, 2) + "\n";
     if (outputFile && outputFile !== "-") {
       files.set(outputFile, new TextEncoder().encode(jsonOut));
       return { exitCode: 0, stdout: "", stderr: "" };

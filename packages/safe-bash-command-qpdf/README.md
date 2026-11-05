@@ -68,8 +68,10 @@ attachment payloads sequentially and validating all attachments before publishin
 stdout. Binary extraction preserves the original bytes.
 
 `--json=1` and `--json=2` use retained input and caller-backed object, page,
-outline and attachment traversal. `--json-object`, `--json-key=pages`, inline
-base64 and `--json-stream-data=file` preserve the compatibility JSON format.
+outline and attachment traversal. `--json-key` emits only the requested top-level sections plus `version` and
+`parameters`; repeat it to select multiple sections. `--json-object` filters
+object entries. Inline base64 and `--json-stream-data=file` apply only when
+object output is selected.
 JSON and decoded stream files are staged before publication; stdout and file
 writes remain bounded and honor output limits and cancellation. `--json-input`
 and `--update-from-json` parse incrementally into caller-backed object indexes,

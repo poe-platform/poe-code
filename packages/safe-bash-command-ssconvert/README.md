@@ -254,7 +254,9 @@ XML, embedded resources and encryption buffers remain resident.
 Gnumeric XML and gzip imports use caller storage for scalar cell replay when
 working storage is configured, preserving duplicate coordinates, styles and metadata.
 Formula-bearing inputs use the workbook reader. Gnumeric XML and gzip exports
-stream encoded output with backpressure. CSV/text
+stream encoded output with backpressure. CSV/text import accepts explicit
+`-E SHIFT_JIS` (SDK: `importEncoding: "SHIFT_JIS"`), including split multibyte characters
+and native invalid-input fallback. CSV/text
 conversions without global evaluation replay cells from retained input, including
 styles and sheet extents, without building full cell arrays. With working storage
 configured, unordered-cell export uses bounded merge runs in the caller’s safe-fs.

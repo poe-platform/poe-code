@@ -1,5 +1,6 @@
 import { SsconvertError, type RangeSource } from "../contracts.js";
 import { decodingGuesses } from "./decode.js";
+import { shiftJisDecoder } from "./shift-jis.js";
 import { singleByteTables } from "./tables.js";
 
 class InvalidEncoding extends Error {}
@@ -61,6 +62,7 @@ function decoder(label: string, header: Uint8Array): Decoder | undefined {
     }
     return text;
   };
+  if (label === "shift_jis") return shiftJisDecoder();
   if (label === "utf-7" || label === "utf7") return utf7Decoder();
   if (["utf-32", "utf-32le", "utf-32be", "ucs-4", "ucs-4le", "ucs-4be"].includes(label)) {
     const little = label.endsWith("le") || label === "utf-32" && !(header[0] === 0 && header[1] === 0 && header[2] === 254 && header[3] === 255);

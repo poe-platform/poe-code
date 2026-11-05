@@ -13,3 +13,9 @@ Copyright Free Software Foundation, Inc. No GNU libc executable code is included
 The handwritten runtime remains under the package's GPL-2.0-or-later license.
 See the encoding QA procedure and verification document for measured scope and
 remaining gaps. No third-party JavaScript runtime library is required.
+
+Shift-JIS decoding follows glibc 2.41 `iconvdata/sjis.c` and
+`localedata/charmaps/SHIFT_JIS`. All single-byte and two-byte inputs are checked
+against those mappings and invalid/incomplete-input rules. The runtime uses
+WHATWG only for the verified JIS pairs, excluding Windows-31J extensions and
+correcting its six differing double-byte mappings.

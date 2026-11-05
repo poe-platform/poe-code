@@ -89,3 +89,19 @@ it("matches buffered decoding for malformed Unicode and captured single-byte tab
       expect(await collect(source(bytes, 3), label), `${label} ${sample}`).toBe(decodeText(bytes, label));
     }
 });
+
+it.each([
+  [[0x8a, 0xbf, 0x8e, 0x9a], "漢字"],
+  [[0x1a, 0x1c, 0x5c, 0x7e, 0x7f, 0xa6], "\u001a\u001c¥‾\u007fｦ"],
+  [[0x81, 0x5c, 0x81, 0x60, 0x81, 0x61, 0x81, 0x7c, 0x81, 0x91, 0x81, 0x92, 0x81, 0xca], "―〜‖−¢£¬"],
+  [[0x8a, 0xbf, 0x81], "漢"],
+  [[0x8a, 0xbf, 0x81, 0x20], "\u008a¿\u0081 "],
+  [[0x87, 0x40], "\u0087@"],
+  [[0xf0], ""],
+  [[0xf0, 0x20], "ð "],
+  [[0xc3, 0xa9, 0xff], "Ã©ÿ"]
+] as const)("decodes strict Shift-JIS across short borrowed ranges: %j", async (values, expected) => {
+  const bytes = Uint8Array.from(values);
+  expect(decodeText(bytes, "SHIFT_JIS")).toBe(expected);
+  for (const size of [1, 2, 3, 7]) expect(await collect(source(bytes, size), "SHIFT_JIS")).toBe(expected);
+});

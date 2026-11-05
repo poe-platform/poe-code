@@ -1,6 +1,7 @@
 import { SsconvertError } from "../contracts.js";
 import { nativeTextCharsets } from "../codecs/native-text-charsets.js";
 import { encodingName } from "./names.js";
+import { shiftJisDecoder } from "./shift-jis.js";
 import { singleByteTables } from "./tables.js";
 
 /** GOffice tries the override first, then detection, ASCII, UTF-8 and Latin-1. */
@@ -9,7 +10,7 @@ export function decodingGuesses(bytes: Uint8Array, encoding?: string): readonly 
     const name = encodingName(encoding);
     if (!Object.hasOwn(singleByteTables, name) && !["utf-8", "utf-16", "utf-16le", "utf-16be",
       "utf-32", "utf-32le", "utf-32be", "ucs-2", "ucs-2le", "ucs-2be",
-      "ucs-4", "ucs-4le", "ucs-4be", "utf-7"].includes(name)) {
+      "ucs-4", "ucs-4le", "ucs-4be", "utf-7", "shift_jis"].includes(name)) {
       // WHATWG decoder availability does not establish iconv aliases, mappings
       // or invalid/truncated-byte semantics. Admit only captured capabilities.
       if (nativeTextCharsets.has(encoding.toLowerCase().split("//", 1)[0]!))
@@ -39,6 +40,7 @@ export function decodeText(bytes: Uint8Array, encoding?: string): string {
         }
         return chunks.join("");
       }
+      if (label === "shift_jis") return shiftJisDecoder()(bytes);
       if (label === "utf-7" || label === "utf7") return decodeUtf7(bytes);
       if (["utf-32", "utf-32le", "utf-32be", "ucs-4", "ucs-4le", "ucs-4be"].includes(label)) {
         const little = label.endsWith("le") || label === "utf-32" && !(bytes[0] === 0 && bytes[1] === 0 && bytes[2] === 254 && bytes[3] === 255);

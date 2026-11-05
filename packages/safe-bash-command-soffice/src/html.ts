@@ -26,7 +26,7 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
   let preformatted = false;
   const tables: { rows: string[][]; row: string[]; cell: string | undefined }[] = [];
   const flush = () => {
-    const value = preformatted ? text : text.replace(/[\t\n\r\f ]+/g, " ").trim();
+    const value = preformatted ? text : text.split("\n").map(line => line.replace(/[\t\r\f ]+/g, " ").trim()).join("\n");
     if (value) {
       blocks.push(preformatted ? { kind, text: marker + value, preformatted: true } : { kind, text: marker + value });
       marker = "";
@@ -42,7 +42,10 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
   const stack: { node: Node; exit?: boolean }[] = [{ node: parse(source) }];
   while (stack.length) {
     const { node, exit } = stack.pop()!;
-    if ("value" in node && node.nodeName === "#text") { append(node.value); continue; }
+    if ("value" in node && node.nodeName === "#text") {
+      append(preformatted ? node.value : node.value.replace(/[\t\n\r\f ]+/g, " "));
+      continue;
+    }
     const tag = "tagName" in node ? node.tagName : "";
     if (hidden.has(tag)) continue;
     if (tag === "table") {
@@ -81,7 +84,7 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
         const list = lists.at(-1);
         marker = exit || !list ? "" : list.next === undefined ? "• " : `${list.next++}. `;
       }
-    } else if (tag === "br") append("\n");
+    } else if (tag === "br" && !exit) append("\n");
     if (!exit && "childNodes" in node) {
       stack.push({ node, exit: true });
       for (let i = node.childNodes.length - 1; i >= 0; i--) stack.push({ node: node.childNodes[i]! });

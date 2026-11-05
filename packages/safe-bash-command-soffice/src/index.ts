@@ -436,7 +436,7 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   for (const block of blocks) {
     if (++work % 32 === 0) yield undefined;
     if (block.kind === "heading") {
-      const lines = wrapTextLines(block.text ?? "", 48);
+      const lines = (block.text ?? "").split("\n").flatMap(line => wrapTextLines(line, 48));
       for (const line of lines) {
         ensureSpace(26);
         page.drawText(line, {
@@ -450,7 +450,7 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
       }
       y -= 4;
     } else if (block.kind === "paragraph") {
-      const lines = block.preformatted ? (block.text ?? "").split("\n") : wrapTextLines(block.text ?? "", 84);
+      const lines = (block.text ?? "").split("\n").flatMap(line => block.preformatted ? [line] : wrapTextLines(line, 84));
       for (const line of lines) {
         ensureSpace(16);
         page.drawText(line, {

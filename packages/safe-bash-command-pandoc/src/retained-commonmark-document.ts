@@ -302,7 +302,22 @@ export async function assembleRetainedCommonMark(
       const range = await parser.joined(current, "");
       if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;
       await ast.push(out, await ast.tag("CodeBlock", await ast.value([attributes ?? ["", classes, []], await literal(range)])));
-    } else if (block.kind === "table") await ast.push(out, await table(current));
+    } else if (block.kind === "table") {
+      let caption: RtfValue | undefined;
+      if (extensions.table_captions && position) {
+        const following = await parser.node(position);
+        if (following.kind === "paragraph") {
+          const range = await parser.joined(position);
+          if (await source.starts(range, ":") && [" ", "\t"].includes(await source.unit(range.start + 1))) {
+            let start = range.start + 1;
+            while (start < range.end && [" ", "\t"].includes(await source.unit(start))) {context.checkpoint(); start++;}
+            caption = await ast.value([await ast.tag("Plain", await inline({start, end: range.end}, following.lineCount, position))]);
+            position = following.next;
+          }
+        }
+      }
+      await ast.push(out, await table(current, caption));
+    }
     else if (block.kind === "definitionList") {
       const children = await ast.array(); await ast.push(out, await ast.tag("DefinitionList", children));
       await push(); position = block.first; out = children; mode = 2; depth++; taskNode = 0;

@@ -113,6 +113,14 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
       }
       switch (block.kind) {
         case "table": {
+          const following = blocks[index + 1];
+          const first = following?.kind === "paragraph" ? following.inline.lines[0] : undefined;
+          if (extensions.table_captions && !caption.length && following?.kind === "paragraph" && first &&
+            first.text.startsWith(":") && [" ", "\t"].includes(first.text[1] ?? "")) {
+            const lines = [{...first, text: first.text.slice(1).trimStart()}, ...following.inline.lines.slice(1)];
+            caption = [{t: "Plain", c: await parseCommonMarkInlines({...following.inline, lines}, pending.definitions, context, extensions, footnote, citationsState)}];
+            index++;
+          }
           const row = async (cells: readonly string[]): Promise<Row> => {
             const values: Row[1][number][] = [];
             for (let i = 0; i < block.alignments.length; i++) {

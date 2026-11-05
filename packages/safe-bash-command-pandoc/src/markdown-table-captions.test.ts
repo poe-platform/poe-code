@@ -38,6 +38,29 @@ for (const retained of [false, true]) {
       expect(JSON.parse(await render(text)).blocks[0].t).toBe("Para");
     }
   });
+  it(`attaches trailing captions with or without a blank line (retained=${retained})`, async () => {
+    for (const gap of ["", "\n"]) {
+      const text = `${table}${gap}: *Sample*\ncaption\n\nAfter`;
+      const blocks = JSON.parse(await render(text)).blocks;
+      expect(blocks.map((block: {t: string}) => block.t)).toEqual(["Table", "Para"]);
+      expect(blocks[0].c[1]).toEqual([null, [{t: "Plain", c: [{t: "Emph", c: [{t: "Str", c: "Sample"}]}, {t: "SoftBreak"}, {t: "Str", c: "caption"}]}]]);
+      expect(blocks[1].c).toEqual([{t: "Str", c: "After"}]);
+      const disabled = JSON.parse(await render(text, "markdown-table_captions")).blocks;
+      expect(disabled.map((block: {t: string}) => block.t)).toEqual(["Table", "Para", "Para"]);
+      expect(disabled[0].c[1]).toEqual([null, []]);
+      const quoted = JSON.parse(await render(text.split("\n").map(line => `> ${line}`).join("\n"))).blocks[0].c;
+      expect(quoted).toEqual(blocks);
+    }
+    for (const [suffix, kind] of [[":Caption", "Para"], ["Other\n\n: Caption", "DefinitionList"]]) {
+      const blocks = JSON.parse(await render(`${table}\n${suffix}`)).blocks;
+      expect(blocks[0].c[1]).toEqual([null, []]);
+      expect(blocks[1].t).toBe(kind);
+    }
+    const captioned = JSON.parse(await render(`Table: First\n\n${table}\n: Second`)).blocks;
+    expect(captioned.map((block: {t: string}) => block.t)).toEqual(["Table", "Para"]);
+    expect(captioned[0].c[1]).toEqual([null, [{t: "Plain", c: [{t: "Str", c: "First"}]}]]);
+    expect(captioned[1].c).toEqual([{t: "Str", c: ":"}, {t: "Space"}, {t: "Str", c: "Second"}]);
+  });
   it(`parses formatted multiline captions in containers (retained=${retained})`, async () => {
     const text = `Table: *Sample*\ncaption\n\n${table}`;
     const blocks = JSON.parse(await render(text.split("\n").map(line => `> ${line}`).join("\n"))).blocks[0].c;
@@ -46,11 +69,11 @@ for (const retained of [false, true]) {
   });
 }
 
-it("attaches the caption through the standalone command", async () => {
+it.each([`Table: Sample caption\n\n${table}`, `${table}\n: Sample caption`])("attaches the caption through the standalone command: %s", async (text) => {
   let output = "", errors = "";
   const result = await createStandalonePandocCommand().execute({
     args: ["-f", "markdown", "-t", "json"],
-    stdin: [new TextEncoder().encode(`Table: Sample caption\n\n${table}`)],
+    stdin: [new TextEncoder().encode(text)],
     signal: new AbortController().signal,
     stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
     stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}

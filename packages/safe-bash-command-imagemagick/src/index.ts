@@ -1,3 +1,4 @@
+import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { convertHslPixels, prepareHslOutput, formatHslPixel, hslTextPixel, type HslMetadata } from "./colorspace-hsl.js";
@@ -1480,7 +1481,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     g: boolean;
     b: boolean;
     a: boolean;
-}, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+}, random: (() => number) | undefined, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const isPct = valStr.trim().endsWith("%");
     const rawNum = parseFloat(valStr);
@@ -1503,6 +1504,11 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
             const cur = out[i + c]!;
             let next = cur;
             switch (op) {
+                case "impulsenoise": {
+                    const alpha = random!();
+                    next = alpha < vFactor * 0.05 ? 0 : alpha >= 1 - vFactor * 0.05 ? 255 : cur;
+                    break;
+                }
                 case "add":
                 case "median":
                     next = cur + vByte;
@@ -4411,7 +4417,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     } };
 }
 
-type MagickPixelOperation = { highDepth?: boolean; end: number; apply(image: RgbaImage): Generator<void, RgbaImage, void> };
+type MagickPixelOperation = { highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"];
@@ -4585,11 +4591,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
         if (!["add", "sum", "addmodulus", "mean", "median", "subtract", "multiply", "divide", "pow", "exp", "exponential", "log", "inverselog", "set", "min", "max",
             "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
-            "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare"].includes(operation)) {
+            "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "impulsenoise"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickEvaluateSteps(image, operation, value, channels, signal);
+        let random: (() => number) | undefined;
+        apply = (image, pixelOffset = 0) => {
+            if (operation === "impulsenoise" && pixelOffset === 0)
+                random = createMagickRandom(state.seed ?? 0);
+            return applyMagickEvaluateSteps(image, operation, value, channels, random, signal);
+        };
     } else if (token === "-function") {
         const operation = tokens[++i] ?? "Polynomial", value = tokens[++i] ?? "1,0";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
@@ -4883,7 +4894,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
         const floatBytes = (highDepth || operation.highDepth) && image.storedHslSamples !== undefined ? await backend.storage.read(image.storedHslSamples + offset * 8, data.length * 8) : undefined;
         const hslSamples = floatBytes ? new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset, floatBytes.byteOffset + floatBytes.byteLength)) : undefined;
         const { storedData16: ignoredSource, storedHslSamples: ignoredHsl, ...inputMetadata } = image;
-        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(data16 ? {data16} : {}), ...(hslSamples ? {hslSamples} : {}) }), signal);
+        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(data16 ? {data16} : {}), ...(hslSamples ? {hslSamples} : {}) }, offset / 4), signal);
         const { data: pixels, data16: output16, hslSamples: outputHsl, ...metadata } = transformed;
         if (outputHsl) {
             storedHslSamples ??= backend.storage.allocate(size * 8);

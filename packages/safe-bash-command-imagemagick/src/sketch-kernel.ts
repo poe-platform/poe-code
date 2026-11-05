@@ -1,4 +1,4 @@
-import { sha256 } from "@noble/hashes/sha2.js";
+import { createMagickRandom } from "./random.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 function kernelWidth(radius: number, sigma: number): number {
@@ -20,17 +20,11 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
     const width = image.width * 2, height = image.height * 2, size = width * height;
     const alphas = image.hasAlpha ? new Float64Array(size) : undefined;
     const alphaScratch = image.hasAlpha ? new Float64Array(size) : undefined;
-    const key = new DataView(new ArrayBuffer(8));
-    key.setBigUint64(0, BigInt(seed), true);
-    const digest = sha256(new Uint8Array(key.buffer)), view = new DataView(digest.buffer, digest.byteOffset, digest.byteLength);
-    let a = view.getBigUint64(0, true), b = view.getBigUint64(8, true), c = view.getBigUint64(16, true), d = view.getBigUint64(24, true);
+    const random = createMagickRandom(seed);
     let values = new Float64Array(size), scratch = new Float64Array(size);
     for (let i = 0; i < size; i++) {
         if (i % 1024 === 0) yield;
-        values[i] = Number(BigInt.asUintN(64, a + d) >> 11n) / 9007199254740991;
-        const shifted = BigInt.asUintN(64, b << 17n);
-        c ^= a; d ^= b; b ^= c; a ^= d; c ^= shifted;
-        d = BigInt.asUintN(64, d << 45n) | (d >> 19n);
+        values[i] = random();
     }
     const length = kernelWidth(radius, sigma), weights = new Float64Array(length);
     let total = 0;

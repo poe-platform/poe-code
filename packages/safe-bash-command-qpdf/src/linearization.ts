@@ -103,7 +103,21 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
         let bytes: Uint8Array = new Uint8Array();
         if (!("kind" in request)) bytes = await decoded!.read(request.offset, request.length, signal);
         else if (request.kind === "file") bytes = await source.read(request.offset, request.length, signal);
-        else {
+        else if (request.kind === "layout") {
+          const root = dictGet(document.crossReference.trailer, "Root");
+          if (root?.kind === "ref") {
+            const assignments = linearizationAssignments(root, document.crossReference.trailer, false);
+            let step = assignments.next();
+            while (!step.done) {
+              signal.throwIfAborted();
+              if (typeof step.value === "string") { step = assignments.next(undefined); continue; }
+              const ref = step.value, object = await document.objects.get(ref.objectNumber, ref.generationNumber);
+              const entry = await document.crossReference.index.get(ref.objectNumber, signal);
+              step = assignments.next(object ? { value: object.value, container: entry?.objectStreamNumber } : undefined);
+            }
+            if (step.value) request.layout = step.value;
+          }
+        } else {
           const number = request.kind === "page" ? (await pages.next()).value?.reference?.objectNumber : request.number;
           const entry = number === undefined ? undefined : await document.crossReference.index.get(number, signal);
           const object = entry?.type === "uncompressed" ? await document.objects.get(number!, entry.generationNumber ?? 0) : undefined;
@@ -112,7 +126,7 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
         validationStep = validation.next(bytes);
       }
     } finally { await pages.return(undefined); }
-    if (validationStep.value) warnings.push(validationStep.value);
+    if (validationStep.value.length) warnings.push(...validationStep.value);
     else if (mode === "check" || mode === "both") yield `${filename ?? "empty"}: no linearization errors\n`;
     if (mode === "check" || mode === "inspect") return;
     const report = linearizationReport(filename ?? "empty", values, decoded?.size ?? 0, sharedOffset, outlineOffset);

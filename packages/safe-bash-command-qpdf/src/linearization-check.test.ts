@@ -58,14 +58,21 @@ for (const retained of [false, true]) for (const flag of ["--check", "--check-li
       } else results.push(await runQpdfCli(args, new Map([["in.pdf", input]])), runQpdfCliSync(args, new Map([["in.pdf", input]])));
       for (const result of results) {
         assert.equal(result.exitCode, warning && !warningExit0 ? 3 : 0, result.stderr);
-        if (warning) { assert.match(result.stderr, /linearization/i); assert.doesNotMatch(result.stdout, /no linearization errors|No syntax or stream encoding errors/); }
+        if (warning) { assert.ok(result.stderr.startsWith("WARNING:")); assert.doesNotMatch(result.stdout, /no linearization errors|No syntax or stream encoding errors/); }
         else assert.equal(result.stderr, "");
+        if (name === "malformed hints") assert.equal(result.stderr, [
+          "space before first xref item (/T) mismatch (computed = 1505; file = 1495",
+          "end of first page section (/E) mismatch: /E = 420; computed = 772..774",
+          "first page object offset mismatch",
+          "object count mismatch for page 0: hint table = 0; computed = 3",
+          "object count mismatch for page 1: hint table = 0; computed = 3",
+          "object count mismatch for page 2: hint table = 0; computed = 3",
+        ].map(message => `WARNING: in.pdf: ${message}\n`).join("") + "qpdf: operation succeeded with warnings\n");
         if (flag === "--show-linearization") {
           assert.ok(result.stdout.startsWith("in.pdf: linearization data:\n"));
           assert.match(result.stdout, /Page Offsets Hint Table/);
           assert.match(result.stdout, /Shared Objects Hint Table/);
           assert.doesNotMatch(result.stdout, /no linearization errors/);
-          if (warning) assert.equal(result.stderr, "WARNING: in.pdf: invalid linearization: missing or invalid hint stream\nqpdf: operation succeeded with warnings\n");
         }
       }
     }

@@ -1268,15 +1268,30 @@ function* executeQpdfCli(
         let bytes: Uint8Array = new Uint8Array();
         if (!("kind" in request)) bytes = hintBytes.subarray(request.offset, request.offset + request.length);
         else if (request.kind === "file") bytes = cos.bytes.subarray(request.offset, request.offset + request.length);
-        else {
+        else if (request.kind === "layout") {
+          const root = cos.rootRef;
+          if (root?.kind === "ref") {
+            const assignments = linearizationAssignments(root, cos.revisions[0]?.trailer ?? cosDict({ Root: root, ...(cos.infoRef ? { Info: cos.infoRef } : {}) }), false);
+            const entries = new Map(cos.revisions.flatMap(revision => [...revision.entries]).reverse());
+            let assignment = assignments.next();
+            while (!assignment.done) {
+              yield;
+              if (typeof assignment.value === "string") { assignment = assignments.next(undefined); continue; }
+              const object = cos.objects.get(assignment.value.objectNumber);
+              const entry = entries.get(assignment.value.objectNumber);
+              assignment = assignments.next(object ? { value: object.value, container: entry?.objectStreamNumber } : undefined);
+            }
+            if (assignment.value) request.layout = assignment.value;
+          }
+        } else {
           const number = request.kind === "page" ? pages[request.number]?.ref.objectNumber : request.number;
           const object = number === undefined ? undefined : cos.objects.get(number);
           if (object?.span) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
         }
         step = validation.next(bytes);
       }
-      linearizationWarning = step.value;
-      const stderr = linearizationWarning ? `WARNING: ${inputFile ?? "empty"}: ${linearizationWarning}\nqpdf: operation succeeded with warnings\n` : "";
+      linearizationWarning = step.value.length ? step.value.map(message => `WARNING: ${inputFile ?? "empty"}: ${message}\n`).join("") : undefined;
+      const stderr = linearizationWarning ? `${linearizationWarning}qpdf: operation succeeded with warnings\n` : "";
       const exitCode = linearizationWarning && !warningExit0 ? 3 : 0;
       if (showLinearization === "check") return { exitCode, stdout: linearizationWarning ? "" : `${inputFile ?? "empty"}: no linearization errors\n`, stderr };
       if (showLinearization) {
@@ -1341,7 +1356,7 @@ function* executeQpdfCli(
     const version = `${cos.version}${extensionLevel ? ` extension level ${extensionLevel}` : ""}`;
     const out = `checking ${inputFile ?? "empty"}\nPDF Version: ${version}\n${encryptionReport(cos.encryption)}File is ${linStatus}\n${linearizationWarning ? "" : "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"}`;
     const code = (repairedWarning || linearizationWarning) && !warningExit0 ? 3 : 0;
-    return { exitCode: code, stdout: out, stderr: linearizationWarning ? `WARNING: ${inputFile ?? "empty"}: ${linearizationWarning}\nqpdf: operation succeeded with warnings\n` : "" };
+    return { exitCode: code, stdout: out, stderr: linearizationWarning ? `${linearizationWarning}qpdf: operation succeeded with warnings\n` : "" };
   }
 
   if (showPages) {

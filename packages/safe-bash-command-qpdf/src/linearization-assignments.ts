@@ -8,7 +8,7 @@ type Usage = { category: Category; page: number };
 
 /** Compute placement from references, not offsets or hints. Both readers supply
  * one object dictionary at a time; stream payloads are never read here. */
-export function* linearizationAssignments(rootRef: PdfCosRef, trailer: PdfCosDict): Work<void> {
+export function* linearizationAssignments(rootRef: PdfCosRef, trailer: PdfCosDict, report = true): Work<{ pages: number[][]; first: number[] } | undefined> {
   const usage = new Map<number, Usage>(), pages: number[] = [], thumbs: number[] = [];
   function assign(id: number, category: Category, page = -1) {
     const old = usage.get(id);
@@ -95,6 +95,8 @@ export function* linearizationAssignments(rootRef: PdfCosRef, trailer: PdfCosDic
     ["8 (other pages, shared)", select(Category.Shared)],
     ["9 (everything else)", [...select(Category.Pages), ...pages.flatMap((_, page) => first(select(Category.ThumbPrivate, page), thumbs[page])), ...select(Category.ThumbShared), ...(showOutlines ? [] : outlines), ...select(Category.Other)]],
   ];
+  const layout = { pages: pages.map((_, page) => page === 0 ? parts[1]![1] : select(Category.Private, page)), first: parts[1]![1] };
+  if (!report) return layout;
   yield "\nComputed Linearization Part Assignments\n\n";
   for (const [label, ids] of parts) {
     yield `part ${label}:`;
@@ -107,4 +109,5 @@ export function* linearizationAssignments(rootRef: PdfCosRef, trailer: PdfCosDic
     }
     yield "\n";
   }
+  return layout;
 }

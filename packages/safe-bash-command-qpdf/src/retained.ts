@@ -223,7 +223,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (options.showLinearization || options.check) {
         const parts = linearizationParts(document, source, storage, inputName, count, signal, options.showLinearization || "inspect", linearizationWarnings);
         await publishInspection((async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })());
-        if (linearizationWarnings.length) await writeBytes(context.stderr, new TextEncoder().encode(`WARNING: ${inputName ?? "empty"}: ${linearizationWarnings[0]}\nqpdf: operation succeeded with warnings\n`), signal);
+        if (linearizationWarnings.length) await writeBytes(context.stderr, new TextEncoder().encode(linearizationWarnings.map(message => `WARNING: ${inputName ?? "empty"}: ${message}\n`).join("") + "qpdf: operation succeeded with warnings\n"), signal);
         if (options.showLinearization) return { exitCode: linearizationWarnings.length && !options.warningExit0 ? 3 : 0 };
       }
       if (!options.check && (options.showPages || ((options.showObject || options.showXref) && !options.showNpages && !options.showEncryption))) {

@@ -67,5 +67,13 @@ for (const retained of [false, true]) it("reverses partial frames without expand
   expect(decodeImage(output, { animated: true }).delay).toEqual([200, 100]);
   const first = decodeImage(output).data;
   expect([...first.slice(16, 20)]).toEqual([0, 0, 255, 255]);
-  expect([...first.slice(0, 4)]).toEqual([0, 0, 0, 0]);
+  // Native coalescing fills outside the opaque first update with the GIF background.
+  const background = 13 + output[11]! * 3;
+  expect([...output.slice(background, background + 3)]).toEqual([0, 0, 255]);
+  expect(decodeImage(output, { coalesce: false })).toMatchObject({
+    width: 1, height: 1, hasAlpha: false,
+    backgroundColor: { r: 0, g: 0, b: 255, a: 1 }
+  });
+  expect(decodeImage(output, { coalesce: false, page: 1 }).data)
+    .toEqual(new Uint8Array(Array.from({ length: 9 }, () => [255, 0, 0, 255]).flat()));
 });

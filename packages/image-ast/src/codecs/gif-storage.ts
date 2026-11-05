@@ -31,6 +31,10 @@ export async function* encodeGifFromStorage(
     const p = await pixels.pixel(i);
     palette.add(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24);
   }
+  if (image.backgroundColor) {
+    const c = image.backgroundColor;
+    palette.add(c.r, c.g, c.b, 255);
+  }
   palette.finish();
   signal.throwIfAborted();
   yield gifHeader(image, options, layout, palette);

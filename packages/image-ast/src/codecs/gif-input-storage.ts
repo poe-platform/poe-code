@@ -117,6 +117,7 @@ export async function decodeGifToStorage(
     frameBytes = width * height * 4;
   const canvasWidth = width, canvasHeight = height;
   let virtualCanvas: StoredRgbaImage["virtualCanvas"];
+  let backgroundColor: StoredRgbaImage["backgroundColor"];
   checkLimitInputPixels(width, height, options);
   const word = async (at: number) =>
     ((await reader.at(at)) ?? 0) | (((await reader.at(at + 1)) ?? 0) << 8);
@@ -258,6 +259,7 @@ export async function decodeGifToStorage(
       at = await skip(at);
       if (options?.coalesce === false) {
         if (current++ !== page) { transparent = -1; disposal = 0; continue; }
+        backgroundColor = { r: colors[header[11]! * 3] ?? 0, g: colors[header[11]! * 3 + 1] ?? 0, b: colors[header[11]! * 3 + 2] ?? 0, a: 1 };
         virtualCanvas = { width: canvasWidth, height: canvasHeight, x: left, y: top };
         width = w; height = h; frameBytes = w * h * 4;
         checkLimitInputPixels(width, height, options);
@@ -340,6 +342,7 @@ export async function decodeGifToStorage(
     width,
     height: height * (virtualCanvas ? 1 : pages),
     ...(virtualCanvas ? { virtualCanvas, disposal } : {}),
+    ...(backgroundColor ? { backgroundColor } : {}),
     position: output,
     format: "gif",
     space: "srgb",

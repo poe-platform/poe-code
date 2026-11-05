@@ -42,7 +42,7 @@ function raster(spec: Spec): RgbaImage {
     hasAlpha: true
   };
 }
-// Small palettes retain frozen encoder hashes at 7e531d71ec.
+// Small palettes use frozen encoder hashes, with transparency flagged only for transparent frames.
 // Former RGB332 fallback cases instead check decoded source-color accuracy.
 const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
@@ -113,52 +113,52 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 2, height: 4, colors: 1, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "5963f360db29bb7bd7627f6352b2e2aab053f45606585e4f5d27e2df414b2efb"
+    hash: "b0fb4724342115bc3c8d1725958e803f44a535b50b22ebb06910b0b76812dc5b"
   },
   {
     spec: { width: 2, height: 4, colors: 1, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "cf98bc38d5aac58621fe0e8c1aa21d6585f8031300475b5fffaebd1d3e4d816a"
+    hash: "d14aa8fc36ab3490bcf2b00101824c9a5d12f718e5d35572d6f3a689ca801910"
   },
   {
     spec: { width: 2, height: 4, colors: 1, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "4228a4c979525e61329b6c423aacb42aa8bd1ec8f89912aae6248f7a24e73a90"
+    hash: "bb40a202ebee347708d6b9291b24bd81fe8c8e8ae96a7fef203c3e8d4c4f85da"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "37901c5c19a1ce2381a202211156a9b1c148a4d6eb67e3655efdb142fbd35383"
+    hash: "1f8fd69653022a1072ef1ed7e70c17a26d3841c233e773bada4ebe4e578a560c"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "5c50cad9852308695963db45efb9c9f6d8dc777a55ed1d64054e9cd4b732bc17"
+    hash: "5f9d4c22f8b6d40998ab9fe89cbb0f86cfc5d3ec7ec73e1c8573de4feab93152"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "7a2d08bc39565af3bbafc0eab8034ece7e0f20a6f543e374dbaa09e6c899fa5c"
+    hash: "51c7e578cd32cdeca7dffc9bfbc004e9a7855de0017bd7eee9e9c95193806924"
   },
   {
     spec: { width: 254, height: 4, colors: 253, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "5cd974eb3429ccf04bc1eea9e789828b03d32e010fd90b1401c978174548066d"
+    hash: "b60753548cb1f23b6e646652e1cbe2d928e402994746b3763e6e2ab5a0e8ca45"
   },
   {
     spec: { width: 254, height: 4, colors: 253, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "44a8680383ac7ae1b8275b69c394a9951c9577da47093f343885685dc732dfec"
+    hash: "dadf0a317ef2f2c2b732c87fb025fe2bbb0698980b2de85084ccc875f652cc93"
   },
   {
     spec: { width: 254, height: 4, colors: 253, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "7517713b7670412d5bc3f24b1aed5cfe45a9575e12ac84d052a0f4c97b23feed"
+    hash: "600d8e68c117fa39c3bb882c0bd8064faae3390d6e841564ac13714b435f4834"
   },
   {
     spec: { width: 255, height: 4, colors: 254, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "7208e70f73128d14de006159f2684a291cc2382c09b9674caeadb777a88dd21b"
+    hash: "196870a3da729ffa43bae302aa0b8955cdcff02a1dbaacac8ba9c12b0c5babd5"
   },
   {
     spec: { width: 255, height: 4, colors: 254, mode: "white" },
@@ -167,7 +167,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 255, height: 4, colors: 254, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "2ff6cae12e33fecf0d181a5f45a11821bd0d9d48b31575d6a5b2870f119d531e"
+    hash: "5e47bd7db989a0d8ab2eb5c96db4659be88ff1f2576523a33ba865fe184cc06f"
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "grid" },
@@ -176,7 +176,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 256, height: 4, colors: 255, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "86af52b75209e0293d08249dfeb600ae477cc1d1445a4a2023c1338ccc5c0cb2"
+    hash: "2a4f2b9cd50af8bfef03a12c5319a6d82e1242419b6b81716ea7424110e8d330"
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "alpha" },
@@ -201,7 +201,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 301, height: 4, colors: 300, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "1386d8a0d8c946abc276fadedc9109a4dfeaa722404274ed3dbda7493b9800c5"
+    hash: "a90625d97c235c5ae2257bda0d781788d4db63bf54286846f2c6f474fb6d8718"
   },
   {
     spec: { width: 301, height: 4, colors: 300, mode: "alpha" },
@@ -218,7 +218,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: {},
-    hash: "6fd542a8d93f6a04f7bbfdc6e3377c6ef35015bf0feb143f1d84fa5558d49c64"
+    hash: "91d47ba56ff844951be30860dbf93c9e6946ff963992169c436acac8ab3a5445"
   },
   {
     spec: {
@@ -231,7 +231,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: 0 },
-    hash: "334a51511fa345e94bbb764985a2a67acc9c22e89ce81beab57f0438416f512d"
+    hash: "3516adbca0bbe478ff3a7ddc5ac644b3955217570e8ea5a877fd727b33d69414"
   },
   {
     spec: {
@@ -244,7 +244,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: 15 },
-    hash: "b0947728969e571e58ca0fc4296126f072ab2fb21baa5984622f3522395a004a"
+    hash: "7ab17936e7a1a82e4778e46441893d5dc5781e3281d97f07082ce061a435393a"
   },
   {
     spec: {
@@ -257,7 +257,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: [] },
-    hash: "9a16e56285cebc31f05cd09df740a420e8ddb79376bdb41873b77fcdeb22f872"
+    hash: "a12fb3448b4d81dd627d013fe30416378bef739d3c39c3b0e27e4bb98fa7aafa"
   },
   {
     spec: {
@@ -270,7 +270,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: [10] },
-    hash: "2ee6cae61212fbac6b2b93d392be03558966736f8d4fb7f7610ed28f9f6774eb"
+    hash: "d4711124ce125ceb2c52a9a3467176df1014912ed473071d94918e456d8364b0"
   },
   {
     spec: {
@@ -283,7 +283,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: [10, 20] },
-    hash: "06e1934b03931ef00696c48ca509aca683be56acdcadb3e00d562a6b71896b02"
+    hash: "4bd973135affebab0c429d2ef6b1fff42ab296b176a1d7b8edf7bf729849447e"
   },
   {
     spec: {
@@ -296,7 +296,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 2 },
-    hash: "6fd542a8d93f6a04f7bbfdc6e3377c6ef35015bf0feb143f1d84fa5558d49c64"
+    hash: "91d47ba56ff844951be30860dbf93c9e6946ff963992169c436acac8ab3a5445"
   },
   {
     spec: {
@@ -348,7 +348,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 0 },
-    hash: "4264c95fee576bd0895bde94c5f10f75f628a03a78e88bc7314acf7d52f21254"
+    hash: "3adfcbd8c1a20aa694022952084ce2e079434d7b6242d263d3352b8881ea5aed"
   },
   {
     spec: {
@@ -361,7 +361,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 1 },
-    hash: "23d8acf0b4e0733eb9318f14e18cf7b8d1d810d07f8faa84a186bec04db1c359"
+    hash: "97f84c5e157e29b6ceb03034aa2239d462055de55fbd70c8eaf9a30eca531050"
   },
   {
     spec: {
@@ -374,7 +374,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 65537 },
-    hash: "4264c95fee576bd0895bde94c5f10f75f628a03a78e88bc7314acf7d52f21254"
+    hash: "3adfcbd8c1a20aa694022952084ce2e079434d7b6242d263d3352b8881ea5aed"
   }
 ];
 function backing(spec: Spec = vectors[0]!.spec) {

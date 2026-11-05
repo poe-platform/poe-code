@@ -6,7 +6,7 @@ export interface GifOptions {
   readonly loop?: number;
   readonly optimizeFrames?: boolean;
 }
-export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames">;
+export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor">;
 /** The wire palette is fixed at 256 entries, independent of raster size. */
 export class GifPalette {
   readonly bytes = new Uint8Array(768);
@@ -109,7 +109,7 @@ export function gifHeader(
     frameHeight & 255,
     frameHeight >>> 8,
     247,
-    0,
+    image.backgroundColor ? palette.index(image.backgroundColor.r, image.backgroundColor.g, image.backgroundColor.b, 255) : 0,
     0
   ]);
   out.set(palette.bytes, 13);
@@ -167,7 +167,7 @@ export function gifFrameHeader(
       33,
       249,
       4,
-      ((frameDisposal ?? (frames > 1 ? 1 : 0)) << 2) | 1,
+      ((frameDisposal ?? (frames > 1 ? 1 : 0)) << 2) | (transparent ? 1 : 0),
       centiseconds & 255,
       (centiseconds >>> 8) & 255,
       255,

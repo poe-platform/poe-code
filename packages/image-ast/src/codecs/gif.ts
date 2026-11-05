@@ -197,6 +197,7 @@ export function decodeGifImage(
           if (index !== transparentIdx) data.set([palette[index * 3] ?? 0, palette[index * 3 + 1] ?? 0, palette[index * 3 + 2] ?? 0, 255], at);
         }
         return { width: imgW, height: imgH, data, format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72,
+          backgroundColor: { r: palette[bytes[11]! * 3] ?? 0, g: palette[bytes[11]! * 3 + 1] ?? 0, b: palette[bytes[11]! * 3 + 2] ?? 0, a: 1 },
           hasAlpha: transparentIdx !== -1, virtualCanvas: { width, height, x: left, y: top }, disposal: disposalMethod,
           ...(meta.delay ? { delay: meta.delay } : {}), ...(meta.loop === undefined ? {} : { loop: meta.loop }) };
       }
@@ -287,6 +288,7 @@ export function decodeGifImage(
 export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
  const layout=gifLayout(img,options),palette=new GifPalette(),data=img.data;
  for(let i=0;i<img.width*img.height;i++)palette.add(data[i*4]!,data[i*4+1]!,data[i*4+2]!,data[i*4+3]!);
+ if(img.backgroundColor){const c=img.backgroundColor;palette.add(c.r,c.g,c.b,255);}
  palette.finish();const chunks:Uint8Array[]=[gifHeader(img,options,layout,palette)];
  for(let frame=0;frame<layout.frames;frame++){
   const start=frame*layout.framePixels, rectangle=img.gifFrames?.[frame], count=rectangle ? rectangle.width*rectangle.height : layout.framePixels;

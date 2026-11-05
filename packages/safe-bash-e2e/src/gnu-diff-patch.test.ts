@@ -118,6 +118,31 @@ test("GNU diff and patch exchange unified diffs with TypeScript and Rust", async
         );
       }
     }
+    for (const before of [
+      "a\nx\na\nx\nx\nx\nx\na\n", // A nearer match before the requested line.
+      "a\nx\na\nx\na\nx\n", // Equal distances: GNU tries the later line first.
+      "a\na\nx\nx\nx\n" // No later match: try earlier lines nearest first.
+    ]) {
+      const delta = "4c4\n< a\n---\n> A\n";
+      await writeFile(cwd + "/delta", delta);
+      await writeFile(cwd + "/work", before);
+      const args = ["--batch", "-i", "delta", "work"];
+      const reference = native("patch", args);
+      assert.equal(reference.status, 0, reference.stderr.toString());
+      for (const [shell, view] of backends) {
+        await view.writeFile("/workspace/work", Buffer.from(before));
+        await view.writeFile("/workspace/delta", Buffer.from(delta));
+        const result = await shell.exec("patch " + args.join(" "));
+        assert.equal(result.exitCode, reference.status, result.stdout + result.stderr);
+        assert.deepEqual(
+          Buffer.from(await view.readFile("/workspace/work")),
+          await readFile(cwd + "/work"),
+          shell.constructor.name
+        );
+        assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
+        assert.deepEqual(Buffer.from(result.stderrBytes), reference.stderr);
+      }
+    }
     // A failed normal hunk still allows later matching hunks to apply.
     for (const [name, flags, indexed] of [
       ["partial", [], false],

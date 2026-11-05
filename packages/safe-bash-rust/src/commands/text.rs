@@ -7209,7 +7209,7 @@ fn apply_unified_diff(
                 && !reverse
                 && !opts.force
                 && !hunk_new.is_empty()
-                && let Some(rev_pos) = find_subslice_pos(&file_lines, &hunk_new, expected_pos)
+                && let Some(rev_pos) = find_subslice_pos(&file_lines, &hunk_new, expected_pos, opts.ignore_ws)
             {
                 if opts.forward_only {
                     status_out.push_str("Reversed (or previously applied) patch detected!  Skipping patch.\n");
@@ -7472,23 +7472,24 @@ fn parse_hunk_starts_and_counts(header: &str) -> (usize, usize, usize, usize) {
     (old_s, old_c, new_s, new_c)
 }
 
-fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize) -> Option<usize> {
-    if needle.is_empty() {
-        return Some(hint.min(hay.len()));
-    }
-    if needle.len() > hay.len() {
-        return None;
-    }
-    let max_pos = hay.len() - needle.len();
-    let start = hint.min(max_pos);
-    for pos in start..=max_pos {
-        if hay[pos..pos + needle.len()] == needle[..] {
-            return Some(pos);
+fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: bool) -> Option<usize> {
+    let last = hay.len().checked_sub(needle.len())?;
+    let start = hint.min(last);
+    let matches = |pos: usize| {
+        let slice = &hay[pos..pos + needle.len()];
+        if ignore_ws {
+            slice.iter().zip(needle).all(|(a, b)| a.split_whitespace().eq(b.split_whitespace()))
+        } else {
+            slice == needle
         }
-    }
-    for pos in 0..start {
-        if hay[pos..pos + needle.len()] == needle[..] {
-            return Some(pos);
+    };
+    if matches(start) { return Some(start); }
+    for distance in 1..=start.max(last - start) {
+        if distance <= last - start && matches(start + distance) {
+            return Some(start + distance);
+        }
+        if distance <= start && matches(start - distance) {
+            return Some(start - distance);
         }
     }
     None
@@ -7503,27 +7504,18 @@ fn find_subslice_pos_with_fuzz(
     ignore_ws: bool,
     fuzz: usize,
 ) -> Option<(usize, usize, usize, usize)> {
-    let norm = |s: &str| -> String {
-        if ignore_ws {
-            s.split_whitespace().collect::<Vec<_>>().join(" ")
-        } else {
-            s.to_string()
-        }
-    };
-    let n_norm: Vec<String> = needle.iter().map(|s| norm(s)).collect();
-    let h_norm: Vec<String> = hay.iter().map(|s| norm(s)).collect();
-    if let Some(pos) = find_subslice_pos(&h_norm, &n_norm, hint) {
+    if let Some(pos) = find_subslice_pos(hay, needle, hint, ignore_ws) {
         return Some((pos, 0, 0, 0));
     }
     let max_context = leading_ctx.max(trailing_ctx);
     for tol in 1..=fuzz.min(max_context) {
         let pf = (tol + leading_ctx).saturating_sub(max_context).min(leading_ctx);
         let sf = (tol + trailing_ctx).saturating_sub(max_context).min(trailing_ctx);
-        if pf + sf < n_norm.len() {
-            let trimmed = &n_norm[pf..n_norm.len() - sf];
-            if let Some(inner_pos) = find_subslice_pos(&h_norm, trimmed, hint + pf)
+        if pf + sf < needle.len() {
+            let trimmed = &needle[pf..needle.len() - sf];
+            if let Some(inner_pos) = find_subslice_pos(hay, trimmed, hint.saturating_add(pf), ignore_ws)
                 && inner_pos >= pf
-                && inner_pos + trimmed.len() + sf <= h_norm.len()
+                && inner_pos + trimmed.len() + sf <= hay.len()
             {
                 return Some((inner_pos - pf, tol, pf, sf));
             }

@@ -27,6 +27,7 @@ pub(in crate::commands::archive) struct RasterOptions<'a> {
     pub text_aa: bool,
     pub dpi: [f64; 2],
     pub scale: [i64; 3],
+    pub scale_before_rotation: bool,
     pub crop: [f64; 4],
     pub cropbox: bool,
     pub limit: usize,
@@ -823,7 +824,8 @@ impl PageSource<'_> {
         // pdftoppm sizes the unrotated page, then swaps the slice dimensions.
         // pdftocairo sizes the rotated page. Both use output-axis DPI when drawing.
         let splash = opt.backend == RasterBackend::Splash;
-        if quarter && !splash { boxpt.swap(0, 1); }
+        let rotate_slice = quarter && splash && !opt.scale_before_rotation;
+        if quarter && !rotate_slice { boxpt.swap(0, 1); }
         let [max, tx, ty] = opt.scale;
         let mut dpi = opt.dpi;
         let mut target = [tx, ty];
@@ -850,7 +852,7 @@ impl PageSource<'_> {
                 else { boxpt[i] * dpi[i] / 72. };
             pixels.ceil().max(1.) as usize
         });
-        if quarter && splash { size.swap(0, 1); }
+        if rotate_slice { size.swap(0, 1); }
         let [left, top, w, h] = crop(size[0], size[1], opt.crop);
         if w.checked_mul(h)? > opt.limit / 4 { return None; }
         let axis = |x: f64, y: f64| {

@@ -9503,6 +9503,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
     let mut progress = false;
     let mut dpi_x = 150.0f64;
     let mut dpi_y = 150.0f64;
+    let mut scale_before_rotation = false;
     let mut scale_to: Option<i64> = None;
     let mut scale_to_x: Option<i64> = None;
     let mut scale_to_y: Option<i64> = None;
@@ -9598,7 +9599,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             if is_cairo {
                 return ok_out("Usage: pdftocairo [options] <PDF-file> [<output-file>]\n  -png / -jpeg / -tiff / -ps / -eps / -pdf / -svg\n");
             }
-            return ok_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n  -png / -gray / -mono / -svg / -r <fp> / -rx <fp> / -ry <fp> / -f <int> / -l <int> / -singlefile / -x <int> / -y <int> / -W <int> / -H <int> / -cropbox\n");
+            return ok_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n  -png / -gray / -mono / -svg / -r <fp> / -rx <fp> / -ry <fp> / -f <int> / -l <int> / -singlefile / -x <int> / -y <int> / -W <int> / -H <int> / -cropbox / -scale-dimension-before-rotation\n");
         }
         match arg {
             "-png" => {
@@ -9686,6 +9687,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 dpi_y = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
                 i += 1;
             }
+            "-scale-dimension-before-rotation" if !is_cairo => scale_before_rotation = true,
             "-scale-to" => {
                 scale_to = args[i + 1].parse::<i64>().ok();
                 i += 1;
@@ -9981,6 +9983,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         tiff: (fmt == "TIFF").then_some((&tiff_compression, !is_cairo)),
         jpeg: (fmt == "JPEG").then_some((jpeg_quality, is_cairo && color_mode == "gray")),
         format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
+        scale_before_rotation,
         scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
         crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
     };
@@ -17221,6 +17224,8 @@ mod media_unit_tests {
             ("pdftoppm", 0, image, "-png -singlefile -rx 108 -ry 60", (24, 10), "17b18e5629e76147e11443ed69c6b28a865fa2f37cc3b5ee2a66eaedd625b87e"),
             ("pdftocairo", 90, triangle, "-png -singlefile -transp -rx 85 -ry 131 -cropbox -x 2 -y 1 -W 9 -H 10", (8, 10), "42c3c91a7092c91c517350d64e67b5bad14b4da0e467440e342853f4928baae6"),
             ("pdftoppm", 90, image, "-png -singlefile -rx 85 -ry 131 -cropbox -x 2 -y 1 -W 9 -H 10", (9, 10), "23ad3d283c45ebeb509a6c3705261fccbc38621b00fac06728995bacb1144b4d"),
+            ("pdftoppm", 90, image, "-png -singlefile -scale-dimension-before-rotation -scale-to-x 21 -scale-to-y 12", (21, 12), "9f8ef743cf3b5489b245fd55dcecd2fc3efb5462c7e58563c7fe3dcce68bd24a"),
+            ("pdftoppm", 270, image, "-png -singlefile -scale-dimension-before-rotation -cropbox -rx 85 -ry 131 -x 2 -y 1 -W 9 -H 10", (8, 10), "96c77006affb5e824bfe880b27ae3d8662b93eafffe37bac6d610953e451c1c2"),
             ("pdftocairo", 180, triangle, "-png -singlefile -transp -scale-to-x 21 -scale-to-y 12", (21, 12), "0ee0c6110fad0b115e6b5977cd5081b8e1dac9da29978de397b8375d9455bfc8"),
             ("pdftoppm", 180, image, "-png -singlefile -scale-to-x 21 -scale-to-y 12", (21, 12), "b0746518dd534667f57ecc2f513f8c656147aa1b5bc63a1265092581b7725291"),
             ("pdftocairo", 270, triangle, "-png -singlefile -transp -r 72", (12, 16), "4ac41784beceda861c8e78273dd7f67f5d34a85eee7d373247c9a78b6cb46120"),

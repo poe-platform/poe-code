@@ -11,7 +11,8 @@ import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
-import { charcoalEdgePixelSteps, charcoalPixelSteps } from "./charcoal-kernel.js";
+import { edgePixelSteps } from "./edge-kernel.js";
+import { charcoalPixelSteps } from "./charcoal-kernel.js";
 import { embossPixelSteps } from "./emboss-kernel.js";
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
@@ -4565,9 +4566,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-edge") {
-            i++;
+            const radius = Number(tokens[++i] ?? 0);
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickRasterSteps(im, convolvePixelSteps(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0), signal));
+                return (yield* applyMagickRasterSteps(im, edgePixelSteps(im, radius), signal));
             });
         }
         else if (t === "-emboss") {
@@ -4579,7 +4580,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-charcoal") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapSteps(stack, function* (im) {
-                const edges = yield* applyMagickRasterSteps(im, charcoalEdgePixelSteps(im, geometry.width ?? 0), signal, { ...im, hasAlpha: false });
+                const edges = yield* applyMagickRasterSteps(im, edgePixelSteps(im, geometry.width ?? 0), signal, { ...im, hasAlpha: false });
                 return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry), signal);
             });
         }
@@ -5581,10 +5582,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const edges = await transformStoredMagickRaster(image, backend, charcoalEdgePixelSteps(image, geometry.width ?? 0), signal, { ...image, hasAlpha: false });
+                const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps(image, geometry.width ?? 0), signal, { ...image, hasAlpha: false });
                 return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry), signal);
             });
-        } else if (!operandsOnly && ["-convolve", "-edge", "-sketch"].includes(token)) {
+        } else if (!operandsOnly && token === "-edge") {
+            const radius = Number(tokens[++i] ?? 0);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, edgePixelSteps(image, radius), signal) : undefined);
+        } else if (!operandsOnly && ["-convolve", "-sketch"].includes(token)) {
             const spec = tokens[++i] ?? "1", sketch = token === "-sketch";
             const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
             if (sketch) transform(() => ({ kind: "blur", sigma: 1 }));

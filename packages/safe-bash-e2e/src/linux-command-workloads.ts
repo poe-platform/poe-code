@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { userInfo } from "node:os";
+import { hostname, userInfo } from "node:os";
 import { spawn } from "node:child_process";
 import { chmod, lstat, mkdir, mkdtemp, readdir, readFile, readlink, rm, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -35,6 +35,7 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
     for (const view of views) {
       await view.mkdir("/workspace/samples", { recursive: true });
       await view.mkdir("/etc", { recursive: true });
+      await view.writeFile("/etc/hostname", Buffer.from(hostname() + "\n"));
       await view.writeFile("/etc/passwd", Buffer.from(`${username}:x:${uid}:${gid}::/:/bin/sh\n`));
     }
     for (const [name, line] of [["base", "base"], ["ours", "edited here"], ["theirs", "edited there"]]) {
@@ -91,7 +92,8 @@ const textCommands = ([
   ["du", "-b", "samples/base"], ["stat", "-c", "%n %s", "samples/theirs"], ["hd", "samples/ours"],
   ["zip", "-q", "-", "samples/base", "samples/ours", "sample.tar"], ["tar", "-xOf", "sample.tar", "samples/base"], ["unzip", "-p", "sample.zip", "samples/ours"],
   ["less", "samples/theirs"], ["tree", "-i", "--noreport", "samples"],
-  ["whoami", "-"],
+  ["whoami", "-"], ["hostname"], ["hostname", "-s"], ["hostname", "-F", "absent"], ["hostname", "--file="],
+  ["hostname", "--file=samples/base/../absent"],
   ["uname", "-so"], ["id", "-un", "0"], ["locale", "-ck", "decimal_point"],
   // Test the lower bound independently of the host processor count; sleep parses both units.
   ["nproc", "--ignore=1000000"], ["sleep", "0.0001s", "0m"],

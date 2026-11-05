@@ -10188,9 +10188,8 @@ fn cmd_whoami(
     ok_out(&format!("{resolved}\n"))
 }
 
-fn read_hostname_file_line(cwd: &str, file_path: &str, fs: &dyn SafeBashFs) -> Result<String, ()> {
-    let resolved = resolve_posix_path(cwd, file_path);
-    let bytes = fs.read_file(&resolved).map_err(|_| ())?;
+fn read_hostname_file_line(cwd: &str, file_path: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
+    let bytes = fs.read_file(&absolute_operand(cwd, file_path))?;
     let text = String::from_utf8_lossy(&bytes);
     for line in text.lines() {
         let stripped = line.split('#').next().unwrap_or("").trim();
@@ -10298,10 +10297,10 @@ fn cmd_hostname(
     if file_source.is_some() || operands.len() == 1 {
         let mut new_host = operands.first().cloned().unwrap_or_default();
         if let Some(ref src_path) = file_source {
-            let Ok(h) = read_hostname_file_line(cwd, src_path, fs) else {
-                return err_out(&format!("hostname: cannot open file '{src_path}'\n"), 1);
+            new_host = match read_hostname_file_line(cwd, src_path, fs) {
+                Ok(host) => host,
+                Err(error) => return err_out(&format!("hostname: {}\n", file_error_reason(&error)), 1),
             };
-            new_host = h;
         }
         let is_root = env.get("EUID").map(|s| s.as_str()) == Some("0")
             || env.get("UID").map(|s| s.as_str()) == Some("0")

@@ -1,4 +1,4 @@
-import { isFsError } from "safe-bash-contracts/errors";
+import { FsError, isFsError } from "safe-bash-contracts/errors";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -59,6 +59,7 @@ Packaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)
 `;
 
 async function readHostnameFile(context: CommandContext, filePath: string, maxBytes: number): Promise<string> {
+  if (!filePath) throw new FsError("ENOENT");
   const resolved = filePath.startsWith("/") ? filePath : (context.cwd.endsWith("/") ? context.cwd + filePath : context.cwd + "/" + filePath);
   const bytes = await context.fs.readFile(resolved, { signal: context.signal });
   context.signal.throwIfAborted();
@@ -222,8 +223,12 @@ export function createHostnameCommand(options: HostnameCommandsOptions = {}): Co
             newHost = await readHostnameFile(context, fileSource, limits.maxFileBytes);
           } catch (error) {
             context.signal.throwIfAborted();
-            if (!isFsError(error, "ENOENT") && !(error instanceof RangeError)) throw error;
-            await writeText(context.stderr, `hostname: cannot open file '${fileSource}'\n`);
+            let reason: string;
+            if (isFsError(error, "ENOENT")) reason = "No such file or directory";
+            else if (isFsError(error, "ENOTDIR")) reason = "Not a directory";
+            else if (error instanceof RangeError) reason = "hostname file exceeds size limit";
+            else throw error;
+            await writeText(context.stderr, `hostname: ${reason}\n`);
             return { exitCode: 1 };
           }
         }

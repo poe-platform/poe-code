@@ -8,6 +8,8 @@ import { CosRangeLexer } from "./lexer.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
 export interface ReadCosXrefOptions extends ParseCosRangeOptions {
+  /** Match qpdf: unknown xref entry types are null, and cannot supply a root. */
+  readonly xrefMode?: "qpdf";
   /** Maximum rows in this revision, including free entries. */
   readonly maxEntries?: number;
   readonly maxDecodedBytes?: number;
@@ -176,6 +178,7 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
         if (type === 0) yield { type: "free", objectNumber: start + i, nextFreeObjectNumber: field1, generationNumber: field2 };
         else if (type === 1) yield { type: "uncompressed", objectNumber: start + i, offset: field1, generationNumber: field2 };
         else if (type === 2) yield { type: "compressed", objectNumber: start + i, objectStreamNumber: field1, indexInStream: field2 };
+        else if (options.xrefMode === "qpdf") yield { type: "free", objectNumber: start + i, generationNumber: 0 };
         else throw new PdfError("E_PARSE", `Invalid XRef entry type: ${type}`);
         if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
       }

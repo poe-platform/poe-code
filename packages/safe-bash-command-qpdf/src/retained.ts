@@ -181,7 +181,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
     }
     try {
-      document ??= await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", onWarning, ...(options.password === undefined ? {} : { password: options.password }) });
+      document ??= await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", xref: { xrefMode: "qpdf" }, onWarning, ...(options.password === undefined ? {} : { password: options.password }) });
     } catch (error) {
       signal.throwIfAborted();
       if (options.showEncryption && !options.check && !options.showNpages && error instanceof PdfPasswordError) {
@@ -191,6 +191,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error instanceof PdfPasswordError ? "invalid password" : error.message}\n`);
     }
+    const root = await document.lookup(document.crossReference.rootRef);
+    if (root?.value.kind !== "dict") return await diagnostic(`qpdf: ${inputName}: unable to find /Root dictionary\n`);
     if (options.updateFromJsonFiles.length) {
       jsonDocument = await QpdfJsonDocument.fromDocument(document, source, storage, { signal });
       for (const path of options.updateFromJsonFiles) {

@@ -1196,7 +1196,7 @@ function* executeQpdfCli(
       }
     } else {
       try {
-        baseDoc = (yield* PdfDocument.loadSteps(raw, { onWarning, ...(password !== undefined ? { password } : {}) }));
+        baseDoc = (yield* PdfDocument.loadSteps(raw, { xrefMode: "qpdf", onWarning, ...(password !== undefined ? { password } : {}) }));
       } catch (error) {
         if (showEncryption && !check && !showNpages && error instanceof PdfPasswordError) {
           return { exitCode: 0, stdout: encryptionReport(error), stderr: "" };
@@ -1204,7 +1204,7 @@ function* executeQpdfCli(
         try {
           baseDoc = (yield* PdfDocument.loadSteps(raw, {
             ...(password !== undefined ? { password } : {}),
-            onWarning, recovery: "repair"
+            onWarning, recovery: "repair", xrefMode: "qpdf"
           }));
           onWarning("Recovered damaged PDF");
         } catch (err) {
@@ -1216,6 +1216,10 @@ function* executeQpdfCli(
         }
       }
     }
+  }
+
+  if (!baseDoc.cos.resolveDict(baseDoc.cos.rootRef)) {
+    return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile}: unable to find /Root dictionary\n` };
   }
 
   if (updateFromJsonFiles.length > 0) {

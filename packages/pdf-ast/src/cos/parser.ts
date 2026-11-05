@@ -21,6 +21,8 @@ import { CosByteLexer, type CosToken } from "./lexer.js";
 import { authenticateStandardEncryption, decryptCosDocumentSteps } from "./security.js";
 
 export interface ParseCosOptions {
+  /** Match qpdf: unknown xref entry types are null, and cannot supply a root. */
+  readonly xrefMode?: "qpdf";
   /** Report tolerated syntax damage without changing recovery behavior. */
   readonly onWarning?: ((message: string) => void) | undefined;
   readonly password?: string | undefined;
@@ -333,7 +335,7 @@ function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursi
   };
 }
 
-function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number, onWarning?: ParseCosOptions["onWarning"]): Generator<void, PdfRevision, void> {
+function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number, onWarning?: ParseCosOptions["onWarning"], xrefMode?: ParseCosOptions["xrefMode"]): Generator<void, PdfRevision, void> {
   yield;
   let work = 0;
 
@@ -498,6 +500,8 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
           objectStreamNumber: field1,
           indexInStream: field2,
         });
+      } else if (xrefMode === "qpdf") {
+        entries.set(objNum, { type: "free", objectNumber: objNum, generationNumber: 0 });
       } else {
         throw new PdfError("E_PARSE", `Invalid XRef entry type: ${field0}`);
       }
@@ -702,7 +706,7 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
       if (++work % 16 === 0) yield;
 
           visitedOffsets.add(currentXrefOffset);
-          const rev: PdfRevision = (yield* parseXrefRevisionAtSteps(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects, options.onWarning));
+          const rev: PdfRevision = (yield* parseXrefRevisionAtSteps(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects, options.onWarning, options.xrefMode));
           revisions.push(rev);
           for (const [num, entry] of rev.entries.entries()) {
       if (++work % 16 === 0) yield;
@@ -735,6 +739,11 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
         }
       }
     }
+  }
+
+  if (options.xrefMode === "qpdf" && !useRepair && rootRef) {
+    const rootEntry = mergedXref.get(rootRef.objectNumber);
+    if (!rootEntry || rootEntry.type === "free") throw new PdfError("E_PARSE", "unable to find /Root dictionary");
   }
 
   const declaredSize = revisions[0] && dictGet(revisions[0].trailer, "Size");

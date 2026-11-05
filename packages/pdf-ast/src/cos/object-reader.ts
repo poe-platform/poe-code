@@ -377,7 +377,7 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
     // A syntactically readable xref can still name a non-catalog root. Recover
     // unencrypted inputs before trusting that root, as the buffered scan does.
     // Encrypted compressed roots require authentication before inspection.
-    if (!repaired && options.recovery === "repair" && !crossReference.encryptNode) {
+    if (!repaired && options.xref?.xrefMode !== "qpdf" && options.recovery === "repair" && !crossReference.encryptNode) {
       let valid = false;
       try {
         const root = await reader.get(crossReference.rootRef.objectNumber, crossReference.rootRef.generationNumber);

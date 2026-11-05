@@ -1360,8 +1360,9 @@ export function matchGlob(str: string, pattern: string): boolean {
 }
 
 // --- Date/Time Helpers ---
-function parseSqliteDateTime(args: SqlValue[]): Date | null {
+function parseSqliteDateTime(args: SqlValue[]): { date: Date; seconds: number } | null {
   let d: Date;
+  let seconds: number | undefined;
   const first = args[0];
   let modStart = 1;
   if (first === undefined || first === null) {
@@ -1391,6 +1392,25 @@ function parseSqliteDateTime(args: SqlValue[]): Date | null {
       str = `${str.replace(" ", "T")}Z`;
     }
     d = new Date(str);
+    if (str[16] === ":" && str[19] === ".") {
+      let fraction = 0;
+      let scale = 1;
+      let i = 20;
+      for (; i < str.length && str[i]! >= "0" && str[i]! <= "9"; i += 1) {
+        fraction = fraction * 10 + str.charCodeAt(i) - 48;
+        scale *= 10;
+      }
+      const wholeSeconds = Number(str.slice(17, 19));
+      seconds = wholeSeconds + Math.min(fraction / scale, 0.999);
+      // Match SQLite's parseHhMmSs/computeJD: cap the fraction, then round
+      // seconds and fraction together (their floating-point sum matters).
+      const milliseconds = Math.trunc(seconds * 1000 + 0.5);
+      d.setUTCMilliseconds(milliseconds - wholeSeconds * 1000);
+      // A nonzero timezone makes SQLite recompute HMS from integer milliseconds.
+      if ((str[i] === "+" || str[i] === "-") && Number(str.slice(i + 1).replace(":", "")) !== 0) {
+        seconds = undefined;
+      }
+    }
   }
   if (Number.isNaN(d.getTime())) {
     return null;
@@ -1404,6 +1424,7 @@ function parseSqliteDateTime(args: SqlValue[]): Date | null {
     if (modRaw === "unixepoch") {
       continue;
     }
+    seconds = undefined;
     if (modRaw === "start of day") {
       d.setUTCHours(0, 0, 0, 0);
       continue;
@@ -1445,7 +1466,7 @@ function parseSqliteDateTime(args: SqlValue[]): Date | null {
       }
     }
   }
-  return d;
+  return { date: d, seconds: seconds ?? d.getUTCSeconds() + d.getUTCMilliseconds() / 1000 };
 }
 
 function pad2(n: number): string {
@@ -1456,14 +1477,13 @@ function pad4(n: number): string {
   return String(n).padStart(4, "0");
 }
 
-function formatStrftime(fmt: string, d: Date): string {
+function formatStrftime(fmt: string, { date: d, seconds }: { date: Date; seconds: number }): string {
   const Y = d.getUTCFullYear();
   const m = d.getUTCMonth() + 1;
   const day = d.getUTCDate();
   const H = d.getUTCHours();
   const M = d.getUTCMinutes();
   const S = d.getUTCSeconds();
-  const ms = d.getUTCMilliseconds();
   const startOfYear = Date.UTC(Y, 0, 1);
   const doy = Math.floor((d.getTime() - startOfYear) / 86400000) + 1;
   const dow = d.getUTCDay();
@@ -1484,7 +1504,7 @@ function formatStrftime(fmt: string, d: Date): string {
       case "%S":
         return pad2(S);
       case "%f":
-        return `${pad2(S)}.${String(ms).padStart(3, "0")}`;
+        return seconds.toFixed(3).padStart(6, "0");
       case "%j":
         return String(doy).padStart(3, "0");
       case "%w":
@@ -8140,11 +8160,11 @@ export class SqliteDatabase {
       }
       case "JULIANDAY": {
         const d = parseSqliteDateTime(args.length === 0 ? ["now"] : args);
-        return d ? d.getTime() / 86400000 + 2440587.5 : null;
+        return d ? d.date.getTime() / 86400000 + 2440587.5 : null;
       }
       case "UNIXEPOCH": {
         const d = parseSqliteDateTime(args.length === 0 ? ["now"] : args);
-        return d ? Math.floor(d.getTime() / 1000) : null;
+        return d ? Math.floor(d.date.getTime() / 1000) : null;
       }
       case "STRFTIME": {
         if (a0 === null) {

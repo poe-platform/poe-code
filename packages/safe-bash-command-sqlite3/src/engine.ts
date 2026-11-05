@@ -5847,6 +5847,20 @@ export class SqliteDatabase {
           source.shared = new Set([...(source.shared ?? []), ...shared]);
         }
       }
+      const collationTables: Record<string, Record<string, SqlValue>> = {};
+      for (const source of schema) {
+        if (source.table) {
+          const row: Record<string, SqlValue> = {};
+          this.rowTables.set(row, source.table);
+          collationTables[source.tableAlias] = row;
+        }
+      }
+      const collationContext = {
+        __tables: collationTables,
+        __sources: Object.values(collationTables)
+      } as unknown as Record<string, SqlValue>;
+      const usingCollations = new Map(usingList?.map(name => [name,
+        this.expressionCollation({ kind: "column", name }, collationContext)]));
       const rightMatched = new Set<number>();
 
       // Build O(1) hash index when joining on column equality (ON a.k = b.k or USING (k))
@@ -5856,6 +5870,7 @@ export class SqliteDatabase {
         rightTable: string | undefined;
         rightCol: string;
         isPureSingleEqui: boolean;
+        collation: string;
       } | undefined;
       const rightAliasLower = resolved.alias.toLowerCase();
       const rightColSet = new Set(resolved.columns.map((c) => c.toLowerCase()));
@@ -5887,6 +5902,7 @@ export class SqliteDatabase {
               leftCol: expr.left.name,
               rightTable: expr.right.table ?? resolved.alias,
               rightCol: expr.right.name,
+              collation: this.expressionCollation(expr.left, collationContext),
               isPureSingleEqui: topLevel
             };
           } else if (sideA === "right" && sideB === "left") {
@@ -5895,6 +5911,7 @@ export class SqliteDatabase {
               leftCol: expr.right.name,
               rightTable: expr.left.table ?? resolved.alias,
               rightCol: expr.left.name,
+              collation: this.expressionCollation(expr.left, collationContext),
               isPureSingleEqui: topLevel
             };
           }
@@ -5913,6 +5930,7 @@ export class SqliteDatabase {
             leftCol: usingList[0]!,
             rightTable: resolved.alias,
             rightCol: usingList[0]!,
+            collation: usingCollations.get(usingList[0]!)!,
             isPureSingleEqui: usingList.length === 1
           };
         }
@@ -5924,12 +5942,18 @@ export class SqliteDatabase {
           return ["num:" + String(Object.is(val, -0) ? 0 : val)];
         }
         if (typeof val === "string") {
+          let text = val;
+          const collation = equiJoinSpec?.collation.toUpperCase();
+          if (collation === "NOCASE") text = foldAsciiCase(text);
+          if (collation === "RTRIM") {
+            while (text.endsWith(" ")) text = text.slice(0, -1);
+          }
           const trimmed = val.trim();
           const num = trimmed !== "" ? Number(trimmed) : NaN;
           if (!Number.isNaN(num)) {
-            return ["str:" + val, "num:" + String(Object.is(num, -0) ? 0 : num)];
+            return ["str:" + text, "num:" + String(Object.is(num, -0) ? 0 : num)];
           }
-          return ["str:" + val];
+          return ["str:" + text];
         }
         return ["other:" + String(val)];
       };
@@ -5993,7 +6017,7 @@ export class SqliteDatabase {
 
           if (equiJoinSpec) {
             const rVal = this.lookupColInRow(rightRow, equiJoinSpec.rightTable, equiJoinSpec.rightCol);
-            if (leftEquiVal === null || rVal === null || !sqlEquals(leftEquiVal, rVal)) {
+            if (leftEquiVal === null || rVal === null || !sqlEquals(leftEquiVal, rVal, equiJoinSpec.collation)) {
               continue;
             }
           }
@@ -6052,7 +6076,7 @@ export class SqliteDatabase {
               yield;
               const lVal = this.lookupColInRow(leftRow, undefined, uCol);
               const rVal = this.lookupColInRow(rightRow, resolved.alias, uCol);
-              if (lVal === null || rVal === null || !sqlEquals(lVal, rVal)) {
+              if (lVal === null || rVal === null || !sqlEquals(lVal, rVal, usingCollations.get(uCol))) {
                 matches = false;
                 break;
               }
@@ -7393,12 +7417,8 @@ export class SqliteDatabase {
           }
           return 0;
         }
-        const collation =
-          expr.left.kind === "collate"
-            ? expr.left.collation
-            : expr.right.kind === "collate"
-              ? expr.right.collation
-              : "BINARY";
+        const collation = this.expressionCollation(expr, row,
+          this.expressionCollation(expr.left, row, this.expressionCollation(expr.right, row)));
         let l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
         if (expr.op === "IS" || expr.op === "IS NOT") {
           let right = expr.right;

@@ -1166,15 +1166,36 @@ for (const ending of ["INSERT INTO t VALUES(1);", "", "COMMIT;"]) {
   });
 }
 
-test("sqlite3 sync exit rolls back unfinished transactions before persistence", () => {
-  const files = new Map<string, Uint8Array>();
-  const read = (path: string) => files.get(path);
-  const write = (path: string, bytes: Uint8Array) => { files.set(path, bytes); return true; };
-  assert.equal(evalSyncSqlite3(undefined, ["/db",
-    "CREATE TABLE t(x); INSERT INTO t VALUES(1); BEGIN; INSERT INTO t VALUES(2);"
-  ], read, write), "");
-  assert.equal(evalSyncSqlite3(undefined, ["/db", "SELECT x FROM t ORDER BY x;"], read, write), "1\n");
-});
+for (const [ending, expected] of [
+  ["", "1\n"],
+  ["ROLLBACK TO s; INSERT INTO t VALUES(3);", "1\n"],
+  ["SAVEPOINT nested; INSERT INTO t VALUES(3); RELEASE nested;", "1\n"],
+  ["RELEASE s;", "1\n2\n"],
+  ["SAVEPOINT nested; RELEASE s;", "1\n2\n"],
+  ["COMMIT;", "1\n2\n"],
+  ["ROLLBACK; INSERT INTO t VALUES(3);", "1\n3\n"]
+]) {
+  test(`sqlite3 exit preserves committed savepoint rows: ${ending || "open savepoint"}`, async () => {
+    const fs = createMemoryFileSystem();
+    const result = await runSqlite3(fs, ["/db", `CREATE TABLE t(x INT);
+      INSERT INTO t VALUES(1); SAVEPOINT s; INSERT INTO t VALUES(2); ${ending}`]);
+    assert.deepEqual(result, { code: 0, stdout: "", stderr: "" });
+    assert.deepEqual(await runSqlite3(fs, ["/db", "SELECT x FROM t ORDER BY x;"]),
+      { code: 0, stdout: expected, stderr: "" });
+  });
+}
+
+for (const begin of ["BEGIN", "SAVEPOINT s"]) {
+  test(`sqlite3 sync exit rolls back unfinished ${begin} before persistence`, () => {
+    const files = new Map<string, Uint8Array>();
+    const read = (path: string) => files.get(path);
+    const write = (path: string, bytes: Uint8Array) => { files.set(path, bytes); return true; };
+    assert.equal(evalSyncSqlite3(undefined, ["/db",
+      `CREATE TABLE t(x); INSERT INTO t VALUES(1); ${begin}; INSERT INTO t VALUES(2);`
+    ], read, write), "");
+    assert.equal(evalSyncSqlite3(undefined, ["/db", "SELECT x FROM t ORDER BY x;"], read, write), "1\n");
+  });
+}
 
 test("sqlite3 sync persists comment and CTE mutations", () => {
   const files = new Map<string, Uint8Array>();

@@ -1709,7 +1709,9 @@ export class SqliteDatabase {
   public lastInsertRowid = 0;
   public lastChanges = 0;
   public totalChanges = 0;
-  public inTransaction = false;
+  public get inTransaction(): boolean {
+    return this.txSnapshot !== null || this.savepoints.size > 0;
+  }
   private foreignKeyDepth = 0;
   private outerRows: Record<string, SqlValue>[] = [];
   private preparing = false;
@@ -2185,13 +2187,11 @@ export class SqliteDatabase {
     if (first === "BEGIN") {
       if (!this.inTransaction) {
         this.txSnapshot = yield* this.captureSnapshot();
-        this.inTransaction = true;
       }
       return null;
     }
 
     if (first === "COMMIT" || first === "END") {
-      this.inTransaction = false;
       this.txSnapshot = null;
       this.savepoints.clear();
       return null;
@@ -2214,10 +2214,10 @@ export class SqliteDatabase {
         yield* this.restoreSnapshot(snap);
         return null;
       }
-      if (this.txSnapshot) {
-        yield* this.restoreSnapshot(this.txSnapshot);
+      const snapshot = this.txSnapshot ?? this.savepoints.values().next().value;
+      if (snapshot) {
+        yield* this.restoreSnapshot(snapshot);
       }
-      this.inTransaction = false;
       this.txSnapshot = null;
       this.savepoints.clear();
       return null;
@@ -2232,7 +2232,11 @@ export class SqliteDatabase {
     if (first === "RELEASE") {
       const spIdx = tokens[1]?.value.toUpperCase() === "SAVEPOINT" ? 2 : 1;
       const spName = (tokens[spIdx]?.value ?? "").toLowerCase();
-      this.savepoints.delete(spName);
+      let releasing = false;
+      for (const name of this.savepoints.keys()) {
+        if (name === spName) releasing = true;
+        if (releasing) this.savepoints.delete(name);
+      }
       return null;
     }
 
@@ -2303,7 +2307,6 @@ export class SqliteDatabase {
         }
         if (rollbackSnapshot && error instanceof SqliteConstraintError && error.message !== "FOREIGN KEY constraint failed") {
           yield* this.restoreSnapshot(rollbackSnapshot);
-          this.inTransaction = false;
           this.txSnapshot = null;
           this.savepoints.clear();
         } else if (snapshot && !(failOnConflict && error instanceof SqliteConstraintError && error.message !== "FOREIGN KEY constraint failed")) {
@@ -7360,10 +7363,10 @@ export class SqliteDatabase {
               )
             : mode;
           if (mode === "ROLLBACK" && this.inTransaction) {
-            if (this.txSnapshot) {
-              yield* this.restoreSnapshot(this.txSnapshot);
+            const snapshot = this.txSnapshot ?? this.savepoints.values().next().value;
+            if (snapshot) {
+              yield* this.restoreSnapshot(snapshot);
             }
-            this.inTransaction = false;
             this.txSnapshot = null;
             this.savepoints.clear();
           }

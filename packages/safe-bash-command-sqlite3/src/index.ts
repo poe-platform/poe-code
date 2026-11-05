@@ -90,6 +90,7 @@ export type Sqlite3Options = Sqlite3CommandsOptions;
 type OutputMode = QueryOutputOptions["mode"];
 
 interface CliSessionState extends QueryOutputOptions {
+  headersExplicit: boolean;
   bail: boolean;
   echo: boolean;
   changes: boolean;
@@ -127,8 +128,11 @@ function setOutputMode(state: CliSessionState, mode: string, argument?: string):
       state.colSeparator = ",";
       state.rowSeparator = "\n";
       break;
-    case "line":
     case "column":
+      if (!state.headersExplicit) state.showHeaders = true;
+      state.rowSeparator = "\n";
+      break;
+    case "line":
       state.rowSeparator = "\n";
       break;
     case "insert":
@@ -369,6 +373,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       mode: "list",
       insertTable: "table",
       showHeaders: false,
+      headersExplicit: false,
       colSeparator: "|",
       rowSeparator: "\n",
       nullValue: "",
@@ -478,9 +483,11 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         state.colSeparator = "\x1f";
         state.rowSeparator = "\x1e";
       } else if (arg === "-header" || arg === "--header") {
+        state.headersExplicit = true;
         state.showHeaders = true;
       } else if (arg === "-noheader" || arg === "--noheader") {
         state.showHeaders = false;
+        state.headersExplicit = true;
       } else if (arg === "-bail" || arg === "--bail") {
         state.bail = true;
       } else if (arg === "-echo" || arg === "--echo") {
@@ -695,6 +702,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
       if (cmd === ".headers" || cmd === ".header") {
         const val = (parts[1] ?? "on").toLowerCase();
+        state.headersExplicit = true;
         state.showHeaders = val === "on" || val === "1" || val === "true" || val === "yes";
         return;
       }
@@ -1306,6 +1314,7 @@ export function evalSyncSqlite3(
       mode: "list",
       insertTable: "table",
       showHeaders: false,
+      headersExplicit: false,
       colSeparator: "|",
       rowSeparator: "\n",
       nullValue: "",
@@ -1372,9 +1381,11 @@ export function evalSyncSqlite3(
         state.colSeparator = "\x1f";
         state.rowSeparator = "\x1e";
       } else if (arg === "-header" || arg === "--header") {
+        state.headersExplicit = true;
         state.showHeaders = true;
       } else if (arg === "-noheader" || arg === "--noheader") {
         state.showHeaders = false;
+        state.headersExplicit = true;
       } else if (arg === "-bail" || arg === "--bail") {
         state.bail = true;
       } else if (arg === "-echo" || arg === "--echo") {
@@ -1448,6 +1459,7 @@ export function evalSyncSqlite3(
       }
       if (cmd === ".headers" || cmd === ".header") {
         const val = (parts[1] ?? "on").toLowerCase();
+        state.headersExplicit = true;
         state.showHeaders = val === "on" || val === "1" || val === "true" || val === "yes";
         return true;
       }

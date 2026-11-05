@@ -4,6 +4,21 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const { name, args, input, stdout } of [
+  { name: "dot mode defaults to headers", args: [":memory:"], input: ".mode column\nSELECT 1 AS x;", stdout: "x\n-\n1\n" },
+  { name: "startup flag defaults to no headers", args: ["-column", ":memory:"], input: "SELECT 1 AS x;", stdout: "1\n" },
+  { name: "headers off before dot mode", args: [":memory:"], input: ".headers off\n.mode column\nSELECT 1 AS x;", stdout: "1\n" },
+  { name: "headers off after dot mode", args: [":memory:"], input: ".mode column\n.headers off\nSELECT 1 AS x;", stdout: "1\n" },
+  { name: "startup noheader before dot mode", args: ["-noheader", ":memory:"], input: ".mode column\nSELECT 1 AS x;", stdout: "1\n" }
+]) {
+  test(`sqlite3 column ${name}`, async () => {
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), args, input), {
+      code: 0, stdout, stderr: ""
+    });
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(input), args), stdout);
+  });
+}
+
 test("sqlite3 preserves unaliased expression spelling in JSON and headers", async () => {
   const expressions = "typeof(1), abs(-2), length('abc'), 1+2, json_array(1,2), 1  +/*keep*/ 2";
   const row = { "typeof(1)": "integer", "abs(-2)": 2, "length('abc')": 3,

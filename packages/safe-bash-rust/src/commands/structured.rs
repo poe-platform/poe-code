@@ -26,6 +26,7 @@ mod mdq_order;
 use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Target as MdqTarget};
 mod mdq_writer;
 mod pandoc_plain_table;
+mod pandoc_list;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
 mod json_format;
@@ -30130,8 +30131,8 @@ impl PandocAttr {
 enum PandocBlock {
     Header(usize, String, Vec<PandocInline>),
     Para(Vec<PandocInline>),
-    BulletList(Vec<(Option<bool>, Vec<PandocInline>)>),
-    OrderedList(Vec<Vec<PandocInline>>),
+    Plain(Vec<PandocInline>),
+    List(Option<pandoc_list::Numbering>, Vec<Vec<PandocBlock>>),
     BlockQuote(Vec<PandocBlock>),
     CodeBlock(PandocAttr, String),
     Table(Vec<String>, Vec<Vec<String>>, Option<Vec<std::fmt::Alignment>>),
@@ -30283,7 +30284,8 @@ fn strip_html_comments(input: &str) -> String {
 #[derive(Clone, Copy, PartialEq)]
 enum PandocPipeTables { Disabled, CommonMark, Markdown }
 
-fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocPipeTables) -> Vec<PandocBlock> {
+fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocPipeTables, depth: usize, tasks: bool) -> Option<Vec<PandocBlock>> {
+    if depth > 64 { return None; }
     let cleaned = if strip_comments {
         strip_html_comments(input)
     } else {
@@ -30356,7 +30358,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
             blocks.push(PandocBlock::CodeBlock(PandocAttr { classes, ..Default::default() }, code));
             continue;
         }
-        if trimmed == "---" || trimmed == "***" || trimmed == "___" {
+        if mdq_thematic_break(line) {
             blocks.push(PandocBlock::HorizontalRule);
             i += 1;
             continue;
@@ -30412,48 +30414,12 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
             blocks.push(PandocBlock::BlockQuote(parse_pandoc_markdown(
                 &q_lines.join("\n"),
                 strip_comments,
-                pipe_tables,
-            )));
+                pipe_tables, depth + 1, tasks,
+            )?));
             continue;
         }
-        if trimmed.starts_with("- ") || trimmed.starts_with("* ") {
-            let mut items = Vec::new();
-            while i < lines.len() {
-                let lt = lines[i].trim();
-                if let Some(rest) = lt.strip_prefix("- ").or_else(|| lt.strip_prefix("* ")) {
-                    if let Some(task) = rest.strip_prefix("[x] ").or_else(|| rest.strip_prefix("[X] ")) {
-                        items.push((Some(true), parse_pandoc_md_inlines(task)));
-                    } else if let Some(task) = rest.strip_prefix("[ ] ") {
-                        items.push((Some(false), parse_pandoc_md_inlines(task)));
-                    } else {
-                        items.push((None, parse_pandoc_md_inlines(rest)));
-                    }
-                    i += 1;
-                } else {
-                    break;
-                }
-            }
-            blocks.push(PandocBlock::BulletList(items));
-            continue;
-        }
-        if trimmed
-            .split_once(". ")
-            .is_some_and(|(num, _)| !num.is_empty() && num.chars().all(|c| c.is_ascii_digit()))
-        {
-            let mut items = Vec::new();
-            while i < lines.len() {
-                let lt = lines[i].trim();
-                if let Some((num, rest)) = lt.split_once(". ")
-                    && !num.is_empty()
-                    && num.chars().all(|c| c.is_ascii_digit())
-                {
-                    items.push(parse_pandoc_md_inlines(rest.trim()));
-                    i += 1;
-                } else {
-                    break;
-                }
-            }
-            blocks.push(PandocBlock::OrderedList(items));
+        if let Some((marker, start, _)) = mdq_list_marker(line) {
+            blocks.push(pandoc_list::read(&lines, &mut i, (marker, start), strip_comments, pipe_tables, depth, tasks)?);
             continue;
         }
         let mut p_lines = vec![trimmed];
@@ -30463,8 +30429,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
             if lt.is_empty()
                 || !lines[i].starts_with("    ") && (heading(lt).is_some()
                     || mdq_fence(lines[i]).is_some()
-                    || lt.starts_with("- ")
-                    || lt.starts_with("* ")
+                    || mdq_list_marker(lines[i]).is_some_and(|(_, n, text)| !text.is_empty() && matches!(n, None | Some(1)))
                     || lt.starts_with("> ")
                     || lt == "---")
             {
@@ -30475,7 +30440,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
         }
         blocks.push(PandocBlock::Para(parse_pandoc_md_inlines(&p_lines.join(" "))));
     }
-    blocks
+    Some(blocks)
 }
 
 fn parse_pandoc_html_inlines(html: &str) -> Vec<PandocInline> {
@@ -30564,19 +30529,17 @@ fn parse_pandoc_html(input: &str) -> Vec<PandocBlock> {
                     };
                     let lrest = &lafter[lgt + 1..];
                     if let Some(lend) = lrest.to_ascii_lowercase().find("</li>") {
-                        items.push(parse_pandoc_html_inlines(&lrest[..lend]));
+                        items.push(vec![PandocBlock::Plain(parse_pandoc_html_inlines(&lrest[..lend]))]);
                         lscan = &lrest[lend + 5..];
                     } else {
                         break;
                     }
                 }
-                if tag_name == "ol" {
-                    blocks.push(PandocBlock::OrderedList(items));
-                } else {
-                    blocks.push(PandocBlock::BulletList(
-                        items.into_iter().map(|it| (None, it)).collect(),
-                    ));
-                }
+                let numbering = (tag_name == "ol").then(|| pandoc_list::Numbering {
+                    start: extract_xml_attr(&after[..=gt], "start").and_then(|s| s.parse().ok()).unwrap_or(1),
+                    style: "DefaultStyle".into(), delimiter: "DefaultDelim".into(),
+                });
+                blocks.push(PandocBlock::List(numbering, items));
                 scan = &rest[end_pos + close_tag.len()..];
                 continue;
             }
@@ -30590,7 +30553,7 @@ fn parse_pandoc_html(input: &str) -> Vec<PandocBlock> {
     blocks
 }
 
-fn parse_pandoc_latex(input: &str) -> Vec<PandocBlock> {
+fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
     let mut md_lines = Vec::new();
     for line in input.lines() {
         let mut s = line.trim().to_string();
@@ -30632,10 +30595,10 @@ fn parse_pandoc_latex(input: &str) -> Vec<PandocBlock> {
         }
         md_lines.push(s);
     }
-    parse_pandoc_markdown(&md_lines.join("\n"), false, PandocPipeTables::Markdown)
+    parse_pandoc_markdown(&md_lines.join("\n"), false, PandocPipeTables::Markdown, 0, true)
 }
 
-fn parse_pandoc_rtf(input: &str) -> Vec<PandocBlock> {
+fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
     let mut s = input.to_string();
     while let Some(pos) = s.find("{\\b ") {
         let after = &s[pos + 4..];
@@ -30673,7 +30636,7 @@ fn parse_pandoc_rtf(input: &str) -> Vec<PandocBlock> {
             i += 1;
         }
     }
-    parse_pandoc_markdown(&cleaned, false, PandocPipeTables::Markdown)
+    parse_pandoc_markdown(&cleaned, false, PandocPipeTables::Markdown, 0, true)
 }
 
 fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
@@ -30750,9 +30713,9 @@ fn pandoc_blocks_to_json(blocks: &[PandocBlock]) -> JVal {
                     ),
                 ]));
             }
-            PandocBlock::Para(inlines) => {
+            PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
                 b_arr.push(JVal::Object(vec![
-                    ("t".to_string(), JVal::Str("Para".to_string())),
+                    ("t".to_string(), JVal::Str(if matches!(b, PandocBlock::Plain(_)) { "Plain" } else { "Para" }.into())),
                     ("c".to_string(), pandoc_inlines_to_json(inlines)),
                 ]));
             }
@@ -30765,7 +30728,15 @@ fn pandoc_blocks_to_json(blocks: &[PandocBlock]) -> JVal {
                 ("c".into(), pandoc_blocks_to_json(children)),
             ])),
             PandocBlock::HorizontalRule => b_arr.push(JVal::Object(vec![("t".into(), JVal::Str("HorizontalRule".into()))])),
-            _ => {}
+            PandocBlock::List(numbering, items) => {
+                let items = JVal::Array(items.iter().map(|item| pandoc_blocks_to_json(item)).collect());
+                let (tag, content) = match numbering {
+                    Some(n) => ("OrderedList", JVal::Array(vec![n.json(), items])),
+                    None => ("BulletList", items),
+                };
+                b_arr.push(JVal::Object(vec![("t".into(), JVal::Str(tag.into())), ("c".into(), content)]));
+            }
+            PandocBlock::Table(..) => {}
         }
     }
     JVal::Array(b_arr)
@@ -30851,6 +30822,16 @@ fn parse_pandoc_json_blocks(blocks: &[JVal]) -> Vec<PandocBlock> {
             };
             if t == "HorizontalRule" {
                 out.push(PandocBlock::HorizontalRule);
+            } else if t == "OrderedList" || t == "BulletList" {
+                let Some(JVal::Array(c)) = jval_obj_get(m, "c") else { continue };
+                let (numbering, items) = if t == "OrderedList" {
+                    let [JVal::Array(attributes), JVal::Array(items)] = c.as_slice() else { continue };
+                    let Some(n) = pandoc_list::Numbering::from_json(attributes) else { continue };
+                    (Some(n), items)
+                } else { (None, c) };
+                if let Some(items) = items.iter().map(|item| match item {
+                    JVal::Array(children) => Some(parse_pandoc_json_blocks(children)), _ => None,
+                }).collect::<Option<Vec<_>>>() { out.push(PandocBlock::List(numbering, items)); }
             } else if t == "BlockQuote" {
                 if let Some(JVal::Array(children)) = jval_obj_get(m, "c") {
                     out.push(PandocBlock::BlockQuote(parse_pandoc_json_blocks(children)));
@@ -30876,7 +30857,8 @@ fn parse_pandoc_json_blocks(blocks: &[JVal]) -> Vec<PandocBlock> {
                 }
             } else if t == "Para" || t == "Plain" {
                 if let Some(c) = jval_obj_get(m, "c") {
-                    out.push(PandocBlock::Para(parse_pandoc_json_inlines(c)));
+                    let content = parse_pandoc_json_inlines(c);
+                    out.push(if t == "Para" { PandocBlock::Para(content) } else { PandocBlock::Plain(content) });
                 }
             }
         }
@@ -30996,30 +30978,27 @@ fn render_pandoc_html(
                     render_pandoc_inlines_html(inlines, ascii)
                 ));
             }
-            PandocBlock::BulletList(items) => {
-                body.push_str("<ul>\n");
-                for (task, inlines) in items {
-                    let prefix = match task {
-                        Some(true) => "<input type=\"checkbox\" checked=\"\" />",
-                        Some(false) => "<input type=\"checkbox\" />",
-                        None => "",
-                    };
-                    body.push_str(&format!(
-                        "<li>{prefix}{}</li>\n",
-                        render_pandoc_inlines_html(inlines, ascii)
-                    ));
-                }
-                body.push_str("</ul>\n");
+            PandocBlock::Plain(inlines) => {
+                body.push_str(&render_pandoc_inlines_html(inlines, ascii)); body.push('\n');
             }
-            PandocBlock::OrderedList(items) => {
-                body.push_str("<ol>\n");
-                for inlines in items {
-                    body.push_str(&format!(
-                        "<li>{}</li>\n",
-                        render_pandoc_inlines_html(inlines, ascii)
-                    ));
+            PandocBlock::List(numbering, items) => {
+                let tag = if numbering.is_some() { "ol" } else { "ul" };
+                body.push('<'); body.push_str(tag);
+                if let Some(n) = numbering {
+                    if n.start != 1 { body.push_str(&format!(" start=\"{}\"", n.start)); }
+                    if let Some(t) = n.html_type() { body.push_str(&format!(" type=\"{t}\"")); }
                 }
-                body.push_str("</ol>\n");
+                body.push_str(">\n");
+                for item in items {
+                    let value = render_pandoc_html(item, false, false, false, ascii, "", "", "", "");
+                    let value = value.strip_suffix('\n').unwrap_or(&value);
+                    body.push_str("<li>");
+                    if let Some(s) = value.strip_prefix("☒ ") { body.push_str("<label><input type=\"checkbox\" checked=\"\" />"); body.push_str(s); body.push_str("</label>"); }
+                    else if let Some(s) = value.strip_prefix("☐ ") { body.push_str("<label><input type=\"checkbox\" />"); body.push_str(s); body.push_str("</label>"); }
+                    else { body.push_str(value); }
+                    body.push_str("</li>\n");
+                }
+                body.push_str(&format!("</{tag}>\n"));
             }
             PandocBlock::BlockQuote(inner) => {
                 let inner_html = render_pandoc_html(inner, false, false, false, ascii, "", "", "", "");
@@ -31109,27 +31088,12 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String
             PandocBlock::Header(lvl, _, inlines) => {
                 parts.push(format!("{} {}", "#".repeat(*lvl), render_pandoc_inlines_md(inlines, bracket_links)));
             }
-            PandocBlock::Para(inlines) => {
+            PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
                 parts.push(render_pandoc_inlines_md(inlines, bracket_links));
             }
-            PandocBlock::BulletList(items) => {
-                let mut lines = Vec::new();
-                for (task, inlines) in items {
-                    let prefix = match task {
-                        Some(true) => "- [x] ",
-                        Some(false) => "- [ ] ",
-                        None => "- ",
-                    };
-                    lines.push(format!("{prefix}{}", render_pandoc_inlines_md(inlines, bracket_links)));
-                }
-                parts.push(lines.join("\n"));
-            }
-            PandocBlock::OrderedList(items) => {
-                let mut lines = Vec::new();
-                for (idx, inlines) in items.iter().enumerate() {
-                    lines.push(format!("{}. {}", idx + 1, render_pandoc_inlines_md(inlines, bracket_links)));
-                }
-                parts.push(lines.join("\n"));
+            PandocBlock::List(numbering, items) => {
+                parts.push(pandoc_list::text(numbering.as_ref(), items, true, usize::MAX,
+                    |item, _| Some(render_pandoc_markdown(item, bracket_links))).unwrap());
             }
             PandocBlock::Table(headers, rows, align) => {
                 let row = |cells: &[String]| format!("| {} |", cells.iter().map(|c| c.replace('|', "\\|")).collect::<Vec<_>>().join(" | "));
@@ -31160,7 +31124,12 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String
     if parts.is_empty() {
         String::new()
     } else {
-        format!("{}\n", parts.join("\n\n"))
+        let mut out = String::new();
+        for (i, part) in parts.iter().enumerate() {
+            if i > 0 { out.push_str(if matches!(blocks[i - 1], PandocBlock::Plain(_)) { "\n" } else { "\n\n" }); }
+            out.push_str(part);
+        }
+        out.push('\n'); out
     }
 }
 
@@ -31174,25 +31143,13 @@ fn render_pandoc_plain(blocks: &[PandocBlock], mut limit: usize) -> Option<Strin
         out
     }
     let mut out = String::new();
+    let mut after_plain = false;
     for b in blocks {
         let part = match b {
-            PandocBlock::Header(_, _, inlines) | PandocBlock::Para(inlines) => {
+            PandocBlock::Header(_, _, inlines) | PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
                 inlines_plain_text(inlines)
             }
-            PandocBlock::OrderedList(items) => {
-                let mut lines = Vec::new();
-                for (idx, inlines) in items.iter().enumerate() {
-                    lines.push(format!("{}.  {}", idx + 1, inlines_plain_text(inlines)));
-                }
-                lines.join("\n")
-            }
-            PandocBlock::BulletList(items) => {
-                let mut lines = Vec::new();
-                for (_, inlines) in items {
-                    lines.push(format!("- {}", inlines_plain_text(inlines)));
-                }
-                lines.join("\n")
-            }
+            PandocBlock::List(numbering, items) => pandoc_list::text(numbering.as_ref(), items, false, limit, render_pandoc_plain)?,
             PandocBlock::HorizontalRule => {
                 "-".repeat(72)
             }
@@ -31208,7 +31165,11 @@ fn render_pandoc_plain(blocks: &[PandocBlock], mut limit: usize) -> Option<Strin
             }
         };
         if part.is_empty() { continue; }
-        if !out.is_empty() { limit = limit.checked_sub(2)?; out.push_str("\n\n"); }
+        if !out.is_empty() {
+            let sep = if after_plain { "\n" } else { "\n\n" };
+            limit = limit.checked_sub(sep.len())?; out.push_str(sep);
+        }
+        after_plain = matches!(b, PandocBlock::Plain(_));
         limit = limit.checked_sub(part.len())?;
         out.push_str(&part);
     }
@@ -31228,7 +31189,7 @@ fn render_pandoc_rst(blocks: &[PandocBlock]) -> String {
                 };
                 parts.push(format!("{text}\n{}", ch.to_string().repeat(text.chars().count().max(3))));
             }
-            PandocBlock::Para(inlines) => {
+            PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
                 let mut out = String::new();
                 for inl in inlines {
                     match inl {
@@ -31275,7 +31236,7 @@ fn render_pandoc_latex(blocks: &[PandocBlock]) -> String {
                 };
                 parts.push(format!("\\{cmd}{{{}}}", render_pandoc_inlines_latex(inlines)));
             }
-            PandocBlock::Para(inlines) => {
+            PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
                 parts.push(render_pandoc_inlines_latex(inlines));
             }
             _ => {}
@@ -31308,7 +31269,7 @@ fn render_pandoc_rtf(blocks: &[PandocBlock]) -> String {
             PandocBlock::Header(_, _, inlines) => {
                 out.push_str(&format!("{{\\pard\\b {}\\par}}\n", render_pandoc_inlines_rtf(inlines)));
             }
-            PandocBlock::Para(inlines) => {
+            PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
                 out.push_str(&format!("{{\\pard {}\\par}}\n", render_pandoc_inlines_rtf(inlines)));
             }
             _ => {}
@@ -31790,10 +31751,10 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     };
 
     let input_from_html = matches!(in_fmt.as_str(), "html" | "html5");
-    let mut blocks: Vec<PandocBlock> = match in_fmt.as_str() {
+    let Some(mut blocks) = (|| Some(match in_fmt.as_str() {
         "html" | "html5" => parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes)),
-        "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes)),
-        "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes)),
+        "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes))?,
+        "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes))?,
         "json" => parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)),
         "csv" | "tsv" => {
             let delim = if in_fmt == "tsv" { '\t' } else { ',' };
@@ -31829,7 +31790,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "docx" | "odt" | "epub" | "epub3" => {
             let entries = read_office_archive(&raw_bytes);
             if let Some(md_bytes) = entries.get("__pandoc_source.md") {
-                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown)
+                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, true)?
             } else if let Some(doc_xml) = entries.get("word/document.xml") {
                 parse_pandoc_html(&String::from_utf8_lossy(doc_xml))
             } else if let Some(content_xml) = entries.get("content.xml") {
@@ -31837,25 +31798,30 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
                 parse_pandoc_html(&String::from_utf8_lossy(ch_xml))
             } else {
-                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown)
+                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown, 0, true)?
             }
         }
         _ => {
-            let mut pipe_tables = !matches!(in_fmt.as_str(), "commonmark" | "markdown_strict");
-            if let Some(format) = &from_fmt {
-                for (i, sign) in format.match_indices(['+', '-']) {
-                    if format[i + 1..].split(['+', '-']).next() == Some("pipe_tables") {
-                        pipe_tables = sign == "+";
-                        if pipe_tables { break; }
+            let extension = |name: &str| {
+                let mut enabled = !matches!(in_fmt.as_str(), "commonmark" | "markdown_strict");
+                if let Some(format) = &from_fmt {
+                    for (i, sign) in format.match_indices(['+', '-']) {
+                        if format[i + 1..].split(['+', '-']).next() == Some(name) {
+                            enabled = sign == "+";
+                            if enabled { break; }
+                        }
                     }
                 }
-            }
+                enabled
+            };
+            let tasks = extension("task_lists");
+            let pipe_tables = extension("pipe_tables");
             let tables = if !pipe_tables { PandocPipeTables::Disabled }
                 else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { PandocPipeTables::CommonMark }
                 else { PandocPipeTables::Markdown };
-            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, tables)
+            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, tables, 0, tasks)?
         }
-    };
+    }))() else { return err_out("pandoc: document nesting limit exceeded\n", 1) };
 
     if shift_heading != 0 {
         for b in &mut blocks {
@@ -35652,6 +35618,39 @@ mod tests {
         assert_eq!(run("json"), wire);
         assert_eq!(run("html"), "<p><a href=\"/a\" id=\"link\" title=\"a &quot;title&quot;\"><code id=\"sample\" class=\"foo\">x</code></a> <del>old</del></p>\n");
         assert_eq!(run("plain"), "x ~~old~~\n");
+    }
+
+    #[test]
+    fn pandoc_lists_preserve_block_items_and_numbering_in_both_directions() {
+        let vfs = MemoryVfs::new();
+        let source = r#"3) one
+   - inner
+4) two
+
+   more
+"#;
+        let json = r#"{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"OrderedList","c":[[3,{"t":"Decimal"},{"t":"OneParen"}],[[{"t":"Para","c":[{"t":"Str","c":"one"}]},{"t":"BulletList","c":[[{"t":"Plain","c":[{"t":"Str","c":"inner"}]}]]}],[{"t":"Para","c":[{"t":"Str","c":"two"}]},{"t":"Para","c":[{"t":"Str","c":"more"}]}]]]}]}
+"#;
+        let run = |from, to, input| cmd_pandoc(&args(&["-f", from, "-t", to, "--wrap=none"]), input, "/", &vfs).stdout;
+        assert_eq!(run("gfm", "json", source), json);
+        assert_eq!(run("json", "json", json), json);
+        assert_eq!(run("json", "plain", json), r#"3)  one
+
+    - inner
+
+4)  two
+
+    more
+"#);
+        assert_eq!(run("json", "html", json), r#"<ol start="3" type="1">
+<li><p>one</p>
+<ul>
+<li>inner</li>
+</ul></li>
+<li><p>two</p>
+<p>more</p></li>
+</ol>
+"#);
     }
 
     #[test]

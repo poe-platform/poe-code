@@ -932,6 +932,39 @@ it("negative maps match input, subtitle, absolute and typed stream indices in or
   assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.type), ["video", "audio"]);
 });
 
+describe("HLS omit_endlist", () => {
+  for (const [flags, omit] of [
+    [[], false],
+    [["omit_endlist"], true],
+    [["+omit_endlist"], true],
+    [["delete_segments+omit_endlist"], true],
+    [["omit_endlist-omit_endlist"], false],
+    [["omit_endlist", "+delete_segments"], true],
+    [["omit_endlist", "delete_segments"], false],
+    [["omit_endlist", "-omit_endlist"], false]
+  ] as const) {
+    it(`matches native playlist for flags ${JSON.stringify(flags)}`, async () => {
+      const doc = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 2, includeAudio: false }));
+      const input = serializeMp4({ ...doc, tracks: doc.tracks.map(track => ({
+        ...track, samples: track.samples.map(sample => ({ ...sample, isKeyframe: true }))
+      })) });
+      const vfs = createTestVfs({ "/input.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.mp4", "-c", "copy", "-hls_time", "1",
+        ...flags.flatMap(flag => ["-hls_flags", flag]), "-hls_segment_filename", "/out%d.ts", "-f", "hls", "/out.m3u8"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), [
+        "#EXTM3U", "#EXT-X-VERSION:3", "#EXT-X-TARGETDURATION:1", "#EXT-X-MEDIA-SEQUENCE:0",
+        "#EXTINF:1.000000,", "out0.ts", "#EXTINF:1.000000,", "out1.ts",
+        ...(omit ? [] : ["#EXT-X-ENDLIST"]), ""
+      ].join("\n"));
+      for (const path of ["/out0.ts", "/out1.ts"]) assert.ok(vfs.store.get(path)?.byteLength);
+    });
+  }
+});
+
 describe("HLS playlist windows", () => {
   for (const [seconds, size, first] of [[5, "2", 3], [5, undefined, 0], [7, undefined, 2], [7, "0", 0], [5, "10", 0], [5, "1", 4]] as const) {
     it(`retains the final window for ${seconds} segments and size ${size ?? "default"}`, async () => {

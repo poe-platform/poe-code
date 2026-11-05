@@ -1455,6 +1455,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let hlsTime = 2;
       let hlsListSize = 5;
       let hlsDeleteSegments = false;
+      let hlsOmitEndlist = false;
       let hlsDeleteThreshold = 1;
       let hlsSegmentFilename: string | undefined;
       let hlsSegmentType: string | undefined;
@@ -1506,10 +1507,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
         } else if (arg === "-hls_flags") {
           const value = args[++i] ?? "";
-          if (!value.startsWith("+") && !value.startsWith("-")) hlsDeleteSegments = false;
+          if (!value.startsWith("+") && !value.startsWith("-")) {
+            hlsDeleteSegments = false;
+            hlsOmitEndlist = false;
+          }
           for (const flag of value.replaceAll("-", "+-").split("+")) {
             if (flag === "delete_segments") hlsDeleteSegments = true;
             if (flag === "-delete_segments") hlsDeleteSegments = false;
+            if (flag === "omit_endlist") hlsOmitEndlist = true;
+            if (flag === "-omit_endlist") hlsOmitEndlist = false;
           }
         } else if (arg === "-hls_delete_threshold") {
           const value = args[++i];
@@ -2529,7 +2535,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           }
 
-          playlistLines.push("#EXT-X-ENDLIST", "");
+          if (!hlsOmitEndlist) playlistLines.push("#EXT-X-ENDLIST");
+          playlistLines.push("");
           const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
           await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
           await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));

@@ -4116,7 +4116,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return (yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3));
             };
         }
-        else { apply = function* (im) { yield; return im; }; }
+        else { throw new Error(`Unsupported alpha mode: ${mode}`); }
     } else if (token === "-color-matrix" || token === "-recolor") {
         const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);

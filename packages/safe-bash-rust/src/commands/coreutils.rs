@@ -5904,8 +5904,7 @@ fn split_bc_top_stmts(s: &str) -> Vec<String> {
     let mut pdepth = 0i32;
     let mut bdepth = 0i32;
     let mut in_quote = false;
-    let chars: Vec<char> = s.chars().collect();
-    for (idx, &ch) in chars.iter().enumerate() {
+    for (idx, ch) in s.char_indices() {
         if ch == '"' {
             in_quote = !in_quote;
             cur.push(ch);
@@ -5932,8 +5931,7 @@ fn split_bc_top_stmts(s: &str) -> Vec<String> {
                 bdepth -= 1;
                 cur.push(ch);
                 if pdepth == 0 && bdepth == 0 {
-                    let rest: String = chars[idx + 1..].iter().collect();
-                    if rest.trim_start().starts_with("else") {
+                    if s[idx + 1..].trim_start().starts_with("else") {
                         continue;
                     }
                     let t = cur.trim();
@@ -5944,8 +5942,7 @@ fn split_bc_top_stmts(s: &str) -> Vec<String> {
                 }
             }
             ';' | '\n' if pdepth == 0 && bdepth == 0 => {
-                let rest: String = chars[idx + 1..].iter().collect();
-                if rest.trim_start().starts_with("else") && cur.trim_start().starts_with("if") {
+                if cur.trim_start().starts_with("if") && s[idx + 1..].trim_start().starts_with("else") {
                     cur.push(' ');
                     continue;
                 }

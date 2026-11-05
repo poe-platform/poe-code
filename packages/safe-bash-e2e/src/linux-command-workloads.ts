@@ -95,6 +95,7 @@ scale=4
 print "# /* */: ", 1 /* a multiline
 comment */ / 8, "\n" # trailing comment
 ` },
+    { cmd: "bc", args: ["-q"], script: "bc -q", input: '"é"\nx=0\n' + "x=x+1\n".repeat(2048) + "if(x==2048) { x } else { 0 }\n" },
     // Independent ready nodes sort by raw name bytes even with a mixture of UTF-8 and invalid bytes.
     { cmd: "tsort", args: [], script: "tsort", input: Buffer.from("c3a920c3a9207a207a20ff20ff2080208020412041", "hex") },
   ];

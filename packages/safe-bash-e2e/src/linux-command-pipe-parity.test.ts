@@ -13,7 +13,7 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
   try {
     cwd = await createLinuxCommandDirectory(ts.fs, rust.fs);
     for (const { cmd, args, script, input } of linuxCommands("alpha\nbeta\nbeta\n")) {
-      await t.test(cmd, async t => {
+      await t.test(script, async t => {
         if (cmd === "git") {
           if (!supportsHostPlugins) return t.skip("The Git plugin needs WebAssembly Promise Integration");
           ts.shell.use(gitCommands());

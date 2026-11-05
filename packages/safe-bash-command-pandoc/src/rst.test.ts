@@ -58,10 +58,57 @@ it("parses nested bullet and enumerated lists with continuation paragraphs", asy
   expect(doc.blocks[0].c[0]?.map(b => b.t)).toEqual(["Para", "Para", "OrderedList"]);
   expect(doc.blocks[1]?.t === "OrderedList" && doc.blocks[1].c[0]).toEqual([1, "LowerAlpha", "TwoParens"]);
 });
+it.each(["* Alpha\n* Beta\n", "* Alpha\n\n* Beta\n"])("compacts simple RST list items: %j", async source => {
+  expect((await read(source)).blocks).toEqual([{t: "BulletList", c: [
+    [{t: "Plain", c: [str("Alpha")]}], [{t: "Plain", c: [str("Beta")]}]
+  ]}]);
+});
+it.each([
+  ["#.", "#.", 1, "DefaultStyle", "DefaultDelim"],
+  ["#)", "#)", 1, "DefaultStyle", "OneParen"],
+  ["(#)", "(#)", 1, "DefaultStyle", "TwoParens"],
+  ["3.", "#.", 3, "Decimal", "Period"]
+])("preserves tight enumerated list attributes for %s", async (first, second, start, style, delim) => {
+  const result = await json(`${first} First\n${second} Second\n`);
+  expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([
+    {t: "OrderedList", c: [[start, {t: style}, {t: delim}], [
+      [{t: "Plain", c: [str("First")]}], [{t: "Plain", c: [str("Second")]}]
+    ]]}
+  ]);
+});
+it("keeps all outer list paragraphs loose when an item has multiple paragraphs", async () => {
+  expect((await read("* first\n\n  continuation\n\n* second\n")).blocks).toEqual([
+    {t: "BulletList", c: [[para("first"), para("continuation")], [para("second")]]}
+  ]);
+});
+it("compacts a paragraph followed by a nested list independently", async () => {
+  expect((await read("* parent\n\n  * child\n\n* sibling\n")).blocks).toEqual([
+    {t: "BulletList", c: [[{t: "Plain", c: [str("parent")]},
+      {t: "BulletList", c: [[{t: "Plain", c: [str("child")]}]]}],
+    [{t: "Plain", c: [str("sibling")]}]]}
+  ]);
+});
+it("compacts a sole final paragraph after a non-paragraph block", async () => {
+  expect((await read("* ::\n\n    literal\n\n  final\n")).blocks).toEqual([
+    {t: "BulletList", c: [[{t: "CodeBlock", c: [["", [], []], "literal"]}, {t: "Plain", c: [str("final")]}]]}
+  ]);
+});
+it.each(["* Alpha\n* Beta\n", "#. Alpha\n#. Beta\n"])("renders tight list items without paragraph wrappers through the command: %j", async source => {
+  const stdout: Uint8Array[] = [];
+  expect(await createStandalonePandocCommand().execute({
+    args: ["-f", "rst", "-t", "html"], stdin: [bytes(source)],
+    stdout: {write: async chunk => {stdout.push(chunk);}}, stderr: {write: async () => {}},
+    signal: new AbortController().signal
+  })).toEqual({exitCode: 0});
+  const html = new TextDecoder().decode(Buffer.concat(stdout));
+  expect(html).toContain("<li>Alpha</li>");
+  expect(html).toContain("<li>Beta</li>");
+  expect(html).not.toContain("<p>");
+});
 it("uses the content column for variable list marker spacing", async () => {
   const doc = await read("*   first\n    continuation\n\n10.   numbered\n      continuation");
-  expect(doc.blocks[0]?.t === "BulletList" && doc.blocks[0].c[0]?.map(b => b.t)).toEqual(["Para"]);
-  expect(doc.blocks[1]?.t === "OrderedList" && doc.blocks[1].c[1][0]?.map(b => b.t)).toEqual(["Para"]);
+  expect(doc.blocks[0]?.t === "BulletList" && doc.blocks[0].c[0]?.map(b => b.t)).toEqual(["Plain"]);
+  expect(doc.blocks[1]?.t === "OrderedList" && doc.blocks[1].c[1][0]?.map(b => b.t)).toEqual(["Plain"]);
 });
 it("maps definition and multiline field lists without losing descriptions", async () => {
   const doc = await read("term : classifier\n  meaning\n\nother\n  explanation\n\n:author: Ada\n:detail:\n  first\n\n  second");

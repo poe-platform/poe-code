@@ -370,9 +370,21 @@ class RstReader {
           const end = this.indented(lines, i + 1);
           const continuation = lines.slice(i + 1, end);
           if (continuation.some(l => l.text.trim() && indent(l.text) < m.width)) rstError(this.context, first, "List continuation indentation is too small");
-          items.push(await this.blocks([sliceLine(first, m.width), ...continuation.map(l => sliceLine(l, Math.min(m.width, l.text.length)))], depth + 1)); i = end;
+          const item = await this.blocks([sliceLine(first, m.width), ...continuation.map(l => sliceLine(l, Math.min(m.width, l.text.length)))], depth + 1);
+          if (item[0]?.t === "Para" && (item.length === 1 || item.length === 2 && ["BulletList", "OrderedList", "DefinitionList"].includes(item[1]!.t))) item[0] = {t: "Plain", c: item[0].c};
+          items.push(item); i = end;
         }
-        out.push(marker.bullet ? {t: "BulletList", c: items} : {t: "OrderedList", c: [[marker.start, marker.style, marker.delim], items]}); continue;
+        // Match Pandoc's compactify: a sole final paragraph can be plain;
+        // otherwise any remaining paragraph makes the whole list loose.
+        const paragraphs = items.reduce((count, item) => count + item.filter(b => b.t === "Para").length, 0);
+        const last = items.at(-1)!, final = last.at(-1);
+        if (paragraphs === 1 && final?.t === "Para") last[last.length - 1] = {t: "Plain", c: final.c};
+        else if (paragraphs) for (const item of items) for (let j = 0; j < item.length; j++) {
+          const block = item[j]!;
+          if (block.t === "Plain") item[j] = {t: "Para", c: block.c};
+        }
+        const delim = marker.style === "DefaultStyle" && marker.delim === "Period" ? "DefaultDelim" : marker.delim;
+        out.push(marker.bullet ? {t: "BulletList", c: items} : {t: "OrderedList", c: [[marker.start, marker.style, delim], items]}); continue;
       }
       const f = field(text);
       if (f) {

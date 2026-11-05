@@ -4,18 +4,18 @@ import {nativeDivBlocks} from "./html.js";
 import { parseDocument } from "yaml";
 import { filterGfmHtml } from "./gfm-syntax.js";
 import type { Block, Row, Inline, MetaValue } from "./ast-types.js";
-function toMetaValue(val: unknown): MetaValue | undefined {
-  if (typeof val === "string") return { t: "MetaString", c: val };
+function toMetaValue(val: unknown, stringValue: (value: string) => MetaValue): MetaValue | undefined {
+  if (typeof val === "string") return stringValue(val);
   if (typeof val === "number") return { t: "MetaString", c: String(val) };
   if (typeof val === "boolean") return { t: "MetaBool", c: val };
   if (Array.isArray(val)) {
-    const items = val.map(toMetaValue).filter((x): x is MetaValue => x !== undefined);
+    const items = val.map(value => toMetaValue(value, stringValue)).filter((x): x is MetaValue => x !== undefined);
     return { t: "MetaList", c: items };
   }
   if (val && typeof val === "object") {
     const map: Record<string, MetaValue> = {};
     for (const [k, v] of Object.entries(val)) {
-      const mv = toMetaValue(v);
+      const mv = toMetaValue(v, stringValue);
       if (mv !== undefined) map[k] = mv;
     }
     return { t: "MetaMap", c: map };
@@ -29,14 +29,15 @@ import { decodeSyntax, fencedDivAttributes } from "./commonmark-syntax.js";
 
 /** Resident YAML frontmatter semantics; the retained reader uses caller-backed
  * composition and conversion with matching metadata behavior. */
-export function parseCommonMarkMetadata(text: string, metadata: Record<string, MetaValue>): boolean {
+export function parseCommonMarkMetadata(text: string, metadata: Record<string, MetaValue>,
+  stringValue: (value: string) => MetaValue = c => ({t: "MetaString", c})): boolean {
   try {
     const doc = parseDocument(text);
     if (doc.errors.length) return false;
     const value = doc.toJS({maxAliasCount: 32});
     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
     for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
-      const converted = toMetaValue(entry); if (converted !== undefined) metadata[key] = converted;
+      const converted = toMetaValue(entry, stringValue); if (converted !== undefined) metadata[key] = converted;
     }
     return true;
   } catch {return false;}
@@ -61,9 +62,16 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
   }
   const fmMatch = /^---[ \t]*\r?\n((?:[A-Za-z_][A-Za-z0-9_-]*[ \t]*:[^\r\n]*\r?\n|[ \t]+[^\r\n]*\r?\n)+)(?:---|\.\.\.)[ \t]*\r?\n(?=\s*\S)/.exec(text);
   if (fmMatch) {
-    if (parseCommonMarkMetadata(fmMatch[1]!, metadata)) text = text.slice(fmMatch[0].length);
+    const strings: {text: string; value: {t: "MetaInlines"; c: readonly Inline[]}}[] = [];
+    if (parseCommonMarkMetadata(fmMatch[1]!, metadata, text => {
+      const value: {t: "MetaInlines"; c: readonly Inline[]} = {t: "MetaInlines", c: []};
+      strings.push({text, value}); return value;
+    })) text = text.slice(fmMatch[0].length);
+    for (const entry of strings) entry.value.c = await parseCommonMarkInlines({kind: "pendingInline",
+      lines: entry.text.split("\n").map((text, index) => ({text: text.trim(), start: {line: index + 1, column: 1}}))}, [], context, extensions);
   }
   extensions = {...extensions, citations: extensions.citations ?? (metadata.bibliography !== undefined || metadata.references !== undefined)};
+  const identifiers = new Set<string>();
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
   const notes = new Map<string, Extract<PendingBlock, {kind: "footnote"}>>();
   function collect(blocks: readonly PendingBlock[], depth: number) {
@@ -71,7 +79,6 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
     for (const block of blocks) {
       context.checkpoint();
       if (block.kind === "footnote" && !notes.has(block.label)) {
-  const identifiers = new Set<string>();
         context.bound("references", notes.size + 1);
         context.charge("retainedBytes", block.label.length * 2 + 48);
         notes.set(block.label, block);

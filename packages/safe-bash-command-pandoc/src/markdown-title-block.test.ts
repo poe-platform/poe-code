@@ -32,7 +32,7 @@ for (const retained of [false, true]) {
   it(`combines title and YAML metadata (retained=${retained})`, async () => {
     const document = JSON.parse(await render("% Title\n---\nsubject: Example\n---\nBody."));
     expect(document.meta.title.c).toEqual([{t: "Str", c: "Title"}]);
-    expect(document.meta.subject).toEqual({t: "MetaString", c: "Example"});
+    expect(document.meta.subject).toEqual({t: "MetaInlines", c: [{t: "Str", c: "Example"}]});
   });
   it(`preserves disabled and noninitial percent lines (retained=${retained})`, async () => {
     for (const from of ["markdown-pandoc_title_block", "commonmark", "gfm"]) {

@@ -140,7 +140,11 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
         }), end: range.end};
         if (await ast.count(authors)) await ast.push(title, await ast.value(["author", await ast.tag("MetaList", authors)]));
         const envelope = await frontmatter(source, range, context);
-        const metadata = await readRetainedYamlMetadata(source, envelope?.yaml, tape, wireStore, units => context.cooperate(units));
+        const metadata = await readRetainedYamlMetadata(source, envelope?.yaml, tape, wireStore, units => context.cooperate(units), async (chunks, target) => {
+          const range = await source.trim(await source.append(chunks));
+          const inlines = await parseRetainedCommonMarkInlines(new RetainedCommonMarkSyntax(source, range, context), tape, ast, context, extensions);
+          await ast.write(await ast.tag("MetaInlines", inlines), target);
+        });
         if (envelope && metadata.parsed) range = {start: envelope.end, end: range.end};
         const parser = new RetainedCommonMarkBlocks(source, tape, context, inputs[readerIndex]!.base, extensions); await parser.parse(range);
         const blocks = await assembleRetainedCommonMark(parser, ast, tape, context, {...extensions,

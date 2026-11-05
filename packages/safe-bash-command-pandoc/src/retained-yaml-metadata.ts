@@ -12,7 +12,8 @@ import {AstError} from "./errors.js";
  * a later value is cyclic. Source graphs, order indexes, work and results stay
  * in separate caller-backed arenas; no complete JS metadata object is built. */
 export async function readRetainedYamlMetadata(source: RetainedSourceText, range: SourceRange | undefined,
-  scratch: PagedStorage, output: PagedStorage, cooperate: (units?: number) => Promise<void>) {
+  scratch: PagedStorage, output: PagedStorage, cooperate: (units?: number) => Promise<void>,
+  writeString?: (chunks: AsyncIterable<string>, target: BackedJson) => Promise<void>) {
   const graph = new RetainedYamlValues(scratch, cooperate), text = graph.text;
   const put = async (ref: number, fields: number[]) => {
     const bytes = new Uint8Array(fields.length * 8), view = new DataView(bytes.buffer);
@@ -80,7 +81,10 @@ export async function readRetainedYamlMetadata(source: RetainedSourceText, range
         await push(0, value!); continue;
       }
       const node = await graph.get(a!);
-      if (node.kind === "string") await primitive("MetaString", node.text!);
+      if (node.kind === "string") {
+        if (writeString) await writeString(text.chunks(node.text!), tree);
+        else await primitive("MetaString", node.text!);
+      }
       else if (node.kind === "number") await primitive("MetaString", String(node.value));
       else if (node.kind === "boolean") await primitive("MetaBool", !!node.value);
       else {

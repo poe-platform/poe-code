@@ -70,6 +70,8 @@ The `markdown` and `md` readers parse superscripts (`x^2^`) and subscripts
 constructs must be escaped with a backslash.
 The `markdown` and `md` readers parse leading `%` title, author, and date lines
 into metadata; disable with `-f markdown-pandoc_title_block`.
+YAML front matter strings become `MetaInlines`, preserving Markdown formatting
+such as emphasis, strong text, and code, including inside lists and maps.
 The `markdown` and `md` readers turn standalone images with nonempty alt text into
 figures, using the alt text as the caption. Disable this with `-f markdown-implicit_figures`.
 Markdown output keeps table captions attached using `: Caption` after the table, preserving inline formatting. Disable this with `-t markdown-table_captions`.

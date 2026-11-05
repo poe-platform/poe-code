@@ -1454,6 +1454,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let audioChannels: number | undefined;
       let hlsTime = 2;
       let hlsListSize = 5;
+      let hlsDeleteSegments = false;
+      let hlsDeleteThreshold = 1;
       let hlsSegmentFilename: string | undefined;
       let hlsSegmentType: string | undefined;
       let stripAudio = false;
@@ -1503,7 +1505,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             return { exitCode: 1 };
           }
         } else if (arg === "-hls_flags") {
-          i++;
+          const value = args[++i] ?? "";
+          if (!value.startsWith("+") && !value.startsWith("-")) hlsDeleteSegments = false;
+          for (const flag of value.replaceAll("-", "+-").split("+")) {
+            if (flag === "delete_segments") hlsDeleteSegments = true;
+            if (flag === "-delete_segments") hlsDeleteSegments = false;
+          }
+        } else if (arg === "-hls_delete_threshold") {
+          const value = args[++i];
+          hlsDeleteThreshold = value?.trim() ? Number(value) : NaN;
+          if (!Number.isSafeInteger(hlsDeleteThreshold) || hlsDeleteThreshold < 1) {
+            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_delete_threshold\n"), context.signal);
+            return { exitCode: 1 };
+          }
         } else if (arg === "-map_chapters") {
           const value = args[++i];
           chapterSource = value?.trim() ? Number(value) : NaN;
@@ -2467,6 +2481,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             `#EXT-X-MEDIA-SEQUENCE:${firstSegment}`
           ];
 
+          const retainedSegments: { path: string; duration: number }[] = [];
           for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
             const st = boundaries[sIdx]!;
             const en = boundaries[sIdx + 1]!;
@@ -2492,6 +2507,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
             await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
             if (sIdx >= firstSegment) playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
+            if (hlsDeleteSegments && hlsListSize > 0) {
+              retainedSegments.push({ path: fullSegPath, duration: actualDur });
+              const expiredCount = retainedSegments.length - hlsListSize;
+              if (expiredCount > 0) {
+                // FFmpeg retains expired segments until either the count threshold or
+                // one playlist duration plus the newest expired segment is reached.
+                const playlistDuration = boundaries[sIdx + 1]! - boundaries[sIdx + 1 - hlsListSize]!;
+                const retentionDuration = playlistDuration + retainedSegments[expiredCount - 1]!.duration;
+                let duration = 0;
+                let count = 0;
+                for (let i = expiredCount - 1; i >= 0; i--) {
+                  duration += retainedSegments[i]!.duration;
+                  count++;
+                  if (count >= hlsDeleteThreshold || duration >= retentionDuration) break;
+                }
+                for (const segment of retainedSegments.splice(0, expiredCount - count)) {
+                  await context.fs.rm(segment.path, { signal: context.signal });
+                }
+              }
+            }
           }
 
           playlistLines.push("#EXT-X-ENDLIST", "");

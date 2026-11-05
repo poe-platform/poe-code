@@ -184,6 +184,9 @@ function createTestVfs(initialFiles: Record<string, Uint8Array | string> = {}) {
         const key = path.startsWith("/") ? path : `/${path}`;
         store.set(key, data);
       },
+      async rm(path: string) {
+        store.delete(path);
+      },
       async stat(path: string) {
         const key = path.startsWith("/") ? path : `/${path}`;
         const val = store.get(key);
@@ -963,6 +966,48 @@ describe("HLS playlist windows", () => {
       assert.ok(result.stderr.includes("hls_list_size"), result.stderr);
       assert.deepEqual([...vfs.store.keys()], ["/out.m3u8"]);
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), "original");
+    });
+  }
+});
+
+describe("HLS expired segment deletion", () => {
+  for (const value of ["0", "-1", "1.5", "invalid"]) {
+    it(`rejects invalid deletion threshold ${value} without changing output`, async () => {
+      const vfs = createTestVfs({ "/out.m3u8": "original" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-hls_delete_threshold", value, "/out.m3u8"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("invalid hls_delete_threshold"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), "original");
+    });
+  }
+  // Native FFmpeg: five one-second segments, rolling playlists, and retained files.
+  for (const [name, options, sequence, retained] of [
+    ["default retention", ["-hls_list_size", "2", "-hls_flags", "delete_segments"], 3, [2, 3, 4]],
+    ["without deletion", ["-hls_list_size", "2"], 3, [0, 1, 2, 3, 4]],
+    ["unlimited playlist", ["-hls_list_size", "0", "-hls_flags", "delete_segments"], 0, [0, 1, 2, 3, 4]],
+    ["two expired segments", ["-hls_list_size", "2", "-hls_flags", "+delete_segments", "-hls_delete_threshold", "2"], 3, [1, 2, 3, 4]],
+    ["duration retention limit", ["-hls_list_size", "1", "-hls_flags", "delete_segments", "-hls_delete_threshold", "10"], 4, [2, 3, 4]],
+    ["default playlist size", ["-hls_flags", "delete_segments"], 0, [0, 1, 2, 3, 4]],
+    ["disabled deletion", ["-hls_list_size", "2", "-hls_flags", "delete_segments-delete_segments"], 3, [0, 1, 2, 3, 4]]
+  ] as const) {
+    it(name, async () => {
+      const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 2, frameCount: 10, includeAudio: false }));
+      const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
+        ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: index % 2 === 0 }))
+      })) });
+      const vfs = createTestVfs({ "/input.mp4": input, "/segments/unrelated.ts": "keep" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.mp4", "-c", "copy", "-hls_time", "1", ...options,
+        "-hls_segment_filename", "/segments/out%d.ts", "/out.m3u8"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual([...vfs.store.keys()].filter(path => path.startsWith("/segments/out")), retained.map(i => `/segments/out${i}.ts`));
+      assert.equal(new TextDecoder().decode(vfs.store.get("/segments/unrelated.ts")), "keep");
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), [
+        "#EXTM3U", "#EXT-X-VERSION:3", "#EXT-X-TARGETDURATION:1", `#EXT-X-MEDIA-SEQUENCE:${sequence}`,
+        ...Array.from({ length: 5 - sequence }, (_, i) => [`#EXTINF:1.000000,`, `segments/out${sequence + i}.ts`]).flat(),
+        "#EXT-X-ENDLIST", ""
+      ].join("\n"));
     });
   }
 });

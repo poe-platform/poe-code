@@ -30,7 +30,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
     .flatMap(output => Object.entries(output.inputs))
     .filter(([path]) => !["/media-codecs/", "/image-ast/", "/pdf-ast/"].some(owner => path.includes(owner)))
     .reduce((total, [, input]) => total + input.bytesInOutput, 0);
-  assert.ok(otherCodeBytes < 420_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes waveform-aligned PCM time stretching for the atempo filter.
+  assert.ok(otherCodeBytes < 425_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // AAC adds its decoder and tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices, in the complete Worker bundle budget.

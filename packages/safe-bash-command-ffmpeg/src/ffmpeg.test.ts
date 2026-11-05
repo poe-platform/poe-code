@@ -754,6 +754,58 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  for (const [filter, tempo, rate] of [["atempo=2", 2, 16000], ["atempo=0.5", 0.5, 16000], ["atempo=2,atempo=2", 4, 8000]] as const) {
+    it(`preserves pitch and stereo alignment with ${filter} at ${rate} Hz`, async () => {
+      const tone = Float64Array.from({ length: 16000 }, (_, i) => 0.5 * Math.sin(2 * Math.PI * 440 * i / 16000));
+      const input = encodeWav({ sampleRate: 16000, channels: [tone, tone.map(value => -value)] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", filter, "-ar", String(rate), "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      const left = audio.channelData[0]!;
+      const right = audio.channelData[1]!;
+      assert.equal(left.length, Math.round(rate / tempo));
+      const start = Math.floor(left.length * 0.2);
+      const end = Math.floor(left.length * 0.8);
+      let crossings = 0;
+      let energy = 0;
+      for (let i = start; i < end; i++) {
+        if (left[i - 1]! <= 0 && left[i]! > 0) crossings++;
+        energy += left[i]! ** 2;
+        assert.ok(Math.abs(left[i]! + right[i]!) < 0.0001, "Stereo channels must remain aligned");
+      }
+      const pitch = crossings * rate / (end - start);
+      assert.ok(Math.abs(pitch - 440) < 10, `Expected 440 Hz, got ${pitch} Hz`);
+      assert.ok(energy / (end - start) > 0.08, "Stretching must retain the tone's amplitude");
+    });
+  }
+
+  it("preserves mono pitch when doubling tempo", async () => {
+    const tone = Float64Array.from({ length: 16000 }, (_, i) => 0.5 * Math.sin(2 * Math.PI * 440 * i / 16000));
+    const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 16000, channels: [tone] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", "atempo=2", "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(output.channels, 1);
+    const samples = output.channelData[0]!;
+    assert.equal(samples.length, 8000);
+    let crossings = 0;
+    for (let i = 1600; i < 6400; i++) if (samples[i - 1]! <= 0 && samples[i]! > 0) crossings++;
+    assert.ok(Math.abs(crossings / 0.3 - 440) < 10);
+  });
+
+  it("keeps silence and very short constant audio finite when slowing down", async () => {
+    for (const [length, amplitude] of [[1, 0.5], [160, 0.5], [16000, 0]] as const) {
+      const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(length).fill(amplitude)] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", "atempo=0.5", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const samples = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.equal(samples.length, length * 2);
+      assert.ok(samples.every(sample => Math.abs(sample - amplitude) < 0.0001));
+    }
+  });
+
   it("defers audio filters to the async command without writing output", () => {
     const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160).fill(0.5)] });
     for (const filter of ["no_such_filter", "volume=0.5"]) {

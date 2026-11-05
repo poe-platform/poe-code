@@ -282,6 +282,7 @@ export interface Mp4AudioSpecificConfig {
   readonly maxBitrate: number;
   readonly avgBitrate: number;
   readonly decoderSpecificInfo: Uint8Array;
+  readonly decoderSpecificInfoSize?: number | undefined;
   readonly rawEsdsBytes: Uint8Array;
 }
 
@@ -300,6 +301,7 @@ export interface MediaCodecDescription {
   readonly codecName: string; // e.g. 'h264', 'hevc', 'av1', 'vp9', 'aac', 'opus', 'flac', 'alac', 'mjpeg', 'mov_text'
   readonly codecTagString?: string | undefined;
   readonly compressorName?: string | undefined;
+  readonly extradataSize?: number | undefined;
   readonly profile?: string | undefined;
   readonly level?: number | undefined;
   readonly maxNumReorderFrames?: number | undefined;
@@ -421,6 +423,7 @@ export interface MediaProbeStream {
   readonly profile?: string | undefined;
   readonly codec_type: MediaTrackType;
   readonly codec_tag_string: string;
+  readonly extradata_size?: number | undefined;
   readonly codec_tag: string;
   readonly width?: number | undefined;
   readonly height?: number | undefined;

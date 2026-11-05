@@ -7,7 +7,7 @@ export type Mp4CodecMetadata = Omit<MediaCodecDescription, 'avcC' | 'hvcC' | 'av
 type MutableMetadata = { -readonly [K in keyof Mp4CodecMetadata]: Mp4CodecMetadata[K] };
 export type CodecEntryState = { metadata: MutableMetadata; kind?: 'video' | 'audio'; childOffset?: number };
 export type CodecMetadataChild =
-  | { type: 'avcC'; levelIdc: number; sps?: Uint8Array | undefined }
+  | { type: 'avcC'; extradataSize: number; levelIdc: number; sps?: Uint8Array | undefined }
   | { type: 'hvcC'; generalLevelIdc: number; generalProfileIdc: number; bitDepthLumaMinus8: number }
   | { type: 'av1C'; seqProfile: number; seqLevelIdx0: number; highBitdepth: boolean }
   | { type: 'vpcC'; profile: number; level: number }
@@ -46,6 +46,7 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
   const metadata = state.metadata;
   if (state.kind === 'video') {
     if (child.type === 'avcC') {
+      metadata.extradataSize = child.extradataSize;
       metadata.codecName = 'h264'; metadata.level = child.levelIdc;
       if (child.sps) {
         const sps = parseH264Sps(child.sps);
@@ -65,6 +66,7 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
     } else if (child.type === 'pasp') { metadata.sarWidth = child.sarWidth || 1; metadata.sarHeight = child.sarHeight || 1; }
   } else if (state.kind === 'audio') {
     if (child.type === 'esds' || child.type === 'wave-esds') {
+      metadata.extradataSize = child.config.decoderSpecificInfoSize;
       if (child.config.sampleRate > 0) metadata.sampleRate = child.config.sampleRate;
       if (child.config.channelCount > 0) metadata.channels = child.config.channelCount;
       if (child.type === 'esds') {

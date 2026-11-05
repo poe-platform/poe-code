@@ -14,6 +14,6 @@ export async function probeEsdsSource(source: MediaProbeSource, range: Mp4TableR
   const iterator = consumeMp4SampleSteps(source, esdsSteps(range), options);
   const result = await iterator.next();
   if (!result.done) { await iterator.return(undefined as never); throw new Error('Unexpected ES descriptor sample'); }
-  const { objectTypeIndication, audioObjectType, sampleRate, channelCount, maxBitrate, avgBitrate } = result.value;
-  return { objectTypeIndication, audioObjectType, sampleRate, channelCount, maxBitrate, avgBitrate };
+  const { objectTypeIndication, audioObjectType, sampleRate, channelCount, maxBitrate, avgBitrate, decoderSpecificInfoSize } = result.value;
+  return { objectTypeIndication, audioObjectType, sampleRate, channelCount, maxBitrate, avgBitrate, decoderSpecificInfoSize };
 }

@@ -3,13 +3,13 @@ import { test } from 'node:test';
 import * as api from './index.js';
 import { parseEsds } from './codecs.js';
 
-const expected={objectTypeIndication:0x40,audioObjectType:2,sampleRate:44100,channelCount:2,maxBitrate:128000,avgBitrate:128000};
+const expected={objectTypeIndication:0x40,audioObjectType:2,sampleRate:44100,channelCount:2,maxBitrate:128000,avgBitrate:128000,decoderSpecificInfoSize:2};
 function metadata(bytes:Uint8Array){const {decoderSpecificInfo: ignoredInfo,rawEsdsBytes: ignoredRaw,...result}=parseEsds(bytes);return result;}
 function probe(bytes:Uint8Array){return api.probeEsdsSource({size:bytes.length,async read(offset,length){assert.ok(length<=16384);return bytes.slice(offset,offset+length);}},{payloadOffset:0,payloadSize:bytes.length});}
 test('source ESDS metadata matches independent AAC and MP3 descriptor values',async()=>{
   assert.equal(typeof api.probeEsdsSource,'function');
   assert.deepEqual(await probe(new Uint8Array([0,0,0,0,5,2,0x12,0x10])),expected);
-  assert.deepEqual(await probe(new Uint8Array([0,0,0,0,5,6,249,94,1,119,0,192])),{...expected,audioObjectType:42,sampleRate:48000,channelCount:6});
+  assert.deepEqual(await probe(new Uint8Array([0,0,0,0,5,6,249,94,1,119,0,192])),{...expected,audioObjectType:42,sampleRate:48000,channelCount:6,decoderSpecificInfoSize:6});
   const mp3=new Uint8Array([0,0,0,0,4,13,0x6b,0x15,0,0,0,0,1,0xf4,0,0,0,0xfa,0,5,2,0x12,0x10]);
   assert.deepEqual(await probe(mp3),{...expected,objectTypeIndication:0x6b,maxBitrate:128000,avgBitrate:64000});
 });
@@ -25,7 +25,7 @@ test('source ESDS skips huge unknown and decoder-specific payloads',async()=>{
   [0,0,0,0,6,0xff,0xff,0xff,0x7f].forEach((value,i)=>values.set(i,value));
   [5,0xff,0xff,0xff,0x7f,0x12,0x10].forEach((value,i)=>values.set(9+length+i,value));
   const result=await api.probeEsdsSource({size,async read(offset,count){reads++;assert.ok(count<=16384);return Uint8Array.from({length:count},(_,i)=>values.get(offset+i)??0);}},{payloadOffset:0,payloadSize:size});
-  assert.deepEqual(result,expected);assert.ok(reads<5);
+  assert.deepEqual(result,{...expected,decoderSpecificInfoSize:length});assert.ok(reads<5);
 });
 test('source ESDS releases its cache on cancellation, errors and memory rejection',async()=>{
   for(const mode of ['cancel','read','memory']){

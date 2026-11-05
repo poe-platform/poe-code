@@ -78,6 +78,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     codec_type: track.type,
     codec_tag_string: tagFourCC,
     codec_tag: tagHex,
+    extradata_size: desc?.extradataSize || undefined,
     width: w,
     height: h,
     // ffprobe exposes cropped H.264 dimensions, not padded macroblock sizes.

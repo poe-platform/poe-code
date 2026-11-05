@@ -501,6 +501,7 @@ export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp
     offset += size; return new BinaryReader(bytes);
   }
   let objectTypeIndication = 0x40, maxBitrate = 128000, avgBitrate = 128000;
+  let decoderSpecificInfoSize = 0;
   let decoderSpecificInfo: Uint8Array = new Uint8Array([0x12, 0x10]);
   while (offset < table.payloadSize) {
     const tag = (yield* read(1)).readU8();
@@ -519,6 +520,7 @@ export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp
       objectTypeIndication = config.readU8(); config.skip(4);
       maxBitrate = config.readU32BE(); avgBitrate = config.readU32BE();
     } else if (tag === 5) {
+      decoderSpecificInfoSize = Math.min(length, table.payloadSize - offset);
       // Extended object type + explicit frequency + channels occupy at most 43 bits.
       decoderSpecificInfo = (yield* read(retainDecoderBytes ? length : Math.min(length, 6))).bytes;
       break;
@@ -526,7 +528,7 @@ export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp
   }
   const asc = parseAudioSpecificConfig(decoderSpecificInfo);
   return { objectTypeIndication, audioObjectType: asc.audioObjectType, sampleRate: asc.sampleRate,
-    channelCount: asc.channelCount, maxBitrate, avgBitrate, decoderSpecificInfo };
+    channelCount: asc.channelCount, maxBitrate, avgBitrate, decoderSpecificInfo, decoderSpecificInfoSize };
 }
 
 export function parseEsds(payload: Uint8Array): Mp4AudioSpecificConfig {

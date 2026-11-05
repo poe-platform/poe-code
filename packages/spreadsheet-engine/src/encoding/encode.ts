@@ -4,6 +4,7 @@ import { nativeTextCharsets } from "../codecs/native-text-charsets.js";
 
 import { singleByteTables } from "./tables.js";
 import { encodingName } from "./names.js";
+import { shiftJisEncoding } from "./shift-jis.js";
 import { cTransliterations, utf8Transliterations } from "./transliteration-tables.js";
 import { converterLocale } from "../locale/runtime.js";
 import { cTargetTransliterations, utf8TargetTransliterations } from "./target-transliteration-tables.js";
@@ -80,14 +81,15 @@ export function encodeText(text: string, charset: string, transliterate: boolean
     }
   } else {
     const table = Object.hasOwn(singleByteTables, name) ? singleByteTables[name] : undefined;
-    if (table === undefined) {
+    if (table === undefined && name !== "shift_jis") {
       if (nativeTextCharsets.has(suppliedName.split("//", 1)[0]!))
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: uncaptured export charset");
       throw new TextConverterUnavailable();
     }
-    const mapping = new Map<string, number>();
-    for (let i = 0; i < table.length; i++)
-      if (table[i] !== "\uffff") mapping.set(table[i]!, i);
+    const singleByteMapping = new Map<string, number>();
+    if (table !== undefined) for (let i = 0; i < table.length; i++)
+      if (table[i] !== "\uffff") singleByteMapping.set(table[i]!, i);
+    const mapping = name === "shift_jis" ? shiftJisEncoding() : singleByteMapping;
     const replacements = transliterate ?
       (converterLocale(context.environment) === "C" ? cTransliterations : utf8Transliterations) : undefined;
     const targetReplacements = transliterate ?
@@ -96,10 +98,14 @@ export function encodeText(text: string, charset: string, transliterate: boolean
     for (const character of text) {
       context.signal.throwIfAborted();
       const byte = mapping.get(character);
-      if (byte !== undefined) { admit(bytes.length + 1); bytes.push(byte); }
+      if (byte !== undefined) {
+        admit(bytes.length + (byte > 255 ? 2 : 1));
+        if (byte > 255) bytes.push(byte >> 8);
+        bytes.push(byte & 255);
+      }
       else {
         const code = character.codePointAt(0)!;
-        const replacement = transliterate ? targetReplacements![character] ?? replacements![character] ?? "?" :
+        const replacement = transliterate ? targetReplacements?.[character] ?? replacements![character] ?? "?" :
           (code <= 0xffff ? "\\u" + code.toString(16).padStart(4, "0") : "\\U" + code.toString(16).padStart(8, "0"));
         admit(bytes.length + replacement.length);
         for (const c of replacement) bytes.push(c.charCodeAt(0));

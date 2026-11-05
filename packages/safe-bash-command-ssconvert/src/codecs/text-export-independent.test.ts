@@ -150,3 +150,23 @@ it.each(["UCS-2", "UTF-16", "UTF-16LE", "UTF-16BE", "UTF-32", "UTF-32LE", "UTF-3
     expect(cliBytes).toEqual(encodeText("😀\n", charset, false, context));
   } finally { await engine.dispose(); }
 });
+
+it("encodes JIS symbols and kana without Windows-31J substitutions", () => {
+  expect(encodeText("¥‾〜‖−¢£¬ｦｱ\\~", "SHIFT_JIS", false, context))
+    .toEqual(Uint8Array.of(0x5c, 0x7e, 0x81, 0x60, 0x81, 0x61, 0x81, 0x7c,
+      0x81, 0x91, 0x81, 0x92, 0x81, 0xca, 0xa6, 0xb1, 0x5c, 0x7e));
+  expect(new TextDecoder().decode(encodeText("①😀", "SHIFT_JIS", false, context)))
+    .toBe("\\u2460\\U0001f600");
+  expect(new TextDecoder().decode(encodeText("é😀", "SHIFT_JIS", true, context))).toBe("??");
+});
+
+it("bounds Shift-JIS output by encoded bytes and honors cancellation", () => {
+  const bounded = { ...context, limits: { ...context.limits, outputBytes: 4 } };
+  expect(encodeText("東京", "SHIFT_JIS", false, bounded)).toEqual(Uint8Array.of(0x93, 0x8c, 0x8b, 0x9e));
+  expect(() => encodeText("東京a", "SHIFT_JIS", false, bounded)).toThrow("output bytes limit exceeded");
+  expect(() => encodeText("😀", "SHIFT_JIS", false, bounded)).toThrow("output bytes limit exceeded");
+  const controller = new AbortController();
+  controller.abort(new Error("cancel export"));
+  expect(() => encodeText("東京", "SHIFT_JIS", false, { ...context, signal: controller.signal }))
+    .toThrow("cancel export");
+});

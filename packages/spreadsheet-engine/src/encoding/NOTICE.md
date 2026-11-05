@@ -19,3 +19,5 @@ Shift-JIS decoding follows glibc 2.41 `iconvdata/sjis.c` and
 against those mappings and invalid/incomplete-input rules. The runtime uses
 WHATWG only for the verified JIS pairs, excluding Windows-31J extensions and
 correcting its six differing double-byte mappings.
+Shift-JIS export reverses this repertoire, also accepting ASCII backslash and
+tilde, with byte-budget checks shared by the text exporters.

@@ -34,3 +34,26 @@ export function shiftJisDecoder(): (bytes: Uint8Array) => string {
     return text;
   };
 }
+
+let encoding: ReadonlyMap<string, number> | undefined;
+
+/** Reverse the verified JIS repertoire once, with fixed memory and work bounds. */
+export function shiftJisEncoding(): ReadonlyMap<string, number> {
+  if (encoding) return encoding;
+  const mapping = new Map<string, number>();
+  for (let byte = 0; byte < 128; byte++) mapping.set(String.fromCharCode(byte), byte);
+  mapping.set("¥", 0x5c);
+  mapping.set("‾", 0x7e);
+  for (let byte = 0xa1; byte <= 0xdf; byte++) mapping.set(String.fromCharCode(byte + 0xfec0), byte);
+  for (let lead = 0x81; lead <= 0xea; lead++) {
+    if (lead > 0x9f && lead < 0xe0) continue;
+    for (let trail = 0x40; trail <= 0xfc; trail++) {
+      try {
+        const character = shiftJisDecoder()(Uint8Array.of(lead, trail));
+        if (character.length === 1) mapping.set(character, lead * 256 + trail);
+      } catch { /* Unassigned JIS pairs have no encoding. */ }
+    }
+  }
+  encoding = mapping;
+  return encoding;
+}

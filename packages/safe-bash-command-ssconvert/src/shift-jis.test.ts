@@ -33,3 +33,24 @@ it.each([
     expect(await fs.readFile("/input.csv")).toEqual(input);
   } finally { for (const cleanup of cleanups.reverse()) await cleanup(); }
 });
+
+it("exports Shift-JIS CSV with native Gnumeric bytes", async () => {
+  const fs = createMemoryFileSystem();
+  const input = new TextEncoder().encode("Name,City\nKamil,東京\n");
+  await fs.writeFile("/input.csv", input);
+  const args = createCommandArguments(["-I", "Gnumeric_stf:stf_csvtab",
+    "-T", "Gnumeric_stf:stf_assistant", "-O", "charset=SHIFT_JIS", "/input.csv", "/output.txt"]);
+  const errors: string[] = [], cleanups: (() => void | Promise<void>)[] = [];
+  const context: CommandContext = { command: "ssconvert", args: args.args, argumentValues: args,
+    cwd: "/", env: {}, fs, signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(new TextDecoder().decode(bytes)); } },
+    registerCleanup(cleanup) { cleanups.push(cleanup); } };
+  try {
+    expect(await createSsconvertCommand({ formats: [csvFormat] }).execute(context), errors.join(""))
+      .toMatchObject({ exitCode: 0 });
+    expect(errors).toEqual([]);
+    expect(await fs.readFile("/output.txt"))
+      .toEqual(Uint8Array.from(Buffer.from("4e616d652c436974790a4b616d696c2c938c8b9e0a", "hex")));
+    expect(await fs.readFile("/input.csv")).toEqual(input);
+  } finally { for (const cleanup of cleanups.reverse()) await cleanup(); }
+});

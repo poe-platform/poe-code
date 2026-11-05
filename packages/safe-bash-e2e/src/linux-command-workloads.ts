@@ -32,11 +32,13 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
   try {
     await mkdir(cwd + "/samples");
     const { uid, gid, username } = userInfo();
+    const services = await readFile("/etc/services");
     for (const view of views) {
       await view.mkdir("/workspace/samples", { recursive: true });
       await view.mkdir("/etc", { recursive: true });
       await view.mkdir("/proc", { recursive: true });
       await view.writeFile("/etc/hostname", Buffer.from(hostname() + "\n"));
+      await view.writeFile("/etc/services", services);
       await view.writeFile("/etc/passwd", Buffer.from(`${username}:x:${uid}:${gid}::/:/bin/sh\n`));
     }
     for (const [name, line] of [["base", "base"], ["ours", "edited here"], ["theirs", "edited there"]]) {
@@ -90,6 +92,10 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
 }
 
 const textCommands = ([
+  ["ssh", "-G", "-p", "65536", "example.invalid"], ["ssh", "-GTp0", "example.invalid"],
+  ["ssh", "-G", "-p22x", "example.invalid"], ["ssh", "-G", "-p", "-V", "example.invalid"],
+  ["ssh", "-G", "-p", "tftp", "example.invalid"], ["ssh", "-G", "-p", "", "example.invalid"],
+  ["ssh", "-G", "-p"], ["ssh", "-G", "example.invalid", "-p", "-1"],
   ["ssh-keygen", "-l", "-f", "samples/ed25519.pub"], ["cat"], ["tac"], ["head", "-n", "2"], ["tail", "-n", "2"], ["wc", "-c"],
   ["sort"], ["uniq", "-c"], ["nl", "-ba"], ["cut", "-c", "1-2"], ["tr", "a-z", "A-Z"],
   ["fold", "-w", "3"], ["rev"], ["fmt", "-w", "20"], ["strings", "-n", "2"],
@@ -145,6 +151,10 @@ export function linuxCommands(text: string) {
   const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1",
     String.raw`df --output=$'target,\xff'`, "LC_ALL=C.UTF-8 df --output=’é",
     "LC_ALL= LC_MESSAGES=C LC_CTYPE=C.UTF-8 df --output=é"];
+  for (const options of ["-p1", "-p65535", "-p '+0008'", "-p ' 22'", "-p23 -p0", "-p www", "-p ssh", "-p null"]) {
+    pipes.push("ssh -GT -F none " + options + " example.invalid | grep '^port '");
+  }
+  pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
   return [
     { cmd: "df", args: ["--output=file,a'b\n💡"], script: String.raw`df --output=$'file,a\'b\n💡'`, input: "" },
     { cmd: "whoami", args: [], script: "EUID=" + userInfo().uid + " USER=unused whoami", input: "" },

@@ -11,7 +11,8 @@ OpenSSH client (`ssh`) and key/signature utility (`ssh-keygen`) commands for `@p
   - Search `known_hosts` with `-F`, including hashed hosts, wildcard patterns, revoked keys, and certificate authorities. Use `-q` for the matching records alone or `-l` for Ed25519 fingerprints. Remove matching unmarked records with `-R`; the original file is kept as `.old`.
   - Create and verify `SSHSIG` v1 signatures (`ssh-keygen -Y sign`, `ssh-keygen -Y verify`, `ssh-keygen -Y check-novalidate`, `ssh-keygen -Y find-principals`) compatible with Git `gpg.format = ssh`. Verification requires `-f <allowed_signers>`, `-I <identity>`, and `-n <namespace>`; signer entries support comma-separated principal patterns (`*`, `?`, and negation) and `namespaces="..."`. Comment lines are ignored. Unsupported signer options are rejected.
 - **`ssh`**:
-  - Parse `~/.ssh/config`, verify `known_hosts` and identity keys, and execute `-G` config dumps or remote repository commands (`git-upload-pack`, `git-receive-pack`).
+  - Inspect the sandbox connection settings with `ssh -G`. Use `-p` with a port from 1 to 65535 or a TCP service name from the virtual `/etc/services`.
+  - Preview the remote command as `ssh:user@host:port command`. The sandbox does not open an SSH connection.
 
 ## Usage
 

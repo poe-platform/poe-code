@@ -86,6 +86,7 @@ import { builtInDirectContextExecutors, syncCommandEvaluators } from "../interna
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createSshCommand as createRawSshCommand,
+  evalSyncSsh,
   createSshKeygenCommand as createRawSshKeygenCommand,
   createSshCommands as createRawSshCommands,
   type SshCommandsOptions,
@@ -272,53 +273,6 @@ function computeFingerprintSha256Sync(pubKey: Uint8Array): string {
   const blob = sshEd25519PubkeyBlob(pubKey);
   const digest = sha256(blob);
   return `SHA256:${bytesToBase64(digest).replace(/=+$/g, "")}`;
-}
-
-export function evalSyncSsh(opArgs: readonly string[]): string | undefined {
-  if (opArgs.includes("-V")) return undefined;
-  let dumpConfig = false;
-  let port = 22;
-  let user = "git";
-  let identityFile = "/home/user/.ssh/id_ed25519";
-  let destination = "localhost";
-  let sawDest = false;
-  const remoteCmd: string[] = [];
-
-  for (let i = 0; i < opArgs.length; i++) {
-    const a = opArgs[i]!;
-    if (sawDest && !dumpConfig) {
-      remoteCmd.push(a);
-      continue;
-    }
-    if (a === "-G") dumpConfig = true;
-    else if (a === "-p" && i + 1 < opArgs.length) port = Number.parseInt(opArgs[++i]!, 10) || 22;
-    else if (a === "-l" && i + 1 < opArgs.length) user = opArgs[++i]!;
-    else if (a === "-i" && i + 1 < opArgs.length) identityFile = opArgs[++i]!;
-    else if (a === "-o" && i + 1 < opArgs.length) i++;
-    else if (a === "-T" || a === "-v") continue;
-    else if (!a.startsWith("-")) {
-      if (!sawDest) {
-        sawDest = true;
-        if (a.includes("@")) {
-          const [u, h] = a.split("@");
-          user = u || user;
-          destination = h || destination;
-        } else {
-          destination = a;
-        }
-      } else {
-        remoteCmd.push(a);
-      }
-    } else {
-      return undefined;
-    }
-  }
-
-  if (dumpConfig) {
-    return `user ${user}\nhostname ${destination}\nport ${port}\nidentityfile ${identityFile}\n`;
-  }
-  if (remoteCmd.length === 0) return undefined;
-  return `ssh:${user}@${destination}:${port} ${remoteCmd.join(" ")}\n`;
 }
 
 export function evalSyncSshKeygen(

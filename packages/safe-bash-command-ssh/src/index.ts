@@ -4,6 +4,7 @@ import {
   getCommandArguments,
   readBytes,
   writeText,
+  writeBytes,
   type ByteSource,
   type CommandContext,
   type CommandDefinition,
@@ -811,64 +812,102 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
   };
 }
 
+const sshUsage = `usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
+           [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
+           [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]
+           [-J destination] [-L address] [-l login_name] [-m mac_spec]
+           [-O ctl_cmd] [-o option] [-P tag] [-p port] [-R address]
+           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]
+           destination [command [argument ...]]
+       ssh [-Q query_option]
+`;
+
+function* parseSsh(args: readonly string[]): Generator<string, string | { status: number; stderr: string } | { badPort: number; offset: number }, number> {
+  let dumpConfig = false;
+  let port = 0;
+  let user = "git";
+  let identityFile = "/home/user/.ssh/id_ed25519";
+  let destination: string | undefined;
+  let options = true;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (options && arg === "--") { options = false; continue; }
+    if (options && arg.startsWith("-") && arg.length > 1) {
+      for (let j = 1; j < arg.length; j++) {
+        const flag = arg[j]!;
+        if (flag === "V") return { status: 0, stderr: "OpenSSH_9.8p1, OpenSSL 3.3.2 3 Sep 2024\n" };
+        if (flag === "G") dumpConfig = true;
+        if (!"pliFo".includes(flag)) continue;
+        const offset = j + 1 < arg.length ? j + 1 : 0;
+        const value = offset ? arg.slice(offset) : args[++i];
+        if (value === undefined) return { status: 255, stderr: `option requires an argument -- ${flag}\r\n${sshUsage}` };
+        if (flag === "p" && !port) {
+          const numeric = /^[\t-\r ]*\+?[0-9]+$/u.exec(value);
+          port = numeric?.[0] === value ? Number(value) : 0;
+          if (!(port > 0 && port <= 65535)) port = yield value;
+          if (!port) return { badPort: i, offset };
+        } else if (flag === "l") user = value;
+        else if (flag === "i") identityFile = value;
+        break;
+      }
+    } else if (destination === undefined) {
+      const at = arg.lastIndexOf("@");
+      if (at > 0) user = arg.slice(0, at);
+      destination = arg.slice(at + 1);
+    } else {
+      if (!dumpConfig) return `ssh:${user}@${destination}:${port || 22} ${args.slice(i).join(" ")}\n`;
+      break;
+    }
+  }
+  if (destination === undefined) return { status: 255, stderr: sshUsage };
+  if (dumpConfig) return `user ${user}\nhostname ${destination}\nport ${port || 22}\nidentityfile ${identityFile}\n`;
+  return { status: 1, stderr: `Hi ${user}! You've successfully authenticated, but ${destination} does not provide interactive shell access.\n` };
+}
+
+export function evalSyncSsh(args: readonly string[]): string | undefined {
+  const result = parseSsh(args).next();
+  return result.done && typeof result.value === "string" ? result.value : undefined;
+}
+
 export function createSshCommand(options: SshCommandsOptions = {}): CommandDefinition {
-  const _limits = settings(options);
+  const limits = settings(options);
   return {
     name: "ssh",
     description: "OpenSSH remote login and Git transport client",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
       context.signal.throwIfAborted();
-      const args = getCommandArguments(context).args;
-      if (args.includes("-V")) {
-        await writeText(context.stderr, "OpenSSH_9.8p1, OpenSSL 3.3.2 3 Sep 2024\n");
-        return { exitCode: 0 };
-      }
-      let dumpConfig = false;
-      let port = 22;
-      let user = "git";
-      let identityFile = "/home/user/.ssh/id_ed25519";
-      let destination = "localhost";
-      const remoteCmd: string[] = [];
-
-      for (let i = 0; i < args.length; i++) {
-        const a = args[i]!;
-        if (a === "-G") dumpConfig = true;
-        else if (a === "-p" && i + 1 < args.length) port = Number.parseInt(args[++i]!, 10) || 22;
-        else if (a === "-l" && i + 1 < args.length) user = args[++i]!;
-        else if (a === "-i" && i + 1 < args.length) identityFile = args[++i]!;
-        else if (a === "-o" && i + 1 < args.length) i++;
-        else if (a === "-T" || a === "-v") continue;
-        else if (!a.startsWith("-")) {
-          if (destination === "localhost") {
-            if (a.includes("@")) {
-              const [u, h] = a.split("@");
-              user = u || user;
-              destination = h || destination;
-            } else {
-              destination = a;
-            }
-          } else {
-            remoteCmd.push(a);
+      const argv = getCommandArguments(context);
+      const parser = parseSsh(argv.args);
+      let result = parser.next();
+      while (!result.done) {
+        let port = 0;
+        try {
+          const bytes = await readLimitedFile(context, "/etc/services", limits.maxBufferedBytes);
+          for (const line of textDecoder.decode(bytes).split("\n")) {
+            const [name, socket, ...aliases] = line.split("#", 1)[0]!.trim().split(/[ \t]+/u);
+            if (name !== result.value && !aliases.includes(result.value)) continue;
+            if (!socket || !/^[0-9]+\/tcp$/u.test(socket)) continue;
+            const number = Number(socket.slice(0, -4));
+            if (number > 0 && number <= 65535) { port = number; break; }
           }
+        } catch (error) {
+          if (!(error instanceof FsError && (error.code === "ENOENT" || error.code === "EACCES"))) throw error;
         }
+        result = parser.next(port);
       }
-
-      if (dumpConfig) {
-        await writeText(
-          context.stdout,
-          `user ${user}\nhostname ${destination}\nport ${port}\nidentityfile ${identityFile}\n`,
-        );
+      if (typeof result.value === "string") {
+        await writeText(context.stdout, result.value);
         return { exitCode: 0 };
       }
-
-      if (remoteCmd.length === 0) {
-        await writeText(context.stderr, `Hi ${user}! You've successfully authenticated, but ${destination} does not provide interactive shell access.\n`);
-        return { exitCode: 1 };
+      if ("badPort" in result.value) {
+        await writeText(context.stderr, "Bad port '");
+        await writeBytes(context.stderr, argv.bytes(result.value.badPort)!.subarray(result.value.offset), context.signal);
+        await writeText(context.stderr, "'\n");
+        return { exitCode: 255 };
       }
-
-      await writeText(context.stdout, `ssh:${user}@${destination}:${port} ${remoteCmd.join(" ")}\n`);
-      return { exitCode: 0 };
+      await writeText(context.stderr, result.value.stderr);
+      return { exitCode: result.value.status };
     },
   };
 }

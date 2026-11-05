@@ -48,7 +48,7 @@ pub fn try_run_archive_command(
         "unzip" => Some(cmd_unzip(args, stdin, cwd, fs)),
         "openssl" => Some(cmd_openssl(args, stdin, cwd, env, fs)),
         "gpg" => Some(cmd_gpg(args, stdin, cwd, env, fs)),
-        "ssh" => Some(cmd_ssh(args)),
+        "ssh" => Some(cmd_ssh(args, fs)),
         "ssh-keygen" => Some(cmd_ssh_keygen(args, stdin, cwd, env, fs)),
         "dot" | "neato" => Some(cmd_graphviz(cmd, args, stdin, cwd, fs)),
         _ => None,
@@ -10530,69 +10530,72 @@ fn resolve_ssh_path(cwd: &str, target: &str) -> String {
     }
 }
 
-fn cmd_ssh(args: &[String]) -> BuiltinOutcome {
-    if args.iter().any(|a| a == "-V") {
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: "OpenSSH_9.8p1, OpenSSL 3.3.2 3 Sep 2024\n".to_string(),
-            exit_code: 0,
-        };
-    }
+fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    const USAGE: &str = "usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
+           [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
+           [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]
+           [-J destination] [-L address] [-l login_name] [-m mac_spec]
+           [-O ctl_cmd] [-o option] [-P tag] [-p port] [-R address]
+           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]
+           destination [command [argument ...]]
+       ssh [-Q query_option]
+";
     let mut dump_config = false;
-    let mut port = 22i64;
-    let mut user = "git".to_string();
-    let mut identity_file = "/home/user/.ssh/id_ed25519".to_string();
-    let mut destination = "localhost".to_string();
-    let mut remote_cmd: Vec<String> = Vec::new();
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = args[i].as_str();
-        if a == "-G" {
-            dump_config = true;
-        } else if a == "-p" && i + 1 < args.len() {
-            i += 1;
-            port = args[i].parse().unwrap_or(22);
-        } else if a == "-l" && i + 1 < args.len() {
-            i += 1;
-            user = args[i].clone();
-        } else if a == "-i" && i + 1 < args.len() {
-            i += 1;
-            identity_file = args[i].clone();
-        } else if a == "-o" && i + 1 < args.len() {
-            i += 1;
-        } else if a == "-T" || a == "-v" {
-        } else if !a.starts_with('-') {
-            if destination == "localhost" {
-                if let Some((u, h)) = a.split_once('@') {
-                    if !u.is_empty() {
-                        user = u.to_string();
+    let mut port = None;
+    let mut user = "git";
+    let mut identity = "/home/user/.ssh/id_ed25519";
+    let mut destination = None;
+    let mut options = true;
+    let mut words = args.iter();
+    while let Some(arg) = words.next() {
+        if options && arg == "--" {
+            options = false;
+        } else if options && arg.starts_with('-') && arg.len() > 1 {
+            for (pos, flag) in arg.char_indices().skip(1) {
+                match flag {
+                    'V' => return err_out("OpenSSH_9.8p1, OpenSSL 3.3.2 3 Sep 2024\n", 0),
+                    'G' => dump_config = true,
+                    'p' | 'l' | 'i' | 'F' | 'o' => {
+                        let value = if pos + 1 < arg.len() { &arg[pos + 1..] }
+                            else if let Some(value) = words.next() { value.as_str() }
+                            else { return err_out(&format!("option requires an argument -- {flag}\r\n{USAGE}"), 255); };
+                        if flag == 'p' && port.is_none() {
+                            port = value.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']).parse::<u16>().ok().filter(|&n| n > 0);
+                            if port.is_none() && let Ok(data) = fs.read_file("/etc/services") {
+                                port = String::from_utf8_lossy(&data).lines().find_map(|line| {
+                                    let mut fields = line.split('#').next()?.split_ascii_whitespace();
+                                    let name = fields.next()?;
+                                    let number = fields.next()?.strip_suffix("/tcp")?;
+                                    if name != value && !fields.any(|alias| alias == value) { return None; }
+                                    number.parse::<u16>().ok().filter(|&n| n > 0)
+                                });
+                            }
+                            if port.is_none() { return err_out(&format!("Bad port '{value}'\n"), 255); }
+                        } else if flag == 'l' { user = value; }
+                        else if flag == 'i' { identity = value; }
+                        break;
                     }
-                    if !h.is_empty() {
-                        destination = h.to_string();
-                    }
-                } else {
-                    destination = a.to_string();
+                    _ => {}
                 }
-            } else {
-                remote_cmd.push(a.to_string());
             }
+        } else if let Some(host) = destination {
+            if !dump_config {
+                let port = port.unwrap_or(22);
+                return ok_out(&format!("ssh:{user}@{host}:{port} {}\n", std::iter::once(arg).chain(words).map(String::as_str).collect::<Vec<_>>().join(" ")));
+            }
+            break;
+        } else {
+            destination = Some(if let Some((login, host)) = arg.rsplit_once('@') {
+                if !login.is_empty() { user = login; }
+                host
+            } else { arg.as_str() });
         }
-        i += 1;
     }
+    let Some(host) = destination else { return err_out(USAGE, 255); };
     if dump_config {
-        return ok_out(&format!(
-            "user {user}\nhostname {destination}\nport {port}\nidentityfile {identity_file}\n"
-        ));
+        return ok_out(&format!("user {user}\nhostname {host}\nport {}\nidentityfile {identity}\n", port.unwrap_or(22)));
     }
-    if remote_cmd.is_empty() {
-        return err_out(
-            &format!(
-                "Hi {user}! You've successfully authenticated, but {destination} does not provide interactive shell access.\n"
-            ),
-            1,
-        );
-    }
-    ok_out(&format!("ssh:{user}@{destination}:{port} {}\n", remote_cmd.join(" ")))
+    err_out(&format!("Hi {user}! You've successfully authenticated, but {host} does not provide interactive shell access.\n"), 1)
 }
 
 fn known_host_match<'a>(line: &'a str, host_bytes: &[u8], host_lower: &[u8], only_matching: bool) -> Option<(bool, &'static str, &'a str, &'a str)> {

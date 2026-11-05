@@ -119,7 +119,7 @@ function computeInlineImageMinBytes(entries: readonly PdfDictEntry[]): number {
   return h * Math.ceil((w * channels * bpc) / 8);
 }
 
-function* encodedImageEnd(filter: string | undefined, start: number, size: number): Work<number | undefined> {
+function* encodedImageEnd(filter: string | undefined, earlyChange: number, start: number, size: number): Work<number | undefined> {
   let at = start;
   if (filter === "Fl" || filter === "FlateDecode") {
     const cmf = yield* byte(at++), flg = yield* byte(at++);
@@ -145,6 +145,23 @@ function* encodedImageEnd(filter: string | undefined, start: number, size: numbe
       at += length;
     }
     return size;
+  } else if (filter === "LZW" || filter === "LZWDecode") {
+    // Follow code widths through the end code without expanding any phrases.
+    let width = 9, next = 257, buffer = 0, bits = 0;
+    while (at < size) {
+      buffer = (buffer << 8) | (yield* byte(at++))!;
+      bits += 8;
+      if (bits < width) continue;
+      bits -= width;
+      const code = (buffer >>> bits) & ((1 << width) - 1);
+      if (code === 257) return at;
+      if (code === 256) { width = 9; next = 257; }
+      else if (code > next) return;
+      else if (next < 4096) {
+        next++;
+        if (width < 12 && next + earlyChange === (1 << width)) width++;
+      }
+    }
   } else if (filter === "RL" || filter === "RunLengthDecode") {
     while (at < size) {
       const length = (yield* byte(at++))!;
@@ -218,6 +235,7 @@ export function* contentOperatorSteps(lexer: { offset: number }, size: number, l
       const entries: PdfDictEntry[] = [];
       const imageState = { nodes: 1 };
       let filter: string | undefined;
+      let earlyChange = 1;
       while (true) {
         const kTok = (yield* token());
         if (!kTok || (kTok.kind === "keyword" && kTok.value === "ID")) break;
@@ -226,9 +244,16 @@ export function* contentOperatorSteps(lexer: { offset: number }, size: number, l
           const vTok = (yield* token());
           if (!vTok || (vTok.kind === "keyword" && vTok.value === "ID")) break;
           const isFilter = kTok.decoded === "F" || kTok.decoded === "Filter";
+          const isParms = kTok.decoded === "DP" || kTok.decoded === "DecodeParms";
+          let first: PdfCosNode | undefined;
           const value = yield* parseOperandToken(vTok, limits, 1, imageState,
-            isFilter ? first => { filter = first.kind === "name" ? first.decoded : undefined; } : undefined);
-          if (isFilter && value.kind === "name") filter = value.decoded;
+            isFilter || isParms ? node => { first = node; } : undefined);
+          const outer = first ?? value;
+          if (isFilter && outer.kind === "name") filter = outer.decoded;
+          if (isParms && outer.kind === "dict") {
+            const early = outer.entries.find(e => e.key.decoded === "EarlyChange")?.value;
+            if (early?.kind === "number") earlyChange = early.value;
+          }
           entries.push({ key: { kind: "name", decoded: kTok.decoded, rawBytes: kTok.rawBytes }, value });
         }
       }
@@ -239,7 +264,7 @@ export function* contentOperatorSteps(lexer: { offset: number }, size: number, l
       }
       const dataStart = lexer.offset;
       const minBytes = computeInlineImageMinBytes(entries);
-      const knownEnd = yield* encodedImageEnd(filter, dataStart, size);
+      const knownEnd = yield* encodedImageEnd(filter, earlyChange, dataStart, size);
       let dataEnd = size;
       for (let i = knownEnd ?? (dataStart + minBytes); i + 2 < size; i++) {
         if (

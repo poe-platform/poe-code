@@ -60,6 +60,14 @@ pub(super) fn inline<'a>(c: &mut Cursor<'a>, tokens: &mut usize) -> Result<(Dict
         Some(b"/DCT" | b"/DCTDecode") if bytes.starts_with(b"\xff\xd8") => {
             Some(crate::commands::archive::image_header::jpeg_length(bytes).ok_or(BAD)?)
         }
+        Some(b"/LZW" | b"/LZWDecode") => {
+            let parms = match field(b"DP", b"DecodeParms") {
+                Some(Value::Array(items)) => items.first(),
+                other => other,
+            };
+            let early = parms.and_then(|p| p.get(b"EarlyChange")).and_then(Value::number).unwrap_or(1.);
+            crate::commands::codecs::lzw_length(bytes, early)
+        }
         Some(b"/RL" | b"/RunLengthDecode") => {
             let mut at = 0;
             loop {
@@ -509,6 +517,7 @@ mod tests {
             pixels, &crate::commands::codecs::adler32(pixels).to_be_bytes()].concat();
         let repeated = [[(n-1) as u8].as_slice(), pixels, &[128]].concat();
         for (filter, payload) in [
+            ("[/LZW]", b"\x80\0\0\0\0\0\0\0\0\0 EI (\0\0\0\0\0\0\0\0\0\0\x01\x01".as_slice()),
             ("/Fl", stored.as_slice()), ("/RL", repeated.as_slice()),
             ("[/A85 /Fl]", b"ABCDE EI ABCDEFGHIJKLMNOPQ~>"),
         ] {

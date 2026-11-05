@@ -26,6 +26,7 @@ describe("content operator iteration", () => {
   it("reads past apparent EI operators inside encoded image data", () => {
     const raw = bytes(" EI Q BT ET q Q abcdefghijklmnopqrstuvwxyz");
     for (const [filter, encoded] of [
+      ["[/LZW]", Buffer.from("800000000000000000002045492028000000000000000000000101", "hex")],
       ["/Fl", deflateSync(raw, {level: 0})],
       ["[/RL]", Uint8Array.of(raw.length-1, ...raw, 128)],
       ["[/A85 /Fl]", bytes("ABCDE EI ABCDEFGHIJKLMNOPQ~>")],

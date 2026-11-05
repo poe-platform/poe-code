@@ -690,6 +690,27 @@ pub(super) fn tiff_lzw(input: &[u8]) -> Vec<u8> {
     writer.finish()
 }
 
+// Locate the PDF end code without materializing dictionary phrases or pixels.
+pub(super) fn lzw_length(input: &[u8], early_change: f64) -> Option<usize> {
+    let mut bits = MsbBitReader::new(input, 0);
+    let (mut width, mut next) = (9, 257);
+    while let Ok(code) = bits.read_bits(width) {
+        match code {
+            256 => (width, next) = (9, 257),
+            257 => return Some(bits.consumed_bytes()),
+            n if n > next => return None,
+            _ if next < 4096 => {
+                next += 1;
+                if width < 12 && next as f64 + early_change == f64::from(1 << width) {
+                    width += 1;
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
 pub(super) fn decode_lzw(
     input: &[u8],
     early_change: f64,

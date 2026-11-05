@@ -5546,6 +5546,8 @@ impl<'a> EvalState<'a> {
         let inherited_aliases = &self.in_fd_aliases;
         let writer = self.fd_writer();
         let charged = &self.forwarded_output;
+        let sleep = self.budget.sleep_wait.as_ref().filter(|_| effective_cmd == "sleep")
+            .map(|wait| (wait, crate::commands::virtual_clock_elapsed_ms()));
         if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
@@ -5753,6 +5755,15 @@ impl<'a> EvalState<'a> {
         ).unwrap_or_else(|error| Some(error.diagnose(&self.diag_prefix()))) {
             if let Some(e) = sub_err {
                 return Err(e);
+            }
+            if let Some((wait, start)) = sleep {
+                let elapsed = (crate::commands::virtual_clock_elapsed_ms() - start).ceil() as u64;
+                if elapsed != 0 {
+                    let _clock = crate::commands::suspend_execution_clock();
+                    if !wait(elapsed) {
+                        return Err(EvalError::Budget(self.budget.record_exceeded("Execution aborted: cancelled".into())));
+                    }
+                }
             }
             return Ok(c_out);
         }

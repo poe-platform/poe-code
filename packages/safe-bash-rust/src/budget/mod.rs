@@ -83,7 +83,10 @@ impl CancellationToken {
     }
 }
 
+pub(crate) type SleepWait = Arc<dyn Fn(u64) -> bool + Send + Sync>;
+
 pub struct ExecutionBudget {
+    pub(crate) sleep_wait: Option<SleepWait>,
     pub limits: ShellLimits,
     pub cancel_token: CancellationToken,
     pub alloc_guard: AllocationGuard,
@@ -114,6 +117,7 @@ impl ExecutionBudget {
         let _ = timeout_ms;
         Self {
             limits,
+            sleep_wait: None,
             cancel_token: CancellationToken::new(),
             alloc_guard: AllocationGuard::new(max_mem),
             loop_iterations: AtomicUsize::new(0),

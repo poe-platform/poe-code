@@ -99,13 +99,21 @@ function streamHost(x) {
   let host = streamHosts.get(x);
   if (host) return host;
   const jobs = new Map(), table = x.__indirect_function_table;
-  const next = suspendingCallback(async id => {
+  const next = suspendingCallback(async (id, ptr, ms) => {
       const job = jobs.get(id);
       job.sp = x.__stack_pointer.value;
       job.stack = new Uint8Array(x.memory.buffer.slice(job.sp, job.top));
       x.__stack_pointer.value = job.top;
       try {
         job.signal?.throwIfAborted();
+        if (ptr === 0) {
+          // A stream read always supplies a data pointer; sleep supplies the delay instead.
+          let timer;
+          try {
+            await untilAbort(new Promise(resolve => { timer = setTimeout(resolve, ms); }), job.signal);
+          } finally { clearTimeout(timer); }
+          return;
+        }
         const read = job.iterator.next();
         const result = await (job.signal ? untilAbort(read, job.signal) : read);
         job.done = Boolean(result.done);
@@ -118,6 +126,7 @@ function streamHost(x) {
         }
         job.status = job.done ? 0 : 1;
       } catch {
+        if (ptr === 0) { job.timerFailed = true; return; }
         job.status = -1;
         job.data = job.shell._allocBytes(encoder.encode("internal error"));
       }
@@ -126,7 +135,8 @@ function streamHost(x) {
       new Uint8Array(x.memory.buffer, job.sp, job.stack.length).set(job.stack);
       x.__stack_pointer.value = job.sp;
       job.stack = undefined;
-      if (job.signal?.aborted) return -2;
+      if (job.signal?.aborted || job.timerFailed) return -2;
+      if (p === 0) return 0;
       if (job.data) {
         const v = new DataView(x.memory.buffer);
         v.setUint32(p,job.data.ptr,true); v.setUint32(n,job.data.len,true);
@@ -2644,7 +2654,7 @@ export class RustWasmBash extends WasmShell {
     try { return await run; } finally { this.#activePlugins.delete(run); }
   }
 
-  async #exec(script, options, simulateSleep = options.signal) {
+  async #exec(script, options, legacySleep = options.signal) {
     const filesystem = options?.fs;
     const externalFs = filesystem != null && filesystem !== this.fs;
     if (externalFs && this.companionFactory && !this._companion) {
@@ -2662,7 +2672,8 @@ export class RustWasmBash extends WasmShell {
           : this._companion.shell.exec(script);
       }
     }
-    if (simulateSleep) {
+    const hostWait = options.signal && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function";
+    if (legacySleep && !hostWait) {
       options.signal.throwIfAborted();
       const sleepMatch = /\bsleep\s+([0-9.]+)/.exec(script);
       if (sleepMatch) {
@@ -2682,7 +2693,7 @@ export class RustWasmBash extends WasmShell {
     }
     options.signal?.throwIfAborted();
     const shell = this.#forkShell();
-    let releaseCommands, releaseFs, elapsedMs;
+    let releaseCommands, releaseFs, elapsedMs, timerHost;
     let res;
     try {
       const before = options.hooks?.beforeExec ?? this.hooks?.beforeExec;
@@ -2725,9 +2736,14 @@ export class RustWasmBash extends WasmShell {
           releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, externalFs ? filesystem : this.fs, externalFs ? filesystem.capabilities?.open===true : !this.#overlay, options, this.#middleware, this.#composeMiddleware,externalFs ? (this.#overlay || this._companion ? null : this.fs) : undefined);
         }
       }
+      if (hostWait) {
+        timerHost = streamHost(shell.exports);
+        if (shell.exports.safe_bash_set_sleep_wait(shell.sessionId, timerHost.slot) !== 0) throw Error("Could not bind sleep timer");
+        if (!asyncInput) timerHost.jobs.set(shell.sessionId, {shell, signal:options.signal, top:shell.exports.__stack_pointer.value});
+      }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
         res = await execAsyncStdin(shell,script,stdinData,options.signal);
-      } else if (releaseCommands || releaseFs) {
+      } else if (releaseCommands || releaseFs || timerHost) {
         const scriptBytes = shell._allocBytes(encoder.encode(script));
         let input;
         try {
@@ -2748,9 +2764,10 @@ export class RustWasmBash extends WasmShell {
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
+      timerHost?.jobs.delete(shell.sessionId);
       try { if (releaseCommands) await releaseCommands(); } finally { try { if(releaseFs)await releaseFs(); } finally { shell.dispose(); } }
     }
-    if (elapsedMs > 0 && res.exitCode !== 1) {
+    if (!hostWait && elapsedMs > 0 && res.exitCode !== 1) {
       const waitMs = Math.min(elapsedMs, 50);
       await new Promise((resolve) => setTimeout(resolve, waitMs));
     }

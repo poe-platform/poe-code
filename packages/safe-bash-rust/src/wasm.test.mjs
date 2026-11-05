@@ -3,6 +3,80 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("cancellable Rust sleep waits only for an executed command", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  const controller = new AbortController();
+  try {
+    const run = bash.exec("false && sleep 60; printf '%s' 'sleep 60'", {signal:controller.signal});
+    setImmediate(() => controller.abort());
+    assert.equal((await run).stdout, "sleep 60");
+  } finally { controller.abort(); await bash.dispose(); }
+});
+
+test("aborting expanded and literal sleeps preserves only preceding writes", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const command of ["sleep 60", 'env sleep "$delay"', `timeout 8 sh -c 'sleep "$1"' sh 60`]) {
+      const controller = new AbortController(), stop = Error("stop");
+      const run = bash.exec("delay=60; echo before > /before; " + command + "; echo after > /after", {signal:controller.signal});
+      setImmediate(() => controller.abort(stop));
+      await assert.rejects(run, error => error === stop);
+      assert.equal(bash.execSync("cat /before; rm /before").stdout, "before\n");
+      assert.equal(bash.execSync("test -e /after").exitCode, 1);
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("Rust sleep shares its timeout deadline with the host timer and keeps concurrent clocks independent", {skip: !WebAssembly.Suspending}, async t => {
+  const bash = new RustWasmBash(), timers = [];
+  t.mock.method(globalThis, "setTimeout", (resume, ms) => { timers.push({resume, ms}); });
+  const a = new AbortController(), b = new AbortController();
+  try {
+    const first = bash.exec("timeout 1 sleep 90; echo $?:$SECONDS", {signal:a.signal});
+    const second = bash.exec('d=3; sleep "$d"; echo $SECONDS', {signal:b.signal});
+    const settled = Promise.allSettled([first, second]);
+    assert.deepEqual(timers.map(timer => timer.ms), [1000, 3000]);
+    bash.exports.memory.grow(1);
+    timers[1].resume();
+    assert.equal((await second).stdout, "3\n");
+    timers[0].resume();
+    assert.equal((await first).stdout, "124:1\n");
+    await settled;
+  } finally { a.abort(); b.abort(); await bash.dispose(); }
+});
+
+test("cancelling a sleep between streamed reads closes stdin without consuming more", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash(), controller = new AbortController();
+  let pulls = 0, closed = 0;
+  const stdin = {async *[Symbol.asyncIterator]() {
+    try {
+      pulls++; yield Uint8Array.of(65);
+      pulls++; yield Uint8Array.of(66);
+    } finally { closed++; }
+  }};
+  try {
+    const run = bash.exec('head -c1 >/first; d=60; sleep "$d"; cat >/late', {stdin, signal:controller.signal});
+    setImmediate(() => controller.abort());
+    await assert.rejects(run, error => error === controller.signal.reason);
+    assert.deepEqual([pulls, closed, bash.readText("/first"), bash.execSync("test -e /late").exitCode], [1, 1, "A", 1]);
+  } finally { controller.abort(); await bash.dispose(); }
+});
+
+test("disposing a plugin shell interrupts sleep before the next handler", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash(), calls = [];
+  bash.register({name:"mark", execute(ctx) { calls.push(ctx.args[0]); return {exitCode:0}; }});
+  await bash.exec(":");
+  try {
+    const run = bash.exec('mark before; d=60; sleep "$d"; mark after');
+    const stopped = assert.rejects(run, /Shell is disposed/);
+    stopped.catch(() => {});
+    await new Promise(resolve => setImmediate(resolve));
+    await bash.dispose();
+    await stopped;
+    assert.deepEqual(calls, ["before"]);
+  } finally { await bash.dispose(); }
+});
+
 test("stat -f reports the filesystem type supplied for each host path", {skip: !WebAssembly.Suspending}, async () => {
   const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/"});

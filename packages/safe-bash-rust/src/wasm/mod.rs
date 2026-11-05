@@ -1167,6 +1167,23 @@ pub unsafe extern "C" fn safe_bash_set_limit(
     0
 }
 
+/// Bind a fork's cancellable sleep. Each callback waits up to one host timer interval;
+/// a nonzero reply aborts the execution before the next shell command.
+#[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_set_sleep_wait(id: u32, wait: extern "C" fn(u32, u32, u32) -> i32) -> i32 {
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    sess.shell.backend.sleep_wait = Some(std::sync::Arc::new(move |mut ms| {
+        while ms > 0 {
+            let chunk = ms.min(i32::MAX as u64);
+            if wait(id, 0, chunk as u32) != 0 { return false; }
+            ms -= chunk;
+        }
+        true
+    }));
+    0
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_exec(
     id: u32,

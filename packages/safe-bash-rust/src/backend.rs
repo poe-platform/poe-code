@@ -81,6 +81,7 @@ pub struct HybridBackend {
     bindings: Mutex<ShellBindings>,
     pub(crate) used_typescript_bridge: Arc<AtomicBool>,
     pub(crate) last_elapsed_ms: AtomicU32,
+    pub(crate) sleep_wait: Option<crate::budget::SleepWait>,
 }
 
 impl Clone for HybridBackend {
@@ -91,6 +92,7 @@ impl Clone for HybridBackend {
             commands: self.commands.clone(),
             middleware: self.middleware.clone(),
             last_elapsed_ms: AtomicU32::default(),
+            sleep_wait: None, // A host timer belongs to its execution fork.
             bindings: Mutex::new(self.bindings.lock().unwrap().clone()),
             used_typescript_bridge: self.used_typescript_bridge.clone(),
         }
@@ -622,7 +624,8 @@ impl HybridBackend {
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
         self.used_typescript_bridge.store(false, Ordering::Relaxed);
-        let budget = ExecutionBudget::new(limits.clone(), timeout_ms);
+        let mut budget = ExecutionBudget::new(limits.clone(), timeout_ms);
+        budget.sleep_wait.clone_from(&self.sleep_wait);
         let budgeted_fs = BudgetedFs {
             inner: fs,
             budget: &budget,

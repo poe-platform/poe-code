@@ -2776,6 +2776,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 norm === "screen" ||
                 norm === "overlay" ||
                 norm === "hardlight" ||
+                norm === "pinlight" ||
                 norm === "darken" ||
                 norm === "lighten" ||
                 norm === "exclusion") {
@@ -2815,10 +2816,12 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                             f = sc + dc - sc * dc;
                         else if (norm === "hardlight")
                             f = sc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
+                        else if (norm === "pinlight")
+                            f = sc <= 0.5 ? Math.min(dc, 2 * sc) : Math.max(dc, 2 * sc - 1);
                         else
                             f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
                         const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
-                        const unpremul = gamma > 1e-6 && (norm === "lineardodge" || norm === "colorburn" || norm === "colordodge" || norm === "multiply" || norm === "overlay" || norm === "hardlight") ? comp / gamma : comp;
+                        const unpremul = gamma > 1e-6 && (norm === "lineardodge" || norm === "colorburn" || norm === "colordodge" || norm === "multiply" || norm === "overlay" || norm === "hardlight" || norm === "pinlight") ? comp / gamma : comp;
                         out[dIdx + c] = clampByteVal(unpremul * 255);
                     }
                 }

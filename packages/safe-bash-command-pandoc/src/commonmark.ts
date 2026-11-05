@@ -1,3 +1,4 @@
+import {markdownTitleBlock} from "./markdown-title-block.js";
 import {headingAttributes} from "./heading-attributes.js";
 import {nativeDivBlocks} from "./html.js";
 import { parseDocument } from "yaml";
@@ -47,9 +48,20 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
   const rawText = input.text ?? await context.decodeUtf8([input.bytes]);
   const metadata: Record<string, MetaValue> = {};
   let text = rawText;
-  const fmMatch = /^---[ \t]*\r?\n((?:[A-Za-z_][A-Za-z0-9_-]*[ \t]*:[^\r\n]*\r?\n|[ \t]+[^\r\n]*\r?\n)+)(?:---|\.\.\.)[ \t]*\r?\n(?=\s*\S)/.exec(rawText);
+  if (extensions.pandoc_title_block) {
+    const authors: MetaValue[] = [];
+    const end = await markdownTitleBlock(offset => rawText[offset] ?? "", {start: 0, end: rawText.length}, context, async (name, range) => {
+      const c = await parseCommonMarkInlines({kind: "pendingInline", lines: rawText.slice(range.start, range.end).split("\n").map((text, index) => ({text: text.trim(), start: {line: index + 1, column: 1}}))}, [], context, extensions);
+      const value: MetaValue = {t: "MetaInlines", c};
+      if (name === "author") authors.push(value);
+      else metadata[name] = value;
+    });
+    if (authors.length) metadata.author = {t: "MetaList", c: authors};
+    text = rawText.slice(end);
+  }
+  const fmMatch = /^---[ \t]*\r?\n((?:[A-Za-z_][A-Za-z0-9_-]*[ \t]*:[^\r\n]*\r?\n|[ \t]+[^\r\n]*\r?\n)+)(?:---|\.\.\.)[ \t]*\r?\n(?=\s*\S)/.exec(text);
   if (fmMatch) {
-    if (parseCommonMarkMetadata(fmMatch[1]!, metadata)) text = rawText.slice(fmMatch[0].length);
+    if (parseCommonMarkMetadata(fmMatch[1]!, metadata)) text = text.slice(fmMatch[0].length);
   }
   extensions = {...extensions, citations: extensions.citations ?? (metadata.bibliography !== undefined || metadata.references !== undefined)};
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);

@@ -1,3 +1,6 @@
+import {markdownTitleBlock} from "./markdown-title-block.js";
+import {parseRetainedCommonMarkInlines} from "./retained-commonmark-inlines.js";
+import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import {mergeRetainedMetadata} from "./retained-metadata.js";
 import {BackedText} from "./backed-text.js";
 import {BackedTextSet} from "./backed-text-set.js";
@@ -127,11 +130,19 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
     const parse = async (range: SourceRange) => {
       try {
         astOrigins.clear(); origins.clear();
+        const ast = new RetainedRtfAst(nodes, units => context.cooperate(units));
+        const title = await ast.object(), authors = await ast.array();
+        if (extensions.pandoc_title_block) range = {start: await markdownTitleBlock(offset => source.unit(offset), range, context, async (name, value) => {
+          const inlines = await parseRetainedCommonMarkInlines(new RetainedCommonMarkSyntax(source, value, context), tape, ast, context, extensions);
+          const entry = await ast.tag("MetaInlines", inlines);
+          if (name === "author") await ast.push(authors, entry);
+          else await ast.push(title, await ast.value([name, entry]));
+        }), end: range.end};
+        if (await ast.count(authors)) await ast.push(title, await ast.value(["author", await ast.tag("MetaList", authors)]));
         const envelope = await frontmatter(source, range, context);
         const metadata = await readRetainedYamlMetadata(source, envelope?.yaml, tape, wireStore, units => context.cooperate(units));
         if (envelope && metadata.parsed) range = {start: envelope.end, end: range.end};
         const parser = new RetainedCommonMarkBlocks(source, tape, context, inputs[readerIndex]!.base, extensions); await parser.parse(range);
-        const ast = new RetainedRtfAst(nodes, units => context.cooperate(units));
         const blocks = await assembleRetainedCommonMark(parser, ast, tape, context, {...extensions,
           citations: extensions.citations ?? (await metadata.tree.property(metadata.tree.rootPosition, "bibliography") !== undefined || await metadata.tree.property(metadata.tree.rootPosition, "references") !== undefined)}, async (target, line) => {await astOrigins.seed(target.position, await sourceAt(line) + 1);});
         if (envelope) {
@@ -140,8 +151,14 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
         }
         const tree = new BackedJson(wireStore, units => context.cooperate(units));
         await tree.begin("object"); await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]);
-        await tree.key("meta"); await metadata.write(tree); await tree.key("blocks"); await ast.write(blocks, tree, async (value, position) => {const source = await astOrigins.source(value.position); if (source) await origins.seed(position, source);}); await tree.end();
-        const document = await readRetainedJson({chunks: tree.chunks()}, context, working, false);
+        await tree.key("meta"); if (await ast.count(title)) await ast.write(title, tree); else await metadata.write(tree); await tree.key("blocks"); await ast.write(blocks, tree, async (value, position) => {const source = await astOrigins.source(value.position); if (source) await origins.seed(position, source);}); await tree.end();
+        let document = await readRetainedJson({chunks: tree.chunks()}, context, working, false);
+        if (envelope && metadata.parsed && await ast.count(title)) {
+          const yaml = new BackedJson(wireStore, units => context.cooperate(units));
+          await metadata.write(yaml);
+          const merged = await mergeRetainedMetadata(document, {tree: yaml, root: yaml.rootPosition, typed: true}, context, working);
+          await document.close(); document = merged;
+        }
         await origins.transfer(tree, document.tree);
         return document;
       } catch (error) {

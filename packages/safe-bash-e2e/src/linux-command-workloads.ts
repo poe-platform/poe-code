@@ -94,6 +94,9 @@ export function linuxCommands(text: string) {
   const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1"];
   return [
     ...pipes.map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" })),
+    // Keep the host keybox in the private benchmark directory.
+    { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-q", "--export", "missing"],
+      script: "gpg --batch -q --export missing", input: "" },
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({
       cmd: "split", args: ["-n", spec, "-t", "|"], script: "split -n " + spec + " -t '|'",

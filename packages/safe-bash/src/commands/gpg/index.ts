@@ -196,7 +196,6 @@ export function evalSyncGpg(
     let listKeys = false;
     let listSecret = false;
     let quickGenKey = false;
-    let exportKeys = false;
     let importKeys = false;
     let signerUid = "Git User <user@example.com>";
     let statusFd: string | undefined;
@@ -210,7 +209,7 @@ export function evalSyncGpg(
       else if (a === "--list-keys" || a === "-k" || a === "--list-secret-keys" || a === "-K") { listKeys = true; listSecret = a === "--list-secret-keys" || a === "-K"; }
       else if (a === "--quick-generate-key" || a === "--quick-gen-key" || a === "--gen-key" || a === "--full-generate-key")
         quickGenKey = true;
-      else if (a === "--export") exportKeys = true;
+      else if (a === "--export") return undefined;
       else if (a === "--import") importKeys = true;
       else if ((a === "-u" || a === "--local-user") && i + 1 < opArgs.length) signerUid = opArgs[++i]!;
       else if (a.startsWith("-bsau") && a.length > 5) {
@@ -247,17 +246,6 @@ export function evalSyncGpg(
         lines.push(`uid                 [ultimate] ${k.uid}`);
       }
       return lines.length > 0 ? `${lines.join("\n")}\n` : "";
-    }
-
-    if (exportKeys) {
-      const keys = loadKeyringSync().filter(k => !positionals.length || positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())))
-        .map(({ uid, keyIdHex, pubHex }) => ({ uid, keyIdHex, pubHex }));
-      const armor = `-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n${bytesToBase64(syncGpgEncoder.encode(JSON.stringify(keys)), 64)}\n-----END PGP PUBLIC KEY BLOCK-----\n`;
-      if (outFile && outFile !== "-") {
-        if (!writeFileSync || !writeFileSync(outFile, syncGpgEncoder.encode(armor))) return undefined;
-        return "";
-      }
-      return armor;
     }
 
     if (detachSign) {

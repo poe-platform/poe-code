@@ -531,6 +531,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       let listSecret = false;
       let quickGenKey = false;
       let exportKeys = false;
+      let quiet = false;
       let importKeys = false;
       let symmetric = false;
       let decrypt = false;
@@ -557,6 +558,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         else if (a === "--quick-generate-key" || a === "--quick-gen-key" || a === "--gen-key" || a === "--full-generate-key")
           quickGenKey = true;
         else if (a === "--export") exportKeys = true;
+        else if (a === "-q" || a === "--quiet") quiet = true;
         else if (a === "--import") importKeys = true;
         else if (a === "--with-colons") withColons = true;
         else if ((a === "-u" || a === "--local-user") && i + 1 < args.length) signerUid = args[++i]!;
@@ -584,7 +586,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           continue;
         }
         else if ((a === "-o" || a === "--output") && i + 1 < args.length) outFile = args[++i];
-        else if (a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-q" || a === "--quiet" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
+        else if (a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
         else if (a.startsWith("-")) {
           await writeText(context.stderr, `gpg: unknown option: ${a}\n`);
           return { exitCode: 2 };
@@ -675,6 +677,10 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         if (exportKeys) {
           const keys = (await loadKeyring(context)).filter(k => !positionals.length || positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())))
             .map(({uid, keyIdHex, pubHex}) => ({uid, keyIdHex, pubHex}));
+          if (!keys.length) {
+            if (!quiet) await writeText(context.stderr, "gpg: WARNING: nothing exported\n");
+            return { exitCode: 0 };
+          }
           const armor = `-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n${bytesToBase64(textEncoder.encode(JSON.stringify(keys)), 64)}\n-----END PGP PUBLIC KEY BLOCK-----\n`;
           if (outFile) {
             await writeFileOutput(context, textEncoder.encode(armor), data =>

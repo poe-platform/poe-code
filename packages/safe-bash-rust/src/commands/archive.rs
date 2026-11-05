@@ -9248,6 +9248,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut list_secret = false;
     let mut quick_gen_key = false;
     let mut export_keys = false;
+    let mut quiet = false;
     let mut import_keys = false;
     let mut symmetric = false;
     let mut decrypt = false;
@@ -9328,7 +9329,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else if (a == "-o" || a == "--output") && i + 1 < args.len() {
             i += 1;
             out_file = Some(args[i].clone());
-        } else if matches!(a, "--batch" | "--yes" | "--no-tty" | "-q" | "--quiet" | "-s" | "--sign" | "--help" | "-h") {
+        } else if matches!(a, "-q" | "--quiet") {
+            quiet = true;
+        } else if matches!(a, "--batch" | "--yes" | "--no-tty" | "-s" | "--sign" | "--help" | "-h") {
         } else if a.starts_with('-') {
             return err_out(&format!("gpg: unknown option: {a}\n"), 2);
         } else {
@@ -9574,6 +9577,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if export_keys {
         let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let keys: Vec<_> = keys.into_iter().filter(|(uid, kid, _, _)| positionals.is_empty() || positionals.iter().any(|p| uid.contains(p) || kid.contains(&p.to_ascii_uppercase()))).collect();
+        if keys.is_empty() {
+            return if quiet { ok_out("") } else { err_out("gpg: WARNING: nothing exported\n", 0) };
+        }
         let b64 = openssl_b64_encode(serialize_keys(&keys, true).as_bytes(), true);
         let arm = format!("-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n{b64}\n-----END PGP PUBLIC KEY BLOCK-----\n");
         if let Some(ref to) = out_file {

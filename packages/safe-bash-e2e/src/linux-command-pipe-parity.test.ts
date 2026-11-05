@@ -1,4 +1,4 @@
-import { link, lstat, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { link, lstat, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -273,5 +273,34 @@ test("ssh-keygen creates fresh private Ed25519 keys usable by OpenSSH", async ()
     if (dir) await rm(dir, { recursive: true, force: true });
     rust.dispose();
     await ts.dispose();
+  }
+});
+
+test("gpg matches GnuPG when an export selects no keys", async () => {
+  const ts = await SafeBashE2EHarness.create({ fs: new sb.MemoryFileSystem() });
+  ts.shell.use(sb.gpgCommands({ replace: true }));
+  const rust = new RustWasmBash({ cwd: "/workspace", forceNative: true });
+  let dir: string | undefined;
+  try {
+    dir = await createLinuxCommandDirectory(ts.fs, rust.fs);
+    const home = dir + "/gnupg";
+    await mkdir(home, { mode: 0o700 });
+    const options = ["--no-options", "--no-autostart", "--batch", "--homedir", home];
+    const initialized = await runLinuxCommand("gpg", [...options, "--list-keys"], "", dir);
+    assert.equal(initialized[0], 0, initialized[2].toString());
+    for (const args of [["--export"], ["-a", "--export", "missing"], ["-q", "-o", "missing.key", "--export", "missing"]]) {
+      const expected = await runLinuxCommand("gpg", [...options, ...args], "", dir);
+      assert.equal(expected[0], 0);
+      await assert.rejects(lstat(dir + "/missing.key"), { code: "ENOENT" });
+      for (const [shell, fs] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+        const result = await shell.exec("gpg " + args.join(" "));
+        assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], expected);
+        await assert.rejects(fs.stat("/workspace/missing.key"), { code: "ENOENT" });
+      }
+    }
+  } finally {
+    if (dir) await rm(dir, { recursive: true, force: true });
+    await ts.dispose();
+    rust.dispose();
   }
 });

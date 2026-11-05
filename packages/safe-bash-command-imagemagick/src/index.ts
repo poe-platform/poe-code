@@ -5591,6 +5591,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
+            if ((t.startsWith("-") && t !== "-") || t.startsWith("+")) throw new Error(`unrecognized option '${t}'`);
             const isLabelOperand = /^(?:label|caption):/i.test(t);
             const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
             const prevBg = state.background;
@@ -6318,7 +6319,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? (token === "-frame" ? "4x4" : "0x0")), left = Math.max(0, Math.round(geometry.width ?? (token === "-frame" ? 4 : 0))), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
             transform(() => ({ kind: "extend", left, right: left, top, bottom: top, background, extendWith: "background" }));
         } else {
-            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+") || token === "(" || token === ")")) continue;
+            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) throw new Error(`unrecognized option '${token}'`);
+            if (!operandsOnly && (token === "(" || token === ")")) continue;
             const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {
                 const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();

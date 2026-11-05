@@ -2553,6 +2553,24 @@ for (const codec of ["copy", "pcm_s16le"]) {
   });
 }
 
+for (const [gain, expected] of [
+  [1, [-32768, -16384, -4095, -3, -1, 0, 1, 3, 4095, 16383, 32767]],
+  [0.5, [-16384, -8192, -2048, -2, 0, 0, 0, 2, 2048, 8192, 16384]],
+  [-0.5, [16384, 8192, 2048, 2, 0, 0, 0, -2, -2048, -8192, -16384]],
+  [2, [-32768, -32768, -8190, -6, -2, 0, 2, 6, 8190, 32766, 32767]]
+] as const) {
+  it(`matches native PCM16 endpoints and nearest-even rounding at volume=${gain}`, async () => {
+    const samples = [-32768, -16384, -4095, -3, -1, 0, 1, 3, 4095, 16383, 32767];
+    const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, value => value / 32768)] });
+    const vfs = createTestVfs({ "/input.wav": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", `volume=${gain}`, "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    // Expected signed PCM values from native FFmpeg, including ties in both directions.
+    const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.deepEqual(Array.from(audio.channelData[0]!, value => value * 32768), expected);
+  });
+}
+
 for (const bitsPerSample of [8, 24, 32] as const) {
   it(`copies ${bitsPerSample}-bit WAV packets with their original precision`, async () => {
     const input = encodeWav({ sampleRate: 8000, channels: [

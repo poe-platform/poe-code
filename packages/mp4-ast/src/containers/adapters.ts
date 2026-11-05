@@ -518,7 +518,11 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     for (let i = 0; i < numSamples; i++) {
       for (let c = 0; c < channels; c++) {
         const val = Math.max(-1, Math.min(1, chData[c]?.[i] ?? 0));
-        pView.setInt16((i * channels + c) * 2, Math.min(32767, Math.round(val * 32768)), true);
+        const scaled = val * 32768;
+        const lower = Math.floor(scaled);
+        // FFmpeg rounds halfway PCM values to the nearest even integer.
+        const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
+        pView.setInt16((i * channels + c) * 2, Math.min(32767, rounded), true);
       }
     }
   } else if (

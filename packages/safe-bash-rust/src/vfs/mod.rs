@@ -594,6 +594,11 @@ pub trait SafeBashFs: Send + Sync {
         self.mkdir(path, recursive, mode).map_err(|(code, at)| (code, syscall, at))
     }
 
+    /// A normal shell mkdir can use a backend's own defaults when it has no POSIX permissions.
+    fn mkdir_with_default_mode(&self, path: &str, recursive: bool, try_backing: bool) -> Result<(), (String, &'static str, String)> {
+        self.mkdir_with_operation(path, recursive, 0o755, try_backing)
+    }
+
     // Mode selection happens inside the charged mkdir operation.
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
         mkdir::creation_mode(path, recursive, |candidate| self.command_create_path(candidate))

@@ -478,6 +478,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
             .map_err(|(code, op, at)| (code, op, quote_host_text(at)))
     }
 
+    fn mkdir_with_default_mode(&self, path: &str, recursive: bool, try_backing: bool) -> Result<(), (String, &'static str, String)> {
+        self.budget.limits.check_path(path).and_then(|()| self.budget.tick_fs_op())
+            .map_err(|error| (error, "mkdir", path.to_owned()))?;
+        self.inner.mkdir_with_default_mode(&host_text(path), recursive, try_backing)
+            .map_err(|(code, op, at)| (code, op, quote_host_text(at)))
+    }
+
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

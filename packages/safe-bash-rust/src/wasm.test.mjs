@@ -5253,6 +5253,25 @@ test("cp pins the inspected host source before replacing or backing up a destina
   }
 });
 
+test("mkdir omits only the default mode on a mount without permissions", {skip: !WebAssembly.Suspending}, async () => {
+  const {createMountFileSystem, MemoryFileSystem} = await import("@poe-code/safe-fs");
+  const fs = createMountFileSystem({root:new MemoryFileSystem(),mounts:{"/remote":new MemoryFileSystem()}});
+  const caps = fs.capabilitiesFor.bind(fs), mkdir = fs.mkdir.bind(fs), seen = [];
+  fs.capabilitiesFor = async (path,opt) => ({...await caps(path,opt),permissions:!path.startsWith("/remote/")});
+  fs.mkdir = async (path,opt) => { seen.push([path,opt.mode]); return mkdir(path,opt); };
+  const sh = new RustWasmBash({fs,cwd:"/"});
+  try {
+    const r = await sh.exec("mkdir -p /remote/one/two && mkdir /local");
+    assert.equal(r.exitCode,0,r.stderr);
+    assert.deepEqual(seen,[["/remote/one",undefined],["/remote/one/two",undefined],["/local",0o755]]);
+    for(const script of ["mkdir -p -m 755 /remote/refused/nested","umask 077; mkdir /remote/refused"]) {
+      const r = await sh.exec(script);
+      assert.equal(r.exitCode,1,script);
+      await assert.rejects(fs.stat("/remote/refused"),{code:"ENOENT"});
+    }
+  } finally { await sh.dispose(); }
+});
+
 test("rm never retries an atomic refusal with an unguarded delete", {skip: !WebAssembly.Suspending}, async () => {
   const {createMountFileSystem,MemoryFileSystem} = await import("@poe-code/safe-fs");
   const store = new MemoryFileSystem(), fs = createMountFileSystem({root:store,mounts:{}});

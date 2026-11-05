@@ -43,6 +43,7 @@ struct HostFs {
     devices: bool,
     namespaced: bool,
     no_symlinks: bool,
+    default_mkdir: bool,
 }
 impl HostFs {
     fn request(
@@ -687,11 +688,14 @@ impl SafeBashFs for HostFs {
         }
         self.request("mkdir", p, &[], 1, 0o777).map(drop)
     }
+    fn mkdir_with_default_mode(&self, path: &str, recursive: bool, try_backing: bool) -> Result<(), (String, &'static str, String)> {
+        Self { default_mkdir: true, ..*self }.mkdir_with_operation(path, recursive, 0o755, try_backing)
+    }
     fn mkdir_one(&self, p: &str, m: u32) -> Result<(), String> {
         if self.reserved_device(p, true)?.is_some() {
             return Err("EEXIST: file already exists".into());
         }
-        self.request("mkdir", p, &[], 0, m).map(drop)
+        self.request("mkdir", p, &[], if self.default_mkdir { 2 } else { 0 }, m).map(drop)
     }
     fn remove_command_entry(&self, path: &str, parent: &FileStat, expected: &FileStat, force: bool) -> Result<(), String> {
         self.mutable(path,false)?;
@@ -881,6 +885,7 @@ pub extern "C" fn safe_bash_bind_fs(id: u32, call: Callback, namespaced: bool, n
         return -1;
     };
     session.shell.fs = Arc::new(HostFs {
+        default_mkdir: false,
         call,
         max_input: session.shell.limits().max_input_bytes,
         devices: !session.shell.backend.provided_devices,

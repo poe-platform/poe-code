@@ -636,7 +636,11 @@ function bindExternalFs(shell,fs,options) {
             const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
             await fs[op](path,data,caps?.permissions===false?settings:{...settings,mode:0o644});break;
           }
-          case "mkdir":await fs.mkdir(path,{...settings,recursive:!!flags,mode,exactMode:true});break;
+          case "mkdir":{
+            const caps=await fs.capabilitiesFor?.(path,{...settings,create:true}) ?? fs.capabilities;
+            if(caps?.permissions===false && !(flags&2))throw fsOperationError("ENOTSUP",op,path);
+            await fs.mkdir(path,{...settings,recursive:!!(flags&1),...(caps?.permissions!==false && {mode,exactMode:true})});break;
+          }
           case "rm":await fs.rm(path,{...settings,recursive:!!flags});break;
           case "unlink":case "rmdir":await fs[op](path,settings);break;
           case "rename":{

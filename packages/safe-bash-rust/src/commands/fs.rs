@@ -633,7 +633,9 @@ fn cmd_mkdir(
             Err(e) => Err(copy_error(&e, op, path)),
         }
     };
-    let mkdir = |path: &str, parents, mode| fs.mkdir_with_operation(path, parents, mode, try_backing).map_err(|(code, op, path)| {
+    let mkdir = |path: &str, parents, mode| (if explicit_mode.is_none() && umask_val == 0o022 {
+        fs.mkdir_with_default_mode(path, parents, try_backing)
+    } else { fs.mkdir_with_operation(path, parents, mode, try_backing) }).map_err(|(code, op, path)| {
         let reason = match code.as_str() {
             "ENOENT" => "no such file or directory", "EEXIST" => "file already exists",
             "ENOTDIR" => "not a directory", "EACCES" => "permission denied",

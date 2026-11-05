@@ -315,16 +315,24 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         for f in &files {
             let full = resolve_posix_path(cwd, f);
             if let Ok(bytes) = fs.read_file(&full) {
-                if !in_place_suffix.is_empty() {
-                    let _ = fs.write_file(&format!("{full}{in_place_suffix}"), &bytes);
-                }
                 let content = crate::vfs::bytes_to_stream_string(&bytes);
                 let mut cmds_copy = parsed_cmds.clone();
                 let (res, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
                 if let Some(em) = err_msg {
                     return err_out(&em, code);
                 }
-                let _ = fs.write_file(&full, &crate::vfs::stream_string_to_bytes(&res));
+                if !in_place_suffix.is_empty() {
+                    let backup = format!("{full}{in_place_suffix}");
+                    if fs.lstat(&backup).is_ok_and(|stat| stat.kind == crate::vfs::VfsEntryKind::Directory) {
+                        return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4);
+                    }
+                    if let Err(e) = fs.write_file(&backup, &bytes) {
+                        return err_out(&format!("sed: {e}\n"), 4);
+                    }
+                }
+                if let Err(e) = fs.write_file(&full, &crate::vfs::stream_string_to_bytes(&res)) {
+                    return err_out(&format!("sed: {e}\n"), 4);
+                }
             } else {
                 return err_out(&format!("sed: ENOENT: no such file or directory, lstat '{full}'\n"), 1);
             }

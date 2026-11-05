@@ -1,5 +1,5 @@
 import { editInPlace,prepareInPlace } from "./inplace.js";
-import { FsError,writeBytes,type CommandContext,type CommandDefinition } from "safe-bash-contracts";
+import { FsError,writeBytes,writeText,type CommandContext,type CommandDefinition } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { decodeBytes,encodeBytes,writeEncodedBytes } from "safe-bash-io-engine/byte-encoding";
 import { assertPathRequirements,requiredFileInput,sedRequirements } from "safe-bash-io-engine/commands/search/requirements";
@@ -1111,7 +1111,11 @@ async function executeSedGeneral(
       if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
       const targets = await prepareInPlace(context, files, inPlace);
       if (outputFiles.length > 0) await prepareOutputs();
-      for (const target of targets) {
+      for (const [index, target] of targets.entries()) {
+        if (target.backup?.type === "directory") {
+          await writeText(context.stderr, `sed: cannot rename ${files[index]}: Is a directory\n`);
+          return 4;
+        }
         const result = await editInPlace(context, target, inPlace, budget, async stdin => {
           let rewritten = "";
           const child = Object.assign(Object.create(Object.getPrototypeOf(context)), context, { stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + decodeBytes(encodeBytes(chunk), "latin1")); } } }) as CommandContext;

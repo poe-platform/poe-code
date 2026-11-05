@@ -37,9 +37,9 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
     if (suffix) {
       try { backup = await fs.lstat(path + suffix, { signal: context.signal }); }
       catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
-      if (backup && backup.type !== "file") throw new FsError("ENOTSUP", { path: path + suffix, message: "in-place backups require regular files" });
+      if (backup && backup.type !== "file" && backup.type !== "directory") throw new FsError("ENOTSUP", { path: path + suffix, message: "in-place backups require regular files" });
       if (backup && compareCopyIdentity(original, backup) === "same") throw new FsError("EINVAL", { path, message: "backup aliases the edited file" });
-      if (backup && (backup.mode & 0o7777) !== (original.mode & 0o7777)) {
+      if (backup?.type === "file" && (backup.mode & 0o7777) !== (original.mode & 0o7777)) {
         const backupCapabilities = await fs.capabilitiesFor?.(path + suffix, { signal: context.signal }) ?? fs.capabilities;
         if (backupCapabilities.atomicFileStaging !== true || backupCapabilities.atomicStagingAncestry !== true
           || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) {

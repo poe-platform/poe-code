@@ -916,7 +916,7 @@ function parseQpdfArguments(argv: readonly string[]) {
         pageSpecs.push({
           file: fileToken,
           ...(filePw !== undefined ? { password: filePw } : {}),
-          range: rangeToken
+          range: rangeToken || "1-z"
         });
         i++;
       }

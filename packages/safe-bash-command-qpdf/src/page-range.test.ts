@@ -50,7 +50,7 @@ for (const spec of ["1foo", "1.5", "r1foo", "1-3junk", "1-3:odd:even", "1-3-4"])
 }
 
 for (const [spec, expected] of [
-  ["", []], ["1-z", [1, 2, 3, 4, 5, 6]], ["z-1:even", [5, 3, 1]],
+  ["", []], [":odd", []], [":even", []], ["1-z", [1, 2, 3, 4, 5, 6]], ["z-1:even", [5, 3, 1]],
   ["1-z,x2-4", [1, 5, 6]], ["1-3,x2,2", [1, 3, 2]],
   ["1-z,x2-5:even", [6]], ["1-z,x2-5:odd", [1]], ["1,2-5:even", [2, 4]], ["1-z,2:odd", [1, 3, 5, 2]],
   ["r1-r3", [6, 5, 4]], ["1-z,x3:even", [2, 5]], ["z-1,x5-2:even", [1]], ["1,1,2:even", [1]], ["1,1,2", [1, 1, 2]],
@@ -108,6 +108,7 @@ for (const [spec, expected] of [
 });
 
 for (const [spec, expected] of [
+  [":odd", []], [":even", []], ["", [1, 2, 3, 4, 5, 6]],
   ["1-z,x2-5:even", [6]], ["1-z,x2-5:odd", [1]],
   ["1,2-5:even", [2, 4]], ["1-z:even", [2, 4, 6]],
 ] as const) for (const operation of ["select", "rotate"] as const) it(`applies terminal parity after all groups for ${operation}: ${spec}`, async () => {

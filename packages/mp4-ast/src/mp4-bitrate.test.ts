@@ -27,3 +27,18 @@ for (const [fixture, video, audio] of [
     });
   }
 }
+
+for (const reader of ['resident', 'source']) {
+  it(`${reader} derives empty-moov AAC duration and bitrates from fragments`, async () => {
+    const bytes = readFileSync(new URL('./fixtures/fragmented-aac.mp4', import.meta.url));
+    const probe = reader === 'resident' ? probeMp4(bytes) : await probeMp4Source({
+      size: bytes.length,
+      async read(offset, length) { return bytes.subarray(offset, offset + length); }
+    });
+    const streams = [];
+    for await (const stream of probe.streams) streams.push({ duration: stream.duration, bit_rate: stream.bit_rate });
+    assert.deepEqual(streams, [{ duration: '0.546440', bit_rate: '59425' }]);
+    assert.equal(probe.format.duration, '0.546440');
+    assert.equal(probe.format.bit_rate, '74225');
+  });
+}

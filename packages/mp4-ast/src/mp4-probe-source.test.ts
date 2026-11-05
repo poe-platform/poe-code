@@ -100,7 +100,7 @@ for (const reader of ['resident', 'source']) {
         const start = Math.min(...delays), duration = Math.max(...delays) + 1 - start;
         assert.equal(probe.format.start_time, start.toFixed(6));
         assert.equal(probe.format.duration, duration.toFixed(6));
-        assert.equal(probe.format.bit_rate, String(Math.round(bytes.length * 8 / duration)));
+        assert.equal(probe.format.bit_rate, String(Math.trunc(bytes.length * 8 / duration)));
       }
       const video = base.tracks[0]!;
       const bytes = api.serializeMp4({ ...base, tracks: [{ ...video, samples: video.samples.map(sample => ({ ...sample, pts: sample.pts + 18000, cts: sample.cts + 18000 })) }] }, { fragmented });

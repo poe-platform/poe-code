@@ -48,8 +48,9 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   const totalBytes = stats.totalBytes;
   const bitRate =
     codecName === 'aac' && (containerFormat === 'mp4' || containerFormat === 'mov') && stats.ticks > 0
-      // Include encoder lead-in samples and truncate like the MOV demuxer.
-      ? String(Math.trunc(totalBytes * 8 * track.timescale / stats.ticks))
+      // Empty sample tables use the demuxer's rounded fragment estimate;
+      // classic tables include encoder lead-in samples and truncate.
+      ? String((track.declaredSampleCount === 0 ? Math.round : Math.trunc)(totalBytes * 8 * track.timescale / stats.ticks))
       : durationSec > 0 ? String(Math.round((totalBytes * 8) / durationSec)) : "0";
   const nbFrames = stats.count;
   const sampleTicks = stats.ticks;

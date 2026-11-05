@@ -2007,7 +2007,7 @@ export function buildProbeResultFromDoc(
   const duration = Number.isFinite(formatEnd) ? Math.max(0, formatEnd - startTime) : doc.durationSeconds;
   const overallBitRate =
     duration > 0
-      ? String(Math.round((byteLength * 8) / duration))
+      ? String((doc.containerFormat === 'mp4' || doc.containerFormat === 'mov' ? Math.trunc : Math.round)((byteLength * 8) / duration))
       : "0";
 
   return {

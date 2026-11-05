@@ -41,6 +41,17 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("split preserves a UTF-8 byte order mark at the start of the selected chunk", async () => {
+      const input = Buffer.from("abcd\uFEFFx");
+      const args = ["-n", "2/2"];
+      const reference = await runLinuxCommand("split", args, input);
+      const fast = sb.evalSyncSplit(input, args);
+      assert.equal(fast, reference[1].toString("utf8"));
+      for (const shell of [ts.shell, rust]) {
+        const result = await shell.exec("split -n 2/2", { stdin: input });
+        assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference);
+      }
+    });
     await t.test("split refuses to overwrite its input before writing the colliding piece", async () => {
       const dir = cwd!;
       for (const alias of ["same", "hard", "symlink", "late-hard", "quoted-hard", "newline-hard"]) {

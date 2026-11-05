@@ -7,7 +7,7 @@ import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
 import { parseArguments, settings, type SplitArguments, type SplitLimits } from "./options.js";
 import { gnuInformation, gnuInformationSync } from "safe-bash-io-engine/gnu-information";
-import { builtInDirectContextExecutors, decoder, syncCommandEvaluators } from "safe-bash-io-engine/internal";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 
 async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Uint8Array> {
   let remaining = args.size;

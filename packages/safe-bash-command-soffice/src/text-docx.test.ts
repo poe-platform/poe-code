@@ -60,7 +60,7 @@ for (const run of [runSofficeCliSync, runSofficeCli]) {
     assert.ok(entries.has("word/document.xml"));
     const restored = await run(["--headless", "--convert-to", "txt", "--outdir", "/restored", "/page.docx"], files);
     assert.equal(restored.exitCode, 0, restored.stderr);
-    assert.equal(new TextDecoder().decode(files.get("/restored/page.txt")), "Document title\n\nDocument paragraph\n");
+    assert.equal(new TextDecoder().decode(files.get("/restored/page.txt")), "Document title\nDocument paragraph\n");
   });
 }
 

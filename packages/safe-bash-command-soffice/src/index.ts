@@ -698,11 +698,11 @@ function formatStarCalcCsv(rows: readonly string[][], filterOptions?: string): U
   return new TextEncoder().encode(lines.join("\n") + "\n");
 }
 
-function renderBlocksToText(blocks: readonly DocBlock[]): Uint8Array {
+function renderBlocksToText(blocks: readonly DocBlock[], separator = "\n\n"): Uint8Array {
   const lines = blocks.map(block => block.kind === "table"
     ? (block.rows ?? []).map(row => row.join("\t")).join("\n")
     : block.text ?? "");
-  return new TextEncoder().encode(lines.join("\n\n") + "\n");
+  return new TextEncoder().encode(lines.join(separator) + "\n");
 }
 
 function renderBlocksToHtml(blocks: readonly DocBlock[], title = "Document"): Uint8Array {
@@ -1036,7 +1036,7 @@ function* runSofficeSteps(
         } else if (targetExt === "docx") {
           outBytes = buildDocxFromBlocks(blocks);
         } else {
-          outBytes = renderBlocksToText(blocks);
+          outBytes = renderBlocksToText(blocks, lowerIn.endsWith(".docx") && targetExt === "txt" ? "\n" : "\n\n");
         }
       } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
         const rows = lowerIn.endsWith(".xlsx")

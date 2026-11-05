@@ -1,3 +1,4 @@
+import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { clutPixelSteps, interpolatePixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
@@ -35,7 +36,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -483,6 +484,7 @@ interface MagickState {
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
   connectedVerbose?: boolean;
+  seed?: number;
 }
 
 function createDefaultState(): MagickState {
@@ -4256,7 +4258,11 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
-if (t === "-channel") {
+if (t === "-seed") {
+            state.seed = Number(tokens[++i] ?? 0);
+            if (!Number.isSafeInteger(state.seed) || state.seed < 0) throw new Error("Invalid random seed");
+        }
+        else if (t === "-channel") {
             state.channels = parseChannelMask(tokens[++i] ?? "rgb");
             state.channelExplicit = true;
         }
@@ -4585,10 +4591,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-sketch") {
-            i++;
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0;
             stack = yield* mapSteps(stack, function* (im) {
-                const blurred = yield* blurImageSteps(im, 1);
-                return yield* grayscaleImageSteps(yield* negateImageSteps(yield* applyMagickRasterSteps(blurred, convolvePixelSteps(blurred, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0), signal), { alpha: false }));
+                return yield* applyMagickRasterSteps(im, sketchPixelSteps(im, geometry, seed), signal);
             });
         }
         else if (t === "+repage" || t === "-repage") {
@@ -5585,18 +5590,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps(image, geometry.width ?? 0), signal, { ...image, hasAlpha: false });
                 return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry), signal);
             });
+        } else if (!operandsOnly && token === "-sketch") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal) : undefined);
         } else if (!operandsOnly && token === "-edge") {
             const radius = Number(tokens[++i] ?? 0);
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, edgePixelSteps(image, radius), signal) : undefined);
-        } else if (!operandsOnly && ["-convolve", "-sketch"].includes(token)) {
-            const spec = tokens[++i] ?? "1", sketch = token === "-sketch";
-            const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
-            if (sketch) transform(() => ({ kind: "blur", sigma: 1 }));
+        } else if (!operandsOnly && token === "-convolve") {
+            const spec = tokens[++i] ?? "1";
+            const kernel = parseMagickConvolveKernel(spec);
             steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
-            if (sketch) {
-                steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, { end: i, apply: pixels => negateImageSteps(pixels, { alpha: false }) }, signal) : undefined);
-                transform(() => ({ kind: "grayscale" }));
-            }
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);

@@ -25,7 +25,9 @@
     "test": "cd ../.. && vitest run packages/safe-bash-command-imagemagick",
     "test:unit": "cd ../.. && vitest run packages/safe-bash-command-imagemagick"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
+  },
   "devDependencies": {
     "@poe-code/image-ast": "*",
     "safe-bash-contracts": "*",

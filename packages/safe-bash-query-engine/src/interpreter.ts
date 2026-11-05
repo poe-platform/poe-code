@@ -997,6 +997,10 @@ export class Interpreter {
       }
       return;
     }
+    if (name === "input_filename") {
+      yield budget.inputLocation.name;
+      return;
+    }
     if (name === "inputs") {
       while (this.inputSource) {
         const pending = budget.tickSync(); if (pending) await pending;

@@ -34,7 +34,7 @@ describe("obscure structured jq yq xq xan xmllint htmlq mdq diagnostics parity m
     `);
     assert.equal(r.exitCode, 0);
     assert.match(r.stdout, /jq: provide exactly one filter program\nrc1=2\n/);
-    assert.match(r.stdout, /jq: invalid JSON for --argjson k\nrc2=2\n/);
+    assert.match(r.stdout, /jq: invalid JSON text passed to --argjson\nUse jq --help for help with command-line options,\nor see the jq manpage, or online docs {2}at https:\/\/[^\n]+\nrc2=2\n/);
     assert.match(r.stdout, /jq: invalid JSON text passed to --jsonargs\nrc3=2\n/);
     assert.match(r.stdout, /rc4=3\n/);
   });

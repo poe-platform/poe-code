@@ -301,7 +301,7 @@ function argumentsFor(context: CommandContext, budget: Budget): Options | Promis
       budget.text(name); budget.text(text);
       let value: Json;
       try { value = argument === "--arg" ? text : parseJson(text, budget); }
-      catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError(`invalid JSON for --argjson ${name}`, 2); }
+      catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError("invalid JSON text passed to --argjson\nUse jq --help for help with command-line options,\nor see the jq manpage, or online docs  at https://jqlang.github.io/jq", 2); }
       if (!wellFormed(name) || (typeof value === "string" && !wellFormed(value))) throw new JqError("arguments must contain well-formed Unicode", 2);
       variableBytes += utf8ByteLength(name) + budget.value(value);
       if (variableBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
@@ -407,7 +407,7 @@ async function argumentsForAsync(context: CommandContext, budget: Budget): Promi
         }
       } else {
         try { value = argument === "--arg" ? text : parseJson(text, budget); }
-        catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError(`invalid JSON for --argjson ${name}`, 2); }
+        catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError("invalid JSON text passed to --argjson\nUse jq --help for help with command-line options,\nor see the jq manpage, or online docs  at https://jqlang.github.io/jq", 2); }
       }
       if (!wellFormed(name) || (typeof value === "string" && !wellFormed(value))) throw new JqError("arguments must contain well-formed Unicode", 2);
       variableBytes += utf8ByteLength(name) + budget.value(value);
@@ -743,7 +743,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     try {
       while (written < diagnostics.length && (force || diagnostics[written]!.location.complete)) {
         const { location, message } = diagnostics[written++]!;
-        const place = location.name === "<unknown>" ? location.name : `${escapeText(location.name, "diagnostic")}:${location.line}`;
+        const place = location.name === null ? "<unknown>" : `${escapeText(location.name, "diagnostic")}:${location.line}`;
         await writeBytes(context.stderr, bytesFrom(`jq: error (at ${place}): ${message}\n`), context.signal);
       }
     } catch (error) {
@@ -893,7 +893,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
             context.signal.throwIfAborted();
             if (!(error instanceof JqError) || error instanceof JqLimitError) throw error;
             const message = escapeText(error.message.slice(0, 1000), "diagnostic");
-            diagnosticBytes += utf8ByteLength(message) + utf8ByteLength(escapeText(budget.inputLocation.name, "diagnostic")) + 64;
+            diagnosticBytes += utf8ByteLength(message) + utf8ByteLength(escapeText(budget.inputLocation.name ?? "<unknown>", "diagnostic")) + 64;
             if (diagnosticBytes > limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
             diagnostics.push({ location: budget.inputLocation, message });
             status = error.exitCode;

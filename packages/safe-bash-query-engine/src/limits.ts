@@ -36,7 +36,7 @@ export class JqLimitError extends JqError {
   constructor(name: keyof JqLimits) { super(`${name} limit exceeded`); }
 }
 export interface InputLocation {
-  name: string;
+  name: string | null;
   line: number;
   complete: boolean;
 }
@@ -67,7 +67,7 @@ export class Budget {
   inputBytes = 0;
   outputBytes = 0;
   results = 0;
-  inputLocation: InputLocation = { name: "<unknown>", line: 0, complete: true };
+  inputLocation: InputLocation = { name: null, line: 0, complete: true };
   constructor(readonly limits: JqLimits, readonly signal: AbortSignal) {
     this.unlimitedSteps = limits.maxSteps === Infinity;
     this.maxStepsSmi = !this.unlimitedSteps && limits.maxSteps <= 0x3fffffff ? (limits.maxSteps | 0) : 0x3fffffff;
@@ -97,7 +97,7 @@ export class Budget {
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;
-    this.inputLocation.name = "<unknown>";
+    this.inputLocation.name = null;
     this.inputLocation.line = 0;
     this.inputLocation.complete = true;
   }
@@ -110,7 +110,7 @@ export class Budget {
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;
-    this.inputLocation.name = "<unknown>";
+    this.inputLocation.name = null;
     this.inputLocation.line = 0;
     this.inputLocation.complete = true;
   }

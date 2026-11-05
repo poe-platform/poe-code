@@ -424,7 +424,26 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
         else break;
       }
       const name = source.slice(start, offset);
-      value = Object.hasOwn(variables, name) ? variables[name]! : NaN;
+      while (source[offset] === " ") offset++;
+      if (source[offset] === "(") {
+        offset++;
+        const args = [parse(0, depth + 1)];
+        while (source[offset] === ",") {
+          offset++;
+          args.push(parse(0, depth + 1));
+        }
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg))) {
+          throw new Error(`${filter}: invalid expression`);
+        }
+        if (name === "not" && args.length === 1) value = Number(args[0] === 0);
+        else if (name === "eq" && args.length === 2) value = Number(args[0] === args[1]);
+        else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
+        else if (name === "mod" && args.length === 2) value = args[0]! - Math.floor(args[0]! / args[1]!) * args[1]!;
+        else if (name === "between" && args.length === 3) value = Number(args[0]! >= args[1]! && args[0]! <= args[2]!);
+        else throw new Error(`${filter}: invalid or unsupported expression`);
+      } else {
+        value = Object.hasOwn(variables, name) ? variables[name]! : NaN;
+      }
     } else {
       const start = offset;
       while (offset < source.length) {
@@ -974,23 +993,11 @@ async function applyVideoFilterChain(
       }
       current = tiledFrames;
     } else if (name === "select") {
-      const expr = (named.e ?? named.expr ?? positional[0] ?? "1").replace(/^['"]|['"]$/g, "");
-      current = current.filter((f, idx) => {
-        if (expr.includes("not(mod(n,")) {
-          const m = /not\(mod\(n,\s*(\d+)\)\)/.exec(expr);
-          const step = Math.max(1, parseInt(m?.[1] ?? "1", 10) || 1);
-          return idx % step === 0;
-        }
-        if (expr.includes("eq(n,")) {
-          const matches = [...expr.matchAll(/eq\(n,\s*(\d+)\)/g)];
-          return matches.some((m) => parseInt(m[1]!, 10) === idx);
-        }
-        if (expr.includes("gt(t,")) {
-          const m = /gt\(t,\s*([0-9.]+)\)/.exec(expr);
-          return f.ptsSeconds > (parseFloat(m?.[1] ?? "0") || 0);
-        }
-        return true;
-      });
+      const expr = named.e ?? named.expr ?? positional[0] ?? "1";
+      if (current.length === 0) parseFilterExpression(expr, "select", { n: 0, t: 0 });
+      current = current.filter((f, n) =>
+        parseFilterExpression(expr, "select", { n, t: f.ptsSeconds }) !== 0
+      );
     } else if (name === "reverse") {
       const totalDur = current.reduce((acc, f) => acc + f.durationSeconds, 0);
       let cursor = 0;
@@ -1894,27 +1901,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
           } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
-            const track0 = loadedDocs[0]!.tracks.find((t) => t.type === "video")!;
-            const track1 = loadedDocs[1]!.tracks.find((t) => t.type === "video")!;
             const f0 = await ensureDecodedFrames(
-              track0,
+              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
               loadedDocs[0]!.timescale, budget
             , context.signal);
             const f1 = await ensureDecodedFrames(
-              track1,
+              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               loadedDocs[1]!.timescale, budget
             , context.signal);
-            if (f0[0] && f1[0]) {
-              if (f0[0].width !== f1[0].width || f0[0].height !== f1[0].height) {
-                throw new Error(`xfade input size ${f0[0].width}x${f0[0].height} does not match ${f1[0].width}x${f1[0].height}`);
-              }
-              // Lavfi's timebase is its frame interval, not the synthetic MP4 timescale.
-              const timebase0 = inputs[0]!.format === "lavfi" ? f0[0].durationSeconds : 1 / track0.timescale;
-              const timebase1 = inputs[1]!.format === "lavfi" ? f1[0].durationSeconds : 1 / track1.timescale;
-              if (timebase0 !== timebase1) {
-                throw new Error(`xfade input timebase ${timebase0} does not match ${timebase1}`);
-              }
-            }
             const xfadeSpec = filterComplex.slice(filterComplex.indexOf("xfade") + "xfade".length)
               .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
             const positional = (xfadeSpec.startsWith("=") ? xfadeSpec.slice(1) : "").split(":");

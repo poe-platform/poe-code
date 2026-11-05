@@ -859,11 +859,11 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
 
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
 
-function* magickPixelPropertiesSteps<Step=never>(
+function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   img: Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>,
-  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},void>,
+  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},Resume>,
   statistics?: Record<string, number>
-): Generator<void|Step, Record<string, string>, void> {
+): Generator<undefined|Step, Record<string, string>, Resume> {
   const channels = img.hasAlpha ? 4 : 3;
   const sums = new Array<number>(channels).fill(0);
   const squares = new Array<number>(channels).fill(0);
@@ -2087,6 +2087,22 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
 function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
     const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a];
+    const statistics: Record<string, number> | undefined = evaluate.needsStatistics ? {} : undefined;
+    if (statistics) {
+        yield* magickPixelPropertiesSteps<ConvolveRequest, Uint8Array | undefined>(base, function*(position, length) {
+            const data = yield { kind: "read", position, length };
+            if (!data || data.length !== length) throw new Error("Truncated expression statistics");
+            return { data };
+        }, statistics);
+        const selected = mask.filter((enabled, channel) => enabled && (channel !== 3 || base.hasAlpha)).length;
+        for (const name of ["mean", "standard_deviation"]) {
+            statistics[name] = 0;
+            for (let channel = 0; channel < 4; channel++) {
+                if (!mask[channel]) statistics[`${name}.${channel}`] = 0;
+                statistics[name]! += statistics[`${name}.${channel}`]! / Math.max(1, selected);
+            }
+        }
+    }
     const samples = new Map<string, number>(), sample = new Uint8Array(4), vars = new Map<string, number>();
     const samplePixel: typeof sampleFxImage = (target, x, y, channel) => {
         if (!target) return 0;
@@ -2109,7 +2125,8 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             samples.set("0:" + position, data[offset]! | data[offset + 1]! << 8 | data[offset + 2]! << 16 | data[offset + 3]! << 24);
             for (let ch = 0; ch < 4; ch++) {
                 if (!mask[ch]) continue;
-                const context: FxEvalContext = { stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel };
+                // ImageMagick convert evaluates statistics as zero in the red output channel.
+                const context: FxEvalContext = { statistics: statistics && ch === 0 ? {} : statistics, stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel };
                 // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
                 while (true) {
                     vars.clear();

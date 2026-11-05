@@ -109,6 +109,15 @@ async function runMemoryAwk(args: string[], files: Record<string, string>, env: 
   return stdout;
 }
 
+for (const flags of [[], ["--trace"]]) {
+  test(`awk index handles empty strings with ${flags.length ? "slow" : "fast"} execution`, async () => {
+    const program = 'BEGIN { print index("", ""), index("abc", ""), index("", "a") } { print index($0, ""), index($0, "a") }';
+    assert.equal(await runMemoryAwk([...flags, "-F:", program, "/data"], {
+      "/data": "\nabc\n",
+    }), "0 1 0\n0 0\n1 1\n");
+  });
+}
+
 test("awk appends exactly once per invocation, including the first fast execution", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/data.txt", new TextEncoder().encode("a:10:20\nb:30:40\n".repeat(40)));

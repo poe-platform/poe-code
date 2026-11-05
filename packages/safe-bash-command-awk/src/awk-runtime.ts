@@ -1384,7 +1384,10 @@ export class AwkRuntime {
       const length = values[2] === undefined ? undefined : Math.max(0, Math.trunc(number(values[2])));
       return string(this.asText(first).slice(start, length === undefined ? undefined : start + length));
     }
-    if (name === "index") return numeric(this.asText(first).indexOf(this.asText(values[1]!)) + 1);
+    if (name === "index") {
+      const source = this.asText(first);
+      return numeric(source.length === 0 ? 0 : source.indexOf(this.asText(values[1]!)) + 1);
+    }
     if (name === "tolower") return string(this.asText(first).replace(/[A-Z]/gu, character => character.toLowerCase()));
     if (name === "toupper") return string(this.asText(first).replace(/[a-z]/gu, character => character.toUpperCase()));
     if (name === "fflush") {

@@ -206,8 +206,6 @@ Test timeouts must be fixed
 
 When editing poe-code skills, edit templates SKILL_
 
-Then sync skills via `npm run sync-skills`
-
 
 ## Agent harnesses
 

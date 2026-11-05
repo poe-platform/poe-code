@@ -9,7 +9,7 @@
 
 Power your favorite coding agents (Claude Code, Codex, OpenCode, and more) with your Poe subscription—**no need to handle multiple providers/accounts.** Poe Code routes everything through the [Poe API](https://poe.com/api) .
 
-Configure an agent once and use its normal CLI or desktop app, or spawn one-off prompts through Poe.
+Configure an agent once and use its normal CLI or desktop app, or spawn one-off prompts through Poe. Installing or updating Poe Code leaves your skills untouched.
 
 ## Quickstart
 

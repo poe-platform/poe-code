@@ -19,7 +19,7 @@ export type CodecMetadataChild =
 export function sampleEntryHeader(formatFourCC: string, body: Uint8Array): CodecEntryState {
   const metadata: MutableMetadata = { formatFourCC, codecName: formatFourCC.trim().toLowerCase(), codecTagString: formatFourCC,
     profile: undefined, level: undefined, width: undefined, height: undefined, pixFmt: undefined,
-    sarWidth: 1, sarHeight: 1, sampleRate: undefined, channels: undefined, bitsPerSample: undefined };
+    sarWidth: undefined, sarHeight: undefined, sampleRate: undefined, channels: undefined, bitsPerSample: undefined };
   const state: CodecEntryState = { metadata }, reader = new BinaryReader(body);
   if (['avc1','avc3','hvc1','hev1','av01','vp08','vp09','mp4v','jpeg','mjpa','png ','s263'].includes(formatFourCC)) {
     state.kind = 'video';

@@ -35,8 +35,8 @@ export interface ParsedH264Sps {
   readonly height: number;
   readonly codedWidth: number;
   readonly codedHeight: number;
-  readonly sarWidth: number;
-  readonly sarHeight: number;
+  readonly sarWidth: number | undefined;
+  readonly sarHeight: number | undefined;
   readonly fps?: number | undefined;
   readonly maxNumRefFrames: number;
   readonly maxNumReorderFrames?: number | undefined;
@@ -192,8 +192,8 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
   const width = Math.max(1, codedWidth - (cropLeft + cropRight) * cropUnitX);
   const height = Math.max(1, codedHeight - (cropTop + cropBottom) * cropUnitY);
 
-  let sarWidth = 1;
-  let sarHeight = 1;
+  let sarWidth: number | undefined;
+  let sarHeight: number | undefined;
   let fps: number | undefined;
   let maxNumReorderFrames: number | undefined;
   let colorRange: string | undefined;

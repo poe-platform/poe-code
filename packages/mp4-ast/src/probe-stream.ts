@@ -85,11 +85,11 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     coded_height: codecName === 'h264' ? (desc?.height ?? h) : h ? Math.ceil(h / 16) * 16 : undefined,
     has_b_frames: track.type === "video" ? (desc?.maxNumReorderFrames ?? (stats.hasReorderedSamples ? 1 : 0)) : undefined,
     sample_aspect_ratio:
-      track.type === "video"
-        ? `${desc?.sarWidth ?? 1}:${desc?.sarHeight ?? 1}`
+      track.type === "video" && desc?.sarWidth && desc?.sarHeight
+        ? `${desc.sarWidth}:${desc.sarHeight}`
         : undefined,
     display_aspect_ratio:
-      track.type === "video" && w && h ? `${w / darGcd}:${h / darGcd}` : undefined,
+      track.type === "video" && desc?.sarWidth && desc?.sarHeight && w && h ? `${w / darGcd}:${h / darGcd}` : undefined,
     pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,
     level: desc?.level,
     color_range: track.type === "video" ? desc?.colorRange : undefined,

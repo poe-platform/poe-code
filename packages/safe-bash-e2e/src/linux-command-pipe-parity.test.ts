@@ -6,11 +6,10 @@ import { SafeBashE2EHarness, sb } from "./harness.js";
 import { codecInput, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
-  const input = "alpha\nbeta\nbeta\n";
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
   const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
   try {
-    for (const { cmd, args, script } of linuxCommands) {
+    for (const { cmd, args, script, input } of linuxCommands("alpha\nbeta\nbeta\n")) {
       await t.test(cmd, async t => {
         if (cmd === "git") {
           if (!supportsHostPlugins) return t.skip("The Git plugin needs WebAssembly Promise Integration");

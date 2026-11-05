@@ -17,7 +17,7 @@ export async function runLinuxCommand(cmd: string, args: readonly string[], inpu
   return [code, stdout, stderr] as const;
 }
 
-export const linuxCommands = ([
+const textCommands = ([
   ["cat"], ["tac"], ["head", "-n", "2"], ["tail", "-n", "2"], ["wc", "-c"],
   ["sort"], ["uniq", "-c"], ["nl", "-ba"], ["cut", "-c", "1-2"], ["tr", "a-z", "A-Z"],
   ["fold", "-w", "3"], ["rev"], ["fmt", "-w", "20"], ["strings", "-n", "2"],
@@ -42,6 +42,14 @@ export const linuxCommands = ([
 ] as const).map(([cmd, ...args]) => ({
   cmd, args, script: [cmd, ...args.map(arg => "'" + arg.replaceAll("'", "'\\''") + "'")].join(" ")
 }));
+
+export function linuxCommands(text: string) {
+  return [
+    ...textCommands.map(command => ({ ...command, input: text })),
+    // Independent ready nodes sort by raw name bytes even with a mixture of UTF-8 and invalid bytes.
+    { cmd: "tsort", args: [], script: "tsort", input: Buffer.from("c3a920c3a9207a207a20ff20ff2080208020412041", "hex") },
+  ];
+}
 
 export const linuxCodecs = [
   ["gzip", "gunzip", "zcat"], ["bzip2", "bunzip2", "bzcat"], ["xz", "unxz", "xzcat"],

@@ -77,7 +77,7 @@ async function main(): Promise<void> {
     const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
     try {
       const workloads: { cmd: string; args: readonly string[]; script: string; input: string | Buffer; decoder?: string }[] =
-        linuxCommands.map(command => ({ ...command, input: text }));
+        linuxCommands(text);
       const binary = codecInput();
       for (const [compress, decompress, cat] of linuxCodecs) {
         const [status, packed, errors] = await runLinuxCommand(compress, ["-c"], binary);

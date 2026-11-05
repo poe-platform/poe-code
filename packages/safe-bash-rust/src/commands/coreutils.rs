@@ -20737,31 +20737,11 @@ fn cmd_tsort(
             }
         }
     };
-    let mut tokens: Vec<String> = Vec::new();
-    let mut cur_tok: Vec<u8> = Vec::new();
-    let mut in_tok = false;
-    let mut had_nul = false;
-    for &b in &raw_bytes {
-        if b == b' ' || b == b'\t' || b == b'\n' {
-            if in_tok {
-                tokens.push(crate::vfs::bytes_to_stream_string(&cur_tok));
-                cur_tok.clear();
-                in_tok = false;
-                had_nul = false;
-            }
-        } else {
-            in_tok = true;
-            if b == 0 {
-                had_nul = true;
-            }
-            if !had_nul {
-                cur_tok.push(b);
-            }
-        }
-    }
-    if in_tok {
-        tokens.push(crate::vfs::bytes_to_stream_string(&cur_tok));
-    }
+    let tokens: Vec<&[u8]> = raw_bytes
+        .split(|b| matches!(b, b' ' | b'\t' | b'\n'))
+        .filter(|token| !token.is_empty())
+        .map(|token| token.split(|&b| b == 0).next().unwrap())
+        .collect();
     if !tokens.len().is_multiple_of(2) {
         return err_out(
             &format!("tsort: {reader_name}: input contains an odd number of tokens\n"),
@@ -20769,31 +20749,19 @@ fn cmd_tsort(
         );
     }
 
-    struct TsortNode {
-        name: String,
+    struct TsortNode<'a> {
+        name: &'a [u8],
         count: usize,
         printed: bool,
         edges: Vec<usize>,
     }
 
-    let mut unique_names: BTreeSet<String> = BTreeSet::new();
-    for t in &tokens {
-        unique_names.insert(t.clone());
-    }
-    let mut ordered: Vec<TsortNode> = unique_names
+    let unique_names: BTreeSet<_> = tokens.iter().copied().collect();
+    let mut ordered: Vec<_> = unique_names
         .into_iter()
-        .map(|name| TsortNode {
-            name,
-            count: 0,
-            printed: false,
-            edges: Vec::new(),
-        })
+        .map(|name| TsortNode { name, count: 0, printed: false, edges: Vec::new() })
         .collect();
-    let name_to_idx: BTreeMap<String, usize> = ordered
-        .iter()
-        .enumerate()
-        .map(|(i, n)| (n.name.clone(), i))
-        .collect();
+    let name_to_idx: BTreeMap<_, _> = ordered.iter().enumerate().map(|(i, n)| (n.name, i)).collect();
 
     for pair in tokens.chunks(2) {
         let u_idx = name_to_idx[&pair[0]];
@@ -20817,7 +20785,7 @@ fn cmd_tsort(
             }
         }
         while let Some(u_idx) = queue.pop_front() {
-            out.push_str(&ordered[u_idx].name);
+            out.push_str(&crate::vfs::bytes_to_stream_string(ordered[u_idx].name));
             out.push('\n');
             ordered[u_idx].printed = true;
             remaining -= 1;
@@ -20850,7 +20818,7 @@ fn cmd_tsort(
                     if link[idx].is_some() {
                         while let Some(l_idx) = loop_idx {
                             let next_l = link[l_idx];
-                            stderr.push_str(&format!("tsort: {}\n", ordered[l_idx].name));
+                            stderr.push_str(&format!("tsort: {}\n", crate::vfs::bytes_to_stream_string(ordered[l_idx].name)));
                             if l_idx == idx {
                                 let target_idx = ordered[idx].edges[epos];
                                 ordered[target_idx].count -= 1;

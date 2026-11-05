@@ -1,3 +1,4 @@
+import {htmlColumnWidth} from "./html-column-width.js";
 import {headingIdentifier} from "./heading-attributes.js";
 import {
   Parser,
@@ -531,6 +532,14 @@ export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
         "AlignDefault",
         { t: "ColWidthDefault" }
       ]);
+      let column = 0;
+      for (const group of node.childNodes) if (element(group) && group.tagName === "colgroup") {
+        for (const col of group.childNodes) if (element(col) && col.tagName === "col" && column < width) {
+          const columnWidth = await htmlColumnWidth(value(col, "width") ?? "", value(col, "style") ?? "");
+          if (columnWidth !== undefined) specs[column] = ["AlignDefault", {t: "ColWidth", c: columnWidth}];
+          column++;
+        }
+      }
       return {
         t: "Table",
         c: [attr(node), [null, caption], specs, [empty, heads], bodies, [empty, feet]]

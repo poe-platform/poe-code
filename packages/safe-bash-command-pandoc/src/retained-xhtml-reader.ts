@@ -1,3 +1,4 @@
+import {htmlColumnWidth} from "./html-column-width.js";
 import {BackedTextSet} from "./backed-text-set.js";
 import {retainedHeadingIdentifier} from "./retained-heading-identifier.js";
 import type {RetainedXmlDocument, RetainedXmlNode} from "@poe-code/office-xml/retained-xml-document";
@@ -12,7 +13,7 @@ const containers = new Set(["div", "main", "section", "aside", "header", "addres
 const blocks = new Set([...containers, "article", "footer", "nav", "details", "summary", "p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "figure", "figcaption", "table", "dl", "dt", "dd"]);
 const dropped = new Set(["head", "script", "style", "iframe", "object", "embed", "template", "noscript", "svg", "math", "base", "link", "meta", "input", "source", "track"]);
 const styles = {em: "Emph", i: "Emph", b: "Strong", strong: "Strong", u: "Underline", s: "Strikeout", del: "Strikeout", strike: "Strikeout", sup: "Superscript", sub: "Subscript"} as const;
-const names = ["", "#text", "html", "body", "br", "code", "tt", "samp", "var", "img", "a", "span", "caption", "thead", "tbody", "tfoot", "tr", "td", "th", "abbr", "bdi", "bdo", "mark", "time", "label", "small", "big", "dfn", "kbd", ...blocks, ...dropped, ...Object.keys(styles)];
+const names = ["", "#text", "html", "body", "br", "code", "tt", "samp", "var", "img", "a", "span", "colgroup", "col", "caption", "thead", "tbody", "tfoot", "tr", "td", "th", "abbr", "bdi", "bdo", "mark", "time", "label", "small", "big", "dfn", "kbd", ...blocks, ...dropped, ...Object.keys(styles)];
 const ws = (c: string) => c === " " || c === "\t" || c === "\r" || c === "\n" || c === "\f";
 // Fixed-size records link normalized nodes, their children and postorder results.
 enum F {Previous, Tag, Attributes, First, Last, Next, Inline, Flow, Literal, Content, Count}
@@ -266,7 +267,17 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
       return result;
     };
     for await (const child of children(p)) {const row = await get(child, F.Count), tag = names[row[F.Tag]!]!; if (tag === "caption") caption = await childFlow(child); else if (tag === "thead") await copy(heads, await rows(child)); else if (tag === "tfoot") await copy(feet, await rows(child)); else if (tag === "tbody") {await ast.push(bodies, await ast.value([await attributes(value(row[F.Attributes]!), tag), 0, [], await rows(child, inferHead)])); inferHead = false;}}
-    const specs = await ast.array(); for (let i = 0; i < width; i++) await ast.push(specs, await ast.value(["AlignDefault", await ast.tag("ColWidthDefault")]));
+    const specs = await ast.array();
+    for await (const child of children(p)) {
+      if (names[(await get(child, F.Count))[F.Tag]!] !== "colgroup") continue;
+      for await (const col of children(child)) {
+        const row = await get(col, F.Count);
+        if (names[row[F.Tag]!] !== "col" || await ast.count(specs) >= width) continue;
+        const raw = value(row[F.Attributes]!), columnWidth = await htmlColumnWidth(ast.text.chunks(await ast.range(await lookup(raw, "width"))), ast.text.chunks(await ast.range(await lookup(raw, "style"))));
+        await ast.push(specs, await ast.value(["AlignDefault", columnWidth === undefined ? await ast.tag("ColWidthDefault") : await ast.tag("ColWidth", await ast.value(columnWidth))]));
+      }
+    }
+    while (await ast.count(specs) < width) await ast.push(specs, await ast.value(["AlignDefault", await ast.tag("ColWidthDefault")]));
     return ast.tag("Table", await ast.value([attrs, [null, caption], specs, [empty, heads], bodies, [empty, feet]]));
   }
   const result = await childFlow(body), identifiers = new BackedTextSet(storage, ast.text);

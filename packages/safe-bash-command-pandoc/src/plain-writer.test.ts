@@ -10,6 +10,7 @@ const d = (...blocks: Block[]): Document => ({blocks, metadata: {}, resources: [
 const plain = (document: Document, options: Partial<WriteOptions> = {}) => writeDocument(document, {to: "plain", ...options}, {});
 it.each([
   ["code", "`code`\n\n```js\nlet x=1;\n```\n", "code\n\n    let x=1;\n"],
+  ["code blank lines", "```\n\n\na\n\n\n```\n", "\n\n    a\n"],
   ["bullets (Pandoc 3.11)", "- a\n- b\n", "- a\n- b\n"],
   ["ordered list", "1. a\n2. b\n", "1.  a\n2.  b\n"],
   ["quote soft break", "> a\n> b\n", "  a b\n"],

@@ -126,16 +126,23 @@ export class BackedText {
     }
     return false;
   }
-  async trimFinalNewline(value: TextRange): Promise<TextRange> {
+  async trimFinalNewlines(value: TextRange, all = false): Promise<TextRange> {
     const source = this.chunks(value);
     return this.from((async function* () {
-      let pending = "";
+      let pending = 0;
       for await (const chunk of source) {
-        const text = pending + chunk;
-        pending = text.slice(-1);
-        yield text.slice(0, -1);
+        let end = chunk.length;
+        while (end && chunk[end - 1] === "\n" && (all || end === chunk.length)) end--;
+        if (end || !all) {
+          while (pending) {
+            const count = Math.min(pending, 4096);
+            yield "\n".repeat(count);
+            pending -= count;
+          }
+          yield chunk.slice(0, end);
+        }
+        pending += chunk.length - end;
       }
-      if (pending !== "\n") yield pending;
     })());
   }
   async indent(value: TextRange, first: string, rest: string): Promise<TextRange> {

@@ -44,6 +44,11 @@ it.each([{}, {wrap: "auto" as const, columns: 12}, {wrap: "preserve" as const}, 
   ], options);
 });
 
+it("keeps internal blank lines across storage pages and drops trailing code breaks", async () => {
+  const breaks = "\n".repeat(4200);
+  await compare([{t: "CodeBlock", c: [attr, "a" + breaks + " b " + breaks]}]);
+});
+
 it("renders all physical table sections, captions and explicit span-loss diagnostics", async () => {
   const row = (text: string): [Attr, [Attr, "AlignDefault", number, number, Block[]][]] => [attr, [[attr, "AlignDefault", 1, 1, [para(str(text)), para(str("tail"))]]]];
   await compare([{t: "Table", c: [attr, [[str("short")], [para(str("long"))]], [["AlignDefault", {t: "ColWidthDefault"}]], [attr, [row("head")]], [[attr, 0, [row("body-head")], [row("body")]]], [attr, [row("foot")]]]}]);

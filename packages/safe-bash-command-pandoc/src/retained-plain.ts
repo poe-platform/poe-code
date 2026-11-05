@@ -84,7 +84,7 @@ class PlainTape {
           if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.reserveJoin(result, await this.lineCount(result));
         }
         if (job.mode === "code" && result.units) {
-          result = await this.text.trimFinalNewline(result);
+          result = await this.text.trimFinalNewlines(result, true);
           if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (result.units + (result.units + 1) * 4) * 2);
           result = await this.text.indent(result, "    ", "    ");
           if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.reserveJoin(result, await this.lineCount(result));

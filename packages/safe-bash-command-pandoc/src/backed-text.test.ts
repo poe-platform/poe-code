@@ -12,7 +12,7 @@ it("retains composed text and transforms long words without resident text collec
     const value = await text.from((async function* () {yield "  a\t "; for (let i = 0; i < 16; i++) yield "x".repeat(4096); yield " b\n\n尾\n";})());
     const wrapped = await text.wrap(value, 10);
     expect(await collect(wrapped)).toBe("a\n" + "x".repeat(65536) + "\nb\n\n尾\n");
-    const trimmed = await text.trimFinalNewline(wrapped);
+    const trimmed = await text.trimFinalNewlines(wrapped);
     const indented = await text.indent(trimmed, "- ", "  ");
     expect(await collect(indented)).toBe("- a\n  " + "x".repeat(65536) + "\n  b\n\n  尾");
     expect(await collect(value)).toBe("  a\t " + "x".repeat(65536) + " b\n\n尾\n");

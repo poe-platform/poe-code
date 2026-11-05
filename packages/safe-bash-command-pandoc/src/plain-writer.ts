@@ -86,7 +86,13 @@ class Plain {
         case "Plain": case "Para": value = this.wrap(await this.inline(node.c, `${p}.c`)); break;
         case "Header": value = await this.inline(node.c[2], `${p}.c[2]`); break;
         case "HorizontalRule": value = "-".repeat(72); break;
-        case "CodeBlock": if(node.c[1]) value = this.indent(node.c[1].endsWith("\n") ? node.c[1].slice(0, -1) : node.c[1], "    ", "    "); break;
+        case "CodeBlock": {
+          const code = node.c[1];
+          let end = code.length;
+          while (end && code[end - 1] === "\n") end--;
+          if (end) value = this.indent(code.slice(0, end), "    ", "    ");
+          break;
+        }
         case "RawBlock": value = this.raw(node.c[1], p); break;
         case "LineBlock": {const lines: string[] = []; for(const [j, line] of node.c.entries()) lines.push(await this.inline(line, `${p}.c[${j}]`)); value = this.join(lines, "\n"); break;}
         case "BlockQuote": {const content = await this.blocks(node.c, `${p}.c`); if(content) value = this.indent(content, "  ", "  "); break;}

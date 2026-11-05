@@ -238,7 +238,7 @@ class MarkdownTape {
         if (job.mode === "surround") result = await this.join(await this.literal(job.first!), result, await this.literal(job.rest!));
         if (job.mode === "indent") result = result.units || job.first === "> " || job.first === ": " || job.first === "| " ? await this.indent(result, !result.units && job.first === "| " ? "|" : job.first!, job.rest!) : await this.literal(job.first!.trimEnd());
         if (job.mode === "escape") result = await this.escape(result);
-        if (job.mode === "trim") {if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2); result = await this.text.trimFinalNewline(result);}
+        if (job.mode === "trim") {if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2); result = await this.text.trimFinalNewlines(result);}
         continue;
       }
       if (job.op === "parts" || job.op === "list") {

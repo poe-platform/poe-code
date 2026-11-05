@@ -224,7 +224,9 @@ export function linuxCommands(text: string) {
   const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
   return [
     ...["#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",
-      "start\n# Heading\nlast\n"].map(input => ({
+      "start\n# Heading\nlast\n", "", "> First\n>\n> > Second\n\nlast\n",
+      "A\n\n```js\na  b\n\n  c\n```\n\nZ\n", "> ```\n> a\n>\n> b\n> ```\n",
+      "```\n\n\na\n\n\n```\n", "```\na  \n   \n\n```\n", "```\n\n\n```\n\nlast\n"].map(input => ({
       cmd: pandoc, args: ["-f", "commonmark", "-t", "plain", "--wrap=none"],
       script: "pandoc -f commonmark -t plain --wrap=none", input,
     })),

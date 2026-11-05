@@ -31078,6 +31078,14 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String
 }
 
 fn render_pandoc_plain(blocks: &[PandocBlock]) -> String {
+    fn indent(text: &str, prefix: &str) -> String {
+        let mut out = String::new();
+        for (i, line) in text.split('\n').enumerate() {
+            if i > 0 { out.push('\n'); }
+            if !line.is_empty() { out.push_str(prefix); out.push_str(line); }
+        }
+        out
+    }
     let mut parts = Vec::new();
     for b in blocks {
         match b {
@@ -31101,14 +31109,13 @@ fn render_pandoc_plain(blocks: &[PandocBlock]) -> String {
             PandocBlock::HorizontalRule => {
                 parts.push("-".repeat(72));
             }
-            _ => {}
+            PandocBlock::CodeBlock(_, code) => parts.push(indent(code.trim_end_matches('\n'), "    ")),
+            PandocBlock::BlockQuote(inner) => parts.push(indent(&render_pandoc_plain(inner), "  ")),
+            PandocBlock::Table(_, _) => {}
         }
     }
-    if parts.is_empty() {
-        String::new()
-    } else {
-        format!("{}\n", parts.join("\n\n"))
-    }
+    parts.retain(|part| !part.is_empty());
+    parts.join("\n\n")
 }
 
 fn render_pandoc_rst(blocks: &[PandocBlock]) -> String {
@@ -31765,7 +31772,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "markdown" | "gfm" | "commonmark" | "commonmark_x" | "md" => {
             render_pandoc_markdown(&blocks, input_from_html).into_bytes()
         }
-        "plain" => render_pandoc_plain(&blocks).into_bytes(),
+        "plain" => format!("{}\n", render_pandoc_plain(&blocks)).into_bytes(),
         "rst" => render_pandoc_rst(&blocks).into_bytes(),
         "latex" => render_pandoc_latex(&blocks).into_bytes(),
         "rtf" => render_pandoc_rtf(&blocks).into_bytes(),

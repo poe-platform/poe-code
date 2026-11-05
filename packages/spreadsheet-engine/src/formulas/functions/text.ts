@@ -1,3 +1,4 @@
+import { regexReplace } from "./perl-sed.js";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { isUnicodePrintable } from "./unicode.js";
 import { SsconvertError } from "../../contracts.js";
@@ -201,6 +202,7 @@ function delimiterSlice(source: string, start: number, end: number | undefined, 
 }
 
 export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
+  REGEXREPLACE: regexReplace,
   ...Object.fromEntries(["LEFT", "LEFTB", "MID", "MIDB", "RIGHT", "RIGHTB"].map(name => [name, ((args, host) => sliceText(name, args, host)) satisfies FunctionImplementation])),
   ...Object.fromEntries(["FIND", "FINDB", "SEARCH", "SEARCHB"].map(name => [name, ((args, host) => search(name, args, host)) satisfies FunctionImplementation])),
   ...Object.fromEntries(["ASC", "JIS"].map(name => [name, ((args, host) => width(name, textArg(args, 0, host), host)) satisfies FunctionImplementation])),

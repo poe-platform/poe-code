@@ -1,7 +1,7 @@
 import { runtimeFunctionScope, type RuntimeFunctionContext } from "../runtime-functions.js";
 import { SsconvertError } from "../../contracts.js";
 import type { CellValue } from "@poe-code/spreadsheet-ast";
-import { byteTextArg } from "./common.js";
+import { asBoolean, boundedText, byteTextArg, numberArg, scalarArg, textArg } from "./common.js";
 import { byteStringValue } from "@poe-code/spreadsheet-ast/byte-value";
 import type { FunctionHost, Value } from "./types.js";
 
@@ -637,4 +637,76 @@ export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost
   emit(source.slice(published));
   const bytes = Uint8Array.from(output.join(""), char => char.charCodeAt(0));
   return byteStringValue(bytes, host.tick, host.context.limits.outputBytes);
+}
+
+/** Gnumeric's UTF-8 regex replacement currently admits the ASCII matcher profile.
+ * Reject other text explicitly rather than applying Perl byte semantics to it. */
+export function regexReplace(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
+  const source = textArg(args, 0, host), rawPattern = textArg(args, 1, host), replacement = textArg(args, 2, host);
+  for (const text of [source, rawPattern]) for (const character of text) {
+    host.tick();
+    if (character.charCodeAt(0) > 127) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: REGEXREPLACE Unicode matching");
+  }
+  const occurrence = Math.trunc(numberArg(args, 3, host, 0));
+  const insensitive = args[4] !== undefined && asBoolean(scalarArg(args, 4, host));
+  const pattern = compile(insensitive ? "(?i)" + rawPattern : rawPattern, host, "5.34.1").node;
+  function* matches(): Generator<{ start: number; state: MatchState }> {
+    let position = 0, emptyAt = -1;
+    while (position <= source.length) {
+      host.tick();
+      let found = false;
+      for (const state of match(pattern, source, { position, captures: [] }, host, false, { order: 0 })) {
+        if (state.position === position && position === emptyAt) continue;
+        if (state.reset) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: REGEXREPLACE match reset");
+        yield { start: position, state };
+        emptyAt = state.position === position ? position : -1;
+        position = state.position; found = true; break;
+      }
+      if (!found) position++;
+    }
+  }
+  let target = occurrence;
+  if (occurrence < 0) {
+    let count = 0;
+    for (const entry of matches()) { host.tick(); void entry; count++; }
+    target = count + occurrence + 1;
+    if (target <= 0) return boundedText(source, host);
+  }
+  const output: string[] = [];
+  let size = 0, published = 0, index = 0;
+  const emit = (text: string) => {
+    for (const character of text) {
+      host.tick();
+      const point = character.codePointAt(0)!;
+      size += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+      if (size > host.context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+    }
+    output.push(text);
+  };
+  for (const { start, state } of matches()) {
+    if (++index !== target && occurrence !== 0) continue;
+    emit(source.slice(published, start));
+    for (let at = 0; at < replacement.length; at++) {
+      host.tick();
+      const character = replacement[at]!, next = replacement[at + 1];
+      if ((character === "$" || character === "\\") && next !== undefined && next >= "0" && next <= "9") {
+        let group = 0;
+        while (replacement[at + 1] !== undefined && replacement[at + 1]! >= "0" && replacement[at + 1]! <= "9") {
+          host.tick(); group = group * 10 + Number(replacement[++at]);
+        }
+        const span = group === 0 ? [start, state.position] : state.captures[group];
+        if (span) emit(source.slice(span[0], span[1]));
+      } else if (character === "\\") {
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: REGEXREPLACE replacement escape");
+      } else {
+        const point = replacement.codePointAt(at)!;
+        emit(String.fromCodePoint(point));
+        if (point > 65535) at++;
+      }
+    }
+    published = state.position;
+    if (occurrence !== 0) break;
+  }
+  emit(source.slice(published));
+  return boundedText(output.join(""), host);
 }

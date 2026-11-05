@@ -5,6 +5,8 @@ import type { CapabilityContext } from "../contracts.js";
 
 // Independently transcribed from the authenticated 1.12.61 manifests and C descriptor tables.
 const released: readonly (readonly [string, string | null, string, string])[] = [
+  // Added in Gnumeric 1.12.62.
+  ["REGEXREPLACE", "SSS|fb", "GNM_FUNC_SIMPLE", "fn-string"],
   [
     "DAVERAGE",
     "rSr",

@@ -59,7 +59,7 @@ export function createFdCommandWithMatcher(scope: FdMatchingScope, options: FdCo
       for (let i=0;i<context.args.length;i++) decoder.decode(carrier.bytes(i)!);
       const args=parseFdArguments(context.args);
       if (args.help || args.version) {
-        await writeBytes(context.stdout,new TextEncoder().encode(args.version ? 'fd (safe-bash)\n' : 'Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n'),context.signal);
+        await writeBytes(context.stdout,new TextEncoder().encode(args.version ? 'fd (safe-bash)\n' : 'Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H/--no-hidden, -I/--ignore, --no-ignore-vcs, --no-ignore-parent, -u, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n'),context.signal);
         return {exitCode:0};
       }
       const searchContext=args.baseDirectory===undefined ? context : {...context,cwd:resolvePath(context.cwd,args.baseDirectory)};

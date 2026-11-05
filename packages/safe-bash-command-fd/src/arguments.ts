@@ -12,7 +12,7 @@ const aliases: Record<string, string> = { c:'color', C:'base-directory', H:'hidd
 const values = new Set(['search-path','ignore-file','path-separator','and','extension','type','exclude','max-depth','min-depth','exact-depth','max-results','size','changed-within','changed-before','format','color','base-directory']);
 export function parseFdArguments(argv: readonly string[]): FdArguments {
   const a: FdArguments = { patterns:[], roots:[], prune:false, ignoreFiles:[], mode:'regex', caseMode:'smart', hidden:false, ignore:true, ignoreVcs:true, ignoreParent:true, follow:false, fullPath:false, absolute:false, print0:false, quiet:false, details:false, minDepth:1, maxDepth:Infinity, maxResults:Infinity, extensions:[], types:[], excludes:[], sizes:[], within:undefined, before:undefined, format:undefined, baseDirectory:undefined, pathSeparator:undefined, stripCwdPrefix:false, exec:[], batch:false, help:false, version:false };
-  const operands: string[] = []; let ended = false; let unrestricted = 0;
+  const operands: string[] = []; let ended = false; let unrestricted = false;
   const number = (value: string): number => { if (!value || [...value].some(c => c < '0' || c > '9') || !Number.isSafeInteger(Number(value))) throw new FdUsageError(`invalid count '${value}'`); return Number(value); };
   for (let i=0;i<argv.length;i++) {
     const arg=argv[i]!;
@@ -40,10 +40,12 @@ export function parseFdArguments(argv: readonly string[]): FdArguments {
         case 'ignore-file': a.ignoreFiles.push(value); break;
         case 'prune': a.prune=true; break;
         case 'hidden': a.hidden=true; break;
+        case 'no-hidden': a.hidden=false; unrestricted=false; break;
+        case 'ignore': a.ignore=true; unrestricted=false; break;
         case 'no-ignore': a.ignore=false; break;
         case 'no-ignore-vcs': a.ignoreVcs=false; break;
         case 'no-ignore-parent': a.ignoreParent=false; break;
-        case 'unrestricted': a.ignore=false; if (++unrestricted >= 2) a.hidden=true; break;
+        case 'unrestricted': unrestricted=true; break;
         case 'follow': a.follow=true; break;
         case 'glob': a.mode='glob'; break;
         case 'fixed-strings': a.mode='fixed'; break;
@@ -83,6 +85,7 @@ export function parseFdArguments(argv: readonly string[]): FdArguments {
       }
     }
   }
+  if (unrestricted) { a.hidden=true; a.ignore=false; }
   a.patterns.unshift(operands.shift() ?? '');
   if (a.roots.length && operands.length) throw new FdUsageError('search-path cannot be combined with positional roots');
   if (!a.roots.length) a.roots=operands.length ? operands : ['.'];

@@ -44,6 +44,9 @@ export async function createLinuxCommandDirectory(...views: Pick<FileSystem, "mk
       await writeFile(cwd + path, bytes);
       for (const view of views) await view.writeFile("/workspace" + path, bytes);
     }
+    const fdIgnore = Buffer.from("theirs\n");
+    await writeFile(cwd + "/samples/.fdignore", fdIgnore);
+    for (const view of views) await view.writeFile("/workspace/samples/.fdignore", fdIgnore);
     const publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICFS+NGbeR0kRTJC4V8uq2y3z/p7al7TAJeWDgaYgdsS parity\n";
     await writeFile(cwd + "/samples/ed25519.pub", publicKey);
     for (const view of views) await view.writeFile("/workspace/samples/ed25519.pub", Buffer.from(publicKey));
@@ -117,6 +120,10 @@ export function linuxCommands(text: string) {
       script: "gpg --batch -u missing-signer --detach-sign", input: text },
     ...([["-Ip", "^/.*/samples/base$"], ["-IpF", "/samples/base"], ["-Ipg", "*/base"], ["-Ipg", "**/samples/base"]] as const).map(([flags, pattern]) => ({
       cmd: "fdfind", args: [flags, pattern, "samples"], script: "fd " + flags + " '" + pattern + "' samples", input: "",
+    })),
+    ...[["-u", "fdignore"], ["-u", "--ignore", "fdignore"], ["-H", "-u", "--ignore", "fdignore"],
+      ["-u", "--no-hidden", "theirs"], ["-I", "-u", "--no-hidden", "theirs"], ["--no-hidden", "-u", "fdignore"]].map(options => ({
+      cmd: "fdfind", args: [...options, "samples"], script: "fd " + options.join(" ") + " samples", input: "",
     })),
     ...textCommands.map(command => ({ ...command, input: text })),
     ...["16384/16384", "l/16384/16384", "l/2/5", "r/2/5"].map(spec => ({

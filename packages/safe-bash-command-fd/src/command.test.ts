@@ -57,7 +57,7 @@ for (const [args, expected] of [
   [['-H', '-e', 'bashrc'], ''],
   [['-e', 'txt'], 'link.txt\nsub/file.txt\n'],
   [['-t', 'd', '-t', 'x'], 'exec.sh\nsub/\n'],
-  [['-u', '-F', '.bashrc'], ''],
+  [['-u', '-F', '.bashrc'], '.bashrc\n'],
   [['-uu', '-F', '.bashrc'], '.bashrc\n'],
 ] as const) test(`fd parity: ${args.join(' ')}`, async () => {
   const { createFdCommand } = await import('./index.js');

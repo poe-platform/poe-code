@@ -6120,7 +6120,7 @@ where
     let mut no_ignore_vcs = false;
     let mut no_ignore_parent = false;
     let mut custom_ignore_files: Vec<String> = Vec::new();
-    let mut unrestricted = 0usize;
+    let mut unrestricted = false;
     let mut follow = false;
     let mut full_path = false;
     let mut absolute_path = false;
@@ -6195,7 +6195,9 @@ where
                 "help" => help = true, "version" => version = true,
                 "hidden" => show_hidden = true, "no-ignore" => respect_ignore = false,
                 "no-ignore-vcs" => no_ignore_vcs = true, "no-ignore-parent" => no_ignore_parent = true,
-                "unrestricted" => { unrestricted += 1; respect_ignore = false; show_hidden |= unrestricted >= 2; }
+                "unrestricted" => unrestricted = true,
+                "no-hidden" => { show_hidden = false; unrestricted = false; }
+                "ignore" => { respect_ignore = true; unrestricted = false; }
                 "follow" => follow = true, "prune" => prune = true,
                 "glob" => mode = FdMode::Glob, "fixed-strings" => mode = FdMode::Fixed,
                 "ignore-case" => case_override = Some(true), "case-sensitive" => case_override = Some(false),
@@ -6247,7 +6249,7 @@ where
         }
     }
     if version { return ok_out("fd (safe-bash)\n"); }
-    if help { return ok_out("Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n"); }
+    if help { return ok_out("Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H/--no-hidden, -I/--ignore, --no-ignore-vcs, --no-ignore-parent, -u, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n"); }
     let mut sizes = Vec::new();
     for value in size_specs {
         let Some(size) = parse_fd_size_spec(value) else { return usage_err(&format!("invalid size '{value}'")); };
@@ -6352,8 +6354,8 @@ where
         sizes,
         changed_within_ms,
         changed_before_ms,
-        show_hidden,
-        respect_ignore,
+        show_hidden: show_hidden || unrestricted,
+        respect_ignore: respect_ignore && !unrestricted,
         no_ignore_vcs,
         follow,
         full_path,

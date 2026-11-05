@@ -54,7 +54,8 @@ directory (including `-C`). Repeated files are applied in order, with later rule
 taking precedence over earlier files and directory ignore files. Explicit files
 remain active with `-I`; missing or unreadable explicit files fail the command.
 `-I` disables automatic directory ignore files, `--no-ignore-vcs` disables only `.gitignore`, and
-`-u` disables ignores; `-uu` additionally includes hidden entries. Following links detects
+`-u` includes hidden and ignored entries. A later `--no-hidden` or `--ignore`
+cancels `-u`; an explicit `-H` or `-I` can still enable its own behavior. Following links detects
 ancestor cycles and retains dangling links as symlinks.
 
 `--search-path` may be repeated and cannot be combined with positional roots.

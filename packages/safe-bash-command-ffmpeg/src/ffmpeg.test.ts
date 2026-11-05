@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { encodeWav } from "@poe-code/audio-ast";
 import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
-import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, parseMp4Boxes, concatBytes, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
   cloudflareWorkerLimits,
@@ -961,6 +961,48 @@ describe("HLS omit_endlist", () => {
         ...(omit ? [] : ["#EXT-X-ENDLIST"]), ""
       ].join("\n"));
       for (const path of ["/out0.ts", "/out1.ts"]) assert.ok(vfs.store.get(path)?.byteLength);
+    });
+  }
+});
+
+describe("HLS fMP4 initialization", () => {
+  for (const includeAudio of [false, true]) {
+    it(`writes an initialization map and continuous fragments (audio=${includeAudio})`, async () => {
+      const source = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 2, frameCount: 4, includeAudio }));
+      const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
+        ...track, samples: track.samples.map((sample, i) => ({ ...sample, isKeyframe: i % 2 === 0 }))
+      })) });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", "fmp4",
+        "-hls_segment_filename", "/hls/part%d.m4s", "-f", "hls", "/hls/out.m3u8"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/hls/out.m3u8")), [
+        "#EXTM3U", "#EXT-X-VERSION:7", "#EXT-X-TARGETDURATION:1", "#EXT-X-MEDIA-SEQUENCE:0",
+        '#EXT-X-MAP:URI="init.mp4"', "#EXTINF:1.000000,", "part0.m4s",
+        "#EXTINF:1.000000,", "part1.m4s", "#EXT-X-ENDLIST", ""
+      ].join("\n"));
+      const init = vfs.store.get("/hls/init.mp4")!;
+      assert.deepEqual(parseMp4Boxes(init).map(box => box.type), ["ftyp", "moov"]);
+      for (let i = 0; i < 2; i++) {
+        const fragment = vfs.store.get(`/hls/part${i}.m4s`)!;
+        assert.deepEqual(parseMp4Boxes(fragment).map(box => box.type), ["moof", "mdat"]);
+        const track = parseMp4(concatBytes([init, fragment])).tracks[0]!;
+        assert.equal(track.samples[0]!.dts / track.timescale, i);
+      }
+      const remux = await runCmd(createFfmpegCommand(), ["-i", "/hls/out.m3u8", "-c", "copy", "/joined.mp4"], vfs);
+      assert.equal(remux.exitCode, 0, remux.stderr);
+      const joined = parseMp4(vfs.store.get("/joined.mp4")!);
+      assert.equal(joined.tracks.length, source.tracks.length);
+      assert.equal(joined.tracks[0]!.samples.length, 4);
+      assert.equal(joined.durationSeconds, 2);
+      for (const [i, track] of joined.tracks.entries()) {
+        assert.deepEqual(track.samples.map(sample => sample.data), source.tracks[i]!.samples.map(sample => sample.data));
+      }
+      const probe = await runCmd(createFfprobeCommand(), ["-v", "quiet", "-show_streams", "-of", "json", "/hls/out.m3u8"], vfs);
+      assert.equal(probe.exitCode, 0, probe.stderr);
+      assert.equal(JSON.parse(probe.stdout).streams[0].codec_name, "h264");
     });
   }
 });

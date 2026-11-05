@@ -55,6 +55,7 @@ import {
   muxMp4Steps,
   type MuxMediaOptions,
   parseMp4,
+  parseMp4Boxes,
   sliceMp4,
   type MediaAstPlugin,
   type MediaAudioData,
@@ -2482,22 +2483,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
           const playlistLines: string[] = [
             "#EXTM3U",
-            "#EXT-X-VERSION:3",
+            isFmp4 ? "#EXT-X-VERSION:7" : "#EXT-X-VERSION:3",
             `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
             `#EXT-X-MEDIA-SEQUENCE:${firstSegment}`
           ];
+
+          if (isFmp4) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
 
           const retainedSegments: { path: string; duration: number }[] = [];
           for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
             const st = boundaries[sIdx]!;
             const en = boundaries[sIdx + 1]!;
             const actualDur = Math.max(0.04, en - st);
-            const sliced = sliceMp4(workingDoc, { startSeconds: st, endSeconds: en, useEditList: false });
-            const segBytes = segPlugin.serialize(sliced, {
+            // Keep original packets and timestamps under the shared initialization segment.
+            const segmentDoc = isFmp4 ? {
+              ...workingDoc,
+              tracks: workingDoc.tracks.map(track => ({
+                ...track,
+                samples: track.samples.filter(sample => sample.dts >= st * track.timescale && sample.dts < en * track.timescale)
+              }))
+            } : sliceMp4(workingDoc, { startSeconds: st, endSeconds: en, useEditList: false });
+            let segBytes = segPlugin.serialize(segmentDoc, {
               fragmented: isFmp4,
               limits: options.limits,
               budget
             });
+
+            if (isFmp4) {
+              const moof = parseMp4Boxes(segBytes, 0, 0, budget).find(box => box.type === "moof");
+              if (!moof) throw new Error("HLS fMP4 output requires fragmented MP4 samples");
+              if (sIdx === 0) {
+                await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
+                await writeFileOutput(context, segBytes.subarray(0, moof.offset), data =>
+                  context.fs.writeFile(resolvePath(outDir, "init.mp4"), data, { signal: context.signal }));
+              }
+              segBytes = segBytes.subarray(moof.offset);
+            }
 
             const segPattern = hlsSegmentFilename ?? `seg_%03d.${segExt}`;
             const formattedSeg = segPattern.replace(/%0?(\d*)d/, (_, widthDigits: string) => {

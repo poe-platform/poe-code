@@ -2261,6 +2261,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const origCh = t.decodedAudio?.channels ?? t.codecDescriptions[0]?.channels ?? 2;
               const targetRate = audioRate ?? origRate;
               const targetCh = audioChannels ?? origCh;
+              const channelMask = t.decodedAudio.channelMask;
+              const surroundMono = origCh === 6 && targetCh === 1;
+              if (targetCh !== origCh && origCh > 2 &&
+                  (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
+                throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
+              }
               const durSec = (t.duration || origRate) / Math.max(1, t.timescale || origRate);
               let volFactor = t.volume ?? 1.0;
               let tempoFactor = 1.0;
@@ -2308,7 +2314,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                     const srcIdx = Math.min(srcCh.length - 1, i);
-                    const sample = rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
+                    // FFmpeg's normalized 5.1 mono matrix: FL/FR at sqrt(1/2),
+                    // center at 1, surrounds at 1/2, and no LFE contribution.
+                    const sample = surroundMono
+                      ? ((stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) * Math.SQRT1_2 +
+                          stretched[2]![srcIdx]! + (stretched[4]![srcIdx]! + stretched[5]![srcIdx]!) / 2) / (2 + Math.SQRT2)
+                      : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
                     dst[i] = Math.max(-1, Math.min(1, sample * volFactor));
                   }
                 }
@@ -2332,7 +2343,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 decodedAudio: {
                   sampleRate: targetRate,
                   channels: targetCh,
-                  channelData: newChannelData
+                  channelData: newChannelData,
+                  ...(targetCh === origCh ? { channelMask } : {})
                 }
               };
             }, context.signal)

@@ -2058,3 +2058,41 @@ for (const bitsPerSample of [8, 24, 32] as const) {
     assert.deepEqual(vfs.store.get("/output.wav"), input);
   });
 }
+
+// Header emitted by native FFmpeg 9 from a 0.1-second, 8000 Hz PCM16 5.1 WAV.
+const surroundWavHeader = "52494646ffffffff57415645666d742028000000feff0600401f0000007701000c001000160010003f0000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636332e312e313031000064617461ffffffff";
+
+for (const mask of [0x3f, 0x60f]) {
+  for (const [channel, expected] of [[0, 3393], [1, 3393], [2, 4799], [3, 0], [4, 2399], [5, 2399]]) {
+    it(`matches native 5.1 mono downmix for mask ${mask}, channel ${channel}`, async () => {
+      const header = Buffer.from(surroundWavHeader, "hex");
+      const input = new Uint8Array(header.length + 800 * 12);
+      input.set(header);
+      const view = new DataView(input.buffer);
+      view.setUint32(40, mask, true);
+      for (let i = 0; i < 800; i++) view.setInt16(header.length + i * 12 + channel! * 2, 16384, true);
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-ac", "1", "-c:a", "pcm_s16le", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/output.wav")!);
+      assert.equal(output.durationSeconds, 0.1);
+      const audio = output.tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, 1);
+      assert.equal(audio.channelData[0]!.length, 800);
+      assert.ok(audio.channelData[0]!.every(sample => Math.abs(sample * 32768 - expected!) <= 1));
+    });
+  }
+}
+
+it("rejects unsupported surround downmix layouts without overwriting output", async () => {
+  const header = Buffer.from(surroundWavHeader, "hex");
+  const input = new Uint8Array(header.length + 800 * 12);
+  input.set(header);
+  new DataView(input.buffer).setUint32(40, 0x707, true);
+  const vfs = createTestVfs({ "/input.wav": input, "/output.wav": "existing" });
+  const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-ac", "1", "/output.wav"], vfs);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("Unsupported audio channel layout"), result.stderr);
+  assert.equal(new TextDecoder().decode(vfs.store.get("/output.wav")), "existing");
+});

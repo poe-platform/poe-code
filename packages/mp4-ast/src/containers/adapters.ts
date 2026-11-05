@@ -440,7 +440,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         }
       }
     }
-    decodedAudio = { sampleRate, channels, channelData };
+    decodedAudio = { sampleRate, channels, channelData, ...(header.channelMask !== undefined ? { channelMask: header.channelMask } : {}) };
   }
 
   const samples: MediaSample[] = [];

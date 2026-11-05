@@ -5,6 +5,7 @@ export interface WavHeader {
   byteLength: number;
   formatTag: number;
   channels: number;
+  channelMask?: number;
   sampleRate: number;
   bitsPerSample: number;
   dataOffset: number;
@@ -48,6 +49,14 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
       header.channels = view.getUint16(2, true) || 2;
       header.sampleRate = view.getUint32(4, true) || 44100;
       header.bitsPerSample = view.getUint16(14, true) || 16;
+      if (header.formatTag === 0xfffe) {
+        if (size < 40) throw new Error("Invalid WAV extensible format");
+        const extension = yield { offset: start + 16, length: 8 };
+        acceptEnd(extension.end);
+        const ext = new DataView(extension.bytes.buffer, extension.bytes.byteOffset, extension.bytes.byteLength);
+        if (ext.getUint16(0, true) < 22) throw new Error("Invalid WAV extensible format");
+        header.channelMask = ext.getUint32(4, true);
+      }
     } else if (id === "data") {
       header.dataOffset = start;
       header.dataSize = end - start;

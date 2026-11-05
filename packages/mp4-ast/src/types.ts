@@ -198,6 +198,8 @@ export interface MediaVideoFrame {
 }
 
 export interface MediaAudioData {
+  /** WAVE speaker-position mask; absent or zero means an unspecified layout. */
+  readonly channelMask?: number | undefined;
   readonly sampleRate: number;
   readonly channels: number;
   readonly channelData: readonly Float32Array[];

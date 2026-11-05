@@ -76,8 +76,9 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     codec_tag: tagHex,
     width: w,
     height: h,
-    coded_width: w ? Math.ceil(w / 16) * 16 : undefined,
-    coded_height: h ? Math.ceil(h / 16) * 16 : undefined,
+    // ffprobe exposes cropped H.264 dimensions, not padded macroblock sizes.
+    coded_width: codecName === 'h264' ? (desc?.width ?? w) : w ? Math.ceil(w / 16) * 16 : undefined,
+    coded_height: codecName === 'h264' ? (desc?.height ?? h) : h ? Math.ceil(h / 16) * 16 : undefined,
     has_b_frames: track.type === "video" ? (desc?.maxNumReorderFrames ?? (stats.hasReorderedSamples ? 1 : 0)) : undefined,
     sample_aspect_ratio:
       track.type === "video"

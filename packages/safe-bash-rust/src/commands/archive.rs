@@ -10700,6 +10700,9 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
             .map_err(|_| format!("ENOENT: no such file or directory, readFile '{full}'"))
     };
 
+    if removing && show_fp {
+        return err_out(concat!("Cannot use -l with -H or -R.\r\n", include_str!("help/ssh-keygen.txt")), 1);
+    }
     if let Some(host) = host {
         let file = file_arg.as_deref().unwrap_or("/home/user/.ssh/known_hosts");
         let path = match file.strip_prefix("~/") {

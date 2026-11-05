@@ -150,6 +150,21 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       }
     });
+    await t.test("ssh-keygen rejects fingerprints with removal before touching known_hosts", async () => {
+      for (const file of ["effects/source", "effects/missing"]) {
+        const args = ["-l", "-R", "host", "-f", file];
+        await resetEffects(cwd!, undefined, "ssh-keygen");
+        const reference = await runLinuxCommand("ssh-keygen", args, "", cwd);
+        assert.equal(reference[0], 1);
+        const expected = await readEffects(cwd!, "ssh-keygen");
+        for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+          await resetEffects(cwd!, view, "ssh-keygen");
+          const result = await shell.exec("ssh-keygen " + args.join(" "));
+          assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference);
+          assert.deepEqual(await readEffects(cwd!, "ssh-keygen", view), expected);
+        }
+      }
+    });
     await t.test("ssh-keygen combining lookup and removal selects the last host and never writes", async () => {
       const file = "effects/source";
       for (const options of ["-R absent -F host", "-F absent -R host", "-R host -F absent", "-q -F absent -R host", "-R unused -F broken"]) {

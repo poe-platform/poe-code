@@ -60,7 +60,7 @@ for (const legacy of [false, true]) {
     ["-P2DT0.25S", -(2 * 86400 + 0.25) / 86400],
     ["-PT0S", 0]
   ] as const)(`imports ${legacy ? "legacy" : "ODF"} time %s as a numeric serial`, async (source, value) => {
-    expect(await timeCell(source, legacy)).toEqual({ kind: "number", value });
+    expect(await timeCell(source, legacy)).toEqual({ kind: "number", value, format: "hh:mm:ss" });
   });
 
   it.each(["PT01.5H00M00S", "PT00H00.5M00S", "PT00H00MNaNS", "PT00H00MInfinityS", "PT00H00M-0.5S"])(

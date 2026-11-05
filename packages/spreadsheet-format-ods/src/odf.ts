@@ -410,11 +410,12 @@ function typedValue(node: XmlElement, legacy: boolean, dateSystem: "1900" | "190
         if (time.length >= 3 && Number.isInteger(hour) && Number.isInteger(minute) && Number.isFinite(seconds))
           fraction = (hour + minute / 60 + seconds / 3600) / 24;
       }
-      return { kind: "number", value: dateSerial(d, { book: { sheets: [], dateSystem } }) + fraction };
+      return { kind: "number", value: dateSerial(d, { book: { sheets: [], dateSystem } }) + fraction,
+        format: parts[1] ? "yyyy/mm/dd hh:mm:ss" : "yyyy/mm/dd" };
     }
     if (a.localName === "time-value") {
       const value = durationValue(a.value, charge);
-      if (value !== undefined) return { kind: "number", value };
+      if (value !== undefined) return { kind: "number", value, format: "hh:mm:ss" };
     }
   }
   const p = paragraphs(node, charge);

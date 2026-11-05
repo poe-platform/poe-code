@@ -213,7 +213,8 @@ function* lavfiSteps(
 
   if (filterName === "sine" || filterName === "anullsrc") {
     const sampleRate = parseInt(kv.sample_rate ?? kv.r ?? "44100", 10) || 44100;
-    const freq = parseFloat(kv.frequency ?? kv.f ?? "440") || 440;
+    const parsedFrequency = parseFloat(kv.frequency ?? kv.f ?? "440");
+    const freq = Number.isNaN(parsedFrequency) ? 440 : parsedFrequency;
     const duration =
       durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
     const layout = kv.channel_layout ?? kv.cl;

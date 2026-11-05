@@ -969,6 +969,23 @@ it("escapes tag separators, quotes and newlines like native ffprobe", async () =
   }
 });
 
+for (const frequency of ["frequency=0", "f=0"]) {
+  it(`generates silent lavfi sine audio for ${frequency}`, async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-v", "error", "-f", "lavfi", "-i",
+      `sine=${frequency}:sample_rate=16000:duration=0.1`, "/silence.wav"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/silence.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 16000);
+    assert.equal(audio.channelData.length, 1);
+    const samples = audio.channelData[0]!;
+    assert.equal(samples.length, 1600);
+    assert.ok(samples.every(sample => sample === 0), "every decoded sample must be silent");
+  });
+}
+
 it("matches native lavfi sine waveform amplitude", async () => {
   const vfs = createTestVfs();
   const result = await runCmd(createFfmpegCommand(), [

@@ -2179,14 +2179,61 @@ function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: 
     const levels = Math.max(2, Math.min(256, Math.round(levelsRaw)));
     const step = 255 / (levels - 1);
     const out = new Uint8Array(img.data);
+    type PaletteNode = { children: PaletteNode[]; color?: number[] };
+    let palette: PaletteNode | undefined;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        out[i] = clampByteVal(Math.round((out[i]! / 255) * (levels - 1)) * step);
-        out[i + 1] = clampByteVal(Math.round((out[i + 1]! / 255) * (levels - 1)) * step);
-        out[i + 2] = clampByteVal(Math.round((out[i + 2]! / 255) * (levels - 1)) * step);
+        if (img.hasAlpha && out[i + 3]! < 255 && levels <= 16) {
+            // ImageMagick searches the parent of the deepest matching RGBA
+            // octree node, using associated alpha for both lookup and distance.
+            if (!palette) {
+                palette = { children: [] };
+                for (let a = 0; a < levels; a++) for (let b = 0; b < levels; b++) for (let g = 0; g < levels; g++) for (let r = 0; r < levels; r++) {
+                    if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
+                    const color = a === 0 ? [0, 0, 0, 0] : [r * step, g * step, b * step, a * step];
+                    const bytes = color.map((value, channel) => Math.round(channel === 3 ? value : value * color[3]! / 255));
+                    let node = palette;
+                    for (let bit = 7; bit >= 0; bit--) {
+                        const id = ((bytes[0]! >> bit) & 1) | (((bytes[1]! >> bit) & 1) << 1) | (((bytes[2]! >> bit) & 1) << 2) | (((bytes[3]! >> bit) & 1) << 3);
+                        node = node.children[id] ??= { children: [] };
+                    }
+                    node.color = color;
+                }
+            }
+            const alpha = out[i + 3]! / 255;
+            const target = [out[i]! * alpha, out[i + 1]! * alpha, out[i + 2]! * alpha, out[i + 3]!];
+            const bytes = target.map(Math.round);
+            let node = palette, parent = palette;
+            for (let bit = 7; bit > 0; bit--) {
+                const id = ((bytes[0]! >> bit) & 1) | (((bytes[1]! >> bit) & 1) << 1) | (((bytes[2]! >> bit) & 1) << 2) | (((bytes[3]! >> bit) & 1) << 3);
+                const child = node.children[id];
+                if (!child) break;
+                parent = node;
+                node = child;
+            }
+            let distance = Infinity, closest = [0, 0, 0, 0];
+            const pending = [parent];
+            while (pending.length) {
+                if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
+                const candidate = pending.pop()!;
+                // Reverse insertion visits octree children in native order.
+                for (let child = candidate.children.length - 1; child >= 0; child--) {
+                    if (candidate.children[child]) pending.push(candidate.children[child]!);
+                }
+                if (!candidate.color) continue;
+                const color = candidate.color, candidateAlpha = color[3]! / 255;
+                let error = (color[3]! - target[3]!) ** 2;
+                for (let channel = 0; channel < 3; channel++) error += (color[channel]! * candidateAlpha - target[channel]! * alpha) ** 2;
+                if (error <= distance) { distance = error; closest = color; }
+            }
+            for (let channel = 0; channel < 4; channel++) out[i + channel] = clampByteVal(closest[channel]!);
+        } else {
+            for (let channel = 0; channel < 4; channel++) out[i + channel] = clampByteVal(Math.round((out[i + channel]! / 255) * (levels - 1)) * step);
+        }
     }
-    return { ...img, data: out };
+    const { data16: ignored, ...metadata } = img;
+    return { ...metadata, data: out };
 }
 
 function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {

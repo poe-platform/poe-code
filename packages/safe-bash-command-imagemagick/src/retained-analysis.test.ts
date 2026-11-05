@@ -7,6 +7,7 @@ import { runConvertCli } from "./index.js";
 // Frozen from the established whole-image interpreter before retained analysis.
 // Equalization vectors use native ImageMagick 7 output.
 // Contrast-stretch vectors use native ImageMagick 7.1.2 RGBA output.
+// Linear-stretch vectors corrected against ImageMagick 7.1.2 RGBA output.
 // Normalize vectors corrected against ImageMagick 7.1.2 RGBA output.
 const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; hash: string }[] = [
   {
@@ -51,7 +52,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-linear-stretch",
       "300x200"
     ],
-    "hash": "32f8744f3df29f7b87a2129ddccf7f538b1a3d313f9c96365e0136ae11fe6ae3"
+    "hash": "494f06d009b84c8570feda5c1c8401bf23f138687c85291c78ee7cd63a014ed9"
   },
   {
     "channels": 4,
@@ -120,7 +121,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-linear-stretch",
       "300x200"
     ],
-    "hash": "18182b0c8e0b1ce21f45516c856f19ef003f4d896e6f6337b68a976adb1dddde"
+    "hash": "886fc644fdb5140ed8e1d19e2f4feb8906814080421550dbbc91cbcadf0019b3"
   },
   {
     "channels": 3,
@@ -258,7 +259,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-linear-stretch",
       "300x200"
     ],
-    "hash": "c3ae2fab99a8e189e6ad2c27a0787e4466434edd230d9494f6cae78a35f81529"
+    "hash": "24d691b0541dcad2485f7c29ec8195d31a04337a41c91ddd0b1131ad7b852faf"
   },
   {
     "channels": 4,

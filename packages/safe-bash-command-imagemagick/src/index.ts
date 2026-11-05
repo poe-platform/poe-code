@@ -3822,7 +3822,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     let end = start;
     const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, luminance: (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, lookup(histogram, image) {
+    return { end, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, lookup(histogram, image) {
         const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: 256 }, (_, value) => value));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
@@ -3841,6 +3841,23 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             for (let channel = 0; channel < 4; channel++) {
                 const range = maxs[channel]! - mins[channel]!;
                 if (active[channel] && range > 0) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value - mins[channel]!) / range * 255);
+            }
+        } else if (token === "-linear-stretch") {
+            const [black, white] = argument.split("x"), percentage = argument.includes("%");
+            const lowTarget = (parseFloat(black || "0") || 0) * (percentage ? count / 100 : 1);
+            // An omitted white point is the remaining pixel count, not the black point.
+            const highTarget = white === undefined ? count - lowTarget : (parseFloat(white) || 0) * (percentage ? count / 100 : 1);
+            const bins = histogram[4]!;
+            let low = 0, high = bins.length - 1, sum = 0;
+            for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum >= lowTarget) break; }
+            sum = 0;
+            for (; high > 0; high--) { sum += bins[high]!; if (sum >= highTarget) break; }
+            const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
+            for (let channel = 0; channel < 4; channel++) {
+                if (!active[channel]) continue;
+                for (let value = 0; value < 256; value++) lookup[channel]![value] = high === low
+                    ? (value * 257 > low ? 255 : 0)
+                    : clampByteVal((value * 257 - low) / (high - low) * 255);
             }
         } else if (token === "-normalize" || token === "-contrast-stretch") {
             const [black, white] = argument.split("x"), percentage = argument.includes("%");
@@ -3870,16 +3887,6 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     for (; bin <= value * scale; bin++) cumulative += bins[bin]!;
                     lookup[channel]![value] = clampByteVal((cumulative - black) / (count - black) * 255);
                 }
-            }
-        } else {
-            const [black, white] = argument.split("x"), percentage = argument.includes("%"), blackValue = parseFloat(black || "0") || 0, whiteValue = white !== undefined ? parseFloat(white) || 0 : blackValue;
-            const lowTarget = percentage ? blackValue / 100 * count : blackValue, highTarget = percentage ? (100 - whiteValue) / 100 * count : count - whiteValue;
-            for (let channel = 0; channel < 3; channel++) {
-                let low = 0, high = 255, sum = 0;
-                for (let value = 0; value < 256; value++) { sum += histogram[channel]![value]!; if (sum > lowTarget) { low = value; break; } }
-                sum = 0;
-                for (let value = 0; value < 256; value++) { sum += histogram[channel]![value]!; if (sum >= highTarget) { high = value; break; } }
-                if (high > low) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value - low) / (high - low) * 255);
             }
         }
         return lookup;

@@ -71,8 +71,11 @@ pub(super) fn sampler(
             if den.abs() < f64::EPSILON {
                 continue;
             }
-            let x = (ey * xy - ex * (yy + j)) / den;
-            let y = (ex * yx - ey * (xx + i)) / den;
+            // Cairo shares the rounded reciprocal between axes. Dividing each
+            // numerator instead can break a tie and choose a different pixel offset.
+            let inv = den.recip();
+            let x = (ey * xy - ex * (yy + j)) * inv;
+            let y = (ex * yx - ey * (xx + i)) * inv;
             if x.abs().max(y.abs()) < tx.abs().max(ty.abs()) {
                 (tx, ty) = (x, y);
             }

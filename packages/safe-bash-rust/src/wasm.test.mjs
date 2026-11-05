@@ -8533,10 +8533,11 @@ test("pdftocairo downsamples the color image and soft mask independently", async
   const wasm = new RustWasmBash({ cwd: "/", forceNative: true });
   try {
     // SHA-256 of every decoded RGBA byte from Poppler 24.02.
-    for (const [w, h, mw, mh, digest] of [
-      [24, 16, 2, 1, "f65bc81a7bfd36e5eebc4e659e05a1ce67d6783ee1bd21c246ad520a568a7ca4"],
-      [4, 3, 20, 12, "4480a3ba6bb5eea9158e87778f2f1b2c96fb389efcb0dfcd83ce01beadde3bfe"],
-      [24, 16, 20, 12, "2cfde8a3e30c3084bc223aa7e10043568fecfd4c8280d5b796f73e01c2f9296e"],
+    for (const [w, h, mw, mh, width, height, y, digest] of [
+      [24, 16, 2, 1, 7, 5, 5, "f65bc81a7bfd36e5eebc4e659e05a1ce67d6783ee1bd21c246ad520a568a7ca4"],
+      [4, 3, 20, 12, 7, 5, 5, "4480a3ba6bb5eea9158e87778f2f1b2c96fb389efcb0dfcd83ce01beadde3bfe"],
+      [24, 16, 20, 12, 7, 5, 5, "2cfde8a3e30c3084bc223aa7e10043568fecfd4c8280d5b796f73e01c2f9296e"],
+      [4, 3, 20, 12, 12, 8, 6, "d257222d1b242a3744a0eb20b4d50993ad3aa6d1ff584c7a248cc74801a9222c"],
     ]) {
       const doc = PdfDocument.create(), page = doc.addPage([48, 32]);
       const image = doc.embedRgbImage(w, h, Uint8Array.from({length: 3*w*h}, (_,i) => i*23 + Math.floor(i/7)));
@@ -8545,7 +8546,7 @@ test("pdftocairo downsamples the color image and soft mask independently", async
           Height: cosNumber(mh), ColorSpace: cosName("DeviceGray"), BitsPerComponent: cosNumber(8) })
       });
       dictSet(doc.cos.resolve(image.xobjectRef).dict, "SMask", doc.cos.allocateObject(mask));
-      page.drawImage(image, {x:3, y:5, width:7, height:5});
+      page.drawImage(image, {x:3, y, width, height});
       await wasm.fs.writeFile("/in.pdf", doc.save());
       const r = await wasm.exec("pdftocairo -png -singlefile -transp -r 72 in.pdf out");
       assert.equal(r.exitCode, 0, r.stderr);

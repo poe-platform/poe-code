@@ -473,6 +473,7 @@ export function evalSyncDf(
     dataRows.push(activeFields.map(f => {
       switch (f) {
         case "source": return "total";
+        case "target": return activeFields.includes("source") ? "-" : "total";
         case "fstype": return "-";
         case "itotal": return scaleMode === "blocks" ? String(sumTotalInodes) : formatSizeVal(sumTotalInodes);
         case "iused": return scaleMode === "blocks" ? String(sumUsedInodes) : formatSizeVal(sumUsedInodes);
@@ -486,16 +487,21 @@ export function evalSyncDf(
       }
     }));
   }
-  const widths = headerRow.map((h, col) => {
-    let max = Math.max(h.length, activeFields[col] === "file" || activeFields[col] === "target" ? 0 : col === 0 ? 14 : 5);
-    for (const r of dataRows) max = Math.max(max, r[col]!.length);
-    return max;
+  return formatTable(activeFields, headerRow, dataRows);
+}
+
+function formatTable(fields: readonly string[], header: string[], rows: string[][]): string {
+  const widths = header.map((title, col) => {
+    const field = fields[col];
+    let width = Math.max(title.length, field === "source" ? 14 : field === "size" || field === "used" ? 5 : 0);
+    for (const row of rows) width = Math.max(width, row[col]!.length);
+    return width;
   });
   const rightAligned = new Set(["itotal", "iused", "iavail", "ipcent", "size", "used", "avail", "pcent"]);
-  const formatTableRow = (cells: string[]): string =>
-    cells.map((cell, idx) => idx === cells.length - 1 ? cell : (rightAligned.has(activeFields[idx]!) ? cell.padStart(widths[idx]!, " ") : cell.padEnd(widths[idx]!, " "))).join(" ");
-  const lines = [formatTableRow(headerRow), ...dataRows.map(formatTableRow)];
-  return `${lines.join("\n")}\n`;
+  const line = (cells: string[]) => cells.map((cell, col) =>
+    rightAligned.has(fields[col]!) ? cell.padStart(widths[col]!) : col + 1 === cells.length ? cell : cell.padEnd(widths[col]!)
+  ).join(" ");
+  return [line(header), ...rows.map(line)].join("\n") + "\n";
 }
 
 export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinition {
@@ -941,9 +947,8 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
               return formatSize(sumAvailBytes);
             case "pcent":
               return formatPct(sumUsedBytes, sumTotalBytes);
-            case "file":
             case "target":
-              return "-";
+              return activeFields.includes("source") ? "-" : "total";
             default:
               return "-";
           }
@@ -951,28 +956,7 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
         dataRows.push(totalRow);
       }
 
-      const widths = headerRow.map((h, col) => {
-        let max = Math.max(h.length, activeFields[col] === "file" || activeFields[col] === "target" ? 0 : col === 0 ? 14 : 5);
-        for (const r of dataRows) {
-          max = Math.max(max, r[col]!.length);
-        }
-        return max;
-      });
-
-      const rightAligned = new Set(["itotal", "iused", "iavail", "ipcent", "size", "used", "avail", "pcent"]);
-      const formatTableRow = (cells: string[]): string => {
-        return cells
-          .map((cell, idx) => {
-            if (idx === cells.length - 1) return cell;
-            const field = activeFields[idx]!;
-            const w = widths[idx]!;
-            return rightAligned.has(field) ? cell.padStart(w, " ") : cell.padEnd(w, " ");
-          })
-          .join(" ");
-      };
-
-      const lines = [formatTableRow(headerRow), ...dataRows.map(formatTableRow)];
-      await writeText(context.stdout, `${lines.join("\n")}\n`);
+      await writeText(context.stdout, formatTable(activeFields, headerRow, dataRows));
       return { exitCode };
     },
   };

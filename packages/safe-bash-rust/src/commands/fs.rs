@@ -4645,6 +4645,7 @@ fn cmd_df(
             .iter()
             .map(|f| match f.as_str() {
                 "source" => "total".to_string(),
+                "target" if !active_fields.iter().any(|f| f == "source") => "total".to_string(),
                 "fstype" => "-".to_string(),
                 "itotal" => {
                     if scale_mode == "blocks" {
@@ -4682,7 +4683,7 @@ fn cmd_df(
         .iter()
         .enumerate()
         .map(|(col, h)| {
-            let mut max_w = h.len().max(if matches!(active_fields[col].as_str(), "file" | "target") { 0 } else if col == 0 { 14 } else { 5 });
+            let mut max_w = h.len().max(match active_fields[col].as_str() { "source" => 14, "size" | "used" => 5, _ => 0 });
             for r in &data_rows {
                 max_w = max_w.max(r[col].len());
             }
@@ -4702,15 +4703,13 @@ fn cmd_df(
             .iter()
             .enumerate()
             .map(|(idx, cell)| {
-                if idx + 1 == cells.len() {
+                let w = widths[idx];
+                if is_right_aligned(&active_fields[idx]) {
+                    format!("{cell:>w$}")
+                } else if idx + 1 == cells.len() {
                     cell.clone()
                 } else {
-                    let w = widths[idx];
-                    if is_right_aligned(&active_fields[idx]) {
-                        format!("{cell:>w$}")
-                    } else {
-                        format!("{cell:<w$}")
-                    }
+                    format!("{cell:<w$}")
                 }
             })
             .collect::<Vec<_>>()

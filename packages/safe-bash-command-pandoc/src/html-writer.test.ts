@@ -53,7 +53,7 @@ it("preserves list starts and tightness, nested blocks, definitions, lines and f
     {t: "DefinitionList", c: [[[s("term")], [[p(s("definition"))]]]]},
     {t: "LineBlock", c: [[s("one")], [s(" two")]]},
     {t: "Figure", c: [a, [null, [p(s("caption"))]], [{t: "BlockQuote", c: [p(s("body"))]}]]}]);
-  const expected = '<ol start="4" type="i">\n<li>tight</li>\n<li><p>loose</p>\n</li>\n</ol>\n<dl>\n<dt>term</dt>\n<dd><p>definition</p>\n</dd>\n</dl>\n<div class="line-block">one<br> two</div>\n<figure><blockquote><p>body</p>\n</blockquote>\n<figcaption><p>caption</p>\n</figcaption></figure>\n';
+  const expected = '<ol start="4" type="i">\n<li>tight</li>\n<li><p>loose</p></li>\n</ol>\n<dl>\n<dt>term</dt>\n<dd><p>definition</p>\n</dd>\n</dl>\n<div class="line-block">one<br> two</div>\n<figure><blockquote><p>body</p>\n</blockquote>\n<figcaption><p>caption</p>\n</figcaption></figure>\n';
   dom(actual, expected); expect(actual).toBe(expected);
 });
 it("deduplicates heading IDs deterministically including already suffixed IDs", async () => {

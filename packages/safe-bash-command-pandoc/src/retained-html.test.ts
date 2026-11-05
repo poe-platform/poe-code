@@ -23,7 +23,17 @@ async function compare(blocks: Block[], options: Partial<ConversionOptions> = {}
     expect(acquire).not.toHaveBeenCalled();
   } finally {acquire.mockRestore();}
   expect(await fs.readdir("/")).toEqual([]);
+  return text;
 }
+
+it("renders Pandoc JSON checkboxes only at the start of a list item", async () => {
+  const task: Block = {t: "Plain", c: [str("☐"), {t: "Space"}, {t: "Emph", c: [str("todo")]}]};
+  const nested: Block = {t: "BulletList", c: [[task]]};
+  expect(await compare([{t: "BulletList", c: [[para(str("☒"), {t: "Space"}, str("done")), nested], [task]]}]))
+    .toBe('<ul class="task-list">\n<li><p><label><input type="checkbox" checked="" />done</label></p>\n<ul class="task-list">\n<li><label><input type="checkbox" /><em>todo</em></label></li>\n</ul></li>\n<li><label><input type="checkbox" /><em>todo</em></label></li>\n</ul>\n');
+  expect(await compare([{t: "BulletList", c: [[{t: "Plain", c: [str("☒ literal")]}], [task]]}]))
+    .toBe('<ul>\n<li>☒ literal</li>\n<li><label><input type="checkbox" /><em>todo</em></label></li>\n</ul>\n');
+});
 
 it.each([{}, {ascii: true}, {standalone: true}, {standalone: true, toc: true, numberSections: true}, {eol: "crlf" as const}])("retains the complete HTML writer behavior: %j", async options => {
   await compare([

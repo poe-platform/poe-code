@@ -138,8 +138,8 @@ class HtmlWriter {
     }
   }
   async inlines(nodes: readonly Inline[], path: string, start = 0): Promise<void> {
-    for(const [i, node] of nodes.entries()) {
-      if (i < start) continue;
+    for(let i = start; i < nodes.length; i++) {
+      const node = nodes[i]!;
       if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate(); const p = `${path}[${i}]`;
       switch(node.t) {
         case "Str": this.escape(node.c); break;
@@ -244,17 +244,19 @@ class HtmlWriter {
     if(t[5][1].length) {this.add("<tfoot"); this.attrs(t[5][0]); this.add(">\n"); await this.rows(t[5][1], t[2], `${p}.c[5][1]`, false); this.add("</tfoot>\n");}
     this.add("</table>\n");
   }
-  async blocks(nodes: readonly Block[], path: string, taskState?: boolean): Promise<void> {
+  async blocks(nodes: readonly Block[], path: string, listItem = false): Promise<void> {
     for(const [i, node] of nodes.entries()) {
       if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate(); const p = `${path}[${i}]`;
       switch(node.t) {
         case "Plain": case "Para": {
-          const task = i === 0 && taskState !== undefined;
+          const checked = listItem && !i ? taskListItemState(node) : undefined;
           if (node.t === "Para") this.add("<p>");
-          if (task) this.add(taskState ? '<label><input type="checkbox" checked="" />' : '<label><input type="checkbox" />');
-          await this.inlines(node.c, `${p}.c`, task ? 2 : 0);
-          if (task) this.add("</label>");
-          if (node.t === "Para") this.add("</p>\n");
+          if (checked !== undefined) this.add(checked ? '<label><input type="checkbox" checked="" />' : '<label><input type="checkbox" />');
+          await this.inlines(node.c, `${p}.c`, checked === undefined ? 0 : 2);
+          if (checked !== undefined) this.add("</label>");
+          const newline = listItem ? i + 1 < nodes.length : node.t === "Para";
+          if (node.t === "Para") this.add(newline ? "</p>\n" : "</p>");
+          else if (newline) this.add("\n");
           break;
         }
         case "CodeBlock": {
@@ -305,8 +307,10 @@ class HtmlWriter {
           const ordered = node.t === "OrderedList", tag = ordered ? "ol" : "ul"; this.add(`<${tag}`);
           if(ordered) {if(node.c[0][0] !== 1) this.attribute("start", String(node.c[0][0])); if(numbering[node.c[0][1]]) this.attribute("type", numbering[node.c[0][1]]);}
           const items = ordered ? node.c[1] : node.c;
-          if (!ordered && items.length && items.every(item => taskListItemState(item[0]) !== undefined)) this.attribute("class", "task-list");
-          this.add(">\n"); for(const [j, item] of items.entries()) {this.add("<li>"); await this.blocks(item, `${p}.c${ordered ? "[1]" : ""}[${j}]`, taskListItemState(item[0])); this.add("</li>\n");} this.add(`</${tag}>\n`); break;
+          if (!ordered && items.every(item => taskListItemState(item[0]) !== undefined)) this.add(' class="task-list"');
+          this.add(">\n");
+          for(const [j, item] of items.entries()) {this.add("<li>"); await this.blocks(item, `${p}.c${ordered ? "[1]" : ""}[${j}]`, true); this.add("</li>\n");}
+          this.add(listItem && i + 1 === nodes.length ? `</${tag}>` : `</${tag}>\n`); break;
         }
         case "DefinitionList": this.add("<dl>\n"); for(const [j, [term, defs]] of node.c.entries()) {this.add("<dt>"); await this.inlines(term, `${p}.c[${j}][0]`); this.add("</dt>\n"); for(const [k, def] of defs.entries()) {this.add("<dd>"); await this.blocks(def, `${p}.c[${j}][1][${k}]`); this.add("</dd>\n");}} this.add("</dl>\n"); break;
         case "LineBlock": this.add('<div class="line-block">'); for(const [j, line] of node.c.entries()) {if(j) this.add("<br>"); await this.inlines(line, `${p}.c[${j}]`);} this.add("</div>\n"); break;

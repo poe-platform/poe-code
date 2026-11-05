@@ -16,7 +16,7 @@ import {PandocError} from "./errors.js";
 type Job = {
   op: string; node: number; path: number; mode?: string; cursor?: number; index?: number;
   value?: string; columns?: number; columnCount?: number; occupancy?: number; column?: number;
-  taskState?: boolean | undefined; start?: number; row?: number; rowHeads?: number; header?: boolean;
+  last?: boolean; start?: number; row?: number; rowHeads?: number; header?: boolean;
 };
 type HtmlResource = (node: number) => Promise<AsyncIterable<Uint8Array> | undefined>;
 type Section = {node: number; id: TextRange; number: string};
@@ -270,16 +270,12 @@ class HtmlTape {
       await this.escape(value);
     }
   }
-  private async taskItem(item: number): Promise<boolean | undefined> {
-    if (!await this.count(item)) return undefined;
-    const block = await this.at(item, 0), tag = await this.tag(block);
-    if (tag !== "Plain" && tag !== "Para") return undefined;
-    const content = (await this.tree.property(block, "c"))!;
+  private async listCheckbox(content: number): Promise<boolean | undefined> {
     if (await this.count(content) < 2) return undefined;
-    const marker = await this.at(content, 0), space = await this.at(content, 1);
-    if (await this.tag(marker) !== "Str" || await this.tag(space) !== "Space") return undefined;
-    const value = await this.tree.smallText((await this.tree.property(marker, "c"))!, 1);
-    return value === "☒" ? true : value === "☐" ? false : undefined;
+    const first = content + 32;
+    if (await this.tag(first) !== "Str" || await this.tag((await this.tree.describe(first)).end) !== "Space") return undefined;
+    const mark = await this.tree.smallText((await this.tree.property(first, "c"))!, 1);
+    return mark === "☒" ? true : mark === "☐" ? false : undefined;
   }
   private async task(content: number): Promise<boolean | undefined> {
     const attrs = await this.at(content, 0), children = await this.at(content, 1);
@@ -306,8 +302,9 @@ class HtmlTape {
         if (job.mode === "plainInline" && Number.isFinite(this.context.limits.retainedBytes) && job.start === undefined) job.start = this.output.units;
         const cursor = job.cursor ?? job.node + 32, end = (await this.tree.describe(job.node)).end, index = job.index ?? 0;
         if (cursor < end) {
-          await this.push({...job, cursor: (await this.tree.describe(cursor)).end, index: index + 1});
-          await this.push({...job, op: job.mode!, node: cursor, path: await this.path(job.path, `[${index}]`), index});
+          const next = (await this.tree.describe(cursor)).end;
+          await this.push({...job, cursor: next, index: index + 1});
+          await this.push({...job, op: job.mode!, node: cursor, path: await this.path(job.path, `[${index}]`), index, last: next === end});
         } else if (job.mode === "plainInline" && Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (this.output.units - job.start!) * 2);
         continue;
       }
@@ -322,7 +319,7 @@ class HtmlTape {
         if (job.op === "line") {if (job.index) await this.add("<br>"); await this.push(this.list(job.node, job.path, "inline"));}
         else {
           const tag = job.op === "item" ? "li" : "dd"; await this.add(`<${tag}>`);
-          await this.sequence(this.list(job.node, job.path, "block", {taskState: job.op === "item" ? await this.taskItem(job.node) : undefined}), this.literal(`</${tag}>\n`));
+          await this.sequence(this.list(job.node, job.path, job.op === "item" ? "itemBlock" : "block"), this.literal(`</${tag}>\n`));
         }
         continue;
       }
@@ -452,10 +449,14 @@ class HtmlTape {
       }
       if (tag === "Plain" || tag === "Para") {
         if (tag === "Para") await this.add("<p>");
-        const task = job.index === 0 && job.taskState !== undefined;
-        if (task) await this.add(job.taskState ? '<label><input type="checkbox" checked="" />' : '<label><input type="checkbox" />');
-        const skip = task ? {cursor: (await this.tree.describe(await this.at(content!, 1))).end, index: 2} : {};
-        await this.sequence(this.list(content!, cp, "inline", skip), this.literal((task ? "</label>" : "") + (tag === "Para" ? "</p>\n" : "")));
+        const item = job.op === "itemBlock", checked = item && !job.index ? await this.listCheckbox(content!) : undefined;
+        const newline = item ? !job.last : tag === "Para";
+        const end = (tag === "Para" ? "</p>" : "") + (newline ? "\n" : "");
+        if (checked === undefined) await this.sequence(this.list(content!, cp, "inline"), this.literal(end));
+        else {
+          await this.add(checked ? '<label><input type="checkbox" checked="" />' : '<label><input type="checkbox" />');
+          await this.sequence(this.list(content!, cp, "inline", {cursor: await this.at(content!, 2), index: 2}), this.literal("</label>"), this.literal(end));
+        }
       } else if (tag === "CodeBlock") {
         const attrs = await this.at(content!, 0), language = await this.language(attrs), code = await this.at(content!, 1);
         if (!language) {await this.add("<pre"); await this.attrs(attrs, undefined, undefined, false, true); await this.add("><code>"); await this.escape(await this.scalar(code)); await this.add("</code></pre>\n"); continue;}
@@ -524,15 +525,18 @@ class HtmlTape {
           if (numbering[style]) await this.attribute("type", numbering[style]!);
         }
         const items = ordered ? await child(1) : {node: content!, path: cp};
-        if (!ordered && await this.count(items.node)) {
-          let tasks = true;
+        if (!ordered) {
+          let all = true;
           for await (const item of this.tree.children(items.node)) {
-            if (await this.taskItem(item) === undefined) {tasks = false; break;}
+            await this.context.cooperate();
+            if (!await this.count(item)) {all = false; break;}
+            const first = item + 32, tag = await this.tag(first);
+            if (tag !== "Plain" && tag !== "Para" || await this.listCheckbox((await this.tree.property(first, "c"))!) === undefined) {all = false; break;}
           }
-          if (tasks) await this.attribute("class", "task-list");
+          if (all) await this.add(' class="task-list"');
         }
         await this.add(">\n");
-        await this.sequence(this.list(items.node, items.path, "item"), this.literal(`</${listTag}>\n`));
+        await this.sequence(this.list(items.node, items.path, "item"), this.literal(job.op === "itemBlock" && job.last ? `</${listTag}>` : `</${listTag}>\n`));
       } else if (tag === "DefinitionList" || tag === "LineBlock") {
         await this.add(tag === "DefinitionList" ? "<dl>\n" : '<div class="line-block">');
         await this.sequence(this.list(content!, cp, tag === "DefinitionList" ? "definition" : "line"), this.literal(tag === "DefinitionList" ? "</dl>\n" : "</div>\n"));

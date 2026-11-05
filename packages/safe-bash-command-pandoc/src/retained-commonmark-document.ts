@@ -65,7 +65,7 @@ export async function assembleRetainedCommonMark(
     );
   };
   const attrs = () => ast.value(["", [], []]);
-  const table = async (position: number) => {
+  const table = async (position: number, caption?: RtfValue) => {
     const block = await parser.node(position), header = block.first, columns = await ast.array();
     for await (const cell of parser.lines(header)) {
       const name = (["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"] as const)[cell.alignment]!;
@@ -88,7 +88,7 @@ export async function assembleRetainedCommonMark(
     const rows = await ast.array(); let first = true;
     for await (const child of parser.children(position)) {if (first) {first = false; continue;} await ast.push(rows, await row(child));}
     return ast.tag("Table", await ast.value([
-      await attrs(), [null, []], columns, [await attrs(), [await row(header)]], [[await attrs(), 0, [], rows]], [await attrs(), []]
+      await attrs(), [null, caption ?? await ast.array()], columns, [await attrs(), [await row(header)]], [[await attrs(), 0, [], rows]], [await attrs(), []]
     ]));
   };
   const rawHtml = async (range: SourceRange) => {
@@ -169,6 +169,16 @@ export async function assembleRetainedCommonMark(
           }
         })());
       } else range = await parser.joined(current);
+      if (block.kind === "paragraph" && extensions.table_captions && position &&
+        (await parser.node(position)).kind === "table" && await source.starts(range, "Table:") &&
+        [" ", "\t"].includes(await source.unit(range.start + 6))) {
+        let start = range.start + 6;
+        while (start < range.end && [" ", "\t"].includes(await source.unit(start))) {context.checkpoint(); start++;}
+        const caption = await ast.value([await ast.tag("Plain", await inline({start, end: range.end}, block.lineCount, current))]);
+        await ast.push(out, await table(position, caption));
+        position = (await parser.node(position)).next;
+        continue;
+      }
       let heading;
       if (block.kind === "heading" && extensions.header_attributes && range.end > range.start && await source.unit(range.end - 1) === "}") {
         let start = range.end;

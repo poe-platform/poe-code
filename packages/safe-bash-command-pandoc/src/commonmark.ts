@@ -80,8 +80,17 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
       try {return {t: "Note", c: await assemble(note.blocks, depth + 1)};}
       finally {active.delete(label);}
     };
-    for (const block of blocks) {
+    for (let index = 0; index < blocks.length; index++) {
+      let block = blocks[index]!;
       await context.cooperate();
+      let caption: Block[] = [];
+      const first = block.kind === "paragraph" ? block.inline.lines[0] : undefined;
+      if (extensions.table_captions && block.kind === "paragraph" && first &&
+        first.text.startsWith("Table:") && [" ", "\t"].includes(first.text[6] ?? "") && blocks[index + 1]?.kind === "table") {
+        const lines = [{...first, text: first.text.slice(6).trimStart()}, ...block.inline.lines.slice(1)];
+        caption = [{t: "Plain", c: await parseCommonMarkInlines({...block.inline, lines}, pending.definitions, context, extensions, footnote, citationsState)}];
+        block = blocks[++index]!;
+      }
       switch (block.kind) {
         case "table": {
           const row = async (cells: readonly string[]): Promise<Row> => {
@@ -95,7 +104,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           };
           const rows: Row[] = [];
           for (const cells of block.rows) rows.push(await row(cells));
-          result.push({ t: "Table", c: [["", [], []], [null, []], block.alignments.map((alignment) => [alignment, { t: "ColWidthDefault" }]), [["", [], []], [await row(block.header)]], [[["", [], []], 0, [], rows]], [["", [], []], []]] });
+          result.push({ t: "Table", c: [["", [], []], [null, caption], block.alignments.map((alignment) => [alignment, { t: "ColWidthDefault" }]), [["", [], []], [await row(block.header)]], [[["", [], []], 0, [], rows]], [["", [], []], []]] });
           break;
         }
         case "definitionList": {

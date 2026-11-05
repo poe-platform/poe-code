@@ -636,7 +636,7 @@ argv: readonly string[] = []): Generator<void, PdftotextCliResult> {
     yield;
     const page = doc.getPage(p - 1);
     let pageCropBoxPt: [number, number, number, number] | undefined;
-    if (args.cropbox) {
+    if (args.cropbox && (args.bbox || args.tsv)) {
       let cur: PdfCosDict | undefined = page.pageDict;
       const visited = new Set<PdfCosDict>();
       while (cur && !visited.has(cur)) {

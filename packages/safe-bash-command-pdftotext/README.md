@@ -44,7 +44,8 @@ line endings, crop regions, `-cropbox`, `-clip`, `-nodiag`, `-urls` and `-htmlme
 `TMPDIR` (or `/tmp`) on the supplied filesystem. Use an external backend for
 large spills. URL appendices search staged page text and deduplicate links on
 caller storage. Crop selection stages whole words and preserves their original
-paragraph grouping. `-raw -tsv` streams its page rows with the same retained
+paragraph grouping. `-cropbox` applies to bounding-box and TSV output; ordinary
+text retains words outside CropBox. `-raw -tsv` streams its page rows with the same retained
 input, content evaluation, encoding and publication path. `-raw -bbox` and
 `-raw -bbox-layout` keep word text and block/line geometry in caller-backed
 records and stream XHTML, including crop selection. Non-raw text modes still

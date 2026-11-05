@@ -183,7 +183,7 @@ async function containsText(source: PdfFileSource, needle: string, signal: Abort
 
 async function rawGeometry(document: PdfRetainedDocument, page: PdfRetainedPage, plan: RawTextPlan): Promise<RawTextGeometry | undefined> {
   let box: number[] | undefined;
-  if (plan.cropbox) {
+  if (plan.cropbox && (plan.bbox || plan.tsv)) {
     let current: PdfCosDict | undefined = page.dict, depth = 0; const visited = new Set<number>();
     while (current) {
       if (++depth > document.depthLimit) throw new PdfError("E_LIMIT", "PDF inherited crop depth limit exceeded");

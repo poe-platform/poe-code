@@ -336,3 +336,31 @@ for (const spacing of [15, 18, 18.1, 20]) for (const flags of [[], ["-f", "1", "
     } finally { await f.clean(); }
   });
 }
+
+for (const mode of [[], ["-raw"], ["-layout"], ["-htmlmeta"], ["-x", "1", "-W", "240"]]) {
+  test(`ordinary text ignores CropBox: ${mode.join(" ") || "logical"}`, async () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage({ width: 200, height: 100 });
+    dictSet(page.pageDict, "CropBox", cosArray([20, 10, 180, 90].map(value => cosNumber(value))));
+    page.drawText("A", { x: 2, y: 50, size: 12 });
+    page.drawText("CroppedWord", { x: 165, y: 50, size: 12 });
+    const input = doc.save();
+    const baselineArgs = [...mode, "input.pdf", "-"];
+    const cropArgs = ["-cropbox", ...baselineArgs];
+    const files = new Map([["input.pdf", input]]);
+    const baseline = await runPdftotextCli(baselineArgs, files);
+    assert.ok(baseline.output.includes("A"));
+    assert.ok(baseline.output.includes("Crop"));
+    const cropped = await runPdftotextCli(cropArgs, files);
+    assert.equal(cropped.exitCode, 0);
+    assert.equal(cropped.output, baseline.output);
+    const plain = await fixture(input, baselineArgs);
+    const crop = await fixture(input, cropArgs);
+    assert.equal((await createPdftotextCommand().execute(plain.context)).exitCode, 0);
+    assert.equal((await createPdftotextCommand().execute(crop.context)).exitCode, 0);
+    assert.deepEqual(joined(crop.stdout), joined(plain.stdout));
+    assert.ok(new TextDecoder().decode(joined(crop.stdout)).includes("Crop"));
+    await plain.clean();
+    await crop.clean();
+  });
+}

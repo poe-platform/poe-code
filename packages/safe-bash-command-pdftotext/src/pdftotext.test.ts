@@ -215,7 +215,7 @@ describe("safe-bash-command-pdftotext", () => {
     assert.ok(lineXMax < 55, `expected cropped line xMax < 55, got ${lineXMax}`);
   });
 
-  it("supports -nodiag to discard 45-degree diagonal watermark text and -cropbox to filter words outside page /CropBox", () => {
+  it("supports -nodiag to discard 45-degree diagonal watermark text while -cropbox preserves ordinary text outside page /CropBox", () => {
     const doc = PdfDocument.create();
     const page = doc.addPage({ width: 200, height: 200 });
     dictSet(
@@ -244,12 +244,12 @@ describe("safe-bash-command-pdftotext", () => {
     assert.match(allRes.output, /DiagonalWatermark/);
     assert.match(allRes.output, /BleedOutsideCropBox/);
 
-    // With -nodiag and -cropbox, only BodyInsideCropBox remains
+    // -nodiag removes the watermark; -cropbox preserves ordinary bleed text.
     const filteredRes = extractPdfToTextBytes(pdfBytes, ["-nodiag", "-cropbox", "-fixed", "4.0", "-"]);
     assert.equal(filteredRes.exitCode, 0);
     assert.match(filteredRes.output, /BodyInsideCropBox/);
     assert.equal(filteredRes.output.includes("DiagonalWatermark"), false);
-    assert.equal(filteredRes.output.includes("BleedOutsideCropBox"), false);
+    assert.equal(filteredRes.output.includes("BleedOutsideCropBox"), true);
 
     // With -cropbox -bbox, <page> dimensions reflect the 200x120 CropBox
     const bboxCrop = extractPdfToTextBytes(pdfBytes, ["-nodiag", "-cropbox", "-bbox", "-"]);

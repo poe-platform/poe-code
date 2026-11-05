@@ -387,7 +387,7 @@ async function decryptSymmetric(input: Uint8Array, passphrase: string): Promise<
 interface StoredGpgKey {
   uid: string;
   keyIdHex: string;
-  seedHex: string;
+  seedHex?: string;
   pubHex: string;
 }
 
@@ -412,6 +412,7 @@ async function ensureKeyForUid(context: CommandContext, uid: string): Promise<{ 
   const keys = await loadKeyring(context);
   const found = keys.find(k => k.uid.includes(uid) || k.keyIdHex.endsWith(uid.toUpperCase()));
   if (found) {
+    if (!found.seedHex || !/^[0-9a-f]{64}$/iu.test(found.seedHex)) throw new PublicDiagnostic("No secret key");
     const fromHex = (h: string) => new Uint8Array(h.match(/.{1,2}/g)!.map(b => Number.parseInt(b, 16)));
     return {
       seed: fromHex(found.seedHex),
@@ -420,18 +421,18 @@ async function ensureKeyForUid(context: CommandContext, uid: string): Promise<{ 
       keyIdHex: found.keyIdHex,
     };
   }
-  const seed = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", textEncoder.encode(`gpg-key-seed:${uid}`)));
   const kp = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as unknown as { privateKey: CryptoKey; publicKey: CryptoKey };
   const jwk = await globalThis.crypto.subtle.exportKey("jwk", kp.privateKey);
   const realSeed = base64ToBytes(jwk.d!);
   const realPub = base64ToBytes(jwk.x!);
+  if (realSeed.length !== 32 || realPub.length !== 32) throw new PublicDiagnostic("invalid generated Ed25519 key");
   const pubBuf = realPub.buffer.slice(realPub.byteOffset, realPub.byteOffset + realPub.byteLength) as ArrayBuffer;
   const fp = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", pubBuf));
   const keyIdHex = bytesToHex(fp.slice(24, 32)).toUpperCase();
   keys.push({
     uid,
     keyIdHex,
-    seedHex: bytesToHex(realSeed.byteLength === 32 ? realSeed : seed),
+    seedHex: bytesToHex(realSeed),
     pubHex: bytesToHex(realPub),
   });
   await saveKeyring(context, keys);
@@ -501,6 +502,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       let detachSign = false;
       let verify = false;
       let listKeys = false;
+      let listSecret = false;
       let quickGenKey = false;
       let exportKeys = false;
       let importKeys = false;
@@ -525,7 +527,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         else if (a === "-c" || a === "--symmetric") symmetric = true;
         else if (a === "-d" || a === "--decrypt") decrypt = true;
         else if (a === "-a" || a === "--armor") armor = true;
-        else if (a === "--list-keys" || a === "-k" || a === "--list-secret-keys" || a === "-K") listKeys = true;
+        else if (a === "--list-keys" || a === "-k" || a === "--list-secret-keys" || a === "-K") { listKeys = true; listSecret = a === "--list-secret-keys" || a === "-K"; }
         else if (a === "--quick-generate-key" || a === "--quick-gen-key" || a === "--gen-key" || a === "--full-generate-key")
           quickGenKey = true;
         else if (a === "--export") exportKeys = true;
@@ -630,11 +632,13 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
             : keys.filter(k => positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())));
           const lines: string[] = [];
           for (const k of filtered) {
+            if (listSecret && !k.seedHex) continue;
+            const kind = k.seedHex ? "sec" : "pub";
             if (withColons) {
-              lines.push(`sec:u:255:22:${k.keyIdHex}:1790553600:::u:::scESC:::+:::23::0:`);
+              lines.push(`${kind}:u:255:22:${k.keyIdHex}:1790553600:::u:::scESC:::+:::23::0:`);
               lines.push(`uid:u::::1790553600::${k.keyIdHex}::${k.uid}::::::::::0:`);
             } else {
-              lines.push(`sec   ed25519/${k.keyIdHex} 2026-09-28 [SC]`);
+              lines.push(`${kind}   ed25519/${k.keyIdHex} 2026-09-28 [SC]`);
               lines.push(`uid                 [ultimate] ${k.uid}`);
             }
           }
@@ -643,7 +647,8 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         }
 
         if (exportKeys) {
-          const keys = await loadKeyring(context);
+          const keys = (await loadKeyring(context)).filter(k => !positionals.length || positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())))
+            .map(({uid, keyIdHex, pubHex}) => ({uid, keyIdHex, pubHex}));
           const armor = `-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n${bytesToBase64(textEncoder.encode(JSON.stringify(keys)), 64)}\n-----END PGP PUBLIC KEY BLOCK-----\n`;
           if (outFile) {
             await writeFileOutput(context, textEncoder.encode(armor), data =>
@@ -666,8 +671,9 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
             .join("");
           const imported = JSON.parse(textDecoder.decode(base64ToBytes(b64))) as StoredGpgKey[];
           const existing = await loadKeyring(context);
-          for (const k of imported) {
-            if (!existing.some(e => e.keyIdHex === k.keyIdHex)) existing.push(k);
+          for (const { uid, keyIdHex, pubHex } of imported) {
+            if (typeof uid !== "string" || typeof keyIdHex !== "string" || typeof pubHex !== "string") throw new PublicDiagnostic("invalid public key");
+            if (!existing.some(e => e.keyIdHex === keyIdHex)) existing.push({ uid, keyIdHex, pubHex });
           }
           await saveKeyring(context, existing);
           await writeText(context.stderr, `gpg: Total number processed: ${imported.length}\ngpg:               imported: ${imported.length}\n`);

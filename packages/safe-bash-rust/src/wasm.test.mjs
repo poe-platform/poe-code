@@ -16147,3 +16147,35 @@ test("rename checks protected device-view operands before the backing rename", a
     assert.equal(new TextDecoder().decode(await bash.fs.readFile("/file")),"keep");
   } finally { bash.dispose(); }
 });
+
+test("GPG public key transfer permits verification but cannot grant signing authority", async () => {
+  const { MemoryFileSystem, Shell, agentCommands, gpgCommands } = await import("@poe-platform/safe-bash");
+  for (const make of [() => new RustWasmBash({ forceNative: true, cwd: "/" }),
+    () => new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands()).use(gpgCommands({replace:true}))]) {
+    const owner = make(), recipient = make(), independent = make();
+    try {
+      const signed = await owner.exec("printf data | gpg --detach-sign -u signer");
+      assert.equal(signed.exitCode, 0, signed.stderr);
+      const exported = await owner.exec("gpg --armor --export signer");
+      const decoded = Buffer.from(exported.stdout.split("\n").filter(line => line && !line.startsWith("-")).join(""), "base64").toString();
+      const saved = JSON.parse((await owner.exec("cat /home/user/.gnupg/keyring.json")).stdout);
+      assert.ok(!decoded.includes(saved[0].seedHex), "public export contained the private seed");
+      await independent.exec("gpg --quick-generate-key signer");
+      const second = JSON.parse((await independent.exec("cat /home/user/.gnupg/keyring.json")).stdout);
+      assert.notEqual(second[0].pubHex, saved[0].pubHex, "key generation must not derive the key from the user ID");
+      const imported = await recipient.exec("gpg --import", {stdin: exported.stdout});
+      assert.equal(imported.exitCode, 0, imported.stderr);
+      await recipient.exec("cat >/signature", {stdin: signed.stdout});
+      const verified = await recipient.exec("printf data | gpg --verify /signature");
+      assert.equal(verified.exitCode, 0, verified.stderr);
+      assert.notEqual((await recipient.exec("printf forged | gpg --detach-sign -u signer")).exitCode, 0);
+      assert.equal((await recipient.exec("gpg --list-secret-keys")).stdout, "");
+      // Old exports contained the private fields. Importing them as public data must discard those fields.
+      await recipient.exec("rm /home/user/.gnupg/keyring.json");
+      const old = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n" + Buffer.from(JSON.stringify(saved)).toString("base64") + "\n-----END PGP PUBLIC KEY BLOCK-----\n";
+      assert.equal((await recipient.exec("gpg --import", {stdin: old})).exitCode, 0);
+      const ring = (await recipient.exec("cat /home/user/.gnupg/keyring.json")).stdout;
+      assert.ok(!ring.includes(saved[0].seedHex), "legacy public import retained a private seed");
+    } finally { owner.dispose?.(); recipient.dispose?.(); independent.dispose?.(); }
+  }
+});

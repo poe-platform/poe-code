@@ -223,11 +223,11 @@ describe("obscure openssl, gpg, ssh-keygen, ssh, dd, tar, zip/unzip, xxd, od, he
       const res = await h.exec(`
         gpg --batch --quick-generate-key "Release Bot <release@poe.dev>" >/dev/null
         gpg --list-keys --with-colons "Release Bot" | grep '^uid:' | cut -d: -f10
+        printf 'artifact-v1.0.0\\n' > /workspace/art.bin
+        gpg --batch -bsa -u "Release Bot" --status-fd 1 -o /workspace/art.sig /workspace/art.bin 2>&1 | grep -o 'SIG_CREATED'
         gpg --export --armor -o /workspace/pub.asc
         rm -rf /home/user/.gnupg
         gpg --import /workspace/pub.asc 2>&1 | grep 'imported: 1'
-        printf 'artifact-v1.0.0\\n' > /workspace/art.bin
-        gpg --batch -bsa -u "Release Bot" --status-fd 1 -o /workspace/art.sig /workspace/art.bin 2>&1 | grep -o 'SIG_CREATED'
         gpg --verify --status-fd 1 /workspace/art.sig /workspace/art.bin 2>/dev/null | grep -o 'GOODSIG'
         printf 'tampered\\n' > /workspace/art.bin
         gpg --verify /workspace/art.sig /workspace/art.bin >/dev/null 2>&1; echo "tamper=$?"
@@ -237,8 +237,8 @@ describe("obscure openssl, gpg, ssh-keygen, ssh, dd, tar, zip/unzip, xxd, od, he
         res.stdout,
         [
           "Release Bot <release@poe.dev>",
-          "gpg:               imported: 1",
           "SIG_CREATED",
+          "gpg:               imported: 1",
           "GOODSIG",
           "tamper=1",
           "",

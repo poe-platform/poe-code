@@ -9245,6 +9245,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut detach_sign = false;
     let mut verify = false;
     let mut list_keys = false;
+    let mut list_secret = false;
     let mut quick_gen_key = false;
     let mut export_keys = false;
     let mut import_keys = false;
@@ -9280,6 +9281,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             armor = true;
         } else if matches!(a, "--list-keys" | "-k" | "--list-secret-keys" | "-K") {
             list_keys = true;
+            list_secret = matches!(a, "--list-secret-keys" | "-K");
         } else if matches!(a, "--quick-generate-key" | "--quick-gen-key" | "--gen-key" | "--full-generate-key") {
             quick_gen_key = true;
         } else if a == "--export" {
@@ -9340,64 +9342,51 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let keyring_path = "/home/user/.gnupg/keyring.json";
-    let parse_keyring_bytes = |raw: &[u8]| -> Vec<(String, String, String, String)> {
-        let txt = String::from_utf8_lossy(raw);
-        let mut keys = Vec::new();
-        for block in txt.split('{').skip(1) {
-            let get_field = |name: &str| -> String {
-                let pat = format!("\"{name}\":");
-                if let Some(pos) = block.find(&pat) {
-                    let after = &block[pos + pat.len()..];
-                    if let Some(q1) = after.find('"') {
-                        let rest_q = &after[q1 + 1..];
-                        if let Some(q2) = rest_q.find('"') {
-                            return rest_q[..q2].to_string();
-                        }
-                    }
-                }
-                String::new()
+    use mcp_protocol_rust::json::{self, Value};
+    let parse_keyring_bytes = |raw: &[u8]| -> Result<Vec<(String, String, String, String)>, String> {
+        let invalid = || "invalid keyring".to_string();
+        let Ok(Value::Array(entries)) = json::parse(raw, json::Limits { max_depth: 3, ..Default::default() }) else { return Err(invalid()); };
+        entries.into_iter().map(|entry| {
+            let field = |key| match entry.get(key) {
+                Some(Value::String(text)) => String::from_utf16(text).ok(), _ => None,
             };
-            let uid = get_field("uid");
-            let kid = get_field("keyIdHex");
-            let seed_h = get_field("seedHex");
-            let pub_h = get_field("pubHex");
-            if !kid.is_empty() {
-                keys.push((uid, kid, seed_h, pub_h));
-            }
-        }
-        keys
+            Ok((field("uid").ok_or_else(invalid)?, field("keyIdHex").ok_or_else(invalid)?,
+                field("seedHex").unwrap_or_default(), field("pubHex").ok_or_else(invalid)?))
+        }).collect()
     };
-    let load_keyring = || -> Vec<(String, String, String, String)> {
-        let Ok(raw) = fs.read_file(keyring_path) else {
-            return Vec::new();
-        };
-        parse_keyring_bytes(&raw)
+    let serialize_keys = |keys: &[(String, String, String, String)], public: bool| {
+        let field = |name: &str, value: &str| (name.encode_utf16().collect(), Value::String(value.encode_utf16().collect()));
+        json::stringify(&Value::Array(keys.iter().map(|(uid, kid, seed, pk)| {
+            let mut fields = vec![field("uid", uid), field("keyIdHex", kid), field("pubHex", pk)];
+            if !public && !seed.is_empty() { fields.push(field("seedHex", seed)); }
+            Value::Object(fields)
+        }).collect()))
+    };
+    let load_keyring = || match fs.read_file(keyring_path) {
+        Ok(raw) => parse_keyring_bytes(&raw),
+        Err(e) if e.starts_with("ENOENT") || e.contains("No such file or directory") => Ok(Vec::new()),
+        Err(e) => Err(e),
     };
     let save_keyring = |keys: &[(String, String, String, String)]| {
-        let _ = fs.mkdir_all("/home/user/.gnupg");
-        let mut json = String::from("[\n");
-        for (idx, (uid, kid, seed_h, pub_h)) in keys.iter().enumerate() {
-            let comma = if idx + 1 < keys.len() { "," } else { "" };
-            json.push_str(&format!(
-                "  {{\n    \"uid\": \"{uid}\",\n    \"keyIdHex\": \"{kid}\",\n    \"seedHex\": \"{seed_h}\",\n    \"pubHex\": \"{pub_h}\"\n  }}{comma}\n"
-            ));
-        }
-        json.push(']');
-        let _ = fs.write_file(keyring_path, json.as_bytes());
+        fs.mkdir_all("/home/user/.gnupg")?;
+        let json = serialize_keys(keys, false);
+        fs.write_file(keyring_path, json.as_bytes())
     };
-    let ensure_key = |uid: &str| -> (String, String, String, String) {
-        let mut keys = load_keyring();
+    let ensure_key = |uid: &str| -> Result<(String, String, String, String), String> {
+        let mut keys = load_keyring()?;
         if let Some(found) = keys.iter().find(|(u, kid, _, _)| u.contains(uid) || kid.ends_with(&uid.to_uppercase())) {
-            return found.clone();
+            if found.2.len() != 64 { return Err("No secret key".into()); }
+            return Ok(found.clone());
         }
-        let seed = sha256_bytes(format!("gpg-key-seed:{uid}").as_bytes());
+        let mut seed = [0; 32];
+        crate::vfs::memory::fill_random(&mut seed)?;
         let pub_b = ed25519_pubkey_from_seed(&seed);
         let fp = sha256_bytes(&pub_b);
         let kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
         let entry = (uid.to_string(), kid, openssl_hex_encode(&seed), openssl_hex_encode(&pub_b));
         keys.push(entry.clone());
-        save_keyring(&keys);
-        entry
+        save_keyring(&keys)?;
+        Ok(entry)
     };
 
     let read_gpg_file = |p: &str| -> Result<Vec<u8>, String> {
@@ -9543,14 +9532,16 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     if quick_gen_key {
         let uid = positionals.first().map(|s| s.as_str()).unwrap_or(&signer_uid);
-        let (u, kid, _, _) = ensure_key(uid);
+        let (u, kid, _, _) = match ensure_key(uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         return ok_out(&format!("pub   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
     }
 
     if list_keys {
-        let keys = load_keyring();
+        let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let mut out = String::new();
-        for (u, kid, _, _) in keys {
+        for (u, kid, seed, _) in keys {
+            if list_secret && seed.is_empty() { continue; }
+            let kind = if seed.is_empty() { "pub" } else { "sec" };
             if !positionals.is_empty()
                 && !positionals
                     .iter()
@@ -9560,18 +9551,19 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             if with_colons {
                 out.push_str(&format!(
-                    "sec:u:255:22:{kid}:1790553600:::u:::scESC:::+:::23::0:\nuid:u::::1790553600::{kid}::{u}::::::::::0:\n"
+                    "{kind}:u:255:22:{kid}:1790553600:::u:::scESC:::+:::23::0:\nuid:u::::1790553600::{kid}::{u}::::::::::0:\n"
                 ));
             } else {
-                out.push_str(&format!("sec   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
+                out.push_str(&format!("{kind}   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
             }
         }
         return ok_out(&out);
     }
 
     if export_keys {
-        let raw = fs.read_file(keyring_path).unwrap_or_else(|_| b"[]".to_vec());
-        let b64 = openssl_b64_encode(&raw, true);
+        let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let keys: Vec<_> = keys.into_iter().filter(|(uid, kid, _, _)| positionals.is_empty() || positionals.iter().any(|p| uid.contains(p) || kid.contains(&p.to_ascii_uppercase()))).collect();
+        let b64 = openssl_b64_encode(serialize_keys(&keys, true).as_bytes(), true);
         let arm = format!("-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n{b64}\n-----END PGP PUBLIC KEY BLOCK-----\n");
         if let Some(ref to) = out_file {
             let _ = fs.write_file(&resolve_posix_path(cwd, to), arm.as_bytes());
@@ -9592,15 +9584,16 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let txt = String::from_utf8_lossy(&input);
         let b64: String = txt.lines().filter(|l| !l.starts_with("-----") && !l.trim().is_empty()).collect();
         let decoded = base64_decode(&b64).unwrap_or_default();
-        let imported = parse_keyring_bytes(&decoded);
+        let imported = match parse_keyring_bytes(&decoded) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let cnt = imported.len();
-        let mut existing = load_keyring();
-        for entry in imported {
+        let mut existing = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        for (uid, kid, _, pk) in imported {
+            let entry = (uid, kid, String::new(), pk);
             if !existing.iter().any(|(_, k, _, _)| k == &entry.1) {
                 existing.push(entry);
             }
         }
-        save_keyring(&existing);
+        if let Err(e) = save_keyring(&existing) { return err_out(&format!("gpg: {e}\n"), 2); }
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: format!("gpg: Total number processed: {cnt}\ngpg:               imported: {cnt}\n"),
@@ -9617,19 +9610,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else {
             crate::vfs::stream_string_to_bytes(stdin)
         };
-        let (u, kid, seed_h, pub_h) = ensure_key(&signer_uid);
-        let seed_bytes_vec = openssl_hex_decode(&seed_h).unwrap_or_else(|_| vec![0u8; 32]);
-        let mut seed_arr = [0u8; 32];
-        if seed_bytes_vec.len() == 32 {
-            seed_arr.copy_from_slice(&seed_bytes_vec);
-        }
-        let pub_bytes_vec = openssl_hex_decode(&pub_h).unwrap_or_else(|_| ed25519_pubkey_from_seed(&seed_arr).to_vec());
-        let mut pub_arr = [0u8; 32];
-        if pub_bytes_vec.len() == 32 {
-            pub_arr.copy_from_slice(&pub_bytes_vec);
-        } else {
-            pub_arr = ed25519_pubkey_from_seed(&seed_arr);
-        }
+        let (u, kid, seed_h, pub_h) = match ensure_key(&signer_uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let Some(seed_arr): Option<[u8; 32]> = openssl_hex_decode(&seed_h).ok().and_then(|bytes| bytes.try_into().ok()) else { return err_out("gpg: No secret key\n", 2); };
+        let Some(pub_arr): Option<[u8; 32]> = openssl_hex_decode(&pub_h).ok().and_then(|bytes| bytes.try_into().ok()) else { return err_out("gpg: invalid public key\n", 2); };
         let fp = sha256_bytes(&pub_arr);
         let key_id = &fp[24..32];
         let mut hashed_sub = Vec::new();
@@ -9721,7 +9704,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             .filter(|l| !l.is_empty() && !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':'))
             .collect();
         let pkt = base64_decode(&b64).unwrap_or_default();
-        let keys = load_keyring();
+        let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         if pkt.len() >= 10 && pkt[0] == 0xc2 {
             let idx = if pkt[1] < 192 { 2 } else if pkt[1] == 0xff && pkt.len() >= 6 { 6 } else { 0 };
             if idx > 0 && pkt.len() > idx + 6 && pkt[idx] == 4 {
@@ -9815,7 +9798,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let parts: Vec<&str> = rest_p.splitn(4, ':').collect();
             if parts.len() == 4 {
                 let (kid, uid, _pub_h, sig_h) = (parts[0], parts[1], parts[2], parts[3]);
-                if let Some((trusted_uid, _, seed_h, _)) = keys.iter().find(|(_, k, _, _)| k == kid) {
+                if let Some((trusted_uid, _, seed_h, _)) = keys.iter().find(|(_, k, secret, _)| k == kid && !secret.is_empty()) {
                     let expected = openssl_hex_encode(&openssl_hmac("sha256", seed_h.as_bytes(), &data_bytes));
                     if expected == sig_h {
                         let stdout_msg = if status_fd.is_some() {

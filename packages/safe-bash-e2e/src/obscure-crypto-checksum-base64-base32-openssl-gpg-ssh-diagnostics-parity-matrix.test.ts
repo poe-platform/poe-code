@@ -746,15 +746,15 @@ describe("obscure crypto, checksum, base64/base32, openssl, gpg, ssh, and ssh-ke
       grep -q "^sec:" /tmp/cols.txt && grep -q "^uid:" /tmp/cols.txt && grep -q "Release Bot <bot@example.com>" /tmp/cols.txt
       echo "COLS:$?"
 
-      gpg --armor --export > /tmp/sec.asc
-      rm -f /home/user/.gnupg/keyring.json
-
-      gpg --import /tmp/sec.asc >/tmp/imp.out 2>&1
-      echo "REIMPORT:$?"
-
       gpg --batch --yes --status-fd 2 -u "bot@example.com" --armor --detach-sign -o /tmp/artifact.sig /tmp/artifact.txt 2>/tmp/sign.err
       grep -q "\\[GNUPG:\\] SIG_CREATED" /tmp/sign.err
       echo "SIGNED:$?"
+
+      gpg --armor --export > /tmp/public.asc
+      rm -f /home/user/.gnupg/keyring.json
+
+      gpg --import /tmp/public.asc >/tmp/imp.out 2>&1
+      echo "REIMPORT:$?"
 
       gpg --verify /tmp/artifact.sig /tmp/artifact.txt 2>/tmp/ver.err
       echo "VERIFY:$?:$(grep -o 'Good signature from "Release Bot <bot@example.com>"' /tmp/ver.err)"
@@ -765,8 +765,8 @@ describe("obscure crypto, checksum, base64/base32, openssl, gpg, ssh, and ssh-ke
       [
         "GEN:0",
         "COLS:0",
-        "REIMPORT:0",
         "SIGNED:0",
+        "REIMPORT:0",
         'VERIFY:0:Good signature from "Release Bot <bot@example.com>"',
       ].join("\n")
     );

@@ -177,7 +177,7 @@ function pgpCrc24(data: Uint8Array): string {
 interface StoredGpgKey {
   uid: string;
   keyIdHex: string;
-  seedHex: string;
+  seedHex?: string;
   pubHex: string;
 }
 
@@ -194,6 +194,7 @@ export function evalSyncGpg(
     let detachSign = false;
     let verify = false;
     let listKeys = false;
+    let listSecret = false;
     let quickGenKey = false;
     let exportKeys = false;
     let importKeys = false;
@@ -206,7 +207,7 @@ export function evalSyncGpg(
       const a = opArgs[i]!;
       if (a === "--detach-sign" || a === "-b" || a === "-bsau" || a === "-bsa") detachSign = true;
       else if (a === "--verify") verify = true;
-      else if (a === "--list-keys" || a === "-k" || a === "--list-secret-keys" || a === "-K") listKeys = true;
+      else if (a === "--list-keys" || a === "-k" || a === "--list-secret-keys" || a === "-K") { listKeys = true; listSecret = a === "--list-secret-keys" || a === "-K"; }
       else if (a === "--quick-generate-key" || a === "--quick-gen-key" || a === "--gen-key" || a === "--full-generate-key")
         quickGenKey = true;
       else if (a === "--export") exportKeys = true;
@@ -241,14 +242,16 @@ export function evalSyncGpg(
       const keys = loadKeyringSync();
       const lines: string[] = [];
       for (const k of keys) {
-        lines.push(`sec   ed25519/${k.keyIdHex} 2026-09-28 [SC]`);
+        if (listSecret && !k.seedHex) continue;
+        lines.push(`${k.seedHex ? "sec" : "pub"}   ed25519/${k.keyIdHex} 2026-09-28 [SC]`);
         lines.push(`uid                 [ultimate] ${k.uid}`);
       }
       return lines.length > 0 ? `${lines.join("\n")}\n` : "";
     }
 
     if (exportKeys) {
-      const keys = loadKeyringSync();
+      const keys = loadKeyringSync().filter(k => !positionals.length || positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())))
+        .map(({ uid, keyIdHex, pubHex }) => ({ uid, keyIdHex, pubHex }));
       const armor = `-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n${bytesToBase64(syncGpgEncoder.encode(JSON.stringify(keys)), 64)}\n-----END PGP PUBLIC KEY BLOCK-----\n`;
       if (outFile && outFile !== "-") {
         if (!writeFileSync || !writeFileSync(outFile, syncGpgEncoder.encode(armor))) return undefined;
@@ -260,7 +263,7 @@ export function evalSyncGpg(
     if (detachSign) {
       const keys = loadKeyringSync();
       const found = keys.find(k => k.uid.includes(signerUid) || k.keyIdHex.endsWith(signerUid.toUpperCase()));
-      if (!found) return undefined;
+      if (!found?.seedHex || !/^[0-9a-f]{64}$/iu.test(found.seedHex)) return undefined;
       const payload = positionals[0] !== undefined ? readFileSync?.(positionals[0]) : inBytes;
       if (!payload || payload.byteLength > 65536) return undefined;
       const fromHex = (h: string) => new Uint8Array(h.match(/.{1,2}/g)!.map(b => Number.parseInt(b, 16)));

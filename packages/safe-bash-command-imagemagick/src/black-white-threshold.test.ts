@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
@@ -16,7 +17,12 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         ["-white-threshold", [200, 30, 100, 128], ["-channel", "A"], [200, 30, 100, 128]],
         ["-black-threshold", [100, 150, 10, 128], ["-channel", "A"], [100, 150, 10, 0]],
         ["-white-threshold", [200, 30, 100, 128], ["-channel", "R", "+channel"], [200, 30, 100, 128]],
-        ["-black-threshold", [100, 150, 10, 128], ["-channel", "R", "+channel"], [100, 150, 10, 128]],
+        ["-black-threshold", [100, 150, 10, 128], ["-channel", "R", "+channel"], [100, 150, 10, 0]],
+        ["-black-threshold", [200, 30, 100, 255], [], [0, 0, 0, 0]],
+        ["-black-threshold", [100, 150, 10, 128], [], [100, 150, 10, 0]],
+        ["-black-threshold", [254, 254, 254, 255], [], [254, 254, 254, 0]],
+        ["-black-threshold", [255, 255, 255, 128], [], [255, 255, 255, 128]],
+        ["-white-threshold", [200, 30, 100, 128], [], [200, 30, 100, 128]],
     ] as const)(`honors selected channels for %s %j %j via ${mode}`, async (operator, pixel, channels, expected) => {
         const input = encodeImage({ width: 1, height: 1, data: Uint8Array.from(pixel), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
         const files = new Map([["input.png", input]]);
@@ -31,3 +37,24 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect([...decodeImage(output).data]).toEqual(expected);
     });
 }
+
+// Native ImageMagick 7.1.2 RGBA output, including intensities above the RGB threshold.
+it.each([
+    [[200, 30, 100, 255], [0, 0, 0, 0]],
+    [[100, 150, 10, 128], [100, 150, 10, 0]],
+] as const)("magick black-threshold converts PNG stdin %j", async (pixel, expected) => {
+    const png = encodeImage({ width: 1, height: 1, data: Uint8Array.from(pixel), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+    const args = createCommandArguments(["png:-", "-black-threshold", "50%", "png:-"]);
+    const output: Uint8Array[] = [];
+    let stderr = "";
+    const context = {
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, signal: new AbortController().signal,
+        stdin: (async function* () { yield png; })(),
+        stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+        registerCleanup() {}, fs: new MemoryFileSystem(),
+    } as unknown as CommandContext;
+    expect((await createMagickCommand().execute(context)).exitCode).toBe(0);
+    expect(stderr).toBe("");
+    expect([...decodeImage(Buffer.concat(output)).data]).toEqual(expected);
+});

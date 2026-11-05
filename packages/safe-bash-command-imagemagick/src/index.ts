@@ -4768,6 +4768,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     continue;
                 }
                 const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
+                // Native's default alpha threshold is opaque, independent of the RGB threshold.
+                if (isBlack && im.hasAlpha && intensity < 255)
+                    out[idx + 3] = 0;
                 if (isBlack && intensity <= thresh) {
                     out[idx] = 0;
                     out[idx + 1] = 0;

@@ -181,8 +181,11 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
   const rows = audioProbeRows(audio, size, parsed);
   if (format === "json") {
     const result: Record<string, unknown> = {};
-    if ((sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0))
+    if ((sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0)) {
+      result.programs = [];
+      result.stream_groups = [];
       result.streams = rows.filter((r) => r.section === "stream").map((r) => r.row);
+    }
     const row = rows.find((r) => r.section === "format");
     if (row) result.format = row.row;
     return JSON.stringify(result, null, 4) + "\n";

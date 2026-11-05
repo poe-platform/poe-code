@@ -17,7 +17,7 @@ for (const [kind, bytes] of Object.entries(inputs)) {
       ["format=", {}],
       ["stream_tags=", {}],
       ["format_tags=", {}],
-      ["stream=index:stream_tags=", { streams: [{ index: 0 }] }],
+      ["stream=index:stream_tags=", { programs: [], stream_groups: [], streams: [{ index: 0 }] }],
       ["format=nb_streams:format_tags=", { format: { nb_streams: 1 } }],
       ["stream=:format=nb_streams", { format: { nb_streams: 1 } }]
     ] as const)(`honors empty entries for ${kind} via ${mode}: %s`, async (entries, expected) => {

@@ -42,6 +42,6 @@ it.each(cases)("reports decoded sample format for $name", async ({ name, bytes, 
     expect(JSON.parse(output).streams[0].sample_fmt).toBe(sampleFormat);
     expect(output).toBe(evalSyncFfprobe(undefined, args, () => bytes));
     if (selection[0] === "-show_entries")
-      expect(JSON.parse(output)).toEqual({ streams: [{ sample_fmt: sampleFormat }] });
+      expect(JSON.parse(output)).toEqual({ programs: [], stream_groups: [], streams: [{ sample_fmt: sampleFormat }] });
   }
 });

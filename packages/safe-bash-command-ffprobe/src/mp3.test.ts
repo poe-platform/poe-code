@@ -50,6 +50,7 @@ it.each(["file", "stdin", "count-only", "sync"])("reports actual MP3 packet/fram
     expect(result.exitCode).toBe(0);
   }
   expect(JSON.parse(output)).toEqual({
+    programs: [], stream_groups: [],
     ...(route === "count-only" ? {} : { packets: Array.from({ length: 51 }, (_, i) => ({ pts: i * 338688, duration: 338688, size: "384" })) }),
     streams: [{ nb_read_packets: "51", nb_read_frames: "51" }]
   });

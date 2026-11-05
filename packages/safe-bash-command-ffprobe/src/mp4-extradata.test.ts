@@ -28,7 +28,7 @@ for (const [fixture, sizes] of [
         });
         expect(result.exitCode, diagnostic).toBe(0);
       }
-      expect(JSON.parse(output)).toEqual({ streams: sizes.map((size, index) => ({
+      expect(JSON.parse(output)).toEqual({ programs: [], stream_groups: [], streams: sizes.map((size, index) => ({
         index, codec_name: index === 0 ? "h264" : "aac", extradata_size: size
       })) });
     });

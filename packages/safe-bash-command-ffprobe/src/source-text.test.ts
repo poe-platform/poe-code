@@ -18,7 +18,7 @@ it('does not read filtered or unselected source text',async()=>{
   const hidden={kind:'text' as const,chunks(){reads++;throw new Error('unselected text');}};
   const source={...base,streams:base.streams.map(stream=>({...stream,tags:{title:text,hidden}})),format:{...base.format,tags:{hidden}}};
   let output='';for await(const part of formatFfprobeSourceChunks(source,{...options,showFormat:false,showEntries:'stream_tags=title'}))output+=part;
-  expect(JSON.parse(output)).toEqual({streams:[{tags:{title:value}}],chapters:[]});expect(reads).toBe(0);
+  expect(JSON.parse(output)).toEqual({programs:[],stream_groups:[],streams:[{tags:{title:value}}],chapters:[]});expect(reads).toBe(0);
 });
 it('applies backpressure and retires text when formatting ends early',async()=>{
   let read=0,closed=0;

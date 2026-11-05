@@ -49,7 +49,7 @@ async function run(options: { failRead?: Error; failClose?: Error; maxInputBytes
 it("uses injected retained reads for explicit WAV metadata without materializing PCM", async () => {
   const result = await run();
   expect(result.result?.exitCode, result.diagnostic).toBe(0);
-  expect(JSON.parse(result.output)).toEqual({ streams: [{ duration: "16777.216000" }] });
+  expect(JSON.parse(result.output)).toEqual({ programs: [], stream_groups: [], streams: [{ duration: "16777.216000" }] });
   expect(result.reads).toBe(4); expect(result.closes).toBe(1); expect(result.admitted).toBe(result.size);
 });
 it("admits logical input size before range reads", async () => {
@@ -98,6 +98,6 @@ it.each(["json", "compact", "csv", "default", "flat"])("preserves the %s schema 
 it("detects automatic media-only WAV with bounded retained reads", async () => {
   const result = await run({ automatic: true });
   expect(result.result?.exitCode, result.diagnostic).toBe(0);
-  expect(JSON.parse(result.output)).toEqual({ streams: [{ duration: "16777.216000" }] });
+  expect(JSON.parse(result.output)).toEqual({ programs: [], stream_groups: [], streams: [{ duration: "16777.216000" }] });
   expect(result.reads).toBe(5); expect(result.closes).toBe(1); expect(result.admitted).toBe(result.size);
 });

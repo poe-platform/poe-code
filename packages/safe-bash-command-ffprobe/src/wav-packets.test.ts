@@ -20,6 +20,7 @@ it.each(["file", "stdin", "count-only"])("reports native WAV packets and counted
   });
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(output)).toEqual({
+    programs: [], stream_groups: [],
     ...(route === "count-only" ? {} : { packets: Array.from({ length: 11 }, (_, index) => {
       const pts = index * 4096, duration = Math.min(4096, 44100 - pts);
       return { pts, duration, size: String(duration * 2) };

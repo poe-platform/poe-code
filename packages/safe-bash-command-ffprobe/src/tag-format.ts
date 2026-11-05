@@ -93,7 +93,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
   }
   if (format === "json") {
     yield "{"; let first = true, streamOpen = (sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0), firstStream = true;
-    if (streamOpen) { yield '\n    "streams": ['; first = false; }
+    if (streamOpen) { yield '\n    "programs": [],\n    "stream_groups": [],\n    "streams": ['; first = false; }
     for await (const entry of rows) {
       const { section, row } = entry; tags = entry.tags;
       if (section === "stream") {

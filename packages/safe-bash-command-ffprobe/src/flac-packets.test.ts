@@ -24,7 +24,7 @@ for (const route of ["file", "stdin"]) for (const countsOnly of [false, true]) {
       stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
     });
     expect(result.exitCode, diagnostic).toBe(0);
-    expect(JSON.parse(output)).toEqual({ streams: [{ nb_read_packets: "3", nb_read_frames: "3" }],
+    expect(JSON.parse(output)).toEqual({ programs: [], stream_groups: [], streams: [{ nb_read_packets: "3", nb_read_frames: "3" }],
       ...(countsOnly ? {} : { packets: [
         { pts: 0, duration: 2048, size: "4107" },
         { pts: 2048, duration: 2048, size: "4107" },

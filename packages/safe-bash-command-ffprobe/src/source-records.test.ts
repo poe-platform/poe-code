@@ -31,7 +31,7 @@ it.each(['success','read','close','cancel'])('keeps caller input alive for lazy 
   let error:unknown;
   const result=await Promise.resolve(command.createFfprobeCommand({asts:[plugin]}).execute({command:'ffprobe',...createCommandArguments(['-f','wav','-of','json','-show_streams','/input.wav']),cwd:'/',env:{},fs,signal:controller.signal,stdin:{async *[Symbol.asyncIterator](){}},stdout:{async write(chunk){expect(closed).toBe(1);output+=new TextDecoder().decode(chunk);}},stderr:{async write(chunk){diagnostic+=new TextDecoder().decode(chunk);}}})).catch(reason=>{error=reason;});
   expect(closed).toBe(1);expect(retired).toBe(1);
-  if(mode==='success'){expect(result?.exitCode,diagnostic).toBe(0);expect(JSON.parse(output)).toEqual({streams:probe.streams});}
+  if(mode==='success'){expect(result?.exitCode,diagnostic).toBe(0);expect(JSON.parse(output)).toEqual({programs:[],stream_groups:[],streams:probe.streams});}
   else {expect(output).toBe('');if(mode==='cancel')expect(error).toEqual(new Error('cancelled lazy read'));else expect(diagnostic).toContain(mode==='read'?'late read':'close failed');}
 });
 it('retires a rejecting record iterator and preserves the read failure over cleanup',async()=>{
@@ -50,7 +50,7 @@ it.each(['automatic','stdin'])('uses lazy record hooks for %s input',async mode=
   const fs=new MemoryFileSystem();await fs.writeFile('/input.wav',bytes);let output='',calls=0;
   const plugin:MediaAstPlugin={...wavAst(),async probeRecords(source){expect(this).toBe(plugin);calls++;return {...probe,streams:(async function*(){expect(await source.read(0,4)).toEqual(bytes.subarray(0,4));yield probe.streams[0]!;})()};}};
   const result=await command.createFfprobeCommand({asts:[plugin]}).execute({command:'ffprobe',...createCommandArguments(['-of','json','-show_entries','stream=index',mode==='stdin'?'-':'/input.wav']),cwd:'/',env:{},fs,signal:new AbortController().signal,stdin:{async *[Symbol.asyncIterator](){yield bytes;}},stdout:{async write(chunk){output+=new TextDecoder().decode(chunk);}},stderr:{async write(){throw new Error('unexpected diagnostic');}}});
-  expect(result.exitCode).toBe(0);expect(calls).toBe(1);expect(JSON.parse(output)).toEqual({streams:[{index:0}]});expect((await fs.readdir('/')).map(entry=>entry.name)).toEqual(['input.wav']);
+  expect(result.exitCode).toBe(0);expect(calls).toBe(1);expect(JSON.parse(output)).toEqual({programs:[],stream_groups:[],streams:[{index:0}]});expect((await fs.readdir('/')).map(entry=>entry.name)).toEqual(['input.wav']);
 });
 it('selects and counts streams incrementally with legacy ordinal and tag formatting',async()=>{
   const streams=[{...probe.streams[0]!,index:8},{...probe.streams[0]!,index:4,tags:{title:'é,"\n'}}];

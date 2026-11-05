@@ -4,7 +4,7 @@ OpenPGP encryption and signing command (`gpg`) for `@poe-platform/safe-bash`.
 
 ## Features
 
-- **Key generation & keyring management**: Generate Ed25519 OpenPGP keys (`--quick-generate-key`, `--batch --gen-key`), list keys (`--list-keys`, `--list-secret-keys`, `-K`), and transfer public verification keys between safe-bash keyrings (`--export -a`, `--import`). The armored transfer format is specific to safe-bash.
+- **Key generation & keyring management**: Generate Ed25519 OpenPGP keys (`--quick-generate-key`, `--batch --gen-key`), list keys (`--list-keys`, `--list-secret-keys`, `-K`), and export public certificates as binary OpenPGP packets (`--export`) or ASCII armor (`-a --export`). GnuPG can import these certificates and verify detached signatures made by safe-bash. Import supports this single-user-ID Ed25519 certificate format, including copies re-exported by GnuPG. Legacy safe-bash public-only records can verify old signatures but need a fresh certificate from the signer for OpenPGP export.
 - **Detached & inline signatures**: Produce RFC 4880 ASCII-armored detached signatures (`gpg --detach-sign -a -u <uid>`) with CRC24 checksums compatible with Git commit/tag signing (`git commit -S`, `git tag -s`).
 - **Verification & status protocol**: Verify detached signatures (`gpg --verify <sig> <file>`) and emit `[GNUPG:] GOODSIG` / `VALIDSIG` machine-readable lines when `--status-fd` is requested. Verification requires the signing public key to be generated or imported into the current keyring and checks that the signature key ID matches that key.
 

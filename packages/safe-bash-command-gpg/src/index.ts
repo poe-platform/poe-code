@@ -10,6 +10,7 @@ import {
   type CommandResult,
   type VirtualShellPlugin,
 } from "safe-bash-contracts";
+import { certify, concat, readCertificates, sign, validPoint, verifyMessage } from "./openpgp.js";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -129,86 +130,28 @@ function pgpCrc24(data: Uint8Array): string {
   return `=${bytesToBase64(b)}`;
 }
 
-async function createOpenPgpDetachedSignature(
-  seed: Uint8Array,
-  pubKey: Uint8Array,
-  signerUid: string,
-  payload: Uint8Array,
-): Promise<{ armor: string; keyIdHex: string }> {
-  const seedBuf = seed.buffer.slice(seed.byteOffset, seed.byteOffset + seed.byteLength) as ArrayBuffer;
-  const pubBuf = pubKey.buffer.slice(pubKey.byteOffset, pubKey.byteOffset + pubKey.byteLength) as ArrayBuffer;
-  const fpDigest = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", pubBuf));
-  const keyId = fpDigest.slice(24, 32);
-  const keyIdHex = bytesToHex(keyId).toUpperCase();
+function fromHex(hex: string) {
+  if (!/^(?:[a-f0-9]{2})+$/iu.test(hex)) throw new PublicDiagnostic("invalid keyring");
+  return Uint8Array.from(hex.match(/../gu)!, b => Number.parseInt(b, 16));
+}
 
-  const hashedSub: number[] = [];
-  hashedSub.push(5, 2, 0x60, 0x00, 0x00, 0x00); // creation time
-  hashedSub.push(9, 16, ...keyId); // issuer key ID
-  const uidBytes = textEncoder.encode(signerUid);
-  if (uidBytes.byteLength < 190) {
-    hashedSub.push(1 + uidBytes.byteLength, 28, ...uidBytes);
-  }
-  const pubKeySub = [33, 0x80 | 28, ...pubKey];
+async function privateKey(k: StoredGpgKey) {
+  if (!k.seedHex) throw new PublicDiagnostic("No secret key");
+  const url = (hex: string) => bytesToBase64(fromHex(hex)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return crypto.subtle.importKey("jwk", { kty: "OKP", crv: "Ed25519", x: url(k.pubHex), d: url(k.seedHex) }, "Ed25519", false, ["sign"]);
+}
 
-  const sigHeader: number[] = [
-    4,
-    0x00,
-    22,
-    8,
-    (hashedSub.length >>> 8) & 0xff,
-    hashedSub.length & 0xff,
-    ...hashedSub,
-  ];
-  const hashTarget = new Uint8Array(payload.byteLength + sigHeader.length + 6);
-  hashTarget.set(payload, 0);
-  hashTarget.set(sigHeader, payload.byteLength);
-  const hLen = sigHeader.length;
-  hashTarget.set(
-    [4, 0xff, (hLen >>> 24) & 0xff, (hLen >>> 16) & 0xff, (hLen >>> 8) & 0xff, hLen & 0xff],
-    payload.byteLength + sigHeader.length,
-  );
+async function certificate(k: StoredGpgKey) {
+  const bytes = k.certHex ? fromHex(k.certHex) :
+    (await certify(k.uid, fromHex(k.pubHex), await privateKey(k), 0x60000000)).bytes;
+  const certs = await readCertificates(bytes);
+  const cert = certs[0]!;
+  if (certs.length !== 1 || cert.uid !== k.uid || bytesToHex(cert.publicKey) !== k.pubHex) throw new PublicDiagnostic("certificate does not match keyring");
+  return cert;
+}
 
-  const hashTargetBuf = hashTarget.buffer.slice(hashTarget.byteOffset, hashTarget.byteOffset + hashTarget.byteLength) as ArrayBuffer;
-  const digest = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", hashTargetBuf));
-
-  const toB64Url = (b: Uint8Array) => bytesToBase64(b).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-  const privKey = await globalThis.crypto.subtle.importKey(
-    "jwk",
-    { kty: "OKP", crv: "Ed25519", d: toB64Url(seed), x: toB64Url(pubKey), key_ops: ["sign"] },
-    { name: "Ed25519" },
-    false,
-    ["sign"],
-  );
-  const digestBuf = digest.buffer.slice(digest.byteOffset, digest.byteOffset + digest.byteLength) as ArrayBuffer;
-  const sigBytes = new Uint8Array(await globalThis.crypto.subtle.sign({ name: "Ed25519" }, privKey, digestBuf));
-
-  const body: number[] = [
-    ...sigHeader,
-    (pubKeySub.length >>> 8) & 0xff,
-    pubKeySub.length & 0xff,
-    ...pubKeySub,
-    digest[0]!,
-    digest[1]!,
-    0x01,
-    0x00,
-    ...sigBytes.slice(0, 32),
-    0x01,
-    0x00,
-    ...sigBytes.slice(32, 64),
-  ];
-
-  const packet: number[] = [0xc2];
-  if (body.length < 192) {
-    packet.push(body.length);
-  } else {
-    packet.push(0xff, (body.length >>> 24) & 0xff, (body.length >>> 16) & 0xff, (body.length >>> 8) & 0xff, body.length & 0xff);
-  }
-  packet.push(...body);
-  const pktBytes = new Uint8Array(packet);
-  const b64 = bytesToBase64(pktBytes, 64);
-  const crc = pgpCrc24(pktBytes);
-  const armor = `-----BEGIN PGP SIGNATURE-----\n\n${b64}\n${crc}\n-----END PGP SIGNATURE-----\n`;
-  return { armor, keyIdHex };
+function armorPacket(label: string, bytes: Uint8Array) {
+  return `-----BEGIN PGP ${label}-----\n\n${bytesToBase64(bytes, 64)}\n${pgpCrc24(bytes)}\n-----END PGP ${label}-----\n`;
 }
 
 async function verifyOpenPgpDetachedSignature(
@@ -222,6 +165,13 @@ async function verifyOpenPgpDetachedSignature(
     .filter(l => !l.startsWith("-----") && !l.startsWith("=") && !l.includes(":") && l.length > 0)
     .join("");
   const pkt = base64ToBytes(b64);
+  for (const k of keys) {
+    if (!k.certHex && !k.seedHex) continue;
+    const cert = await certificate(k);
+    if (await verifyMessage(pkt, cert.fp, cert.publicKey, payload)) {
+      return { valid: true, signerUid: k.uid, keyIdHex: bytesToHex(cert.fp.subarray(12)).toUpperCase() };
+    }
+  }
   if (pkt.byteLength < 10 || pkt[0] !== 0xc2) {
     return { valid: false, signerUid: "", keyIdHex: "" };
   }
@@ -297,7 +247,7 @@ async function verifyOpenPgpDetachedSignature(
   );
   const sigBuf = sigBytes.buffer.slice(sigBytes.byteOffset, sigBytes.byteOffset + sigBytes.byteLength) as ArrayBuffer;
   const digestBuf = digest.buffer.slice(digest.byteOffset, digest.byteOffset + digest.byteLength) as ArrayBuffer;
-  const valid = await globalThis.crypto.subtle.verify({ name: "Ed25519" }, cryptoPub, sigBuf, digestBuf);
+  const valid = validPoint(pubKey) && validPoint(sigBytes.subarray(0, 32)) && await globalThis.crypto.subtle.verify({ name: "Ed25519" }, cryptoPub, sigBuf, digestBuf);
   return { valid, signerUid, keyIdHex };
 }
 
@@ -388,6 +338,7 @@ interface StoredGpgKey {
   uid: string;
   keyIdHex: string;
   seedHex?: string;
+  certHex?: string;
   pubHex: string;
 }
 
@@ -434,35 +385,24 @@ async function saveKeyring(context: CommandContext, keys: StoredGpgKey[], previo
   });
 }
 
-async function ensureKeyForUid(context: CommandContext, uid: string): Promise<{ seed: Uint8Array; pubKey: Uint8Array; uid: string; keyIdHex: string }> {
+async function ensureKeyForUid(context: CommandContext, uid: string): Promise<StoredGpgKey> {
   const keys = await loadKeyring(context);
   const found = keys.find(k => k.uid.includes(uid) || k.keyIdHex.endsWith(uid.toUpperCase()));
   if (found) {
     if (!found.seedHex || !/^[0-9a-f]{64}$/iu.test(found.seedHex)) throw new PublicDiagnostic("No secret key");
-    const fromHex = (h: string) => new Uint8Array(h.match(/.{1,2}/g)!.map(b => Number.parseInt(b, 16)));
-    return {
-      seed: fromHex(found.seedHex),
-      pubKey: fromHex(found.pubHex),
-      uid: found.uid,
-      keyIdHex: found.keyIdHex,
-    };
+    return found;
   }
-  const kp = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as unknown as { privateKey: CryptoKey; publicKey: CryptoKey };
-  const jwk = await globalThis.crypto.subtle.exportKey("jwk", kp.privateKey);
-  const realSeed = base64ToBytes(jwk.d!);
-  const realPub = base64ToBytes(jwk.x!);
-  if (realSeed.length !== 32 || realPub.length !== 32) throw new PublicDiagnostic("invalid generated Ed25519 key");
-  const pubBuf = realPub.buffer.slice(realPub.byteOffset, realPub.byteOffset + realPub.byteLength) as ArrayBuffer;
-  const fp = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", pubBuf));
-  const keyIdHex = bytesToHex(fp.slice(24, 32)).toUpperCase();
-  keys.push({
-    uid,
-    keyIdHex,
-    seedHex: bytesToHex(realSeed),
-    pubHex: bytesToHex(realPub),
-  });
+  const kp = await crypto.subtle.generateKey("Ed25519", true, ["sign", "verify"]) as CryptoKeyPair;
+  const jwk = await crypto.subtle.exportKey("jwk", kp.privateKey);
+  const seed = base64ToBytes(jwk.d!);
+  const pub = base64ToBytes(jwk.x!);
+  if (seed.length !== 32 || pub.length !== 32) throw new PublicDiagnostic("invalid generated Ed25519 key");
+  const cert = await certify(uid, pub, kp.privateKey, Math.floor(Date.now() / 1000));
+  const key = { uid, keyIdHex: bytesToHex(cert.fp.subarray(12)).toUpperCase(), seedHex: bytesToHex(seed),
+    pubHex: bytesToHex(pub), certHex: bytesToHex(cert.bytes) };
+  keys.push(key);
   await saveKeyring(context, keys, keys.length - 1);
-  return { seed: realSeed, pubKey: realPub, uid, keyIdHex };
+  return key;
 }
 
 async function collectSourceBytes(source: ByteSource, maxBytes: number, signal: AbortSignal): Promise<Uint8Array> {
@@ -675,19 +615,20 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         }
 
         if (exportKeys) {
-          const keys = (await loadKeyring(context)).filter(k => !positionals.length || positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())))
-            .map(({uid, keyIdHex, pubHex}) => ({uid, keyIdHex, pubHex}));
+          const keys = (await loadKeyring(context)).filter(k => !positionals.length || positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())));
           if (!keys.length) {
             if (!quiet) await writeText(context.stderr, "gpg: WARNING: nothing exported\n");
             return { exitCode: 0 };
           }
-          const armor = `-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n${bytesToBase64(textEncoder.encode(JSON.stringify(keys)), 64)}\n-----END PGP PUBLIC KEY BLOCK-----\n`;
-          if (outFile) {
-            await writeFileOutput(context, textEncoder.encode(armor), data =>
-              context.fs.writeFile(pathPosix.resolve(context.cwd, outFile!), data, { signal: context.signal }),
-            );
+          const certs = [];
+          for (const k of keys) certs.push((await certificate(k)).bytes);
+          const raw = concat(...certs);
+          const bytes = armor ? textEncoder.encode(armorPacket("PUBLIC KEY BLOCK", raw)) : raw;
+          if (outFile && outFile !== "-") {
+            await writeFileOutput(context, bytes, data =>
+              context.fs.writeFile(pathPosix.resolve(context.cwd, outFile!), data, { signal: context.signal }));
           } else {
-            await writeText(context.stdout, armor);
+            await context.stdout.write(bytes);
           }
           return { exitCode: 0 };
         }
@@ -696,17 +637,18 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           const input = positionals[0]
             ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
-          const b64 = textDecoder
-            .decode(input)
-            .split("\n")
-            .filter(l => !l.startsWith("-----") && l.trim().length > 0)
-            .join("");
-          const imported = JSON.parse(textDecoder.decode(base64ToBytes(b64))) as StoredGpgKey[];
+          const bytes = input[0] === 45
+            ? base64ToBytes(textDecoder.decode(input).split("\n").map(l => l.trim()).filter(l => !l.startsWith("-----") && !l.startsWith("=") && !l.includes(":")).join(""))
+            : input;
+          const imported: StoredGpgKey[] = bytes[0] === 91
+            ? (JSON.parse(textDecoder.decode(bytes)) as StoredGpgKey[]).map(({uid, pubHex, keyIdHex}) => ({uid, pubHex, keyIdHex}))
+            : (await readCertificates(bytes)).map(c => ({uid: c.uid, keyIdHex: bytesToHex(c.fp.subarray(12)).toUpperCase(),
+              pubHex: bytesToHex(c.publicKey), certHex: bytesToHex(c.bytes)}));
           const existing = await loadKeyring(context);
           const previous = existing.length;
-          for (const { uid, keyIdHex, pubHex } of imported) {
-            if (typeof uid !== "string" || typeof keyIdHex !== "string" || typeof pubHex !== "string") throw new PublicDiagnostic("invalid public key");
-            if (!existing.some(e => e.keyIdHex === keyIdHex)) existing.push({ uid, keyIdHex, pubHex });
+          for (const key of imported) {
+            if (typeof key.uid !== "string" || typeof key.keyIdHex !== "string" || typeof key.pubHex !== "string") throw new PublicDiagnostic("invalid public key");
+            if (!existing.some(e => e.keyIdHex === key.keyIdHex)) existing.push(key);
           }
           await saveKeyring(context, existing, previous);
           await writeText(context.stderr, `gpg: Total number processed: ${imported.length}\ngpg:               imported: ${imported.length}\n`);
@@ -718,16 +660,18 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
             ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           const key = await ensureKeyForUid(context, signerUid);
-          const { armor, keyIdHex } = await createOpenPgpDetachedSignature(key.seed, key.pubKey, key.uid, payload);
+          const cert = await certificate(key);
+          const time = Math.floor(Date.now() / 1000);
+          const signature = armorPacket("SIGNATURE", await sign(0, cert.fp, time, await privateKey(key), payload));
           if (statusFd) {
-            await writeText(context.stderr, `[GNUPG:] SIG_CREATED D 22 8 00 1609459200 ${keyIdHex}\n`);
+            await writeText(context.stderr, `[GNUPG:] SIG_CREATED D 22 8 00 ${time} ${bytesToHex(cert.fp).toUpperCase()}\n`);
           }
           if (outFile) {
-            await writeFileOutput(context, textEncoder.encode(armor), data =>
+            await writeFileOutput(context, textEncoder.encode(signature), data =>
               context.fs.writeFile(pathPosix.resolve(context.cwd, outFile!), data, { signal: context.signal }),
             );
           } else {
-            await writeText(context.stdout, armor);
+            await writeText(context.stdout, signature);
           }
           return { exitCode: 0 };
         }

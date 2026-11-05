@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import type { CommandContext } from "safe-bash-contracts";
+import { validPoint } from "./openpgp.js";
 import { createGpgCommand, settings } from "./index.js";
 
 async function runGpg(
@@ -137,7 +138,7 @@ test("gpg requires the signing public key in the verification keyring", async ()
   const missing = await runGpg(clean, ["--status-fd=1", "--verify", "/signature"], "message");
   assert.notEqual(missing.exitCode, 0);
   assert.equal(missing.stdout, "");
-  const exported = await runGpg(fs, ["--export"]);
+  const exported = await runGpg(fs, ["--armor", "--export"]);
   assert.equal((await runGpg(clean, ["--import"], exported.stdout)).exitCode, 0);
   assert.equal((await runGpg(clean, ["--verify", "/signature"], "message")).exitCode, 0);
 });
@@ -151,7 +152,7 @@ test("gpg rejects a cryptographically valid signature with a forged hashed key I
   const body = packet.subarray(packet[1] === 255 ? 6 : 2);
   const headerEnd = 6 + body.readUInt16BE(4);
   for (let offset = 6; offset < headerEnd; offset += 1 + body[offset]!) {
-    if (body[offset + 1] === 16) body.fill(0x42, offset + 2, offset + 1 + body[offset]!);
+    if (body[offset + 1] === 33) body.fill(0x42, offset + 3, offset + 1 + body[offset]!);
   }
   const trailer = Buffer.alloc(6);
   trailer[0] = 4; trailer[1] = 255; trailer.writeUInt32BE(headerEnd, 2);
@@ -159,10 +160,17 @@ test("gpg rejects a cryptographically valid signature with a forged hashed key I
   const privateKey = await crypto.subtle.importKey("jwk", { kty: "OKP", crv: "Ed25519", d: Buffer.from(key.seedHex, "hex").toString("base64url"), x: Buffer.from(key.pubHex, "hex").toString("base64url") }, "Ed25519", false, ["sign"]);
   const signature = new Uint8Array(await crypto.subtle.sign("Ed25519", privateKey, digest));
   const unhashedEnd = headerEnd + 2 + body.readUInt16BE(headerEnd);
-  body.set(new Uint8Array(digest).subarray(0, 2), unhashedEnd);
-  body.set(signature.subarray(0, 32), unhashedEnd + 4);
-  body.set(signature.subarray(32), unhashedEnd + 38);
-  await fs.writeFile("/forged", new TextEncoder().encode(`-----BEGIN PGP SIGNATURE-----\n${packet.toString("base64")}\n-----END PGP SIGNATURE-----\n`));
+  const mpi = (half: Uint8Array) => {
+    const start = half.findIndex(b => b !== 0);
+    const bytes = half.subarray(start < 0 ? half.length : start);
+    const bits = bytes.length * 8 - (bytes.length ? Math.clz32(bytes[0]!) - 24 : 0);
+    return Buffer.concat([Buffer.from([bits >> 8, bits & 255]), bytes]);
+  };
+  body.fill(0x42, headerEnd + 6, unhashedEnd); // match the forged fingerprint's low 64 bits
+  const forged = Buffer.concat([body.subarray(0, unhashedEnd), new Uint8Array(digest).subarray(0, 2),
+    mpi(signature.subarray(0, 32)), mpi(signature.subarray(32))]);
+  const encoded = Buffer.concat([Buffer.from([0xc2, forged.length]), forged]);
+  await fs.writeFile("/forged", new TextEncoder().encode(`-----BEGIN PGP SIGNATURE-----\n${encoded.toString("base64")}\n-----END PGP SIGNATURE-----\n`));
   const result = await runGpg(fs, ["--status-fd=1", "--verify", "/forged"], "message");
   assert.notEqual(result.exitCode, 0);
   assert.equal(result.stdout, "");
@@ -213,4 +221,15 @@ test("gpg supports symmetric encryption (-c) and decryption (-d) with --passphra
   const armorDec = await runGpg(fs, ["--batch", "--passphrase=secret123", "--decrypt", "/sales.csv.asc"]);
   assert.equal(armorDec.exitCode, 0);
   assert.equal(armorDec.stdout, "region,q1,q2\nNA,120,150\n");
+});
+
+test("Ed25519 verification rejects small-order points before relying on WebCrypto", () => {
+  for (const hex of ["00".repeat(32), "01" + "00".repeat(31), "ec" + "ff".repeat(30) + "7f",
+    "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05"]) {
+    const p = Buffer.from(hex, "hex");
+    assert.equal(validPoint(p), false);
+    p[31]! ^= 128;
+    assert.equal(validPoint(p), false);
+  }
+  assert.ok(validPoint(Buffer.from("d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a", "hex")));
 });

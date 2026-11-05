@@ -2,6 +2,7 @@ use super::codecs::ZIP_COMMENT_TYPE;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::BTreeMap;
+mod openpgp;
 mod xxd;
 pub(super) use xxd::cmd_xxd;
 
@@ -9240,6 +9241,35 @@ fn pgp_crc24(data: &[u8]) -> String {
     format!("={}", base64_encode(&bytes))
 }
 
+#[derive(Clone, PartialEq)]
+struct GpgKey {
+    uid: String,
+    id: String,
+    seed: String,
+    public: String,
+    certificate: String,
+}
+
+impl GpgKey {
+    fn certificate_bytes(&self) -> Result<Vec<u8>, String> {
+        if !self.certificate.is_empty() {
+            let bytes = openssl_hex_decode(&self.certificate)?;
+            let mut rest = &bytes[..];
+            let cert = openpgp::read_certificate(&mut rest).ok_or("invalid public certificate")?;
+            if !rest.is_empty() || cert.uid != self.uid || openssl_hex_encode(cert.public) != self.public {
+                return Err("certificate does not match keyring".into());
+            }
+            return Ok(bytes);
+        }
+        // Older private records have neither a creation time nor a certification.
+        // Use their historical signature timestamp so repeated exports identify the same key.
+        let seed: [u8; 32] = openssl_hex_decode(&self.seed)?.try_into().map_err(|_| "no certified public key")?;
+        let public = ed25519_pubkey_from_seed(&seed);
+        if openssl_hex_encode(&public) != self.public { return Err("invalid key pair".into()); }
+        Ok(openpgp::certify(&self.uid, &public, &seed, 0x60000000).1)
+    }
+}
+
 fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut version = false;
     let mut detach_sign = false;
@@ -9346,22 +9376,24 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     let keyring_path = "/home/user/.gnupg/keyring.json";
     use mcp_protocol_rust::json::{self, Value};
-    let parse_keyring_bytes = |raw: &[u8]| -> Result<Vec<(String, String, String, String)>, String> {
+    let parse_keyring_bytes = |raw: &[u8]| -> Result<Vec<GpgKey>, String> {
         let invalid = || "invalid keyring".to_string();
         let Ok(Value::Array(entries)) = json::parse(raw, json::Limits { max_depth: 3, ..Default::default() }) else { return Err(invalid()); };
         entries.into_iter().map(|entry| {
             let field = |key| match entry.get(key) {
                 Some(Value::String(text)) => String::from_utf16(text).ok(), _ => None,
             };
-            Ok((field("uid").ok_or_else(invalid)?, field("keyIdHex").ok_or_else(invalid)?,
-                field("seedHex").unwrap_or_default(), field("pubHex").ok_or_else(invalid)?))
+            Ok(GpgKey { uid: field("uid").ok_or_else(invalid)?, id: field("keyIdHex").ok_or_else(invalid)?,
+                seed: field("seedHex").unwrap_or_default(), public: field("pubHex").ok_or_else(invalid)?,
+                certificate: field("certHex").unwrap_or_default() })
         }).collect()
     };
-    let serialize_keys = |keys: &[(String, String, String, String)], public: bool| {
+    let serialize_keys = |keys: &[GpgKey]| {
         let field = |name: &str, value: &str| (name.encode_utf16().collect(), Value::String(value.encode_utf16().collect()));
-        json::stringify(&Value::Array(keys.iter().map(|(uid, kid, seed, pk)| {
-            let mut fields = vec![field("uid", uid), field("keyIdHex", kid), field("pubHex", pk)];
-            if !public && !seed.is_empty() { fields.push(field("seedHex", seed)); }
+        json::stringify(&Value::Array(keys.iter().map(|k| {
+            let mut fields = vec![field("uid", &k.uid), field("keyIdHex", &k.id), field("pubHex", &k.public)];
+            if !k.seed.is_empty() { fields.push(field("seedHex", &k.seed)); }
+            if !k.certificate.is_empty() { fields.push(field("certHex", &k.certificate)); }
             Value::Object(fields)
         }).collect()))
     };
@@ -9374,7 +9406,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         parse_keyring_bytes(&fs.read_file(keyring_path)?)
     };
-    let save_keyring = |keys: &[(String, String, String, String)], previous: usize| {
+    let save_keyring = |keys: &[GpgKey], previous: usize| {
         let dir = "/home/user/.gnupg";
         fs.mkdir_all("/home/user")?;
         match fs.create_temp(dir, true, 0o700) {
@@ -9384,20 +9416,20 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let receipt = fs.observe_publication(keyring_path, fs.generation(), crate::vfs::PublicationMode::Replace)?;
         if fs.lstat(dir)?.kind != crate::vfs::VfsEntryKind::Directory { return Err("invalid keyring directory".into()); }
         if load_keyring()? != keys[..previous] { return Err("keyring changed during update".into()); }
-        fs.replace_file_entry_with_mode(keyring_path, serialize_keys(keys, false).as_bytes(), 0o600, receipt.version)
+        fs.replace_file_entry_with_mode(keyring_path, serialize_keys(keys).as_bytes(), 0o600, receipt.version)
     };
-    let ensure_key = |uid: &str| -> Result<(String, String, String, String), String> {
+    let ensure_key = |uid: &str| -> Result<GpgKey, String> {
         let mut keys = load_keyring()?;
-        if let Some(found) = keys.iter().find(|(u, kid, _, _)| u.contains(uid) || kid.ends_with(&uid.to_uppercase())) {
-            if found.2.len() != 64 { return Err("No secret key".into()); }
+        if let Some(found) = keys.iter().find(|k| k.uid.contains(uid) || k.id.ends_with(&uid.to_uppercase())) {
+            if found.seed.len() != 64 { return Err("No secret key".into()); }
             return Ok(found.clone());
         }
         let mut seed = [0; 32];
         crate::vfs::memory::fill_random(&mut seed)?;
         let pub_b = ed25519_pubkey_from_seed(&seed);
-        let fp = sha256_bytes(&pub_b);
-        let kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
-        let entry = (uid.to_string(), kid, openssl_hex_encode(&seed), openssl_hex_encode(&pub_b));
+        let (fp, cert) = openpgp::certify(uid, &pub_b, &seed, (crate::vfs::now_ms() / 1000.) as u32);
+        let entry = GpgKey { uid: uid.into(), id: openssl_hex_encode(&fp[12..]).to_uppercase(),
+            seed: openssl_hex_encode(&seed), public: openssl_hex_encode(&pub_b), certificate: openssl_hex_encode(&cert) };
         keys.push(entry.clone());
         save_keyring(&keys, keys.len() - 1)?;
         Ok(entry)
@@ -9546,14 +9578,14 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     if quick_gen_key {
         let uid = positionals.first().map(|s| s.as_str()).unwrap_or(&signer_uid);
-        let (u, kid, _, _) = match ensure_key(uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let GpgKey { uid: u, id: kid, .. } = match ensure_key(uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         return ok_out(&format!("pub   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
     }
 
     if list_keys {
         let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let mut out = String::new();
-        for (u, kid, seed, _) in keys {
+        for GpgKey { uid: u, id: kid, seed, .. } in keys {
             if list_secret && seed.is_empty() { continue; }
             let kind = if seed.is_empty() { "pub" } else { "sec" };
             if !positionals.is_empty()
@@ -9576,17 +9608,23 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     if export_keys {
         let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        let keys: Vec<_> = keys.into_iter().filter(|(uid, kid, _, _)| positionals.is_empty() || positionals.iter().any(|p| uid.contains(p) || kid.contains(&p.to_ascii_uppercase()))).collect();
+        let keys: Vec<_> = keys.into_iter().filter(|k| positionals.is_empty() || positionals.iter().any(|p| k.uid.contains(p) || k.id.contains(&p.to_ascii_uppercase()))).collect();
         if keys.is_empty() {
             return if quiet { ok_out("") } else { err_out("gpg: WARNING: nothing exported\n", 0) };
         }
-        let b64 = openssl_b64_encode(serialize_keys(&keys, true).as_bytes(), true);
-        let arm = format!("-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n{b64}\n-----END PGP PUBLIC KEY BLOCK-----\n");
-        if let Some(ref to) = out_file {
-            let _ = fs.write_file(&resolve_posix_path(cwd, to), arm.as_bytes());
-            return ok_out("");
+        let mut bytes = Vec::new();
+        for key in keys {
+            match key.certificate_bytes() {
+                Ok(cert) => bytes.extend(cert),
+                Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+            }
         }
-        return ok_out(&arm);
+        if armor {
+            let b64 = openssl_b64_encode(&bytes, true);
+            bytes = format!("-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n{b64}\n{}\n-----END PGP PUBLIC KEY BLOCK-----\n", pgp_crc24(&bytes)).into_bytes();
+        }
+        return openssl_write_bytes(&bytes, out_file.as_deref().filter(|p| *p != "-"), cwd, fs)
+            .unwrap_or_else(|e| err_out(&format!("gpg: {e}\n"), 2));
     }
 
     if import_keys {
@@ -9598,18 +9636,33 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else {
             crate::vfs::stream_string_to_bytes(stdin)
         };
-        let txt = String::from_utf8_lossy(&input);
-        let b64: String = txt.lines().filter(|l| !l.starts_with("-----") && !l.trim().is_empty()).collect();
-        let decoded = base64_decode(&b64).unwrap_or_default();
-        let imported = match parse_keyring_bytes(&decoded) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let bytes = if input.starts_with(b"-----BEGIN PGP PUBLIC KEY BLOCK-----") {
+            let txt = String::from_utf8_lossy(&input);
+            let b64: String = txt.lines().map(str::trim).filter(|l| !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':')).collect();
+            let Ok(bytes) = base64_decode(&b64) else { return err_out("gpg: invalid public key\n", 2); };
+            bytes
+        } else { input };
+        let imported = if bytes.first() == Some(&b'[') {
+            match parse_keyring_bytes(&bytes) {
+                Ok(mut keys) => { for k in &mut keys { k.seed.clear(); k.certificate.clear(); } keys },
+                Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+            }
+        } else {
+            let mut rest = &bytes[..];
+            let mut keys = Vec::new();
+            while !rest.is_empty() {
+                let Some(cert) = openpgp::read_certificate(&mut rest) else { return err_out("gpg: invalid or unsupported public certificate\n", 2); };
+                keys.push(GpgKey { uid: cert.uid.into(), id: openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase(),
+                    public: openssl_hex_encode(cert.public), certificate: openssl_hex_encode(cert.bytes), seed: String::new() });
+            }
+            if keys.is_empty() { return err_out("gpg: invalid or unsupported public certificate\n", 2); }
+            keys
+        };
         let cnt = imported.len();
         let mut existing = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let previous = existing.len();
-        for (uid, kid, _, pk) in imported {
-            let entry = (uid, kid, String::new(), pk);
-            if !existing.iter().any(|(_, k, _, _)| k == &entry.1) {
-                existing.push(entry);
-            }
+        for entry in imported {
+            if !existing.iter().any(|k| k.id == entry.id) { existing.push(entry); }
         }
         if let Err(e) = save_keyring(&existing, previous) { return err_out(&format!("gpg: {e}\n"), 2); }
         return BuiltinOutcome {
@@ -9628,67 +9681,18 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else {
             crate::vfs::stream_string_to_bytes(stdin)
         };
-        let (u, kid, seed_h, pub_h) = match ensure_key(&signer_uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        let Some(seed_arr): Option<[u8; 32]> = openssl_hex_decode(&seed_h).ok().and_then(|bytes| bytes.try_into().ok()) else { return err_out("gpg: No secret key\n", 2); };
-        let Some(pub_arr): Option<[u8; 32]> = openssl_hex_decode(&pub_h).ok().and_then(|bytes| bytes.try_into().ok()) else { return err_out("gpg: invalid public key\n", 2); };
-        let fp = sha256_bytes(&pub_arr);
-        let key_id = &fp[24..32];
-        let mut hashed_sub = Vec::new();
-        hashed_sub.extend_from_slice(&[5, 2, 0x60, 0x00, 0x00, 0x00]);
-        hashed_sub.push(9);
-        hashed_sub.push(16);
-        hashed_sub.extend_from_slice(key_id);
-        let uid_bytes = u.as_bytes();
-        if uid_bytes.len() < 190 {
-            hashed_sub.push((1 + uid_bytes.len()) as u8);
-            hashed_sub.push(28);
-            hashed_sub.extend_from_slice(uid_bytes);
-        }
-        let mut pub_key_sub = Vec::with_capacity(35);
-        pub_key_sub.push(33);
-        pub_key_sub.push(0x80 | 28);
-        pub_key_sub.extend_from_slice(&pub_arr);
-        let mut sig_header = vec![
-            4,
-            0x00,
-            22,
-            8,
-            ((hashed_sub.len() >> 8) & 0xff) as u8,
-            (hashed_sub.len() & 0xff) as u8,
-        ];
-        sig_header.extend_from_slice(&hashed_sub);
-        let h_len = sig_header.len() as u32;
-        let mut hash_target = Vec::with_capacity(payload.len() + sig_header.len() + 6);
-        hash_target.extend_from_slice(&payload);
-        hash_target.extend_from_slice(&sig_header);
-        hash_target.extend_from_slice(&[4, 0xff]);
-        hash_target.extend_from_slice(&h_len.to_be_bytes());
-        let digest = sha256_bytes(&hash_target);
-        let sig_bytes = ed25519_sign(&digest, &seed_arr);
-        let mut body = Vec::new();
-        body.extend_from_slice(&sig_header);
-        body.push(((pub_key_sub.len() >> 8) & 0xff) as u8);
-        body.push((pub_key_sub.len() & 0xff) as u8);
-        body.extend_from_slice(&pub_key_sub);
-        body.push(digest[0]);
-        body.push(digest[1]);
-        body.extend_from_slice(&[0x01, 0x00]);
-        body.extend_from_slice(&sig_bytes[0..32]);
-        body.extend_from_slice(&[0x01, 0x00]);
-        body.extend_from_slice(&sig_bytes[32..64]);
-        let mut pkt_bytes = vec![0xc2];
-        if body.len() < 192 {
-            pkt_bytes.push(body.len() as u8);
-        } else {
-            pkt_bytes.push(0xff);
-            pkt_bytes.extend_from_slice(&(body.len() as u32).to_be_bytes());
-        }
-        pkt_bytes.extend_from_slice(&body);
+        let key = match ensure_key(&signer_uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let Some(seed): Option<[u8; 32]> = openssl_hex_decode(&key.seed).ok().and_then(|s| s.try_into().ok()) else { return err_out("gpg: No secret key\n", 2); };
+        let bytes = match key.certificate_bytes() { Ok(b) => b, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let Some(cert) = openpgp::read_certificate(&mut &bytes[..]) else { return err_out("gpg: invalid certificate\n", 2); };
+        let time = (crate::vfs::now_ms() / 1000.) as u32;
+        let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
+        let pkt_bytes = openpgp::sign(0, &cert.fingerprint, time, &seed, &payload);
         let b64 = openssl_b64_encode(&pkt_bytes, true);
         let crc = pgp_crc24(&pkt_bytes);
         let arm = format!("-----BEGIN PGP SIGNATURE-----\n\n{b64}\n{crc}\n-----END PGP SIGNATURE-----\n");
         let stderr_msg = if status_fd.is_some() {
-            format!("[GNUPG:] SIG_CREATED D 22 8 00 1609459200 {kid}\n")
+            format!("[GNUPG:] SIG_CREATED D 22 8 00 {time} {kid}\n")
         } else {
             String::new()
         };
@@ -9723,6 +9727,21 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             .collect();
         let pkt = base64_decode(&b64).unwrap_or_default();
         let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        for key in &keys {
+            if key.certificate.is_empty() && key.seed.is_empty() { continue; }
+            let Ok(bytes) = key.certificate_bytes() else { continue };
+            if let Some(cert) = openpgp::read_certificate(&mut &bytes[..])
+                && openpgp::verify_message(&pkt, &cert, &data_bytes) {
+                let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
+                let fp = openssl_hex_encode(&cert.fingerprint).to_uppercase();
+                let uid = cert.uid;
+                return BuiltinOutcome {
+                    stdout: if status_fd.is_some() { format!("[GNUPG:] GOODSIG {kid} {uid}\n[GNUPG:] VALIDSIG {fp}\n") } else { String::new() },
+                    stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [ultimate]\n"),
+                    exit_code: 0,
+                };
+            }
+        }
         if pkt.len() >= 10 && pkt[0] == 0xc2 {
             let idx = if pkt[1] < 192 { 2 } else if pkt[1] == 0xff && pkt.len() >= 6 { 6 } else { 0 };
             if idx > 0 && pkt.len() > idx + 6 && pkt[idx] == 4 {
@@ -9771,9 +9790,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         let derived_kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
                         let pub_hex_lower = openssl_hex_encode(&pub_key).to_lowercase();
                         if key_id_hex == derived_kid
-                            && let Some((trusted_uid, _, _, _)) = keys
+                            && let Some(GpgKey { uid: trusted_uid, .. }) = keys
                                 .iter()
-                                .find(|(_, k, _, ph)| k == &derived_kid && ph.to_lowercase() == pub_hex_lower)
+                                .find(|k| k.public.to_lowercase() == pub_hex_lower)
                         {
                             let mpi_start = unhashed_end + 2;
                             let mut sig_arr = [0u8; 64];
@@ -9816,7 +9835,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let parts: Vec<&str> = rest_p.splitn(4, ':').collect();
             if parts.len() == 4 {
                 let (kid, uid, _pub_h, sig_h) = (parts[0], parts[1], parts[2], parts[3]);
-                if let Some((trusted_uid, _, seed_h, _)) = keys.iter().find(|(_, k, secret, _)| k == kid && !secret.is_empty()) {
+                if let Some(GpgKey { uid: trusted_uid, seed: seed_h, .. }) = keys.iter().find(|k| k.id == kid && !k.seed.is_empty()) {
                     let expected = openssl_hex_encode(&openssl_hmac("sha256", seed_h.as_bytes(), &data_bytes));
                     if expected == sig_h {
                         let stdout_msg = if status_fd.is_some() {
@@ -10140,6 +10159,12 @@ fn ed25519_verify(sig: &[u8], msg: &[u8], pub_key: &[u8]) -> bool {
     let Some(a_pt) = ed_decode_pt(pub_key) else {
         return false;
     };
+    // A low-order public key (in particular the identity) can satisfy the
+    // verification equation without knowing any signing secret.
+    for point in [a_pt, r_pt] {
+        let p = ed_pt_mul(point, [8, 0, 0, 0]);
+        if p.0 == [0; 4] && p.1 == p.2 { return false; }
+    }
     let mut s_limbs = [0u64; 4];
     for i in 0..4 {
         s_limbs[i] = u64::from_le_bytes(sig[32 + i * 8..32 + (i + 1) * 8].try_into().unwrap());

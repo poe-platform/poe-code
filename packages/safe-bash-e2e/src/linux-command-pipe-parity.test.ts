@@ -304,3 +304,61 @@ test("gpg matches GnuPG when an export selects no keys", async () => {
     rust.dispose();
   }
 });
+
+test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached signature", async () => {
+  const rust = new RustWasmBash({ cwd: "/workspace", forceNative: true });
+  const ts = await SafeBashE2EHarness.create({ fs: new sb.MemoryFileSystem() });
+  let dir: string | undefined;
+  try {
+    dir = await createLinuxCommandDirectory(rust.fs);
+    const home = dir + "/gnupg";
+    await mkdir(home, { mode: 0o700 });
+    const options = ["--no-options", "--no-autostart", "--batch", "--homedir", home];
+    for (const [shell, peer, who] of [[rust, ts.shell, "rust"], [ts.shell, rust, "typescript"]] as const) {
+      const uid = `Parity ${who} <${who}@example.org>`;
+      const generated = await shell.exec(`gpg --quick-generate-key '${uid}' ed25519 sign 0`);
+      assert.equal(generated.exitCode, 0, generated.stderr);
+      const payload = Buffer.from([0xff, 0, 9, 10]);
+      const signature = await shell.exec(`gpg -a -u '${uid}' --detach-sign`, { stdin: payload });
+      assert.equal(signature.exitCode, 0, signature.stderr);
+      await writeFile(dir + "/signature.asc", signature.stdoutBytes);
+      for (const flags of ["", "-a"]) {
+        const cert = await shell.exec("gpg " + flags + " --export " + who);
+        assert.equal(cert.exitCode, 0, cert.stderr);
+        if (!flags) {
+          const impersonation = Buffer.from(cert.stdoutBytes);
+          const start = impersonation.indexOf(uid);
+          assert.ok(start > 0);
+          impersonation[start] = 88;
+          for (const invalid of [impersonation, Buffer.concat([cert.stdoutBytes, Buffer.from([0xc5, 0])])]) {
+            const rejected = await peer.exec("gpg --import", { stdin: invalid });
+            assert.notEqual(rejected.exitCode, 0);
+            assert.equal((await peer.exec("gpg --list-keys " + who)).stdout, "");
+          }
+        }
+        const imported = await runLinuxCommand("gpg", [...options, "--status-fd=1", "--import"], cert.stdoutBytes, dir);
+        assert.equal(imported[0], 0, imported[2].toString());
+        assert.match(imported[1].toString(), /IMPORT_OK \d+ [A-F0-9]{40}/);
+        const fingerprint = /IMPORT_OK \d+ ([A-F0-9]{40})/.exec(imported[1].toString())![1]!;
+        const reexported = await runLinuxCommand("gpg", [...options, "--export", fingerprint], "", dir);
+        assert.equal(reexported[0], 0, reexported[2].toString());
+        const importedAgain = await peer.exec("gpg --import", { stdin: reexported[1] });
+        assert.equal(importedAgain.exitCode, 0, importedAgain.stderr);
+        await peer.exec("cat > /peer.sig", { stdin: signature.stdoutBytes });
+        const peerVerified = await peer.exec("gpg --verify /peer.sig", { stdin: payload });
+        assert.equal(peerVerified.exitCode, 0, peerVerified.stderr);
+        assert.equal(cert.stdout.startsWith("-----BEGIN"), flags === "-a");
+      }
+      const verified = await runLinuxCommand("gpg", [...options, "--status-fd=1", "--verify", "signature.asc", "-"], payload, dir);
+      assert.equal(verified[0], 0, verified[2].toString());
+      assert.ok(verified[1].toString().includes(uid));
+      assert.match(verified[1].toString(), /VALIDSIG [A-F0-9]{40}/);
+      const modified = await runLinuxCommand("gpg", [...options, "--verify", "signature.asc", "-"], "changed", dir);
+      assert.notEqual(modified[0], 0);
+    }
+  } finally {
+    if (dir) await rm(dir, { recursive: true, force: true });
+    rust.dispose();
+    await ts.dispose();
+  }
+});

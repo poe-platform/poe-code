@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { evalSyncSplit } from "./split.js";
 import { files, run } from "./test-helpers.js";
 
 test("elided chunks consume neither suffixes nor file quota", async () => {
@@ -41,5 +42,22 @@ test("file quota still rejects nonempty outputs and unelided chunks", async () =
     const result = await run(args, input, { limits: { maxFiles: 2 } });
     assert.equal(result.exitCode, 1);
     assert.ok(result.stderr.includes("file limit"));
+  }
+});
+
+test("sparse chunk counts only allocate and publish the nonempty outputs", async () => {
+  const input = Buffer.from("a\nb");
+  for (const mode of ["r/", "l/", ""]) {
+    const args = ["-d", "-e", "-n", mode + "400000000"];
+    const expected = mode ? { x000000000: "610a", x000000001: "62" } : { x000000000: "61", x000000001: "0a", x000000002: "62" };
+    const written: Record<string, string> = {};
+    assert.equal(evalSyncSplit(input, args, undefined, (name, bytes) => {
+      written[name] = Buffer.from(bytes).toString("hex");
+      return true;
+    }), "");
+    assert.deepEqual(written, expected);
+    const result = await run(args, input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await files(result.fs), expected);
   }
 });

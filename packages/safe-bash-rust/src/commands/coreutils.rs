@@ -17114,108 +17114,58 @@ fn cmd_split(
         }
         end
     };
+    let records = || raw_bytes.split_inclusive(|&byte| byte == parsed.separator);
     if parsed.selected_chunk > 0 {
-        let target_idx = parsed.selected_chunk - 1;
-        let out_slice: std::borrow::Cow<'_, [u8]> = match parsed.chunk_mode {
-            SplitChunkMode::RoundRobin => {
-                let mut out = Vec::new();
-                let mut start = 0usize;
-                let mut rec = 0usize;
-                for off in 0..raw_bytes.len() {
-                    if raw_bytes[off] != parsed.separator && off + 1 != raw_bytes.len() {
-                        continue;
-                    }
-                    if rec % parsed.size == target_idx {
-                        out.extend_from_slice(&raw_bytes[start..=off]);
-                    }
-                    rec += 1;
-                    start = off + 1;
-                }
-                out.into()
-            }
-            SplitChunkMode::Bytes | SplitChunkMode::Lines => {
-                let start = boundary(target_idx, 0);
-                (&raw_bytes[start..boundary(target_idx + 1, start)]).into()
-            }
+        let index = parsed.selected_chunk - 1;
+        let output;
+        let selected = if parsed.chunk_mode == SplitChunkMode::RoundRobin {
+            output = records().skip(index).step_by(parsed.size).flatten().copied().collect::<Vec<_>>();
+            &output[..]
+        } else {
+            let start = boundary(index, 0);
+            &raw_bytes[start..boundary(index + 1, start)]
         };
-        return ok_out(&crate::vfs::bytes_to_stream_string(&out_slice));
+        return ok_out(&crate::vfs::bytes_to_stream_string(selected));
     }
 
-    let mut chunks: Vec<Vec<u8>> = Vec::new();
-    match parsed.mode {
-        SplitMode::Bytes => {
-            for ch in raw_bytes.chunks(parsed.size.max(1)) {
-                chunks.push(ch.to_vec());
-            }
+    let mut buckets: Vec<Vec<u8>> = Vec::new();
+    if parsed.chunk_mode == SplitChunkMode::RoundRobin {
+        for (i, record) in records().enumerate() {
+            let index = i % parsed.size;
+            if index == buckets.len() { buckets.push(Vec::new()); }
+            buckets[index].extend_from_slice(record);
         }
-        SplitMode::Lines => {
-            let mut start = 0usize;
-            let mut lines = 0usize;
-            for off in 0..raw_bytes.len() {
-                if raw_bytes[off] == parsed.separator {
-                    lines += 1;
-                    if lines == parsed.size {
-                        chunks.push(raw_bytes[start..=off].to_vec());
-                        start = off + 1;
-                        lines = 0;
-                    }
-                }
-            }
-            if start < raw_bytes.len() {
-                chunks.push(raw_bytes[start..].to_vec());
-            }
-        }
-        SplitMode::LineBytes => {
-            let mut pos = 0usize;
-            while pos < raw_bytes.len() {
-                let avail = (raw_bytes.len() - pos).min(parsed.size);
-                let win = &raw_bytes[pos..pos + avail];
-                let mut count = avail;
-                if avail == parsed.size {
-                    for off in (0..avail).rev() {
-                        if win[off] == parsed.separator {
-                            count = off + 1;
-                            break;
-                        }
-                    }
-                }
-                chunks.push(raw_bytes[pos..pos + count].to_vec());
-                pos += count;
-            }
-        }
-        SplitMode::Chunks => match parsed.chunk_mode {
-            SplitChunkMode::RoundRobin => {
-                let mut buckets: Vec<Vec<u8>> = vec![Vec::new(); parsed.size];
-                let mut start = 0usize;
-                let mut rec = 0usize;
-                for off in 0..raw_bytes.len() {
-                    if raw_bytes[off] != parsed.separator && off + 1 != raw_bytes.len() {
-                        continue;
-                    }
-                    buckets[rec % parsed.size].extend_from_slice(&raw_bytes[start..=off]);
-                    rec += 1;
-                    start = off + 1;
-                }
-                chunks = buckets;
-            }
-            SplitChunkMode::Bytes | SplitChunkMode::Lines => {
-                let mut chunk_offset = 0usize;
-                for idx in 0..parsed.size {
-                    let clamped = boundary(idx + 1, chunk_offset);
-                    chunks.push(raw_bytes[chunk_offset..clamped].to_vec());
-                    chunk_offset = clamped;
-                }
-            }
-        },
     }
-
     let mut names = SplitNames::new(&parsed);
     let mut files_written = 0usize;
     let mut stdout = String::new();
     let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
     let mut output_ids = BTreeSet::new();
     let mut protected: Vec<_> = input_path.iter().cloned().collect();
-    for chunk in chunks {
+    let mut offset = 0;
+    let count = if parsed.mode == SplitMode::Chunks { parsed.size } else { raw_bytes.len() };
+    for index in 0..count {
+        let chunk = if parsed.chunk_mode == SplitChunkMode::RoundRobin {
+            if parsed.elide_empty && index == buckets.len() { break; }
+            buckets.get(index).map_or(&[][..], Vec::as_slice)
+        } else {
+            if offset == raw_bytes.len() && (parsed.mode != SplitMode::Chunks || parsed.elide_empty) { break; }
+            let rest = &raw_bytes[offset..];
+            let end = match parsed.mode {
+                SplitMode::Chunks => boundary(index + 1, offset),
+                SplitMode::Lines => offset + rest.split_inclusive(|&b| b == parsed.separator)
+                    .take(parsed.size).map(<[_]>::len).sum::<usize>(),
+                SplitMode::Bytes | SplitMode::LineBytes => {
+                    let size = rest.len().min(parsed.size);
+                    offset + if parsed.mode == SplitMode::LineBytes && size == parsed.size {
+                        rest[..size].iter().rposition(|&b| b == parsed.separator).map_or(size, |i| i + 1)
+                    } else { size }
+                }
+            };
+            let piece = &raw_bytes[offset..end];
+            offset = end;
+            piece
+        };
         if chunk.is_empty() && parsed.elide_empty {
             continue;
         }
@@ -17235,7 +17185,7 @@ fn cmd_split(
             let version = fs.generation();
             match fs.lstat(&entry) {
                 Err(e) if e.starts_with("ENOENT:") => {
-                    fs.create_file(&entry, &chunk, mode)?;
+                    fs.create_file(&entry, chunk, mode)?;
                     return Ok(fs.lstat(&entry)?.identity);
                 }
                 Err(e) => return Err(e),
@@ -17263,12 +17213,12 @@ fn cmd_split(
                 let id = st.identity;
                 check(&id)?;
                 handle.truncate_to(0)?;
-                handle.write_at(Some(0), &chunk)?;
+                handle.write_at(Some(0), chunk)?;
                 Ok(id)
             } else {
                 let stamp = fs.observe_publication(&entry, version, crate::vfs::PublicationMode::Write)?;
                 check(&fs.lstat(&entry)?.identity)?;
-                fs.publish_file(&entry, &chunk, &protected, stamp.version)?;
+                fs.publish_file(&entry, chunk, &protected, stamp.version)?;
                 Ok(fs.lstat(&entry)?.identity)
             }
         };

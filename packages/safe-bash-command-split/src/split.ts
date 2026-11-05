@@ -129,6 +129,8 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
     if (chunkInput && chunkIndex && args.chunkMode === "lines") chunkOffset = await lineBoundary(chunkInput, chunkOffset);
     while (true) {
       if (chunkInput && chunkIndex === size) break;
+      if (chunkInput && args.elideEmpty && !args.selectedChunk &&
+        (args.chunkMode === "round-robin" ? chunkIndex === records.size : chunkOffset === chunkInput.length)) break;
       const chunks = chunkInput ? (async function* (): AsyncGenerator<Uint8Array> {
         if (args.chunkMode === "round-robin") {
           for (const [start, end] of records.get(chunkIndex) ?? []) {
@@ -296,15 +298,17 @@ export function evalSyncSplit(
       flushBuf();
     } else if (args.mode === "chunks") {
       if (args.chunkMode === "round-robin") {
-        const buckets: Uint8Array[][] = Array.from({ length: size }, () => []);
+        const buckets: Uint8Array[][] = [];
         let start = 0;
         let rec = 0;
         for (let off = 0; off < src.length; off++) {
           if (src[off] !== args.separator && off + 1 !== src.length) continue;
-          buckets[rec++ % size]!.push(src.subarray(start, off + 1));
+          const index = rec++ % size;
+          (buckets[index] ??= []).push(src.subarray(start, off + 1));
           start = off + 1;
         }
-        for (const b of buckets) {
+        for (let i = 0; i < (args.elideEmpty ? buckets.length : size); i++) {
+          const b = buckets[i] ?? [];
           const total = b.reduce((s, p) => s + p.length, 0);
           const merged = new Uint8Array(total);
           let o = 0;
@@ -313,7 +317,7 @@ export function evalSyncSplit(
         }
       } else {
         let chunkOffset = 0;
-        for (let idx = 0; idx < size; idx++) {
+        for (let idx = 0; idx < size && (!args.elideEmpty || chunkOffset < src.length); idx++) {
           let end = chunkBoundary(src.length, size, idx + 1);
           if (args.chunkMode === "lines") {
             end = Math.max(end, chunkOffset);

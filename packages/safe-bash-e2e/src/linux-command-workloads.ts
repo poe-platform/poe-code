@@ -108,6 +108,9 @@ comment */ / 8, "\n" # trailing comment
 
 export const linuxMutations = ([
   ["split", "-b", "5", "effects/source", "effects/x"],
+  ["split", "-d", "-e", "-n", "20000", "effects/source", "effects/x"],
+  ["split", "-d", "-e", "-n", "l/20000", "effects/source", "effects/x"],
+  ["split", "-d", "-e", "-n", "r/20000", "effects/source", "effects/x"],
   ["csplit", "-f", "effects/x", "effects/source", "/middle/"],
   ["install", "-m", "0751", "effects/source", "effects/installed"],
   ["cp", "-p", "effects/source", "effects/copy"], ["mv", "effects/source", "effects/moved"],

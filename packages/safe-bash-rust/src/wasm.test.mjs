@@ -6427,6 +6427,21 @@ test("a supplied filesystem keeps redirected descriptors on the opened file afte
   }finally{await bash.dispose();}
 });
 
+test("split elides unused chunks without allocating a bucket per requested output", async () => {
+  const sh = new RustWasmBash({ forceNative: true });
+  try {
+    for (const mode of ["r/", "l/", ""]) {
+      const prefix = "/pieces" + (mode[0] ?? "b");
+      const result = await sh.exec("split -d -e -n " + mode + "400000000 - " + prefix, { stdin: "a\nb" });
+      assert.equal(result.exitCode, 0, result.stderr);
+      const parts = mode ? ["a\n", "b"] : ["a", "\n", "b"];
+      const names = (await sh.fs.readdir("/")).map(e => "/" + e.name).filter(name => name.startsWith(prefix)).sort();
+      assert.deepEqual(names, parts.map((_, i) => prefix + String(i).padStart(9, "0")));
+      for (const [i, name] of names.entries()) assert.deepEqual(Buffer.from(await sh.fs.readFile(name)), Buffer.from(parts[i]));
+    }
+  } finally { sh.dispose(); }
+});
+
 test("split checks the opened output before truncation if its name is redirected to the input", {skip:!WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), shell = new RustWasmBash({cwd:"/",forceNative:true});

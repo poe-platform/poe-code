@@ -30409,7 +30409,6 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: bool) -
                     || lt.starts_with("- ")
                     || lt.starts_with("* ")
                     || lt.starts_with("> ")
-                    || table(lt, i)
                     || lt == "---")
             {
                 break;

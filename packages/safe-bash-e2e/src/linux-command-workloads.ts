@@ -240,6 +240,10 @@ export function linuxCommands(text: string) {
       cmd: pandoc, args: ["-f", "commonmark", "-t", "plain", "--wrap=none"],
       script: "pandoc -f commonmark -t plain --wrap=none", input,
     })),
+    ...["intro\n| one |\n|---|\n", "> intro\n> | a | b |\n> | --- | --- |\n"].map(input => ({
+      cmd: pandoc, args: ["-f", "gfm", "-t", "plain", "--wrap=none"],
+      script: "pandoc -f gfm -t plain --wrap=none", input,
+    })),
     ...["commonmark+pipe_tables", "commonmark+pipe_tables-pipe_tables", "gfm-pipe_tables"].map(format => ({
       cmd: "bash", args: ["--noprofile", "--norc", "-c", '"$1" -f "$2" -t html | grep -c "<table"', "bash", pandoc, format],
       script: `pandoc -f ${format} -t html | grep -c '<table'`, input: "| a | b |\n| --- | --- |\n| 1 | 2 |\n",

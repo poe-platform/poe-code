@@ -241,6 +241,42 @@ test("sqlite3 JSON1 honors NULL paths through the public command", async () => {
   }
 });
 
+for (const mode of ["set", "insert", "replace", "remove"]) {
+  test(`sqlite3 json_${mode} validates reachable JSON paths before mutation`, async () => {
+    const cases: [string, string, string | null][] = [
+      ["{}", "$[x]", "{}"],
+      ["{}", "$.", null],
+      ["{}", "$.a[xyz]", mode === "set" || mode === "insert" ? null : "{}"],
+      ['{"a":[]}', "$.a[xyz]", null],
+      ['{"a":{}}', "$.a[xyz]", '{"a":{}}'],
+      ['{"a":1}', "$.a[xyz]", '{"a":1}'],
+      ["[]", "$[x]", null],
+      ["[]", "$[", null],
+      ["[]", "$[]", null],
+      ["[]", "$[-1]", null],
+      ["[]", "$[1.0]", null],
+      ["[]", "$[ 0]", null],
+      ["[]", "$[#-]", null],
+      ["{}", "$..a", null],
+      ["{}", '$."unterminated', null],
+      ["{}", "$a", null],
+      ["{}", "a", null],
+      ["{}", " $", null],
+      ["{}", "$.a.", mode === "set" || mode === "insert" ? null : "{}"],
+      ['{"a":0}', "$.a.", null],
+      ['{"a":0}', "$.a[0]", '{"a":0}'],
+      ["{}", "$.a[1]", "{}"],
+    ];
+    for (const [doc, path, expected] of cases) {
+      const sql = `SELECT json_${mode}('${doc}', '${path}'${mode === "remove" ? "" : ", 1"});`;
+      const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql]);
+      assert.deepEqual(result, expected === null
+        ? { code: 1, stdout: "", stderr: `Error: bad JSON path: '${path}'\n` }
+        : { code: 0, stdout: `${expected}\n`, stderr: "" }, sql);
+    }
+  });
+}
+
 test("sqlite3 JSON1 treats quoted object names as single path components", async () => {
   const cases = [
     [`json_extract('{"a.b":42}', '$."a.b"')`, "42"],

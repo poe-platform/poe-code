@@ -1,3 +1,4 @@
+import {tiffChannels} from "./tiff-layout.js";
 import {imageOutputFormat} from "../output-format.js";
 import {TextPixels} from "./text-pixels.js";
 import {CreatedPixels} from "./create-pixels.js";
@@ -475,7 +476,7 @@ export function encodeImage(
         density: options.density ?? img.density,
         ...(orientation !== undefined ? { orientation } : {})
       });
-      return { data, format: "tiff", channels: 4 };
+      return { data, format: "tiff", channels: tiffChannels(img) };
     }
     case "pdf": {
       const data = encodePdfImage(img);

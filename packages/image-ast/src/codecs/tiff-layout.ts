@@ -1,15 +1,20 @@
 import type {RgbaImage} from "../ast.js";
+export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 4 {
+  return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : 4;
+}
 export function createTiffLayout(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation"|"space"|"hasAlpha">,
   options?: { readonly density?: number; readonly orientation?: number }
 ) {
   const { width, height } = img;
-  const pixelBytes = width * height * 4;
+  const channels = tiffChannels(img), hasAlpha = channels !== 1;
+  const pixelBytes = width * height * channels;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const orientation = options?.orientation ?? img.orientation ?? 1;
-  // Little-endian baseline RGBA TIFF: 8-byte header + pixel data + IFD (15 entries) + extras
-  const ifdOffset = 8 + pixelBytes;
-  const numEntries = 15;
+  // Little-endian baseline TIFF: header + pixel data + IFD + extras
+  const padding = pixelBytes % 2;
+  const ifdOffset = 8 + pixelBytes + padding;
+  const numEntries = hasAlpha ? 15 : 14;
   const bpsOffset = ifdOffset + 2 + numEntries * 12 + 4;
   const xResOffset = bpsOffset + 8;
   const yResOffset = xResOffset + 8;
@@ -37,19 +42,19 @@ export function createTiffLayout(
   };
   writeEntry(0, 256, 4, 1, width); // ImageWidth
   writeEntry(1, 257, 4, 1, height); // ImageLength
-  writeEntry(2, 258, 3, 4, bpsOffset); // BitsPerSample (8,8,8,8)
+  writeEntry(2, 258, 3, channels, channels === 1 ? 8 : channels === 2 ? 0x00080008 : bpsOffset); // BitsPerSample
   writeEntry(3, 259, 3, 1, 1); // Compression = None
-  writeEntry(4, 262, 3, 1, 2); // PhotometricInterpretation = RGB
+  writeEntry(4, 262, 3, 1, channels < 3 ? 1 : 2); // BlackIsZero or RGB
   writeEntry(5, 273, 4, 1, 8); // StripOffsets
   writeEntry(6, 274, 3, 1, orientation); // Orientation
-  writeEntry(7, 277, 3, 1, 4); // SamplesPerPixel = 4
+  writeEntry(7, 277, 3, 1, channels); // SamplesPerPixel
   writeEntry(8, 278, 4, 1, height); // RowsPerStrip
   writeEntry(9, 279, 4, 1, pixelBytes); // StripByteCounts
   writeEntry(10, 282, 5, 1, xResOffset); // XResolution
   writeEntry(11, 283, 5, 1, yResOffset); // YResolution
   writeEntry(12, 284, 3, 1, 1); // PlanarConfiguration = Chunky
   writeEntry(13, 296, 3, 1, 2); // ResolutionUnit = Inch
-  writeEntry(14, 338, 3, 1, 2); // ExtraSamples = Unassociated Alpha
+  if (hasAlpha) writeEntry(14, 338, 3, 1, 2); // ExtraSamples = Unassociated Alpha
   view.setUint32(2 + numEntries * 12, 0, true);
   view.setUint16(bpsOffset-ifdOffset, 8, true);
   view.setUint16(bpsOffset-ifdOffset + 2, 8, true);
@@ -59,6 +64,6 @@ export function createTiffLayout(
   view.setUint32(xResOffset-ifdOffset + 4, 1, true);
   view.setUint32(yResOffset-ifdOffset, density, true);
   view.setUint32(yResOffset-ifdOffset + 4, 1, true);
-  return {header,directory};
+  return {header,directory,channels,padding};
 }
 

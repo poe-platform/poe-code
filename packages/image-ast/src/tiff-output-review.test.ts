@@ -4,42 +4,26 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import type {FileSystem} from "@poe-code/safe-fs/contracts";
 import type {RgbaImage} from "./ast.js";
 import sharp from "./index.js";
-import {encodeTiffImage} from "./codecs/netpbm.js";
+import {decodeTiffImage,encodeTiffImage} from "./codecs/netpbm.js";
 import {encodeTiffFromStorage} from "./codecs/tiff-storage.js";
 // Independent legacy TIFF byte vectors recorded from HEAD 3b39c2948b.
 const vectors:{image:Omit<RgbaImage,"data">;options:{density?:number;orientation?:number};hash:string}[]=[
 {"image":{"width":67,"height":19,"channels":1,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":false},"options":{},"hash":"124dde4a198863ade2daca6014d366ea9a38d001bd5b22cc4030c05b80ff7cad"},
-{"image":{"width":67,"height":19,"channels":1,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":false,"density":0,"orientation":1},"options":{},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"},
 {"image":{"width":67,"height":19,"channels":1,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":false,"density":-10,"orientation":2},"options":{},"hash":"f64e8524d46b56487b1cd7eb683b15783760510ffd9d384a8878ae5cbc1db2ea"},
-{"image":{"width":67,"height":19,"channels":1,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":false,"density":144.5,"orientation":3},"options":{},"hash":"cbfdfb533981f515926da9d15f1926babd6271a2ab2c1fba6dddc7b70d051253"},
 {"image":{"width":67,"height":19,"channels":1,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":false,"density":300,"orientation":4},"options":{"density":1,"orientation":4},"hash":"228c94f70a77f5d669d8c81a3cd1a311fa9d95ff42b43cfb9ec6f4ccf63b3256"},
-{"image":{"width":67,"height":19,"channels":1,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":false,"density":0.5,"orientation":5},"options":{"density":72.4,"orientation":3},"hash":"e9b16dc7304005a3d42bedeb53a3e38766d05930017ff6a69ea98a53eee569d6"},
 {"image":{"width":67,"height":19,"channels":1,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":false,"density":72,"orientation":6},"options":{"density":450,"orientation":2},"hash":"372987509198a1cd99f9c17b1d6cb3bac51a268c934d59f57f10d902745e27d2"},
-{"image":{"width":67,"height":19,"channels":1,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":false,"density":300,"orientation":7},"options":{"density":-30,"orientation":1},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"},
 {"image":{"width":67,"height":19,"channels":2,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":true},"options":{},"hash":"124dde4a198863ade2daca6014d366ea9a38d001bd5b22cc4030c05b80ff7cad"},
-{"image":{"width":67,"height":19,"channels":2,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":true,"density":0,"orientation":1},"options":{},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"},
 {"image":{"width":67,"height":19,"channels":2,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":true,"density":-10,"orientation":2},"options":{},"hash":"f64e8524d46b56487b1cd7eb683b15783760510ffd9d384a8878ae5cbc1db2ea"},
-{"image":{"width":67,"height":19,"channels":2,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":true,"density":144.5,"orientation":3},"options":{},"hash":"cbfdfb533981f515926da9d15f1926babd6271a2ab2c1fba6dddc7b70d051253"},
 {"image":{"width":67,"height":19,"channels":2,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":true,"density":300,"orientation":4},"options":{"density":1,"orientation":4},"hash":"228c94f70a77f5d669d8c81a3cd1a311fa9d95ff42b43cfb9ec6f4ccf63b3256"},
-{"image":{"width":67,"height":19,"channels":2,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":true,"density":0.5,"orientation":5},"options":{"density":72.4,"orientation":3},"hash":"e9b16dc7304005a3d42bedeb53a3e38766d05930017ff6a69ea98a53eee569d6"},
 {"image":{"width":67,"height":19,"channels":2,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":true,"density":72,"orientation":6},"options":{"density":450,"orientation":2},"hash":"372987509198a1cd99f9c17b1d6cb3bac51a268c934d59f57f10d902745e27d2"},
-{"image":{"width":67,"height":19,"channels":2,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":true,"density":300,"orientation":7},"options":{"density":-30,"orientation":1},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"},
 {"image":{"width":67,"height":19,"channels":3,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":false},"options":{},"hash":"124dde4a198863ade2daca6014d366ea9a38d001bd5b22cc4030c05b80ff7cad"},
-{"image":{"width":67,"height":19,"channels":3,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":false,"density":0,"orientation":1},"options":{},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"},
 {"image":{"width":67,"height":19,"channels":3,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":false,"density":-10,"orientation":2},"options":{},"hash":"f64e8524d46b56487b1cd7eb683b15783760510ffd9d384a8878ae5cbc1db2ea"},
-{"image":{"width":67,"height":19,"channels":3,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":false,"density":144.5,"orientation":3},"options":{},"hash":"cbfdfb533981f515926da9d15f1926babd6271a2ab2c1fba6dddc7b70d051253"},
 {"image":{"width":67,"height":19,"channels":3,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":false,"density":300,"orientation":4},"options":{"density":1,"orientation":4},"hash":"228c94f70a77f5d669d8c81a3cd1a311fa9d95ff42b43cfb9ec6f4ccf63b3256"},
-{"image":{"width":67,"height":19,"channels":3,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":false,"density":0.5,"orientation":5},"options":{"density":72.4,"orientation":3},"hash":"e9b16dc7304005a3d42bedeb53a3e38766d05930017ff6a69ea98a53eee569d6"},
 {"image":{"width":67,"height":19,"channels":3,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":false,"density":72,"orientation":6},"options":{"density":450,"orientation":2},"hash":"372987509198a1cd99f9c17b1d6cb3bac51a268c934d59f57f10d902745e27d2"},
-{"image":{"width":67,"height":19,"channels":3,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":false,"density":300,"orientation":7},"options":{"density":-30,"orientation":1},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"},
 {"image":{"width":67,"height":19,"channels":4,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":true},"options":{},"hash":"124dde4a198863ade2daca6014d366ea9a38d001bd5b22cc4030c05b80ff7cad"},
-{"image":{"width":67,"height":19,"channels":4,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":true,"density":0,"orientation":1},"options":{},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"},
 {"image":{"width":67,"height":19,"channels":4,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":true,"density":-10,"orientation":2},"options":{},"hash":"f64e8524d46b56487b1cd7eb683b15783760510ffd9d384a8878ae5cbc1db2ea"},
-{"image":{"width":67,"height":19,"channels":4,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":true,"density":144.5,"orientation":3},"options":{},"hash":"cbfdfb533981f515926da9d15f1926babd6271a2ab2c1fba6dddc7b70d051253"},
 {"image":{"width":67,"height":19,"channels":4,"space":"srgb","depth":"uchar","format":"raw","hasAlpha":true,"density":300,"orientation":4},"options":{"density":1,"orientation":4},"hash":"228c94f70a77f5d669d8c81a3cd1a311fa9d95ff42b43cfb9ec6f4ccf63b3256"},
-{"image":{"width":67,"height":19,"channels":4,"space":"b-w","depth":"ushort","format":"raw","hasAlpha":true,"density":0.5,"orientation":5},"options":{"density":72.4,"orientation":3},"hash":"e9b16dc7304005a3d42bedeb53a3e38766d05930017ff6a69ea98a53eee569d6"},
 {"image":{"width":67,"height":19,"channels":4,"space":"rgb16","depth":"uchar","format":"raw","hasAlpha":true,"density":72,"orientation":6},"options":{"density":450,"orientation":2},"hash":"372987509198a1cd99f9c17b1d6cb3bac51a268c934d59f57f10d902745e27d2"},
-{"image":{"width":67,"height":19,"channels":4,"space":"grey16","depth":"ushort","format":"raw","hasAlpha":true,"density":300,"orientation":7},"options":{"density":-30,"orientation":1},"hash":"63a6edb2ef0e55f1433cbb128f045ec55a65401d099681e380d834a25e0943c5"}
 ];
 function backing(image:Omit<RgbaImage,"data">=vectors[0]!.image){const data=Uint8Array.from({length:image.width*image.height*4},(_,i)=>(i*43+Math.floor(i/7))%256),borrowed=new Uint8Array(4096),storage={allocate:vi.fn(()=>{throw new Error("encode cannot allocate storage");}),write:vi.fn(async()=>{throw new Error("encode cannot write storage");}),read:vi.fn(async(position:number,length:number)=>{if(length>4096||position<8||position+length>data.length+8)throw new Error("invalid backing read");borrowed.fill(37);borrowed.set(data.subarray(position-8,position-8+length));return borrowed.subarray(0,length);})};return {data,storage,image:{...image,position:8}};}
 const digest=(bytes:Uint8Array)=>createHash("sha256").update(bytes).digest("hex");
@@ -60,3 +44,30 @@ it("preserves destination when TIFF backing reads fail during publication",async
 });
 it("admits the largest one-row layout that fits classic TIFF without reading the raster",async()=>{const {storage,image}=backing(),stream=encodeTiffFromStorage({...image,width:1073741769,height:1},storage,new AbortController().signal),first=await stream.next();expect(first.done).toBe(false);expect(new DataView(first.value!.buffer,first.value!.byteOffset,first.value!.byteLength).getUint32(4,true)).toBe(4294967084);expect(storage.read).not.toHaveBeenCalled();await stream.return(undefined);});
 it("rejects unrepresentable buffered TIFF layout before allocating pixel output",()=>{const {image}=backing(),Original=Uint8Array;vi.stubGlobal("Uint8Array",new Proxy(Original,{construct(target,args){if(typeof args[0]==="number"&&args[0]>4096)throw new Error("unbounded allocation");return Reflect.construct(target,args);}}));try{expect(()=>encodeTiffImage({...image,width:1073741770,height:1,data:new Uint8Array()})).toThrow("TIFF layout exceeds classic TIFF offsets");}finally{vi.unstubAllGlobals();}});
+
+for(const space of ["b-w","grey16"] as const) {
+ it.each([false,true])(`preserves ${space} TIFF samples and alpha=%s across storage chunks`,async hasAlpha=>{
+  const {data,storage,image}=backing({...vectors[0]!.image,width:1025,height:1,space,hasAlpha,channels:hasAlpha?2:1});
+  const buffered=encodeTiffImage({...image,data});
+  expect(new DataView(buffered.buffer).getUint32(4,true)%2).toBe(0);
+  const chunks:Uint8Array[]=[];
+  for await(const bytes of encodeTiffFromStorage(image,storage,new AbortController().signal)) chunks.push(bytes);
+  expect(Buffer.concat(chunks)).toEqual(Buffer.from(buffered));
+  expect(decodeTiffImage(buffered)).toMatchObject({space:"b-w",channels:hasAlpha?2:1,hasAlpha});
+  const expected=new Uint8Array(data.length);
+  for(let i=0;i<data.length;i+=4) {
+   expected[i]=expected[i+1]=expected[i+2]=data[i]!;
+   expected[i+3]=hasAlpha?data[i+3]!:255;
+  }
+  expect(decodeTiffImage(buffered).data).toEqual(expected);
+ });
+}
+it.each([false,true])("reports grayscale TIFF output channels with alpha=%s",async hasAlpha=>{
+ const fs=new MemoryFileSystem(),input=sharp({create:{width:3,height:1,channels:hasAlpha?4:3,background:"red"}}).png().toBufferSync();
+ await fs.writeFile("/in.png",input);
+ const buffered=sharp(input).greyscale().tiff().toBufferWithObjectSync();
+ const stored=await sharp("/in.png",{filesystem:guarded(fs)}).greyscale().toFile("/out.tiff");
+ expect(buffered.info.channels).toBe(hasAlpha?2:1);
+ expect(stored).toEqual(buffered.info);
+ expect(await fs.readFile("/out.tiff")).toEqual(buffered.data);
+});

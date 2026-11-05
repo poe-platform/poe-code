@@ -292,9 +292,15 @@ export function encodeBmpImage(img: RgbaImage): Uint8Array {
 }
 
 export function encodeTiffImage(img:RgbaImage,options?:{readonly density?:number;readonly orientation?:number}):Uint8Array {
- const {header,directory}=createTiffLayout(img,options),pixelBytes=img.width*img.height*4;
- const out=new Uint8Array(header.length+pixelBytes+directory.length);
- out.set(header);out.set(img.data,header.length);out.set(directory,header.length+pixelBytes);
+ const {header,directory,channels,padding}=createTiffLayout(img,options),pixelBytes=img.width*img.height*channels;
+ const out=new Uint8Array(header.length+pixelBytes+padding+directory.length);
+ out.set(header);
+ if(channels===4) out.set(img.data,header.length);
+ else for(let src=0,dst=header.length;dst<header.length+pixelBytes;src+=4) {
+  out[dst++]=img.data[src]!;
+  if(channels===2) out[dst++]=img.data[src+3]!;
+ }
+ out.set(directory,header.length+pixelBytes+padding);
  return out;
 }
 
@@ -638,7 +644,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
         : bitsPerSample === 16
           ? "rgb16"
           : "srgb",
-    channels: samplesPerPixel === 4 ? 4 : samplesPerPixel === 1 ? 1 : 3,
+    channels: samplesPerPixel === 4 ? 4 : samplesPerPixel === 1 ? 1 : samplesPerPixel === 2 ? 2 : 3,
     depth: bitsPerSample === 16 ? "ushort" : "uchar",
     bitsPerSample,
     density,

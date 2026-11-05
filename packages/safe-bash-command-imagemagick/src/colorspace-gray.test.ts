@@ -1,7 +1,27 @@
+import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
+
+const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
+for (const retained of [false, true]) {
+    it.skipIf(!nativeAvailable)(`preserves grayscale TIFF channels from truecolor PNG, retained=${retained}`, async () => {
+        const input = spawnSync("magick", ["-size", "2x1", "xc:red", "-fill", "blue", "-draw", "point 1,0", "PNG24:-"]);
+        expect(input.status).toBe(0);
+        const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>([["in.png", input.stdout]]);
+        await fs.writeFile("/in.png", input.stdout);
+        const result = await runConvertCli(["in.png", "-colorspace", "Gray", "out.tiff"], retained ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const output = retained ? await fs.readFile("/out.tiff") : files.get("out.tiff")!;
+        const metadata = spawnSync("magick", ["identify", "-format", "%[colorspace] %[channels]", "tiff:-"], { input: output, encoding: "utf8" });
+        expect(metadata.status).toBe(0);
+        expect(metadata.stdout.trim()).toBe("Gray gray  1.0");
+        const pixels = spawnSync("magick", ["tiff:-", "-depth", "8", "rgb:-"], { input: output });
+        expect(pixels.status).toBe(0);
+        expect([...pixels.stdout]).toEqual([54, 54, 54, 18, 18, 18]);
+    });
+}
 
 // Native ImageMagick: magick -size 1x1 xc:<color> -colorspace gray -depth 8 rgba:-
 for (const retained of [false, true]) {

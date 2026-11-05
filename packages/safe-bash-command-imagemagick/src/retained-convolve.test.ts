@@ -19,7 +19,7 @@ it.each([
     ["0,-1,0,-1,-4,-1,0,-1,0", 255, 32, 128],
     ["0,-1,0,-1,4,-1,0,-1,0", 255, 0, 255]
 ] as const)(`matches ImageMagick impulse ${operator.join(" ")} (retained=${retained}): %s`, async (kernel, intensity, neighbor, center) => {
-    // ImageMagick 7.1.2, opaque black 5x5 image with a grayscale impulse at (2, 2).
+    // ImageMagick 7.1.2, opaque black RGBA 5x5 image with a grayscale impulse at (2, 2).
     const pixels = new Uint8Array(5 * 5 * 4);
     for (let i = 3; i < pixels.length; i += 4) pixels[i] = 255;
     pixels.fill(intensity, 12 * 4, 12 * 4 + 3);
@@ -30,7 +30,7 @@ it.each([
     expect((await runConvertCli(["input.png", ...operator, spec, "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
     const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
     const expected = new Uint8Array(pixels.length);
-    for (let i = 3; i < expected.length; i += 4) expected[i] = 255;
+    for (let i = 3; i < expected.length; i += 4) expected[i] = center === 255 ? 0 : 255;
     for (const index of [7, 11, 13, 17]) expected.fill(neighbor, index * 4, index * 4 + 3);
     expected.fill(center, 12 * 4, 12 * 4 + 3);
     expect(output.data).toEqual(expected);
@@ -47,9 +47,9 @@ it("preserves convolution pixel vectors", async () => {
         "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
         "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
         "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
-        "2f6b9af07632f593110f9e50d6b653dcdd07ce2d1e69383662e46679a8a9997e",
-        "3cfb0e56521a38e4b4313b68a7dd2606a6bcb498e33f58c59d53c864aefd0ee0",
-        "40d2fa8d388dcc3ca6782c3933e998d506009c378898b513187a33b435cde60b",
+        "d9f0f157e2d496a288a3ebc6d75046bdba62192bc849d261f2b93acacfe4fbcd",
+        "1fb7fe525b5f654ec4b9face9e3cefcece7d6285b78a2a3f6ff11b21457f4740",
+        "2de19a603954b8e43f01b36a4f6cbd941800ab6af6034c2815242b2bd7a30e4c",
         "6c6a91f804b4aefbe26741858e04a21e81757b9660f3696c244b800c494cf1f5",
         "0e4cbf0ead81e2f99a18d2ed821ad0e8d22a203905b2f540d64966aaecbe12a2",
         "b20cddf7067f385b76e0cda06265cf6450f6df2494cef006227bbcdbbc5f1ad8",

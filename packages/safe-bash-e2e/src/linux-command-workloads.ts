@@ -253,6 +253,12 @@ export function linuxCommands(text: string) {
       input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "BlockQuote", c: [
         {t: "CodeBlock", c: [["fig", ["foo", "bar"], [["lang", "en"]]], "one\n"]}]}]}),
     })),
+    ...["json", "plain"].map(to => ({
+      cmd: pandoc, args: ["-f", "json", "-t", to, "--wrap=none"], script: `pandoc -f json -t ${to} --wrap=none`,
+      input: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [
+        {t: "Link", c: [["link", [], []], [{t: "Code", c: [["sample", ["foo"], []], "x"]}], ["/a", 'a "title"']]},
+        {t: "Space"}, {t: "Strikeout", c: [{t: "Str", c: "old"}]}]}]}),
+    })),
     ...["commonmark+pipe_tables", "commonmark+pipe_tables-pipe_tables", "gfm-pipe_tables"].map(format => ({
       cmd: "bash", args: ["--noprofile", "--norc", "-c", '"$1" -f "$2" -t html | grep -c "<table"', "bash", pandoc, format],
       script: `pandoc -f ${format} -t html | grep -c '<table'`, input: "| a | b |\n| --- | --- |\n| 1 | 2 |\n",

@@ -30086,8 +30086,8 @@ enum PandocInline {
     Strong(Vec<PandocInline>),
     Emph(Vec<PandocInline>),
     Strikeout(Vec<PandocInline>),
-    Code(String),
-    Link(Vec<PandocInline>, String),
+    Code(PandocAttr, String),
+    Link(PandocAttr, Vec<PandocInline>, String, String),
 }
 
 #[derive(Clone, Debug, Default)]
@@ -30098,6 +30098,11 @@ struct PandocAttr {
 }
 
 impl PandocAttr {
+    fn write_html_id_classes(&self, out: &mut String, ascii: bool) {
+        if !self.id.is_empty() { out.push_str(&format!(" id=\"{}\"", html_escape_pandoc(&self.id, ascii))); }
+        if !self.classes.is_empty() { out.push_str(&format!(" class=\"{}\"", html_escape_pandoc(&self.classes.join(" "), ascii))); }
+    }
+
     fn json(&self) -> JVal {
         JVal::Array(vec![
             JVal::Str(self.id.clone()),
@@ -30155,11 +30160,11 @@ fn inlines_plain_text(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
-            PandocInline::Text(s) | PandocInline::Code(s) => out.push_str(s),
+            PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
             PandocInline::Strong(c)
             | PandocInline::Emph(c)
-            | PandocInline::Strikeout(c)
-            | PandocInline::Link(c, _) => out.push_str(&inlines_plain_text(c)),
+            | PandocInline::Link(_, c, _, _) => out.push_str(&inlines_plain_text(c)),
+            PandocInline::Strikeout(c) => { if !c.is_empty() { out.push_str(&format!("~~{}~~", inlines_plain_text(c))); } }
         }
     }
     out
@@ -30177,7 +30182,7 @@ fn parse_pandoc_md_inlines(s: &str) -> Vec<PandocInline> {
                 if !cur.is_empty() {
                     out.push(PandocInline::Text(std::mem::take(&mut cur)));
                 }
-                out.push(PandocInline::Code(rest[..end].to_string()));
+                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].to_string()));
                 i += 2 + end + 2;
                 if s[i..].starts_with("\\ ") {
                     cur.push(' ');
@@ -30192,7 +30197,7 @@ fn parse_pandoc_md_inlines(s: &str) -> Vec<PandocInline> {
                 if !cur.is_empty() {
                     out.push(PandocInline::Text(std::mem::take(&mut cur)));
                 }
-                out.push(PandocInline::Code(rest[..end].to_string()));
+                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].to_string()));
                 i += 1 + end + 1;
                 continue;
             }
@@ -30243,7 +30248,7 @@ fn parse_pandoc_md_inlines(s: &str) -> Vec<PandocInline> {
                     if url.starts_with('<') && url.ends_with('>') && url.len() >= 2 {
                         url = url[1..url.len() - 1].to_string();
                     }
-                    out.push(PandocInline::Link(parse_pandoc_md_inlines(label), url));
+                    out.push(PandocInline::Link(PandocAttr::default(), parse_pandoc_md_inlines(label), url, String::new()));
                     i += 1 + close_br + 2 + close_paren + 1;
                     continue;
                 }
@@ -30710,39 +30715,15 @@ fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
                     ("c".to_string(), pandoc_inlines_to_json(c)),
                 ]));
             }
-            PandocInline::Code(c) => {
-                arr.push(JVal::Object(vec![
-                    ("t".to_string(), JVal::Str("Code".to_string())),
-                    (
-                        "c".to_string(),
-                        JVal::Array(vec![
-                            JVal::Array(vec![
-                                JVal::Str(String::new()),
-                                JVal::Array(vec![]),
-                                JVal::Array(vec![]),
-                            ]),
-                            JVal::Str(c.clone()),
-                        ]),
-                    ),
-                ]));
-            }
-            PandocInline::Link(c, url) => {
-                arr.push(JVal::Object(vec![
-                    ("t".to_string(), JVal::Str("Link".to_string())),
-                    (
-                        "c".to_string(),
-                        JVal::Array(vec![
-                            JVal::Array(vec![
-                                JVal::Str(String::new()),
-                                JVal::Array(vec![]),
-                                JVal::Array(vec![]),
-                            ]),
-                            pandoc_inlines_to_json(c),
-                            JVal::Array(vec![JVal::Str(url.clone()), JVal::Str(String::new())]),
-                        ]),
-                    ),
-                ]));
-            }
+            PandocInline::Code(attr, c) => arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("Code".into())),
+                ("c".into(), JVal::Array(vec![attr.json(), JVal::Str(c.clone())])),
+            ])),
+            PandocInline::Link(attr, c, url, title) => arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("Link".into())),
+                ("c".into(), JVal::Array(vec![attr.json(), pandoc_inlines_to_json(c),
+                    JVal::Array(vec![JVal::Str(url.clone()), JVal::Str(title.clone())])])),
+            ])),
         }
     }
     JVal::Array(arr)
@@ -30818,23 +30799,29 @@ fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
                     }
                 }
                 "Space" => cur_text.push(' '),
-                "Strong" => {
-                    if !cur_text.is_empty() {
-                        out.push(PandocInline::Text(std::mem::take(&mut cur_text)));
-                    }
-                    if let Some(c) = jval_obj_get(m, "c") {
-                        out.push(PandocInline::Strong(parse_pandoc_json_inlines(c)));
+                _ => {
+                    if !cur_text.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur_text))); }
+                    let Some(c) = jval_obj_get(m, "c") else { continue };
+                    match t {
+                        "Strong" => out.push(PandocInline::Strong(parse_pandoc_json_inlines(c))),
+                        "Emph" => out.push(PandocInline::Emph(parse_pandoc_json_inlines(c))),
+                        "Strikeout" => out.push(PandocInline::Strikeout(parse_pandoc_json_inlines(c))),
+                        "Code" => {
+                            if let JVal::Array(fields) = c
+                                && let [attr, JVal::Str(text)] = fields.as_slice()
+                                && let Some(attr) = PandocAttr::from_json(attr)
+                            { out.push(PandocInline::Code(attr, text.clone())); }
+                        }
+                        "Link" => {
+                            if let JVal::Array(fields) = c
+                                && let [attr, children, JVal::Array(target)] = fields.as_slice()
+                                && let [JVal::Str(url), JVal::Str(title)] = target.as_slice()
+                                && let Some(attr) = PandocAttr::from_json(attr)
+                            { out.push(PandocInline::Link(attr, parse_pandoc_json_inlines(children), url.clone(), title.clone())); }
+                        }
+                        _ => {}
                     }
                 }
-                "Emph" => {
-                    if !cur_text.is_empty() {
-                        out.push(PandocInline::Text(std::mem::take(&mut cur_text)));
-                    }
-                    if let Some(c) = jval_obj_get(m, "c") {
-                        out.push(PandocInline::Emph(parse_pandoc_json_inlines(c)));
-                    }
-                }
-                _ => {}
             }
         }
     }
@@ -30934,17 +30921,20 @@ fn render_pandoc_inlines_html(inlines: &[PandocInline], ascii: bool) -> String {
                 out.push_str(&render_pandoc_inlines_html(c, ascii));
                 out.push_str("</del>");
             }
-            PandocInline::Code(c) => {
-                out.push_str("<code>");
+            PandocInline::Code(attr, c) => {
+                out.push_str("<code");
+                attr.write_html_id_classes(&mut out, ascii);
+                out.push('>');
                 out.push_str(&html_escape_pandoc(c, ascii));
                 out.push_str("</code>");
             }
-            PandocInline::Link(c, url) => {
-                out.push_str(&format!(
-                    "<a href=\"{}\">{}</a>",
-                    html_escape_pandoc(url, ascii),
-                    render_pandoc_inlines_html(c, ascii)
-                ));
+            PandocInline::Link(attr, c, url, title) => {
+                out.push_str(&format!("<a href=\"{}\"", html_escape_pandoc(url, ascii)));
+                attr.write_html_id_classes(&mut out, ascii);
+                if !title.is_empty() { out.push_str(&format!(" title=\"{}\"", html_escape_pandoc(title, ascii))); }
+                out.push('>');
+                out.push_str(&render_pandoc_inlines_html(c, ascii));
+                out.push_str("</a>");
             }
         }
     }
@@ -31037,8 +31027,7 @@ fn render_pandoc_html(
             }
             PandocBlock::CodeBlock(attr, code) => {
                 body.push_str("<pre");
-                if !attr.id.is_empty() { body.push_str(&format!(" id=\"{}\"", html_escape_pandoc(&attr.id, ascii))); }
-                if !attr.classes.is_empty() { body.push_str(&format!(" class=\"{}\"", html_escape_pandoc(&attr.classes.join(" "), ascii))); }
+                attr.write_html_id_classes(&mut body, ascii);
                 body.push_str("><code>");
                 body.push_str(&html_escape_pandoc(code, ascii));
                 body.push_str("</code></pre>\n");
@@ -31101,13 +31090,12 @@ fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool) -> St
             PandocInline::Strong(c) => out.push_str(&format!("**{}**", render_pandoc_inlines_md(c, bracket_links))),
             PandocInline::Emph(c) => out.push_str(&format!("*{}*", render_pandoc_inlines_md(c, bracket_links))),
             PandocInline::Strikeout(c) => out.push_str(&format!("~~{}~~", render_pandoc_inlines_md(c, bracket_links))),
-            PandocInline::Code(c) => out.push_str(&format!("`{c}`")),
-            PandocInline::Link(c, url) => {
-                if bracket_links {
-                    out.push_str(&format!("[{}](<{url}>)", render_pandoc_inlines_md(c, bracket_links)));
-                } else {
-                    out.push_str(&format!("[{}]({url})", render_pandoc_inlines_md(c, bracket_links)));
-                }
+            PandocInline::Code(_, c) => out.push_str(&format!("`{c}`")),
+            PandocInline::Link(_, c, url, title) => {
+                let title = if title.is_empty() { String::new() } else { format!(" \"{}\"", title.replace('\\', "\\\\").replace('"', "\\\"")) };
+                let label = render_pandoc_inlines_md(c, bracket_links);
+                if bracket_links { out.push_str(&format!("[{label}](<{url}>{title})")); }
+                else { out.push_str(&format!("[{label}]({url}{title})")); }
             }
         }
     }
@@ -31244,7 +31232,7 @@ fn render_pandoc_rst(blocks: &[PandocBlock]) -> String {
                 let mut out = String::new();
                 for inl in inlines {
                     match inl {
-                        PandocInline::Code(c) => out.push_str(&format!("``{c}``")),
+                        PandocInline::Code(_, c) => out.push_str(&format!("``{c}``")),
                         _ => out.push_str(&render_pandoc_inlines_md(std::slice::from_ref(inl), false)),
                     }
                 }
@@ -31267,9 +31255,9 @@ fn render_pandoc_inlines_latex(inlines: &[PandocInline]) -> String {
             PandocInline::Text(s) => out.push_str(s),
             PandocInline::Strong(c) => out.push_str(&format!("\\textbf{{{}}}", render_pandoc_inlines_latex(c))),
             PandocInline::Emph(c) => out.push_str(&format!("\\emph{{{}}}", render_pandoc_inlines_latex(c))),
-            PandocInline::Code(c) => out.push_str(&format!("\\texttt{{{c}}}")),
+            PandocInline::Code(_, c) => out.push_str(&format!("\\texttt{{{c}}}")),
             PandocInline::Strikeout(c) => out.push_str(&render_pandoc_inlines_latex(c)),
-            PandocInline::Link(c, url) => out.push_str(&format!("\\href{{{url}}}{{{}}}", render_pandoc_inlines_latex(c))),
+            PandocInline::Link(_, c, url, _) => out.push_str(&format!("\\href{{{url}}}{{{}}}", render_pandoc_inlines_latex(c))),
         }
     }
     out
@@ -31304,10 +31292,10 @@ fn render_pandoc_inlines_rtf(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
-            PandocInline::Text(s) | PandocInline::Code(s) => out.push_str(s),
+            PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
             PandocInline::Strong(c) => out.push_str(&format!("{{\\b {}}}", render_pandoc_inlines_rtf(c))),
             PandocInline::Emph(c) => out.push_str(&format!("{{\\i {}}}", render_pandoc_inlines_rtf(c))),
-            PandocInline::Strikeout(c) | PandocInline::Link(c, _) => out.push_str(&render_pandoc_inlines_rtf(c)),
+            PandocInline::Strikeout(c) | PandocInline::Link(_, c, _, _) => out.push_str(&render_pandoc_inlines_rtf(c)),
         }
     }
     out
@@ -35654,6 +35642,16 @@ mod tests {
         assert_eq!(run("json", "json", &attributed), attributed);
         assert_eq!(run("json", "plain", wire), run("commonmark", "plain", source));
         assert_eq!(run("commonmark", "html", "    a\n    b\n"), "<pre><code>a\nb</code></pre>\n");
+    }
+
+    #[test]
+    fn pandoc_json_keeps_inline_code_and_link_children_targets_and_titles() {
+        let wire = concat!(r#"{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"Para","c":[{"t":"Link","c":[["link",[],[]],[{"t":"Code","c":[["sample",["foo"],[]],"x"]}],["/a","a \"title\""]]},{"t":"Space"},{"t":"Strikeout","c":[{"t":"Str","c":"old"}]}]}]}"#, "\n");
+        let vfs = MemoryVfs::new();
+        let run = |to| cmd_pandoc(&args(&["-f", "json", "-t", to]), wire, "/", &vfs).stdout;
+        assert_eq!(run("json"), wire);
+        assert_eq!(run("html"), "<p><a href=\"/a\" id=\"link\" title=\"a &quot;title&quot;\"><code id=\"sample\" class=\"foo\">x</code></a> <del>old</del></p>\n");
+        assert_eq!(run("plain"), "x ~~old~~\n");
     }
 
     #[test]

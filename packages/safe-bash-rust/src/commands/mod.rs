@@ -872,7 +872,7 @@ pub fn try_run_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut capture_write,
+    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, false, &mut capture_write,
         |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
         .unwrap_or_else(|e| Some(e.diagnose("shell: line 1: ")))
 }
@@ -924,6 +924,7 @@ pub(crate) fn try_run_command_with_input<F>(
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    seekable_stdout: bool,
     write: &mut CommandWriter<'_>,
     mut exec_sub: F,
 ) -> Result<Option<BuiltinOutcome>, CommandFailure>
@@ -990,7 +991,7 @@ where
         exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
     };
     if cmd == "zip" {
-        return Ok(Some(archive::cmd_zip(args, CommandInput { text:stdin,file }, cwd, fs, write, &mut |words| {
+        return Ok(Some(archive::cmd_zip(args, CommandInput { text:stdin,file }, cwd, fs, seekable_stdout, write, &mut |words| {
             exec_with_copy(words, "", &mut cwd.clone(), &mut env.clone()).exit_code == 0
         })));
     }

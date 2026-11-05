@@ -5893,7 +5893,7 @@ export class Runtime {
           outputs.add(Object.assign(ownerFinalize, target.descriptor ? { descriptor: target.descriptor } : {}));
           const output = canonical ? target.sink : this.budget.sink(target.sink, this.commandSignal);
           if (canonical) budgetedSinks.set(output, { budget: this.budget, write: output.write });
-          budgetedSinks.get(output)!.file = Object.freeze({ path });
+          budgetedSinks.get(output)!.file = Object.freeze({ path, seekable: target.descriptor?.capabilities.positionedWrite ?? (!append && random) });
           const binding: Descriptor = { output, lifetime, ...(target.descriptor ? { file: target.descriptor } : {}) };
           await replaceDescriptor(number, binding);
           if (bothOutput) {

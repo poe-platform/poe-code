@@ -294,7 +294,7 @@ export interface CommandContext {
   readonly stdinInput?: CommandInput;
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
-  readonly stdoutFile?: { readonly path: string };
+  readonly stdoutFile?: { readonly path: string; readonly seekable?: boolean };
   readonly stderr: ByteSink;
   cwd: string;
   env: Record<string, string>;

@@ -600,7 +600,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   if (parsed.archive === "-" && parsed.test && !parsed.quiet) await budget.output("\tzip warning: can't use -T on stdout, -T ignored\n");
   if (existing && !await safeZipFile(scope, input!, existing, allowHardlinkedUpdate)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
   const scratchParent = temporary?.parent ?? publication?.parent ?? context.cwd;
-  const directStdin = parsed.archive === "-" && parsed.operands.length === 1 && parsed.operands[0] === "-" && !parsed.archiveComment && !parsed.entryComments;
+  const streamingStdout = parsed.archive === "-" && !context.stdoutFile?.seekable;
+  const directStdin = streamingStdout && parsed.operands.length === 1 && parsed.operands[0] === "-" && !parsed.archiveComment && !parsed.entryComments;
   const scratchCapabilities = directStdin ? {} : await scope.operation(() => context.fs.capabilitiesFor?.(scratchParent, { signal: context.signal }) ?? context.fs.capabilities);
   const scratch = scratchCapabilities.retainedRead && scratchCapabilities.retainedStagingWrite && scratchCapabilities.retainedStagingCleanup
     ? createZipScratchFactory(scope, scratchParent) : undefined;
@@ -761,15 +762,15 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       budget.totalBytes += bytes.length - originalSize;
     }
     const level = store ? 0 : parsed.level;
-    let entry: StoredEntry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" || parsed.descriptors && bytes.length > 0), parsed.method === "store" ? "deflate" : parsed.method);
+    let entry: StoredEntry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (streamingStdout || parsed.descriptors && bytes.length > 0), parsed.method === "store" ? "deflate" : parsed.method);
     if (live) {
       const converting = parsed.toCrlf || parsed.fromCrlf;
       if (parsed.fromCrlf && parsed.method === "bzip2" && !store) fail("from-crlf BZIP2 native read profile unsupported");
       const convertedInput = converting ? zipLineEndingStream(input as ByteSource, parsed.fromCrlf, store, Math.min(limits.maxEntryBytes, limits.maxTotalBytes), context.signal, level, converted => { entry.converted = converted; }) : input as ByteSource;
       entry = { ...entry, inputName: source, inputStat: sourceStat, inputCanonical: sourceCanonical, inputFifo: sourceFifo, data: new Uint8Array(), size: expectedSize ?? 0, source: convertedInput, level,
-        method: store || expectedSize === 0 && parsed.archive !== "-" ? 0 : parsed.method === "lzma" ? 14 : parsed.method === "bzip2" ? 12 : 8, ...(parsed.method === "lzma" && !store && !(expectedSize === 0 && parsed.archive !== "-") ? { flags: 0x802 } : {}), ...(expectedSize === undefined ? {} : converting ? { maxSourceSize: expectedSize * (parsed.toCrlf ? 2 : 1) } : { expectedSize }) };
+        method: store || expectedSize === 0 && !streamingStdout ? 0 : parsed.method === "lzma" ? 14 : parsed.method === "bzip2" ? 12 : 8, ...(parsed.method === "lzma" && !store && !(expectedSize === 0 && !streamingStdout) ? { flags: 0x802 } : {}), ...(expectedSize === undefined ? {} : converting ? { maxSourceSize: expectedSize * (parsed.toCrlf ? 2 : 1) } : { expectedSize }) };
       const storage = directStdin ? {} : await scope.operation(() => context.fs.capabilitiesFor?.(temporary?.parent ?? publication?.parent ?? context.cwd, { signal: context.signal }) ?? context.fs.capabilities);
-      if ((parsed.archive !== "-" || parsed.archiveComment || parsed.entryComments) && scratch && storage.retainedStagingWrite === true && storage.retainedStagingCleanup === true) {
+      if ((!streamingStdout || parsed.archiveComment || parsed.entryComments) && scratch && storage.retainedStagingWrite === true && storage.retainedStagingCleanup === true) {
         if (publication && ((storage.atomicFileMutation !== true && storage.trustedOwnedStaging !== true) || !context.fs.writeFileConditional)) fail("ZIP temporary path requires atomic conditional writes");
         const conversionEntry = entry;
         const memberSpools: ZipMetadataSpool[] = [];
@@ -1366,7 +1367,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       } else {
         const output = createOutputOperation(context, context.stdout);
         try {
-          const source = streamZipArchive(prepared.archive, limits, output.signal, true, parsed.zip64 === true, parsed.zip64 !== false, prepared.scratch);
+          const source = streamZipArchive(prepared.archive, limits, output.signal, !context.stdoutFile?.seekable || parsed.descriptors, parsed.zip64 === true, parsed.zip64 !== false, prepared.scratch);
           for await (const chunk of source) {
             try { await writeBytes(output.output, chunk, output.signal); await dots(chunk.length); }
             catch (error) { void scope.closeInputs().catch(() => {}); throw error; }

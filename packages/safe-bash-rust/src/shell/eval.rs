@@ -5497,6 +5497,12 @@ impl<'a> EvalState<'a> {
             self.cwd,
             self.env,
             fs_ref,
+            match inherited_targets.get(&1) {
+                Some(FdTarget::File {file,offset,..}) => offset.is_some() && file.as_ref().is_none_or(|f| !f.is_stream()),
+                Some(FdTarget::InputFile {writable:true,file,..}) => file.as_ref().is_some_and(|f| !f.is_stream()),
+                Some(FdTarget::Exclusive {..}) => true,
+                _ => false,
+            },
             &mut |fd, data, out| {
                 if budget_ref.check_exceeded().is_err() { out.exit_code = 1; return false; }
                 if data.is_empty() { return true; }

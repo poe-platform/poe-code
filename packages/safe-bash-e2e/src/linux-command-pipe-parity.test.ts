@@ -84,6 +84,23 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         assert.deepEqual(await view.readFile("/workspace/effects/source"), source);
       }
     });
+    await t.test("csplit searches original line bytes with GNU basic regular expressions", async () => {
+      const input = Buffer.concat([Buffer.from([0, 10]), Buffer.from("one\né\nab\n"), Buffer.from([0xff, 10]), Buffer.from("z\n")]);
+      for (const locale of ["C", "C.utf8"]) {
+        for (const pattern of ["/^.$/", "/^..$/", "/(one|z)/", "/one\\|z/", "/o\\{1,2\\}/", "/n\\{2\\}/", "/é/"]) {
+          const args = ["-f", "effects/y", "-", pattern];
+          await resetEffects(cwd!);
+          const reference = await runLinuxCommand("env", ["LC_ALL=" + locale, "csplit", ...args], input, cwd);
+          const expected = await readEffects(cwd!, "csplit");
+          for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+            await resetEffects(cwd!, view);
+            const result = await shell.exec("LC_ALL=" + locale + " csplit -f effects/y - '" + pattern + "'", { stdin: input });
+            assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], reference, shell.constructor.name + ": " + locale + " " + pattern);
+            assert.deepEqual(await readEffects(cwd!, "csplit", view), expected);
+          }
+        }
+      }
+    });
     await t.test("diff3 compares and emits the original bytes of each variant", async () => {
       const files = ["ours", "base", "theirs"];
       // The valid UTF-8 encodes U+E080, which must also stay distinct from the raw 0x80 byte.

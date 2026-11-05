@@ -529,6 +529,23 @@ impl ZeroRegex {
         Ok(Self::from_branches([branches], false, false, false))
     }
 
+    pub(super) fn csplit(pattern: &str, bytewise: bool) -> Result<Self, String> {
+        let source = if bytewise {
+            crate::vfs::stream_string_to_bytes(pattern).into_iter().map(char::from).collect()
+        } else {
+            crate::vfs::stream_utf8(pattern).map_err(|_| "Invalid regular expression")?.into_owned()
+        };
+        let (ere, _) = super::text::sed_pattern(&source, false)?;
+        let branches = parse_rx_branches(&ere, false, RxDialect::Csplit).map_err(|err| err.message)?;
+        let mut rx = Self::from_branches([branches], false, false, false);
+        if bytewise {
+            rx.search = RxSearch::BytewiseLongest;
+            // The literal shortcut searches encoded UTF-8, not individual byte values.
+            if rx.literal.as_ref().is_some_and(|literal| !literal.is_ascii()) { rx.literal = None; }
+        }
+        Ok(rx)
+    }
+
     pub(super) fn mdq(pattern: &str) -> Result<Self, RxParseError> {
         let branches = parse_rx_branches(pattern, false, RxDialect::Mdq)?;
         let mut rx = Self::from_branches([branches], false, false, false);
@@ -995,7 +1012,7 @@ struct RxFlags {
     ungreedy: bool,
 }
 
-enum RxDialect<'a> { Auto, SedExtended { ignore_case: bool }, Awk, Mdq, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'a str) }
+enum RxDialect<'a> { Auto, Csplit, SedExtended { ignore_case: bool }, Awk, Mdq, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'a str) }
 
 #[derive(Debug)]
 pub(super) struct RxParseError {
@@ -1040,7 +1057,7 @@ fn mdq_escaped(c: char, chars: &[char], at: &mut usize) -> Result<char, RxParseE
 
 fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, RxParseError> {
     let jq = matches!(dialect, RxDialect::Jq(_));
-    let sed = matches!(dialect, RxDialect::SedExtended { .. });
+    let sed = matches!(dialect, RxDialect::SedExtended { .. } | RxDialect::Csplit);
     let strict_ere = sed || jq;
     let mdq = matches!(dialect, RxDialect::Mdq);
     let assertions = jq || mdq;
@@ -1108,7 +1125,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             '$' if matches!(chars.get(idx + 1), None | Some('|') | Some(')')) => { idx += 1; RxAtom::End }
             '.' => {
                 idx += 1;
-                RxAtom::Any { newline: mode.dotall, nul: !matches!(dialect, RxDialect::Rg { dot_nul: false, .. }) }
+                RxAtom::Any { newline: mode.dotall, nul: !matches!(dialect, RxDialect::Rg { dot_nul: false, .. } | RxDialect::Csplit) }
             }
             '\\' if idx + 1 < chars.len() => {
                 let nc = chars[idx + 1];

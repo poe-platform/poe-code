@@ -93,7 +93,7 @@ fn coreutil(
         "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
         "truncate" => cmd_truncate(args, cwd, env, fs),
         "fmt" => cmd_fmt(args, input, cwd, env, fs),
-        "csplit" => cmd_csplit(args, input.buffered()?, cwd, fs),
+        "csplit" => cmd_csplit(args, input.buffered()?, cwd, env, fs),
         "column" => cmd_column(args, input.buffered()?, cwd, fs),
         "split" => cmd_split(args, input.buffered()?, cwd, env, fs),
         "install" => cmd_install(args, cwd, env, fs),
@@ -12465,7 +12465,7 @@ fn parse_csplit_int(val: &str, signed: bool) -> Option<i64> {
     Some(if neg { -n } else { n })
 }
 
-fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut quiet = false;
     let mut elide = false;
     let mut keep = false;
@@ -12636,6 +12636,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         forever: bool,
     }
 
+    let locale = |category| ["LC_ALL", category, "LANG"].into_iter()
+        .find_map(|key| env.get(key).filter(|s| !s.is_empty())).map_or("C", String::as_str);
+    let ctype = locale("LC_CTYPE");
+    let unicode = matches!(ctype, "C.UTF-8" | "C.utf8");
     let mut parsed_patterns: Vec<CsplitPattern> = Vec::new();
     let mut last_line = 0usize;
     let mut stderr = String::new();
@@ -12650,13 +12654,13 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             };
             let closing = 1 + closing_rel;
             let expr = &arg[1..closing];
-            let rx = crate::commands::search::ZeroRegex::new(
-                vec![expr.to_string()],
-                false,
-                false,
-                false,
-                false,
-            );
+            if [ctype, locale("LC_COLLATE")].into_iter().any(|name| !matches!(name, "C" | "POSIX" | "C.UTF-8" | "C.utf8")) {
+                return err_out("csplit: BRE requires C/POSIX or C.UTF-8/C.utf8 locale\n", 1);
+            }
+            let rx = match super::search::ZeroRegex::csplit(expr, !unicode) {
+                Ok(rx) => rx,
+                Err(e) => return err_out(&format!("csplit: {}: invalid regular expression: {e}\n", fmt_quote::quote(arg, false, unicode)), 1),
+            };
             let after_delim = &arg[closing + 1..];
             let offset = if after_delim.is_empty() {
                 0
@@ -12666,7 +12670,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 return err_out(&format!("csplit: '{arg}': integer expected after delimiter\n"), 1);
             };
             CsplitPattern {
-                argument: arg.clone(),
+                argument: fmt_quote::quote(arg, false, unicode),
                 line: None,
                 rx: Some(rx),
                 ignore: delim == '%',
@@ -12698,7 +12702,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
             last_line = l_usize;
             CsplitPattern {
-                argument: arg.clone(),
+                argument: fmt_quote::quote(arg, false, unicode),
                 line: Some(l_usize),
                 rx: None,
                 ignore: false,
@@ -12732,15 +12736,15 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 
     let input_file = &operands[0];
-    let text = if input_file == "-" {
-        stdin.to_string()
+    let bytes = if input_file == "-" {
+        stream_string_to_bytes(stdin)
     } else {
         let path = resolve_posix_path(cwd, input_file);
         if fs.is_dir(&path) {
             return err_out("csplit: read error: Is a directory\n", 1);
         }
         match fs.read_file(&path) {
-            Ok(bytes) => crate::vfs::bytes_to_stream_string(&bytes),
+            Ok(bytes) => bytes,
             Err(_) => {
                 return err_out(
                     &format!("csplit: cannot open '{input_file}' for reading: No such file or directory\n"),
@@ -12749,7 +12753,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
         }
     };
-    let lines: Vec<&str> = text.split_inclusive('\n').collect();
+    let lines: Vec<_> = bytes.split_inclusive(|&b| b == b'\n').collect();
 
     let mut next_line = 1usize;
     let mut current_line = 0usize;
@@ -12820,15 +12824,13 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         if !pat.forever {
                             if !pat.ignore {
                                 while next_line <= lines.len() {
-                                    cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(
-                                        lines[next_line - 1],
-                                    ));
+                                    cur_piece.extend_from_slice(lines[next_line - 1]);
                                     current_line = current_line.max(next_line);
                                     next_line += 1;
                                 }
                             }
                             fail_msg = Some(format!(
-                                "csplit: '{}': match not found{}\n",
+                                "csplit: {}: match not found{}\n",
                                 pat.argument,
                                 if rep > 0 {
                                     format!(" on repetition {rep}")
@@ -12840,9 +12842,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         }
                         if !pat.ignore {
                             while next_line <= lines.len() {
-                                cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(
-                                    lines[next_line - 1],
-                                ));
+                                cur_piece.extend_from_slice(lines[next_line - 1]);
                                 current_line = current_line.max(next_line);
                                 next_line += 1;
                             }
@@ -12855,8 +12855,8 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         break 'outer;
                     }
                     let raw_l = lines[current_line - 1];
-                    let subj = raw_l.strip_suffix('\n').unwrap_or(raw_l);
-                    if rx.is_match(subj) {
+                    let subj = raw_l.strip_suffix(b"\n").unwrap_or(raw_l);
+                    if rx.scan(subj, false, |_, _, _| false) {
                         break;
                     }
                     if pat.offset >= 0 && next_line <= lines.len() {
@@ -12864,14 +12864,14 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         current_line = current_line.max(next_line);
                         next_line += 1;
                         if !pat.ignore {
-                            cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(rem_l));
+                            cur_piece.extend_from_slice(rem_l);
                         }
                     }
                 }
                 let target = current_line as i64 + pat.offset;
                 if next_line > lines.len() || (next_line as i64) > target {
                     fail_msg = Some(format!(
-                        "csplit: '{}': line number out of range\n",
+                        "csplit: {}: line number out of range\n",
                         pat.argument
                     ));
                     break 'outer;
@@ -12879,7 +12879,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 while (next_line as i64) < target {
                     if next_line > lines.len() {
                         fail_msg = Some(format!(
-                            "csplit: '{}': line number out of range\n",
+                            "csplit: {}: line number out of range\n",
                             pat.argument
                         ));
                         break 'outer;
@@ -12888,7 +12888,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     current_line = current_line.max(next_line);
                     next_line += 1;
                     if !pat.ignore {
-                        cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(rem_l));
+                        cur_piece.extend_from_slice(rem_l);
                     }
                 }
                 if !pat.ignore {
@@ -12919,7 +12919,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     let rem_l = lines[next_line - 1];
                     current_line = current_line.max(next_line);
                     next_line += 1;
-                    cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(rem_l));
+                    cur_piece.extend_from_slice(rem_l);
                 }
                 if let Err(err) = finish_piece(&mut cur_piece, &mut piece_open) {
                     fail_msg = Some(err);
@@ -12944,7 +12944,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     if fail_msg.is_none() && !forever_done {
         piece_open = true;
         while next_line <= lines.len() {
-            cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(lines[next_line - 1]));
+            cur_piece.extend_from_slice(lines[next_line - 1]);
             current_line = current_line.max(next_line);
             next_line += 1;
         }
@@ -21467,7 +21467,7 @@ mod tests {
         fs.write_file("/src", bytes).unwrap();
         fs.write_file("/xx01", b"old").unwrap();
         fs.chmod("/xx01", 0o600).unwrap();
-        let r = cmd_csplit(&args(&["src", "2"]), "", "/", &fs);
+        let r = cmd_csplit(&args(&["src", "2"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!((r.exit_code, r.stdout.as_str()), (0, "3\n6\n"));
         assert_eq!(fs.read_file("/xx00").unwrap(), &bytes[..3]);
         assert_eq!(fs.read_file("/xx01").unwrap(), &bytes[3..]);
@@ -21476,7 +21476,7 @@ mod tests {
 
         fs.remove_path("/xx00").unwrap();
         fs.hard_link("/src", "/xx00").unwrap();
-        let r = cmd_csplit(&args(&["src", "2"]), "", "/", &fs);
+        let r = cmd_csplit(&args(&["src", "2"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!(r.stderr, "csplit: output would overwrite the input file\n");
         assert_eq!(fs.read_file("/src").unwrap(), bytes);
     }
@@ -21487,7 +21487,7 @@ mod tests {
         fs.write_file("/src", b"one\ntwo\n").unwrap();
         fs.write_file("/xx00", b"old").unwrap();
         fs.chmod("/xx00", 0o600).unwrap();
-        let r = cmd_csplit(&args(&["-z", "src", "1"]), "", "/", &fs);
+        let r = cmd_csplit(&args(&["-z", "src", "1"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!((r.exit_code, r.stdout.as_str()), (0, "8\n"));
         assert_eq!(fs.stat("/xx00").unwrap().mode & 0o777, 0o666);
         assert_eq!(fs.read_file("/xx00").unwrap(), b"one\ntwo\n");
@@ -21502,7 +21502,7 @@ mod tests {
             fs.symlink("other", "/xx01").unwrap();
             let mut flags = args(&["src", "2"]);
             if keep { flags.insert(0, "-k".into()); }
-            let r = cmd_csplit(&flags, "", "/", &fs);
+            let r = cmd_csplit(&flags, "", "/", &BTreeMap::new(), &fs);
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "4\n", "csplit: unsafe output file 'xx01'\n"));
             assert_eq!(fs.exists("/xx00"), keep);
             assert_eq!(fs.read_file("/other").unwrap(), b"preserve");
@@ -21511,10 +21511,10 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.write_file("/xx00", b"a\nb\n").unwrap();
         fs.symlink("xx00", "/alias").unwrap();
-        let r = cmd_csplit(&args(&["alias", "2"]), "", "/", &fs);
+        let r = cmd_csplit(&args(&["alias", "2"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!(r.stderr, "csplit: output would overwrite the input file\n");
         assert_eq!(fs.read_file("/xx00").unwrap(), b"a\nb\n");
-        let r = cmd_csplit(&args(&["-f", "missing/x", "xx00", "2"]), "", "/", &fs);
+        let r = cmd_csplit(&args(&["-f", "missing/x", "xx00", "2"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!(r.stderr, "csplit: missing/x00: No such file or directory\n");
         assert!(!fs.exists("/missing"));
     }

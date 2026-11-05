@@ -10,7 +10,6 @@ export interface CompareOptions {
     readonly highlightColor: RgbaColor;
     readonly lowlightColor?: RgbaColor;
     readonly composeSrc: boolean;
-    readonly dissimilarityThreshold?: number;
     readonly diff: boolean;
 }
 export type CompareRequest = {
@@ -31,7 +30,7 @@ export interface CompareResult {
 }
 /** Borrow input ranges until the next request; output chunks are owned by the receiver. */
 export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
-    const { metric, fuzz, highlightColor, lowlightColor = { r: 255, g: 255, b: 255, a: 204 }, composeSrc, dissimilarityThreshold } = options;
+    const { metric, fuzz, highlightColor, lowlightColor = { r: 255, g: 255, b: 255, a: 204 }, composeSrc } = options;
     const width = Math.max(imgA.width, imgB.width);
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
@@ -158,7 +157,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const ssim = ((2 * muA * muB + c1) * (2 * covAB + c2)) /
         ((muA * muA + muB * muB + c1) * (varA + varB + c2));
     let metricStr: string;
-    let exitCode = metric === "psnr" && mseNorm === 0 ? 1 : dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
+    let exitCode = metric === "psnr" && mseNorm === 0 ? 1 : (aeCount > 0 ? 1 : 0);
     switch (metric) {
         case "ae":
             metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;

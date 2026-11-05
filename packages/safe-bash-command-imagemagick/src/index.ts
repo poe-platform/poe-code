@@ -6268,7 +6268,6 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
     let composeSrc = false;
-    let dissimilarityThreshold: number | undefined;
     const operands: string[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
@@ -6282,7 +6281,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             };
         }
         else if (t === "-metric") {
-            metric = (argv[++i] ?? "rmse").toLowerCase();
+            const rawMetric = argv[++i] ?? "rmse";
+            metric = rawMetric.toLowerCase();
+            if (!["ae", "mae", "mse", "rmse", "pae", "psnr", "ssim", "dssim", "ncc"].includes(metric)) {
+                return { exitCode: 2, stdout: "", stderr: `compare: unrecognized metric type '${rawMetric}'\n` };
+            }
         }
         else if (t === "-fuzz") {
             const rawFuzz = argv[++i] ?? "0";
@@ -6302,7 +6305,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 composeSrc = true;
         }
         else if (t === "-dissimilarity-threshold") {
-            dissimilarityThreshold = Number(argv[++i] ?? 1);
+            // Native uses this option only for subimage searches.
+            i++;
         }
         else if (t === "-density") {
             const g = parseMagickGeometry(argv[++i] ?? "72");
@@ -6362,7 +6366,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
     const diff=outSpec.toLowerCase()!=="null:",diffPosition=backend&&diff?backend.storage.allocate(width*height*4):undefined;
     const diffData=!backend&&diff?new Uint8Array(width*height*4):undefined;
-    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),...(dissimilarityThreshold===undefined?{}:{dissimilarityThreshold})});
+    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{})});
     let compared=comparison.next();
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}

@@ -17406,6 +17406,28 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftocairo_clips_filled_edges_to_the_page_and_pixel_slice() {
+        let fs = MemoryVfs::new();
+        for (bounds, draw, flags, digest) in [
+            ("20.375 19.75", "0.1 0.7 0.3 rg 5.75 25.375 m 9.125 22.25 l 24.125 19.625 l 23.0 4.875 l 22.75 18.75 l h f*", "-png -transp -singlefile -r 72", "d5a7b6c9c58de94da9319e42b654223cc5487a4e1d4a32c1650fc8c53ef2cbe4"),
+            ("20.375 19.75", "0.1 0.7 0.3 rg 20.875 4.75 m 20.25 25.25 l 6.875 -4.0 l -2.375 21.375 l 11.5 28.25 l h f*", "-png -transp -singlefile -rx 97 -ry 124", "fcb0ce4b4d72ab26c9e47bce1669a0bcf115099548d4a3a5632e0f5025a6c174"),
+            ("160 300", "q 1 0 0 1 0 220 cm 0.1 0.7 0.3 rg 6.375 3.0 m 0.75 0.0 l -1.625 8.0 l 7.75 8.0 l 8.25 -1.5 l 4.125 -0.375 l 11.5 20.125 l h f* Q", "-png -singlefile -rx 97 -ry 124 -x 10 -y 20 -W 144 -H 210", "d7cce1ee7e938ecc53e29264601f14129140efaec1fa8ed8058eddf07342b3d6"),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+                &format!("<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 {bounds}] >>"),
+                "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len())], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            let mut args = flags.split_whitespace().collect::<Vec<_>>();
+            args.extend(["in.pdf", "out"]);
+            let result = cmd_media_doc("pdftocairo", &media_args(&args), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let im = png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), digest, "{flags}: {draw}");
+        }
+    }
+
+    #[test]
     fn pdftocairo_rasterizes_compound_paths_and_overlapping_fills_like_poppler() {
         let fs = MemoryVfs::new();
         // Decoded Poppler 24.02 pixels, including subpixel crossings, page clipping,

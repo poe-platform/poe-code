@@ -593,6 +593,7 @@ impl Bitmap {
                 [(a, b), (c, d)] if boxes && a[0] == b[0] && c[0] == d[0] && a[1] == d[1] && b[1] == c[1] => Some((*a, *c)),
                 _ => None,
             };
+            let clipped = if aa && rect.is_none() { pdf_cairo_path::clipped_edges(&edges, self.page_clip) } else { Vec::new() };
             let solid = color.map(|c| (c * 255.).round() as u8);
             let mut areas = vec![0.; x1 - x0];
             for y in y0..y1 {
@@ -612,9 +613,8 @@ impl Bitmap {
                 let box_row = rect.map(|(a, c)| pdf_cairo_path::Coverage::rectangle(a, c, y, self.page_clip));
                 if box_row.is_none() {
                     pdf_cairo_path::path_row(
-                        &edges,
+                        &clipped,
                         y,
-                        self.w,
                         x0,
                         &mut areas,
                         even,

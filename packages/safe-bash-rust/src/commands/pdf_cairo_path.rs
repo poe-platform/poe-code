@@ -31,10 +31,10 @@ struct RowEdge {
 }
 
 impl RowEdge {
-    fn new(p: Point, q: Point, start: f64) -> Option<Self> {
+    fn new(p: Point, q: Point, start: f64, top: f64, bottom: f64) -> Option<Self> {
         let ([x0, y0], [x1, y1]) = if p[1] < q[1] { (p, q) } else { (q, p) };
         let subrow = |y: f64| ((y * 15. / 256. + 0.5).floor() - start).clamp(0., 15.) as usize;
-        let (from, to) = (subrow(y0), subrow(y1));
+        let (from, to) = (subrow(top), subrow(bottom));
         if from == to {
             return None;
         }
@@ -95,7 +95,7 @@ impl Footprint {
         let mut whole = true;
         for (i, &p) in self.0.iter().enumerate() {
             let q = self.0[(i + 1) % 4];
-            let Some(edge) = RowEdge::new(p, q, start) else {
+            let Some(edge) = RowEdge::new(p, q, start, p[1].min(q[1]), p[1].max(q[1])) else {
                 continue;
             };
             let (from, to) = (edge.from, edge.to);
@@ -204,12 +204,87 @@ impl ScanEdge {
     }
 }
 
+// Keep the original slope for the interior portion of a clipped edge. The
+// portions outside the page run down its sides to preserve the winding count.
+pub(super) struct PolygonEdge {
+    p: Point,
+    q: Point,
+    direction: i32,
+    top: f64,
+    bottom: f64,
+}
+
+pub(super) fn clipped_edges(edges: &[(Point, Point)], clip: Point) -> Vec<PolygonEdge> {
+    let mut result = Vec::new();
+    for &(p, q) in edges {
+        let (p, q, direction) = if p[1] <= q[1] { (p, q, 1) } else { (q, p, -1) };
+        let (mut top, mut bottom) = (p[1].max(0.), q[1].min(clip[1]));
+        if top >= bottom {
+            continue;
+        }
+        let mut side = |x, top, bottom| {
+            result.push(PolygonEdge {
+                p: [x, top],
+                q: [x, bottom],
+                direction,
+                top,
+                bottom,
+            });
+        };
+        if p[0].max(q[0]) <= 0. {
+            side(0., top, bottom);
+            continue;
+        }
+        if p[0].min(q[0]) >= clip[0] {
+            side(clip[0], top, bottom);
+            continue;
+        }
+        let dx = q[0] - p[0];
+        let dy = q[1] - p[1];
+        for (x, outside) in [
+            (0., p[0].min(q[0]) < 0.),
+            (clip[0], p[0].max(q[0]) > clip[0]),
+        ] {
+            if !outside {
+                continue;
+            }
+            let entering = if x == 0. { dx > 0. } else { dx < 0. };
+            let mut y = p[1] + ((x - p[0]) * dy / dx).floor();
+            let at = p[0] + ((y - p[1]) * dx / dy).floor();
+            if (x == 0. && at < x) || (x != 0. && at > x) {
+                y += if entering { 1. } else { -1. };
+            }
+            let cut = y.clamp(top, bottom);
+            if entering {
+                if top < cut {
+                    side(x, top, cut);
+                }
+                top = cut;
+            } else {
+                if cut < bottom {
+                    side(x, cut, bottom);
+                }
+                bottom = cut;
+            }
+        }
+        if top < bottom {
+            result.push(PolygonEdge {
+                p,
+                q,
+                direction,
+                top,
+                bottom,
+            });
+        }
+    }
+    result
+}
+
 // Fill all subpaths together: winding can change at every crossing, so the
 // leftmost and rightmost edges alone do not describe holes or intersections.
 pub(super) fn path_row(
-    edges: &[(Point, Point)],
+    edges: &[PolygonEdge],
     y: usize,
-    width: usize,
     x0: usize,
     areas: &mut [f64],
     even: bool,
@@ -217,17 +292,14 @@ pub(super) fn path_row(
 ) -> Option<()> {
     let active: Vec<_> = edges
         .iter()
-        .filter_map(|&(p, q)| RowEdge::new(p, q, y as f64 * 15.))
+        .filter_map(|e| {
+            let mut row = RowEdge::new(e.p, e.q, y as f64 * 15., e.top, e.bottom)?;
+            row.direction = e.direction;
+            Some(row)
+        })
         .collect();
     let mut crossings = Vec::with_capacity(active.len());
-    let mut full = active.iter().all(|e| {
-        e.from == 0
-            && e.to == 15
-            && ![0., width as f64 * 256.].iter().any(|&x| {
-                let at = ((x * e.den - e.start_x) / e.slope).round();
-                at > 0. && at < 15.
-            })
-    });
+    let mut full = active.iter().all(|e| e.from == 0 && e.to == 15);
     areas.fill(0.);
     for sub in 0..15 {
         crossings.clear();
@@ -247,22 +319,9 @@ pub(super) fn path_row(
                 .then_with(|| (a.1.start_x / a.1.den).total_cmp(&(b.1.start_x / b.1.den)))
         });
         if full {
-            // Edges outside the page are represented by its vertical side.
-            // Keep the look-ahead sample of an interior edge unrestricted:
-            // crossing that side after the last subrow rules out a full step.
-            let next = |edge: &RowEdge| {
-                let left = edge.sample(0);
-                let last = edge.sample(14);
-                let right = width as f64 * 256.;
-                if left <= 0. && last <= 0. {
-                    0.
-                } else if left >= right && last >= right {
-                    right
-                } else {
-                    edge.sample(15)
-                }
-            };
-            full = crossings.windows(2).all(|w| next(w[0].1) <= next(w[1].1));
+            full = crossings
+                .windows(2)
+                .all(|w| w[0].1.sample(15) <= w[1].1.sample(15));
         }
         let mut winding = 0;
         let mut left = None;

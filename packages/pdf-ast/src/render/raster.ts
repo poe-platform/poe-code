@@ -205,6 +205,7 @@ export interface PdfCropRect {
 }
 
 export interface RenderToPngOptions {
+  readonly cairoSolidColors?: boolean | undefined;
   readonly splashImageSampling?: boolean | undefined;
   readonly scale?: number | undefined;
   readonly dpi?: number | undefined;
@@ -1071,10 +1072,10 @@ function paintOperations(displayList: PdfDisplayList): readonly PdfPaintOperatio
 
 // PDF.js _prepareSMaskCanvas/_bakeSMaskCanvas: composite the group's backdrop
 // before converting luminosity, then apply the 256-entry transfer function.
-function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number, window?: PdfCropRect, images?: RasterImageInput): Generator<void, RgbaBitmap, void> {
+function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number, window?: PdfCropRect, images?: RasterImageInput, cairoSolidColors?: boolean): Generator<void, RgbaBitmap, void> {
   const bitmap = (yield* renderDisplayListLayerSteps({
     ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
-  }, { scale, transparent: true }, scale, undefined, window, undefined, images, mask.storedOperations));
+  }, { scale, transparent: true, cairoSolidColors }, scale, undefined, window, undefined, images, mask.storedOperations));
   yield* applySoftMaskPixelsSteps(mask, bitmap, displayList, scale, window);
   return bitmap;
 }
@@ -1147,6 +1148,28 @@ interface RasterOperationInput {
   requested: boolean;
   next: IteratorResult<PdfPaintOperation> | undefined;
   compositing: boolean;
+}
+
+// Cairo creates solid patterns from Poppler's 16.16 components and uses
+// the high byte of the rounded 16-bit pattern color.
+function cairoComponent(value: number): number {
+  let component = Math.max(0, Math.min(1, value));
+  if (component > 0 && component < 1 && Number.isInteger(component * 65536)) {
+    // At fixed-point boundaries Poppler's digit-by-digit decimal parsing
+    // can land just below the value returned by Number().
+    const digits = String(component).slice(2);
+    component = 0;
+    let scale = 0.1;
+    for (const digit of digits) {
+      component += Number(digit) * scale;
+      scale *= 0.1;
+    }
+  }
+  return (Math.round(Math.floor(component * 65536) * 65535 / 65536) >>> 8) / 255;
+}
+
+function cairoColor(color: PdfRgbColor): PdfRgbColor {
+  return { r: cairoComponent(color.r), g: cairoComponent(color.g), b: cairoComponent(color.b) };
 }
 
 function *renderDisplayListLayerSteps(
@@ -1283,7 +1306,7 @@ function *renderDisplayListLayerSteps(
     const softMask = original.value.softMask;
     if (softMask) {
       if (softMask !== cachedSoftMask) {
-        cachedSoftMaskPixels = (yield* renderSoftMaskSteps(softMask, displayList, scale, window, images)).data;
+        cachedSoftMaskPixels = (yield* renderSoftMaskSteps(softMask, displayList, scale, window, images, options.cairoSolidColors)).data;
         cachedSoftMask = softMask;
       }
       if (clipMask) {
@@ -1325,7 +1348,7 @@ function *renderDisplayListLayerSteps(
       if (path.fillColor) {
         const edges = fillEdges ?? screenFillEdges(path.segments, toScreen, path.storedSegments, images);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
-        (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha));
+        (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, options.cairoSolidColors ? cairoColor(path.fillColor) : path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha));
       }
       if (path.strokeColor) {
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
@@ -1334,7 +1357,7 @@ function *renderDisplayListLayerSteps(
         const edges = strokeEdges(strokeContourPoints(path, displayList.height, scale, originX, originY, offsetX, offsetY, images, options.thinLineMode));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
-        (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
+        (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, options.cairoSolidColors ? cairoColor(path.strokeColor) : path.strokeColor, strokeAlpha, "nonzero", clipScreen,
           original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask, groupAlpha));
       }
     } else if (operation.kind === "image") {

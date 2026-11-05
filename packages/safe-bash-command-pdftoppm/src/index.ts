@@ -156,7 +156,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 cropRect,
                 hideAnnotations,
                 transparent,
-                splashImageSampling: !cairo,
+                cairoSolidColors: cairo, splashImageSampling: !cairo,
                 antialiasText,
                 antialiasVector,
                 thinLineMode,

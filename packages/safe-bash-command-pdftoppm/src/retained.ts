@@ -81,7 +81,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         let pixelIterator: AsyncIterator<Uint8Array> | undefined;
         try {
         const bitmap = await renderRetainedPagePixels(page, storage, { dpiX, dpiY, useCropBox: plan.useCropBox, hideAnnotations: plan.hideAnnotations, transparent: plan.transparent,
-          splashImageSampling: !cairo, antialiasText: plan.antialiasText, antialiasVector: plan.antialiasVector, thinLineMode: plan.thinLineMode, tileSize: 256, signal, imageStorage, onWarning,
+          cairoSolidColors: cairo, splashImageSampling: !cairo, antialiasText: plan.antialiasText, antialiasVector: plan.antialiasVector, thinLineMode: plan.thinLineMode, tileSize: 256, signal, imageStorage, onWarning,
           ...(plan.hasCrop ? { cropRect: { x: plan.cropX, y: plan.cropY, width: plan.cropW, height: plan.cropH } } : {}) });
         pixelIterator = bitmap.pixels[Symbol.asyncIterator]();
         const ownedPixels = { [Symbol.asyncIterator]: () => pixelIterator! };

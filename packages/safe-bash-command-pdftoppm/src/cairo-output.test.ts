@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { PdfDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, decodePng } from "@poe-code/pdf-ast";
 import { runPdftocairoCli, runPdftocairoCliSync } from "./index.js";
 
 for (const run of [runPdftocairoCli, runPdftocairoCliSync]) {
@@ -84,6 +84,16 @@ for (const run of [runPdftocairoCli, runPdftocairoCliSync]) {
       });
       expect(files).toEqual(before);
     }
+  });
+
+  it(`${run.name} paints the device colors emitted by Poppler 24.02`, async () => {
+    const doc = PdfDocument.create();
+    doc.addPage([3, 2]).setRawContentStream("0.1 0.7 0.3 rg 0 0 3 1 re f 0.26953125 0.45703125 0.1 RG 0 1.5 m 3 1.5 l S");
+    const files = new Map([["in.pdf", doc.save()]]);
+    const result = await run(["-png", "-singlefile", "-r", "72", "in.pdf", "out"], files);
+    expect(result.exitCode).toBe(0);
+    const { data } = decodePng(files.get("out.png")!);
+    expect([...data.slice(4, 8), ...data.slice(16, 20)]).toEqual([68, 116, 25, 255, 25, 179, 76, 255]);
   });
 
   for (const format of ["ps", "eps"]) {

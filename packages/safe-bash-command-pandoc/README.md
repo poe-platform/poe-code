@@ -70,6 +70,8 @@ The `markdown` and `md` readers turn standalone images with nonempty alt text in
 figures, using the alt text as the caption. Disable this with `-f markdown-implicit_figures`.
 The `markdown` and `md` readers resolve footnotes (`[^note]` with a matching
 `[^note]:` definition), including multi-paragraph notes; disable with `-footnotes`.
+The `markdown` and `md` readers preserve `| ` line blocks, including empty lines
+and indentation. Disable this with `-f markdown-line_blocks`.
 The `markdown` and `md` readers support definition lists with `:` or `~`
 markers, repeated definitions, and indented blocks; disable with `-definition_lists`.
 The `markdown` and `md` readers parse bracketed spans (`[text]{#id .class}`),

@@ -156,6 +156,41 @@ export async function assembleRetainedCommonMark(
       continue;
     }
     await context.cooperate();
+    if (block.kind === "paragraph" && extensions.line_blocks) {
+      const lines = parser.lines(current);
+      let next = await lines.next();
+      const first = next.value;
+      const marked = async (range: SourceRange) => await source.unit(range.start) === "|" &&
+        (range.end === range.start + 1 || [" ", "\t"].includes(await source.unit(range.start + 1)));
+      if (first && await marked(first.range)) {
+        const content = await ast.array();
+        while (!next.done && await marked(next.value.range)) {
+          const line = next.value;
+          let start = Math.min(line.range.end, line.range.start + 2);
+          const begin = start;
+          while (start < line.range.end && [" ", "\t"].includes(await source.unit(start))) start++;
+          const range = await source.append((async function* () {
+            for (let i = begin; i < start; i++) yield "\u00a0";
+            yield* source.chunks({start, end: line.range.end});
+            next = await lines.next();
+            while (!next.done && next.value.column > first.column) {
+              yield " "; yield* source.chunks(await source.trim(next.value.range));
+              next = await lines.next();
+            }
+          })());
+          await ast.push(content, await inline(range, 1, undefined, line.line));
+        }
+        await ast.push(out, await ast.tag("LineBlock", content));
+        if (!next.done) {
+          const range = await source.append((async function* () {
+            if (!next.done) yield* source.chunks(next.value.range);
+            for await (const line of lines) {yield "\n"; yield* source.chunks(line.range);}
+          })());
+          await ast.push(out, await ast.tag(tight ? "Plain" : "Para", await inline(range)));
+        }
+        continue;
+      }
+    }
     if (block.kind === "paragraph" || block.kind === "heading") {
       let range: SourceRange;
       if (current === taskNode) {

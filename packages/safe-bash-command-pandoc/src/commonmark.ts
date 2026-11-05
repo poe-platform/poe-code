@@ -130,6 +130,27 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           break;
         }
         case "paragraph": {
+          const lines = block.inline.lines;
+          const first = lines[0];
+          if (extensions.line_blocks && first && (first.text === "|" || first.text.startsWith("| ") || first.text.startsWith("|\t"))) {
+            const content: Inline[][] = [];
+            let index = 0;
+            while (index < lines.length) {
+              const line = lines[index]!;
+              if (line.text !== "|" && !line.text.startsWith("| ") && !line.text.startsWith("|\t")) break;
+              let text = line.text.slice(2), indent = 0;
+              while (text[indent] === " " || text[indent] === "\t") indent++;
+              text = "\u00a0".repeat(indent) + text.slice(indent);
+              index++;
+              while (index < lines.length && lines[index]!.start.column > first.start.column) {
+                text += " " + lines[index++]!.text.trim();
+              }
+              content.push(await parseCommonMarkInlines({kind: "pendingInline", lines: [{text, start: line.start}]}, pending.definitions, context, extensions, footnote, citationsState));
+            }
+            result.push({t: "LineBlock", c: content});
+            if (index < lines.length) result.push(...await assemble([{...block, inline: {...block.inline, lines: lines.slice(index)}}], depth, tight));
+            break;
+          }
           const inlines = await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote, citationsState);
           const image = inlines.length === 1 ? inlines[0] : undefined;
           if (extensions.implicit_figures && image?.t === "Image" && image.c[1].length) {

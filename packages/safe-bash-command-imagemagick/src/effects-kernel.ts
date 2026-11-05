@@ -55,6 +55,8 @@ export function* vignettePixelSteps(source: { width: number; height: number }, b
         weights[i + half] = weight; total += weight;
     }
     for (let i = 0; i < weights.length; i++) weights[i]! /= total;
+    const step = 1 / (8 * Math.max(rx, ry));
+    const segments = Math.ceil(2 * Math.PI / step);
     const mask = (x: number, y: number): number => {
         if (rx <= 0 || ry <= 0 || x <= cx - rx - 1 || x > cx + rx + 1 || y <= cy - ry - 1 || y > cy + ry + 1) return 0;
         const dx = Math.abs(x - cx), dy = Math.abs(y - cy);
@@ -66,7 +68,21 @@ export function* vignettePixelSteps(source: { width: number; height: number }, b
             if ((rx * dx / (t + rx * rx)) ** 2 + (ry * dy / (t + ry * ry)) ** 2 > 1) low = t;
             else high = t;
         }
-        const distance = Math.hypot(dx - rx * rx * dx / (high + rx * rx), dy - ry * ry * dy / (high + ry * ry));
+        // Native drawing traces an ellipse as chords spaced by 1/(8*maxRadius).
+        // Use those chords, rather than the ideal curve, for edge coverage.
+        let angle = Math.atan2(ry * (y - cy) / (high + ry * ry), rx * (x - cx) / (high + rx * rx));
+        if (angle < 0) angle += 2 * Math.PI;
+        // Check the neighboring chords too, including the closing chord at 2π.
+        const segment = Math.floor(angle / step);
+        let distance = Infinity;
+        for (let neighbor = segment - 1; neighbor <= segment + 1; neighbor++) {
+            const i = (neighbor + segments) % segments;
+            const start = i * step, end = Math.min((i + 1) * step, 2 * Math.PI);
+            const ax = cx + rx * Math.cos(start), ay = cy + ry * Math.sin(start);
+            const ex = cx + rx * Math.cos(end) - ax, ey = cy + ry * Math.sin(end) - ay;
+            const t = Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / (ex * ex + ey * ey)));
+            distance = Math.min(distance, Math.hypot(x - ax - t * ex, y - ay - t * ey));
+        }
         const fill = distance < 1 ? (1 - distance) ** 2 : 0;
         const stroke = distance <= 0.25 ? 1 : distance < 1.25 ? (1.25 - distance) ** 2 : 0;
         return fill + stroke * (1 - fill);

@@ -2175,7 +2175,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       ? Math.pow(10, (parseFloat(volSpec.slice(0, -2)) || 0) / 20)
                       : Number.isNaN(gain) ? 1.0 : gain;
                   } else if (trimmed.startsWith("atempo=")) {
-                    tempoFactor *= Math.max(0.25, Math.min(4.0, parseFloat(trimmed.slice(7)) || 1.0));
+                    const tempo = Number(trimmed.slice(7));
+                    if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {
+                      throw new Error("atempo must be in the range [0.5, 100]");
+                    }
+                    tempoFactor *= tempo;
                   } else if (trimmed === "areverse") {
                     reverseAudio = !reverseAudio;
                   } else {

@@ -754,6 +754,30 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  for (const tempo of [0.5, 8, 100]) {
+    it(`honors atempo=${tempo} without clamping`, async () => {
+      const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(16000).fill(0.25)] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", `atempo=${tempo}`, "-c:a", "pcm_s16le", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 16000);
+      assert.equal(audio.channelData[0]!.length, Math.round(16000 / tempo));
+    });
+  }
+
+  for (const tempo of ["0.25", "0", "-1", "100.1", "Infinity", "NaN", "", "8junk", "0.25,atempo=4"]) {
+    it(`rejects invalid atempo=${tempo} without writing output`, async () => {
+      const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160)] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", `atempo=${tempo}`, "/output.wav"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("atempo"), result.stderr);
+      assert.ok(result.stderr.includes("[0.5, 100]"), result.stderr);
+      assert.equal(vfs.store.has("/output.wav"), false);
+    });
+  }
+
   for (const [filter, tempo, rate] of [["atempo=2", 2, 16000], ["atempo=0.5", 0.5, 16000], ["atempo=2,atempo=2", 4, 8000]] as const) {
     it(`preserves pitch and stereo alignment with ${filter} at ${rate} Hz`, async () => {
       const tone = Float64Array.from({ length: 16000 }, (_, i) => 0.5 * Math.sin(2 * Math.PI * 440 * i / 16000));

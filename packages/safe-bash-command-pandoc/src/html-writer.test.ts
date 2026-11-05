@@ -91,7 +91,7 @@ it("renders JSON notes with stable references and backlinks including nested not
   const blocks = [p(s("text"), {t: "Note", c: [p(s("note"), {t: "Note", c: [p(s("inner"))]})]})];
   const json = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks});
   const result = await convert([{bytes: new TextEncoder().encode(json)}], {from: "json", to: "html"}, {});
-  const expected = '<p>text<a href="#fn1" id="fnref1" class="footnote-ref" role="doc-noteref"><sup>1</sup></a></p>\n<section class="footnotes" role="doc-endnotes">\n<ol>\n<li id="fn1"><p>note<a href="#fn2" id="fnref2" class="footnote-ref" role="doc-noteref"><sup>2</sup></a></p>\n<a href="#fnref1" class="footnote-back" role="doc-backlink">↩</a></li>\n<li id="fn2"><p>inner</p>\n<a href="#fnref2" class="footnote-back" role="doc-backlink">↩</a></li>\n</ol>\n</section>\n';
+  const expected = '<p>text<a href="#fn1" id="fnref1" class="footnote-ref" role="doc-noteref"><sup>1</sup></a></p>\n<section class="footnotes" role="doc-endnotes">\n<ol>\n<li id="fn1"><p>note<a href="#fn2" id="fnref2" class="footnote-ref" role="doc-noteref"><sup>2</sup></a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩</a></p></li>\n<li id="fn2"><p>inner<a href="#fnref2" class="footnote-back" role="doc-backlink">↩</a></p></li>\n</ol>\n</section>\n';
   expect(result).toMatchObject({text: expected}); dom(result.kind === "text" ? result.text : "", expected);
 });
 it("writes the fixed standalone wrapper with escaped metadata and document settings", async () => {

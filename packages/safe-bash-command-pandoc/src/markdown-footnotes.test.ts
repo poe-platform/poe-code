@@ -58,6 +58,6 @@ it("converts the standalone footnote reproduction", async () => {
   expect(result.exitCode).toBe(0);
   expect(errors).toBe("");
   expect(output).toContain('class="footnote-ref"');
-  expect(output).toContain('<p>Note text.</p>');
+  expect(output).toContain('<p>Note text.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩</a></p>');
   expect(output).not.toContain("[^n]");
 });

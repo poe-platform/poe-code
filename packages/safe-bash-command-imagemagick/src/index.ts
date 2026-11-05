@@ -1439,6 +1439,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string
         ? (rawNum / 100) * 255
         : rawNum / 257;
     const vFactor = isPct ? (rawNum / 100) * 65535 : rawNum;
+    // Native Sine/Cosine percentages scale by QuantumRange + 1.
+    const vFrequency = isPct ? (rawNum / 100) * 65536 : rawNum;
     const out = new Uint8Array(img.data);
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     for (let i = 0; i < out.length; i += 4) {
@@ -1505,10 +1507,10 @@ function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string
                     next = Math.abs(cur + vByte);
                     break;
                 case "sine":
-                    next = 255 * (0.5 + 0.5 * Math.sin(2 * Math.PI * vFactor * (cur / 255)));
+                    next = 255 * (0.5 + 0.5 * Math.sin(2 * Math.PI * vFrequency * (cur / 255)));
                     break;
                 case "cosine":
-                    next = 255 * (0.5 + 0.5 * Math.cos(2 * Math.PI * vFactor * (cur / 255)));
+                    next = 255 * (0.5 + 0.5 * Math.cos(2 * Math.PI * vFrequency * (cur / 255)));
                     break;
                 case "threshold":
                     next = cur >= vByte ? 255 : 0;

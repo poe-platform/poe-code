@@ -437,12 +437,14 @@ class JsonParser {
     this.#event([this.path(), decoded, final], this.#stringPoints);
     this.#token = tail;
   }
-  path(): Json[] {
+  path(error = false): Json[] {
     const path: Json[] = [];
     for (const frame of this.#stack) {
       if (Array.isArray(frame)) path.push(this.#counts.get(frame) ?? frame.length);
       else if (typeof frame === "string") path.push(frame);
     }
+    const parent = this.#stack.at(-1);
+    if (error && parent && typeof parent === "object" && !Array.isArray(parent)) path.push(null);
     return path;
   }
   #event(value: Json, points?: number[]): void {
@@ -1063,7 +1065,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   };
   const failure = async function* (error: unknown, eof = false): AsyncGenerator<Json> {
     if (!(error instanceof JqParseError)) throw error;
-    if (options.streamErrors) yield [error.diagnostic(), parser.path()];
+    if (options.streamErrors) yield [error.diagnostic(), parser.path(true)];
     else if (options.sequence) await options.warning?.(`ignoring parse error: ${error.diagnostic()}${eof ? "" : " (need RS to resync)"}`);
     else throw new JqError(`parse error: ${error.diagnostic()}`);
     failed = true;

@@ -167,6 +167,21 @@ test("jq stream-errors emits parse errors with their paths", async () => {
   });
 });
 
+for (const [input, stdout] of [
+  ['{', '["Unfinished JSON term at EOF at line 1, column 1",[null]]\n'],
+  ['"abc', '["Unfinished string at EOF at line 1, column 4",[]]\n'],
+  ['x', '["Invalid numeric literal at EOF at line 1, column 1",[]]\n'],
+  ['[', '["Unfinished JSON term at EOF at line 1, column 1",[0]]\n'],
+  ['{"a"', '["Unfinished JSON term at EOF at line 1, column 4",[null]]\n'],
+  ['{"a":1,', '[["a"],1]\n["Unfinished JSON term at EOF at line 1, column 7",[null]]\n'],
+  ['{"a":{', '["Unfinished JSON term at EOF at line 1, column 6",["a",null]]\n'],
+  ['[{', '["Unfinished JSON term at EOF at line 1, column 2",[0,null]]\n'],
+  ['[1,', '[[0],1]\n["Unfinished JSON term at EOF at line 1, column 3",[1]]\n'],
+  ['{"a":', '["Unfinished JSON term at EOF at line 1, column 5",["a"]]\n'],
+]) test(`jq stream-errors matches native jq error paths for ${input}`, async () => {
+  assert.deepEqual(await run(".", input, ["--stream-errors"]), { status: 0, stdout, stderr: "" });
+});
+
 test("jq seq reads and frames records", async () => {
   assert.deepEqual(await run(". + 1", "\x1e1\n\x1e2\n", ["--seq"]), {
     status: 0, stdout: "\x1e2\n\x1e3\n", stderr: "",

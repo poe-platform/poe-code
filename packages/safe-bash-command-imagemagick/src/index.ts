@@ -1,3 +1,4 @@
+import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { convertHslPixels, prepareHslOutput, formatHslPixel, hslTextPixel, type HslMetadata } from "./colorspace-hsl.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
@@ -4521,6 +4522,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const value = tokens[++i] ?? "50%";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickSolarizeSteps(image, value, channels, signal);
+    } else if (token === "-ordered-dither") {
+        const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
     } else if (token === "-posterize") {
         const levels = Number(tokens[++i] ?? 8);
         apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, signal), signal);
@@ -6016,6 +6020,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, colors), signal) : undefined);
             continue;
         }
+        if (!operandsOnly && token === "-ordered-dither") {
+            const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const mask = [channels.r, channels.g, channels.b, channels.a];
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, orderedDitherPixelSteps(image, options, mask), signal) : undefined);
+            continue;
+        }
         if (!operandsOnly && token === "-posterize") {
             const levels = Number(tokens[++i] ?? 8), dither = state.dither;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, signal), signal) : undefined);
@@ -6501,6 +6511,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
         "-sepia-tone",
         "-solarize",
         "-posterize",
+        "-ordered-dither",
         "-colors",
         "-dither",
         "-edge",

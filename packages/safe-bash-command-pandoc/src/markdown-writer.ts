@@ -66,6 +66,7 @@ class Markdown {
       if(node.t !== "Str") digitsBefore = false;
       switch(node.t) {
         case "Str": {
+          if (task && i === 0 && this.selection.extensions.task_lists && (node.c === "☒" || node.c === "☐")) {parts.push(node.c === "☒" ? "[x]" : "[ ]"); break;}
           let value = node.c;
           if(cell && [...value].some(ch => "\r\n\t".includes(ch))) {
             if(!this.context.lossy) throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", "Flattened cell text line boundaries", "gfm", p);

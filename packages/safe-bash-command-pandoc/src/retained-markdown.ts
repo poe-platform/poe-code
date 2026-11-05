@@ -312,6 +312,10 @@ class MarkdownTape {
         const child = async (index: number, op: string): Promise<Job> => ({op, node: await this.at(content!, index), path: await this.path(cp, `[${index}]`)});
         if (tag === "Str") {
           const value = await this.scalar(content!);
+          if (job.task && this.selection.extensions.task_lists) {
+            const marker = await this.tree.smallText(content!, 1);
+            if (marker === "☒" || marker === "☐") {result = await this.literal(marker === "☒" ? "[x]" : "[ ]"); continue;}
+          }
           if (job.cell) {
             let loss = false; for await (const chunk of this.text.chunks(value)) if ([...chunk].some(char => "\r\n\t".includes(char))) loss = true;
             if (loss) {

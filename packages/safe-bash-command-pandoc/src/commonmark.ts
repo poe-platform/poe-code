@@ -126,8 +126,8 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
             const assembled = await assemble(blocks, depth + 1, block.tight);
             const leading = assembled[0];
             if (task && (leading?.t === "Plain" || leading?.t === "Para")) {
-              const marker: Inline = { t: "Span", c: [["", ["task-list-marker"], [["checked", String(text![1] === "x" || text![1] === "X")]]], []] };
-              assembled[0] = { t: leading.t, c: [marker, ...leading.c] };
+              const marker: Inline = {t: "Str", c: text![1] === "x" || text![1] === "X" ? "☒" : "☐"};
+              assembled[0] = {t: leading.t, c: leading.c.length ? [marker, {t: "Space"}, ...leading.c] : [marker]};
             }
             items.push(assembled);
           }

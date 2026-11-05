@@ -66,26 +66,26 @@ describe("declared GFM reader", () => {
     const blocks = await read(text);
     expect(JSON.stringify(blocks)).not.toContain('"Strikeout"');
   });
-  it("retains task states as leading task-list-marker spans in nested/tight and loose lists", async () => {
+  it("retains task states as leading checkbox characters in nested/tight and loose lists", async () => {
     const blocks = await read("- [x] done\n  - [ ] child\n- [X] upper\n\n- [ ] loose\n\n  [x] later");
     expect(blocks[0]!.t).toBe("BulletList");
     if (blocks[0]!.t !== "BulletList") throw new Error("Expected list");
     const items = blocks[0]!.c;
-    const marker = (checked: boolean): Inline => ({ t: "Span", c: [["", ["task-list-marker"], [["checked", String(checked)]]], []] });
-    expect(items[0]![0]).toEqual(para([marker(true), str("done")]));
+    const marker = (checked: boolean): Inline => str(checked ? "☒" : "☐");
+    expect(items[0]![0]).toEqual(para([marker(true), {t: "Space"}, str("done")]));
     const child = items[0]![1]!;
     expect(child.t).toBe("BulletList");
-    if (child.t === "BulletList") expect(child.c[0]![0]).toEqual({ t: "Plain", c: [marker(false), str("child")] });
-    expect(items[1]![0]).toEqual(para([marker(true), str("upper")]));
+    if (child.t === "BulletList") expect(child.c[0]![0]).toEqual({ t: "Plain", c: [marker(false), {t: "Space"}, str("child")] });
+    expect(items[1]![0]).toEqual(para([marker(true), {t: "Space"}, str("upper")]));
     expect(items[2]![1]).toEqual(para([str("[x]"), { t: "Space" }, str("later")]));
     const result = await convert([{ bytes: new TextEncoder().encode("- [ ] todo") }], { from: "gfm", to: "json" }, {});
-    expect(result.kind === "text" && result.text).toContain('"checked","false"');
+    expect(result.kind === "text" && result.text).toContain('☐');
   });
   it("retains state for empty task items", async () => {
-    expect(await read("- [ ]\n- [x]")).toEqual([{ t: "BulletList", c: [[{ t: "Plain", c: [{ t: "Span", c: [["", ["task-list-marker"], [["checked", "false"]]], []] }] }], [{ t: "Plain", c: [{ t: "Span", c: [["", ["task-list-marker"], [["checked", "true"]]], []] }] }]] }]);
+    expect(await read("- [ ]\n- [x]")).toEqual([{ t: "BulletList", c: [[{ t: "Plain", c: [str("☐")] }], [{ t: "Plain", c: [str("☒")] }]] }]);
   });
   it("accepts tab whitespace inside and after task markers", async () => {
-    expect(await read("- [\t]\ttodo")).toEqual([{ t: "BulletList", c: [[{ t: "Plain", c: [{ t: "Span", c: [["", ["task-list-marker"], [["checked", "false"]]], []] }, str("todo")] }]] }]);
+    expect(await read("- [\t]\ttodo")).toEqual([{ t: "BulletList", c: [[{ t: "Plain", c: [str("☐"), {t: "Space"}, str("todo")] }]] }]);
   });
   it("does not implicitly interpret Pandoc Markdown extras", async () => {
     const blocks = await read("$x$ :smile: “quote”\n\nterm\n: definition\n\n[^note]\n\n[^note]: note");
@@ -95,7 +95,7 @@ describe("declared GFM reader", () => {
     expect((await readDocument({ bytes: new TextEncoder().encode("---\ntitle: test\n---") }, { from: "gfm" }, {})).metadata).toEqual({});
   });
   it("does not recognize malformed tasks or markers outside the first list paragraph", async () => {
-    for (const text of ["[x] standalone", "- [y] text", "- [x]text", "- \\[x] text", "- ` [x] ` text", "- heading\n\n  [x] later"]) expect(JSON.stringify(await read(text))).not.toContain("task-list-marker");
+    for (const text of ["[x] standalone", "- [y] text", "- [x]text", "- \\[x] text", "- ` [x] ` text", "- heading\n\n  [x] later"]) expect(JSON.stringify(await read(text))).not.toContain("☒");
   });
   it.each([
     ["www.example.org.", [link("www.example.org", "http://www.example.org"), str(".")]],

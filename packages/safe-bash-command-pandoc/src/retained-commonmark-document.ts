@@ -170,7 +170,8 @@ export async function assembleRetainedCommonMark(
       let inlines = await inline(range, block.lineCount, current);
       if (current === taskNode) {
         const content = await ast.array();
-        await ast.push(content, await ast.tag("Span", await ast.value([["", ["task-list-marker"], [["checked", String(checked)]]], []])));
+        await ast.push(content, await ast.tag("Str", await ast.value(checked ? "☒" : "☐")));
+        if (await ast.count(inlines)) await ast.push(content, await ast.tag("Space"));
         for await (const child of ast.children(inlines)) await ast.push(content, child); inlines = content;
       }
       await ast.push(out, block.kind === "heading" ? await ast.tag("Header", await ast.value([block.number, await attrs(), inlines])) : await ast.tag(tight ? "Plain" : "Para", inlines));

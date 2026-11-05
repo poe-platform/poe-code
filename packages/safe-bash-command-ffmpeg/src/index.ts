@@ -609,10 +609,24 @@ async function applyVideoFilterChain(
   let current = frames;
   if (current.length === 0) return current;
 
-  const filters = filterChainStr
-    .split(",")
-    .map((f) => f.trim())
-    .filter(Boolean);
+  const filters: string[] = [];
+  let filter = "";
+  let quoted = false;
+  for (let i = 0; i < filterChainStr.length; i++) {
+    const char = filterChainStr[i]!;
+    // FFmpeg quotes protect all characters; backslashes escape only outside quotes.
+    if (char === "'") {
+      quoted = !quoted;
+    } else if (!quoted && char === "\\" && i + 1 < filterChainStr.length) {
+      filter += filterChainStr[++i]!;
+    } else if (!quoted && char === ",") {
+      if (filter.trim()) filters.push(filter.trim());
+      filter = "";
+    } else {
+      filter += char;
+    }
+  }
+  if (filter.trim()) filters.push(filter.trim());
 
   for (const filterSpec of filters) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }

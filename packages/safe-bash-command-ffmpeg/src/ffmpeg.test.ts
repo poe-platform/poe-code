@@ -144,6 +144,33 @@ describe("pad dimensions", () => {
   }
 });
 
+describe("video filter separators", () => {
+  it("accepts the quoted select expression when extracting a PNG", async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-v", "error", "-f", "lavfi", "-i", "testsrc=size=16x16:rate=4:duration=1",
+      "-vf", "select='not(mod(n,2))'", "-frames:v", "1", "/safe.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    assert.equal(decodeImage(vfs.store.get("/safe.png")!).width, 16);
+  });
+
+  for (const expression of ["'not(mod(n,2))'", "not(mod(n\\,2))", "'not(mod(n,'2'))'"]) {
+    it(`preserves expression commas in ${expression} and runs the following filter`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "testsrc=size=16x16:rate=4:duration=1",
+        "-vf", `select=${expression},scale=8:8`, "/selected_%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual([...vfs.store.keys()], ["/selected_1.png", "/selected_2.png"]);
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      assert.equal(decodeImage(vfs.store.get("/selected_1.png")!).width, 8);
+    });
+  }
+});
+
 describe("transpose directions", () => {
   // Native FFmpeg's pixel order for a 3x2 image containing rows 1,2,3 / 4,5,6.
   for (const [dir, order] of [

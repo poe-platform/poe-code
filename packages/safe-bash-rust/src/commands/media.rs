@@ -16929,12 +16929,14 @@ mod media_unit_tests {
     fn pdftocairo_filters_standalone_images_in_device_space() {
         let fs = MemoryVfs::new();
         // Full RGBA output from Poppler 24.02 on a transparent page.
-        for (kind, width, height, matrix, expected) in [
-            ("rgb", 24usize, 16, "7 0 0 5 3 5", "2321940c9a26c4b5085d1a6d8fa98d17d9ef8d488d9225533c77df47f720bc28"),
-            ("rgb", 4, 3, "2 7 -8 1 17 8", "bd2c27f4c9a62d6818b4841225271215d9e2b8e223abf6f647dad37d2eafe705"),
-            ("key", 24, 16, "2 7 -8 1 17 8", "748511e55605702e4a295d7f168676ebc6554a36f180faa1fc66509f36ca57ed"),
-            ("stencil", 4, 3, "12 0 0 7 3.25 6.375", "5ad4043a9c0eeb61855f3c0bfb3de18d7f6a3db82ed1792adb30bb608912ff68"),
-            ("stencil", 1, 1, "2 7 -8 1 17 8", "8ce5caa02c89288896451e96ed903061fb3f1cedf9c49fb676b269ac3c637ca0"),
+        for (kind, width, height, matrix, aa, expected) in [
+            ("rgb", 24usize, 16, "7 0 0 5 3 5", "default", "2321940c9a26c4b5085d1a6d8fa98d17d9ef8d488d9225533c77df47f720bc28"),
+            ("rgb", 4, 3, "2 7 -8 1 17 8", "default", "bd2c27f4c9a62d6818b4841225271215d9e2b8e223abf6f647dad37d2eafe705"),
+            ("key", 24, 16, "2 7 -8 1 17 8", "default", "748511e55605702e4a295d7f168676ebc6554a36f180faa1fc66509f36ca57ed"),
+            ("stencil", 4, 3, "12 0 0 7 3.25 6.375", "default", "5ad4043a9c0eeb61855f3c0bfb3de18d7f6a3db82ed1792adb30bb608912ff68"),
+            ("stencil", 1, 1, "2 7 -8 1 17 8", "default", "8ce5caa02c89288896451e96ed903061fb3f1cedf9c49fb676b269ac3c637ca0"),
+            ("rgb", 4, 3, "12 0 0 8 3.125 6.375", "none", "112881279635d174f8472a55b171cccb8e320481d4ee092eea02a9f4513ab8ad"),
+            ("rgb", 4, 3, "-12 0 0 8 20.5 5.5", "none", "82aa31cd83a2fe368ad4cafb4db810680c01449b22346d9d1abb0b74071e4e8e"),
         ] {
             let stencil = kind == "stencil";
             let count = if stencil { width.div_ceil(8) * height } else { 3 * width * height };
@@ -16949,7 +16951,7 @@ mod media_unit_tests {
                 &format!("<< /Length {} >>\nstream\n{draw}\nendstream",draw.len()),
                 &format!("<< /Type /XObject /Subtype /Image /Width {width} /Height {height} {dict} /Filter /ASCIIHexDecode /Length {} >>\nstream\n{encoded}\nendstream",encoded.len())], "");
             fs.write_file("/image.pdf",pdf.as_bytes()).unwrap();
-            let r=cmd_media_doc("pdftocairo",&media_args(&["-png","-singlefile","-transp","-r","72","image.pdf","page"]), "", "/", &fs);
+            let r=cmd_media_doc("pdftocairo",&media_args(&["-png","-singlefile","-transp","-r","72","-antialias",aa,"image.pdf","page"]), "", "/", &fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             let png=png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
             assert_eq!(hex_enc(&sha256_bytes(png.pixels.as_flattened())),expected,"{kind} {matrix}");
@@ -17261,6 +17263,8 @@ mod media_unit_tests {
         for (draw, flags, digest) in [
             ("q 17.0 1.125 2.875 8.5 11.75 -1.875 cm /I Do Q", "-png -transp -singlefile -r 72", "9d51427c13f63734bf741609cb0e9d8226bf4b540c7e224fc7037ac8b7deb39b"),
             ("q 19.875 -3.25 9.25 16.625 15.25 16.75 cm /I Do Q", "-png -transp -singlefile -rx 97 -ry 124", "f1a48393f713f57e74f8afd56d0ddf56f548a7881dab921ea53d10fb39a419f3"),
+            ("q 17.0 1.125 2.875 8.5 11.75 -1.875 cm /I Do Q", "-png -transp -singlefile -antialias none -r 72", "9813c6526d15847e6335c2e88f86cc218a9205bcaf822449fe2290336db3902b"),
+            ("q 19.875 -3.25 9.25 16.625 15.25 16.75 cm /I Do Q", "-png -transp -singlefile -antialias none -rx 97 -ry 124", "dfc735a4d4165ffbc3d4f5e3170878938db77db6605e696f187311a5acb1dc1c"),
         ] {
             let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
                 "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 20.375 19.75] >>",

@@ -484,19 +484,21 @@ impl Bitmap {
             }
             return Some(());
         }
-        let bounds = |values: [f64; 4], max: usize| {
+        let [p, q, r, s] = pdf_cairo_path::image_corners(matrix);
+        let rectangle = (p[0] == q[0] && p[1] == s[1]) || (p[1] == q[1] && p[0] == s[0]);
+        let aa = self.clip_antialias;
+        let bounds = |values: [f64; 4], axis: usize, max: usize| {
+            if !aa && rectangle {
+                // Cairo snaps boxes to pixels before anchoring its image filters.
+                let pixel = |fixed: f64| (((fixed + 127.) / 256.).floor() as usize).min(max);
+                return pixel(p[axis].min(r[axis]))..pixel(p[axis].max(r[axis]).min(self.page_clip[axis]));
+            }
             let lo = values.into_iter().fold(f64::INFINITY, f64::min).floor() as usize;
             let hi = values.into_iter().fold(f64::NEG_INFINITY, f64::max).ceil() as usize;
             lo.min(max)..hi.min(max)
         };
-        let xs = bounds(
-            [e, a + e, a + c + e, c + e],
-            self.w,
-        );
-        let ys = bounds(
-            [f, b + f, b + d + f, d + f],
-            self.h,
-        );
+        let xs = bounds([e, a + e, a + c + e, c + e], 0, self.w);
+        let ys = bounds([f, b + f, b + d + f, d + f], 1, self.h);
         if xs.is_empty() || ys.is_empty() {
             return Some(());
         }
@@ -514,24 +516,30 @@ impl Bitmap {
             (xs.start + xs.end) as f64 / 2.,
             (ys.start + ys.end) as f64 / 2.,
         ];
-        let [p, q, r, s] = pdf_cairo_path::image_corners(matrix);
-        let rectangle = (p[0] == q[0] && p[1] == s[1]) || (p[1] == q[1] && p[0] == s[0]);
         let mut edges = if rectangle { Vec::new() } else {
             pdf_cairo_path::clipped_edges(&[(p, q), (q, r), (r, s), (s, p)], self.page_clip)
         };
-        let mut areas = if rectangle { Vec::new() } else { vec![0.; xs.len()] };
+        let mut areas = if rectangle || !aa { Vec::new() } else { vec![0.; xs.len()] };
         let image = pdf_cairo_image::sampler(&im, matrix, center);
         let mask = mask
             .as_ref()
             .map(|m| pdf_cairo_image::sampler(m, matrix, center));
         for y in ys {
-            let box_row = rectangle.then(|| pdf_cairo_path::Coverage::rectangle(p, r, y, self.page_clip));
-            if !rectangle {
+            let box_row = (rectangle && aa).then(|| pdf_cairo_path::Coverage::rectangle(p, r, y, self.page_clip));
+            let mut pixels = xs.clone();
+            if !aa && !rectangle {
+                // A transformed image is convex: each row has at most one covered span.
+                pixels.end = pixels.start;
+                pdf_cairo_path::mono_row(&edges, y, false, &mut self.work, |start, end| {
+                    pixels = start.max(xs.start)..end.min(xs.end);
+                })?;
+            } else if !rectangle {
                 pdf_cairo_path::path_row(&mut edges, y, xs.start, &mut areas, false, &mut self.work)?;
             }
             let clip = self.clip_row(y, None)?;
-            for x in xs.clone() {
-                let coverage = box_row.as_ref().map_or_else(|| pdf_cairo_path::area_alpha(areas[x - xs.start]), |row| row.alpha(x));
+            for x in pixels {
+                let coverage = if !aa { 255 } else if let Some(row) = &box_row { row.alpha(x) }
+                    else { pdf_cairo_path::area_alpha(areas[x - xs.start]) };
                 let mut opacity = mul255(coverage.into(), clip_coverage(&clip, x).into());
                 if opacity == 0 {
                     continue;

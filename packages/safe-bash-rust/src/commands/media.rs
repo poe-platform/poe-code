@@ -16857,6 +16857,30 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftocairo_samples_image_and_mask_at_their_own_resolution() {
+        let fs = MemoryVfs::new();
+        let stream = |dict: &str, data: &str| format!("<< {dict} /Length {} >>\nstream\n{data}\nendstream", data.len());
+        for (mask, interp, expected) in [
+            ("Mask", false, "ce1e2132b3ab06a30a4a325e858ee66f093fc258cf75da127a9d006129911048"),
+            ("Mask", true, "d3c9efbb21e857fb5264ff45fc8ca0cc55646cf8f588aa7919099f346ee7b9c6"),
+            ("SMask", false, "cbcefb046a6a5850fe145143cb321d9f2993a2d7532fc2dcc824b6c36e2d5101"),
+            ("SMask", true, "b5c447403eecf857da93ca04f4cb1f629119a2608b34a0c4261c946697026f23"),
+        ] {
+            let (dict, bytes) = if mask == "Mask" { ("/ImageMask true", "V") } else { ("/ColorSpace /DeviceGray /BitsPerComponent 8", "y3") };
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 48 32] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
+                &stream("", "q 12 0 0 7 3 5 cm /A Do Q"),
+                &stream(&format!("/Type /XObject /Subtype /Image /Width 4 /Height 3 /BitsPerComponent 8 /ColorSpace /DeviceRGB /{mask} 6 0 R"), "abcdefghijklmnopqrstuvwx0123456789AB"),
+                &stream(&format!("/Type /XObject /Subtype /Image /Width 2 /Height 1 {dict} /Interpolate {interp}"), bytes)], "");
+            fs.write_file("/f.pdf", pdf.as_bytes()).unwrap();
+            let r = cmd_media_doc("pdftocairo", &media_args(&["-png","-transp","-singlefile","-r","72","f.pdf","page"]), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let im = png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), expected, "{mask} interpolate={interp}");
+        }
+    }
+
+    #[test]
     fn pdf_explicit_mask_uses_parent_id_and_its_own_resolution() {
         let fs = MemoryVfs::new();
         let image = "abcdefghijklmnopqrstuvwx0123456789AB";

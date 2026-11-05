@@ -2,6 +2,8 @@
 // at the horizontal resolution, then resample, rotate and crop the bitmap.
 use super::pdf_text_layout::Draw;
 use super::pdf_bitmap::{Image, ImageStream};
+#[path = "pdf_cairo_image.rs"]
+mod pdf_cairo_image;
 #[path = "pdf_glyph.rs"]
 mod pdf_glyph;
 use super::{PageSource, Value};
@@ -469,6 +471,33 @@ impl Bitmap {
             return Some(());
         }
         self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
+        if let Some(mask) = mask {
+            let matrix = [a*scale, -b*scale, -c*scale, d*scale, (e+c-ox)*scale, (top-f-d)*scale];
+            let center = [(xs.start+xs.end) as f64/2., (ys.start+ys.end) as f64/2.];
+            let color = pdf_cairo_image::sampler(&im, matrix, center);
+            let mask = pdf_cairo_image::sampler(&mask, matrix, center);
+            let mul = |a: u32, b: u32| { let n = a*b+128; (n+(n>>8))>>8 };
+            for y in ys {
+                let clip = self.clip_row(y, None)?;
+                for x in xs.clone() {
+                    let dx = ox+(x as f64+0.5)/scale-e;
+                    let dy = top-(y as f64+0.5)/scale-f;
+                    if !(0. ..=1.).contains(&((d*dx-c*dy)/det)) || !(0. ..=1.).contains(&((a*dy-b*dx)/det)) { continue; }
+                    let alpha = mul(mask(x,y)[0].into(), clip_coverage(&clip,x).into());
+                    if alpha == 0 { continue; }
+                    let src = color(x,y);
+                    let dest = &mut self.pixels[y*self.w+x];
+                    let old = u32::from(dest[3]);
+                    let out = alpha + mul(old,255-alpha);
+                    for k in 0..3 {
+                        let premul = mul(src[k].into(),alpha) + mul(mul(dest[k].into(),old),255-alpha);
+                        dest[k] = ((premul*255+out/2)/out).min(255) as u8;
+                    }
+                    dest[3] = out as u8;
+                }
+            }
+            return Some(());
+        }
         let (mut w, mut h) = (im.width, im.height);
         let ax = a * scale / w as f64;
         let ay = b * scale / w as f64;
@@ -850,7 +879,7 @@ impl PageSource<'_> {
                     return Some(());
                 }
                 Draw::Image(stream, matrix) => {
-                    let mode = if opt.splash { super::ImageRead::Raster } else { super::ImageRead::Pixels };
+                    let mode = super::ImageRead::Raster;
                     if let Some(mut image) = Image::read(objects, stream, matrix, opt.limit, mode)? {
                         if image.stencil {
                             // Convert PDF 16.16 color components to device bytes.
@@ -859,11 +888,11 @@ impl PageSource<'_> {
                                 *p = [r, g, b, 255 - p[0]];
                             }
                         }
-                        let mask = match (opt.splash, image.mask) {
-                            (true, Some(id)) => {
+                        let mask = match image.mask {
+                            Some(id) => {
                                 let mut mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode)??;
                                 if mask.components != 1 { return None; }
-                                if mask.stencil && mask.width <= image.width && mask.height <= image.height {
+                                if opt.splash && mask.stencil && mask.width <= image.width && mask.height <= image.height {
                                     // Splash expands the one-bit mask over the inclusive image bounds,
                                     // then resamples those alpha values together with the image.
                                     let coord = |i: usize, src: usize, dst: usize| ((((i as u64 + 1) * src as u64) - 1) / (dst as u64 + 1)) as usize;

@@ -10188,8 +10188,9 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         };
         let mut outputs = Vec::new();
         let mut remaining = fs.shell_limits().max_output_bytes;
+        let format = if tiff_mode { "TIFF" } else if png_mode || all_mode { "PNG" } else { "PNM" };
         for page in start_p..=end_p {
-            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, tiff: tiff_mode } };
+            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, format } };
             let done = source.images(page, fs.max_input_bytes(), mode, |im, parent| {
                 let (w, h) = (im.width, im.height);
                 if w < min_width || h < min_height || unique && !seen.insert(im.id) {
@@ -10210,15 +10211,17 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                     if let Some(native) = im.native {
                         match native {
                             pdf_reader::NativeImage::Jpeg(data) => stage("jpg",data)?,
+                            pdf_reader::NativeImage::Pbm(data) => stage("pbm",data)?,
                             pdf_reader::NativeImage::Fax(data,params) => {
                                 stage("ccitt", data)?;
                                 stage("params", params.into_bytes())?;
                             }
                         }
                     } else {
-                        let (ext, format) = if tiff_mode { ("tif", "TIFF") }
-                            else if png_mode || all_mode { ("png", "PNG") }
-                            else if im.bilevel { ("pbm", "PBM") } else { ("ppm", "PPM") };
+                        let (ext, format) = match format {
+                            "TIFF" => ("tif", "TIFF"), "PNG" => ("png", "PNG"),
+                            _ if im.bilevel() => ("pbm", "PBM"), _ => ("ppm", "PPM"),
+                        };
                         stage(ext, im.encode(format, fs.max_input_bytes(), true)?)?;
                     }
                 }
@@ -16740,19 +16743,29 @@ mod media_unit_tests {
         let fs = MemoryVfs::new();
         let draw = "q 7 0 0 5 0 0 cm /A Do Q";
         // PNG Up predictor inside ASCIIHex and Flate. Digests cover the full Poppler 24.02 PPMs.
-        for (color, components, decode, bytes, extract, page) in [
-            ("Gray", 1, "1 0", "789c63b29df0d8acf38e3e932b04e0a201f6ec0b11>",
+        for (color, bits, components, decode, bytes, extract, page) in [
+            ("Gray", 8, 1, "1 0", "789c63b29df0d8acf38e3e932b04e0a201f6ec0b11>",
              "32f0e590a7c860375eb591131dd20d28b0c4c26cf6865aeb2771b904b2ced3ab", "b20102b19b6581b90025619f3788b596cfa6efdf3185d789bf0247d503a018b5"),
-            ("RGB", 3, "0.2 0.8 0.2 0.8 0.2 0.8", "789c63b29df0d8acf38e7ed3558dea738a25c7a5720f08a7ed643a8f0d502e0a0099b24e0e>",
+            ("RGB", 8, 3, "0.2 0.8 0.2 0.8 0.2 0.8", "789c63b29df0d8acf38e7ed3558dea738a25c7a5720f08a7ed643a8f0d502e0a0099b24e0e>",
              "ad590cb03b9ce0d23b38a9c1f8ac921fa252d3ff695be19b345e2b5004369ac6", "e1ffe9598959a5acbea0509e0b7a4c2d45674e2a82be7b5e4ea81bb353f9fa19"),
+            ("Gray", 1, 1, "1 0", "789c63b2650a864000079b0194>",
+             "780bbda7e943497931f4a423c4926226f9ef24f9b7efff988c5562686cba5ee2", "b46d5ad93db9ed87e658aef266196b2e8e4be73f4a2f6d691db9241781db80a5"),
+            ("RGB", 1, 3, "0.2 0.8 0.2 0.8 0.2 0.8", "789c63b29df098e9e7cf9fc818007ba60d67>",
+             "29bbc57391bbc6d75122fbe9466e124b6d86fe6aab076a83bc90682220cb6f4e", "5438c100d9e544392dbe2cf041244c803ef408c58e436b36690c9c0f2cf4b3bc"),
+            ("Gray", 2, 1, "1 0", "789c63b29dc0b46c191c01002a2f0608>",
+             "28d6e3328f29a51cf5ba7defc69a70c384de751fe22060054d1646c7166b86ee", "2193ea0b5f6a312323b4366dfa9e9da6553723f83d90f70971c155de961838cc"),
+            ("RGB", 4, 3, "0.2 0.8 0.2 0.8 0.2 0.8", "789c63b29df0d8acf38e7ed3558d6aa68908400c1b007ebf1e6b>",
+             "1f087cd871a3253f96325f39d6342938f57b919e361a89a7191402a7dd2353ed", "243c01db52968e6bfd3f8a0c85f016e520d29d2043f53ad11aa9c91a2c2cc8ea"),
+            ("Gray", 16, 1, "0.2 0.8", "789c63b29df0d8acf38e7ed3558dea738a254c5d2880242e005ae62512>",
+             "e12b70cee559b8d164a42b4401947c3213e38fecb6ad94d951233bde97166f3a", "d28c899851863d916a196610d78459e78d5c2488962df9c5447a65a36c4ca948"),
         ] {
             let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
                 "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 7 5] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
                 &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len()),
-                &format!("<< /Type /XObject /Subtype /Image /Width 7 /Height 5 /ColorSpace /Device{color} /BitsPerComponent 8 /Decode [{decode}] /Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms [null << /Predictor 12 /Columns 7 /Colors {components} >>] /Length {} >>\nstream\n{bytes}\nendstream", bytes.len())], "");
+                &format!("<< /Type /XObject /Subtype /Image /Width 7 /Height 5 /ColorSpace /Device{color} /BitsPerComponent {bits} /Decode [{decode}] /Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms [null << /Predictor 12 /Columns 7 /Colors {components} /BitsPerComponent {bits} >>] /Length {} >>\nstream\n{bytes}\nendstream", bytes.len())], "");
             fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
             for (cmd, args, path, expected) in [
-                ("pdfimages", &["in.pdf","out"][..], "/out-000.ppm", extract),
+                ("pdfimages", &["in.pdf","out"][..], if bits == 1 && components == 1 { "/out-000.pbm" } else { "/out-000.ppm" }, extract),
                 ("pdftoppm", &["-r","72","-singlefile","in.pdf","out"][..], "/out.ppm", page),
             ] {
                 let r = cmd_media_doc(cmd, &media_args(args), "", "/", &fs);

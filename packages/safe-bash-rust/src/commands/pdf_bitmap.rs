@@ -7,18 +7,24 @@ pub(in crate::commands::archive) enum ImageRead {
     List,
     Pixels,
     Raster,
-    Extract { fax: bool, jpeg: bool, tiff: bool },
+    Extract {
+        fax: bool,
+        jpeg: bool,
+        format: &'static str,
+    },
 }
 
 pub(in crate::commands::archive) enum NativeImage {
     Fax(Vec<u8>, String),
+    Pbm(Vec<u8>),
     Jpeg(Vec<u8>),
 }
 
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
     pub(super) soft_mask: Option<ObjectId>,
-    pub bilevel: bool,
+    fax: bool,
+    bits: usize,
     pub native: Option<NativeImage>,
     pub width: usize,
     pub height: usize,
@@ -53,7 +59,7 @@ impl Image {
             Some(v) => Some(objects.filter_value(v.clone())?),
             None => None,
         };
-        let bilevel = matches!(
+        let fax = matches!(
             last.as_ref().and_then(Value::word),
             Some(b"/CCITTFaxDecode" | b"/CCF")
         );
@@ -61,7 +67,7 @@ impl Image {
             last.as_ref().and_then(Value::word),
             Some(b"/DCTDecode" | b"/DCT")
         );
-        if !bilevel && !jpeg {
+        if !fax && !jpeg {
             for filter in &filters {
                 if !matches!(
                     objects.filter_value(filter.clone())?.word(),
@@ -93,16 +99,20 @@ impl Image {
         if width == 0 || height == 0 {
             return None;
         }
-        if bilevel && (number(b"BitsPerComponent")? != 1 || components != 1)
-            || !bilevel && number(b"BitsPerComponent")? != 8
+        let bits = number(b"BitsPerComponent")?;
+        if !matches!(bits, 1 | 2 | 4 | 8 | 16)
+            || fax && (bits != 1 || components != 1)
+            || jpeg && bits != 8
         {
             return Some(None);
         }
+        let mono_extract =
+            bits == 1 && components == 1 && matches!(mode, ImageRead::Extract { .. });
         let count = width.checked_mul(height)?;
         let length = objects.stream(&dict, cursor)?.len();
         let mut pixels = Vec::new();
         let mut native = None;
-        if bilevel && mode != ImageRead::List {
+        if fax && mode != ImageRead::List {
             let encoded = objects.raw_stream(id, &mut dict, cursor)?;
             let outer = match objects.filter_value(dict.get(b"Filter")?.clone())? {
                 Value::Array(mut a) => {
@@ -225,27 +235,59 @@ impl Image {
                 }
                 pixels = samples;
             }
-        } else if !bilevel && mode != ImageRead::List {
+        } else if !fax && mode != ImageRead::List {
             if count > limit / 4 {
                 return None;
             }
             let bytes = objects.decoded_stream(id)?;
-            if bytes.len() != count.checked_mul(components)? {
+            let stride = width
+                .checked_mul(components)?
+                .checked_mul(bits)?
+                .div_ceil(8);
+            if bytes.len() != stride.checked_mul(height)? {
                 return None;
             }
-            pixels = bytes
-                .chunks_exact(components)
-                .map(|v| {
-                    let [r, g, b] = if let [r, g, b] = *v {
-                        [r, g, b]
-                    } else {
-                        [v[0]; 3]
+            // Monochrome extraction preserves whole scanlines, including the unused bits at the right edge.
+            let invert = if mono_extract && let Some(v) = dict.get(b"Decode") {
+                let Value::Array(ranges) = objects.filter_value(v.clone())? else {
+                    return None;
+                };
+                if ranges.len() != 2 {
+                    return None;
+                }
+                (ranges[0].number()? * 255.).round() as u8 != 0
+            } else {
+                false
+            };
+            if mono_extract && matches!(mode, ImageRead::Extract { format: "PNM", .. }) {
+                let mut out = format!("P4\n{width} {height}\n").into_bytes();
+                out.extend(bytes.iter().map(|b| if invert { *b } else { !b }));
+                native = Some(NativeImage::Pbm(out));
+            } else {
+                pixels.reserve_exact(count);
+                for row in bytes.chunks_exact(stride) {
+                    let sample = |i: usize| match bits {
+                        16 => row[i * 2], // Poppler uses the high byte of a 16-bit sample.
+                        8 => row[i],
+                        _ => {
+                            let mask = (1u8 << bits) - 1;
+                            let bit = i * bits;
+                            ((row[bit / 8] >> (8 - bits - bit % 8)) & mask) * (255 / mask)
+                        }
                     };
-                    [r, g, b, 255]
-                })
-                .collect();
+                    for x in 0..width {
+                        pixels.push(if components == 1 {
+                            let v = sample(x);
+                            let v = if invert { !v } else { v };
+                            [v, v, v, 255]
+                        } else {
+                            [sample(x * 3), sample(x * 3 + 1), sample(x * 3 + 2), 255]
+                        });
+                    }
+                }
+            }
         }
-        if !bilevel && !pixels.is_empty() {
+        if !fax && !mono_extract && !pixels.is_empty() {
             if let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {
                     return None;
@@ -270,7 +312,7 @@ impl Image {
                     }
                 }
             }
-            if components == 4 && !matches!(mode, ImageRead::Extract { tiff: true, .. }) {
+            if components == 4 && !matches!(mode, ImageRead::Extract { format: "TIFF", .. }) {
                 for p in &mut pixels {
                     *p = device_cmyk(*p, matches!(mode, ImageRead::Pixels | ImageRead::Raster));
                 }
@@ -299,7 +341,8 @@ impl Image {
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
             soft_mask,
-            bilevel,
+            fax,
+            bits,
             jpeg,
             native,
             width,
@@ -346,14 +389,15 @@ impl Image {
             2
         };
         let size = format!("{size:.precision$}{unit}");
-        let (bpc, enc) = if self.bilevel {
-            (1, "ccitt")
+        let enc = if self.fax {
+            "ccitt"
         } else if self.jpeg {
-            (8, "jpeg")
+            "jpeg"
         } else {
-            (8, "image")
+            "image"
         };
-        let bytes = (w as u128 * h as u128 * components as u128 * bpc) / 8;
+        let bpc = self.bits;
+        let bytes = (w as u128 * h as u128 * components as u128 * bpc as u128) / 8;
         let pct = self.length as f64 * 100. / bytes as f64;
         let ratio = if bytes == 0 {
             "  - ".to_owned()
@@ -365,6 +409,9 @@ impl Image {
         format!(
             "{page:4} {idx:5} {kind:<6} {w:6} {h:5}  {color:<5} {components:3} {bpc:3}  {enc:<5}  {interp:<3}   {id:6} {generation:2} {x:5} {y:5} {size:>5} {ratio:>4}\n"
         )
+    }
+    pub(in crate::commands::archive) fn bilevel(&self) -> bool {
+        self.bits == 1 && self.components == 1
     }
     fn ppi(&self) -> [usize; 2] {
         let [a, b, c, d, _, _] = self.matrix;
@@ -385,8 +432,8 @@ impl Image {
         extracting: bool,
     ) -> Option<Vec<u8>> {
         let dpi = self.ppi().map(|n| n as f64);
-        let color = match (self.bilevel, self.components) {
-            (true, _) => "mono",
+        let color = match (self.bits, self.components) {
+            (1, 1) => "mono",
             (_, 1) => "gray",
             (_, 4) => "cmyk",
             _ => "rgb",
@@ -417,7 +464,7 @@ impl Image {
             &self.pixels,
             format,
             "rgb",
-            (extracting || self.bilevel || self.jpeg).then_some(dpi),
+            (extracting || self.fax || self.jpeg).then_some(dpi),
         )
     }
 }

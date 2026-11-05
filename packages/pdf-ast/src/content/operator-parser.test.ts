@@ -38,6 +38,17 @@ describe("content operator iteration", () => {
     }
   });
 
+  it("preserves EI and false JPEG end markers inside a comment segment", () => {
+    const comment = Buffer.concat([bytes(" EI Q BT ET q Q abcdefghijklmnopqrstuvwxyz "), Uint8Array.of(255,217)]);
+    const jpeg = Buffer.concat([Uint8Array.of(255,216,255,254,0,comment.length+2), comment,
+      Uint8Array.of(255,218,0,8,1,1,0,0,63,0, 18,255,0,217,255,208,52,255,217)]);
+    const prefix = bytes("BI /F /DCT ID ");
+    const input = Buffer.concat([prefix, jpeg, bytes(" EI Q")]);
+    const ops = [...parseContentOperators(input)];
+    expect(ops.map(op => op.operator)).toEqual(["BI","Q"]);
+    expect(ops[0]?.inlineImage?.end).toBe(prefix.length + jpeg.length);
+  });
+
   it("admits one-bit image masks without assuming RGB channels", () => {
     const input = bytes("BI /W 4 /H 1 /IM true /BPC 1 ID P EI Q");
     const operators = [...parseContentOperators(input)];

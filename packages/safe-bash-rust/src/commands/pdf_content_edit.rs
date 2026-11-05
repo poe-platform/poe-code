@@ -57,6 +57,9 @@ pub(super) fn inline<'a>(c: &mut Cursor<'a>, tokens: &mut usize) -> Result<(Dict
             let used = crate::commands::codecs::deflate_member(&bytes[2..], usize::MAX, None).map_err(|_| BAD)?;
             Some(used.checked_add(6).ok_or(BAD)?)
         }
+        Some(b"/DCT" | b"/DCTDecode") if bytes.starts_with(b"\xff\xd8") => {
+            Some(crate::commands::archive::image_header::jpeg_length(bytes).ok_or(BAD)?)
+        }
         Some(b"/RL" | b"/RunLengthDecode") => {
             let mut at = 0;
             loop {
@@ -485,6 +488,17 @@ mod tests {
                 "{input}"
             );
         }
+    }
+
+    #[test]
+    fn inline_jpeg_skips_segment_contents_and_stuffed_scan_bytes() {
+        let comment = b" EI Q BT ET q Q abcdefghijklmnopqrstuvwxyz \xff\xd9";
+        let jpeg = [b"\xff\xd8\xff\xfe".as_slice(), &((comment.len()+2) as u16).to_be_bytes(), comment,
+            b"\xff\xda\x00\x08\x01\x01\x00\x00\x3f\x00", b"\x12\xff\x00\xd9\xff\xd0\x34\xff\xd9"].concat();
+        let stream = [b"/F /DCT ID ".as_slice(), &jpeg, b" \r\nEI Q"].concat();
+        let mut c = Cursor(&stream);
+        assert_eq!(inline(&mut c, &mut 128).unwrap().1, jpeg);
+        assert_eq!(c.word(), Some(b"Q".as_slice()));
     }
 
     #[test]

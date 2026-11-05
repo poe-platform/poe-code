@@ -128,6 +128,23 @@ function* encodedImageEnd(filter: string | undefined, start: number, size: numbe
     let step = body.next();
     while (!step.done) step = body.next(at < size ? yield* byte(at++) : undefined);
     if (step.value !== undefined) return start + 2 + step.value + 4;
+  } else if (filter === "DCT" || filter === "DCTDecode") {
+    if ((yield* byte(at++)) !== 0xff || (yield* byte(at++)) !== 0xd8) return;
+    // JPEG segment lengths skip embedded metadata; FF00 in scan data is an escaped FF.
+    while (at < size) {
+      if ((yield* byte(at++)) !== 0xff) continue;
+      let marker;
+      do { marker = yield* byte(at++); } while (marker === 0xff);
+      if (marker === undefined) break;
+      if (marker === 0xd9) return at;
+      if (marker === 0 || marker === 1 || (marker >= 0xd0 && marker <= 0xd8)) continue;
+      const hi = yield* byte(at), lo = yield* byte(at + 1);
+      if (hi === undefined || lo === undefined) break;
+      const length = hi * 256 + lo;
+      if (length < 2) break;
+      at += length;
+    }
+    return size;
   } else if (filter === "RL" || filter === "RunLengthDecode") {
     while (at < size) {
       const length = (yield* byte(at++))!;

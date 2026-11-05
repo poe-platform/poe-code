@@ -162,33 +162,39 @@ pub(super) struct Jpeg {
     pub orientation: Option<u8>,
 }
 
+// Length-bearing segments may contain any bytes, including EOI. Within an
+// entropy-coded scan FF00 is an escaped FF and restart markers have no length.
+fn jpeg_segment<'a>(data: &mut &'a [u8]) -> Option<(u8, &'a [u8])> {
+    let start = data.iter().position(|&b| b == 255)?;
+    let index = start + data[start..].iter().position(|&b| b != 255)?;
+    let marker = data[index];
+    *data = &data[index + 1..];
+    if matches!(marker, 0 | 1 | 0xd0..=0xd9) {
+        return Some((marker, &[]));
+    }
+    let length = usize::from(u16::from_be_bytes(data.get(..2)?.try_into().ok()?));
+    let payload = data.get(2..length)?;
+    *data = &data[length..];
+    Some((marker, payload))
+}
+
+pub(super) fn jpeg_length(bytes: &[u8]) -> Option<usize> {
+    let mut data = bytes.strip_prefix(b"\xff\xd8")?;
+    loop {
+        if jpeg_segment(&mut data)?.0 == 0xd9 {
+            return Some(bytes.len() - data.len());
+        }
+    }
+}
+
 pub(super) fn jpeg(bytes: &[u8]) -> Result<Jpeg, &'static str> {
     let mut data = &bytes[2..];
     let mut dpi = 72;
     let mut orientation = None;
-    while data.len() >= 4 {
-        let Some(start) = data.iter().position(|&b| b == 255) else {
-            break;
-        };
-        let Some(pos) = data[start..].iter().position(|&b| b != 255) else {
-            break;
-        };
-        let marker = data[start + pos];
-        data = &data[start + pos + 1..];
+    while let Some((marker, payload)) = jpeg_segment(&mut data) {
         match marker {
             0xd9 => break,
-            1 | 0xd0..=0xd8 => continue,
-            _ => (),
-        }
-        let Some(length) = data.get(..2) else {
-            break;
-        };
-        let len = usize::from(u16::from_be_bytes(length.try_into().unwrap()));
-        let Some(payload) = data.get(2..len) else {
-            break;
-        };
-        match marker {
-            0xe0 if len >= 14 && payload.starts_with(b"JFIF\0") => {
+            0xe0 if payload.len() >= 12 && payload.starts_with(b"JFIF\0") => {
                 let x = u16::from_be_bytes([payload[8], payload[9]]);
                 if x > 0 {
                     dpi = match payload[7] {
@@ -225,7 +231,6 @@ pub(super) fn jpeg(bytes: &[u8]) -> Result<Jpeg, &'static str> {
             }
             _ => (),
         }
-        data = &data[len..];
     }
     Err("Invalid JPEG dimensions")
 }

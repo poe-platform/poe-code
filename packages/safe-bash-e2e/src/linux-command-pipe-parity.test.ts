@@ -58,6 +58,22 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    for (const [engine, shell] of [["TypeScript", ts.shell], ["Rust", rust]] as const) {
+      await t.test(engine + " jq containment matches the executable", async () => {
+        for (const [filter, input] of [
+          ["contains(false)", "true"], ["inside(true)", "false"], ["contains([1])", "[[1]]"],
+          ["contains({x:null})", "{}"], ['contains("a","b","c")', '"ab"'],
+          ['inside("ab","c")', '"b"'], ["contains(empty)", "null"],
+          ['contains(1,error("bad"))', "1"], ['first(inside(1,error("bad")))', "1"],
+          ["contains(null)", "[123456789123456789]"], ["contains([false])", "[true]"],
+          ["contains(true)", "null"], ["contains(null)", "null"],
+        ]) {
+          const reference = await runLinuxCommand("jq", ["-c", filter], input + "\n", cwd);
+          const actual = await shell.exec("jq -c '" + filter + "'", { stdin: input + "\n" });
+          assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], reference, filter + " on " + input);
+        }
+      });
+    }
     await t.test("jq binary search streams search keys and uses jq length and indexing rules", async () => {
       for (const [filter, input] of [
         ["bsearch(1,0,2)", "[1,1,1,1]"], ["bsearch(empty)", "false"],

@@ -2591,18 +2591,6 @@ fn try_eval_jq_builtin(
                         }]));
                     }
                 }
-                "contains" | "inside" => {
-                    let needle = eval_jq(arg_expr, input, vars)?
-                        .into_iter()
-                        .next()
-                        .unwrap_or(JVal::Null);
-                    let res = if fname == "contains" {
-                        jval_contains(input, &needle)
-                    } else {
-                        jval_contains(&needle, input)
-                    };
-                    return Ok(Some(vec![JVal::Bool(res)]));
-                }
                 "splits" => {
                     if let JVal::Str(st) = input {
                         return Ok(Some(eval_jq_splits_regex(st, arg_expr, input, vars)?));
@@ -2991,7 +2979,6 @@ fn jval_contains(haystack: &JVal, needle: &JVal) -> bool {
         (JVal::Array(a), JVal::Array(b)) => {
             b.iter().all(|bx| a.iter().any(|ax| jval_contains(ax, bx)))
         }
-        (JVal::Array(a), other) => a.iter().any(|ax| jval_contains(ax, other)),
         (JVal::Object(a), JVal::Object(b)) => b.iter().all(|(bk, bv)| {
             a.iter()
                 .find(|(ak, _)| ak == bk)

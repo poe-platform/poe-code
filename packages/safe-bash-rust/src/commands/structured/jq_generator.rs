@@ -376,6 +376,17 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                 emit(JVal::Bool(found))
             });
         }
+        if let Some(filter) = args && matches!(name, "contains" | "inside") {
+            return visit_jq(filter, input, vars, &mut |value| {
+                let (container, needle) = if name == "contains" { (input, &value) } else { (&value, input) };
+                if container.type_name() != needle.type_name()
+                    || matches!((container, needle), (JVal::Bool(a), JVal::Bool(b)) if a != b)
+                {
+                    return Err(format!("{} and {} cannot have their containment checked", describe(container), describe(needle)).into());
+                }
+                emit(JVal::Bool(super::jval_contains(container, needle)))
+            });
+        }
         if let ("bsearch", Some(filter)) = (name, args) {
             return visit_jq(filter, input, vars, &mut |target| {
                 let mut low = 0.0;

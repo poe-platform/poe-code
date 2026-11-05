@@ -140,6 +140,7 @@ export function linuxCommands(text: string) {
     }),
     { cmd: "jq", args: ["-c", "has(.[])"], script: "jq -c 'has(.[])'", input: "[0,1,-1,3,40,0.9]\n" },
     { cmd: "jq", args: ["-c", "in([0],null,[])"], script: "jq -c 'in([0],null,[])'", input: "0\n" },
+    { cmd: "jq", args: ["-c", "contains([], [0], [[1]])"], script: "jq -c 'contains([], [0], [[1]])'", input: "[[1],2]\n" },
     { cmd: "jq", args: ["-c", "bsearch(.[])"], script: "jq -c 'bsearch(.[])'", input: JSON.stringify(Array.from({ length: 128 }, (_, i) => 2 * i)) },
     ...["[nan<1,nan<nan,1<nan,nan==nan]", "[1,nan,0]|sort", "[[nan,3],[nan,1],[nan,2]]|sort",
       "[nan,1]|bsearch(nan,1,0)", "[nan,nan]|bsearch(nan)", "[0,1,2]|[min_by(nan),max_by(nan)]", "nan|bsearch(0)"].map(filter => ({

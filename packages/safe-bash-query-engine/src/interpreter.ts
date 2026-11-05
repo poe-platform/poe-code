@@ -1628,17 +1628,14 @@ export class Interpreter {
       }
       budget.value(result); yield result; return;
     }
-    if (name === "inside") {
-      for await (const container of this.run(args[0]!, input)) {
-        if (type(container) !== type(input) || (typeof input === "boolean" && container !== input)) throw new JqError(`${describe(container, budget)} and ${describe(input, budget)} cannot have their containment checked`);
-        yield contains(container, input, budget);
-      }
-      return;
-    }
-    if (name === "contains") {
+    if (name === "contains" || name === "inside") {
       for await (const argument of this.run(args[0]!, input)) {
-        if (type(input) !== type(argument)) throw new JqError("contains requires matching types");
-        yield contains(input, argument, budget);
+        const container = name === "contains" ? input : argument;
+        const needle = name === "contains" ? argument : input;
+        if (type(container) !== type(needle) || (typeof container === "boolean" && container !== needle)) {
+          throw new JqError(`${describe(container, budget)} and ${describe(needle, budget)} cannot have their containment checked`);
+        }
+        yield contains(container, needle, budget);
       }
       return;
     }

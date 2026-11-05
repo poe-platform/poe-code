@@ -29,6 +29,29 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     });
   }
 
+  it.each([
+    [0, [17, 101, 239]],
+    [1, [9, 51, 120]],
+    [1.5, [9, 51, 120]],
+    [2, [4, 25, 60]],
+    [8, [0, 0, 1]],
+    [16, [0, 0, 0]],
+    [32, [0, 0, 0]],
+    [100, [0, 0, 0]],
+  ])(`${mode}: RightShift %s matches native rounding and shift width`, async (shift, expected) => {
+    const pixels = new Uint8Array([17, 101, 239].flatMap(value => [value, value, value, 255]));
+    const bytes = await sharp(pixels, { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
+    const files = new Map([["/in.png", bytes]]);
+    const filesystem = createMemoryFileSystem();
+    await filesystem.writeFile("/in.png", bytes);
+    const args = ["/in.png", "-channel", "RGB", "-evaluate", "RightShift", String(shift), "/out.png"];
+    const result = mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+    expect([...output.data]).toEqual(expected.flatMap(value => [value, value, value, 255]));
+  });
+
   it.each([2, 24])(`${mode}: LeftShift %i clamps overflowing channels`, async (shift) => {
     const values = [0, 40, 63, 64, 100, 200, 255];
     const pixels = new Uint8Array(values.flatMap(value => [value, value, value, 255]));

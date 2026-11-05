@@ -4048,6 +4048,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return (yield* removeAlphaImageSteps((yield* flattenImageSteps(im, state.background))));
             };
         }
+        else if (mode === "associate" || mode === "disassociate") {
+            apply = function* (im) {
+                const out = new Uint8Array(im.data);
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    if (idx % 65536 === 0) yield;
+                    const alpha = im.hasAlpha ? out[idx + 3]! / 255 : 1;
+                    const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
+                    for (let channel = 0; channel < 3; channel++)
+                        out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
+                    out[idx + 3] = 255;
+                }
+                const { data16: ignored, ...metadata } = im;
+                return { ...metadata, data: out, hasAlpha: false };
+            };
+        }
         else if (mode === "background") {
             apply = function* (im) {
                 let pixelWork = 0;

@@ -724,7 +724,6 @@ function dumpDests(doc: PdfDocument, cos: ParsedCosDocument, firstPage = 1, last
   };
   walkNameTree(destsTree);
 
-  if (collected.length === 0) return "";
   const pages = doc.getPages();
   let out = "Page  Destination                 Name\n";
   for (const { name, value } of collected) {
@@ -1202,9 +1201,8 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
       return { exitCode: 0 };
     }
     if (args.dests) {
-      let header = false;
+      await emit("Page  Destination                 Name\n");
       for await (const dest of doc.destinations()) {
-        if (!header) { await emit("Page  Destination                 Name\n"); header = true; }
         const target = dest.target;
         if (target && target.pageNumber >= firstPage && target.pageNumber <= (args.lastPageExplicit ? lastPage : pageCount))
           await emit(`${String(target.pageNumber).padStart(4, " ")}  [${target.kind.padEnd(24, " ")}] "${dest.name}"\n`);

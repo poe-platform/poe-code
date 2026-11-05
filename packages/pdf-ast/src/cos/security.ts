@@ -127,6 +127,20 @@ const securityHandlers = new WeakMap<PdfEncryptionState, {
   plaintextObjects: Set<number>;
 }>();
 
+/** Authentication failed; only the public encryption dictionary is available. */
+export class PdfPasswordError extends PdfError {
+  readonly revision: number;
+  readonly version: number;
+  readonly permissions: PdfPermissions;
+
+  constructor(readonly dict: Dict) {
+    super("E_CAPABILITY", "Invalid PDF password");
+    this.revision = dict.get("R") as number;
+    this.version = dict.get("V") as number;
+    this.permissions = decodePermissionsMask(dict.get("P") as number);
+  }
+}
+
 export function derivePdfEncryptionKey(
   encryptDict: PdfCosDict,
   documentId0: Uint8Array,
@@ -171,8 +185,8 @@ export function derivePdfEncryptionKey(
       default: throw new PdfError("E_PARSE", "Invalid encryption dictionary value");
     }
   };
+  const dict = convert(encryptDict) as Dict;
   try {
-    const dict = convert(encryptDict) as Dict;
     // An absent crypt-filter dictionary denotes the default Identity filters.
     if (!dict.get("CF")) dict.set("CF", new Dict());
     const revision = dict.get("R");
@@ -199,17 +213,18 @@ export function derivePdfEncryptionKey(
     return state;
   } catch (error) {
     if (error instanceof PdfError) throw error;
-    throw new PdfError("E_CAPABILITY", error instanceof Error && error.name === "PasswordException"
-      ? "Invalid PDF password" : `PDF security handler: ${error instanceof Error ? error.message : String(error)}`);
+    if (error instanceof Error && error.name === "PasswordException") throw new PdfPasswordError(dict);
+    throw new PdfError("E_CAPABILITY", `PDF security handler: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-/** Inspection metadata from the authenticated security handler. */
-export function getPdfEncryptionInfo(state: PdfEncryptionState) {
-  const handler = securityHandlers.get(state);
-  if (!handler) throw new PdfError("E_CAPABILITY", "Encryption inspection requires authenticated PDF security state");
-  const { factory } = handler;
-  let userBytes = factory.userPasswordBytes ?? new Uint8Array();
+/** Public encryption metadata, with password details only after authentication. */
+export function getPdfEncryptionInfo(state: PdfEncryptionState | PdfPasswordError) {
+  const handler = state instanceof PdfPasswordError ? undefined : securityHandlers.get(state);
+  if (!handler && !(state instanceof PdfPasswordError)) throw new PdfError("E_CAPABILITY", "Encryption inspection requires authenticated PDF security state");
+  const factory = handler?.factory;
+  const dict = state instanceof PdfPasswordError ? state.dict : factory!.dict;
+  let userBytes = factory?.userPasswordBytes ?? new Uint8Array();
   if (state.revision < 5) {
     for (let length = 0; length < userBytes.length; length++) {
       if (userBytes.subarray(length).every((byte, index) => byte === PADDING_32[index])) {
@@ -218,20 +233,21 @@ export function getPdfEncryptionInfo(state: PdfEncryptionState) {
       }
     }
   }
-  const method = (filter: Name) => {
+  const method = (filter: unknown) => {
     if (state.version < 4) return "RC4";
-    if (filter.name === "Identity") return "none";
-    const entry = factory.cf?.get(filter.name);
+    if (!(filter instanceof Name) || filter.name === "Identity") return "none";
+    const cf = dict.get("CF");
+    const entry = cf instanceof Dict ? cf.get(filter.name) : undefined;
     const cipher = entry instanceof Dict ? entry.get("CFM") : undefined;
     const name = cipher instanceof Name ? cipher.name : undefined;
     return name === "V2" ? "RC4" : name === "AESV2" ? "AESv2" : name === "AESV3" ? "AESv3" : "none";
   };
   return {
-    permissionsMask: factory.dict.get("P") as number,
-    ownerPasswordMatched: factory.matchesOwnerPassword(),
-    userPasswordMatched: factory.passwordType === "user",
+    permissionsMask: dict.get("P") as number,
+    ownerPasswordMatched: factory?.matchesOwnerPassword() ?? false,
+    userPasswordMatched: factory?.passwordType === "user",
     userPassword: state.revision >= 5 ? new TextDecoder().decode(userBytes) : bytesToString(userBytes),
-    streamMethod: method(factory.stmf), stringMethod: method(factory.strf), fileMethod: method(factory.eff),
+    streamMethod: method(dict.get("StmF")), stringMethod: method(dict.get("StrF")), fileMethod: method(dict.get("EFF") ?? dict.get("StmF")),
   };
 }
 

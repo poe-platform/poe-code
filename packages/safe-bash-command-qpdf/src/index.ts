@@ -22,6 +22,7 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   PdfDocument,
+  PdfPasswordError,
   retainedStampTransform,
   PdfFileSource,
   parseCosDocumentSteps,
@@ -1145,7 +1146,10 @@ function* executeQpdfCli(
     } else {
       try {
         baseDoc = (yield* PdfDocument.loadSteps(raw, password !== undefined ? { password } : {}));
-      } catch {
+      } catch (error) {
+        if (showEncryption && !check && !showNpages && error instanceof PdfPasswordError) {
+          return { exitCode: 0, stdout: encryptionReport(error), stderr: "" };
+        }
         try {
           baseDoc = (yield* PdfDocument.loadSteps(raw, {
             ...(password !== undefined ? { password } : {}),
@@ -1153,6 +1157,9 @@ function* executeQpdfCli(
           }));
           repairedWarning = true;
         } catch (err) {
+          if (showEncryption && !check && !showNpages && err instanceof PdfPasswordError) {
+            return { exitCode: 0, stdout: encryptionReport(err), stderr: "" };
+          }
           const msg = err instanceof Error ? err.message : String(err);
           return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile}: ${msg}\n` };
         }

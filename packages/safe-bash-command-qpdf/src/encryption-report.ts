@@ -1,6 +1,6 @@
-import { getPdfEncryptionInfo, type PdfEncryptionState } from "@poe-code/pdf-ast";
+import { getPdfEncryptionInfo, PdfPasswordError, type PdfEncryptionState } from "@poe-code/pdf-ast";
 
-export function encryptionReport(encryption: PdfEncryptionState | undefined): string {
+export function encryptionReport(encryption: PdfEncryptionState | PdfPasswordError | undefined): string {
   if (!encryption) return "File is not encrypted\n";
   const info = getPdfEncryptionInfo(encryption), p = encryption.permissions;
   const legacy = encryption.revision === 2;
@@ -18,6 +18,7 @@ export function encryptionReport(encryption: PdfEncryptionState | undefined): st
     ["modify anything", assembly && forms && p.addNotes && p.modify],
   ];
   const lines = [`R = ${encryption.revision}`, `P = ${info.permissionsMask}`, `User password = ${info.userPassword}`];
+  if (encryption instanceof PdfPasswordError) lines.unshift("Incorrect password supplied");
   if (info.ownerPasswordMatched) lines.push("Supplied password is owner password");
   if (info.userPasswordMatched) lines.push("Supplied password is user password");
   for (const [name, allowed] of permissions) lines.push(`${name}: ${allowed ? "allowed" : "not allowed"}`);

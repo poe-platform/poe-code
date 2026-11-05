@@ -10,7 +10,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { QpdfJsonDocument, encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfMissingAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode, type EncryptPdfOptions } from "@poe-code/pdf-ast";
+import { QpdfJsonDocument, encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfMissingAttachment, PdfError, PdfPasswordError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode, type EncryptPdfOptions } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -177,7 +177,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     try {
       document ??= await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", ...(options.password === undefined ? {} : { password: options.password }) });
     } catch (error) {
-      signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
+      signal.throwIfAborted();
+      if (options.showEncryption && !options.check && !options.showNpages && error instanceof PdfPasswordError) {
+        await publishInspection(encodeDisplayParts([encryptionReport(error)], signal));
+        return { exitCode: 0 };
+      }
+      if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
     }
     if (options.updateFromJsonFiles.length) {

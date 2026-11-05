@@ -6,6 +6,7 @@ import { runConvertCli } from "./index.js";
 
 // Frozen from the established whole-image interpreter before retained analysis.
 // Equalization vectors use native ImageMagick 7 output.
+// Contrast-stretch vectors use native ImageMagick 7.1.2 RGBA output.
 // Normalize vectors corrected against ImageMagick 7.1.2 RGBA output.
 const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; hash: string }[] = [
   {
@@ -41,7 +42,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-contrast-stretch",
       "20%x5%"
     ],
-    "hash": "82761de35ca0d91d43991d5fda64a5d4a9be293265539d5835c30aa9ac843073"
+    "hash": "9091d5a651eb1252f36f3476b8126bec2b3c6a217e0a8b699ef15482cd250ff4"
   },
   {
     "channels": 4,
@@ -110,7 +111,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
       "-contrast-stretch",
       "20%x5%"
     ],
-    "hash": "3264c1d0d943853c7ec2ae9779b51be87529ada3f6d8cfb8c089bed307eeefe7"
+    "hash": "bc0b4b216ca93bb115ebd173db93f1c829028917bbd6a26c6aa6261de283dd77"
   },
   {
     "channels": 3,

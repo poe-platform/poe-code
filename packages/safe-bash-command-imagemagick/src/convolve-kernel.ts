@@ -30,7 +30,7 @@ export function* convolvePixelSteps(image: { width: number; height: number; hasA
         for (let x = 0; x < count; x++) for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
             const alpha = sums[x * 4 + 3]!;
             const value = channel === 3 ? alpha * 255 : sums[x * 4 + channel]! / (image.hasAlpha ? (Math.abs(alpha) < 1e-12 ? 1e-12 : alpha) : 1);
-            data[x * 4 + channel] = Number.isFinite(value) ? Math.max(0, Math.min(255, Math.round(value))) : 0;
+            data[x * 4 + channel] = Number.isFinite(value) ? Math.max(0, Math.min(255, Math.round(value + 1e-12))) : 0;
         }
         yield { kind: "write", position, data };
     }

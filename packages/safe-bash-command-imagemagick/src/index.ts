@@ -732,11 +732,11 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw), signal, { ...base, width: w, height: h }, normalized);
 }
 
-function parseMagickConvolveKernel(spec: string): number[] {
+function parseMagickConvolveKernel(spec: string, normalize = true): number[] {
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
     const kernel = afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
     const sum = kernel.reduce((total, weight) => total + weight, 0);
-    return sum === 0 ? kernel : kernel.map(weight => weight / sum);
+    return !normalize || sum === 0 ? kernel : kernel.map(weight => weight / sum);
 }
 function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const kernel = parseMagickConvolveKernel(spec);
@@ -5331,8 +5331,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 kernelSpec = tokens[++i]!;
             }
             if (method.includes("convolve") || method.includes("correlate")) {
+                const kernel = parseMagickConvolveKernel(kernelSpec, false);
                 stack = yield* mapSteps(stack, function* (im) {
-                    return (yield* applyMagickCustomConvolveSteps(im, kernelSpec, signal));
+                    return kernel.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal) : im;
                 });
             }
             else {
@@ -6200,7 +6201,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-statistic") spec = tokens[++i] ?? "3x3";
             else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
             if (token === "-morphology" && (method.includes("convolve") || method.includes("correlate"))) {
-                const kernel = parseMagickConvolveKernel(spec);
+                const kernel = parseMagickConvolveKernel(spec, false);
                 steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
             } else {
                 const plan = magickMorphologyPlan(method, spec);

@@ -7,6 +7,7 @@ import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources,
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { stretchAudio } from "./audio-tempo.js";
+import { scaleFrame } from "./scale.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -675,6 +676,14 @@ async function applyVideoFilterChain(
 
 
         budget.recordFrame(targetW, targetH);
+        if (!named.flags) {
+          return {
+            ...f,
+            width: targetW,
+            height: targetH,
+            data: await scaleFrame(f.data, f.width, f.height, targetW, targetH, signal)
+          };
+        }
         const resized = resizeImage(makeRgbaImg(f.width, f.height, f.data), {
           width: targetW,
           height: targetH,

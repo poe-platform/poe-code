@@ -1612,3 +1612,60 @@ it("declines synchronous encoded image extraction so decoding stays cooperative"
   assert.equal(result, undefined);
   assert.equal(published, false);
 });
+
+for (const [scale, width, height] of [["6:4", 6, 4], ["3:2", 3, 2], ["1:1", 1, 1]] as const) {
+  it(`matches native default scale=${scale} pixels for a tiny RGB image`, async () => {
+    const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+    const colors = [[255, 0, 0], [0, 128, 0], [0, 0, 255], [255, 255, 0], [255, 0, 255], [0, 255, 255]];
+    const input = encodeImage({
+      width: 3, height: 2, channels: 4,
+      data: new Uint8Array(colors.flatMap(color => [...color, 255])),
+      format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: false
+    }, { format: "png" }).data;
+    const vfs = createTestVfs({ "/input.png": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-y", "-i", "/input.png", "-vf", `scale=${scale}`, "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = decodeImage(vfs.store.get("/out.png")!);
+    assert.equal(actual.width, width);
+    assert.equal(actual.height, height);
+    // FFmpeg 9.0.1: bicubic support is capped to max(1, source dimension - 2).
+    const expected = Array.from({ length: width * height }, (_, i) => {
+      const x = Math.floor((i % width + 0.5) * 3 / width);
+      const y = Math.min(1, Math.floor((Math.floor(i / width) + 0.5) * 2 / height));
+      return [...colors[y * 3 + x]!, 255];
+    }).flat();
+    assert.deepEqual([...actual.data], expected);
+  });
+}
+
+// Native FFmpeg 9.0.1 PNG reference pixels. Grayscale isolates the sampling
+// curve from native RGB/YUV chroma conversion and subsampling.
+for (const [width, height, pixels] of [
+  [9, 8, [
+    0,25,67,89,114,140,163,191,210,114,68,30,71,101,126,149,177,195,
+    255,144,18,47,74,100,124,152,170,223,212,154,33,31,84,106,134,152,
+    190,232,236,115,55,50,78,107,125,173,191,222,251,129,13,56,90,107,
+    152,169,200,230,199,129,56,58,86,134,151,180,202,255,239,58,29,68
+  ]],
+  [3, 2, [115,88,151,190,144,86]]
+] as const) {
+  it(`matches native default bicubic sampling at 6x5 to ${width}x${height}`, async () => {
+    const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+    const input = encodeImage({
+      width: 6, height: 5, channels: 4,
+      data: Uint8Array.from({ length: 120 }, (_, i) => i % 4 === 3 ? 255 : (Math.floor(i / 4) * 37 + 19) % 256),
+      format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+    }, { format: "png" }).data;
+    const vfs = createTestVfs({ "/input.png": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/input.png", "-vf", `scale=${width}:${height}`, "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = decodeImage(vfs.store.get("/out.png")!);
+    assert.equal(actual.width, width);
+    assert.equal(actual.height, height);
+    assert.deepEqual([...actual.data], pixels.flatMap(value => [value, value, value, 255]));
+  });
+}

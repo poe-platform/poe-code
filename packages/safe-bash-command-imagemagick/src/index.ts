@@ -5050,7 +5050,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur"), signal);
+                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
             });
         }
         else if (t === "-sharpen" || t === "-unsharp") {
@@ -5964,8 +5964,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const angle = Number(tokens[++i] ?? 0), background = state.background;
             transform(() => ({ kind: "rotate", angle, background }));
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur"), signal) : undefined);
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);
         } else if (!operandsOnly && (token === "-sharpen" || token === "-unsharp")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
             transform(() => ({ kind: "sharpen", sigma, m1: 1, m2: 2 }));

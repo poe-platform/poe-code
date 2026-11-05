@@ -1,8 +1,9 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
-export function* blurPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, gaussian: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* blurPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
+    const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     let half = 0;
     if (sigma > 0) {
         if (radius > 0) half = radius >= 1 ? Math.floor(radius) : Math.ceil(radius);
@@ -58,6 +59,11 @@ export function* blurPixelSteps(image: { width: number; height: number }, geomet
                 const alpha = sums[x * 4 + 3]!;
                 for (let c = 0; c < 3; c++) data[x * 4 + c] = alpha > 0 ? Math.round(sums[x * 4 + c]! / alpha) : 0;
                 data[x * 4 + 3] = Math.round(alpha * 255);
+            }
+            if (mask && mask.some(active => !active)) {
+                const original = yield { kind: "read", position: (y * width + left) * 4, length: data.length };
+                if (!original || original.length !== data.length) throw new Error("Truncated blur pixels");
+                for (let i = 0; i < data.length; i++) if (!mask[i % 4]) data[i] = original[i]!;
             }
             yield { kind: "write", position: (y * width + left) * 4, data };
         }

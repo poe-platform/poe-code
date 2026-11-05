@@ -1534,6 +1534,19 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = cur + cur * vFactor * 0.25 * sigma * Math.cos(2 * Math.PI * beta);
                     break;
                 }
+                case "poissonnoise": {
+                    const sigma = vFactor * 12.5;
+                    const poisson = Math.exp(-sigma * cur / 255);
+                    let alpha = random!(), count = 0;
+                    while (alpha > poisson) {
+                        if (++cooperativeWork % 65536 === 0)
+                            yield;
+                        alpha *= random!();
+                        count++;
+                    }
+                    next = 255 * count / (Math.abs(sigma) < 1e-12 ? (sigma < 0 ? -1e-12 : 1e-12) : sigma);
+                    break;
+                }
                 case "impulsenoise": {
                     const alpha = random!();
                     next = alpha < vFactor * 0.05 ? 0 : alpha >= 1 - vFactor * 0.05 ? 255 : cur;
@@ -4621,13 +4634,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
         if (!["add", "sum", "addmodulus", "mean", "median", "subtract", "multiply", "divide", "pow", "exp", "exponential", "log", "inverselog", "set", "min", "max",
             "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
-            "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise"].includes(operation)) {
+            "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise", "poissonnoise"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         let random: (() => number) | undefined;
         apply = (image, pixelOffset = 0) => {
-            if ((operation === "uniformnoise" || operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise") && pixelOffset === 0)
+            if ((operation === "uniformnoise" || operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise" || operation === "poissonnoise") && pixelOffset === 0)
                 random = createMagickRandom(state.seed ?? 0);
             return applyMagickEvaluateSteps(image, operation, value, channels, random, signal);
         };

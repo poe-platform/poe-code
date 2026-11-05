@@ -5178,6 +5178,26 @@ test("mktemp retries occupied names without following links, and propagates crea
   } finally { sh.dispose(); }
 });
 
+test("the configured host root is live across commands and sessions, and an exec override is temporary", {skip: !WebAssembly.Suspending}, async () => {
+  const { MemoryFileSystem } = await import("@poe-code/safe-fs");
+  const fs = new MemoryFileSystem(), other = new MemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("root"));
+  await other.writeFile("/input", new TextEncoder().encode("override"));
+  const shell = new RustWasmBash({fs, cwd: "/"});
+  try {
+    assert.equal((await shell.exec("cat /input")).stdout, "root");
+    assert.equal(shell.fs, fs);
+    const session = shell.createSession();
+    await session.exec("echo result > /output");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "result\n");
+    assert.equal((await session.exec("cat /input", {fs: other})).stdout, "override");
+    assert.equal((await session.exec("cat /input")).stdout, "root");
+    await session.dispose();
+    assert.throws(() => shell.execSync("touch /invisible"), /host filesystem/);
+    assert.throws(() => shell.writeFile("/invisible", "data"), /host filesystem/);
+  } finally { await shell.dispose(); }
+});
+
 test("mktemp creates private entries on a supplied filesystem and retries a concurrent collision", { skip: !WebAssembly.Suspending }, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
   const fs = new MemoryFileSystem(), sh = new RustWasmBash({ forceNative: true, cwd: "/" });

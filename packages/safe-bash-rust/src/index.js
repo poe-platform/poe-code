@@ -2075,6 +2075,7 @@ class WasmShell {
 export class RustWasmBash extends WasmShell {
   #sessions = new Set();
   #companion;
+  #hostRoot;
   #filesystems = new Map();
   #ready;
   #commands;
@@ -2103,11 +2104,15 @@ export class RustWasmBash extends WasmShell {
     if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
       throw new TypeError("deviceView must be default or provided");
     }
+    if (options.fs != null && [options.files, options.directories, options.symlinks, options.profile, options.memoryFsOptions].some(v => v !== undefined)) {
+      throw new TypeError("Seed and configure a host filesystem before supplying it to the shell");
+    }
     instance ??= createWasmInstance();
     super(instance.exports, instance.exports.safe_bash_create_session(), options.cwd ?? "/workspace", options.env, options.ShellLimitError ?? ShellLimitError);
     this.instance = instance;
     this.shell = this;
-    this.fs = new WasmFileSystem(this);
+    this.#hostRoot = options.fs;
+    this.fs = this.#hostRoot ?? new WasmFileSystem(this);
     this.forceNative = options.forceNative ?? true;
     this.companionFactory = options.companionFactory ?? null;
     this.companionSeed = options.companionSeed ?? null;
@@ -2174,7 +2179,7 @@ export class RustWasmBash extends WasmShell {
       }
     }
     if (options.cwd && options.cwd !== "/workspace") {
-      this.mkdirAll(options.cwd);
+      if (!this.#hostRoot) this.mkdirAll(options.cwd);
       this._setBinding("\0cwd", options.cwd);
     }
     if (options.profile === "overlay-cow-fs") {
@@ -2185,7 +2190,12 @@ export class RustWasmBash extends WasmShell {
     }
   }
 
+  #requireNativeFs() {
+    if (this.#hostRoot) throw new TypeError("Use async exec() or fs methods with a host filesystem");
+  }
+
   mountDevices() {
+    this.#requireNativeFs();
     if (this.exports.safe_bash_configure_profile(this.sessionId, 3) !== 0) {
       throw new Error("Unable to mount virtual devices");
     }
@@ -2193,6 +2203,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   mkdirAll(dirPath) {
+    this.#requireNativeFs();
     const p = this._allocBytes(encoder.encode(dirPath));
     try {
       this.exports.safe_bash_mkdir_all(this.sessionId, p.ptr, p.len);
@@ -2202,6 +2213,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   writeFile(filePath, data) {
+    this.#requireNativeFs();
     const bytes = typeof data === "string" ? encoder.encode(data) : data;
     const p = this._allocBytes(encoder.encode(filePath));
     const d = this._allocBytes(bytes);
@@ -2214,6 +2226,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   readFile(filePath, options) {
+    this.#requireNativeFs();
     options?.signal?.throwIfAborted();
     const limit = options?.maxBytes;
     const maxBytes = limit === undefined ? NaN : limit === Infinity || Number.isSafeInteger(limit) ? limit : -1;
@@ -2237,6 +2250,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   removePath(filePath, operation = 0, force = false) {
+    this.#requireNativeFs();
     const p = this._allocBytes(encoder.encode(filePath));
     try {
       const rc = this.exports.safe_bash_remove_path(this.sessionId, p.ptr, p.len, operation, force);
@@ -2252,6 +2266,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   symlink(target, linkPath) {
+    this.#requireNativeFs();
     const t = this._allocBytes(encoder.encode(target));
     const p = this._allocBytes(encoder.encode(linkPath));
     try {
@@ -2268,6 +2283,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   readlink(linkPath) {
+    this.#requireNativeFs();
     const p = this._allocBytes(encoder.encode(linkPath));
     try {
       const len = this.exports.safe_bash_readlink(this.sessionId, p.ptr, p.len);
@@ -2281,6 +2297,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   chmod(filePath, mode) {
+    this.#requireNativeFs();
     const p = this._allocBytes(encoder.encode(filePath));
     try {
       const rc = this.exports.safe_bash_chmod(this.sessionId, p.ptr, p.len, typeof mode === "number" ? mode : NaN, mode === undefined);
@@ -2508,6 +2525,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   _setTimes(filePath, atime, mtime, both) {
+    this.#requireNativeFs();
     const millis = value => value instanceof Date ? value.getTime() : typeof value === "number" ? value : NaN;
     const p = this._allocBytes(encoder.encode(filePath));
     try {
@@ -2523,6 +2541,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   stat(filePath, follow = true) {
+    this.#requireNativeFs();
     const p = this._allocBytes(encoder.encode(filePath));
     try {
       const len = this.exports.safe_bash_stat(this.sessionId, p.ptr, p.len, follow ? 1 : 0);
@@ -2605,6 +2624,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   readdir(dirPath, limit) {
+    this.#requireNativeFs();
     const typed = limit !== undefined;
     const p = this._allocBytes(encoder.encode(dirPath));
     try {
@@ -2642,6 +2662,7 @@ export class RustWasmBash extends WasmShell {
   async exec(script, options = {}) {
     if (!this.sessionId) throw new Error("Shell is disposed");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
+    if (this.#hostRoot && options.fs == null) options = {...options, fs: this.#hostRoot};
     if (this.#onInternalError && options.onInternalError === undefined) options = {...options, onInternalError:this.#onInternalError};
     if (!this.#ready) return this.#exec(script, options);
     const signal = options.signal ? AbortSignal.any([options.signal, this.#pluginLifetime.signal]) : this.#pluginLifetime.signal;
@@ -2655,8 +2676,8 @@ export class RustWasmBash extends WasmShell {
   }
 
   async #exec(script, options, legacySleep = options.signal) {
-    const filesystem = options?.fs;
-    const externalFs = filesystem != null && filesystem !== this.fs;
+    const filesystem = options.fs;
+    const externalFs = filesystem != null && (this.#hostRoot != null || filesystem !== this.fs);
     if (externalFs && this.companionFactory && !this._companion) {
       // The call has its own filesystem. It neither needs the default
       // filesystem's history nor transfers ownership of subsequent calls.
@@ -2733,7 +2754,7 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, externalFs ? filesystem : this.fs, externalFs ? filesystem.capabilities?.open===true : !this.#overlay, options, this.#middleware, this.#composeMiddleware,externalFs ? (this.#overlay || this._companion ? null : this.fs) : undefined);
+          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, externalFs ? filesystem : this.fs, externalFs ? filesystem.capabilities?.open===true : !this.#overlay, options, this.#middleware, this.#composeMiddleware,externalFs ? (this.#hostRoot || this.#overlay || this._companion ? null : this.fs) : undefined);
         }
       }
       if (hostWait) {
@@ -2902,6 +2923,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   execSync(script, stdin) {
+    this.#requireNativeFs();
     if (this.#ready) throw new Error("Use exec() after installing a JavaScript plugin");
     return super.execSync(script, stdin);
   }
@@ -2952,6 +2974,7 @@ export class RustWasmBash extends WasmShell {
         dispose() { return inner.dispose(); },
         async exec(script, opts) {
           await self._ensureCompanionSynced();
+          if (self.#hostRoot && opts?.fs == null) opts = {...opts, fs:self.#hostRoot};
           return opts === undefined ? inner.exec(script) : inner.exec(script, opts);
         },
       };

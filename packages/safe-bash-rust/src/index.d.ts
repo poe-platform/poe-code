@@ -8,7 +8,8 @@ export interface RustWasmFileInit {
   readonly mtime?: Date;
 }
 
-export interface RustWasmBashOptions {
+export interface RustWasmBashOptions<F extends RustWasmFileSystem = RustWasmFileSystem> {
+  readonly fs?: F;
   readonly hooks?: ShellSessionHooks;
   readonly onInternalError?: ShellExecOptions["onInternalError"];
   readonly cwd?: string;
@@ -26,7 +27,7 @@ export interface RustWasmBashOptions {
   readonly ShellLimitError?: unknown;
 }
 
-type RustWasmFileSystem = WasmFileSystem | FileSystem;
+export type RustWasmFileSystem = WasmFileSystem | FileSystem;
 export type RustWasmExecOptions = Omit<ShellExecOptions, "fs"> & { readonly fs?: RustWasmFileSystem };
 
 export interface RustWasmExecResult {
@@ -144,9 +145,9 @@ export class ShellLimitError extends Error {
   constructor(limit: string);
 }
 
-export class RustWasmBash {
-  readonly shell: RustWasmBash;
-  readonly fs: WasmFileSystem;
+export class RustWasmBash<F extends RustWasmFileSystem = WasmFileSystem> {
+  readonly shell: this;
+  readonly fs: F;
   readonly forceNative: boolean;
   readonly state: {
     cwd: string;
@@ -155,7 +156,7 @@ export class RustWasmBash {
     functions: Record<string, string>;
   };
 
-  constructor(options?: RustWasmBashOptions);
+  constructor(options?: RustWasmBashOptions<F>);
   register(command: StreamCommand, options?: RegisterCommandOptions): this;
   use(plugin: StreamMiddleware | {
     readonly name?: string;
@@ -189,4 +190,4 @@ export class RustWasmBash {
   dispose(): void | Promise<void>;
 }
 
-export function createRustWasmBash(options?: RustWasmBashOptions): RustWasmBash;
+export function createRustWasmBash<F extends RustWasmFileSystem = WasmFileSystem>(options?: RustWasmBashOptions<F>): RustWasmBash<F>;

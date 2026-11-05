@@ -266,5 +266,5 @@ pub(super) fn write(sheets: &[WorkbookSheet], limit: usize) -> Option<Vec<u8>> {
         "_rels/.rels".into(),
         include_bytes!("xlsx/root.rels").to_vec(),
     )?;
-    Some(encode_zip_members(&entries, (8,6), &[], true, false, &Default::default(), |_,_,_,_| {}))
+    Some(encode_zip_members(&entries, (8,6), &[], true, (false,false), &Default::default(), |_,_,_,_| {}))
 }

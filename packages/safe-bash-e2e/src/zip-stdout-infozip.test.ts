@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { buffer } from "node:stream/consumers";
-import { mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { MemoryFileSystem, Shell, archiveCommands } from "@poe-platform/safe-bash";
@@ -13,9 +13,14 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
   const out = fileURLToPath(new URL("../../../out/", import.meta.url));
   await mkdir(out, { recursive: true });
   const cwd = await mkdtemp(out + "infozip-");
-  const native = async (command: "zip" | "unzip" | "funzip", args: string[]) => {
-    const proc = spawn("/usr/bin/" + command, args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
-    const [[status], stdout, stderr] = await Promise.all([once(proc, "close"), buffer(proc.stdout), buffer(proc.stderr)]);
+  const native = async (command: "zip" | "unzip" | "funzip", args: string[], stdin?: Uint8Array) => {
+    // Node uses a socket pair for child stdin. Info-ZIP records its file type;
+    // use a shell pipe so the reference member has the metadata of a Unix pipe.
+    const path = "/usr/bin/" + command;
+    const proc = stdin ? spawn("/bin/sh", ["-c", 'cat | exec "$@"', "sh", path, ...args], {cwd, env})
+      : spawn(path, args, {cwd, env, stdio:["ignore", "pipe", "pipe"]});
+    if (stdin) proc.stdin!.end(stdin);
+    const [[status], stdout, stderr] = await Promise.all([once(proc, "close"), buffer(proc.stdout!), buffer(proc.stderr!)]);
     return { status, stdout, stderr };
   };
   const fs = new MemoryFileSystem();
@@ -56,6 +61,29 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
         const streamed = await native("funzip", ["check.zip"]);
         assert.equal(streamed.status, 0, shell.constructor.name + ": " + args.join(" ") + ": " + streamed.stderr);
         assert.deepEqual(streamed.stdout, Buffer.from(payload));
+      }
+    }
+    await writeFile(cwd + "/-", "literal dash");
+    for (const [shell, view] of [[js, fs], [rust, rust.fs]] as const) {
+      await view.writeFile("/-", Buffer.from("literal dash"));
+      for (const args of [["-qm", "named.zip", "-"], ["-q", "-", "-"], ["-q"], ["-q", "-fz-", "-", "-"]]) {
+        const named = args.includes("named.zip");
+        const reference = await native("zip", args, payload);
+        assert.equal(reference.status, 0, reference.stderr.toString());
+        const nativeArchive = named ? await readFile(cwd + "/named.zip") : reference.stdout;
+        const result = await shell.exec("zip " + args.join(" "), {stdin:payload});
+        assert.equal(result.exitCode, reference.status, result.stderr);
+        const bytes = named ? await view.readFile("/named.zip") : result.stdoutBytes;
+        await writeFile(cwd + "/check.zip", bytes);
+        const extracted = await native("unzip", ["-p", "check.zip"]);
+        assert.equal(extracted.status, 0, extracted.stderr.toString());
+        assert.deepEqual(extracted.stdout, Buffer.from(payload));
+        await view.writeFile("/native.zip", nativeArchive);
+        const imported = await shell.exec("unzip -p native.zip");
+        assert.equal(imported.exitCode, 0, imported.stderr);
+        assert.deepEqual(Buffer.from(imported.stdoutBytes), Buffer.from(payload));
+        assert.deepEqual(await view.readFile("/-"), new Uint8Array(Buffer.from("literal dash")));
+        if (named) await rm(cwd + "/named.zip");
       }
     }
   } finally {

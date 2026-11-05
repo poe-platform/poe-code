@@ -5907,6 +5907,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
     let mut selected_action: &str = "add";
     let mut literal = false;
     let mut descriptors = false;
+    let mut allow_zip64 = true;
     let mut split_size = 0;
     let mut split_verbose = false;
     let mut split_pause = false;
@@ -6121,7 +6122,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                 in_exclude=false;
                 in_include=false;
             } else { return zip_err(&format!("unsupported option: --{name}")); }
-        } else if a.starts_with('-') && !a.starts_with("--") && (a != "-" || !positional.is_empty()) {
+        } else if a.starts_with('-') && !a.starts_with("--") && a != "-" {
             in_exclude = false;
             in_include = false;
             let mut flags = a[1..].chars();
@@ -6156,6 +6157,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                         selected_action = "copy";
                         copy_mode = true;
                     }
+                    'f' if flags.as_str().starts_with("z-") => { flags.next(); flags.next(); allow_zip64 = false; }
                     'f' if flags.as_str().starts_with('d') => {
                         flags.next();
                         if flags.as_str().starts_with('-') { return zip_err("option fd is not negatable"); }
@@ -6255,7 +6257,8 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
         if selected_action != "add" {
             return zip_err("expected archive name");
         }
-        return err_out("zip: missing arguments\n", 1);
+        positional.push("-".into());
+        if !stdin_names { positional.push("-".into()); }
     }
     let arch_name = ensure_zip_suffix(&positional[0]);
     let stdout_archive = arch_name == "-";
@@ -6436,13 +6439,13 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,false,&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,false),&retained,|_,_,_,_| {}), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,false,&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,false),&retained,|_,_,_,_| {}), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
@@ -6464,7 +6467,14 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
         .map(|(index,e)| (e.name.clone(), (index,None::<String>,Some(e.mtime)))).collect();
     while let Some((t,stored_name)) = targets.pop_front() {
         let mut raw_entries = Vec::new();
-        let visit = visit_archive_sources(
+        let visit = if t == "-" && !stored_name {
+            if !tar_matches_exclude("-", &excludes) {
+                let entry=TarEntry {name:t.clone(),typeflag:b'0',mode:0o010600,mtime:crate::vfs::now_ms()/1000.,
+                    atime:None,uid:0,gid:0,linkname:String::new(),content:Vec::new()};
+                raw_entries.push((None,t.clone(),None,entry));
+            }
+            Ok(())
+        } else { visit_archive_sources(
             t.trim_start_matches('/'),
             &resolve_posix_path(cwd, &t),
             &excludes,
@@ -6488,10 +6498,10 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                     if t == "." { name.strip_prefix("./").unwrap_or(name).into() }
                     else { format!("{}{name}", &t[..t.len()-t.trim_start_matches('/').len()]) }
                 };
-                raw_entries.push((path,stat.clone(),source,receipt,entry));
+                raw_entries.push((Some((path,stat.clone())),source,receipt,entry));
                 Ok(true)
             },
-        );
+        ) };
         if let Err(e) = visit {
             if !e.starts_with("ENOENT:") { return err_out(&format!("zip: {e}\n"),2); }
             if stdout_archive && !quiet { notices.push_str(&format!("\tzip warning: name not matched: {}\n",zip_public_text(&t))); }
@@ -6505,7 +6515,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                 if !matched && !quiet { notices.push_str(&format!("\tzip warning: name not matched: {}\n",zip_public_text(&t))); }
             }
         }
-        for (path,stat,source,receipt,mut e) in raw_entries {
+        for (file,source,receipt,mut e) in raw_entries {
             e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();
             if e.name.is_empty() || e.name == "." || e.name == "./" {
                 continue;
@@ -6542,9 +6552,9 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             }
             let prior = members.get(&e.name).and_then(|m|m.2);
             if freshen_mode && prior.is_none() { continue; }
-            if let Some((parent,expected)) = receipt && moving_paths.insert(path.clone()) {
+            if let Some((path,_)) = &file && let Some((parent,expected)) = receipt && moving_paths.insert(path.clone()) {
                 let directory=expected.kind==crate::vfs::VfsEntryKind::Directory;
-                let receipt=match fs.retain_removal(&path,parent,expected) {
+                let receipt=match fs.retain_removal(path,parent,expected) {
                     Ok(r)=>r, Err(e)=>return err_out(&format!("zip: {e}\n"),2),
                 };
                 moves.push(ZipMove {path:path.clone(),source:source.clone(),directory,receipt});
@@ -6563,7 +6573,12 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             *selected = Some(source);
             retained.remove(&e.name);
             if e.typeflag == b'0' {
-                e.content = match zip_read_file(fs,&path,&stat) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
+                e.content = if let Some((path,stat))=&file {
+                    match zip_read_file(fs,path,stat) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("zip: {e}\n"),2) }
+                } else if stdin_names { Vec::new() } else {
+                    if crate::vfs::stream_byte_len(stdin)>fs.max_input_bytes() {return err_out(&fs.limit_error("maxInputBytes",fs.max_input_bytes()),2);}
+                    crate::vfs::stream_string_to_bytes(stdin)
+                };
             }
             if e.typeflag == b'0' && let Some(from) = from_crlf {
                 let store = compression==0 || level == 0 || level != 9 && suffixes.iter().any(|s| e.name.ends_with(s));
@@ -6595,7 +6610,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                     e.content = converted;
                 }
             }
-            if split_size != 0 { sources.push((path,stat.identity)); }
+            if split_size != 0 && let Some((path,stat))=file { sources.push((path,stat.identity)); }
             if let Some(ex) = entries.get_mut(*index) {
                 *ex = e;
             } else {
@@ -6638,7 +6653,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
     let savings = |size: u64, stored: u64| if size == 0 { 0 } else {
         (200 * (i128::from(size) - i128::from(stored)) / i128::from(size) + 1) / 2
     };
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, descriptors || stdout_archive, &retained,
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptors || stdout_archive,allow_zip64), &retained,
         |name,method,size,stored| {
             if quiet { return; }
             let (size,stored) = (size as u64,stored as u64);

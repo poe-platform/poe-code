@@ -3528,19 +3528,21 @@ pub const ZIP_COMMENT_TYPE: u8 = b'C';
 pub(super) struct ZipRecord<'a> {
     local: &'a [u8],
     central: &'a [u8],
+    descriptor: &'a [u8],
 }
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, (0,0), &[], false, false, &ZipRecords::new(), |_,_,_,_| {})
+    encode_zip_members(entries, (0,0), &[], false, (false,false), &ZipRecords::new(), |_,_,_,_| {})
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, descriptors: bool, retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,allow_zip64): (bool,bool), retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
     let mut count = 0u16;
 
+    let mut wide_archive = false;
     for e in entries {
         if e.typeflag == ZIP_COMMENT_TYPE {
             comment = e.content.clone();
@@ -3554,7 +3556,10 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             central[start+42..start+46].copy_from_slice(&(local as u32).to_le_bytes());
             // Named output already knows the sizes. Like the JS writer, put them
             // in the local header and drop any streaming descriptor on plain members.
-            if record.central[8] & 9 == 9 {
+            if record.local[18..26] == [255;8] {
+                out.extend_from_slice(record.descriptor);
+                wide_archive = true;
+            } else if record.central[8] & 9 == 9 {
                 // The traditional password verifier uses the DOS time when bit 3 is set.
                 out.extend_from_slice(&0x08074b50u32.to_le_bytes());
                 out.extend_from_slice(&record.central[16..28]);
@@ -3592,7 +3597,10 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         } else {
             &e.content
         };
-        let compress = compression!=0 && level != 0 && !is_dir && !is_symlink && !payload.is_empty()
+        let stdin_member = e.mode & 0o170000 == 0o010000;
+        let wide = allow_zip64 && stdin_member;
+        wide_archive |= wide && !descriptors;
+        let compress = compression!=0 && level != 0 && !is_dir && !is_symlink && (!payload.is_empty() || stdin_member && descriptors)
             && (level == 9 || !store_suffixes.iter().any(|suffix| clean_name.ends_with(suffix)));
         let compressed = if compress {
             match compression {
@@ -3609,6 +3617,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         let (method, version, stored): (u16, u16, &[u8]) = if compress && (descriptor || compressed.len() < payload.len()) {
             (compression,match compression {12=>46,14=>63,_=>20}, &compressed)
         } else { (0, 10, payload) };
+        let version = if wide {version.max(45)} else {version};
         let flags:u16=0x800 | if descriptor {8} else {0} | if method==14 {2} else {0};
         report(&e.name,method,payload.len(),stored.len());
         let text_attr = u16::from(!document && compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
@@ -3622,6 +3631,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         extra[4] = 1;
         extra[5..9].copy_from_slice(&(e.mtime as u64 as i32).to_le_bytes());
 
+        let extra=if stdin_member {&[][..]} else {&extra[..]};
         let local_offset = out.len() as u32;
         out.extend_from_slice(&0x0403_4b50u32.to_le_bytes());
         out.extend_from_slice(&version.to_le_bytes());
@@ -3629,30 +3639,43 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         out.extend_from_slice(&method.to_le_bytes());
         out.extend_from_slice(&dos_time.to_le_bytes());
         out.extend_from_slice(&dos_date.to_le_bytes());
-        if descriptor && method == 8 { out.extend_from_slice(&[0;12]); }
+        if wide {
+            out.extend_from_slice(&(if descriptor {0} else {crc}).to_le_bytes());
+            out.extend_from_slice(&[255;8]);
+        } else if descriptor && method == 8 { out.extend_from_slice(&[0;12]); }
         else {
             out.extend_from_slice(&(if descriptor && method == 0 {0} else {crc}).to_le_bytes());
             out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
             out.extend_from_slice(&sz.to_le_bytes());
         }
         out.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        out.extend_from_slice(&(extra.len() as u16).to_le_bytes());
+        out.extend_from_slice(&((extra.len() + if wide {20} else {0}) as u16).to_le_bytes());
         out.extend_from_slice(name_bytes);
-        out.extend_from_slice(&extra);
+        out.extend_from_slice(extra);
+        if wide {
+            out.extend_from_slice(&[1,0,16,0]);
+            out.extend_from_slice(&(if descriptor {0} else {u64::from(sz)}).to_le_bytes());
+            out.extend_from_slice(&(if descriptor {0} else {stored.len() as u64}).to_le_bytes());
+        }
         out.extend_from_slice(stored);
 
         if descriptor {
             out.extend_from_slice(b"PK\x07\x08");
             out.extend_from_slice(&crc.to_le_bytes());
-            out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
-            out.extend_from_slice(&sz.to_le_bytes());
+            if wide {
+                out.extend_from_slice(&(stored.len() as u64).to_le_bytes());
+                out.extend_from_slice(&u64::from(sz).to_le_bytes());
+            } else {
+                out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
+                out.extend_from_slice(&sz.to_le_bytes());
+            }
         }
 
         let unix_type = if is_dir {
             0o040000u32
         } else if is_symlink {
             0o120000u32
-        } else {
+        } else if stdin_member { 0o010000 } else {
             0o100000u32
         };
         let unix_mode = unix_type | (e.mode & 0o7777);
@@ -3676,7 +3699,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         central.extend_from_slice(&ext_attr.to_le_bytes());
         central.extend_from_slice(&local_offset.to_le_bytes());
         central.extend_from_slice(name_bytes);
-        central.extend_from_slice(&extra);
+        central.extend_from_slice(extra);
         count = count.saturating_add(1);
     }
 
@@ -3684,6 +3707,17 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
     let central_size = central.len() as u32;
     out.extend_from_slice(&central);
 
+    if wide_archive {
+        let offset=out.len() as u64;
+        out.extend_from_slice(b"PK\x06\x06");
+        out.extend_from_slice(&44u64.to_le_bytes());
+        out.extend_from_slice(&[30,3,45,0,0,0,0,0,0,0,0,0]);
+        for n in [u64::from(count),u64::from(count),central_size.into(),central_offset.into()] {out.extend_from_slice(&n.to_le_bytes());}
+        out.extend_from_slice(b"PK\x06\x07");
+        out.extend_from_slice(&0u32.to_le_bytes());
+        out.extend_from_slice(&offset.to_le_bytes());
+        out.extend_from_slice(&1u32.to_le_bytes());
+    }
     out.extend_from_slice(&0x0605_4b50u32.to_le_bytes());
     out.extend_from_slice(&0u16.to_le_bytes());
     out.extend_from_slice(&0u16.to_le_bytes());
@@ -3707,7 +3741,8 @@ struct ZipAes {
     method:u16,
 }
 
-fn zip_extra(mut extra:&[u8])->Result<(Option<u64>,Option<ZipAes>),String> {
+fn zip_extra(mut extra:&[u8])->Result<(Option<u64>,Option<ZipAes>,Option<&[u8]>),String> {
+    let mut wide=None;
     let mut modified=None;
     let mut aes=None;
     while !extra.is_empty(){
@@ -3716,6 +3751,7 @@ fn zip_extra(mut extra:&[u8])->Result<(Option<u64>,Option<ZipAes>),String> {
         let len=u16::from_le_bytes([header[2],header[3]]) as usize;
         let field=extra.get(4..4+len).ok_or("ZIP truncated extra field payload")?;
         match id {
+            1=>{if wide.replace(field).is_some(){return Err("ZIP duplicate extra field".into());}}
             0x9901=>{
                 if aes.is_some(){return Err("ZIP duplicate extra field".into());}
                 if len!=7 || &field[2..4]!=b"AE"{return Err("ZIP invalid AES extra field".into());}
@@ -3734,7 +3770,7 @@ fn zip_extra(mut extra:&[u8])->Result<(Option<u64>,Option<ZipAes>),String> {
         }
         extra=&extra[4+len..];
     }
-    Ok((modified,aes))
+    Ok((modified,aes,wide))
 }
 
 impl ZipAes {
@@ -3765,6 +3801,7 @@ impl ZipAes {
 }
 
 pub(super) struct ZipMember {
+    end: usize,
     central: std::ops::Range<usize>,
     local_start: usize,
     verifier: Option<u8>,
@@ -3838,7 +3875,7 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     let mut out = Vec::with_capacity(members.len() + usize::from(!comment.is_empty()));
     for member in members {
         let (linkname,content) = if let Some(records) = retained.as_deref_mut() {
-            if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central]}).is_some() { return Err("ZIP duplicate member name".into()); }
+            if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central],descriptor:&data[member.payload.end..member.end]}).is_some() { return Err("ZIP duplicate member name".into()); }
             (String::new(),Vec::new())
         } else {
             let decoded=member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]),None)?;
@@ -3891,7 +3928,19 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
     let central_offset = u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
     let cmt_len = u16::from_le_bytes([data[eocd + 20], data[eocd + 21]]) as usize;
 
-    if central_offset.checked_add(central_size) != Some(tail_start + eocd) {
+    let end=tail_start+eocd;
+    let central_end=central_offset.checked_add(central_size).ok_or("corrupt central directory")?;
+    if end.checked_sub(76)==Some(central_end) {
+        // Info-ZIP emits both classic counts and a ZIP64 end for small named stdin archives.
+        let wide=read(central_end..end)?;
+        if &wide[..4]!=b"PK\x06\x06" || wide[4..12]!=44u64.to_le_bytes() || wide[14..16]!=45u16.to_le_bytes()
+            || wide[16..24]!=[0;8] || wide[24..32]!=(disk_members as u64).to_le_bytes()
+            || wide[32..40]!=(total_entries as u64).to_le_bytes() || wide[40..48]!=(central_size as u64).to_le_bytes()
+            || wide[48..56]!=(central_offset as u64).to_le_bytes() || &wide[56..60]!=b"PK\x06\x07"
+            || wide[60..64]!=[0;4] || wide[64..72]!=(central_end as u64).to_le_bytes() || wide[72..76]!=1u32.to_le_bytes() {
+            return Err("ZIP inconsistent ZIP64 end record".into());
+        }
+    } else if central_end != end {
         return Err("corrupt central directory".into());
     }
 
@@ -3899,7 +3948,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
     let mut spans = std::collections::BTreeMap::<usize,usize>::new();
     let overlap = "ZIP overlapping spans, gaps or self-extracting prefix are unsupported";
     let comment = data[eocd+22..eocd+22+cmt_len].to_vec();
-    let data = read(central_offset..tail_start + eocd)?;
+    let data = read(central_offset..central_end)?;
     let mut pos = 0;
     for _ in 0..total_entries {
         if central_size - pos < 46 {
@@ -3936,7 +3985,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         let central_extra = &data[pos + 46 + name_len..pos + 46 + name_len + extra_len];
         pos += 46 + name_len + extra_len + entry_cmt_len;
 
-        let (modified,aes)=zip_extra(central_extra)?;
+        let (modified,aes,_)=zip_extra(central_extra)?;
         let flags=u16::from_le_bytes([data[central_start+8],data[central_start+9]]);
         if flags & (64|0x2000)!=0{return Err("ZIP encryption is unsupported".into());}
         if method==99 && (flags&1==0 || flags & !0x80f!=0 || data[central_start+6..central_start+8]!=[51,0]){
@@ -3964,7 +4013,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
         let local_fields=read(local_off+30..payload_start)?;
         if local_fields[..l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
-        let (local_modified,local_aes)=zip_extra(&local_fields[l_name_len..])?;
+        let (local_modified,local_aes,wide_sizes)=zip_extra(&local_fields[l_name_len..])?;
         if local_aes!=aes{return Err("ZIP central/local AES metadata mismatch".into());}
         let mtime=modified.or(local_modified).unwrap_or_else(||dos_to_unix_secs(dos_date,dos_time));
         if !matches!(method,0|8|12|14|99) { return Err("ZIP unsupported compression method".into()); }
@@ -3974,17 +4023,33 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         if aes.is_some_and(|a|a.method==0) && comp_size-overhead!=uncomp_size{return Err("ZIP AES stored size mismatch".into());}
         if method == 0 && comp_size-usize::from(encrypted)*12 != uncomp_size { return Err("ZIP stored size mismatch".into()); }
         let descriptor = central[8] & 8 != 0;
-        if local[14..26].chunks_exact(4).zip(central[16..28].chunks_exact(4))
+        let wide = local[18..26] == [255;8];
+        if wide {
+            let fields=wide_sizes.filter(|f|f.len()==16).ok_or("ZIP invalid ZIP64 local sizes")?;
+            if u16::from_le_bytes(local[4..6].try_into().unwrap())<45
+                || fields.chunks_exact(8).zip([uncomp_size,comp_size]).any(|(v,n)|v!=(n as u64).to_le_bytes() && !(descriptor && v==[0;8])) {
+                return Err("ZIP central/local size or CRC mismatch".into());
+            }
+        }
+        let local_meta=if wide { &local[14..18] } else { &local[14..26] };
+        if local_meta.chunks_exact(4).zip(central[16..28].chunks_exact(4))
             .any(|(a,b)| a != b && !(descriptor && a == [0;4])) {
             return Err("ZIP central/local size or CRC mismatch".into());
         }
         let mut stop = payload_start + comp_size;
         if descriptor {
-            let tail = read(stop..stop.saturating_add(16).min(central_offset))?;
-            let unsigned = tail.starts_with(&central[16..28]);
-            let signed = tail.strip_prefix(&0x08074b50u32.to_le_bytes()).is_some_and(|t|t.starts_with(&central[16..28]));
+            let mut fields=[0u8;20];
+            fields[..4].copy_from_slice(&central[16..20]);
+            let fields=if wide {
+                fields[4..12].copy_from_slice(&(comp_size as u64).to_le_bytes());
+                fields[12..20].copy_from_slice(&(uncomp_size as u64).to_le_bytes());
+                &fields[..]
+            } else { &central[16..28] };
+            let tail = read(stop..stop.saturating_add(fields.len()+4).min(central_offset))?;
+            let unsigned = tail.starts_with(fields);
+            let signed = tail.strip_prefix(b"PK\x07\x08").is_some_and(|t|t.starts_with(fields));
             if unsigned == signed { return Err("ZIP truncated, ambiguous or mismatched data descriptor".into()); }
-            stop += if signed { 16 } else { 12 };
+            stop += fields.len() + if signed {4} else {0};
         }
         // Reject aliases before decoding their payload a second time.
         if spans.range(..=local_off).next_back().is_some_and(|(_,end)| *end > local_off)
@@ -4006,7 +4071,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
             0o644
         };
 
-        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,lzma_eos:flags&2!=0,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
+        out.push(ZipMember { end:stop,name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,lzma_eos:flags&2!=0,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
             payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
             typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
         });

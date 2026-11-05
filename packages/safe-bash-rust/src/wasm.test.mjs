@@ -6587,6 +6587,43 @@ for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lz
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip reads a dash member and implicit filter from stdin without moving a literal dash", async () => {
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const rust=new RustWasmBash({cwd:"/"});
+  const stdin=Uint8Array.of(0,8,255);
+  try {
+    for(const fs of [rust.fs,new MemoryFileSystem()]){
+      await fs.writeFile("/-",Uint8Array.of(42));
+      for(const [cmd,file] of [["zip -qm named -","/named.zip"],["zip -q - -"],["zip -q"],["zip -q -fz- - -"]]){
+        const r=await rust.exec(cmd,{fs,stdin});assert.equal(r.exitCode,0,r.stderr);
+        const bytes=Buffer.from(file?await fs.readFile(file):r.stdoutBytes);
+        if (!file) await fs.writeFile("/output.zip",bytes);
+        const extract=await rust.exec("unzip -p "+(file??"/output.zip"),{fs});
+        assert.equal(extract.exitCode,0,extract.stderr);assert.deepEqual(extract.stdoutBytes,stdin,cmd);
+        assert.equal(bytes.readUInt16LE(4),cmd.includes("-fz-")?20:45);
+        assert.equal(bytes.readUInt16LE(8),file?0:8);
+        assert.equal(bytes.readUInt16LE(6)&8,file?0:8);
+        assert.deepEqual(await fs.readFile("/-"),Uint8Array.of(42));
+        if (!cmd.includes("-fz-")) {
+          // A wrong local size, descriptor or redundant end must not authorize replacement or -m.
+          const broken=Buffer.from(bytes);
+          const offset=file?broken.indexOf(Buffer.from("PK\x06\x07","binary"))+8:broken.indexOf(Buffer.from("PK\x07\x08","binary"))+8;
+          broken[offset]^=1;
+          await fs.writeFile("/bad.zip",broken);await fs.writeFile("/keep",Uint8Array.of(7));
+          const update=await rust.exec("zip -qm bad.zip keep",{fs});assert.notEqual(update.exitCode,0);
+          assert.deepEqual(Buffer.from(await fs.readFile("/bad.zip")),broken);
+          assert.deepEqual(await fs.readFile("/keep"),Uint8Array.of(7));
+          await fs.writeFile("/copy.zip",bytes);
+          const kept=await rust.exec("zip -q copy.zip keep && unzip -p copy.zip -- -",{fs});
+          assert.equal(kept.exitCode,0,kept.stderr);assert.deepEqual(kept.stdoutBytes,stdin);
+        }
+      }
+      const literal=await rust.exec("zip -q regular ./-; unzip -p regular.zip",{fs,stdin});
+      assert.deepEqual(literal.stdoutBytes,Uint8Array.of(42));
+    }
+  }finally{await rust.dispose();}
+});
+
 test("zip writes a dash archive to stdout, keeping progress on stderr and literal dash files intact",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"}),host=new MemoryFileSystem();

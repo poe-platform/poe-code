@@ -3275,22 +3275,24 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
     const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, state.background));
+    let hasAlpha = canvas.hasAlpha;
     let cursor = 0;
     for (const im of stack) {
         if (++work % 16384 === 0)
             yield;
-        if (vertical) {
-            const off = resolveGravityOffset(totalW - im.width, 0, state.gravity);
-            yield* blitOverRgbaInPlaceSteps(canvas, im, off.left, cursor);
-            cursor += im.height;
+        const off = resolveGravityOffset(vertical ? totalW - im.width : 0, vertical ? 0 : totalH - im.height, state.gravity);
+        const left = vertical ? off.left : cursor, top = vertical ? cursor : off.top;
+        for (let y = 0; y < im.height; y++) {
+            for (let x = 0; x < im.width; x += 4096) {
+                yield;
+                const start = (y * im.width + x) * 4;
+                canvas.data.set(im.data.subarray(start, start + Math.min(4096, im.width - x) * 4), ((top + y) * totalW + left + x) * 4);
+            }
         }
-        else {
-            const off = resolveGravityOffset(0, totalH - im.height, state.gravity);
-            yield* blitOverRgbaInPlaceSteps(canvas, im, cursor, off.top);
-            cursor += im.width;
-        }
+        hasAlpha ||= im.hasAlpha;
+        cursor += vertical ? im.height : im.width;
     }
-    return canvas;
+    return { ...canvas, hasAlpha };
 }
 
 function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { format: ImageFormat; path: string } {
@@ -5386,7 +5388,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
                     const frame = (await stack.get(n))!, offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, settings.gravity);
-                    result = await compositeStoredMagick(result, frame, backend, signal, append ? vertical ? offset.left : cursor : 0, append ? vertical ? cursor : offset.top : 0, append ? "over" : settings.compose, undefined, !append, true);
+                    if (append) {
+                        const left = vertical ? offset.left : cursor, top = vertical ? cursor : offset.top;
+                        for (let y = 0; y < frame.height; y++) {
+                            for (let x = 0; x < frame.width; x += 4096) {
+                                await yieldTurn(signal);
+                                const pixels = await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(4096, frame.width - x) * 4);
+                                await backend.storage.write(result.position + ((top + y) * width + left + x) * 4, pixels);
+                            }
+                        }
+                        result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
+                    }
+                    else result = await compositeStoredMagick(result, frame, backend, signal, 0, 0, settings.compose, undefined, true, true);
                     cursor += vertical ? frame.height : frame.width;
                 }
                 stack.length = 0; await stack.push(result); return stack;

@@ -16735,6 +16735,33 @@ mod media_unit_tests {
         assert_eq!(fs.read_file("/out-003.ppm").unwrap(), b"P6\n3 1\n255\nAAAzzz~~~");
     }
 
+    #[test]
+    fn pdf_sampled_images_apply_predictors_and_decode_ranges() {
+        let fs = MemoryVfs::new();
+        let draw = "q 7 0 0 5 0 0 cm /A Do Q";
+        // PNG Up predictor inside ASCIIHex and Flate. Digests cover the full Poppler 24.02 PPMs.
+        for (color, components, decode, bytes, extract, page) in [
+            ("Gray", 1, "1 0", "789c63b29df0d8acf38e3e932b04e0a201f6ec0b11>",
+             "32f0e590a7c860375eb591131dd20d28b0c4c26cf6865aeb2771b904b2ced3ab", "b20102b19b6581b90025619f3788b596cfa6efdf3185d789bf0247d503a018b5"),
+            ("RGB", 3, "0.2 0.8 0.2 0.8 0.2 0.8", "789c63b29df0d8acf38e7ed3558dea738a25c7a5720f08a7ed643a8f0d502e0a0099b24e0e>",
+             "ad590cb03b9ce0d23b38a9c1f8ac921fa252d3ff695be19b345e2b5004369ac6", "e1ffe9598959a5acbea0509e0b7a4c2d45674e2a82be7b5e4ea81bb353f9fa19"),
+        ] {
+            let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 7 5] /Resources << /XObject << /A 5 0 R >> >> /Contents 4 0 R >>",
+                &format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len()),
+                &format!("<< /Type /XObject /Subtype /Image /Width 7 /Height 5 /ColorSpace /Device{color} /BitsPerComponent 8 /Decode [{decode}] /Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms [null << /Predictor 12 /Columns 7 /Colors {components} >>] /Length {} >>\nstream\n{bytes}\nendstream", bytes.len())], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            for (cmd, args, path, expected) in [
+                ("pdfimages", &["in.pdf","out"][..], "/out-000.ppm", extract),
+                ("pdftoppm", &["-r","72","-singlefile","in.pdf","out"][..], "/out.ppm", page),
+            ] {
+                let r = cmd_media_doc(cmd, &media_args(args), "", "/", &fs);
+                assert_eq!(r.exit_code, 0, "{}", r.stderr);
+                assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(path).unwrap())), expected, "{color} {cmd}");
+            }
+        }
+    }
+
     fn embedded_jpeg_pdf(jpeg: &[u8], color: &str, filters: &str, hex: bool) -> Vec<u8> {
         let bytes = if hex { [hex_enc(jpeg).as_bytes(), b">"].concat() } else { jpeg.to_vec() };
         let info = image_header::jpeg(jpeg).unwrap();

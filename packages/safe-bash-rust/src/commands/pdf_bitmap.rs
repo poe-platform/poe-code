@@ -61,11 +61,26 @@ impl Image {
             last.as_ref().and_then(Value::word),
             Some(b"/DCTDecode" | b"/DCT")
         );
-        if !bilevel
-            && !jpeg
-            && (filters.len() > 1 || last.is_some_and(|v| v.word() != Some(b"/FlateDecode")))
-        {
-            return Some(None);
+        if !bilevel && !jpeg {
+            for filter in &filters {
+                if !matches!(
+                    objects.filter_value(filter.clone())?.word(),
+                    Some(
+                        b"/FlateDecode"
+                            | b"/Fl"
+                            | b"/LZWDecode"
+                            | b"/LZW"
+                            | b"/ASCIIHexDecode"
+                            | b"/AHx"
+                            | b"/ASCII85Decode"
+                            | b"/A85"
+                            | b"/RunLengthDecode"
+                            | b"/RL"
+                    )
+                ) {
+                    return Some(None);
+                }
+            }
         }
         let number = |k: &[u8]| uint(dict.get(k)?.word()?);
         let (width, height) = (number(b"Width")?, number(b"Height")?);
@@ -79,10 +94,7 @@ impl Image {
             return None;
         }
         if bilevel && (number(b"BitsPerComponent")? != 1 || components != 1)
-            || !bilevel
-                && (number(b"BitsPerComponent")? != 8
-                    || !jpeg
-                        && (dict.get(b"DecodeParms").is_some() || dict.get(b"Decode").is_some()))
+            || !bilevel && number(b"BitsPerComponent")? != 8
         {
             return Some(None);
         }
@@ -212,36 +224,6 @@ impl Image {
                     return None;
                 }
                 pixels = samples;
-                if let Some(v) = dict.get(b"Decode") {
-                    let Value::Array(ranges) = objects.filter_value(v.clone())? else {
-                        return None;
-                    };
-                    if ranges.len() != 2 * components {
-                        return None;
-                    }
-                    for (i, pair) in ranges.chunks_exact(2).enumerate() {
-                        let (lo, hi) = (pair[0].number()?, pair[1].number()?);
-                        if (lo, hi) == (0., 1.) {
-                            continue;
-                        }
-                        let map: [u8; 256] = std::array::from_fn(|n| {
-                            (lo * 255. + (hi - lo) * n as f64).round() as u8
-                        });
-                        for p in &mut pixels {
-                            p[i] = map[usize::from(p[i])];
-                        }
-                    }
-                    if components == 1 {
-                        for p in &mut pixels {
-                            *p = [p[0], p[0], p[0], 255];
-                        }
-                    }
-                }
-                if components == 4 && !matches!(mode, ImageRead::Extract { tiff: true, .. }) {
-                    for p in &mut pixels {
-                        *p = device_cmyk(*p, matches!(mode, ImageRead::Pixels | ImageRead::Raster));
-                    }
-                }
             }
         } else if !bilevel && mode != ImageRead::List {
             if count > limit / 4 {
@@ -262,6 +244,37 @@ impl Image {
                     [r, g, b, 255]
                 })
                 .collect();
+        }
+        if !bilevel && !pixels.is_empty() {
+            if let Some(v) = dict.get(b"Decode") {
+                let Value::Array(ranges) = objects.filter_value(v.clone())? else {
+                    return None;
+                };
+                if ranges.len() != 2 * components {
+                    return None;
+                }
+                for (i, pair) in ranges.chunks_exact(2).enumerate() {
+                    let (lo, hi) = (pair[0].number()?, pair[1].number()?);
+                    if (lo, hi) == (0., 1.) {
+                        continue;
+                    }
+                    let map: [u8; 256] =
+                        std::array::from_fn(|n| (lo * 255. + (hi - lo) * n as f64).round() as u8);
+                    for p in &mut pixels {
+                        p[i] = map[usize::from(p[i])];
+                    }
+                }
+                if components == 1 {
+                    for p in &mut pixels {
+                        *p = [p[0], p[0], p[0], 255];
+                    }
+                }
+            }
+            if components == 4 && !matches!(mode, ImageRead::Extract { tiff: true, .. }) {
+                for p in &mut pixels {
+                    *p = device_cmyk(*p, matches!(mode, ImageRead::Pixels | ImageRead::Raster));
+                }
+            }
         }
         let soft_mask = dict.get(b"SMask").and_then(Value::reference);
         if mode == ImageRead::Pixels

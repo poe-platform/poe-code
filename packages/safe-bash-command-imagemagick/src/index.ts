@@ -1556,9 +1556,11 @@ function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string
                 case "abs":
                     next = Math.abs(cur + vByte);
                     break;
+                case "sin":
                 case "sine":
                     next = 255 * (0.5 + 0.5 * Math.sin(2 * Math.PI * vFrequency * (cur / 255)));
                     break;
+                case "cos":
                 case "cosine":
                     next = 255 * (0.5 + 0.5 * Math.cos(2 * Math.PI * vFrequency * (cur / 255)));
                     break;

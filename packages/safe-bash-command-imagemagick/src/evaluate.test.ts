@@ -6,6 +6,27 @@ import { createMagickCommand, runConvertCli, runConvertCliSync, runMagickCli } f
 
 // ImageMagick 7.1.2-31 Q16-HDRI, RGBA [100,150,200,160], -depth 8 rgba:-.
 for (const mode of ["buffered", "retained", "sync"] as const) {
+  // ImageMagick 7.1.2-32: aliases evaluate every default channel, including alpha.
+  it.each([
+    ["Sin", [245, 3, 195, 126]],
+    ["Sine", [245, 3, 195, 126]],
+    ["Cos", [78, 155, 19, 0]],
+    ["Cosine", [78, 155, 19, 0]],
+  ] as const)(`${mode}: %s matches native RGBA evaluation`, async (operation, expected) => {
+    const bytes = await sharp(new Uint8Array([40, 100, 180, 64]), {
+      raw: { width: 1, height: 1, channels: 4 },
+    }).png().toBuffer();
+    const files = new Map([["/in.png", bytes]]);
+    const filesystem = createMemoryFileSystem();
+    await filesystem.writeFile("/in.png", bytes);
+    const args = ["/in.png", "-evaluate", operation, "2", "/out.png"];
+    const result = mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+    expect([...output.data]).toEqual(expected);
+  });
+
   // Native Q16-HDRI trigonometric percentages use 65536, not QuantumRange (65535).
   it.each([
     ["50%", [101, 7, 103], [3, 87, 253]],
@@ -19,7 +40,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   ] as const)(`${mode}: trigonometric operand %s matches native evaluation`, async (operand, sine, cosine) => {
     const pixels = new Uint8Array([17, 101, 239].flatMap(value => [value, value, value, 255]));
     const bytes = await sharp(pixels, { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
-    for (const [operation, expected] of [["Sine", sine], ["Cosine", cosine]] as const) {
+    for (const [operation, expected] of [["Sine", sine], ["Sin", sine], ["Cosine", cosine], ["Cos", cosine]] as const) {
       const files = new Map([["/in.png", bytes]]);
       const filesystem = createMemoryFileSystem();
       await filesystem.writeFile("/in.png", bytes);

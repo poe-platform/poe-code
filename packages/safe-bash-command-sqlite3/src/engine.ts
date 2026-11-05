@@ -1693,7 +1693,7 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%(-?\+?\s?0?\d*(?:\.\d+)?)([sdfxXcqQ%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%(-?\+?\s?0?\d*(?:\.\d+)?)([sdfeEgGxXcqQ%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
@@ -1718,6 +1718,43 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
       const precMatch = /\.(\d+)/.exec(flags);
       const prec = precMatch ? Number(precMatch[1]) : 6;
       out = toSqlNumber(raw).toFixed(prec);
+    } else if ("eEgG".includes(spec)) {
+      const precisionIndex = flags.indexOf(".");
+      const precision = precisionIndex < 0 ? 6 : Number(flags.slice(precisionIndex + 1));
+      const general = spec === "g" || spec === "G";
+      const digits = general ? Math.max(1, precision) - 1 : precision;
+      const value = toSqlNumber(raw);
+      if (!Number.isFinite(value)) {
+        out = Number.isNaN(value) ? "NaN" : value < 0 ? "-Inf" : "Inf";
+      } else {
+        // SQLite's ordinary floating conversions retain 16 significant digits.
+        const [coefficient = "", power = "0"] = value.toExponential(Math.min(digits, 15)).split("e");
+        const exponent = Number(power);
+        // General format selects notation after rounding to significant digits.
+        const scientific = !general || exponent < -4 || exponent > digits;
+        out = coefficient;
+        if (!scientific) {
+          const negative = coefficient.startsWith("-");
+          const significand = (negative ? coefficient.slice(1) : coefficient).replace(".", "");
+          const point = exponent + 1;
+          out = point <= 0
+            ? `0.${"0".repeat(-point)}${significand}`
+            : point >= significand.length
+              ? significand.padEnd(point, "0")
+              : `${significand.slice(0, point)}.${significand.slice(point)}`;
+          if (negative) out = `-${out}`;
+        }
+        if (general && out.includes(".")) {
+          while (out.endsWith("0")) out = out.slice(0, -1);
+          if (out.endsWith(".")) out = out.slice(0, -1);
+        } else if (!general && digits > 15) {
+          out += "0".repeat(digits - 15);
+        }
+        if (scientific) {
+          const marker = spec === "E" || spec === "G" ? "E" : "e";
+          out += `${marker}${exponent < 0 ? "-" : "+"}${String(Math.abs(exponent)).padStart(2, "0")}`;
+        }
+      }
     }
     const widthMatch = /^(-?)(0?)(\d+)/.exec(flags);
     if (widthMatch) {

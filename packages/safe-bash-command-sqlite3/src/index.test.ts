@@ -4,6 +4,23 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const fn of ["printf", "format"]) {
+  for (const [args, expected] of [
+    ["'%e|%E|%g|%G',1234.5,0.000012345,1234.5,0.000012345", "1.234500e+03|1.234500E-05|1234.5|1.2345E-05"],
+    ["'%.2e|%.3g|%.0g|%.3g|%.3g',1234.5,1234.5,12.3,0.00009999,999.9", "1.23e+03|1.23e+03|1e+01|0.0001|1e+03"],
+    ["'%e|%g|%g|%g',0,0,-1234.5,NULL", "0.000000e+00|0|-1234.5|0"],
+    ["'%g|%g|%.2E|%d',100000,1000000,-0.000012345,42", "100000|1e+06|-1.23E-05|42"],
+    ["'%.20g|%.20e|%.25g',1.2345678901234567,1.2345678901234567,1e21", "1.234567890123457|1.23456789012345700000e+00|1000000000000000000000"],
+  ]) {
+    test(`sqlite3 ${fn} floating formats match native output: ${args}`, async () => {
+      assert.deepEqual(
+        await runSqlite3(createMemoryFileSystem(), [":memory:", `SELECT ${fn}(${args});`]),
+        { code: 0, stdout: `${expected}\n`, stderr: "" }
+      );
+    });
+  }
+}
+
 for (const fn of ["json_each", "json_tree"]) {
   test(`sqlite3 ${fn} quotes special object keys in generated paths`, async () => {
     const keys = [

@@ -58,6 +58,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 dataA = yield { kind: "read", image: 0, position: (y * imgA.width + left) * 4, length };
                 if (!(dataA instanceof Uint8Array) || dataA.length !== length)
                     throw new Error("Truncated comparison pixels");
+                dataA = dataA.slice();
             }
             if (y < imgB.height && left < imgB.width) {
                 const length = Math.min(count, imgB.width - left) * 4;
@@ -176,9 +177,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "psnr":
             metricStr = mseNorm === 0 ? "inf" : formatMetricNum(10 * Math.log10(1 / mseNorm));
             break;
-        case "ssim":
-            metricStr = formatMetricNum(ssim);
+        case "ssim": {
+            const distortion = yield* compareSsimSteps(imgA, imgB);
+            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
             break;
+        }
         case "dssim":
             metricStr = formatMetricNum((1 - ssim) / 2);
             break;
@@ -208,4 +211,62 @@ function formatSignificantMetric(n: number): string {
         return String(rounded);
     const [mantissa, exponent] = rounded.toExponential().split("e");
     return `${mantissa}e${exponent![0]}${exponent!.slice(1).padStart(2, "0")}`;
+}
+
+// ImageMagick uses an 11x11 Gaussian window (sigma 1.5), edge virtual
+// pixels, and independent channel statistics before averaging the similarity.
+function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+    const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
+    const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
+    const weights = Array.from({ length: 11 }, (_, i) => Math.exp(-((i - 5) ** 2) / (2 * 1.5 ** 2)));
+    const weightSum = weights.reduce((sum, value) => sum + value, 0);
+    for (let i = 0; i < weights.length; i++)
+        weights[i] = weights[i]! / weightSum;
+    let similarity = 0;
+    for (let y = 0; y < height; y++) {
+        // Include the halo in the 1024-pixel read limit. Copy borrowed reads
+        // because all eleven rows must remain available across requests.
+        for (let left = 0; left < width; left += 1014) {
+            yield;
+            const count = Math.min(1014, width - left);
+            const rows: Uint8Array[][] = [[], []];
+            const starts: number[] = [];
+            for (const image of [0, 1] as const) {
+                const info = image === 0 ? imgA : imgB;
+                const start = Math.min(info.width - 1, Math.max(0, left - 5));
+                const end = Math.min(info.width, left + count + 5);
+                starts[image] = start;
+                for (let v = -5; v <= 5; v++) {
+                    const row = Math.max(0, Math.min(info.height - 1, y + v));
+                    const length = (end - start) * 4;
+                    const data = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
+                    if (!(data instanceof Uint8Array) || data.length !== length)
+                        throw new Error("Truncated comparison pixels");
+                    rows[image]!.push(data.slice());
+                }
+            }
+            for (let x = left; x < left + count; x++) {
+                for (let channel = 0; channel < channels; channel++) {
+                    let muA = 0, muB = 0, squareA = 0, squareB = 0, product = 0;
+                    for (let v = 0; v < 11; v++) {
+                        for (let u = 0; u < 11; u++) {
+                            const offsetA = (Math.max(0, Math.min(imgA.width - 1, x + u - 5)) - starts[0]!) * 4 + channel;
+                            const offsetB = (Math.max(0, Math.min(imgB.width - 1, x + u - 5)) - starts[1]!) * 4 + channel;
+                            const a = rows[0]![v]![offsetA]! / 255, b = rows[1]![v]![offsetB]! / 255;
+                            const weight = weights[u]! * weights[v]!;
+                            muA += weight * a;
+                            muB += weight * b;
+                            squareA += weight * a * a;
+                            squareB += weight * b * b;
+                            product += weight * a * b;
+                        }
+                    }
+                    similarity += ((2 * muA * muB + 0.0001) * (2 * (product - muA * muB) + 0.0009)) /
+                        ((muA * muA + muB * muB + 0.0001) * (squareA - muA * muA + squareB - muB * muB + 0.0009));
+                }
+            }
+        }
+    }
+    const distortion = (1 - similarity / (width * height * channels)) / 2;
+    return Math.abs(distortion) < 1e-12 ? 0 : distortion;
 }

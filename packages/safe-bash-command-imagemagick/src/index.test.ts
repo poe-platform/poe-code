@@ -329,7 +329,7 @@ describe("safe-bash-command-imagemagick", () => {
       files
     );
 
-    // Identical images -> AE = 0, PSNR = inf, SSIM = 1
+    // Identical images -> AE = 0, PSNR = inf, SSIM distortion = 0
     const idAe = await runCompareCli(["-metric", "AE", "/a.png", "/b.png", "null:"], files);
     expect(idAe.exitCode).toBe(0);
     expect((idAe.stderr || idAe.stdout).trim()).toBe("0 (0)");
@@ -338,7 +338,7 @@ describe("safe-bash-command-imagemagick", () => {
     expect((idPsnr.stderr || idPsnr.stdout).trim()).toBe("inf");
 
     const idSsim = await runCompareCli(["-metric", "SSIM", "/a.png", "/b.png", "null:"], files);
-    expect(Number((idSsim.stderr || idSsim.stdout).trim())).toBeCloseTo(1, 3);
+    expect(idSsim.stderr.trim()).toBe("0 (0)");
 
     // Modified 5x5 rectangle contributes channel-weighted error magnitude.
     const diffAe = await runCompareCli(

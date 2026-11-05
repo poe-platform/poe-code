@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { clutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps, interpolatePixelSteps } from "./sequence-kernel.js";
+import { clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps, interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 function run(steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, sources: Uint8Array[], size: number) {
@@ -64,4 +64,19 @@ it("preserves interpolation rounding and missing channel samples", () => {
     const g = b.subarray(0, 12), expected = new Uint8Array(size);
     for (let offset = 0; offset < size; offset += 4) { expected[offset] = a[offset]!; expected[offset + 1] = g[offset] ?? 0; expected[offset + 2] = b[offset]!; expected[offset + 3] = 255; }
     expect(run(combinePixelSteps(size, [a.length, g.length, b.length]), [a, g, b], size)).toEqual(expected);
+});
+
+
+// Cross-channel lookup verifies cube indexing and interpolation at boundaries and interior points.
+it("interpolates Hald cube corners and preserves unselected channels across chunks", () => {
+    const source = Uint8Array.from({ length: 4201 * 4 }, (_, i) => [0, 64, 128, 192, 255][i % 5]!);
+    const lut = new Uint8Array(8 * 8 * 4);
+    for (let b = 0; b < 4; b++) for (let g = 0; g < 4; g++) for (let r = 0; r < 4; r++)
+        lut.set([b * 85, r * 85, g * 85, 255], (r + 4 * g + 16 * b) * 4);
+    const expected = new Uint8Array(source);
+    for (let offset = 0; offset < source.length; offset += 4) {
+        expected[offset] = source[offset + 2]!;
+        expected[offset + 2] = source[offset + 1]!;
+    }
+    expect(run(haldClutPixelSteps(source.length, { width: 8, height: 8 }, [true, false, true, false]), [source, lut], source.length)).toEqual(expected);
 });

@@ -19,6 +19,29 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
     }
 }
 
+/** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
+export function* haldClutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[]): Steps {
+    const level = Math.max(1, Math.floor(Math.cbrt(Math.min(lut.width, lut.height)))), edge = level * level;
+    for (let position = 0; position < size; position += 16384) {
+        yield;
+        const data = new Uint8Array((yield { kind: "read", position, length: Math.min(16384, size - position) })!);
+        for (let offset = 0; offset < data.length; offset += 4) {
+            if (offset % 256 === 0) yield;
+            const red = data[offset]! / 255 * (edge - 1), green = data[offset + 1]! / 255 * (edge - 1), blue = data[offset + 2]! / 255 * (edge - 1);
+            const r = Math.floor(red), g = Math.floor(green), b = Math.floor(blue), values = [0, 0, 0, 0];
+            for (let z = 0; z < 2; z++) for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
+                const weight = (x ? red - r : 1 - (red - r)) * (y ? green - g : 1 - (green - g)) * (z ? blue - b : 1 - (blue - b));
+                if (!weight) continue;
+                const index = Math.min(r + x, edge - 1) + edge * (Math.min(g + y, edge - 1) + edge * Math.min(b + z, edge - 1));
+                const sample = (yield { kind: "read", image: 1, position: index * 4, length: 4 })!;
+                for (let channel = 0; channel < 4; channel++) values[channel]! += sample[channel]! * weight;
+            }
+            for (let channel = 0; channel < 4; channel++) if (mask[channel]) data[offset + channel] = byte(values[channel]!);
+        }
+        yield { kind: "write", position, data };
+    }
+}
+
 export function* interpolatePixelSteps(size: number, fraction: number): Steps {
     for (let position = 0; position < size; position += 16384) {
         yield;

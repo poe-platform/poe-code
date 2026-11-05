@@ -8,7 +8,7 @@ import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
-import { clutPixelSteps, interpolatePixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
+import { clutPixelSteps, haldClutPixelSteps, interpolatePixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
@@ -1608,15 +1608,6 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, paramsRaw: s
         }
     }
     return { ...img, data: out };
-}
-
-function* applyMagickClutSteps(baseImg: RgbaImage, lutImg: RgbaImage, channels: {
-    r: boolean;
-    g: boolean;
-    b: boolean;
-    a: boolean;
-}, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    return yield* applyMagickRasterSteps({ ...baseImg, space: "srgb", channels: baseImg.hasAlpha ? 4 : 3 }, clutPixelSteps(baseImg.width * baseImg.height * 4, lutImg, [channels.r, channels.g, channels.b, channels.a]), signal, baseImg, [baseImg, lutImg]);
 }
 
 type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
@@ -5118,7 +5109,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const lut = stack[stack.length - 1]!;
                 const mapped = yield* mapSteps(stack.slice(0, -1), function* (im) {
-                    return (yield* applyMagickClutSteps(im, lut, state.channels, signal));
+                    return yield* applyMagickRasterSteps(im, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, state.channels.a]), signal, im, [im, lut]);
                 });
                 stack = mapped;
             }
@@ -5946,7 +5937,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     stack.length--;
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
-                        await stack.set(index, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, clutPixelSteps(image.width * image.height * 4, lut, mask), signal, image, [image, lut]));
+                        await stack.set(index, await transformStoredMagickRaster(image, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask), signal, image, [image, lut]));
                     }
                 } else if (token === "-separate") {
                     const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];

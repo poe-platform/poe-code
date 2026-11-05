@@ -1,3 +1,4 @@
+import { normalizeContentChunks } from "../content/normalize.js";
 import { serializeRetainedObjectStreams } from "../cos/retained-object-streams.js";
 import { serializeLinearizedRetainedChunks } from "../cos/retained-linearization.js";
 import { PdfMergeOutlines } from "./retained-merge-outlines.js";
@@ -186,7 +187,8 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
         if (original.stream) {
           // Decrypted encoded streams can change length, so admit a retained
           // snapshot before constructing the target stream's /Length.
-          const source = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(original.objectNumber, original.generationNumber, { raw: !(options.normalizeContent && (original.decoded || content)) }), { signal });
+          const input = document.objects.decodeStream(original.objectNumber, original.generationNumber, { raw: !(options.normalizeContent && (original.decoded || content)) });
+          const source = await PdfFileSource.fromStream(storage.fs, storage.directory, options.normalizeContent && content ? normalizeContentChunks(input, storage, signal) : input, { signal });
           let streamFailed = false;
           try {
             if (options.normalizeContent && (original.decoded || content) && value.kind === "dict") {

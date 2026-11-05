@@ -15,7 +15,8 @@ import {
   type PdfIndirectObject,
 } from "../ast.js";
 import { PdfError } from "../errors.js";
-import { encodeFlate } from "./filters.js";
+import { normalizeContentBytes } from "../content/normalize.js";
+import { decodeStreamObject, encodeFlate } from "./filters.js";
 import type { ParsedCosDocument } from "./parser.js";
 
 export interface SerializeCosOptions {
@@ -250,6 +251,38 @@ function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Genera
   const maxObjectNumber = sorted.length > 0 ? sorted[sorted.length - 1]!.objectNumber : 0;
   if (maxObjectNumber > maxObjects) {
     throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
+  }
+
+  if (options.normalizeContent) {
+    const objects = new Map(sorted.map(object => [object.objectNumber, object]));
+    const seen = new Set<number>();
+    function normalize(node: PdfCosNode | undefined): void {
+      if (node?.kind === "ref") {
+        if (seen.has(node.objectNumber)) return;
+        seen.add(node.objectNumber);
+        const object = objects.get(node.objectNumber);
+        if (!object) return;
+        if (object.value.kind === "stream") {
+          const bytes = normalizeContentBytes(decodeStreamObject(object.value, Infinity, ref => ref?.kind === "ref" ? objects.get(ref.objectNumber)?.value : ref));
+          objects.set(node.objectNumber, { ...object, value: cosStream(bytes, { dict: { ...object.value.dict, entries: object.value.dict.entries.filter(entry => !["Filter", "DecodeParms", "Length"].includes(entry.key.decoded)) } }) });
+        } else normalize(object.value);
+      } else if (node?.kind === "array") for (const item of node.items) normalize(item);
+    }
+    const visited = new Set<number>();
+    function pages(node: PdfCosNode | undefined): void {
+      if (node?.kind === "ref") {
+        if (visited.has(node.objectNumber)) return;
+        visited.add(node.objectNumber); pages(objects.get(node.objectNumber)?.value);
+      } else if (node?.kind === "array") for (const item of node.items) pages(item);
+      else if (node?.kind === "dict") {
+        const type = dictGet(node, "Type");
+        if (type?.kind === "name" && type.decoded === "Page") normalize(dictGet(node, "Contents"));
+        else pages(dictGet(node, "Kids"));
+      }
+    }
+    const root = objects.get(options.rootRef.objectNumber)?.value;
+    if (root?.kind === "dict") pages(dictGet(root, "Pages"));
+    for (let i = 0; i < sorted.length; i++) sorted[i] = objects.get(sorted[i]!.objectNumber)!;
   }
 
   if (options.linearize || sorted.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized"))) {

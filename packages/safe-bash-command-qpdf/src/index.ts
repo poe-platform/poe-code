@@ -2514,7 +2514,8 @@ function* executeQpdfCli(
     outBytes = (yield* serializeCosDocumentSteps({
       objects: [...workingDoc.cos.objects.values()],
       rootRef: workingDoc.cos.rootRef,
-      infoRef: workingDoc.cos.infoRef
+      infoRef: workingDoc.cos.infoRef,
+      normalizeContent: shouldNormalizeContent
     }));
   }
 

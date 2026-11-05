@@ -264,3 +264,35 @@ for (const flags of [["-fixed", "8"], ["-layout", "-fixed", "8"], ["-fixed", "4"
     await f.clean();
   });
 }
+
+for (const rightX of [100, 130, 180]) test(`layout column gaps match Poppler at x=${rightX}`, async () => {
+  const doc = PdfDocument.create();
+  const page = doc.addPage([216, 144]);
+  page.drawText("left", { x: 20, y: 120, size: 12 });
+  page.drawText("right", { x: rightX, y: 120, size: 12 });
+  const input = doc.save(), args = ["-layout", "input.pdf", "-"];
+  const result = await runPdftotextCli(args, new Map([["input.pdf", input]]));
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.output, "left   right\n\f");
+  const f = await fixture(input, args);
+  try {
+    assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+    assert.equal(new TextDecoder().decode(joined(f.stdout)), "left   right\n\f");
+    assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 0 });
+  } finally { await f.clean(); }
+});
+
+test("layout aligns multiple rows using text column widths", async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([300, 144]);
+  for (const [text, x, y] of [["longer", 20, 120], ["right", 130, 120], ["left", 20, 100], ["next", 130, 100], ["third", 230, 100]] as const) {
+    page.drawText(text, { x, y, size: 12 });
+  }
+  const input = doc.save(), args = ["-layout", "input.pdf", "-"];
+  const expected = "longer   right\nleft     next    third\n\f";
+  assert.equal((await runPdftotextCli(args, new Map([["input.pdf", input]]))).output, expected);
+  const f = await fixture(input, args);
+  try {
+    assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+    assert.equal(new TextDecoder().decode(joined(f.stdout)), expected);
+  } finally { await f.clean(); }
+});

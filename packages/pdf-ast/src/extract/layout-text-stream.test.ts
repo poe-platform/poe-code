@@ -12,9 +12,9 @@ for(const fixedPitch of [undefined,5])for(const lineSpacing of [undefined,10])it
  try{let output='';for await(const part of index.layoutText(options)){expect(part.length).toBeLessThanOrEqual(2049);output+=part;await Promise.resolve();}expect(output).toBe(expected);}finally{await index.close();}
  expect(await fs.readdir('/scratch')).toEqual([]);
 });
-it('recomputes cropped row bounds and left margin',async()=>{
+it('recomputes cropped text columns',async()=>{
  const fs=createMemoryFileSystem();await fs.mkdir('/scratch');const index=await PdfRawTextIndex.create([glyph('left',0,80),glyph('right',150,80),glyph('next',10,50)],{fs,directory:'/scratch'},{mode:'layout'});
- try{let result='';for await(const part of index.layoutText({crop:[0,0,20,100]}))result+=part;expect(result).toBe('left\n  next');}finally{await index.close();}expect(await fs.readdir('/scratch')).toEqual([]);
+ try{let result='';for await(const part of index.layoutText({crop:[0,0,20,100]}))result+=part;expect(result).toBe('left\n       next');}finally{await index.close();}expect(await fs.readdir('/scratch')).toEqual([]);
 });
 it('admits all layout caches and retires scratch after early output cancellation',async()=>{
  const fs=createMemoryFileSystem();await fs.mkdir('/scratch');const storage={fs,directory:'/scratch'};

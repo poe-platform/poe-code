@@ -245,7 +245,24 @@ export function formatExtractedPageText(
       if (Math.abs(dy) > 4) return dy;
       return a.bbox[0] - b.bbox[0];
     });
-    const leftMargin = allLines.reduce((left, line) => Math.min(left, line.bbox[0]), Infinity);
+    const columns = new Map<PdfTextLine, number>();
+    if (!(options.fixedPitch !== undefined && options.fixedPitch > 0)) {
+      const horizontal = [...allLines].sort((a, b) => a.bbox[0] - b.bbox[0]);
+      for (let i = 0; i < horizontal.length; i++) {
+        const line = horizontal[i]!;
+        let column = 0;
+        for (let j = 0; j < i; j++) {
+          const previous = horizontal[j]!;
+          // Poppler separates disjoint columns by three characters, independent
+          // of the physical gap. Overlapping extents interpolate text columns.
+          const offset = line.bbox[0] > previous.bbox[2] ? previous.text.length + 3
+            : previous.bbox[2] === previous.bbox[0] ? 0
+            : Math.trunc((line.bbox[0] - previous.bbox[0]) / (previous.bbox[2] - previous.bbox[0]) * previous.text.length);
+          column = Math.max(column, columns.get(previous)! + offset);
+        }
+        columns.set(line, column);
+      }
+    }
     const rows: PdfTextLine[][] = [];
     for (const l of allLines) {
       const lastRow = rows[rows.length - 1];
@@ -260,7 +277,6 @@ export function formatExtractedPageText(
         row.sort((a, b) => a.bbox[0] - b.bbox[0]);
         const pitch = options.fixedPitch !== undefined && options.fixedPitch > 0 ? options.fixedPitch : 6;
         let lineStr = "";
-        let curX = leftMargin;
         if (options.fixedPitch !== undefined && options.fixedPitch > 0) {
           const words = row.flatMap(seg => seg.words).sort((a, b) => a.bbox[0] - b.bbox[0]);
           for (const w of words) {
@@ -269,9 +285,8 @@ export function formatExtractedPageText(
           }
         } else {
           for (const seg of row) {
-            const spaces = Math.max(lineStr.length > 0 ? 2 : 0, Math.round((seg.bbox[0] - curX) / pitch));
+            const spaces = Math.max(lineStr.length > 0 ? 1 : 0, columns.get(seg)! - lineStr.length);
             lineStr += " ".repeat(Math.min(spaces, 40)) + seg.text;
-            curX = seg.bbox[2];
           }
         }
         let prefixNewlines = "";

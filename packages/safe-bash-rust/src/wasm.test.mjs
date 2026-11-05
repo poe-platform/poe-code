@@ -8527,6 +8527,34 @@ test("pdftoppm scales the soft mask at its own resolution and interpolation sett
   } finally { wasm.dispose(); }
 });
 
+test("pdftocairo downsamples the color image and soft mask independently", async () => {
+  const { createHash } = await import("node:crypto");
+  const { PdfDocument, cosStream, cosName, cosNumber, cosDict, dictSet, decodePng } = await import("@poe-code/pdf-ast");
+  const wasm = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    // SHA-256 of every decoded RGBA byte from Poppler 24.02.
+    for (const [w, h, mw, mh, digest] of [
+      [24, 16, 2, 1, "f65bc81a7bfd36e5eebc4e659e05a1ce67d6783ee1bd21c246ad520a568a7ca4"],
+      [4, 3, 20, 12, "4480a3ba6bb5eea9158e87778f2f1b2c96fb389efcb0dfcd83ce01beadde3bfe"],
+      [24, 16, 20, 12, "2cfde8a3e30c3084bc223aa7e10043568fecfd4c8280d5b796f73e01c2f9296e"],
+    ]) {
+      const doc = PdfDocument.create(), page = doc.addPage([48, 32]);
+      const image = doc.embedRgbImage(w, h, Uint8Array.from({length: 3*w*h}, (_,i) => i*23 + Math.floor(i/7)));
+      const mask = cosStream(Uint8Array.from({length: mw*mh}, (_,i) => i*37 + Math.floor(i/3)), {
+        dict: cosDict({ Type: cosName("XObject"), Subtype: cosName("Image"), Width: cosNumber(mw),
+          Height: cosNumber(mh), ColorSpace: cosName("DeviceGray"), BitsPerComponent: cosNumber(8) })
+      });
+      dictSet(doc.cos.resolve(image.xobjectRef).dict, "SMask", doc.cos.allocateObject(mask));
+      page.drawImage(image, {x:3, y:5, width:7, height:5});
+      await wasm.fs.writeFile("/in.pdf", doc.save());
+      const r = await wasm.exec("pdftocairo -png -singlefile -transp -r 72 in.pdf out");
+      assert.equal(r.exitCode, 0, r.stderr);
+      const png = decodePng(await wasm.fs.readFile("/out.png"));
+      assert.equal(createHash("sha256").update(png.data).digest("hex"), digest);
+    }
+  } finally { wasm.dispose(); }
+});
+
 test("pdfimages writes both bytes of each 16-bit RGB PNG and TIFF sample", async () => {
   const { PdfDocument, cosNumber, cosArray, dictSet } = await import("@poe-code/pdf-ast");
   const { inflateSync } = await import("node:zlib");

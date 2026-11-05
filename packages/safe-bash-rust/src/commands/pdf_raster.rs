@@ -483,9 +483,10 @@ impl Bitmap {
                 let clip = self.clip_row(y, None)?;
                 for x in xs.clone() {
                     let edge = mul(coverage.alpha(x).into(), clip_coverage(&clip,x).into());
-                    let alpha = mul(mask(x,y)[0].into(), edge);
+                    if edge == 0 { continue; }
+                    let alpha = mul(mask(x,y,&mut self.work)?[0].into(), edge);
                     if alpha == 0 { continue; }
-                    let src = color(x,y);
+                    let src = color(x,y,&mut self.work)?;
                     let dest = &mut self.pixels[y*self.w+x];
                     let old = u32::from(dest[3]);
                     let out = alpha + mul(old,255-alpha);

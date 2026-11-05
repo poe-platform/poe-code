@@ -18,7 +18,7 @@ function allocSpaces(length: number): Uint8Array {
   out.fill(32);
   return out;
 }
-import { FsError, type CommandContext, type FileStat } from "safe-bash-contracts";
+import { FsError, writeBytes, type CommandContext, type FileStat } from "safe-bash-contracts";
 import { codeOf, diagnostic, pathOf, requireOperands, UsageError } from "safe-bash-io-engine/internal";
 import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { MetadataBudget, metadataCommand, permissionString, settings, type MetadataCommandsOptions } from "safe-bash-metadata-engine";
@@ -213,7 +213,17 @@ async function render(context: CommandContext, path: string, name: string, stat:
         value = value * radix + digit;
         offset++;
       }
-      if (offset === start) { append(format[index++]!); continue; }
+      if (offset === start) {
+        const point = format.codePointAt(index + 1);
+        const literal = point === undefined ? "\\" : String.fromCodePoint(point);
+        const warning = point === undefined ? syncStatEncoder.encode("stat: warning: backslash at end of format\n") : concatBytes([
+          syncStatEncoder.encode("stat: warning: unrecognized escape '\\"), syncStatEncoder.encode(literal).subarray(0, 1), Uint8Array.of(39, 10),
+        ]);
+        await writeBytes(context.stderr, warning, context.signal);
+        append(literal);
+        index += point === undefined ? 1 : 1 + literal.length;
+        continue;
+      }
       append(Uint8Array.of(value));
       index = offset;
       continue;
@@ -336,7 +346,7 @@ function renderSync(
   terse: boolean,
   quotingStyle: string | undefined,
   bsd: boolean,
-): Uint8Array {
+): Uint8Array | undefined {
   const chunks: Uint8Array[] = [];
   let bytes = 0;
   const append = (text: string | Uint8Array) => {
@@ -365,7 +375,7 @@ function renderSync(
         value = value * radix + digit;
         offset++;
       }
-      if (offset === start) { append(format[index++]!); continue; }
+      if (offset === start) return undefined;
       append(Uint8Array.of(value));
       index = offset;
       continue;
@@ -481,6 +491,7 @@ export function evalSyncStat(
       : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
     try {
       const rendered = renderSync(abs, name, stat, format, parsed.printf, 262144, parsed.filesystem, terse, quotingStyle, parsed.bsd);
+      if (rendered === undefined) return undefined;
       outChunks.push(parsed.printf ? rendered : concatBytes([rendered, Uint8Array.of(10)]));
     } catch {
       return undefined;

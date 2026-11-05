@@ -3350,8 +3350,18 @@ fn cmd_stat(
                             }
                         }
                         if off == start {
-                            rendered.push(b'\\');
-                            idx += 1;
+                            if let Some(ch) = spec[idx + 1..].chars().next() {
+                                let literal = crate::vfs::stream_string_to_bytes(ch.encode_utf8(&mut [0; 4]));
+                                stderr.push_str("stat: warning: unrecognized escape '\\");
+                                stderr.push_str(&crate::vfs::bytes_to_stream_string(&literal[..1]));
+                                stderr.push_str("'\n");
+                                rendered.extend(literal);
+                                idx += 1 + ch.len_utf8();
+                            } else {
+                                stderr.push_str("stat: warning: backslash at end of format\n");
+                                rendered.push(b'\\');
+                                idx += 1;
+                            }
                         } else {
                             rendered.push(val as u8);
                             idx = off;

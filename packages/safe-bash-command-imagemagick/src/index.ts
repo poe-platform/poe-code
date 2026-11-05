@@ -4155,7 +4155,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out };
         };
     } else if (token === "-threshold") {
-        const raw = tokens[++i] ?? "50%", value = Math.round(raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw));
+        const raw = tokens[++i] ?? "50%", value = Math.round(raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw) / 257);
         apply = image => thresholdImageSteps(image, value, true);
     } else if (token === "-colorize") {
         const strength = parseFloat(tokens[++i] ?? "100") / 100;
@@ -4288,7 +4288,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {
         const raw = tokens[++i] ?? "50%";
-        const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw);
+        const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw) / 257;
         const isBlack = token === "-black-threshold";
         apply = function* (im) {
             let pixelWork = 0;

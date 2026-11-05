@@ -173,7 +173,16 @@ class Markdown {
           });
           parts.push(this.join(lines, this.selection.extensions.line_blocks ? "\n" : "\\\n")); break;
         }
-        case "Header": this.attrs(node.c[1], p); parts.push(this.join(["#".repeat(node.c[0]), " ", this.inline(node.c[2], `${p}.c[2]`)])); break;
+        case "Header": {
+          const attr = node.c[1], attributes: string[] = [];
+          if (this.selection.extensions.header_attributes) {
+            if (attr[2].length) this.loss(p, "attributes");
+            if (attr[0]) attributes.push(this.join(["#", attr[0]]));
+            for (const name of attr[1]) attributes.push(this.join([".", name]));
+          } else this.attrs(attr, p);
+          const suffix = attributes.length ? this.join([" {", this.join(attributes, " "), "}"]) : "";
+          parts.push(this.join(["#".repeat(node.c[0]), " ", this.inline(node.c[2], `${p}.c[2]`), suffix])); break;
+        }
         case "HorizontalRule": parts.push("---"); break;
         case "CodeBlock": {
           const attr = node.c[0];

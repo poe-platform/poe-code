@@ -39,6 +39,40 @@ it("preserves figure images with their long captions in both Markdown writers", 
 it.each(["markdown", "md", "gfm+tex_math_dollars"])("preserves inline and display math in retained %s output", async to => {
   expect(await md([p({t: "Math", c: ["InlineMath", "x + 1"]}, {t: "Space"}, {t: "Math", c: ["DisplayMath", "\\frac{x}{y}"]})], to)).toBe("$x + 1$ $$\\frac{x}{y}$$\n");
 });
+it("preserves heading identifiers and classes in both Markdown writers", async () => {
+  for (const to of ["markdown", "md", "gfm+header_attributes"]) {
+    for (const [attr, suffix] of [
+      [["custom", ["loud", "extra"], []], " {#custom .loud .extra}"],
+      [["custom", [], []], " {#custom}"],
+      [["", ["loud"], []], " {.loud}"],
+      [["", [], []], ""]
+    ] as const) {
+      expect(await md([{t: "Header", c: [2, attr, [s("Heading")]]}], to)).toBe(`## Heading${suffix}\n`);
+    }
+  }
+});
+it("keeps heading attribute projection explicit when the extension is disabled", async () => {
+  const blocks: Block[] = [{t: "Header", c: [1, ["custom", ["loud"], []], [s("Heading")]]}];
+  for (const to of ["markdown-header_attributes", "gfm", "commonmark"]) {
+    await expect(md(blocks, to)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+    expect(await md(blocks, to, {lossy: true})).toBe("# Heading\n");
+  }
+});
+it("writes heading attributes through the standalone command without warnings", async () => {
+  const document = {"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [
+    {t: "Header", c: [1, ["custom", ["loud"], []], [s("Heading")]]}
+  ]};
+  let output = "", errors = "";
+  const result = await createStandalonePandocCommand().execute({
+    args: ["-f", "json", "-t", "markdown"], stdin: [new TextEncoder().encode(JSON.stringify(document))],
+    signal: new AbortController().signal,
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}
+  });
+  expect(result.exitCode, errors).toBe(0);
+  expect(errors).toBe("");
+  expect(output).toBe("# Heading {#custom .loud}\n");
+});
 async function md(blocks: readonly Block[], to = "commonmark", options: Partial<WriteOptions> = {}) {
   const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {});
   if (wire.kind !== "text") throw new Error("Expected JSON");

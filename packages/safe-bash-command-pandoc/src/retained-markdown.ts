@@ -390,7 +390,9 @@ class MarkdownTape {
           await this.push(this.list(content!, cp, "line", {sep: this.selection.extensions.line_blocks ? "\n" : "\\\n"})); continue;
         }
         if (tag === "Header") {
-          await this.attrs(await this.at(content!, 1), job.path);
+          const attr = await this.at(content!, 1);
+          if (!this.selection.extensions.header_attributes) await this.attrs(attr, job.path);
+          else if (await this.count(await this.at(attr, 2))) await this.loss(job.path, "attributes");
           await this.push({op: "header", node: content!, path: cp}); const inner = await child(2, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;
         }
         if (tag === "Figure") {
@@ -434,7 +436,19 @@ class MarkdownTape {
         if (job.op === "inline") await this.push(this.list(content!, cp, "inline")); else result = emptyText();
         continue;
       }
-      if (job.op === "header") {result = await this.join(await this.repeat("#", await this.number(job.node + 32)), await this.literal(" "), result); continue;}
+      if (job.op === "header") {
+        const suffix = emptyText();
+        if (this.selection.extensions.header_attributes) {
+          const attr = await this.at(job.node, 1), id = await this.scalar(attr + 32);
+          if (id.units) await this.text.append(suffix, await this.join(await this.literal(" {#"), id));
+          const classes = await this.at(attr, 1), end = (await this.tree.describe(classes)).end;
+          for (let cursor = classes + 32; cursor < end; cursor = (await this.tree.describe(cursor)).end) {
+            await this.text.append(suffix, await this.join(await this.literal(suffix.units ? " ." : " {."), await this.scalar(cursor)));
+          }
+          if (suffix.units) await this.text.append(suffix, await this.literal("}"));
+        }
+        result = await this.join(await this.repeat("#", await this.number(job.node + 32)), await this.literal(" "), result, suffix); continue;
+      }
       // Table and flattening continuations are handled below.
       result = await this.tableJob(job, result);
     }

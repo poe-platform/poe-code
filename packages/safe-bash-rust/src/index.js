@@ -219,7 +219,8 @@ function bindExternalFs(shell,fs,options) {
         await writeStage(stage.writer);
       }
       const finished=stage.writer?{...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}}:stage;
-      await view.publishStagedFile(finished,path,{...settings,...guard});
+      if(guard.companions)await view.publishStagedFileSet(finished,path,{...settings,...guard});
+      else await view.publishStagedFile(finished,path,{...settings,...guard});
     }finally{
       if(stage.cleanup){try{await stage.cleanup.remove();}finally{await stage.cleanup.close();}}
       else await view.removeStagedFile(stage);
@@ -238,7 +239,7 @@ function bindExternalFs(shell,fs,options) {
         const op=decoder.decode(field(0)), path=decoder.decode(field(8));
         const flags=word(24), mode=word(28), settings={signal:options.signal};
         const start=word(16),length=word(20);
-        const obs=(op==="publish" || op==="replaceEntry" || op==="extractEntry" || op==="extractSymlink") && publications.get(flags);
+        const obs=(op==="publish" || op==="replaceWithBackup" || op==="replaceEntry" || op==="extractEntry" || op==="extractSymlink") && publications.get(flags);
         const chunked=op!=="extractSymlink" && length>65536 && obs?.retainedWriter && (op!=="publish" || obs.stagedMutation);
         // Rust owns the request bytes until this callback resumes. Stack storage
         // can be reused during suspension; heap views must be renewed after memory grows.
@@ -336,6 +337,16 @@ function bindExternalFs(shell,fs,options) {
           const remove=expected.type==="file"?"removeFileConditional":"removeEntryConditional";
           if(!fs[remove]){status=-1;result=encoder.encode("extraction requires conditional "+(expected.type==="file"?"file":"entry")+" removal");return;}
           await fs[remove](path,{...settings,expected,parent});return;
+        }
+        if(op==="replaceWithBackup"){
+          const backup=publications.get(mode);
+          if(!obs?.guard?.destination || obs.path!==path || !backup?.guard)throw fsOperationError("EAGAIN",op,path);
+          if(!fs.publishStagedFileSet || !obs.caps?.atomicStagedFileBackup || !backup.caps?.atomicStagedFileBackup ||
+             !obs.caps.atomicStagingAncestry || !obs.caps.retainedStagingCleanup)throw fsOperationError("ENOTSUP",op,path);
+          const companions=[{path:backup.path,expected:backup.guard.destination,remove:false,keepDestination:true}];
+          await stageOutput(fs,path,{type:"file",data:chunked?new Uint8Array():data},{...obs.guard,companions},
+            {mode:obs.guard.destination.mode&0o7777},writeStage);
+          return;
         }
         if(op==="extractEntry" || op==="extractSymlink"){
           if(!obs?.guard || obs.path!==path)throw fsOperationError("EAGAIN",op,path);

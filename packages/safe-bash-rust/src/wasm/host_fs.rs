@@ -569,6 +569,11 @@ impl SafeBashFs for HostFs {
         self.request("removeExtraction", path, &[], version as u32, 0)
             .map(drop)
     }
+    fn replace_file_with_backup(&self, path: &str, data: &[u8], version: u64, backup: &str, backup_version: u64) -> Result<(), String> {
+        self.mutable(path, false)?;
+        self.mutable(backup, false)?;
+        self.request("replaceWithBackup", path, data, version as u32, backup_version as u32).map(drop)
+    }
     fn replace_file_entry_with_metadata(
         &self,
         path: &str,

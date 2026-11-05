@@ -1603,6 +1603,40 @@ impl SafeBashFs for MemoryVfs {
         self.install_file_batch(&mut state, files, Vec::new())
     }
 
+    fn replace_file_with_backup(&self, path: &str, data: &[u8], version: u64, backup: &str, backup_version: u64) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if version != self.generation() || version != backup_version { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        let source = Self::mutation_entry(&state, path)?;
+        let dest = Self::mutation_entry(&state, backup)?;
+        let parent = super::dirname_posix_path(&source);
+        if source == dest || parent != super::dirname_posix_path(&dest) { return Err("EINVAL: backup must be a distinct sibling".into()); }
+        if state.devices == Devices::Mounted || state.devices.entry(&source).is_some() || state.devices.entry(&dest).is_some() {
+            return Err("EBUSY: cannot replace a device".into());
+        }
+        let Some(MemoryNode::File { ino }) = state.nodes.get(&source) else { return Err("EINVAL: expected a regular file".into()); };
+        let mode = state.files[ino].mode;
+        match state.nodes.get(&dest) {
+            None => {},
+            Some(MemoryNode::File { ino: other }) if other != ino => {},
+            _ => return Err("EINVAL: invalid backup destination".into()),
+        }
+        if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+            return Err("EACCES: permission denied".into());
+        }
+        state.admit_new_file(data.len())?;
+        let mut contents = Vec::new();
+        contents.try_reserve_exact(data.len()).map_err(|_| "ENOSPC: insufficient memory")?;
+        contents.extend_from_slice(data);
+        Self::unlink_locked(&mut state, &dest);
+        let mut original = state.take_node(&source).unwrap();
+        original.status_changed(&mut state.files, super::now_ms());
+        state.insert_node(dest, original);
+        state.total_bytes += contents.len();
+        state.insert_new_file(source, contents, mode, None);
+        self.bump_generation();
+        Ok(())
+    }
+
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
@@ -2457,6 +2491,23 @@ mod tests {
         fs.remove_one("/alias", false).unwrap();
         assert_eq!(reader.read(0, 3).unwrap(), b"old");
         assert_eq!(fs.read_file("/out").unwrap(), b"new");
+    }
+
+    #[test]
+    fn backup_replacement_rejects_stale_and_over_budget_edits_before_moving_either_name() {
+        let fs = MemoryVfs::with_limits(MemoryVfsLimits { max_total_bytes: 8, ..Default::default() });
+        fs.write_file("/file", b"old").unwrap();
+        let stale = fs.generation();
+        fs.write_file("/backup", b"keep").unwrap();
+        let current = fs.generation();
+        for (bytes, source, backup, error) in [
+            (b"x".as_slice(), stale, current, "EAGAIN"), (b"x", current, stale, "EAGAIN"),
+            (b"new", current, current, "ENOSPC"),
+        ] {
+            assert!(fs.replace_file_with_backup("/file", bytes, source, "/backup", backup).unwrap_err().starts_with(error));
+            assert_eq!(fs.read_file("/file").unwrap(), b"old");
+            assert_eq!(fs.read_file("/backup").unwrap(), b"keep");
+        }
     }
 
     #[test]

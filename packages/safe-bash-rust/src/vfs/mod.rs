@@ -454,6 +454,10 @@ pub trait SafeBashFs: Send + Sync {
     fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
         self.replace_file_entry_with_metadata(path, data, mode, (None, None), version)
     }
+    /// Install a new file and move the inspected original to a guarded sibling in one commit.
+    fn replace_file_with_backup(&self, _path: &str, _data: &[u8], _version: u64, _backup: &str, _backup_version: u64) -> Result<(), String> {
+        Err("ENOTSUP: atomic file replacement with backup is unsupported".into())
+    }
     /// Install prepared regular files together, after admitting the complete batch.
     fn replace_file_batch(&self, _files: Vec<(String, Vec<u8>, u32)>, _version: u64) -> Result<(), String> {
         Err("ZIP split publication requires atomic owned staging".into())

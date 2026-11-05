@@ -387,6 +387,17 @@ impl SafeBashFs for MountVfs {
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         fs.replace_file_entry_with_mode(&rel, data, mode, local_version)
     }
+    fn replace_file_with_backup(&self, path: &str, data: &[u8], version: u64, backup: &str, backup_version: u64) -> Result<(), String> {
+        let source = self.resolve(path, false, WalkPurpose::Access)?;
+        let dest = self.resolve(backup, false, WalkPurpose::Access)?;
+        let (mount, fs, local) = self.location(&source);
+        let (other, _, sibling) = self.location(&dest);
+        if mount != other || local == "/" || sibling == "/" { return Err("EXDEV: backup must be in the same mount".into()); }
+        let local_version = fs.generation();
+        if self.generation() != version || version != backup_version { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        fs.replace_file_with_backup(&local, data, local_version, &sibling, local_version)
+    }
+
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         let (fs, rel) = self.route(path, false)?;
         let local_version = fs.generation();

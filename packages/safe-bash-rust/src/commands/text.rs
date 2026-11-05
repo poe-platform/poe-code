@@ -341,19 +341,23 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if in_place && !files.is_empty() {
         for f in &files {
             let full = resolve_posix_path(cwd, f);
-            let (bytes, replacement) = if in_place_suffix.is_empty() {
-                let operand = absolute_operand(cwd, f);
-                if operand.split('/').any(|part| part == "..") || operand != full && fs.lstat(&operand).is_err() {
-                    return err_out(&format!("sed: invalid in-place operand: {f}\n"), 1);
-                }
-                match read_sed_edit(fs, &full) {
-                    Ok((bytes, stat, stamp)) => (bytes, Some((stat, stamp))),
+            let operand = absolute_operand(cwd, f);
+            if operand.split('/').any(|part| part == "..") || operand != full && fs.access_path(&operand, false).is_err() {
+                return err_out(&format!("sed: invalid in-place operand: {f}\n"), 1);
+            }
+            let (bytes, stat, stamp) = match read_sed_edit(fs, &full) {
+                Ok(input) => input,
+                Err(e) => return err_out(&format!("sed: {e}\n"), 1),
+            };
+            let backup = if in_place_suffix.is_empty() { None } else {
+                let path = format!("{full}{in_place_suffix}");
+                match fs.inspect_extraction(&path, false) {
+                    Ok((Some(entry), _)) if entry.kind == crate::vfs::VfsEntryKind::Directory =>
+                        return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4),
+                    Ok((Some(entry), _)) if entry.kind != crate::vfs::VfsEntryKind::File || entry.identity == stat.identity =>
+                        return err_out(&format!("sed: invalid backup destination: {path}\n"), 1),
+                    Ok((_, backup_stamp)) => Some((path, backup_stamp)),
                     Err(e) => return err_out(&format!("sed: {e}\n"), 1),
-                }
-            } else {
-                match fs.read_file(&full) {
-                    Ok(bytes) => (bytes, None),
-                    Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, lstat '{full}'\n"), 1),
                 }
             };
             let content = crate::vfs::bytes_to_stream_string(&bytes);
@@ -362,19 +366,10 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if let Some(em) = err_msg {
                 return err_out(&em, code);
             }
-            if !in_place_suffix.is_empty() {
-                let backup = format!("{full}{in_place_suffix}");
-                if fs.lstat(&backup).is_ok_and(|stat| stat.kind == crate::vfs::VfsEntryKind::Directory) {
-                    return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4);
-                }
-                if let Err(e) = fs.write_file(&backup, &bytes) {
-                    return err_out(&format!("sed: {e}\n"), 4);
-                }
-            }
             let output = crate::vfs::stream_string_to_bytes(&res);
-            let publication = match replacement {
-                Some((stat, stamp)) => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
-                None => fs.write_file(&full, &output),
+            let publication = match backup {
+                Some((path, backup_stamp)) => fs.replace_file_with_backup(&full, &output, stamp.version, &path, backup_stamp.version),
+                None => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
             };
             if let Err(e) = publication { return err_out(&format!("sed: {e}\n"), 4); }
         }

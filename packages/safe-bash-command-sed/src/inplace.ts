@@ -10,6 +10,7 @@ interface Target {
   readonly parent: FileStat;
   readonly original: FileStat;
   readonly backup: FileStat | null;
+  readonly moveBackup: boolean;
   readonly ancestors: readonly FileStagingEntry[];
   readonly fs: FileSystem;
 }
@@ -33,17 +34,21 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
     const original = await fs.lstat(operand, { signal: context.signal });
     if (parent.type !== "directory" || original.type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files and directory parents" });
     let backup: FileStat | null = null;
+    let moveBackup = false;
     const ancestors: FileStagingEntry[] = [];
     if (suffix) {
       try { backup = await fs.lstat(path + suffix, { signal: context.signal }); }
       catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
       if (backup && backup.type !== "file" && backup.type !== "directory") throw new FsError("ENOTSUP", { path: path + suffix, message: "in-place backups require regular files" });
       if (backup && compareCopyIdentity(original, backup) === "same") throw new FsError("EINVAL", { path, message: "backup aliases the edited file" });
-      if (backup?.type === "file" && (backup.mode & 0o7777) !== (original.mode & 0o7777)) {
-        const caps = await fs.capabilitiesFor?.(path + suffix, { signal: context.signal }) ?? fs.capabilities;
-        if (!caps.atomicFileStaging || !caps.atomicStagingAncestry) {
-          throw new FsError("ENOTSUP", { path: path + suffix, message: "preserving backup permissions requires atomic staging with ancestry verification" });
-        }
+      const caps = await fs.capabilitiesFor?.(path + suffix, { signal: context.signal, create: !backup }) ?? fs.capabilities;
+      moveBackup = capabilities.atomicStagedFileBackup === true && caps.atomicStagedFileBackup === true && !!fs.publishStagedFileSet;
+      if (!moveBackup && ((original.nlink ?? 1) > 1 || (backup?.nlink ?? 1) > 1) && backup?.type !== "directory") {
+        throw new FsError("ENOTSUP", { path, message: "preserving hard links in backups requires atomic backup publication" });
+      }
+      if (!moveBackup && backup?.type === "file" && (backup.mode & 0o7777) !== (original.mode & 0o7777)
+        && (!caps.atomicFileStaging || !caps.atomicStagingAncestry)) {
+        throw new FsError("ENOTSUP", { path: path + suffix, message: "preserving backup permissions requires atomic staging with ancestry verification" });
       }
     }
     if (!capabilities.atomicFileStaging || !capabilities.atomicStagingAncestry || !capabilities.retainedStagingCleanup
@@ -56,7 +61,7 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
       ancestors.unshift({ path: directory, stat });
       if (directory === "/") break;
     }
-    targets.push({ path, parent, original, backup, ancestors });
+    targets.push({ path, parent, original, backup, moveBackup, ancestors });
   }
   const view = await fs.confineExtraction([...new Set(targets.map(target => dirname(target.path)))], { signal: context.signal });
   if (!view.writeFileConditional) throw new FsError("ENOTSUP", { message: "in-place editing requires atomic conditional writes" });
@@ -84,12 +89,20 @@ async function replaceEntry(context: CommandContext, target: Target, suffix: str
       // additionally verifies every retained ancestor of the destination.
       staging = await context.fs.createStagedFile!(joinPath(dirname(target.path), `.sed-${globalThis.crypto.randomUUID()}`), "file", {
         type: "file", data,
-      }, { parent: target.parent, retainCleanup: !suffix, mode: target.original.mode & 0o7777, signal: context.signal });
+      }, { parent: target.parent, retainCleanup: target.moveBackup || !suffix, mode: target.original.mode & 0o7777, signal: context.signal });
       context.signal.throwIfAborted();
       if (closed) throw new FsError("EPIPE", { message: "in-place publication is closed" });
-      await context.fs.publishStagedFile!(staging, target.path + suffix, {
-        parent: target.parent, destination: suffix ? target.backup : target.original, ancestors: target.ancestors, signal: context.signal,
-      });
+      const publication = { parent: target.parent, ancestors: target.ancestors, signal: context.signal };
+      if (target.moveBackup) {
+        await context.fs.publishStagedFileSet!(staging, target.path, {
+          ...publication, destination: target.original,
+          companions: [{ path: target.path + suffix, expected: target.backup, remove: false, keepDestination: true }],
+        });
+      } else {
+        await context.fs.publishStagedFile!(staging, target.path + suffix, {
+          ...publication, destination: suffix ? target.backup : target.original,
+        });
+      }
       context.signal.throwIfAborted();
     });
     await operation;
@@ -121,7 +134,7 @@ export async function editInPlace<Result>(context: CommandContext, target: Targe
       }
     };
     const { data, result } = await run(source());
-    if (suffix) {
+    if (suffix && !target.moveBackup) {
       let original = "";
       for await (const chunk of source()) {
         budget.step();
@@ -138,7 +151,7 @@ export async function editInPlace<Result>(context: CommandContext, target: Targe
       context.signal.throwIfAborted();
     }
     await writeFileOutput(context, data, async chunk => {
-      await replaceEntry(context, target, "", chunk);
+      await replaceEntry(context, target, target.moveBackup ? suffix : "", chunk);
     });
     return result;
   } finally { await close(); }

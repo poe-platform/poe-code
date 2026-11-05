@@ -19,6 +19,7 @@ for (const suffix of ["", ".bak"]) {
       let swapped = false;
       const wrap = (view: FileSystem): FileSystem => new Proxy(view, {
         get(target, property) {
+          if (phase === "backup" && property === "publishStagedFileSet") return undefined;
           if (property === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => wrap(await backing.confineExtraction(...args));
           const member: unknown = Reflect.get(target, property, target);
           if (typeof member !== "function") return member;
@@ -34,7 +35,7 @@ for (const suffix of ["", ".bak"]) {
             const operand = args[0];
             const trigger = phase === "read" ? ["openReadFile", "readStream", "readFile"].includes(String(property))
               : phase === "backup" ? ["copyFile", "writeFileConditional"].includes(String(property)) && (property === "copyFile" || operand === path + ".bak")
-              : property === "publishStagedFile" && args[1] === path;
+              : ["publishStagedFile", "publishStagedFileSet"].includes(String(property)) && args[1] === path;
             if (!swapped && trigger) {
               swapped = true;
               await backing.rename("/work/visible", "/work/held");
@@ -167,6 +168,7 @@ for (const replacement of ["parent", "backup"] as const) {
     await backing.chmod("/work/visible/file", 0o640);
     let swapped = false;
     const fs = new Proxy(backing, { get(target, property) {
+      if (property === "publishStagedFileSet") return undefined; // Exercise the single-file staging fallback.
       const member: unknown = Reflect.get(target, property, target);
       if (property === "publishStagedFile") return async (...args: Parameters<NonNullable<FileSystem["publishStagedFile"]>>) => {
         swapped = true;
@@ -199,6 +201,7 @@ for (const primary of [false, 0, "", null, new Error("publication failed")]) {
       const fs = new Proxy(backing, { get(target, property) {
         if (property === "publishStagedFile") return async () => { throw primary; };
         if (property === "removeStagedFile" && cleanupFails) return async () => { throw cleanupFailure; };
+        if (property === "publishStagedFileSet") return undefined; // Exercise the single-file staging fallback.
         const member: unknown = Reflect.get(target, property, target);
         return typeof member === "function" ? member.bind(target) : member;
       } });
@@ -228,6 +231,7 @@ for (const reason of [false, 0, "", null]) {
     const caller = new AbortController();
     let staged = false;
     const fs = new Proxy(backing, { get(target, property) {
+      if (property === "publishStagedFileSet") return undefined; // Exercise the single-file staging fallback.
       const member: unknown = Reflect.get(target, property, target);
       if (property === "createStagedFile") return async (...args: Parameters<NonNullable<FileSystem["createStagedFile"]>>) => {
         const receipt = await target.createStagedFile(...args);

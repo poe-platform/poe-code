@@ -17,6 +17,9 @@ branches, program files (`-f`), extended regular expressions (`-E`), null-delimi
 records (`-z`), and in-place edits with optional backups (`-i.bak`). In-place
 editing replaces the named file, leaving other hard links to its previous contents
 intact. It requires filesystem support for guarded staging and cleanup.
+On the memory filesystem, `-i.bak` moves the original file to the backup name,
+including its hard links and open readers. Filesystems without atomic backup
+support use a copy and refuse backups involving known hard links.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

@@ -3,6 +3,34 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("sed backup on a caller filesystem keeps the original inode and open readers", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/",forceNative:true});
+  await fs.writeFile("/file", Buffer.from("old\n"));
+  await fs.link("/file", "/peer");
+  const reader = await fs.openReadFile("/file");
+  try {
+    const result = await bash.exec("sed -i.bak s/old/new/ file", {fs});
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await fs.stat("/file.bak")).ino, (await reader.stat()).ino);
+    assert.equal((await fs.stat("/peer")).ino, (await reader.stat()).ino);
+    assert.equal(Buffer.from(await fs.readFile("/file")).toString(), "new\n");
+    assert.equal(Buffer.from(await reader.read(0, 4)).toString(), "old\n");
+  } finally { await reader.close(); await bash.dispose(); }
+});
+
+test("sed refuses symlink edits and directory traversal through a regular file", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true,files:{"/file":"old"},symlinks:{"/alias":"/file","/file.bak":"/file"}});
+  try {
+    for (const script of ["sed -i s/old/new/ alias","sed -i.bak s/old/new/ alias","sed -i.bak s/old/new/ file",
+      "sed -i s/old/new/ file/.","sed -i s/old/new/ file/"]) {
+      const result = await bash.exec(script);
+      assert.notEqual(result.exitCode, 0, script);
+      assert.equal(Buffer.from(await bash.fs.readFile("/file")).toString(), "old", script);
+    }
+  } finally { await bash.dispose(); }
+});
+
 test("output budgets count the bytes written by each command and pipeline stage", async () => {
   for (const bytes of [Uint8Array.of(255), new TextEncoder().encode("\uE080")]) {
     const bash = new RustWasmBash({ files: { "/bytes": bytes } });

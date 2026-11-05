@@ -131,6 +131,15 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
               ? `pcm_f${stream.bitsPerSample}le`
               : stream.codec,
         codec_type: "audio",
+        ...(["pcm", "pcm_float", "mp3", "flac"].includes(stream.codec)
+          ? { sample_fmt: stream.codec === "mp3"
+              ? "fltp"
+              : stream.codec === "pcm_float"
+                ? stream.bitsPerSample === 64 ? "dbl" : "flt"
+                : stream.codec === "pcm" && stream.bitsPerSample === 8
+                  ? "u8"
+                  : stream.bitsPerSample! <= 16 ? "s16" : "s32" }
+          : {}),
         sample_rate: String(stream.sampleRate),
         channels: stream.channels,
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,

@@ -4648,6 +4648,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     } else if (token === "-function") {
         const operation = tokens[++i] ?? "Polynomial", value = tokens[++i] ?? "1,0";
+        if (!["polynomial", "sinusoid", "arcsin", "arctan"].includes(operation.toLowerCase())) {
+            throw new Error(`unrecognized function '-function' '${operation}'`);
+        }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickFunctionSteps(image, operation, value, channels, signal);
     } else if (token === "-solarize") {

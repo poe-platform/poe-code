@@ -36,6 +36,22 @@ test("native Pandoc recovers headings, formatting, code and links from DOCX expo
   } finally {await ts.dispose(); await rust.dispose();}
 });
 
+test("Rust reads lists, links and inline code from native Word documents", async () => {
+  const pandoc = nativePandoc();
+  const markdown = "3. one\n4. `x  y` and [docs](https://example.com/?a=1&b=2)\n   - nested\n5. three";
+  const [status, docx, error] = await runLinuxCommand(pandoc, ["-f", "gfm", "-t", "docx"], markdown);
+  assert.equal(status, 0, error.toString());
+  const options = ["-f", "docx", "-t", "json"];
+  const [code, json, stderr] = await runLinuxCommand(pandoc, options, docx);
+  assert.equal(code, 0, stderr.toString());
+  const rust = new RustWasmBash({forceNative: true});
+  try {
+    const result = await rust.exec("pandoc " + options.join(" "), {stdin: docx});
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(Buffer.from(result.stdoutBytes), json);
+  } finally {await rust.dispose();}
+});
+
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, backend: "typescript" });
   const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });

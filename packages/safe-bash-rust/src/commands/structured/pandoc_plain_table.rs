@@ -15,7 +15,7 @@ fn width(text: &str) -> usize {
 pub(super) fn render(
     header: &[String],
     rows: &[Vec<String>],
-    pipe_alignment: Option<&[Alignment]>,
+    pipe_alignment: Option<&[Option<Alignment>]>,
     mut limit: usize,
 ) -> Option<String> {
     let mut widths = vec![2; header.len()];
@@ -95,7 +95,7 @@ pub(super) fn render(
                 let left = if value.is_empty() {
                     0
                 } else {
-                    match pipe_alignment.and_then(|a| a.get(i)) {
+                    match pipe_alignment.and_then(|a| a.get(i)).copied().flatten() {
                         Some(Alignment::Right) => pad,
                         Some(Alignment::Center) => pad / 2,
                         _ => 0,

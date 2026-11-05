@@ -286,7 +286,7 @@ pub(super) fn docx(blocks: &[Block], limit: usize) -> Option<Vec<u8>> {
     xml.push_str(r#"</w:body></w:document>"#);
     let entries: &[(&str,&[u8])]=&[
 ("[Content_Types].xml",br#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>"#),
-("_rels/.rels",br#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>"#),
+("_rels/.rels",include_bytes!("docx-root.rels")),
 ("word/document.xml",xml.as_bytes())];
     let bytes = write_zip_stored(entries);
     (bytes.len() <= limit).then_some(bytes)

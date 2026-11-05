@@ -30138,7 +30138,7 @@ enum PandocBlock {
     List(Option<pandoc_list::Numbering>, Vec<Vec<PandocBlock>>),
     BlockQuote(Vec<PandocBlock>),
     CodeBlock(PandocAttr, String),
-    Table(Vec<String>, Vec<Vec<String>>, Option<Vec<std::fmt::Alignment>>),
+    Table(Vec<String>, Vec<Vec<String>>, Option<Vec<Option<std::fmt::Alignment>>>),
     HorizontalRule,
 }
 
@@ -30394,7 +30394,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: PandocP
             && let Some(columns) = mdq_pipe_row(delimiter)
             && !columns.is_empty()
             && (pipe_tables == PandocPipeTables::Markdown || headers.len() == columns.len())
-            && let Some(align) = columns.iter().map(|s| pipe_cell_alignment(s)).collect::<Option<Vec<_>>>()
+            && let Some(align) = columns.iter().map(|s| pipe_cell_alignment(s).map(|a| (s.starts_with(':') || s.ends_with(':')).then_some(a))).collect::<Option<Vec<_>>>()
         {
             headers.resize_with(align.len(), String::new);
             i += 2;
@@ -31111,7 +31111,7 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool, tasks: bo
             PandocBlock::Table(headers, rows, align) => {
                 let row = |cells: &[String]| format!("| {} |", cells.iter().map(|c| c.replace('|', "\\|")).collect::<Vec<_>>().join(" | "));
                 let mut t = vec![row(headers)];
-                let markers = (0..headers.len()).map(|i| match align.as_ref().and_then(|a| a.get(i)) {
+                let markers = (0..headers.len()).map(|i| match align.as_ref().and_then(|a| a.get(i)).copied().flatten() {
                     Some(std::fmt::Alignment::Right) => "---:",
                     Some(std::fmt::Alignment::Center) => ":---:",
                     _ => "---",
@@ -31901,16 +31901,16 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "latex" => render_pandoc_latex(&blocks).into_bytes(),
         "rtf" => render_pandoc_rtf(&blocks).into_bytes(),
         "json" => pandoc_doc_to_json(&blocks).into_bytes(),
-        "docx" => {
-            let md_src = render_pandoc_markdown(&blocks, false, true);
-            let html_src = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");
-            let entries: Vec<(&str, &[u8])> = vec![
-                ("[Content_Types].xml", b"<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"/>"),
-                ("word/document.xml", html_src.as_bytes()),
-                ("__pandoc_source.md", md_src.as_bytes()),
-            ];
-            write_zip_stored(&entries)
-        }
+        "docx" => match pandoc_docx::write(&blocks, if out_path.as_deref().is_none_or(|p| p == "-") {
+            plain_limit
+        } else {
+            fs.shell_limits().max_memory_bytes
+        }) {
+            Some(bytes) => bytes,
+            None if out_path.as_deref().is_some_and(|p| p != "-") =>
+                return err_out(&fs.limit_error("maxMemoryBytes", fs.shell_limits().max_memory_bytes), 1),
+            None => return output_limit_error(),
+        },
         "odt" => {
             let md_src = render_pandoc_markdown(&blocks, false, true);
             let html_src = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");

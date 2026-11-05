@@ -5,7 +5,36 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, nativePandoc, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+
+test("native Pandoc recovers headings, formatting, code and links from DOCX exports", async () => {
+  const pandoc = nativePandoc();
+  const markdown = "## Report\n\n**Bold** & *italic*, ~~old~~, `a < b`, [link](https://example.com/?a=1&b=2).\n";
+  const options = ["-f", "gfm", "-t", "docx"];
+  const decode = async (bytes: Uint8Array) => {
+    const [status, json, error] = await runLinuxCommand(pandoc, ["-f", "docx", "-t", "json"], bytes);
+    assert.equal(status, 0, error.toString());
+    return JSON.parse(json.toString());
+  };
+  const [status, docx, error] = await runLinuxCommand(pandoc, options, markdown);
+  assert.equal(status, 0, error.toString());
+  const expected = await decode(docx);
+  const ts = await SafeBashE2EHarness.create({backend: "typescript"});
+  const rust = new RustWasmBash({forceNative: true});
+  try {
+    for (const shell of [ts.shell, rust]) {
+      const result = await shell.exec("pandoc " + options.join(" "), {stdin: markdown});
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(await decode(result.stdoutBytes), expected, shell.constructor.name);
+    }
+    const structured = "3. one\n4. two\n   - nested\n5. three\n\n> Quote\n\n---\n\n```\nx\ny\n```\n\n| a | b |\n| --- | ---: |\n| 1 | 2 |";
+    const [code, native, stderr] = await runLinuxCommand(pandoc, options, structured);
+    assert.equal(code, 0, stderr.toString());
+    const exported = await rust.exec("pandoc " + options.join(" "), {stdin: structured});
+    assert.equal(exported.exitCode, 0, exported.stderr);
+    assert.deepEqual(await decode(exported.stdoutBytes), await decode(native));
+  } finally {await ts.dispose(); await rust.dispose();}
+});
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, backend: "typescript" });

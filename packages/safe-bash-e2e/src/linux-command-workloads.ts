@@ -173,6 +173,13 @@ const textCommands = ([
   cmd, args, script: [cmd, ...args.map(arg => "'" + arg.replaceAll("'", "'\\''") + "'")].join(" ")
 }));
 
+export function nativePandoc() {
+  const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
+  const pandocVersion = execFileSync(pandoc, ["--version"], { encoding: "utf8" }).split("\n")[0];
+  assert.equal(pandocVersion, "pandoc 3.11", "Put Pandoc 3.11 first on PATH for the Linux command benchmark");
+  return pandoc;
+}
+
 export function linuxCommands(text: string) {
   const pipes = ["yes | head -c 32769 | wc -c", "yes q | cat -n | head -n 1101 | tail -n 1",
     String.raw`df --output=$'target,\xff'`, "LC_ALL=C.UTF-8 df --output=’é",
@@ -224,9 +231,7 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -GT -o$'Port=\xff' example.invalid`);
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
-  const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
-  const pandocVersion = execFileSync(pandoc, ["--version"], { encoding: "utf8" }).split("\n")[0];
-  assert.equal(pandocVersion, "pandoc 3.11", "Put Pandoc 3.11 first on PATH for the Linux command benchmark");
+  const pandoc = nativePandoc();
   const nativeDocx = execFileSync(pandoc, ["-f", "gfm", "-t", "docx"], {input: "# Report\n\nBody with **bold** and *italic*.\n"});
   return [
     ...["- a\n- b\n", "#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",

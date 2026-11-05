@@ -10555,7 +10555,8 @@ fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 match flag {
                     'V' => return err_out("OpenSSH_9.8p1, OpenSSL 3.3.2 3 Sep 2024\n", 0),
                     'G' => dump_config = true,
-                    'p' | 'l' | 'i' | 'F' | 'o' => {
+                    '1' => return err_out("SSH protocol v.1 is no longer supported\r\n", 255),
+                    f if "BbcDEeFIiJLlmOoPpQRSWw".contains(f) => {
                         let value = if pos + 1 < arg.len() { &arg[pos + 1..] }
                             else if let Some(value) = words.next() { value.as_str() }
                             else { return err_out(&format!("option requires an argument -- {flag}\r\n{USAGE}"), 255); };
@@ -10575,7 +10576,16 @@ fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
                         else if flag == 'i' { identity = value; }
                         break;
                     }
-                    _ => {}
+                    f if "246AaCfgKkMNnqsTtvXxYy".contains(f) => {}
+                    _ => {
+                        let byte = crate::vfs::stream_string_to_bytes(arg)[pos];
+                        let label = match byte {
+                            b'\\' => "\\\\".to_string(),
+                            7..=10 | 13 | 32..=126 => char::from(byte).to_string(),
+                            _ => format!("\\{byte:03o}"),
+                        };
+                        return err_out(&format!("unknown option -- {label}\r\n{USAGE}"), 255);
+                    }
                 }
             }
         } else if let Some(host) = destination {

@@ -822,7 +822,7 @@ const sshUsage = `usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b 
        ssh [-Q query_option]
 `;
 
-function* parseSsh(args: readonly string[]): Generator<string, string | { status: number; stderr: string } | { badPort: number; offset: number }, number> {
+function* parseSsh(args: readonly string[], argv?: ReturnType<typeof getCommandArguments>): Generator<string, string | { status: number; stderr: string } | { badPort: number; offset: number }, number> {
   let dumpConfig = false;
   let port = 0;
   let user = "git";
@@ -837,7 +837,14 @@ function* parseSsh(args: readonly string[]): Generator<string, string | { status
         const flag = arg[j]!;
         if (flag === "V") return { status: 0, stderr: "OpenSSH_9.8p1, OpenSSL 3.3.2 3 Sep 2024\n" };
         if (flag === "G") dumpConfig = true;
-        if (!"pliFo".includes(flag)) continue;
+        if (flag === "1") return { status: 255, stderr: "SSH protocol v.1 is no longer supported\r\n" };
+        if ("246AaCfGgKkMNnqsTtVvXxYy".includes(flag)) continue;
+        if (!"BbcDEeFIiJLlmOoPpQRSWw".includes(flag)) {
+          const byte = argv?.bytes(i)?.[j] ?? textEncoder.encode(arg.slice(j))[0]!;
+          const label = byte === 92 ? "\\\\" : (byte >= 32 && byte < 127 || [7, 8, 9, 10, 13].includes(byte))
+            ? String.fromCharCode(byte) : "\\" + byte.toString(8).padStart(3, "0");
+          return { status: 255, stderr: `unknown option -- ${label}\r\n${sshUsage}` };
+        }
         const offset = j + 1 < arg.length ? j + 1 : 0;
         const value = offset ? arg.slice(offset) : args[++i];
         if (value === undefined) return { status: 255, stderr: `option requires an argument -- ${flag}\r\n${sshUsage}` };
@@ -878,7 +885,7 @@ export function createSshCommand(options: SshCommandsOptions = {}): CommandDefin
     async execute(context: CommandContext): Promise<CommandResult> {
       context.signal.throwIfAborted();
       const argv = getCommandArguments(context);
-      const parser = parseSsh(argv.args);
+      const parser = parseSsh(argv.args, argv);
       let result = parser.next();
       while (!result.done) {
         let port = 0;

@@ -18,7 +18,7 @@ pub fn try_run_text_command(
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
     match cmd {
-        "sed" => Some(cmd_sed(args, stdin, cwd, fs)),
+        "sed" => Some(cmd_sed(args, stdin, cwd, env, fs)),
         "awk" | "gawk" | "mawk" => Some(cmd_awk(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)),
         "diff" => Some(cmd_diff(args, stdin, cwd, fs)),
         "diff3" => Some(cmd_diff3(args, stdin, cwd, fs)),
@@ -118,6 +118,44 @@ impl SedBuffer {
     }
 }
 
+struct SedFile<'a> {
+    stream: crate::vfs::ChunkWriter<'a>,
+    buffer: SedBuffer,
+    unbuffered: bool,
+}
+
+impl SedFile<'_> {
+    fn flush(&mut self) -> Result<(), String> {
+        if !self.buffer.text.is_empty() {
+            (self.stream)(Some(&crate::vfs::stream_string_to_bytes(&self.buffer.text)))?;
+            self.buffer.text.clear();
+        }
+        Ok(())
+    }
+
+    fn write(&mut self, record: &SedBuffer, delimiter: char) -> Result<(), String> {
+        self.buffer.write_record(&record.text, record.unterminated, delimiter);
+        if self.unbuffered || self.buffer.text.len() >= 65536 { self.flush()?; }
+        Ok(())
+    }
+}
+
+fn open_sed_files<'a>(cmds: &[SedCmd], fs: &'a dyn SafeBashFs, cwd: &str, mode: u32, unbuffered: bool, files: &mut BTreeMap<String, SedFile<'a>>) -> Result<(), String> {
+    for cmd in cmds {
+        let name = match &cmd.op {
+            SedOp::Group(inner) => { open_sed_files(inner, fs, cwd, mode, unbuffered, files)?; continue; }
+            SedOp::WriteFile(name) | SedOp::Substitute { write_file: Some(name), .. } => name,
+            _ => continue,
+        };
+        if !files.contains_key(name) {
+            let stream = fs.open_command_stream(&absolute_operand(cwd, name), false, false, mode, None)
+                .map_err(|err| format!("sed: couldn't open file {name}: {}\n", super::coreutils::file_error_reason(&err)))?;
+            files.insert(name.clone(), SedFile { stream, buffer: SedBuffer::default(), unbuffered });
+        }
+    }
+    Ok(())
+}
+
 struct SedQueue<'a> {
     fs: &'a dyn SafeBashFs,
     pending: Vec<SedAppend>,
@@ -189,7 +227,8 @@ fn read_sed_edit(fs: &dyn SafeBashFs, path: &str) -> Result<(Vec<u8>, crate::vfs
     Ok((bytes, original, stamp))
 }
 
-fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut unbuffered = false;
     let mut quiet = false;
     let mut extended = false;
     let mut separate = false;
@@ -212,7 +251,9 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if !end_opts && a.starts_with('-') && a.len() > 1 {
             if a == "-n" || a == "--quiet" || a == "--silent" {
                 quiet = true;
-            } else if a == "-u" || a == "--unbuffered" || a == "--posix" {
+            } else if a == "-u" || a == "--unbuffered" {
+                unbuffered = true;
+            } else if a == "--posix" {
             } else if a == "-E" || a == "-r" || a == "--regexp-extended" {
                 extended = true;
             } else if a == "-s" || a == "--separate" {
@@ -287,7 +328,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     let ch = chars[p];
                     match ch {
                         'n' => quiet = true,
-                        'u' => {}
+                        'u' => unbuffered = true,
                         'i' => {
                             in_place = true;
                             in_place_suffix = chars[p + 1..].iter().collect();
@@ -392,113 +433,112 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return err_out(&msg, 2);
     }
 
-    let mut write_files: BTreeMap<String, SedBuffer> = BTreeMap::new();
-    let mut queue = SedQueue { fs, pending: Vec::new(), file_bytes: 0 };
-
-    if in_place && !files.is_empty() {
-        let mut exit_code = 0;
-        for f in &files {
-            let full = resolve_posix_path(cwd, f);
-            let operand = absolute_operand(cwd, f);
-            if operand.split('/').any(|part| part == "..") || operand != full && fs.access_path(&operand, false).is_err() {
-                return err_out(&format!("sed: invalid in-place operand: {f}\n"), 1);
-            }
-            let (bytes, stat, stamp) = match read_sed_edit(fs, &full) {
-                Ok(input) => input,
-                Err(e) => return err_out(&format!("sed: {e}\n"), 1),
-            };
-            let backup = if in_place_suffix.is_empty() { None } else {
-                let path = format!("{full}{in_place_suffix}");
-                match fs.inspect_extraction(&path, false) {
-                    Ok((Some(entry), _)) if entry.kind == crate::vfs::VfsEntryKind::Directory =>
-                        return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4),
-                    Ok((Some(entry), _)) if entry.kind != crate::vfs::VfsEntryKind::File || entry.identity == stat.identity =>
-                        return err_out(&format!("sed: invalid backup destination: {path}\n"), 1),
-                    Ok((_, backup_stamp)) => Some((path, backup_stamp)),
-                    Err(e) => return err_out(&format!("sed: {e}\n"), 1),
-                }
-            };
-            let content = crate::vfs::bytes_to_stream_string(&bytes);
-            let mut cmds_copy = parsed_cmds.clone();
-            let mut out = SedBuffer::default();
-            let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
-                Ok(result) => result,
-                Err(e) => return err_out(&e, 2),
-            };
-            let output = crate::vfs::stream_string_to_bytes(&out.text);
-            let publication = match backup {
-                Some((path, backup_stamp)) => fs.replace_file_with_backup(&full, &output, stamp.version, &path, backup_stamp.version),
-                None => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
-            };
-            if let Err(e) = publication { return err_out(&format!("sed: {e}\n"), 4); }
-            // Publication has charged these bytes to the shared output budget.
-            queue.file_bytes = 0;
-            if let Some(code) = quit { exit_code = code; break; }
-        }
-        for (wf, data) in write_files {
-            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
-        }
-        return err_out("", exit_code);
+    let mut write_files = BTreeMap::new();
+    let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+    if let Err(msg) = open_sed_files(&parsed_cmds, fs, cwd, mode, unbuffered, &mut write_files) {
+        return err_out(&msg, 4);
     }
 
-    if separate && !files.is_empty() {
-        let mut out = SedBuffer::default();
+    let result = (|| {
+        let mut queue = SedQueue { fs, pending: Vec::new(), file_bytes: 0 };
+
+        if in_place && !files.is_empty() {
+            let mut exit_code = 0;
+            for f in &files {
+                let full = resolve_posix_path(cwd, f);
+                let operand = absolute_operand(cwd, f);
+                if operand.split('/').any(|part| part == "..") || operand != full && fs.access_path(&operand, false).is_err() {
+                    return err_out(&format!("sed: invalid in-place operand: {f}\n"), 1);
+                }
+                let (bytes, stat, stamp) = match read_sed_edit(fs, &full) {
+                    Ok(input) => input,
+                    Err(e) => return err_out(&format!("sed: {e}\n"), 1),
+                };
+                let backup = if in_place_suffix.is_empty() { None } else {
+                    let path = format!("{full}{in_place_suffix}");
+                    match fs.inspect_extraction(&path, false) {
+                        Ok((Some(entry), _)) if entry.kind == crate::vfs::VfsEntryKind::Directory =>
+                            return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4),
+                        Ok((Some(entry), _)) if entry.kind != crate::vfs::VfsEntryKind::File || entry.identity == stat.identity =>
+                            return err_out(&format!("sed: invalid backup destination: {path}\n"), 1),
+                        Ok((_, backup_stamp)) => Some((path, backup_stamp)),
+                        Err(e) => return err_out(&format!("sed: {e}\n"), 1),
+                    }
+                };
+                let content = crate::vfs::bytes_to_stream_string(&bytes);
+                let mut cmds_copy = parsed_cmds.clone();
+                let mut out = SedBuffer::default();
+                let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+                    Ok(result) => result,
+                    Err(e) => return err_out(&e, 2),
+                };
+                let output = crate::vfs::stream_string_to_bytes(&out.text);
+                let publication = match backup {
+                    Some((path, backup_stamp)) => fs.replace_file_with_backup(&full, &output, stamp.version, &path, backup_stamp.version),
+                    None => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
+                };
+                if let Err(e) = publication { return err_out(&format!("sed: {e}\n"), 4); }
+                // Publication has charged these bytes to the shared output budget.
+                queue.file_bytes = 0;
+                if let Some(code) = quit { exit_code = code; break; }
+            }
+            return err_out("", exit_code);
+        }
+
+        if separate && !files.is_empty() {
+            let mut out = SedBuffer::default();
+            for f in &files {
+                let content = if f == "-" {
+                    stdin.to_string()
+                } else {
+                    let full = resolve_posix_path(cwd, f);
+                    match fs.read_file(&full) {
+                        Ok(b) => crate::vfs::bytes_to_stream_string(&b),
+                        Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
+                    }
+                };
+                let mut cmds_copy = parsed_cmds.clone();
+                let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+                    Ok(result) => result,
+                    Err(e) => return err_out(&e, 2),
+                };
+                if let Some(code) = quit {
+                    return BuiltinOutcome { stdout: out.text, stderr: String::new(), exit_code: code };
+                }
+            }
+            return ok_out(&out.text);
+        }
+
+        let mut inputs = Vec::new();
+        let mut stdin = stdin;
+        if files.is_empty() { files.push("-".into()); }
         for f in &files {
             let content = if f == "-" {
-                stdin.to_string()
+                std::borrow::Cow::Borrowed(std::mem::take(&mut stdin))
             } else {
                 let full = resolve_posix_path(cwd, f);
                 match fs.read_file(&full) {
-                    Ok(b) => crate::vfs::bytes_to_stream_string(&b),
+                    Ok(b) => std::borrow::Cow::Owned(crate::vfs::bytes_to_stream_string(&b)),
                     Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
                 }
             };
-            let mut cmds_copy = parsed_cmds.clone();
-            let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
-                Ok(result) => result,
-                Err(e) => return err_out(&e, 2),
-            };
-            if let Some(code) = quit {
-                for (wf, data) in write_files {
-                    let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
-                }
-                return BuiltinOutcome { stdout: out.text, stderr: String::new(), exit_code: code };
-            }
+            inputs.push((f.as_str(), content));
         }
-        for (wf, data) in write_files {
-            let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
-        }
-        return ok_out(&out.text);
-    }
-
-    let mut inputs = Vec::new();
-    let mut stdin = stdin;
-    if files.is_empty() { files.push("-".into()); }
-    for f in &files {
-        let content = if f == "-" {
-            std::borrow::Cow::Borrowed(std::mem::take(&mut stdin))
-        } else {
-            let full = resolve_posix_path(cwd, f);
-            match fs.read_file(&full) {
-                Ok(b) => std::borrow::Cow::Owned(crate::vfs::bytes_to_stream_string(&b)),
-                Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
-            }
+        let mut out = SedBuffer::default();
+        let quit = match run_sed_on_inputs(inputs.iter().map(|(name, text)| (*name, text.as_ref())), &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+            Ok(result) => result,
+            Err(e) => return err_out(&e, 2),
         };
-        inputs.push((f.as_str(), content));
+        BuiltinOutcome {
+            stdout: out.text,
+            stderr: String::new(),
+            exit_code: quit.unwrap_or(0),
+        }
+    })();
+    for file in write_files.values_mut() {
+        if let Err(error) = file.flush().and_then(|()| (file.stream)(None)) { return err_out(&error, 4); }
     }
-    let mut out = SedBuffer::default();
-    let quit = match run_sed_on_inputs(inputs.iter().map(|(name, text)| (*name, text.as_ref())), &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
-        Ok(result) => result,
-        Err(e) => return err_out(&e, 2),
-    };
-    for (wf, data) in write_files {
-        let _ = fs.write_file(&resolve_posix_path(cwd, &wf), &crate::vfs::stream_string_to_bytes(&data.text));
-    }
-    BuiltinOutcome {
-        stdout: out.text,
-        stderr: String::new(),
-        exit_code: quit.unwrap_or(0),
-    }
+    result
 }
 
 fn split_sed_statements(script: &str) -> Result<Vec<String>, String> {
@@ -1367,7 +1407,7 @@ fn exec_sed_cmds(
     subst_made: &mut bool,
     out: &mut SedBuffer,
     queue: &mut SedQueue,
-    write_files: &mut BTreeMap<String, SedBuffer>,
+    write_files: &mut BTreeMap<String, SedFile<'_>>,
     _quiet: bool,
     rec_term: char,
     line_length: usize,
@@ -1562,8 +1602,7 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::WriteFile(wf) => {
-                let buf = write_files.entry(wf.clone()).or_default();
-                buf.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
+                if let Err(error) = write_files.get_mut(wf).unwrap().write(pattern_space, rec_term) { return SedFlow::Error(error); }
             }
             SedOp::Group(inner) => {
                 match exec_sed_cmds(
@@ -1643,8 +1682,7 @@ fn exec_sed_cmds(
                         out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
                     }
                     if let Some(wf) = write_file {
-                        let buf = write_files.entry(wf.clone()).or_default();
-                        buf.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
+                        if let Err(error) = write_files.get_mut(wf).unwrap().write(pattern_space, rec_term) { return SedFlow::Error(error); }
                     }
                 }
             }
@@ -1681,7 +1719,7 @@ fn run_sed_on_inputs<'a>(
     quiet: bool,
     null_data: bool,
     line_length: usize,
-    write_files: &mut BTreeMap<String, SedBuffer>,
+    write_files: &mut BTreeMap<String, SedFile<'_>>,
     queue: &mut SedQueue,
     out: &mut SedBuffer,
 ) -> Result<Option<i32>, String> {

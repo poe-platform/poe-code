@@ -1098,7 +1098,9 @@
         },
         "safe-bash-command-imagemagick": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "@noble/hashes": "2.4.0"
+          },
           "devDependencies": {
             "@poe-code/image-ast": "*",
             "safe-bash-contracts": "*",

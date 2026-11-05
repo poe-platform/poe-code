@@ -216,6 +216,13 @@ export const htmlReader: ReaderCapability = {
   }
 };
 
+/** Native Markdown divs use the same bounded HTML parser and attribute mapping. */
+export async function nativeDivBlocks(text: string, ctx: AdapterContext): Promise<Block[] | undefined> {
+  const opening = text.trimStart().slice(0, 5).toLowerCase();
+  if (!opening.startsWith("<div") || ![">", " ", "\t", "\n", "\r", "/"].includes(opening[4] ?? "")) return;
+  return (await htmlTreeDocument(await parse(text, ctx), ctx)).blocks;
+}
+
 /** Map an already parsed tree without invoking HTML tokenization or recovery. */
 export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
     async function literal(node: H.Node): Promise<string> {

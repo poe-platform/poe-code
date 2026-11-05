@@ -1,3 +1,4 @@
+import {nativeDivBlocks} from "./html.js";
 import { parseDocument } from "yaml";
 import { filterGfmHtml } from "./gfm-syntax.js";
 import type { Block, Row, Inline, MetaValue } from "./ast-types.js";
@@ -115,7 +116,12 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
         }
         case "heading": result.push({ t: "Header", c: [block.level, ["", [], []], await parseCommonMarkInlines(block.inline, pending.definitions, context, extensions, footnote)] }); break;
         case "thematicBreak": result.push({ t: "HorizontalRule" }); break;
-        case "html": result.push({ t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal] }); break;
+        case "html": {
+          const divs = extensions.native_divs ? await nativeDivBlocks(block.literal, context) : undefined;
+          if (divs) result.push(...divs);
+          else result.push({ t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal] });
+          break;
+        }
         case "code": {
           const decoded = decodeSyntax(block.info, context).trim();
           const info = decoded.split(" ")[0];

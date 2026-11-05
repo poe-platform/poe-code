@@ -1,5 +1,7 @@
+import {translate} from "./json.js";
+import {nativeDivBlocks} from "./html.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
-import type {AdapterContext} from "safe-bash-markdown-engine/types";
+import type {AdapterContext} from "./types.js";
 import {upgradeRetainedCitations} from "./retained-citations.js";
 import {fencedDivAttributes, letter} from "./commonmark-syntax.js";
 import type {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
@@ -190,6 +192,31 @@ export async function assembleRetainedCommonMark(
     } else if (block.kind === "thematicBreak") await ast.push(out, await ast.tag("HorizontalRule"));
     else if (block.kind === "html") {
       const range = await parser.joined(current, "");
+      if (extensions.native_divs) {
+        const opening = {start: range.start, end: Math.min(range.end, range.start + 8)};
+        let prefix = ""; for await (const chunk of source.chunks(opening)) prefix += chunk;
+        if (prefix.trimStart().toLowerCase().startsWith("<div")) {
+          context.bound("text", range.end - range.start); context.charge("retainedBytes", (range.end - range.start) * 2);
+          let text = ""; for await (const chunk of source.chunks(range)) text += chunk;
+          const divs = await nativeDivBlocks(text, context);
+          if (divs) {
+            const retain = async (value: unknown): Promise<RtfValue> => {
+              await context.cooperate();
+              if (value === null || typeof value === "string" || typeof value === "number") return ast.value(value);
+              if (Array.isArray(value)) {
+                const array = await ast.array();
+                for (const child of value) await ast.push(array, await retain(child));
+                return array;
+              }
+              const object = await ast.object();
+              for (const [key, child] of Object.entries(value as object)) await ast.push(object, await ast.value([key, await retain(child)]));
+              return object;
+            };
+            for (const div of divs) await ast.push(out, await retain(await translate(div, "write", context, "$")));
+            continue;
+          }
+        }
+      }
       await ast.push(out, await ast.tag("RawBlock", await ast.value(["html", Object.hasOwn(extensions, "raw_html") ? await rawHtml(range) : await literal(range)])));
     } else if (block.kind === "code") {
       const syntax = new RetainedCommonMarkSyntax(source, block.info, context), decoded = await source.append(syntax.decoded(block.info)), info = await source.trim(decoded);

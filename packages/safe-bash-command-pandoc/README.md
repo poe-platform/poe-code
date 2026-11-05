@@ -72,6 +72,8 @@ The `markdown` and `md` readers support definition lists with `:` or `~`
 markers, repeated definitions, and indented blocks; disable with `-definition_lists`.
 The `markdown` and `md` readers preserve fenced divs (`::: {.note}`), including
 nested blocks, IDs, classes and key/value attributes; disable with `-fenced_divs`.
+HTML div blocks retain their IDs, classes, attributes and child structure in the
+`markdown` and `md` readers; disable with `-native_divs`.
 Fenced code blocks also preserve IDs, classes and key/value attributes
 (`{#demo .python}` after the opening fence); disable with `-fenced_code_attributes`.
 The `markdown` and `md` readers recognize Roman ordered lists such as `iv. First`

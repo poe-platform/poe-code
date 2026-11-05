@@ -46,7 +46,7 @@ async function parse(text: string, context: AdapterContext): Promise<unknown> {
 }
 
 /** Contextual conversion only: text and metadata keys never become constructors. */
-async function translate(
+export async function translate(
   value: unknown,
   operation: "read" | "write",
   context: AdapterContext,

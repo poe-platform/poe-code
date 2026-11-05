@@ -392,13 +392,13 @@ describe("safe-bash-command-pdfinfo", () => {
     assert.match(destsRes.stdout, /1\s+\[XYZ\s*\]\s+"sec\.intro"/);
     assert.match(destsRes.stdout, /2\s+\[Fit\s*\]\s+"sec\.deepdive"/);
 
-    // Verify pdfunite and pdfseparate preserve metadata and handle %% escape in pattern
+    // pdfunite omits metadata; pdfseparate preserves it and handles %% in patterns.
     const files = new Map<string, Uint8Array>([["/handbook.pdf", pdfBytes]]);
     const uniteRes = await runPdfuniteCli(["/handbook.pdf", "/handbook.pdf", "/united.pdf"], files);
     assert.equal(uniteRes.exitCode, 0);
     const unitedInfo = inspectPdfBytes(files.get("/united.pdf")!);
-    assert.match(unitedInfo.stdout, /Title:\s+Architecture Handbook/);
-    assert.match(unitedInfo.stdout, /Author:\s+Poe Core Team/);
+    assert.doesNotMatch(unitedInfo.stdout, /Title:/);
+    assert.doesNotMatch(unitedInfo.stdout, /Author:|Producer:/);
 
     const sepRes = await runPdfseparateCli(
       ["-f", "2", "-l", "2", "/handbook.pdf", "/out-100%%-p%02d.pdf"],

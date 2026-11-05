@@ -62,7 +62,7 @@ export async function executeRetainedUnite(context: CommandContext, argv: readon
   let output: PdfFileSource | undefined, failed = false;
   try {
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
-    const producer = copyRetainedPagesChunks(sources(), storage, { includeAttachments: true, includePageLabels: true, includeOutlines: true,
+    const producer = copyRetainedPagesChunks(sources(), storage, { metadata: null, includeAttachments: true, includePageLabels: true, includeOutlines: true,
       signal, maxPages: limits.maxPages, maxOutputBytes: limits.maxOutputBytes, maxRecursionDepth: 128 });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }

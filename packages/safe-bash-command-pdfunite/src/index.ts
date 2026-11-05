@@ -24,16 +24,6 @@ function resolveLimits(options: PdfuniteCommandsOptions): PdfuniteLimits {
   return limits;
 }
 
-function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
-  const meta = srcDoc.getMetadata();
-  if (meta.title) dstDoc.setTitle(meta.title);
-  if (meta.author) dstDoc.setAuthor(meta.author);
-  if (meta.subject) dstDoc.setSubject(meta.subject);
-  if (meta.keywords) dstDoc.setKeywords(meta.keywords);
-  if (meta.creator) dstDoc.setCreator(meta.creator);
-  if (meta.producer) dstDoc.setProducer(meta.producer);
-}
-
 interface DetachedEmbeddedFile {
   readonly name: string;
   readonly data: Uint8Array;
@@ -153,7 +143,8 @@ function* runPdfuniteCliSteps(argv: readonly string[], files: Map<string, Uint8A
     const destPath = positionals[positionals.length - 1]!;
     const sourcePaths = positionals.slice(0, -1);
     const merged = PdfDocument.create();
-    let copiedMeta = false;
+    merged.cos.resolveDict(merged.cos.infoRef)!.entries.length = 0;
+    merged.cos.infoRef = undefined;
     const mergedOutlineItems: Array<{
         title: string;
         targetPageIdx: number;
@@ -181,10 +172,6 @@ function* runPdfuniteCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         if (srcDoc.cos.encryptRef || srcDoc.cos.encryption) return { exitCode: 255, stdout: "", stderr: `Unimplemented Feature: Could not merge encrypted files ('${srcPath}')\n` };
         if (pageOffset + srcDoc.pageCount > limits.maxPages) throw new RangeError("Page limit exceeded");
-        if (!copiedMeta) {
-            copyDocumentMetadata(srcDoc, merged);
-            copiedMeta = true;
-        }
         for (const att of collectEmbeddedAttachments(srcDoc)) {
             if (++cooperativeWork % 64 === 0)
                 yield;

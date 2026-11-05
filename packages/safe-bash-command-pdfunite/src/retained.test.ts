@@ -106,7 +106,7 @@ it("awaits bounded output chunks with a slow retained writer", async () => {
   assert.ok(writes > 0); assert.ok(peak <= 65536); assert.equal(outstanding, 0); await f.clean();
 });
 
-it("preserves metadata, flattened outlines, labels and duplicate attachments together", async () => {
+it("preserves flattened outlines, labels and duplicate attachments together", async () => {
   const { cosArray, cosDict, cosName, cosNumber, cosString, cosStream, dictSet } = await import("@poe-code/pdf-ast");
   const doc = PdfDocument.create(); doc.setTitle("Merged navigation"); const page = doc.addPage([100, 100]);
   const catalog = doc.cos.resolveDict(doc.cos.rootRef)!;
@@ -153,3 +153,35 @@ it("closes each source before opening the next operand", async () => {
   assert.equal((await createPdfuniteCommand().execute({ ...f.context, fs })).exitCode, 0);
   assert.equal(opened, 2); assert.equal(active, 0); await f.clean();
 });
+
+for (const retained of [false, true]) {
+  it(`omits document information like Poppler (retained=${retained})`, async () => {
+    const first = PdfDocument.create();
+    first.setMetadata({ title: "Alpha", author: "Ada", subject: "Private", keywords: "internal", creator: "Source application" });
+    first.addPage([100, 200]).drawText("First page", { x: 10, y: 20 });
+    const second = PdfDocument.create();
+    second.setTitle("Beta");
+    second.addPage([300, 400]).drawText("Second page", { x: 10, y: 20 });
+    const input = first.save(), other = second.save(), args = ["in.pdf", "second.pdf", "out.pdf"];
+    let output: Uint8Array;
+    if (retained) {
+      const f = await fixture(input, args);
+      await f.fs.writeFile("/second.pdf", other);
+      assert.equal((await createPdfuniteCommand().execute(f.context)).exitCode, 0);
+      output = await f.fs.readFile("/out.pdf");
+      await f.clean();
+    } else {
+      const files = new Map([["in.pdf", input], ["second.pdf", other]]);
+      assert.equal((await runPdfuniteCli(args, files)).exitCode, 0);
+      output = files.get("out.pdf")!;
+    }
+    const merged = PdfDocument.load(output);
+    assert.equal(merged.cos.infoRef, undefined);
+    assert.ok(Object.values(merged.getMetadata()).every(value => !value));
+    assert.equal(merged.pageCount, 2);
+    assert.deepEqual(merged.getPage(0).getSize(), { width: 100, height: 200 });
+    assert.deepEqual(merged.getPage(1).getSize(), { width: 300, height: 400 });
+    assert.ok(merged.extractText().indexOf("First page") < merged.extractText().indexOf("Second page"));
+    assert.equal(PdfDocument.load(input).getMetadata().title, "Alpha");
+  });
+}

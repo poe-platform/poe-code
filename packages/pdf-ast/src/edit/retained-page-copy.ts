@@ -29,8 +29,8 @@ export interface CopyRetainedPageOptions {
   /** Override copied page boxes after cloning. Source geometry is unrotated;
    * indices refer to the source document. Returning undefined preserves boxes. */
   readonly pageBoxes?: (size: { readonly width: number; readonly height: number }, index: number) => { readonly mediaBox?: PdfRect; readonly cropBox?: PdfRect } | undefined;
-  /** Override copied metadata; an empty object keeps only the default producer. */
-  readonly metadata?: Readonly<Record<string, string>>;
+  /** Override copied metadata; null omits document information; an empty object keeps only the default producer. */
+  readonly metadata?: Readonly<Record<string, string>> | null;
   /** Repeatable bounded chunks override metadata without collecting field values. */
   readonly metadataSource?: (key: string) => AsyncIterable<string>;
   /** Merge all source embedded files; the first occurrence of each name wins. */
@@ -358,8 +358,8 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
   }
   try {
     await store.allocate(catalog); await store.allocate(cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }));
-    await store.allocate(information(options.metadata));
-    if (options.metadataSource) await saveInformation(options.metadataSource);
+    await store.allocate(options.metadata === null ? cosDict({}) : information(options.metadata));
+    if (options.metadata !== null && options.metadataSource) await saveInformation(options.metadataSource);
     for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await outlines?.append(source.document, pageCount); await append(source.document, source.indices, source.resourceState); }
     await outlines?.finish(store, catalog, pageCount, async index => cosRef(Number(await pageReferences!.get(BigInt(index)))));
     const attachmentNames = await attachments?.finish(store, catalog);
@@ -377,10 +377,10 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
     return {
       openDocument() {
         if (closing) return Promise.reject(new PdfError("E_CAPABILITY", "Retained page copy is closed"));
-        return opened ??= PdfRetainedDocument.openStore(store, storage, { rootRef: cosRef(1), infoRef: cosRef(3), pageReferences: () => references(pages), maxPages, maxRecursionDepth: maximumDepth, signal });
+        return opened ??= PdfRetainedDocument.openStore(store, storage, { rootRef: cosRef(1), ...(options.metadata === null ? {} : { infoRef: cosRef(3) }), pageReferences: () => references(pages), maxPages, maxRecursionDepth: maximumDepth, signal });
       },
       chunks() {
-        const configured = { ...options, rootRef: cosRef(1), infoRef: cosRef(3), signal };
+        const configured = { ...options, rootRef: cosRef(1), ...(options.metadata === null ? {} : { infoRef: cosRef(3) }), signal };
         if (!options.qdf && options.objectStreams === "generate" && !options.normalizeContent && !mayLinearize) {
           return serializeRetainedObjectStreams(store, storage, configured, () => store.outputObjects(),
             () => serializeRetainedCosDocumentChunks({ ...configured, objects: store.outputObjects() }, storage));

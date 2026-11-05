@@ -26,6 +26,18 @@ test("native Pandoc recovers headings, formatting, code and links from DOCX expo
       assert.equal(result.exitCode, 0, result.stderr);
       assert.deepEqual(await decode(result.stdoutBytes), expected, shell.constructor.name);
     }
+    const softBreak = "first line\nsecond line with some more words\n";
+    for (const wrap of ["none", "auto", "preserve"]) {
+      const args = [...options, "--columns=8", "--wrap=" + wrap];
+      const [code, native, stderr] = await runLinuxCommand(pandoc, args, softBreak);
+      assert.equal(code, 0, stderr.toString());
+      const expected = await decode(native);
+      for (const shell of [ts.shell, rust]) {
+        const result = await shell.exec("pandoc " + args.join(" "), {stdin: softBreak});
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(await decode(result.stdoutBytes), expected, wrap);
+      }
+    }
     const structured = "3. one\n4. two\n   - nested\n5. three\n\n> Quote\n\n---\n\n```\nx\ny\n```\n\n| a | b |\n| --- | ---: |\n| **one** | [link](https://example.org) |";
     const [code, native, stderr] = await runLinuxCommand(pandoc, options, structured);
     assert.equal(code, 0, stderr.toString());

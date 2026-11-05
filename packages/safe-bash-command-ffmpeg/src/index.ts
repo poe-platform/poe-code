@@ -1051,6 +1051,22 @@ async function applyVideoFilterChain(
   return current;
 }
 
+function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly [string, string][]): readonly MediaTrack[] {
+  for (const [specifier, language] of languages) {
+    const [selector, ordinal] = specifier.split(":");
+    const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
+    const index = type ? ordinal : selector;
+    let matched = 0;
+    tracks = tracks.map(track => {
+      if (type && track.type !== type) return track;
+      const current = matched++;
+      if (index && current !== Number(index)) return track;
+      return { ...track, language };
+    });
+  }
+  return tracks;
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -1115,6 +1131,7 @@ export function evalSyncFfmpeg(
     let chapterSource: number | undefined;
     let metadataSource: number | undefined;
     const metadata: Record<string, string> = {};
+    const streamLanguages: [string, string][] = [];
     let outputTarget: string | undefined;
 
     for (let i = 0; i < args.length; i++) {
@@ -1198,7 +1215,9 @@ export function evalSyncFfmpeg(
         if (eq >= 0) {
           const k = kv.slice(0, eq).trim().toLowerCase();
           const v = kv.slice(eq + 1).trim();
-          if (k === "rotate") rotation = parseInt(v, 10) || 0;
+          if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+            streamLanguages.push([arg.slice("-metadata:s:".length), v]);
+          } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
           else metadata[k] = v;
         }
       } else if (arg === "-display_rotation") rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
@@ -1283,7 +1302,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       encoder: metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamLanguages(workingDoc.tracks, streamLanguages) };
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -1413,6 +1432,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let chapterSource: number | undefined;
       let metadataSource: number | undefined;
       const metadata: Record<string, string> = {};
+      const streamLanguages: [string, string][] = [];
       let outputTarget: string | undefined;
 
       for (let i = 0; i < args.length; i++) {
@@ -1562,7 +1582,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           if (eq >= 0) {
             const k = kv.slice(0, eq).trim().toLowerCase();
             const v = kv.slice(eq + 1).trim();
-            if (k === "rotate") rotation = parseInt(v, 10) || 0;
+            if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+              streamLanguages.push([arg.slice("-metadata:s:".length), v]);
+            } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
             else metadata[k] = v;
           }
         } else if (arg === "-display_rotation") {
@@ -2307,7 +2329,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         workingDoc = {
           ...workingDoc,
           faststart,
-          metadata: metaTags
+          metadata: metaTags,
+          tracks: applyStreamLanguages(workingDoc.tracks, streamLanguages)
         };
 
         // Null muxer (`-f null -`)

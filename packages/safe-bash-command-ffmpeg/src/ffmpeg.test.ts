@@ -1890,3 +1890,53 @@ describe("chapter mapping", () => {
     }
   }
 });
+
+
+describe("stream language metadata", () => {
+  for (const sync of [false, true]) {
+    for (const [selector, expected] of [
+      ["s:a:0", ["eng", "fra", "deu"]],
+      ["s:a:1", ["eng", "eng", "fra"]],
+      ["s:2", ["eng", "eng", "fra"]],
+      ["s:a", ["eng", "fra", "fra"]],
+      ["s", ["fra", "fra", "fra"]],
+      ["s:a:9", ["eng", "eng", "deu"]]
+    ] as const) {
+      it(`${sync ? "sync" : "async"} applies ${selector} to output tracks`, async () => {
+        const base = parseMp4(createSyntheticMp4({ frameCount: 2, includeAudio: true }));
+        const audio = base.tracks.find(t => t.type === "audio")!;
+        const input = serializeMp4({ ...base, tracks: [
+          ...base.tracks.map(t => ({ ...t, language: "eng" })),
+          { ...audio, id: 3, language: "deu" }
+        ] });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const args = ["-i", "/in.mp4", "-c", "copy", "-metadata", "title=Global",
+          `-metadata:${selector}`, "language=fra", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const output = parseMp4(vfs.store.get("/out.mp4")!);
+        assert.deepEqual(output.tracks.map(t => t.language), expected);
+        assert.equal(output.metadata.title, "Global");
+        assert.deepEqual(output.tracks.map(t => t.samples.map(s => s.data)),
+          parseMp4(input).tracks.map(t => t.samples.map(s => s.data)));
+      });
+    }
+  }
+  it("selects output audio ordinals after mapping and honors the last language assignment", async () => {
+    const base = parseMp4(createSyntheticMp4({ frameCount: 2, includeAudio: true }));
+    const audio = base.tracks.find(t => t.type === "audio")!;
+    const vfs = createTestVfs({ "/in.mp4": serializeMp4({ ...base, tracks: [
+      ...base.tracks, { ...audio, id: 3, language: "deu" }
+    ] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4",
+      "-map", "0:a:1", "-map", "0:a:0", "-c", "copy",
+      "-metadata:s:a", "language=eng", "-metadata:s:a:0", "language=fra", "/out.mp4"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.language), ["fra", "eng"]);
+  });
+});

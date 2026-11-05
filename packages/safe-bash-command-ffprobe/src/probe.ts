@@ -189,6 +189,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
           ? { channel_layout: stream.channels === 1 ? "mono" : "stereo" }
           : {}),
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,
+        ...(stream.codec === "flac" ? { bits_per_raw_sample: String(stream.bitsPerSample) } : {}),
         time_base: `1/${stream.codec === "mp3" ? mp3TimeBase : stream.sampleRate}`,
         ...(startPts === undefined ? {} : { start_pts: startPts, start_time: startTime! }),
         ...(!stdinAudio && !unknownFlacDuration ? { duration: durations[index]!.toFixed(6) } : {}),

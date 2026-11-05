@@ -41,7 +41,7 @@ describe("original CSV and TSV document readers", () => {
       expect((await read(`h${ending}`, from)).blocks).toEqual([table(row("h"), [])]);
       expect((await read(`a${delimiter}b${delimiter}\nx${delimiter}${delimiter}${ending}`, from)).blocks).toEqual([table(row("a", "b", ""), [row("x", "", "")])]);
     }
-    expect((await read(`a${delimiter}b\nx\ny${delimiter}z${delimiter}w`, from)).blocks).toEqual([table(row("a", "b", ""), [row("x", "", ""), row("y", "z", "w")])]);
+    expect((await read(`a${delimiter}b\nx\ny${delimiter}z${delimiter}w`, from)).blocks).toEqual([table(row("a", "b"), [row("x", ""), row("y", "z")])]);
   });
   it("preserves all spaces and quoted empty cells without interpreting syntax", async () => {
     expect((await read(' a ," b  "\n"",')).blocks).toEqual([table([attr, [cell([{ t: "Space" }, str("a"), { t: "Space" }]), cell([{ t: "Space" }, str("b"), { t: "Space" }, { t: "Space" }])]], [row("", "")])]);

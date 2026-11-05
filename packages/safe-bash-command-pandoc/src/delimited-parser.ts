@@ -28,7 +28,7 @@ export class DelimitedParser {
     this.context.bound("tableFieldText", this.fieldLength + char.length);
     if (this.accountBudgets) this.context.charge("retainedBytes", char.length * 2);
     this.fieldLength += char.length;
-    if (this.events.text) this.pending += char;
+    if (this.events.text && (!this.rows || this.fields < this.width)) this.pending += char;
   }
   private async flush(): Promise<void> {
     if (!this.pending) return;
@@ -40,7 +40,7 @@ export class DelimitedParser {
     this.context.bound("tableColumns", this.fields + 1);
     if (this.accountBudgets) this.context.charge("references", 1);
     await this.flush();
-    await this.events.field?.();
+    if (!this.rows || this.fields < this.width) await this.events.field?.();
     this.fields++;
     this.fieldLength = 0;
     this.state = "start";
@@ -48,7 +48,7 @@ export class DelimitedParser {
   private async endRecord(): Promise<void> {
     this.context.bound("tableRows", this.rows + 1);
     await this.endField();
-    this.width = Math.max(this.width, this.fields);
+    if (!this.rows) this.width = this.fields;
     this.context.bound("tableCells", (this.rows + 1) * this.width);
     if (this.accountBudgets) this.context.charge("references", 1);
     await this.events.record?.();

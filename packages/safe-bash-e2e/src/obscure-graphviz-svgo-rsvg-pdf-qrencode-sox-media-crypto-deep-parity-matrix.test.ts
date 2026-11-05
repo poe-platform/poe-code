@@ -308,7 +308,7 @@ HTML
 <div style="page-break-before:always"><p>Page4</p></div>
 HTML
         wkhtmltopdf /workspace/four.html /workspace/four.pdf
-        qpdf --empty --pages /workspace/four.pdf 1-z:odd,r1 -- /workspace/sel.pdf
+        qpdf --empty --pages /workspace/four.pdf 1-z:odd /workspace/four.pdf r1 -- /workspace/sel.pdf
         qpdf --show-npages /workspace/sel.pdf
         pdftotext /workspace/sel.pdf - | tr '\\f' '\\n' | grep -v '^$'
 
@@ -333,11 +333,11 @@ HTML
           "Page1",
           "Page3",
           "Page4",
-          "/workspace/rot_att.pdf: linearized",
+          "/workspace/rot_att.pdf: no linearization errors",
           "note.txt -> reference",
           "attachment-payload-42",
           "R = 6",
-          "V = 5",
+          "P = -4",
           "File is not encrypted",
           "",
         ].join("\n"),

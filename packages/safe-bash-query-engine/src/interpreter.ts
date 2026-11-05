@@ -1291,9 +1291,12 @@ export class Interpreter {
       return;
     }
     if (name === "del") { yield* this.assign(args[0]!, { kind: "call", name: "empty", args: [] }, "|=", input); return; }
-    if (name === "debug") {
+    if (name === "debug" || name === "stderr") {
       const remaining = budget.limits.maxOutputBytes - budget.outputBytes;
-      const text = `${await stringify(["DEBUG:", input], budget, { indent: "", ascii: false, color: false }, Math.max(0, remaining - 1), "maxOutputBytes")}\n`;
+      const text = name === "debug"
+        ? `${await stringify(["DEBUG:", input], budget, { indent: "", ascii: false, color: false }, Math.max(0, remaining - 1), "maxOutputBytes")}\n`
+        : typeof input === "string" ? input
+          : await stringify(input, budget, { indent: "", ascii: false, color: false }, remaining, "maxOutputBytes");
       const bytes = utf8ByteLength(text);
       if (bytes > remaining) throw new JqLimitError("maxOutputBytes");
       budget.outputBytes += bytes;

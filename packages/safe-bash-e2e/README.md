@@ -68,7 +68,8 @@ npm --workspace=@poe-platform/safe-bash-e2e test
 # Run the multi-profile benchmark suite and regenerate benchmarks/COMPARISON_REPORT.md
 npm --workspace=@poe-platform/safe-bash-e2e run bench
 
-# Compare status and bytes to real executables, then print median timings.
+# Use the real command as the reference for both TypeScript and Rust.
+# Check exit status, output, and file effects before comparing timings.
 # Put Pandoc 3.11 on PATH; use Node 24+ with Wasm JSPI to include the Git plugin.
 npm --workspace=safe-bash-e2e run bench -- --linux-commands --iterations 10 --warmup 2
 

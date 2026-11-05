@@ -46,6 +46,9 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let sumLumSqB = 0;
     let sumLumAB = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
+    const nccChannels = metric === "ncc" ? Array.from({ length: imgA.hasAlpha && imgB.hasAlpha ? 4 : 3 }, () => ({
+        rawA: 0, rawB: 0, sumA: 0, sumB: 0, squareA: 0, squareB: 0, product: 0
+    })) : [];
     for (let y = 0; y < height; y++) {
         if ((y & 511) === 511)
             yield;
@@ -81,6 +84,22 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const gB = offB >= 0 ? dataB![offB + 1]! : 0;
                 const bB = offB >= 0 ? dataB![offB + 2]! : 0;
                 const aB = offB >= 0 ? dataB![offB + 3]! : 0;
+                // NCC centers each channel on its unassociated mean, then
+                // combines covariance and variance across all active channels.
+                for (let channel = 0; channel < nccChannels.length; channel++) {
+                    const stats = nccChannels[channel]!;
+                    const rawA = offA >= 0 ? dataA![offA + channel]! : 0;
+                    const rawB = offB >= 0 ? dataB![offB + channel]! : 0;
+                    const a = channel === 3 ? rawA : rawA * aA / 255;
+                    const b = channel === 3 ? rawB : rawB * aB / 255;
+                    stats.rawA += rawA;
+                    stats.rawB += rawB;
+                    stats.sumA += a;
+                    stats.sumB += b;
+                    stats.squareA += a * a;
+                    stats.squareB += b * b;
+                    stats.product += a * b;
+                }
                 const dr = Math.abs(rA - rB);
                 const dg = Math.abs(gA - gB);
                 const db = Math.abs(bA - bB);
@@ -159,7 +178,6 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const c2 = 0.0009;
     const ssim = ((2 * muA * muB + c1) * (2 * covAB + c2)) /
         ((muA * muA + muB * muB + c1) * (varA + varB + c2));
-    const ncc = varA === 0 && varB === 0 ? 1 : covAB / (Math.sqrt(varA * varB) || 1);
     let metricStr: string;
     switch (metric) {
         case "ae":
@@ -185,9 +203,21 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "dssim":
             metricStr = formatMetricNum((1 - ssim) / 2);
             break;
-        case "ncc":
-            metricStr = formatMetricNum(ncc);
+        case "ncc": {
+            let varianceA = 0, varianceB = 0, covariance = 0;
+            for (const stats of nccChannels) {
+                const meanA = stats.rawA / (imgA.width * imgA.height);
+                const meanB = stats.rawB / (imgB.width * imgB.height);
+                varianceA += Math.max(0, stats.squareA - 2 * meanA * stats.sumA + totalPixels * meanA * meanA);
+                varianceB += Math.max(0, stats.squareB - 2 * meanB * stats.sumB + totalPixels * meanB * meanB);
+                covariance += stats.product - meanA * stats.sumB - meanB * stats.sumA + totalPixels * meanA * meanB;
+            }
+            const denominator = Math.sqrt(varianceA) * Math.sqrt(varianceB);
+            const similarity = denominator === 0 ? 0 : covariance / denominator;
+            const distortion = Math.abs(1 - similarity) < 2e-12 ? 0 : (1 - similarity) / 2;
+            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
             break;
+        }
         case "rmse":
         default:
             metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;

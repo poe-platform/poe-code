@@ -60,6 +60,21 @@ test("renders an embedded fax scan like Poppler pdftoppm at 72 dpi", async () =>
   for (const bytes of [files.get("page.pgm")!, await f.fs.readFile("/page.pgm")]) assert.equal(Buffer.from(bytes).toString("hex"), expected);
   await f.clean();
 });
+test("pdftoppm interpolates the color channels of an upright JPEG like Poppler", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = PdfDocument.create(), page = doc.addPage([17, 13]);
+  const photo = doc.embedJpg(readFileSync(new URL("../../pdf-ast/src/fixtures/jpeg-rgb-direct.jpg", import.meta.url)));
+  page.drawImage(photo, { x: 0, y: 0, width: 17, height: 13 });
+  const input = doc.save(), args = ["-r", "72", "-singlefile", "in.pdf", "page"];
+  const files = new Map([["in.pdf", input]]), f = await fixture(input, args);
+  assert.equal((await runPdftoppmCli(args, files)).exitCode, 0);
+  assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, 0);
+  const offset = "P6\n17 13\n255\n".length + (4 * 17 + 3) * 3;
+  for (const bytes of [files.get("page.ppm")!, await f.fs.readFile("/page.ppm")]) {
+    assert.ok([31, 63, 58].every((v, i) => Math.abs(bytes[offset + i]! - v) <= 1));
+  }
+  await f.clean();
+});
 for (const flags of [["-svg"], [], ["-gray"], ["-mono"], ["-png"], ["-jpeg"], ["-jpegcmyk"], ["-tiff"], ["-png", "-gray"], ["-tiff", "-tiffcompression", "lzw"], ["-rx", "90", "-ry", "47", "-x", "2", "-W", "9"]]) {
   test(`retained rendering matches bytes without whole input or output: ${flags.join(" ")}`, async () => {
     const input = pdf(), args = [...flags, "in.pdf", "out"], files = new Map([["in.pdf", input]]); const expected = await runPdftoppmCli(args, files);

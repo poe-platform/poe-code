@@ -6,8 +6,19 @@ import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
 
+const env = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
+async function native(cmd: string, args: readonly string[], input: string | Uint8Array) {
+  const proc = spawn("/usr/bin/" + cmd, args, { env });
+  const finished = once(proc, "close");
+  proc.stdin.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code !== "EPIPE") throw error;
+  });
+  proc.stdin.end(input);
+  const [[code], stdout, stderr] = await Promise.all([finished, buffer(proc.stdout), buffer(proc.stderr)]);
+  return [code, stdout, stderr] as const;
+}
+
 test("Linux command pipe results match in TypeScript and Rust", async t => {
-  const env = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
   const input = "alpha\nbeta\nbeta\n";
   const ts = await SafeBashE2EHarness.create({ env, fs: new sb.MemoryFileSystem() });
   const rust = new RustWasmBash({ env, forceNative: true });
@@ -24,17 +35,35 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
       ["printf", "%04d", "7"], ["echo", "alpha", "beta"],
     ] as const) {
       await t.test(cmd, async () => {
-        const proc = spawn("/usr/bin/" + cmd, args, { env });
-        const finished = once(proc, "close");
-        proc.stdin.on("error", (error: NodeJS.ErrnoException) => {
-          if (error.code !== "EPIPE") throw error;
-        });
-        proc.stdin.end(input);
-        const [[code], stdout, stderr] = await Promise.all([finished, buffer(proc.stdout), buffer(proc.stderr)]);
+        const [code, stdout, stderr] = await native(cmd,args,input);
         const script = [cmd, ...args.map(arg => "'" + arg + "'")].join(" ");
         for (const shell of [ts.shell, rust]) {
           const result = await shell.exec(script, { stdin: input });
           assert.deepEqual([result.exitCode, Buffer.from(result.stdoutBytes), Buffer.from(result.stderrBytes)], [code, stdout, stderr]);
+        }
+      });
+    }
+    const binary = Buffer.alloc(32768);
+    for (let i = 0; i < binary.length; i++) binary[i] = (i * 31 + (i >> 8)) % 256;
+    for (const [compress, decompress, cat] of [
+      ["gzip", "gunzip", "zcat"], ["bzip2", "bunzip2", "bzcat"], ["xz", "unxz", "xzcat"],
+      ["lzma", "unlzma", "lzcat"], ["zstd", "unzstd", "zstdcat"],
+    ] as const) {
+      await t.test(compress + " streams decode in both directions", async () => {
+        const [status, packed, errors] = await native(compress, ["-c"], binary);
+        assert.equal(status, 0, errors.toString());
+        for (const shell of [ts.shell, rust]) {
+          const written = await shell.exec(compress + " -c", {stdin: binary});
+          assert.equal(written.exitCode, status, written.stderr);
+          assert.deepEqual(Buffer.from(written.stderrBytes), errors);
+          const [code, decoded, stderr] = await native(decompress, ["-c"], written.stdoutBytes);
+          assert.equal(code, 0, stderr.toString());
+          assert.deepEqual(decoded, binary);
+          for (const cmd of [decompress, cat]) {
+            const reference = await native(cmd, ["-c"], packed);
+            const read = await shell.exec(cmd + " -c", {stdin: packed});
+            assert.deepEqual([read.exitCode, Buffer.from(read.stdoutBytes), Buffer.from(read.stderrBytes)], reference, cmd);
+          }
         }
       });
     }

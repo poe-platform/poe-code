@@ -204,3 +204,25 @@ for (const rotation of [0, 90, 180, 270] as const) for (const [x, y, width, heig
     await f.clean();
   });
 }
+
+for (const cairo of [false, true]) for (const [pageWidth, pageHeight, scale, width, height] of [
+  [220, 160, 128, 128, 94],
+  [30, 20.25, 128, 128, 87],
+  [220, 160, 100, 100, 73],
+  [30, 20.25, 100, 100, 68],
+] as const) {
+  test(`scaled raster rounds up ${pageWidth}x${pageHeight} to ${scale}, Cairo=${cairo}`, async () => {
+    const doc = PdfDocument.create(); doc.addPage([pageWidth, pageHeight]);
+    const input = doc.save(), args = ["-png", "-singlefile", "-scale-to", String(scale), "in.pdf", "out"];
+    const files = new Map([["in.pdf", input]]);
+    assert.equal((await (cairo ? runPdftocairoCli : runPdftoppmCli)(args, files)).exitCode, 0);
+    const buffered = decodePng(files.get("out.png")!);
+    assert.deepEqual([buffered.width, buffered.height], [width, height]);
+    const f = await fixture(input, args);
+    f.context.command = cairo ? "pdftocairo" : "pdftoppm";
+    assert.equal((await (cairo ? createPdftocairoCommand() : createPdftoppmCommand()).execute(f.context)).exitCode, 0);
+    const retained = decodePng(await f.fs.readFile("/out.png"));
+    assert.deepEqual([retained.width, retained.height], [width, height]);
+    await f.clean();
+  });
+}

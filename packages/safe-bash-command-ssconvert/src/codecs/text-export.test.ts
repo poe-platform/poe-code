@@ -153,7 +153,7 @@ it.each([
   ["separator=;", [49, 46, 50, 10]],
   ["quoting-mode=always", [34, 49, 46, 50, 34, 10]],
   ["eol=windows", [49, 46, 50, 13, 10]],
-  ["charset=UTF-16", [255, 254, 49, 0, 46, 0, 50, 0, 10, 0]]
+  ["charset=UTF-16", [254, 255, 0, 49, 0, 46, 0, 50, 0, 10]]
 ])("applies explicit CSV CLI option %s", async (option, bytes) => {
   const f = fixture(book);
   try {

@@ -1,5 +1,22 @@
 import { parseAudio, type AudioAst } from "@poe-code/audio-ast";
 
+const codecLongNames: Record<string, string> = {
+  flac: "FLAC (Free Lossless Audio Codec)",
+  mp3: "MP3 (MPEG audio layer 3)",
+  opus: "Opus (Opus Interactive Audio Codec)",
+  vorbis: "Vorbis",
+  aac: "AAC (Advanced Audio Coding)",
+  alac: "ALAC (Apple Lossless Audio Codec)"
+};
+
+const formatLongNames = {
+  wav: "WAV / WAVE (Waveform Audio)",
+  mp3: "MP2/3 (MPEG audio layer 2/3)",
+  flac: "raw FLAC",
+  ogg: "Ogg",
+  m4a: "QuickTime / MOV"
+};
+
 export function isStdin(path: string): boolean {
   return ["-", "pipe:", "pipe:0", "/dev/stdin", "/dev/fd/0"].includes(path);
 }
@@ -138,6 +155,13 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
             : stream.codec === "pcm_float"
               ? `pcm_f${stream.bitsPerSample}le`
               : stream.codec,
+        codec_long_name: stream.codec === "pcm"
+          ? stream.bitsPerSample === 8
+            ? "PCM unsigned 8-bit"
+            : `PCM signed ${stream.bitsPerSample}-bit little-endian`
+          : stream.codec === "pcm_float"
+            ? `PCM ${stream.bitsPerSample}-bit floating point little-endian`
+            : codecLongNames[stream.codec] ?? stream.codec,
         codec_type: "audio",
         ...(["pcm", "pcm_float", "mp3", "flac"].includes(stream.codec)
           ? { sample_fmt: stream.codec === "mp3"
@@ -175,6 +199,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       nb_programs: 0,
       nb_stream_groups: 0,
       format_name: audio.format === "m4a" ? "mov,mp4,m4a,3gp,3g2,mj2" : audio.format,
+      format_long_name: formatLongNames[audio.format],
       ...(!stdinAudio && !unknownFlacDuration ? { duration: formatDuration.toFixed(6) } : {}),
       ...(!stdinAudio ? { size: String(size) } : {}),
       ...(!unknownFlacDuration ? { bit_rate: String(stdinAudio

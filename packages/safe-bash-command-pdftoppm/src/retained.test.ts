@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
@@ -223,6 +224,25 @@ for (const cairo of [false, true]) for (const [pageWidth, pageHeight, scale, wid
     assert.equal((await (cairo ? createPdftocairoCommand() : createPdftoppmCommand()).execute(f.context)).exitCode, 0);
     const retained = decodePng(await f.fs.readFile("/out.png"));
     assert.deepEqual([retained.width, retained.height], [width, height]);
+    await f.clean();
+  });
+}
+
+for (const cairo of [false, true]) for (const [dpi, width, height] of [
+  [36, 15, 11], [72, 30, 21], [96, 40, 27], [150, 63, 43],
+] as const) {
+  test(`fractional fixture page rounds up at ${dpi} DPI, Cairo=${cairo}`, async () => {
+    const input = readFileSync(new URL("../../pdf-ast/src/fixtures/pdfjs-jp2-resetprob.pdf", import.meta.url));
+    const args = ["-f", "1", "-l", "1", "-r", String(dpi), "-png", "-singlefile", "in.pdf", ...(cairo ? ["-"] : [])];
+    const f = await fixture(input, args);
+    f.context.command = cairo ? "pdftocairo" : "pdftoppm";
+    assert.equal((await (cairo ? createPdftocairoCommand() : createPdftoppmCommand()).execute(f.context)).exitCode, 0);
+    const retained = decodePng(new Uint8Array(Buffer.concat(f.stdout)));
+    assert.deepEqual([retained.width, retained.height], [width, height]);
+    const buffered = await (cairo ? runPdftocairoCli : runPdftoppmCli)(args, new Map([["in.pdf", input]]));
+    assert.equal(buffered.exitCode, 0);
+    const bitmap = decodePng(buffered.stdoutBytes!);
+    assert.deepEqual([bitmap.width, bitmap.height], [width, height]);
     await f.clean();
   });
 }

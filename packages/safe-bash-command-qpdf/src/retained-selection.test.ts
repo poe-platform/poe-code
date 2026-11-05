@@ -14,7 +14,7 @@ for (const retained of [false, true]) for (const [groups, sources, widths] of [
   ["1", ["a.pdf", "b.pdf"], [101, 201, 102, 202, 103, 203]],
   ["1,2", ["a.pdf", "b.pdf"], [101, 201, 202, 102, 203, 103]],
   ["2", ["a.pdf", "b.pdf"], [101, 102, 201, 202, 103, 203]],
-  ["1,2", ["a.pdf", "b.pdf", "c.pdf"], [101, 201, 202, 301, 102, 203, 302, 103, 303]],
+  ["1,2,1", ["a.pdf", "b.pdf", "c.pdf"], [101, 201, 202, 301, 102, 203, 302, 103, 303]],
 ] as const) it(`collates ${sources.length} inputs with groups ${groups} (${retained ? "retained" : "memory"})`, async () => {
   const files = new Map<string, Uint8Array>();
   for (const [index, name] of sources.entries()) {

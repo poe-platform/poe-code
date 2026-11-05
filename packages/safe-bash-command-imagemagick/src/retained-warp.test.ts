@@ -52,8 +52,8 @@ it("preserves original warp pixel vectors", async () => {
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "11440be1e7e9b7bcf02c2d0aaaf4d1d90966b400741f5ae85f06aaaac8188ea7",
-        "116d3462ccf768f24658418b99ba5898ab7062a25169c2f600588896f04d8635",
+        "56974305409f69dcf37b1cfb71680e2973a9d2e86c97aef20e727025aea9c030",
+        "ec59bb212bcd77f726dcffe01605dcb3376381ac2b47f46a46eb1899ff34e0ec",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "99c653dd662b8c626d4a8e7805f131b0557aa341214b6c12013fe8b21ab28494",
         "d709039ae624768e3c4d527c76427b16f371b42a29ff53f32c67f1f39d1dda1e",
@@ -81,7 +81,7 @@ it("preserves original warp pixel vectors", async () => {
         "da2d034ea0ed3462f5d6efae70dd76e417ab9adf90d29ad158fd33ea7877b877",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
-        "115f376638fd55f9382700eb175c06dd4485da526f9db73745a8d932513e4517",
+        "b8e628a1d313e036dd1febb5b675c10a4624be6a2d9962fc25116f99d521e12e",
       ]
     `);
 });

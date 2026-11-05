@@ -1,10 +1,11 @@
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import fixtures from "./shear-fixtures.json";
+import fixtures from "./shear-fixtures.json" with { type: "json" };
+import alphaFixtures from "./shear-alpha-fixtures.json" with { type: "json" };
 import { runConvertCli } from "./index.js";
 
-// Dimensions and interior pixels from ImageMagick 7's sequential X/Y shear.
+// Full pixel fixtures generated with ImageMagick 7.1.2-31 Q16-HDRI, raw RGBA input/output at depth 8.
 const cases = [
     { geometry: "0x-20", width: 9, height: 10, pixels: [] },
     { geometry: "15x-20", width: 11, height: 11, pixels: [] },
@@ -40,5 +41,18 @@ it.each(cases.flatMap(test => [false, true].map(retained => ({ ...test, retained
         }
         expect(Array.from(output.data)).toEqual(fixtures[geometry as keyof typeof fixtures].flatMap(value => [value, value, value, 255]));
         if (geometry === "0x0") expect(output.data).toEqual(data);
+    }
+);
+
+it.each(alphaFixtures.flatMap(test => [false, true].map(retained => ({ ...test, retained }))))(
+    "matches native RGBA shear $geometry on $width x $height, retained=$retained",
+    async ({ width, height, geometry, background, rgba, retained }) => {
+        const data = Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 37 % 256);
+        const input = await sharp(data, { raw: { width, height, channels: 4 } }).png().toBuffer();
+        const files = new Map([["input", input]]), fs = new MemoryFileSystem();
+        await fs.writeFile("/input", input);
+        expect((await runConvertCli(["input", "-background", background, "-shear", geometry, "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
+        const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
+        expect(Array.from(output.data)).toEqual(Array.from(Buffer.from(rgba, "base64")));
     }
 );

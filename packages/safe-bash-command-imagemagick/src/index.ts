@@ -15,6 +15,7 @@ import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
 import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
+import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
@@ -2115,18 +2116,6 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, token: string, spec: string, args = "0"): WarpPlan | undefined {
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
-    if (token === "-shear") {
-        // Shear takes signed angles, not dimensions followed by offsets.
-        const [xAngle = "0", yAngle = "0"] = spec.toLowerCase().split("x");
-        const tx = Math.tan((parseFloat(xAngle) || 0) * Math.PI / 180), ty = Math.tan((parseFloat(yAngle) || 0) * Math.PI / 180);
-        // ImageMagick shears X by -tx, then Y by ty using the sheared X.
-        const width = Math.max(1, Math.round(w + Math.abs(tx) * h)), height = Math.max(1, Math.round(Math.abs(ty) * w + Math.abs(1 - tx * ty) * h));
-        return result((x, y) => {
-            const dx = x - (width - 1) / 2, dy = y - (height - 1) / 2;
-            const sourceY = dy - ty * dx;
-            return [cx + dx + tx * sourceY, cy + sourceY];
-        }, width, height);
-    }
     if (token === "-swirl") {
         const maxR = Math.max(cx, cy, 1), radians = (Number(spec) * Math.PI) / 180;
         return result((x, y) => {
@@ -2208,7 +2197,15 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     let i = start;
     const distort = token === "-distort" || token === "+distort";
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
-    return { end: i, background: state.background, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => magickWarpPlan(image, token, spec, args) };
+    const background = state.background;
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => {
+        if (token === "-shear") {
+            const plan = shearPlan(image, spec);
+            return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, background) };
+        }
+        const plan = magickWarpPlan(image, token, spec, args);
+        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background) } : undefined;
+    } };
 }
 
 function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: string) {
@@ -4791,7 +4788,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapSteps(stack, function* (image) {
                 const plan = warpOperation.plan(image);
                 if (!plan) return image;
-                const output = yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, warpOperation.background), signal, plan);
+                const output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
                 return plan.virtualCanvas ? { ...output, virtualCanvas: plan.virtualCanvas } : output;
             });
         }
@@ -5780,7 +5777,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const plan = warpOperation.plan(image);
                 if (!plan) return image;
-                const output = await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, warpOperation.background), signal, plan);
+                const output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
                 return plan.virtualCanvas ? { ...output, virtualCanvas: plan.virtualCanvas } : output;
             });
             continue;

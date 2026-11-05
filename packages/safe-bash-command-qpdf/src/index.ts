@@ -650,7 +650,6 @@ function parseQpdfArguments(argv: readonly string[]) {
         const count = Number.parseInt(value, 10);
         return count === 0 ? 0 : Math.max(1, count || 1);
       });
-      if (collateCounts.every(count => count === 0)) collateCounts = undefined;
     } else if (arg === "--flatten-rotation") {
       flattenRotation = true;
     } else if (arg === "--remove-unreferenced-resources") {
@@ -950,6 +949,11 @@ function parseQpdfArguments(argv: readonly string[]) {
       positional.push(arg);
     }
   }
+
+  if (collateCounts !== undefined && collateCounts.length > 1 && collateCounts.length !== pageSpecs.length) {
+    return { result: { exitCode: 2, stdout: "", stderr: "qpdf: --pages: if --collate has more than one value, it must have one value per page specification\n" } };
+  }
+  if (collateCounts?.every(count => count === 0)) collateCounts = undefined;
 
   const inputFile = emptyInput ? undefined : positional[0];
   const outputFile = emptyInput ? positional[0] : positional[1];

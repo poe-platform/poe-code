@@ -6,6 +6,29 @@ import { runMagickCli, runConvertCli, runConvertCliSync, runMontageCli, runMonta
 // ImageMagick 7, RGB checkerboard PNG, -resize 4x4 (or montage -geometry 4x4+0+0).
 const resized = [124, 129, 126, 131, 129, 127, 128, 126, 126, 128, 127, 129, 131, 126, 129, 124]
     .flatMap(value => [value, value, value, 255]);
+
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it(`preserves native thumbnail filtering separately from resize: ${mode}`, async () => {
+        const input = await sharp(Uint8Array.of(255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255), {
+            raw: { width: 3, height: 1, channels: 4 }
+        }).png().toBuffer();
+        // Native ImageMagick 7.1.2 Q16-HDRI, using the same RGBA PNG bytes.
+        for (const [operation, expected] of [
+            ["-thumbnail", [169, 106, 0, 255, 0, 106, 169, 255]],
+            ["-resize", [156, 100, 0, 255, 0, 100, 156, 255]]
+        ] as const) {
+            const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+            const args = ["png:-", operation, "2x1!", "out.png"];
+            const result = mode === "sync" ? runConvertCliSync(args, files, input)
+                : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files, input);
+            expect(result.exitCode).toBe(0);
+            const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            expect([output.width, output.height]).toEqual([2, 1]);
+            expect([...output.data]).toEqual(expected);
+        }
+    });
+}
+
 for (const [operation, geometry, gray] of [
     ["resize", "4x4", undefined],
     ["resize", "3x5!", [124, 128, 131, 129, 128, 126, 128, 128, 128, 126, 128, 129, 131, 128, 124]],

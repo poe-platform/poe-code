@@ -5,6 +5,18 @@ import { runMagickCli } from "./index.js";
 
 for (const retained of [false, true]) {
     for (const option of ["-color-matrix", "-recolor"]) {
+        it.each([0, 2, 3, 5, 8, 10, 15, 17, 24, 26, 35, 37])(`${option} rejects %i coefficients, retained=${retained}`, async (count) => {
+            const bytes = await sharp(new Uint8Array([200, 100, 50, 255]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+            const files = new Map([["/in.png", bytes], ["/out.png", bytes]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/in.png", bytes);
+            await fs.writeFile("/out.png", bytes);
+            const matrix = Array.from({ length: count }, (_, i) => i === 0 ? 1 : 0).join(" ");
+            const result = await runMagickCli(["/in.png", option, matrix, "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+            expect(result.exitCode).toBe(1);
+            expect(result.stderr).toContain("Invalid color matrix");
+            expect(retained ? await fs.readFile("/out.png") : files.get("/out.png")).toEqual(bytes);
+        });
+
         it.each([
             { matrix: "0.5", expected: [100, 100, 50, 128] },
             { matrix: "0 1 1 0", expected: [100, 200, 50, 128] },

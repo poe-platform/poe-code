@@ -741,10 +741,10 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
         .split(/[\s,]+/)
         .filter((s) => s.length > 0)
         .map(Number);
-    if (m.length < 9 && m.length !== 1 && m.length !== 4)
-        return img;
+    const cols = Math.sqrt(m.length);
+    if (cols === 0 || !Number.isInteger(cols))
+        throw new Error("Invalid color matrix: coefficient count must be a nonzero square");
     const out = new Uint8Array(img.data);
-    const cols = m.length < 9 || m.length >= 16 ? Math.round(Math.sqrt(m.length)) : 3;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;

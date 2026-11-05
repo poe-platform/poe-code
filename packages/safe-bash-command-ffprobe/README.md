@@ -14,6 +14,7 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `-show_entries section=fields` (including format/stream tags), `-select_streams a:0`,
 and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
+Selecting `packet` or `frame` with `-show_entries` also requests those records without a separate show flag.
 The audio and ffmpeg plugins share this command implementation. Use `-` or `pipe:0` for stdin. Unknown flags fail explicitly.
 Without section flags, audio and video both print stream and format metadata to stdout using the selected writer.
 Ogg comments appear in stream tags with their original field names; M4A format tags include container brands. Xing MP3 bitrates include the header frame, matching native ffprobe.

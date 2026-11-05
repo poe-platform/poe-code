@@ -604,6 +604,9 @@ function parseProbeArguments(args: readonly string[]) {
     showFormat = true;
     showStreams = true;
   }
+  const entryFilter = parseEntryFilter(showEntries);
+  showPackets ||= entryFilter.has("packet");
+  showFrames ||= entryFilter.has("frame");
   return { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }
@@ -782,9 +785,8 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         const { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
         const entryFilter = parseEntryFilter(showEntries);
-        const packetRecords = showPackets || entryFilter.has("packet"), frameRecords = showFrames || entryFilter.has("frame");
-        const mp4Records = !options.asts ? { packets: packetRecords, frames: frameRecords,
-          metadata: !(packetRecords || frameRecords) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
+        const mp4Records = !options.asts ? { packets: showPackets, frames: showFrames,
+          metadata: !(showPackets || showFrames) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
         const packetPlugins = mp4Records ? [registry.findByFormatName("mp4"), registry.findByFormatName("mov")] : [];
         let audioInput: AudioProbeInput | undefined;
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;

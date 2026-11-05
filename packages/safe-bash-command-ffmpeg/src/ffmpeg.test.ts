@@ -541,6 +541,24 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  for (const [options, sampleRate, channels, samples] of [
+    [["-ar", "8000"], 8000, 1, 80],
+    [["-ac", "2"], 16000, 2, 160],
+    [["-af", "volume=0.5"], 16000, 1, 160],
+    [["-af", "atempo=2"], 16000, 1, 80]
+  ] as const) {
+    it(`preserves short PCM duration when converting with ${options.join(" ")}`, async () => {
+      const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160).fill(0.5)] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/input.wav", ...options, "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(output.sampleRate, sampleRate);
+      assert.equal(output.channels, channels);
+      for (const channel of output.channelData) assert.equal(channel.length, samples);
+    });
+  }
+
   for (const [left, right, expected] of [[0.5, -0.5, 0], [0, 0.5, 0.25], [0.5, 0.5, 0.5]] as const) {
     it(`mixes stereo ${left}, ${right} to mono ${expected}`, async () => {
       const input = encodeWav({

@@ -1176,10 +1176,10 @@ describe("safe-bash-command-qpdf", () => {
     const jsonRes = await runQpdfCli(["src.pdf", "--json"], files);
     assert.equal(jsonRes.exitCode, 0);
     const parsedJson = JSON.parse(jsonRes.stdout);
-    assert.equal(parsedJson.qpdf[0].attachments["script-key"].filename, "script.sh");
-    assert.equal(parsedJson.qpdf[0].attachments["zugferd.xml"].filename, "zugferd.xml");
-    assert.equal(parsedJson.qpdf[0].pagelabels.length, 1);
-    assert.equal(parsedJson.qpdf[0].pagelabels[0].prefix, "Intro-");
+    assert.equal(parsedJson.attachments["script-key"].filename, "script.sh");
+    assert.equal(parsedJson.attachments["zugferd.xml"].filename, "zugferd.xml");
+    assert.equal(parsedJson.pagelabels.length, 1);
+    assert.equal(parsedJson.pagelabels[0].prefix, "Intro-");
 
     const remRes = await runQpdfCli(["src.pdf", "--remove-attachment=script-key", "trimmed.pdf"], files);
     assert.equal(remRes.exitCode, 0);

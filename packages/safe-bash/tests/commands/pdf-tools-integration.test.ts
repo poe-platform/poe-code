@@ -1628,10 +1628,10 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     const qpdfJson = await shell.exec("qpdf /work/united.pdf --json");
     assert.equal(qpdfJson.exitCode, 0);
     const parsedJson = JSON.parse(qpdfJson.stdout);
-    assert.equal(parsedJson.qpdf[0].attachments["manifest.txt"].filename, "manifest.txt");
-    assert.equal(parsedJson.qpdf[0].pagelabels.length, 1);
-    assert.equal(parsedJson.qpdf[0].pagelabels[0].index, 1);
-    assert.equal(parsedJson.qpdf[0].pagelabels[0].prefix, "P2-");
+    assert.equal(parsedJson.attachments["manifest.txt"].filename, "manifest.txt");
+    assert.equal(parsedJson.pagelabels.length, 1);
+    assert.equal(parsedJson.pagelabels[0].index, 1);
+    assert.equal(parsedJson.pagelabels[0].prefix, "P2-");
 
     const catRes = await shell.exec("pdftk /work/united.pdf cat 1-2 output /work/catted.pdf");
     assert.equal(catRes.exitCode, 0);

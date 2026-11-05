@@ -159,20 +159,19 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     const outlineValue = await summary({ kind: "array", values: include("outlines") ? outlines() : [] });
     const labelValue = await summary({ kind: "array", values: include("pagelabels") ? labels() : [] });
     const metadata: Record<string, JsonValue> = { pdfversion: document.crossReference.version,
-      ...(options.jsonVersion === 2 ? { maxobjectid: maximum } : {}), pages: options.jsonKeys.includes("pages") ? { kind: "array", values: pageValues() } : count,
+      ...(options.jsonVersion === 2 ? { maxobjectid: maximum } : {}), pages: (options.jsonKeys.includes("pages") || (options.jsonVersion === 2 && include("pages"))) ? { kind: "array", values: pageValues() } : count,
       pagelabels: labelValue, outlines: outlineValue,
       acroform: jsonRecord({ hasacroform: form?.kind === "dict" && hasFields, needappearances: appearances?.kind === "boolean" ? appearances.value : false, fields: fieldValue }),
       encrypt: jsonRecord({ encrypted: Boolean(sourceDocument.encryption) }), attachments: attachmentValue,
     };
-    const payload = options.jsonVersion === 1 ? jsonRecord({ version: 1, ...metadata, objects: objectValue })
-      : jsonRecord({ version: 2, qpdf: { kind: "array", values: [jsonRecord(metadata), objectValue] } });
+    const payload = jsonRecord({ version: 1, ...metadata, objects: objectValue });
     const sections: Record<string, JsonValue> = { ...metadata, objects: objectValue,
       objectinfo: { kind: "object", entries: objectInfoEntries() },
       qpdf: { kind: "array", values: [jsonRecord({ jsonversion: 2, pdfversion: document.crossReference.version, maxobjectid: maximum }), objectValue] }
     };
     const selectedPayload: Record<string, JsonValue> = { version: options.jsonVersion ?? 2, parameters: jsonRecord({ decodelevel: "generalized" }) };
-    for (const key of options.jsonKeys) selectedPayload[key] = sections[key]!;
-    json = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks(options.jsonKeys.length ? jsonRecord(selectedPayload) : payload, signal), { signal, maxInputBytes: maxOutputBytes });
+    for (const key of options.jsonKeys.length ? options.jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", "qpdf"]) selectedPayload[key] = sections[key]!;
+    json = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks(options.jsonKeys.length || options.jsonVersion === 2 ? jsonRecord(selectedPayload) : payload, signal), { signal, maxInputBytes: maxOutputBytes });
     let total = json.size;
     for await (const entry of files.entries()) {
       if (entry.name === options.outputFile && options.outputFile !== "-") continue;

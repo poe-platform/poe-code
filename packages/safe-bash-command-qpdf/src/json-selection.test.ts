@@ -4,6 +4,31 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosStream, cosName, dictSet } from "@poe-code/pdf-ast";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
+for (const flag of ["--json", "--json=2"]) it(`emits default version 2 document sections with ${flag} in both paths`, async () => {
+  const doc = PdfDocument.create();
+  for (let index = 0; index < 10; index++) doc.addPage();
+  const input = doc.save(), args = [flag, "in.pdf"];
+  const keys = ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", "qpdf"];
+  const selected = await runQpdfCli([...args, ...keys.map(key => `--json-key=${key}`)], new Map([["in.pdf", input]]));
+  assert.equal(selected.exitCode, 0);
+  const buffered = await runQpdfCli(args, new Map([["in.pdf", input]]));
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
+  const stdout: Uint8Array[] = [];
+  const retained = await createQpdfCommand().execute({ command: "qpdf", args, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+    stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write() {} } });
+  assert.equal(buffered.exitCode, 0); assert.equal(retained.exitCode, 0);
+  for (const output of [buffered.stdout, Buffer.concat(stdout).toString()]) {
+    const value = JSON.parse(output);
+    assert.deepEqual(Object.keys(value).sort(), ["version", "parameters", ...keys].sort());
+    assert.deepEqual(value, JSON.parse(selected.stdout));
+    assert.equal(value.pages.length, 10);
+    assert.deepEqual(value.pages.map((page: { pageposfrom1: number }) => page.pageposfrom1), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    assert.equal(value.qpdf[0].jsonversion, 2);
+    assert.equal(value.qpdf[0].pages, undefined);
+  }
+  assert.deepEqual(await fs.readdir("/scratch"), []);
+});
+
 for (const version of [1, 2]) for (const keys of [["pages"], ["attachments"], ["outlines"], ["pagelabels"], ["acroform"], ["encrypt"], ["pages", "attachments", "pages"], ...(version === 1 ? [["objects"], ["objectinfo"]] : [["qpdf"]])]) {
   it(`selects JSON ${version} sections ${keys.join(",")} in both paths`, async () => {
     const doc = PdfDocument.create(); doc.addPage();

@@ -80,7 +80,7 @@ stdout. Listings print `key -> object,generation` for the embedded-file stream,
 matching native qpdf. Binary extraction preserves the original bytes.
 
 `--json=1` and `--json=2` use retained input and caller-backed object, page,
-outline and attachment traversal. `--json-key` emits only the requested top-level sections plus `version` and
+outline and attachment traversal. Default `--json` (version 2) emits top-level document sections and page records, with COS objects in `qpdf`. `--json-key` emits only the requested top-level sections plus `version` and
 `parameters`; repeat it to select multiple sections. `--json-key=pages` includes
 content references, image properties, page labels, and destination outlines using
 native qpdf reference syntax. `--json-object` filters

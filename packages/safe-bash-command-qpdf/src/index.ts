@@ -1609,7 +1609,7 @@ function* executeQpdfCli(
     }
 
     let pagesVal: unknown = baseDoc.getPageCount();
-    if (jsonKeys.includes("pages")) {
+    if (jsonKeys.includes("pages") || (jsonVersion === 2 && include("pages"))) {
       const values: unknown[] = [];
       for (const [index, page] of baseDoc.getPages().entries()) {
         const steps = qpdfJsonPage(page.dict, page.ref, index, rootDictForJson, jsonVersion);
@@ -1626,35 +1626,17 @@ function* executeQpdfCli(
       pagesVal = values;
     }
 
-    const payload =
-      jsonVersion === 1
-        ? {
-            version: 1,
-            pdfversion: baseDoc.cos.version,
-            pages: pagesVal,
-            pagelabels: pagelabelsJson,
-            outlines: outlinesJson,
-            acroform: acroformSection,
-            encrypt: { encrypted: Boolean(baseDoc.cos.encryption) },
-            attachments: attachmentsJson,
-            objects: objectsMap
-          }
-        : {
-            version: 2,
-            qpdf: [
-              {
-                pdfversion: baseDoc.cos.version,
-                maxobjectid: baseDoc.cos.maxObjectNumber,
-                pages: pagesVal,
-                pagelabels: pagelabelsJson,
-                outlines: outlinesJson,
-                acroform: acroformSection,
-                encrypt: { encrypted: Boolean(baseDoc.cos.encryption) },
-                attachments: attachmentsJson
-              },
-              objectsMap
-            ]
-          };
+    const payload = {
+      version: 1,
+      pdfversion: baseDoc.cos.version,
+      pages: pagesVal,
+      pagelabels: pagelabelsJson,
+      outlines: outlinesJson,
+      acroform: acroformSection,
+      encrypt: { encrypted: Boolean(baseDoc.cos.encryption) },
+      attachments: attachmentsJson,
+      objects: objectsMap
+    };
     const sections: Record<string, unknown> = {
       pages: pagesVal, pagelabels: pagelabelsJson, outlines: outlinesJson,
       acroform: acroformSection, encrypt: { encrypted: Boolean(baseDoc.cos.encryption) },
@@ -1662,8 +1644,8 @@ function* executeQpdfCli(
       qpdf: [{ jsonversion: 2, pdfversion: baseDoc.cos.version, maxobjectid: baseDoc.cos.maxObjectNumber }, objectsMap]
     };
     const selectedPayload: Record<string, unknown> = { version: jsonVersion, parameters: { decodelevel: "generalized" } };
-    for (const key of jsonKeys) selectedPayload[key] = sections[key];
-    const jsonOut = JSON.stringify(jsonKeys.length ? selectedPayload : payload, null, 2) + "\n";
+    for (const key of jsonKeys.length ? jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", "qpdf"]) selectedPayload[key] = sections[key];
+    const jsonOut = JSON.stringify(jsonKeys.length || jsonVersion === 2 ? selectedPayload : payload, null, 2) + "\n";
     if (outputFile && outputFile !== "-") {
       files.set(outputFile, new TextEncoder().encode(jsonOut));
       return { exitCode: 0, stdout: "", stderr: "" };

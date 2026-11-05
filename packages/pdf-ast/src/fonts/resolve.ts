@@ -71,6 +71,8 @@ export interface ResolvedPageFont {
   readonly storedEncoding?: StoredFontEncoding;
   readonly widths: Pick<ReadonlyMap<number, number>, "get" | "has"> | StoredFontWidths;
   readonly defaultWidth: number;
+  readonly ascent: number;
+  readonly descent: number;
   readonly fontMatrix?: Matrix6 | undefined;
   readonly charProcs?: PdfCosDict | undefined;
   readonly fontResources?: PdfCosDict | undefined;
@@ -249,6 +251,9 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         let simpleToGid: Map<number, number> | undefined;
         const fDescDirect = (yield* resolveDict((yield* field(fObj, "FontDescriptor")), true));
         const fDesc = fDescDirect ?? (cidDict ? yield* resolveDict(yield* field(cidDict, "FontDescriptor"), true) : undefined);
+        const metrics = STANDARD_14_FONTS[normalizeStandard14FontName(baseFont)];
+        const ascent = fDesc ? yield* resolve(yield* field(fDesc, "Ascent")) : undefined;
+        const descent = fDesc ? yield* resolve(yield* field(fDesc, "Descent")) : undefined;
         let cidToGid: Uint16Array | undefined;
         let storedCidToGid: StoredCidMap | undefined;
         const cidMap = cidDict ? (yield* resolve((yield* field(cidDict, "CIDToGIDMap")))) : undefined;
@@ -372,6 +377,8 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             glyphNames,
             widths,
             defaultWidth,
+            ascent: ascent?.kind === "number" && ascent.value !== 0 ? Math.abs(ascent.value) / 1000 : metrics.ascender / 1000,
+            descent: descent?.kind === "number" && descent.value !== 0 ? -Math.abs(descent.value) / 1000 : metrics.descender / 1000,
             fontMatrix,
             charProcs,
             fontResources,

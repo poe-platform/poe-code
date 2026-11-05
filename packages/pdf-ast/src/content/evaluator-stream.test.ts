@@ -228,7 +228,7 @@ it.each([[0, false], [3, false], [0, true], [3, true]] as const)("requests Type3
   doc.cos.decodeStream = () => { throw new Error("Type3 decoding belongs to the input driver"); };
   const font: import("../fonts/resolve.js").ResolvedPageFont = {
     name: "T3", baseFont: "Custom", subtype: "Type3", isTwoByteCid: false,
-    differences: new Map(), glyphNames: new Map([[65, "A"]]), widths: new Map(), defaultWidth: 1000,
+    differences: new Map(), glyphNames: new Map([[65, "A"]]), widths: new Map(), defaultWidth: 1000, ascent: 0.8, descent: -0.2,
     charProcs: cosDict({ A: stream }), fontMatrix: [0.001, 0, 0, 0.001, 0, 0],
   };
   const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100 });

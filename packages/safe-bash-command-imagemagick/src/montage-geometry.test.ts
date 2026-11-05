@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runMontageCli } from "./index.js";
+import { runMontageCli, runMontageCliSync } from "./index.js";
 
 const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
 const font = existsSync("/System/Library/Fonts/Supplemental/Arial.ttf")
@@ -38,8 +38,14 @@ it.each([
   }
 });
 
-for (const mode of ["buffered", "retained"] as const)
+for (const mode of ["buffered", "retained", "sync"] as const)
 it.each([
+  { scale: 1, geometry: ["-geometry", "+0+0"], width: 6, height: 2, red: [0, 0, 2, 2], blue: [2, 0, 4, 1] },
+  { scale: 1, geometry: ["-geometry", "+1+1"], width: 10, height: 4, red: [1, 1, 2, 2], blue: [5, 1, 4, 1] },
+  { scale: 1, geometry: ["-geometry", "+1+1", "-thumbnail", "100%"], width: 10, height: 4, red: [1, 1, 2, 2], blue: [5, 1, 4, 1] },
+  { scale: 1, geometry: ["-geometry", "+2+2"], width: 14, height: 6, red: [2, 2, 2, 2], blue: [8, 2, 4, 1] },
+  { scale: 1, geometry: ["-geometry", "4x4+0+0"], width: 8, height: 4, red: [0, 0, 4, 4], blue: [4, 1, 4, 1] },
+  { scale: 1, geometry: ["-geometry", "4x4+1+1"], width: 12, height: 6, red: [1, 1, 4, 4], blue: [7, 2, 4, 1] },
   { scale: 1, geometry: [], width: 256, height: 126, red: [63, 62, 2, 2], blue: [190, 62, 4, 1] },
   { scale: 1, geometry: ["-geometry", "2x2+0+0"], width: 4, height: 2, red: [0, 0, 2, 2], blue: [2, 0, 2, 1] },
   { scale: 120, geometry: [], width: 256, height: 126, red: [4, 3, 120, 120], blue: [132, 48, 120, 30] },
@@ -51,7 +57,9 @@ it.each([
   const fs = new MemoryFileSystem();
   for (const [name, bytes] of files) await fs.writeFile("/" + name, bytes);
   const options = ["-tile", "2x1", ...geometry];
-  const result = await runMontageCli([...options, ...files.keys(), "png:-"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+  const args = [...options, ...files.keys(), "png:-"];
+  const result = mode === "sync" ? runMontageCliSync(args, files)
+    : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
   expect(result).toMatchObject({ exitCode: 0, stderr: "" });
   const actual = decodeImage(result.stdoutBytes!);
   expect([actual.width, actual.height]).toEqual([width, height]);

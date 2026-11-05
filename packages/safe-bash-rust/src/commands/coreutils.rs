@@ -149,6 +149,7 @@ pub fn gnu_information_sync(
         "mv" => ("Move virtual files, subject to filesystem capabilities.", "-f, --force|-i, --interactive|-n, --no-clobber|-u, --update|-v, --verbose|-t, --target-directory=DIR|-T, --no-target-directory|-S, --suffix=SUFFIX", "[OPTION]... SOURCE... DEST", 0),
         "nl" => ("Number input lines by section and numbering style.", "-b, --body-numbering=STYLE|-h, --header-numbering=STYLE|-f, --footer-numbering=STYLE|-v, --starting-line-number=NUM|-i, --line-increment=NUM|-s, --number-separator=STR|-w, --number-width=NUM|-n, --number-format=FORMAT|-d, --section-delimiter=STR|-l, --join-blank-lines=NUM|-p, --no-renumber", "", 0),
         "od" => ("Print input bytes in selected numeric formats.", "-A, --address-radix=RADIX|-j, --skip-bytes=NUM|-N, --read-bytes=NUM|-t, --format=TYPE, --type=TYPE|-w, --width=NUM|--endian=ORDER|-v, --output-duplicates", "", 0),
+        "pwd" => ("Print the full filename of the current working directory.", "-L, --logical|-P, --physical", "[OPTION]...", 2),
         "paste" => ("Merge corresponding or serial input lines.", "-s, --serial|-d, --delimiters=LIST|-z, --zero-terminated", "", 0),
         "readlink" => ("Print symbolic link targets or canonical virtual paths.", "-f, --canonicalize|-e, --canonicalize-existing|-m, --canonicalize-missing|-n, --no-newline|-z, --zero", "[OPTION]... FILE...", 0),
         "realpath" => ("Print canonical virtual paths.", "-e, --canonicalize-existing|-m, --canonicalize-missing|-s, --strip, --no-symlinks|-z, --zero", "[OPTION]... FILE...", 0),

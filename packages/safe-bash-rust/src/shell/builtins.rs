@@ -63,9 +63,12 @@ pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs:
         let mut diagnostic = None;
         if external.is_some() && let Some(long) = arg.strip_prefix("--") {
             let name = long.split('=').next().unwrap_or(long);
-            if let Some(option) = ["logical", "physical"].iter().find(|option| !name.is_empty() && option.starts_with(name)) {
+            if let Some(option) = ["logical", "physical", "help", "version"].iter().find(|option| !name.is_empty() && option.starts_with(name)) {
                 if long.contains('=') { diagnostic = Some(format!("option '--{option}' doesn't allow an argument")); }
-                else { physical = *option == "physical"; }
+                else if matches!(*option, "help" | "version") {
+                    return crate::commands::coreutils::gnu_information_sync("pwd", &[format!("--{option}")], posix)
+                        .expect("pwd has GNU information metadata");
+                } else { physical = *option == "physical"; }
             } else { diagnostic = Some(format!("unrecognized option '{arg}'")); }
         } else if arg == "--physical" || arg == "--logical" {
             physical = arg == "--physical";

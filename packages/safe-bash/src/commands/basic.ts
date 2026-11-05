@@ -1,3 +1,4 @@
+import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { byteLength } from "../byte-encoding.js";
 import { writeDiagnostic } from "../escaping.js";
 import { FsError, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
@@ -80,8 +81,15 @@ export function basicCommands(): CommandDefinition[] {
         }
         if (external && arg.startsWith("--")) {
           const key = arg.slice(2).split("=", 1)[0]!;
-          const option = ["logical", "physical"].find(value => key && value.startsWith(key));
-          if (option && !arg.includes("=")) { mode = option === "physical" ? "physical" : "logical"; continue; }
+          const option = ["logical", "physical", "help", "version"].find(value => key && value.startsWith(key));
+          if (option && !arg.includes("=")) {
+            if (option === "help" || option === "version") {
+              await output(context, gnuInformationSync("pwd", [`--${option}`], true)!);
+              return { exitCode: 0 };
+            }
+            mode = option === "physical" ? "physical" : "logical";
+            continue;
+          }
           const message = option ? `option '--${option}' doesn't allow an argument` : `unrecognized option '${arg}'`;
           await writeDiagnostic(context.stderr, `${name}: ${message}\nTry '${name} --help' for more information.\n`, context.signal);
           return { exitCode: 1 };

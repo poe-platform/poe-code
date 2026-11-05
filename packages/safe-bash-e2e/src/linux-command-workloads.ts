@@ -173,8 +173,13 @@ export function linuxCommands(text: string) {
     "env pwd -P ignored -L", "env POSIXLY_CORRECT=1 pwd ignored -P", "env pwd -- -L"]) {
     pipes.push('(root=$PWD; cd pwd-link && result=$(' + command + ') && printf "%s\\n" "${result#"$root"/}")');
   }
-  for (const invocation of ["env pwd -X", "env pwd --unknown", "env pwd --physical=yes", "/usr/bin/pwd extra"]) {
+  for (const invocation of ["env pwd -X", "env pwd --unknown", "env pwd --physical=yes", "env pwd --h=x", "/usr/bin/pwd extra"]) {
     pipes.push("(cd pwd-link && " + invocation + " >/dev/null)");
+  }
+  // The version identifies the virtual implementation; compare option handling and help topics.
+  for (const [args, pattern] of [["--help -X", "*--logical*--physical*"], ["-P --h", "*--logical*--physical*"],
+    ["ignored --version", "pwd*"], ["-L --v", "pwd*"]]) {
+    pipes.push('(cd pwd-link && text=$(env pwd ' + args + ') && case "$text" in ' + pattern + ') echo matched;; *) exit 1;; esac)');
   }
   for (const invocation of ["pwd -L", "pwd -P", "env pwd -L", "/bin/pwd"]) {
     pipes.push("(mkdir pwd-gone && cd pwd-gone && rmdir ../pwd-gone && " + invocation + " >/dev/null)");

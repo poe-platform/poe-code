@@ -1,6 +1,6 @@
 // OpenPGP v4 EdDSALegacy (RFC 9580): a primary signing key, one user ID and its
 // positive self-certification. Reject other certificate structures as a unit.
-use super::{ed25519_sign, ed25519_verify, sha1_bytes, sha256_bytes};
+use super::{ed25519_sign, ed25519_verify, sha1_bytes, sha256_bytes, sha384_bytes, sha512_bytes};
 
 const CURVE: &[u8] = &[22, 9, 0x2b, 6, 1, 4, 1, 0xda, 0x47, 0x0f, 1, 1, 7, 0x40];
 
@@ -74,8 +74,14 @@ fn header(class: u8, fp: &[u8; 20], time: u32) -> Vec<u8> {
     .concat()
 }
 
-fn digest(input: &[u8], head: &[u8]) -> [u8; 32] {
-    sha256_bytes(&[input, head, &[4, 255], &(head.len() as u32).to_be_bytes()].concat())
+fn digest(input: &[u8], head: &[u8]) -> Option<Vec<u8>> {
+    let signed = [input, head, &[4, 255], &(head.len() as u32).to_be_bytes()].concat();
+    Some(match head[3] {
+        8 => sha256_bytes(&signed).to_vec(),
+        9 => sha384_bytes(&signed).to_vec(),
+        10 => sha512_bytes(&signed).to_vec(),
+        _ => return None,
+    })
 }
 
 fn put_mpi(out: &mut Vec<u8>, bytes: &[u8]) {
@@ -102,7 +108,7 @@ fn read_mpi(rest: &mut &[u8]) -> Option<[u8; 32]> {
 
 pub(super) fn sign(class: u8, fp: &[u8; 20], time: u32, seed: &[u8; 32], input: &[u8]) -> Vec<u8> {
     let mut body = header(class, fp, time);
-    let hash = digest(input, &body);
+    let hash = digest(input, &body).expect("signature header specifies SHA-256");
     let sig = ed25519_sign(&hash, seed);
     body.extend_from_slice(&[0, 10, 9, 16]);
     body.extend_from_slice(&fp[12..]);
@@ -135,29 +141,71 @@ pub(super) fn certify(
     (fp, out)
 }
 
-fn verify(body: &[u8], class: u8, fp: &[u8; 20], public: &[u8; 32], input: &[u8]) -> bool {
-    let Some(time) = body.get(8..12).and_then(|b| b.try_into().ok()) else {
-        return false;
-    };
-    let head = header(class, fp, u32::from_be_bytes(time));
-    let Some(tail) = body
-        .strip_prefix(head.as_slice())
-        .and_then(|tail| tail.strip_prefix(&[0, 10, 9, 16]))
-        .and_then(|tail| tail.strip_prefix(&fp[12..]))
-    else {
-        return false;
-    };
-    let hash = digest(input, &head);
-    let Some(mut mpis) = tail.strip_prefix(&hash[..2]) else {
-        return false;
-    };
-    let (Some(r), Some(s)) = (read_mpi(&mut mpis), read_mpi(&mut mpis)) else {
-        return false;
-    };
+pub(super) struct Verified {
+    pub time: u32,
+    pub hash: u8,
+    key_lifetime: u32,
+}
+
+fn verify(
+    body: &[u8],
+    class: u8,
+    fp: &[u8; 20],
+    public: &[u8; 32],
+    input: &[u8],
+) -> Option<Verified> {
+    if body.get(..3)? != [4, class, 22] {
+        return None;
+    }
+    let len = u16::from_be_bytes(body.get(4..6)?.try_into().ok()?) as usize;
+    let (head, tail) = body.split_at_checked(6 + len)?;
+    let mut subs = &head[6..];
+    let (mut time, mut lifetime, mut issuer, mut flags) = (None, None, false, false);
+    while let Some((&first, after)) = subs.split_first() {
+        let (len, after) = match first {
+            0..=191 => (first as usize, after),
+            192..=254 => (
+                ((first as usize - 192) << 8) + *after.first()? as usize + 192,
+                &after[1..],
+            ),
+            255 => (
+                u32::from_be_bytes(after.get(..4)?.try_into().ok()?) as usize,
+                &after[4..],
+            ),
+        };
+        let (sub, rest) = after.split_at_checked(len)?;
+        let (&tag, data) = sub.split_first()?;
+        match tag & 127 {
+            2 if time.is_none() => time = Some(u32::from_be_bytes(data.try_into().ok()?)),
+            33 if !issuer && data.strip_prefix(&[4])? == fp => issuer = true,
+            27 if class == 0x13 && !flags && data.first()? & 2 != 0 => flags = true,
+            9 if class == 0x13 && lifetime.is_none() => {
+                lifetime = Some(u32::from_be_bytes(data.try_into().ok()?))
+            }
+            // Algorithm preferences, keyserver preferences and advertised features
+            // affect encryption/transport, not this primary key's signing authority.
+            11 | 21 | 22 | 23 | 30 | 34 if class == 0x13 && tag < 128 => (),
+            28 if class == 0 && tag < 128 => (), // signer hint; identity comes from the certificate
+            _ => return None,
+        }
+        subs = rest;
+    }
+    if !issuer || (class == 0x13 && !flags) {
+        return None;
+    }
+    let tail = tail
+        .strip_prefix(&[0, 10, 9, 16])?
+        .strip_prefix(&fp[12..])?;
+    let hash = digest(input, head)?;
+    let mut mpis = tail.strip_prefix(&hash[..2])?;
     let mut sig = [0; 64];
-    sig[..32].copy_from_slice(&r);
-    sig[32..].copy_from_slice(&s);
-    mpis.is_empty() && ed25519_verify(&sig, &hash, public)
+    sig[..32].copy_from_slice(&read_mpi(&mut mpis)?);
+    sig[32..].copy_from_slice(&read_mpi(&mut mpis)?);
+    (mpis.is_empty() && ed25519_verify(&sig, &hash, public)).then_some(Verified {
+        time: time?,
+        hash: head[3],
+        key_lifetime: lifetime.unwrap_or(0),
+    })
 }
 
 pub(super) struct Certificate<'a> {
@@ -165,6 +213,8 @@ pub(super) struct Certificate<'a> {
     pub public: &'a [u8; 32],
     pub fingerprint: [u8; 20],
     pub bytes: &'a [u8],
+    pub created: u32,
+    pub expires: Option<u64>,
 }
 
 pub(super) fn read_certificate<'a>(rest: &mut &'a [u8]) -> Option<Certificate<'a>> {
@@ -177,14 +227,21 @@ pub(super) fn read_certificate<'a>(rest: &mut &'a [u8]) -> Option<Certificate<'a
     let uid = std::str::from_utf8(take_packet(rest, 13)?).ok()?;
     let signature = take_packet(rest, 2)?;
     let fingerprint = sha1_bytes(&key_hash_input(body));
-    verify(
+    let binding = verify(
         signature,
         0x13,
         &fingerprint,
         public,
         &certification_input(body, uid.as_bytes()),
-    )
-    .then_some(Certificate {
+    )?;
+    let created = u32::from_be_bytes(body.get(1..5)?.try_into().ok()?);
+    if binding.time < created {
+        return None;
+    }
+    Some(Certificate {
+        created,
+        expires: (binding.key_lifetime != 0)
+            .then_some(u64::from(created) + u64::from(binding.key_lifetime)),
         uid,
         public,
         fingerprint,
@@ -196,12 +253,13 @@ pub(super) fn verify_message(
     mut signature: &[u8],
     cert: &Certificate<'_>,
     input: &[u8],
-) -> Option<u32> {
+) -> Option<Verified> {
     let body = take_packet(&mut signature, 2)?;
-    if !signature.is_empty() || !verify(body, 0, &cert.fingerprint, cert.public, input) {
+    if !signature.is_empty() {
         return None;
     }
-    Some(u32::from_be_bytes(body.get(8..12)?.try_into().ok()?))
+    let signed = verify(body, 0, &cert.fingerprint, cert.public, input)?;
+    (signed.time >= cert.created).then_some(signed)
 }
 
 #[cfg(test)]

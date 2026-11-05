@@ -155,24 +155,22 @@ function armorPacket(label: string, bytes: Uint8Array) {
 }
 
 async function verifyOpenPgpDetachedSignature(
-  armor: string,
+  signature: Uint8Array,
   payload: Uint8Array,
   keys: readonly StoredGpgKey[],
-): Promise<{ valid: boolean; signerUid: string; keyIdHex: string; validSig?: string }> {
-  const b64 = armor
-    .split("\n")
-    .map(l => l.trim())
-    .filter(l => !l.startsWith("-----") && !l.startsWith("=") && !l.includes(":") && l.length > 0)
-    .join("");
-  const pkt = base64ToBytes(b64);
+): Promise<{ valid: boolean; signerUid: string; keyIdHex: string; validSig?: string; expired?: number }> {
+  const pkt = signature[0]! & 128 ? signature : base64ToBytes(textDecoder.decode(signature)
+    .split("\n").map(l => l.trim()).filter(l => !l.startsWith("-----") && !l.startsWith("=") && !l.includes(":")).join(""));
   for (const k of keys) {
     if (!k.certHex && !k.seedHex) continue;
     const cert = await certificate(k);
-    const time = await verifyMessage(pkt, cert.fp, cert.publicKey, payload);
-    if (time !== undefined) {
+    const signed = await verifyMessage(pkt, cert.fp, cert.publicKey, payload);
+    if (signed && signed.time >= cert.created) {
+      const time = signed.time;
       const fp = bytesToHex(cert.fp).toUpperCase();
       const date = new Date(time * 1000).toISOString().slice(0, 10);
-      return { valid: true, signerUid: k.uid, keyIdHex: fp.slice(-16), validSig: `${fp} ${date} ${time} 0 4 0 22 8 00 ${fp}` };
+      return { valid: true, signerUid: k.uid, keyIdHex: fp.slice(-16),
+        ...(cert.expires && cert.expires <= Date.now() / 1000 ? { expired: cert.expires } : {}), validSig: `${fp} ${date} ${time} 0 4 0 22 ${signed.hashAlgorithm} 00 ${fp}` };
     }
   }
   if (pkt.byteLength < 10 || pkt[0] !== 0xc2) {
@@ -219,7 +217,7 @@ async function verifyOpenPgpDetachedSignature(
   }
   const fingerprint = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", new Uint8Array(pubKey)));
   const derivedKeyId = bytesToHex(fingerprint.slice(24, 32)).toUpperCase();
-  const trustedKey = keys.find(key => key.keyIdHex === derivedKeyId && key.pubHex.toLowerCase() === bytesToHex(pubKey));
+  const trustedKey = keys.find(key => !key.certHex && key.keyIdHex === derivedKeyId && key.pubHex.toLowerCase() === bytesToHex(pubKey));
   if (keyIdHex !== derivedKeyId || !trustedKey) {
     return { valid: false, signerUid, keyIdHex };
   }
@@ -682,11 +680,11 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         if (verify) {
           const sigPath = positionals[0];
           if (!sigPath) throw new PublicDiagnostic("missing signature file for --verify");
-          const sigArmor = textDecoder.decode(await readLimitedFile(context, pathPosix.resolve(context.cwd, sigPath), maxBytes));
+          const signature = await readLimitedFile(context, pathPosix.resolve(context.cwd, sigPath), maxBytes);
           const dataBytes = positionals[1]
             ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[1]), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
-          const res = await verifyOpenPgpDetachedSignature(sigArmor, dataBytes, await loadKeyring(context));
+          const res = await verifyOpenPgpDetachedSignature(signature, dataBytes, await loadKeyring(context));
           if (!res.valid) {
             await writeText(context.stderr, `gpg: BAD signature from "${res.signerUid}"\n`);
             return { exitCode: 1 };
@@ -694,12 +692,12 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           if (statusFd) {
             await writeText(
               context.stdout,
-              `[GNUPG:] GOODSIG ${res.keyIdHex} ${res.signerUid}\n[GNUPG:] VALIDSIG ${res.validSig ?? `${res.keyIdHex} 2026-09-28 1609459200`}\n`,
+              `${res.expired ? `[GNUPG:] KEYEXPIRED ${res.expired}\n` : ""}[GNUPG:] ${res.expired ? "EXPKEYSIG" : "GOODSIG"} ${res.keyIdHex} ${res.signerUid}\n[GNUPG:] VALIDSIG ${res.validSig ?? `${res.keyIdHex} 2026-09-28 1609459200`}\n`,
             );
           }
           await writeText(
             context.stderr,
-            `gpg: Signature made using EDDSA key ${res.keyIdHex}\ngpg: Good signature from "${res.signerUid}" [ultimate]\n`,
+            `gpg: Signature made using EDDSA key ${res.keyIdHex}\ngpg: Good signature from "${res.signerUid}" [${res.expired ? "expired" : "ultimate"}]\n`,
           );
           return { exitCode: 0 };
         }

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { gpgDistributionKey, codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, observeMutation, readEffects, readZipMembers, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, fs: new sb.MemoryFileSystem() });
@@ -362,6 +362,59 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
       assert.equal(signature.stderr, `[GNUPG:] SIG_CREATED D 22 8 00 ${fields[4]} ${fields[2]}\n`);
       const modified = await runLinuxCommand("gpg", [...options, "--verify", "signature.asc", "-"], "changed", dir);
       assert.notEqual(modified[0], 0);
+    }
+  } finally {
+    if (dir) await rm(dir, { recursive: true, force: true });
+    rust.dispose();
+    await ts.dispose();
+  }
+});
+
+test("safe-bash imports GnuPG certificates and verifies a binary signature from an expired signing key", async () => {
+  // gpg 2.4.4 --quick-gen-key at 2024-01-01T01:00Z, valid for one day;
+  // gpg --detach-sign at 02:00Z. These fixtures contain no secret material.
+  const expired = Buffer.from("mDMEZZIOkBYJKwYBBAHaRw8BAQdAomHKzF2VXegFot5vTx7YdBonCSuQOWPAGgaX6CtCi4C0HUZpeHR1cmUgPGZpeHR1cmVAZXhhbXBsZS5vcmc+iJkEExYKAEEWIQQ+6XPJzGFPQMXTbQpeuU5CiQ4JpwUCZZIOkAIbAwUJAAFRgAULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRBeuU5CiQ4JpzcyAP9wT50czhZ94QRIKjlaSALxMUzW0rotTusmZYc8LyzqegEA6VUNv+brMtgYL2gAOdglxdWE389Zg9H0DAdoM479OQQ=", "base64");
+  const signature = Buffer.from("iIoEABYKADIWIQQ+6XPJzGFPQMXTbQpeuU5CiQ4JpwUCZZIcoBQcZml4dHVyZUBleGFtcGxlLm9yZwAKCRBeuU5CiQ4Jp2EiAP9z76fxDSvQQJT0Zodnfp9fQdk7N+7YWJ1OJUSgUYJbYwEA3bvN5DP+WGg6tQP6rClsmgEL19kiSxy+6QGaGNhLbws=", "base64");
+  const payload = "signed fixture\n";
+  const rust = new RustWasmBash({ cwd: "/workspace", forceNative: true });
+  const ts = await SafeBashE2EHarness.create({ fs: new sb.MemoryFileSystem() });
+  let dir: string | undefined;
+  try {
+    dir = await createLinuxCommandDirectory(rust.fs);
+    const home = dir + "/gnupg";
+    await mkdir(home, { mode: 0o700 });
+    const opts = ["--batch", "--no-autostart", "--no-options", "--homedir", home];
+    for (const [cert, id] of [[gpgDistributionKey, "528897B826403ADA"], [expired, "5EB94E42890E09A7"]] as const) {
+      const ref = await runLinuxCommand("gpg", [...opts, "--import"], cert, dir);
+      assert.equal(ref[0], 0, ref[2].toString());
+      const exported = await runLinuxCommand("gpg", [...opts, "--export", id], "", dir);
+      assert.deepEqual(exported[1], cert);
+      for (const shell of [rust, ts.shell]) {
+        // Change a signed key-expiration subpacket but keep its length valid.
+        const bad = Buffer.from(cert);
+        const at = bad.indexOf(Buffer.from([5, 9]), 86);
+        assert.ok(at > 0);
+        bad[at + 5]! ^= 1;
+        assert.notEqual((await shell.exec("gpg --import", { stdin: bad })).exitCode, 0);
+        const res = await shell.exec("gpg --import", { stdin: cert });
+        assert.equal(res.exitCode, 0, res.stderr);
+        assert.deepEqual(Buffer.from((await shell.exec("gpg --export " + id)).stdoutBytes), exported[1]);
+      }
+    }
+    await writeFile(dir + "/fixture.sig", signature);
+    const expected = await runLinuxCommand("gpg", [...opts, "--status-fd=1", "--verify", "fixture.sig", "-"], payload, dir);
+    assert.equal(expected[0], 0);
+    const statuses = (s: string) => s.split("\n").filter(l => /^\[GNUPG:\] (?:GOODSIG|EXPKEYSIG|KEYEXPIRED|VALIDSIG) /u.test(l));
+    assert.equal(statuses(expected[1].toString()).length, 3);
+    for (const shell of [rust, ts.shell]) {
+      await shell.exec("cat > /fixture.sig", { stdin: signature });
+      const good = await shell.exec("gpg --status-fd=1 --verify /fixture.sig", { stdin: payload });
+      assert.equal(good.exitCode, expected[0], good.stderr);
+      assert.deepEqual(statuses(good.stdout), statuses(expected[1].toString()));
+      assert.match(good.stderr, /\[expired\]/);
+      const bad = await shell.exec("gpg --status-fd=1 --verify /fixture.sig", { stdin: "other" });
+      assert.notEqual(bad.exitCode, 0);
+      assert.deepEqual(statuses(bad.stdout), []);
     }
   } finally {
     if (dir) await rm(dir, { recursive: true, force: true });

@@ -8,6 +8,8 @@ import { once } from "node:events";
 import { buffer } from "node:stream/consumers";
 
 export const supportsHostPlugins = typeof Reflect.get(globalThis, "WebAssembly")?.Suspending === "function";
+// Minimal Ed25519 public certificate from GnuPG's distributed distsigkey.gpg.
+export const gpgDistributionKey = Buffer.from("mDMEX0PliRYJKwYBBAHaRw8BAQdAz75Hlekc16JhhfI0MKdEVxLdkxhcMCO0ZG6WMBAmNpe0H1dlcm5lciBLb2NoIChkaXN0IHNpZ25pbmcgMjAyMCmImgQTFgoAQhYhBG2qbmSnbShAVxtJAlKIl7gmQDraBQJfQ+w1AhsDBQkShccRBQsJCAcCAyICAQYVCgkICwIEFgIDAQIeBwIXgAAKCRBSiJe4JkA62nmuAP9uL/HOdB0gvwWrH+FpURJLs4bnaZaPIk9ARrU0EXRgJgD/YCGfHQXpIPT0ZaXuwJexK04Z+qMFR/bM1q1Leo5CjgY=", "base64");
 export const linuxEnv = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
 export async function runLinuxCommand(cmd: string, args: readonly string[], input: string | Uint8Array, cwd?: string): Promise<readonly [number, Buffer, Buffer]> {
   const proc = spawn("/usr/bin/" + cmd, args, { cwd, env: linuxEnv, argv0: cmd });

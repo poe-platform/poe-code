@@ -9719,26 +9719,32 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else {
             crate::vfs::stream_string_to_bytes(stdin)
         };
-        let sig_txt = String::from_utf8_lossy(&sig_raw);
-        let b64: String = sig_txt
-            .lines()
-            .map(|l| l.trim())
-            .filter(|l| !l.is_empty() && !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':'))
-            .collect();
-        let pkt = base64_decode(&b64).unwrap_or_default();
+        let pkt = if sig_raw.first().is_some_and(|b| b & 128 != 0) {
+            sig_raw
+        } else {
+            let text = String::from_utf8_lossy(&sig_raw);
+            let b64: String = text.lines().map(str::trim)
+                .filter(|l| !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':')).collect();
+            base64_decode(&b64).unwrap_or_default()
+        };
         let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         for key in &keys {
             if key.certificate.is_empty() && key.seed.is_empty() { continue; }
             let Ok(bytes) = key.certificate_bytes() else { continue };
             if let Some(cert) = openpgp::read_certificate(&mut &bytes[..])
-                && let Some(time) = openpgp::verify_message(&pkt, &cert, &data_bytes) {
+                && let Some(verified) = openpgp::verify_message(&pkt, &cert, &data_bytes) {
+                let time = verified.time;
+                let hash = verified.hash;
+                let expired = cert.expires.filter(|&t| t <= (crate::vfs::now_ms() / 1000.) as u64);
+                let (status, trust) = if expired.is_some() { ("EXPKEYSIG", "expired") } else { ("GOODSIG", "ultimate") };
+                let expiry = expired.map(|t| format!("[GNUPG:] KEYEXPIRED {t}\n")).unwrap_or_default();
                 let (y, m, d) = super::coreutils::civil_from_days(i64::from(time) / 86400);
                 let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
                 let fp = openssl_hex_encode(&cert.fingerprint).to_uppercase();
                 let uid = cert.uid;
                 return BuiltinOutcome {
-                    stdout: if status_fd.is_some() { format!("[GNUPG:] GOODSIG {kid} {uid}\n[GNUPG:] VALIDSIG {fp} {y:04}-{m:02}-{d:02} {time} 0 4 0 22 8 00 {fp}\n") } else { String::new() },
-                    stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [ultimate]\n"),
+                    stdout: if status_fd.is_some() { format!("{expiry}[GNUPG:] {status} {kid} {uid}\n[GNUPG:] VALIDSIG {fp} {y:04}-{m:02}-{d:02} {time} 0 4 0 22 {hash} 00 {fp}\n") } else { String::new() },
+                    stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [{trust}]\n"),
                     exit_code: 0,
                 };
             }
@@ -9793,7 +9799,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         if key_id_hex == derived_kid
                             && let Some(GpgKey { uid: trusted_uid, .. }) = keys
                                 .iter()
-                                .find(|k| k.public.to_lowercase() == pub_hex_lower)
+                                .find(|k| k.certificate.is_empty() && k.id == derived_kid && k.public.to_lowercase() == pub_hex_lower)
                         {
                             let mpi_start = unhashed_end + 2;
                             let mut sig_arr = [0u8; 64];

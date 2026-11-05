@@ -65,7 +65,9 @@ function header(kind: number, fp: Uint8Array, time: number) {
   return concat([4, kind, 22, 8, 0, hashed.length], hashed);
 }
 async function digest(payload: Uint8Array, head: Uint8Array) {
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", concat(payload, head, [4, 255, ...u32(head.length)])));
+  const alg = ({ 8: "SHA-256", 9: "SHA-384", 10: "SHA-512" } as Record<number, string>)[head[3]!];
+  if (!alg) throw invalid();
+  return new Uint8Array(await crypto.subtle.digest(alg, concat(payload, head, [4, 255, ...u32(head.length)])));
 }
 
 export async function sign(kind: number, fp: Uint8Array, time: number, privateKey: CryptoKey, payload: Uint8Array) {
@@ -90,18 +92,49 @@ export function validPoint(bytes: Uint8Array) {
 }
 
 async function verify(body: Uint8Array, kind: number, fp: Uint8Array, pub: Uint8Array, payload: Uint8Array) {
-  if (body.length < 12) return false;
-  const time = new DataView(body.buffer, body.byteOffset, body.length).getUint32(8);
-  const head = header(kind, fp, time);
-  const prefix = concat(head, [0, 10, 9, 16], fp.subarray(12));
-  if (!equals(body.subarray(0, prefix.length), prefix)) return false;
+  const r = new Reader(body);
+  if (!equals(r.take(3), [4, kind, 22])) throw invalid();
+  const hashAlgorithm = r.number(1);
+  const subs = new Reader(r.take(r.number(2)));
+  const head = body.subarray(0, r.at);
+  let time: number | undefined, lifetime: number | undefined, flags = false, issuer = false;
+  while (subs.at < subs.bytes.length) {
+    const first = subs.number(1);
+    const length = first < 192 ? first : first === 255 ? subs.number(4) : (first - 192) * 256 + subs.number(1) + 192;
+    const sub = new Reader(subs.take(length));
+    const tag = sub.number(1);
+    const data = sub.bytes.subarray(1);
+    switch (tag & 127) {
+      case 2:
+        if (time !== undefined || data.length !== 4) throw invalid();
+        time = sub.number(4); break;
+      case 33:
+        if (issuer || !equals(data, concat([4], fp))) throw invalid();
+        issuer = true; break;
+      case 27:
+        if (kind !== 0x13 || flags || !(data[0]! & 2)) throw invalid();
+        flags = true; break;
+      case 9:
+        if (kind !== 0x13 || lifetime !== undefined || data.length !== 4) throw invalid();
+        lifetime = sub.number(4); break;
+      case 11: case 21: case 22: case 23: case 30: case 34:
+        if (kind !== 0x13 || tag >= 128) throw invalid();
+        break;
+      case 28: // The signer's hint is not an authenticated identity binding.
+        if (kind !== 0 || tag >= 128) throw invalid();
+        break;
+      default: throw invalid();
+    }
+  }
+  if (!issuer || time === undefined || (kind === 0x13 && !flags) ||
+      !equals(r.take(12), concat([0, 10, 9, 16], fp.subarray(12)))) throw invalid();
   const hash = await digest(payload, head);
-  const r = new Reader(body.subarray(prefix.length));
-  if (!equals(r.take(2), hash.subarray(0, 2))) return false;
+  if (!equals(r.take(2), hash.subarray(0, 2))) throw invalid();
   const sig = concat(r.mpi(), r.mpi());
-  if (!validPoint(pub) || !validPoint(sig.subarray(0, 32))) return false;
+  if (r.at !== r.bytes.length || !validPoint(pub) || !validPoint(sig.subarray(0, 32))) throw invalid();
   const key = await crypto.subtle.importKey("raw", new Uint8Array(pub), "Ed25519", false, ["verify"]);
-  return r.at === r.bytes.length && crypto.subtle.verify("Ed25519", key, sig, hash);
+  if (!await crypto.subtle.verify("Ed25519", key, sig, hash)) throw invalid();
+  return { time, hashAlgorithm, lifetime };
 }
 
 export async function certify(name: string, pub: Uint8Array, secret: CryptoKey, time: number) {
@@ -123,8 +156,10 @@ export async function readCertificates(bytes: Uint8Array) {
     const fp = new Uint8Array(await crypto.subtle.digest("SHA-1", keyHashInput(body)));
     const uidBytes = r.packet(13);
     const uid = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(uidBytes);
-    if (!await verify(r.packet(2), 0x13, fp, publicKey, certInput(body, uidBytes))) throw invalid();
-    certs.push({ uid, publicKey, fp, bytes: bytes.subarray(start, r.at) });
+    const binding = await verify(r.packet(2), 0x13, fp, publicKey, certInput(body, uidBytes));
+    const created = new DataView(body.buffer, body.byteOffset, body.length).getUint32(1);
+    if (binding.time < created) throw invalid();
+    certs.push({ uid, publicKey, fp, created, expires: binding.lifetime ? created + binding.lifetime : undefined, bytes: bytes.subarray(start, r.at) });
   }
   if (!certs.length) throw invalid();
   return certs;
@@ -134,9 +169,7 @@ export async function verifyMessage(bytes: Uint8Array, fp: Uint8Array, pub: Uint
   try {
     const r = new Reader(bytes);
     const body = r.packet(2);
-    if (r.at === bytes.length && await verify(body, 0, fp, pub, payload)) {
-      return new DataView(body.buffer, body.byteOffset, body.length).getUint32(8);
-    }
+    if (r.at === bytes.length) return await verify(body, 0, fp, pub, payload);
   } catch { /* malformed signature */ }
   return undefined;
 }

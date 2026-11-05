@@ -125,8 +125,8 @@ export function createFormatRegistry(
     const extensions = Object.fromEntries(
       Object.entries(descriptor.extensions).sort(([a], [b]) => compare(a, b))
     );
-    if (name === "markdown" || name === "md") {extensions.footnotes = true; extensions.fancy_lists = true; extensions.definition_lists = true; extensions.fenced_divs = true; extensions.fenced_code_attributes = true;}
-    if (selectedDirection === "read" && (name === "markdown" || name === "md")) {extensions.line_blocks = true; extensions.pandoc_title_block = true; extensions.header_attributes = true; extensions.link_attributes = true; extensions.bracketed_spans = true; extensions.native_divs = true; extensions.native_spans = true; extensions.superscript = true; extensions.subscript = true; extensions.smart = true; extensions.implicit_figures = true; extensions.table_captions = true; extensions.citations = true;}
+    if (name === "markdown" || name === "md") {extensions.line_blocks = true; extensions.footnotes = true; extensions.fancy_lists = true; extensions.definition_lists = true; extensions.fenced_divs = true; extensions.fenced_code_attributes = true;}
+    if (selectedDirection === "read" && (name === "markdown" || name === "md")) {extensions.pandoc_title_block = true; extensions.header_attributes = true; extensions.link_attributes = true; extensions.bracketed_spans = true; extensions.native_divs = true; extensions.native_spans = true; extensions.superscript = true; extensions.subscript = true; extensions.smart = true; extensions.implicit_figures = true; extensions.table_captions = true; extensions.citations = true;}
     if (name === "markdown" || name === "md") {
       extensions.tex_math_dollars = true;
       if (selectedDirection === "read") {extensions.raw_tex = true; extensions.raw_attribute = true;}

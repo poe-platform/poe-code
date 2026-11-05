@@ -211,6 +211,10 @@ class MarkdownTape {
       const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent; const job = frame.job; this.projection = job.projection ?? 0;
       if (job.op === "projectionAdd") {await this.addProjection(result.units); continue;}
       if (job.op === "empty") {result = emptyText(); continue;}
+      if (job.op === "line") {
+        if (this.selection.extensions.line_blocks) await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: "| ", rest: "  "});
+        await this.push(this.list(job.node, job.path, "inline")); continue;
+      }
       if (job.op === "scalar") {result = await this.scalar(job.node); continue;}
       if (job.op === "post") {
         if (job.mode === "surround" && job.rest) await this.addProjection(job.rest.length);
@@ -381,6 +385,10 @@ class MarkdownTape {
         }
         if (tag === "Note") {await this.loss(job.path, "notes"); result = emptyText(); continue;}
         if (tag === "Plain" || tag === "Para") {await this.push({op: "paragraph", node: content!, path: cp, task: job.task}); continue;}
+        if (tag === "LineBlock") {
+          if (!this.selection.extensions.line_blocks) await this.loss(job.path, "LineBlock");
+          await this.push(this.list(content!, cp, "line", {sep: this.selection.extensions.line_blocks ? "\n" : "\\\n"})); continue;
+        }
         if (tag === "Header") {
           await this.attrs(await this.at(content!, 1), job.path);
           await this.push({op: "header", node: content!, path: cp}); const inner = await child(2, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;

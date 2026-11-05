@@ -165,6 +165,14 @@ class Markdown {
       if(i) parts.push(nodes[i - 1]?.t === "Plain" ? "\n" : "\n\n");
       switch(node.t) {
         case "Plain": case "Para": parts.push(this.paragraph(node.c, `${p}.c`, task && i === 0)); break;
+        case "LineBlock": {
+          if (!this.selection.extensions.line_blocks) this.loss(p, "LineBlock");
+          const lines = node.c.map((line, j) => {
+            const text = this.inline(line, `${p}.c[${j}]`);
+            return this.selection.extensions.line_blocks ? this.indent(text, text ? "| " : "|", "  ") : text;
+          });
+          parts.push(this.join(lines, this.selection.extensions.line_blocks ? "\n" : "\\\n")); break;
+        }
         case "Header": this.attrs(node.c[1], p); parts.push(this.join(["#".repeat(node.c[0]), " ", this.inline(node.c[2], `${p}.c[2]`)])); break;
         case "HorizontalRule": parts.push("---"); break;
         case "CodeBlock": {

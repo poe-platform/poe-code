@@ -3,15 +3,15 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert, convertToOutput} from "./engine.js";
 
 for (const retained of [false, true]) {
-  async function render(text: string, from = "markdown", to = "json") {
+  async function render(text: string, from = "markdown", to = "json", lossy = false) {
     const input = {bytes: new TextEncoder().encode(text)};
     if (!retained) {
-      const result = await convert([input], {from, to}, {});
+      const result = await convert([input], {from, to, lossy}, {});
       if (result.kind !== "text") throw new Error("Expected text");
       return result.text;
     }
     let output = "";
-    await convertToOutput([input], {from, to}, {
+    await convertToOutput([input], {from, to, lossy}, {
       workingFiles: {fs: new MemoryFileSystem(), directory: "/", cacheBytes: 16384},
       output: {async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
     });
@@ -21,6 +21,24 @@ for (const retained of [false, true]) {
     expect(JSON.parse(await render("| first\n| second\n")).blocks).toEqual([
       {t: "LineBlock", c: [[{t: "Str", c: "first"}], [{t: "Str", c: "second"}]]}
     ]);
+  });
+  it(`writes JSON line blocks without losing text (retained=${retained})`, async () => {
+    const blocks = [{t: "LineBlock", c: [[{t: "Str", c: "first"}], [{t: "Str", c: "second"}]]}];
+    const json = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks});
+    expect(await render(json, "json", "markdown")).toBe("| first\n| second\n");
+    expect(await render(json, "json", "md", true)).toBe("| first\n| second\n");
+    expect(await render(json, "json", "gfm+line_blocks")).toBe("| first\n| second\n");
+    for (const to of ["commonmark", "gfm", "markdown-line_blocks"]) {
+      await expect(render(json, "json", to)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+      expect(await render(json, "json", to, true)).toBe("first\\\nsecond\n");
+    }
+  });
+  it(`writes formatted, empty, indented and nested lines (retained=${retained})`, async () => {
+    const source = "> | *first*\n> |\n> |   second\n";
+    const json = await render(source);
+    const markdown = await render(json, "json", "markdown");
+    expect(JSON.parse(await render(markdown)).blocks).toEqual(JSON.parse(json).blocks);
+    expect(markdown).toContain("> | *first*");
   });
   it(`preserves empty lines, indentation, and inline markup (retained=${retained})`, async () => {
     expect(JSON.parse(await render("| *first*\n|\n|   second\n")).blocks).toEqual([

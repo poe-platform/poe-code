@@ -1096,6 +1096,10 @@ its fixed-width offsets can be patched before any output is yielded.
 Use `objectStreams: "generate"` to pack eligible objects and emit compressed
 cross-reference entries. Membership, payloads and indexes use caller storage;
 compression runs incrementally and upgrades older output versions to PDF 1.5.
+`qdf: true` writes editable QDF layout with indirect stream lengths and comments
+for the `fix-qdf` editing workflow. It is available for buffered, streamed, and
+retained saves and page copies.
+
 `normalizeContent: true` suppresses object-stream packing, as in the ordinary
 writer. Retained objects preserve encoded stream snapshots; this option does
 not force decoding streams that have not been edited.

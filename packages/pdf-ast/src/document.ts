@@ -48,6 +48,7 @@ import { renderDisplayListToBitmap, renderDisplayListToPng, type RenderToPngOpti
 export interface SavePdfOptions {
   readonly linearize?: boolean | undefined;
   readonly normalizeContent?: boolean | undefined;
+  readonly qdf?: boolean | undefined;
   readonly objectStreams?: "preserve" | "disable" | "generate" | undefined;
   readonly incremental?: boolean | undefined;
   readonly encrypt?: EncryptPdfOptions | undefined;
@@ -709,7 +710,7 @@ export class PdfDocument {
       return;
     }
     const objects = [...this.cos.objects.values()].sort((a, b) => a.objectNumber - b.objectNumber);
-    if (options.incremental && !this.cos.requiresFullRewrite && this.cos.bytes.length > 0) {
+    if (options.incremental && !options.qdf && !this.cos.requiresFullRewrite && this.cos.bytes.length > 0) {
       let turns = 0;
       for (const chunk of appendIncrementalRevisionChunks(this.cos.bytes, this.cos, objects, {
         ...(options.chunkBytes === undefined ? {} : { chunkBytes: options.chunkBytes }),
@@ -725,7 +726,7 @@ export class PdfDocument {
     }
     yield* serializeCosDocumentChunks({
       objects, rootRef: this.cos.rootRef, infoRef: this.cos.infoRef, idArray: this.cos.idArray, version: this.cos.version,
-      normalizeContent: options.normalizeContent, objectStreams: options.objectStreams, linearize: options.linearize,
+      qdf: options.qdf, normalizeContent: options.normalizeContent, objectStreams: options.objectStreams, linearize: options.linearize,
       chunkBytes: options.chunkBytes, maxOutputBytes: options.maxOutputBytes, signal,
     }, storage);
   }
@@ -749,7 +750,7 @@ export class PdfDocument {
     const allObjects: PdfIndirectObject[] = [...this.cos.objects.values()].sort(
       (a, b) => a.objectNumber - b.objectNumber
     );
-    if (options.incremental && !this.cos.requiresFullRewrite && this.cos.bytes.length > 0) {
+    if (options.incremental && !options.qdf && !this.cos.requiresFullRewrite && this.cos.bytes.length > 0) {
       return appendIncrementalRevision(this.cos.bytes, this.cos, allObjects);
     }
     return (yield* serializeCosDocumentSteps({
@@ -758,7 +759,7 @@ export class PdfDocument {
       infoRef: this.cos.infoRef,
       idArray: this.cos.idArray,
       version: this.cos.version,
-      normalizeContent: options.normalizeContent,
+      qdf: options.qdf, normalizeContent: options.normalizeContent,
       objectStreams: options.objectStreams,
       linearize: options.linearize,
     }));

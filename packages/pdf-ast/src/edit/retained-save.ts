@@ -21,6 +21,7 @@ export interface RetainedPageRotation {
 
 export interface SaveRetainedDocumentOptions {
   readonly linearize?: boolean;
+  readonly qdf?: boolean;
   /** Retained snapshots keep their encoded streams; normalization prevents packing. */
   readonly normalizeContent?: boolean;
   /** Decode and rewrite every stream using caller-backed staging. */
@@ -185,10 +186,10 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
     const ref = document.crossReference;
     const configured = { ...options, rootRef: ref.rootRef, infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.objectStreams === "generate" && Number.parseFloat(options.version ?? ref.version) < 1.5 ? "1.5" : options.version ?? ref.version, signal };
     async function* ordinary() {
-      if (mayLinearize) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output);
+      if (mayLinearize || options.qdf) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output);
       else yield* serializeRetainedCosDocumentChunks({ ...configured, objects: output() }, storage);
     }
-    if (options.objectStreams === "generate" && !options.normalizeContent && !mayLinearize) yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);
+    if (!options.qdf && options.objectStreams === "generate" && !options.normalizeContent && !mayLinearize) yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);
     else yield* ordinary();
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), pages.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }

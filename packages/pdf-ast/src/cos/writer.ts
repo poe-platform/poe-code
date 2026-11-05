@@ -1,3 +1,4 @@
+import { qdfOutput } from "./qdf-writer.js";
 import { linearizedOutput, type LinearizationObject } from "./linearized-writer.js";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import { drainWork } from "../work.js";
@@ -27,6 +28,7 @@ export interface SerializeCosOptions {
   readonly idArray?: PdfCosArray | undefined;
   readonly version?: string | undefined;
   readonly normalizeContent?: boolean | undefined;
+  readonly qdf?: boolean | undefined;
   readonly objectStreams?: "preserve" | "disable" | "generate" | undefined;
   readonly linearize?: boolean | undefined;
   readonly maxOutputBytes?: number | undefined;
@@ -285,9 +287,9 @@ function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Genera
     for (let i = 0; i < sorted.length; i++) sorted[i] = objects.get(sorted[i]!.objectNumber)!;
   }
 
-  if (options.linearize || sorted.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized"))) {
+  if (options.qdf || options.linearize || sorted.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized"))) {
     const objects = new Map(sorted.map(object => [object.objectNumber, object]));
-    const work = linearizedOutput([...objects.keys()], options);
+    const work = (options.qdf && !options.linearize ? qdfOutput : linearizedOutput)([...objects.keys()], options);
     let step = work.next();
     while (!step.done) {
       options.signal?.throwIfAborted();
@@ -298,11 +300,11 @@ function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Genera
         if (node.kind === "stream") yield* emit(options.normalizeContent && node.decodedBytes ? node.decodedBytes : node.rawBytes);
         step = work.next(); continue;
       }
-      let value: LinearizationObject = { value: node };
+      let value: LinearizationObject = { value: node, generationNumber: object.generationNumber };
       if (node.kind === "stream") {
         const bytes = options.normalizeContent && node.decodedBytes ? node.decodedBytes : node.rawBytes;
         const entries = node.dict.entries.filter(entry => entry.key.decoded !== "Length" && !(options.normalizeContent && node.kind === "stream" && node.decodedBytes && ["Filter", "DecodeParms"].includes(entry.key.decoded)));
-        value = { value: { kind: "dict", entries: [...entries, { key: cosName("Length"), value: cosNumber(bytes.length) }] }, streamLength: bytes.length };
+        value = { value: { kind: "dict", entries: [...entries, { key: cosName("Length"), value: cosNumber(bytes.length) }] }, streamLength: bytes.length, generationNumber: object.generationNumber };
       }
       step = work.next(value);
     }

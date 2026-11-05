@@ -2489,7 +2489,7 @@ function* executeQpdfCli(
         }
       }
       const splitName = formatSplitName(finalTarget, total, splitPagesGroup, startIdx + 1, endIdx + 1);
-      let bytes = (yield* subDoc.saveSteps({ normalizeContent: shouldNormalizeContent, linearize, objectStreams: objectStreamsMode }));
+      let bytes = (yield* subDoc.saveSteps({ qdf, normalizeContent: shouldNormalizeContent, linearize, objectStreams: objectStreamsMode }));
       if (encryptConfig && !decrypt) {
         bytes = (yield* encryptCosDocumentSteps((yield* parseCosDocumentSteps(bytes)), encryptConfig));
       }
@@ -2500,7 +2500,7 @@ function* executeQpdfCli(
 
   // Save final PDF
   let outBytes = (yield* workingDoc.saveSteps({
-    normalizeContent: shouldNormalizeContent,
+    qdf: qdf && !linearize, normalizeContent: shouldNormalizeContent,
     objectStreams: objectStreamsMode
   }));
 
@@ -2515,7 +2515,7 @@ function* executeQpdfCli(
       objects: [...workingDoc.cos.objects.values()],
       rootRef: workingDoc.cos.rootRef,
       infoRef: workingDoc.cos.infoRef,
-      normalizeContent: shouldNormalizeContent
+      qdf: qdf && !linearize, normalizeContent: shouldNormalizeContent
     }));
   }
 

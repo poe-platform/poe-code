@@ -2,7 +2,7 @@ import { cosArray, cosDict, cosName, cosNumber, cosRef, cosStream, dictGet, type
 import { PdfError } from "../errors.js";
 import { concatByteArrays, serializeCosNodeBytes, serializeCosNodeChunks, type SerializeCosStreamOptions } from "./writer.js";
 
-export interface LinearizationObject { value: PdfCosNode; streamLength?: number }
+export interface LinearizationObject { value: PdfCosNode; streamLength?: number; generationNumber?: number }
 type Request = { object: number } | { stream: number };
 type Work<T> = Generator<Uint8Array | Request | void, T, LinearizationObject>;
 

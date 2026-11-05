@@ -14,7 +14,7 @@ Inspect, check, encrypt, decrypt, merge, split, rotate, and transform PDFs at th
 | Page Selection & Merge | `--empty --pages fileA.pdf 1-3,r1 fileB.pdf 1-5:odd -- out.pdf` | Supports `rN`/`z`, descending ranges, `x` exclusions, and terminal `:odd`/`:even` positional filters applied after all groups and exclusions. |
 | Page Splitting | `--split-pages[=n]` | Splits multi-page PDFs into numbered single-page or N-page files; zero or nonnumeric values keep one unsplit output. |
 | Page Rotation | `--rotate=[+\|-]angle:range` | Applies relative (`+90`, `-90`) or absolute (`0`, `90`, `180`, `270`) rotation to page ranges. |
-| QDF & Stream Modes | `--qdf`, `--stream-data=uncompress\|compress`, `--replace-input` | Normalizes and uncompresses/recompresses streams or updates files in-place. |
+| QDF & Stream Modes | `--qdf`, `--stream-data=uncompress\|compress`, `--replace-input` | Writes editable QDF with indirect stream lengths for `fix-qdf`, normalizes and uncompresses/recompresses streams, or updates files in-place. |
 
 ## Quick Start
 

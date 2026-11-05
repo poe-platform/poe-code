@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
@@ -16,6 +17,49 @@ function createNumberedPdf(pageCount: number, prefix = "Doc"): Uint8Array {
 }
 
 describe("safe-bash-command-qpdf", () => {
+  it("writes editable QDF with indirect stream lengths", async () => {
+    for (const run of [runQpdfCli, runQpdfCliSync]) {
+      const files = new Map([["in.pdf", createNumberedPdf(2)]]);
+      const result = await run(["--qdf", "in.pdf", "out.pdf"], files);
+      assert.equal(result.exitCode, 0);
+      const bytes = files.get("out.pdf")!;
+      const text = new TextDecoder().decode(bytes);
+      assert.ok(text.includes("%QDF-1.0\n"));
+      assert.ok(text.includes("%% Original object ID:"));
+      assert.ok(text.includes("%% Page 1\n"));
+      assert.ok(text.includes("%% Page 2\n"));
+      assert.ok(text.includes("%% Contents for page 1\n"));
+      const document = PdfDocument.load(bytes);
+      assert.equal(document.getPageCount(), 2);
+      assert.ok(document.extractText().includes("Doc Page 2"));
+      for (const object of document.cos.objects.values()) {
+        if (object.value.kind !== "stream") continue;
+        const length = dictGet(object.value.dict, "Length");
+        assert.equal(length?.kind, "ref");
+        if (length?.kind !== "ref") assert.fail("expected indirect length");
+        assert.equal(length.objectNumber, object.objectNumber + 1);
+      }
+    }
+  });
+
+  it("supports editing stream lengths with native fix-qdf", async t => {
+    const files = new Map([["in.pdf", createNumberedPdf(1)]]);
+    await runQpdfCli(["--qdf", "in.pdf", "out.pdf"], files);
+    const edited = Buffer.from(files.get("out.pdf")!).toString("latin1").replace("Doc Page 1", "Edited page with longer text");
+    const fixed = spawnSync("fix-qdf", [], { input: Buffer.from(edited, "latin1") });
+    if (fixed.error && "code" in fixed.error && fixed.error.code === "ENOENT") {
+      t.skip("native fix-qdf is not installed");
+      return;
+    }
+    assert.equal(fixed.status, 0, fixed.stderr.toString());
+    const text = fixed.stdout.toString("latin1");
+    assert.ok(text.includes("trailer <<\n"));
+    const startxref = text.lastIndexOf("startxref\n") + "startxref\n".length;
+    const offset = Number(text.slice(startxref, text.indexOf("\n", startxref)));
+    assert.equal(text.slice(offset, offset + 5), "xref\n");
+    assert.ok(PdfDocument.load(fixed.stdout).extractText().includes("Edited page with longer text"));
+  });
+
   for (const option of ["--copy-encryption", "--encryption-file-password"]) {
     for (const args of [[`${option}=reference.pdf`], [option, "reference.pdf"]]) {
       it(`rejects unsupported encryption option ${args.join(" ")} without publishing output`, async () => {

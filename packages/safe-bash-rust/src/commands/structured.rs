@@ -2572,25 +2572,6 @@ fn try_eval_jq_builtin(
                         return Ok(Some(vec![JVal::Array(parts)]));
                     }
                 }
-                "startswith" | "endswith" | "ltrimstr" | "rtrimstr" => {
-                    if let JVal::Str(st) = input {
-                        let pat = eval_jq(arg_expr, input, vars)?
-                            .first()
-                            .map(|v| v.to_raw_string(true, false))
-                            .unwrap_or_default();
-                        return Ok(Some(vec![match fname {
-                            "startswith" => JVal::Bool(st.starts_with(&pat)),
-                            "endswith" => JVal::Bool(st.ends_with(&pat)),
-                            "ltrimstr" => {
-                                JVal::Str(st.strip_prefix(&pat).unwrap_or(st).to_string())
-                            }
-                            "rtrimstr" => {
-                                JVal::Str(st.strip_suffix(&pat).unwrap_or(st).to_string())
-                            }
-                            _ => JVal::Null,
-                        }]));
-                    }
-                }
                 "splits" => {
                     if let JVal::Str(st) = input {
                         return Ok(Some(eval_jq_splits_regex(st, arg_expr, input, vars)?));

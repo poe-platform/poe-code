@@ -74,6 +74,21 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    for (const [engine, shell] of [["TypeScript", ts.shell], ["Rust", rust]] as const) {
+      await t.test(engine + " jq string prefixes and suffixes match the executable", async () => {
+        for (const name of ["startswith", "endswith", "ltrimstr", "rtrimstr"]) {
+          for (const [filter, input] of [
+            [name + '(.,null)', '"null"'], [name + '("x")', "false"],
+            [name + "(empty)", "null"], [name + '("x",error("bad"))', '"xx"'],
+            ["first(" + name + '("x",error("bad")))', '"xx"'],
+          ]) {
+            const reference = await runLinuxCommand("jq", ["-c", filter], input + "\n", cwd);
+            const actual = await shell.exec("jq -c '" + filter + "'", { stdin: input + "\n" });
+            assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], reference, filter + " on " + input);
+          }
+        }
+      });
+    }
     await t.test("jq binary search streams search keys and uses jq length and indexing rules", async () => {
       for (const [filter, input] of [
         ["bsearch(1,0,2)", "[1,1,1,1]"], ["bsearch(empty)", "false"],

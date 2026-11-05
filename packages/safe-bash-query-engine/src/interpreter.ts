@@ -1428,7 +1428,7 @@ export class Interpreter {
       for await (const value of this.run(args[0]!, input)) {
         if (typeof input !== "string" || typeof value !== "string") {
           if (name === "ltrimstr" || name === "rtrimstr") { yield input; continue; }
-          throw new JqError(`${name} requires strings`);
+          throw new JqError(`${name}() requires string inputs`);
         }
         { const _p = budget.tickSync(input.length + value.length); if (_p) await _p; }
         const matches = name === "startswith" || name === "ltrimstr" ? input.startsWith(value) : input.endsWith(value);

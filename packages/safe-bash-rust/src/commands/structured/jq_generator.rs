@@ -361,6 +361,23 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         }) {
             return flow;
         }
+        if let Some(filter) = args && matches!(name, "startswith" | "endswith" | "ltrimstr" | "rtrimstr") {
+            return visit_jq(filter, input, vars, &mut |value| {
+                let (JVal::Str(text), JVal::Str(pattern)) = (input, &value) else {
+                    return if matches!(name, "ltrimstr" | "rtrimstr") {
+                        emit(input.clone())
+                    } else {
+                        Err(format!("{name}() requires string inputs").into())
+                    };
+                };
+                emit(match name {
+                    "startswith" => JVal::Bool(text.starts_with(pattern)),
+                    "endswith" => JVal::Bool(text.ends_with(pattern)),
+                    "ltrimstr" => JVal::Str(text.strip_prefix(pattern).unwrap_or(text).to_owned()),
+                    _ => JVal::Str(text.strip_suffix(pattern).unwrap_or(text).to_owned()),
+                })
+            });
+        }
         if let Some(filter) = args && matches!(name, "has" | "in") {
             return visit_jq(filter, input, vars, &mut |value| {
                 let (container, key) = if name == "has" { (input, &value) } else { (&value, input) };

@@ -117,7 +117,7 @@ class Output {
   }
 }
 
-function* zlibBody(input: Input, output: Output): Step<void> {
+function* zlibBody(input: Input, output?: Output): Step<void> {
   let last = false;
   try {
     while (!last) {
@@ -129,11 +129,12 @@ function* zlibBody(input: Input, output: Output): Step<void> {
       if (type === 0) {
         // Like PDF.js, discard padding, accept the empty 0/0 length pair and
         // zero-fill a truncated stored block up to its admitted declared size.
+        yield* input.bits(input.count % 8);
         let length = 0;
         let check = 0;
         let complete = true;
         for (let i = 0; i < 4; i++) {
-          const byte = yield* input.byte();
+          const byte = input.count >= 8 ? yield* input.bits(8) : yield* input.byte();
           if (byte < 0) { complete = false; break; }
           if (i < 2) length |= byte << (i * 8);
           else check |= byte << ((i - 2) * 8);
@@ -141,10 +142,10 @@ function* zlibBody(input: Input, output: Output): Step<void> {
         if (!complete) break;
         if (check !== (~length & 65535) && (length !== 0 || check !== 0)) throw invalid();
         input.buffer = 0; input.count = 0;
-        output.admit(length);
+        output?.admit(length);
         for (let i = 0; i < length; i++) {
           const byte = yield* input.byte();
-          yield* output.byte(byte < 0 ? 0 : byte);
+          if (output) yield* output.byte(byte < 0 ? 0 : byte);
         }
         if (input.eof) break;
         continue;
@@ -175,7 +176,7 @@ function* zlibBody(input: Input, output: Output): Step<void> {
       } else if (type !== 1) throw invalid();
       while (true) {
         const code = yield* input.code(literals);
-        if (code < 256) { yield* output.byte(code); continue; }
+        if (code < 256) { if (output) yield* output.byte(code); continue; }
         if (code === 256) break;
         const lengthCode = code - 257;
         const length = (lengthBase[lengthCode] ?? 0) + (yield* input.bits(lengthExtra[lengthCode] ?? 0));
@@ -183,6 +184,7 @@ function* zlibBody(input: Input, output: Output): Step<void> {
         if (distanceCode > 29) throw invalid();
         const extra = distanceCode < 4 ? 0 : (distanceCode >>> 1) - 1;
         const distance = (distanceCode < 4 ? distanceCode + 1 : ((2 + (distanceCode & 1)) << extra) + 1) + (yield* input.bits(extra));
+        if (!output) continue;
         output.admit(length);
         for (let i = 0; i < length; i++) {
           const value = distance > output.total ? 0 : output.history[(output.total - distance) % output.history.length]!;
@@ -193,9 +195,32 @@ function* zlibBody(input: Input, output: Output): Step<void> {
   } catch (error) {
     // The buffered decoder falls back to pypdf-style partial output when a
     // wrapped stream is truncated. Preserve that prefix without replay/buffering.
-    if (!(error instanceof Truncated && output.total > 0)) throw error instanceof Truncated ? invalid() : error;
+    if (!(error instanceof Truncated && output && output.total > 0)) throw error instanceof Truncated ? invalid() : error;
   }
-  yield* output.finish();
+  if (output) yield* output.finish();
+}
+
+// Count the compressed bytes after the zlib header without expanding matches.
+// Huffman lookahead can already contain whole bytes of the Adler-32 trailer.
+export function* deflateBodyLength(): Generator<void, number | undefined, number | undefined> {
+  const input = new Input();
+  const single = new Uint8Array(1);
+  let supplied = 0;
+  try {
+    for (const request of zlibBody(input)) {
+      if (request !== "input") throw new Error("Unexpected output while scanning DEFLATE");
+      const next = yield;
+      if (next === undefined) return undefined;
+      single[0] = next;
+      input.bytes = single;
+      input.position = 0;
+      supplied++;
+    }
+  } catch (error) {
+    if (error instanceof PdfError) return undefined;
+    throw error;
+  }
+  return supplied - (input.count >>> 3);
 }
 
 /** Inflate PDF payloads before predictors. Output chunks are owned and bounded;

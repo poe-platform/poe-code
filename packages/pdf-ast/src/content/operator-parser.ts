@@ -4,6 +4,7 @@
  */
 import type { PdfCosNode, PdfCosDict, PdfDictEntry } from "../ast.js";
 import { CosByteLexer, type CosToken, isPdfDelimiter, isPdfWhitespace } from "../cos/lexer.js";
+import { deflateBodyLength } from "../cos/flate-stream.js";
 import { PdfError } from "../errors.js";
 import { PDF_KNOWN_COMMANDS, PDF_OPERATOR_ARITIES, PDF_PATH_OPERATORS, PDF_VARIABLE_OPERATORS } from "./operators.js";
 
@@ -24,7 +25,7 @@ export type OperatorRequest =
 export interface ContentOperandLimits { maxNodes: number; maxDepth: number; arrayStorage?: import("../ast.js").PdfPixelStorage }
 function* token(): Work<CosToken | undefined> { return (yield { kind: "token" }) as CosToken | undefined; }
 function* byte(position: number): Work<number | undefined> { return (yield { kind: "byte", position }) as number | undefined; }
-function* parseOperandToken(tok: CosToken, limits: ContentOperandLimits, depth = 0, state = { nodes: 0 }): Work<PdfCosNode> {
+function* parseOperandToken(tok: CosToken, limits: ContentOperandLimits, depth = 0, state = { nodes: 0 }, firstItem?: (node: PdfCosNode) => void): Work<PdfCosNode> {
   if (++state.nodes > limits.maxNodes || depth > limits.maxDepth) throw new PdfError("E_LIMIT", "PDF content operand limit exceeded");
   switch (tok.kind) {
     case "null":
@@ -54,6 +55,7 @@ function* parseOperandToken(tok: CosToken, limits: ContentOperandLimits, depth =
           return { kind: "array", items, ...(limits.arrayStorage ? { storedItems: { storage: limits.arrayStorage, position, length } } : {}) };
         }
         const node = yield* parseOperandToken(next, limits, depth + 1, state);
+        if (!length && !items.length) firstItem?.(node);
         if (limits.arrayStorage) {
           const at = yield { kind: "array-append", previous, node };
           if (typeof at !== "number") throw new TypeError("Expected stored array record");
@@ -117,6 +119,31 @@ function computeInlineImageMinBytes(entries: readonly PdfDictEntry[]): number {
   return h * Math.ceil((w * channels * bpc) / 8);
 }
 
+function* encodedImageEnd(filter: string | undefined, start: number, size: number): Work<number | undefined> {
+  let at = start;
+  if (filter === "Fl" || filter === "FlateDecode") {
+    const cmf = yield* byte(at++), flg = yield* byte(at++);
+    if (cmf === undefined || flg === undefined || (cmf & 15) !== 8 || (flg & 32) || ((cmf << 8) + flg) % 31) return;
+    const body = deflateBodyLength();
+    let step = body.next();
+    while (!step.done) step = body.next(at < size ? yield* byte(at++) : undefined);
+    if (step.value !== undefined) return start + 2 + step.value + 4;
+  } else if (filter === "RL" || filter === "RunLengthDecode") {
+    while (at < size) {
+      const length = (yield* byte(at++))!;
+      if (length === 128) return at;
+      at += length < 128 ? length + 1 : 1;
+    }
+    return size;
+  } else if (filter === "A85" || filter === "ASCII85Decode") {
+    while (at < size) if ((yield* byte(at++)) === 126 && (yield* byte(at)) === 62) return at + 1;
+    return size;
+  } else if (filter === "AHx" || filter === "ASCIIHexDecode") {
+    while (at < size) if ((yield* byte(at++)) === 62) return at;
+    return size;
+  }
+}
+
 function* looksLikePostEiContentStream(size: number, posAfterEi: number): Work<boolean> {
   let p = posAfterEi;
   while (p < size && isPdfWhitespace((yield* byte(p))!)) p++;
@@ -173,6 +200,7 @@ export function* contentOperatorSteps(lexer: { offset: number }, size: number, l
     if (op === "BI") {
       const entries: PdfDictEntry[] = [];
       const imageState = { nodes: 1 };
+      let filter: string | undefined;
       while (true) {
         const kTok = (yield* token());
         if (!kTok || (kTok.kind === "keyword" && kTok.value === "ID")) break;
@@ -180,10 +208,11 @@ export function* contentOperatorSteps(lexer: { offset: number }, size: number, l
           if (++imageState.nodes > limits.maxNodes) throw new PdfError("E_LIMIT", "PDF inline image dictionary limit exceeded");
           const vTok = (yield* token());
           if (!vTok || (vTok.kind === "keyword" && vTok.value === "ID")) break;
-          entries.push({
-            key: { kind: "name", decoded: kTok.decoded, rawBytes: kTok.rawBytes },
-            value: (yield* parseOperandToken(vTok, limits, 1, imageState)),
-          });
+          const isFilter = kTok.decoded === "F" || kTok.decoded === "Filter";
+          const value = yield* parseOperandToken(vTok, limits, 1, imageState,
+            isFilter ? first => { filter = first.kind === "name" ? first.decoded : undefined; } : undefined);
+          if (isFilter && value.kind === "name") filter = value.decoded;
+          entries.push({ key: { kind: "name", decoded: kTok.decoded, rawBytes: kTok.rawBytes }, value });
         }
       }
       if (lexer.offset < size && (yield* byte(lexer.offset)) === 0x0d && lexer.offset + 1 < size && (yield* byte(lexer.offset + 1)) === 0x0a) {
@@ -193,8 +222,9 @@ export function* contentOperatorSteps(lexer: { offset: number }, size: number, l
       }
       const dataStart = lexer.offset;
       const minBytes = computeInlineImageMinBytes(entries);
+      const knownEnd = yield* encodedImageEnd(filter, dataStart, size);
       let dataEnd = size;
-      for (let i = dataStart + minBytes; i + 2 < size; i++) {
+      for (let i = knownEnd ?? (dataStart + minBytes); i + 2 < size; i++) {
         if (
           isPdfWhitespace((yield* byte(i))!) &&
           (yield* byte(i + 1)) === 0x45 && // E
@@ -202,7 +232,7 @@ export function* contentOperatorSteps(lexer: { offset: number }, size: number, l
           (i + 3 >= size || isPdfWhitespace((yield* byte(i + 3))!) || isPdfDelimiter((yield* byte(i + 3))!)) &&
           (yield* looksLikePostEiContentStream(size, i + 3))
         ) {
-          dataEnd = i;
+          dataEnd = knownEnd ?? i;
           lexer.offset = i + 3;
           break;
         }

@@ -1,3 +1,4 @@
+import { deflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { parseContentOperators } from "./operator-parser.js";
 
@@ -20,6 +21,21 @@ describe("content operator iteration", () => {
     const inline = operators[0]!.inlineImage!;
     expect(new TextDecoder().decode(input.subarray(inline.start, inline.end))).toBe("a EI");
     expect(inline.dict.entries).toHaveLength(4);
+  });
+
+  it("reads past apparent EI operators inside encoded image data", () => {
+    const raw = bytes(" EI Q BT ET q Q abcdefghijklmnopqrstuvwxyz");
+    for (const [filter, encoded] of [
+      ["/Fl", deflateSync(raw, {level: 0})],
+      ["[/RL]", Uint8Array.of(raw.length-1, ...raw, 128)],
+      ["[/A85 /Fl]", bytes("ABCDE EI ABCDEFGHIJKLMNOPQ~>")],
+    ] as const) {
+      const prefix = bytes(`BI /F ${filter} ID `);
+      const input = Buffer.concat([prefix, encoded, bytes(" \r\nEI Q")]);
+      const ops = [...parseContentOperators(input)];
+      expect(ops.map(op => op.operator)).toEqual(["BI","Q"]);
+      expect(ops[0]?.inlineImage?.end).toBe(prefix.length + encoded.length);
+    }
   });
 
   it("admits one-bit image masks without assuming RGB channels", () => {

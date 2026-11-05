@@ -38,15 +38,16 @@ export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: P
   const geometry = { width: Math.abs(x1 - x0), height: Math.abs(y1 - y0), origin: [Math.min(x0, x1), Math.min(y0, y1)] as const };
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale, scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-  const width = Math.max(1, Math.ceil(geometry.width * scaleX)), height = Math.max(1, Math.ceil(geometry.height * scaleX));
+  const extent = options.dpiX !== undefined || options.dpiY !== undefined || options.dpi !== undefined ? Math.ceil : Math.round;
+  const width = Math.max(1, extent(geometry.width * scaleX)), height = Math.max(1, extent(geometry.height * scaleX));
   const resample = Math.abs(scaleX - scaleY) > 1e-6;
-  const targetHeight = resample ? Math.max(1, Math.ceil(geometry.height * scaleY)) : height;
+  const targetHeight = resample ? Math.max(1, extent(geometry.height * scaleY)) : height;
   if (![scaleX, scaleY].every(value => Number.isFinite(value) && value > 0)
     || ![width, height, targetHeight, width * height * 4, width * targetHeight * 4].every(Number.isSafeInteger)) throw new RangeError("Invalid retained raster dimensions");
   let crop = { x: 0, y: 0, width, height: targetHeight };
   if (options.useCropBox) {
     const box = getDisplayListCropBox({ ...geometry, cropBox: [attributes.cropBox[0] - geometry.origin[0], attributes.cropBox[1] - geometry.origin[1], attributes.cropBox[2] - geometry.origin[0], attributes.cropBox[3] - geometry.origin[1]] });
-    crop = getBitmapCropRect(width, targetHeight, { x: box[0] * scaleX, y: (geometry.height - box[3]) * scaleY, width: (box[2] - box[0]) * scaleX, height: (box[3] - box[1]) * scaleY });
+    crop = getBitmapCropRect(width, targetHeight, { x: box[0] * scaleX, y: (geometry.height - box[3]) * scaleY, width: extent((box[2] - box[0]) * scaleX), height: extent((box[3] - box[1]) * scaleY) });
   }
   const rotation = attributes.rotation, quarter = rotation === 90 || rotation === 270;
   const rotated = { width: quarter ? crop.height : crop.width, height: quarter ? crop.width : crop.height };

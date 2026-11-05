@@ -81,6 +81,7 @@ describe("safe-bash-command-pdftoppm", () => {
     const result = await run(["-png", "-gray", "-rx", "72.5", "-ry", "144.25", "-singlefile", "in.pdf", "out"], files);
     expect(result.exitCode).toBe(0);
     const png = Buffer.from(files.get("out.png")!);
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([13, 17]);
     const at = png.indexOf("pHYs");
     expect(at).toBeGreaterThan(0);
     expect([png.readUInt32BE(at + 4), png.readUInt32BE(at + 8), png[at + 12]]).toEqual([2854, 5679, 1]);

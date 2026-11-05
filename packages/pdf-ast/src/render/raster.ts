@@ -1541,11 +1541,13 @@ export function *renderDisplayListToBitmapSteps(
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-  let result = (yield* renderDisplayListLayerSteps(displayList, options, scaleX));
+  const extent = options.dpiX !== undefined || options.dpiY !== undefined || options.dpi !== undefined ? Math.ceil : Math.round;
+  const window = { x: 0, y: 0, width: Math.max(1, extent(displayList.width * scaleX)), height: Math.max(1, extent(displayList.height * scaleX)) };
+  let result = yield* renderDisplayListLayerSteps(displayList, options, scaleX, undefined, window);
   const { width, height, data: rgba } = result;
   if (Math.abs(scaleX - scaleY) > 1e-6) {
-    const targetW = Math.max(1, Math.ceil(displayList.width * scaleX));
-    const targetH = Math.max(1, Math.ceil(displayList.height * scaleY));
+    const targetW = width;
+    const targetH = Math.max(1, extent(displayList.height * scaleY));
     const resampled = new Uint8Array(targetW * targetH * 4);
     for (let y = 0; y < targetH; y++) {
     if (++work % 16384 === 0) yield;
@@ -1568,7 +1570,7 @@ export function *renderDisplayListToBitmapSteps(
     const box = getDisplayListCropBox(displayList);
     result = (yield* cropRgbaBitmapSteps(result, {
       x: box[0] * scaleX, y: (displayList.height - box[3]) * scaleY,
-      width: (box[2] - box[0]) * scaleX, height: (box[3] - box[1]) * scaleY,
+      width: extent((box[2] - box[0]) * scaleX), height: extent((box[3] - box[1]) * scaleY),
     }));
   }
   result = (yield* rotateRgbaBitmapQuarterTurnsSteps(result, displayList.rotation ?? 0));

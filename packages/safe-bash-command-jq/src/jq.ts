@@ -753,6 +753,11 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       diagnostics.splice(0, written);
     }
   };
+  budget.writeDiagnostic = async text => {
+    await flush();
+    try { await writeBytes(context.stderr, bytesFrom(text), context.signal); }
+    catch (error) { diagnosticWriteFailed = true; throw error; }
+  };
   try {
     const optionsOrPromise = argumentsFor(context, budget);
     const options = optionsOrPromise instanceof Promise ? await optionsOrPromise : optionsOrPromise;

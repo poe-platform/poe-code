@@ -10,6 +10,7 @@ the remaining values from the same input stream, including virtual files.
 `input_filename` returns the current file operand, `"<stdin>"` for standard input,
 or `null` before reading an input source. `input_line_number` returns the current
 input line count, or `0` before reading input.
+`debug` writes `["DEBUG:", value]` as compact JSON to stderr and passes the value through.
 Use `jq -cn 'builtins'` to list supported functions as `name/arity` strings.
 
 This private implementation ships inside Safe Bash; no separate installation is

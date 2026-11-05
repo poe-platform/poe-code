@@ -65,3 +65,31 @@ export function* resizePixelSteps(image: { width: number; height: number; hasAlp
         }
     }
 }
+
+/** Point filtering selects the source pixel containing the destination pixel center. */
+export function* pointResizePixelSteps(image: { width: number; height: number }, width: number, height: number, sample = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    // SampleImage uses 0.5 - MagickEpsilon to select the preceding pixel at ties.
+    const offset = sample ? 0.5 - 1e-12 : 0.5;
+    let start = -1;
+    let pixels: Uint8Array = new Uint8Array(0);
+    for (let y = 0; y < height; y++) {
+        const sy = Math.min(image.height - 1, Math.floor((y + offset) * image.height / height));
+        for (let left = 0; left < width; left += 1024) {
+            yield;
+            const count = Math.min(1024, width - left), data = new Uint8Array(count * 4);
+            for (let x = 0; x < count; x++) {
+                const sx = Math.min(image.width - 1, Math.floor((left + x + offset) * image.width / width));
+                const position = (sy * image.width + sx) * 4;
+                if (position < start || position >= start + pixels.length) {
+                    start = position;
+                    const length = Math.min(1024, image.width - sx) * 4;
+                    const bytes = yield { kind: "read", position, length };
+                    if (!bytes || bytes.length !== length) throw new Error("Truncated resize pixels");
+                    pixels = bytes;
+                }
+                data.set(pixels.subarray(position - start, position - start + 4), x * 4);
+            }
+            yield { kind: "write", position: (y * width + left) * 4, data };
+        }
+    }
+}

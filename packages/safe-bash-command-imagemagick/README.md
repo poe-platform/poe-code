@@ -22,7 +22,7 @@ Output parent directories must already exist, including directories selected wit
 
 Raw `rgba:` output is unsupported and returns an error instead of emitting PNG bytes, including for `rgba:-` and intermediate `-write` outputs.
 
-`-colorspace CMYK` is unsupported and returns an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
+`-colorspace CMYK` and `-colorspace Lab` are unsupported and return an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
 
 Unsupported `-draw` primitives, including the old `matte` primitive, return an error without replacing the output. Use `-alpha on -fill none -draw 'alpha 0,0 floodfill'` to remove a connected background while preserving RGB values and enclosed details. Alpha floodfill uses four-connected neighbors and alpha-aware `-fuzz` matching (percentages or Q16 units); `color x,y floodfill` replaces all RGBA channels.
 

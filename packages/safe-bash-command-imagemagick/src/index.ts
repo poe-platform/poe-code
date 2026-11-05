@@ -6278,7 +6278,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (t === "--help" || t === "-help" || t === "-h") {
             return {
                 exitCode: 0,
-                stdout: "Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
+                stdout: "Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC|DPC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
                 stderr: ""
             };
         }
@@ -6288,7 +6288,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
             metric = rawMetric.toLowerCase();
-            if (!["ae", "mae", "mse", "rmse", "pae", "psnr", "ssim", "dssim", "ncc"].includes(metric)) {
+            if (!["ae", "mae", "mse", "rmse", "pae", "psnr", "ssim", "dssim", "ncc", "dpc"].includes(metric)) {
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized metric type '${rawMetric}'\n` };
             }
         }
@@ -6416,7 +6416,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
       else{if(backend)yield {async run(){await backend.storage.write(diffPosition!+request.position,request.data);}};else diffData!.set(request.data,request.position);compared=comparison.next();}
     }}finally{comparison.return(undefined as never);}
     const {metric:metricStr,exitCode}=compared.value;
-    const searchScore = metric === "ssim" || metric === "ncc" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
+    const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
     const comparisonStderr = `${metricStr}\n` + (subimageSearch && searchScore > dissimilarityThreshold
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);

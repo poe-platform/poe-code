@@ -34,7 +34,7 @@ it.skipIf(native.error !== undefined)("matches native ImageMagick rejection of a
     expect(result.stderr).toContain("unrecognized metric type 'bogus'");
 });
 
-for (const metric of ["AE", "MAE", "MSE", "RMSE", "PAE", "PSNR", "SSIM", "DSSIM", "NCC"]) {
+for (const metric of ["AE", "MAE", "MSE", "RMSE", "PAE", "PSNR", "SSIM", "DSSIM", "NCC", "DPC"]) {
     it(`preserves ${metric} and case-insensitive metric names`, async () => {
         const image = await sharp({ create: { width: 1, height: 1, channels: 3, background: "red" } }).png().toBuffer();
         const files = new Map([["a.png", image]]);

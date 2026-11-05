@@ -76,7 +76,7 @@ enum SedOp {
     Zap,
     Filename,
     List(Option<u32>),
-    Append(String),
+    Append(SedAppend),
     Insert(String),
     Change(String),
     Transliterate(Vec<char>, Vec<char>),
@@ -94,6 +94,42 @@ enum SedOp {
     BranchIfNotSubst(Option<String>),
     WriteFile(String),
     Group(Vec<SedCmd>),
+}
+
+#[derive(Clone, Debug)]
+enum SedAppend { Text(String), File(String) }
+
+struct SedQueue<'a> {
+    fs: &'a dyn SafeBashFs,
+    pending: Vec<SedAppend>,
+    file_bytes: usize,
+}
+
+impl SedQueue<'_> {
+    fn flush(&mut self, out: &mut String) -> Result<(), String> {
+        for item in self.pending.drain(..) {
+            match item {
+                SedAppend::Text(text) => { out.push_str(&text); out.push('\n'); }
+                SedAppend::File(path) => {
+                    let fs = self.fs;
+                    let limit = fs.remaining_output_bytes();
+                    let result = fs.read_chunks(&path, &mut |bytes| {
+                        if bytes.len() > limit.saturating_sub(self.file_bytes) {
+                            return Err(fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes));
+                        }
+                        self.file_bytes += bytes.len();
+                        out.push_str(&crate::vfs::bytes_to_stream_string(bytes));
+                        Ok(true)
+                    });
+                    if let Err(error) = result
+                        && !["ENOENT:", "EACCES:", "EPERM:", "EISDIR:", "ENOTDIR:"].iter().any(|code| error.starts_with(code)) {
+                        return Err(error);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -326,7 +362,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
     let mut parsed_cmds = Vec::new();
     for part in stmts {
-        match parse_sed_cmd(&part, extended, cwd, fs) {
+        match parse_sed_cmd(&part, extended, cwd) {
             Ok(Some(c)) => parsed_cmds.push(c),
             Ok(None) => {}
             Err(msg) => return err_out(&msg, 2),
@@ -337,6 +373,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let mut write_files: BTreeMap<String, String> = BTreeMap::new();
+    let mut queue = SedQueue { fs, pending: Vec::new(), file_bytes: 0 };
 
     if in_place && !files.is_empty() {
         let mut exit_code = 0;
@@ -363,7 +400,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             };
             let content = crate::vfs::bytes_to_stream_string(&bytes);
             let mut cmds_copy = parsed_cmds.clone();
-            let (res, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files) {
+            let (res, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue) {
                 Ok(result) => result,
                 Err(e) => return err_out(&e, 2),
             };
@@ -373,6 +410,8 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 None => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
             };
             if let Err(e) = publication { return err_out(&format!("sed: {e}\n"), 4); }
+            // Publication has charged these bytes to the shared output budget.
+            queue.file_bytes = 0;
             if let Some(code) = quit { exit_code = code; break; }
         }
         for (wf, data) in write_files {
@@ -394,7 +433,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             };
             let mut cmds_copy = parsed_cmds.clone();
-            let (part_out, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files) {
+            let (part_out, quit) = match run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue) {
                 Ok(result) => result,
                 Err(e) => return err_out(&e, 2),
             };
@@ -430,7 +469,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let cur_fname = files.first().map(|s| s.as_str()).unwrap_or("-");
-    let (out, quit) = match run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files) {
+    let (out, quit) = match run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue) {
         Ok(result) => result,
         Err(e) => return err_out(&e, 2),
     };
@@ -752,7 +791,7 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
     Ok((out, groups))
 }
 
-fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> Result<Option<SedCmd>, String> {
+fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str) -> Result<Option<SedCmd>, String> {
     let s = stmt.trim();
     if s.is_empty() || s.starts_with('#') {
         return Ok(None);
@@ -875,14 +914,7 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
             if rf.is_empty() {
                 return Err("sed: r command requires a filename\n".to_string());
             }
-            let full = resolve_posix_path(cwd, rf);
-            if let Ok(bytes) = fs.read_file(&full) {
-                let content = String::from_utf8_lossy(&bytes);
-                let trimmed = content.strip_suffix('\n').unwrap_or(&content).to_string();
-                SedOp::Append(trimmed)
-            } else {
-                SedOp::Group(Vec::new())
-            }
+            SedOp::Append(SedAppend::File(absolute_operand(cwd, rf)))
         }
         '{' => {
             let Some(inner) = rest
@@ -893,7 +925,7 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
             };
             let mut sub_cmds = Vec::new();
             for part in split_sed_statements(inner)? {
-                if let Some(c) = parse_sed_cmd(&part, extended, cwd, fs)? {
+                if let Some(c) = parse_sed_cmd(&part, extended, cwd)? {
                     sub_cmds.push(c);
                 }
             }
@@ -904,7 +936,7 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         'a' => {
             let text = rest[1..].trim_start_matches('\\').trim_start();
-            SedOp::Append(unescape_sed_text(text))
+            SedOp::Append(SedAppend::Text(unescape_sed_text(text)))
         }
         'i' => {
             let text = rest[1..].trim_start_matches('\\').trim_start();
@@ -1317,7 +1349,7 @@ fn exec_sed_cmds(
     hold_space: &mut String,
     subst_made: &mut bool,
     out: &mut String,
-    appends: &mut Vec<String>,
+    queue: &mut SedQueue,
     write_files: &mut BTreeMap<String, String>,
     _quiet: bool,
     rec_term: char,
@@ -1476,10 +1508,7 @@ fn exec_sed_cmds(
                     out.push_str(pattern_space);
                     out.push(rec_term);
                 }
-                for ap in appends.drain(..) {
-                    out.push_str(&ap);
-                    out.push(rec_term);
-                }
+                if let Err(e) = queue.flush(out) { return SedFlow::Error(e); }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
                     *pattern_space = raw_lines[*line_idx].to_string();
@@ -1489,10 +1518,7 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::NextAppend => {
-                for ap in appends.drain(..) {
-                    out.push_str(&ap);
-                    out.push(rec_term);
-                }
+                if let Err(e) = queue.flush(out) { return SedFlow::Error(e); }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
                     pattern_space.push(rec_term);
@@ -1533,7 +1559,7 @@ fn exec_sed_cmds(
                     hold_space,
                     subst_made,
                     out,
-                    appends,
+                    queue,
                     write_files,
                     _quiet,
                     rec_term,
@@ -1551,9 +1577,7 @@ fn exec_sed_cmds(
                 out.push_str(text);
                 out.push(rec_term);
             }
-            SedOp::Append(text) => {
-                appends.push(text.clone());
-            }
+            SedOp::Append(item) => queue.pending.push(item.clone()),
             SedOp::Change(text) => {
                 if cmd.addr2.is_none() || !still_in_range || cmd.negated || is_last {
                     out.push_str(text);
@@ -1639,6 +1663,7 @@ fn exec_sed_cmds(
     SedFlow::Continue
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run_sed_on_text(
     input: &str,
     filename: &str,
@@ -1647,6 +1672,7 @@ fn run_sed_on_text(
     null_data: bool,
     line_length: usize,
     write_files: &mut BTreeMap<String, String>,
+    queue: &mut SedQueue,
 ) -> Result<(String, Option<i32>), String> {
     if input.is_empty() {
         return Ok((String::new(), None));
@@ -1664,7 +1690,6 @@ fn run_sed_on_text(
         let mut pattern_space = raw_lines[line_idx].to_string();
         let mut deleted = false;
         let mut quit = None;
-        let mut appends: Vec<String> = Vec::new();
         let mut subst_made = false;
         let mut restart_guard = 0usize;
 
@@ -1678,7 +1703,7 @@ fn run_sed_on_text(
                 &mut hold_space,
                 &mut subst_made,
                 &mut out,
-                &mut appends,
+                queue,
                 write_files,
                 quiet,
                 rec_term,
@@ -1712,14 +1737,11 @@ fn run_sed_on_text(
         let is_last = line_idx + 1 == total;
         if !deleted && !quiet {
             out.push_str(&pattern_space);
-            if !is_last || had_trailing_delim {
+            if !is_last || had_trailing_delim || !queue.pending.is_empty() {
                 out.push(rec_term);
             }
         }
-        for ap in appends {
-            out.push_str(&ap);
-            out.push(rec_term);
-        }
+        queue.flush(&mut out)?;
         if quit.is_some() { return Ok((out, quit)); }
         line_idx += 1;
     }

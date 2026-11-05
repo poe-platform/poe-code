@@ -31,6 +31,19 @@ test("sed refuses symlink edits and directory traversal through a regular file",
   } finally { await bash.dispose(); }
 });
 
+test("sed admits queued read bytes once per edited file and skips discarded reads", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true,deviceView:"provided",files:{"/a":"a","/b":"b","/raw":Uint8Array.of(255,0,226,130)}});
+  bash.mountDevices();
+  try {
+    const result = await bash.exec("sed -ni -e 'r /raw' a b", {limits:{maxOutputBytes:8}});
+    assert.equal(result.exitCode, 0, result.stderr);
+    for (const path of ["/a", "/b"]) assert.deepEqual([...await bash.fs.readFile(path)], [255,0,226,130]);
+    const quiet = await bash.exec("sed -n -e 'r /dev/zero' -e Q a", {limits:{maxOutputBytes:0}});
+    assert.equal(quiet.exitCode, 0, quiet.stderr);
+    await assert.rejects(bash.exec("sed -n -e 'r /dev/zero' a", {limits:{maxOutputBytes:8}}), /maxOutputBytes/);
+  } finally { await bash.dispose(); }
+});
+
 test("output budgets count the bytes written by each command and pipeline stage", async () => {
   for (const bytes of [Uint8Array.of(255), new TextEncoder().encode("\uE080")]) {
     const bash = new RustWasmBash({ files: { "/bytes": bytes } });

@@ -193,11 +193,13 @@ class Markdown {
   }
   async blocks(nodes: readonly Block[], path: string, task = false): Promise<string> {
     const parts: string[] = [];
-    let previousBullet = "";
     for(const [i, node] of nodes.entries()) {
       await this.context.cooperate();
       const p = `${path}[${i}]`;
-      if(i) parts.push(nodes[i - 1]?.t === "Plain" ? "\n" : "\n\n");
+      if(i) {
+        const previous = nodes[i - 1]!.t;
+        parts.push(previous === node.t && (previous === "BulletList" || previous === "OrderedList") ? "\n\n<!-- -->\n\n" : previous === "Plain" ? "\n" : "\n\n");
+      }
       switch(node.t) {
         case "Plain": case "Para": parts.push(this.paragraph(node.c, `${p}.c`, task && i === 0)); break;
         case "LineBlock": {
@@ -238,12 +240,11 @@ class Markdown {
           const loose = items.some(item => item.some(block => block.t === "Para"));
           const rendered: string[] = [];
           for(const [j, item] of items.entries()) {
-            const mark = node.t === "BulletList" ? nodes[i - 1]?.t === "BulletList" && previousBullet === "-" ? "+" : "-" : markdownListMarker(node.c[0][0] + j, this.selection.extensions.fancy_lists ? node.c[0][1] : "Decimal", this.selection.extensions.fancy_lists ? node.c[0][2] : node.c[0][2] === "OneParen" ? "OneParen" : "Period");
+            const mark = node.t === "BulletList" ? "-" : markdownListMarker(node.c[0][0] + j, this.selection.extensions.fancy_lists ? node.c[0][1] : "Decimal", this.selection.extensions.fancy_lists ? node.c[0][2] : node.c[0][2] === "OneParen" ? "OneParen" : "Period");
             this.reserve(mark.length + 1);
             const content = await this.blocks(item, `${p}.items[${j}]`, true);
             rendered.push(content ? this.indent(content, mark + " ", " ".repeat(mark.length + 1)) : mark);
           }
-          if(node.t === "BulletList") previousBullet = nodes[i - 1]?.t === "BulletList" && previousBullet === "-" ? "+" : "-";
           parts.push(this.join(rendered, loose ? "\n\n" : "\n")); break;
         }
         case "DefinitionList": {

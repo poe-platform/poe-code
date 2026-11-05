@@ -181,7 +181,8 @@ it("keeps blank lines inside blockquotes and adjacent lists distinct", async () 
   const quote: Block = {t: "BlockQuote", c: [p(s("a")), p(s("b"))]};
   const actual = await md([quote]); expect(actual).toBe("> a\n>\n> b\n"); expect(await back(actual)).toEqual([quote]);
   const list: Block = {t: "BulletList", c: [[{t: "Plain", c: [s("a")]}]]};
-  const lists = await md([list, list]); expect(lists).toBe("- a\n\n+ a\n"); expect(await back(lists)).toEqual([list, list]);
+  const lists = await md([list, list]); expect(lists).toBe("- a\n\n<!-- -->\n\n- a\n");
+  expect(await back(lists)).toEqual([list, {t: "RawBlock", c: ["html", "<!-- -->\n"]}, list]);
 });
 it("escapes ordered markers split across inline nodes and keeps intraword nested emphasis", async () => {
   expect(await md([p(s("1"), s("."), {t: "Space"}, s("item"))])).toBe("1\\. item\n");

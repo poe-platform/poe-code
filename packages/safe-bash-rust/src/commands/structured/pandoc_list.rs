@@ -116,13 +116,15 @@ pub(super) enum Tasks {
     CommonMark,
 }
 
-pub(super) fn label(item: &[PandocBlock]) -> Option<(bool, bool, &[PandocInline])> {
+pub(super) fn label(item: &[PandocBlock], allow_bare: bool) -> Option<(bool, bool, &[PandocInline])> {
     let first = item.first()?;
     let (PandocBlock::Plain(content) | PandocBlock::Para(content)) = first else {
         return None;
     };
-    let [PandocInline::Text(mark), PandocInline::Space, rest @ ..] = content.as_slice() else {
-        return None;
+    let (mark, rest) = match content.as_slice() {
+        [PandocInline::Text(mark), PandocInline::Space, rest @ ..] => (mark, rest),
+        [PandocInline::Text(mark)] if allow_bare => (mark, &[][..]),
+        _ => return None,
     };
     let checked = match mark.as_str() {
         "☒" => true,
@@ -293,17 +295,8 @@ pub(super) fn text(
                     out.extend(std::iter::repeat_n(' ', marker.len()));
                 }
             }
-            let line = if markdown && line_no == 0 {
-                line.strip_prefix("☒ ")
-                    .map(|s| ("[x] ", s))
-                    .or_else(|| line.strip_prefix("☐ ").map(|s| ("[ ] ", s)))
-                    .unwrap_or(("", line))
-            } else {
-                ("", line)
-            };
-            limit = limit.checked_sub(line.0.len() + line.1.len())?;
-            out.push_str(line.0);
-            out.push_str(line.1);
+            limit = limit.checked_sub(line.len())?;
+            out.push_str(line);
         }
     }
     Some(out)

@@ -244,7 +244,11 @@ class MarkdownTape {
       if (job.op === "parts" || job.op === "list") {
         if (!job.stage) {job.text = emptyText(); job.index = 0; job.cursor = job.begin ?? job.node + 32; job.end = job.op === "parts" ? 0 : job.stop ?? (await this.tree.describe(job.node)).end;}
         else {
-          if (job.index) await this.text.append(job.text!, await this.literal(job.mode === "block" ? job.previous === "Plain" ? "\n" : "\n\n" : job.sep ?? ""));
+          if (job.index) {
+            const adjacent = job.previous === job.next && (job.next === "BulletList" || job.next === "OrderedList");
+            const gap = job.mode === "block" ? adjacent ? "\n\n<!-- -->\n\n" : job.previous === "Plain" ? "\n" : "\n\n" : job.sep ?? "";
+            await this.text.append(job.text!, await this.literal(gap));
+          }
           await this.text.append(job.text!, result); job.index!++;
           job.previous = job.next;
         }
@@ -272,11 +276,9 @@ class MarkdownTape {
                 for await (const chunk of this.tree.scalarChunks(value)) for (const char of chunk) if (char < "0" || char > "9") digits = false;
               }
               job.digits = digits;
-            } else if (tag === "BulletList") {
-              child.first = job.previous === "BulletList" && job.first === "-" ? "+" : "-"; job.first = child.first;
             }
           }
-          if (job.mode === "item") {child.first = job.first; child.number = job.number; child.delimiter = job.delimiter; child.style = job.style;}
+          if (job.mode === "item") {child.number = job.number; child.delimiter = job.delimiter; child.style = job.style;}
         }
         if (child) {if (job.index && job.sep) await this.addProjection(job.sep.length); job.stage = 1; await this.push(job); await this.push(child);} else {
           result = job.text!;
@@ -335,7 +337,7 @@ class MarkdownTape {
         continue;
       }
       if (job.op === "item") {
-        const mark = job.number === undefined ? job.first! : markdownListMarker(job.number + job.index!, job.style!, job.delimiter!);
+        const mark = job.number === undefined ? "-" : markdownListMarker(job.number + job.index!, job.style!, job.delimiter!);
         this.reserve(mark.length + 1);
         await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: mark + " ", rest: " ".repeat(mark.length + 1)});
         await this.push(this.list(job.node, job.path, "block", {task: true})); continue;
@@ -499,7 +501,7 @@ class MarkdownTape {
             numberingStyle = this.selection.extensions.fancy_lists ? style : "Decimal";
           }
           let loose = false; for await (const item of this.tree.children(items)) for await (const block of this.tree.children(item)) if (await this.tag(block) === "Para") loose = true;
-          await this.push(this.list(items, await this.path(job.path, ".items"), "item", {first: job.first, number, delimiter, style: numberingStyle, sep: loose ? "\n\n" : "\n"})); continue;
+          await this.push(this.list(items, await this.path(job.path, ".items"), "item", {number, delimiter, style: numberingStyle, sep: loose ? "\n\n" : "\n"})); continue;
         }
         if (tag === "DefinitionList" && this.selection.extensions.definition_lists) {
           await this.push(this.list(content!, cp, "definition", {sep: "\n\n"})); continue;

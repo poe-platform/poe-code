@@ -2083,6 +2083,27 @@ for (const bitsPerSample of [8, 24, 32] as const) {
   });
 }
 
+for (const channels of [3, 4]) {
+  for (const levels of [[0.5, -0.5], [0.25, 0.5]]) {
+    it(`matches native stereo upmix to ${channels} channels for ${levels}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: levels.map(level => new Float64Array(800).fill(level)) });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/input.wav", "-ac", String(channels), "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, channels);
+      assert.equal(audio.channelData.length, channels);
+      // Native FFmpeg preserves FL/FR and leaves the added channels silent.
+      for (const [channel, samples] of audio.channelData.entries()) {
+        assert.equal(samples.length, 800);
+        const expected = levels[channel] ?? 0;
+        for (const sample of samples) assert.ok(Math.abs(sample - expected) <= 1 / 32768, `channel ${channel}: ${sample} versus ${expected}`);
+      }
+    });
+  }
+}
+
 // Header emitted by native FFmpeg 9 from a 0.1-second, 8000 Hz PCM16 5.1 WAV.
 const surroundWavHeader = "52494646ffffffff57415645666d742028000000feff0600401f0000007701000c001000160010003f0000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636332e312e313031000064617461ffffffff";
 

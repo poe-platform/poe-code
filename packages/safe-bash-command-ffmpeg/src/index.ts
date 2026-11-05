@@ -2307,7 +2307,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                 const dst = new Float32Array(targetSamples);
-                const srcCh = stretched[Math.min(c, (stretched.length || 1) - 1)];
+                const srcCh = stretched[origCh === 1 ? 0 : c];
                 const rightCh = origCh === 2 && targetCh === 1 ? stretched[1] : undefined;
                 if (srcCh && srcCh.length > 0) {
                   for (let i = 0; i < targetSamples; i++) {

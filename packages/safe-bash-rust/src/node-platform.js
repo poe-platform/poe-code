@@ -19,12 +19,12 @@ export function fsOperationError(text, syscall, path, dest, detail) {
 }
 let compiledWasmModule = null;
 
-export function coreModule() {
+export function instantiateCore(imports) {
   if (!compiledWasmModule) {
     const bytes = fs.readFileSync(path.join(__dirname, "safe_bash_rust.wasm"));
     compiledWasmModule = new WebAssembly.Module(bytes);
   }
-  return compiledWasmModule;
+  return new WebAssembly.Instance(compiledWasmModule, imports);
 }
 let adapter;
 export function callbackModule() { return adapter ??= new WebAssembly.Module(adapterBytes); }

@@ -1,4 +1,4 @@
-import { coreModule, callbackModule, posix, fsOperationError } from "#wasm-platform";
+import { instantiateCore, callbackModule, posix, fsOperationError } from "#wasm-platform";
 const encoder = new TextEncoder();
 const overlayReceipt = Symbol("overlay observation");
 const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
@@ -13,7 +13,8 @@ const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 function createWasmInstance() {
   const collators = new Map();
   let zoneName, zoneFormatter;
-  const instance = new WebAssembly.Instance(coreModule(), {
+  let instance;
+  const loaded = instantiateCore({
     safe_bash: {
       wall_clock_ms: () => Date.now(),
       timezone_fields(ptr, len, seconds, offsetPtr, labelPtr, capacity) {
@@ -74,7 +75,8 @@ function createWasmInstance() {
       },
     },
   });
-  return instance;
+  if (loaded instanceof Promise) return loaded.then(value => instance = value);
+  return instance = loaded;
 }
 
 export class ShellLimitError extends Error {
@@ -621,12 +623,14 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
 
   let deviceShell;
   const release = () => {
-    deviceShell?.dispose();
+    const disposing = deviceShell instanceof Promise
+      ? deviceShell.then(shell => shell.dispose(), () => {}) : deviceShell?.dispose();
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
     if (!executionSignal.aborted && cleanupFailures.length) {
       if (cleanupFailures.length === 1) throw cleanupFailures[0];
       throw new AggregateError(cleanupFailures, "Invocation cleanup failed");
     }
+    return disposing;
   };
   try {
     for (const definition of middleware.length ? [...definitions,null] : definitions) {
@@ -726,7 +730,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             if(["rm","unlink","chmod","writeFileConditional","removeFileConditional","prepareDirectory"].includes(operation))throw fsOperationError("EBUSY",undefined,p);
             if(kind===3 && ["stat","lstat","access","openReadFile","readFile","readStream","open","realpath","readlink"].includes(operation))
               return fs[operation](canonical,...args);
-            const virtual=ownedDeviceFs ?? (deviceShell??=new RustWasmBash({cwd:"/"})).fs;
+            const virtual=ownedDeviceFs ?? (await (deviceShell ??= createRustWasmBash({cwd:"/"}))).fs;
             return virtual[operation](canonical,...args);
           };
           const write = async (operation, path, data, settings) => {
@@ -2078,12 +2082,12 @@ export class RustWasmBash extends WasmShell {
   #releasedScopes = typeof FinalizationRegistry === "function" && typeof WeakRef === "function" && new FinalizationRegistry(scope => {
     if (!this.#identityScopes.get(scope)?.deref()) this.#identityScopes.delete(scope);
   });
-  constructor(options = {}) {
+  constructor(options = {}, instance) {
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
       throw new TypeError("deviceView must be default or provided");
     }
-    const instance = createWasmInstance();
+    instance ??= createWasmInstance();
     super(instance.exports, instance.exports.safe_bash_create_session(), options.cwd ?? "/workspace", options.env, options.ShellLimitError ?? ShellLimitError);
     this.instance = instance;
     this.shell = this;
@@ -2738,7 +2742,7 @@ export class RustWasmBash extends WasmShell {
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
-      try { releaseCommands?.(); } finally { try { if(releaseFs)await releaseFs(); } finally { shell.dispose(); } }
+      try { if (releaseCommands) await releaseCommands(); } finally { try { if(releaseFs)await releaseFs(); } finally { shell.dispose(); } }
     }
     if (elapsedMs > 0 && res.exitCode !== 1) {
       const waitMs = Math.min(elapsedMs, 50);
@@ -2992,5 +2996,8 @@ export class RustWasmBash extends WasmShell {
 }
 
 export function createRustWasmBash(options = {}) {
-  return new RustWasmBash(options);
+  const loaded = createWasmInstance();
+  return loaded instanceof Promise
+    ? loaded.then(instance => new RustWasmBash(options, instance))
+    : new RustWasmBash(options, loaded);
 }

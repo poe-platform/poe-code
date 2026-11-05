@@ -11,7 +11,7 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 | Capability | Description |
 | --- | --- |
 | `Shell` | Stateful virtual shell (`cwd`, `env`, `SafeBashFs`) using native Rust by default; select `BackendMode::Hybrid` or `TypeScriptOnly` explicitly for the Node bridge |
-| `createRustWasmBash` | Node.js and Cloudflare Workers loader for the zero-dependency WebAssembly (`wasm32-unknown-unknown`) shell |
+| `createRustWasmBash` | Node.js, browser and Cloudflare Workers loader for the zero-dependency WebAssembly (`wasm32-unknown-unknown`) shell |
 | `MemoryVfs` / `OverlayVfs` / `MountVfs` | In-memory VFS with quota limits, Copy-on-Write overlays, and path-routed virtual mounts (`/dev`) |
 | `ShellLimits` | Bounded loop iterations, command count, recursion depth, output bytes, and filesystem operations |
 | `PoeAgentShellHost` | Drop-in `poe-agent-rust` shell host with `read`/`edit` policy checks, 128 KiB UTF-16 tail retention, and background handles (`run_in_background`, `read_background`, `kill_background`) |
@@ -38,6 +38,8 @@ Pass a filesystem to `exec(script, { fs })` to use it for that call only. On Nod
 In UTF-8 locales, `fold` measures display columns with fixed Unicode width tables. They use the same zero-width marks and wide-character ranges as the JavaScript command, independent of the host locale library. See [the Unicode data license](./LICENSE.UNICODE).
 
 Native `tac -r` searches byte patterns from the end of each input. It reports `EFBIG` when a pattern exceeds 64 KiB or 64 nested groups, or when compilation or matching exceeds its work or memory budgets. JavaScript can accept larger patterns.
+
+In browsers, use `const shell = await createRustWasmBash(options)`. Serve `safe_bash_rust.wasm` beside the bundled JavaScript with the `application/wasm` content type. Each shell has its own memory; concurrent shells share the compiled module.
 
 In Cloudflare Workers, import `createRustWasmBash` from the package and configure your bundler to include `safe_bash_rust.wasm` and `stream-adapter.wasm` as compiled Wasm modules. The Worker entry requires no Node.js compatibility flag. Dispose each shell after use: Workers keep filesystem identity tokens until the owning shell is disposed.
 

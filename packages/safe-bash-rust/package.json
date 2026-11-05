@@ -9,9 +9,15 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "workerd": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/workerd.js"
+      },
+      "browser": {
+        "types": "./dist/browser.d.ts",
+        "default": "./dist/browser.js"
+      },
       "types": "./dist/index.d.ts",
-      "workerd": "./dist/workerd.js",
-      "browser": null,
       "node": "./dist/index.js",
       "default": "./dist/index.js"
     }
@@ -21,7 +27,8 @@
     "test": "node ../mcp-protocol-rust/scripts/cargo.mjs test && node --test src/wasm.test.mjs",
     "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && node --test src/wasm.test.mjs",
     "lint": "cargo clippy --all-targets -- -D warnings",
-    "test:workerd": "workerd test tests/workerd/config.capnp"
+    "test:workerd": "workerd test tests/workerd/config.capnp",
+    "test:browser": "node tests/browser/run.mjs"
   },
   "dependencies": {},
   "peerDependencies": {
@@ -48,6 +55,7 @@
   "imports": {
     "#wasm-platform": {
       "workerd": "./src/workerd-platform.js",
+      "browser": "./src/browser-platform.js",
       "default": "./dist/node-platform.js"
     }
   }

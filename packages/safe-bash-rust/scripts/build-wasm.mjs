@@ -51,6 +51,12 @@ await build({
   bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", target: "es2022",
   external: ["*.wasm"],
 });
-copyFileSync(path.join(pkgDir, "src", "index.d.ts"), path.join(distDir, "index.d.ts"));
+await build({
+  entryPoints: [path.join(pkgDir, "src/browser.js")], outfile: path.join(distDir, "browser.js"),
+  bundle: true, platform: "browser", format: "esm", target: "es2022",
+});
+for (const file of ["index.d.ts", "browser.d.ts"]) {
+  copyFileSync(path.join(pkgDir, "src", file), path.join(distDir, file));
+}
 copyFileSync(path.join(pkgDir, "LICENSE.UNICODE"), path.join(distDir, "LICENSE.UNICODE"));
 copyFileSync(path.join(pkgDir, "LICENSE.BZIP2"), path.join(distDir, "LICENSE.BZIP2"));

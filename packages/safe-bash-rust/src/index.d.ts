@@ -139,6 +139,11 @@ interface StreamCommandRegistry {
   list(): readonly StreamCommand[];
 }
 
+export class ShellLimitError extends Error {
+  readonly limit: string;
+  constructor(limit: string);
+}
+
 export class RustWasmBash {
   readonly shell: RustWasmBash;
   readonly fs: WasmFileSystem;

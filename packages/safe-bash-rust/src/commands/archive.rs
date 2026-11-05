@@ -10571,7 +10571,7 @@ fn ssh_config_port(option: &str) -> Option<Result<(String, bool), &'static str>>
     Some(if value.is_empty() { Err("Missing argument.") } else { Ok((value, count > 1)) })
 }
 
-fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const USAGE: &str = "usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
            [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
            [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]

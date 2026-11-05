@@ -158,6 +158,7 @@ export function linuxCommands(text: string) {
     "-oPort=24 -p25", "-p25 -oPort=24", "-o ' pOrT = 0024 # use this port'", "-o 'Port 2\"4\"'", "-oPort=www", "-oPort=24 -pbad", "-oPort=27 -oPort=28"]) {
     pipes.push("ssh -GT -F none " + options + " example.invalid | grep '^port '");
   }
+  pipes.push("{ ssh -GT -F none -o Port=24 example.invalid >/dev/null; cat; } <samples/base");
   pipes.push(String.raw`ssh -GT -o$'Port=\xff' example.invalid`);
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);

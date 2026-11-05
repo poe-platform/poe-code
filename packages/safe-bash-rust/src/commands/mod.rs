@@ -959,6 +959,9 @@ where
     if cmd == "xq" {
         return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
     }
+    if cmd == "ssh" {
+        return Ok(Some(archive::cmd_ssh(args, fs)));
+    }
     if archive::is_compression_command(cmd) {
         return Ok(Some(archive::cmd_gzip(cmd, args, CommandInput { text: stdin, file }, cwd, fs)));
     }

@@ -15926,6 +15926,7 @@ mod tests {
             ("head -c1", "a", 1),
             ("cat & wait; head -c1", "a", 1),
             ("absent-cmd 2>/dev/null; echo $?", "127\n", 0),
+            ("ssh -GT -F none -o Port=24 example.invalid >/dev/null; head -c1", "a", 1),
             ("which cat >/dev/null; head -c1", "a", 1),
             ("grep z /named; head -c1", "z\na", 1),
             ("grep --help >/dev/null; rg --version >/dev/null", "", 0),
@@ -16818,7 +16819,7 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
         fs.write_file("/f", b"0123456789abcdef").unwrap();
-        let r = shell.exec("{ seq 2; basename /f; expr 4 + 3; head -c1; } </f").unwrap();
+        let r = shell.exec("{ seq 2; basename /f; expr 4 + 3; ssh -GT -F none host >/dev/null; head -c1; } </f").unwrap();
         assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "1\n2\nf\n7\n0", ""));
     }
 

@@ -214,7 +214,7 @@ export async function parseCommonMarkInlines(
       let opener = closer.previous;
       while (opener && opener.index > floor) {
         if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
-        if (opener.char === closer.char && opener.open && (closer.scriptEnd !== undefined ? opener.scriptEnd === closer.position : closer.char === "~" ? opener.original === closer.original : !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
+        if (opener.char === closer.char && opener.open && (closer.char === "'" || closer.char === '"' ? true : closer.scriptEnd !== undefined ? opener.scriptEnd === closer.position : closer.char === "~" ? opener.original === closer.original : !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
         opener = opener.previous;
       }
       if (!opener || opener.index <= floor) {
@@ -233,7 +233,8 @@ export async function parseCommonMarkInlines(
       const last = closer.node.previous;
       context.charge("nodes", 1);
       context.charge("retainedBytes", 128);
-      const wrap: Node = { value: { t: opener.scriptEnd !== undefined ? opener.char === "^" ? "Superscript" : "Subscript" : opener.char === "~" ? "Strikeout" : count === 2 ? "Strong" : "Emph", c: [] }, children: first, previous: opener.node, next: closer.node };
+      const quote = opener.char === "'" || opener.char === '"';
+      const wrap: Node = { value: quote ? {t: "Quoted", c: [opener.char === "'" ? "SingleQuote" : "DoubleQuote", []]} : { t: opener.scriptEnd !== undefined ? opener.char === "^" ? "Superscript" : "Subscript" : opener.char === "~" ? "Strikeout" : count === 2 ? "Strong" : "Emph", c: [] }, children: first, previous: opener.node, next: closer.node };
       if (first) first.previous = null;
       if (last) last.next = null;
       opener.node.next = wrap;
@@ -321,9 +322,22 @@ export async function parseCommonMarkInlines(
       }
       append(text.slice(i, start)); i = start; continue;
     }
-    if (char === "*" || char === "_" || char === "^" && extensions.superscript || char === "~" && (extensions.strikeout || extensions.subscript)) {
+    if (extensions.smart && (char === "-" || char === ".")) {
       let end = i;
-      while (text[end] === char) { context.checkpoint(); end++; }
+      while (text[end] === char) {context.checkpoint(); end++;}
+      let count = end - i;
+      if (char === ".") {append("…".repeat(Math.floor(count / 3)) + ".".repeat(count % 3));}
+      else {
+        // Pandoc prefers em dashes for multiples of three, en dashes for even runs.
+        if (count >= 3 && count % 2 !== 0) {append("—"); count -= 3;}
+        append(count % 3 === 0 ? "—".repeat(count / 3) : "–".repeat(Math.floor(count / 2)) + "-".repeat(count % 2));
+      }
+      i = end; continue;
+    }
+    const quote = extensions.smart && (char === "'" || char === '"');
+    if (quote || char === "*" || char === "_" || char === "^" && extensions.superscript || char === "~" && (extensions.strikeout || extensions.subscript)) {
+      let end = i;
+      while (text[end] === char && (!quote || end === i)) { context.checkpoint(); end++; }
       const script = end - i === 1 && (char === "^" && extensions.superscript || char === "~" && extensions.subscript);
       let scriptEnd: number | undefined;
       if (script) {
@@ -340,10 +354,10 @@ export async function parseCommonMarkInlines(
       const prev = before(text, i), next = after(text, end);
       const left = !unicodeWhitespace(next) && (!unicodePunctuation(next) || unicodeWhitespace(prev) || unicodePunctuation(prev));
       const right = !unicodeWhitespace(prev) && (!unicodePunctuation(prev) || unicodeWhitespace(next) || unicodePunctuation(next));
-      const node = append(text.slice(i, end));
+      const node = append(quote ? char === "'" ? "’" : left ? "“" : "”" : text.slice(i, end));
       context.bound("references", ++delimiterCount + bracketCount);
       context.charge("retainedBytes", 96);
-      const entry: Delimiter = { node, char, position: i, scriptEnd, length: end - i, original: end - i, open: script ? scriptEnd !== -1 : char !== "_" ? left : left && (!right || unicodePunctuation(prev)), close: script ? true : char !== "_" ? right : right && (!left || unicodePunctuation(next)), index: serial++, previous: delimiter, next: null };
+      const entry: Delimiter = { node, char, position: i, scriptEnd, length: end - i, original: end - i, open: quote ? left && (char !== "'" || !letter(prev) && !digit(prev)) : script ? scriptEnd !== -1 : char !== "_" ? left : left && (!right || unicodePunctuation(prev)), close: quote ? right && (char !== "'" || !letter(next) && !digit(next)) : script ? true : char !== "_" ? right : right && (!left || unicodePunctuation(next)), index: serial++, previous: delimiter, next: null };
       if (delimiter) delimiter.next = entry;
       delimiter = entry;
       i = end;
@@ -459,7 +473,7 @@ export async function parseCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < text.length && !"\\`*_~^[]!<& \t\n".includes(text[i]!) && !(extensions.tex_math_dollars && text[i] === "$") && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
+    while (i < text.length && !"\\`*_~^[]!<& \t\n".includes(text[i]!) && !(extensions.smart && "'\"-.".includes(text[i]!)) && !(extensions.tex_math_dollars && text[i] === "$") && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
     append(text.slice(begin, i));
   }
   await emphasis(null);
@@ -505,6 +519,7 @@ export async function parseCommonMarkInlines(
       if (node.children) {
         const children = await materialize(node.children, depth + 1);
         if (value.t === "Emph" || value.t === "Strong" || value.t === "Strikeout" || value.t === "Superscript" || value.t === "Subscript") value = { t: value.t, c: children };
+        if (value.t === "Quoted") value = {t: "Quoted", c: [value.c[0], children]};
         if (value.t === "Link" || value.t === "Image") value = { t: value.t, c: [value.c[0], children, value.c[2]] };
       }
       push(value);

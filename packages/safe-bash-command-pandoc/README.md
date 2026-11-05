@@ -59,6 +59,8 @@ checkboxes or text checkbox symbols in LaTeX, reStructuredText, RTF and CommonMa
 compatibility names use the documented engine features; they do not enable
 additional dialect-specific extensions, except that `markdown` and `md` output preserve
 alphabetic and Roman ordered-list numbering (disable with `-fancy_lists`).
+The `markdown` and `md` readers apply smart quotes, dashes, and ellipses; disable
+this with `-f markdown-smart`. Code and escaped punctuation remain literal.
 The `markdown` and `md` readers parse superscripts (`x^2^`) and subscripts
 (`H~2~O`); disable with `-superscript` and `-subscript`. Spaces inside these
 constructs must be escaped with a backslash.

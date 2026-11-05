@@ -66,7 +66,7 @@ export async function parseRetainedCommonMarkInlines(
       while (opener) {
         await context.cooperate(); open = await get(opener, 11);
         if (open[6]! <= floor) break;
-        if (open[1] === close[1] && open[4] && (close[10] !== -2 ? open[10] === close[9] : close[1] === 126 ? open[3] === close[3] : !((close[4] || open[5]) && (open[3]! + close[3]!) % 3 === 0 && (open[3]! % 3 !== 0 || close[3]! % 3 !== 0)))) break;
+        if (open[1] === close[1] && open[4] && (close[1] === 34 || close[1] === 39 ? true : close[10] !== -2 ? open[10] === close[9] : close[1] === 126 ? open[3] === close[3] : !((close[4] || open[5]) && (open[3]! + close[3]!) % 3 === 0 && (open[3]! % 3 !== 0 || close[3]! % 3 !== 0)))) break;
         opener = open[7]!;
       }
       if (!opener || !open || open[6]! <= floor) {
@@ -80,7 +80,8 @@ export async function parseRetainedCommonMarkInlines(
       await put(close[0]!, [(await repeat(String.fromCharCode(close[1]!), close[2])).position]);
       const first = (await get(open[0]!, 5))[4]!, last = (await get(close[0]!, 4))[3]!;
       context.charge("nodes", 1); context.charge("retainedBytes", 128);
-      const value = await ast.tag(open[10] !== -2 ? open[1] === 94 ? "Superscript" : "Subscript" : open[1] === 126 ? "Strikeout" : count === 2 ? "Strong" : "Emph", await ast.array());
+      const quote = open[1] === 34 || open[1] === 39;
+      const value = quote ? await ast.tag("Quoted", await ast.value([await ast.tag(open[1] === 39 ? "SingleQuote" : "DoubleQuote"), await ast.array()])) : await ast.tag(open[10] !== -2 ? open[1] === 94 ? "Superscript" : "Subscript" : open[1] === 126 ? "Strikeout" : count === 2 ? "Strong" : "Emph", await ast.array());
       const wrap = await add([value.position, 0, first, open[0]!, close[0]!]);
       if (first) await put(first + 24, [0]); if (last) await put(last + 32, [0]);
       await put(open[0]! + 32, [wrap]); await put(close[0]! + 24, [wrap]);
@@ -159,8 +160,21 @@ export async function parseRetainedCommonMarkInlines(
       }
       await appendRange(i, start); i = start; continue;
     }
-    if (unit === "*" || unit === "_" || unit === "^" && extensions.superscript || unit === "~" && (extensions.strikeout || extensions.subscript)) {
+    if (extensions.smart && (unit === "-" || unit === ".")) {
       let end = i; while (await char(end) === unit) {await context.cooperate(); end++;}
+      let count = end - i;
+      if (unit === ".") {
+        await append(await repeat("…", Math.floor(count / 3)), true); await append(await repeat(".", count % 3), true);
+      } else {
+        if (count >= 3 && count % 2 !== 0) {await append(await ast.value("—"), true); count -= 3;}
+        if (count % 3 === 0) await append(await repeat("—", count / 3), true);
+        else {await append(await repeat("–", Math.floor(count / 2)), true); await append(await repeat("-", count % 2), true);}
+      }
+      i = end; continue;
+    }
+    const quote = extensions.smart && (unit === "'" || unit === '"');
+    if (quote || unit === "*" || unit === "_" || unit === "^" && extensions.superscript || unit === "~" && (extensions.strikeout || extensions.subscript)) {
+      let end = i; while (await char(end) === unit && (!quote || end === i)) {await context.cooperate(); end++;}
       const script = end - i === 1 && (unit === "^" && extensions.superscript || unit === "~" && extensions.subscript);
       let scriptEnd = -2;
       if (script) {
@@ -177,8 +191,8 @@ export async function parseRetainedCommonMarkInlines(
       const previous = code >= 0xdc00 && code <= 0xdfff ? await scalar(i - 2) : before, next = await scalar(end);
       const left = !unicodeWhitespace(next) && (!unicodePunctuation(next) || unicodeWhitespace(previous) || unicodePunctuation(previous));
       const right = !unicodeWhitespace(previous) && (!unicodePunctuation(previous) || unicodeWhitespace(next) || unicodePunctuation(next));
-      const node = await appendRange(i, end); context.bound("references", ++delimiterCount + bracketCount); context.charge("retainedBytes", 96);
-      const entry = await add([node, unit.charCodeAt(0), end - i, end - i, Number(script ? scriptEnd !== -1 : unit !== "_" ? left : left && (!right || unicodePunctuation(previous))), Number(script ? true : unit !== "_" ? right : right && (!left || unicodePunctuation(next))), serial++, delimiter, 0, i, scriptEnd]);
+      const node = quote ? await append(await ast.value(unit === "'" ? "’" : left ? "“" : "”"), true) : await appendRange(i, end); context.bound("references", ++delimiterCount + bracketCount); context.charge("retainedBytes", 96);
+      const entry = await add([node, unit.charCodeAt(0), end - i, end - i, Number(quote ? left && (unit !== "'" || !letter(previous) && !digit(previous)) : script ? scriptEnd !== -1 : unit !== "_" ? left : left && (!right || unicodePunctuation(previous))), Number(quote ? right && (unit !== "'" || !letter(next) && !digit(next)) : script ? true : unit !== "_" ? right : right && (!left || unicodePunctuation(next))), serial++, delimiter, 0, i, scriptEnd]);
       if (delimiter) await put(delimiter + 64, [entry]); delimiter = entry; i = end; continue;
     }
     if (unit === "[" || unit === "!" && await char(i + 1) === "[") {
@@ -247,7 +261,7 @@ export async function parseRetainedCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < syntax.range.end && !"\\`*_~^[]!<& \t\n".includes((await char(i))!) && !(extensions.tex_math_dollars && await char(i) === "$")) {
+    while (i < syntax.range.end && !"\\`*_~^[]!<& \t\n".includes((await char(i))!) && !(extensions.smart && "'\"-.".includes((await char(i))!)) && !(extensions.tex_math_dollars && await char(i) === "$")) {
       if (extensions.autolink_bare_uris && (await syntax.starts(i, "https://") || await syntax.starts(i, "http://") || await syntax.starts(i, "ftp://") || await syntax.starts(i, "www.") ||
         (letter(await char(i)) || digit(await char(i))) && !letter(await char(i - 1)) && !digit(await char(i - 1)) && !".-_+".includes(await char(i - 1) ?? ""))) break;
       await context.cooperate(); i++;
@@ -295,7 +309,7 @@ export async function parseRetainedCommonMarkInlines(
     await flush();
     if (!fields[2]) {await push(value); node = fields[4]!; continue;}
     const children = await ast.array(), name = (await ast.name(value))!;
-    if (name === "Link" || name === "Image") await ast.set((await ast.content(value))!, 1, children);
+    if (name === "Link" || name === "Image" || name === "Quoted") await ast.set((await ast.content(value))!, 1, children);
     else await ast.replaceTag(value, name, children);
     frame = await add([frame, fields[4]!, out.position, depth, value.position]); out = children; node = fields[2]!; depth++;
   }

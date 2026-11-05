@@ -2028,7 +2028,7 @@ for (const length of [0, 80]) {
     { args: [], rate: 8000, channels: 1, gain: 1, tempo: 1 },
     { args: ["-af", "volume=0.5"], rate: 8000, channels: 1, gain: 0.5, tempo: 1 },
     { args: ["-ar", "16000"], rate: 16000, channels: 1, gain: 1, tempo: 1 },
-    { args: ["-ac", "2"], rate: 8000, channels: 2, gain: 1, tempo: 1 },
+    { args: ["-ac", "2"], rate: 8000, channels: 2, gain: Math.SQRT1_2, tempo: 1 },
     { args: ["-af", "atempo=2,areverse"], rate: 8000, channels: 1, gain: 1, tempo: 2 }
   ]) {
     it(`preserves WAV sample count for ${length} samples with ${args.join(" ") || "no transform"}`, async () => {
@@ -2081,6 +2081,27 @@ for (const bitsPerSample of [8, 24, 32] as const) {
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(vfs.store.get("/output.wav"), input);
   });
+}
+
+for (const channels of [2, 3]) {
+  for (const level of [0.5, -0.5]) {
+    it(`matches native mono upmix to ${channels} channels at ${level}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(level)] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/input.wav", "-ac", String(channels), "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, channels);
+      assert.equal(audio.channelData.length, channels);
+      for (const [channel, samples] of audio.channelData.entries()) {
+        assert.equal(samples.length, 80);
+        // Native FFmpeg maps mono to FL/FR at equal power and leaves LFE silent.
+        const expected = channel < 2 ? level * Math.SQRT1_2 : 0;
+        for (const sample of samples) assert.ok(Math.abs(sample - expected) <= 1 / 32768, `channel ${channel}: ${sample} versus ${expected}`);
+      }
+    });
+  }
 }
 
 for (const channels of [3, 4]) {

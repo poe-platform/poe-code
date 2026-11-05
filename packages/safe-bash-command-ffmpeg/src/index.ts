@@ -2263,6 +2263,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const targetCh = audioChannels ?? origCh;
               const channelMask = t.decodedAudio.channelMask;
               const surroundMono = origCh === 6 && targetCh === 1;
+              const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
               if (targetCh !== origCh && origCh > 2 &&
                   (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                 throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
@@ -2307,7 +2308,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                 const dst = new Float32Array(targetSamples);
-                const srcCh = stretched[origCh === 1 ? 0 : c];
+                const srcCh = monoStereo && c >= 2 ? undefined : stretched[origCh === 1 ? 0 : c];
                 const rightCh = origCh === 2 && targetCh === 1 ? stretched[1] : undefined;
                 if (srcCh && srcCh.length > 0) {
                   for (let i = 0; i < targetSamples; i++) {
@@ -2320,7 +2321,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       ? ((stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) * Math.SQRT1_2 +
                           stretched[2]![srcIdx]! + (stretched[4]![srcIdx]! + stretched[5]![srcIdx]!) / 2) / (2 + Math.SQRT2)
                       : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
-                    dst[i] = Math.max(-1, Math.min(1, sample * volFactor));
+                    // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
+                    dst[i] = Math.max(-1, Math.min(1, sample * volFactor * (monoStereo ? Math.SQRT1_2 : 1)));
                   }
                 }
                 if (reverseAudio) dst.reverse();

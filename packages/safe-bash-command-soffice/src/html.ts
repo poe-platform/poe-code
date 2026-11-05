@@ -20,10 +20,15 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
   const blocks: DocBlock[] = [];
   let text = "";
   let kind: "heading" | "paragraph" = "paragraph";
+  const lists: { next: number | undefined }[] = [];
+  let marker = "";
   const tables: { rows: string[][]; row: string[]; cell: string | undefined }[] = [];
   const flush = () => {
     const value = text.replace(/[\t\n\r\f ]+/g, " ").trim();
-    if (value) blocks.push({ kind, text: value });
+    if (value) {
+      blocks.push({ kind, text: marker + value });
+      marker = "";
+    }
     text = "";
   };
   const append = (value: string) => {
@@ -61,6 +66,13 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
     } else if (boundaries.has(tag)) {
       flush();
       kind = !exit && headings.has(tag) ? "heading" : "paragraph";
+      if (tag === "ul" || tag === "ol") {
+        if (exit) lists.pop();
+        else lists.push({ next: tag === "ol" ? 1 : undefined });
+      } else if (tag === "li") {
+        const list = lists.at(-1);
+        marker = exit || !list ? "" : list.next === undefined ? "• " : `${list.next++}. `;
+      }
     } else if (tag === "br") append("\n");
     if (!exit && "childNodes" in node) {
       stack.push({ node, exit: true });

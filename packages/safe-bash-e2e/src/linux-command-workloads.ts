@@ -129,6 +129,10 @@ export function linuxCommands(text: string) {
     { cmd: "qrencode", args: ["-M", "-t", "ANSI256UTF8", "-m", "3", "1234"], script: "qrencode -M -t ANSI256UTF8 -m 3 1234", input: "" },
     ...[Buffer.from([65, 0, 255, 66]), codecInput().subarray(0, 2048)].map(input => ({ cmd: "qrencode", args: ["-8tASCII"], script: "qrencode -8tASCII", input })),
     { cmd: "qrencode", args: ["-M", "-t", "UTF8", "12345"], script: "qrencode -M -t UTF8 12345", input: "" },
+    ...["sort", "unique", "group_by(.)", "min,max"].map(filter => ({
+      cmd: "jq", args: ["-c", filter], script: "jq -c '" + filter + "'",
+      input: '[{"b":0},{"a":9},{"a":0,"b":[1]},{"b":[0],"a":0},{"a":0,"b":[0]},{"a":2},{"a":9},{},{"y":0,"z":1},{"z":1,"y":0}]\n',
+    })),
     ...pipes.map(script => ({ cmd: "bash", args: ["--noprofile", "--norc", "-c", script], script, input: "" })),
     // Keep the host keybox in the private benchmark directory.
     { cmd: "gpg", args: ["--no-options", "--no-autostart", "--homedir", ".", "--batch", "-q", "--export", "missing"],

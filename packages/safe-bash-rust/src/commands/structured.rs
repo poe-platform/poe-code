@@ -1732,6 +1732,16 @@ fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
             }
             aa.len().cmp(&ab.len())
         }
+        (JVal::Object(a), JVal::Object(b)) => {
+            let mut left: Vec<_> = a.iter().collect();
+            let mut right: Vec<_> = b.iter().collect();
+            left.sort_unstable_by(|x, y| x.0.cmp(&y.0));
+            right.sort_unstable_by(|x, y| x.0.cmp(&y.0));
+            left.iter().map(|e| &e.0).cmp(right.iter().map(|e| &e.0)).then_with(|| {
+                left.iter().zip(right.iter()).map(|(x, y)| compare_jval(&x.1, &y.1))
+                    .find(|order| !order.is_eq()).unwrap_or(std::cmp::Ordering::Equal)
+            })
+        }
         _ => std::cmp::Ordering::Equal,
     }
 }
@@ -1921,7 +1931,7 @@ fn try_eval_jq_builtin(
                 for item in &a[1..] {
                     let ord = compare_jval(item, &best);
                     if (s == "min" && ord == std::cmp::Ordering::Less)
-                        || (s == "max" && ord == std::cmp::Ordering::Greater)
+                        || (s == "max" && !ord.is_lt())
                     {
                         best = item.clone();
                     }
@@ -2595,7 +2605,7 @@ fn try_eval_jq_builtin(
                                 .unwrap_or(JVal::Null);
                             let ord = compare_jval(&k, &best_key);
                             if (fname == "min_by" && ord == std::cmp::Ordering::Less)
-                                || (fname == "max_by" && ord == std::cmp::Ordering::Greater)
+                                || (fname == "max_by" && !ord.is_lt())
                             {
                                 best_key = k;
                                 best_val = item.clone();

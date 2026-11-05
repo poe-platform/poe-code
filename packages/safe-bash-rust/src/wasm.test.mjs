@@ -5269,6 +5269,20 @@ test("the configured host root is live across commands and sessions, and an exec
   } finally { await shell.dispose(); }
 });
 
+test("private redirection fails before creating a file on a host without permissions", {skip: !WebAssembly.Suspending}, async () => {
+  const { MemoryFileSystem } = await import("@poe-code/safe-fs");
+  const fs = new MemoryFileSystem(), sh = new RustWasmBash({fs,cwd:"/"});
+  fs.capabilitiesFor = () => ({...fs.capabilities, open:false, permissions:false});
+  fs.chmod = undefined;
+  try {
+    for (const op of [">", ">>"]) {
+      const result = await sh.exec("umask 077; echo secret " + op + " /private");
+      assert.notEqual(result.exitCode,0);
+      await assert.rejects(fs.stat("/private"), {code:"ENOENT"});
+    }
+  } finally { await sh.dispose(); }
+});
+
 test("mktemp creates private entries on a supplied filesystem and retries a concurrent collision", { skip: !WebAssembly.Suspending }, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
   const fs = new MemoryFileSystem(), sh = new RustWasmBash({ forceNative: true, cwd: "/" });

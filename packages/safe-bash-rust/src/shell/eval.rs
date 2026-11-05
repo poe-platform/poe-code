@@ -10137,11 +10137,10 @@ impl<'a> EvalState<'a> {
             let file = self.fs.open_redirect_file(&path, access, Some(mode)).map_err(error)?;
             if file.is_none() && !exclusive {
                 let existed = self.fs.exists(&path);
-                if !append || !existed {
+                if !existed && self.env.contains_key("\0umask") {
+                    self.fs.create_file(&path, b"", mode).map_err(error)?;
+                } else if !append || !existed {
                     self.fs.write_file(&path, b"").map_err(error)?;
-                    if !existed && self.env.contains_key("\0umask") {
-                        self.fs.chmod(&path, mode).map_err(error)?;
-                    }
                 }
             }
             file

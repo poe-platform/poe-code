@@ -613,8 +613,11 @@ function bindExternalFs(shell,fs,options) {
             break;
           }
           case "readFile":result=await fs.readFile(path,{...settings,maxBytes:flags});break;
-          case "writeFile":await fs.writeFile(path,data,flags?{...settings,mode,flag:"wx"}:{...settings,mode:0o644});break;
-          case "appendFile":await fs.appendFile(path,data,{...settings,mode:0o644});break;
+          case "writeFile":case "appendFile":{
+            if(flags){await fs.writeFile(path,data,{...settings,mode,flag:"wx"});break;}
+            const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
+            await fs[op](path,data,caps?.permissions===false?settings:{...settings,mode:0o644});break;
+          }
           case "mkdir":await fs.mkdir(path,{...settings,recursive:!!flags,mode,exactMode:true});break;
           case "rm":await fs.rm(path,{...settings,recursive:!!flags});break;
           case "unlink":case "rmdir":await fs[op](path,settings);break;

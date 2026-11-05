@@ -116,7 +116,7 @@ it("covers original HTML corpus obligations for plain code, empty definitions an
   const blocks: Block[] = [{t: "CodeBlock", c: [a, '<x>\n']}, {t: "CodeBlock", c: [["", ["unknown-language"], []], 'x < y & z']},
     {t: "DefinitionList", c: [[[], [[{t: "Plain", c: [s("empty term")]}]]]]},
     {t: "Header", c: [3, ["safe", [], [["lang", "日本語"], ["data-label", '"<&']]], [s("heading")]]}];
-  const expected = '<pre><code>&lt;x&gt;\n</code></pre>\n<pre><code class="unknown-language">x &lt; y &amp; z</code></pre>\n<dl>\n<dt></dt>\n<dd>empty term</dd>\n</dl>\n<h3 id="safe" lang="日本語" data-label="&quot;&lt;&amp;">heading</h3>\n';
+  const expected = '<pre><code>&lt;x&gt;\n</code></pre>\n<pre class="unknown-language"><code>x &lt; y &amp; z</code></pre>\n<dl>\n<dt></dt>\n<dd>empty term</dd>\n</dl>\n<h3 id="safe" lang="日本語" data-label="&quot;&lt;&amp;">heading</h3>\n';
   const actual = await html(blocks); expect(actual).toBe(expected); dom(actual, expected);
   await expect(html([{t: "Header", c: [2, ["", [], [["onclick", "x"]]], [s("x")]]}])).rejects.toMatchObject({code: "E_CAPABILITY"});
 });

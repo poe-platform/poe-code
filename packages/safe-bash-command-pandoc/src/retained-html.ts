@@ -149,7 +149,7 @@ class HtmlTape {
     }
     return undefined;
   }
-  private async attrs(node: number, id?: TextRange, codeClass?: string, image = false): Promise<void> {
+  private async attrs(node: number, id?: TextRange, codeClass?: string, image = false, codeBlock = false): Promise<void> {
     id ??= await this.scalar(await this.at(node, 0));
     if (id.units) await this.attribute("id", id);
     const classes = await this.at(node, 1), entries = await this.at(node, 2);
@@ -177,9 +177,11 @@ class HtmlTape {
         if (!(char >= "a" && char <= "z") && !(char >= "0" && char <= "9") && char !== "-") valid = false;
       }
       const allowed = ["title", "lang", "dir", "role"].includes(await this.tree.smallText(keyNode, 5) ?? "") || prefix.startsWith("data-") || prefix.startsWith("aria-");
-      if (!valid || !allowed || await seen.has(key)) await this.fail("Unsupported HTML attribute");
+      const outputKey = codeBlock && !allowed ? await this.text.from(["data-"]) : key;
+      if (outputKey !== key) await this.text.append(outputKey, key);
+      if (!valid || (!allowed && !codeBlock) || await seen.has(outputKey)) await this.fail("Unsupported HTML attribute");
       if (await this.matches(keyNode, "dir") && !["ltr", "rtl", "auto"].includes(await this.tree.smallText(value, 4) ?? "")) await this.fail("Invalid HTML direction");
-      await seen.add(key); await this.attribute(key, await this.scalar(value));
+      await seen.add(outputKey); await this.attribute(outputKey, await this.scalar(value));
     }
   }
   private async url(value: TextRange): Promise<TextRange> {
@@ -427,7 +429,7 @@ class HtmlTape {
         await this.sequence(this.list(content!, cp, "inline", skip), this.literal((task ? "</label>" : "") + (tag === "Para" ? "</p>\n" : "")));
       } else if (tag === "CodeBlock") {
         const attrs = await this.at(content!, 0), language = await this.language(attrs), code = await this.at(content!, 1);
-        if (!language) {await this.add("<pre><code"); await this.attrs(attrs); await this.add(">"); await this.escape(await this.scalar(code)); await this.add("</code></pre>\n"); continue;}
+        if (!language) {await this.add("<pre"); await this.attrs(attrs, undefined, undefined, false, true); await this.add("><code>"); await this.escape(await this.scalar(code)); await this.add("</code></pre>\n"); continue;}
         let id = await this.scalar(await this.at(attrs, 0));
         if (!id.units) id = await this.unique(await this.text.from([`cb${++this.codeCount}`]));
         await this.add('<div class="sourceCode"'); await this.attribute("id", id); await this.add("><pre");
@@ -437,7 +439,7 @@ class HtmlTape {
           for await (const chunk of this.tree.scalarChunks(child)) {this.context.charge("retainedBytes", chunk.length * 2); name += chunk;}
           classes += " " + (name === "numberLines" ? "numberSource" : codeLanguage([name]) === language ? language : name);
         }
-        await this.attrs(attrs, emptyText(), classes); await this.add('><code'); await this.attribute("class", `sourceCode ${language}`); await this.add(">");
+        await this.attrs(attrs, emptyText(), classes, false, true); await this.add('><code'); await this.attribute("class", `sourceCode ${language}`); await this.add(">");
         let source = "";
         for await (const chunk of this.tree.scalarChunks(code)) {await this.context.cooperate(chunk.length); this.context.charge("retainedBytes", chunk.length * 2); source += chunk;}
         let line = 0, open = false;

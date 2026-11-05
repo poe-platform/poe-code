@@ -96,6 +96,8 @@ Markdown headings preserve IDs, classes and key/value attributes (`# Heading {#c
 disable with `-f markdown-header_attributes`.
 Fenced code blocks also preserve IDs, classes and key/value attributes
 (`{#demo .python}` after the opening fence); disable with `-fenced_code_attributes`.
+HTML output places code-block attributes on `<pre>` and renders custom keys as
+`data-` attributes, so `{key=value}` becomes `data-key="value"`.
 The `markdown` and `md` readers recognize Roman ordered lists such as `iv. First`
 and `v. Second`; disable this with `-fancy_lists`.
 HTML ordered lists retain their `start` and `type` attributes when converted to JSON or Markdown. XLSX input uses the first row as table headers, preserves literal

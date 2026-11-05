@@ -16,6 +16,11 @@ for (const retained of [false, true]) {
     });
     return output;
   }
+  it(`preserves fenced code attributes (retained=${retained})`, async () => {
+    expect(await render('```{#sample .unknown key="a&b" data-existing="yes" title="label" onclick="alert(1)"}\nx\n```')).toBe('<pre id="sample" class="unknown" data-key="a&amp;b" data-existing="yes" title="label" data-onclick="alert(1)"><code>x</code></pre>\n');
+    expect(await render('```{.js key=value}\nconst x = 1;\n```')).toContain('<pre class="sourceCode javascript" data-key="value"><code');
+    await expect(render('```{key=one data-key=two}\nx\n```')).rejects.toMatchObject({code: "E_CAPABILITY"});
+  });
   it(`highlights the reported JavaScript fence (retained=${retained})`, async () => {
     expect(await render(source)).toBe(expected);
   });
@@ -27,7 +32,7 @@ for (const retained of [false, true]) {
     expect(html).not.toContain('<tag>');
   });
   it(`keeps unknown languages and unlabelled code plain (retained=${retained})`, async () => {
-    expect(await render('```unknown-language\n<x>\n```\n\n```\ny\n```')).toBe('<pre><code class="unknown-language">&lt;x&gt;</code></pre>\n<pre><code>y</code></pre>\n');
+    expect(await render('```unknown-language\n<x>\n```\n\n```\ny\n```')).toBe('<pre class="unknown-language"><code>&lt;x&gt;</code></pre>\n<pre><code>y</code></pre>\n');
   });
   it(`preserves multiline strings and blank lines (retained=${retained})`, async () => {
     const html = await render('```python\nvalue = """first\n\nlast"""\n```');
@@ -64,4 +69,19 @@ it("preserves carriage returns and Unicode in highlighted source and rejects NUL
 it("leaves the Markdown code-block AST unchanged", async () => {
   const result = await convert([{bytes: new TextEncoder().encode(source)}], {from: "markdown", to: "json"}, {});
   expect(JSON.parse((result as {text: string}).text).blocks).toEqual([{t: "CodeBlock", c: [["", ["js"], []], "const x = 1;"]}]);
+});
+
+it.each(["html", "html5"])("renders fenced key/value attributes through the public %s command", async to => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.md", new TextEncoder().encode("```{key=value}\nconst x = 1;\n```\n"));
+  let output = "", errors = "";
+  const result = await createPandocCommand().execute({command: "pandoc", args: ["-f", "markdown", "-t", to, "/input.md"],
+    cwd: "/", env: {}, fs, signal: new AbortController().signal,
+    stdin: (async function* () {})(),
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}
+  });
+  expect(errors).toBe("");
+  expect(result.exitCode).toBe(0);
+  expect(output).toBe('<pre data-key="value"><code>const x = 1;</code></pre>\n');
 });

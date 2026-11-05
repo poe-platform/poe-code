@@ -56,16 +56,18 @@ class HtmlWriter {
     if(chunk) this.add(chunk);
   }
   attribute(key: string, value: string): void {this.add(` ${key}="`); this.escape(value, true); this.add('"');}
-  attrs(attr: Attr, id = attr[0], image = false): void {
+  attrs(attr: Attr, id = attr[0], image = false, codeBlock = false): void {
     if(id) this.attribute("id", id);
     if(attr[1].length) this.attribute("class", attr[1].join(" "));
     const seen = new Set(["id", "class"]);
-    for(const [key, value] of attr[2]) {
+    for(const [name, value] of attr[2]) {
+      const allowed = ["title", "lang", "dir", "role"].includes(name) || name.startsWith("data-") || name.startsWith("aria-");
+      const key = codeBlock && !allowed ? `data-${name}` : name;
       if (image && key === "width" && !seen.has(key)) {
         seen.add(key); this.attribute(...htmlImageWidth(value)); continue;
       }
       // Explicit passive vocabulary; URL-bearing and active attributes cannot bypass targets.
-      if(seen.has(key) || !( ["title", "lang", "dir", "role"].includes(key) || key.startsWith("data-") || key.startsWith("aria-")) ||
+      if(seen.has(key) || (!allowed && !codeBlock) ||
         [...key].some(ch => !(ch >= "a" && ch <= "z") && !(ch >= "0" && ch <= "9") && ch !== "-")) this.fail("Unsupported HTML attribute");
       if(key === "dir" && !["ltr", "rtl", "auto"].includes(value)) this.fail("Invalid HTML direction");
       seen.add(key); this.attribute(key, value);
@@ -251,11 +253,11 @@ class HtmlWriter {
         }
         case "CodeBlock": {
           const [attr, source] = node.c, language = codeLanguage(attr[1]);
-          if (!language) {this.add("<pre><code"); this.attrs(attr); this.add(">"); this.escape(source); this.add("</code></pre>\n"); break;}
+          if (!language) {this.add("<pre"); this.attrs(attr, attr[0], false, true); this.add("><code>"); this.escape(source); this.add("</code></pre>\n"); break;}
           const id = attr[0] || this.unique(`cb${++this.codeCount}`);
           this.add('<div class="sourceCode"'); this.attribute("id", id); this.add("><pre");
           const classes = ["sourceCode", ...attr[1].map(name => name === "numberLines" ? "numberSource" : codeLanguage([name]) === language ? language : name)];
-          this.attrs(["", classes, attr[2]]); this.add('><code'); this.attribute("class", `sourceCode ${language}`); this.add(">");
+          this.attrs(["", classes, attr[2]], "", false, true); this.add('><code'); this.attribute("class", `sourceCode ${language}`); this.add(">");
           let line = 0, open = false;
           for (const token of highlightCode(source, language, this.context)) {
             const parts = token.text.split("\n");

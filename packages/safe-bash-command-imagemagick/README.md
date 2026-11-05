@@ -20,6 +20,8 @@ console.log(info.stdout); // PNG 60x40
 
 Output parent directories must already exist, including directories selected with `mogrify -path`.
 
+Raw `rgba:` output is unsupported and returns an error instead of emitting PNG bytes, including for `rgba:-` and intermediate `-write` outputs.
+
 Unsupported `-draw` primitives, including the old `matte` primitive, return an error without replacing the output. Use `-alpha on -fill none -draw 'alpha 0,0 floodfill'` to remove a connected background while preserving RGB values and enclosed details. Alpha floodfill uses four-connected neighbors and alpha-aware `-fuzz` matching (percentages or Q16 units); `color x,y floodfill` replaces all RGBA channels.
 
 `-connected-components 4` and `-connected-components 8` label regions of equal color. Add `-define connected-components:verbose=true` to print each region’s bounding box, centroid, area, and mean color, sorted by area. `null:` discards the label image. Label images use the package’s 8-bit raster precision; analysis retains distinct Q16 component IDs (up to 65536 regions). Nonzero `-fuzz` and other connected-components defines are explicitly unsupported. Retained execution keeps labels and traversal scratch in caller storage.

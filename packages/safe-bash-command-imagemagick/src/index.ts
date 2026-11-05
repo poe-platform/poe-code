@@ -3310,6 +3310,7 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { forma
   if (prefixMatch) {
     const prefix = prefixMatch[1]!.toLowerCase();
     const rest = prefixMatch[2]!;
+    if (prefix === "rgba") throw new Error("unsupported output coder 'rgba'");
     const fmt = extToImageFormat(prefix);
     if (fmt) {
       return { format: fmt, path: rest };
@@ -5233,7 +5234,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         await probeImageArguments(argv, input, stdinBytes, signal);
         return drainSteps(runConvertCliSteps(argv, new Map(), stdinBytes, signal), signal);
     }
-    const output = inferOutputFormat(outSpec, "png");
+    let output: ReturnType<typeof inferOutputFormat>;
     await yieldTurn(signal);
     let state = createDefaultState();
     const tokens = argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
@@ -5247,6 +5248,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         steps.push(async (image, backend) => { if (!image) return; const node = operation(image); return node ? transformStoredImage(image, backend.storage, node, signal) : image; });
     };
     try {
+    output = inferOutputFormat(outSpec, "png");
     for (let i = 0; i < tokens.length; i++) {
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;

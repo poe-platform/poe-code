@@ -16,6 +16,7 @@ export class DelimitedParser {
   private pending = "";
   private state: "start" | "plain" | "quoted" | "closed" = "start";
   private active = false;
+  private terminated = false;
   private line = 1;
   private column = 1;
   private work = 0;
@@ -60,6 +61,14 @@ export class DelimitedParser {
     const delimiter = this.format === "csv" ? "," : "\t";
     for (const char of text) {
       this.context.checkpoint();
+      if (++this.work % 256 === 0) await this.context.cooperate(0);
+      if (this.terminated || (this.rows > 0 && !this.active && char === "\n")) {
+        this.terminated = true;
+        if (char !== "\n") this.fail(`unexpected ${JSON.stringify(char)}; expecting end of input`);
+        this.line++;
+        this.column = 1;
+        continue;
+      }
       this.context.bound("tableRows", this.rows + 1);
       this.context.bound("tableColumns", this.fields + 1);
       this.active = true;
@@ -81,7 +90,6 @@ export class DelimitedParser {
       if (char === "\n") {this.line++; this.column = 1;}
       else this.column++;
       if (this.pending.length >= 4096) await this.flush();
-      if (++this.work % 256 === 0) await this.context.cooperate(0);
     }
   }
   async finish(): Promise<void> {

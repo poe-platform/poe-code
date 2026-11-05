@@ -35,7 +35,7 @@ describe("original CSV and TSV document readers", () => {
     expect((await read("", from)).blocks).toEqual([]);
     expect((await read("\ufeff", from)).blocks).toEqual([]);
     expect((await read("\n", from)).blocks).toEqual([table(row(""), [])]);
-    expect((await read("\n\nh\n\nx\n\n", from)).blocks).toEqual([table(row(""), [row(""), row("h"), row(""), row("x"), row("")])]);
+    await expect(read("\n\nh\n\nx\n\n", from)).rejects.toMatchObject({code: "E_PARSE", location: "3:1"});
     for (const ending of ["", "\n", "\r\n", "\r"]) {
       expect((await read(`h\r\nx${ending}`, from)).blocks).toEqual([table(row("h"), [row("x")])]);
       expect((await read(`h${ending}`, from)).blocks).toEqual([table(row("h"), [])]);

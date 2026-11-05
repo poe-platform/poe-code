@@ -6613,6 +6613,29 @@ test("zip reads, relocates and bounds members with ZIP64 central sizes and offse
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip leaves unused stdin available and bounds reads when a dash member is selected", async () => {
+  const sh=new RustWasmBash({cwd:"/",files:{"/src":"src"}});
+  try{
+    for(const cmd of ["zip -q named.zip src","zip -q - src >/dev/null","zip -q filtered.zip - src -x -","zip --help >/dev/null"]){
+      let pulls=0;
+      const r=await sh.exec(cmd,{stdin:{async *[Symbol.asyncIterator](){pulls++;yield Buffer.from("remaining");}}});
+      assert.equal(r.exitCode,0,r.stderr);assert.equal(pulls,0,cmd);
+    }
+    await sh.fs.writeFile("/input","left over\n");
+    for(const [cmd,expected] of [["zip -q file.zip src; cat","left over\n"],["zip -q file.zip -; cat",""]]){
+      const r=await sh.exec("{ "+cmd+"; } </input");
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,expected,""]);
+    }
+    let pulls=0;
+    const run=sh.exec("zip -qm bounded.zip src -",{stdin:{async *[Symbol.asyncIterator](){
+      for(let i=0;i<100;i++){pulls++;yield Buffer.alloc(4,65);}
+    }},limits:{maxInputBytes:10}});
+    await assert.rejects(run,{limit:"maxInputBytes"});assert.ok(pulls<=3,String(pulls));
+    await assert.rejects(sh.fs.lstat("/bounded.zip"),{code:"ENOENT"});
+    assert.equal(sh.readText("/src"),"src");
+  }finally{await sh.dispose();}
+});
+
 test("zip reads a dash member and implicit filter from stdin without moving a literal dash", async () => {
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const rust=new RustWasmBash({cwd:"/"});

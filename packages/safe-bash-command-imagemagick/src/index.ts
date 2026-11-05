@@ -2472,7 +2472,7 @@ function parseCompose(raw: string): BlendMode {
 function magickCompositeMode(mode: string): { name: string; delegated: boolean } {
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
-    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "saturate"].includes(name) };
+    return { name, delegated: ["over", "srcover", "dstover", "destover", "add", "lineardodge", "saturate"].includes(name) };
 }
 
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2507,6 +2507,24 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             const daByte = dst.data[dIdx + 3]!;
             const sa = saByte / 255;
             const da = daByte / 255;
+            if (norm === "plus") {
+                // ImageMagick adds alpha-weighted channels without unpremultiplying.
+                out[dIdx] = clampByteVal(sr * sa + dr * da);
+                out[dIdx + 1] = clampByteVal(sg * sa + dg * da);
+                out[dIdx + 2] = clampByteVal(sb * sa + db * da);
+                out[dIdx + 3] = clampByteVal(saByte + daByte);
+                continue;
+            }
+            if (norm === "minus") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    // Subtract destination in the overlap, retaining both outside contributions.
+                    const channel = src.data[sIdx + c]! * sa + dst.data[dIdx + c]! * da * (1 - 2 * sa);
+                    out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(channel / alpha);
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
             if (norm === "dissolve") {
                 const [sStr, dStr] = (composeArgs || "100").split(/[xX,]/);
                 const sMod = Math.max(0, Math.min(1, (parseFloat(sStr || "100") || 0) / 100));

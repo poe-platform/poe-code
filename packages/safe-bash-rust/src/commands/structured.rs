@@ -30240,6 +30240,12 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
         input.to_string()
     };
     let lines: Vec<&str> = cleaned.lines().collect();
+    let heading = |line: &str| {
+        let level = line.bytes().take_while(|&b| b == b'#').count();
+        ((1..=6).contains(&level) && (line.len() == level || line[level..].starts_with([' ', '\t']))).then_some(level)
+    };
+    let table = |line: &str, i: usize| line.starts_with('|') && line.ends_with('|')
+        && lines.get(i + 1).is_some_and(|next| next.trim().starts_with('|') && next.contains("---"));
     let mut blocks = Vec::new();
     let mut i = 0usize;
     while i < lines.len() {
@@ -30273,16 +30279,12 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
             i += 1;
             continue;
         }
-        if trimmed.starts_with('#') {
-            let level = trimmed.chars().take_while(|&c| c == '#').count();
-            if (1..=6).contains(&level) && trimmed[level..].starts_with(' ') {
-                let text = trimmed[level..].trim();
-                let inlines = parse_pandoc_md_inlines(text);
-                let id = pandoc_slug(&inlines_plain_text(&inlines));
-                blocks.push(PandocBlock::Header(level, id, inlines));
-                i += 1;
-                continue;
-            }
+        if let Some(level) = heading(trimmed) {
+            let inlines = parse_pandoc_md_inlines(trimmed[level..].trim());
+            let id = pandoc_slug(&inlines_plain_text(&inlines));
+            blocks.push(PandocBlock::Header(level, id, inlines));
+            i += 1;
+            continue;
         }
         if i + 1 < lines.len() {
             let next_trim = lines[i + 1].trim();
@@ -30305,12 +30307,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
                 continue;
             }
         }
-        if trimmed.starts_with('|')
-            && trimmed.ends_with('|')
-            && i + 1 < lines.len()
-            && lines[i + 1].trim().starts_with('|')
-            && lines[i + 1].contains("---")
-        {
+        if table(trimmed, i) {
             let parse_pipe_row = |l: &str| -> Vec<String> {
                 let inner = l.trim().trim_start_matches('|').trim_end_matches('|');
                 inner.split('|').map(|c| c.trim().to_string()).collect()
@@ -30385,16 +30382,17 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
             blocks.push(PandocBlock::OrderedList(items));
             continue;
         }
-        let mut p_lines = Vec::new();
+        let mut p_lines = vec![trimmed];
+        i += 1;
         while i < lines.len() {
             let lt = lines[i].trim();
             if lt.is_empty()
-                || lt.starts_with('#')
+                || heading(lt).is_some()
                 || lt.starts_with("```")
                 || lt.starts_with("- ")
                 || lt.starts_with("* ")
                 || lt.starts_with("> ")
-                || (lt.starts_with('|') && lt.ends_with('|'))
+                || table(lt, i)
                 || lt == "---"
             {
                 break;

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { hostname, userInfo } from "node:os";
-import { spawn } from "node:child_process";
+import { resolve } from "node:path";
+import { execFileSync, spawn } from "node:child_process";
 import { chmod, lstat, mkdir, mkdtemp, readdir, readFile, readlink, rm, symlink, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { WasmFileSystem } from "@poe-code/safe-bash-rust";
@@ -13,7 +14,7 @@ export const supportsHostPlugins = typeof Reflect.get(globalThis, "WebAssembly")
 export const gpgDistributionKey = Buffer.from("mDMEX0PliRYJKwYBBAHaRw8BAQdAz75Hlekc16JhhfI0MKdEVxLdkxhcMCO0ZG6WMBAmNpe0H1dlcm5lciBLb2NoIChkaXN0IHNpZ25pbmcgMjAyMCmImgQTFgoAQhYhBG2qbmSnbShAVxtJAlKIl7gmQDraBQJfQ+w1AhsDBQkShccRBQsJCAcCAyICAQYVCgkICwIEFgIDAQIeBwIXgAAKCRBSiJe4JkA62nmuAP9uL/HOdB0gvwWrH+FpURJLs4bnaZaPIk9ARrU0EXRgJgD/YCGfHQXpIPT0ZaXuwJexK04Z+qMFR/bM1q1Leo5CjgY=", "base64");
 export const linuxEnv = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
 export async function runLinuxCommand(cmd: string, args: readonly string[], input: string | Uint8Array, cwd?: string): Promise<readonly [number, Buffer, Buffer]> {
-  const proc = spawn("/usr/bin/" + cmd, args, { cwd, env: linuxEnv, argv0: cmd });
+  const proc = spawn(resolve("/usr/bin", cmd), args, { cwd, env: linuxEnv, argv0: cmd });
   const finished = once(proc, "close");
   proc.stdin.on("error", (error: NodeJS.ErrnoException) => {
     if (error.code !== "EPIPE") throw error;
@@ -220,7 +221,13 @@ export function linuxCommands(text: string) {
   pipes.push(String.raw`ssh -GT -o$'Port=\xff' example.invalid`);
   pipes.push(String.raw`ssh -G$'\xff' example.invalid`);
   pipes.push(String.raw`ssh -Gp$'\xff' example.invalid`);
+  const pandoc = execFileSync("/usr/bin/which", ["pandoc"], { encoding: "utf8" }).trimEnd();
   return [
+    ...["#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",
+      "start\n# Heading\nlast\n"].map(input => ({
+      cmd: pandoc, args: ["-f", "commonmark", "-t", "plain", "--wrap=none"],
+      script: "pandoc -f commonmark -t plain --wrap=none", input,
+    })),
     ...([
       ["sed -e p -e 'a queued' -e 'r samples/base' -e Q7", "first\nsecond\n"],
       ["sed -n -e 'a queued' -e Q7", "first"],

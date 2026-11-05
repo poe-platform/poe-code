@@ -8,7 +8,7 @@ describe("ImageMagick property formatting", () => {
     const path = `/dir-%n/${basename}`;
     const bytes = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
     const result = await runMagickCli(["identify", "-format", "%f|%i|%t|%e|%[mean]", path], new Map([[path, bytes]]));
-    expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: `${basename}|${path}|${basename.slice(0, basename.lastIndexOf("."))}|$\`%b|85` });
+    expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: `${basename}|${path}|${basename.slice(0, basename.lastIndexOf("."))}|$\`%b|21845` });
   });
 
   for (const mode of ["identify", "info"] as const) {
@@ -45,9 +45,9 @@ describe("ImageMagick property formatting", () => {
 
     it(`${mode}: computes standard deviation across spatial samples, not between color channels`, async () => {
       const red = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
-      expect(await format(red, "%[standard-deviation]|%[mean]|%[min]|%[max]")).toBe(`0|85|0|255${newline}`);
+      expect(await format(red, "%[standard-deviation]|%[mean]|%[min]|%[max]")).toBe(`0|21845|0|65535${newline}`);
       const ramp = await sharp(new Uint8Array([0, 0, 0, 255, 255, 255]), { raw: { width: 2, height: 1, channels: 3 } }).png().toBuffer();
-      expect(Number((await format(ramp, "%[standard-deviation]")).trim())).toBeCloseTo(Math.sqrt(2 * 127.5 ** 2), 3);
+      expect(await format(ramp, "%[standard-deviation]")).toBe(`46340.2${newline}`);
     });
 
     it(`${mode}: evaluates hex, pixel, and FX expressions including brackets and arithmetic`, async () => {

@@ -830,7 +830,7 @@ function* magickPixelPropertiesSteps<Step=never>(
   const sums = [0, 0, 0];
   const squares = [0, 0, 0];
   const means = [0, 0, 0, 0], moments = [0, 0, 0, 0];
-  let min = 255;
+  let min = 65535;
   let max = 0;
   let opaque = true;
   let gray = true;
@@ -869,7 +869,7 @@ function* magickPixelPropertiesSteps<Step=never>(
         bitDepth++;
       }
       if (c < 3) {
-        const v = chunk.data[i + c]!;
+        const v = chunk.data16 ? value : value * 257;
         sums[c]! += v;
         squares[c]! += v * v;
         min = Math.min(min, v);
@@ -901,10 +901,10 @@ function* magickPixelPropertiesSteps<Step=never>(
   const deviation = sums.reduce((sum, value, c) => sum + Math.sqrt(Math.max(0,
     (squares[c]! - value * value / count) / Math.max(1, count - 1))), 0) / 3;
   return {
-    mean: formatMetricNum(sums.reduce((sum, value) => sum + value, 0) / (count * 3)),
+    mean: String(Number((sums.reduce((sum, value) => sum + value, 0) / (count * 3)).toPrecision(6))),
     min: String(min),
     max: String(max),
-    "standard-deviation": formatMetricNum(deviation),
+    "standard-deviation": String(Number(deviation.toPrecision(6))),
     opaque: String(opaque),
     type,
     "bit-depth": String(bitDepth)

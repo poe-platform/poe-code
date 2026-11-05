@@ -389,10 +389,19 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         let total = 0;
         for await (const part of parts) {
           async function* admitted() {
-            for await (const bytes of part.chunks) {
-              if (bytes.length > limits.maxOutputBytes - total) throw new RangeError("Output byte limit exceeded");
-              total += bytes.length; yield bytes;
-            }
+            let plaintext: PdfFileSource | undefined, failed = false;
+            try {
+              let chunks = part.chunks;
+              if (options.encryptConfig && !options.decrypt) {
+                plaintext = await PdfFileSource.fromStream(context.fs, storage.directory, chunks, { signal, maxInputBytes: limits.maxOutputBytes - total });
+                chunks = encryptRetainedPdfChunks(plaintext, storage, { ...options.encryptConfig, signal, maxOutputBytes: limits.maxOutputBytes - total });
+              }
+              for await (const bytes of chunks) {
+                if (bytes.length > limits.maxOutputBytes - total) throw new RangeError("Output byte limit exceeded");
+                total += bytes.length; yield bytes;
+              }
+            } catch (error) { failed = true; throw error; }
+            finally { await plaintext?.close().catch(error => { if (!failed) throw error; }); }
           }
           yield { name: part.name, chunks: admitted() };
         }

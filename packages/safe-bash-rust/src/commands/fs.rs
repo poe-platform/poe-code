@@ -1617,8 +1617,8 @@ fn cmd_touch(
                     1,
                 );
             };
-            ref_mtime = Some(ts as f64);
-            ref_atime = Some(ts as f64);
+            ref_mtime = Some(ts);
+            ref_atime = Some(ts);
             i += 2;
             continue;
         }
@@ -1627,8 +1627,8 @@ fn cmd_touch(
             let Some(ts) = parse_touch_date_checked(ds) else {
                 return err_out(&format!("touch: unsupported or invalid date: {ds}\n"), 1);
             };
-            ref_mtime = Some(ts as f64);
-            ref_atime = Some(ts as f64);
+            ref_mtime = Some(ts);
+            ref_atime = Some(ts);
             i += 1;
             continue;
         }
@@ -1721,8 +1721,8 @@ fn cmd_touch(
                                 1,
                             );
                         };
-                        ref_mtime = Some(ts as f64);
-                        ref_atime = Some(ts as f64);
+                        ref_mtime = Some(ts);
+                        ref_atime = Some(ts);
                         break;
                     }
                     't' => {
@@ -1877,14 +1877,14 @@ fn parse_touch_stamp_checked(s: &str) -> Option<u64> {
     Some(secs.max(0) as u64 * 1000)
 }
 
-fn parse_touch_date_checked(s: &str) -> Option<u64> {
+fn parse_touch_date_checked(s: &str) -> Option<f64> {
     let trimmed = s.trim();
-    if let Some(epoch) = trimmed.strip_prefix('@') {
-        let secs = epoch.parse::<i64>().ok()?;
-        return Some(secs.max(0) as u64 * 1000);
+    if trimmed.starts_with('@') {
+        let (seconds, nanos) = super::coreutils::parse_epoch_ns(trimmed)?;
+        return Some((i128::from(seconds) * 1_000_000_000 + i128::from(nanos)) as f64 / 1_000_000.0);
     }
     if let Some(st) = parse_touch_stamp_checked(trimmed) {
-        return Some(st);
+        return Some(st as f64);
     }
     let digits: Vec<u64> = trimmed
         .split(|c: char| !c.is_ascii_digit())
@@ -1900,7 +1900,7 @@ fn parse_touch_date_checked(s: &str) -> Option<u64> {
         let ss = digits.get(5).copied().unwrap_or(0).clamp(0, 59) as i64;
         let days = civil_to_epoch_days(y, m, d);
         let secs = days * 86400 + hh * 3600 + mm * 60 + ss;
-        return Some(secs.max(0) as u64 * 1000);
+        return Some(secs.max(0) as f64 * 1000.0);
     }
     None
 }

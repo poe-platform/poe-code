@@ -7586,7 +7586,7 @@ fn parse_signed_offset(text: &str, allow_single_digit_hour: bool) -> Option<i64>
     Some(sign * (h * 3600 + m * 60 + sec))
 }
 
-fn parse_epoch_ns(s: &str) -> Option<(i64, u32)> {
+pub(super) fn parse_epoch_ns(s: &str) -> Option<(i64, u32)> {
     let rest = s.strip_prefix('@')?;
     let (sign, num_s) = if let Some(r) = rest.strip_prefix('-') {
         (-1i64, r)
@@ -7602,19 +7602,15 @@ fn parse_epoch_ns(s: &str) -> Option<(i64, u32)> {
     if sec_part.is_empty() || !sec_part.bytes().all(|b| b.is_ascii_digit()) {
         return None;
     }
-    if !frac_part.bytes().all(|b| b.is_ascii_digit()) {
+    if (frac_part.is_empty() && sec_part != num_s) || !frac_part.bytes().all(|b| b.is_ascii_digit()) {
         return None;
     }
     let sec_mag = sec_part.parse::<i64>().ok()?;
-    let mut frac_padded = String::with_capacity(9);
-    for ch in frac_part.chars().take(9) {
-        frac_padded.push(ch);
-    }
-    while frac_padded.len() < 9 {
-        frac_padded.push('0');
-    }
-    let ns_mag = frac_padded.parse::<u32>().ok()?;
+    let precision = frac_part.len().min(9);
+    let ns_mag = frac_part[..precision].bytes().fold(0u32, |n, b| n * 10 + u32::from(b - b'0'))
+        * 10u32.pow(9 - precision as u32);
     if sign < 0 {
+        let ns_mag = ns_mag + u32::from(frac_part[precision..].bytes().any(|b| b != b'0'));
         if ns_mag == 0 {
             Some((-sec_mag, 0))
         } else {

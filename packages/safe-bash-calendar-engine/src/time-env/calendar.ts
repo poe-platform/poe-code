@@ -235,8 +235,9 @@ function decimalEpoch(text: string): bigint | undefined {
   const match = /^@([+-]?)(\d+)(?:[.,](\d+))?$/.exec(text);
   if (!match) return undefined;
   if (match[2]!.replace(/^0+/, "").length > 13) throw new CommandFailure("date is outside the supported range");
-  const magnitude = BigInt(match[2]!) * nanosecondsPerSecond + BigInt((match[3] ?? "").slice(0, 9).padEnd(9, "0"));
-  return boundedInstant(match[1] === "-" ? -magnitude : magnitude);
+  const fraction = match[3] ?? "";
+  const magnitude = BigInt(match[2]!) * nanosecondsPerSecond + BigInt(fraction.slice(0, 9).padEnd(9, "0"));
+  return boundedInstant(match[1] === "-" ? -magnitude - (/[1-9]/.test(fraction.slice(9)) ? 1n : 0n) : magnitude);
 }
 
 function parsedZone(text: string | undefined, fallback: TimeZone): TimeZone {

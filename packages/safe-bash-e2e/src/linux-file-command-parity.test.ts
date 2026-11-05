@@ -16,6 +16,8 @@ test("Linux file commands preserve the same bytes, links and permissions in Type
   try {
     for (const script of [
       "mkdir -m 750 data",
+      "touch -d @-1.125 data/clock && touch -a -d @1,250 data/clock && stat -c '%x %y' data/clock && rm data/clock",
+      "date -ud @-0.0000000001 '+%s %N'; date -ud @-1.9999999991 '+%s %N'; date -ud @-1.0000000000 '+%s %N'; date -ud @0.0000000009 '+%s %N'",
       "printf 'one\\ntwo\\nthree\\nfour\\n' >data/input",
       "chmod 640 data/input",
       "ln data/input data/alias",

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { PdfDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, dictGet } from "@poe-code/pdf-ast";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
 for (const mode of ["ordinary", "replace", "stdout", "stdin", "encrypted", "decrypt", "decrypt-plain", "repaired", "object-streams", "linearized", "linearized-stdout", "linearized-rotate", "generate-objects"]) it(`rewrites ${mode} through retained input and atomic streamed output`, async () => {
@@ -13,6 +13,15 @@ for (const mode of ["ordinary", "replace", "stdout", "stdin", "encrypted", "decr
   const inputName = mode === "stdin" ? "-" : "in.pdf", outputName = mode === "replace" ? "in.pdf" : mode.endsWith("stdout") ? "-" : "out.pdf";
   const args = mode === "replace" ? ["--replace-input", inputName] : [inputName, outputName]; if (mode === "encrypted" || mode === "decrypt") args.unshift("--password=reader"); if (mode.startsWith("decrypt")) args.unshift("--decrypt"); if (mode === "linearized-rotate") args.unshift("--rotate=+90:1-z"); if (mode === "generate-objects") args.unshift("--object-streams=generate");
   const files = new Map([[inputName, input]]), expected = await runQpdfCli(args, files);
+  // The buffered oracle retains obsolete containers alongside expanded objects.
+  if (mode === "object-streams") {
+    const saved = PdfDocument.load(files.get(outputName)!);
+    for (const [number, object] of saved.cos.objects) {
+      const type = object.value.kind === "stream" ? dictGet(object.value.dict, "Type") : undefined;
+      if (type?.kind === "name" && type.decoded === "ObjStm") saved.cos.objects.delete(number);
+    }
+    files.set(outputName, saved.save());
+  }
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
   let published = 0; const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const guarded = new Proxy(Object.create(fs) as typeof fs, { get(_target, key) {

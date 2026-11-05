@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { PdfDocument, cosArray, cosBool, cosDict, cosName, cosNumber, cosStream, cosString, dictSet, serializeCosDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, cosArray, cosBool, cosDict, cosName, cosNumber, cosStream, cosString, dictGet, dictSet, serializeCosDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
@@ -25,6 +25,15 @@ for (const mode of ["plain", "encrypted", "encrypted-decrypt", "compressed", "mo
     }
     const input = mode.endsWith("stream") ? serializeCosDocument({ objects: [...doc.cos.objects.values()], rootRef: doc.cos.rootRef, infoRef: doc.cos.infoRef }) : doc.save(mode.startsWith("encrypted") ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : mode === "compressed" ? { objectStreams: "generate" } : {});
     const args = [...flags, ...(mode === "encrypted-decrypt" ? ["--decrypt"] : []), ...(mode.startsWith("encrypted") ? ["--password=reader"] : []), "in.pdf", "out.pdf"], files = new Map([["in.pdf", input]]), expected = await runQpdfCli(args, files);
+    // Compare rewritten objects without the buffered oracle's obsolete containers.
+    if (mode === "compressed") {
+      const saved = PdfDocument.load(files.get("out.pdf")!);
+      for (const [number, object] of saved.cos.objects) {
+        const type = object.value.kind === "stream" ? dictGet(object.value.dict, "Type") : undefined;
+        if (type?.kind === "name" && type.decoded === "ObjStm") saved.cos.objects.delete(number);
+      }
+      files.set("out.pdf", saved.save());
+    }
     const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
     const guarded = new Proxy(Object.create(fs) as typeof fs, { get(_target, key) {
       if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file I/O forbidden"); };

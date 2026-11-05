@@ -114,6 +114,13 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
   }
   try {
     for await (const object of retainedCosObjects(document, storage, { ...(options.streamMode ? { streamMode: options.streamMode } : {}), ...(options.normalizeContent ? { normalizeContent: true } : {}), ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) {
+      const type = object.value.kind === "dict" ? dictGet(object.value, "Type") : undefined;
+      // Members are expanded separately into the mutable store. Replaying their
+      // old container would expose stale definitions alongside edited objects.
+      if (object.stream && type?.kind === "name" && type.decoded === "ObjStm") {
+        for await (const ignored of object.stream.chunks) void ignored;
+        continue;
+      }
       if (!object.stream && object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined) mayLinearize = true;
       await objects.set(object);
     }

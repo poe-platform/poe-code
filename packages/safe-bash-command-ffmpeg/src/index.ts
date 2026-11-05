@@ -710,18 +710,16 @@ async function applyVideoFilterChain(
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
-      const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch };
-      const cx = Math.max(
-        0,
-        Math.min(iw - cw, Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
-      );
-      const cy = Math.max(
-        0,
-        Math.min(ih - ch, Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
-      );
-      current = await mapWork(current, async (f) => {
-
-
+      current = await mapWork(current, async (f, n) => {
+        const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n };
+        const cx = Math.max(
+          0,
+          Math.min(iw - cw, Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
+        );
+        const cy = Math.max(
+          0,
+          Math.min(ih - ch, Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
+        );
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
           left: cx,
           top: cy,

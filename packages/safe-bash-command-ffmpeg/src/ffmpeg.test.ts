@@ -1019,6 +1019,25 @@ describe("decoded audio editing", () => {
 
 
 describe("native ffmpeg parity", () => {
+  for (const position of ["x=n*4:y=0", "0:n*4"]) {
+    it(`evaluates crop position ${position} per frame`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=black:s=16x16:r=3:d=1",
+        "-vf", `drawbox=x=0:y=0:w=4:h=4:c=red:t=fill,crop=8:8:${position}`,
+        "-frames:v", "3", "/frame-%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      for (let frame = 1; frame <= 3; frame++) {
+        const output = decodeImage(vfs.store.get(`/frame-${frame}.png`)!);
+        assert.equal(output.width, 8);
+        assert.equal(output.height, 8);
+        assert.deepEqual([...output.data.slice(0, 4)], frame === 1 ? [255, 0, 0, 255] : [0, 0, 0, 255]);
+      }
+    });
+  }
+
   for (const position of ["x=iw-ow:y=ih-oh", "in_w-out_w:in_h-out_h", "(iw-ow)/2+1:(ih-oh)*1", "2:2"]) {
     it(`evaluates crop position ${position}`, async () => {
       const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");

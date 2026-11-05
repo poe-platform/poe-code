@@ -12,6 +12,7 @@ import {readRetainedXhtml} from "./retained-xhtml-reader.js";
 async function* byteSource(bytes: Uint8Array) {yield bytes;}
 
 it.each([
+  ...["section", "main", "aside", "header"].map(tag => `<${tag} id="x" class="custom" title="Label"><p>One</p></${tag}>`),
   '<details><summary>More</summary><p>Hidden</p></details>',
   '<details><summary><em>More</em></summary><details><summary>Nested</summary><p>Hidden</p></details><p>Last</p></details>',
   '<table><tbody><tr id="heading"><th>A</th><th>B</th></tr><tr><td>x</td><td>y</td></tr></tbody></table>',

@@ -289,7 +289,10 @@ class HtmlWriter {
         }
         case "HorizontalRule": this.add("<hr>\n"); break;
         case "BlockQuote": case "Div": {
-          const tag = node.t === "Div" ? "div" : "blockquote"; this.add(`<${tag}`); if(node.t === "Div") this.attrs(node.c[0]); this.add(">");
+          const tag = node.t === "Div" ? node.c[0][1].includes("section") ? "section" : "div" : "blockquote";
+          this.add(`<${tag}`);
+          if(node.t === "Div") this.attrs(tag === "section" ? [node.c[0][0], node.c[0][1].filter(name => name !== "section"), node.c[0][2]] : node.c[0]);
+          this.add(">");
           await this.blocks(node.t === "Div" ? node.c[1] : node.c, node.t === "Div" ? `${p}.c[1]` : `${p}.c`); this.add(`</${tag}>\n`); break;
         }
         case "BulletList": case "OrderedList": {

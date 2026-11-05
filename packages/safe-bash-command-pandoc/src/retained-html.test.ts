@@ -39,6 +39,7 @@ it.each([{}, {ascii: true}, {standalone: true}, {standalone: true, toc: true, nu
     {t: "CodeBlock", c: [["code", ["lang"], []], "one\ntwo"]},
     {t: "BlockQuote", c: [para(str("quote"))]},
     {t: "Div", c: [["fn1", [], [["dir", "rtl"]]], [para(str("div"))]]},
+    {t: "Div", c: [["section", ["section", "custom"], []], [para(str("section"))]]},
     {t: "BulletList", c: [[para(str("first"))], []]},
     {t: "OrderedList", c: [[3, "LowerRoman", "Period"], [[para(str("numbered"))]]]},
     {t: "DefinitionList", c: [[[str("term")], [[para(str("definition"))], []]]]},

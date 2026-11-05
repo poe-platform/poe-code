@@ -106,10 +106,10 @@ function value(node: H.Element, name: string): string {
 function attr(node: H.Element, omit: readonly string[] = []): Attr {
   return [
     value(node, "id") || (node.tagName === "a" ? value(node, "name") : ""),
-    words(value(node, "class")),
-    node.attrs
+    [...(["section", "aside", "header"].includes(node.tagName) ? [node.tagName] : []), ...words(value(node, "class"))],
+    [...(node.tagName === "main" ? [["role", "main"] as [string, string]] : []), ...node.attrs
       .filter((a) => !a.name.startsWith("on") && !["id", "class", ...omit].includes(a.name))
-      .map((a) => [a.prefix ? `${a.prefix}:${a.name}` : a.name, a.value])
+      .map((a): [string, string] => [a.prefix ? `${a.prefix}:${a.name}` : a.name, a.value])]
   ];
 }
 function number(text: string, fallback: number, max = 65534): number {

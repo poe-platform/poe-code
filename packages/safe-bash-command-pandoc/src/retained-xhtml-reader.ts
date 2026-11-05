@@ -63,7 +63,8 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
   const attributes = async (raw: RtfValue, tag: string, omit: readonly string[] = []) => {
     let id = await lookup(raw, "id"); if (!await nonempty(id) && tag === "a") id = await lookup(raw, "name");
     const classes = await ast.array(), pairs = await ast.array();
-    if (tag === "mark") await ast.push(classes, await ast.value("mark"));
+    if (["mark", "section", "aside", "header"].includes(tag)) await ast.push(classes, await ast.value(tag));
+    if (tag === "main") await ast.push(pairs, await ast.value(["role", "main"]));
     for await (const item of ast.children(await words(await lookup(raw, "class")))) await ast.push(classes, item);
     for await (const pair of ast.children(raw)) {
       const [key] = await entry(pair); let prefix = "";

@@ -149,7 +149,7 @@ class HtmlTape {
     }
     return undefined;
   }
-  private async attrs(node: number, id?: TextRange, codeClass?: string, image = false, codeBlock = false): Promise<void> {
+  private async attrs(node: number, id?: TextRange, codeClass?: string, image = false, codeBlock = false, omitClass?: string): Promise<void> {
     id ??= await this.scalar(await this.at(node, 0));
     if (id.units) await this.attribute("id", id);
     const classes = await this.at(node, 1), entries = await this.at(node, 2);
@@ -157,10 +157,11 @@ class HtmlTape {
     else if (await this.count(classes)) {
       const value = emptyText(); let count = 0;
       for await (const child of this.tree.children(classes)) {
+        if (omitClass && await this.matches(child, omitClass)) continue;
         if (count++) await this.text.append(value, await this.text.from([" "]));
         await this.text.append(value, await this.scalar(child));
       }
-      await this.attribute("class", value);
+      if (count) await this.attribute("class", value);
     }
     const seen = new BackedTextSet(this.storage, this.text);
     await seen.add(await this.text.from(["id"])); await seen.add(await this.text.from(["class"]));
@@ -495,8 +496,16 @@ class HtmlTape {
         await this.sequence(this.list(inner.node, inner.path, "inline"), this.literal(`</h${level}>\n`));
       } else if (tag === "HorizontalRule") await this.add("<hr>\n");
       else if (tag === "BlockQuote" || tag === "Div") {
-        const blockTag = tag === "Div" ? "div" : "blockquote", inner = tag === "Div" ? await child(1) : {node: content!, path: cp};
-        await this.add(`<${blockTag}`); if (tag === "Div") await this.attrs(await this.at(content!, 0)); await this.add(">");
+        let blockTag = tag === "Div" ? "div" : "blockquote";
+        const inner = tag === "Div" ? await child(1) : {node: content!, path: cp};
+        if (tag === "Div") {
+          for await (const name of this.tree.children(await this.at(await this.at(content!, 0), 1))) {
+            if (await this.matches(name, "section")) {blockTag = "section"; break;}
+          }
+        }
+        await this.add(`<${blockTag}`);
+        if (tag === "Div") await this.attrs(await this.at(content!, 0), undefined, undefined, false, false, blockTag === "section" ? "section" : undefined);
+        await this.add(">");
         await this.sequence(this.list(inner.node, inner.path, "block"), this.literal(`</${blockTag}>\n`));
       } else if (tag === "BulletList" || tag === "OrderedList") {
         const ordered = tag === "OrderedList", listTag = ordered ? "ol" : "ul";

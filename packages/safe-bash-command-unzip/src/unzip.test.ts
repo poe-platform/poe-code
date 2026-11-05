@@ -163,6 +163,24 @@ for (const mode of ["-u", "-f"]) test(`unzip ${mode} extracts only newer existin
   else await assert.rejects(fs.stat("/work/missing"));
 });
 
+for (const mode of ["-u", "-f"]) for (const extended of [false, true]) {
+  test(`unzip ${mode} compares ${extended ? "extended" : "DOS"} timestamps at their stored precision`, async () => {
+    const archived = new Date(2024, 0, 2, 3, 4, 6).getTime();
+    const extra = Buffer.alloc(9);
+    extra.writeUInt16LE(0x5455, 0); extra.writeUInt16LE(5, 2); extra[4] = 1;
+    extra.writeUInt32LE(archived / 1000, 5);
+    for (const offset of [-3000, -2000, -1000, -1, 0, 1000, 2000]) {
+      const fs = await fixture([{ name: "a.txt", body: "archive", ...(extended ? { extra } : {}) }]);
+      await fs.writeFile("/work/a.txt", Buffer.from("keep"));
+      await fs.utimes!("/work/a.txt", archived + offset, archived + offset);
+      const result = await run(fs, [mode, "-oq", "sample.zip"]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(Buffer.from(await fs.readFile("/work/a.txt")).toString(),
+        offset < (extended ? 0 : -1000) ? "archive" : "keep", `offset ${offset}`);
+    }
+  });
+}
+
 for (const archiveComment of ["", "hello\r\nworld\u001b!", "hello\0hidden"]) test(`unzip -z displays only archive comment ${JSON.stringify(archiveComment)}`, async () => {
   const fs = await fixture();
   await fs.writeFile("/work/sample.zip", zip([{ name: "hello.txt", body: "hello", crc: 0 }], archiveComment));

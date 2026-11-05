@@ -270,7 +270,11 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           }
           let parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
           let existing = await extraction.destination(path, archivePath, archiveStat);
-          if (parsed.update && existing && Math.ceil(Math.floor(existing.mtimeMs / 1000) / 2) * 2000 >= entry.modified.getTime()) continue;
+          if (parsed.update && existing) {
+            const seconds = Math.floor(existing.mtimeMs / 1000);
+            const modified = entry.extendedTimestamp ? seconds * 1000 : Math.ceil(seconds / 2) * 2000;
+            if (modified >= entry.modified.getTime()) continue;
+          }
           let skip = false;
           let prompting = 0;
           while (existing && overwrite !== "all") {

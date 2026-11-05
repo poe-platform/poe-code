@@ -28,6 +28,8 @@ export interface ZipEntry {
   method: number;
   crc32: number;
   modified: Date;
+  /** Parsed modification time came from a second-precision extra field. */
+  extendedTimestamp?: boolean;
   mode: number;
   directory: boolean;
   symlink: boolean;
@@ -374,6 +376,7 @@ async function openZipDirectory(input: Uint8Array | ZipReadSource, limits: Archi
     if (timestamp !== undefined) modified.setTime(timestamp);
     const entry: ZipEntry = { name, data: buffered ? (await bytes.subarray(payloadStart, payloadStart + compressedSize)) : new Uint8Array(), ...(buffered ? {} : { compressedSize, compressedOffset: payloadStart, compressedSource: () => bytes.stream(payloadStart, compressedSize) }), size, method, crc32: checksum, modified, mode, directory, symlink, rawName, localName, comment, localExtra, centralExtra, flags, versionMadeBy, internalAttributes, externalAttributes, dosTime, dosDate };
     if (aes) entry.aes = aes;
+    entry.extendedTimestamp = timestamp !== undefined;
     entryBounds(entry, limits);
     if ((profile.grow || !buffered) && (centralMetadata.zip64 || localMetadata.zip64)) entry.zip64 = true;
     if (profile.grow) {

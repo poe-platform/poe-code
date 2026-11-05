@@ -1693,14 +1693,15 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%([-+ #0,]*\d*(?:\.\d+)?)([sdiufeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%([-+ #0!,]*\d*(?:\.\d+)?)([sdiufeEgGxXpcqQw%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
     const raw: SqlValue = args[argIdx++] ?? null;
     let flagEnd = 0;
-    while (flagEnd < flags.length && "-+ #0,".includes(flags[flagEnd]!)) flagEnd++;
+    while (flagEnd < flags.length && "-+ #0!,".includes(flags[flagEnd]!)) flagEnd++;
     const modifiers = flags.slice(0, flagEnd);
+    const alternateFloat = modifiers.includes("!");
     const width = Number(flags.slice(flagEnd).split(".")[0]);
     let out = "";
     if (spec === "s") {
@@ -1746,7 +1747,19 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
     } else if (spec === "f") {
       const precMatch = /\.(\d+)/.exec(flags);
       const prec = precMatch ? Number(precMatch[1]) : 6;
-      out = toSqlNumber(raw).toFixed(prec);
+      const value = toSqlNumber(raw);
+      out = value.toFixed(prec);
+      if (alternateFloat && Number.isFinite(value)) {
+        if (out.includes("e")) {
+          const [coefficient = "", power = "0"] = out.split("e");
+          const negative = coefficient.startsWith("-");
+          const digits = (negative ? coefficient.slice(1) : coefficient).replace(".", "");
+          out = `${negative ? "-" : ""}${digits.padEnd(Number(power) + 1, "0")}`;
+        }
+        if (out.includes(".")) while (out.endsWith("0")) out = out.slice(0, -1);
+        if (!out.includes(".")) out += ".";
+        if (out.endsWith(".")) out += "0";
+      }
     } else if ("eEgG".includes(spec)) {
       const precisionIndex = flags.indexOf(".");
       const precision = precisionIndex < 0 ? 6 : Number(flags.slice(precisionIndex + 1));
@@ -1756,8 +1769,9 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
       if (!Number.isFinite(value)) {
         out = Number.isNaN(value) ? "NaN" : value < 0 ? "-Inf" : "Inf";
       } else {
-        // SQLite's ordinary floating conversions retain 16 significant digits.
-        const [coefficient = "", power = "0"] = value.toExponential(Math.min(digits, 15)).split("e");
+        // Alternate-form-2 raises SQLite's significant-digit limit from 16 to 26.
+        const maxDigits = alternateFloat ? 25 : 15;
+        const [coefficient = "", power = "0"] = value.toExponential(Math.min(digits, maxDigits)).split("e");
         const exponent = Number(power);
         // General format selects notation after rounding to significant digits.
         const scientific = !general || exponent < -4 || exponent > digits;
@@ -1773,12 +1787,13 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
               : `${significand.slice(0, point)}.${significand.slice(point)}`;
           if (negative) out = `-${out}`;
         }
-        if (general && out.includes(".")) {
+        if ((general || alternateFloat) && out.includes(".")) {
           while (out.endsWith("0")) out = out.slice(0, -1);
           if (out.endsWith(".")) out = out.slice(0, -1);
-        } else if (!general && digits > 15) {
-          out += "0".repeat(digits - 15);
+        } else if (!general && !alternateFloat && digits > maxDigits) {
+          out += "0".repeat(digits - maxDigits);
         }
+        if (alternateFloat && !out.includes(".")) out += ".0";
         if (scientific) {
           const marker = spec === "E" || spec === "G" ? "E" : "e";
           out += `${marker}${exponent < 0 ? "-" : "+"}${String(Math.abs(exponent)).padStart(2, "0")}`;

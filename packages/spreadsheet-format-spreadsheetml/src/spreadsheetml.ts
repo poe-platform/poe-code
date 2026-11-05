@@ -441,7 +441,7 @@ export async function readSpreadsheetML(bytes: Uint8Array, context: CapabilityCo
               }
             }
             const key = `${rowIndex}:${colIndex}`; if (!cells.has(key) && ++totalCells > context.limits.cells) limit("cells");
-            cells.set(key, { row: rowIndex, column: colIndex, value, ...(pending === undefined ? {} : { formula: serializeExpression({ ...pending, position: { sheet: name, row: rowIndex, column: colIndex } }, nativeGrammar, false, true), cachedResult: value, formulaDirty: true }),
+            cells.set(key, { row: rowIndex, column: colIndex, value, ...(pending === undefined ? {} : { formula: serializeExpression({ ...pending, position: { sheet: name, row: rowIndex, column: colIndex } }, nativeGrammar, false, true), cachedResult: value }),
               ...(style ? { style, ...(typeof style.Format === "string" ? { format: style.Format } : {}) } : {}) });
             pending = undefined;
           }

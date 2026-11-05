@@ -5,6 +5,7 @@ type Node = DefaultTreeAdapterMap["node"];
 export interface DocBlock {
   kind: "heading" | "paragraph" | "table" | "image";
   text?: string;
+  preformatted?: boolean;
   rows?: string[][];
   imageBytes?: Uint8Array;
   width?: number;
@@ -22,11 +23,12 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
   let kind: "heading" | "paragraph" = "paragraph";
   const lists: { next: number | undefined }[] = [];
   let marker = "";
+  let preformatted = false;
   const tables: { rows: string[][]; row: string[]; cell: string | undefined }[] = [];
   const flush = () => {
-    const value = text.replace(/[\t\n\r\f ]+/g, " ").trim();
+    const value = preformatted ? text : text.replace(/[\t\n\r\f ]+/g, " ").trim();
     if (value) {
-      blocks.push({ kind, text: marker + value });
+      blocks.push(preformatted ? { kind, text: marker + value, preformatted: true } : { kind, text: marker + value });
       marker = "";
     }
     text = "";
@@ -63,6 +65,12 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
           table.cell = undefined;
         } else table.cell = "";
       } else if (boundaries.has(tag) || tag === "br") append(" ");
+    } else if (tag === "pre") {
+      flush();
+      preformatted = !exit;
+      kind = "paragraph";
+    } else if (preformatted) {
+      if (tag === "br" && !exit) append("\n");
     } else if (boundaries.has(tag)) {
       flush();
       kind = !exit && headings.has(tag) ? "heading" : "paragraph";

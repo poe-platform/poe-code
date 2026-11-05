@@ -450,14 +450,14 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
       }
       y -= 4;
     } else if (block.kind === "paragraph") {
-      const lines = wrapTextLines(block.text ?? "", 84);
+      const lines = block.preformatted ? (block.text ?? "").split("\n") : wrapTextLines(block.text ?? "", 84);
       for (const line of lines) {
         ensureSpace(16);
         page.drawText(line, {
           x: 54,
           y,
           size: 11,
-          font: "Helvetica",
+          font: block.preformatted ? "Courier" : "Helvetica",
           color: rgb(0.15, 0.15, 0.15)
         });
         y -= 15;
@@ -711,7 +711,8 @@ function renderBlocksToHtml(blocks: readonly DocBlock[], title = "Document"): Ui
     if (b.kind === "heading") {
       html += `<h1>${escapeHtmlText(b.text ?? "")}</h1>\n`;
     } else if (b.kind === "paragraph") {
-      html += `<p>${escapeHtmlText(b.text ?? "")}</p>\n`;
+      const tag = b.preformatted ? "pre" : "p";
+      html += `<${tag}>${escapeHtmlText(b.text ?? "")}</${tag}>\n`;
     } else if (b.kind === "table" && b.rows) {
       html += "<table>\n";
       for (const r of b.rows) {

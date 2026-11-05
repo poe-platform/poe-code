@@ -431,7 +431,14 @@ class HtmlTape {
         const body = await child(2), caption = await child(1); await this.add("<figure"); await this.attrs(await this.at(content!, 0)); await this.add(">");
         await this.sequence(this.list(body.node, body.path, "block"), this.literal("<figcaption>"), {op: "caption", ...caption}, this.literal("</figcaption></figure>\n"));
       } else if (tag === "Table") {
-        await this.add("<table"); await this.attrs(await this.at(content!, 0)); await this.add(">\n");
+        await this.add("<table"); await this.attrs(await this.at(content!, 0));
+        let width = 0;
+        for await (const column of this.tree.children(await this.at(content!, 2))) {
+          const col = await this.at(column, 1);
+          if (await this.tag(col) === "ColWidth") width += await this.number((await this.tree.property(col, "c"))!);
+        }
+        if (width > 0 && width < 1) await this.attribute("style", `width:${Math.round(width * 100)}%;`);
+        await this.add(">\n");
         const caption = await child(1), short = await this.at(caption.node, 0), long = await this.at(caption.node, 1);
         const hasCaption = await this.count(long) || (await this.tree.describe(short)).kind === "array" && await this.count(short);
         if (hasCaption) {

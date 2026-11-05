@@ -279,7 +279,9 @@ class RstReader {
       cursor++;
     }
     if (!closed) rstError(this.context, at, "Unclosed table");
-    const specs: ColSpec[] = columns.map(() => ["AlignDefault", {t: "ColWidthDefault"}]);
+    // Pandoc includes each separator in the width and uses a 72-column page.
+    const gridWidth = Math.max(72, at.text.length + columns.length - 3);
+    const specs: ColSpec[] = columns.map(([a, b]) => ["AlignDefault", grid ? {t: "ColWidth", c: (b - a + 1) / gridWidth} : {t: "ColWidthDefault"}]);
     return {block: {t: "Table", c: [rstAttr(), [null, []], specs, [rstAttr(), rows.slice(0, head)], [[rstAttr(), 0, [], rows.slice(head)]], [rstAttr(), []]]}, end: cursor};
   }
   async blocks(lines: readonly RstLine[], depth = 0): Promise<Block[]> {

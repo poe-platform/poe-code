@@ -193,7 +193,10 @@ class HtmlWriter {
     if(current >= 0) this.add("</tr>\n");
   }
   async table(node: Extract<Block, {t: "Table"}>, p: string): Promise<void> {
-    const t = node.c; this.add("<table"); this.attrs(t[0]); this.add(">\n");
+    const t = node.c; this.add("<table"); this.attrs(t[0]);
+    const width = t[2].reduce((sum, [, col]) => sum + (col.t === "ColWidth" ? col.c : 0), 0);
+    if(width > 0 && width < 1) this.attribute("style", `width:${Math.round(width * 100)}%;`);
+    this.add(">\n");
     if(t[1][1].length || t[1][0]?.length) {this.add("<caption>"); await this.caption(t[1], `${p}.c[1]`); this.add("</caption>\n");}
     this.add("<colgroup>");
     for(const [align, width] of t[2]) {

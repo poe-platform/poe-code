@@ -363,11 +363,11 @@ test("zip dots respect interval boundaries, mode ordering, negation and ZIPOPT p
 
 test("zip stdout diagnostics and dots preserve binary output and cancellation during source reads", async () => {
   const fs = await fixture();
-  const source = Buffer.alloc(65536);
-  const result = await execute("zip", fs, ["-0qdgds32k", "-", "-"], {}, { stdin: (async function* () { yield source; })() });
+  await fs.writeFile("/work/source", Buffer.alloc(65536));
+  const result = await execute("zip", fs, ["-0qdgds64k", "-", "source"]);
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout.readUInt32LE(0), 0x04034b50);
-  assert.equal(result.stderr, " ..\n");
+  assert.equal(result.stderr, " .\n");
   for (const option of ["-dc", "-ddds32k", "-dgds32k", "-sd", "--verbose"]) {
     const controller = new AbortController();
     const reason = new Error("cancel display input");

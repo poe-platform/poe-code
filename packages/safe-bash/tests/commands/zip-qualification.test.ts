@@ -68,8 +68,14 @@ async function roundTrip(input: Case) {
     await assert.rejects(fs.lstat("/work/out.zip"), { code: "ENOENT" });
     return;
   }
-  assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(closed, true);
+  if (input.flags.includes("store") && input.flags.includes("-fd")) {
+    assert.equal(result.exitCode, 16);
+    assert.match(result.stdout.toString(), /zip -0 not supported for I\/O on pipes or devices/);
+    await assert.rejects(fs.lstat("/work/out.zip"), { code: "ENOENT" });
+    return;
+  }
+  assert.equal(result.exitCode, 0, result.stderr);
   const extracted = await execute("unzip", fs, ["-p", "out.zip", "-"]);
   assert.equal(extracted.exitCode, 0, extracted.stderr);
   // Small ASCII fixtures deliberately avoid native conversion-window heuristics.

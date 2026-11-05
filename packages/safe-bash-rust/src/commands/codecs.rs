@@ -3536,10 +3536,10 @@ pub(super) struct ZipRecord<'a> {
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, (0,0), &[], false, (false,None), &ZipRecords::new(), |_,_,_,_| {})
+    encode_zip_members(entries, (0,0), &[], false, (false,None), &ZipRecords::new(), |_,_,_,_| true)
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64): (bool,Option<bool>), retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64): (bool,Option<bool>), retained: &ZipRecords<'_>, mut report: impl FnMut(&crate::commands::archive::TarEntry,u16,usize,usize)->bool) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3576,7 +3576,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
                 out[local+14..local+26].copy_from_slice(&record.central[16..28]);
             }
             let method = u16::from_le_bytes(record.central[10..12].try_into().unwrap());
-            report(&e.name,method,record.sizes.0,record.sizes.1);
+            if !report(e,method,record.sizes.0,record.sizes.1) {return out;}
             count = count.saturating_add(1);
             continue;
         }
@@ -3625,7 +3625,6 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         } else { (0, 10, payload) };
         let version = if wide {version.max(45)} else {version};
         let flags:u16=0x800 | if descriptor {8} else {0} | if method==14 {2} else {0};
-        report(&e.name,method,payload.len(),stored.len());
         let text_attr = u16::from(!document && compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
             && payload.iter().any(|b| matches!(b, 9 | 10 | 13 | 32..=255)));
         let crc = crc32_ieee(payload);
@@ -3648,7 +3647,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         if wide {
             out.extend_from_slice(&(if descriptor {0} else {crc}).to_le_bytes());
             out.extend_from_slice(&[255;8]);
-        } else if descriptor && method == 8 { out.extend_from_slice(&[0;12]); }
+        } else if descriptor && (method == 8 || pipe_member && method == 0) { out.extend_from_slice(&[0;12]); }
         else {
             out.extend_from_slice(&(if descriptor && method == 0 {0} else {crc}).to_le_bytes());
             out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
@@ -3664,6 +3663,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             out.extend_from_slice(&(if descriptor && (method!=0 || pipe_member) {0} else {stored.len() as u64}).to_le_bytes());
         }
         out.extend_from_slice(stored);
+        if !report(e,method,payload.len(),stored.len()) {return out;}
 
         if descriptor {
             out.extend_from_slice(b"PK\x07\x08");

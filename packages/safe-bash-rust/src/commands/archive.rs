@@ -6460,13 +6460,13 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64),&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64),&retained,|_,_,_,_| true), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64),&retained,|_,_,_,_| {}), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64),&retained,|_,_,_,_| true), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
@@ -6680,15 +6680,20 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
     let savings = |size: u64, stored: u64| if size == 0 { 0 } else {
         (200 * (i128::from(size) - i128::from(stored)) / i128::from(size) + 1) / 2
     };
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptors || stdout_archive && !seekable_stdout,zip64), &retained,
-        |name,method,size,stored| {
-            if quiet { return; }
+    let descriptor=descriptors || stdout_archive && !seekable_stdout;
+    let mut store_failed=false;
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptor,zip64), &retained,
+        |entry,method,size,stored| {
+            store_failed=descriptor && method==0 && entry.typeflag==crate::commands::codecs::ZIP_STDIN_TYPE && entry.mode & 0o170000==0o010000;
+            if quiet { return !store_failed; }
+            let name=entry.name.as_str();
             let (size,stored) = (size as u64,stored as u64);
             total += size;
             compressed += stored;
             if let Some((_,Some(_),prior)) = members.get(name) {
                 progress.push_str(if prior.is_none() { "  adding: " } else if freshen_mode { "freshening: " } else { "updating: " });
                 super::fs::write_display_name(&mut progress,zip_public_text(name),false);
+                if store_failed {progress.push_str(if verbose {" \n"} else {"\n"});return false;}
                 if verbose {
                     if method != 0 { progress.push(' '); }
                     write!(progress,"\t(in={size}) (out={stored})").unwrap();
@@ -6696,8 +6701,9 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                 if method != 0 { writeln!(progress," ({} {}%)",match method {12=>"bzipped",14=>"lzma",_=>"deflated"},savings(size,stored)).unwrap(); }
                 else { progress.push_str(" (stored 0%)\n"); }
             }
+            !store_failed
         });
-    if verbose && !quiet { writeln!(progress,"total bytes={total}, compressed={compressed} -> {}% savings",savings(total,compressed)).unwrap(); }
+    if verbose && !quiet && !store_failed { writeln!(progress,"total bytes={total}, compressed={compressed} -> {}% savings",savings(total,compressed)).unwrap(); }
     if read_comment {
         notices.push_str(&progress);
         progress.clear();
@@ -6710,12 +6716,20 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             return BuiltinOutcome {stdout:notices,stderr:"zip: ZIP archive comment byte limit exceeded\n".into(),exit_code:2};
         }
     }
+    let store_error="\nzip error: Invalid command arguments (zip -0 not supported for I/O on pipes or devices)\n";
+    if store_failed && !stdout_archive {
+        return BuiltinOutcome {stdout:format!("{notices}{progress}{store_error}"),stderr:String::new(),exit_code:16};
+    }
     if stdout_archive {
         let mut result = ok_out("");
         notices.push_str(&progress);
         if !notices.is_empty() && !write(2,&notices,&mut result) { return result; }
         for chunk in out_bytes.chunks(32768) {
             if !write(1,&crate::vfs::bytes_to_stream_string(chunk),&mut result) { return result; }
+        }
+        if store_failed {
+            if write(2,store_error,&mut result) {result.exit_code=16;}
+            return result;
         }
         if let Err(e) = remove_zip_sources(fs,moves,quiet,&mut result.stderr) {return err_out(&e,2);}
         return result;

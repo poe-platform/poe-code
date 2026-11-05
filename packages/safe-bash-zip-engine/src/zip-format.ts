@@ -1061,13 +1061,13 @@ export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArc
       }
       if (copied !== item.compressedSize) fail("ZIP retained payload shrank");
     } else yield* wireChunks(entry.data, chunkSize, signal);
+    if ("onEntry" in archive) await archive.onEntry?.(index, entry);
     localLength += bytes.length + item.compressedSize + (descriptor ? wide ? 24 : 16 : 0);
     if (flags & 8) {
       const bytes = zipDescriptor(item.entry.crc32, item.compressedSize, item.entry.size, wide);
       yield* wireChunks(bytes, chunkSize, signal);
     }
     await finalized.append(item);
-    if ("onEntry" in archive) await archive.onEntry?.(index, entry);
     index++;
   }
   let centralSize = 0;

@@ -748,6 +748,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   let visits = 0;
   let work = 0;
   let compressedBytes = 0;
+  let invalidStoreName: string | undefined;
   const encodeSelected = async (source: string, name: string, input: Uint8Array | ByteSource, attributes: Pick<ZipEntry, "modified" | "accessed" | "uid" | "gid" | "mode" | "directory" | "symlink">, expectedSize?: number, sourceStat?: FileStat, sourceCanonical?: string, sourceFifo?: boolean) => {
     const live = !(input instanceof Uint8Array);
     let bytes = live ? new Uint8Array() : input;
@@ -761,6 +762,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       bytes = parsed.fromCrlf ? await zipFromCrlf(bytes, store, context.signal, parsed.level) : await zipToCrlf(bytes, store, Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes + originalSize), context.signal);
       budget.totalBytes += bytes.length - originalSize;
     }
+    if (store && source === "-" && expectedSize === undefined && (streamingStdout || parsed.descriptors) && !parsed.aes) invalidStoreName = name;
     const level = store ? 0 : parsed.level;
     let entry: StoredEntry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (streamingStdout || parsed.descriptors && bytes.length > 0), parsed.method === "store" ? "deflate" : parsed.method);
     if (live) {
@@ -1150,7 +1152,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       if (replacement) { growReplaced = true; await entries.push(replacement.entry); await queue(`${await stats(entry)} copying: ${escapeText(zipPublicText(entry.name), "display")}\n`); await selected.delete(entry.name); }
       continue;
     }
-    if (replacement) { growReplaced = true; await entries.push(replacement.entry); if (replacement.entry.source) await pendingProgress.set(replacement.entry.name, true); else await append(replacement.entry, true); await selected.delete(entry.name); }
+    if (replacement) { growReplaced = true; await entries.push(replacement.entry); if (invalidStoreName || replacement.entry.source) await pendingProgress.set(replacement.entry.name, true); else await append(replacement.entry, true); await selected.delete(entry.name); }
     else if (!parsed.difference) { await budget.member(entry.size); await entries.push(entry); }
   }
   if (parsed.grow && (parsed.zip64 !== undefined || deleted.size || growReplaced)) {
@@ -1162,7 +1164,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       await entries.set(index, entry);
     }
   }
-  for await (const { entry } of selected.values()) { await entries.push(entry); if (entry.source) await pendingProgress.set(entry.name, false); else await append(entry, false); }
+  for await (const { entry } of selected.values()) { await entries.push(entry); if (invalidStoreName || entry.source) await pendingProgress.set(entry.name, false); else await append(entry, false); }
   const summary = async () => {
     if (!parsed.verbose || parsed.quiet) return;
     let size = 0, compressed = 0;
@@ -1202,7 +1204,19 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (editComment) comment = await readZipComment(commentInput, limits, context.signal);
   }
   const outputArchive = async () => {
-    const onEntry = async (index: number, entry: ZipEntry) => { await entries.set(index, entry); };
+    const onEntry = async (index: number, entry: ZipEntry) => {
+      if (invalidStoreName && await pendingProgress.has(entry.name)) {
+        const updating = (await pendingProgress.get(entry.name))!;
+        if (entry.name === invalidStoreName) {
+          await flushProgress();
+          if (!parsed.quiet) await budget.output(`${updating ? "updating:" : "  adding:"} -${parsed.verbose ? " " : ""}\n`);
+          throw new ZipFailure(16, "Invalid command arguments", "zip -0 not supported for I/O on pipes or devices");
+        }
+        await append(entry, updating);
+        await pendingProgress.delete(entry.name);
+      }
+      await entries.set(index, entry);
+    };
     if (scratch) return { entries, comment, onEntry };
     const buffered: ZipEntry[] = [];
     for await (const entry of entries) buffered.push(entry);

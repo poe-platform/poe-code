@@ -106,6 +106,44 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
         assert.deepEqual((await native("unzip", ["-p","check.zip"])).stdout, Buffer.from(payload));
       }
     }
+    for (const args of [["-0", "-", "-"], ["-q0", "-fz-", "-", "-"], ["-0m", "-", "src", "-"], ["-0vm", "-", "-", "src"], ["-0fdm", "failure.zip", "src", "-"]]) {
+      const reference = await native("zip", args, payload);
+      assert.equal(reference.status, 16);
+      for (const [shell, view] of [[js, fs], [rust, rust.fs]] as const) {
+        const result = await shell.exec("zip " + args.join(" "), {stdin:payload});
+        assert.equal(result.exitCode, reference.status, args.join(" "));
+        assert.equal(result.stderr, reference.stderr.toString(), args.join(" "));
+        assert.deepEqual(await view.readFile("/src"), payload);
+        if (args.includes("failure.zip")) {
+          assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
+          await assert.rejects(view.lstat("/failure.zip"), {code:"ENOENT"});
+        } else {
+          for (const bytes of [Buffer.from(result.stdoutBytes),reference.stdout]) {
+            const last = bytes.lastIndexOf(Buffer.from("PK\x03\x04","binary"));
+            assert.ok(last >= 0);
+            const start = last + 30 + bytes.readUInt16LE(last+26) + bytes.readUInt16LE(last+28);
+            assert.deepEqual(bytes.subarray(start), Buffer.from(payload));
+            assert.equal(bytes.readUInt32LE(last+18),args.includes("-fz-") ? 0 : 0xffffffff);
+            assert.equal(bytes.readUInt32LE(last+22),args.includes("-fz-") ? 0 : 0xffffffff);
+          }
+        }
+      }
+    }
+    assert.equal((await native("zip", ["-q", "failure.zip", "src"])).status, 0);
+    const original = await readFile(cwd + "/failure.zip");
+    const update = ["-0fdm", "failure.zip", "src", "-"];
+    const failed = await native("zip", update, payload);
+    assert.equal(failed.status, 16);
+    assert.deepEqual(await readFile(cwd + "/failure.zip"), original);
+    for (const [shell, view] of [[js, fs], [rust, rust.fs]] as const) {
+      await view.writeFile("/failure.zip", original);
+      const result = await shell.exec("zip " + update.join(" "), {stdin:payload});
+      assert.equal(result.exitCode, failed.status);
+      assert.deepEqual(Buffer.from(result.stdoutBytes), failed.stdout);
+      assert.equal(result.stderr, failed.stderr.toString());
+      assert.deepEqual(Buffer.from(await view.readFile("/failure.zip")), original);
+      assert.deepEqual(await view.readFile("/src"), payload);
+    }
     await writeFile(cwd + "/-", "literal dash");
     for (const [shell, view] of [[js, fs], [rust, rust.fs]] as const) {
       await view.writeFile("/-", Buffer.from("literal dash"));

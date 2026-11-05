@@ -114,7 +114,19 @@ export function parseFfmpegTimestamp(spec: string): number {
 }
 
 function parseColorRgba(colorStr: string): [number, number, number, number] {
-  const s = colorStr.trim().toLowerCase();
+  const value = colorStr.trim().toLowerCase();
+  const separator = value.indexOf("@");
+  const s = separator < 0 ? value : value.slice(0, separator);
+  let alpha: number | undefined;
+  if (separator >= 0) {
+    const suffix = value.slice(separator + 1);
+    const opacity = Number(suffix);
+    const maximum = suffix.startsWith("0x") ? 255 : 1;
+    if (!suffix || !Number.isFinite(opacity) || opacity < 0 || opacity > maximum) {
+      throw new Error(`Invalid color alpha: ${colorStr}`);
+    }
+    alpha = Math.floor(opacity * 255 / maximum);
+  }
   const named: Record<string, [number, number, number, number]> = {
     black: [0, 0, 0, 255],
     white: [255, 255, 255, 255],
@@ -130,14 +142,18 @@ function parseColorRgba(colorStr: string): [number, number, number, number] {
     orange: [255, 165, 0, 255],
     purple: [128, 0, 128, 255]
   };
-  if (named[s]) return named[s]!;
-  const hex = s.startsWith("#") ? s.slice(1) : s.startsWith("0x") ? s.slice(2) : "";
-  if (hex.length === 6) {
+  if (named[s]) {
+    const color = named[s]!;
+    color[3] = alpha ?? color[3];
+    return color;
+  }
+  const hex = s.startsWith("#") ? s.slice(1) : s.startsWith("0x") ? s.slice(2) : s;
+  if ((hex.length === 6 || hex.length === 8) && [...hex].every((digit) => "0123456789abcdef".includes(digit))) {
     return [
       parseInt(hex.slice(0, 2), 16) || 0,
       parseInt(hex.slice(2, 4), 16) || 0,
       parseInt(hex.slice(4, 6), 16) || 0,
-      255
+      alpha ?? (hex.length === 8 ? parseInt(hex.slice(6, 8), 16) : 255)
     ];
   }
   return [40, 120, 220, 255];
@@ -888,10 +904,9 @@ async function applyVideoFilterChain(
 
             if (Math.min(x - bx, y - by, bx + bw - 1 - x, by + bh - 1 - y) >= thickness) continue;
             const idx = (y * f.width + x) * 4;
-            nextData[idx] = col[0];
-            nextData[idx + 1] = col[1];
-            nextData[idx + 2] = col[2];
-            nextData[idx + 3] = 255;
+            for (let channel = 0; channel < 3; channel++) {
+              nextData[idx + channel] = (nextData[idx + channel]! * (255 - col[3]) + col[channel]! * col[3]) / 255;
+            }
           }
         }
         return { ...f, data: nextData };

@@ -579,6 +579,84 @@ describe("decoded audio editing", () => {
 
 
 describe("native ffmpeg parity", () => {
+  it("preserves destination alpha when blending drawbox", async () => {
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "lavfi", "-i", "color=c=blue@0.5:s=4x4:r=1:d=1",
+      "-vf", "drawbox=x=1:y=1:w=2:h=2:color=red@0.5:t=fill",
+      "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const image = decodeImage(vfs.store.get("/out.png")!);
+    assert.deepEqual(Array.from(image.data.slice(20, 24)), [127, 0, 128, 127]);
+  });
+
+  for (const alpha of ["", "-0.1", "1.1", "0x100", "nope"]) {
+    it(`rejects invalid drawbox alpha ${JSON.stringify(alpha)}`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=black:s=4x4:r=1:d=1",
+        "-vf", `drawbox=color=red@${alpha}:t=fill`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("Invalid color alpha"), result.stderr);
+      assert.equal(vfs.store.has("/out.png"), false);
+    });
+  }
+
+  it("blends drawbox alpha colors over the short lavfi clip like native FFmpeg", async () => {
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    // FFmpeg: -f lavfi -i color=c=black:s=4x4:r=1:d=1
+    // -vf drawbox=x=1:y=1:w=2:h=2:color=red@0.5:t=fill -frames:v 1 out.png
+    const native = decodeImage(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAGUlEQVR4nGMMY0AAFiBWBbNuQzgoMrdhHAA4UwI/yaxwoAAAAABJRU5ErkJggg==", "base64"));
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-v", "error", "-f", "lavfi", "-i", "color=c=black:s=4x4:r=1:d=1",
+      "-vf", "drawbox=x=1:y=1:w=2:h=2:color=red@0.5:t=fill",
+      "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = decodeImage(vfs.store.get("/out.png")!);
+    assert.equal(actual.width, native.width);
+    assert.equal(actual.height, native.height);
+    for (let channel = 0; channel < 4; channel++) {
+      // Native lavfi uses YUV; allow its conversion rounding at pixel (1, 1).
+      assert.ok(Math.abs(actual.data[20 + channel]! - native.data[20 + channel]!) <= 6,
+        `channel ${channel}: ${actual.data[20 + channel]} vs ${native.data[20 + channel]}`);
+    }
+  });
+
+  for (const [color, expected] of [
+    ["red@0", [0, 0, 255, 255]],
+    ["red@1", [255, 0, 0, 255]],
+    ["red", [255, 0, 0, 255]],
+    ["red@0.5", [127, 0, 128, 255]],
+    ["#ff0000@0.5", [127, 0, 128, 255]],
+    ["0xff0000@0x80", [128, 0, 127, 255]],
+    ["0xff000080", [128, 0, 127, 255]],
+    ["ff000080@0", [0, 0, 255, 255]]
+  ] as const) {
+    it(`drawbox blends ${color} over blue and leaves pixels outside the box unchanged`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=blue:s=4x4:r=1:d=1",
+        "-vf", `drawbox=x=1:y=1:w=2:h=2:color=${color}:t=fill`,
+        "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const image = decodeImage(vfs.store.get("/out.png")!);
+      for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 4; x++) {
+          const offset = (y * 4 + x) * 4;
+          assert.deepEqual(Array.from(image.data.slice(offset, offset + 4)),
+            x >= 1 && x < 3 && y >= 1 && y < 3 ? [...expected] : [0, 0, 255, 255]);
+        }
+      }
+    });
+  }
+
   for (const [format, expected] of [
     ["csv=p=0", "HelloWorld\n"],
     ["compact=p=0", "tag:title=HelloWorld\n"],

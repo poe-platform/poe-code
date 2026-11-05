@@ -24,7 +24,9 @@ WAV extraction decodes AAC in memory and honors MP4 priming and edit timing:
 `ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported
 audio fails without replacing an existing output. Audio filters still require
 decoded PCM input, such as WAV or a `lavfi` source. Unsupported audio filters fail
-without creating or replacing the output. Stream copying remains supported.
+without creating or replacing the output. Stream copying remains supported. Global metadata defaults to the first input;
+`-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying.
+Explicit `-metadata key=value` tags override copied metadata.
 Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.

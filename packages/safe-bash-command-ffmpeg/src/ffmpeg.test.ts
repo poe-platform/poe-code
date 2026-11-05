@@ -1801,3 +1801,45 @@ for (const [sourceRate, targetRate] of [[16000, 8000], [44100, 16000]] as const)
     }
   });
 }
+
+describe("global metadata mapping", () => {
+  for (const sync of [false, true]) {
+    for (const [mapping, title] of [[undefined, "First"], ["0", "First"], ["1", "Second"], ["-1", undefined]] as const) {
+      for (const override of [false, true]) {
+        it(`${sync ? "sync" : "async"} maps metadata ${mapping ?? "by default"} with override=${override}`, async () => {
+          const vfs = createTestVfs({
+            "/first.mp4": createSyntheticMp4({ frameCount: 1, metadata: { title: "First", artist: "Artist" } }),
+            "/second.mp4": createSyntheticMp4({ frameCount: 1, metadata: { title: "Second" } })
+          });
+          const args = ["-i", "/first.mp4", "-i", "/second.mp4",
+            ...(sync ? [] : ["-map", "0:v"]),
+            ...(mapping === undefined ? [] : ["-map_metadata", mapping]),
+            ...(override ? ["-metadata", "title=Override"] : []), "-c", "copy", "/out.mp4"];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          const tags = parseMp4(vfs.store.get("/out.mp4")!).metadata;
+          assert.equal(tags.title, override ? "Override" : title);
+          assert.equal(tags.artist, mapping === "1" || mapping === "-1" ? undefined : "Artist");
+        });
+      }
+    }
+    for (const mapping of ["2", "oops", "1.5"]) {
+      it(`${sync ? "sync" : "async"} rejects metadata source ${mapping} without writing output`, async () => {
+        const vfs = createTestVfs({ "/first.mp4": createSyntheticMp4({ frameCount: 1 }) });
+        const args = ["-i", "/first.mp4", "-map_metadata", mapping, "-c", "copy", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
+        } else {
+          assert.notEqual((await runCmd(createFfmpegCommand(), args, vfs)).exitCode, 0);
+        }
+        assert.equal(vfs.store.has("/out.mp4"), false);
+      });
+    }
+  }
+});

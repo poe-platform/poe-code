@@ -1112,6 +1112,7 @@ export function evalSyncFfmpeg(
     let rotation: number | undefined;
     let noOverwrite = true;
     const vfFilters: string[] = [];
+    let metadataSource: number | undefined;
     const metadata: Record<string, string> = {};
     let outputTarget: string | undefined;
 
@@ -1119,8 +1120,12 @@ export function evalSyncFfmpeg(
       const arg = args[i]!;
       if (arg === "-y") noOverwrite = false;
       else if (arg === "-n") noOverwrite = true;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode" || arg === "-map_metadata" || arg === "-map_chapters") i++;
-      else if (arg === "-start_number") {
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode" || arg === "-map_chapters") i++;
+      else if (arg === "-map_metadata") {
+        const value = args[++i];
+        metadataSource = value?.trim() ? Number(value) : NaN;
+        if (!Number.isSafeInteger(metadataSource)) return undefined;
+      } else if (arg === "-start_number") {
         const val = Number(args[++i]);
         if (!Number.isSafeInteger(val) || val < 0) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
@@ -1256,15 +1261,18 @@ export function evalSyncFfmpeg(
         }),
       };
     }
+    if (metadataSource !== undefined && metadataSource >= loadedDocs.length) return undefined;
+    const sourceMetadata = metadataSource === undefined ? loadedDocs[0]!.metadata
+      : metadataSource < 0 ? {} : loadedDocs[metadataSource]!.metadata;
     const metaTags: Mp4MetadataTags = {
-      ...workingDoc.metadata,
-      title: metadata.title ?? workingDoc.metadata.title,
-      artist: metadata.artist ?? workingDoc.metadata.artist,
-      album: metadata.album ?? workingDoc.metadata.album,
-      date: metadata.date ?? metadata.year ?? workingDoc.metadata.date,
-      comment: metadata.comment ?? workingDoc.metadata.comment,
-      genre: metadata.genre ?? workingDoc.metadata.genre,
-      encoder: metadata.encoder ?? workingDoc.metadata.encoder,
+      ...sourceMetadata,
+      title: metadata.title ?? sourceMetadata.title,
+      artist: metadata.artist ?? sourceMetadata.artist,
+      album: metadata.album ?? sourceMetadata.album,
+      date: metadata.date ?? metadata.year ?? sourceMetadata.date,
+      comment: metadata.comment ?? sourceMetadata.comment,
+      genre: metadata.genre ?? sourceMetadata.genre,
+      encoder: metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags };
     if (isNullMux) return "";
@@ -1393,6 +1401,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       const vfFilters: string[] = [];
       const afFilters: string[] = [];
       let filterComplex: string | undefined;
+      let metadataSource: number | undefined;
       const metadata: Record<string, string> = {};
       let outputTarget: string | undefined;
 
@@ -1410,8 +1419,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           hlsSegmentFilename = args[++i];
         } else if (arg === "-hls_segment_type") {
           hlsSegmentType = args[++i];
-        } else if (arg === "-hls_list_size" || arg === "-hls_flags" || arg === "-map_metadata" || arg === "-map_chapters") {
+        } else if (arg === "-hls_list_size" || arg === "-hls_flags" || arg === "-map_chapters") {
           i++;
+        } else if (arg === "-map_metadata") {
+          const value = args[++i];
+          metadataSource = value?.trim() ? Number(value) : NaN;
+          if (!Number.isSafeInteger(metadataSource)) {
+            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);
+            return { exitCode: 1 };
+          }
         } else if (arg === "-start_number") {
           const val = Number(args[++i]);
           if (!Number.isSafeInteger(val) || val < 0) {
@@ -2248,16 +2264,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           };
         }
 
+        if (metadataSource !== undefined && metadataSource >= loadedDocs.length) {
+          throw new Error(`Invalid metadata input index: ${metadataSource}`);
+        }
+        const sourceMetadata = metadataSource === undefined ? loadedDocs[0]!.metadata
+          : metadataSource < 0 ? {} : loadedDocs[metadataSource]!.metadata;
+
         // Apply `-metadata` tags
         const metaTags: Mp4MetadataTags = {
-          ...workingDoc.metadata,
-          title: metadata.title ?? workingDoc.metadata.title,
-          artist: metadata.artist ?? workingDoc.metadata.artist,
-          album: metadata.album ?? workingDoc.metadata.album,
-          date: metadata.date ?? metadata.year ?? workingDoc.metadata.date,
-          comment: metadata.comment ?? workingDoc.metadata.comment,
-          genre: metadata.genre ?? workingDoc.metadata.genre,
-          encoder: metadata.encoder ?? workingDoc.metadata.encoder
+          ...sourceMetadata,
+          title: metadata.title ?? sourceMetadata.title,
+          artist: metadata.artist ?? sourceMetadata.artist,
+          album: metadata.album ?? sourceMetadata.album,
+          date: metadata.date ?? metadata.year ?? sourceMetadata.date,
+          comment: metadata.comment ?? sourceMetadata.comment,
+          genre: metadata.genre ?? sourceMetadata.genre,
+          encoder: metadata.encoder ?? sourceMetadata.encoder
         };
         workingDoc = {
           ...workingDoc,

@@ -3873,37 +3873,6 @@ fn gh_config_dir(env: &BTreeMap<String, String>) -> String {
     format!("{}/.config/gh", get("HOME").map(String::as_str).unwrap_or("/home/user"))
 }
 
-fn gh_config_file(fs: &dyn SafeBashFs, path: &str, display: &str) -> Result<(BTreeMap<String, String>, Option<String>), String> {
-    use config_mutations_rust::yaml::document::{scan, Kind};
-    let mut values = BTreeMap::new();
-    let stat = match fs.command_descriptor_op().and_then(|_| fs.stat(path)) {
-        Ok(stat) => stat,
-        Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => return Ok((values, None)),
-        Err(e) => return Err(e),
-    };
-    if stat.size > fs.max_input_bytes() { return Err("gh input byte limit exceeded".into()); }
-    fs.command_descriptor_op()?;
-    let bytes = fs.read_file(path)?;
-    if bytes.len() > fs.max_input_bytes() { return Err("gh input byte limit exceeded".into()); }
-    let invalid = |reason| {
-        let msg = format!("invalid config file {display}: {reason}");
-        format!("warning: failed to load config: {msg}\nfailed to create root command: failed to read configuration: {msg}\n")
-    };
-    let source: Vec<_> = std::str::from_utf8(&bytes).map_err(|_| invalid("invalid yaml"))?.encode_utf16().collect();
-    let doc = scan(&source).map_err(|_| invalid("invalid yaml"))?;
-    let root = &doc.nodes[doc.root];
-    if root.kind == Kind::Scalar && root.text.is_empty() && !root.quoted { return Ok((values, None)); }
-    if root.kind != Kind::Mapping { return Err(invalid("invalid format")); }
-    for pair in root.children.chunks_exact(2) {
-        let (key, value) = (&doc.nodes[pair[0]], &doc.nodes[pair[1]]);
-        if key.kind == Kind::Scalar {
-            values.entry(String::from_utf16_lossy(&key.text)).or_insert_with(|| String::from_utf16_lossy(&value.text));
-        }
-    }
-    let original = if root.children.is_empty() { None } else { Some(String::from_utf8(bytes).unwrap()) };
-    Ok((values, original))
-}
-
 fn gh_clear_cache<'a>(args: impl Iterator<Item = &'a str>, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let error = |stderr| BuiltinOutcome { stdout: String::new(), stderr, exit_code: 1 };
     let mut count = 0;
@@ -4464,10 +4433,11 @@ fn cmd_gh_inner(
             let dir = resolve_posix_path(cwd, &display_dir);
             let display = format!("{}/config.yml", display_dir.trim_end_matches('/'));
             let path = resolve_posix_path(cwd, &display);
-            let (file, original) = match gh_config_file(fs, &path, &display) {
+            let config = match super::gh_config::read(fs, cwd, &display_dir) {
                 Ok(values) => values,
                 Err(e) => return error(format!("{e}\n")),
             };
+            let file = &config.values;
             let mut host = "";
             let mut pos = Vec::new();
             let mut words = args.iter().skip(2).map(String::as_str);
@@ -4488,15 +4458,16 @@ fn cmd_gh_inner(
             let st = map.entry(fs_id).or_default();
             let scopes = st.gh_config.get(&dir);
             let lookup = |key: &str, scope: &str| scopes.and_then(|m| m.get(scope)).and_then(|items| items.get(key))
+                .or_else(|| config.hosts.iter().find(|(name, _)| !scope.is_empty() && name == scope).and_then(|(_, items)| items.get(key)))
                 .or_else(|| scopes.and_then(|m| m.get("")).and_then(|items| items.get(key))).or_else(|| file.get(key)).map(String::as_str)
                 .or_else(|| DEFAULTS.iter().find(|(k, _)| *k == key).map(|(_, value)| *value));
             match sub {
                 "list" | "ls" => {
-                    let mut hosts = scopes.into_iter().flat_map(|m| m.keys()).map(String::as_str).filter(|h| !h.is_empty());
+                    let mut hosts = config.hosts.iter().map(|(name, _)| name).chain(scopes.into_iter().flat_map(|m| m.keys()).filter(|h| !config.hosts.iter().any(|(name, _)| name == *h))).map(String::as_str).filter(|h| !h.is_empty());
                     let scope = if !host.is_empty() { host }
                         else if let Some(h) = env.get("GH_HOST").filter(|h| !h.is_empty()) { h }
                         else { match (hosts.next(), hosts.next()) { (Some(h), None) => h, _ => "github.com" } };
-                    let stdout = DEFAULTS.iter().map(|(k, _)| format!("{k}={}\n", lookup(k, if *k == "telemetry" { "" } else { scope }).unwrap())).collect();
+                    let stdout = DEFAULTS.iter().map(|(k, _)| format!("{k}={}\n", lookup(k, if matches!(*k, "telemetry" | "clipboard") { "" } else { scope }).unwrap())).collect();
                     BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
                 }
                 "get" => {
@@ -4525,7 +4496,7 @@ fn cmd_gh_inner(
                     let stderr = if default.is_none() { format!("! warning: '{key}' is not a known configuration key\n") } else { String::new() };
                     if host.is_empty() {
                         drop(map);
-                        if let Err(e) = super::gh_config_write::write(fs, &dir, &path, original.as_deref(), key, value) {
+                        if let Err(e) = super::gh_config::write(fs, &dir, &path, config.original.as_deref(), key, value) {
                             let diagnostic = match e.split(':').next() {
                                 Some("EACCES") => format!("failed to write config to disk: open {display}: permission denied"),
                                 Some("EROFS") => format!("failed to write config to disk: open {display}: read-only file system"),

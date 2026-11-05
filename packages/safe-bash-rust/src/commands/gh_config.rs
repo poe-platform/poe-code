@@ -1,7 +1,94 @@
 use super::structured::{JVal, parse_json_stream};
-use crate::vfs::SafeBashFs;
-use config_mutations_rust::yaml::document::{Kind, mapping_slot, scan};
+use crate::vfs::{SafeBashFs, resolve_posix_path};
+use config_mutations_rust::yaml::document::{Document, Kind, mapping_slot, scan};
+use std::collections::BTreeMap;
 use std::sync::OnceLock;
+
+#[derive(Default)]
+pub(super) struct Config {
+    pub values: BTreeMap<String, String>,
+    pub hosts: Vec<(String, BTreeMap<String, String>)>,
+    pub original: Option<String>,
+}
+
+fn entries(doc: &Document, node: usize) -> impl Iterator<Item = (String, usize)> + '_ {
+    doc.nodes[node].children.chunks_exact(2).filter_map(move |pair| {
+        let key = &doc.nodes[pair[0]];
+        (doc.nodes[node].kind == Kind::Mapping && key.kind == Kind::Scalar)
+            .then(|| (String::from_utf16_lossy(&key.text), pair[1]))
+    })
+}
+
+fn settings(doc: &Document, node: usize) -> BTreeMap<String, String> {
+    let mut values = BTreeMap::new();
+    for (key, value) in entries(doc, node) {
+        values
+            .entry(key)
+            .or_insert_with(|| String::from_utf16_lossy(&doc.nodes[value].text));
+    }
+    values
+}
+
+pub(super) fn read(fs: &dyn SafeBashFs, cwd: &str, dir: &str) -> Result<Config, String> {
+    let mut config = Config::default();
+    let mut remaining = fs.max_input_bytes();
+    for name in ["config.yml", "hosts.yml"] {
+        let display = format!("{}/{name}", dir.trim_end_matches('/'));
+        let path = resolve_posix_path(cwd, &display);
+        fs.command_descriptor_op()?;
+        let stat = match fs.stat(&path) {
+            Ok(stat) => stat,
+            Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => continue,
+            Err(e) => return Err(e),
+        };
+        if stat.size > remaining {
+            return Err("gh input byte limit exceeded".into());
+        }
+        let bytes = fs.read_file(&path)?;
+        remaining = remaining
+            .checked_sub(bytes.len())
+            .ok_or("gh input byte limit exceeded")?;
+        let invalid = |reason| {
+            let msg = format!("invalid config file {display}: {reason}");
+            format!(
+                "warning: failed to load config: {msg}\nfailed to create root command: failed to read configuration: {msg}\n"
+            )
+        };
+        let text = String::from_utf8(bytes).map_err(|_| invalid("invalid yaml"))?;
+        let source: Vec<_> = text.encode_utf16().collect();
+        let doc = scan(&source).map_err(|_| invalid("invalid yaml"))?;
+        let root = &doc.nodes[doc.root];
+        if root.kind == Kind::Scalar && root.text.is_empty() && !root.quoted {
+            continue;
+        }
+        if root.kind != Kind::Mapping {
+            return Err(invalid("invalid format"));
+        }
+        let hosts = if name == "config.yml" {
+            config.values = settings(&doc, doc.root);
+            config.original = Some(text);
+            entries(&doc, doc.root)
+                .find(|(key, _)| key == "hosts")
+                .map(|(_, node)| node)
+        } else if !root.children.is_empty() && !config.values.contains_key("hosts") {
+            config.values.insert("hosts".into(), String::new());
+            Some(doc.root)
+        } else {
+            None
+        };
+        if let Some(hosts) = hosts {
+            for (name, host) in entries(&doc, hosts) {
+                config.hosts.push((name, settings(&doc, host)));
+            }
+        }
+    }
+    if config.values.is_empty() {
+        config.original = None;
+    } else if config.original.is_none() {
+        config.original = Some(String::new());
+    }
+    Ok(config)
+}
 
 fn default_config() -> &'static str {
     static TEXT: OnceLock<String> = OnceLock::new();
@@ -96,7 +183,7 @@ pub(super) fn write(
         .find(|p| doc.nodes[p[0]].kind == Kind::Scalar && doc.nodes[p[0]].text == name);
     let (colon, mut end) = mapping_slot(&source, &doc, &name);
     let flow = root.flow;
-    let first = doc.nodes[root.children[0]].start;
+    let first = root.children.first().map_or(root.start, |id| doc.nodes[*id].start);
     let line_start = source[..first]
         .iter()
         .rposition(|u| *u == 10)
@@ -141,7 +228,7 @@ pub(super) fn write(
         }
         start
     } else {
-        if flow {
+        if flow && !root.children.is_empty() {
             if source[..end]
                 .iter()
                 .rev()
@@ -151,7 +238,7 @@ pub(super) fn write(
                 insert.push(',');
             }
             insert.push(' ');
-        } else if end > 0 && source[end - 1] != 10 {
+        } else if !flow && end > 0 && source[end - 1] != 10 {
             insert.push('\n');
         }
         insert += &indent;

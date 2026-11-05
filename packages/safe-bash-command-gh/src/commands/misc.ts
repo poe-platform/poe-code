@@ -1095,10 +1095,9 @@ LEARN MORE
   const path = resolvePath(context.cwd, dir + "/config.yml");
   const resolvedDir = backend.configDir(context);
   const scopes = backend.configOverrides.get(resolvedDir);
-  const { readGlobalConfig, setGlobalConfig } = await import("../config-file.js");
-  const { values: file, source, reason } = await readGlobalConfig(context, path);
-  if (reason) {
-    const msg = `invalid config file ${dir}/config.yml: ${reason}`;
+  const { readGhConfig, setGlobalConfig } = await import("../config-file.js");
+  const { values: file, hosts: diskHosts, source, error: msg } = await readGhConfig(context, dir);
+  if (msg) {
     await writeErr(`warning: failed to load config: ${msg}\nfailed to create root command: failed to read configuration: ${msg}\n\n`);
     return 1;
   }
@@ -1118,12 +1117,13 @@ LEARN MORE
     accessible_prompter: "disabled", spinner: "enabled", telemetry: "enabled",
   }));
   const valueOf = (key: string, scope = host) => scopes?.get(scope)?.get(key)
-    ?? scopes?.get("")?.get(key) ?? file.get(key) ?? values.get(key);
+    ?? (scope ? diskHosts.find(([name]) => name === scope)?.[1].get(key) : undefined) ?? scopes?.get("")?.get(key) ?? file.get(key) ?? values.get(key);
 
   if (sub === "list" || sub === "ls") {
-    const hosts = [...scopes?.keys() ?? []].filter(Boolean);
+    const hosts = diskHosts.map(([name]) => name);
+    for (const name of scopes?.keys() ?? []) if (name && !hosts.includes(name)) hosts.push(name);
     const scope = host || env.context.env.GH_HOST || (hosts.length === 1 ? hosts[0] : backend.defaultHost);
-    await writeOut([...values.keys()].map(key => `${key}=${valueOf(key, key === "telemetry" ? "" : scope)}\n`).join(""));
+    await writeOut([...values.keys()].map(key => `${key}=${valueOf(key, key === "telemetry" || key === "clipboard" ? "" : scope)}\n`).join(""));
     return 0;
   }
   const key = pos[0]!;

@@ -1,36 +1,60 @@
-import { isFsError } from "@poe-code/safe-fs/core";
+import { isFsError, resolvePath } from "@poe-code/safe-fs/core";
 import type { CommandContext } from "safe-bash-contracts";
-import { Document, isAlias, isMap, isScalar, parseDocument, Scalar, type YAMLMap } from "yaml";
+import { Document, isAlias, isMap, isScalar, parseDocument, Scalar, YAMLMap } from "yaml";
 import defaultLines from "./config-defaults.json" with { type: "json" };
 
-export async function readGlobalConfig(context: CommandContext, path: string) {
+function scalarValues(map: YAMLMap) {
   const values = new Map<string, string>();
-  let source = "";
-  try {
-    source = new TextDecoder().decode(await context.fs.readFile(path, { signal: context.signal }));
-  } catch (error) {
-    if (!isFsError(error) || error.code !== "ENOENT") throw error;
-  }
-  if (!source) return { values, source, reason: "" };
-  const doc = parseDocument(source, { schema: "failsafe", uniqueKeys: false });
-  const reason = doc.errors.length ? "invalid yaml" : doc.contents && !isMap(doc.contents) ? "invalid format" : "";
-  if (isMap(doc.contents)) for (const { key, value } of doc.contents.items) {
+  for (const { key, value } of map.items) {
     if (isScalar(key) && typeof key.value === "string" && !values.has(key.value)) {
       values.set(key.value, isScalar(value) ? String(value.value ?? "") : isAlias(value) ? value.source : "");
     }
   }
-  return { source, values, reason };
+  return values;
+}
+
+export async function readGhConfig(context: CommandContext, dir: string) {
+  let values = new Map<string, string>();
+  let source = "";
+  let hostsNode: unknown;
+  const hosts: [string, Map<string, string>][] = [];
+  for (const name of ["config.yml", "hosts.yml"]) {
+    const display = dir.replace(/\/+$/u, "") + "/" + name;
+    let text: string;
+    try {
+      text = new TextDecoder().decode(await context.fs.readFile(resolvePath(context.cwd, display), { signal: context.signal }));
+    } catch (error) {
+      if (!isFsError(error) || error.code !== "ENOENT") throw error;
+      continue;
+    }
+    if (!text) continue;
+    const doc = parseDocument(text, { schema: "failsafe", uniqueKeys: false });
+    const reason = doc.errors.length ? "invalid yaml" : doc.contents && !isMap(doc.contents) ? "invalid format" : "";
+    if (reason) return { values, hosts, source, error: `invalid config file ${display}: ${reason}` };
+    if (!isMap(doc.contents)) continue;
+    if (name === "config.yml") {
+      source = text;
+      values = scalarValues(doc.contents);
+      hostsNode = doc.contents.get("hosts", true);
+    } else if (!values.has("hosts") && doc.contents.items.length) {
+      hostsNode = doc.contents;
+      values.set("hosts", "");
+    }
+  }
+  if (isMap(hostsNode)) for (const { key, value } of hostsNode.items) {
+    if (isScalar(key) && typeof key.value === "string") {
+      hosts.push([key.value, isMap(value) ? scalarValues(value) : new Map()]);
+    }
+  }
+  return { values, hosts, source: values.size ? source : undefined, error: "" };
 }
 
 // Edit the parsed pair's source span: emitting the whole document moves comments on empty values.
-export function setGlobalConfig(source: string, key: string, value: string): string {
-  let doc = parseDocument(source, { schema: "failsafe", uniqueKeys: false, keepSourceTokens: true });
-  if (!doc.contents || (isMap(doc.contents) && !doc.contents.items.length)) {
-    source = defaultLines.join("\n") + "\n";
-    doc = parseDocument(source, { schema: "failsafe", keepSourceTokens: true });
-  }
-  if (doc.errors.length || !isMap(doc.contents)) throw new Error("invalid config file");
-  const map = doc.contents as YAMLMap;
+export function setGlobalConfig(original: string | undefined, key: string, value: string): string {
+  const source = original ?? defaultLines.join("\n") + "\n";
+  const doc = parseDocument(source, { schema: "failsafe", uniqueKeys: false, keepSourceTokens: true });
+  if (doc.errors.length || (doc.contents && !isMap(doc.contents))) throw new Error("invalid config file");
+  const map = doc.contents ?? new YAMLMap();
   const pair = map.items.find(item => isScalar(item.key) && item.key.value === key);
   const flow = !!map.flow;
   const emitted = new Document();
@@ -48,9 +72,10 @@ export function setGlobalConfig(source: string, key: string, value: string): str
   if (indent) entry = entry.split("\n").map((line, i) => i && line ? indent + line : line).join("\n");
   let field = entry.slice(2);
   if (!pair) {
-    const at = map.range![1] - (flow ? 1 : 0);
+    if (!map.range) return entry + "\n";
+    const at = map.range[1] - (flow ? 1 : 0);
     const before = source.slice(0, at);
-    return before + (flow ? before.trimEnd().endsWith(",") ? " " : ", " : at && source[at - 1] !== "\n" ? "\n" : "") + indent + entry
+    return before + (flow ? !map.items.length ? "" : before.trimEnd().endsWith(",") ? " " : ", " : at && source[at - 1] !== "\n" ? "\n" : "") + indent + entry
       + (flow ? "" : "\n") + source.slice(at);
   }
   const sep = pair.srcToken?.sep?.find(t => t.type === "map-value-ind");

@@ -1051,6 +1051,20 @@ test("cloning follows edits to the persisted global protocol", async () => {
   assert.match((await run("git", ["remote", "-v"], { cwd: "/work/second" })).stdout, /https:\/\/github.com/u);
 });
 
+test("config and hosts YAML share the input budget before a host value can be emitted", async () => {
+  const home = "/work/config";
+  for (const limits of [{ maxInputBytes: 36 }, { maxFiles: 1 }]) {
+    const { fs, run } = createTestHarness({ limits });
+    await fs.mkdir(home, { recursive: true });
+    await fs.writeFile(home + "/config.yml", new TextEncoder().encode("editor: global\n"));
+    await fs.writeFile(home + "/hosts.yml", new TextEncoder().encode("one.invalid: {editor: local}\n"));
+    const result = await run("gh", ["config", "get", "editor", "-h", "one.invalid"], { env: { GH_CONFIG_DIR: home }, allowFailure: true });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /limit exceeded/u);
+  }
+});
+
 test("file and stdin inputs share invocation byte and file budgets", async () => {
   for (const limits of [{ maxInputBytes: 3 }, { maxFiles: 1 }]) {
     const { fs, run } = createTestHarness({ limits });

@@ -267,10 +267,10 @@ export async function handleRepoCommand(
   const useConfiguredSsh = async () => {
     const dir = backend.configDir(context);
     const hosts = backend.configOverrides.get(dir);
-    const { readGlobalConfig } = await import("../config-file.js");
-    const { values, reason } = await readGlobalConfig(context, resolvePath(dir, "config.yml"));
-    if (reason) throw new Error(`invalid config file ${dir}/config.yml: ${reason}`);
-    const protocol = hosts?.get(backend.defaultHost)?.get("git_protocol") ?? hosts?.get("")?.get("git_protocol") ?? values.get("git_protocol");
+    const { readGhConfig } = await import("../config-file.js");
+    const { values, hosts: diskHosts, error } = await readGhConfig(context, dir);
+    if (error) throw new Error(error);
+    const protocol = hosts?.get(backend.defaultHost)?.get("git_protocol") ?? diskHosts.find(([name]) => name === backend.defaultHost)?.[1].get("git_protocol") ?? hosts?.get("")?.get("git_protocol") ?? values.get("git_protocol");
     return protocol === "ssh";
   };
   const subcommand = rawArgs[0];

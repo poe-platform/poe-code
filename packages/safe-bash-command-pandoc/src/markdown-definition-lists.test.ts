@@ -56,6 +56,21 @@ for (const retained of [false, true]) {
     const blocks = JSON.parse(await render("Term\n:   First\n    continued\n:   Second\n")).blocks;
     expect(blocks[0].c[0][1].map((definition: {t: string}[]) => definition[0]!.t)).toEqual(["Plain", "Plain"]);
   });
+  it.each(["", "\n"])(`uses the term gap for separated definitions: %j (retained=${retained})`, async gap => {
+    const text = `Term\n${gap}: First *definition*.\n\n: Second paragraph.\n`;
+    const definitions = JSON.parse(await render(text)).blocks[0].c[0][1];
+    expect(definitions.map((definition: {t: string}[]) => definition[0]!.t)).toEqual(gap ? ["Para", "Para"] : ["Plain", "Plain"]);
+    const html = await render(text, "markdown", "html");
+    expect(html).toContain(gap ? "<p>Second paragraph.</p>" : "<dd>Second paragraph.</dd>");
+  });
+  it(`keeps sibling tightness independent of continuation paragraphs (retained=${retained})`, async () => {
+    const text = "Term\n: First\n\n    Continued\n\n: Second\n\nOther\n\n: Third\n: Fourth\n";
+    const items = JSON.parse(await render(text)).blocks[0].c;
+    expect(items.map((item: [unknown, {t: string}[][]]) => item[1].map(definition => definition.map(block => block.t)))).toEqual([
+      [["Para", "Para"], ["Plain"]],
+      [["Para"], ["Para"]]
+    ]);
+  });
   it.each(["commonmark", "gfm", "markdown-definition_lists"])(`keeps definition syntax literal in %s (retained=${retained})`, async from => {
     expect(JSON.parse(await render("Term\n:   Definition\n", from)).blocks[0].t).toBe("Para");
   });

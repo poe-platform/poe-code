@@ -377,10 +377,9 @@ export class RetainedCommonMarkBlocks {
             await this.set(term, "next", 0); await this.append(list, term);
           } else term = (await this.node(list)).last;
           context.charge("nodes", 1); context.charge("retainedBytes", 128);
-          const lastDefinition = (await this.node(term)).last;
-          const lastBlock = lastDefinition ? (await this.node(lastDefinition)).last : 0;
-          const previousEnd = lastBlock ? (await this.node(lastBlock)).endLine : previous.endLine;
-          const node = await this.create("definition", {tight: Number(previousEnd + 1 === line.number), startLine: line.number, startColumn: await line.column(definitionAt), endLine: line.number, endColumn: line.endColumn});
+          const termNode = await this.node(term);
+          const firstDefinitionLine = termNode.first ? (await this.node(termNode.first)).startLine : line.number;
+          const node = await this.create("definition", {tight: Number(termNode.endLine + 1 === firstDefinitionLine), startLine: line.number, startColumn: await line.column(definitionAt), endLine: line.number, endColumn: line.endColumn});
           await this.append(term, node); await end(list, line);
           await push(node, "definition", definitionIndent + 4);
           offset = definitionAt + 1 + Math.min(3, await line.spaces(definitionAt + 1));

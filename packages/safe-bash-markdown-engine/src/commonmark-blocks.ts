@@ -524,11 +524,12 @@ export async function parseCommonMarkBlocks(
           add(list);
         }
         if (term) list.items.push({term: term.inline, definitions: []});
-        const lastDefinition = previous.kind === "definitionList" ? previous.items.at(-1)?.definitions.at(-1) : undefined;
-        const previousEnd = lastDefinition?.blocks.at(-1)?.source.end.line ?? previous.source.end.line;
-        const definition: PendingDefinition = {blocks: [], tight: previousEnd + 1 === line.number, source: range(line, definitionAt)};
+        const item = list.items[list.items.length - 1]!;
+        const termEnd = item.term.lines.at(-1)!.start.line;
+        const firstDefinitionLine = item.definitions[0]?.source.start.line ?? line.number;
+        const definition: PendingDefinition = {blocks: [], tight: termEnd + 1 === firstDefinitionLine, source: range(line, definitionAt)};
         context.charge("nodes", 1); context.charge("retainedBytes", 128);
-        list.items[list.items.length - 1]!.definitions.push(definition);
+        item.definitions.push(definition);
         list.source.end = endPoint(line);
         push({kind: "definition", node: definition, indent: definitionIndent + 4, blank: false, empty: false});
         offset = definitionAt + 1 + Math.min(3, spaces(line.text, definitionAt + 1));

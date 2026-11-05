@@ -105,7 +105,7 @@ fn coreutil(
         "id" => cmd_id(args, env, fs),
         "sleep" => cmd_sleep(args, env),
         "factor" => cmd_factor(args, input, env.contains_key("POSIXLY_CORRECT")),
-        "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
+        "tsort" => cmd_tsort(args, input, cwd, env, fs),
         "truncate" => cmd_truncate(args, cwd, env, fs),
         "fmt" => cmd_fmt(args, input, cwd, env, fs),
         "csplit" => cmd_csplit(args, input.buffered()?, cwd, env, fs),
@@ -20737,7 +20737,7 @@ fn cmd_iconv(
 
 fn cmd_tsort(
     args: &[String],
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -20788,73 +20788,74 @@ fn cmd_tsort(
     let unicode = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()))
         .is_some_and(|s| { let s = s.to_ascii_lowercase(); s.ends_with("utf-8") || s.ends_with("utf8") });
     let label = fmt_quote::filename(reader_name, unicode);
-    let raw_bytes = if reader_name == "-" {
-        crate::vfs::stream_string_to_bytes(stdin)
-    } else {
-        let path = crate::vfs::path::absolute_operand(cwd, reader_name);
-        match fs.read_file(&path) {
-            Ok(bytes) => bytes,
-            Err(e) => {
-                let stage = if e.starts_with("EISDIR:") || e.starts_with("EIO:") { "read error: " } else { "" };
-                return err_out(&format!("tsort: {label}: {stage}{}\n", file_error_reason(&e)), 1);
-            }
-        }
-    };
-    let tokens: Vec<&[u8]> = raw_bytes
-        .split(|b| matches!(b, b' ' | b'\t' | b'\n'))
-        .filter(|token| !token.is_empty())
-        .map(|token| token.split(|&b| b == 0).next().unwrap())
-        .collect();
-    if !tokens.len().is_multiple_of(2) {
-        return err_out(
-            &format!("tsort: {label}: input contains an odd number of tokens\n"),
-            1,
-        );
-    }
-
-    struct TsortNode<'a> {
-        name: &'a [u8],
+    #[derive(Default)]
+    struct TsortNode {
+        name: Vec<u8>,
         count: usize,
         printed: bool,
         edges: Vec<usize>,
     }
-
-    let unique_names: BTreeSet<_> = tokens.iter().copied().collect();
-    let mut ordered: Vec<_> = unique_names
-        .into_iter()
-        .map(|name| TsortNode { name, count: 0, printed: false, edges: Vec::new() })
-        .collect();
-    let name_to_idx: BTreeMap<_, _> = ordered.iter().enumerate().map(|(i, n)| (n.name, i)).collect();
-
-    for pair in tokens.chunks(2) {
-        let u_idx = name_to_idx[&pair[0]];
-        let v_idx = name_to_idx[&pair[1]];
-        if u_idx != v_idx {
-            ordered[u_idx].edges.push(v_idx);
-            ordered[v_idx].count += 1;
-        }
+    let mut nodes = Vec::<TsortNode>::new();
+    let mut index = BTreeMap::<Vec<u8>, usize>::new();
+    let mut predecessor: Option<usize> = None;
+    let mut token = Vec::new();
+    let mut accept = |word: &[u8]| {
+        if word.is_empty() { return true; }
+        let name = word.split(|&b| b == 0).next().unwrap();
+        let idx = match index.get(name) {
+            Some(&idx) => idx,
+            None => {
+                let idx = nodes.len();
+                nodes.push(TsortNode::default());
+                index.insert(name.to_vec(), idx);
+                idx
+            }
+        };
+        if let Some(from) = predecessor.take() {
+            if from != idx {
+                nodes[from].edges.push(idx);
+                nodes[idx].count += 1;
+            }
+        } else { predecessor = Some(idx); }
+        true
+    };
+    if reader_name == "-" && let Some(source) = stdin.file
+        && let Err(e) = source.admit_bounded_read() {
+        return err_out(&format!("tsort: {label}: read error: {}\n", file_error_reason(&e)), 1);
     }
+    let result = stdin.read_operand(reader_name, cwd, fs, true, |chunk| {
+        visit_complete_records(chunk, |b| matches!(b, b' ' | b'\t' | b'\n'), &mut token, &mut accept)
+    });
+    if let Err(e) = result {
+        let stage = if reader_name == "-" || e.starts_with("EISDIR:") || e.starts_with("EIO:") { "read error: " } else { "" };
+        return err_out(&format!("tsort: {label}: {stage}{}\n", file_error_reason(&e)), 1);
+    }
+    accept(&token);
+    if predecessor.is_some() {
+        return err_out(&format!("tsort: {label}: input contains an odd number of tokens\n"), 1);
+    }
+    let order: Vec<_> = index.into_iter().map(|(name, idx)| { nodes[idx].name = name; idx }).collect();
 
-    let mut remaining = ordered.len();
+    let mut remaining = nodes.len();
     let mut status = 0;
     let mut out = String::new();
     let mut stderr = String::new();
 
     while remaining > 0 {
         let mut queue: std::collections::VecDeque<usize> = std::collections::VecDeque::new();
-        for (idx, node) in ordered.iter().enumerate() {
-            if !node.printed && node.count == 0 {
+        for &idx in &order {
+            if !nodes[idx].printed && nodes[idx].count == 0 {
                 queue.push_back(idx);
             }
         }
         while let Some(u_idx) = queue.pop_front() {
-            out.push_str(&crate::vfs::bytes_to_stream_string(ordered[u_idx].name));
+            out.push_str(&crate::vfs::bytes_to_stream_string(&nodes[u_idx].name));
             out.push('\n');
-            ordered[u_idx].printed = true;
+            nodes[u_idx].printed = true;
             remaining -= 1;
-            for target_idx in std::mem::take(&mut ordered[u_idx].edges).into_iter().rev() {
-                ordered[target_idx].count -= 1;
-                if ordered[target_idx].count == 0 {
+            for target_idx in std::mem::take(&mut nodes[u_idx].edges).into_iter().rev() {
+                nodes[target_idx].count -= 1;
+                if nodes[target_idx].count == 0 {
                     queue.push_back(target_idx);
                 }
             }
@@ -20865,10 +20866,10 @@ fn cmd_tsort(
         status = 1;
         stderr.push_str(&format!("tsort: {label}: input contains a loop:\n"));
         let mut loop_idx: Option<usize> = None;
-        let mut link: Vec<Option<usize>> = vec![None; ordered.len()];
+        let mut link: Vec<Option<usize>> = vec![None; nodes.len()];
         loop {
-            for idx in 0..ordered.len() {
-                if ordered[idx].count == 0 {
+            for &idx in &order {
+                if nodes[idx].count == 0 {
                     continue;
                 }
                 if loop_idx.is_none() {
@@ -20876,15 +20877,15 @@ fn cmd_tsort(
                     continue;
                 }
                 let cur_loop = loop_idx.unwrap();
-                if let Some(epos) = ordered[idx].edges.iter().rposition(|&t| t == cur_loop) {
+                if let Some(epos) = nodes[idx].edges.iter().rposition(|&t| t == cur_loop) {
                     if link[idx].is_some() {
                         while let Some(l_idx) = loop_idx {
                             let next_l = link[l_idx];
-                            stderr.push_str(&format!("tsort: {}\n", crate::vfs::bytes_to_stream_string(ordered[l_idx].name)));
+                            stderr.push_str(&format!("tsort: {}\n", crate::vfs::bytes_to_stream_string(&nodes[l_idx].name)));
                             if l_idx == idx {
-                                let target_idx = ordered[idx].edges[epos];
-                                ordered[target_idx].count -= 1;
-                                ordered[idx].edges.remove(epos);
+                                let target_idx = nodes[idx].edges[epos];
+                                nodes[target_idx].count -= 1;
+                                nodes[idx].edges.remove(epos);
                                 link[l_idx] = None;
                                 loop_idx = next_l;
                                 break;

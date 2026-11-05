@@ -463,14 +463,34 @@ test("text utilities consume stdin once across operands and shell commands", asy
 });
 
 test("utilities leave redirected input for the next command when operands supply their data", async () => {
-  const bash = new RustWasmBash({ files: { "/large": "abcdefghijklmn", "/small": "abc" } });
+  const bash = new RustWasmBash({ files: { "/large": "abcdefghijklmn", "/small": "abc", "/nodes": "a b" } });
   try {
     for (const [cmd, expected] of [
-      ["rev /small", "cba"], ["factor 15", "15: 3 5\n"],
+      ["tsort /nodes", "a\nb\n"], ["rev /small", "cba"], ["factor 15", "15: 3 5\n"],
       ["envsubst -v '$Z'", "Z\n"], ["numfmt 15", "15\n"],
     ]) {
       const r = await bash.exec(`{ ${cmd}; head -c1; } </large`, { limits: { maxInputBytes: 4 } });
       assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected + "a", ""], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("tsort charges streamed graph input and leaves unselected stdin unread", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({ files: { "/graph": "x y" } });
+  try {
+    for (const file of ["/graph", "-"]) {
+      let pulls = 0;
+      const stdin = { async *[Symbol.asyncIterator]() {
+        for (const part of ["x ", "y ", "z z"]) { pulls++; yield Buffer.from(part); }
+      } };
+      const run = bash.exec("tsort " + file, { stdin, limits: { maxInputBytes: 3 } });
+      if (file === "-") {
+        await assert.rejects(run, { limit: "maxInputBytes" });
+        assert.equal(pulls, 2);
+      } else {
+        const r = await run;
+        assert.deepEqual([r.exitCode, r.stdout, r.stderr, pulls], [0, "x\ny\n", "", 0]);
+      }
     }
   } finally { bash.dispose(); }
 });
@@ -534,6 +554,7 @@ test("text utilities report redirected input errors after the bytes already read
   const bash = new RustWasmBash({ files: { "/large": "15 \n2222222222" } });
   try {
     for (const [cmd, expected, error] of [
+      ["tsort", "", "tsort: -: read error: File too large"],
       ["rev", " 51\n", "rev: EFBIG: file too large, read '/large'"],
       ["envsubst", "", "shell: line 2: EFBIG: file too large, read '/large'"],
       ["factor", "", "factor: standard input: EFBIG: file too large, read '/large'"],

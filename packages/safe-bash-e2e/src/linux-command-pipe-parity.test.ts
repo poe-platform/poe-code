@@ -30,6 +30,19 @@ test("Linux command pipe results match in TypeScript and Rust", async t => {
         }
       });
     }
+    await t.test("tsort consumes shared stdin only when it selects stdin", async () => {
+      const edges = Buffer.concat([Buffer.alloc(65534, 32), Buffer.from("first\0suffix second\n")]);
+      await writeFile(cwd + "/edges", edges);
+      for (const fs of [ts.fs, rust.fs]) await fs.writeFile("/workspace/edges", edges);
+      for (const script of ["{ tsort; cat; } < edges", "{ tsort -; cat; } < edges", "{ tsort edges; cat; } < samples/base", "{ tsort --bad; cat; } < samples/base"]) {
+        const expected = await runLinuxCommand("bash", ["--noprofile", "--norc", "-c", script], "", cwd);
+        for (const shell of [ts.shell, rust]) {
+          const actual = await shell.exec(script);
+          assert.equal(actual.stdoutBytes.length, expected[1].length, script);
+          assert.deepEqual([actual.exitCode, Buffer.from(actual.stdoutBytes), Buffer.from(actual.stderrBytes)], expected, script);
+        }
+      }
+    });
     await t.test("tsort opens the operand as written and names it in read and graph errors", async () => {
       for (const [name, contents] of [["odd names", "a b c"], ["loop's graph", "b a a b"]]) {
         await writeFile(cwd + "/" + name, contents);

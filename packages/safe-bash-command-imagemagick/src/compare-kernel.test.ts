@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { compareImageSteps } from "./compare-kernel.js";
-for (const [metric, expected] of Object.entries({ ae: "0", mae: "0 (0)", mse: "0 (0)", rmse: "0 (0)", pae: "0 (0)", psnr: "inf", ssim: "1", dssim: "0", ncc: "1" }))
+for (const [metric, expected] of Object.entries({ ae: "0 (0)", mae: "0 (0)", mse: "0 (0)", rmse: "0 (0)", pae: "0 (0)", psnr: "inf", ssim: "1", dssim: "0", ncc: "1" }))
     it(`preserves identical-image ${metric}`, () => {
         const image = { width: 3, height: 2, hasAlpha: false };
         const steps = compareImageSteps(image, image, { metric, fuzz: 0, highlightColor: { r: 241, g: 0, b: 30, a: 255 }, composeSrc: false, diff: false });
@@ -42,7 +42,7 @@ it("scans and emits a multi-megabyte diff in bounded ordered chunks", () => {
             next = steps.next();
         }
     }
-    expect(next.value.metric).toBe("0");
+    expect(next.value.metric).toBe("0 (0)");
     expect(written).toBe(image.width * image.height * 4);
     expect(reads).toBe(513 * 3 * 2);
     expect(yields).toBeGreaterThan(0);

@@ -32,11 +32,11 @@ it("returns comparison status and emits metrics only on stderr", async () => {
     const different = await runCompareCli(["-metric", "AE", "a.png", "b.png", output], files);
     expect(different.exitCode).toBe(1);
     expect(different.stdout).toBe("");
-    expect(different.stderr).toBe("4\n");
+    expect(different.stderr).toBe("2 (0.5)\n");
     const same = await runCompareCli(["-metric", "AE", "a.png", "a.png", output], files);
     expect(same.exitCode).toBe(0);
     expect(same.stdout).toBe("");
-    expect(same.stderr).toBe("0\n");
+    expect(same.stderr).toBe("0 (0)\n");
   }
 });
 

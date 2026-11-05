@@ -36,6 +36,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
     let aeCount = 0;
+    let aeMagnitude = 0;
     let sumAbs = 0;
     let sumSq = 0;
     let maxAbs = 0;
@@ -88,6 +89,9 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const pdr = Math.abs(rA * alphaA - rB * alphaB);
                 const pdg = Math.abs(gA * alphaA - gB * alphaB);
                 const pdb = Math.abs(bA * alphaA - bB * alphaB);
+                // AE sums channel magnitudes above fuzz, then averages over channels.
+                const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
+                aeMagnitude += (aeR > fuzz ? aeR : 0) + (aeG > fuzz ? aeG : 0) + (aeB > fuzz ? aeB : 0) + (hasAlpha && da > fuzz ? da : 0);
                 const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
                 if (!inBoundsA || !inBoundsB || maxDelta > fuzz) {
                     aeCount++;
@@ -158,7 +162,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let metricStr: string;
     switch (metric) {
         case "ae":
-            metricStr = String(aeCount);
+            metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
             break;
         case "mae":
             metricStr = `${formatMetricNum(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
@@ -196,4 +200,12 @@ export function formatMetricNum(n: number): string {
         return "0";
     const fixed = n.toFixed(6).replace(/\.?0+$/, "");
     return fixed === "-0" ? "0" : fixed;
+}
+
+function formatSignificantMetric(n: number): string {
+    const rounded = Number(n.toPrecision(6));
+    if (rounded === 0 || (rounded >= 0.0001 && rounded < 1000000))
+        return String(rounded);
+    const [mantissa, exponent] = rounded.toExponential().split("e");
+    return `${mantissa}e${exponent![0]}${exponent!.slice(1).padStart(2, "0")}`;
 }

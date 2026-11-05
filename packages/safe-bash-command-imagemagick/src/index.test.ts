@@ -332,7 +332,7 @@ describe("safe-bash-command-imagemagick", () => {
     // Identical images -> AE = 0, PSNR = inf, SSIM = 1
     const idAe = await runCompareCli(["-metric", "AE", "/a.png", "/b.png", "null:"], files);
     expect(idAe.exitCode).toBe(0);
-    expect((idAe.stderr || idAe.stdout).trim()).toBe("0");
+    expect((idAe.stderr || idAe.stdout).trim()).toBe("0 (0)");
 
     const idPsnr = await runMagickCli(["compare", "-metric", "PSNR", "/a.png", "/b.png", "null:"], files);
     expect((idPsnr.stderr || idPsnr.stdout).trim()).toBe("inf");
@@ -340,12 +340,12 @@ describe("safe-bash-command-imagemagick", () => {
     const idSsim = await runCompareCli(["-metric", "SSIM", "/a.png", "/b.png", "null:"], files);
     expect(Number((idSsim.stderr || idSsim.stdout).trim())).toBeCloseTo(1, 3);
 
-    // Modified 5x5 rectangle -> 25 pixels differ -> AE = 25
+    // Modified 5x5 rectangle contributes channel-weighted error magnitude.
     const diffAe = await runCompareCli(
       ["-metric", "AE", "-highlight-color", "#ff00ff", "/a.png", "/b-mod.png", "/diff.png"],
       files
     );
-    expect(Number((diffAe.stderr || diffAe.stdout).trim())).toBe(25);
+    expect((diffAe.stderr || diffAe.stdout).trim()).toBe("8.70098 (0.0217525)");
     expect(files.has("/diff.png")).toBe(true);
     const diffRaw = await sharp(files.get("/diff.png")!).raw().toBuffer();
     // Top-left pixel (0,0) was modified -> should be highlighted in #ff00ff
@@ -361,12 +361,12 @@ describe("safe-bash-command-imagemagick", () => {
     const imgSlight = await makeTestImage(20, 20, 108, 100, 100);
     files.set("/slight.png", imgSlight);
     const noFuzz = await runCompareCli(["-metric", "AE", "/a.png", "/slight.png", "null:"], files);
-    expect(Number((noFuzz.stderr || noFuzz.stdout).trim())).toBe(400);
+    expect((noFuzz.stderr || noFuzz.stdout).trim()).toBe("3.13725 (0.00784314)");
     const withFuzz = await runCompareCli(
       ["-metric", "AE", "-fuzz", "10%", "/a.png", "/slight.png", "null:"],
       files
     );
-    expect(Number((withFuzz.stderr || withFuzz.stdout).trim())).toBe(0);
+    expect((withFuzz.stderr || withFuzz.stdout).trim()).toBe("0 (0)");
   });
 
   it("supports -opaque, +opaque, -transparent, -evaluate, -function, -clut, and -fx pixel expressions", async () => {

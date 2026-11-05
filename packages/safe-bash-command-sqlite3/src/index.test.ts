@@ -63,6 +63,39 @@ for (const conflict of ["", "OR ABORT", "OR FAIL"]) {
   });
 }
 
+for (const [constraint, value, diagnostic] of [
+  ["UNIQUE", "1", "UNIQUE constraint failed: t.x"],
+  ["NOT NULL", "NULL", "NOT NULL constraint failed: t.x"],
+  ["CHECK(x > 0)", "0", "CHECK constraint failed: x > 0"]
+]) {
+  test(`sqlite3 persists earlier OR FAIL rows for ${constraint} with foreign keys enabled`, async () => {
+    const fs = createMemoryFileSystem();
+    const result = await runSqlite3(fs, ["/fail.db", `PRAGMA foreign_keys=ON;
+      CREATE TABLE t(x INT ${constraint}); INSERT INTO t VALUES(1);
+      INSERT OR FAIL INTO t VALUES(2),(${value}),(3);`]);
+    assert.equal(result.code, 19);
+    assert.ok(result.stderr.includes(diagnostic!));
+    const reopened = await runSqlite3(fs, ["/fail.db", "SELECT x FROM t ORDER BY x"]);
+    assert.equal(reopened.code, 0, reopened.stderr);
+    assert.equal(reopened.stdout, "1\n2\n");
+  });
+}
+
+for (const values of ["(2,1),(3,9)", "(2,9),(1,1)"]) {
+  test(`sqlite3 OR FAIL keeps foreign key violations atomic for ${values}`, async () => {
+    const fs = createMemoryFileSystem();
+    const result = await runSqlite3(fs, ["/fail.db", `PRAGMA foreign_keys=ON;
+      CREATE TABLE p(x INT PRIMARY KEY); INSERT INTO p VALUES(1);
+      CREATE TABLE t(x INT UNIQUE, pid REFERENCES p(x)); INSERT INTO t VALUES(1,1);
+      INSERT OR FAIL INTO t VALUES${values};`]);
+    assert.equal(result.code, 19);
+    assert.ok(result.stderr.includes("FOREIGN KEY constraint failed"));
+    const reopened = await runSqlite3(fs, ["/fail.db", "SELECT x FROM t ORDER BY x"]);
+    assert.equal(reopened.code, 0, reopened.stderr);
+    assert.equal(reopened.stdout, "1\n");
+  });
+}
+
 test("sqlite3 persists the rolled-back state after INSERT OR ROLLBACK fails", async () => {
   const fs = createMemoryFileSystem();
   const result = await runSqlite3(fs, ["/rollback.db"], `CREATE TABLE t(x INT UNIQUE);

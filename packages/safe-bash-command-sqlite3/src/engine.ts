@@ -2291,7 +2291,16 @@ export class SqliteDatabase {
         else result = yield* this.executeInsert(sql, tokens, positionalParams, cteScope);
         if (this.foreignKeys && snapshot) yield* this.validateForeignKeys(snapshot, existingRows);
         return result;
-      } catch (error) {
+      } catch (caughtError) {
+        let error = caughtError;
+        if (this.foreignKeys && snapshot && failOnConflict && error instanceof SqliteConstraintError && error.message !== "FOREIGN KEY constraint failed") {
+          // FAIL keeps earlier rows, but foreign-key violations still abort the statement.
+          try {
+            yield* this.validateForeignKeys(snapshot, existingRows);
+          } catch (foreignKeyError) {
+            error = foreignKeyError;
+          }
+        }
         if (rollbackSnapshot && error instanceof SqliteConstraintError && error.message !== "FOREIGN KEY constraint failed") {
           yield* this.restoreSnapshot(rollbackSnapshot);
           this.inTransaction = false;

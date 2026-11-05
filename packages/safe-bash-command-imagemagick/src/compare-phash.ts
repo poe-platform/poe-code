@@ -11,8 +11,8 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1): Generato
     });
     const total = weights.reduce((sum, value) => sum + value, 0);
     for (let i = 0; i < weights.length; i++) weights[i]! /= total;
-    const channels = info.hasAlpha ? 8 : 6;
-    const moments = Array.from({ length: channels }, () => ({ mass: 0, x: 0, y: 0, m11: 0, m20: 0, m02: 0, m21: 0, m12: 0, m30: 0, m03: 0 }));
+    // Native RGBA PHASH compares color moments only; alpha still weights the blur.
+    const moments = Array.from({ length: 6 }, () => ({ mass: 0, x: 0, y: 0, m11: 0, m20: 0, m02: 0, m21: 0, m12: 0, m30: 0, m03: 0 }));
     for (let pass = 0; pass < 2; pass++) {
         for (let y = 0; y < info.height; y++) {
             for (let left = 0; left < info.width; left += 1016) {
@@ -60,8 +60,7 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1): Generato
                     let hue = delta === 0 ? 0 : (max === r ? (g - b) / delta : max === g ? 2 + (b - r) / delta : 4 + (r - g) / delta) / 6;
                     if (hue < 0) hue++;
                     const values = [X / Math.max(X + Y + Z, 1e-12), Y / Math.max(X + Y + Z, 1e-12), Y, hue, max === 0 ? 0 : delta / max, max];
-                    if (info.hasAlpha) values.push(rgba[3]!, rgba[3]!);
-                    for (let c = 0; c < channels; c++) {
+                    for (let c = 0; c < moments.length; c++) {
                         const quantum = Math.fround(values[c]! * 65535), value = (1 / 65535) * quantum, m = moments[c]!;
                         if (pass === 0) {
                             m.mass += value; m.x = multiplyAdd(left + x, value, m.x); m.y = multiplyAdd(y, value, m.y);

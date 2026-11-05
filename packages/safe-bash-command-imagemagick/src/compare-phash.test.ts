@@ -5,6 +5,27 @@ import { compareImageSteps } from "./compare-kernel.js";
 import { runCompareCli, runCompareCliSync } from "./index.js";
 
 const gradient = [[0, 20, 40], [60, 80, 100], [120, 140, 160], [180, 200, 220], [240, 100, 50], [30, 60, 90]];
+// ImageMagick 7.1.2 Q16-HDRI, 2×2 RGBA PNG inputs.
+for (const [name, a, b, metric] of [
+    ["transparent and opaque black", [0, 0, 0, 0], [0, 0, 0, 255], "0 (0)"],
+    ["opaque red and blue", [255, 0, 0, 255], [0, 0, 255, 255], "136192 (136192)"],
+    ["transparent and opaque red", [255, 0, 0, 0], [255, 0, 0, 255], "638878 (638878)"],
+] as const) {
+    for (const mode of ["sync", "buffered", "retained"] as const) {
+        it(`matches native PHASH for ${name}, ${mode}`, async () => {
+            const images = await Promise.all([a, b].map(pixel => sharp(Uint8Array.from([...pixel, ...pixel, ...pixel, ...pixel]), { raw: { width: 2, height: 2, channels: 4 } }).png().toBuffer()));
+            const files = new Map([["a.png", images[0]!], ["b.png", images[1]!]]);
+            const filesystem = new MemoryFileSystem();
+            for (const [path, bytes] of files) await filesystem.writeFile(`/${path}`, bytes);
+            const args = ["-metric", "PHASH", "a.png", "b.png", "null:"];
+            const result = mode === "sync" ? runCompareCliSync(args, files)
+                : await runCompareCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result.stderr).toBe(`${metric}\n`);
+            expect(result.exitCode).toBe(metric === "0 (0)" ? 0 : 1);
+        });
+    }
+}
+
 // ImageMagick 7.1.2 Q16-HDRI, RGB inputs, default xyY and HSB hashes.
 for (const retained of [false, true]) {
     for (const [name, a, b, metric] of [

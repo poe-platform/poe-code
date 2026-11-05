@@ -1,7 +1,7 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native emboss diagonal Gaussian convolution followed by synchronized equalization. */
-export function* embossPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, geometry: { width?: number; height?: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.max(1e-12, Math.abs(geometry.height ?? 1));
     let half = radius > 0 ? Math.ceil(radius) : 1;
     if (radius <= 0 && sigma > 1e-12) {
@@ -29,7 +29,7 @@ export function* embossPixelSteps(image: { width: number; height: number }, geom
     for (let pass = 0; pass < 2; pass++) {
         for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
             yield;
-            const count = Math.min(1024, width - left), sums = new Float64Array(count * 3);
+            const count = Math.min(1024, width - left), sums = new Float64Array(count * 4);
             for (let k = -half; k <= half; k++) {
                 yield;
                 const weight = weights[k + half]!;
@@ -42,18 +42,29 @@ export function* embossPixelSteps(image: { width: number; height: number }, geom
                 if (!bytes || bytes.length !== length) throw new Error("Truncated emboss pixels");
                 for (let x = 0; x < count; x++) {
                     const offset = (Math.max(0, Math.min(width - 1, left + x - k)) - first) * 4;
-                    for (let channel = 0; channel < 3; channel++) sums[x * 3 + channel]! += bytes[offset + channel]! * weight;
+                    const alpha = image.hasAlpha ? bytes[offset + 3]! / 255 : 1;
+                    for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel]! += bytes[offset + channel]! * weight * alpha;
+                    sums[x * 4 + 3]! += weight * alpha;
                 }
             }
+            // Native convolution blends colors using alpha, then equalizes the
+            // unrounded colors and filtered alpha with the shared intensity map.
+            for (let x = 0; x < count; x++) {
+                const alpha = sums[x * 4 + 3]!;
+                if (image.hasAlpha) for (let channel = 0; channel < 3; channel++) {
+                    sums[x * 4 + channel]! /= Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha;
+                }
+                sums[x * 4 + 3] = alpha * 255;
+            }
             if (pass === 0) {
-                for (let x = 0; x < count; x++) histogram[bin(sums[x * 3]! * 0.212656 + sums[x * 3 + 1]! * 0.715158 + sums[x * 3 + 2]! * 0.072186)]!++;
+                for (let x = 0; x < count; x++) histogram[bin(sums[x * 4]! * 0.212656 + sums[x * 4 + 1]! * 0.715158 + sums[x * 4 + 2]! * 0.072186)]!++;
             } else {
                 const position = (y * width + left) * 4;
                 const bytes = yield { kind: "read", position, length: count * 4 };
                 if (!bytes || bytes.length !== count * 4) throw new Error("Truncated emboss pixels");
                 const data = new Uint8Array(bytes), black = histogram[0]!;
-                for (let x = 0; x < count; x++) for (let channel = 0; channel < 3; channel++) {
-                    const value = sums[x * 3 + channel]!;
+                for (let x = 0; x < count; x++) for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
+                    const value = sums[x * 4 + channel]!;
                     data[x * 4 + channel] = black === width * height ? Math.max(0, Math.min(255, Math.round(value))) : lookup[bin(value)]!;
                 }
                 yield { kind: "write", position, data };

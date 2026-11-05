@@ -207,7 +207,7 @@ test("CONTROL FsError's explicit public message survives; native cause stays pri
 
 for (const [source, exitCode, diagnostic] of [
   ["cat /missing", 1, "cat: ENOENT: no such file or directory, readStream '/missing'\n"],
-  ["cat --bad-option", 2, "cat: unrecognized option '--bad-option'\n"],
+  ["cat --bad-option", 1, "cat: unrecognized option '--bad-option'\nTry 'cat --help' for more information.\n"],
   ["cat < /missing", 1, "shell: line 1: /missing: No such file or directory\n"],
   ["printf '%s' x >&9", 1, "shell: line 1: 9: Bad file descriptor\n"],
   ["let '1/0'", 1, 'shell: line 1: let: 1/0: division by 0 (error token is "0")\n'],

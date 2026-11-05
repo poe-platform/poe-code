@@ -352,7 +352,7 @@ pub enum FdTarget {
         file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>,
         position: Rc<Cell<FileInputPosition>>,
     },
-    InputStream { reader: StdinStream, unread: InputCursor, position: Rc<Cell<FileInputPosition>> },
+    InputStream { endless: bool, reader: StdinStream, unread: InputCursor, position: Rc<Cell<FileInputPosition>> },
     Closed,
 }
 
@@ -375,9 +375,9 @@ impl FdTarget {
         }
     }
 
-    pub(crate) fn input_stream(next: impl FnMut(&ExecutionBudget) -> Option<Result<Vec<u8>, String>> + 'static) -> Self {
+    pub(crate) fn input_stream(endless: bool, next: impl FnMut(&ExecutionBudget) -> Option<Result<Vec<u8>, String>> + 'static) -> Self {
         Self::InputStream {
-            reader: StdinStream(Rc::new(RefCell::new(next))),
+            endless, reader: StdinStream(Rc::new(RefCell::new(next))),
             unread: Rc::default(),
             position: Rc::default(),
         }
@@ -394,7 +394,7 @@ impl FdTarget {
         match self {
             Self::InputFile { position, unread, path, file: Some(handle), .. } =>
                 Some(FileCommandInput { position, unread, source: crate::commands::InputSource::File(handle.as_ref(), path), budget }),
-            Self::InputStream { position, unread, reader } =>
+            Self::InputStream { position, unread, reader, .. } =>
                 Some(FileCommandInput { position, unread, source: crate::commands::InputSource::Chunks(reader.0.as_ref()), budget }),
             _ => None,
         }
@@ -988,7 +988,7 @@ impl<'a> EvalState<'a> {
 
     /// Run a script with a forward-only source on fd 0. Descriptor copies share its cursor.
     pub fn eval_script_with_stream(&mut self, script: &str, mut chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static) -> Result<CommandResult, EvalError> {
-        let saved = self.fd_table.insert(0, FdTarget::input_stream(move |_| chunks.next()));
+        let saved = self.fd_table.insert(0, FdTarget::input_stream(false, move |_| chunks.next()));
         let alias = self.in_fd_aliases.remove(&0);
         let cursor = self.in_fds.remove(&0);
         let default_input = self.default_input_fds.remove(&0);
@@ -5490,25 +5490,42 @@ impl<'a> EvalState<'a> {
             };
             return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("yes: {message}: Bad file descriptor\n"), exit_code: 1 });
         }
-        if effective_cmd == "yes" && self.stage_depth == 1
+        if self.stage_depth == 1
             && let Some(reader) = &mut self.pipeline_reader
             && matches!(self.fd_table.get(&1), Some(FdTarget::PipeStdout { .. } | FdTarget::SavedStdout { pipe_peer_retired: Some(_), .. }))
         {
-            let batch = match crate::commands::coreutils::yes_batch(args, self.env.contains_key("POSIXLY_CORRECT")) {
-                Ok(batch) => stream_string_to_bytes(&batch),
-                Err(out) => return Ok(out),
-            };
-            let mut offset = 0;
-            *reader = Some(FdTarget::input_stream(move |budget| {
-                let size = (batch.len() - offset).min(8192).min(budget.remaining_output_bytes().max(1));
-                Some(budget.check_cancelled().and_then(|()| budget.add_output_bytes(size)).map(|()| {
-                    let bytes = batch[offset..offset + size].to_vec();
-                    offset = (offset + size) % batch.len();
-                    bytes
-                }))
-            }));
+            if effective_cmd == "cat"
+                && let Some(source @ FdTarget::InputStream { endless: true, .. }) = self.fd_table.get(&0)
+                && let Ok((files, mut filter)) = crate::commands::coreutils::cat_filter(args)
+                && files.iter().all(|file| file == "-")
+            {
+                let source = source.clone();
+                let mut unread = std::mem::take(stdin);
+                *reader = Some(FdTarget::input_stream(true, move |budget| {
+                    let mut output = Vec::new();
+                    let input = source.file_input(budget).unwrap();
+                    Some(input.read(&mut unread, 8192, |bytes, eof| {
+                        filter(bytes, eof, &mut |part| { output.extend_from_slice(part); true });
+                        Ok((false, bytes.len()))
+                    }).and_then(|()| budget.add_output_bytes(output.len())).map(|()| output))
+                }));
+            } else if effective_cmd == "yes" {
+                let batch = match crate::commands::coreutils::yes_batch(args, self.env.contains_key("POSIXLY_CORRECT")) {
+                    Ok(batch) => stream_string_to_bytes(&batch),
+                    Err(out) => return Ok(out),
+                };
+                let mut offset = 0;
+                *reader = Some(FdTarget::input_stream(true, move |budget| {
+                    let size = (batch.len() - offset).min(8192).min(budget.remaining_output_bytes().max(1));
+                    Some(budget.check_cancelled().and_then(|()| budget.add_output_bytes(size)).map(|()| {
+                        let bytes = batch[offset..offset + size].to_vec();
+                        offset = (offset + size) % batch.len();
+                        bytes
+                    }))
+                }));
+            }
             // This stream never reaches EOF: a finishing reader closes the pipe.
-            return Ok(BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 141 });
+            if reader.is_some() { return Ok(BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 141 }); }
         }
 
         let fs_ref = self.fs;

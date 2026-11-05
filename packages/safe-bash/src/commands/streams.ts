@@ -711,7 +711,14 @@ async function executeTrAsync(
 }
 
 async function executeCatGeneral(context: CommandContext): Promise<{ exitCode: number }> {
-  const parsed = options(context.args, "nbsvETAute", { help: false, number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
+  let parsed;
+  try {
+    parsed = options(context.args, "nbsvETAute", { help: false, number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
+  } catch (error) {
+    if (!(error instanceof UsageError)) throw error;
+    await diagnostic(context, new UsageError(`${error.message}\nTry 'cat --help' for more information.`));
+    return { exitCode: 1 };
+  }
   if (parsed.flags.has("help")) {
     await output(context, `Usage: cat [OPTION]... [FILE]...
 Concatenate FILEs to standard output. With no FILE, or FILE -, read standard input.

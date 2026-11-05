@@ -170,7 +170,7 @@ impl Shell {
         script: &str,
         mut chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static,
     ) -> Result<ExecOutput, String> {
-        self.exec_input(script, ExecOptions::default(), Some(eval::FdTarget::input_stream(move |_| chunks.next())))
+        self.exec_input(script, ExecOptions::default(), Some(eval::FdTarget::input_stream(false, move |_| chunks.next())))
     }
 
     pub(crate) fn exec_input(

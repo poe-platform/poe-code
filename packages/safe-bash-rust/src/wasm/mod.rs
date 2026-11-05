@@ -1191,7 +1191,7 @@ pub unsafe extern "C" fn safe_bash_exec_stream(
     next: unsafe extern "C" fn(u32, *mut *mut u8, *mut usize) -> i32,
 ) -> i32 {
     let script = unsafe { str_from_raw(script_ptr, script_len) };
-    let input = crate::shell::eval::FdTarget::input_stream(move |budget| {
+    let input = crate::shell::eval::FdTarget::input_stream(false, move |budget| {
         let mut ptr = std::ptr::null_mut();
         let mut len = 0;
         let status = unsafe { next(id, &mut ptr, &mut len) };

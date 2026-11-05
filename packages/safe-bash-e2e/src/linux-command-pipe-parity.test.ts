@@ -194,6 +194,12 @@ test("yes produces bytes until its downstream reader closes the pipe", async () 
   const rust = new RustWasmBash({ env: linuxEnv, forceNative: true });
   try {
     for (const script of [
+      'yes | cat | head -c 1; echo "${PIPESTATUS[*]}"',
+      'yes q | cat -u -- - | cat -n | head -n 1101 | tail -n 1; echo "${PIPESTATUS[*]}"',
+      String.raw`yes $'\t\377\r' | cat -A | head -c 17003 | cksum`,
+      'yes | cat /dev/null | head; echo "${PIPESTATUS[*]}"',
+      'yes | cat <<<side | head; echo "${PIPESTATUS[*]}"',
+      'yes | cat --not-an-option | head; echo "${PIPESTATUS[*]}"',
       "yes >&-",
       "yes --help >&-",
       "yes -x >&-",

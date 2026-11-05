@@ -476,7 +476,7 @@ impl CommandInput<'_> {
     }
 }
 
-fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+pub(crate) fn cat_filter(args: &[String]) -> Result<(Vec<String>, impl FnMut(&[u8], bool, &mut dyn FnMut(&[u8]) -> bool) -> bool + use<>), BuiltinOutcome> {
     let mut flag_n = false;
     let mut flag_b = false;
     let mut flag_s = false;
@@ -509,7 +509,7 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
                     flag_e_ends = true;
                     flag_t_tabs = true;
                 }
-                _ => return err_out(&format!("cat: unrecognized option '{arg}'\n"), 2),
+                _ => return Err(err_out(&format!("cat: unrecognized option '{arg}'\nTry 'cat --help' for more information.\n"), 1)),
             }
             continue;
         }
@@ -536,7 +536,7 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
                         flag_t_tabs = true;
                     }
                     'u' => {}
-                    _ => return err_out(&format!("cat: invalid option -- '{ch}'\n"), 2),
+                    _ => return Err(err_out(&format!("cat: invalid option -- '{ch}'\nTry 'cat --help' for more information.\n"), 1)),
                 }
             }
         } else {
@@ -545,13 +545,12 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
     }
 
     if flag_help {
-        return ok_out(
+        return Err(ok_out(
             "Usage: cat [OPTION]... [FILE]...\nConcatenate FILEs to standard output. With no FILE, or FILE -, read standard input.\n\n  -n, --number             Number all output lines\n  -b, --number-nonblank    Number nonempty output lines (overrides -n)\n  -s, --squeeze-blank      Suppress repeated empty output lines\n  -E, --show-ends          Display $ at each line end\n  -T, --show-tabs          Display TAB characters as ^I\n  -v, --show-nonprinting   Display nonprinting characters\n  -A, --show-all           Equivalent to -vET\n  -e                      Equivalent to -vE\n  -t                      Equivalent to -vT\n  -u                      Accepted for compatibility; ignored\n      --help              Display this help and exit\n      --                  End options; remaining arguments are filenames\n",
-        );
+        ));
     }
 
     let plain = !(flag_n || flag_b || flag_s || flag_e_ends || flag_t_tabs || flag_v);
-    let mut out = ok_out("");
     let show_ends_only_cr = flag_e_ends && !flag_v;
     let mut line_start = true;
     let mut blank_count = 0usize;
@@ -559,6 +558,84 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
     let mut pending_cr = false;
     let mut out_bytes = Vec::new();
     if files.is_empty() { files.push("-".into()); }
+    Ok((files, move |chunk: &[u8], eof: bool, emit: &mut dyn FnMut(&[u8]) -> bool| {
+        if eof { return !pending_cr || emit(b"\r"); }
+        if plain {
+            return emit(chunk);
+        }
+        for &byte in chunk {
+            if pending_cr {
+                pending_cr = false;
+                if byte == 10 {
+                    out_bytes.extend_from_slice(b"^M");
+                } else {
+                    out_bytes.push(13);
+                }
+            }
+            if line_start && byte == 10 && flag_s && blank_count > 0 {
+                continue;
+            }
+            if line_start && (if flag_b { byte != 10 } else { flag_n }) {
+                out_bytes.extend_from_slice(format!("{number:>6}\t").as_bytes());
+                number += 1;
+            }
+            if byte == 10 {
+                if flag_e_ends {
+                    out_bytes.push(b'$');
+                }
+                out_bytes.push(10);
+                blank_count = if line_start { blank_count + 1 } else { 0 };
+                line_start = true;
+            } else {
+                line_start = false;
+                blank_count = 0;
+                if byte == 13 && show_ends_only_cr {
+                    pending_cr = true;
+                } else if byte == 9 {
+                    if flag_t_tabs {
+                        out_bytes.extend_from_slice(b"^I");
+                    } else {
+                        out_bytes.push(9);
+                    }
+                } else if flag_v {
+                    let mut visible = byte;
+                    if visible >= 128 {
+                        out_bytes.extend_from_slice(b"M-");
+                        visible -= 128;
+                    }
+                    if visible < 32 {
+                        out_bytes.push(b'^');
+                        out_bytes.push(visible + 64);
+                    } else if visible == 127 {
+                        out_bytes.extend_from_slice(b"^?");
+                    } else {
+                        out_bytes.push(visible);
+                    }
+                } else {
+                    out_bytes.push(byte);
+                }
+            }
+            if out_bytes.len() >= 8192 {
+                let more = emit(&out_bytes);
+                out_bytes.clear();
+                if !more { return false; }
+            }
+        }
+        if !out_bytes.is_empty() {
+            let more = emit(&out_bytes);
+            out_bytes.clear();
+            return more;
+        }
+        true
+    }))
+}
+
+fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+    let (files, mut filter) = match cat_filter(args) {
+        Ok(parsed) => parsed,
+        Err(out) => return out,
+    };
+    let mut out = ok_out("");
     let path_caps = |p: &str| fs.has_path_capabilities() || p == "/dev" || p.starts_with("/dev/");
     // The command checks every named operand before it starts reading stdin or files.
     let check_all = files.iter().any(|f| f != "-" && path_caps(&absolute_operand(cwd, f)));
@@ -570,72 +647,7 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
     for f in &files {
         let mut writable = true;
         let mut consume = |chunk: &[u8]| {
-            if plain {
-                writable = write(1, &crate::vfs::bytes_to_stream_string(chunk), &mut out);
-                return writable;
-            }
-            for &byte in chunk {
-                if pending_cr {
-                    pending_cr = false;
-                    if byte == 10 {
-                        out_bytes.extend_from_slice(b"^M");
-                    } else {
-                        out_bytes.push(13);
-                    }
-                }
-                if line_start && byte == 10 && flag_s && blank_count > 0 {
-                    continue;
-                }
-                if line_start && (if flag_b { byte != 10 } else { flag_n }) {
-                    out_bytes.extend_from_slice(format!("{number:>6}\t").as_bytes());
-                    number += 1;
-                }
-                if byte == 10 {
-                    if flag_e_ends {
-                        out_bytes.push(b'$');
-                    }
-                    out_bytes.push(10);
-                    blank_count = if line_start { blank_count + 1 } else { 0 };
-                    line_start = true;
-                } else {
-                    line_start = false;
-                    blank_count = 0;
-                    if byte == 13 && show_ends_only_cr {
-                        pending_cr = true;
-                    } else if byte == 9 {
-                        if flag_t_tabs {
-                            out_bytes.extend_from_slice(b"^I");
-                        } else {
-                            out_bytes.push(9);
-                        }
-                    } else if flag_v {
-                        let mut visible = byte;
-                        if visible >= 128 {
-                            out_bytes.extend_from_slice(b"M-");
-                            visible -= 128;
-                        }
-                        if visible < 32 {
-                            out_bytes.push(b'^');
-                            out_bytes.push(visible + 64);
-                        } else if visible == 127 {
-                            out_bytes.extend_from_slice(b"^?");
-                        } else {
-                            out_bytes.push(visible);
-                        }
-                    } else {
-                        out_bytes.push(byte);
-                    }
-                }
-                if out_bytes.len() >= 8192 {
-                    writable = write(1, &crate::vfs::bytes_to_stream_string(&out_bytes), &mut out);
-                    out_bytes.clear();
-                    if !writable { return false; }
-                }
-            }
-            if !out_bytes.is_empty() {
-                writable = write(1, &crate::vfs::bytes_to_stream_string(&out_bytes), &mut out);
-                out_bytes.clear();
-            }
+            writable = filter(chunk, false, &mut |bytes| write(1, &crate::vfs::bytes_to_stream_string(bytes), &mut out));
             writable
         };
         let result = if f == "-" {
@@ -677,7 +689,7 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
             if !write(2, &format!("cat: {e}\n"), &mut out) { return out; }
         }
     }
-    if pending_cr { write(1, "\r", &mut out); }
+    filter(&[], true, &mut |bytes| write(1, &crate::vfs::bytes_to_stream_string(bytes), &mut out));
     out
 }
 

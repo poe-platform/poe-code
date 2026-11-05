@@ -25,7 +25,7 @@ export async function* scanMp4Packets(source: MediaProbeSource, options: Mp4Pack
     if (!('sample' in record)) continue;
     const { sample, track } = record;
     const scale = Math.max(1, track.timescale);
-    yield { codec_type: track.type, stream_index: track.index, pts: sample.pts, pts_time: (sample.pts / scale).toFixed(6), dts: sample.dts, dts_time: (sample.dts / scale).toFixed(6), duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), size: String(sample.size), pos: String(sample.offset), flags: sample.isKeyframe ? 'K_' : '__' };
+    yield { codec_type: track.type, stream_index: track.index, pts: sample.pts, pts_time: (sample.pts / scale).toFixed(6), dts: sample.dts, dts_time: (sample.dts / scale).toFixed(6), duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), size: String(sample.size), pos: String(sample.offset), flags: sample.isKeyframe ? 'K__' : '___' };
   }
 }
 

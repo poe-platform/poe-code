@@ -579,7 +579,7 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
     packets: options.showPackets ? { *[Symbol.iterator]() {
       for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
         dts: s.pts, dts_time: s.time, duration: s.count, duration_time: s.duration, size: s.size,
-        pos: String(s.pts * bytesPerFrame), flags: "K_" };
+        pos: String(s.pts * bytesPerFrame), flags: "K__" };
     } } : undefined,
     frames: options.showFrames ? { *[Symbol.iterator]() {
       for (const s of spans()) yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,
@@ -716,7 +716,7 @@ function mp3Records(size: number, frames: Mp3Frame[], options: MediaSourceProbeO
   return { ...metadata, streams: [stream],
     packets: options.showPackets ? { *[Symbol.iterator]() {
       for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
-        dts: s.pts, dts_time: s.time, duration: s.duration, duration_time: s.durationTime, size: String(s.size), pos: String(s.offset), flags: "K_" };
+        dts: s.pts, dts_time: s.time, duration: s.duration, duration_time: s.durationTime, size: String(s.size), pos: String(s.offset), flags: "K__" };
     } } : undefined,
     frames: options.showFrames ? { *[Symbol.iterator]() {
       for (const s of spans()) {

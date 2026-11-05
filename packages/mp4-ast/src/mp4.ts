@@ -1934,7 +1934,7 @@ export function buildProbeResultFromDoc(
             duration_time: durTime,
             size: String(s.size),
             pos: String(s.offset ?? (doc.containerFormat === "mp4" || doc.containerFormat === "mov" ? -1 : bytePos)),
-            flags: s.isKeyframe ? "K_" : "__"
+            flags: s.isKeyframe ? "K__" : "___"
           });
         }
         if (options.showFrames) {

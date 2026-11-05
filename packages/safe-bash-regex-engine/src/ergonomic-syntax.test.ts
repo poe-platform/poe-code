@@ -3,6 +3,16 @@ import test from "node:test";
 import { Pattern } from "./text/regex.js";
 
 const budget = { step() {}, async checkpoint() {}, maxBufferBytes: 65536 };
+for (const [source, input, expected] of [
+  ["(?>a)b", "abc", ["ab"]],
+  ["(?>a|ab)c", "abc", undefined],
+  ["(?:a|ab)c", "abc", ["abc"]],
+  ["(?>a(b))(c)", "abc", ["abc", "b", "c"]],
+  ["(?>a+)a", "aaa", undefined],
+  ["(?:a+)a", "aaa", ["aaa"]],
+] as const) test(`jq atomic groups: ${source}`, async () => {
+  assert.deepEqual((await new Pattern(source, true, false, "jq").find(input, budget))?.groups, expected);
+});
 for (const dialect of ["sed", "awk", "jq"] as const) {
   for (const [source, input, expected] of [
     ["[\\d]+", "foo 123", "123"], ["[\\D]+", "123abc", "abc"],

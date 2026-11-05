@@ -60,6 +60,7 @@ test("jq behavior works through the standalone portable factory", async () => {
 });
 
 for (const [filter, input, expected] of [
+ ['[test("(?>a)b"), test("(?>a|ab)c"), test("(?:a|ab)c")]', '"abc"', '[true,false,true]\n'],
  ['[test("a"; "i"), (match("a"; "i") | .offset), ([scan("a"; "i")] | length), ([splits("a"; "i")] | length)]', '"Aa"', '[true,0,2,3]\n'],
  ['[nth(1; range(3)), isempty(empty), ("x" | in({x:1})), IN(1,2), (INDEX(.[]; tostring) | keys), pick(.[1]), (9|sqrt), (0|todate)]', '[1,2]', '[1,true,true,false,["1","2"],[null,2],3,"1970-01-01T00:00:00Z"]\n'],
  ['def f($n): if $n == 0 then 1 else $n * f($n - 1) end; f(5)', 'null', '120\n'],

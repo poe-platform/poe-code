@@ -597,6 +597,7 @@ export class Pattern {
       nodes: Node[];
       alternatives: Node[];
       index: number;
+      atomic?: boolean;
       flags?: { insensitive: boolean; multiline: boolean; dotAll: boolean };
       assertion?: { positive: boolean; behind: boolean } | undefined;
     }
@@ -619,7 +620,8 @@ export class Pattern {
         frames.pop();
         if (frame.flags) ({ insensitive, multiline, dotAll } = frame.flags);
         closedGroups.add(frame.index);
-        const node: Node = frame.assertion ? { type: "assertion", node: inner, ...frame.assertion }
+        const node: Node = frame.atomic ? { type: "atomic", node: inner }
+          : frame.assertion ? { type: "assertion", node: inner, ...frame.assertion }
           : frame.index ? { type: "group", index: frame.index, lastCapture: groups, node: inner } : inner;
         frames[frames.length - 1]!.nodes.push(repeated(node));
       } else if (source[offset] === "(") {
@@ -648,13 +650,14 @@ export class Pattern {
         }
         let name: string | undefined;
         let capturing = true;
+        let atomic = false;
         let assertion: ParseFrame["assertion"];
         if (source[offset] === "?" && source[offset + 1] === ":") {
           offset += 2;
           capturing = false;
         } else if (dialect === "jq" && source[offset] === "?") {
           offset++;
-          if (source[offset] === ":") { offset++; capturing = false; }
+          if (source[offset] === ">") { offset++; atomic = true; capturing = false; }
           else if (source[offset] === "=" || source[offset] === "!") {
             assertion = { positive: source[offset++] === "=", behind: false }; capturing = false;
           } else if (source[offset] === "<" && "=!".includes(source[offset + 1] ?? "")) {
@@ -668,7 +671,7 @@ export class Pattern {
         }
         const index = capturing ? ++groups : 0;
         if (name !== undefined) this.groupNames.set(name, index);
-        frames.push({ nodes: [], alternatives: [], index, assertion, flags });
+        frames.push({ nodes: [], alternatives: [], index, assertion, flags, atomic });
       } else {
         frame.nodes.push(repeated(atom(frame.nodes.length === 0, frame.nodes.length === 1 && frame.nodes[0]!.type === "begin")));
       }

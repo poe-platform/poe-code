@@ -138,6 +138,8 @@ export function createFormatRegistry(
         extensions.autolink_bare_uris = false;
       }
     }
+    if (descriptor.name === "gfm" && (name === "markdown_mmd" || name === "markdown_phpextra"))
+      extensions.task_lists = false;
     const explicitlyEnabled = new Set<string>();
     while (cursor < source.length) {
       const enabled = source[cursor++] === "+";

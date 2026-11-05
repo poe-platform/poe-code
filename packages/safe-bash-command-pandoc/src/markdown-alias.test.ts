@@ -17,6 +17,14 @@ it("accepts markdown for both directions with tables and strikeout enabled", asy
   expect(result.diagnostics).toEqual([]);
 });
 
+it.each(["markdown_mmd", "markdown_phpextra"])("%s reads literal task markers unless explicitly enabled", async name => {
+  const input = [{bytes: new TextEncoder().encode("- [x] task")}];
+  for (const [from, item] of [[name, "[x] task"], [name + "+task_lists", '<label><input type="checkbox" checked="" />task</label>']] as const) {
+    expect(await convert(input, {from, to: "html"}, {})).toMatchObject({text: expect.stringContaining(`<li>${item}</li>`)});
+  }
+  expect(inspectFormats([`--list-extensions=${name}`])).toContain("-task_lists\n");
+});
+
 it.each(['md', 'markdown_strict', 'markdown_github', 'markdown_mmd', 'markdown_phpextra', 'commonmark_x'])("accepts %s in both conversion directions", async alias => {
   const result = await convert([{ bytes: new TextEncoder().encode('# Title\n\nHello **world**.\n') }], {
     from: alias, to: alias

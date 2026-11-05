@@ -267,6 +267,9 @@ export function linuxCommands(text: string) {
     ...["markdown", "gfm", "commonmark+task_lists"].map(from => ({
       cmd: pandoc, args: ["-f", from, "-t", "json"], script: `pandoc -f ${from} -t json`, input: "1. [x] text\n",
     })),
+    ...["markdown_mmd", "markdown_phpextra", "markdown_mmd+task_lists", "markdown_phpextra+task_lists"].map(from => ({
+      cmd: pandoc, args: ["-f", from, "-t", "html"], script: `pandoc -f ${from} -t html`, input: "- [x] task\n",
+    })),
     ...["plain", "html"].map(to => ({
       cmd: pandoc, args: ["-f", "docx", "-t", to, "--wrap=none"], script: `pandoc -f docx -t ${to} --wrap=none`, input: nativeDocx,
     })),

@@ -31352,6 +31352,19 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     if args.iter().any(|a| a.contains('\0')) {
         return err_out("E_OPTION: Arguments must be valid UTF-8 without NUL\n", 2);
     }
+    let extension = |format: Option<&str>, base: &str, name: &str| {
+        let mut enabled = !(matches!(base, "commonmark" | "markdown_strict")
+            || name == "task_lists" && matches!(base, "markdown_mmd" | "markdown_phpextra"));
+        if let Some(format) = format {
+            for (i, sign) in format.match_indices(['+', '-']) {
+                if format[i + 1..].split(['+', '-']).next() == Some(name) {
+                    enabled = sign == "+";
+                    if enabled { break; }
+                }
+            }
+        }
+        enabled
+    };
     if let Some(first) = args.first() {
         if first == "--version" || first == "-v" {
             if args.len() != 1 {
@@ -31375,7 +31388,17 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             if (args.len() == 2 && first == "--list-extensions")
                 || (args.len() == 1 && first.starts_with("--list-extensions="))
             {
-                return ok_out("+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n+task_lists\n");
+                let format = first.strip_prefix("--list-extensions=").unwrap_or_else(|| args[1].as_str());
+                let base = format.split(['+', '-']).next().unwrap_or_default();
+                let names = if matches!(base, "commonmark" | "markdown_strict") { &["pipe_tables", "task_lists"][..] }
+                    else { &["autolink_bare_uris", "pipe_tables", "raw_html", "strikeout", "task_lists"][..] };
+                let mut output = String::new();
+                for &name in names {
+                    output.push(if extension(Some(format), base, name) { '+' } else { '-' });
+                    output.push_str(name);
+                    output.push('\n');
+                }
+                return ok_out(&output);
             }
             let mut want_in = false;
             let mut want_out = false;
@@ -31771,18 +31794,6 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         buf
     };
 
-    let extension = |format: Option<&str>, base: &str, name: &str| {
-        let mut enabled = !matches!(base, "commonmark" | "markdown_strict");
-        if let Some(format) = format {
-            for (i, sign) in format.match_indices(['+', '-']) {
-                if format[i + 1..].split(['+', '-']).next() == Some(name) {
-                    enabled = sign == "+";
-                    if enabled { break; }
-                }
-            }
-        }
-        enabled
-    };
     let input_from_html = matches!(in_fmt.as_str(), "html" | "html5");
     let Some(mut blocks) = (match in_fmt.as_str() {
         "html" | "html5" => Some(parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes))),
@@ -35713,6 +35724,12 @@ mod tests {
     fn pandoc_task_lists_follow_reader_dialect_and_scope_html_labels() {
         let vfs = MemoryVfs::new();
         let run = |from, to, input| cmd_pandoc(&args(&["-f", from, "-t", to, "--wrap=none"]), input, "/", &vfs).stdout;
+        for name in ["markdown_mmd", "markdown_phpextra"] {
+            assert_eq!(run(name, "html", "- [x] task"), "<ul>\n<li>[x] task</li>\n</ul>\n");
+            assert!(cmd_pandoc(&args(&["--list-extensions", name]), "", "/", &vfs).stdout.lines().any(|s| s == "-task_lists"));
+            let enabled = format!("{name}+task_lists");
+            assert!(cmd_pandoc(&args(&["-f", &enabled, "-t", "html"]), "- [x] task", "/", &vfs).stdout.contains("type=\"checkbox\""));
+        }
         assert_eq!(run("gfm", "html", r##"- ordinary
 
 - [x] done

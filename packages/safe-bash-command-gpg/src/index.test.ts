@@ -137,12 +137,12 @@ test("gpg requires the signing public key in the verification keyring", async ()
   assert.equal(sign.exitCode, 0);
   const clean = createMemoryFileSystem();
   await clean.writeFile("/signature", new TextEncoder().encode(sign.stdout));
-  const missing = await runGpg(clean, ["--status-fd=1", "--verify", "/signature"], "message");
+  const missing = await runGpg(clean, ["--status-fd=1", "--verify", "/signature", "-"], "message");
   assert.notEqual(missing.exitCode, 0);
   assert.equal(missing.stdout, "");
   const exported = await runGpg(fs, ["--armor", "--export"]);
   assert.equal((await runGpg(clean, ["--import"], exported.stdout)).exitCode, 0);
-  assert.equal((await runGpg(clean, ["--verify", "/signature"], "message")).exitCode, 0);
+  assert.equal((await runGpg(clean, ["--verify", "/signature", "-"], "message")).exitCode, 0);
 });
 
 test("gpg rejects a cryptographically valid signature with a forged hashed key ID", async () => {
@@ -174,7 +174,7 @@ test("gpg rejects a cryptographically valid signature with a forged hashed key I
     mpi(signature.subarray(0, 32)), mpi(signature.subarray(32))]);
   const encoded = Buffer.concat([Buffer.from([0xc2, forged.length]), forged]);
   await fs.writeFile("/forged", new TextEncoder().encode(`-----BEGIN PGP SIGNATURE-----\n${encoded.toString("base64")}\n-----END PGP SIGNATURE-----\n`));
-  const result = await runGpg(fs, ["--status-fd=1", "--verify", "/forged"], "message");
+  const result = await runGpg(fs, ["--status-fd=1", "--verify", "/forged", "-"], "message");
   assert.notEqual(result.exitCode, 0);
   assert.equal(result.stdout, "");
 });

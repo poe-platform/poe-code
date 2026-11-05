@@ -483,6 +483,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       let version = false;
       let detachSign = false;
       let verify = false;
+      let batch = false;
       let listKeys = false;
       let listSecret = false;
       let quickGenKey = false;
@@ -548,7 +549,8 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         }
         else if ((a === "-o" || a === "--output") && i + 1 < args.length) outFile = args[++i];
         else if (a === "--yes") overwrite = true;
-        else if (a === "--batch" || a === "--no-tty" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
+        else if (a === "--batch" || a === "--no-batch") batch = a === "--batch";
+        else if (a === "--no-tty" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
         else if (a !== "-" && a.startsWith("-")) {
           await writeText(context.stderr, `gpg: unknown option: ${a}\n`);
           return { exitCode: 2 };
@@ -562,11 +564,11 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       }
 
       try {
+        let usedStdin = false;
         const signedData = async (paths: string[]) => {
-          if (!paths.length) return collectSourceBytes(context.stdin, maxBytes, context.signal);
           const parts = [];
-          let remaining = maxBytes, usedStdin = false;
-          for (const path of paths) {
+          let remaining = maxBytes;
+          for (const path of paths.length ? paths : ["-"]) {
             if (path === "-" && usedStdin) continue;
             const data = path === "-" ? await collectSourceBytes(context.stdin, remaining, context.signal)
               : await readLimitedFile(context, pathPosix.resolve(context.cwd, path), remaining);
@@ -738,10 +740,28 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         }
 
         if (verify) {
-          const sigPath = positionals[0];
-          if (!sigPath) throw new PublicDiagnostic("missing signature file for --verify");
-          const signature = await readLimitedFile(context, pathPosix.resolve(context.cwd, sigPath), maxBytes);
-          const dataBytes = await signedData(positionals.slice(1));
+          const sigPath = positionals[0] ?? "-";
+          const signature = await signedData([sigPath]);
+          if (!signature.length) throw new PublicDiagnostic("verify signatures failed: Unknown system error");
+          let dataBytes: Uint8Array | undefined;
+          if (positionals.length > 1) {
+            dataBytes = await signedData(positionals.slice(1));
+          } else {
+            const suffix = [".sig", ".asc", ".sign"].find(ext => sigPath.endsWith(ext));
+            const sibling = suffix && sigPath.slice(0, -suffix.length);
+            if (!batch && sibling) {
+              try {
+                dataBytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, sibling), maxBytes);
+              } catch (error) {
+                if (!(error instanceof FsError && error.code === "ENOENT")) throw error;
+              }
+              if (dataBytes) await writeText(context.stderr, `gpg: assuming signed data in '${sibling}'\n`);
+            }
+            if (!dataBytes) {
+              await writeText(context.stderr, "gpg: no signed data\ngpg: can't hash datafile: No data\n");
+              return { exitCode: 2 };
+            }
+          }
           const res = await verifyOpenPgpDetachedSignature(signature, dataBytes, await loadKeyring(context));
           if (!res.valid) {
             await writeText(context.stderr, `gpg: BAD signature from "${res.signerUid}"\n`);

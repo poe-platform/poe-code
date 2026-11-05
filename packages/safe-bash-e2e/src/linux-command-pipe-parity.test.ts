@@ -363,7 +363,7 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
         const importedAgain = await peer.exec("gpg --import", { stdin: reexported[1] });
         assert.equal(importedAgain.exitCode, 0, importedAgain.stderr);
         await peer.exec("cat > /peer.sig", { stdin: signature.stdoutBytes });
-        const peerVerified = await peer.exec("gpg --status-fd=1 --verify /peer.sig", { stdin: payload });
+        const peerVerified = await peer.exec("gpg --status-fd=1 --verify /peer.sig -", { stdin: payload });
         assert.equal(peerVerified.exitCode, 0, peerVerified.stderr);
         peerStatus = peerVerified.stdout;
         assert.equal(cert.stdout.startsWith("-----BEGIN"), flags === "-a");
@@ -405,6 +405,33 @@ test("GnuPG imports a safe-bash Ed25519 certificate and verifies its detached si
         await writeFile(dir + "/output.sig", bytes);
         const checked = await runLinuxCommand("gpg", [...options, "--verify", "output.sig", "-"], data, dir);
         assert.equal(checked[0], 0, checked[2].toString());
+      }
+      const asc = await fs.readFile("/workspace/first.asc");
+      await writeFile(dir + "/first.asc", asc);
+      await writeFile(dir + "/first", payload);
+      for (const name of ["orphan.asc", "first.sig", "first.sign", "first.SIG", "first.gpg"]) {
+        await writeFile(dir + "/" + name, asc);
+        await fs.writeFile("/workspace/" + name, asc);
+      }
+      for (const [args, stdin] of [
+        [["--verify", "first.asc"], "unrelated stdin"],
+        [["--verify", "first.sig"], "unrelated stdin"],
+        [["--no-tty", "--verify", "first.sign"], "unrelated stdin"],
+        [["--verify", "first.SIG"], payload],
+        [["--verify", "first.gpg"], payload],
+        [["--batch", "--verify", "first.asc"], payload],
+        [["--batch", "--no-batch", "--verify", "first.asc"], "unrelated stdin"],
+        [["--verify"], asc],
+        [["--verify"], ""],
+        [["--verify", "orphan.asc"], payload],
+        [["--batch", "--verify", "first.asc", "-"], "wrong"],
+        [["--batch", "--verify", "-", "first"], asc],
+      ] as const) {
+        const expected = await runLinuxCommand("gpg", [...options.filter(x => x !== "--batch"), ...args], stdin, dir);
+        const checked = await shell.exec("gpg " + args.join(" "), { stdin });
+        assert.equal(checked.exitCode, expected[0], args.join(" ") + ": " + checked.stderr);
+        if (expected[0] === 2) assert.equal(checked.stderr, expected[2].toString());
+        if (!args.some(arg => arg === "--batch") && expected[0] === 0) assert.equal(checked.stderr.split("\n")[0], expected[2].toString().split("\n")[0]);
       }
       const own = await shell.exec("gpg --verify last.sig first last");
       assert.equal(own.exitCode, 0, own.stderr);
@@ -468,11 +495,11 @@ test("safe-bash imports GnuPG certificates and verifies a binary signature from 
     assert.equal(statuses(expected[1].toString()).length, 3);
     for (const shell of [rust, ts.shell]) {
       await shell.exec("cat > /fixture.sig", { stdin: signature });
-      const good = await shell.exec("gpg --status-fd=1 --verify /fixture.sig", { stdin: payload });
+      const good = await shell.exec("gpg --status-fd=1 --verify /fixture.sig -", { stdin: payload });
       assert.equal(good.exitCode, expected[0], good.stderr);
       assert.deepEqual(statuses(good.stdout), statuses(expected[1].toString()));
       assert.match(good.stderr, /\[expired\]/);
-      const bad = await shell.exec("gpg --status-fd=1 --verify /fixture.sig", { stdin: "other" });
+      const bad = await shell.exec("gpg --status-fd=1 --verify /fixture.sig -", { stdin: "other" });
       assert.notEqual(bad.exitCode, 0);
       assert.deepEqual(statuses(bad.stdout), []);
     }

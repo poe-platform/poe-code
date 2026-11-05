@@ -16167,7 +16167,7 @@ test("GPG public key transfer permits verification but cannot grant signing auth
       const imported = await recipient.exec("gpg --import", {stdin: exported.stdout});
       assert.equal(imported.exitCode, 0, imported.stderr);
       await recipient.exec("cat >/signature", {stdin: signed.stdoutBytes});
-      const verified = await recipient.exec("printf data | gpg --verify /signature");
+      const verified = await recipient.exec("printf data | gpg --verify /signature -");
       assert.equal(verified.exitCode, 0, verified.stderr);
       assert.notEqual((await recipient.exec("printf forged | gpg --detach-sign -u signer")).exitCode, 0);
       assert.equal((await recipient.exec("gpg --list-secret-keys")).stdout, "");

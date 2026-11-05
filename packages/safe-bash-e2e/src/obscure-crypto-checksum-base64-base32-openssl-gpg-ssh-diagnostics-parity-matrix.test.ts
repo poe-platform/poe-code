@@ -695,7 +695,7 @@ describe("obscure crypto, checksum, base64/base32, openssl, gpg, ssh, and ssh-ke
     );
   });
 
-  it("17. gpg option and file diagnostics (unknown option, missing signature file, EISDIR, and ENOENT with exit 2)", async () => {
+  it("17. gpg option and file diagnostics (unknown option, empty signature input, EISDIR, and ENOENT with exit 2)", async () => {
     const bash = await createEnv();
     const result = await bash.exec(`
       set +e
@@ -724,7 +724,7 @@ describe("obscure crypto, checksum, base64/base32, openssl, gpg, ssh, and ssh-ke
       result.stdout.trim(),
       [
         "GPG_OPT:2:gpg: unknown option: --unknown-flag",
-        "GPG_NOSIG:2:gpg: missing signature file for --verify",
+        "GPG_NOSIG:2:gpg: verify signatures failed: Unknown system error",
         "GPG_IMP_DIR:2:gpg: EISDIR: illegal operation on a directory, readFile '/tmp/gpg_dir'",
         "GPG_IMP_NOENT:2:gpg: ENOENT: no such file or directory, readFile '/tmp/no_such_key.asc'",
         "GPG_VER_NOENT:2:gpg: ENOENT: no such file or directory, readFile '/tmp/no_such_sig.asc'",

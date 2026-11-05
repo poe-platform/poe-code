@@ -9285,6 +9285,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     let mut version = false;
     let mut detach_sign = false;
     let mut verify = false;
+    let mut batch = false;
     let mut list_keys = false;
     let mut list_secret = false;
     let mut quick_gen_key = false;
@@ -9379,7 +9380,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             quiet = true;
         } else if a == "--yes" {
             overwrite = true;
-        } else if matches!(a, "--batch" | "--no-tty" | "-s" | "--sign" | "--help" | "-h") {
+        } else if matches!(a, "--batch" | "--no-batch") {
+            batch = a == "--batch";
+        } else if matches!(a, "--no-tty" | "-s" | "--sign" | "--help" | "-h") {
         } else if a != "-" && a.starts_with('-') {
             return err_out(&format!("gpg: unknown option: {a}\n"), 2);
         } else {
@@ -9461,13 +9464,13 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             ));
         }
         fs.read_file(&full)
-            .map_err(|_| format!("ENOENT: no such file or directory, readFile '{full}'"))
+            .map_err(|e| if e.starts_with("ENOENT:") { format!("ENOENT: no such file or directory, readFile '{full}'") } else { e })
     };
 
-    let signed_data = |paths: &[String]| -> Result<Vec<u8>, String> {
-        if paths.is_empty() { return Ok(crate::vfs::stream_string_to_bytes(stdin)); }
+    let mut source = Some(stdin);
+    let mut signed_data = |paths: &[String]| -> Result<Vec<u8>, String> {
+        if paths.is_empty() { return Ok(crate::vfs::stream_string_to_bytes(source.take().unwrap_or_default())); }
         let mut out = Vec::new();
-        let mut source = Some(stdin);
         for path in paths {
             if path == "-" {
                 if let Some(data) = source.take() { out.extend(crate::vfs::stream_string_to_bytes(data)); }
@@ -9757,14 +9760,30 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     }
 
     if verify {
-        let Some(sig_path) = positionals.first() else {
-            return err_out("gpg: missing signature file for --verify\n", 2);
-        };
-        let sig_raw = match read_gpg_file(sig_path) {
+        let sig_path = positionals.first().map_or("-", String::as_str);
+        let signature = if sig_path == "-" { signed_data(&[]) } else { read_gpg_file(sig_path) };
+        let sig_raw = match signature {
             Ok(b) => b,
             Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
-        let data_bytes = match signed_data(&positionals[1..]) { Ok(data) => data, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        if sig_raw.is_empty() { return err_out("gpg: verify signatures failed: Unknown system error\n", 2); }
+        let mut notice = String::new();
+        let data_bytes = if positionals.len() > 1 {
+            signed_data(&positionals[1..])
+        } else {
+            let sibling = [".sig", ".asc", ".sign"].iter().find_map(|suffix| sig_path.strip_suffix(suffix));
+            let missing = "gpg: no signed data\ngpg: can't hash datafile: No data\n";
+            let Some(name) = sibling.filter(|name| !batch && !name.is_empty()) else { return err_out(missing, 2) };
+            match read_gpg_file(name) {
+                Ok(data) => {
+                    notice = format!("gpg: assuming signed data in '{name}'\n");
+                    Ok(data)
+                }
+                Err(e) if e.starts_with("ENOENT:") => return err_out(missing, 2),
+                Err(e) => Err(e),
+            }
+        };
+        let data_bytes = match data_bytes { Ok(b) => b, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
         let pkt = if sig_raw.first().is_some_and(|b| b & 128 != 0) {
             sig_raw
         } else {
@@ -9774,149 +9793,155 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             base64_decode(&b64).unwrap_or_default()
         };
         let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        for key in &keys {
-            if key.certificate.is_empty() && key.seed.is_empty() { continue; }
-            if let Ok(cert) = key.certificate()
-                && let Some(verified) = openpgp::verify_message(&pkt, &cert, &data_bytes) {
-                let time = verified.time;
-                let hash = verified.hash;
-                let expired = cert.expires.filter(|&t| t <= (crate::vfs::now_ms() / 1000.) as u64);
-                let (status, trust) = if expired.is_some() { ("EXPKEYSIG", "expired") } else { ("GOODSIG", if key.seed.is_empty() { "unknown" } else { "ultimate" }) };
-                let expiry = expired.map(|t| format!("[GNUPG:] KEYEXPIRED {t}\n")).unwrap_or_default();
-                let (y, m, d) = super::coreutils::civil_from_days(i64::from(time) / 86400);
-                let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
-                let fp = openssl_hex_encode(&cert.fingerprint).to_uppercase();
-                let uid = cert.uid;
-                return BuiltinOutcome {
-                    stdout: if status_fd.is_some() { format!("{expiry}[GNUPG:] {status} {kid} {uid}\n[GNUPG:] VALIDSIG {fp} {y:04}-{m:02}-{d:02} {time} 0 4 0 22 {hash} 00 {fp}\n") } else { String::new() },
-                    stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [{trust}]\n"),
-                    exit_code: 0,
-                };
-            }
+        let mut result = verify_gpg_signature(&pkt, &keys, &data_bytes, status_fd.is_some());
+        result.stderr.insert_str(0, &notice);
+        return result;
+    }
+
+    ok_out("gpg (GnuPG) 2.4.5 (safe-bash)\n")
+}
+
+fn verify_gpg_signature(pkt: &[u8], keys: &[GpgKey], data_bytes: &[u8], emit_status: bool) -> BuiltinOutcome {
+    for key in keys {
+        if key.certificate.is_empty() && key.seed.is_empty() { continue; }
+        if let Ok(cert) = key.certificate()
+            && let Some(verified) = openpgp::verify_message(pkt, &cert, data_bytes) {
+            let time = verified.time;
+            let hash = verified.hash;
+            let expired = cert.expires.filter(|&t| t <= (crate::vfs::now_ms() / 1000.) as u64);
+            let (status, trust) = if expired.is_some() { ("EXPKEYSIG", "expired") } else { ("GOODSIG", if key.seed.is_empty() { "unknown" } else { "ultimate" }) };
+            let expiry = expired.map(|t| format!("[GNUPG:] KEYEXPIRED {t}\n")).unwrap_or_default();
+            let (y, m, d) = super::coreutils::civil_from_days(i64::from(time) / 86400);
+            let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
+            let fp = openssl_hex_encode(&cert.fingerprint).to_uppercase();
+            let uid = cert.uid;
+            return BuiltinOutcome {
+                stdout: if emit_status { format!("{expiry}[GNUPG:] {status} {kid} {uid}\n[GNUPG:] VALIDSIG {fp} {y:04}-{m:02}-{d:02} {time} 0 4 0 22 {hash} 00 {fp}\n") } else { String::new() },
+                stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [{trust}]\n"),
+                exit_code: 0,
+            };
         }
-        if pkt.len() >= 10 && pkt[0] == 0xc2 {
-            let idx = if pkt[1] < 192 { 2 } else if pkt[1] == 0xff && pkt.len() >= 6 { 6 } else { 0 };
-            if idx > 0 && pkt.len() > idx + 6 && pkt[idx] == 4 {
-                let body = &pkt[idx..];
-                let hashed_len = ((body[4] as usize) << 8) | (body[5] as usize);
-                let sig_header_end = 6 + hashed_len;
-                if sig_header_end + 2 <= body.len() {
-                    let sig_header = &body[..sig_header_end];
-                    let mut key_id_hex = "0000000000000000".to_string();
-                    let mut signer_uid_parsed = "unknown".to_string();
-                    let mut sp = 6usize;
-                    while sp < sig_header_end {
-                        let slen = body[sp] as usize;
-                        if slen == 0 || sp + 1 + slen > sig_header_end {
-                            break;
-                        }
-                        let stype = body[sp + 1];
-                        let sdata = &body[sp + 2..sp + 1 + slen];
-                        if stype == 16 && sdata.len() == 8 {
-                            key_id_hex = openssl_hex_encode(sdata).to_uppercase();
-                        } else if stype == 28 {
-                            signer_uid_parsed = String::from_utf8_lossy(sdata).to_string();
-                        }
-                        sp += 1 + slen;
+    }
+    if pkt.len() >= 10 && pkt[0] == 0xc2 {
+        let idx = if pkt[1] < 192 { 2 } else if pkt[1] == 0xff && pkt.len() >= 6 { 6 } else { 0 };
+        if idx > 0 && pkt.len() > idx + 6 && pkt[idx] == 4 {
+            let body = &pkt[idx..];
+            let hashed_len = ((body[4] as usize) << 8) | (body[5] as usize);
+            let sig_header_end = 6 + hashed_len;
+            if sig_header_end + 2 <= body.len() {
+                let sig_header = &body[..sig_header_end];
+                let mut key_id_hex = "0000000000000000".to_string();
+                let mut signer_uid_parsed = "unknown".to_string();
+                let mut sp = 6usize;
+                while sp < sig_header_end {
+                    let slen = body[sp] as usize;
+                    if slen == 0 || sp + 1 + slen > sig_header_end {
+                        break;
                     }
-                    let unhashed_len = ((body[sig_header_end] as usize) << 8) | (body[sig_header_end + 1] as usize);
-                    let unhashed_end = sig_header_end + 2 + unhashed_len;
-                    let mut pub_opt: Option<[u8; 32]> = None;
-                    let mut usp = sig_header_end + 2;
-                    while usp < unhashed_end && usp < body.len() {
-                        let slen = body[usp] as usize;
-                        if slen == 0 || usp + 1 + slen > unhashed_end || usp + 1 + slen > body.len() {
-                            break;
-                        }
-                        let stype = body[usp + 1];
-                        let sdata = &body[usp + 2..usp + 1 + slen];
-                        if stype == (0x80 | 28) && sdata.len() == 32 {
-                            let mut pk = [0u8; 32];
-                            pk.copy_from_slice(sdata);
-                            pub_opt = Some(pk);
-                        }
-                        usp += 1 + slen;
+                    let stype = body[sp + 1];
+                    let sdata = &body[sp + 2..sp + 1 + slen];
+                    if stype == 16 && sdata.len() == 8 {
+                        key_id_hex = openssl_hex_encode(sdata).to_uppercase();
+                    } else if stype == 28 {
+                        signer_uid_parsed = String::from_utf8_lossy(sdata).to_string();
                     }
-                    if let Some(pub_key) = pub_opt && unhashed_end + 2 + 68 <= body.len() {
-                        let fp = sha256_bytes(&pub_key);
-                        let derived_kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
-                        let pub_hex_lower = openssl_hex_encode(&pub_key).to_lowercase();
-                        if key_id_hex == derived_kid
-                            && let Some(GpgKey { uid: trusted_uid, .. }) = keys
-                                .iter()
-                                .find(|k| k.certificate.is_empty() && k.id == derived_kid && k.public.to_lowercase() == pub_hex_lower)
-                        {
-                            let mpi_start = unhashed_end + 2;
-                            let mut sig_arr = [0u8; 64];
-                            sig_arr[0..32].copy_from_slice(&body[mpi_start + 2..mpi_start + 34]);
-                            sig_arr[32..64].copy_from_slice(&body[mpi_start + 36..mpi_start + 68]);
-                            let h_len = sig_header.len() as u32;
-                            let mut hash_target = Vec::with_capacity(data_bytes.len() + sig_header.len() + 6);
-                            hash_target.extend_from_slice(&data_bytes);
-                            hash_target.extend_from_slice(sig_header);
-                            hash_target.extend_from_slice(&[4, 0xff]);
-                            hash_target.extend_from_slice(&h_len.to_be_bytes());
-                            let digest = sha256_bytes(&hash_target);
-                            if body[unhashed_end] == digest[0]
-                                && body[unhashed_end + 1] == digest[1]
-                                && ed25519_verify(&sig_arr, &digest, &pub_key)
-                            {
-                                let stdout_msg = if status_fd.is_some() {
-                                    format!("[GNUPG:] GOODSIG {derived_kid} {trusted_uid}\n[GNUPG:] VALIDSIG {derived_kid} 2026-09-28 1609459200\n")
-                                } else {
-                                    String::new()
-                                };
-                                return BuiltinOutcome {
-                                    stdout: stdout_msg,
-                                    stderr: format!("gpg: Signature made using EDDSA key {derived_kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"),
-                                    exit_code: 0,
-                                };
-                            }
-                        }
-                    }
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("gpg: BAD signature from \"{signer_uid_parsed}\"\n"),
-                        exit_code: 1,
-                    };
+                    sp += 1 + slen;
                 }
-            }
-        }
-        let pkt_str = String::from_utf8_lossy(&pkt);
-        if let Some(rest_p) = pkt_str.strip_prefix("SBPGPSIG:") {
-            let parts: Vec<&str> = rest_p.splitn(4, ':').collect();
-            if parts.len() == 4 {
-                let (kid, uid, _pub_h, sig_h) = (parts[0], parts[1], parts[2], parts[3]);
-                if let Some(GpgKey { uid: trusted_uid, seed: seed_h, .. }) = keys.iter().find(|k| k.id == kid && !k.seed.is_empty()) {
-                    let expected = openssl_hex_encode(&openssl_hmac("sha256", seed_h.as_bytes(), &data_bytes));
-                    if expected == sig_h {
-                        let stdout_msg = if status_fd.is_some() {
-                            format!("[GNUPG:] GOODSIG {kid} {trusted_uid}\n[GNUPG:] VALIDSIG {kid} 2026-09-28 1609459200\n")
-                        } else {
-                            String::new()
-                        };
-                        return BuiltinOutcome {
-                            stdout: stdout_msg,
-                            stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"),
-                            exit_code: 0,
-                        };
+                let unhashed_len = ((body[sig_header_end] as usize) << 8) | (body[sig_header_end + 1] as usize);
+                let unhashed_end = sig_header_end + 2 + unhashed_len;
+                let mut pub_opt: Option<[u8; 32]> = None;
+                let mut usp = sig_header_end + 2;
+                while usp < unhashed_end && usp < body.len() {
+                    let slen = body[usp] as usize;
+                    if slen == 0 || usp + 1 + slen > unhashed_end || usp + 1 + slen > body.len() {
+                        break;
+                    }
+                    let stype = body[usp + 1];
+                    let sdata = &body[usp + 2..usp + 1 + slen];
+                    if stype == (0x80 | 28) && sdata.len() == 32 {
+                        let mut pk = [0u8; 32];
+                        pk.copy_from_slice(sdata);
+                        pub_opt = Some(pk);
+                    }
+                    usp += 1 + slen;
+                }
+                if let Some(pub_key) = pub_opt && unhashed_end + 2 + 68 <= body.len() {
+                    let fp = sha256_bytes(&pub_key);
+                    let derived_kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
+                    let pub_hex_lower = openssl_hex_encode(&pub_key).to_lowercase();
+                    if key_id_hex == derived_kid
+                        && let Some(GpgKey { uid: trusted_uid, .. }) = keys
+                            .iter()
+                            .find(|k| k.certificate.is_empty() && k.id == derived_kid && k.public.to_lowercase() == pub_hex_lower)
+                    {
+                        let mpi_start = unhashed_end + 2;
+                        let mut sig_arr = [0u8; 64];
+                        sig_arr[0..32].copy_from_slice(&body[mpi_start + 2..mpi_start + 34]);
+                        sig_arr[32..64].copy_from_slice(&body[mpi_start + 36..mpi_start + 68]);
+                        let h_len = sig_header.len() as u32;
+                        let mut hash_target = Vec::with_capacity(data_bytes.len() + sig_header.len() + 6);
+                        hash_target.extend_from_slice(data_bytes);
+                        hash_target.extend_from_slice(sig_header);
+                        hash_target.extend_from_slice(&[4, 0xff]);
+                        hash_target.extend_from_slice(&h_len.to_be_bytes());
+                        let digest = sha256_bytes(&hash_target);
+                        if body[unhashed_end] == digest[0]
+                            && body[unhashed_end + 1] == digest[1]
+                            && ed25519_verify(&sig_arr, &digest, &pub_key)
+                        {
+                            let stdout_msg = if emit_status {
+                                format!("[GNUPG:] GOODSIG {derived_kid} {trusted_uid}\n[GNUPG:] VALIDSIG {derived_kid} 2026-09-28 1609459200\n")
+                            } else {
+                                String::new()
+                            };
+                            return BuiltinOutcome {
+                                stdout: stdout_msg,
+                                stderr: format!("gpg: Signature made using EDDSA key {derived_kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"),
+                                exit_code: 0,
+                            };
+                        }
                     }
                 }
                 return BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("gpg: BAD signature from \"{uid}\"\n"),
+                    stderr: format!("gpg: BAD signature from \"{signer_uid_parsed}\"\n"),
                     exit_code: 1,
                 };
             }
         }
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: "gpg: BAD signature from \"unknown\"\n".to_string(),
-            exit_code: 1,
-        };
     }
-
-    ok_out("gpg (GnuPG) 2.4.5 (safe-bash)\n")
+    let pkt_str = String::from_utf8_lossy(pkt);
+    if let Some(rest_p) = pkt_str.strip_prefix("SBPGPSIG:") {
+        let parts: Vec<&str> = rest_p.splitn(4, ':').collect();
+        if parts.len() == 4 {
+            let (kid, uid, _pub_h, sig_h) = (parts[0], parts[1], parts[2], parts[3]);
+            if let Some(GpgKey { uid: trusted_uid, seed: seed_h, .. }) = keys.iter().find(|k| k.id == kid && !k.seed.is_empty()) {
+                let expected = openssl_hex_encode(&openssl_hmac("sha256", seed_h.as_bytes(), data_bytes));
+                if expected == sig_h {
+                    let stdout_msg = if emit_status {
+                        format!("[GNUPG:] GOODSIG {kid} {trusted_uid}\n[GNUPG:] VALIDSIG {kid} 2026-09-28 1609459200\n")
+                    } else {
+                        String::new()
+                    };
+                    return BuiltinOutcome {
+                        stdout: stdout_msg,
+                        stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"),
+                        exit_code: 0,
+                    };
+                }
+            }
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("gpg: BAD signature from \"{uid}\"\n"),
+                exit_code: 1,
+            };
+        }
+    }
+    BuiltinOutcome {
+        stdout: String::new(),
+        stderr: "gpg: BAD signature from \"unknown\"\n".to_string(),
+        exit_code: 1,
+    }
 }
 
 const ED25519_P: [u64; 4] = [0xffffffffffffffedu64, 0xffffffffffffffffu64, 0xffffffffffffffffu64, 0x7fffffffffffffffu64];

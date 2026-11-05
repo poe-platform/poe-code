@@ -1031,8 +1031,6 @@ async function applyVideoFilterChain(
         const height = Math.trunc(parseFilterExpression(named.h ?? named.height ?? positional[3] ?? "0", "drawbox", variables));
         const bw = width <= 0 ? f.width : width;
         const bh = height <= 0 ? f.height : height;
-        const bw = width <= 0 ? f.width : width || 16;
-        const bh = height <= 0 ? f.height : height || 16;
         const bx = Math.trunc(parseFilterExpression(named.x ?? positional[0] ?? "0", "drawbox", variables));
         const by = Math.trunc(parseFilterExpression(named.y ?? positional[1] ?? "0", "drawbox", variables));
         const nextData = new Uint8Array(f.data);

@@ -1669,3 +1669,23 @@ for (const [width, height, pixels] of [
     assert.deepEqual([...actual.data], pixels.flatMap(value => [value, value, value, 255]));
   });
 }
+
+for (const [sourceRate, targetRate] of [[16000, 8000], [44100, 16000]] as const) {
+  it(`low-pass filters audio downsampling from ${sourceRate} to ${targetRate}`, async () => {
+    const channels = [1000, targetRate * 0.75].map(frequency =>
+      Float64Array.from({ length: sourceRate }, (_, i) => 0.125 * Math.sin(2 * Math.PI * frequency * i / sourceRate)));
+    const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: sourceRate, channels }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-ar", String(targetRate), "-c:a", "pcm_s16le", "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, targetRate);
+    assert.equal(audio.channels, 2);
+    for (const [c, samples] of audio.channelData.entries()) {
+      assert.equal(samples.length, targetRate);
+      const middle = samples.subarray(Math.floor(targetRate * 0.2), Math.floor(targetRate * 0.8));
+      const rms = Math.sqrt(middle.reduce((sum, sample) => sum + sample * sample, 0) / middle.length);
+      if (c === 0) assert.ok(Math.abs(rms - 0.125 / Math.SQRT2) < 0.001, `passband RMS: ${rms}`);
+      else assert.ok(rms < 0.0001, `aliased RMS: ${rms}`);
+    }
+  });
+}

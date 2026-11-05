@@ -6,6 +6,7 @@ import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources,
   type MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { downsampleAudio } from "./audio-downsample.js";
 import { stretchAudio } from "./audio-tempo.js";
 import { scaleFrame } from "./scale.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -2184,7 +2185,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               const targetSamples = Math.max(1, Math.round((durSec / tempoFactor) * targetRate));
-              const stretched = await stretchAudio(t.decodedAudio.channelData, origRate, tempoFactor, budget, context.signal);
+              let stretched = await stretchAudio(t.decodedAudio.channelData, origRate, tempoFactor, budget, context.signal);
+              if (targetRate < origRate) stretched = await downsampleAudio(stretched, targetSamples, budget, context.signal);
               const newChannelData: Float32Array[] = [];
               for (let c = 0; c < targetCh; c++) {
                 if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }

@@ -5,6 +5,20 @@ import type { WriteOptions } from "./types.js";
 const a: Attr = ["", [], []];
 const s = (c: string): Inline => ({t: "Str", c});
 const p = (...c: Inline[]): Block => ({t: "Para", c});
+it("writes citation metadata as recoverable Markdown instead of display text", async () => {
+  for (const source of ["See [@doe2020, p. 4].", "[see @doe2020, *p.* 4; -@roe2021]", "@doe2020 [p. 4]", "@doe2020"]) {
+    const blocks = await back(source, "markdown");
+    for (const to of ["markdown", "md", "gfm+citations"]) {
+      const actual = await md(blocks, to);
+      const citations = (value: readonly Block[]) => value.flatMap(block => block.t === "Para" ? block.c.filter(node => node.t === "Cite").map(node => node.c[0]) : []);
+      expect(citations(await back(actual, "markdown"))).toEqual(citations(blocks));
+    }
+  }
+  const cite: Inline = {t: "Cite", c: [[{citationId: "doe2020", citationPrefix: [], citationSuffix: [], citationMode: "NormalCitation", citationNoteNum: 0, citationHash: 0}], [s("Rendered author")]]};
+  expect(await md([p(cite)], "markdown")).toBe("[@doe2020]\n");
+  await expect(md([p(cite)], "markdown-citations")).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+  expect(await md([p(cite)], "markdown-citations", {lossy: true})).toBe("Rendered author\n");
+});
 async function md(blocks: readonly Block[], to = "commonmark", options: Partial<WriteOptions> = {}) {
   const result = await writeDocument({blocks, metadata: {}, resources: []}, {to, ...options}, {});
   if(result.kind !== "text") throw new Error("Expected text");

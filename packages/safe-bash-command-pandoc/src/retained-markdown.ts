@@ -216,6 +216,23 @@ class MarkdownTape {
         await this.push(this.list(job.node, job.path, "inline")); continue;
       }
       if (job.op === "scalar") {result = await this.scalar(job.node); continue;}
+      if (job.op === "citation") {
+        if (!job.stage) {
+          await this.push({...job, stage: 1});
+          await this.push(this.list((await this.tree.property(job.node, "citationPrefix"))!, await this.path(job.path, ".citationPrefix"), "inline"));
+        } else if (job.stage === 1) {
+          await this.push({...job, stage: 2, text: result});
+          await this.push(this.list((await this.tree.property(job.node, "citationSuffix"))!, await this.path(job.path, ".citationSuffix"), "inline"));
+        } else {
+          const mode = await this.tag((await this.tree.property(job.node, "citationMode"))!);
+          const key = await this.scalar((await this.tree.property(job.node, "citationId"))!);
+          const suffix = result;
+          const gap = suffix.units && !",.;:!?".includes((await this.inspect(suffix)).first) ? " " : "";
+          result = await this.join(job.text!, await this.literal(job.text!.units ? " " : ""), await this.literal(mode === "SuppressAuthor" ? "-@" : "@"), key,
+            mode === "AuthorInText" && suffix.units ? await this.join(await this.literal(" ["), suffix, await this.literal("]")) : await this.join(await this.literal(gap), suffix));
+        }
+        continue;
+      }
       if (job.op === "post") {
         if (job.mode === "surround" && job.rest) await this.addProjection(job.rest.length);
         if (job.mode === "surround") result = await this.join(await this.literal(job.first!), result, await this.literal(job.rest!));
@@ -391,7 +408,16 @@ class MarkdownTape {
           const quote = await this.tag(content! + 32) === "DoubleQuote" ? '"' : "'";
           await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: quote, rest: quote}); const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;
         }
-        if (tag === "Cite") {await this.loss(job.path, "citations"); const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;}
+        if (tag === "Cite") {
+          if (!this.selection.extensions.citations || !await this.count(content! + 32)) {
+            if (!this.selection.extensions.citations) await this.loss(job.path, "citations");
+            const inner = await child(1, "inline"); await this.push(this.list(inner.node, inner.path, "inline")); continue;
+          }
+          const citations = content! + 32;
+          const mode = await this.tag((await this.tree.property(citations + 32, "citationMode"))!);
+          if (mode !== "AuthorInText") await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: "[", rest: "]"});
+          await this.push(this.list(citations, await this.path(cp, "[0]"), "citation", {sep: "; "})); continue;
+        }
         if (tag === "Math" && this.selection.extensions.tex_math_dollars) {
           const delimiter = await this.tag(content! + 32) === "DisplayMath" ? "$$" : "$";
           result = await this.join(await this.literal(delimiter), await this.scalar(await this.at(content!, 1)), await this.literal(delimiter)); continue;

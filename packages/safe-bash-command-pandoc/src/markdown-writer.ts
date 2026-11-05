@@ -131,7 +131,26 @@ class Markdown {
           } else {this.attrs(attr, p); parts.push(this.inline(node.c[1], `${p}.c[1]`));} break;
         }
         case "Quoted": {const quote = node.c[0] === "DoubleQuote" ? '"' : "'"; parts.push(this.join([quote, this.inline(node.c[1], `${p}.c[1]`), quote])); break;}
-        case "Cite": this.loss(p, "citations"); parts.push(this.inline(node.c[1], `${p}.c[1]`)); break;
+        case "Cite": {
+          if (!this.selection.extensions.citations) {this.loss(p, "citations"); parts.push(this.inline(node.c[1], `${p}.c[1]`)); break;}
+          if (!node.c[0].length) {parts.push(this.inline(node.c[1], `${p}.c[1]`)); break;}
+          const citations: string[] = [];
+          for (const [j, citation] of node.c[0].entries()) {
+            this.context.checkpoint();
+            const prefix = this.inline(citation.citationPrefix, `${p}.c[0][${j}].citationPrefix`);
+            const suffix = this.inline(citation.citationSuffix, `${p}.c[0][${j}].citationSuffix`);
+            const key = this.join([citation.citationMode === "SuppressAuthor" ? "-@" : "@", citation.citationId]);
+            const before = prefix ? this.join([prefix, " "]) : "";
+            if (citation.citationMode === "AuthorInText") {
+              citations.push(this.join([before, key, suffix ? this.join([" [", suffix, "]"]) : ""]));
+            } else {
+              const gap = suffix && !",.;:!?".includes(suffix[0]!) ? " " : "";
+              citations.push(this.join([before, key, gap, suffix]));
+            }
+          }
+          parts.push(node.c[0][0]?.citationMode === "AuthorInText" ? this.join(citations, "; ") : this.join(["[", this.join(citations, "; "), "]"]));
+          break;
+        }
         case "Math": {
           if (!this.selection.extensions.tex_math_dollars) throw new PandocError("E_CAPABILITY", this.context.operation ?? "write", "Math requires tex_math_dollars", this.selection.descriptor.name, p);
           const delimiter = node.c[0] === "DisplayMath" ? "$$" : "$";

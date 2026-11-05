@@ -62,3 +62,40 @@ it("reads citations through the standalone command", async () => {
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(output).blocks[0].c[2].t).toBe("Cite");
 });
+
+it("writes JSON citations through the standalone command without projection warnings", async () => {
+  const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Para", c: [
+    {t: "Str", c: "See"}, {t: "Space"}, {t: "Cite", c: [[{
+      citationId: "doe2020", citationPrefix: [],
+      citationSuffix: [{t: "Str", c: ","}, {t: "Space"}, {t: "Str", c: "p.\u00a04"}],
+      citationMode: {t: "NormalCitation"}, citationNoteNum: 1, citationHash: 0
+    }], [{t: "Str", c: "[@doe2020,"}, {t: "Space"}, {t: "Str", c: "p."}, {t: "Space"}, {t: "Str", c: "4]"}]]}, {t: "Str", c: "."}
+  ]}]});
+  let output = "", errors = "";
+  const result = await createStandalonePandocCommand().execute({
+    args: ["-f", "json", "-t", "markdown"], stdin: [new TextEncoder().encode(input)],
+    signal: new AbortController().signal,
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}
+  });
+  expect(result.exitCode, errors).toBe(0);
+  expect(output).toBe("See [@doe2020, p.\u00a04].\n");
+  expect(errors).toBe("");
+});
+
+it("preserves citations through retained Markdown output", async () => {
+  for (const source of ["See [@doe2020, p. 4].", "[see @doe2020, *p.* 4; -@roe2021]", "@doe2020 [p. 4]", "@doe2020"]) {
+    const input = {bytes: new TextEncoder().encode(source)};
+    const json = await convert([input], {from: "markdown", to: "json"}, {});
+    if (json.kind !== "text") throw new Error("Expected text");
+    let output = "";
+    const result = await convertToOutput([{bytes: new TextEncoder().encode(json.text)}], {from: "json", to: "markdown"}, {
+      workingFiles: {fs: new MemoryFileSystem(), directory: "/", cacheBytes: 16384},
+      output: {async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+    });
+    const expected = await convert([{bytes: new TextEncoder().encode(json.text)}], {from: "json", to: "markdown"}, {});
+    if (expected.kind !== "text") throw new Error("Expected text");
+    expect(output).toBe(expected.text);
+    expect(result.diagnostics).toEqual([]);
+  }
+});

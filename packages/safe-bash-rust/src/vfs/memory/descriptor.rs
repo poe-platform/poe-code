@@ -29,6 +29,14 @@ impl crate::vfs::FileReadHandle for RetainedDirectory {
     }
 }
 
+pub(super) struct NullRead(pub(super) FileStat);
+
+impl crate::vfs::FileReadHandle for NullRead {
+    fn stat(&self) -> Result<FileStat, String> { Ok(self.0.clone()) }
+    fn seek_end(&self) -> Result<u64, String> { Ok(0) }
+    fn read(&self, _: u64, _: usize) -> Result<Vec<u8>, String> { Ok(Vec::new()) }
+}
+
 #[derive(Debug)]
 pub(super) struct DeviceInput {
     pub(super) random: bool,

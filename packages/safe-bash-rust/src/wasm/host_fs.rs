@@ -194,9 +194,9 @@ impl HostFs {
             nlink: nlink.is_finite().then_some(nlink as usize),
             uid: uid.is_finite().then_some(uid as u32),
             gid: gid.is_finite().then_some(gid as u32),
-            identity: (dev.is_finite() && ino.is_finite()).then_some(if scope > 0.0 {
-                EntryIdentity::Host { scope: scope as u64, dev: dev as u64, ino: ino as u64 }
-            } else { EntryIdentity::Unix(dev as u64, ino as u64) }),
+            identity: (dev.is_finite() && ino.is_finite()).then_some(EntryIdentity::Host {
+                scope: scope as u64, dev: dev as u64, ino: ino as u64,
+            }),
             allocated_bytes: allocated.is_finite().then_some(allocated as u64),
             io_block_size: block.is_finite().then_some(block as u64),
             preferred_io_block_size: preferred.is_finite().then_some(preferred as u64),

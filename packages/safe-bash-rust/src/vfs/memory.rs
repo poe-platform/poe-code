@@ -1425,6 +1425,7 @@ impl SafeBashFs for MemoryVfs {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
         if self.generation() != revision { return Err("EAGAIN: path changed during open".into()); }
         let st = self.resolved_metadata(&state, &path).ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
+        if state.devices.entry(&path) == Some("null") { return Ok(Box::new(descriptor::NullRead(st))); }
         if st.kind == VfsEntryKind::Directory {
             if !allow_directory { return Err("EISDIR: illegal operation on a directory".into()); }
             if st.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }

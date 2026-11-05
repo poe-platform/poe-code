@@ -180,7 +180,8 @@ function bindExternalFs(shell,fs,options) {
     if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
   };
   const scope=s=>{
-    if(!s.identityScope || !["object","symbol"].includes(typeof s.identityScope))return 0;
+    if(!s.identityScope || !["object","symbol"].includes(typeof s.identityScope) ||
+      !Number.isSafeInteger(s.dev) || s.dev<0 || !Number.isSafeInteger(s.ino) || s.ino<0)return 0;
     if(!identityScopes.has(s.identityScope))identityScopes.set(s.identityScope,identityScopes.size+1);
     return identityScopes.get(s.identityScope);
   };

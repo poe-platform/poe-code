@@ -5211,6 +5211,48 @@ test("host file identity distinguishes equal device and inode numbers from diffe
   } finally { await sh.dispose(); }
 });
 
+test("cp pins the inspected host source before replacing or backing up a destination", {skip: !WebAssembly.Suspending}, async () => {
+  const {createMountFileSystem,MemoryFileSystem} = await import("@poe-code/safe-fs");
+  for (const timing of ["before open","after open","wrong scope"]) {
+    const fs = createMountFileSystem({root:new MemoryFileSystem(),mounts:{}}), sh = new RustWasmBash({fs,cwd:"/"});
+    const payload = Uint8Array.from({length:131073},(_,i)=>i%251);
+    try {
+      await fs.writeFile("/source",payload);
+      await fs.writeFile("/dest",Uint8Array.of(7));
+      const open = fs.openReadFile.bind(fs);
+      let closed = 0, reads = 0;
+      fs.openReadFile = async (path,options) => {
+        if(path !== "/source") return open(path,options);
+        const replace = async () => {
+          await fs.rename(path,"/old");
+          await fs.writeFile(path,Uint8Array.of(99));
+        };
+        if(timing === "before open") await replace();
+        const file = await open(path,options);
+        if(timing === "after open") await replace();
+        return {
+          stat: async options => { const st = await file.stat(options); return timing === "wrong scope" ? {...st,identityScope:Symbol()} : st; },
+          read: async (offset,count,options) => { assert.ok(count <= 65536); reads++; return file.read(offset,count,options); },
+          close: async () => { closed++; await file.close(); }
+        };
+      };
+      const r = await sh.exec("cp -b --remove-destination /source /dest");
+      assert.equal(closed,1,timing+": "+r.stderr);
+      if(timing === "after open") {
+        assert.equal(r.exitCode,0,r.stderr);
+        assert.ok(reads >= 3);
+        assert.deepEqual(await fs.readFile("/dest"),payload);
+        assert.deepEqual(await fs.readFile("/dest~"),Uint8Array.of(7));
+      } else {
+        assert.equal(r.exitCode,1,timing);
+        assert.equal(reads,0);
+        assert.deepEqual(await fs.readFile("/dest"),Uint8Array.of(7));
+        await assert.rejects(fs.stat("/dest~"),{code:"ENOENT"});
+      }
+    } finally { await sh.dispose(); }
+  }
+});
+
 test("moving a host file across mounts preserves bytes and metadata when creating or replacing", {skip: !WebAssembly.Suspending}, async () => {
   const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
   const src = new MemoryFileSystem(), dest = new MemoryFileSystem();

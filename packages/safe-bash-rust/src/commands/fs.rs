@@ -1023,6 +1023,33 @@ enum CopyPass<'a, 'b> {
     Publish(&'a mut CopyReport<'b>),
 }
 
+fn read_copy_source(fs: &dyn SafeBashFs, source: &str, expected: &FileStat) -> Result<Vec<u8>, String> {
+    if expected.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source}'")); }
+    let reader = fs.open_read_file(source, false).map_err(|e| if e.starts_with("ENOTSUP:") {
+        format!("ENOTSUP: copy requires retained reads '{source}'")
+    } else { e })?;
+    fs.command_descriptor_op()?;
+    let opened = reader.stat()?;
+    if [expected, &opened].iter().any(|s| matches!(s.identity, None | Some(EntryIdentity::Host { scope: 0, .. }))) {
+        return Err(format!("ENOTSUP: copy reader is not bound to the inspected source identity '{source}'"));
+    }
+    if opened.identity != expected.identity {
+        return Err(format!("EBUSY: copy reader is not bound to the inspected source identity '{source}'"));
+    }
+    let limit = fs.max_input_bytes();
+    if opened.size > limit { return Err(fs.limit_error("maxInputBytes", limit)); }
+    let mut bytes = Vec::new();
+    loop {
+        fs.command_descriptor_op()?;
+        let count = (limit - bytes.len()).saturating_add(1).min(65536);
+        let chunk = reader.read(bytes.len() as u64, count)?;
+        if chunk.len() > count { return Err("EIO: invalid retained read size".into()); }
+        if chunk.len() > limit - bytes.len() { return Err(fs.limit_error("maxInputBytes", limit)); }
+        if chunk.is_empty() { return Ok(bytes); }
+        bytes.extend(chunk);
+    }
+}
+
 fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, settings: &mut CopySettings, mut pass: CopyPass<'_, '_>, ancestors: &mut std::collections::BTreeSet<String>) -> Result<(), String> {
     let source_entry = fs.access_path(src, false).map_err(|e| copy_error(&e, "lstat", src))?;
     let link = fs.lstat(&source_entry).map_err(|e| copy_error(&e, "lstat", src))?;
@@ -1118,6 +1145,10 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
         }
         return Ok(());
     }
+    // Acquire and validate the source before any backup, unlink or destination write.
+    let data = if !directory && !link_mode && !preserve_link && previous.is_none() && !settings.attributes_only {
+        Some(read_copy_source(fs, &source, &st)?)
+    } else { None };
     if !directory && target_stat.is_some() && let Some((mode, suffix)) = &settings.backup {
         backup_copy_target(fs, src, &entry, *mode, suffix)?;
         target = entry.clone();
@@ -1179,7 +1210,6 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
         }
         if settings.mode { fs.chmod(&target, st.mode & 0o7777)?; }
     } else {
-        if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source}'")); }
         if replace || settings.force && target_stat.as_ref().is_some_and(|t| t.mode & 0o200 == 0 && t.mode & 0o170000 != 0o020000) {
             if target_stat.is_some() { unlink_destination(&entry, fs)?; }
             target = entry;
@@ -1190,14 +1220,14 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
         } else if fs.stat(&crate::vfs::dirname_posix_path(&target)).map_err(|e| copy_error(&e, "writeStream", dst))?.mode & 0o300 != 0o300 {
             return Err(format!("EACCES: permission denied, writeStream '{dst}'"));
         }
-        let data = fs.read_file(&source)?;
+        let data = data.as_deref().expect("regular copy source");
         if let Some(t) = target_stat {
-            fs.write_file(&target, &data)?;
+            fs.write_file(&target, data)?;
             if t.mode & 0o170000 != 0o020000 {
                 fs.chmod(&target, (if settings.mode { st.mode } else { t.mode }) & 0o7777)?;
             }
         } else {
-            fs.create_file(&target, &data, st.mode & 0o7777).map_err(|e| copy_error(&e, "writeStream", dst))?;
+            fs.create_file(&target, data, st.mode & 0o7777).map_err(|e| copy_error(&e, "writeStream", dst))?;
         }
     }
     if settings.timestamps && !preserve_link && matches!(pass, CopyPass::Publish(_)) { fs.set_times(&target, Some(st.atime_ms), Some(st.mtime_ms))?; }

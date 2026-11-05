@@ -16882,9 +16882,13 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/f", b"0123456789").unwrap();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
-        let r = shell.exec("{ cp -i /f /copy; mv -i /copy /moved; ln -si /moved /link; rm -f /link; head -c1; } </f").unwrap();
+        fs.write_file("/source", b"copy").unwrap();
+        let r = shell.exec("{ cp -i /source /copy; mv -i /copy /moved; ln -si /moved /link; rm -f /link; head -c1; } </f").unwrap();
         assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "0", ""));
-        assert_eq!(fs.read_file("/moved").unwrap(), b"0123456789");
+        assert_eq!(fs.read_file("/moved").unwrap(), b"copy");
+        assert!(shell.exec("cp -b /f /moved").unwrap_err().contains("maxInputBytes"));
+        assert_eq!(fs.read_file("/moved").unwrap(), b"copy");
+        assert!(!fs.exists("/moved~"));
     }
 
     #[test]

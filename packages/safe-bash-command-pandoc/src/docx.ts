@@ -1,6 +1,6 @@
 import {encodeXML} from "entities";
 import type {Paragraph, Table, DocxBlock, DocxRunInput, DocumentModelContext, XmlElement} from "safe-bash-docx-engine";
-import type {Block, Inline, Row, ColSpec} from "./ast-types.js";
+import type {Block, Inline, Row, Alignment} from "./ast-types.js";
 import type {AdapterContext, ReaderCapability, WriterCapability, Resource} from "./types.js";
 import {PandocError} from "./errors.js";
 import {literalInlines} from "./literal-inlines.js";
@@ -235,6 +235,58 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       }
       stack.at(-1)!.items.push([block.t === "Para" && p.style?.style_id === "Compact" ? {t: "Plain", c: block.c} : block]);
     };
+    const readTable = async (table: Table): Promise<Block> => {
+      const grid = table.grid();
+      // The Word reader reserves 10 twips between columns; a missing page layout defaults to 6.5 inches.
+      const available = (Number.isFinite(textWidth) ? textWidth : 9360) - 10 * (grid.columns.length - 1);
+      const widths = grid.columns.map(col => (Number(numberingAttribute(col, "w")) || 0) / available);
+      const scale = Math.max(1, widths.reduce((sum, n) => sum + n, 0));
+      const look = numberingChild(numberingChild(table.store.node(table.ref), "tblPr"), "tblLook");
+      const firstRow = numberingAttribute(look, "firstRow");
+      const firstHeader = firstRow === undefined ? !!(parseInt(numberingAttribute(look) ?? "", 16) & 32) : firstRow === "1";
+      const head: Row[] = [], body: Row[] = [];
+      let previousHeader = false;
+      for (const [r, row] of grid.rows.entries()) {
+        const cells: Row[1][number][] = [];
+        for (const [c, owner] of grid.slots[r]!.entries()) {
+          if (!owner || owner.row !== r || owner.column !== c) continue;
+          await ctx.cooperate();
+          const cell = table.logicalCell(grid.original(owner.node));
+          const content: Block[] = [], group: ListFrame[] = [];
+          let align: Alignment = "AlignDefault", first = true;
+          for (const item of cell.iter_inner_content()) {
+            if (item instanceof Paragraph) {
+              const node = item.store.node(item.ref);
+              if (first) {
+                const jc = numberingAttribute(numberingChild(numberingChild(node, "pPr"), "jc"));
+                align = jc === "right" ? "AlignRight" : jc === "center" ? "AlignCenter" : jc === "left" || jc === "both" ? "AlignLeft" : "AlignDefault";
+              }
+              await appendParagraph(item, content, group);
+              const last = content.at(-1);
+              if (last?.t === "Para") {
+                if (!last.c.length) content.pop();
+                else if (item.style?.style_id === "Compact") content[content.length - 1] = {t: "Plain", c: last.c};
+              }
+            } else {
+              group.length = 0;
+              content.push(await readTable(item));
+            }
+            first = false;
+          }
+          if (content.length === 1 && content[0]!.t === "Para") content[0] = {t: "Plain", c: content[0]!.c};
+          cells.push([attr, align, owner.rowSpan, owner.columnSpan, content]);
+        }
+        const header = numberingChild(numberingChild(row, "trPr"), "tblHeader");
+        const isHeader: boolean = r === 0 && firstHeader || !!header && !["0", "false", "off"].includes(numberingAttribute(header) ?? "1") ||
+          previousHeader && grid.slots[r]!.some(owner => owner && owner.row < r);
+        if (isHeader && !head.length) {for (const prior of body) head.push(prior); body.length = 0;}
+        (isHeader ? head : body).push([attr, cells]);
+        previousHeader = isHeader;
+      }
+      const firstCell = (head[0] ?? body[0])?.[1][0];
+      return {t: "Table", c: [attr, [null, []], widths.map((w, i) => [firstCell && i < firstCell[3] ? firstCell[1] : "AlignDefault", w ? {t: "ColWidth", c: w / scale} : {t: "ColWidthDefault"}]),
+        [attr, head], [[attr, 0, [], body]], [attr, []]]};
+    };
     const readBlocks = async (items: Iterable<Paragraph | Table>): Promise<Block[]> => {
       const blocks: Block[] = [];
       const stack: ListFrame[] = [];
@@ -243,32 +295,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
         if (item instanceof Paragraph) await appendParagraph(item, blocks, stack);
         else {
           stack.length = 0;
-          const rows: Row[] = [];
-          const headers: Row[] = [];
-          const look = child(child(item.store.node(item.ref), "tblPr", item.ref.part), "tblLook", item.ref.part);
-          const firstRow = value(look, "firstRow");
-          const firstRowHeader = firstRow === undefined ? (Number.parseInt(value(look, "val") ?? "0", 16) & 0x20) !== 0 : firstRow === "1";
-          let index = 0;
-          for (const row of item.rows) {
-            const cells: Row[1][number][] = [];
-            for (const cell of row.cells) {
-              const blocks: Block[] = [];
-              const stack: ListFrame[] = [];
-              for (const p of cell.paragraphs) await appendParagraph(p, blocks, stack);
-              if (blocks.length === 1 && blocks[0]!.t === "Para") blocks[0] = {t: "Plain", c: blocks[0]!.c};
-              const alignment = cell.paragraphs[0]?.alignment?.name;
-              cells.push([attr, alignment === "RIGHT" ? "AlignRight" : alignment === "CENTER" ? "AlignCenter" : alignment === "LEFT" || alignment === "JUSTIFY" ? "AlignLeft" : "AlignDefault", 1, 1, blocks]);
-            }
-            const flag = child(child(item.store.node(row.ref), "trPr", item.ref.part), "tblHeader", item.ref.part);
-            const header = (index++ === 0 && firstRowHeader) || (flag && !["0", "false", "off"].includes(value(flag, "val") ?? "1"));
-            (header ? headers : rows).push([attr, cells]);
-          }
-          const widths = [...item.columns].map(column => column.width?.twips ?? 0);
-          // Pandoc subtracts ten twips between grid columns and caps tables at the text width.
-          const denominator = Math.max(textWidth - 10 * (widths.length - 1), widths.reduce((sum, width) => sum + width, 0));
-          const specs: ColSpec[] = widths.map((width, column) => [rows[0]?.[1][column]?.[1] ?? "AlignDefault",
-            width > 0 && denominator > 0 ? {t: "ColWidth", c: width / denominator} : {t: "ColWidthDefault"}]);
-          blocks.push({t: "Table", c: [attr, [null, []], specs, [attr, headers], [[attr, 0, [], rows]], [attr, []]]});
+          blocks.push(await readTable(item));
         }
       }
       return blocks;

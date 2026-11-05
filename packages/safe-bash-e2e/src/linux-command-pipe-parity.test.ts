@@ -60,6 +60,22 @@ test("both backends recover list structure, links, quotes, code and rules from n
   } finally {await rust.dispose(); await ts.dispose();}
 });
 
+test("Word table imports preserve native Pandoc cells, headers and widths", async () => {
+  const pandoc = nativePandoc();
+  const [created, docx, error] = await runLinuxCommand(pandoc, ["-f", "gfm", "-t", "docx"],
+    "| Name | Score | Note |\n| :---: | ---: | :---: |\n| **Ada** | 2 | [details](https://example.com) |\n| `Bob` | 3 | |");
+  assert.equal(created, 0, error.toString());
+  const options = ["-f", "docx", "-t", "json"];
+  const [status, expected, stderr] = await runLinuxCommand(pandoc, options, docx);
+  assert.equal(status, 0, stderr.toString());
+  const ts = await SafeBashE2EHarness.create({backend: "typescript"});
+  try {
+    const actual = await ts.shell.exec("pandoc " + options.join(" "), {stdin: docx});
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.deepEqual(JSON.parse(actual.stdout), JSON.parse(expected.toString()));
+  } finally {await ts.dispose();}
+});
+
 test("Linux command pipe results match in TypeScript and Rust", async t => {
   const ts = await SafeBashE2EHarness.create({ env: linuxEnv, backend: "typescript" });
   const rust = new RustWasmBash({ env: linuxEnv, cwd: "/workspace", forceNative: true });

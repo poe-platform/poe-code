@@ -285,6 +285,34 @@ pub(super) fn cmd_mv(
         Err(e) if e.starts_with("ENOENT:") => Ok(None),
         Err(e) => Err(e),
     };
+    let check_pair = |src: &str, target: &str, from: &crate::vfs::FileStat, to: &crate::vfs::FileStat, operand: &str, display: &str| -> Result<(), String> {
+        if src != target {
+            if from.identity.is_none() || from.identity != to.identity { return Ok(()); }
+            if backup_mode != BackupMode::None && from.kind != VfsEntryKind::Directory {
+                let a = crate::vfs::dirname_posix_path(src);
+                let b = crate::vfs::dirname_posix_path(target);
+                if a != b {
+                    let (_, left) = fs.inspect_command_entry(&a, true, "stat")?;
+                    let (_, right) = fs.inspect_command_entry(&b, true, "stat")?;
+                    if left.identity.is_some() && right.identity.is_some() && left.identity != right.identity { return Ok(()); }
+                }
+                let src_name = basename_posix_path(src);
+                let dst_name = basename_posix_path(target);
+                if src_name != dst_name {
+                    fs.command_descriptor_op()?;
+                    let names = fs.list_dir(&a)?;
+                    if names.contains(&src_name) {
+                        let targets = if a == b { names } else {
+                            fs.command_descriptor_op()?;
+                            fs.list_dir(&b)?
+                        };
+                        if targets.contains(&dst_name) { return Ok(()); }
+                    }
+                }
+            }
+        }
+        Err(format!("{} and {} are the same file", shell_quoted_operand(operand), shell_quoted_operand(display)))
+    };
     let should_skip = |src: &str, target: &str, operand: &str, display: &str| -> Result<bool, String> {
         if !no_clobber && !update_only {
             return Ok(false);
@@ -305,11 +333,7 @@ pub(super) fn cmd_mv(
         {
             return Ok(false);
         }
-        if src == target || from.identity.is_some() && from.identity == to.identity {
-            return Err(format!(
-                "{} and {} are the same file", shell_quoted_operand(operand), shell_quoted_operand(display)
-            ));
-        }
+        check_pair(src, target, &from, &to, operand, display)?;
         Ok(true)
     };
     let admit_pair = |src: &str, target: &str| -> Result<(), String> {
@@ -360,11 +384,7 @@ pub(super) fn cmd_mv(
                 let Some(to) = maybe_stat(&target)? else {
                     return Ok(None);
                 };
-                if src == target || source.identity.is_some() && source.identity == to.identity {
-                    return Err(format!(
-                        "{} and {} are the same file", shell_quoted_operand(src_raw), shell_quoted_operand(&disp_target)
-                    ));
-                }
+                check_pair(&src, &target, &source, &to, src_raw, &disp_target)?;
                 Ok(Some((source, to)))
             };
             if interactive && inspect_pair()?.is_some() {
@@ -441,11 +461,11 @@ pub(super) fn cmd_mv(
                 return Err(e);
             }
             if verbose {
-                stdout.push_str(&format!(
-                    "renamed {} -> {}\n",
-                    display_operand(src_raw),
-                    display_operand(&disp_target)
-                ));
+                let suffix = backup.as_ref().map(|bak| {
+                    let name = format!("{disp_target}{}", &bak[target.len()..]);
+                    format!(" (backup: {})", shell_quoted_operand(&name))
+                }).unwrap_or_default();
+                stdout.push_str(&format!("renamed {} -> {}{suffix}\n", shell_quoted_operand(src_raw), shell_quoted_operand(&disp_target)));
             }
             Ok(())
         };

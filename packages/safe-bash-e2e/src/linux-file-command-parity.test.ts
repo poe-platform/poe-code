@@ -31,6 +31,18 @@ test("Linux file commands preserve the same bytes, links and permissions in Type
       "touch -d @1700000000 data/ref",
       "cp -p data/ref data/copy",
       "stat -c '%a %s %h %Y' data/input data/alias data/copy",
+      "mv -ub data/alias data/input",
+      "mv -b data/input data/./input",
+      "mv -ib data/alias data/input",
+      "mv -bv data/alias data/input",
+      "stat -c '%a %s %h' data/input data/input~",
+      "ln data/input~ data/alias",
+      "mv --backup=numbered data/alias data/input",
+      "mkdir data/incoming",
+      "ln data/input data/incoming/input",
+      "mv --backup=numbered -v data/incoming/input data/input",
+      "rmdir data/incoming",
+      "ln data/input data/alias",
       "truncate -s +3 data/alias",
       "stat -c '%a %s %h' data/input data/copy",
       "install -m 600 data/copy data/installed",
@@ -45,7 +57,7 @@ test("Linux file commands preserve the same bytes, links and permissions in Type
       "rmdir data/empty",
       "stat -c '%a %h' data data/input data/moved",
     ]) {
-      const expected = spawnSync("/bin/sh", ["-c", "umask 022; " + script], { cwd, env });
+      const expected = spawnSync("/bin/sh", ["-c", "umask 022; " + script], { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
       assert.notEqual(expected.status, null, expected.error?.message);
       for (const shell of [ts.shell, rust]) {
         const result = await shell.exec(script);
@@ -61,6 +73,18 @@ test("Linux file commands preserve the same bytes, links and permissions in Type
       for (const name of names) {
         assert.deepEqual(Buffer.from(await view.readFile("/workspace/data/" + name)), await readFile(cwd + "/data/" + name), name);
       }
+    }
+    // Two routes to one entry must never displace a pre-existing backup.
+    for (const [shell, view] of [[ts.shell, ts.fs], [rust, rust.fs]] as const) {
+      await view.symlink!("data", "/workspace/via");
+      const before = await view.readFile("/workspace/data/input");
+      await view.unlink!("/workspace/data/input~");
+      await view.writeFile("/workspace/data/input~", Buffer.from("previous backup"));
+      const result = await shell.exec("mv -b via/input data/input");
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "mv: 'via/input' and 'data/input' are the same file\n");
+      assert.deepEqual(await view.readFile("/workspace/data/input"), before);
+      assert.deepEqual(Buffer.from(await view.readFile("/workspace/data/input~")), Buffer.from("previous backup"));
     }
   } finally {
     await ts.dispose();

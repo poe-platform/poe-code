@@ -6834,7 +6834,7 @@ mod tests {
         let run = |cmd, a: &[&str]| try_run_fs_command(cmd, &args(a), "y\n", "/", &BTreeMap::new(), &fs).unwrap();
         let moved = run("mv", &["-iv","source",name]);
         assert_eq!((moved.exit_code,moved.stdout.as_str(),moved.stderr.as_str()),
-            (0,"renamed 'source' -> '\\303\\251\\n\\033'\n",r"mv: overwrite ''$'\303\251\n\033'? "));
+            (0,"renamed 'source' -> ''$'\\303\\251\\n\\033'\n",r"mv: overwrite ''$'\303\251\n\033'? "));
         let removed = run("rm", &["-iv",name]);
         assert_eq!((removed.exit_code,removed.stdout.as_str(),removed.stderr.as_str()),
             (0,"removed '\\303\\251\\n\\033'\n",r"rm: remove regular file '\303\251\n\033'? "));

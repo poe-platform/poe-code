@@ -319,6 +319,23 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       const targetOperand = targetDirectory ?? parsed.operands.at(-1)!;
       const displayTargetFor = (source: string) => destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand;
       const sameFile = (operand: string, source: string) => new PublicDiagnostic(`${quoteShellOperand(operand)} and ${quoteShellOperand(displayTargetFor(source))} are the same file`);
+      const checkPair = async (source: string, target: string, from: FileStat, to: FileStat, operand: string) => {
+        if (source === target) throw sameFile(operand, source);
+        const identity = from.type === "symlink" || to.type === "symlink" ? compareCopyIdentity(from, to)
+          : await compareObservedEntries(context.fs, source, from, context.fs, target, to, { signal: context.signal });
+        if (identity !== "same") return identity;
+        if (backupMode !== "none" && from.type !== "directory") {
+          // Backups rename directory entries. Prove there are two entries before moving either.
+          const a = dirname(source), b = dirname(target);
+          if (a !== b && compareCopyIdentity(await context.fs.stat(a, {signal:context.signal}), await context.fs.stat(b, {signal:context.signal})) === "distinct") return identity;
+          const srcName = basename(source), dstName = basename(target);
+          if (srcName !== dstName) {
+            const names = await readDirectory(context, a);
+            if (names.some(entry => entry.name === srcName) && (a === b ? names : await readDirectory(context, b)).some(entry => entry.name === dstName)) return identity;
+          }
+        }
+        throw sameFile(operand, source);
+      };
       const shouldSkip = async (source: string, target: string, operand: string): Promise<boolean> => {
         if (!parsed.flags.has("n") && !parsed.flags.has("u")) return false;
         const targetStat = await maybeStat(context, target, false);
@@ -327,12 +344,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         const sourceStat = await context.fs.lstat(source, { signal: context.signal });
         if (sourceStat.type === "directory" || targetStat.type === "directory"
           || !(sourceStat.mtimeMs <= targetStat.mtimeMs)) return false;
-        const identity = sourceStat.type === "symlink" || targetStat.type === "symlink"
-          ? compareCopyIdentity(sourceStat, targetStat)
-          : await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
-        if (source === target || identity === "same") {
-          throw sameFile(operand, source);
-        }
+        await checkPair(source, target, sourceStat, targetStat, operand);
         return true;
       };
       await preflightOperands(context, destination.sources, async operand => {
@@ -355,9 +367,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             const sourceStat = await context.fs.lstat(source, { signal: context.signal });
             const targetStat = await maybeStat(context, target, false);
             if (targetStat) {
-              if (source === target || await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
-                throw sameFile(operand, source);
-              }
+              await checkPair(source, target, sourceStat, targetStat, operand);
               await writeBytes(context.stderr, new TextEncoder().encode(`mv: overwrite ${quoteShellOperand(displayTarget)}? `), context.signal);
               const answer = await answers.next();
               const first = answer.done ? undefined : answer.value.bytes[0];
@@ -369,8 +379,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             const sourceStat = await context.fs.lstat(source, { signal: context.signal });
             const targetStat = await maybeStat(context, target, false);
             if (targetStat) {
-              const identity = await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
-              if (source === target || identity === "same") throw sameFile(operand, source);
+              const identity = await checkPair(source, target, sourceStat, targetStat, operand);
               if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "backup rename lacks authoritative distinctness" });
               if ((sourceStat.type === "directory") !== (targetStat.type === "directory")) throw new FsError(sourceStat.type === "directory" ? "ENOTDIR" : "EISDIR", { path: target });
               let largest = 0n;
@@ -434,7 +443,8 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             throw error;
           }
           if (parsed.flags.has("v")) {
-            await output(context, `renamed '${escapeText(operand, "display")}' -> '${escapeText(displayTarget, "display")}'\n`);
+            const suffix = backup ? ` (backup: ${quoteShellOperand(displayTarget + backup.slice(target.length))})` : "";
+            await output(context, `renamed ${quoteShellOperand(operand)} -> ${quoteShellOperand(displayTarget)}${suffix}\n`);
           }
         });
         return { exitCode: declined ? 1 : result.exitCode };

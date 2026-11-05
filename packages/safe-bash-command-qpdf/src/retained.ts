@@ -10,7 +10,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { QpdfJsonDocument, encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfMissingAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { QpdfJsonDocument, encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfMissingAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode, type EncryptPdfOptions } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -23,7 +23,7 @@ export interface RetainedQpdfOptions extends QpdfJsonOptions {
   updateFromJsonFiles: readonly string[];
   stampSpecs: readonly { file: string; mode: "overlay" | "underlay"; fromRange: string; toRange: string; repeatRange?: string; password?: string }[];
   copyAttachmentsSpecs: readonly { file: string; prefix: string; password?: string }[];
-  encryptConfig: { userPassword: string; ownerPassword: string; print: boolean; modify: boolean; copy: boolean; addNotes: boolean } | undefined;
+  encryptConfig: EncryptPdfOptions | undefined;
   removeUnreferencedResources: "no" | "yes" | "auto";
   flattenRotation: boolean;
   generateAppearances: boolean;
@@ -402,7 +402,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     if (options.encryptConfig && !options.decrypt) {
       const plaintext = output, config = options.encryptConfig;
       let encryptionFailed = false;
-      try { output = await PdfFileSource.fromStream(context.fs, storage.directory, encryptRetainedPdfChunks(plaintext, storage, { userPassword: config.userPassword, ownerPassword: config.ownerPassword, permissions: { print: config.print, modify: config.modify, copy: config.copy, addNotes: config.addNotes }, signal, maxOutputBytes: limits.maxOutputBytes }), { signal, maxInputBytes: limits.maxOutputBytes }); }
+      try { output = await PdfFileSource.fromStream(context.fs, storage.directory, encryptRetainedPdfChunks(plaintext, storage, { ...config, signal, maxOutputBytes: limits.maxOutputBytes }), { signal, maxInputBytes: limits.maxOutputBytes }); }
       catch (error) { encryptionFailed = true; throw error; }
       finally { await plaintext.close().catch(error => { if (!encryptionFailed) throw error; }); }
     }

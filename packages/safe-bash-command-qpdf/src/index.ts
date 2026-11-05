@@ -40,6 +40,7 @@ import {
   dictGet,
   dictSet,
   dictDelete,
+  type EncryptPdfOptions,
   type PdfCosNode,
   type PdfCosDict,
   type PdfCosRef,
@@ -432,16 +433,6 @@ function parseStrictJsonObjectSelector(
   return { kind: "obj", objNum, genNum };
 }
 
-interface EncryptConfig {
-  userPassword: string;
-  ownerPassword: string;
-  print: boolean;
-  modify: boolean;
-  copy: boolean;
-  addNotes: boolean;
-}
-
-
 function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: string; data: Uint8Array }[] {
   const entries: { key: string; filename: string; data: Uint8Array }[] = [];
   const seenKeys = new Set<string>();
@@ -617,7 +608,7 @@ function parseQpdfArguments(argv: readonly string[]) {
   const pageSpecs: PageSelectionSpec[] = [];
   const rotateSpecs: RotateSpec[] = [];
   const stampSpecs: StampSpec[] = [];
-  let encryptConfig: EncryptConfig | undefined;
+  let encryptConfig: EncryptPdfOptions | undefined;
   let warningExit0 = false;
   const positional: string[] = [];
 
@@ -912,21 +903,27 @@ function parseQpdfArguments(argv: readonly string[]) {
       if (argv[++i] !== "256") {
         return { result: { exitCode: 2, stdout: "", stderr: "qpdf: only 256-bit encryption is supported; use --encrypt user-password owner-password 256 --\n" } };
       }
-      const cfg: EncryptConfig = {
+      const cfg = {
         userPassword,
         ownerPassword,
-        print: true,
-        modify: true,
-        copy: true,
-        addNotes: true
+        permissions: {
+          print: true,
+          printHighRes: true,
+          modify: true,
+          copy: true,
+          addNotes: true,
+          fillForms: true,
+          assemble: true,
+          extractAccessibility: true
+        }
       };
       i++;
       while (i < argv.length && argv[i] !== "--") {
         const sub = argv[i]!;
-        if (sub === "--print=none") cfg.print = false;
-        if (sub === "--modify=none") cfg.modify = false;
-        if (sub === "--extract=n") cfg.copy = false;
-        if (sub === "--annotate=n") cfg.addNotes = false;
+        if (sub === "--print=none") cfg.permissions.print = cfg.permissions.printHighRes = false;
+        if (sub === "--modify=none") cfg.permissions.modify = cfg.permissions.addNotes = cfg.permissions.fillForms = cfg.permissions.assemble = false;
+        if (sub === "--extract=n") cfg.permissions.copy = false;
+        if (sub === "--annotate=n") cfg.permissions.addNotes = false;
         i++;
       }
       encryptConfig = cfg;
@@ -2431,16 +2428,7 @@ function* executeQpdfCli(
 
   if (encryptConfig && !decrypt) {
     const parsedOut = (yield* parseCosDocumentSteps(outBytes));
-    outBytes = (yield* encryptCosDocumentSteps(parsedOut, {
-      userPassword: encryptConfig.userPassword,
-      ownerPassword: encryptConfig.ownerPassword,
-      permissions: {
-        print: encryptConfig.print,
-        modify: encryptConfig.modify,
-        copy: encryptConfig.copy,
-        addNotes: encryptConfig.addNotes
-      }
-    }));
+    outBytes = (yield* encryptCosDocumentSteps(parsedOut, encryptConfig));
   } else if (decrypt && workingDoc.cos.encryption) {
     // Strip encryption state and reserialize clean objects
     workingDoc.cos.encryptRef = undefined;

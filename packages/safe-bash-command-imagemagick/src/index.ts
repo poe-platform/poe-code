@@ -1318,11 +1318,20 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     return { ...img, width: outW, height: outH, data: out };
 }
 
+function parseMagickRollGeometry(raw: string): MagickGeometry {
+    const geometry = parseMagickGeometry(raw);
+    // A size followed by offsets needs an x separator, even with no height.
+    if (geometry.hasOffset && geometry.width !== undefined && !raw.toLowerCase().includes("x")) {
+        throw new Error(`invalid argument for option '-roll': ${raw}`);
+    }
+    return geometry;
+}
+
 function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const g = parseMagickGeometry(geomStr);
-    const rx = Math.round(g.x || g.width || 0);
-    const ry = Math.round(g.y || g.height || 0);
+    const g = parseMagickRollGeometry(geomStr);
+    const rx = Math.round(g.x);
+    const ry = Math.round(g.y);
     const w = img.width;
     const h = img.height;
     const out = new Uint8Array(img.data.length);
@@ -5840,12 +5849,12 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
 }
 
 async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend: CompareFileSession, token: string, geometry: string, state: MagickState, signal: AbortSignal): Promise<StoredRgbaImage> {
-    const g = parseMagickGeometry(geometry), w = image.width, h = image.height;
+    const g = token === "-roll" ? parseMagickRollGeometry(geometry) : parseMagickGeometry(geometry), w = image.width, h = image.height;
     type Span = { source: number; target: number; length: number };
     let xs: Span[], ys: Span[], width = w, height = h;
     if (token === "-roll") {
-        const dx = ((Math.round(g.x || g.width || 0) % w) + w) % w;
-        const dy = ((Math.round(g.y || g.height || 0) % h) + h) % h;
+        const dx = ((Math.round(g.x) % w) + w) % w;
+        const dy = ((Math.round(g.y) % h) + h) % h;
         xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {

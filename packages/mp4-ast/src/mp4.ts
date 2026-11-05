@@ -1913,12 +1913,19 @@ export function buildProbeResultFromDoc(
       firstPts,
       hasReorderedSamples: materialized.samples.some((sample, i, samples) => i > 0 && sample.pts < samples[i - 1]!.pts)
     }, idx, doc.containerFormat);
-    streams.push(stream);
+    const aacMediaStart = (doc.containerFormat === "mp4" || doc.containerFormat === "mov") &&
+      track.type === "audio" && desc?.codecName === "aac"
+      ? track.editList?.find(edit => edit.mediaTime >= 0)?.mediaTime : undefined;
+    const timestampOffset = aacMediaStart === undefined ? 0 : firstPts - aacMediaStart;
+    const primingPackets = aacMediaStart === undefined ? 0 : materialized.samples.reduce(
+      (count, sample) => count + (sample.pts + sample.duration <= aacMediaStart ? 1 : 0), 0);
+    streams.push(primingPackets ? { ...stream, nb_read_frames: String(materialized.samples.length - primingPackets) } : stream);
     const w = stream.width, h = stream.height, sampleFormat = stream.sample_fmt;
 
     if (options.showPackets || options.showFrames) {
       let bytePos = 0;
-      for (const s of materialized.samples) {
+      for (const rawSample of materialized.samples) {
+        const s = timestampOffset ? { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset } : rawSample;
         const ptsTime = (s.pts / Math.max(1, track.timescale)).toFixed(6);
         const dtsTime = (s.dts / Math.max(1, track.timescale)).toFixed(6);
         const durTime = (s.duration / Math.max(1, track.timescale)).toFixed(6);
@@ -1937,7 +1944,7 @@ export function buildProbeResultFromDoc(
             flags: s.isKeyframe ? "K__" : "___"
           });
         }
-        if (options.showFrames) {
+        if (options.showFrames && !(aacMediaStart !== undefined && s.pts + s.duration <= firstPts)) {
           frames.push({
             media_type: track.type,
             stream_index: idx,

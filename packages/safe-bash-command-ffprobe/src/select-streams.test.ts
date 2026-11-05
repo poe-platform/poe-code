@@ -45,7 +45,7 @@ it.each(['v:0', 'a:0'])('filters command records for %s', async selector => {
   const records = JSON.parse(output);
   const video = selector === 'v:0';
   expect(records.packets).toHaveLength(video ? 5 : 9);
-  expect(records.frames).toHaveLength(video ? 5 : 9);
+  expect(records.frames).toHaveLength(video ? 5 : 8);
   expect(records.packets.every((row: { codec_type: string }) => row.codec_type === (video ? 'video' : 'audio'))).toBe(true);
   expect(records.frames.every((row: { media_type: string }) => row.media_type === (video ? 'video' : 'audio'))).toBe(true);
 });

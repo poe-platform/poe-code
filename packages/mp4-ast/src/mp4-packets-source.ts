@@ -172,7 +172,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     formatEnd = Math.max(formatEnd, start + probeDuration / Math.max(1, timescale));
     if (mode === 'summary') continue;
     const timestampOffset = result.value ? result.value.start - result.value.mediaStart : 0;
-    let cursor = 0, previousPts = -Infinity;
+    let cursor = 0, previousPts = -Infinity, primingPackets = 0;
     const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasReorderedSamples: false };
     const packet = (sample: ProbeSample['sample']): ProbeSample => {
       if (mode === 'streams') {
@@ -217,6 +217,12 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       for await (const rawSample of reorderSpan > 0 ? frameSamples() : samples()) {
         // Map media time to the movie timeline, retaining negative decoder preroll.
         const sample = { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset };
+        // AAC packets wholly before the edit's media start only prime the decoder.
+        if (type === 'audio' && codec?.codecName === 'aac' && result.value &&
+            rawSample.pts + rawSample.duration <= result.value.mediaStart) {
+          primingPackets++;
+          if (mode === 'frames') continue;
+        }
         if (type !== 'subtitle' || !count || allPacked) {
           const row = packet(sample);
           if (decodeSamples) {
@@ -234,7 +240,10 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     } finally {
       await decodeSamples?.return();
     }
-    if (mode === 'streams') yield buildProbeStream({ ...track, duration: probeDuration }, codec, stats, index, 'mp4');
+    if (mode === 'streams') yield {
+      ...buildProbeStream({ ...track, duration: probeDuration }, codec, stats, index, 'mp4'),
+      ...(primingPackets ? { nb_read_frames: String(stats.count - primingPackets) } : {})
+    };
   }
   budget.checkDuration(maxDuration);
   return { duration: maxDuration, start: trackIndex ? formatStart : 0, presentationDuration: trackIndex ? Math.max(0, formatEnd - formatStart) : maxDuration, tracks: trackIndex };

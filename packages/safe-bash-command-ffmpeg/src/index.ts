@@ -390,6 +390,54 @@ function evalScaleDim(expr: string, iw: number, ih: number): number {
 }
 
 
+function parseRotateAngle(expression: string): number {
+  let offset = 0;
+  const source = expression.trim();
+  function parse(minPrecedence = 0, depth = 0): number {
+    if (depth > 64) throw new Error("rotate: angle expression is too deeply nested");
+    while (source[offset] === " ") offset++;
+    let value: number;
+    const first = source[offset];
+    if (first === "+" || first === "-") {
+      offset++;
+      value = parse(3, depth + 1) * (first === "-" ? -1 : 1);
+    } else if (first === "(") {
+      offset++;
+      value = parse(0, depth + 1);
+      if (source[offset++] !== ")") throw new Error("rotate: invalid angle expression");
+    } else if (source.slice(offset, offset + 2) === "PI") {
+      offset += 2;
+      value = Math.PI;
+    } else {
+      const start = offset;
+      while (offset < source.length) {
+        const c = source[offset]!;
+        if ((c >= "0" && c <= "9") || c === "." || c === "e" || c === "E"
+          || ((c === "+" || c === "-") && (source[offset - 1] === "e" || source[offset - 1] === "E"))) offset++;
+        else break;
+      }
+      value = start === offset ? NaN : Number(source.slice(start, offset));
+    }
+    for (;;) {
+      while (source[offset] === " ") offset++;
+      const operator = source[offset];
+      const precedence = operator === "+" || operator === "-" ? 1 : operator === "*" || operator === "/" ? 2 : 0;
+      if (precedence === 0 || precedence < minPrecedence) break;
+      offset++;
+      const right = parse(precedence + 1, depth + 1);
+      if (operator === "+") value += right;
+      else if (operator === "-") value -= right;
+      else if (operator === "*") value *= right;
+      else value /= right;
+    }
+    return value;
+  }
+  const angle = parse();
+  if (offset !== source.length || !Number.isFinite(angle)) throw new Error("rotate: invalid or unsupported angle expression");
+  return angle;
+}
+
+
 const GLYPH_5X7: Record<string, readonly number[]> = {
   " ": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
   "0": [0x0e, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0e],
@@ -690,9 +738,9 @@ async function applyVideoFilterChain(
         const out = flipImage(makeRgbaImg(f.width, f.height, f.data));
         return { ...f, data: out.data };
       }, signal);
-    } else if (name === "transpose" || name === "rotate") {
+    } else if (name === "transpose") {
       const dir = named.dir ?? positional[0] ?? "1";
-      const angle = name === "transpose" ? (dir === "2" ? 270 : 90) : 90;
+      const angle = dir === "2" ? 270 : 90;
       current = await mapWork(current, async (f) => {
 
 
@@ -703,6 +751,42 @@ async function applyVideoFilterChain(
           height: out.height,
           data: out.data
         };
+      }, signal);
+    } else if (name === "rotate") {
+      const angle = parseRotateAngle(named.angle ?? named.a ?? (positional[0] || "0"));
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      current = await mapWork(current, async (f) => {
+        budget.recordFrame(f.width, f.height);
+        const data = new Uint8Array(f.data.length);
+        const cx = (f.width - 1) / 2;
+        const cy = (f.height - 1) / 2;
+        for (let y = 0; y < f.height; y++) {
+          await yieldTurn(signal);
+          budget.checkCpu();
+          for (let x = 0; x < f.width; x++) {
+            const sx = cos * (x - cx) + sin * (y - cy) + cx;
+            const sy = -sin * (x - cx) + cos * (y - cy) + cy;
+            const dest = (y * f.width + x) * 4;
+            data[dest + 3] = 255;
+            // FFmpeg extends edge pixels for the one-pixel interpolation border.
+            if (sx < -1 || sx > f.width || sy < -1 || sy > f.height) continue;
+            const px = Math.max(0, Math.min(f.width - 1, sx));
+            const py = Math.max(0, Math.min(f.height - 1, sy));
+            const x0 = Math.floor(px);
+            const y0 = Math.floor(py);
+            const x1 = Math.min(x0 + 1, f.width - 1);
+            const y1 = Math.min(y0 + 1, f.height - 1);
+            const dx = px - x0;
+            const dy = py - y0;
+            for (let c = 0; c < 4; c++) {
+              const top = f.data[(y0 * f.width + x0) * 4 + c]! * (1 - dx) + f.data[(y0 * f.width + x1) * 4 + c]! * dx;
+              const bottom = f.data[(y1 * f.width + x0) * 4 + c]! * (1 - dx) + f.data[(y1 * f.width + x1) * 4 + c]! * dx;
+              data[dest + c] = Math.floor(top * (1 - dy) + bottom * dy + 1e-8);
+            }
+          }
+        }
+        return { ...f, data };
       }, signal);
     } else if (name === "negate") {
       current = await mapWork(current, async (f) => {

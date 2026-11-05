@@ -136,3 +136,46 @@ it('fails rather than silently truncating sequences at consumer frame limits', a
   assert.equal(result.exitCode, 1);
   assert.ok(!vfs.store.has('/out.mp4'));
 });
+
+// Native FFmpeg reference PNGs for a white 4x4 box at (2,2) on a black 16x10 canvas.
+// Generated with the same lavfi source/filter chain and -frames:v 1 -f image2pipe -vcodec png.
+for (const [angle, reference] of [
+  ["0", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAK0lEQVR4nGNkYGD4z0ABYKFEM4oB//+jOoSRkZHOLhh4A4j1M+1cMGAGAACzeAQobtWGlgAAAABJRU5ErkJggg=="],
+  ["PI/2", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAKklEQVR4nGNkYGD4z4AD/P+PKsXIyIihhgWXZmIBbQ3A5mT6umDUAOIAAP+UBCi0tkJ2AAAAAElFTkSuQmCC"],
+  ["-PI/2", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAJElEQVR4nGNkYGD4z0ABYKFE86gBtDTg/3/UmGVkZKSzC0gBAL1OBCWBjEyUAAAAAElFTkSuQmCC"],
+  ["PI", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAKElEQVR4nGNkYGD4z0ABYKFE8xAz4P9/1KBiZGSkswsG3gCYn6nuAgDLdAQoQiHNmAAAAABJRU5ErkJggg=="],
+  ["0.4", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAhklEQVR4nMWPwQkDIRBFfyQVWIAN2IhgE4JWYC8eBC3BSuxArMOri7IG9hCipzz4MDD8x8wLQMeN9x6MMYQQkFLCDu81UEphjAEhBEII1FohpUQpZU+gtZ7lRe/9Z/kh4Jw/FuONHT4CpRScc/OSkRjjmWCQc56x1qK1di5Y7Ja/Ck74v+ACCQYrW7VA+6kAAAAASUVORK5CYII="],
+] as const) {
+  it(`matches native rotate=${angle} pixels and default canvas`, async () => {
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    for (const argument of [angle, `angle=${angle}`, `a=${angle}`, `(${angle}) * 2 / 2 + 0 - 0`, ...(angle === "0.4" ? ["4e-1"] : [])]) {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=black:s=16x10:r=1:d=1",
+        "-vf", `format=rgba,drawbox=x=2:y=2:w=4:h=4:color=white:t=fill,rotate=${argument}`,
+        "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const actual = decodeImage(vfs.store.get("/out.png")!);
+      const expected = decodeImage(Buffer.from(reference, "base64"));
+      assert.equal(actual.width, expected.width);
+      assert.equal(actual.height, expected.height);
+      for (let i = 0; i < expected.data.length; i++) {
+        assert.ok(Math.abs(actual.data[i]! - expected.data[i]!) <= 1,
+          `${argument}, channel ${i}: ${actual.data[i]} != ${expected.data[i]}`);
+      }
+    }
+  });
+}
+
+it("rejects invalid rotate angles without replacing output", async () => {
+  for (const angle of ["garbage", "1/0", "PI/", "0junk", "(", "1e999"]) {
+    const vfs = createTestVfs({ "/out.png": "existing" });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-y", "-f", "lavfi", "-i", "color=s=16x10:r=1:d=1", "-vf", `rotate=${angle}`, "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 1, angle);
+    assert.ok(result.stderr.includes("rotate:"), result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")!), "existing");
+  }
+});

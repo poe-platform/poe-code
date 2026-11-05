@@ -384,8 +384,12 @@ class HtmlTape {
             if (token.markup) await this.add(token.text); else await this.escape(token.text);
           }
           await this.add("</span>");
-        } else if (tag === "RawInline") await this.raw(content!, job.path);
-        else if (tag === "Span") {
+        } else if (tag === "RawInline") {
+          if (this.options.rawContent !== undefined) await this.raw(content!, job.path);
+          else if (["html", "html5"].includes(await this.tree.smallText(await this.at(content!, 0), 5) ?? "")) {
+            await this.add(await this.scalar(await this.at(content!, 1)));
+          }
+        } else if (tag === "Span") {
           const task = await this.task(content!);
           if (task !== undefined) await this.add(task ? '<input type="checkbox" checked="" />' : '<input type="checkbox" />');
           else {const inner = await child(1); await this.add("<span"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.sequence(this.list(inner.node, inner.path, "inline"), this.literal("</span>"));}

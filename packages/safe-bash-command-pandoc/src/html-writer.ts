@@ -155,7 +155,10 @@ class HtmlWriter {
             if (token.markup) this.add(token.text); else this.escape(token.text);
           }
           this.add("</span>"); break;
-        case "RawInline": this.raw(node.c[0], node.c[1], p); break;
+        case "RawInline":
+          if (this.context.rawContent !== undefined) this.raw(node.c[0], node.c[1], p);
+          else if (["html", "html5"].includes(node.c[0])) this.add(node.c[1]);
+          break;
         case "Span": {
           const taskState = taskListState(node);
           if (taskState !== undefined) {

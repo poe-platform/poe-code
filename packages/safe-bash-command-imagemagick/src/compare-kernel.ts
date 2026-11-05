@@ -55,41 +55,37 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         for (let left = 0; left < width; left += 1024) {
             yield;
             const count = Math.min(1024, width - left);
-            let dataA: Uint8Array | undefined, dataB: Uint8Array | undefined;
-            if (y < imgA.height && left < imgA.width) {
-                const length = Math.min(count, imgA.width - left) * 4;
-                dataA = yield { kind: "read", image: 0, position: (y * imgA.width + left) * 4, length };
-                if (!(dataA instanceof Uint8Array) || dataA.length !== length)
-                    throw new Error("Truncated comparison pixels");
-                dataA = dataA.slice();
-            }
-            if (y < imgB.height && left < imgB.width) {
-                const length = Math.min(count, imgB.width - left) * 4;
-                dataB = yield { kind: "read", image: 1, position: (y * imgB.width + left) * 4, length };
-                if (!(dataB instanceof Uint8Array) || dataB.length !== length)
-                    throw new Error("Truncated comparison pixels");
-            }
+            // ImageMagick extends the nearest edge across the larger canvas.
+            const leftA = Math.min(left, imgA.width - 1);
+            const leftB = Math.min(left, imgB.width - 1);
+            const lengthA = Math.min(count, imgA.width - leftA) * 4;
+            const lengthB = Math.min(count, imgB.width - leftB) * 4;
+            let dataA = yield { kind: "read", image: 0, position: (Math.min(y, imgA.height - 1) * imgA.width + leftA) * 4, length: lengthA };
+            if (!(dataA instanceof Uint8Array) || dataA.length !== lengthA)
+                throw new Error("Truncated comparison pixels");
+            dataA = dataA.slice();
+            const dataB = yield { kind: "read", image: 1, position: (Math.min(y, imgB.height - 1) * imgB.width + leftB) * 4, length: lengthB };
+            if (!(dataB instanceof Uint8Array) || dataB.length !== lengthB)
+                throw new Error("Truncated comparison pixels");
             const diffData = options.diff ? new Uint8Array(count * 4) : undefined;
             for (let x = left; x < left + count; x++) {
                 const outOff = (x - left) * 4;
-                const inBoundsA = x < imgA.width && y < imgA.height;
-                const inBoundsB = x < imgB.width && y < imgB.height;
-                const offA = inBoundsA ? (x - left) * 4 : -1;
-                const offB = inBoundsB ? (x - left) * 4 : -1;
-                const rA = offA >= 0 ? dataA![offA]! : 0;
-                const gA = offA >= 0 ? dataA![offA + 1]! : 0;
-                const bA = offA >= 0 ? dataA![offA + 2]! : 0;
-                const aA = offA >= 0 ? dataA![offA + 3]! : 0;
-                const rB = offB >= 0 ? dataB![offB]! : 0;
-                const gB = offB >= 0 ? dataB![offB + 1]! : 0;
-                const bB = offB >= 0 ? dataB![offB + 2]! : 0;
-                const aB = offB >= 0 ? dataB![offB + 3]! : 0;
+                const offA = (Math.min(x, imgA.width - 1) - leftA) * 4;
+                const offB = (Math.min(x, imgB.width - 1) - leftB) * 4;
+                const rA = dataA[offA]!;
+                const gA = dataA[offA + 1]!;
+                const bA = dataA[offA + 2]!;
+                const aA = dataA[offA + 3]!;
+                const rB = dataB[offB]!;
+                const gB = dataB[offB + 1]!;
+                const bB = dataB[offB + 2]!;
+                const aB = dataB[offB + 3]!;
                 // NCC centers each channel on its unassociated mean, then
                 // combines covariance and variance across all active channels.
                 for (let channel = 0; channel < nccChannels.length; channel++) {
                     const stats = nccChannels[channel]!;
-                    const rawA = offA >= 0 ? dataA![offA + channel]! : 0;
-                    const rawB = offB >= 0 ? dataB![offB + channel]! : 0;
+                    const rawA = dataA[offA + channel]!;
+                    const rawB = dataB[offB + channel]!;
                     const a = channel === 3 ? rawA : rawA * aA / 255;
                     const b = channel === 3 ? rawB : rawB * aB / 255;
                     stats.rawA += rawA;
@@ -113,7 +109,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
                 aeMagnitude += (aeR > fuzz ? aeR : 0) + (aeG > fuzz ? aeG : 0) + (aeB > fuzz ? aeB : 0) + (hasAlpha && da > fuzz ? da : 0);
                 const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
-                if (!inBoundsA || !inBoundsB || maxDelta > fuzz) {
+                if (maxDelta > fuzz) {
                     aeCount++;
                     if (diffData) {
                         diffData[outOff] = highlightColor.r;
@@ -185,13 +181,13 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
             break;
         case "mae":
-            metricStr = `${formatMetricNum(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
+            metricStr = `${formatSignificantMetric(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
             break;
         case "mse":
-            metricStr = `${formatMetricNum(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
+            metricStr = `${formatSignificantMetric(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
             break;
         case "pae":
-            metricStr = `${formatMetricNum(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
+            metricStr = `${formatSignificantMetric(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
             break;
         case "psnr": {
             const psnr = mseNorm === 0 ? 120 : 10 * Math.log10(1 / mseNorm);
@@ -225,7 +221,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         }
         case "rmse":
         default:
-            metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
+            metricStr = `${formatSignificantMetric(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
             break;
     }
     return { width, height, metric: metricStr, exitCode };

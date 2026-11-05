@@ -29,6 +29,12 @@ it.each([
   expect(stdout.mock.calls.map(([chunk]) => new TextDecoder().decode(chunk)).join("")).toBe(expected);
   expect(stderr).not.toHaveBeenCalled();
 });
+it("keeps strikeout markers for nonempty content in plain output", async () => {
+  const block = p({t: "Strikeout", c: []}, s("x"), {t: "Space"}, {t: "Strikeout", c: [{t: "Strong", c: [s("old")]}]});
+  expect(await plain(d(block))).toMatchObject({text: "x ~~old~~\n"});
+  const bytes = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [block]}));
+  expect(await convert([{bytes}], {from: "json", to: "plain"}, {})).toMatchObject({text: "x ~~old~~\n"});
+});
 it("handles empty nodes, headings, paragraphs, quotes and Unicode without styling or wrapping", async () => {
   expect(await plain(d())).toMatchObject({text: "\n"});
   expect(await plain(d(p(), {t: "Div", c: [a, []]}))).toMatchObject({text: "\n"});

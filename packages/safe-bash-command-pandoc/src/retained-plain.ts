@@ -204,6 +204,11 @@ class PlainTape {
           if (tag === "CodeBlock") await this.push(this.post(job.node, job.path, "code"));
           await this.push(await contentPart("scalar", 1)); continue;
         }
+        if (tag === "Strikeout") {
+          if ((await this.tree.describe(content!)).children)
+            await this.push({...this.post(job.node, job.path, "surround"), first: "~~", rest: "~~"});
+          await this.push({op: "inlines", node: content!, path: cp}); continue;
+        }
         if (tag === "Quoted") {
           const quote = await this.tag(await this.at(content!, 0)) === "DoubleQuote" ? '"' : "'";
           await this.push({...this.post(job.node, job.path, "surround"), first: quote, rest: quote});

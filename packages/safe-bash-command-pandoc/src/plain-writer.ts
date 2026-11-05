@@ -30,6 +30,10 @@ class Plain {
         case "Space": parts.push(" "); break;
         case "SoftBreak": parts.push(this.context.wrap === "preserve" ? "\n" : " "); break;
         case "LineBreak": parts.push("\n"); break;
+        case "Strikeout": {
+          if (node.c.length) parts.push(this.join(["~~", await this.inline(node.c, `${p}.c`), "~~"]));
+          break;
+        }
         case "Code": parts.push(node.c[1]); break;
         case "Math": this.fail(p, "Plain cannot preserve math meaning"); break;
         case "Cite": this.fail(p, "Plain cannot resolve citation meaning"); break;

@@ -11282,7 +11282,7 @@ fn cmd_factor(args: &[String], mut stdin: CommandInput, posix: bool) -> BuiltinO
     }
 }
 
-fn fold_char_width(cp: u32) -> usize {
+pub(super) fn fold_char_width(cp: u32) -> usize {
     if cp < 128 {
         usize::from(cp != 0)
     } else if ranges_contain(fold_widths::ZERO, cp) {

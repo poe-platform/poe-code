@@ -25,6 +25,7 @@ mod mdq_links;
 mod mdq_order;
 use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Target as MdqTarget};
 mod mdq_writer;
+mod pandoc_plain_table;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
 mod json_format;
@@ -30087,7 +30088,7 @@ enum PandocBlock {
     OrderedList(Vec<Vec<PandocInline>>),
     BlockQuote(Vec<PandocBlock>),
     CodeBlock(String, String),
-    Table(Vec<String>, Vec<Vec<String>>),
+    Table(Vec<String>, Vec<Vec<String>>, Option<Vec<std::fmt::Alignment>>),
     HorizontalRule,
 }
 
@@ -30325,17 +30326,23 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: bool) -
         }
         if table(trimmed, i) {
             let parse_pipe_row = |l: &str| -> Vec<String> {
-                let inner = l.trim().trim_start_matches('|').trim_end_matches('|');
+                let inner = l.trim().strip_prefix('|').unwrap_or(l.trim());
+                let inner = inner.strip_suffix('|').unwrap_or(inner);
                 inner.split('|').map(|c| c.trim().to_string()).collect()
             };
             let headers = parse_pipe_row(trimmed);
+            let align = parse_pipe_row(lines[i + 1]).iter().map(|cell| match (cell.starts_with(':'), cell.ends_with(':')) {
+                (true, true) => std::fmt::Alignment::Center,
+                (_, true) => std::fmt::Alignment::Right,
+                _ => std::fmt::Alignment::Left,
+            }).collect();
             i += 2;
             let mut rows = Vec::new();
             while i < lines.len() && lines[i].trim().starts_with('|') {
                 rows.push(parse_pipe_row(lines[i]));
                 i += 1;
             }
-            blocks.push(PandocBlock::Table(headers, rows));
+            blocks.push(PandocBlock::Table(headers, rows, Some(align)));
             continue;
         }
         if trimmed.starts_with("> ") || trimmed == ">" {
@@ -30964,7 +30971,7 @@ fn render_pandoc_html(
                     ));
                 }
             }
-            PandocBlock::Table(headers, rows) => {
+            PandocBlock::Table(headers, rows, _) => {
                 body.push_str("<table>\n<colgroup>");
                 for _ in headers {
                     body.push_str("<col>");
@@ -31064,7 +31071,7 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String
                 }
                 parts.push(lines.join("\n"));
             }
-            PandocBlock::Table(headers, rows) => {
+            PandocBlock::Table(headers, rows, _) => {
                 let mut t = Vec::new();
                 t.push(format!("| {} |", headers.join(" | ")));
                 t.push(format!("| {} |", vec!["---"; headers.len()].join(" | ")));
@@ -31093,7 +31100,7 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String
     }
 }
 
-fn render_pandoc_plain(blocks: &[PandocBlock]) -> String {
+fn render_pandoc_plain(blocks: &[PandocBlock], mut limit: usize) -> Option<String> {
     fn indent(text: &str, prefix: &str) -> String {
         let mut out = String::new();
         for (i, line) in text.split('\n').enumerate() {
@@ -31102,36 +31109,46 @@ fn render_pandoc_plain(blocks: &[PandocBlock]) -> String {
         }
         out
     }
-    let mut parts = Vec::new();
+    let mut out = String::new();
     for b in blocks {
-        match b {
+        let part = match b {
             PandocBlock::Header(_, _, inlines) | PandocBlock::Para(inlines) => {
-                parts.push(inlines_plain_text(inlines));
+                inlines_plain_text(inlines)
             }
             PandocBlock::OrderedList(items) => {
                 let mut lines = Vec::new();
                 for (idx, inlines) in items.iter().enumerate() {
                     lines.push(format!("{}.  {}", idx + 1, inlines_plain_text(inlines)));
                 }
-                parts.push(lines.join("\n"));
+                lines.join("\n")
             }
             PandocBlock::BulletList(items) => {
                 let mut lines = Vec::new();
                 for (_, inlines) in items {
                     lines.push(format!("- {}", inlines_plain_text(inlines)));
                 }
-                parts.push(lines.join("\n"));
+                lines.join("\n")
             }
             PandocBlock::HorizontalRule => {
-                parts.push("-".repeat(72));
+                "-".repeat(72)
             }
-            PandocBlock::CodeBlock(_, code) => parts.push(indent(code.trim_end_matches('\n'), "    ")),
-            PandocBlock::BlockQuote(inner) => parts.push(indent(&render_pandoc_plain(inner), "  ")),
-            PandocBlock::Table(_, _) => {}
-        }
+            PandocBlock::CodeBlock(_, code) => indent(code.trim_end_matches('\n'), "    "),
+            PandocBlock::BlockQuote(inner) => {
+                let text = render_pandoc_plain(inner, limit)?;
+                let mut quoted = indent(&text, "  ");
+                if matches!(inner.first(), Some(PandocBlock::Table(..))) { quoted.insert_str(0, "  \n"); }
+                quoted
+            }
+            PandocBlock::Table(header, rows, align) => {
+                pandoc_plain_table::render(header, rows, align.as_deref(), limit)?
+            }
+        };
+        if part.is_empty() { continue; }
+        if !out.is_empty() { limit = limit.checked_sub(2)?; out.push_str("\n\n"); }
+        limit = limit.checked_sub(part.len())?;
+        out.push_str(&part);
     }
-    parts.retain(|part| !part.is_empty());
-    parts.join("\n\n")
+    Some(out)
 }
 
 fn render_pandoc_rst(blocks: &[PandocBlock]) -> String {
@@ -31720,7 +31737,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             if recs.is_empty() {
                 Vec::new()
             } else {
-                vec![PandocBlock::Table(recs[0].clone(), recs[1..].to_vec())]
+                vec![PandocBlock::Table(recs[0].clone(), recs[1..].to_vec(), None)]
             }
         }
         "xlsx" => {
@@ -31739,7 +31756,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 if !sh.rows.is_empty() {
                     b.push(PandocBlock::Table(
                         sh.rows[0].clone(),
-                        sh.rows[1..].to_vec(),
+                        sh.rows[1..].to_vec(), None,
                     ));
                 }
             }
@@ -31783,6 +31800,8 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 
     let title = meta.get("title").cloned().unwrap_or_else(|| "Document".to_string());
+    let plain_limit = fs.remaining_output_bytes();
+    let output_limit_error = || err_out(&fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes), 1);
     let out_bytes: Vec<u8> = match out_fmt.as_str() {
         "html" | "html5" => render_pandoc_html(
             &blocks,
@@ -31799,7 +31818,13 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "markdown" | "gfm" | "commonmark" | "commonmark_x" | "md" => {
             render_pandoc_markdown(&blocks, input_from_html).into_bytes()
         }
-        "plain" => format!("{}\n", render_pandoc_plain(&blocks)).into_bytes(),
+        "plain" => {
+            let Some(mut text) = plain_limit.checked_sub(1).and_then(|n| render_pandoc_plain(&blocks, n)) else {
+                return output_limit_error();
+            };
+            text.push('\n');
+            text.into_bytes()
+        }
         "rst" => render_pandoc_rst(&blocks).into_bytes(),
         "latex" => render_pandoc_latex(&blocks).into_bytes(),
         "rtf" => render_pandoc_rtf(&blocks).into_bytes(),
@@ -31835,7 +31860,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             write_zip_stored(&entries)
         }
         "pdf" => {
-            let plain = render_pandoc_plain(&blocks);
+            let Some(plain) = render_pandoc_plain(&blocks, plain_limit) else { return output_limit_error() };
             let html = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");
             let pdf_str = format!(
                 "%PDF-1.4\n%%SAFE_PDF_V2%%\nVER:1.4\nTITLE:{}\nPAGE:0:{}:{}::\n%%EOF\n",
@@ -35482,6 +35507,35 @@ mod tests {
         assert_eq!(drop_idx.exit_code, 0);
     }
 
+
+    #[test]
+    fn pandoc_plain_tables_keep_cells_and_align_display_columns() {
+        let vfs = MemoryVfs::new();
+        for (format, input, expected) in [
+            ("gfm", "| A | B | C |\n| :--- | :---: | ---: |\n| 年 | bb | zz |\n| word | b | c |",
+                "  A       B      C\n  ------ ---- ----\n  年      bb    zz\n  word    b      c\n"),
+            ("gfm", "> | *x* |\n> | --- |\n> | **a** |", "  \n    x\n    ---\n    a\n"),
+            ("gfm", "| | |\n| --- | --- |\n| xy | z |", "  ---- ---\n  xy   z\n  ---- ---\n"),
+            ("csv", "A,B\n123,4\n2,345\n", "  A     B\n  ----- -----\n  123   4\n  2     345\n"),
+            ("csv", "a,b\n\"x\ny\",z\nw,hi", "  --------\n  a   b\n  --- ----\n  x   z\n  y   \n\n  w   hi\n  --------\n"),
+        ] {
+            let result = cmd_pandoc(&args(&["-f", format, "-t", "plain", "--wrap=none"]), input, "/", &vfs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(result.stdout, expected, "{format}: {input}");
+        }
+    }
+
+    #[test]
+    fn pandoc_plain_table_padding_obeys_output_limit_before_replacing_a_file() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        shell.set_limits(crate::budget::ShellLimits { max_output_bytes: 2048, ..Default::default() });
+        let input = format!("a,b\n{},z\n{}", "x".repeat(256), "y,z\n".repeat(30));
+        fs.write_file("/input.csv", input.as_bytes()).unwrap();
+        fs.write_file("/out.txt", b"original").unwrap();
+        let error = shell.exec("pandoc -f csv -t plain -o /out.txt /input.csv").unwrap_err();
+        assert!(error.contains("maxOutputBytes"), "{error}");
+        assert_eq!(fs.read_file("/out.txt").unwrap(), b"original");
+    }
 
     #[test]
     fn pandoc_pipe_table_reader_selection() {

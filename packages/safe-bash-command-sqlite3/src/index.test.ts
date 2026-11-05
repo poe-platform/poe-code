@@ -4,6 +4,21 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+test("sqlite3 instr counts Unicode characters for text and bytes for blobs", async () => {
+  assert.deepEqual(
+    await runSqlite3(createMemoryFileSystem(), [":memory:", `
+      SELECT length('é😀'), substr('é😀x',2,1), instr('é😀x','x');
+      SELECT instr('😀a','a'), instr('a😀b','b'), instr('😀😀x','x'), instr('é😀x','😀x');
+      SELECT instr('abcabc','bc'), instr('😀','x'), instr('😀',''), instr('',''), instr('','x');
+      SELECT instr(NULL,'x'), instr('x',NULL), instr(123,23);
+      SELECT instr(x'F09F988061',x'61'), instr(x'610062',x'0062'), instr(x'FFFE61',x'FE');
+      SELECT instr(x'616263',x'6263'), instr(x'61',x'62'), instr(x'61',x''), instr(x'',x'61');
+      SELECT instr(x'F09F988061','a'), instr('😀a',x'61');
+    `]),
+    { code: 0, stdout: "2|😀|3\n2|3|3|2\n2|0|1|1|0\n||2\n5|2|2\n2|0|1|0\n2|2\n", stderr: "" }
+  );
+});
+
 for (const fn of ["printf", "format"]) {
   for (const [args, expected] of [
     ["'%!f|%!f|%!f|%!f',1.0,1.25,-2.5,NULL", "1.0|1.25|-2.5|0.0"],

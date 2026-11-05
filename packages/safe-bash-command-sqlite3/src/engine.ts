@@ -7860,11 +7860,26 @@ export class SqliteDatabase {
           return toSqlString(a0);
         }
         return toSqlString(a0).split(toSqlString(a1)).join(toSqlString(args[2]));
-      case "INSTR":
+      case "INSTR": {
         if (a0 === null || a1 === null) {
           return null;
         }
-        return toSqlString(a0).indexOf(toSqlString(a1)) + 1;
+        if (a0 instanceof Uint8Array && a1 instanceof Uint8Array) {
+          for (let i = 0; i <= a0.length - a1.length; i += 1) {
+            yield;
+            let j = 0;
+            while (j < a1.length && a0[i + j] === a1[j]) {
+              yield;
+              j += 1;
+            }
+            if (j === a1.length) return i + 1;
+          }
+          return 0;
+        }
+        const text = toSqlString(a0);
+        const index = text.indexOf(toSqlString(a1));
+        return index < 0 ? 0 : Array.from(text.slice(0, index)).length + 1;
+      }
       case "PRINTF":
       case "FORMAT":
         if (a0 === null) {

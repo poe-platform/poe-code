@@ -248,8 +248,14 @@ class Markdown {
         }
         case "Table": {
           if(!this.selection.extensions.pipe_tables) throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", "Pipe tables are unavailable", this.selection.descriptor.name, p);
-          const result = await writeGfm({blocks: [node], metadata: {}, resources: []}, this.context, this.selection, (nodes, path) => this.inline(nodes, path, "", false, true));
-          if(result.kind === "text") parts.push(result.text.endsWith("\n") ? result.text.slice(0, -1) : result.text); break;
+          const caption = this.selection.extensions.table_captions ? node.c[1] : undefined;
+          const table: Block = caption ? {...node, c: [node.c[0], [null, []], node.c[2], node.c[3], node.c[4], node.c[5]]} : node;
+          const result = await writeGfm({blocks: [table], metadata: {}, resources: []}, this.context, this.selection, (nodes, path) => this.inline(nodes, path, "", false, true));
+          if(result.kind === "text") {
+            const text = result.text.endsWith("\n") ? result.text.slice(0, -1) : result.text;
+            const label = caption?.[1].length ? await this.blocks(caption[1], `${p}.c[1][1]`) : caption?.[0]?.length ? this.inline(caption[0], `${p}.c[1][0]`) : "";
+            parts.push(label ? this.join([text, "\n\n", this.indent(label, ": ", "  ")]) : text);
+          } break;
         }
         case "Figure": {
           this.attrs(node.c[0], p);

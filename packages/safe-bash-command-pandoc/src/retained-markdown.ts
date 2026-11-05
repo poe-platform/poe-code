@@ -562,7 +562,7 @@ class MarkdownTape {
       const caption = await element(1, "caption"), short = caption.node + 32, long = await this.at(caption.node, 1);
       const hasCaption = await this.count(short) || await this.count(long);
       if (!job.stage) {
-        if (hasCaption) await this.loss(caption.path, "Flattened table caption", true);
+        if (hasCaption && !this.selection.extensions.table_captions) await this.loss(caption.path, "Flattened table caption", true);
         await this.push({...job, projection: this.projection, stage: 1});
         if (hasCaption) await this.push({...caption, op: "tableCaption", node: await this.count(long) ? long : short, mode: await this.count(long) ? "fblock" : "finline"});
         else await this.push({op: "empty", node: 0, path});
@@ -597,11 +597,20 @@ class MarkdownTape {
       }
       await rowAttrs(await this.at(foot.node, 1), await this.path(foot.path, "[1]"));
       const captionJob: Job = {op: "savedText", node: 0, path, text: captionText};
+      const parts: Job[] = [{...head, columns, width: count}, {...bodies, width: count}, {...foot, width: count}];
+      if (this.selection.extensions.table_captions) parts.push(captionJob);
+      else parts.unshift(captionJob);
       await this.push({op: "post", node: 0, path, mode: "trim"});
-      await this.push({op: "parts", node: 0, path, parts: [captionJob, {...head, columns, width: count}, {...bodies, width: count}, {...foot, width: count}]});
+      await this.push({op: "parts", node: 0, path, parts});
       return result;
     }
     if (job.op === "tableCaption") {
+      if (this.selection.extensions.table_captions) {
+        await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: "\n", rest: "\n"});
+        await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: ": ", rest: "  "});
+        await this.push(this.list(job.node, job.path, job.mode === "fblock" ? "block" : "inline"));
+        return result;
+      }
       await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: "", rest: "\n\n"});
       await this.push({op: "tableEscape", node: 0, path: job.path}); await this.push(this.list(job.node, job.path, job.mode!, {sep: job.mode === "fblock" ? " " : "", projection: this.storage.allocate(8)})); return result;
     }

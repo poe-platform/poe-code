@@ -335,3 +335,39 @@ it("preserves fancy list styles in both Markdown writer paths", async () => {
     expect(await md(blocks, to, {lossy: true})).toBe("26. First\n27. Second\n");
   }
 });
+
+
+it("keeps table captions attached in both Markdown writers", async () => {
+  const cell: import("./ast-types.js").Cell = [a, "AlignDefault", 1, 1, [p(s("A"))]];
+  for (const caption of [[null, [p({t: "Emph", c: [s("Sample")]}, {t: "Space"}, s("caption"))]], [[s("Short")], []]] as const) {
+    const table: Block = {t: "Table", c: [a, caption, [["AlignDefault", {t: "ColWidthDefault"}]], [a, [[a, [cell]]]], [[a, 0, [], [[a, [cell]]]]], [a, []]]};
+    const label = caption[1].length ? "*Sample* caption" : "Short";
+    for (const to of ["markdown", "md", "gfm+table_captions"]) {
+      expect(await md([table, p(s("After"))], to, {failIfWarnings: true})).toBe(`| A |\n| --- |\n| A |\n\n: ${label}\n\nAfter\n`);
+      expect(await md([{t: "BlockQuote", c: [table]}], to)).toContain(`> : ${label}`);
+    }
+    for (const to of ["gfm", "markdown-table_captions"]) {
+      await expect(md([table], to)).rejects.toMatchObject({code: "E_CAPABILITY"});
+      expect(await md([table], to, {lossy: true})).not.toContain(": ");
+    }
+  }
+});
+
+
+it("writes an attached caption through the JSON-to-Markdown command", async () => {
+  const cell = (text: string) => [a, {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [s(text)]}]];
+  const document = {"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Table", c: [a,
+    [null, [{t: "Plain", c: [s("Sample"), {t: "Space"}, s("caption")]}]],
+    [[{t: "AlignDefault"}, {t: "ColWidthDefault"}], [{t: "AlignDefault"}, {t: "ColWidthDefault"}]],
+    [a, [[a, [cell("A"), cell("B")]]]], [[a, 0, [], [[a, [cell("1"), cell("2")]]]]], [a, []]]}]};
+  let output = "", errors = "";
+  const result = await createStandalonePandocCommand().execute({
+    args: ["-f", "json", "-t", "markdown", "--fail-if-warnings"], stdin: [new TextEncoder().encode(JSON.stringify(document))],
+    signal: new AbortController().signal,
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}
+  });
+  expect(result.exitCode, errors).toBe(0);
+  expect(errors).toBe("");
+  expect(output).toBe("| A | B |\n| --- | --- |\n| 1 | 2 |\n\n: Sample caption\n");
+});

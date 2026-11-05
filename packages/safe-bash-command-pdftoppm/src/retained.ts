@@ -10,7 +10,7 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { PdftoppmPlan } from "./parse.js";
 
-export async function executeRetainedRaster(context: CommandContext, plan: PdftoppmPlan, stdout: ByteSink, signal: AbortSignal, maximum: number, publicationError?: (name: string) => { exitCode: number; stderr: string }, cairo = false): Promise<{ exitCode: number }> {
+export async function executeRetainedRaster(context: CommandContext, plan: PdftoppmPlan, stdout: ByteSink, signal: AbortSignal, maximum: number, publicationError?: (name: string) => { exitCode: number; stderr: string }, cairo = false, grayscaleJpeg = false): Promise<{ exitCode: number }> {
   const encoder = new TextEncoder(), directory = resolvePath(context.cwd, context.env.TMPDIR || "/tmp");
   const storage = new PdfStagingStorage({ fs: context.fs, directory });
   const diagnostic = async (message: string, exitCode: number) => { if (!plan.quiet) await writeBytes(context.stderr, encoder.encode(message), signal); return { exitCode }; };
@@ -101,7 +101,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         }
         const chunks = plan.format === "png" ? encodeRetainedPng(bitmap.width, bitmap.height, pixels(), storage, { ...(!cairo ? { dpi: dpiX, dpiY } : { colorMode: plan.colorMode }), signal })
           : plan.format === "tif" ? encodeRetainedTiff(bitmap.width, bitmap.height, pixels(), storage, { dpi: dpiX, dpiY, compression: plan.tiffCompression, signal })
-          : plan.format === "jpg" ? encodeJpegChunks(bitmap.width, bitmap.height, pixels(), { quality: plan.jpegQuality, colorSpace: plan.jpegColorSpace, dpi: dpiX, dpiY, signal })
+          : plan.format === "jpg" ? encodeJpegChunks(bitmap.width, bitmap.height, pixels(), { quality: plan.jpegQuality, colorSpace: grayscaleJpeg ? "gray" : plan.jpegColorSpace, dpi: dpiX, dpiY, signal })
           : encodePortableBitmapChunks(plan.format === "pgm" || plan.format === "pbm" ? plan.format : "ppm", bitmap.width, bitmap.height, pixels(), { signal });
         yield { name: name(number), chunks }; if (plan.singleFile) break;
         } catch (error) { pageFailed = true; throw error; }

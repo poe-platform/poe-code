@@ -100,7 +100,7 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     let transparent = false;
     let progress = false;
     let quiet = false;
-    let jpegQuality = 90;
+    let jpegQuality = 75;
     let jpegColorSpace: "rgb" | "cmyk" = "rgb";
     let tiffCompression: "none" | "packbits" | "deflate" | "lzw" | "jpeg" = "none";
     let antialiasText = true;
@@ -201,7 +201,7 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
                 const eqIdx = part.indexOf("=");
                 if (eqIdx > 0 && part.slice(0, eqIdx).trim().toLowerCase() === "quality") {
                     const qVal = Number(part.slice(eqIdx + 1).trim());
-                    if (Number.isFinite(qVal) && qVal >= 1 && qVal <= 100) {
+                    if (part.slice(eqIdx + 1).trim() !== "" && Number.isFinite(qVal) && qVal >= 0 && qVal <= 100) {
                         jpegQuality = Math.round(qVal);
                     }
                 }

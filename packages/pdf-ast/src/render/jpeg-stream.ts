@@ -110,7 +110,7 @@ function *bitLengthAndMagSteps(val: number): Generator<void, { size: number; bit
   return { size, bits };
 }
 
-export function *jpegEncodingProgram(width: number, height: number, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb", dpi = 72, dpiY = dpi): Generator<Uint8Array | { rowStart: number; rowCount: number } | undefined, void, Uint8Array | undefined> {
+export function *jpegEncodingProgram(width: number, height: number, quality = 90, colorSpace: "rgb" | "cmyk" | "gray" = "rgb", dpi = 72, dpiY = dpi): Generator<Uint8Array | { rowStart: number; rowCount: number } | undefined, void, Uint8Array | undefined> {
   let work = 0;
   const w = Math.max(1, width);
   const h = Math.max(1, height);
@@ -166,23 +166,21 @@ export function *jpegEncodingProgram(width: number, height: number, quality = 90
   dht.set(STD_AC_LUMA_VALUES, dPos);
 
   const cmyk = colorSpace === "cmyk";
-  const components = cmyk ? 4 : 3;
+  const components = cmyk ? 4 : colorSpace === "gray" ? 1 : 3;
   const sof0 = Uint8Array.from([
     0xff, 0xc0, 0x00, 8 + components * 3, 8,
     (h >> 8) & 0xff, h & 0xff,
     (w >> 8) & 0xff, w & 0xff,
     components,
     1, 0x11, 0,
-    2, 0x11, 0,
-    3, 0x11, 0,
+    ...(components === 1 ? [] : [2, 0x11, 0, 3, 0x11, 0]),
     ...(cmyk ? [4, 0x11, 0] : []),
   ]);
 
   const sosHeader = Uint8Array.from([
     0xff, 0xda, 0x00, 6 + components * 2, components,
     1, 0x00,
-    2, 0x00,
-    3, 0x00,
+    ...(components === 1 ? [] : [2, 0x00, 3, 0x00]),
     ...(cmyk ? [4, 0x00] : []),
     0, 63, 0,
   ]);
@@ -283,14 +281,17 @@ export function *jpegEncodingProgram(width: number, height: number, quality = 90
             blockK[k] = max - 128;
           } else {
             blockY[k] = 0.299 * r + 0.587 * g + 0.114 * b - 128;
+            if (components === 1) continue;
             blockCb[k] = -0.168736 * r - 0.331264 * g + 0.5 * b;
             blockCr[k] = 0.5 * r - 0.418688 * g - 0.081312 * b;
           }
         }
       }
       dcY = encodeBlock(blockY, dcY);
-      dcCb = encodeBlock(blockCb, dcCb);
-      dcCr = encodeBlock(blockCr, dcCr);
+      if (components !== 1) {
+        dcCb = encodeBlock(blockCb, dcCb);
+        dcCr = encodeBlock(blockCr, dcCr);
+      }
       if (blockK) dcK = encodeBlock(blockK, dcK);
       if (entropyBytes.length) { yield Uint8Array.from(entropyBytes); entropyBytes.length = 0; }
     }
@@ -315,8 +316,10 @@ function bitLengthAndMag(
 
 export interface PdfJpegChunkOptions {
   readonly quality?: number;
-  readonly colorSpace?: "rgb" | "cmyk";
+  readonly colorSpace?: "rgb" | "cmyk" | "gray";
   readonly dpi?: number;
+  readonly dpiX?: number;
+  readonly grayscale?: boolean;
   readonly dpiY?: number;
   readonly chunkBytes?: number;
   /** Eight RGBA rows, one output chunk and conservative codec scratch. The
@@ -339,9 +342,9 @@ export async function* encodeJpegChunks(width: number, height: number, input: As
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("Invalid JPEG chunk size");
   const working = maximum(options.maxWorkingBytes, "maxWorkingBytes"), outputLimit = maximum(options.maxOutputBytes, "maxOutputBytes");
   if (width * Math.min(8, height) * 4 + chunkBytes + 65536 > working) throw new PdfError("E_LIMIT", "JPEG working byte limit exceeded");
-  if (outputLimit < 328) throw new PdfError("E_LIMIT", "JPEG output byte limit exceeded");
+  if (outputLimit < (options.grayscale || options.colorSpace === "gray" ? 318 : 328)) throw new PdfError("E_LIMIT", "JPEG output byte limit exceeded");
   const { signal } = options; signal?.throwIfAborted();
-  const source = readBytes(input, signal)[Symbol.asyncIterator](); const program = jpegEncodingProgram(width, height, options.quality, options.colorSpace, options.dpi, options.dpiY);
+  const source = readBytes(input, signal)[Symbol.asyncIterator](); const program = jpegEncodingProgram(width, height, options.quality, options.grayscale ? "gray" : options.colorSpace, options.dpiX ?? options.dpi, options.dpiY);
   let pending: Uint8Array | undefined; let cursor = 0; let ended = false; let emitted = 0; let failed = false;
   try {
     let step = program.next();

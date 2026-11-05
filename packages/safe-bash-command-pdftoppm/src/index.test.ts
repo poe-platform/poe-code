@@ -46,6 +46,19 @@ describe("safe-bash-command-pdftoppm", () => {
     expect(decoded.height).toBe(150);
   });
 
+  it.each([
+    [runPdftoppmCli, [], 8, 3],
+    [runPdftoppmCli, ["-gray", "-jpegopt", "quality=0"], 255, 3],
+    [runPdftocairoCli, ["-gray", "-jpegopt", "quality=90"], 3, 1],
+  ] as const)("writes Poppler's JPEG density, quantization and component count (%#)", async (run, flags, quant, components) => {
+    const files = new Map([["in.pdf", createSamplePdf(1, [16, 8])]]);
+    const result = await run(["-jpeg", ...flags, "-rx", "360", "-ry", "720", "-singlefile", "in.pdf", "out"], files);
+    expect(result.exitCode).toBe(0);
+    const jpg = files.get("out.jpg")!;
+    const frame = jpg.findIndex((b, i) => b === 0xff && jpg[i + 1] === 0xc0);
+    expect([Array.from(jpg.slice(13, 18)), jpg[25], jpg[frame + 9]]).toEqual([[1, 1, 104, 2, 208], quant, components]);
+  });
+
   it("supports -singlefile, -f/-l page ranges, -sep, and -rx/-ry asymmetric DPI", async () => {
     const pdfBytes = createSamplePdf(3, [72, 72]);
     const files = new Map<string, Uint8Array>([["report.pdf", pdfBytes]]);

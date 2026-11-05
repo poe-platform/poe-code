@@ -57,7 +57,7 @@ function extractPdftoppmPositionals(argv: readonly string[]): string[] {
 function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, options: {
     readonly signal?: AbortSignal;
     readonly onAllocateBytes?: (bytes: number) => void;
-} = {}, cairo = false): Generator<void, PdftoppmCliResult, void> {
+} = {}, cairo = false, grayscaleJpeg = false): Generator<void, PdftoppmCliResult, void> {
     const parsed = yield* parsePdftoppmArgsSteps(argv, files.has("-"));
     if (!("inputPath" in parsed)) return parsed;
     const { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX: requestedX, scaleToY: requestedY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath } = parsed;
@@ -180,7 +180,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             else if (format === "tif")
                 renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression, effDpiY));
             else if (format === "jpg")
-                renderedBytes = (yield* encodeJpegSteps(bitmap, jpegQuality, parsed.jpegColorSpace, effDpiX, effDpiY));
+                renderedBytes = (yield* encodeJpegSteps(bitmap, jpegQuality, grayscaleJpeg ? "gray" : parsed.jpegColorSpace, effDpiX, effDpiY));
             else if (format === "pgm")
                 renderedBytes = (yield* encodePgmSteps(bitmap));
             else if (format === "pbm")
@@ -479,7 +479,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
     }
     const snapBefore = new Map(files);
     const rasterPositionals = positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
-    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options, true));
+    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options, true, format === "jpg" && grayMode));
     if (res.exitCode !== 0 || (!grayMode && !monoMode)) {
         return res;
     }
@@ -558,7 +558,7 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
             plan = { ...plan, colorMode: parsed.monoMode ? "mono" : "gray" };
           }
           return await executeRetainedRaster(context, plan, invocation.child(context.stdout).output, invocation.signal, maxInputBytes,
-            name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }), true);
+            name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }), true, parsed.grayMode);
         } finally { await invocation.close(); }
       }
     },

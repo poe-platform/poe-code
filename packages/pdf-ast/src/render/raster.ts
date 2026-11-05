@@ -219,7 +219,7 @@ export interface RenderToPngOptions {
   readonly thinLineMode?: "none" | "solid" | "shape" | undefined;
 }
 
-export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb", dpi = 72, dpiY = dpi): Generator<void, Uint8Array, void> {
+export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90, colorSpace: "rgb" | "cmyk" | "gray" = "rgb", dpi = 72, dpiY = dpi): Generator<void, Uint8Array, void> {
   const width = Math.max(1, bitmap.width);
   const program = jpegEncodingProgram(width, bitmap.height, quality, colorSpace, dpi, dpiY);
   const chunks: Uint8Array[] = []; let length = 0;
@@ -1892,7 +1892,7 @@ export function decodePng(
 export function encodeJpeg(
   bitmap: RgbaBitmap,
   quality = 90,
-  colorSpace: "rgb" | "cmyk" = "rgb",
+  colorSpace: "rgb" | "cmyk" | "gray" = "rgb",
   dpi = 72,
   dpiY = dpi
 ): Uint8Array {

@@ -222,7 +222,7 @@ function formatImageRow(img: ImageListing, idx: number): string {
         const ratioStr = formatPopplerRatio(embeddedSize, img.width, img.height, img.components, img.bitsPerComponent).padStart(4);
         const interpStr = (img.interpolate ? "yes" : "no").padEnd(3);
         const colorCol = (img.colorSpaceLabel ?? img.colorSpace).padEnd(5);
-        return `${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(6)} ${String(img.width).padStart(6)} ${String(img.height).padStart(5)}  ${colorCol} ${String(img.components).padStart(3)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)}  ${interpStr}  ${objField} ${formatPopplerPpi(img.xPpi).padStart(5)} ${formatPopplerPpi(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`;
+        return `${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(7)}${String(img.width).padStart(6)} ${String(img.height).padStart(5)}  ${colorCol} ${String(img.components).padStart(3)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)}  ${interpStr}  ${objField} ${formatPopplerPpi(img.xPpi).padStart(5)} ${formatPopplerPpi(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`;
 }
 
 function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, options: {

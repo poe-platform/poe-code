@@ -600,8 +600,7 @@ describe("safe-bash-command-pdfimages", () => {
     const rows = listRes.stdout.trim().split("\n").slice(2);
     expect(rows).toHaveLength(2);
     expect(rows[0]).toContain("sep  ");
-    expect(rows[1]).toContain("stencil");
-    expect(rows[1]).toContain(" -    ");
+    expect(rows[1]).toContain("stencil     1     1  -    ");
   });
 
   it("unwraps outer ASCIIHexDecode filter chains before terminal CCITTFaxDecode and JPXDecode codecs", async () => {

@@ -4467,6 +4467,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const s0 = sig(0);
         const s1 = sig(1);
         const span = Math.max(1e-6, s1 - s0);
+        const inverse = token === "+sigmoidal-contrast";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
@@ -4481,7 +4482,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (!mask[c])
                         continue;
                     const u = out[idx + c]! / 255;
-                    out[idx + c] = clampByteVal(((sig(u) - s0) / span) * 255);
+                    const value = inverse
+                        ? alpha - Math.log(1 / (s0 + u * span) - 1) / beta
+                        : (sig(u) - s0) / span;
+                    out[idx + c] = clampByteVal(value * 255);
                 }
             }
             return { ...im, data: out };

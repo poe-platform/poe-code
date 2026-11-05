@@ -91,10 +91,10 @@ it("JSON-to-GFM conversion uses the same explicit lossy option", async () => {
   expect(result).toMatchObject({text: "| H1 | H2 |\n| :--- | ---: |\n| a |  |\n", diagnostics: [expect.objectContaining({code: "W_TABLE_LOSS"})]});
 });
 it("escapes unsupported lossy HTML text and preserves source node paths after earlier blocks", async () => {
-  const d = doc([r([a, "AlignDefault", 1, 1, [{t: "RawBlock", c: ["html", "<script>x</script>"]}]], c("end"))]);
+  const d = doc([r([a, "AlignDefault", 1, 1, [{t: "RawBlock", c: ["latex", "<script>x</script>"]}]], c("end"))]);
   const result = await output(d, "html5", true);
   expect(result.kind === "text" && result.text).toContain("&lt;script&gt;x&lt;/script&gt;");
-  const outer: Document = {...d, blocks: [{t: "Plain", c: []}, {t: "RawBlock", c: ["html", "raw"]}]};
+  const outer: Document = {...d, blocks: [{t: "Plain", c: []}, {t: "RawBlock", c: ["latex", "raw"]}]};
   expect(await output(outer, "html5", true)).toMatchObject({diagnostics: [expect.objectContaining({location: "$.blocks[1]"})]});
 });
 it("applies column alignment to default-aligned HTML cells", async () => {

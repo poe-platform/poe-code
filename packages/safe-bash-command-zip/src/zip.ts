@@ -794,7 +794,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (parsed.fromCrlf && sourceSize > 0 && !store && entry.internalAttributes === 0 && !attributes.directory && !attributes.symlink && !parsed.quiet) {
       await conversionWarnings.set(name, `\tzip warning: ${live ? await convertedNames.has(name) ? "-ll used on binary file - corrupted?" : "has binary so -ll ignored" : bytes === originalBytes ? "has binary so -ll ignored" : "-ll used on binary file - corrupted?"}\n`);
     }
-    if (parsed.descriptors || source === "-") entry.descriptors = true;
+    if (parsed.descriptors) entry.descriptors = true;
     if (parsed.zip64 === false) entry.zip64 = false;
     if (parsed.zip64 === true || parsed.zip64 === undefined && source === "-") entry.zip64 = true;
     const prior = await old.get(name);

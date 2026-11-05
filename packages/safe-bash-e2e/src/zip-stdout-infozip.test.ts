@@ -74,6 +74,10 @@ test("zip to a pipe agrees with Info-ZIP 3.0 and extracts with UnZip 6.0", async
         const result = await shell.exec("zip " + args.join(" "), {stdin:payload});
         assert.equal(result.exitCode, reference.status, result.stderr);
         const bytes = named ? await view.readFile("/named.zip") : result.stdoutBytes;
+        const local = Buffer.from(bytes);
+        assert.equal(local.readUInt16LE(4), nativeArchive.readUInt16LE(4), args.join(" "));
+        assert.equal(local.readUInt16LE(6) & 8, nativeArchive.readUInt16LE(6) & 8, args.join(" "));
+        assert.equal(local.readUInt16LE(8), nativeArchive.readUInt16LE(8), args.join(" "));
         await writeFile(cwd + "/check.zip", bytes);
         const extracted = await native("unzip", ["-p", "check.zip"]);
         assert.equal(extracted.status, 0, extracted.stderr.toString());

@@ -94,7 +94,7 @@ export function gifHeader(
 ) {
   const { width, frameHeight, frames } = layout,
     loop = options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
-    out = new Uint8Array(13 + 768 + (loop === undefined ? 0 : 19));
+    out = new Uint8Array(13 + 768 + (loop === undefined || loop === 1 ? 0 : 19));
   out.set([
     71,
     73,
@@ -111,7 +111,7 @@ export function gifHeader(
     0
   ]);
   out.set(palette.bytes, 13);
-  if (loop !== undefined) {
+  if (loop !== undefined && loop !== 1) {
     const value = loop === 0 ? 0 : Math.max(0, loop - 1);
     out.set(
       [

@@ -361,7 +361,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 1 },
-    hash: "4264c95fee576bd0895bde94c5f10f75f628a03a78e88bc7314acf7d52f21254"
+    hash: "23d8acf0b4e0733eb9318f14e18cf7b8d1d810d07f8faa84a186bec04db1c359"
   },
   {
     spec: {

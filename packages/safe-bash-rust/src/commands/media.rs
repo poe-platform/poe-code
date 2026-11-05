@@ -10189,7 +10189,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         let mut outputs = Vec::new();
         let mut remaining = fs.shell_limits().max_output_bytes;
         for page in start_p..=end_p {
-            let mode = if list_mode { pdf_reader::ImageRead::List } else if ccitt_mode || all_mode { pdf_reader::ImageRead::NativeFax } else { pdf_reader::ImageRead::Pixels };
+            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode } };
             let done = source.images(page, fs.max_input_bytes(), mode, |im| {
                 let (w, h) = (im.width, im.height);
                 if w < min_width || h < min_height || unique && !seen.insert(im.id) {
@@ -10207,9 +10207,14 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                         outputs.push((name, bytes));
                         Some(())
                     };
-                    if let Some((data, params)) = im.native {
-                        stage("ccitt", data)?;
-                        stage("params", params.into_bytes())?;
+                    if let Some(native) = im.native {
+                        match native {
+                            pdf_reader::NativeImage::Jpeg(data) => stage("jpg",data)?,
+                            pdf_reader::NativeImage::Fax(data,params) => {
+                                stage("ccitt", data)?;
+                                stage("params", params.into_bytes())?;
+                            }
+                        }
                     } else {
                         let (ext, format) = if tiff_mode { ("tif", "TIFF") }
                             else if png_mode || all_mode { ("png", "PNG") }
@@ -16699,6 +16704,42 @@ mod media_unit_tests {
             let r = cmd_media_doc("pdfimages", &media_args(&args), "", "/", &fs);
             assert_eq!((r.exit_code, r.stderr.as_str()), (code, msg));
             if code != 0 { assert!(r.stdout.is_empty()); }
+        }
+    }
+
+    fn embedded_jpeg_pdf(jpeg: &[u8], color: &str, filters: &str, hex: bool) -> Vec<u8> {
+        let bytes = if hex { [hex_enc(jpeg).as_bytes(), b">"].concat() } else { jpeg.to_vec() };
+        let draw = "q 17 0 0 13 0 0 cm /Photo Do Q";
+        let placeholder = "X".repeat(bytes.len());
+        let mut pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 17 13] /Resources << /XObject << /Photo 5 0 R >> >> /Contents 4 0 R >>",
+            &format!("<< /Length {} >>\nstream\n{draw}\nendstream",draw.len()),
+            &format!("<< /Type /XObject /Subtype /Image /Width 17 /Height 13 /BitsPerComponent 8 /ColorSpace /{color} {filters} /Length {} >>\nstream\n{placeholder}\nendstream",bytes.len())], "").into_bytes();
+        let at = pdf.windows(bytes.len()).position(|chunk| chunk == placeholder.as_bytes()).unwrap();
+        pdf[at..at+bytes.len()].copy_from_slice(&bytes);
+        pdf
+    }
+
+    #[test]
+    fn pdfimages_preserves_embedded_jpegs() {
+        let fs = MemoryVfs::new();
+        for (bytes, color, filters, hex, listing) in [
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-RGB-0-0-17.jpg").as_slice(), "DeviceRGB", "/Filter /DCTDecode", false,
+                "   1     0 image      17    13  rgb     3   8  jpeg   no         5  0    72    72  754B 114%"),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-L-1-0-17.jpg").as_slice(), "DeviceGray", "/Filter [/ASCIIHexDecode /DCTDecode] /DecodeParms [null null]", true,
+                "   1     0 image      17    13  gray    1   8  jpeg   no         5  0    72    72  669B 303%"),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jpeg-CMYK-0-0-17.jpg").as_slice(), "DeviceCMYK", "/Decode [1 0 1 0 1 0 1 0] /Filter /DCTDecode", false,
+                "   1     0 image      17    13  cmyk    4   8  jpeg   no         5  0    72    72  515B  58%"),
+        ] {
+            fs.write_file("/photo.pdf",&embedded_jpeg_pdf(bytes,color,filters,hex)).unwrap();
+            let run = |args: &[&str]| cmd_media_doc("pdfimages",&media_args(args),"","/",&fs);
+            assert_eq!(run(&["-list","photo.pdf"]).stdout.lines().last(),Some(listing));
+            for flag in ["-j", "-all"] {
+                let r = run(&[flag,"photo.pdf","photo"]);
+                assert_eq!(r.exit_code,0,"{}",r.stderr);
+                assert_eq!(fs.read_file("/photo-000.jpg").unwrap(), bytes);
+            }
         }
     }
 

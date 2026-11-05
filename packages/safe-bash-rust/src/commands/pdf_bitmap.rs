@@ -6,12 +6,18 @@ use super::{Matrix, ObjectId, Objects, PageSource, Value, pdf_text_layout::Draw}
 pub(in crate::commands::archive) enum ImageRead {
     List,
     Pixels,
-    NativeFax,
+    Extract { fax: bool, jpeg: bool },
+}
+
+pub(in crate::commands::archive) enum NativeImage {
+    Fax(Vec<u8>, String),
+    Jpeg(Vec<u8>),
 }
 
 pub(in crate::commands::archive) struct Image {
+    jpeg: bool,
     pub bilevel: bool,
-    pub native: Option<(Vec<u8>, String)>,
+    pub native: Option<NativeImage>,
     pub width: usize,
     pub height: usize,
     components: usize,
@@ -49,7 +55,8 @@ impl Image {
             last.as_ref().and_then(Value::word),
             Some(b"/CCITTFaxDecode" | b"/CCF")
         );
-        if !bilevel
+        let jpeg = matches!(last.as_ref().and_then(Value::word), Some(b"/DCTDecode" | b"/DCT"));
+        if !bilevel && !jpeg
             && (filters.len() > 1 || last.is_some_and(|v| v.word() != Some(b"/FlateDecode")))
         {
             return Some(None);
@@ -59,6 +66,7 @@ impl Image {
         let components = match dict.get(b"ColorSpace").and_then(Value::word) {
             Some(b"/DeviceRGB") => 3,
             Some(b"/DeviceGray") => 1,
+            Some(b"/DeviceCMYK") if jpeg => 4,
             _ => return Some(None),
         };
         if width == 0 || height == 0 {
@@ -67,8 +75,7 @@ impl Image {
         if bilevel && (number(b"BitsPerComponent")? != 1 || components != 1)
             || !bilevel
                 && (number(b"BitsPerComponent")? != 8
-                    || dict.get(b"DecodeParms").is_some()
-                    || dict.get(b"Decode").is_some())
+                    || !jpeg && (dict.get(b"DecodeParms").is_some() || dict.get(b"Decode").is_some()))
         {
             return Some(None);
         }
@@ -115,7 +122,7 @@ impl Image {
             if encoded.len() > limit {
                 return None;
             }
-            if mode == ImageRead::NativeFax {
+            if matches!(mode, ImageRead::Extract { fax: true, .. }) {
                 let coding = if k < 0 {
                     "-4"
                 } else if k > 0 {
@@ -125,7 +132,7 @@ impl Image {
                 };
                 let line = if eol { "-A" } else { "-P" };
                 let polarity = if black { "-W" } else { "-B" };
-                native = Some((
+                native = Some(NativeImage::Fax(
                     encoded.into_owned(),
                     format!("{coding} {line} -X {columns} {polarity} -M\n"),
                 ));
@@ -160,6 +167,14 @@ impl Image {
                         [v, v, v, 255]
                     }));
                 }
+            }
+        } else if jpeg && mode != ImageRead::List {
+            if matches!(mode, ImageRead::Extract { jpeg: true, .. }) {
+                let data = objects.decoded_stream(id)?;
+                if data.len() > limit { return None; }
+                native = Some(NativeImage::Jpeg(data.into_owned()));
+            } else {
+                return Some(None);
             }
         } else if !bilevel && mode != ImageRead::List {
             if count > limit / 4 {
@@ -201,7 +216,7 @@ impl Image {
         }
         let interpolate = dict.get(b"Interpolate").and_then(Value::word) == Some(b"true");
         Some(Some(Self {
-            bilevel,
+            bilevel, jpeg,
             native,
             width,
             height,
@@ -218,7 +233,7 @@ impl Image {
         let [x, y] = self.ppi();
         let (id, generation) = self.id;
         let (w, h, components) = (self.width, self.height, self.components);
-        let color = if components == 1 { "gray" } else { "rgb" };
+        let color = match components { 1 => "gray", 4 => "cmyk", _ => "rgb" };
         let interp = if self.interpolate { "yes" } else { "no" };
         let mut size = self.length as f64;
         let mut unit = "B";
@@ -239,6 +254,8 @@ impl Image {
         let size = format!("{size:.precision$}{unit}");
         let (bpc, enc) = if self.bilevel {
             (1, "ccitt")
+        } else if self.jpeg {
+            (8, "jpeg")
         } else {
             (8, "image")
         };

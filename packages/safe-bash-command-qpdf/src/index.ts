@@ -646,6 +646,9 @@ function parseQpdfArguments(argv: readonly string[]) {
     } else if (arg === "--collate") {
       collateCounts = [1];
     } else if (arg.startsWith("--collate=")) {
+      if (arg.startsWith("--collate=,") || arg.endsWith(",")) {
+        return { result: { exitCode: 2, stdout: "", stderr: "qpdf: --collate: trailing comma\n" } };
+      }
       collateCounts = [];
       for (const value of arg.slice("--collate=".length).split(",")) {
         const count = Number.parseInt(value, 10);

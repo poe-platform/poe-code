@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, lstat, mkdir, mkdtemp, readdir, readFile, readlink, rm, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import type { WasmFileSystem } from "@poe-code/safe-bash-rust";
 import type { FileSystem } from "@poe-platform/safe-bash";
 import { once } from "node:events";
 import { buffer } from "node:stream/consumers";
@@ -99,6 +100,54 @@ comment */ / 8, "\n" # trailing comment
     // Independent ready nodes sort by raw name bytes even with a mixture of UTF-8 and invalid bytes.
     { cmd: "tsort", args: [], script: "tsort", input: Buffer.from("c3a920c3a9207a207a20ff20ff2080208020412041", "hex") },
   ];
+}
+
+export const linuxMutations = ([
+  ["split", "-b", "5", "effects/source", "effects/x"],
+  ["csplit", "-f", "effects/x", "effects/source", "/middle/"],
+  ["install", "-m", "0751", "effects/source", "effects/installed"],
+  ["cp", "-p", "effects/source", "effects/copy"], ["mv", "effects/source", "effects/moved"],
+  ["chmod", "0710", "effects/source"], ["truncate", "-s", "+4", "effects/source"],
+  ["touch", "-m", "-d", "@1234", "effects/source"], ["rm", "effects/source"],
+  ["rmdir", "effects/empty"], ["mkdir", "-m", "0711", "effects/new"],
+  ["ln", "-s", "source", "effects/link"],
+] as const).map(([cmd, ...args]) => ({ cmd, args, script: [cmd, ...args].join(" "), input: "", mutation: true as const }));
+
+
+
+export async function resetEffects(cwd: string, view?: FileSystem | WasmFileSystem) {
+  const dir = (view ? "/workspace" : cwd) + "/effects";
+  const bytes = Buffer.from("ff00610a6d6964646c650a80", "hex");
+  if (view) {
+    await view.rm(dir, { recursive: true, force: true });
+    await view.mkdir(dir + "/empty", { recursive: true });
+    await view.writeFile(dir + "/source", bytes);
+    await view.chmod!(dir + "/source", 0o640);
+    await view.utimes!(dir + "/source", 100000, 200000);
+  } else {
+    await rm(dir, { recursive: true, force: true });
+    await mkdir(dir + "/empty", { recursive: true });
+    await writeFile(dir + "/source", bytes);
+    await chmod(dir + "/source", 0o640);
+    await utimes(dir + "/source", 100, 200);
+  }
+}
+
+export async function readEffects(cwd: string, cmd: string, view?: FileSystem | WasmFileSystem) {
+  const dir = (view ? "/workspace" : cwd) + "/effects";
+  const names = view ? (await view.readdir(dir)).map(e => e.name) : await readdir(dir);
+  return Promise.all(names.sort().map(async name => {
+    const path = dir + "/" + name;
+    const stat = view ? await view.lstat(path) : await lstat(path);
+    const type = "type" in stat ? stat.type : stat.isFile() ? "file" : stat.isDirectory() ? "directory" : stat.isSymbolicLink() ? "symlink" : "other";
+    const contents = type === "file" ? Buffer.from(view ? await view.readFile(path) : await readFile(path))
+      : type === "symlink" ? (view ? await view.readlink!(path) : await readlink(path))
+      : type === "directory" ? (view ? (await view.readdir(path)).map(e => e.name) : await readdir(path)).sort() : undefined;
+    // Only compare permissions or times the command explicitly sets or preserves, independent of host umask.
+    const mode = (cmd === "cp" || cmd === "mv" || cmd === "chmod" || cmd === "install" || cmd === "mkdir") && name !== "empty" ? stat.mode & 0o7777 : undefined;
+    const mtime = ["cp", "mv", "touch"].includes(cmd) && type === "file" ? stat.mtimeMs : undefined;
+    return { name, type, contents, mode, mtime };
+  }));
 }
 
 export const linuxCodecs = [

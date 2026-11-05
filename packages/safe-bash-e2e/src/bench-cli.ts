@@ -3,7 +3,7 @@ import { gitCommands } from "@poe-platform/safe-bash/commands/git";
 import assert from "node:assert/strict";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 import { SafeBashE2EHarness, sb } from "./harness.js";
-import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
+import { codecInput, createLinuxCommandDirectory, linuxCodecs, linuxCommands, linuxEnv, linuxMutations, readEffects, resetEffects, runLinuxCommand, supportsHostPlugins } from "./linux-command-workloads.js";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -79,8 +79,8 @@ async function main(): Promise<void> {
     let cwd: string | undefined;
     try {
       cwd = await createLinuxCommandDirectory(ts.fs, rust.fs);
-      const workloads: { cmd: string; args: readonly string[]; script: string; input: string | Buffer; decoder?: string }[] =
-        linuxCommands(text);
+      const workloads: { cmd: string; args: readonly string[]; script: string; input: string | Buffer; decoder?: string; mutation?: boolean }[] =
+        [...linuxCommands(text), ...linuxMutations];
       const binary = codecInput();
       for (const [compress, decompress, cat] of linuxCodecs) {
         const [status, packed, errors] = await runLinuxCommand(compress, ["-c"], binary);
@@ -90,7 +90,7 @@ async function main(): Promise<void> {
       }
       console.log(`Median milliseconds, ${iterations} samples after ${warmup} warmups.`);
       console.log("Command\tStdin bytes\tLinux (spawn + pipes)\tTypeScript (warm)\tRust/Wasm (warm)");
-      for (const { cmd, args: argv, script, input, decoder } of workloads) {
+      for (const { cmd, args: argv, script, input, decoder, mutation } of workloads) {
         if (cmd === "git") {
           if (!supportsHostPlugins) {
             console.log(script + "\tNot measured: the Git plugin needs WebAssembly Promise Integration");
@@ -99,11 +99,16 @@ async function main(): Promise<void> {
           ts.shell.use(gitCommands());
           rust.use(gitCommands());
         }
+        if (mutation) await resetEffects(cwd);
         const expected = await runLinuxCommand(cmd, argv, input, cwd);
+        if (mutation) assert.equal(expected[0], 0, expected[2].toString());
+        const effects: Awaited<ReturnType<typeof readEffects>> | undefined = mutation ? await readEffects(cwd, cmd) : undefined;
         const samples: number[][] = [[], [], []];
         for (let round = 0; round < warmup + iterations; round++) {
           for (let offset = 0; offset < 3; offset++) {
             const engine = (round + offset) % 3;
+            const view = engine === 1 ? ts.fs : engine === 2 ? rust.fs : undefined;
+            if (mutation) await resetEffects(cwd, view);
             const start = performance.now();
             const result = engine === 0
               ? await runLinuxCommand(cmd, argv, input, cwd)
@@ -119,6 +124,7 @@ async function main(): Promise<void> {
             } else {
               assert.deepEqual(observed, expected, script);
             }
+            if (mutation) assert.deepEqual(await readEffects(cwd, cmd, view), effects, script);
             if (round >= warmup) samples[engine]!.push(elapsed);
           }
         }

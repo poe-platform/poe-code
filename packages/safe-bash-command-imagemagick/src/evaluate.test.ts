@@ -6,6 +6,33 @@ import { createMagickCommand, runConvertCli, runConvertCliSync, runMagickCli } f
 
 // ImageMagick 7.1.2-31 Q16-HDRI, RGBA [100,150,200,160], -depth 8 rgba:-.
 for (const mode of ["buffered", "retained", "sync"] as const) {
+  for (const operation of ["Exp", "Exponential"]) {
+    // ImageMagick 7.1.2-32 Q16-HDRI, RGBA [40,100,180,64], -depth 8 RGBA:-.
+    it.each([
+      ["0.5", [], [255, 255, 255, 255]],
+      ["0", [], [255, 255, 255, 255]],
+      ["-0.5", [], [236, 210, 179, 225]],
+      ["-2", [], [186, 116, 62, 154]],
+      ["-0.001%", [], [230, 197, 161, 216]],
+      ["-2", ["-channel", "R"], [186, 100, 180, 64]],
+      ["-2", ["-channel", "A"], [40, 100, 180, 154]],
+      ["-2", ["-channel", "RGB"], [186, 116, 62, 64]],
+    ] as const)(`${mode}: ${operation} %s matches native with channels %j`, async (operand, channel, expected) => {
+      const bytes = await sharp(new Uint8Array([40, 100, 180, 64]), {
+        raw: { width: 1, height: 1, channels: 4 },
+      }).png().toBuffer();
+      const files = new Map([["/in.png", bytes]]);
+      const filesystem = createMemoryFileSystem();
+      await filesystem.writeFile("/in.png", bytes);
+      const args = ["/in.png", ...channel, "-evaluate", operation, operand, "/out.png"];
+      const result = mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+      expect([...output.data]).toEqual(expected);
+    });
+  }
+
   for (const channel of [[], ["-channel", "None"]]) {
     it.each(["Bogus", "Absolute"])(`${mode}: rejects %s with channels ${channel.join(" ")} before writing output`, async (operation) => {
       const bytes = await sharp(new Uint8Array([100, 150, 200, 255]), {

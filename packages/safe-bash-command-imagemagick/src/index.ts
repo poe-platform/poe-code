@@ -1524,6 +1524,10 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                 case "pow":
                     next = 255 * Math.pow(cur / 255, vFactor);
                     break;
+                case "exp":
+                case "exponential":
+                    next = 255 * Math.exp(vFactor * (cur / 255));
+                    break;
                 case "log":
                     next = 255 * (Math.log(1 + Math.max(1e-6, vFactor) * (cur / 255)) / Math.log(1 + Math.max(1e-6, vFactor)));
                     break;
@@ -4566,7 +4570,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-evaluate") {
         const operationRaw = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
-        if (!["add", "addmodulus", "mean", "subtract", "multiply", "divide", "pow", "log", "set", "min", "max",
+        if (!["add", "addmodulus", "mean", "subtract", "multiply", "divide", "pow", "exp", "exponential", "log", "set", "min", "max",
             "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
             "threshold", "thresholdblack", "thresholdwhite"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);

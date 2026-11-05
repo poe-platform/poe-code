@@ -17314,24 +17314,27 @@ mod media_unit_tests {
         let fs = MemoryVfs::new();
         // Decoded Poppler 24.02 pixels, including subpixel crossings, page clipping,
         // solid color rounding and the white background applied after all fills.
-        for (draw, transparent, digest) in [
-            ("0.1 0.7 0.3 rg 20.0 16.875 m 18.375 12.375 l 17.875 2.625 l h f 0.91 0.31 0.09 rg 6.25 17.5 m 3.875 5.0 l 12.25 18.875 l 18.5 3.25 l h f", true, "7ddff1785a9a280f672a7a993038c9aeb8754f1d416385e55c0c7b66385b753d"),
-            ("0.1 0.7 0.3 rg 21.75 6.875 m 15.25 -1.125 l -1.625 18.875 l h f 0.91 0.31 0.09 rg 12.75 8.25 m 3.625 2.375 l 0.0 20.875 l -0.75 21.0 l h f", false, "e7b1690ee535a3700ab55054aac2dbdfc3eaaa11562b44a58edf41cdfb296244"),
-            ("0.1 0.7 0.3 rg 1 1 18 18 re 12.25 2.75 m 7.25 11.75 l 13.125 12.625 l 2.875 13.375 l h f*", true, "e13538694e321bdb599b7fd41d3262a9454c5f3838b1ea95ac14984122bee72c"),
-            ("0.1 0.7 0.3 rg -1.50390625 -0.328125 m 7.15234375 1.5390625 l 16.65234375 7.03515625 l 13.3359375 6.50390625 l 7.18359375 11.35546875 l 8.33984375 10.12890625 l 3.69921875 12.45703125 l h f*", true, "0ba65126994b21ba721983ecbe396c3aeadfb3c446c8a6b97396efe078e1f2bc"),
-            ("0.1 0.7 0.3 rg 17.0234375 5.609375 2.5 7.875 re f", true, "c0f910d56b9ec672b17984dbbc1a2bd60ef7fe739a6f98e9d7a3068d945e91ff"),
+        for (draw, transparent, default_digest, mono_digest) in [
+            ("0.1 0.7 0.3 rg 20.0 16.875 m 18.375 12.375 l 17.875 2.625 l h f 0.91 0.31 0.09 rg 6.25 17.5 m 3.875 5.0 l 12.25 18.875 l 18.5 3.25 l h f", true, "7ddff1785a9a280f672a7a993038c9aeb8754f1d416385e55c0c7b66385b753d", "0baf76cc37b14efe41b0fa4bd17450c190601339bbbdfb256bb1219dca16cd04"),
+            ("0.1 0.7 0.3 rg 21.75 6.875 m 15.25 -1.125 l -1.625 18.875 l h f 0.91 0.31 0.09 rg 12.75 8.25 m 3.625 2.375 l 0.0 20.875 l -0.75 21.0 l h f", false, "e7b1690ee535a3700ab55054aac2dbdfc3eaaa11562b44a58edf41cdfb296244", "f1df218b5e0845b2a3ddfe51795fc7eb3c84def578e262f54118c7d23ae28d58"),
+            ("0.1 0.7 0.3 rg 1 1 18 18 re 12.25 2.75 m 7.25 11.75 l 13.125 12.625 l 2.875 13.375 l h f*", true, "e13538694e321bdb599b7fd41d3262a9454c5f3838b1ea95ac14984122bee72c", "144cf7d234ab7792afb86c2d5b60455817ed5ce0c941c34722b099c6727ec03d"),
+            ("0.1 0.7 0.3 rg -1.50390625 -0.328125 m 7.15234375 1.5390625 l 16.65234375 7.03515625 l 13.3359375 6.50390625 l 7.18359375 11.35546875 l 8.33984375 10.12890625 l 3.69921875 12.45703125 l h f*", true, "0ba65126994b21ba721983ecbe396c3aeadfb3c446c8a6b97396efe078e1f2bc", "3f9081fdfef56fd22114b4a4e78be64d8088d5507ed6a33040abd45634947f04"),
+            ("0.1 0.7 0.3 rg 17.0234375 5.609375 2.5 7.875 re f", true, "c0f910d56b9ec672b17984dbbc1a2bd60ef7fe739a6f98e9d7a3068d945e91ff", "8d7931fd3766318a4d614a1deb1f6878e4ef6f08035d6ec7e71b724104686706"),
+            ("0.1 0.7 0.3 rg 1 1 18 18 re -1.44921875 -0.3359375 m 0.15234375 22.203125 l 12.93359375 10.3671875 l 4.24609375 20.55859375 l h f*", true, "0a826cba7d7d7e9e66de7e01c8df95ed1a1278d29c70f07bb6df2cab7891284c", "b78322a62bdb6823b78ef18e732dae4b1212af657128de4cb54b57792efa421e"),
         ] {
             let stream = format!("<< /Length {} >>\nstream\n{draw}\nendstream", draw.len());
             let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
                 "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 20 20] /Contents 4 0 R >>", &stream], "");
             fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
-            let mut flags = vec!["-png", "-singlefile", "-r", "72"];
-            if transparent { flags.push("-transp"); }
-            flags.extend(["in.pdf", "out"]);
-            let r = cmd_media_doc("pdftocairo", &media_args(&flags), "", "/", &fs);
-            assert_eq!(r.exit_code, 0, "{}", r.stderr);
-            let im = png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(), 1 << 20).unwrap();
-            assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), digest, "{draw}");
+            for (mode, digest) in [("default", default_digest), ("none", mono_digest)] {
+                let mut flags = vec!["-png", "-singlefile", "-r", "72", "-antialias", mode];
+                if transparent { flags.push("-transp"); }
+                flags.extend(["in.pdf", "out"]);
+                let r = cmd_media_doc("pdftocairo", &media_args(&flags), "", "/", &fs);
+                assert_eq!(r.exit_code, 0, "{}", r.stderr);
+                let im = png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(), 1 << 20).unwrap();
+                assert_eq!(hex_enc(&sha256_bytes(im.pixels.as_flattened())), digest, "{mode}: {draw}");
+            }
         }
     }
 

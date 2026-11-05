@@ -603,7 +603,7 @@ impl Bitmap {
         self.work = self
             .work
             .checked_sub((y1 - y0).checked_mul((x1 - x0).checked_add(edges.len())?)?)?;
-        if self.backend == RasterBackend::Cairo && aa {
+        if self.backend == RasterBackend::Cairo {
             let fixed = |p: Point| p.map(|v| (v * 256.).round_ties_even());
             for (p, q) in &mut edges {
                 *p = fixed(*p);
@@ -619,6 +619,18 @@ impl Bitmap {
             let mut areas = vec![0.; x1 - x0];
             for y in y0..y1 {
                 let clip = self.clip_row(y, None)?;
+                let mut draw = |x, coverage: u8| {
+                    let alpha = mul255(coverage.into(), clip_coverage(&clip, x).into());
+                    if alpha > 0 {
+                        cairo_over(&mut self.pixels[y * self.w + x], &solid, alpha, alpha, 127);
+                    }
+                };
+                if !aa {
+                    pdf_cairo_path::mono_row(&edges, y, self.w, even, &mut self.work, |start, end| {
+                        for x in start.max(x0)..end.min(x1) { draw(x, 255); }
+                    })?;
+                    continue;
+                }
                 let box_row = rect.map(|(a, c)| pdf_cairo_path::Coverage::rectangle(a, c, y));
                 if box_row.is_none() {
                     pdf_cairo_path::path_row(
@@ -636,10 +648,7 @@ impl Bitmap {
                     let coverage = box_row
                         .as_ref()
                         .map_or_else(|| pdf_cairo_path::area_alpha(area), |r| r.alpha(x));
-                    let alpha = mul255(coverage.into(), clip_coverage(&clip, x).into());
-                    if alpha > 0 {
-                        cairo_over(&mut self.pixels[y * self.w + x], &solid, alpha, alpha, 127);
-                    }
+                    draw(x, coverage);
                 }
             }
             return Some(());

@@ -284,3 +284,47 @@ pub(super) fn path_row(
 pub(super) fn area_alpha(area: f64) -> u8 {
     ((area * 17. + 256.) / 512.).floor().clamp(0., 255.) as u8
 }
+
+// Cairo's mono converter rounds half toward the smaller pixel and samples
+// the segment at 127/256 of the row. It joins spans one pixel apart.
+pub(super) fn mono_row(
+    edges: &[(Point, Point)],
+    y: usize,
+    width: usize,
+    even: bool,
+    work: &mut usize,
+    mut span: impl FnMut(usize, usize),
+) -> Option<()> {
+    let pixel = |fixed: f64| ((fixed + 127.) / 256.).floor();
+    let row = y as f64;
+    let mut crossings = Vec::new();
+    for &(p, q) in edges {
+        if row < pixel(p[1].min(q[1])) || row >= pixel(p[1].max(q[1])) {
+            continue;
+        }
+        let x = p[0] + ((row * 256. + 127. - p[1]) * (q[0] - p[0]) / (q[1] - p[1])).floor();
+        crossings.push((
+            pixel(x).clamp(0., width as f64),
+            if p[1] < q[1] { 1 } else { -1 },
+        ));
+    }
+    *work = work.checked_sub(
+        crossings
+            .len()
+            .saturating_mul(crossings.len().max(1).ilog2() as usize + 1),
+    )?;
+    crossings.sort_unstable_by(|a, b| a.0.total_cmp(&b.0));
+    let mut winding = 0;
+    let mut left = None;
+    for (i, &(x, dir)) in crossings.iter().enumerate() {
+        winding += dir;
+        if (if even { winding % 2 } else { winding }) != 0 {
+            left.get_or_insert(x);
+        } else if crossings.get(i + 1).is_none_or(|next| next.0 > x + 1.)
+            && let Some(start) = left.take()
+        {
+            span(start as usize, x as usize);
+        }
+    }
+    Some(())
+}

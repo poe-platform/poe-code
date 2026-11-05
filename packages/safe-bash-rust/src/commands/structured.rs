@@ -30233,7 +30233,7 @@ fn strip_html_comments(input: &str) -> String {
     out
 }
 
-fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> {
+fn parse_pandoc_markdown(input: &str, strip_comments: bool, pipe_tables: bool) -> Vec<PandocBlock> {
     let cleaned = if strip_comments {
         strip_html_comments(input)
     } else {
@@ -30259,7 +30259,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
         let level = line.bytes().take_while(|&b| b == b'#').count();
         ((1..=6).contains(&level) && (line.len() == level || line[level..].starts_with([' ', '\t']))).then_some(level)
     };
-    let table = |line: &str, i: usize| line.starts_with('|') && line.ends_with('|')
+    let table = |line: &str, i: usize| pipe_tables && line.starts_with('|') && line.ends_with('|')
         && lines.get(i + 1).is_some_and(|next| next.trim().starts_with('|') && next.contains("---"));
     let mut blocks = Vec::new();
     let mut i = 0usize;
@@ -30355,6 +30355,7 @@ fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> 
             blocks.push(PandocBlock::BlockQuote(parse_pandoc_markdown(
                 &q_lines.join("\n"),
                 strip_comments,
+                pipe_tables,
             )));
             continue;
         }
@@ -30575,7 +30576,7 @@ fn parse_pandoc_latex(input: &str) -> Vec<PandocBlock> {
         }
         md_lines.push(s);
     }
-    parse_pandoc_markdown(&md_lines.join("\n"), false)
+    parse_pandoc_markdown(&md_lines.join("\n"), false, true)
 }
 
 fn parse_pandoc_rtf(input: &str) -> Vec<PandocBlock> {
@@ -30616,7 +30617,7 @@ fn parse_pandoc_rtf(input: &str) -> Vec<PandocBlock> {
             i += 1;
         }
     }
-    parse_pandoc_markdown(&cleaned, false)
+    parse_pandoc_markdown(&cleaned, false, true)
 }
 
 fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
@@ -31748,7 +31749,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "docx" | "odt" | "epub" | "epub3" => {
             let entries = read_office_archive(&raw_bytes);
             if let Some(md_bytes) = entries.get("__pandoc_source.md") {
-                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false)
+                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, true)
             } else if let Some(doc_xml) = entries.get("word/document.xml") {
                 parse_pandoc_html(&String::from_utf8_lossy(doc_xml))
             } else if let Some(content_xml) = entries.get("content.xml") {
@@ -31756,10 +31757,21 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
                 parse_pandoc_html(&String::from_utf8_lossy(ch_xml))
             } else {
-                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false)
+                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, true)
             }
         }
-        _ => parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments),
+        _ => {
+            let mut pipe_tables = !matches!(in_fmt.as_str(), "commonmark" | "markdown_strict");
+            if let Some(format) = &from_fmt {
+                for (i, sign) in format.match_indices(['+', '-']) {
+                    if format[i + 1..].split(['+', '-']).next() == Some("pipe_tables") {
+                        pipe_tables = sign == "+";
+                        if pipe_tables { break; }
+                    }
+                }
+            }
+            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, pipe_tables)
+        }
     };
 
     if shift_heading != 0 {
@@ -35471,6 +35483,22 @@ mod tests {
         assert_eq!(drop_idx.exit_code, 0);
     }
 
+
+    #[test]
+    fn pandoc_pipe_table_reader_selection() {
+        let vfs = MemoryVfs::new();
+        let input = "| a | b |\n| --- | --- |\n| 1 | 2 |\n";
+        for (format, is_table) in [
+            ("commonmark", false), ("markdown_strict", false), ("gfm", true),
+            ("commonmark+pipe_tables", true), ("gfm-pipe_tables", false),
+            ("commonmark+pipe_tables-pipe_tables", true), ("gfm-pipe_tables+pipe_tables", true),
+        ] {
+            let result = cmd_pandoc(&args(&["-f", format, "-t", "html"]), input, "/", &vfs);
+            assert_eq!(result.exit_code, 0);
+            assert_eq!(result.stdout.contains("<table"), is_table, "{format}: {}", result.stdout);
+            if !is_table { assert!(result.stdout.contains("| 1 | 2 |")); }
+        }
+    }
 
     #[test]
     fn unit_mdq_pandoc_unrtf_mmdc_and_html_to_markdown() {

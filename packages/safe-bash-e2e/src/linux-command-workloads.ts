@@ -229,7 +229,8 @@ export function linuxCommands(text: string) {
   assert.equal(pandocVersion, "pandoc 3.11", "Put Pandoc 3.11 first on PATH for the Linux command benchmark");
   return [
     ...["- a\n- b\n", "#tag\nNext\n", "| lone |\nnext\n", "start\n####### too many\n| literal |\nlast\n",
-      "start\n# Heading\nlast\n", "", "> First\n>\n> > Second\n\nlast\n",
+      "| a | b |\n| --- | --- |\n| 1 | 2 |\n", "before\n| one |\n|---|\nafter\n",
+      "> | one |\n> |---|\n", "start\n# Heading\nlast\n", "", "> First\n>\n> > Second\n\nlast\n",
       "A\n\n```js\na  b\n\n  c\n```\n\nZ\n", "> ```\n> a\n>\n> b\n> ```\n",
       "```\n\n\na\n\n\n```\n", "```\na  \n   \n\n```\n", "```\n\n\n```\n\nlast\n",
       "````\na\n```\nb\n````\n", "~~~txt\nplain\n~~~\n", "  ~~~\n  a\n b\n   c\n  ~~~\n",
@@ -238,6 +239,10 @@ export function linuxCommands(text: string) {
       "  ~~~\n\tx\n  ~~~\n", "\tfoo\tbar\n"].map(input => ({
       cmd: pandoc, args: ["-f", "commonmark", "-t", "plain", "--wrap=none"],
       script: "pandoc -f commonmark -t plain --wrap=none", input,
+    })),
+    ...["commonmark+pipe_tables", "commonmark+pipe_tables-pipe_tables", "gfm-pipe_tables"].map(format => ({
+      cmd: "bash", args: ["--noprofile", "--norc", "-c", '"$1" -f "$2" -t html | grep -c "<table"', "bash", pandoc, format],
+      script: `pandoc -f ${format} -t html | grep -c '<table'`, input: "| a | b |\n| --- | --- |\n| 1 | 2 |\n",
     })),
     ...([
       ["sed -e p -e 'a queued' -e 'r samples/base' -e Q7", "first\nsecond\n"],

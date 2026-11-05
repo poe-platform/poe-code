@@ -30,5 +30,5 @@ it.each([false, true])("handles a single pixel and alpha statistics with retaine
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", bytes);
   expect(await runIdentifyCli(["-format", "%[opaque] %[fx:mean] %[fx:mean.a] %[fx:standard_deviation] %[fx:standard_deviation.a]", "/input"], retained ? { filesystem: fs, cwd: "/" } : new Map([["/input", bytes]])))
-    .toEqual({ exitCode: 0, stdout: "false 0.37549 0.501961 0 0", stderr: "" });
+    .toEqual({ exitCode: 0, stdout: "False 0.37549 0.501961 0 0", stderr: "" });
 });

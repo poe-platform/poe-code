@@ -192,9 +192,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "pae":
             metricStr = `${formatMetricNum(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
             break;
-        case "psnr":
-            metricStr = mseNorm === 0 ? "120 (1)" : formatMetricNum(10 * Math.log10(1 / mseNorm));
+        case "psnr": {
+            const psnr = mseNorm === 0 ? 120 : 10 * Math.log10(1 / mseNorm);
+            metricStr = `${formatSignificantMetric(psnr)} (${formatSignificantMetric(psnr / 120)})`;
             break;
+        }
         case "ssim": {
             const distortion = yield* compareSsimSteps(imgA, imgB);
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;

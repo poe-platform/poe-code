@@ -471,7 +471,7 @@ describe("safe-bash-command-qpdf", () => {
     // 2. List and show attachment
     const listRes = await runQpdfCli(["--list-attachments", "/with-att.pdf"], files);
     assert.equal(listRes.exitCode, 0);
-    assert.equal(listRes.stdout.trim(), "cfg -> config.json");
+    assert.match(listRes.stdout, /^cfg -> [1-9][0-9]*,0\n$/);
 
     const showRes = await runQpdfCli(["--show-attachment=cfg", "/with-att.pdf"], files);
     assert.equal(showRes.exitCode, 0);
@@ -524,7 +524,7 @@ describe("safe-bash-command-qpdf", () => {
     );
     assert.equal(add1.exitCode, 0);
     const list1 = await runQpdfCli(["--list-attachments", "/att1.pdf"], files);
-    assert.equal(list1.stdout.trim(), "sample.bin -> sample.bin");
+    assert.match(list1.stdout, /^sample\.bin -> [1-9][0-9]*,0\n$/);
 
     // Show attachment preserves exact 0x00..0xFF binary bytes (including 0x80 and 0x9F)
     const showBin = await runQpdfCli(["--show-attachment=sample.bin", "/att1.pdf"], files);
@@ -566,7 +566,7 @@ describe("safe-bash-command-qpdf", () => {
     );
     assert.equal(copyAndStrip.exitCode, 0);
     const listCopied = await runQpdfCli(["--list-attachments", "/stripped.pdf"], files);
-    assert.equal(listCopied.stdout.trim(), "P_sample.bin -> sample2.bin");
+    assert.match(listCopied.stdout, /^P_sample\.bin -> [1-9][0-9]*,0\n$/);
 
     const strippedDoc = PdfDocument.load(files.get("/stripped.pdf")!);
     const strippedRoot = strippedDoc.cos.resolveDict(strippedDoc.cos.rootRef)!;
@@ -1070,8 +1070,8 @@ describe("safe-bash-command-qpdf", () => {
 
     const listRes = await runQpdfCli(["src.pdf", "--list-attachments"], files);
     assert.equal(listRes.exitCode, 0);
-    assert.ok(listRes.stdout.includes("script-key -> script.sh"));
-    assert.ok(listRes.stdout.includes("zugferd.xml -> zugferd.xml"));
+    assert.match(listRes.stdout, /^script-key -> [1-9][0-9]*,0$/m);
+    assert.match(listRes.stdout, /^zugferd\.xml -> [1-9][0-9]*,0$/m);
 
     const showRes = await runQpdfCli(["src.pdf", "--show-attachment=script-key"], files);
     assert.equal(showRes.exitCode, 0);
@@ -1105,7 +1105,7 @@ describe("safe-bash-command-qpdf", () => {
     const trimmedList = await runQpdfCli(["trimmed.pdf", "--list-attachments"], files);
     assert.equal(trimmedList.exitCode, 0);
     assert.ok(!trimmedList.stdout.includes("script-key"));
-    assert.ok(trimmedList.stdout.includes("zugferd.xml -> zugferd.xml"));
+    assert.match(trimmedList.stdout, /^zugferd\.xml -> [1-9][0-9]*,0$/m);
 
     const splitPct = await runQpdfCli(["src.pdf", "--split-pages", "100%%_part_%03d.pdf"], files);
     assert.equal(splitPct.exitCode, 0);

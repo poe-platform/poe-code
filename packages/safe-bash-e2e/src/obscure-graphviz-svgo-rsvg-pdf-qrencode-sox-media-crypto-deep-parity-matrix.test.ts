@@ -325,15 +325,16 @@ HTML
         qpdf --show-encryption /workspace/dec.pdf
       `);
       assert.equal(r.exitCode, 0, r.stderr);
+      assert.match(r.stdout, /^note\.txt -> [1-9][0-9]*,0$/m);
       assert.equal(
-        r.stdout,
+        r.stdout.replace(/^note\.txt -> [1-9][0-9]*,0$/m, "note.txt -> reference"),
         [
           "3",
           "Page1",
           "Page3",
           "Page4",
           "/workspace/rot_att.pdf: linearized",
-          "note.txt -> note.txt",
+          "note.txt -> reference",
           "attachment-payload-42",
           "R = 6",
           "V = 5",

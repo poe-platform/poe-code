@@ -67,9 +67,9 @@ describe("obscure PDF, image, ffmpeg, soffice, exiftool, and media/document matr
         pdfdetach -list with_att.pdf
       `);
       assert.equal(res.exitCode, 0, res.stderr);
-      assert.equal(
+      assert.match(
         res.stdout,
-        "inv-meta -> meta.txt\ninvoice_total=99.50\n1 embedded files\n1: meta.txt\n"
+        /^inv-meta -> [1-9][0-9]*,0\ninvoice_total=99\.50\n1 embedded files\n1: meta\.txt\n$/
       );
     });
   });

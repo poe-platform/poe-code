@@ -436,8 +436,8 @@ function parseStrictJsonObjectSelector(
   return { kind: "obj", objNum, genNum };
 }
 
-function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: string; data: Uint8Array }[] {
-  const entries: { key: string; filename: string; data: Uint8Array }[] = [];
+function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: string; reference: PdfCosRef | undefined; data: Uint8Array }[] {
+  const entries: { key: string; filename: string; reference: PdfCosRef | undefined; data: Uint8Array }[] = [];
   const seenKeys = new Set<string>();
   const pushFilespec = (fsDict: PdfCosDict | undefined, fallbackKey: string) => {
     if (!fsDict) return;
@@ -446,18 +446,13 @@ function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: 
     const keyStr = fallbackKey || fnStr;
     if (seenKeys.has(keyStr)) return;
     const efDict = asDict(doc.cos.resolve(dictGet(fsDict, "EF")));
-    const stNode = efDict
-      ? doc.cos.resolve(
-          dictGet(efDict, "UF") ??
-            dictGet(efDict, "F") ??
-            dictGet(efDict, "DOS") ??
-            dictGet(efDict, "Mac") ??
-            dictGet(efDict, "Unix")
-        )
+    const streamReference = efDict
+      ? dictGet(efDict, "UF") ?? dictGet(efDict, "F") ?? dictGet(efDict, "DOS") ?? dictGet(efDict, "Mac") ?? dictGet(efDict, "Unix")
       : undefined;
+    const stNode = doc.cos.resolve(streamReference);
     if (stNode?.kind === "stream") {
       seenKeys.add(keyStr);
-      entries.push({ key: keyStr, filename: fnStr, data: doc.cos.decodeStream(stNode) });
+      entries.push({ key: keyStr, filename: fnStr, reference: asRef(streamReference), data: doc.cos.decodeStream(stNode) });
     }
   };
   const walkNames = (nodeDict: PdfCosDict | undefined, visited = new Set<number>()) => {
@@ -1370,7 +1365,7 @@ function* executeQpdfCli(
       }
       return { exitCode: 0, stdout: bytesToLatin1(found.data), stdoutBytes: found.data, stderr: "" };
     }
-    const outLines = entries.map((e) => `${e.key} -> ${e.filename}`);
+    const outLines = entries.map((e) => `${e.key} -> ${e.reference?.objectNumber ?? 0},${e.reference?.generationNumber ?? 0}`);
     return { exitCode: 0, stdout: outLines.length > 0 ? outLines.join("\n") + "\n" : "", stderr: "" };
   }
 

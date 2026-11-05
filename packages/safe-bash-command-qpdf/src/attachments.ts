@@ -102,7 +102,7 @@ export async function* attachmentChunks(document: PdfRetainedDocument, storage: 
       for await (const bytes of document.objects.decodeStream(attachment.reference.objectNumber, attachment.reference.generationNumber)) {
         signal.throwIfAborted(); if (selected) yield bytes;
       }
-      if (key === undefined) yield* encodeDisplayParts([attachment.key, " -> ", attachment.filename, "\n"], signal);
+      if (key === undefined) yield* encodeDisplayParts([attachment.key, " -> ", `${attachment.reference.objectNumber},${attachment.reference.generationNumber}`, "\n"], signal);
     }
     if (key !== undefined && !found) throw new QpdfMissingAttachment(key);
   } catch (error) {

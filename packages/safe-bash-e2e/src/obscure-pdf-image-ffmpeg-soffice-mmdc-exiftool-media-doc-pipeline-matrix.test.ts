@@ -65,9 +65,9 @@ describe("obscure PDF, image, ffmpeg, soffice, mmdc, and exiftool media/document
         pdfdetach -list with_att.pdf
       `);
       assert.equal(res.exitCode, 0, res.stderr);
-      assert.equal(
+      assert.match(
         res.stdout,
-        "sig-meta -> manifest.txt\nchecksum=sha256:abcd1234\n1 embedded files\n1: manifest.txt\n"
+        /^sig-meta -> [1-9][0-9]*,0\nchecksum=sha256:abcd1234\n1 embedded files\n1: manifest\.txt\n$/
       );
     });
   });

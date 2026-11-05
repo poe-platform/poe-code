@@ -463,7 +463,7 @@ echo "v1-data" > a.txt
 echo "v2-data" > b.txt
 
 qpdf host.pdf --add-attachment a.txt --key=cfg --filename=config.txt -- att1.pdf
-qpdf --list-attachments att1.pdf | grep -q "cfg -> config.txt"
+qpdf --list-attachments att1.pdf | grep -Eq "^cfg -> [1-9][0-9]*,0$"
 qpdf --show-attachment=cfg att1.pdf | grep -q "^v1-data$"
 
 set +e
@@ -476,7 +476,7 @@ qpdf att1.pdf --add-attachment b.txt --key=cfg --filename=config.txt --replace -
 qpdf --show-attachment=cfg att2.pdf | grep -q "^v2-data$"
 
 qpdf host.pdf --copy-attachments-from att2.pdf --prefix=imported_ -- copied.pdf
-qpdf --list-attachments copied.pdf | grep -q "imported_cfg -> config.txt"
+qpdf --list-attachments copied.pdf | grep -Eq "^imported_cfg -> [1-9][0-9]*,0$"
 
 qpdf copied.pdf --remove-attachment=imported_cfg stripped.pdf
 test -z "$(qpdf --list-attachments stripped.pdf)"

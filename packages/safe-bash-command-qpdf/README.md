@@ -72,7 +72,8 @@ passwords through caller-backed object storage. Page listings with `--with-image
 keep nested-form traversal state in caller storage. `--list-attachments` and
 `--show-attachment` use caller-backed name traversal and key indexes, decoding
 attachment payloads sequentially and validating all attachments before publishing
-stdout. Binary extraction preserves the original bytes.
+stdout. Listings print `key -> object,generation` for the embedded-file stream,
+matching native qpdf. Binary extraction preserves the original bytes.
 
 `--json=1` and `--json=2` use retained input and caller-backed object, page,
 outline and attachment traversal. `--json-key` emits only the requested top-level sections plus `version` and

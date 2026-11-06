@@ -392,7 +392,7 @@ function parsePdfStructure(bytes: Uint8Array): {
   }
 
   const keyRegex =
-    /\/(Title|Author|Subject|Keywords|Creator|Producer|Description|Comment|Copyright|ModifyDate|CreateDate|ModDate|CreationDate)\s*/g;
+    /\/(Title|Author|Subject|Keywords|Creator|Producer|Description|Comment|Copyright|ModifyDate|CreateDate|ModDate|CreationDate|PDFVersion)\s*/g;
   let km: RegExpExecArray | null;
   while ((km = keyRegex.exec(infoScanText)) !== null) {
     const rawKey = km[1]!;
@@ -422,6 +422,7 @@ function parsePdfStructure(bytes: Uint8Array): {
 
   // Extract XMP metadata tags as fallback when absent from /Info
   const xmpTagPairs: ReadonlyArray<readonly [string, RegExp]> = [
+    ["PDFVersion", /<pdf:PDFVersion\b[^>]*>([\s\S]*?)<\/pdf:PDFVersion>/i],
     ["Title", /<dc:title\b[^>]*>[\s\S]*?<rdf:li\b[^>]*>([\s\S]*?)<\/rdf:li>/i],
     ["Author", /<dc:creator\b[^>]*>[\s\S]*?<rdf:li\b[^>]*>([\s\S]*?)<\/rdf:li>/i],
     ["Description", /<dc:description\b[^>]*>[\s\S]*?<rdf:li\b[^>]*>([\s\S]*?)<\/rdf:li>/i],
@@ -449,7 +450,7 @@ export function inspectPdf(bytes: Uint8Array, resources: Resources): { readonly 
   const { version, pageCount, info } = parsePdfStructure(bytes);
   const tags: MetadataTag[] = [];
 
-  tags.push(makeTag("PDFVersion", version));
+  tags.push(makeTag("PDFVersion", info.get("PDFVersion") ?? version));
   tags.push(makeTag("PageCount", String(pageCount)));
 
   for (const key of [

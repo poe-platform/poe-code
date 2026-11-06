@@ -58,6 +58,33 @@ startxref
   return new TextEncoder().encode(pdf);
 }
 
+test("exiftool selected JSON prefers PDFVersion metadata over the PDF header", async () => {
+  const fixture = await readFile(new URL("../../pdf-ast/src/fixtures/pdfbox-6077-example.pdf", import.meta.url));
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/example.pdf", fixture);
+  const result = await invoke(["-j", "-s", "-n", "-PDFVersion", "example.pdf"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "example.pdf", PDFVersion: 1.4 }]);
+});
+
+for (const [info, xmp, expected] of [
+  ["/PDFVersion (1.4)", "1.5", 1.4],
+  ["/PDFVersion <312e34>", "1.5", 1.4],
+  ["", "1.5", 1.5],
+  ["", "", 1.7],
+] as const) {
+  test(`exiftool PDFVersion precedence: Info ${info}, XMP ${xmp}`, async () => {
+    const fs = createMemoryFileSystem();
+    const pdf = decoder.decode(createTwoPagePdfBytes())
+      .replace("/Title (Original Financial Report)", info)
+      + (xmp ? `<pdf:PDFVersion>${xmp}</pdf:PDFVersion>` : "");
+    await fs.writeFile("/version.pdf", new TextEncoder().encode(pdf));
+    const result = await invoke(["-j", "-s", "-n", "-PDFVersion", "version.pdf"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "version.pdf", PDFVersion: expected }]);
+  });
+}
+
 test("exiftool reads and writes PDF metadata, PageCount, and JSON", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/report.pdf", createTwoPagePdfBytes());

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { PdfDocument, PdfRetainedPage, decodePng, encodePng, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, PdfRetainedPage, decodePng, encodePng, encodeJpeg, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
 import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli, runPdftocairoCliSync } from "./index.js";
 function pdf() {
   const doc = PdfDocument.create();
@@ -274,3 +274,28 @@ for (const format of ["png", "pbm"] as const) for (const retained of [false, tru
     if (retained) await f.clean();
   });
 }
+
+test("renders short JPEG samples on the PDF grid in both command paths", async () => {
+  const doc = PdfDocument.create();
+  const image = doc.embedJpg(encodeJpeg({ width: 1, height: 1, data: new Uint8Array([255, 0, 0, 255]) }));
+  const stream = doc.cos.resolve(image.xobjectRef);
+  assert.equal(stream?.kind, "stream");
+  if (stream?.kind !== "stream") throw new Error("Missing image");
+  dictSet(stream.dict, "Width", cosNumber(200));
+  dictSet(stream.dict, "Height", cosNumber(100));
+  doc.addPage([200, 100]).drawImage(image, { x: 0, y: 0, width: 200, height: 100 });
+  const input = doc.save(), args = ["-png", "-r", "72", "-singlefile", "in.pdf", "out"];
+  const files = new Map([["in.pdf", input]]), f = await fixture(input, args);
+  assert.equal((await runPdftoppmCli(args, files)).exitCode, 0);
+  assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, 0);
+  for (const bytes of [files.get("out.png")!, await f.fs.readFile("/out.png")]) {
+    const bitmap = decodePng(bytes);
+    assert.deepEqual([bitmap.width, bitmap.height], [200, 100]);
+    assert.ok(bitmap.data[0]! >= 250);
+    assert.ok(bitmap.data[1]! <= 5);
+    assert.ok(bitmap.data[2]! <= 5);
+    assert.equal(bitmap.data[3], 255);
+    assert.ok(bitmap.data.subarray(4).every(value => value === 255));
+  }
+  await f.clean();
+});

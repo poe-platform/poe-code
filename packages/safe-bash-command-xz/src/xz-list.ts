@@ -154,7 +154,11 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
         const streams = listing.streams + 1;
         const blocks = listing.blocks + count;
         const required = indexMemory(streams >>> 0, Math.floor(streams / 0x100000000), blocks >>> 0, Math.floor(blocks / 0x100000000));
-        if (!Number.isFinite(required) || required > memoryLimit) throw new PublicDiagnostic("Memory usage limit reached");
+        if (!Number.isFinite(required)) throw new PublicDiagnostic("Memory usage limit reached");
+        if (required > memoryLimit) {
+          const limit = memoryLimit < 1048576 ? `${memoryLimit} B` : `${Math.ceil(memoryLimit / 1048576)} MiB`;
+          throw new PublicDiagnostic(`Memory usage limit reached\n${context.command}: ${Math.ceil(required / 1048576)} MiB of memory is required. The limit is ${limit}.`);
+        }
       }
       const blocks: XzBlock[] = [];
       let blockBytes = 0;

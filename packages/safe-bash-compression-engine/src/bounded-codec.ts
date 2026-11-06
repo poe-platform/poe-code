@@ -72,9 +72,11 @@ export async function* boundedCodec(
   let flushDeadline = 0;
   let pending: Promise<Uint8Array | undefined> | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  // Zstd publishes each successful 128 KiB output read or exhausted input read.
+  const zstdReads = options.format === "zstd" && options.decompress;
   // bzip2's CLI publishes full 5000-byte reads, or the final successful read.
-  const bufferReads = options.format === "bzip2" && options.decompress;
-  let output = new Uint8Array(bufferReads ? 5000 : 64 * 1024);
+  const bufferReads = zstdReads || options.format === "bzip2" && options.decompress;
+  let output = new Uint8Array(zstdReads ? 128 * 1024 : bufferReads ? 5000 : 64 * 1024);
   let buffered = 0;
   try {
     stream = await create(options, signal);
@@ -137,7 +139,7 @@ export async function* boundedCodec(
           if (bytes[index] !== magic[headerOffset + index]) throw new CompressedDataError("File format not recognized");
         }
       }
-      const available = output.subarray(buffered);
+      const available = output.subarray(buffered, buffered + 64 * 1024);
       const result = stream.step(bytes, available, eof && !flushing, flushing);
       signal.throwIfAborted();
       if (!Number.isSafeInteger(result.consumed) || result.consumed < 0 || result.consumed > bytes.length ||
@@ -157,7 +159,7 @@ export async function* boundedCodec(
         if (bytes.length || result.status !== "input") throw new Error("codec made no progress");
       }
       buffered += result.produced;
-      if (buffered && (!bufferReads || buffered === output.length || result.status === "end")) {
+      if (buffered && (!bufferReads || buffered === output.length || result.status === "end" || zstdReads && offset === current.length)) {
         yield output.subarray(0, buffered);
         signal.throwIfAborted();
         output = new Uint8Array(output.length);

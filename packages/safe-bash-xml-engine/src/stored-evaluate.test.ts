@@ -283,3 +283,26 @@ test("global filters preserve positions after paged selections spill", async () 
     assert.equal(await evaluateScalar(query, parseXml(xml), budget), "159");
   } finally { await document.close(); }
 });
+
+for (const [source, expected] of [
+  ['count(//item[lang("en")])', '2'],
+  ['count(//item[lang("EN-us")])', '2'],
+  ['count(//item[lang("e")])', '0'],
+  ['count(//item[lang("fr")])', '1'],
+  ['count(//item[lang("en-US-extra")])', '0'],
+  ['count(//empty[lang("en")])', '0'],
+  ['count(//empty[lang("")])', '1'],
+  ['count(//item/@id[lang("en")])', '2'],
+  ['count(//item/text()[lang("en")])', '1'],
+  ['lang("en")', 'false'],
+  ['count(//item[lang(@wanted)])', '1'],
+] as const) test(`lang inherits the nearest xml:lang: ${source}`, async () => {
+  const input = '<catalog xml:lang="en-US"><item id="a" wanted="EN">text</item><item id="b" xml:lang="fr"/><item id="c"/><empty xml:lang=""/></catalog>';
+  const signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const query = await parseQuery(source, budget);
+  assert.equal(await evaluateScalar(query, parseXml(input), budget), expected);
+  const document = await StoredXmlDocument.parse([input], { fs: createMemoryFileSystem(), cwd: "/", env: {}, signal }, budget, 1);
+  try { assert.equal(await new StoredXPath(document, budget).scalar(query), expected); }
+  finally { await document.close(); }
+});

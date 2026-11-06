@@ -20,7 +20,7 @@ export type Instruction =
   | { kind: "function"; name: FunctionName; count: number };
 const precedence: Record<Operator, number> = { "+": 5, "-": 5, or: 1, and: 2, "=": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4 };
 const arity = {
-  contains: [2], "starts-with": [2], "normalize-space": [0, 1], not: [1],
+  lang: [1], contains: [2], "starts-with": [2], "normalize-space": [0, 1], not: [1],
   position: [0], last: [0], concat: [2, Infinity], substring: [2, 3],
   "substring-before": [2], "substring-after": [2], translate: [3],
   "string-length": [0, 1], string: [0, 1], count: [1], boolean: [1],
@@ -206,6 +206,36 @@ async function compare(left: Value, right: Value, operator: Operator, budget: Xm
   }
   return false;
 }
+async function* language(node: Node, budget: XmlBudget): AsyncGenerator<string> {
+  if (node.stored) {
+    const { document } = node.stored;
+    for (let reference = node.stored.reference; reference !== document.document; reference = await document.parent(reference)) {
+      const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+      const metadata = await document.metadata(reference);
+      if (metadata.kind !== "element") continue;
+      for await (const attribute of document.attributes(reference)) {
+        if (await document.nameEquals(attribute, "lang", true) &&
+          await document.namespaceEquals(attribute, "http://www.w3.org/XML/1998/namespace")) {
+          yield* document.attributeText(attribute);
+          return;
+        }
+      }
+    }
+  } else {
+    for (let current: Node | undefined = node; current; current = current.parent) {
+      const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+      if (current.kind !== "element") continue;
+      for (const attribute of current.attributes) {
+        const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+        if (attribute.value.localName === "lang" && attribute.value.namespace === "http://www.w3.org/XML/1998/namespace") {
+          yield attribute.value.value;
+          return;
+        }
+      }
+    }
+  }
+}
+
 export async function evaluateExpression(program: readonly Instruction[], node: Node, position: number, last: number, budget: XmlBudget, select?: Selector): Promise<Value> {
   const storage = node.stored?.document.storage;
   const text = (value: Value): Promise<TextValue> => expressionText(value, budget, storage);
@@ -235,6 +265,20 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
       };
       let result: Value;
       switch (instruction.name) {
+        case "lang": {
+          const requested = await text(first);
+          const actual = language(node, budget);
+          let found = false;
+          const folded = await TextValue.create((async function* () {
+            for await (const part of actual) { found = true; yield part.toLowerCase(); }
+          })(), budget, storage);
+          const expected = await TextValue.create((async function* () {
+            for await (const part of requested.chunks()) yield part.toLowerCase();
+          })(), budget, storage);
+          result = found && await (await folded.slice(0, expected.size)).equals(expected) &&
+            (folded.size === expected.size || await folded.point(expected.size) === 45);
+          break;
+        }
         case "position": result = position; break;
         case "last": result = last; break;
         case "not": result = !boolean(first); break;

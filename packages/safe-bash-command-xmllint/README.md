@@ -19,8 +19,9 @@ the same default runtime as `xmllintCommands()`. XPath functions work both at
 the top level and inside predicates: `concat`, `contains`, `starts-with`,
 `substring`, `substring-before`, `substring-after`, `translate`, `string-length`,
 `normalize-space`, `string`, `count`, `name`, `local-name`, `namespace-uri`,
-`not`, `boolean`, `true`, `false`, `sum`, `number`, `floor`, `ceiling`,
-and `round`. Predicates also support comparisons, `and`, `or`, and positions.
+`lang`, `not`, `boolean`, `true`, `false`, `sum`, `number`, `floor`, `ceiling`,
+and `round`. `lang("en")` matches the nearest inherited `xml:lang`, including
+regional variants such as `en-US`, without regard to case. Predicates also support comparisons, `and`, `or`, and positions.
 Use `/*/namespace::*` to inspect in-scope namespace bindings, including `xml`;
 `/*/namespace::prefix` selects one binding. Namespace declarations are excluded from `@*`.
 

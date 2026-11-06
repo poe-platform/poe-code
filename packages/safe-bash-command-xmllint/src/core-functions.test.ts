@@ -367,3 +367,10 @@ test('namespace-only declarations are excluded from attributes', async () => {
     assert.equal(result.output, expected);
   }
 });
+
+test("lang matches inherited regional languages through the public command", async () => {
+  const result = await run(["--xpath", 'count(//item[lang("en")])', "-"],
+    '<catalog xml:lang="en-US"><item id="a" xml:id="first"><n>1</n><n>2</n><s>AB</s></item><item id="b" xml:lang="fr"><n>2</n><s>xy</s></item><item id="c"><n>03</n><n>3</n></item></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "2\n");
+});

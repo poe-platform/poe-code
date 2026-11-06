@@ -24,7 +24,7 @@ interface ContentNode {
   kind: Exclude<XmlContent["kind"], "element">;
   value: Exclude<XmlContent, XmlElement>;
 }
-export type Node = (Container | AttributeNode | NamespaceNode | ContentNode) & { stored?: { document: StoredXmlDocument; reference: number } };
+export type Node = (Container | AttributeNode | NamespaceNode | ContentNode) & { parent?: Node; stored?: { document: StoredXmlDocument; reference: number } };
 const xmlns = "http://www.w3.org/2000/xmlns/";
 
 async function indexTree(
@@ -47,25 +47,28 @@ async function indexTree(
     { const _p = budget.tick(); if (_p) await _p; }
     const { parent, content } = pending.pop()!;
     if (content.kind === "element") {
-      const node: ElementNode = { kind: "element", value: content, children: [], attributes: [] };
+      const node: Node & ElementNode = { kind: "element", value: content, children: [], attributes: [] };
       parent.children.push(node);
       parentOf.set(node, parent);
+      node.parent = parent;
       order.push(node);
       node.namespaces = [];
       for (const [prefix, uri] of [...content.namespaces].sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)) {
         const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
         if (!uri) continue;
-        const selected: NamespaceNode = { kind: "namespace", value: { name: prefix, localName: prefix, namespace: "", value: uri } };
+        const selected: Node & NamespaceNode = { kind: "namespace", value: { name: prefix, localName: prefix, namespace: "", value: uri } };
         node.namespaces.push(selected);
         parentOf.set(selected, node);
+        selected.parent = node;
         order.push(selected);
       }
       for (const attribute of content.attributes) {
         { const _p = budget.tick(); if (_p) await _p; }
         if (attribute.namespace === xmlns) continue;
-        const selected: AttributeNode = { kind: "attribute", value: attribute };
+        const selected: Node & AttributeNode = { kind: "attribute", value: attribute };
         node.attributes.push(selected);
         parentOf.set(selected, node);
+        selected.parent = node;
         order.push(selected);
       }
       for (let index = content.content.length - 1; index >= 0; index--) {
@@ -73,9 +76,10 @@ async function indexTree(
         pending.push({ parent: node, content: content.content[index]! });
       }
     } else {
-      const node: ContentNode = { kind: content.kind, value: content };
+      const node: Node & ContentNode = { kind: content.kind, value: content };
       parent.children.push(node);
       parentOf.set(node, parent);
+      node.parent = parent;
       order.push(node);
     }
   }

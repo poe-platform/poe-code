@@ -9,6 +9,14 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
         { args: ["r.png", "g.png", "(", "b.png", "-clone", "0", ")"], pixels: [red, green, blue, red] },
         { args: ["r.png", "g.png", "(", "b.png", "+clone", ")"], pixels: [red, green, blue, green] },
+        ...["0,8", "9", "-3", "0,-3"].flatMap(spec => [
+            { args: ["r.png", "g.png", "-clone", spec], pixels: null },
+            { args: ["r.png", "g.png", "-duplicate", `1,${spec}`], pixels: null }
+        ]),
+        { args: ["r.png", "g.png", "-clone", "0,0"], pixels: [red, green, red, red] },
+        { args: ["r.png", "g.png", "-duplicate", "1,0,0"], pixels: [red, green, red, red] },
+        { args: ["r.png", "g.png", "-clone", "0-3"], pixels: [red, green, red, green] },
+        { args: ["r.png", "g.png", "-duplicate", "1,0-3"], pixels: [red, green, red, green] },
         { args: ["r.png", "g.png", "-clone", "0"], pixels: [red, green, red] },
         { args: ["r.png", "g.png", "+clone"], pixels: [red, green, green] },
         { args: ["r.png", "(", "+clone", ")"], pixels: [red, red] },
@@ -28,6 +36,8 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             : await runMagickCli(command, mode === "retained" ? { filesystem, cwd: "/" } : files);
         if (pixels === null) {
             expect(result.exitCode).not.toBe(0);
+            if (mode === "retained") await expect(filesystem.readFile("/out.png")).rejects.toThrow();
+            else expect(files.has("out.png")).toBe(false);
             return;
         }
         expect(result.exitCode).toBe(0);

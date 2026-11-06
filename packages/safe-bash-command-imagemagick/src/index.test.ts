@@ -600,7 +600,7 @@ describe("safe-bash-command-imagemagick", () => {
     const badCmp = await runCompareCli(["/garbage.png", "/valid.png", "null:"], files);
     expect(badCmp.exitCode).not.toBe(0);
 
-    // 2. Stack underflow & unmatched parentheses resilience (+swap, -delete 999, -clone 999 on 1-item stack)
+    // 2. Stack underflow & unmatched parentheses resilience (+swap and -delete 999 on 1-item stack)
     const underflowRes = await runMagickCli(
       [
         "/valid.png",
@@ -608,8 +608,6 @@ describe("safe-bash-command-imagemagick", () => {
         "-swap",
         "99,-99",
         "-delete",
-        "999",
-        "-clone",
         "999",
         "(",
         "-negate",

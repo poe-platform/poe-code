@@ -4427,7 +4427,7 @@ export function runIdentifyCliSync(argv: readonly string[], files: Map<string, U
     return next.value;
 }
 
-function* parseMagickIndexSpec(spec: string, length: number): Generator<number> {
+function* parseMagickIndexSpec(spec: string, length: number, rejectMissing = false): Generator<number> {
   if (length <= 0) return;
   const resolve = (n: number): number =>
     n < 0 ? Math.max(0, length + n) : Math.min(Math.max(0, n), length - 1);
@@ -4450,6 +4450,7 @@ function* parseMagickIndexSpec(spec: string, length: number): Generator<number> 
       if (!Number.isNaN(num)) {
         const idx = num < 0 ? length + num : num;
         if (idx >= 0 && idx < length) yield idx;
+        else if (rejectMissing) throw new Error(`invalid image index ${trimmed}`);
       }
     }
   }
@@ -5802,7 +5803,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const sourcePool = parentStack ?? stack;
             if (sourcePool.length === 0) throw new Error(`UnableToCloneImage ${t}`);
             const spec = t === "+clone" ? "-1" : (tokens[++i] ?? "-1");
-            for (const idx of parseMagickIndexSpec(spec, sourcePool.length)) {
+            for (const idx of parseMagickIndexSpec(spec, sourcePool.length, true)) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
                 const chosen = sourcePool[idx];
@@ -5833,7 +5834,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (let k = 0; k < count; k++) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                for (const idx of parseMagickIndexSpec(idxSpec, sourceLength)) {
+                for (const idx of parseMagickIndexSpec(idxSpec, sourceLength, true)) {
                     if (++cooperativeWork % 65536 === 0)
                         yield;
                     const chosen = sourcePool[idx];
@@ -6346,7 +6347,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const source = token.endsWith("clone") ? parents.at(-1) ?? stack : stack;
                     const length = source.length;
                     if (token.endsWith("clone") && length === 0) throw new Error(`UnableToCloneImage ${token}`);
-                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length)) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
+                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, true)) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
                 } else if (token.endsWith("delete")) await stack.remove(parseMagickIndexSpec(spec, stack.length));
                 else if (token === "-reverse") { for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); } }
                 else if (token.endsWith("insert")) {

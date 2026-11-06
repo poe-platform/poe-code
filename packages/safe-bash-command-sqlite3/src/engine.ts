@@ -6812,6 +6812,7 @@ export class SqliteDatabase {
         }
       }
 
+      let buckets = 0;
       let currentRank = 1;
       let currentDenseRank = 1;
       let currentPeerEnd = -1;
@@ -6882,14 +6883,12 @@ export class SqliteDatabase {
         } else if (fnUpper === "DENSE_RANK") {
           result[rowIdx] = currentDenseRank;
         } else if (fnUpper === "NTILE") {
-          const buckets = Math.max(
-            1,
-            Math.trunc(
-              toSqlNumber(
-                yield* this.evalExprSteps(fnExpr.args[0]!, g.representative, positionalParams, cteScope, { group: g.group })
-              )
-            )
-          );
+          if (pPos === 0) {
+            buckets = Number(integerPrefix(
+              yield* this.evalExprSteps(fnExpr.args[0]!, g.representative, positionalParams, cteScope, { group: g.group })
+            ));
+            if (buckets <= 0) throw new Error("argument of ntile must be a positive integer");
+          }
           const bucketSize = Math.floor(indices.length / buckets);
           const largerBuckets = indices.length % buckets;
           const largerRows = largerBuckets * (bucketSize + 1);

@@ -95,7 +95,16 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       if (outline.title) yield jsonRecord({ title: outline.title, destpagepos: outline.pageIndex + 1, destpageobject: reference });
     }
   }
-  async function* labels(): AsyncGenerator<JsonValue> { for await (const label of document.pageLabels()) yield jsonRecord({ ...label }); }
+  async function* labels(): AsyncGenerator<JsonValue> {
+    for await (const { index, start, prefix, style } of document.pageLabels()) yield jsonRecord({
+      index,
+      label: jsonRecord({
+        "/St": start,
+        ...(prefix === undefined ? {} : { "/P": `${options.jsonVersion === 1 ? "" : "u:"}${prefix}` }),
+        ...(style === undefined ? {} : { "/S": `/${style}` })
+      })
+    });
+  }
   async function* fields(): AsyncGenerator<JsonValue> { for await (const field of document.formFields()) { hasFields = true; yield jsonRecord({ name: field.name, type: field.type, value: Array.isArray(field.value) ? { kind: "array", values: field.value } : field.value }); } }
   async function* attachments(): AsyncGenerator<readonly [string, JsonValue]> {
     const values = new PdfMutableObjectStore(storage, { signal }), backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), numeric = new IntegerTable(backing);

@@ -1595,7 +1595,7 @@ function* executeQpdfCli(
     };
     if (include("outlines") && outlinesRootJson) collectJsonOutlines(dictGet(outlinesRootJson, "First"));
 
-    const pagelabelsJson: Array<{ index: number; start: number; prefix?: string; style?: string }> = [];
+    const pagelabelsJson: Array<{ index: number; label: Record<string, string | number> }> = [];
     const plTreeJson = rootDictForJson ? asDict(baseDoc.cos.resolve(dictGet(rootDictForJson, "PageLabels"))) : undefined;
     for (const { index: plIdx, dict: vDict } of include("pagelabels") ? collectNumberTreeDicts(baseDoc, plTreeJson) : []) {
       const stNode = baseDoc.cos.resolve(dictGet(vDict, "St"));
@@ -1603,9 +1603,11 @@ function* executeQpdfCli(
       const sNode = baseDoc.cos.resolve(dictGet(vDict, "S"));
       pagelabelsJson.push({
         index: plIdx,
-        start: stNode?.kind === "number" ? stNode.value : 1,
-        ...(pNode?.kind === "string" ? { prefix: decodePdfString(pNode) } : {}),
-        ...(sNode?.kind === "name" ? { style: sNode.decoded } : {})
+        label: {
+          "/St": stNode?.kind === "number" ? stNode.value : 1,
+          ...(pNode?.kind === "string" ? { "/P": `${jsonVersion === 1 ? "" : "u:"}${decodePdfString(pNode)}` } : {}),
+          ...(sNode?.kind === "name" ? { "/S": `/${sNode.decoded}` } : {})
+        }
       });
     }
 

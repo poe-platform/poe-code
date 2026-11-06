@@ -1018,7 +1018,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(header.acroform.hasacroform, true);
     assert.equal(header.acroform.fields[0].name, "Email");
     assert.equal(header.outlines[0].title, "Introduction");
-    assert.equal(header.pagelabels[0].prefix, "i-");
+    assert.equal(header.pagelabels[0].label["/P"], "u:i-");
   });
 
   it("reconstructs a PDF from QPDF JSON v2 via --json-input (inline and datafile stream modes)", async () => {
@@ -1179,7 +1179,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(parsedJson.attachments["script-key"].filename, "script.sh");
     assert.equal(parsedJson.attachments["zugferd.xml"].filename, "zugferd.xml");
     assert.equal(parsedJson.pagelabels.length, 1);
-    assert.equal(parsedJson.pagelabels[0].prefix, "Intro-");
+    assert.equal(parsedJson.pagelabels[0].label["/P"], "u:Intro-");
 
     const remRes = await runQpdfCli(["src.pdf", "--remove-attachment=script-key", "trimmed.pdf"], files);
     assert.equal(remRes.exitCode, 0);

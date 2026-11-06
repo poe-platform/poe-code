@@ -6,7 +6,7 @@ import { boundedCodec, type BoundedCodecOptions } from "./bounded-codec.js";
 import { gunzipMember } from "./gunzip.js";
 
 /** Zstd CLI decoding selects a codec anew at each compressed member boundary. */
-export async function* zstdDecode(input: CodecInput, options: BoundedCodecOptions, signal: AbortSignal): ByteSource {
+export async function* zstdDecode(input: CodecInput, options: BoundedCodecOptions, signal: AbortSignal, passthrough = false): ByteSource {
   let members = 0;
   let xzPadding = false;
   for (;;) {
@@ -33,6 +33,20 @@ export async function* zstdDecode(input: CodecInput, options: BoundedCodecOption
     }
     if (padding) throw new PublicDiagnostic("invalid XZ stream padding");
     if (!length && members) return;
+    // Only unknown headers pass through; recognized but damaged members must fail.
+    const magic = new DataView(header.buffer).getUint32(0, true);
+    const recognized = length >= 4 && (
+      (magic >= 0xfd2fb525 && magic <= 0xfd2fb528) || (magic & 0xfffffff0) === 0x184d2a50 ||
+      (magic & 0xffff) === 0x8b1f || (magic & 0xffff) === 0x005d || magic === 0x587a37fd || magic === 0x184d2204
+    );
+    if (passthrough && length && !recognized) {
+      yield header.subarray(0, length);
+      for (;;) {
+        const bytes = await input.chunk();
+        if (!bytes) return;
+        yield bytes;
+      }
+    }
     const remainder = await input.chunk();
     const restored = new Uint8Array(length + (remainder?.length ?? 0));
     restored.set(header.subarray(0, length));

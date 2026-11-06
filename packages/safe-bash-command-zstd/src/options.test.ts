@@ -129,3 +129,39 @@ test('Zstd pass-through publishes plaintext through VFS staging', async () => {
   assert.deepEqual(Buffer.from(await fs.readFile('/plain')), input);
   assert.deepEqual(Buffer.from(await fs.readFile('/plain.zst')), input);
 });
+
+for (const chunkSize of [925, 97, 1]) {
+  test(`Zstd passes plaintext after compressed members with ${chunkSize}-byte chunks`, async () => {
+    const encoded = await run('zstd', ['-c'], chunks(input));
+    assert.equal(encoded.exitCode, 0, encoded.stderr);
+    for (const count of [1, 2]) {
+      for (const suffix of [Buffer.from('extra'), Buffer.from('x'), Buffer.from('plaintext suffix longer than the header')]) {
+        const prefix = Buffer.concat(Array.from({ length: count }, () => encoded.stdout));
+        const mixed = Buffer.concat([prefix, suffix]);
+        const pieces = Array.from({ length: Math.ceil(mixed.length / chunkSize) }, (_, i) => mixed.subarray(i * chunkSize, (i + 1) * chunkSize));
+        const decoded = Buffer.concat(Array.from({ length: count }, () => input));
+        for (const args of [['-fdc'], ['-dc', '--pass-through']]) {
+          const result = await run('zstd', args, chunks(...pieces));
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.deepEqual(result.stdout, Buffer.concat([decoded, suffix]));
+        }
+        const rejected = await run('zstd', ['-dc'], chunks(...pieces));
+        assert.equal(rejected.exitCode, 1);
+        assert.deepEqual(rejected.stdout, decoded);
+      }
+    }
+  });
+}
+
+test('Zstd forced decoding rejects damaged compressed suffixes and test mode rejects plaintext', async () => {
+  const encoded = await run('zstd', ['-c'], chunks(input));
+  assert.equal(encoded.exitCode, 0, encoded.stderr);
+  const damaged = Buffer.from(encoded.stdout);
+  damaged[damaged.length - 1]! ^= 1;
+  const result = await run('zstd', ['-fdc'], chunks(encoded.stdout, damaged));
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.length > 0);
+  const tested = await run('zstd', ['-ft', '--pass-through'], chunks(encoded.stdout, Buffer.from('extra')));
+  assert.equal(tested.exitCode, 1);
+  assert.equal(tested.stdout.length, 0);
+});

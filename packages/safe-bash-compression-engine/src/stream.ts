@@ -10,6 +10,10 @@ export const chunkBytes = 64 * 1024;
 export const stagingLimit = Infinity;
 
 async function* passthroughStream(reader: InstanceType<typeof CodecReader>, options: BoundedCodecOptions, signal: AbortSignal): ByteSource {
+  if (options.format === "zstd") {
+    yield* zstdDecode(reader, options, signal, true);
+    return;
+  }
   const header = new Uint8Array(options.format === "xz" ? 13 : 4);
   let length = 0;
   while (length < header.length) {
@@ -27,7 +31,7 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
     const magic = [0x42, 0x5a, 0x68];
     recognized = magic.every((byte, index) => index >= length || header[index] === byte) &&
       (length < 4 || (header[3]! >= 0x31 && header[3]! <= 0x39));
-  } else if (options.format === "xz") {
+  } else {
     recognized = options.xzFormat !== "lzma" && length >= 6 && [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0].every((byte, index) => header[index] === byte);
     if (!recognized && length === 13 && options.xzFormat !== "xz") {
       // XZ auto-detection also recognizes legacy LZMA headers. Unsupported or
@@ -40,13 +44,8 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
         (dictionary === 0xffffffff || (dictionary > 0 && (dictionaryBase & (dictionaryBase - 1)) === 0)) &&
         (size <= 0x4000000000n || size === 0xffffffffffffffffn);
     }
-  } else {
-    const magic = view.getUint32(0, true);
-    recognized = length === 4 && (
-      (magic >= 0xfd2fb525 && magic <= 0xfd2fb528) || (magic & 0xfffffff0) === 0x184d2a50 ||
-      (magic & 0xffff) === 0x8b1f || (magic & 0xffff) === 0x005d || magic === 0x587a37fd || magic === 0x184d2204
-    );
   }
+
   if (!recognized && (length || options.format === "xz")) {
     yield header.subarray(0, length);
     for (;;) {
@@ -60,7 +59,7 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
   restored.set(header.subarray(0, length));
   if (remainder) restored.set(remainder, length);
   reader.restore(restored);
-  yield* (options.format === "zstd" && options.decompress ? zstdDecode : boundedCodec)(reader, options, signal);
+  yield* boundedCodec(reader, options, signal);
 }
 
 export interface CompressionCommandOptions {

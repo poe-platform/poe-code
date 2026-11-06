@@ -44,6 +44,7 @@ test("xmllint canonical substitution regressions remain in active discovery", ()
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/xmllint-canonical-substitution.test.ts"));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/xmllint-namespace-substitution.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/xmllint-space-substitution.test.ts"));
 });
 
 test("arithmetic fallback effect regressions remain in active discovery", () => {

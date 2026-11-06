@@ -48,7 +48,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type RgbaImage = BaseRgbaImage & HueMetadata;
 type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata;
@@ -4682,7 +4682,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const mode = (tokens[++i] ?? "on").toLowerCase();
         if (mode === "remove") {
             apply = function* (im) {
-                return (yield* removeAlphaImageSteps((yield* flattenImageSteps(im, state.background))));
+                const out = new Uint8Array(im.data.length);
+                const background = [state.background.r, state.background.g, state.background.b];
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    if (idx % 65536 === 0) yield;
+                    const alpha = im.data[idx + 3]! / 255;
+                    for (let channel = 0; channel < 3; channel++) {
+                        const bg = background[im.channels === 2 ? 0 : channel]!;
+                        // ImageMagick rounds to the nearest byte; libvips flatten truncates.
+                        out[idx + channel] = clampByteVal(im.data[idx + channel]! * alpha + bg * (1 - alpha));
+                    }
+                    out[idx + 3] = 255;
+                }
+                const { data16: ignored, ...metadata } = im;
+                return { ...metadata, data: out, hasAlpha: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
             };
         }
         else if (mode === "associate" || mode === "disassociate") {

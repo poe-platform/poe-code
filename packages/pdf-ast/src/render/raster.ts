@@ -752,16 +752,18 @@ function inverseStrokeMatrix(matrix: NonNullable<PdfEvaluatedPath["strokeMatrix"
 
 // Adapted from PDF.js CanvasGraphics.getScaleForStroking/rescaleAndStroke.
 // See THIRD_PARTY_NOTICES.md (Mozilla Foundation, Apache-2.0).
-function prepareStroke(path: PdfEvaluatedPath, scale: number) {
+function prepareStroke(path: PdfEvaluatedPath, scale: number, thinLineMode?: RenderToPngOptions["thinLineMode"]) {
   const matrix: [number, number, number, number, number, number] = path.strokeMatrix
     ? [...path.strokeMatrix] : [1, 0, 0, 1, 0, 0];
   const [a, b, c, d] = matrix;
   const area = Math.abs(a * d - b * c) * scale * scale;
   if (!(area > 0) || !Number.isFinite(area)) return undefined;
   const normX = Math.hypot(a, b) * scale, normY = Math.hypot(c, d) * scale;
+  // Explicit none preserves nonzero subpixel widths; zero-width hairlines
+  // still cover a device pixel. Unspecified mode keeps the PDF.js default.
   let width = path.strokeWidth || 1;
-  const scaleX = path.strokeWidth === 0 ? normY / area : Math.max(1, normY / (width * area));
-  const scaleY = path.strokeWidth === 0 ? normX / area : Math.max(1, normX / (width * area));
+  const scaleX = path.strokeWidth === 0 ? normY / area : thinLineMode === "none" ? 1 : Math.max(1, normY / (width * area));
+  const scaleY = path.strokeWidth === 0 ? normX / area : thinLineMode === "none" ? 1 : Math.max(1, normX / (width * area));
   let dashArray = path.dashArray, dashPhase = path.dashPhase ?? 0, storedDashScale = 1;
   if (scaleX === scaleY) {
     width *= scaleX;
@@ -782,8 +784,8 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   return { matrix, width, dashArray, dashPhase, storedDashScale };
 }
 
-function strokeContourPoints(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0, images?: RasterImageInput): Iterable<StrokePoint | undefined | null> {
-  const stroke = prepareStroke(path, scale);
+function strokeContourPoints(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0, images?: RasterImageInput, thinLineMode?: RenderToPngOptions["thinLineMode"]): Iterable<StrokePoint | undefined | null> {
+  const stroke = prepareStroke(path, scale, thinLineMode);
   if (!stroke) return [];
   const inverse = inverseStrokeMatrix(stroke.matrix);
   if (!inverse) return [];
@@ -1307,7 +1309,7 @@ function *renderDisplayListLayerSteps(
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = strokeEdges(strokeContourPoints(path, displayList.height, scale, originX, originY, offsetX, offsetY, images));
+        const edges = strokeEdges(strokeContourPoints(path, displayList.height, scale, originX, originY, offsetX, offsetY, images, options.thinLineMode));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,

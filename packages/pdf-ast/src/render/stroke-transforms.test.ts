@@ -91,6 +91,16 @@ describe("stroke transforms", () => {
     expect(Array.from(pixel(thin, 20, 50))).toEqual(pixel(hairline, 20, 50));
   });
 
+  it("honors none without widening thin strokes or shrinking hairlines", () => {
+    const page = pageWith(".125 w 10 20 m 90 20 l S");
+    const thin = pixel(page.renderToBitmap({ scale: 4, thinLineMode: "none" }), 50, 20);
+    const solid = pixel(page.renderToBitmap({ scale: 4, thinLineMode: "solid" }), 50, 20);
+    expect(thin[0]).toBeGreaterThan(solid[0]!);
+    expect(thin[2]).toBe(255);
+    const hairline = pageWith("0 w 10 20 m 90 20 l S");
+    expect(pixel(hairline.renderToBitmap({ scale: 4, thinLineMode: "none" }), 50, 20)).toEqual(solid);
+  });
+
   it("does not paint an SVG stroke under a singular transform", () => {
     const svg = renderDisplayListToSvg(pageWith("0 0 0 1 50 0 cm 10 20 30 60 re S").evaluateDisplayList());
     expect(svg).not.toContain('stroke="rgb(0,0,255)"');

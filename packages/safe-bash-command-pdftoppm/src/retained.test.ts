@@ -299,3 +299,27 @@ test("renders short JPEG samples on the PDF grid in both command paths", async (
   }
   await f.clean();
 });
+
+test("Illustrator transparency overlaps retain color through the public command", async () => {
+  const input = readFileSync(new URL("../../pdf-ast/src/fixtures/pdfjs-transparency_group.pdf", import.meta.url));
+  const f = await fixture(input, ["-f", "1", "-l", "1", "-scale-to", "256", "-singlefile", "-png", "/in.pdf"]);
+  assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, 0);
+  assert.equal(Buffer.concat(f.stderr).toString(), "");
+  const bitmap = decodePng(Buffer.concat(f.stdout));
+  assert.equal(bitmap.width, 256);
+  assert.equal(bitmap.height, 192);
+  // Poppler 26.08.0 reference. These points lie on subpixel outlines;
+  // allow the different curve flattening and 4x4 coverage of our rasterizer.
+  for (const [x, y, expected] of [
+    [100, 95, [160, 149, 124, 255]],
+    [99, 43, [159, 146, 117, 255]],
+    [165, 134, [141, 77, 99, 255]],
+    [30, 30, [255, 255, 255, 255]],
+  ] as const) {
+    const actual = bitmap.data.subarray((y * bitmap.width + x) * 4, (y * bitmap.width + x) * 4 + 4);
+    for (let channel = 0; channel < 4; channel++) {
+      assert.ok(Math.abs(actual[channel]! - expected[channel]!) <= (x === 30 || channel === 3 ? 0 : 25), `(${x},${y}): ${Array.from(actual)} expected ${expected}`);
+    }
+  }
+  await f.clean();
+});

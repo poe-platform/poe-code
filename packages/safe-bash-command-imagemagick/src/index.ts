@@ -8411,7 +8411,14 @@ async function runBufferedImageFiles(argv: readonly string[], input: ConvertFile
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
         const abs = resolvePath(context.cwd, key);
-        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: signal }));
+        try {
+          await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: signal }));
+        } catch (error) {
+          signal.throwIfAborted();
+          if (error instanceof FsError && ["ENOENT", "ENOTDIR"].includes(error.code))
+            throw new FsError(error.code, { syscall: "write", path: key, cause: error });
+          throw error;
+        }
       }
     }
     vfsFiles.clear();
@@ -8476,6 +8483,11 @@ async function executeVfsMagickTool(
     }
 
     return { exitCode: res.exitCode };
+  } catch (error) {
+    invocation.signal.throwIfAborted();
+    if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR"].includes(error.code)) throw error;
+    await writeBytes(context.stderr, new TextEncoder().encode(`magick: ${error.message}\n`), invocation.signal);
+    return { exitCode: 1 };
   } finally {
     await invocation.close();
   }

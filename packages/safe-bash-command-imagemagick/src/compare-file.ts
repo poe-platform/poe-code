@@ -57,6 +57,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
     try {
         const result = await withImageInputs(input, stdinBytes, signal, async (read) => {
         const publishImage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, snapshot?: NonNullable<import("@poe-code/image-ast/portable").StoredImageFileInput["encoded"]>, retire = true): Promise<Uint8Array | undefined> => {
+                try {
                 if (path !== "-" || snapshot) {
                     const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, encoding);
                     if (info)
@@ -93,6 +94,12 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 if (path === "-" && !snapshot)
                     return bytes;
                 await writeFileOutput(context, bytes, admitted => fs.writeFile(resolvePath(cwd, path), admitted, io));
+                } catch (error) {
+                    signal.throwIfAborted();
+                    if (error instanceof FsError && ["ENOENT", "ENOTDIR"].includes(error.code))
+                        throw new FsError(error.code, { syscall: "write", path, cause: error });
+                    throw error;
+                }
             };
         const publishPending = async () => {
             let index = 0;

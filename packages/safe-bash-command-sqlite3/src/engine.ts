@@ -4664,6 +4664,7 @@ export class SqliteDatabase {
     outerCtes: CteScope
   ): SqlSteps<QueryResultSet | null> {
     const cteMap = new Map(outerCtes);
+    const localNames = new Set<string>();
     const definitionRows = this.outerRows.slice();
     let idx = 1;
     if (tokens[idx]?.value.toUpperCase() === "RECURSIVE") {
@@ -4673,6 +4674,10 @@ export class SqliteDatabase {
     while (idx < tokens.length) {
       yield;
       const cteName = tokens[idx]!.value;
+      if (localNames.has(cteName.toLowerCase())) {
+        throw new Error(`in prepare, duplicate WITH table name: ${cteName}`);
+      }
+      localNames.add(cteName.toLowerCase());
       idx += 1;
       let explicitCols: string[] | undefined;
       if (tokens[idx]?.value === "(") {

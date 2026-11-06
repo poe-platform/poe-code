@@ -2912,7 +2912,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "b4b346075e1eb4d228089df0b5f05ea9bba9f6e32b5d12082d0a84ac99279c3b"
+    hash: "7a50d1c6c359f3c93119572e4d9cb68601ecc243c64b704463e8c9b447d10c02"
   },
   {
     name: "synthetic c4 sampling1 progfalse sepfalse shrink4",
@@ -2950,7 +2950,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "8b9ffe12c31ee05dc9e2cb0b6f665b7734dee068e12a68d431f01121ef5d84e7"
+    hash: "5b0aaf281c75b05f02f5fd7b5e3b2865f98cb8c8dfbb807db3cf2d147dd711f1"
   },
   {
     name: "synthetic c4 sampling1 progfalse septrue shrinkundefined",
@@ -2988,7 +2988,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "b4b346075e1eb4d228089df0b5f05ea9bba9f6e32b5d12082d0a84ac99279c3b"
+    hash: "7a50d1c6c359f3c93119572e4d9cb68601ecc243c64b704463e8c9b447d10c02"
   },
   {
     name: "synthetic c4 sampling1 progfalse septrue shrink4",
@@ -3026,7 +3026,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "2e7fcc88500702893554b9020d7886a782c8bea1e4bae72a18f9361f1bc1eb08"
+    hash: "3e13ee179e8c56abd30778c23ed81bc24ef9100ddc2cbc150c522e923ec42e02"
   },
   {
     name: "synthetic c4 sampling1 progtrue sepfalse shrinkundefined",
@@ -3064,7 +3064,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: true
     },
-    hash: "b4b346075e1eb4d228089df0b5f05ea9bba9f6e32b5d12082d0a84ac99279c3b"
+    hash: "7a50d1c6c359f3c93119572e4d9cb68601ecc243c64b704463e8c9b447d10c02"
   },
   {
     name: "synthetic c4 sampling1 progtrue sepfalse shrink4",
@@ -3102,7 +3102,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: true
     },
-    hash: "b4b346075e1eb4d228089df0b5f05ea9bba9f6e32b5d12082d0a84ac99279c3b"
+    hash: "7a50d1c6c359f3c93119572e4d9cb68601ecc243c64b704463e8c9b447d10c02"
   },
   {
     name: "synthetic c4 sampling2 progfalse sepfalse shrinkundefined",
@@ -3140,7 +3140,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "246c249bf7a5cc67a907137ea1b14aad0aa5465ca0c5a509a8e9dfe07c21cea8"
+    hash: "2507ede748b43b79ccfd44d969bb886c609d3cd8702dcf26f2d421004f48077e"
   },
   {
     name: "synthetic c4 sampling2 progfalse sepfalse shrink4",
@@ -3178,7 +3178,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "75f99c0f14b2812d237a3bd041dbde3f40b2edf0f76035252371bda8b0ac1f7e"
+    hash: "edeb9e85e6e7ce9e7d5b700354d2868f9d31233f21109cc991859b2a7c48f6f1"
   },
   {
     name: "synthetic c4 sampling2 progfalse septrue shrinkundefined",
@@ -3216,7 +3216,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "558c7f2e646f46ee43fc0a7fe5af9671801018a6ffc293fd1a4183c7210de7ab"
+    hash: "a14157df2d4347b19ddd6dada85d77d4b592799e579a599ac7b7a0df712dcbe4"
   },
   {
     name: "synthetic c4 sampling2 progfalse septrue shrink4",
@@ -3254,7 +3254,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "f626fa63e94d08d3c49cfc9693baf980186c06f3a141b143bc355470b6a40109"
+    hash: "bc02af9834b197cfacdb2262b2a6a86a1eb967de4a4e2e914045be82b0b05f34"
   },
   {
     name: "synthetic c4 sampling2 progtrue sepfalse shrinkundefined",
@@ -3292,7 +3292,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: true
     },
-    hash: "246c249bf7a5cc67a907137ea1b14aad0aa5465ca0c5a509a8e9dfe07c21cea8"
+    hash: "2507ede748b43b79ccfd44d969bb886c609d3cd8702dcf26f2d421004f48077e"
   },
   {
     name: "synthetic c4 sampling2 progtrue sepfalse shrink4",
@@ -3330,7 +3330,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: true
     },
-    hash: "246c249bf7a5cc67a907137ea1b14aad0aa5465ca0c5a509a8e9dfe07c21cea8"
+    hash: "2507ede748b43b79ccfd44d969bb886c609d3cd8702dcf26f2d421004f48077e"
   },
   {
     name: "subsampling threshold 512 c3",
@@ -3390,7 +3390,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "c18126d394a46e2cca868849122350d0231032a98c0e3b0a2f92b6f7fa26d8d9"
+    hash: "20801285dde9f797048adf0cca5fec0afe8b6e633dfe3fc838fc9846ef73320f"
   },
   {
     name: "subsampling threshold 513 c3",
@@ -3450,7 +3450,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       hasAlpha: false,
       isProgressive: false
     },
-    hash: "1eead9f85e65890f3e2ab85df9e67a20c58df82def6fd814e473cbcbb5c97e7a"
+    hash: "3eee1c806466a3d171196da9af080e2552348026e8bd28f4a9e6da3b5a7f3215"
   },
   {
     name: "encoded truncated-1",

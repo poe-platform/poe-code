@@ -397,6 +397,7 @@ async function ensureDecodedFrames(
   signal?: AbortSignal,
   maxFrames?: number
 ): Promise<MediaVideoFrame[]> {
+  if (maxFrames === 0) return [];
   const width = track.width ?? track.codecDescriptions[0]?.width ?? 64;
   const height = track.height ?? track.codecDescriptions[0]?.height ?? 64;
   const ts = track.timescale || 90000;
@@ -1424,7 +1425,7 @@ export function evalSyncFfmpeg(
       else if (arg === "-vn") stripVideo = true;
       else if (arg === "-sn") stripSubtitles = true;
       else if (arg === "-shortest") shortest = true;
-      else if (arg === "-frames:v" || arg === "-vframes") maxVideoFrames = parseInt(args[++i] ?? "1", 10) || 1;
+      else if (arg === "-frames:v" || arg === "-vframes") maxVideoFrames = parseInt(args[++i] ?? "1", 10);
       else if (arg === "-frames:a" || arg === "-aframes") {
         const value = args[++i];
         maxAudioFrames = value?.trim() ? Number(value) : NaN;
@@ -1558,7 +1559,7 @@ export function evalSyncFfmpeg(
       const vTrack = workingDoc.tracks.find((t) => t.type === "video");
       if (vTrack && !vTrack.decodedVideoFrames) return undefined;
       const frames = vTrack?.decodedVideoFrames ?? [];
-      const limit = maxVideoFrames ? Math.min(frames.length, maxVideoFrames) : frames.length;
+      const limit = Math.min(frames.length, maxVideoFrames ?? Infinity);
       const imgFmt: ImageFormat = outExt === "jpg" || outExt === "jpeg" ? "jpeg" : outExt === "webp" ? "webp" : outExt === "gif" ? "gif" : outExt === "bmp" ? "bmp" : outExt === "ppm" ? "ppm" : "png";
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
@@ -1570,6 +1571,7 @@ export function evalSyncFfmpeg(
     }
     const outPlugin = outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget);
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
+    if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
     if (isStdout(outputTarget)) return undefined;
@@ -1902,7 +1904,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-shortest") {
             shortest = true;
           } else if (arg === "-frames:v" || arg === "-vframes") {
-            maxVideoFrames = parseInt(args[++i] ?? "1", 10) || 1;
+            maxVideoFrames = parseInt(args[++i] ?? "1", 10);
           } else if (arg === "-frames:a" || arg === "-aframes") {
             const value = args[++i];
             maxAudioFrames = value?.trim() ? Number(value) : NaN;
@@ -3066,6 +3068,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: 0 };
+            }
+
+            if (imageOutput && maxVideoFrames === 0) {
               options.onMetrics?.(budget.getStats());
               return { exitCode: 0 };
             }

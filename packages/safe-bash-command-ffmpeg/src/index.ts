@@ -1440,7 +1440,9 @@ export function evalSyncFfmpeg(
         const rawBytes = isStdin(inp.path) ? inBytes : readFileSync?.(inp.path);
         if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
         budget.checkInputBytes(rawBytes.byteLength);
-        const plugin = registry.detect(rawBytes, inp.path, inp.format);
+        const plugin = inp.format !== undefined
+          ? registry.findByFormatName(inp.format)
+          : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
         doc = plugin.parse(rawBytes, { filename: inp.path, budget });
         const imageOutput = (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id === "image2";
@@ -2067,7 +2069,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return concatMp4(concatDocs, { limits: options.limits, budget });
               }
 
-              const plugin = registry.detect(rawBytes, filePath, explicitFormat);
+              const plugin = explicitFormat !== undefined
+                ? registry.findByFormatName(explicitFormat)
+                : registry.detect(rawBytes, filePath);
               if (!plugin || !plugin.canDemux) {
                 throw new Error(
                   explicitFormat

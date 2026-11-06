@@ -35,8 +35,9 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // HLS playlist window handling, trim bounds, native-pixel video filtering,
   // MP3/Vorbis packet timing and PCM assembly, pad chroma alignment,
   // WAV output PCM precision selection, output time range validation, map input validation,
-  // protection against overwriting an input file, and independent output groups.
-  assert.ok(otherCodeBytes < 450_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // protection against overwriting an input file, independent output groups,
+  // bounded stream looping, and strict forced input format selection.
+  assert.ok(otherCodeBytes < 451_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

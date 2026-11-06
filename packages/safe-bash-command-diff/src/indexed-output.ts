@@ -30,14 +30,22 @@ export async function renderEd(next: IndexedDocument, count: number, group: Grou
   }
 }
 
-async function clipped(document: IndexedDocument, position: number, width: number, expand: boolean, utf8: boolean, append: Append): Promise<number> {
+async function clipped(document: IndexedDocument, position: number, width: number, expand: boolean, utf8: boolean, append: Append, indent = ""): Promise<number> {
   const bounds = await document.line(position);
-  let column = 0, pending = "";
+  let column = 0, pending = "", truncated = false;
   outer: for await (const text of documentText(document, bounds.start, bounds.end, utf8)) {
     for (const character of text) {
       if (character === "\n") break outer;
+      if (character === "\r") {
+        await append(encodeBytes(pending + character + indent, utf8 ? "utf8" : "latin1"));
+        pending = "";
+        column = 0;
+        truncated = false;
+        continue;
+      }
+      if (truncated) continue;
       const next = character === "\t" ? column + 8 - column % 8 : column + (character < "\u00a0" ? 1 : portableWidth(character.codePointAt(0)!));
-      if (next > width) break outer;
+      if (next > width) { truncated = true; continue; }
       pending += character === "\t" && expand ? " ".repeat(next - column) : character;
       column = next;
       if (pending.length >= 4096) { await append(encodeBytes(pending, utf8 ? "utf8" : "latin1")); pending = ""; }
@@ -93,7 +101,8 @@ export async function renderSideBySide(old: IndexedDocument, next: IndexedDocume
       const bounds = await next.line(right);
       if (bounds.end - bounds.start > Number(rightLf)) {
         await padding(marker === " " ? column : markerColumn + 1, rightStart);
-        await clipped(next, right, half, options.expand, utf8, append);
+        await clipped(next, right, half, options.expand, utf8, append,
+          options.expand ? " ".repeat(rightStart) : "\t".repeat(Math.floor(rightStart / 8)) + " ".repeat(rightStart % 8));
       }
     }
     if (leftLf || rightLf) await append(encodeBytes("\n"));

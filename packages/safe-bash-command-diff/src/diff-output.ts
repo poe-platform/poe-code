@@ -69,12 +69,19 @@ export function expandTabs(line: string, prefix = ""): string {
   return result;
 }
 
-function clipped(line: string, width: number, expand: boolean): { text: string; column: number } {
-  let column = 0, text = "";
+function clipped(line: string, width: number, expand: boolean, indent = ""): { text: string; column: number } {
+  let column = 0, text = "", truncated = false;
   for (const character of line) {
     if (character === "\n") break;
+    if (character === "\r") {
+      text += character + indent;
+      column = 0;
+      truncated = false;
+      continue;
+    }
+    if (truncated) continue;
     const next = character === "\t" ? column + 8 - column % 8 : column + (character < "\u00a0" ? 1 : portableWidth(character.codePointAt(0)!));
-    if (next > width) break;
+    if (next > width) { truncated = true; continue; }
     text += character === "\t" && expand ? " ".repeat(next - column) : character;
     column = next;
   }
@@ -112,7 +119,7 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
     if (marker !== " ") text += padding(first.column, markerColumn, options.expand) + marker;
     if (right !== undefined && right.length > 0 && right !== "\n") {
       const column = marker === " " ? first.column : markerColumn + 1;
-      const second = clipped(right, half, options.expand);
+      const second = clipped(right, half, options.expand, padding(0, rightStart, options.expand));
       text += padding(column, rightStart, options.expand) + second.text;
     }
     text += left?.endsWith("\n") || right?.endsWith("\n") ? "\n" : "";

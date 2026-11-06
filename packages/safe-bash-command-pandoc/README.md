@@ -25,7 +25,7 @@ capabilities before conversion: support is format-specific and does not imply fu
 compatibility. DOCX output accepts raw `openxml` inlines and omits raw inlines for other formats.
 DOCX output preserves table column alignment and explicit widths, including cell alignment overrides.
 DOCX output preserves footnotes, including formatted paragraphs, links, lists, tables, and images in notes.
-DOCX input preserves footnote references and note text, including formatted paragraphs, hyperlinks, and tables.
+DOCX input preserves footnote references and note text, including formatted paragraphs, hyperlinks, and tables. Embedded images retain their position, alt text, title, dimensions, and media bytes for extraction or further conversion. JSON output includes image references; the SDK document retains the media bytes.
 Built-in DOCX conversion preserves headings, bold/italic text, inline code, hyperlinks, lists,
 tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,
 and embedded raster images (including inline images in table cells). PPTX renders blockquotes as indented
@@ -87,7 +87,7 @@ such as emphasis, strong text, and code, including inside lists and maps.
 The `markdown` and `md` readers turn standalone images with nonempty alt text into
 figures, using the alt text as the caption. Disable this with `-f markdown-implicit_figures`.
 Markdown output keeps table captions attached using `: Caption` after the table, preserving inline formatting. Disable this with `-t markdown-table_captions`.
-Markdown output preserves image width attributes such as `{width="50%"}`;
+Markdown output preserves image width and height attributes such as `{width="50%" height="1in"}`;
 disable this with `-t markdown-link_attributes`.
 The `markdown` and `md` readers resolve footnotes (`[^note]` with a matching
 `[^note]:` definition), including multi-paragraph notes; disable with `-footnotes`.

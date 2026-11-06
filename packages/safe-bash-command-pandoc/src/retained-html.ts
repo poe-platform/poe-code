@@ -165,11 +165,15 @@ class HtmlTape {
     }
     const seen = new BackedTextSet(this.storage, this.text);
     await seen.add(await this.text.from(["id"])); await seen.add(await this.text.from(["class"]));
+    const imageStyles: string[] = [];
     for await (const pair of this.tree.children(entries)) {
       const keyNode = await this.at(pair, 0), key = await this.scalar(keyNode), value = await this.at(pair, 1);
-      if (image && await this.matches(keyNode, "width") && !await seen.has(key)) {
+      const dimension = image ? await this.tree.smallText(keyNode, 6) : undefined;
+      if ((dimension === "width" || dimension === "height") && !await seen.has(key)) {
         await seen.add(key);
-        await this.attribute(...htmlImageWidth(await this.tree.smallText(value, 128)));
+        const [name, size] = htmlImageWidth(await this.tree.smallText(value, 128), dimension);
+        if (name === "style") imageStyles.push(size);
+        else await this.attribute(name, size);
         continue;
       }
       let prefix = "", valid = true;
@@ -184,6 +188,7 @@ class HtmlTape {
       if (await this.matches(keyNode, "dir") && !["ltr", "rtl", "auto"].includes(await this.tree.smallText(value, 4) ?? "")) await this.fail("Invalid HTML direction");
       await seen.add(outputKey); await this.attribute(outputKey, await this.scalar(value));
     }
+    if (imageStyles.length) await this.attribute("style", imageStyles.join(";"));
   }
   private async url(value: TextRange): Promise<TextRange> {
     let first = true, last = "", scheme = "", boundary = false, colon = false;

@@ -276,7 +276,6 @@ it.each([
 it("rejects invalid writer trees and unrepresentable document fields before output", async () => {
   for (const doc of [
     { ...empty, blocks: [{ t: "FutureBlock" }] },
-    { ...empty, resources: [{ id: "image", bytes: Uint8Array.of(1) }] },
     { ...empty, language: "ar" },
     { ...empty, direction: "rtl" }
   ]) {

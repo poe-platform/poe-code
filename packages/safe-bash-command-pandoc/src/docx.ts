@@ -1,7 +1,7 @@
 import {encodeXML} from "entities";
 import type {Paragraph, Table, DocxBlock, DocxRunInput, DocumentModelContext, XmlElement} from "safe-bash-docx-engine";
 import type {Block, Inline, Row, ColSpec} from "./ast-types.js";
-import type {AdapterContext, ReaderCapability, WriterCapability} from "./types.js";
+import type {AdapterContext, ReaderCapability, WriterCapability, Resource} from "./types.js";
 import {PandocError} from "./errors.js";
 import {literalInlines} from "./literal-inlines.js";
 import {imageLength} from "./image-dimensions.js";
@@ -68,6 +68,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
         if (id !== undefined && (!type || type === "normal")) notes.set(id, model.store.ref(part, node));
       }
     }
+    const resources = new Map<string, Resource>();
     const paragraph = async (p: Paragraph): Promise<Block> => {
       const onlyChild = (node: XmlElement | undefined, name: string, namespace = node?.namespace): XmlElement | undefined => {
         if (!node) return undefined;
@@ -119,6 +120,48 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
                 blocks[0] = {...first, c: first.c.slice(start)};
               }
               content.push({t: "Note", c: blocks});
+            } else if (child.namespace === node.namespace && child.localName === "drawing") {
+              await flush();
+              const strict = node.namespace === "http://purl.oclc.org/ooxml/wordprocessingml/main";
+              const drawingNamespace = strict ? "http://purl.oclc.org/ooxml/drawingml/main" : "http://schemas.openxmlformats.org/drawingml/2006/main";
+              const wordDrawingNamespace = strict ? "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing" : "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+              const relationshipNamespace = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+              const descendants: XmlElement[] = [];
+              const pending = [child];
+              while (pending.length) {
+                ctx.checkpoint();
+                const current = pending.pop()!;
+                descendants.push(current);
+                const nested = children(current);
+                for (let index = nested.length - 1; index >= 0; index--) pending.push(nested[index]!);
+              }
+              const properties = descendants.find(n => n.namespace === wordDrawingNamespace && n.localName === "docPr");
+              const extent = descendants.find(n => n.namespace === wordDrawingNamespace && n.localName === "extent");
+              const attribute = (n: XmlElement | undefined, name: string) => n?.attributes.find(a => a.namespace === "" && a.localName === name)?.value;
+              for (const blip of descendants.filter(n => n.namespace === drawingNamespace && n.localName === "blip")) {
+                const embed = blip.attributes.find(a => a.namespace === relationshipNamespace && a.localName === "embed")?.value;
+                if (!embed) continue;
+                ctx.charge("images", 1);
+                const edge = run.store.part(run.ref.part).rels.get(embed);
+                if (!edge || edge.is_external || edge.reltype !== `${relationshipNamespace}/image`) throw new PandocError("E_PARSE", "read", "Invalid DOCX image relationship", "docx");
+                const part = edge.target_part;
+                const path = part.partname.toString();
+                const id = path.startsWith("/word/") ? path.slice(6) : path.slice(1);
+                if (!resources.has(id)) {
+                  const bytes = part.blob;
+                  ctx.charge("retainedBytes", bytes.length);
+                  resources.set(id, {id, bytes});
+                }
+                const dimensions: [string, string][] = [];
+                for (const [name, axis] of [["width", "cx"], ["height", "cy"]] as const) {
+                  const emu = Number(attribute(extent, axis));
+                  if (Number.isFinite(emu) && emu > 0) {
+                    const inches = emu / 914400;
+                    dimensions.push([name, `${Number.isInteger(inches) ? inches.toFixed(1) : inches}in`]);
+                  }
+                }
+                content.push({t: "Image", c: [["", [], dimensions], await literalInlines(attribute(properties, "descr") ?? "", ctx), [id, attribute(properties, "title") ?? ""]]});
+              }
             } else if (child.namespace === node.namespace) text += modelText(child, children);
           }
           await flush();
@@ -219,7 +262,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       }
       return blocks;
     };
-    return {blocks: await readBlocks(model.iter_inner_content()), metadata: {}, resources: []};
+    return {blocks: await readBlocks(model.iter_inner_content()), metadata: {}, resources: [...resources.values()]};
   });
 }};
 export const docxWriter: WriterCapability = {format: "docx", imageResources: "embed", async write(document, ctx) {

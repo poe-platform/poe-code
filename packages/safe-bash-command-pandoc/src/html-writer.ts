@@ -60,11 +60,16 @@ class HtmlWriter {
     if(id) this.attribute("id", id);
     if(attr[1].length) this.attribute("class", attr[1].join(" "));
     const seen = new Set(["id", "class"]);
+    const imageStyles: string[] = [];
     for(const [name, value] of attr[2]) {
       const allowed = ["title", "lang", "dir", "role"].includes(name) || name.startsWith("data-") || name.startsWith("aria-");
       const key = codeBlock && !allowed ? `data-${name}` : name;
-      if (image && key === "width" && !seen.has(key)) {
-        seen.add(key); this.attribute(...htmlImageWidth(value)); continue;
+      if (image && (key === "width" || key === "height") && !seen.has(key)) {
+        seen.add(key);
+        const [name, dimension] = htmlImageWidth(value, key);
+        if (name === "style") imageStyles.push(dimension);
+        else this.attribute(name, dimension);
+        continue;
       }
       // Explicit passive vocabulary; URL-bearing and active attributes cannot bypass targets.
       if(seen.has(key) || (!allowed && !codeBlock) ||
@@ -72,6 +77,7 @@ class HtmlWriter {
       if(key === "dir" && !["ltr", "rtl", "auto"].includes(value)) this.fail("Invalid HTML direction");
       seen.add(key); this.attribute(key, value);
     }
+    if (imageStyles.length) this.attribute("style", imageStyles.join(";"));
   }
   url(value: string): string {
     if(value.trim() !== value || [...value].some(ch => ch.charCodeAt(0) <= 31 || ch.charCodeAt(0) === 127 || ch === "\\")) this.fail("Unsupported URL characters");

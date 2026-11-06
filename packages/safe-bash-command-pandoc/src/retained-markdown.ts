@@ -357,9 +357,10 @@ class MarkdownTape {
           const attr = job.node + 32, widths = emptyText();
           let unsupported = (await this.tree.describe(attr + 32)).end > attr + 64 || !!await this.count(await this.at(attr, 1));
           for await (const pair of this.tree.children(await this.at(attr, 2))) {
-            if (await this.tree.smallText(pair + 32, 5) !== "width") {unsupported = true; continue;}
+            const dimension = await this.tree.smallText(pair + 32, 6);
+            if (dimension !== "width" && dimension !== "height") {unsupported = true; continue;}
             if (widths.units) await this.text.append(widths, await this.literal(" "));
-            await this.text.append(widths, await this.join(await this.literal('width="'), await this.escape(await this.scalar(await this.at(pair, 1)), true), await this.literal('"')));
+            await this.text.append(widths, await this.join(await this.literal(`${dimension}="`), await this.escape(await this.scalar(await this.at(pair, 1)), true), await this.literal('"')));
           }
           if (unsupported) await this.loss(job.path, "attributes");
           if (widths.units) result = await this.join(result, await this.literal("{"), widths, await this.literal("}"));

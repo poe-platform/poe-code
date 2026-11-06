@@ -140,14 +140,13 @@ export const jsonWriter: WriterCapability = {
   math: "source",
   async write(document, context) {
     if (
-      document.resources.length ||
       Object.hasOwn(document, "language") ||
       Object.hasOwn(document, "direction")
     )
       throw new PandocError(
         "E_UNSUPPORTED_FEATURE",
         "write",
-        "Pandoc JSON cannot represent resources, language or direction document fields",
+        "Pandoc JSON cannot represent language or direction document fields",
         "json",
         "$"
       );

@@ -14,10 +14,11 @@ export function systemTags(file: string, size: number, metadata: readonly Metada
   }
   const numeric = invocation.numeric || invocation.binary || invocation.valueConvTags.includes("filesize");
   let formatted = String(size) + " bytes";
-  if (size >= 1000) {
-    const units = ["kB", "MB", "GB", "TB", "PB"];
-    const exponent = Math.min(units.length, Math.floor(Math.log10(size) / 3));
-    formatted = String(Number((size / 1000 ** exponent).toPrecision(3))) + " " + units[exponent - 1];
+  if (size >= 2000) {
+    const divisor = size < 2000000 ? 1000 : size < 2000000000 ? 1000000 : 1000000000;
+    const unit = divisor === 1000 ? "kB" : divisor === 1000000 ? "MB" : "GB";
+    const scaled = size / divisor;
+    formatted = scaled.toFixed(scaled < 10 ? 1 : 0) + " " + unit;
   }
   values.push(["FileSize", numeric ? String(size) : formatted, "System"]);
   const type = metadata.find(tag => tag.name === "FileType")?.value ?? (metadata.some(tag => tag.name === "PDFVersion") ? "PDF" : undefined);

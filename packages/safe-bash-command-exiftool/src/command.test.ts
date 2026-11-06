@@ -806,6 +806,38 @@ test("system tags describe virtual paths, byte size and detected format", async 
   assert.equal(qualified.stdout, `${bytes.length}\n`);
 });
 
+test("FileSize matches native rounding for the checked-in sticker PNG", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = await readFile(new URL("../../safe-bash-command-imagemagick/src/fixtures/sticker.png", import.meta.url));
+  assert.equal(bytes.length, 4023);
+  await fs.writeFile("/sticker.png", bytes);
+  for (const [args, expected] of [
+    [["-FileSize"], "4.0 kB"],
+    [["-n", "-FileSize"], 4023],
+    [["-FileSize#"], 4023],
+  ] as const) {
+    const result = await invoke(["-j", "-s", ...args, "sticker.png"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "sticker.png", FileSize: expected }]);
+  }
+});
+
+test("FileSize preserves native byte and SI unit thresholds", async () => {
+  const fs = createMemoryFileSystem();
+  for (const [size, expected] of [
+    [1999, "1999 bytes"], [2000, "2.0 kB"], [9999, "10.0 kB"],
+    [10000, "10 kB"], [12345, "12 kB"], [1999999, "2000 kB"],
+    [2000000, "2.0 MB"],
+  ] as const) {
+    const bytes = fixture("x".repeat(size - fixture("").length));
+    assert.equal(bytes.length, size);
+    await fs.writeFile("/image.png", bytes);
+    const result = await invoke(["-s3", "-FileSize", "image.png"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `${expected}\n`);
+  }
+});
+
 test("system tags are available through synchronous extraction", async () => {
   const { evalSyncExiftool } = await import("./command.js");
   const bytes = fixture("Alice");

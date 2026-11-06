@@ -369,9 +369,10 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         const normalizedWanted = wanted.replace(/^(?:\.\/)+/u, "");
         const plainName = name.replace(/\/+$/u, "");
         const plainNormalized = normalizedName.replace(/\/+$/u, "");
+        const recursion = operand.recursion ?? options.recursion;
         if (options.wildcards
           ? selectors[index]!.matches(plainName) || selectors[index]!.matches(plainNormalized)
-          : plainName === wanted || name.startsWith(`${wanted}/`) || (normalizedWanted !== "" && (plainNormalized === normalizedWanted || normalizedName.startsWith(`${normalizedWanted}/`)))) {
+          : plainName === wanted || (recursion && name.startsWith(`${wanted}/`)) || (normalizedWanted !== "" && (plainNormalized === normalizedWanted || (recursion && normalizedName.startsWith(`${normalizedWanted}/`))))) {
           if (options.occurrence !== undefined) {
             const count = (occurrences.get(index) ?? 0) + 1;
             occurrences.set(index, count);

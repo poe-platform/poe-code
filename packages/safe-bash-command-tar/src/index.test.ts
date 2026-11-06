@@ -303,6 +303,34 @@ test("tar verbose listing formats default timestamps to minute precision", async
   assert.ok(result.stdout.endsWith(" 2023-11-14 22:13 a\n"), result.stdout);
 });
 
+for (const operand of ["release", "release/", "./release/"]) {
+  for (const mode of ["t", "x"]) test(`tar --no-recursion selects only ${operand} in ${mode} mode`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/release/cmake", { recursive: true });
+    await fs.writeFile("/release/install-sh", new TextEncoder().encode("script"));
+    await fs.writeFile("/release/cmake/README.md", new TextEncoder().encode("readme"));
+    await fs.symlink("install-sh", "/release/installer");
+    const created = await run(createTarCommand(), ["-cf", "/archive.tar", "--sort=name", "release"], "", fs);
+    assert.equal(created.exitCode, 0, created.stderr);
+    await fs.mkdir("/dest");
+    const result = await run(createTarCommand(), [`-${mode}vf`, "/archive.tar", "-C", "/dest", "--no-recursion", operand], "", fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    if (mode === "t") {
+      assert.equal(result.stdout.trimEnd().split("\n").length, 1, result.stdout);
+      assert.ok(result.stdout.endsWith("release/\n"), result.stdout);
+    } else {
+      assert.equal(result.stdout, "release/\n");
+      assert.deepEqual(await fs.readdir("/dest/release"), []);
+    }
+    const recursive = await run(createTarCommand(), ["-tf", "/archive.tar", "release/cmake"], "", fs);
+    assert.equal(recursive.exitCode, 0, recursive.stderr);
+    assert.equal(recursive.stdout, "release/cmake/\nrelease/cmake/README.md\n");
+    const explicit = await run(createTarCommand(), ["-tf", "/archive.tar", "--no-recursion", "release/install-sh", "--recursion", "release/cmake"], "", fs);
+    assert.equal(explicit.exitCode, 0, explicit.stderr);
+    assert.equal(explicit.stdout, "release/cmake/\nrelease/cmake/README.md\nrelease/install-sh\n");
+  });
+}
+
 test("tar recursion controls apply to subsequent source operands", async () => {
   const fs = createMemoryFileSystem();
   for (const dir of ["one", "two"]) {

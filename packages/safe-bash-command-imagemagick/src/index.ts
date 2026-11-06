@@ -4427,31 +4427,35 @@ export function runIdentifyCliSync(argv: readonly string[], files: Map<string, U
     return next.value;
 }
 
+function parseMagickIndices(spec: string, ranges = true): number[][] {
+  if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
+  return spec.split(",").filter(part => part.trim()).map(part => {
+    const value = part.trim();
+    const separator = ranges ? value.indexOf("-", 1) : -1;
+    const values = separator > 0 ? [value.slice(0, separator), value.slice(separator + 1)] : [value];
+    return values.map(value => {
+      const digits = value.startsWith("-") ? value.slice(1) : value;
+      if (!digits.length || !Array.from(digits).every(c => c >= "0" && c <= "9") || !Number.isSafeInteger(Number(value))) {
+        throw new Error(`invalid argument ${spec}`);
+      }
+      return Number(value);
+    });
+  });
+}
+
 function* parseMagickIndexSpec(spec: string, length: number, rejectMissing = false): Generator<number> {
+  const parts = parseMagickIndices(spec);
   if (length <= 0) return;
   const resolve = (n: number): number =>
     n < 0 ? Math.max(0, length + n) : Math.min(Math.max(0, n), length - 1);
-  for (const part of spec.split(",")) {
-    const trimmed = part.trim();
-    if (!trimmed) continue;
-    const separator = trimmed.indexOf("-", 1);
-    const integer = (value: string) => { const digits = value.startsWith("-") ? value.slice(1) : value; return digits.length > 0 && Array.from(digits).every(c => c >= "0" && c <= "9"); };
-    const rangeMatch = separator > 0 && integer(trimmed.slice(0, separator)) && integer(trimmed.slice(separator + 1)) ? [trimmed, trimmed.slice(0, separator), trimmed.slice(separator + 1)] : undefined;
-    if (rangeMatch) {
-      const s = resolve(parseInt(rangeMatch[1]!, 10));
-      const e = resolve(parseInt(rangeMatch[2]!, 10));
-      if (s <= e) {
-        for (let k = s; k <= e; k++) yield k;
-      } else {
-        for (let k = s; k >= e; k--) yield k;
-      }
+  for (const [num, end] of parts) {
+    if (end !== undefined) {
+      const s = resolve(num!), e = resolve(end), step = s <= e ? 1 : -1;
+      for (let k = s;; k += step) { yield k; if (k === e) break; }
     } else {
-      const num = parseInt(trimmed, 10);
-      if (!Number.isNaN(num)) {
-        const idx = num < 0 ? length + num : num;
-        if (idx >= 0 && idx < length) yield idx;
-        else if (rejectMissing) throw new Error(`invalid image index ${trimmed}`);
-      }
+      const idx = num! < 0 ? length + num! : num!;
+      if (idx >= 0 && idx < length) yield idx;
+      else if (rejectMissing) throw new Error(`invalid image index ${num}`);
     }
   }
 }
@@ -5816,18 +5820,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let count = 1;
             let idxSpec = "-1";
             if (t === "-duplicate") {
-                const nextTok = tokens[i + 1];
-                if (nextTok && /^\d+/.test(nextTok)) {
-                    i++;
-                    const commaIdx = nextTok.indexOf(",");
-                    if (commaIdx >= 0) {
-                        count = Math.max(0, parseInt(nextTok.slice(0, commaIdx), 10));
-                        idxSpec = nextTok.slice(commaIdx + 1) || "-1";
-                    }
-                    else {
-                        count = Math.max(0, parseInt(nextTok, 10));
-                    }
-                }
+                const value = tokens[++i] ?? "", comma = value.indexOf(",");
+                const countSpec = comma < 0 ? value : value.slice(0, comma);
+                count = parseInt(countSpec, 10);
+                if (!Number.isSafeInteger(count) || count < 0) throw new Error(`invalid argument ${value}`);
+                idxSpec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
+                parseMagickIndices(idxSpec);
             }
             const sourcePool = stack;
             const sourceLength = sourcePool.length;
@@ -5855,7 +5853,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let i1 = stack.length - 2;
             let i2 = stack.length - 1;
             if (t === "-swap") {
-                const [s1, s2] = (tokens[++i] ?? "-2,-1").split(",").map((n) => Number(n));
+                const [s1, s2] = parseMagickIndices(tokens[++i] ?? "-2,-1", false).flat();
                 i1 = (s1 ?? -2) < 0 ? stack.length + (s1 ?? -2) : (s1 ?? 0);
                 i2 = (s2 ?? -1) < 0 ? stack.length + (s2 ?? -1) : (s2 ?? 0);
             }
@@ -6338,8 +6336,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && ["+clone", "-clone", "+duplicate", "-duplicate", "+delete", "-delete", "+swap", "-swap", "-reverse", "+insert", "-insert"].includes(token)) {
             let spec = "-1", count = 1;
             if (["-clone", "-delete", "-swap", "-insert"].includes(token)) spec = tokens[++i] ?? (token === "-swap" ? "-2,-1" : token === "-insert" ? "0" : "-1");
-            if (token === "-duplicate" && tokens[i + 1]?.[0] && tokens[i + 1]![0]! >= "0" && tokens[i + 1]![0]! <= "9") {
-                const value = tokens[++i]!, comma = value.indexOf(","); count = Math.max(0, parseInt(value, 10)); spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
+            if (token === "-duplicate") {
+                const value = tokens[++i] ?? "", comma = value.indexOf(",");
+                count = parseInt(value, 10);
+                if (!Number.isSafeInteger(count) || count < 0) throw new Error(`invalid argument ${value}`);
+                spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
+                parseMagickIndices(spec);
             }
             stackStep(async (stack, _backend, parents) => {
                 if (token.endsWith("duplicate") && stack.length === 0) throw new Error(`no images found for operation ${token}`);
@@ -6353,7 +6355,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 else if (token.endsWith("insert")) {
                     const raw = token === "+insert" ? 0 : Number(spec), target = raw < 0 ? Math.max(0, stack.length + raw) : Math.min(stack.length - 1, Math.max(0, raw));
                     for (let n = stack.length - 1; n > target; n--) { await yieldTurn(signal); await stack.swap(n, n - 1); }
-                } else { const values = (token === "+swap" ? "-2,-1" : spec).split(",").map(Number); const a = values[0] ?? -2, b = values[1] ?? -1; await stack.swap(a < 0 ? stack.length + a : a, b < 0 ? stack.length + b : b); }
+                } else { const values = parseMagickIndices(token === "+swap" ? "-2,-1" : spec, false).flat(); const a = values[0] ?? -2, b = values[1] ?? -1; await stack.swap(a < 0 ? stack.length + a : a, b < 0 ? stack.length + b : b); }
                 return stack;
             });
             continue;

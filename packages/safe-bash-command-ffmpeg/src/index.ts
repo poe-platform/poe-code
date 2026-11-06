@@ -1638,6 +1638,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingFps: number | undefined;
       let pendingStartNumber: number | undefined;
       let overwrite: boolean | undefined;
+      let exitOnError = false;
+      let inputReadFailed = false;
       let filterComplex: string | undefined;
       const outputs: (() => Promise<{ exitCode: number }>)[] = [];
       const inputBytes = new Map<string, Uint8Array>();
@@ -1701,6 +1703,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             overwrite = arg === "-y";
+          } else if (arg === "-xerror") {
+            exitOnError = true;
           } else if (arg === "-safe") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -2085,6 +2089,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const concatDocs: MediaDocument[] = [];
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
+                const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined }[] = [];
                 let currentInpoint: number | undefined;
                 let currentOutpoint: number | undefined;
                 let currentDuration: number | undefined;
@@ -2104,7 +2109,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     continue;
                   }
-                  if (concatDocs.length === 0) {
+                  if (segments.length === 0) {
                     const directive = ["duration", "inpoint", "outpoint"].find(name =>
                       line === name || line.startsWith(`${name} `) || line.startsWith(`${name}\t`)
                     );
@@ -2178,34 +2183,47 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (currentInpoint !== undefined && currentOutpoint !== undefined && currentOutpoint < currentInpoint) {
                       throw new Error(`${resolvedItem}: outpoint must not precede inpoint`);
                     }
-                    let itemDoc = await loadSingleDocument(resolvedItem);
-                    let sliceEnd = currentOutpoint;
-                    const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;
-                    const packetFrames = wavTrack?.samples[0]?.duration;
-                    if (sliceEnd !== undefined && wavTrack && packetFrames) {
-                      // WAV seeking starts a new packet at the inpoint. Concat keeps
-                      // the whole packet whose DTS precedes the outpoint.
-                      const start = Math.max(0, currentInpoint ?? 0);
-                      const packets = Math.ceil(Math.max(0, sliceEnd - start) * wavTrack.timescale / packetFrames);
-                      sliceEnd = start + packets * packetFrames / wavTrack.timescale;
-                    }
-                    if (
-                      currentInpoint !== undefined ||
-                      currentOutpoint !== undefined
-                    ) {
-                      itemDoc = sliceMp4(itemDoc, {
-                        startSeconds: currentInpoint,
-                        endSeconds: sliceEnd
-                      });
-                    }
-                    startTimesSeconds.push(nextStartSeconds);
-                    nextStartSeconds += currentDuration ?? itemDoc.durationSeconds;
-                    concatDocs.push(itemDoc);
+                    segments.push({ path: resolvedItem, inpoint: currentInpoint, outpoint: currentOutpoint, duration: currentDuration });
                   } else {
                     throw new Error(`Line ${l + 1}: unknown keyword '${keyword}'`);
                   }
                 }
-                budget.checkConcatInputs(concatDocs.length);
+                budget.checkConcatInputs(segments.length);
+                for (const segment of segments) {
+                  let itemDoc: MediaDocument;
+                  try {
+                    itemDoc = await loadSingleDocument(segment.path);
+                  } catch (error) {
+                    rethrowRuntimeError(context, error);
+                    if ((error as { code?: string }).code !== "ENOENT" ||
+                      !concatDocs.some(doc => doc.tracks.some(track => track.samples.length > 0))) throw error;
+                    await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Impossible to open '${segment.path}': No such file or directory\n`), context.signal);
+                    inputReadFailed = true;
+                    break;
+                  }
+                  let sliceEnd = segment.outpoint;
+                  const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;
+                  const packetFrames = wavTrack?.samples[0]?.duration;
+                  if (sliceEnd !== undefined && wavTrack && packetFrames) {
+                    // WAV seeking starts a new packet at the inpoint. Concat keeps
+                    // the whole packet whose DTS precedes the outpoint.
+                    const start = Math.max(0, segment.inpoint ?? 0);
+                    const packets = Math.ceil(Math.max(0, sliceEnd - start) * wavTrack.timescale / packetFrames);
+                    sliceEnd = start + packets * packetFrames / wavTrack.timescale;
+                  }
+                  if (
+                    segment.inpoint !== undefined ||
+                    segment.outpoint !== undefined
+                  ) {
+                    itemDoc = sliceMp4(itemDoc, {
+                      startSeconds: segment.inpoint,
+                      endSeconds: sliceEnd
+                    });
+                  }
+                  startTimesSeconds.push(nextStartSeconds);
+                  nextStartSeconds += segment.duration ?? itemDoc.durationSeconds;
+                  concatDocs.push(itemDoc);
+                }
                 return concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget });
               }
 
@@ -3138,7 +3156,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const result = await output();
         if (result.exitCode !== 0) return result;
       }
-      return { exitCode: 0 };
+      return { exitCode: exitOnError && inputReadFailed ? 1 : 0 };
     }
   };
 }

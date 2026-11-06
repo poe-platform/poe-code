@@ -474,10 +474,12 @@ export type ExprNode =
       over?: {
         partitionBy: ExprNode[];
         orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined | undefined }[];
-        frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
+        frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: WindowBound; end: WindowBound; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
       } | undefined;
     }
   | { kind: "subquery"; sql: string; exists?: boolean; notExists?: boolean };
+
+type WindowBound = number | { expr: ExprNode; direction: -1 | 1 };
 
 type WindowSpec = NonNullable<Extract<ExprNode, { kind: "func" }>["over"]>;
 
@@ -564,7 +566,7 @@ class ExprParser {
     }
     let partitionBy: ExprNode[] = [];
     let orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[] = [];
-    let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
+    let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: WindowBound; end: WindowBound; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
     const baseToken = this.peek();
     let base: WindowSpec | undefined;
     if (baseToken && (baseToken.type === "ident" || baseToken.type === "string" ||
@@ -609,33 +611,32 @@ class ExprParser {
     if (this.matchWord("ROWS") || this.matchWord("RANGE") || this.matchWord("GROUPS")) {
       const type = this.tokens[this.pos - 1]!.value.toUpperCase() as "ROWS" | "RANGE" | "GROUPS";
       let hasOffset = false;
-      const parseBound = (): number => {
+      const parseBound = (): WindowBound => {
         if (this.matchWord("UNBOUNDED")) {
           if (this.matchWord("PRECEDING")) return -Infinity;
-          this.matchWord("FOLLOWING");
-          return Infinity;
+          if (this.matchWord("FOLLOWING")) return Infinity;
+          throw new Error("invalid frame bound");
         }
         if (this.matchWord("CURRENT")) {
-          this.matchWord("ROW");
+          if (!this.matchWord("ROW")) throw new Error("invalid frame bound");
           return 0;
         }
         hasOffset = true;
-        const numTok = this.peek();
-        const n = Number(numTok?.value ?? 0);
-        if (numTok) this.pos += 1;
-        if (this.matchWord("PRECEDING")) return -n;
-        this.matchWord("FOLLOWING");
-        return n;
+        const expr = this.parseExpression();
+        if (this.matchWord("PRECEDING")) return { expr, direction: -1 };
+        if (this.matchWord("FOLLOWING")) return { expr, direction: 1 };
+        throw new Error("invalid frame bound");
       };
-      if (this.matchWord("BETWEEN")) {
-        const start = parseBound();
-        this.matchWord("AND");
-        const end = parseBound();
-        frameBounds = { type, start, end };
-      } else {
-        const start = parseBound();
-        frameBounds = { type, start, end: 0 };
+      const between = this.matchWord("BETWEEN");
+      const start = parseBound();
+      if (between && !this.matchWord("AND")) throw new Error("invalid frame specification");
+      const end = between ? parseBound() : 0;
+      const startKind = typeof start === "number" ? start : start.direction;
+      const endKind = typeof end === "number" ? end : end.direction;
+      if (start === Infinity || end === -Infinity || startKind > endKind) {
+        throw new Error("unsupported frame specification");
       }
+      frameBounds = { type, start, end };
       if (this.matchWord("EXCLUDE")) {
         if (this.matchWord("CURRENT") && this.matchWord("ROW")) {
           frameBounds.exclude = "CURRENT ROW";
@@ -6756,7 +6757,35 @@ export class SqliteDatabase {
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
   ): SqlSteps<SqlValue[]> {
     const result: SqlValue[] = new Array(groupedRows.length).fill(null);
-    const over = fnExpr.over!;
+    const parsedOver = fnExpr.over!;
+    const parsedBounds = parsedOver.frameBounds;
+    let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
+    if (parsedBounds) {
+      const values: number[] = [];
+      for (const [index, bound] of [parsedBounds.start, parsedBounds.end].entries()) {
+        if (typeof bound === "number") {
+          values.push(bound);
+          continue;
+        }
+        const error = `frame ${index === 0 ? "starting" : "ending"} offset must be a non-negative ${parsedBounds.type === "RANGE" ? "number" : "integer"}`;
+        const pending = [bound.expr];
+        while (pending.length) {
+          yield;
+          const node = pending.pop()!;
+          if (["column", "star", "func", "subquery", "in_subquery"].includes(node.kind)) throw new Error(error);
+          pending.push(...expressionChildren(node));
+        }
+        const value = applyColumnAffinity(
+          yield* this.evalExprSteps(bound.expr, {}, positionalParams, cteScope), "NUMERIC", false
+        );
+        const numeric = typeof value === "number" || typeof value === "bigint" || value instanceof Number;
+        const n = numeric ? Number(value) : NaN;
+        if (!Number.isFinite(n) || n < 0 || (parsedBounds.type !== "RANGE" && !Number.isInteger(n))) throw new Error(error);
+        values.push(bound.direction * n);
+      }
+      frameBounds = { ...parsedBounds, start: values[0]!, end: values[1]! };
+    }
+    const over = { ...parsedOver, frameBounds };
     const partitions = new Map<string, number[]>();
     const collationRow = groupedRows[0]?.representative ?? {};
     const partitionCollations = over.partitionBy.map(expr => this.expressionCollation(expr, collationRow).toUpperCase());

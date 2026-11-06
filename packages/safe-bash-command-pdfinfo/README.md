@@ -13,7 +13,7 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 | Raw XMP Stream | `-meta` | Outputs the raw `/Metadata` XML packet from the document catalog. |
 | Date Formatting | `-isodates` / `-rawdates` | Default dates use `TZ` (UTC when unset); formats PDF dates as ISO-8601 (`YYYY-MM-DDTHH:MM:SSZ`) or raw `D:...` strings. |
 | URL & Link Extraction | `-url` | Lists all `/URI` link actions and URLs across inspected pages. |
-| Structure & JS Inspection | `-struct` / `-struct-text` / `-js` / `-dests` | Dumps `/StructTreeRoot`, JavaScript actions, or named destinations. |
+| Structure & JS Inspection | `-struct` / `-struct-text` / `-js` / `-dests` | Dumps structure root children with block/inline role labels, JavaScript actions, or named destinations. |
 | Encrypted PDFs | `-upw <pw>` / `-opw <pw>` | Authenticates and inspects RC4/AES-encrypted PDFs and permission flags. |
 | Page Rasterization (`pdftoppm`) | `pdftoppm -png -r 150 file.pdf out` | Renders PDF pages to PNG (`-png`), PPM (`-ppm`), PGM (`-gray`), or PBM (`-mono`) with `-r`, `-scale-to`, `-f`/`-l`, and `-singlefile`. |
 | Image Extraction (`pdfimages`) | `pdfimages -list file.pdf` / `pdfimages -png file.pdf img` | Lists embedded images or extracts them as PNG/PPM files. |

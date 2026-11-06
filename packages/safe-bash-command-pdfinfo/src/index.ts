@@ -634,6 +634,15 @@ function extractPageMcidText(cos: ParsedCosDocument, pageDict: PdfCosDict, targe
   return parts.join(" ").trim();
 }
 
+const blockStructureRoles = new Set(["P", "H", "H1", "H2", "H3", "H4", "H5", "H6", "L", "LI", "Lbl", "LBody", "Table"]);
+const inlineStructureRoles = new Set(["Span", "Quote", "Note", "Reference", "BibEntry", "Code", "Link", "Annot", "Ruby", "Warichu"]);
+
+function formatStructureRole(role: string, mappedRole?: string): string {
+  const categoryRole = mappedRole ?? role;
+  const category = blockStructureRoles.has(categoryRole) ? " (block)" : inlineStructureRoles.has(categoryRole) ? " (inline)" : "";
+  return `${role}${mappedRole && mappedRole !== role ? ` / ${mappedRole}` : ""}${category}`;
+}
+
 function dumpStructTree(
   cos: ParsedCosDocument,
   node: PdfCosNode | undefined,
@@ -644,7 +653,7 @@ function dumpStructTree(
 ): string {
   const deref = cos.resolve(node);
   if (!deref) return "";
-  const pad = "  ".repeat(indent);
+  const pad = "  ".repeat(Math.max(0, indent));
   let out = "";
   if (deref.kind === "array") {
     for (const item of deref.items) {
@@ -666,6 +675,9 @@ function dumpStructTree(
         }
       }
     }
+    if (indent === -1) {
+      return dumpStructTree(cos, dictGet(deref, "K"), includeText, 0, activeRoleMap);
+    }
     const typeNode = cos.resolve(dictGet(deref, "Type"));
     if (typeNode?.kind === "name" && typeNode.decoded === "MCR") {
       if (includeText) {
@@ -681,7 +693,7 @@ function dumpStructTree(
     const sObj = cos.resolve(dictGet(deref, "S"));
     const role = sObj?.kind === "name" ? sObj.decoded : "StructTreeRoot";
     const mapped = activeRoleMap.get(role);
-    out += mapped && mapped !== role ? `${pad}${role} / ${mapped}\n` : `${pad}${role}\n`;
+    out += `${pad}${formatStructureRole(role, mapped)}\n`;
     const currentPg = cos.resolveDict(dictGet(deref, "Pg")) ?? inheritedPg;
     if (includeText) {
       const actual = cos.resolve(dictGet(deref, "ActualText") ?? dictGet(deref, "Alt"));
@@ -978,7 +990,7 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
 
   if (args.struct) {
     const structRoot = root ? dictGet(root, "StructTreeRoot") : undefined;
-    const out = dumpStructTree(cos, structRoot, args.structText);
+    const out = dumpStructTree(cos, structRoot, args.structText, -1);
     return { exitCode: 0, stdout: out, stderr: "" };
   }
 
@@ -1225,8 +1237,9 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
     }
     if (args.struct) {
       for await (const item of doc.structure({ includeText: args.structText })) {
-        const pad = "  ".repeat(item.depth);
-        if (item.kind === "element") await emit(`${pad}${item.role}${item.mappedRole && item.mappedRole !== item.role ? ` / ${item.mappedRole}` : ""}\n`);
+        if (item.depth === 0) continue;
+        const pad = "  ".repeat(item.depth - 1);
+        if (item.kind === "element") await emit(`${pad}${formatStructureRole(item.role, item.mappedRole)}\n`);
         else await contents(item.contents(), `${pad}"`, '"\n', true);
       }
       return { exitCode: 0 };

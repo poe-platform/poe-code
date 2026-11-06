@@ -1,3 +1,4 @@
+import { rawRgbInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan } from "./deskew.js";
 import { compareLayerBounds } from "./compare-layers.js";
@@ -487,6 +488,8 @@ interface MagickState {
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
+  inputDepth?: number;
+  inputEndian?: string;
   background: RgbaColor;
   backgroundExplicit?: boolean;
   virtualPixel?: VirtualPixelMethod;
@@ -4204,14 +4207,28 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (lower === "null:") {
         return yield* applyMod([(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }))]);
     }
-    let cleanToken = baseToken;
+    const rgb = lower.startsWith("rgb:");
+    let cleanToken = rgb ? baseToken.slice(4) : baseToken;
     const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(cleanToken);
     if (prefixMatch && extToImageFormat(prefixMatch[1]!)) {
         cleanToken = prefixMatch[2]!;
     }
-    const rawBytes = cleanToken === "-" ? stdinBytes : files.get(cleanToken) ?? files.get(token);
+    let rawBytes = cleanToken === "-" ? stdinBytes : files.get(cleanToken) ?? files.get(token);
     if (!rawBytes)
         return undefined;
+    if (rgb) {
+        if (!state.hasSize) throw new Error("must specify image size for RGB input");
+        const raw = rawRgbInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", rawBytes.length);
+        const bytes = new Uint8Array(raw.size);
+        for (let position = 0; position < raw.size; position += 8192) {
+            yield;
+            const steps = raw.read(position, Math.min(8192, raw.size - position));
+            let next = steps.next();
+            while (!next.done) next = steps.next(rawBytes.subarray(next.value.position, next.value.position + next.value.length));
+            bytes.set(next.value, position);
+        }
+        rawBytes = bytes;
+    }
     let totalPages = 1;
     let inputMeta: ImageMetadata | undefined;
     try {
@@ -5363,6 +5380,17 @@ if (t === "-seed") {
             state.channels = { r: true, g: true, b: true, a: false };
             state.channelExplicit = false;
         }
+        else if (t === "-depth") {
+            state.inputDepth = Number(tokens[++i]);
+            if (!Number.isInteger(state.inputDepth) || state.inputDepth < 1) throw new Error("invalid input depth");
+        }
+        else if (t === "+depth") { delete state.inputDepth; }
+        else if (t === "-endian") {
+            const endian = (tokens[++i] ?? "").toLowerCase();
+            if (!["msb", "lsb", "undefined"].includes(endian)) throw new Error(`unrecognized endian type '${endian}'`);
+            state.inputEndian = endian;
+        }
+        else if (t === "+endian") { delete state.inputEndian; }
         else if (t === "-size") {
             const g = parseMagickGeometry(tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
@@ -7449,6 +7477,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
         "-geometry",
         "-size",
         "-depth",
+        "-endian",
         "-units",
         "-interlace",
         "-sampling-factor",
@@ -7675,6 +7704,18 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
   image=await tile(pattern);
+ }else if(lower.startsWith("rgb:")){
+  if(!state.hasSize)throw new Error("must specify image size for RGB input");
+  const path=baseToken.slice(4);
+  const consume=async(source:ImageByteSource)=>{
+   const raw=rawRgbInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size);
+   return parseStoredCompareInput(`ppm:${token.slice(4)}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
+    const steps=raw.read(position,length);let next=steps.next();
+    while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
+    return next.value;
+   }}});
+  };
+  return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(path,consume);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   image={...await createStoredCanvas(width,height,color,backend,signal),hasAlpha:color.a<255};

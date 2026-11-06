@@ -32,6 +32,8 @@ PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach 
 
 Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce black and white. The setting applies to subsequent `-colors` operations until `+quantize` resets it.
 
+Read headerless RGB with `magick -size 2x1 rgb:input.dat output.png` (or `rgb:-` for stdin). Input defaults to 16-bit little-endian samples; use `-depth 8` or `-depth 16` and `-endian MSB` or `-endian LSB` before the input to override it.
+
 Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) and explicit coders (`rgba:out.bin`, `gray:-`), including intermediate `-write` outputs.
 
 `-colorspace HSB`, `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.

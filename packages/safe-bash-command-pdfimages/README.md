@@ -48,4 +48,4 @@ remain optional buffering conveniences.
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 
-Unknown options, missing option values, invalid numeric values, and extra operands return exit code `99`. Extraction requires an image root; `-list` accepts only the PDF filename. Use `-` as the PDF filename to read stdin. Empty PDF input returns exit code `1`.
+Unknown options, missing option values, invalid numeric values, and extra operands return exit code `99`. Extraction requires an image root; `-list` accepts only the PDF filename. Use `-` as the PDF filename to read stdin. Empty PDF input returns exit code `1`. PDFs without usable pages return exit code `99`; valid pages without images succeed.

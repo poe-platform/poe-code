@@ -217,12 +217,13 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
     }
     let doc: PdfDocument;
     try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+        // Preserve the declared root instead of recovering an older usable catalog.
+        doc = PdfDocument.load(pdfBytes, { password, xrefMode: "qpdf" });
     }
     catch (err) {
         return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
     }
-    const totalPages = Math.max(1, doc.pageCount);
+    const totalPages = doc.pageCount;
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
     if (firstPage > totalPages || firstPage > endPage) {
         return {
@@ -383,14 +384,15 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
       throw failure;
     }
     if (!source.size) return await error("Syntax Error: Document stream is empty\n", 1);
-    try { document = await PdfRetainedDocument.open(source, storage, { password: plan.password, recovery: "repair", signal }); }
+    // Preserve the declared root, matching the buffered path.
+    try { document = await PdfRetainedDocument.open(source, storage, { password: plan.password, recovery: "repair", xref: { xrefMode: "qpdf" }, signal }); }
     catch (failure) {
       signal.throwIfAborted();
       if (failure instanceof PdfError && (failure.code === "E_LIMIT" || failure.code === "E_CAPABILITY")) throw failure;
       return await error(`PDF Error: ${(failure as Error).message}\n`, 1);
     }
     let count = 0; for await (const ignored of document.pages()) count++;
-    const endPage = plan.lastPage > 0 ? Math.min(Math.max(1, count), plan.lastPage) : Math.max(1, count);
+    const endPage = plan.lastPage > 0 ? Math.min(count, plan.lastPage) : count;
     if (plan.firstPage > endPage) return await error(`Command Line Error: Wrong page range given: the first page (${plan.firstPage}) can not be after the last page (${endPage}).\n`, 99);
     const doc = document, selection = plan;
     const identities = seen = new PdfNameIndex(storage, Infinity, signal);

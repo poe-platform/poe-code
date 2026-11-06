@@ -1674,6 +1674,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let i = 0;
       while (i < args.length) {
         let outputStartNumber: number | undefined;
+        let updateImage = false;
 
         let outputFormat: string | undefined;
         let outputSs: number | undefined;
@@ -1730,8 +1731,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSafe = value === "1";
-          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-update" || arg === "-loop") {
+          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-loop") {
             i++;
+          } else if (arg === "-update") {
+            updateImage = args[++i] === "1";
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
           } else if (arg === "-hls_time" || arg === "-seg_duration") {
@@ -3081,8 +3084,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               throw new Error("No video frame in the requested presentation interval");
             }
 
-            // Check if outputTarget is an image sequence pattern like `frame_%03d.png`
-            if (/%0?\d*d/.test(outputTarget)) {
+            // Image sequences and update mode share frame processing and encoding.
+            if ((imageOutput && updateImage) || /%0?\d*d/.test(outputTarget)) {
               const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
               const imgPlugin = registry.findByFilename(`x.${outExt}`);
               if (!imgPlugin || !imgPlugin.canMux) {
@@ -3116,7 +3119,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget.checkDuration((idx + 1) * duration);
                   const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
                   if (copy > 0) budget.recordFrame(f.width, f.height);
-                  const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
+                  const fileName = updateImage ? outputTarget : outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
                     const padLen = parseInt(widthDigits || "0", 10) || 0;
                     return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
                   });

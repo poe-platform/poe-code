@@ -139,7 +139,8 @@ export class PdfRawTextIndex {
       await this.link(lastLine, position); lastLine = position; lineCount++;
       const prefix = line.prefix, kind = line.fontSize >= 15 ? 1 : prefix.startsWith("•") || ((prefix.startsWith("-") || prefix.startsWith("*")) && (prefix[1] === " " || prefix[1] === "\t")) ? 2 : 0;
       const gap = previousLine ? previousLine.baseline - line.baseline : 0;
-      const sameBlock = block?.kind === 0 && kind === 0 && previousLine && (line.type3Size!==undefined ? gap >= 0 : gap > 0) && gap <= previousLine.fontSize * 1.9 && Math.abs(line.bbox![0] - previousLine.bbox[0]) < previousLine.fontSize * 5;
+      const sameKind = block?.kind === kind && (kind === 0 || (ordered && kind === 1 && line.fontSize === previousLine?.fontSize));
+      const sameBlock = sameKind && previousLine && (line.type3Size!==undefined ? gap >= 0 : gap > 0) && gap <= previousLine.fontSize * 1.9 && Math.abs(line.bbox![0] - previousLine.bbox[0]) < previousLine.fontSize * 5;
       if (!sameBlock) { await flushBlock(); block = { kind, firstLine: position, count: 1, bbox: line.bbox! }; }
       else { block!.count++; block!.bbox = mergeBBox(block!.bbox, line.bbox!); }
       previousLine = { bbox: line.bbox!, baseline: line.baseline, fontSize: line.type3Size ?? line.fontSize }; line = undefined;

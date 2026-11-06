@@ -220,7 +220,9 @@ function isBulletPrefixedLine(str: string): boolean {
     const vGap = prevLine.baselineY - line.baselineY;
     const avgSize = (type3 ? prevLine.words[0]?.glyphs[0]?.type3FontSize : undefined) ?? prevLine.words[0]?.glyphs[0]?.fontSize ?? 12;
     const sameColumn = Math.abs(line.bbox[0] - prevLine.bbox[0]) < avgSize * 5;
-    if (prevBlock.kind === "paragraph" && lineKind === "paragraph" && (type3 ? vGap >= 0 : vGap > 0) && vGap <= avgSize * 1.9 && sameColumn) {
+    const sameKind = prevBlock.kind === lineKind && (lineKind === "paragraph"
+      || (options.mode !== "raw" && lineKind === "heading" && lineFontSize === prevLine.words[0]?.fontSize));
+    if (sameKind && (type3 ? vGap >= 0 : vGap > 0) && vGap <= avgSize * 1.9 && sameColumn) {
       prevBlock.lines.push(line);
       blocks[blocks.length - 1] = {
         ...prevBlock,

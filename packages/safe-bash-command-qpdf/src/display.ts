@@ -1,4 +1,4 @@
-import { decodePdfString, type PdfCosNode } from "@poe-code/pdf-ast";
+import { type PdfCosNode } from "@poe-code/pdf-ast";
 
 /** qpdf's human-readable object syntax with sorted dictionary keys. */
 export function* displayNodeParts(node: PdfCosNode | undefined): Generator<string> {
@@ -8,7 +8,30 @@ export function* displayNodeParts(node: PdfCosNode | undefined): Generator<strin
     case "boolean": yield node.value ? "true" : "false"; return;
     case "number": yield String(node.value); return;
     case "name": yield "/"; yield node.decoded; return;
-    case "string": yield "("; yield decodePdfString(node); yield ")"; return;
+    case "string": {
+      // qpdf uses literal syntax only for printable ASCII and named escapes.
+      const hex = node.bytes.some(byte => (byte < 32 || byte > 126) && ![8, 9, 10, 12, 13].includes(byte));
+      yield hex ? "<" : "(";
+      let part = "";
+      for (const byte of node.bytes) {
+        if (hex) part += byte.toString(16).padStart(2, "0");
+        else {
+          switch (byte) {
+            case 8: part += "\\b"; break;
+            case 9: part += "\\t"; break;
+            case 10: part += "\\n"; break;
+            case 12: part += "\\f"; break;
+            case 13: part += "\\r"; break;
+            case 40: case 41: case 92: part += "\\" + String.fromCharCode(byte); break;
+            default: part += String.fromCharCode(byte);
+          }
+        }
+        if (part.length >= 4096) { yield part; part = ""; }
+      }
+      if (part) yield part;
+      yield hex ? ">" : ")";
+      return;
+    }
     case "ref": yield `${node.objectNumber} ${node.generationNumber} R`; return;
     case "array":
       yield "[ ";

@@ -740,7 +740,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   const deleted = stateMap<boolean>();
   const synchronized = stateMap<string>();
   const commentNames = stateMap<boolean>();
-  const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
+  // Info-ZIP junks filter paths too, but matches them against source names.
+  const selection = new Selection([...parsed.includes, ...parsed.excludes].map(pattern => parsed.junkPaths ? pattern.slice(pattern.lastIndexOf("/") + 1) : pattern), limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
   const recursiveSelection = parsed.recursivePatterns ? new Selection(parsed.dosNames ? parsed.operands.map(zipDosName) : parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories, trailingComponents: true }) : undefined;
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;

@@ -41,6 +41,33 @@ async function run(command: CommandDefinition, args: string[], input = "", fs: F
   return { ...result, stdout, stderr, stdoutBytes: Buffer.concat(chunks) };
 }
 
+for (const recursive of [false, true]) {
+  for (const junkPaths of [false, true]) {
+    for (const pattern of ["sub/README.md", "README.md", "*.md", "sub/*.md", "sub/README.*", "sub/READM?.md", "sub/[R]EADME.md"]) {
+      for (const option of ["-i", "-x"]) {
+        test(`zip filters ${pattern} with ${option} (recursive=${recursive}, junkPaths=${junkPaths})`, async () => {
+          const fs = createMemoryFileSystem();
+          await fs.mkdir("/sub");
+          await fs.writeFile("/sub/README.md", new TextEncoder().encode("readme"));
+          await fs.writeFile("/sub/keep.txt", new TextEncoder().encode("keep"));
+          const matches = junkPaths ? pattern === "*.md" || pattern === "sub/*.md" : pattern !== "README.md";
+          const prefix = junkPaths ? "" : "sub/";
+          const expected = option === "-i"
+            ? matches ? [`${prefix}README.md`] : []
+            : [...(recursive && !junkPaths ? ["sub/"] : []), ...(!matches ? [`${prefix}README.md`] : []), `${prefix}keep.txt`];
+          const result = await run(createZipCommand(), [
+            ...(recursive ? ["-r"] : []), ...(junkPaths ? ["-j"] : []), "a.zip",
+            ...(recursive ? ["sub"] : ["sub/README.md", "sub/keep.txt"]), option, pattern,
+          ], "", fs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const archive = await readZipArchive(await fs.readFile("/a.zip"), settings({}), new AbortController().signal);
+          assert.deepEqual(archive.entries.map(entry => entry.name), expected);
+        });
+      }
+    }
+  }
+}
+
 test("standalone zip works with only portable filesystem and command contracts", async () => {
   assert.equal(createZipCommand().name, "zip");
   assert.ok(createZipCommands().some(command => command.name === "zip"));

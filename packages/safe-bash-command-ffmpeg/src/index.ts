@@ -2607,10 +2607,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
-                  const durSec = (audio.channelData[0]?.length ?? 0) / origRate;
-                  let volFactor = t.volume ?? 1.0;
-                  let tempoFactor = 1.0;
-                  let reverseAudio = false;
+                  const volFactor = t.volume ?? 1.0;
+                  let stretched: readonly Float32Array[] = audio.channelData;
                   if (filter) {
                     for (const item of filter.expression.split(",")) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -2622,23 +2620,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", {});
                         const factor = decibels ? Math.pow(10, gain / 20) : gain;
                         if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
-                        volFactor *= factor;
+                        stretched = await mapWork(stretched, async channel => {
+                          const output = new Float32Array(channel.length);
+                          for (let i = 0; i < channel.length; i++) {
+                            if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            output[i] = channel[i]! * factor;
+                          }
+                          return output;
+                        }, context.signal);
                       } else if (trimmed.startsWith("atempo=")) {
                         const tempo = Number(trimmed.slice(7));
                         if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {
                           throw new Error("atempo must be in the range [0.5, 100]");
                         }
-                        tempoFactor *= tempo;
+                        stretched = await stretchAudio(stretched, origRate, tempo, budget, context.signal);
                       } else if (trimmed === "areverse") {
-                        reverseAudio = !reverseAudio;
+                        stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                       } else {
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
                     }
                   }
 
-                  const targetSamples = Math.max(0, Math.round((durSec / tempoFactor) * targetRate));
-                  let stretched = await stretchAudio(audio.channelData, origRate, tempoFactor, budget, context.signal);
+                  const targetSamples = Math.max(0, Math.round((stretched[0]?.length ?? 0) * targetRate / origRate));
                   if (targetRate !== origRate) stretched = await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
                   const newChannelData: Float32Array[] = [];
                   for (let c = 0; c < targetCh; c++) {
@@ -2668,7 +2672,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         dst[i] = Math.max(-1, Math.min(1, mixed * volFactor));
                       }
                     }
-                    if (reverseAudio) dst.reverse();
                     newChannelData.push(dst);
                   }
 

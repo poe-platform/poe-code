@@ -1526,6 +1526,37 @@ describe("decoded audio editing", () => {
     });
   }
 
+  it("runs tempo and reversal filters as distinct ordered operations", async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from({ length: 8000 }, (_, i) => (12000 + i % 50 + Math.round(1000 * Math.sin(i * i / 8000))) / 32768)
+    ] });
+    const vfs = createTestVfs({ "/input.wav": input });
+    const run = async (source: string, filter: string, destination: string) => {
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", source, "-af", filter, "-c:a", "pcm_s16le", destination
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      return parseWav(vfs.store.get(destination)!).tracks[0]!.decodedAudio!.channelData[0]!;
+    };
+    const original = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!;
+    const reversed = await run("/input.wav", "areverse", "/reversed.wav");
+    assert.deepEqual(reversed, original.slice().reverse());
+    const reverseFirst = await run("/input.wav", "areverse,atempo=2", "/reverse-first.wav");
+    const tempoFirst = await run("/input.wav", "atempo=2,areverse", "/tempo-first.wav");
+    assert.ok(reverseFirst.some((sample, i) => sample !== tempoFirst[i]), "Filter order must affect the waveform");
+    assert.deepEqual(reverseFirst, await run("/reversed.wav", "atempo=2", "/reversed-tempo.wav"));
+    const fast = await run("/input.wav", "atempo=2", "/fast.wav");
+    assert.deepEqual(tempoFirst, fast.slice().reverse());
+    const reciprocal = await run("/input.wav", "atempo=2,atempo=0.5", "/reciprocal.wav");
+    assert.ok(reciprocal.some((sample, i) => sample !== original[i]), "Reciprocal tempo stages must not collapse to identity");
+    const separate = await run("/fast.wav", "atempo=0.5", "/separate.wav");
+    assert.equal(reciprocal.length, separate.length);
+    for (let i = 0; i < reciprocal.length; i++) {
+      assert.ok(Math.abs(reciprocal[i]! - separate[i]!) <= 1 / 32768,
+        "Chaining must match separate stages within intermediate PCM rounding");
+    }
+  });
+
   for (const tempo of [0.5, 8, 100]) {
     it(`honors atempo=${tempo} without clamping`, async () => {
       const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(16000).fill(0.25)] });

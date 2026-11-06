@@ -3397,6 +3397,18 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     return transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel === "mitchell" ? "mitchell" : "lanczos3"), signal, { ...image, width, height });
 }
 
+function magickRotateCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, angle: number) {
+    const rotation = ((angle % 360) + 360) % 360;
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    if (Math.abs(rotation - 90) < 1e-6)
+        return { width: page.height, height: page.width, x: page.height - image.height - page.y, y: page.x };
+    if (Math.abs(rotation - 180) < 1e-6)
+        return { ...page, x: page.width - image.width - page.x, y: page.height - image.height - page.y };
+    if (Math.abs(rotation - 270) < 1e-6)
+        return { width: page.height, height: page.width, x: page.y, y: page.width - image.width - page.x };
+    return page;
+}
+
 function magickMirrorCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, kind: "flip" | "flop") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     return kind === "flip"
@@ -5583,7 +5595,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-rotate") {
             const deg = Number(tokens[++i] ?? 0);
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* rotateImageSteps(im, deg, state.background));
+                return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
         else if (t === "-flip") {
@@ -6720,7 +6732,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-rotate") {
             const angle = Number(tokens[++i] ?? 0), background = state.background;
-            transform(() => ({ kind: "rotate", angle, background }));
+            steps.push(async (image, backend) => image ? {
+                ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background }, signal),
+                ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
+            } : undefined);
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);

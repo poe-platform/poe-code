@@ -919,7 +919,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
               }
               yield `${tbl.sql.replace(/;*\s*$/, "")};` + "\n";
               for (const r of tbl.rows) {
-                yield `INSERT INTO ${tbl.name} VALUES(`;
+                yield `INSERT INTO "${tbl.name.replaceAll('"', '""')}" VALUES(`;
                 for (let column = 0; column < tbl.columns.length; column++) {
                   if (column) yield ",";
                   yield* sqlQuoteParts(r.data[tbl.columns[column]!.name] ?? null);
@@ -970,7 +970,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                 yield `${sql.replace(/;*\s*$/, "")};` + "\n";
                 const rowsRes = await execSingleStmt(`SELECT * FROM "${name.replace(/"/g, '""')}";`);
                 for (const r of rowsRes?.rows ?? []) {
-                  yield `INSERT INTO ${name} VALUES(`;
+                  yield `INSERT INTO "${name.replaceAll('"', '""')}" VALUES(`;
                   for (let column = 0; column < r.length; column++) {
                     if (column) yield ",";
                     yield* sqlQuoteParts(r[column] ?? null);
@@ -1705,7 +1705,7 @@ export function evalSyncSqlite3(
           dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
           for (const r of tbl.rows) {
             const vals = tbl.columns.map((c) => [...sqlQuoteParts(r.data[c.name] ?? null)].join("")).join(",");
-            dumpLines.push(`INSERT INTO ${tbl.name} VALUES(${vals});`);
+            dumpLines.push(`INSERT INTO "${tbl.name.replaceAll('"', '""')}" VALUES(${vals});`);
           }
         }
         if (!pattern) {

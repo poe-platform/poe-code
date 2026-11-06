@@ -22,7 +22,7 @@ for (const [mode, expected] of [
 test("dump truncates TEXT at NUL without changing stored bytes and restores valid SQL", async () => {
   const script = "CREATE TABLE t(n);\nINSERT INTO t VALUES('a''z'||char(0)||'b'),(char(0)),('');\n.dump";
   const expected = "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(n);\n" +
-    "INSERT INTO t VALUES('a''z');\nINSERT INTO t VALUES('');\nINSERT INTO t VALUES('');\nCOMMIT;\n";
+    "INSERT INTO \"t\" VALUES('a''z');\nINSERT INTO \"t\" VALUES('');\nINSERT INTO \"t\" VALUES('');\nCOMMIT;\n";
   const fs = createMemoryFileSystem();
   const result = await runSqlite3(fs, ["/test.db"], script);
   assert.deepEqual(result, {code: 0, stdout: expected, stderr: ""});

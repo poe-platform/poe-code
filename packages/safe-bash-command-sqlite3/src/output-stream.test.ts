@@ -22,7 +22,7 @@ for(const destination of ['stdout','once','output'] as const) test(`streams SQL 
  const result=await createSqlite3Command({engine}).execute({command:'sqlite3',...createCommandArguments(args),fs:filesystem,cwd:'/',env:{},signal:new AbortController().signal,
   stdin:{async *[Symbol.asyncIterator](){}},stdout:{async write(bytes){largest=Math.max(largest,bytes.length);stdout+=decoder.decode(bytes,{stream:true});}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});
  assert.equal(result.exitCode,0,stderr);
- const dump="PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\nINSERT INTO t VALUES('"+value.replaceAll("'","''")+"');\nINSERT INTO t VALUES(X'00ff11');\nCOMMIT;\n";
+ const dump="PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\nINSERT INTO \"t\" VALUES('"+value.replaceAll("'","''")+"');\nINSERT INTO \"t\" VALUES(X'00ff11');\nCOMMIT;\n";
  if(destination==='stdout')assert.equal(stdout,dump+'after\n');
  else{assert.equal(new TextDecoder().decode(await fs.readFile('/result')),dump+(destination==='output'?'after\n':''));assert.equal(stdout,destination==='once'?'after\n':'');}
  assert.ok(largest>0&&largest<=16384,`largest write ${largest}`);

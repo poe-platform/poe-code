@@ -110,7 +110,7 @@ test("sqlite3 shell BLOB literals use lowercase hex while SQL quote stays upperc
     code: 0,
     stdout: "X'00FF'\nX'00ff'\nINSERT INTO t VALUES(X'00ff');\n" +
       "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\n" +
-      "INSERT INTO t VALUES(X'00ff');\nCOMMIT;\n",
+      `INSERT INTO "t" VALUES(X'00ff');\nCOMMIT;\n`,
     stderr: ""
   });
 });
@@ -130,7 +130,7 @@ test("sqlite3 shell BLOB literals use lowercase hex while SQL quote stays upperc
     code: 0,
     stdout: "X'00FF'\nX'00ff'\nINSERT INTO t VALUES(X'00ff');\n" +
       "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\n" +
-      "INSERT INTO t VALUES(X'00ff');\nCOMMIT;\n",
+      `INSERT INTO "t" VALUES(X'00ff');\nCOMMIT;\n`,
     stderr: ""
   });
 });
@@ -1010,7 +1010,7 @@ test("sqlite3 supports dot-commands (.mode, .headers, .tables, .schema, .dump, .
   const dumpRes = await runSqlite3(fs, ["/store.db", ".dump"]);
   assert.equal(dumpRes.code, 0, dumpRes.stderr);
   assert.match(dumpRes.stdout, /CREATE TABLE "items"/);
-  assert.match(dumpRes.stdout, /INSERT INTO items VALUES\('A1','5'\);/);
+  assert.match(dumpRes.stdout, /INSERT INTO "items" VALUES\('A1','5'\);/);
 });
 
 test("sqlite3 supports INSERT INTO ... WITH RECURSIVE and CREATE TABLE ... AS WITH", async () => {
@@ -1152,7 +1152,7 @@ test("sqlite3 supports Cloudflare Durable Object SqlStorage (ctx.storage.sql) an
   assert.equal(resDo.exitCode, 0);
   assert.match(outDo, /3781\|closed\|B-tree reserved space\n3783\|closed\|Cloudflare SqlStorage injection/);
   assert.match(outDo, /idx_issues_state/);
-  assert.match(outDo, /INSERT INTO issues VALUES\(3783,'closed','Cloudflare SqlStorage injection'\);/);
+  assert.match(outDo, /INSERT INTO "issues" VALUES\(3783,'closed','Cloudflare SqlStorage injection'\);/);
 
   // Verify the updated database was persisted back to VFS as a valid SQLite format 3 binary file
   const verifySaved = await runSqlite3(fs, ["/hey-boss.db", "SELECT number, state FROM issues ORDER BY number;"]);

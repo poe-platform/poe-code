@@ -295,6 +295,7 @@ function readBalancedLiteralString(text: string, openParenIndex: number): { raw:
 function parsePdfStructure(bytes: Uint8Array): {
   version: string;
   pageCount: number;
+  encrypted: boolean;
   info: Map<string, string>;
   postScriptCreator: string | undefined;
 } {
@@ -303,6 +304,7 @@ function parsePdfStructure(bytes: Uint8Array): {
     throw new Error("Invalid PDF header");
   }
   // Scan PDF tokens, not string/comment/stream contents. Names may use #xx escapes.
+  let encrypted = false;
   const delimiters = "\0\t\n\f\r ()<>[]{}/%";
   let postScriptCreator: string | undefined;
   for (let i = 0; i < text.length;) {
@@ -329,7 +331,7 @@ function parsePdfStructure(bytes: Uint8Array): {
         }
         name += text[i];
       }
-      if (name === "Encrypt") throw new Error("Encrypted PDF metadata is not supported");
+      if (name === "Encrypt") encrypted = true;
     } else if (delimiters.includes(ch)) {
       i++;
     } else {
@@ -386,10 +388,10 @@ function parsePdfStructure(bytes: Uint8Array): {
     }
   }
   let fullText = text;
-  let infoScanText = infoSourceText;
+  // No password authentication is supported here; never inspect protected Info.
+  let infoScanText = encrypted ? "" : infoSourceText;
   const flateRe = /<<[\s\S]*?\/Filter\s*\/FlateDecode[\s\S]*?>>\s*stream\r?\n/g;
-  let fm: RegExpExecArray | null;
-  while ((fm = flateRe.exec(text)) !== null) {
+  while (!encrypted && flateRe.exec(text) !== null) {
     const dataStart = flateRe.lastIndex;
     const endStreamIdx = text.indexOf("endstream", dataStart);
     if (endStreamIdx > dataStart) {
@@ -448,7 +450,7 @@ function parsePdfStructure(bytes: Uint8Array): {
     ["ModifyDate", /<xmp:ModifyDate\b[^>]*>([\s\S]*?)<\/xmp:ModifyDate>/i],
   ];
   for (const [tag, re] of xmpTagPairs) {
-    if (!info.has(tag)) {
+    if (!info.has(tag) && (!encrypted || tag === "CreateDate" || tag === "ModifyDate")) {
       const xm = re.exec(fullText);
       if (xm && xm[1]) {
         info.set(tag, xm[1].trim());
@@ -456,17 +458,17 @@ function parsePdfStructure(bytes: Uint8Array): {
     }
   }
 
-  return { version, pageCount, info, postScriptCreator };
+  return { version, pageCount, info, encrypted, postScriptCreator };
 }
 
 export function inspectPdf(bytes: Uint8Array, resources: Resources): { readonly tags: readonly MetadataTag[] } {
   resources.admit("work", bytes.length * 4 + 256);
   resources.admit("decoded", bytes.length + 256);
-  const { version, pageCount, info, postScriptCreator } = parsePdfStructure(bytes);
+  const { version, pageCount, info, encrypted, postScriptCreator } = parsePdfStructure(bytes);
   const tags: MetadataTag[] = [];
 
   tags.push(makeTag("PDFVersion", info.get("PDFVersion") ?? version));
-  tags.push(makeTag("PageCount", String(pageCount)));
+  if (!encrypted) tags.push(makeTag("PageCount", String(pageCount)));
 
   for (const key of [
     "Title",
@@ -487,7 +489,7 @@ export function inspectPdf(bytes: Uint8Array, resources: Resources): { readonly 
     }
   }
 
-  if (postScriptCreator !== undefined) {
+  if (!encrypted && postScriptCreator !== undefined) {
     tags.push({ ...makeTag("Creator", postScriptCreator), group: "PostScript" });
   }
 
@@ -515,7 +517,8 @@ export function editPdf(
     }
   }
 
-  const { info } = parsePdfStructure(bytes);
+  const { info, encrypted } = parsePdfStructure(bytes);
+  if (encrypted) throw new Error("Encrypted PDF metadata is not supported");
   if (!info.has("Producer")) {
     info.set("Producer", "@poe-code/pdf-ast");
   }

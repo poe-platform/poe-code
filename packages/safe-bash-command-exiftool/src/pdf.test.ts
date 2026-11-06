@@ -249,8 +249,8 @@ test("encrypted PDF Info is refused instead of returned as ciphertext", async ()
     ["-overwrite_original", "-Author=Changed"],
   ]) {
     const result = await invoke([...args, "encrypted.pdf"], fs);
-    assert.equal(result.exitCode, 1, result.stdout);
-    assert.ok(result.stderr.includes("Encrypted PDF metadata is not supported"), result.stderr);
+    assert.equal(result.exitCode, args[0] === "-j" ? 0 : 1, result.stderr);
+    if (args[0] !== "-j") assert.ok(result.stderr.includes("Encrypted PDF metadata is not supported"), result.stderr);
     assert.ok(!result.stdout.includes('"Author"'), result.stdout);
     assert.deepEqual(await fs.readFile("/encrypted.pdf"), bytes);
     await assert.rejects(fs.stat("/encrypted.pdf_original"), { code: "ENOENT" });
@@ -263,8 +263,10 @@ test("PDF encryption names are decoded and ordinary metadata text remains readab
   for (const entry of ["/Encrypt 7 0 R", "/Encr#79pt 7 0 R"]) {
     await fs.writeFile("/test.pdf", new TextEncoder().encode(plain.replace("/Size 6", entry + " /Size 6")));
     const result = await invoke(["-j", "test.pdf"], fs);
-    assert.equal(result.exitCode, 1);
-    assert.ok(result.stderr.includes("Encrypted PDF metadata is not supported"));
+    assert.equal(result.exitCode, 0, result.stderr);
+    const tags = JSON.parse(result.stdout)[0];
+    assert.equal(tags.PageCount, undefined);
+    assert.equal(tags.Title, undefined);
   }
   await fs.writeFile("/test.pdf", new TextEncoder().encode(plain
     .replace("Original Financial Report", "Literal /Encrypt (nested) text")
@@ -276,3 +278,21 @@ test("PDF encryption names are decoded and ordinary metadata text remains readab
   assert.equal(tags.Title, "Literal /Encrypt (nested) text");
   assert.equal(tags.Author, "Encrypt");
 });
+
+for (const [fixture, modifyDate] of [
+  ["pdfjs-issue19484_1.pdf", "2025-02-13T11:52:24-06:00"],
+  ["pdfjs-issue19484_2.pdf", "2025-02-13T12:30:19-06:00"],
+]) {
+  test(`protected PDF hides document tags but retains readable XMP dates: ${fixture}`, async () => {
+    const bytes = await readFile(new URL(`../../pdf-ast/src/fixtures/${fixture}`, import.meta.url));
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/protected.pdf", bytes);
+    const result = await invoke(["-j", "-s", "-n", "-PageCount", "-Creator", "-CreateDate", "-ModifyDate", "protected.pdf"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{
+      SourceFile: "protected.pdf",
+      CreateDate: "2025-02-08T20:53:52-06:00",
+      ModifyDate: modifyDate,
+    }]);
+  });
+}

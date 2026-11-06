@@ -63,6 +63,9 @@ function createNamedBzip2Command(
           );
           return { exitCode: 0 };
         }
+        if (parsed.test && parsed.stdout) {
+          throw new PublicDiagnostic("-c and -t cannot be used together.");
+        }
         let plans;
         let planningFailed = false;
         try {

@@ -2508,7 +2508,7 @@ describe("stream language metadata", () => {
           { ...audio, id: 3, language: "deu" }
         ] });
         const vfs = createTestVfs({ "/in.mp4": input });
-        const args = ["-i", "/in.mp4", "-c", "copy", "-metadata", "title=Global",
+        const args = ["-i", "/in.mp4", ...(sync ? [] : ["-map", "0"]), "-c", "copy", "-metadata", "title=Global",
           `-metadata:${selector}`, "language=fra", "/out.mp4"];
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
@@ -2518,10 +2518,10 @@ describe("stream language metadata", () => {
           assert.equal(result.exitCode, 0, result.stderr);
         }
         const output = parseMp4(vfs.store.get("/out.mp4")!);
-        assert.deepEqual(output.tracks.map(t => t.language), expected);
+        assert.deepEqual(output.tracks.map(t => t.language), sync ? expected.slice(0, 2) : expected);
         assert.equal(output.metadata.title, "Global");
         assert.deepEqual(output.tracks.map(t => t.samples.map(s => s.data)),
-          parseMp4(input).tracks.map(t => t.samples.map(s => s.data)));
+          parseMp4(input).tracks.slice(0, sync ? 2 : 3).map(t => t.samples.map(s => s.data)));
       });
     }
   }

@@ -1197,6 +1197,27 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
   return tracks;
 }
 
+function selectAutomaticAudio(documents: readonly MediaDocument[]): MediaDocument[] {
+  let selected: MediaTrack | undefined;
+  let bestScore = -1;
+  for (const document of documents) {
+    for (const track of document.tracks) {
+      if (track.type !== "audio") continue;
+      // FFmpeg prefers default audio, then channel count, then input order.
+      const score = (track.enabled ? 1 << 22 : 0)
+        + (track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0);
+      if (score > bestScore) {
+        selected = track;
+        bestScore = score;
+      }
+    }
+  }
+  return documents.map(document => ({
+    ...document,
+    tracks: document.tracks.filter(track => track.type !== "audio" || track === selected)
+  }));
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -1390,7 +1411,7 @@ export function evalSyncFfmpeg(
       loadedDocs.push(doc);
     }
 
-    let workingDoc = muxMp4(loadedDocs, { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
+    let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
@@ -2272,7 +2293,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           const filteredTracks = selectedTracks.map(entry => entry.track);
           if (!mapped) {
             // Ignored optional maps leave automatic video/audio selection enabled.
-            const tracks = loadedDocs.flatMap(doc => doc.tracks);
+            const tracks = selectAutomaticAudio(loadedDocs).flatMap(doc => doc.tracks);
             for (const type of ["video", "audio"] as const) {
               const track = tracks.find(track => track.type === type);
               if (track) filteredTracks.push(track);
@@ -2284,7 +2305,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             { stripAudio, stripVideo, stripSubtitles, shortest, rotation }
           , context.signal);
         } else {
-          workingDoc = await muxMp4Cooperatively(loadedDocs, {
+          workingDoc = await muxMp4Cooperatively(selectAutomaticAudio(loadedDocs), {
             stripAudio,
             stripVideo,
             stripSubtitles,

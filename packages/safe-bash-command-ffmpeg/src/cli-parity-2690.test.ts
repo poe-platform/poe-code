@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 import { Volume } from "memfs";
@@ -5,7 +6,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createSyntheticMp4, parseMp4, serializeMp4 } from "@poe-code/mp4-ast";
 import {
-  createFfmpegCommand,
+  createFfmpegCommand, evalSyncFfmpeg,
 } from "./index.js";
 
 function createTestVfs(initialFiles: Record<string, Uint8Array | string> = {}) {
@@ -315,3 +316,70 @@ for (const [filter, compressed] of [
     }
   });
 }
+
+for (const sync of [false, true]) {
+  for (const [defaults, channels, selected] of [
+    [[true, false], [1, 2], 0],
+    [[false, true], [2, 1], 1],
+    [[false, false], [1, 2], 1],
+    [[true, true], [2, 2], 0]
+  ] as const) {
+    it(`${sync ? "sync" : "async"} automatically selects audio defaults=${defaults} channels=${channels}`, async () => {
+      const base = parseMp4(createSyntheticMp4({ frameCount: 2, includeAudio: true }));
+      const audio = base.tracks.find(track => track.type === "audio")!;
+      const input = serializeMp4({ ...base, tracks: channels.map((channels, index) => ({
+        ...audio, id: index + 1, enabled: defaults[index]!, language: index === 0 ? "eng" : "fra",
+        codecDescriptions: parseMp4(createSyntheticMp4({ frameCount: 2, includeAudio: true, channels })).tracks.find(track => track.type === "audio")!.codecDescriptions
+      })) });
+      for (const map of sync ? [undefined] : [undefined, "0:a", "0:a:99?"]) {
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const args = ["-i", "/in.mp4", ...(map ? ["-map", map] : []), "-c", "copy", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const source = parseMp4(input).tracks;
+        const expected = map === "0:a" ? source : [source[selected]!];
+        const output = parseMp4(vfs.store.get("/out.mp4")!).tracks;
+        assert.deepEqual(output.map(track => track.language), expected.map(track => track.language));
+        assert.deepEqual(output.map(track => track.samples.map(sample => sample.data)), expected.map(track => track.samples.map(sample => sample.data)));
+      }
+    });
+  }
+}
+
+it("matches native FFmpeg automatic and explicit selection of two AAC languages", {
+  skip: spawnSync("ffmpeg", ["-version"]).status !== 0
+}, async () => {
+  const generated = spawnSync("ffmpeg", ["-v", "error",
+    "-f", "lavfi", "-i", "sine=frequency=440:duration=0.1",
+    "-f", "lavfi", "-i", "sine=frequency=880:duration=0.1",
+    "-map", "0:a", "-map", "1:a", "-metadata:s:a:0", "language=eng",
+    "-metadata:s:a:1", "language=fra", "-c:a", "aac",
+    "-movflags", "frag_keyframe+empty_moov", "-f", "mp4", "pipe:1"]);
+  assert.equal(generated.status, 0, generated.stderr.toString());
+  for (const map of [[], ["-map", "0:a"]]) {
+    const native = spawnSync("ffmpeg", ["-v", "error", "-i", "pipe:0", ...map,
+      "-c", "copy", "-movflags", "frag_keyframe+empty_moov", "-f", "mp4", "pipe:1"], { input: generated.stdout });
+    assert.equal(native.status, 0, native.stderr.toString());
+    const expected = parseMp4(new Uint8Array(native.stdout)).tracks;
+    for (const sync of map.length ? [false] : [false, true]) {
+      const vfs = createTestVfs({ "/in.mp4": generated.stdout });
+      const args = ["-i", "/in.mp4", ...map, "-c", "copy", "/out.mp4"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const actual = parseMp4(vfs.store.get("/out.mp4")!).tracks;
+      assert.deepEqual(actual.map(track => track.language), expected.map(track => track.language));
+      assert.deepEqual(actual.map(track => track.samples.map(sample => sample.data)),
+        expected.map(track => track.samples.map(sample => sample.data)));
+    }
+  }
+});

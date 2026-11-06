@@ -30,7 +30,7 @@ input, such as WAV or a `lavfi` source. `-ac 1` downmixes stereo and
 center dialogue and omitting LFE. Stereo upmixing with `-ac 3` or `-ac 4` preserves
 left and right audio and leaves added channels silent. Other conversions from
 multichannel inputs fail explicitly. Unsupported audio filters fail
-without creating or replacing the output. Stream copying remains supported. Global metadata defaults to the first input;
+without creating or replacing the output. Stream copying remains supported. Without `-map`, automatic audio selection keeps one track, preferring the default track, then the most channels, then input order. Use `-map 0:a` to copy every audio track from the first input. Global metadata defaults to the first input;
 `-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying.
 Explicit `-metadata key=value` tags override copied metadata.
 `-metadata:s:a:0 language=fra` sets the first output audio track’s language;

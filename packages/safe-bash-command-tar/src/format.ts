@@ -59,7 +59,7 @@ export function parseHeader(header: Uint8Array): Header {
   if (actual !== expected) fail("header checksum mismatch");
   const magic = decodeBytes(encodeBytes(header.subarray(257, 265)), "latin1");
   const posix = magic === "ustar\0" + "00";
-  if (!posix && magic !== "ustar  \0") fail("unsupported archive format (expected USTAR, PAX, or GNU basic headers)");
+  if (!posix && magic !== "ustar  \0" && magic !== "\0".repeat(8)) fail("unsupported archive format (expected V7, USTAR, PAX, or GNU basic headers)");
   const entry: Header = {
     bytes: header,
     posix,

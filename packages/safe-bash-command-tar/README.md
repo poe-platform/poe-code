@@ -1,6 +1,6 @@
 # tar
 
-Run `tar` against an injected virtual filesystem with portable byte streams.
+Run `tar` against an injected virtual filesystem with portable byte streams. Read legacy V7 archives as well as USTAR, PAX, and GNU basic headers.
 
 ```ts
 import { createTarCommand, tarCommands } from "@poe-platform/safe-bash/commands/tar";

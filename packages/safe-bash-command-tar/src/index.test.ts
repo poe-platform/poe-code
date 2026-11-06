@@ -1,9 +1,39 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { createMemoryFileSystem, S3FileSystem, MockS3Client, createS3Transport, WebDavFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandDefinition, type FileSystem, type FileStat } from "safe-bash-contracts";
 import { createTarCommand, createTarCommands, tarCommands } from "./index.js";
-import { headerBytes, paxRecord } from "./format.js";
+import { headerBytes, paxRecord, parseHeader } from "./format.js";
+
+test("tar lists and extracts the legacy Opus release archive", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/archive.tar.gz", await readFile(new URL("../../media-codecs/vendor/sources/opus-1.5.2.tar.gz", import.meta.url)));
+  const listed = await run(createTarCommand(), ["-tzf", "/archive.tar.gz"], "", fs);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  const names = listed.stdout.trimEnd().split("\n");
+  assert.equal(names.length, 502);
+  assert.equal(names[0], "opus-1.5.2/");
+  assert.ok(names.includes("opus-1.5.2/README"));
+  const extracted = await run(createTarCommand(), ["-xOzf", "/archive.tar.gz", "opus-1.5.2/README"], "", fs);
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.equal(createHash("sha256").update(extracted.stdout).digest("hex"), "9bdf02594da8c33af8b7bdb7a2ac98f6fdc6abc71d5fb198e7b186286a681dca");
+});
+
+for (const defect of ["checksum", "magic", "mode", "numeric"] as const) test(`tar rejects legacy headers with invalid ${defect}`, () => {
+  const header = headerBytes({ name: "file", type: "0", linkname: "", size: 0, mode: 0o644, uid: 0, gid: 0, mtime: 0 });
+  header.fill(0, 257, 265);
+  if (defect === "magic") header[257] = 1;
+  if (defect === "mode") header.set(new TextEncoder().encode("0010000\0"), 100);
+  if (defect === "numeric") header[100] = 57;
+  header.fill(32, 148, 156);
+  const checksum = header.reduce((sum, byte) => sum + byte, 0);
+  header.set(new TextEncoder().encode(`${checksum.toString(8).padStart(6, "0")}\0 `), 148);
+  if (defect === "checksum") header[0] = 0;
+  const expected = { checksum: /checksum mismatch/, magic: /unsupported archive format/, mode: /invalid archive permission bits/, numeric: /invalid octal numeric field/ };
+  assert.throws(() => parseHeader(header), expected[defect]);
+});
 
 for (const type of ["x", "g"]) test(`tar lists and extracts unknown ${type} PAX metadata`, async () => {
   const fs = createMemoryFileSystem();

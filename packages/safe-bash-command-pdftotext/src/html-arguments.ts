@@ -9,12 +9,15 @@ export const SUPPORTED_ENCODINGS = new Set([
 
 export interface HtmlPlan {
   readonly inputPath: string; readonly outPath: string; readonly imageDirectory: string;
-  readonly singleDocument: boolean; readonly fontFullName: boolean; readonly hidden: boolean; readonly noRoundCoord: boolean; readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
+  readonly singleDocument: boolean; readonly complex: boolean; readonly noframes: boolean; readonly quiet: boolean; readonly fontFullName: boolean; readonly hidden: boolean; readonly noRoundCoord: boolean; readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
   readonly firstPage: number; readonly lastPage: number; readonly zoom: number; readonly wordBreakThreshold: number;
   readonly imageFmt: "png" | "jpg"; readonly encoding: string; readonly password: string;
 }
 export function parseHtmlArguments(argv: readonly string[], hasStdin = false): HtmlPlan | { exitCode: number; stdout: string; stderr: string } {
     let singleDocument = false;
+    let complex = false;
+    let noframes = false;
+    let quiet = false;
     let fontFullName = false;
     let hidden = false;
     let xmlMode = false;
@@ -47,10 +50,12 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
                 stderr: ""
             };
         }
-        if (arg === "-xml")
+        if (arg === "-c") complex = true;
+        else if (arg === "-noframes") noframes = true;
+        else if (arg === "-q") quiet = true;
+        else if (arg === "-s") singleDocument = true;
+        else if (arg === "-xml")
             xmlMode = true;
-        else if (arg === "-s")
-            singleDocument = true;
         else if (arg === "-fontfullname")
             fontFullName = true;
         else if (arg === "-hidden")
@@ -98,10 +103,7 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
         }
         else if (arg === "-upw" || arg === "-opw")
             password = argv[++i] ?? "";
-        else if (arg === "-noframes" ||
-            arg === "-c" ||
-            arg === "-p" ||
-            arg === "-q" ||
+        else if (arg === "-p" ||
             arg === "-nomerge") {
             // Flag options
         }
@@ -114,7 +116,8 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
         return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
     }
     const explicitOut = positionals[1];
-    const stdoutOutput = toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut);
+    complex = complex && !xmlMode && !singleDocument;
+    const stdoutOutput = !complex && (toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut));
     const defaultExt = xmlMode ? ".xml" : ".html";
     const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
     const outPath = explicitOut
@@ -123,5 +126,5 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             : `${explicitOut}${defaultExt}`
         : inputStem + defaultExt;
     const imageDirectory = outPath.slice(0, outPath.lastIndexOf("/") + 1);
-    return { inputPath, outPath, imageDirectory, singleDocument, fontFullName, hidden, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, wordBreakThreshold, imageFmt, encoding, password };
+    return { complex, noframes, quiet, inputPath, outPath, imageDirectory, singleDocument: singleDocument || complex, fontFullName, hidden, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, wordBreakThreshold, imageFmt, encoding, password };
 }

@@ -296,3 +296,51 @@ for (const single of [false, true]) for (const stdout of [false, true]) test(`pd
   assert.equal(stdout ? buffered.stdout : new TextDecoder().decode(files.get("/output.html")), html);
   await f.clean();
 });
+
+for (const stdout of [false, true]) test(`complex HTML publishes frames and pages with stdout=${stdout}`, async () => {
+  const input = new Uint8Array(await readFile(new URL("../../pdf-ast/src/fixtures/qpdf-form-xobjects-no-resources.pdf", import.meta.url)));
+  const f = await fixture(input, ["-c", ...(stdout ? ["-stdout"] : []), "-i", "-zoom", "1.5", "/input.pdf"]);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  assert.equal(new TextDecoder().decode(joined(f.stdout)), "Page-1\n");
+  assert.equal(new TextDecoder().decode(joined(f.stderr)), "");
+  const frames = new TextDecoder().decode(await f.fs.readFile("/input.html"));
+  assert.ok(frames.includes('src="input_ind.html"'));
+  assert.ok(frames.includes('src="input-1.html"'));
+  const navigation = new TextDecoder().decode(await f.fs.readFile("/input_ind.html"));
+  assert.ok(navigation.includes('href="input-1.html" target="contents"'));
+  const page = new TextDecoder().decode(await f.fs.readFile("/input-1.html"));
+  for (const text of ["Page", "FX1", "FX2", 'position:absolute', 'width:918pt']) assert.ok(page.includes(text), text);
+  assert.deepEqual(await f.fs.readFile("/input.pdf"), input);
+  await f.clean();
+});
+
+for (const flags of [[], ["-noframes"], ["-q"], ["-dataurls"], ["-xml"]]) test(`complex HTML respects ranges, output directories and ${flags}`, async () => {
+  const doc = PdfDocument.create();
+  doc.addPage().drawText("Excluded", { x: 20, y: 100 });
+  for (const text of ["Second", "Third"]) {
+    const page = doc.addPage([200, 300]);
+    page.drawText(text, { x: 20, y: 100 });
+    page.drawImage(doc.embedRgbImage(1, 1, new Uint8Array([255, 0, 0])), { x: 10, y: 10, width: 5, height: 5 });
+  }
+  const input = doc.save();
+  const args = ["-c", ...flags, "-f", "2", "-l", "3", "/input.pdf", "/sub/report & title.html"];
+  const f = await fixture(input, args); await f.fs.mkdir("/sub");
+  const files = new Map([["/input.pdf", input]]);
+  const expected = await runPdftohtmlCli(args, files);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  assert.equal(new TextDecoder().decode(joined(f.stdout)), flags.includes("-q") || flags.includes("-xml") ? "" : "Page-2\nPage-3\n");
+  assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.stdout);
+  for (const [name, bytes] of files) assert.deepEqual(await f.fs.readFile(name), bytes, name);
+  const names = (await f.fs.readdir("/sub")).map(entry => entry.name);
+  assert.ok(!names.includes("report & title-1.html"));
+  if (!flags.includes("-xml") && !flags.includes("-noframes")) {
+    const frames = new TextDecoder().decode(await f.fs.readFile("/sub/report & title.html"));
+    assert.ok(frames.includes('src="report &amp; title-2.html"'));
+    const second = new TextDecoder().decode(await f.fs.readFile("/sub/report & title-2.html"));
+    assert.ok(second.includes("Second"));
+    assert.ok(!second.includes("Third"));
+    assert.ok(!second.includes("Excluded"));
+    if (!flags.includes("-dataurls")) assert.ok(names.includes("page2_1.png"));
+  }
+  await f.clean();
+});

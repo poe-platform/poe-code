@@ -1,11 +1,12 @@
 import { PdfFileSource, PdfRetainedDocument, PdfRetainedDecodedImage, PdfStagingStorage, PdfStagedOutputs, PdfError,
-  getPdfEncryptionInfo, encodeRetainedPng, encodeJpegChunks, streamHtmlPageText, type PdfOutputEntry } from "@poe-code/pdf-ast";
+  getPdfEncryptionInfo, encodeRetainedPng, encodeJpegChunks, streamHtmlPageText, type PdfOutputEntry, type PdfRetainedPage } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { InputByteBudget, readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { applyPopplerOutputEncoding } from "./output-encoding.js";
 import { publishPdfOutput } from "./retained-output.js";
+import { complexNavigation } from "./complex-html.js";
 import type { HtmlPlan } from "./html-arguments.js";
 
 const escape = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
@@ -130,7 +131,7 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
       if (depth && !plan.xmlMode) yield "</li>\n";
       for (let at = depth; at > 0; at--) { if (plan.xmlMode) yield* indent(at); yield plan.xmlMode ? "</outline>\n" : at > 1 ? "</ul>\n</li>\n" : "</ul>\n"; }
     }
-    async function* markup() {
+    async function* markup(pages: AsyncIterable<PdfRetainedPage> | Iterable<PdfRetainedPage> = doc.pages()) {
       if (plan.xmlMode) yield '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">\n<pdf2xml producer="@poe-code/pdf-ast" version="24.08.0">\n';
       else {
         yield '<!DOCTYPE html>\n<html>\n<head><meta charset="utf-8"/><title>';
@@ -139,7 +140,7 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
         if (!hasTitle) for (let at = 0; at < plan.inputPath.length; at += 2048) yield escape(plan.inputPath.slice(at, at + 2048));
         yield "</title></head>\n<body>\n";
       }
-      for await (const page of doc.pages()) {
+      for await (const page of pages) {
         await yieldTurn(signal);
         const number = page.index + 1;
         if (number < plan.firstPage) continue; if (number > endPage) break;
@@ -152,11 +153,11 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
         finally { await index.close().catch(failure => { if (!pageFailed) throw failure; }); }
         yield plan.xmlMode ? "  </page>\n" : plan.singleDocument ? "</div>\n" : "<hr/>\n";
       }
-      yield* outlines(); yield plan.xmlMode ? "</pdf2xml>\n" : "</body>\n</html>\n";
+      if (!plan.complex || plan.noframes) yield* outlines(); yield plan.xmlMode ? "</pdf2xml>\n" : "</body>\n</html>\n";
     }
-    async function* encoded() {
+    async function* encoded(parts: AsyncIterable<string> | Iterable<string>) {
       let high = "";
-      for await (const part of markup()) {
+      for await (const part of parts) {
         let text = high + part; high = "";
         const last = text.charCodeAt(text.length - 1);
         if (last >= 0xd800 && last <= 0xdbff) { high = text.slice(-1); text = text.slice(0, -1); }
@@ -176,7 +177,19 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
           yield { name, chunks: image.chunks() };
         }
       }
-      yield { name: plan.outPath, chunks: encoded() };
+      if (plan.complex && !plan.noframes) {
+        const stem = plan.outPath.slice(0, -5);
+        if (stem + "_ind.html" === plan.inputPath) inputReplaced = true;
+        yield { name: plan.outPath, chunks: encoded(complexNavigation(stem, plan.firstPage, endPage, false)) };
+        yield { name: stem + "_ind.html", chunks: encoded(complexNavigation(stem, plan.firstPage, endPage, true)) };
+        for await (const page of doc.pages()) {
+          if (page.index + 1 < plan.firstPage) continue;
+          if (page.index + 1 > endPage) break;
+          const name = `${stem}-${page.index + 1}.html`;
+          if (name === plan.inputPath) inputReplaced = true;
+          yield { name, chunks: encoded(markup([page])) };
+        }
+      } else yield { name: plan.outPath, chunks: encoded(markup()) };
     }
     outputs = await PdfStagedOutputs.create(storage, entries(), { signal });
     for await (const output of outputs.entries()) {
@@ -187,6 +200,9 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
         signal.throwIfAborted(); if (!(failure instanceof Error) || !("code" in failure)) throw failure;
         return await error(`I/O Error: Couldn't open html file '${output.name}'\n`, 0);
       }
+    }
+    if (plan.complex && !plan.quiet) {
+      for (let page = plan.firstPage; page <= endPage; page++) await writeBytes(stdout, encoder.encode(`Page-${page}\n`), signal);
     }
     return { exitCode: 0 };
   } catch (failure) { failed = true; throw failure; }

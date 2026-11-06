@@ -1,3 +1,4 @@
+import { complexNavigation } from "./complex-html.js";
 import { executeRetainedHtml } from "./retained-html.js";
 import { parseHtmlArguments, SUPPORTED_ENCODINGS } from "./html-arguments.js";
 import { escapeXml } from "./text-markup.js";
@@ -1148,6 +1149,18 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
                 }
             }
             lines.push(parsed.singleDocument ? "</div>" : "<hr/>");
+            if (parsed.complex && !parsed.noframes) {
+                const name = `${outPath.slice(0, -5)}-${p}.html`;
+                files.set(name, new TextEncoder().encode(applyPopplerOutputEncoding([...lines, "</body>", "</html>"].join("\n") + "\n", encoding)));
+                lines.length = 4;
+            }
+        }
+        if (parsed.complex && !parsed.noframes) {
+            const stem = outPath.slice(0, -5);
+            for (const index of [false, true]) {
+                const name = index ? stem + "_ind.html" : outPath;
+                files.set(name, new TextEncoder().encode(applyPopplerOutputEncoding([...complexNavigation(stem, firstPage, endPage, index)].join(""), encoding)));
+            }
         }
         if (outlineTree.length > 0) {
             lines.push(`<hr/>`, `<a name="outline"></a><h1>Document Outline</h1>`);
@@ -1169,8 +1182,10 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
     }
     outputText = applyPopplerOutputEncoding(outputText, encoding);
     if (stdoutOutput) return { exitCode: 0, stdout: outputText, stderr: "" };
-    files.set(outPath, new TextEncoder().encode(outputText));
-    return { exitCode: 0, stdout: "", stderr: "" };
+    if (!parsed.complex || parsed.noframes) files.set(outPath, new TextEncoder().encode(outputText));
+    let progress = "";
+    if (parsed.complex && !parsed.quiet) for (let page = firstPage; page <= endPage; page++) progress += `Page-${page}\n`;
+    return { exitCode: 0, stdout: progress, stderr: "" };
 }
 export async function runPdftohtmlCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
     exitCode: number;

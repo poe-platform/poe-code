@@ -8,8 +8,6 @@ import { runConvertCli } from "./index.js";
 const pipelines = [
     ["first", "-duplicate", "140", "-write", "frame-%03d.png", "-delete", "0-139", "-negate", "-write", "frame-000.png", "-remap", "frame-140.png"],
 
-    ["first", "second", "-swap", "0.5,1"],
-    ["first", "second", "-swap", "bad,1"],
     ["first", "second", "-write", "frame-%02d.png", "-delete", "1"],
 
     ["-size", "19x13", "tile:animated.gif", "-delete", "0"],

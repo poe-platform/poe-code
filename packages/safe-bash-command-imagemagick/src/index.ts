@@ -5857,11 +5857,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 i1 = (s1 ?? -2) < 0 ? stack.length + (s1 ?? -2) : (s1 ?? 0);
                 i2 = (s2 ?? -1) < 0 ? stack.length + (s2 ?? -1) : (s2 ?? 0);
             }
-            if (stack[i1] && stack[i2]) {
-                const tmp = stack[i1]!;
-                stack[i1] = stack[i2]!;
-                stack[i2] = tmp;
-            }
+            if (i1 === i2 || !stack[i1] || !stack[i2]) throw new Error(`invalid image index ${t}`);
+            const tmp = stack[i1]!;
+            stack[i1] = stack[i2]!;
+            stack[i2] = tmp;
         }
         else if (t === "+delete" || t === "-delete") {
             if (t === "+delete") {
@@ -6355,7 +6354,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 else if (token.endsWith("insert")) {
                     const raw = token === "+insert" ? 0 : Number(spec), target = raw < 0 ? Math.max(0, stack.length + raw) : Math.min(stack.length - 1, Math.max(0, raw));
                     for (let n = stack.length - 1; n > target; n--) { await yieldTurn(signal); await stack.swap(n, n - 1); }
-                } else { const values = parseMagickIndices(token === "+swap" ? "-2,-1" : spec, false).flat(); const a = values[0] ?? -2, b = values[1] ?? -1; await stack.swap(a < 0 ? stack.length + a : a, b < 0 ? stack.length + b : b); }
+                } else {
+                    const values = parseMagickIndices(token === "+swap" ? "-2,-1" : spec, false).flat();
+                    const a = values[0] ?? -2, b = values[1] ?? -1;
+                    const i1 = a < 0 ? stack.length + a : a, i2 = b < 0 ? stack.length + b : b;
+                    if (i1 === i2 || i1 < 0 || i2 < 0 || i1 >= stack.length || i2 >= stack.length) throw new Error(`invalid image index ${token}`);
+                    await stack.swap(i1, i2);
+                }
                 return stack;
             });
             continue;

@@ -14,7 +14,7 @@ export interface PdfRetainedFont {
   readonly reference?: PdfCosRef;
 }
 export interface PdfFontSelection {
-  /** One-based inclusive page bounds. AcroForm default fonts are always visited. */
+  /** One-based inclusive page bounds. Fonts come from page and appearance resources. */
   readonly firstPage?: number;
   readonly lastPage?: number;
 }
@@ -116,9 +116,6 @@ export async function* walkRetainedFonts(document: PdfRetainedDocument, storage:
         }
       }
     }
-    const root = await dictionary(document.crossReference.rootRef);
-    const acroform = root ? await dictionary(dictGet(root, "AcroForm")) : undefined;
-    if (acroform) yield* resources(await dictionary(dictGet(acroform, "DR")), 0);
   } catch (error) { failed = true; throw error; }
   finally {
     const results = await Promise.allSettled([names.close()]);

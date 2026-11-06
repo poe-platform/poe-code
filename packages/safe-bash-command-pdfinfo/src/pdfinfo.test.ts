@@ -531,7 +531,7 @@ describe("safe-bash-command-pdfinfo", () => {
     assert.ok(!f2NoL.stdout.includes("Page    2 size:"));
   });
 
-  it("discovers fonts from inherited /Pages /Resources, widget /AP /N appearance streams, and /AcroForm /DR in pdffonts", async () => {
+  it("discovers fonts from inherited /Pages /Resources, widget /AP /N appearance streams, but excludes unused /AcroForm /DR in pdffonts", async () => {
     const doc = PdfDocument.create();
     const page = doc.addPage({ width: 200, height: 200 });
     const root = doc.cos.resolveDict(doc.cos.rootRef)!;
@@ -586,7 +586,7 @@ describe("safe-bash-command-pdfinfo", () => {
     assert.equal(res.exitCode, 0);
     assert.match(res.stdout, /Times-Roman/);
     assert.match(res.stdout, /Courier-Bold/);
-    assert.match(res.stdout, /Symbol/);
+    assert.doesNotMatch(res.stdout, /Symbol/);
     assert.match(res.stdout, /ZapfDingbats/);
   });
 

@@ -1622,9 +1622,6 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
             }
         }
     };
-    const rootDict = cos.resolveDict(cos.rootRef);
-    const acroFormDict = rootDict ? cos.resolveDict(dictGet(rootDict, "AcroForm")) : undefined;
-    const acroDrDict = acroFormDict ? cos.resolveDict(dictGet(acroFormDict, "DR")) : undefined;
     for (let p = firstPage; p <= endPage; p++) {
         yield;
         const page = doc.getPage(p - 1);
@@ -1658,9 +1655,6 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 }
             }
         }
-    }
-    if (acroDrDict) {
-        collectFontsFromResources(acroDrDict);
     }
     return { exitCode: 0, stdout: rows.join("\n") + "\n", stderr: "" };
 }

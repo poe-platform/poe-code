@@ -9,9 +9,10 @@ for (const [fixture, row] of [
   ["pdfjs-cid_cff", "ERGTBC+NeoSansIntel                  CID Type 0C       Identity-H       yes yes yes      7  0"],
   ["pdfjs-issue17069", "PGBVXH+CourierStd                    CID Type 0C       Identity-H       yes yes yes     70  0"],
   ["pdfjs-text_clip_cff_cid", "XTQOSZ+Reitam-Identity-H             CID Type 0C       Identity-H       yes yes yes      5  0"],
+  ["pdfbox-6077-example", undefined],
 ] as const) {
   for (const path of ["public", "buffered", "sync"]) {
-    it(`identifies embedded CID Type 0C fonts in ${fixture} through ${path}`, async () => {
+    it(`matches native font inspection for ${fixture} through ${path}`, async () => {
       const bytes = await readFile(new URL(`../../pdf-ast/src/fixtures/${fixture}.pdf`, import.meta.url));
       const args = ["in.pdf"];
       const files = new Map([["in.pdf", bytes]]);
@@ -34,8 +35,10 @@ for (const [fixture, row] of [
       }
       assert.equal(output.exitCode, 0);
       assert.equal(output.stderr, "");
-      assert.ok(output.stdout.split("\n").includes(row), output.stdout);
+      if (row) assert.ok(output.stdout.split("\n").includes(row), output.stdout);
+      if (fixture === "pdfbox-6077-example") assert.equal(output.stdout.trimEnd().split("\n").length, 2);
       if (fixture === "pdfjs-issue17069") {
+        assert.equal(output.stdout.trimEnd().split("\n").length, 7);
         assert.ok(output.stdout.includes("YQNXTZ+ArialMT                       CID TrueType"), output.stdout);
       }
     });

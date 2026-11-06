@@ -33,14 +33,18 @@ async function fixture(count = 3, amend?: (document: PdfDocument) => void, backe
   return { document, fs, source, async close() { await document.close(); await backing.close(); expect(await fs.readdir("/scratch")).toEqual([]); await source.close(); } };
 }
 
-it.each([false,true])("visits page, form, annotation and AcroForm fonts (backed resources=%s)", async backed => {
-  const f = await fixture(3,undefined,backed); const decode = vi.spyOn(f.document.objects, "decodeStream"); const names = [];
+it.each([false,true])("visits page, form and annotation fonts but excludes unused AcroForm defaults (backed resources=%s)", async backed => {
+  const f = await fixture(4,undefined,backed); const decode = vi.spyOn(f.document.objects, "decodeStream"); const names = [];
   for await (const font of f.document.fonts()) { names.push(font.name); expect(font.embedded).toBe(false); expect(font.type).toBe("Type 1"); }
   expect(names).toEqual(["Font0", "Font1", "Font2"]); expect(decode).not.toHaveBeenCalled(); await f.close();
 });
 
 it("releases suspended font traversal indexes on document close", async () => {
-  const f = await fixture(80); const iterator = f.document.fonts();
+  const f = await fixture(80, doc => {
+    const root = doc.cos.resolveDict(doc.cos.rootRef)!;
+    const form = doc.cos.resolveDict(dictGet(root, "AcroForm"))!;
+    dictSet(doc.getPage(0).pageDict, "Resources", dictGet(form, "DR")!);
+  }); const iterator = f.document.fonts();
   for (let i = 0; i < 60; i++) expect((await iterator.next()).done).toBe(false);
   await f.close(); expect((await iterator.next()).done).toBe(true);
 });

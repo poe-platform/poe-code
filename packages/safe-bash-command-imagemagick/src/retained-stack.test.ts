@@ -6,6 +6,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
 const pipelines = [
+    ["first", "-write", "mpr:orig", "-negate", "mpr:orig", "+append"],
+    ["first", "second", "-write", "mpr:frames", "-delete", "0-1", "mpr:frames"],
     ["first", "-duplicate", "140", "-write", "frame-%03d.png", "-delete", "0-139", "-negate", "-write", "frame-000.png", "-remap", "frame-140.png"],
 
     ["first", "second", "-write", "frame-%02d.png", "-delete", "1"],
@@ -62,9 +64,10 @@ it.each(pipelines.map(args => ({ args })))("retains stack $args", async ({ args 
     const argv = [...args, "out.png"], expected = await runConvertCli(argv, files);
     expect(expected.exitCode).toBe(0);
     expect(await runConvertCli(argv, { filesystem, cwd: "/" })).toEqual(expected);
-    for (const [path, bytes] of files) if (path.startsWith("frame-")) expect(decodeImage(await fs.readFile("/" + path))).toEqual(decodeImage(bytes));
-    if (files.has("middle.png")) expect(decodeImage(await fs.readFile("/middle.png"))).toEqual(decodeImage(files.get("middle.png")!));
-    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual([...files.keys()].sort());
+    for (const [path, bytes] of files) {
+        expect(decodeImage(await fs.readFile("/" + path))).toEqual(decodeImage(bytes));
+    }
 });
 
 it("restores evicted frame metadata and caller-backed delays across nested stacks", async () => {

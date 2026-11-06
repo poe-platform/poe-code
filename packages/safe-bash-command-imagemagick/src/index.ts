@@ -5402,7 +5402,7 @@ if (t === "-seed") {
     return i;
 }
 
-function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] }): Generator<void, RgbaImage[], void> {
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] }, registers = new Map<string, RgbaImage[]>()): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
     let operandsOnly = false;
@@ -5411,6 +5411,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         yield;
         const t = tokens[i]!;
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
+        if (t.slice(0, 4).toLowerCase() === "mpr:") {
+            const saved = registers.get(t.slice(4));
+            if (!saved) throw new Error(`unable to open image '${t}'`);
+            for (const image of saved) {
+                yield;
+                stack.push({ ...image, data: new Uint8Array(image.data) });
+            }
+            i++;
+            continue;
+        }
         if (operandsOnly) {
             const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes);
             if (!loaded) throw new Error(`unable to open image '${t}'`);
@@ -5433,7 +5443,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const endIdx = depth === 0 ? j - 1 : j;
             const subTokens = tokens.slice(i + 1, endIdx);
             const subState: MagickState = { ...state };
-            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis));
+            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis, registers));
             stack.push(...subResult);
             i = j;
             continue;
@@ -5502,7 +5512,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-write" || t === "+write") {
             const writePath = expandFilenameProperties(tokens[++i] ?? "", state);
-            if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
+            if (writePath.slice(0, 4).toLowerCase() === "mpr:") {
+                const saved: RgbaImage[] = [];
+                for (const image of stack) {
+                    yield;
+                    saved.push({ ...image, data: new Uint8Array(image.data) });
+                }
+                registers.set(writePath.slice(4), saved);
+            }
+            else if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
                 const { format, path } = inferOutputFormat(writePath, top.format);
                 if (hasSceneOutputPattern(path) || (stack.length > 1 && (!state.adjoin || (path !== "-" && ["png", "jpeg", "bmp"].includes(format))))) {
@@ -6207,7 +6225,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         outSpec = expandFilenameProperties(outSpec, state);
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
-        if (outLower === "null:") return { exitCode: 0, stdout: "", stderr: "" };
+        if (outLower === "null:" || outLower.startsWith("mpr:")) return { exitCode: 0, stdout: "", stderr: "" };
         if (outLower === "info:" || outLower === "info:-") {
             const formatted: string[] = [];
             for (const [idx, im] of stack.entries()) {
@@ -6461,6 +6479,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     type StackStep = (stack: StoredImageStack, backend: CompareFileSession, parents: StoredImageStack[]) => Promise<StoredImageStack>;
     type Step = ((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) | { runStack: StackStep };
     const steps: Step[] = [];
+    const registers = new Map<string, StoredImageStack>();
     const stackStep = (runStack: StackStep) => { steps.push({ runStack }); };
     let operandsOnly = false;
     try {
@@ -6796,7 +6815,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const path = expandFilenameProperties(tokens[++i] ?? "", state), quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 const image = await stack.get(stack.length - 1);
-                if (image && path && path.toLowerCase() !== "null:") {
+                if (path.slice(0, 4).toLowerCase() === "mpr:") {
+                    const saved = new StoredImageStack(backend.storage, signal, stack);
+                    for (let index = 0; index < stack.length; index++) {
+                        await yieldTurn(signal);
+                        await saved.push((await stack.get(index))!);
+                    }
+                    registers.set(path.slice(4), saved);
+                }
+                else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
                     if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
@@ -7040,6 +7067,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!operandsOnly && (token === "(" || token === ")")) continue;
             const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {
+                if (token.slice(0, 4).toLowerCase() === "mpr:") {
+                    const saved = registers.get(token.slice(4));
+                    if (!saved) throw new Error(`unable to open image '${token}'`);
+                    for (let index = 0; index < saved.length; index++) {
+                        await yieldTurn(signal);
+                        await stack.push((await saved.get(index))!);
+                    }
+                    return stack;
+                }
                 const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();
                 const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
                 const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
@@ -7082,7 +7118,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         await yieldTurn(signal);
         outSpec = expandFilenameProperties(outSpec, state);
         output = inferOutputFormat(outSpec, "png");
-        if (outSpec.toLowerCase() === "null:") { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
+        if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower === "info:" || lower === "info:-";
         if (info || lower.startsWith("txt:") || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {

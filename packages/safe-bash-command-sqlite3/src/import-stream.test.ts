@@ -76,10 +76,10 @@ for (const existing of [false, true]) {
   }
 }
 
-test("imports custom multi-character separators, empty records and permissive quotes", async () => {
-  const result = await importFile('a<>b\n\n"x<>y"<>"z"tail\nend<>"unclosed',
-    ['.separator <>', '.import /input t', '.mode list', 'SELECT * FROM t;']);
-  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, '|\nx<>y|z"tail\nend<>"unclosed\n');
+test("imports custom separators, empty records and permissive quotes", async () => {
+  const result = await importFile('a|b\n\n"x|y"|"z"tail\nend|"unclosed',
+    ['.separator |', '.import /input t', '.mode list', 'SELECT * FROM t;']);
+  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, '|\nx|y|z"tail\nend|"unclosed\n');
   assert.equal(result.stderr, '/input:2: expected 2 columns but found 1 - filling the rest with NULL\n' +
     '/input:3: unescaped " character\n/input:4: unescaped " character\n/input:3: unterminated "-quoted field\n');
 });
@@ -176,3 +176,34 @@ test('bulk import ending in a rejected row reports zero changes', async () => {
   assert.deepEqual(result, { code: 1, stdout: '2|0|2\n',
     stderr: '/input:3: INSERT failed: UNIQUE constraint failed: t.x\n' });
 });
+
+for (const [setup, content, expected] of [
+  ['.separator , ;', 'a,b;c,d;', '61|62\n63|64\n'],
+  ['.separator , ;', '"a;b","c";d,e;', '613B62|63\n64|65\n'],
+  ['.separator , ;', 'a,b\nc;d,e;', '61|620A63\n64|65\n'],
+  ['.mode csv', 'a,b\r\nc,d\n', '61|62\n63|64\n']
+]) {
+  test(`import row separators: ${JSON.stringify(content)}`, async () => {
+    const script = ['CREATE TABLE t(a,b);', setup!, '.import /input t', '.mode list', 'SELECT hex(a),hex(b) FROM t;'];
+    assert.deepEqual(await importFile(content!, script), { code: 0, stdout: expected, stderr: '' });
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script.join('\n')), [':memory:'],
+      () => new TextEncoder().encode(content)), expected);
+  });
+}
+for (const [separator, message] of [
+  ['<>', 'multi-character column separators not allowed for import'],
+  ['é', 'multi-character column separators not allowed for import'],
+  ['""', 'non-null column separator required for import'],
+  [', xx', 'multi-character row separators not allowed for import'],
+  [', ""', 'non-null row separator required for import']
+]) {
+  test(`invalid import separator ${separator} leaves the table unchanged`, async () => {
+    const script = ['CREATE TABLE t(a,b);', `.separator ${separator}`, '.import /input t', '.mode list', 'SELECT count(*) FROM t;'];
+    const result = await importFile('a<>b\nc<>d\n', script);
+    assert.equal(result.code, 1);
+    assert.equal(result.stdout, '0\n');
+    assert.ok(result.stderr.includes(message!), result.stderr);
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script.join('\n')), [':memory:'],
+      () => new TextEncoder().encode('a<>b\nc<>d\n')), undefined);
+  });
+}

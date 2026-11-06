@@ -979,10 +979,11 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         let failed = false;
         try {
           const sep = csvOverride ? "," : state.colSeparator;
+          const rowSep = csvOverride || state.mode === "csv" && state.rowSeparator === "\r\n" ? "\n" : state.rowSeparator;
           let importLine = 1;
           const rows = async function* (report = false): AsyncGenerator<string[]> {
             let diagnostics = "";
-            const parser = new CsvRows(sep, message => { if (report) diagnostics += `${fileArg}:${message}`; });
+            const parser = new CsvRows(sep, message => { if (report) diagnostics += `${fileArg}:${message}`; }, rowSep);
             for await (const text of input.text()) {
               for (const row of parser.push(text)) {
                 if (diagnostics) { await writeText(context.stderr, diagnostics); diagnostics = ""; }
@@ -1729,8 +1730,9 @@ export function evalSyncSqlite3(
         if (fileBytes.includes(0)) return false;
         const content = fatalSyncSqliteDecoder.decode(fileBytes);
         const sep = csvOverride ? "," : state.colSeparator;
+        const rowSep = csvOverride || state.mode === "csv" && state.rowSeparator === "\r\n" ? "\n" : state.rowSeparator;
         let hasDiagnostics = false;
-        const parser = new CsvRows(sep, () => { hasDiagnostics = true; });
+        const parser = new CsvRows(sep, () => { hasDiagnostics = true; }, rowSep);
         const parsedRows = [...parser.push(content, true)].slice(Math.max(0, skipRows));
         // The stdout-only fast path must defer imports that need diagnostics.
         if (hasDiagnostics) return false;

@@ -1650,7 +1650,7 @@ export function evalSyncSqlite3(
           if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) continue;
           dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
           for (const r of tbl.rows) {
-            const vals = tbl.columns.map((c) => formatSqlQuote(r.data[c.name] ?? null)).join(",");
+            const vals = tbl.columns.map((c) => [...sqlQuoteParts(r.data[c.name] ?? null)].join("")).join(",");
             dumpLines.push(`INSERT INTO ${tbl.name} VALUES(${vals});`);
           }
         }

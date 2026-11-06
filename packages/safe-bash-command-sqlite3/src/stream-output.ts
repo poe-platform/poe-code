@@ -23,8 +23,9 @@ export async function* encodeOutput(parts: Iterable<string> | AsyncIterable<stri
 
 export function* sqlQuoteParts(value: SqlValue): Generator<string> {
   if (typeof value === 'string' || value instanceof String) {
-    const text = String(value); yield "'";
-    for (let offset = 0; offset < text.length; offset += 4096) yield text.slice(offset, offset + 4096).replaceAll("'", "''");
+    const text = String(value), zero = text.indexOf('\0'), end = zero < 0 ? text.length : zero;
+    yield "'";
+    for (let offset = 0; offset < end; offset += 4096) yield text.slice(offset, Math.min(end, offset + 4096)).replaceAll("'", "''");
     yield "'";
   } else if (value instanceof Uint8Array) {
     yield "X'";

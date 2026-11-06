@@ -84,7 +84,7 @@ const parityXml = new TextEncoder().encode('<config><server id="main"><host>loca
 
 for (const path of ["/config server/host", "/config/server/@id/host", "/config/server/text()/host"]) {
   for (const query of [path, `count(${path})`, `string(${path})`, `boolean(${path})`]) {
-    test(`xmllint rejects invalid XPath in sync substitutions: ${query}`, async () => {
+    test(`xmllint falls back for unsupported sync XPath: ${query}`, async () => {
       assert.equal(evalSyncXmllint(parityXml, ["--xpath", query]), undefined);
       const fs = new MemoryFileSystem();
       await fs.writeFile("/config.xml", parityXml);
@@ -92,7 +92,12 @@ for (const path of ["/config server/host", "/config/server/@id/host", "/config/s
       try {
         const direct = await shell.exec(`xmllint --xpath "${query}" /config.xml`);
         const substitution = await shell.exec(`value="$(xmllint --xpath "${query}" /config.xml)"`);
-        assert.equal(direct.exitCode, 10);
+        const invalid = path === "/config server/host";
+        assert.equal(direct.exitCode, invalid ? 10 : query === path ? 11 : 0);
+        if (!invalid) {
+          const expected = query.startsWith("count(") ? "0\n" : query.startsWith("boolean(") ? "false\n" : query.startsWith("string(") ? "\n" : "";
+          assert.equal(direct.stdout, expected);
+        }
         assert.equal(substitution.exitCode, direct.exitCode);
         assert.equal(substitution.stderr, direct.stderr);
         assert.equal(substitution.stdout, "");

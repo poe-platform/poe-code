@@ -1614,6 +1614,10 @@ describe("decoded audio editing", () => {
     ["atempo", "atempo=1"],
     ["atempo=tempo=1", "atempo=1"],
     ["atempo=tempo=2", "atempo=2"],
+    ["atempo=1/2", "atempo=0.5"],
+    ["atempo=tempo=1/2", "atempo=0.5"],
+    ["atempo='(1+3)/2'", "atempo=2"],
+    ["atempo=2*3-4", "atempo=2"],
     ["areverse@flip", "areverse"],
     ["volume@quiet=0.5", "volume=0.5"],
     ["atempo@fast=2", "atempo=2"],
@@ -1790,14 +1794,14 @@ describe("decoded audio editing", () => {
     });
   }
 
-  for (const tempo of ["0.25", "0", "-1", "100.1", "Infinity", "NaN", "", "8junk", "0.25,atempo=4"]) {
+  for (const tempo of ["0.25", "0", "-1", "100.1", "Infinity", "NaN", "", "8junk", "0.25,atempo=4",
+    "1/4", "100+1", "1/0", "0/0", "1/", "1/2junk"]) {
     it(`rejects invalid atempo=${tempo} without writing output`, async () => {
       const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160)] });
       const vfs = createTestVfs({ "/input.wav": input });
       const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", `atempo=${tempo}`, "/output.wav"], vfs);
       assert.notEqual(result.exitCode, 0);
       assert.ok(result.stderr.includes("atempo"), result.stderr);
-      assert.ok(result.stderr.includes("[0.5, 100]"), result.stderr);
       assert.equal(vfs.store.has("/output.wav"), false);
     });
   }

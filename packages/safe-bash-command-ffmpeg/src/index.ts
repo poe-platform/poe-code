@@ -2689,8 +2689,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = output;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
-                        const tempo = Number(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument);
-                        if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {
+                        const tempo = parseFilterExpression(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument, "atempo", {});
+                        if (tempo < 0.5 || tempo > 100) {
                           throw new Error("atempo must be in the range [0.5, 100]");
                         }
                         stretched = tempo === 1

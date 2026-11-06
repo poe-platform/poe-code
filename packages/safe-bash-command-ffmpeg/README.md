@@ -29,6 +29,7 @@ input, such as WAV or a `lavfi` source. Audio filters run in chain order; each
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.
+`atempo` accepts arithmetic such as `atempo=1/2`; the result must be between 0.5 and 100.
 Audio filters accept instance labels, such as `areverse@flip`, `volume@quiet=0.5`,
 and `atempo@fast=2`, with the same behavior as their unlabeled forms.
 `volume=if(lt(t\,0.5)\,0\,1):eval=frame` changes gain at audio frame timestamps;

@@ -74,7 +74,6 @@ export class TargetDocuments {
     this.documents.add(document);
     await document.load(source);
     if (document.binary) throw new ToolError("binary input is unsupported (NUL byte)");
-    if (!document.validUtf8) throw new ToolError("binary input is unsupported (invalid UTF-8)");
     return document;
   }
 

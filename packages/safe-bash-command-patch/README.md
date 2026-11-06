@@ -1,6 +1,7 @@
 # patch
 
 Run `patch` against an injected virtual filesystem with portable byte streams.
+Target and hunk content preserves non-UTF-8 bytes without transcoding.
 
 ```ts
 import { createPatchCommand, patchCommands } from "@poe-platform/safe-bash/commands/patch";

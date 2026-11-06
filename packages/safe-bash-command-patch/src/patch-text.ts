@@ -2,7 +2,7 @@ import type { ByteSource } from "safe-bash-contracts";
 import type { Budget } from "safe-bash-diff-engine/shared";
 import { byteLength } from "safe-bash-io-engine/byte-encoding";
 
-/** Replayable UTF-8 text; the owner retains the source until parsing finishes. */
+/** Replayable text bytes; the owner retains the source until parsing finishes. */
 export type PatchText = string | { readonly bytes: ByteSource; readonly size: number; readonly terminated: boolean };
 
 export function textSize(text: PatchText): number { return typeof text === "string" ? byteLength(text) : text.size; }

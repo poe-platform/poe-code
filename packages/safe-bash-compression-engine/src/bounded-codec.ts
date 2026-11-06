@@ -40,6 +40,7 @@ export interface BoundedCodecOptions {
   /** Stop at the first frame and return unread bytes to the input reader. */
   readonly singleMember?: boolean;
   readonly onFailure?: (error: unknown) => void;
+  readonly onTrailingGarbage?: () => void;
 }
 
 export type CodecFactory = (options: BoundedCodecOptions, signal: AbortSignal) => BoundedCodec | Promise<BoundedCodec>;
@@ -58,6 +59,7 @@ export async function* boundedCodec(
   let eof = false;
   let needsInput = true;
   let ended = false;
+  let completedMember = false;
   let calls = 0;
   let work = 0;
   let failed = false;
@@ -139,6 +141,10 @@ export async function* boundedCodec(
           const position = headerOffset + index;
           const byte = bytes[index]!;
           if (position < 3 ? byte !== magic[position] : byte < 0x31 || byte > 0x39) {
+            if (completedMember) {
+              options.onTrailingGarbage?.();
+              return;
+            }
             throw new UnrecognizedCompressionFormatError("invalid compressed data or codec memory limit exceeded");
           }
         }
@@ -200,6 +206,7 @@ export async function* boundedCodec(
           return;
         }
         ended = true;
+        completedMember = true;
       }
       needsInput = result.status !== "output";
     }

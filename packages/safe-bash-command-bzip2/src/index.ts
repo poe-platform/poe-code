@@ -96,7 +96,6 @@ function createNamedBzip2Command(
               if (!parsed.quiet) {
                 await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
               }
-              if (exitCode === 0) exitCode = 2;
             }
           } catch (error) {
             context.signal.throwIfAborted();

@@ -144,7 +144,7 @@ class HtmlWriter {
       switch(node.t) {
         case "Str": this.escape(node.c); break;
         case "Space": this.add(" "); break;
-        case "SoftBreak": this.add("\n"); break;
+        case "SoftBreak": this.add(this.context.wrap === "none" ? " " : "\n"); break;
         case "LineBreak": this.add("<br>"); break;
         case "Emph": case "Underline": case "Strong": case "Strikeout": case "Superscript": case "Subscript": case "SmallCaps": {
           const tag = formatting[node.t]; this.add(`<${tag}${node.t === "SmallCaps" ? ' class="smallcaps"' : ""}>`);

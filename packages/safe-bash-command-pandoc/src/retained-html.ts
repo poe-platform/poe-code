@@ -390,7 +390,9 @@ class HtmlTape {
       }
       if (job.op === "inline") {
         if (tag === "Str") await this.escape(await this.scalar(content!));
-        else if (tag === "Space" || tag === "SoftBreak" || tag === "LineBreak") await this.add(tag === "Space" ? " " : tag === "SoftBreak" ? "\n" : "<br>");
+        else if (tag === "Space") await this.add(" ");
+        else if (tag === "SoftBreak") await this.add(this.options.wrap === "none" ? " " : "\n");
+        else if (tag === "LineBreak") await this.add("<br>");
         else if (formatting[tag]) {
           await this.add(`<${formatting[tag]}${tag === "SmallCaps" ? ' class="smallcaps"' : ""}>`);
           await this.sequence(this.list(content!, cp, "inline"), this.literal(`</${formatting[tag]}>`));

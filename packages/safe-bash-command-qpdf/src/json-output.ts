@@ -5,15 +5,15 @@ type Sequence<T> = Iterable<T> | AsyncIterable<T>;
 export type JsonValue = { kind: "formatted"; chunks: AsyncIterable<Uint8Array> } | null | boolean | number | string | { kind: "object"; entries: Sequence<readonly [string, JsonValue]> } | { kind: "array"; values: Sequence<JsonValue> } | { kind: "text"; parts: Sequence<string> };
 export function jsonRecord(record: Readonly<Record<string, JsonValue>>): JsonValue { return { kind: "object", entries: Object.entries(record) }; }
 
-export function cosJson(node: PdfCosNode | undefined, storage: PdfIndexStorage, signal: AbortSignal): JsonValue {
+export function cosJson(node: PdfCosNode | undefined, storage: PdfIndexStorage, signal: AbortSignal, version = 2): JsonValue {
   if (!node) return null;
   switch (node.kind) {
     case "null": return null;
     case "boolean": case "number": return node.value;
     case "name": return `/${node.decoded}`;
-    case "string": return `u:${decodePdfString(node)}`;
+    case "string": return `${version === 1 ? "" : "u:"}${decodePdfString(node)}`;
     case "ref": return `${node.objectNumber} ${node.generationNumber} R`;
-    case "array": return { kind: "array", values: (function* () { for (const item of node.items) yield cosJson(item, storage, signal); })() };
+    case "array": return { kind: "array", values: (function* () { for (const item of node.items) yield cosJson(item, storage, signal, version); })() };
     case "dict": return { kind: "object", entries: (async function* () {
       if (node.entries.length > 64) {
         const names = new PdfNameIndex(storage, Infinity, signal), backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), latest = new IntegerTable(backing);
@@ -23,7 +23,7 @@ export function cosJson(node: PdfCosNode | undefined, storage: PdfIndexStorage, 
             signal.throwIfAborted(); const name = await names.intern(node.entries[index]!.key.decoded);
             await latest.set(BigInt(name.index), BigInt(index));
           }
-          for await (const [, index] of latest.entries()) { const entry = node.entries[Number(index)]!; yield [`/${entry.key.decoded}`, cosJson(entry.value, storage, signal)] as const; }
+          for await (const [, index] of latest.entries()) { const entry = node.entries[Number(index)]!; yield [`/${entry.key.decoded}`, cosJson(entry.value, storage, signal, version)] as const; }
         } catch (error) { failed = true; throw error; }
         finally { const results = await Promise.allSettled([names.close(), backing.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
         return;
@@ -35,10 +35,10 @@ export function cosJson(node: PdfCosNode | undefined, storage: PdfIndexStorage, 
         if (node.entries.findIndex(pair => pair.key.decoded === key) !== i) continue;
         let value = entry.value;
         for (let j = node.entries.length - 1; j > i; j--) if (node.entries[j]!.key.decoded === key) { value = node.entries[j]!.value; break; }
-        yield [`/${key}`, cosJson(value, storage, signal)] as const;
+        yield [`/${key}`, cosJson(value, storage, signal, version)] as const;
       }
     })() };
-    case "stream": return jsonRecord({ dict: cosJson(node.dict, storage, signal), length: node.rawBytes.length });
+    case "stream": return jsonRecord({ dict: cosJson(node.dict, storage, signal, version), length: node.rawBytes.length });
   }
 }
 

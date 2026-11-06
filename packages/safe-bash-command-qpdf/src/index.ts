@@ -145,7 +145,7 @@ export interface QpdfCliResult {
 
 
 
-function cosNodeToJson(node: PdfCosNode | undefined): unknown {
+function cosNodeToJson(node: PdfCosNode | undefined, version = 2): unknown {
   if (!node) return null;
   switch (node.kind) {
     case "null":
@@ -157,15 +157,15 @@ function cosNodeToJson(node: PdfCosNode | undefined): unknown {
     case "name":
       return `/${node.decoded}`;
     case "string":
-      return `u:${decodePdfString(node)}`;
+      return `${version === 1 ? "" : "u:"}${decodePdfString(node)}`;
     case "ref":
       return `${node.objectNumber} ${node.generationNumber} R`;
     case "array":
-      return node.items.map(cosNodeToJson);
+      return node.items.map(item => cosNodeToJson(item, version));
     case "dict": {
       const obj: Record<string, unknown> = {};
       for (const entry of node.entries) {
-        obj[`/${entry.key.decoded}`] = cosNodeToJson(entry.value);
+        obj[`/${entry.key.decoded}`] = cosNodeToJson(entry.value, version);
       }
       return obj;
     }
@@ -1530,6 +1530,10 @@ function* executeQpdfCli(
         } };
       }
       if (!includeObjects) continue;
+      if (jsonVersion === 1) {
+        objectsMap[`${objNum} ${obj.generationNumber} R`] = cosNodeToJson(obj.value.kind === "stream" ? obj.value.dict : obj.value, 1);
+        continue;
+      }
       if (obj.value.kind === "stream") {
         const streamDict: PdfCosDict = { ...obj.value.dict, entries: [...obj.value.dict.entries] };
         if (jsonStreamDataMode !== "none") dictDelete(streamDict, "Length");
@@ -1569,7 +1573,11 @@ function* executeQpdfCli(
       }
     }
     if (!hasSelector || jsonObjectSelectors.some((s) => s.kind === "trailer")) {
-      objectsMap.trailer = {
+      objectsMap.trailer = jsonVersion === 1 ? cosNodeToJson(baseDoc.cos.revisions[0]?.trailer ?? cosDict([
+        { key: cosName("Size"), value: cosNumber(baseDoc.cos.maxObjectNumber + 1) },
+        { key: cosName("Root"), value: baseDoc.cos.rootRef },
+        ...(baseDoc.cos.infoRef ? [{ key: cosName("Info"), value: baseDoc.cos.infoRef }] : [])
+      ]), 1) : {
         value: {
           "/Root": cosNodeToJson(baseDoc.cos.rootRef),
           ...(baseDoc.cos.infoRef ? { "/Info": cosNodeToJson(baseDoc.cos.infoRef) } : {}),

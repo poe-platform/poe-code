@@ -48,6 +48,10 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
   async function* objectEntries(): AsyncGenerator<readonly [string, JsonValue]> {
     for await (const object of objects()) {
       signal.throwIfAborted(); if (!selected(object.objectNumber, object.generationNumber)) continue;
+      if (options.jsonVersion === 1) {
+        yield [`${object.objectNumber} ${object.generationNumber} R`, cosJson(object.value, storage, signal, 1)];
+        continue;
+      }
       let value: JsonValue;
       if (object.stream) {
         const dict = object.value.kind === "dict" ? { ...object.value, entries: [...object.value.entries] } : object.value;
@@ -79,7 +83,7 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       } else value = jsonRecord({ value: cosJson(object.value, storage, signal) });
       yield [`obj:${object.objectNumber} ${object.generationNumber} R`, value];
     }
-    if (!options.jsonObjectSelectors.length || options.jsonObjectSelectors.some(item => item.kind === "trailer")) yield ["trailer", jsonRecord({ value: jsonRecord({
+    if (!options.jsonObjectSelectors.length || options.jsonObjectSelectors.some(item => item.kind === "trailer")) yield ["trailer", options.jsonVersion === 1 ? cosJson(sourceDocument.crossReference.trailer, storage, signal, 1) : jsonRecord({ value: jsonRecord({
       "/Root": cosJson(document.crossReference.rootRef, storage, signal),
       ...(document.crossReference.infoRef ? { "/Info": cosJson(document.crossReference.infoRef, storage, signal) } : {}),
       "/Size": maximum + 1,
@@ -179,14 +183,14 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     async function* fileEntries() {
       for (const name of inputNames) {
         if (name === options.outputFile && name !== "-") { yield { name, chunks: [] }; continue; }
-        if (!includeObjects || options.jsonStreamDataMode !== "file" || !name.startsWith(prefix)) continue;
+        if (options.jsonVersion === 1 || !includeObjects || options.jsonStreamDataMode !== "file" || !name.startsWith(prefix)) continue;
         const number = Number(name.slice(prefix.length));
         if (!Number.isSafeInteger(number) || number < 1 || String(number) !== name.slice(prefix.length)) continue;
         const entry = await document.crossReference.index.get(number, signal);
         if (!entry || !selected(number, entry.generationNumber ?? 0)) continue;
         if ((await document.objects.get(number, entry.generationNumber ?? 0))?.stream) yield { name, chunks: [] };
       }
-      if (!includeObjects || options.jsonStreamDataMode !== "file") return;
+      if (options.jsonVersion === 1 || !includeObjects || options.jsonStreamDataMode !== "file") return;
       for await (const object of objects()) if (object.stream && selected(object.objectNumber, object.generationNumber)) {
         async function* admitted() {
           let size = 0;

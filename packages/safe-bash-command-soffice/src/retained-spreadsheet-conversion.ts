@@ -56,15 +56,16 @@ export async function retainSpreadsheetConversion(storage: PagedStorage, source:
           if (cell) yield "\t";
           yield* cellText(row, cell);
         } else {
+          const numeric = input === "csv" && format === "xlsx" && await table.isNumeric?.(row, cell);
           if (format === "html") yield "<td>";
           else if (format === "docx") yield "<w:tc><w:p><w:r><w:t>";
           else {
             let letters = "";
             for (let column = cell + 1; column > 0; column = Math.floor((column - 1) / 26)) letters = String.fromCharCode(65 + (column - 1) % 26) + letters;
-            yield `<c r="${letters}${row + 1}" t="inlineStr"><is><t>`;
+            yield `<c r="${letters}${row + 1}" t="${numeric ? 'n"><v>' : 'inlineStr"><is><t>'}`;
           }
           for await (const text of cellText(row, cell)) yield format === "html" ? escapeHtmlText(text) : escapeXml(text);
-          yield format === "html" ? "</td>" : format === "docx" ? "</w:t></w:r></w:p></w:tc>" : "</t></is></c>";
+          yield format === "html" ? "</td>" : format === "docx" ? "</w:t></w:r></w:p></w:tc>" : numeric ? "</v></c>" : "</t></is></c>";
         }
       }
       if (format === "html") yield "</tr>\n";

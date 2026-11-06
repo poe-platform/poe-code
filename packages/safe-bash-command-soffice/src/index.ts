@@ -1,3 +1,4 @@
+import { isCsvNumber } from "./csv-number.js";
 import { parseXml } from "@poe-code/safe-fs/xml";
 import { xlsxDateText } from "./xlsx-dates.js";
 import { xlsxMetadata, xlsxDocumentPrefix, xlsxDocumentSuffix } from "./xlsx-parts.js";
@@ -830,7 +831,7 @@ function buildDocxFromBlocks(blocks: readonly DocBlock[]): Uint8Array {
   });
 }
 
-function buildXlsxFromRows(rows: readonly (readonly string[])[]): Uint8Array {
+function buildXlsxFromRows(rows: readonly (readonly string[])[], numericCells?: ReadonlySet<string>): Uint8Array {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const sheetRows = rows
@@ -841,6 +842,7 @@ function buildXlsxFromRows(rows: readonly (readonly string[])[]): Uint8Array {
           for (let column = cIdx + 1; column > 0; column = Math.floor((column - 1) / 26)) {
             colLetter = String.fromCharCode(65 + (column - 1) % 26) + colLetter;
           }
+          if (numericCells?.has(`${rIdx}:${cIdx}`)) return `<c r="${colLetter}${rIdx + 1}" t="n"><v>${val}</v></c>`;
           return `<c r="${colLetter}${rIdx + 1}" t="inlineStr"><is><t>${esc(val)}</t></is></c>`;
         })
         .join("");
@@ -854,11 +856,15 @@ function buildXlsxFromRows(rows: readonly (readonly string[])[]): Uint8Array {
   });
 }
 
-function parseDelimitedRows(text: string, separator = ","): string[][] {
+function parseDelimitedRows(text: string, separator = ",", numericCells?: Set<string>): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
-  let quoted = false;
+  let quoted = false, wasQuoted = false;
+  const cell = () => {
+    if (!wasQuoted && isCsvNumber(field)) numericCells?.add(`${rows.length}:${row.length}`);
+    row.push(field); field = ""; wasQuoted = false;
+  };
   for (let i = 0; i < text.length; i++) {
     const char = text[i]!;
     if (char === '"') {
@@ -866,15 +872,14 @@ function parseDelimitedRows(text: string, separator = ","): string[][] {
         field += '"';
         i++;
       } else if (quoted || field.length === 0) {
-        quoted = !quoted;
+        quoted = !quoted; wasQuoted = true;
       } else {
         field += char;
       }
     } else if (!quoted && char === separator) {
-      row.push(field);
-      field = "";
+      cell();
     } else if (!quoted && (char === "\r" || char === "\n")) {
-      row.push(field);
+      cell();
       rows.push(row);
       row = [];
       field = "";
@@ -885,7 +890,7 @@ function parseDelimitedRows(text: string, separator = ","): string[][] {
   }
   if (quoted) throw new Error("Invalid CSV: unterminated quoted field");
   if (text.length > 0 && (field.length > 0 || row.length > 0 || !["\r", "\n"].includes(text.at(-1)!))) {
-    row.push(field);
+    cell();
     rows.push(row);
   }
   return rows;
@@ -1066,13 +1071,14 @@ function* runSofficeSteps(
           }
         }
       } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
+        const numericCells = targetExt === "xlsx" && lowerIn.endsWith(".csv") ? new Set<string>() : undefined;
         const rows = lowerIn.endsWith(".xlsx")
           ? parseXlsxRows(inputBytes, targetExt === "csv" || targetExt === "html")
-          : parseDelimitedRows(new TextDecoder().decode(inputBytes));
+          : parseDelimitedRows(new TextDecoder().decode(inputBytes), ",", numericCells);
         if (targetExt === "csv") {
           outBytes = formatStarCalcCsv(rows, filterOpts);
         } else if (targetExt === "xlsx") {
-          outBytes = buildXlsxFromRows(rows);
+          outBytes = buildXlsxFromRows(rows, numericCells);
         } else if (targetExt === "docx") {
           outBytes = buildDocxFromBlocks([{ kind: "table", rows }]);
         } else if (targetExt === "html") {

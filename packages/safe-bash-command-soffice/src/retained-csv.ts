@@ -1,3 +1,4 @@
+import { isCsvNumber } from "./csv-number.js";
 import type { PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
@@ -7,13 +8,14 @@ import type { SofficeSnapshot } from "./retained-input.js";
 export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, blocks: RetainedOfficeBlocks, signal: AbortSignal, separator = ","): Promise<void> {
   const decoder = new TextDecoder(), encoder = new TextEncoder();
   let field = "", position = storage.allocate(0), size = 0, cells = 0;
-  let quoted = false, pendingQuote = false, skipLF = false, last = "", work = 0;
+  let wasQuoted = false, quoted = false, pendingQuote = false, skipLF = false, last = "", work = 0;
   const flush = async () => {
     if (!field) return;
     const bytes = encoder.encode(field); await storage.append(bytes); size += bytes.length; field = "";
   };
   const cell = async () => {
-    await flush(); await blocks.cell({ position, size }); cells++;
+    const numeric = !wasQuoted && !size && isCsvNumber(field);
+    await flush(); await blocks.cell({ position, size }, numeric); cells++; wasQuoted = false;
     position = storage.allocate(0); size = 0;
   };
   const row = async () => {
@@ -31,7 +33,7 @@ export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, 
       }
       if (char === '"') {
         if (quoted) pendingQuote = true;
-        else if (!size && !field.length) quoted = true;
+        else if (!size && !field.length) { quoted = true; wasQuoted = true; }
         else field += char;
       } else if (!quoted && char === separator) await cell();
       else if (!quoted && (char === "\r" || char === "\n")) { await row(); skipLF = char === "\r"; }

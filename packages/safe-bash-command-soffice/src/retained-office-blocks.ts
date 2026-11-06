@@ -32,9 +32,10 @@ export class RetainedOfficeBlocks implements RetainedTextBlocks {
     return {position: view.getFloat64(0), size: view.getFloat64(8), width: view.getFloat64(16), height: view.getFloat64(24)};
   }
   beginTable(): void { this.tableFirst = this.rowCount; this.columns = 0; }
-  async cell(span: SofficeSnapshot): Promise<void> {
-    await this.cells.set(BigInt(this.cellCount * 2), BigInt(span.position));
-    await this.cells.set(BigInt(this.cellCount * 2 + 1), BigInt(span.size)); this.cellCount++;
+  async cell(span: SofficeSnapshot, numeric = false): Promise<void> {
+    await this.cells.set(BigInt(this.cellCount * 3), BigInt(span.position));
+    await this.cells.set(BigInt(this.cellCount * 3 + 1), BigInt(span.size));
+    await this.cells.set(BigInt(this.cellCount * 3 + 2), numeric ? 1n : 0n); this.cellCount++;
   }
   async endRow(): Promise<void> {
     const count = this.cellCount - this.rowFirst;
@@ -60,9 +61,13 @@ export class RetainedOfficeBlocks implements RetainedTextBlocks {
     const rowTable = this.rows, cellTable = this.cells, read = this.read.bind(this);
     return { rows, columns,
       async cells(row) { return Number(await rowTable.get(BigInt((first + row) * 2 + 1))); },
+      async isNumeric(row, column) {
+        const cell = Number(await rowTable.get(BigInt((first + row) * 2))) + column;
+        return await cellTable.get(BigInt(cell * 3 + 2)) === 1n;
+      },
       async *streamCell(row, column) {
         const cell = Number(await rowTable.get(BigInt((first + row) * 2))) + column;
-        const position = Number(await cellTable.get(BigInt(cell * 2))), size = Number(await cellTable.get(BigInt(cell * 2 + 1)));
+        const position = Number(await cellTable.get(BigInt(cell * 3))), size = Number(await cellTable.get(BigInt(cell * 3 + 1)));
         yield* read(position, size);
       }
     };

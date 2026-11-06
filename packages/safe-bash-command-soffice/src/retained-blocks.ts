@@ -12,6 +12,7 @@ export interface RetainedTable {
   readonly rows: number;
   readonly columns: number;
   cells(row: number): Promise<number>;
+  isNumeric?(row: number, column: number): Promise<boolean>;
   streamCell(row: number, column: number): AsyncIterable<Uint8Array>;
 }
 

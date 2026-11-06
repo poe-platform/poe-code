@@ -11,7 +11,7 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 | Multi-Page Ranges | `-f <first> -l <last>` | Inspects page geometry and boxes across a specific range of pages. |
 | Custom Metadata | `-custom` | Includes sorted custom `/Info` dictionary string entries. |
 | Raw XMP Stream | `-meta` | Outputs the raw `/Metadata` XML packet from the document catalog. |
-| Date Formatting | `-isodates` / `-rawdates` | Formats PDF dates as ISO-8601 (`YYYY-MM-DDTHH:MM:SSZ`) or raw `D:...` strings. |
+| Date Formatting | `-isodates` / `-rawdates` | Default dates use `TZ` (UTC when unset); formats PDF dates as ISO-8601 (`YYYY-MM-DDTHH:MM:SSZ`) or raw `D:...` strings. |
 | URL & Link Extraction | `-url` | Lists all `/URI` link actions and URLs across inspected pages. |
 | Structure & JS Inspection | `-struct` / `-struct-text` / `-js` / `-dests` | Dumps `/StructTreeRoot`, JavaScript actions, or named destinations. |
 | Encrypted PDFs | `-upw <pw>` / `-opw <pw>` | Authenticates and inspects RC4/AES-encrypted PDFs and permission flags. |
@@ -56,4 +56,4 @@ atomic ancestry-checked publication. The commands create `TMPDIR` (default `/tmp
 and any missing parent directories before staging input or output.
 Use external storage for large files; an in-memory filesystem stores its files in
 RAM. Input limits are checked before range reads, and file writes use the shared
-shell output budget. The map-based CLI runners remain buffering convenience APIs.
+shell output budget. The map-based CLI runners remain buffering convenience APIs. Pass `timeZone` in `inspectPdfBytes` options or as the fifth argument to `runPdfinfoCli` to select the timezone for default date output; ISO and raw dates preserve the PDF values.

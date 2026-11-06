@@ -25,6 +25,7 @@ export interface PdfinfoCommandOptions {
 }
 
 export interface PdfinfoInspectionOptions {
+  readonly timeZone?: string;
   readonly fileSize?: number;
   readonly isStdin?: boolean;
 }
@@ -232,7 +233,7 @@ function takeDigitPair(str: string, pos: number): [string | undefined, number] {
   return [undefined, pos];
 }
 
-function formatPdfDate(raw: string, mode: "normal" | "iso" | "raw"): string {
+function formatPdfDate(raw: string, mode: "normal" | "iso" | "raw", timeZone = "UTC"): string {
   if (mode === "raw") return sanitizeControls(raw);
   const trimmed = raw.startsWith("D:") ? raw.slice(2) : raw;
   if (
@@ -325,16 +326,13 @@ function formatPdfDate(raw: string, mode: "normal" | "iso" | "raw"): string {
     offsetSec = (Number.parseInt(tzHour, 10) * 3600 + Number.parseInt(tzMin, 10) * 60) * (tzSign === "+" ? 1 : -1);
   }
   const dateObj = new Date(utcMs - offsetSec * 1000);
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const dName = days[dateObj.getUTCDay()] ?? "Mon";
-  const mName = months[dateObj.getUTCMonth()] ?? "Jan";
-  const dNum = String(dateObj.getUTCDate()).padStart(2, " ");
-  const hh = String(dateObj.getUTCHours()).padStart(2, "0");
-  const mm = String(dateObj.getUTCMinutes()).padStart(2, "0");
-  const ss = String(dateObj.getUTCSeconds()).padStart(2, "0");
-  const yyyy = String(dateObj.getUTCFullYear());
-  return `${dName} ${mName} ${dNum} ${hh}:${mm}:${ss} ${yyyy} UTC`;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timeZone || "UTC", weekday: "short", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", year: "numeric",
+    hourCycle: "h23", timeZoneName: "short",
+  }).formatToParts(dateObj);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(part => part.type === type)!.value;
+  return `${part("weekday")} ${part("month")} ${part("day").padStart(2, " ")} ${part("hour")}:${part("minute")}:${part("second")} ${part("year")} ${part("timeZoneName")}`;
 }
 
 function paperSizeLabel(width: number, height: number): string {
@@ -997,7 +995,7 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
   for (const dateKey of ["CreationDate", "ModDate"]) {
     yield;
     const val = infoMap.get(dateKey);
-    if (val !== undefined) out += formatField(dateKey, formatPdfDate(val, dateMode));
+    if (val !== undefined) out += formatField(dateKey, formatPdfDate(val, dateMode, options.timeZone));
   }
 
   if (args.custom) {
@@ -1120,7 +1118,7 @@ function* inspectPdfBytesCooperativelySteps(bytes: Uint8Array, argv: readonly st
     }
 }
 
-function* runPdfinfoCliSteps(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Generator<void, PdfinfoCliResult, void> {
+function* runPdfinfoCliSteps(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal, timeZone = "UTC"): Generator<void, PdfinfoCliResult, void> {
     const args = parseArgs(argv);
     if (args.error) {
         return { exitCode: args.errorExitCode ?? 99, stdout: "", stderr: args.error };
@@ -1130,7 +1128,7 @@ function* runPdfinfoCliSteps(argv: readonly string[], files: ReadonlyMap<string,
     }
     const target = args.inputFile ?? "-";
     if (target === "-") {
-        return (yield* inspectPdfBytesCooperativelySteps(stdinBytes, argv, { isStdin: true, fileSize: 0 }, signal));
+        return (yield* inspectPdfBytesCooperativelySteps(stdinBytes, argv, { isStdin: true, fileSize: 0, timeZone }, signal));
     }
     const fileBytes = files.get(target);
     if (!fileBytes) {
@@ -1140,10 +1138,10 @@ function* runPdfinfoCliSteps(argv: readonly string[], files: ReadonlyMap<string,
             stderr: `I/O Error: Couldn't open file '${target}': No such file or directory.\n`
     };
   }
-  return (yield* inspectPdfBytesCooperativelySteps(fileBytes, argv, { fileSize: fileBytes.byteLength }, signal));
+  return (yield* inspectPdfBytesCooperativelySteps(fileBytes, argv, { fileSize: fileBytes.byteLength, timeZone }, signal));
 }
-export async function runPdfinfoCli(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Promise<PdfinfoCliResult> {
-    return drainSteps(runPdfinfoCliSteps(argv, files, stdinBytes, signal), signal);
+export async function runPdfinfoCli(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal, timeZone = "UTC"): Promise<PdfinfoCliResult> {
+    return drainSteps(runPdfinfoCliSteps(argv, files, stdinBytes, signal, timeZone), signal);
 }
 
 /** Execute PDF inspection through caller-owned retained input. */
@@ -1228,7 +1226,7 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
     }
     for (const key of ["Title", "Subject", "Keywords", "Author", "Creator", "Producer", "CreationDate", "ModDate"]) {
       const value = await infoValue(key);
-      if (value !== undefined) await field(key, key === "CreationDate" || key === "ModDate" ? formatPdfDate(value, args.isodates ? "iso" : args.rawdates ? "raw" : "normal") : value);
+      if (value !== undefined) await field(key, key === "CreationDate" || key === "ModDate" ? formatPdfDate(value, args.isodates ? "iso" : args.rawdates ? "raw" : "normal", context.env.TZ) : value);
     }
     let hasCustom = false;
     async function* customIndices() {

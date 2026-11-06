@@ -1472,6 +1472,9 @@ function* executeQpdfCli(
   }
 
   if (showObject) {
+    if (showObject !== "trailer" && showObject.objNum === 0) {
+      return { exitCode: 0, stdout: "", stderr: "" };
+    }
     const node = showObject === "trailer" ? baseDoc.cos.revisions[0]?.trailer : baseDoc.cos.getObject(showObject.objNum);
     if (node?.kind === "stream" && (filteredStreamData || rawStreamData)) {
       const bytes = filteredStreamData ? baseDoc.cos.decodeStream(node) : node.rawBytes;

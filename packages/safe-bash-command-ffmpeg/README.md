@@ -27,6 +27,7 @@ and MP3 encoder delay and padding:
 audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac` accept AAC input as well as decoded PCM
 input, such as WAV or a `lavfi` source. Audio filters run in chain order; each
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
+`anull` passes audio through unchanged, alone or in a filter chain.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.
 `atempo` accepts arithmetic such as `atempo=1/2`; the result must be between 0.5 and 100.

@@ -2633,6 +2633,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (instance >= 0 && (equals < 0 || instance < equals)) {
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
+                      if (trimmed === "anull") continue;
                       if (trimmed === "volume" || trimmed.startsWith("volume=")) {
                         const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
                         let volSpec = "1";

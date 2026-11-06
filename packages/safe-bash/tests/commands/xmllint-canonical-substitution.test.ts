@@ -6,6 +6,34 @@ import { createStandardCommands } from "../../src/commands/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { createXmllintCommands } from "../../src/commands/xml/index.js";
 
+for (const flags of ["", "--format", "--c14n", "--exc-c14n"]) {
+  test(`xmllint ${flags || "ordinary output"} preserves serialization escaping in substitution`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/doc.xml", new TextEncoder().encode('<r label="a>b">café 😀 a>b</r>'));
+    const shell = new Shell({ fs, commands: new CommandRegistry([...createStandardCommands(), ...createXmllintCommands()]) });
+    try {
+      // Native libxml2 uses different escaping for canonical and ordinary XML.
+      const expected = flags.includes("c14n")
+        ? '<r label="a>b">café 😀 a&gt;b</r>'
+        : '<?xml version="1.0"?>\n<r label="a&gt;b">caf&#xE9; &#x1F600; a&gt;b</r>\n';
+      const direct = await shell.exec(`xmllint ${flags} /doc.xml`);
+      assert.equal(direct.exitCode, 0, direct.stderr);
+      assert.equal(direct.stderr, "");
+      assert.equal(direct.stdout, expected);
+      const assignment = await shell.exec(`value="$(xmllint ${flags} /doc.xml)"`);
+      assert.equal(assignment.exitCode, 0, assignment.stderr);
+      assert.equal(assignment.stderr, "");
+      assert.equal(assignment.stdout, "");
+      const captured = await shell.exec(`value="$(xmllint ${flags} /doc.xml)"; printf %s "$value"`);
+      assert.equal(captured.exitCode, 0, captured.stderr);
+      assert.equal(captured.stderr, "");
+      assert.equal(captured.stdout, expected.endsWith("\n") ? expected.slice(0, -1) : expected);
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
+
 for (const flags of ["--c14n", "--exc-c14n", "--format"]) {
   test(`xmllint ${flags} validates relative namespaces in substitution`, async () => {
     const fs = new MemoryFileSystem();

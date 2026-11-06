@@ -477,7 +477,7 @@ export async function* escape(
         ? "&amp;"
         : character === "<"
           ? "&lt;"
-          : character === ">"
+          : character === ">" && !(attribute && options.canonical)
             ? "&gt;"
             : attribute && character === '"'
               ? "&quot;"

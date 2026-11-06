@@ -1,3 +1,4 @@
+import { deskewAngleSteps, storedDeskewAngle, deskewPlan } from "./deskew.js";
 import { compareLayerBounds } from "./compare-layers.js";
 import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
@@ -5527,7 +5528,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-deskew") {
-            i++;
+            const spec = tokens[++i] ?? "";
+            stack = yield* mapSteps(stack, function* (image) {
+                const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec));
+                return { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, state.background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas };
+            });
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
@@ -6345,7 +6350,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
         if (!operandsOnly && token === "-delay") { state.delay = Number(tokens[++i] ?? 0) * 10; continue; }
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
-        if (!operandsOnly && ["-dispose", "-deskew"].includes(token)) { i++; continue; }
+        if (!operandsOnly && token === "-dispose") { i++; continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
         if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "compareany"))) {
             if (token === "-layers") i++;
@@ -6544,6 +6549,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";
             transform(() => ({ kind }));
+        } else if (!operandsOnly && token === "-deskew") {
+            const spec = tokens[++i] ?? "", background = state.background;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal));
+                return { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas };
+            });
         } else if (!operandsOnly && token === "-rotate") {
             const angle = Number(tokens[++i] ?? 0), background = state.background;
             transform(() => ({ kind: "rotate", angle, background }));
@@ -6760,6 +6772,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
         "-frame",
         "-shave",
         "-rotate",
+        "-deskew",
         "-background",
         "-fill",
         "-stroke",

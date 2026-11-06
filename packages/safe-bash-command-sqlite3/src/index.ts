@@ -1001,9 +1001,8 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           };
           const records = selected();
           const first = await records.next().finally(() => records.return(undefined));
-          if (first.done) return;
           let tbl = db.findTable ? db.findTable(tableArg) : undefined;
-          let colCount = tbl ? tbl.columns.length : first.value.length;
+          let colCount = tbl ? tbl.columns.length : (first.value?.length ?? 0);
           let tableExists = Boolean(tbl);
           if (!tableExists && !db.findTable) {
             const checkRes = await execSingleStmt(
@@ -1016,6 +1015,13 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                 colCount = colRes.columns.length;
               }
             }
+          }
+          if (first.done) {
+            if (!tableExists) {
+              await writeText(context.stderr, `${fileArg}: empty file\n`);
+              state.exitCode = 1;
+            }
+            return;
           }
           if (!tableExists) {
             const { columns: headerCols, renames } = importColumns(first.value);
@@ -1705,8 +1711,8 @@ export function evalSyncSqlite3(
         const content = fatalSyncSqliteDecoder.decode(fileBytes);
         const sep = csvOverride ? "," : state.colSeparator;
         const parsedRows = parseCsvContent(content, sep).slice(skipRows);
-        if (parsedRows.length === 0) return true;
         let tbl = db.findTable(tableArg);
+        if (parsedRows.length === 0) return Boolean(tbl);
         let dataRows = parsedRows;
         let colCount = tbl ? tbl.columns.length : (parsedRows[0]?.length ?? 0);
         if (!tbl) {

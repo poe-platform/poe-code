@@ -25,6 +25,24 @@ async function importFile(content: string, script: string[], options: Sqlite3Com
   return { code: result.exitCode, stdout, stderr };
 }
 
+for (const existing of [false, true]) {
+  test(`empty import ${existing ? "preserves an existing table" : "fails without creating a table"}`, async () => {
+    const script = [
+      ...(existing ? ['CREATE TABLE t(x);'] : []),
+      '.import --csv /input t',
+      existing ? 'SELECT count(*) FROM t;' : "SELECT count(*) FROM sqlite_master WHERE name='t';"
+    ];
+    assert.deepEqual(await importFile('', script), {
+      code: existing ? 0 : 1, stdout: '0\n', stderr: existing ? '' : '/input: empty file\n'
+    });
+  });
+  test(`sync empty import ${existing ? "succeeds for an existing table" : "defers missing-table diagnostics"}`, () => {
+    const script = `${existing ? 'CREATE TABLE t(x);\n' : ''}.import --csv /input t\n`;
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [':memory:'], () => new Uint8Array()),
+      existing ? '' : undefined);
+  });
+}
+
 test("imports quoted UTF-8 fields across chunk boundaries without whole-file reads", async () => {
   const result = await importFile('\ufeffname,value\r\n"é😀","one\r\ntwo"\r\n"a""b",42\r\nlast,',
     ['.import --csv /input t', 'SELECT * FROM t;']);

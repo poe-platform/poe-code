@@ -69,6 +69,9 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       virtualCanvas = {width:view.getUint32(0),height:view.getUint32(4),x:view.getInt32(8),y:view.getInt32(12)};
     } else if (type === "tRNS") {
       hasTrns = true;
+    } else if (type === "orNT" && len === 1) {
+      const chunk = yield {position:dataStart,length:1};
+      if (chunk[0]! <= 8) orientation = chunk[0]!;
     } else if (type === "eXIf" && len >= 8) {
       const exif = yield* exifMetadataSteps(len,dataStart);
       if (exif.orientation !== undefined) orientation = exif.orientation;

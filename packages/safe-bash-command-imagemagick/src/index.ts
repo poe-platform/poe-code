@@ -1268,8 +1268,8 @@ function* createCheckerboardImageSteps(width: number, height: number): Generator
 function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
-    const sw = Math.max(0, Math.round(g.width ?? 0));
-    const sh = Math.max(0, Math.round(g.height ?? 0));
+    const sw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? img.width / 100 : 1)));
+    const sh = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? img.height / 100 : 1)));
     // Native splice rounds the gravity box and the splice anchor separately.
     const box = gravityAdjustBox(img.width, img.height, sw, sh, g.x, g.y, gravity);
     const anchor = resolveGravityOffset(sw, sh, gravity);
@@ -6202,7 +6202,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {
-        const sw = Math.max(0, Math.round(g.width ?? 0)), sh = Math.max(0, Math.round(g.height ?? 0));
+        const sw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
+        const sh = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? h / 100 : 1)));
         const box = gravityAdjustBox(w, h, sw, sh, g.x, g.y, state.gravity);
         const anchor = resolveGravityOffset(sw, sh, state.gravity);
         const x = Math.max(0, Math.min(w, box.x + anchor.left));

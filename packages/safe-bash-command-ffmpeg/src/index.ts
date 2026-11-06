@@ -2113,14 +2113,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const nextLine = lines[l + 1]!.trim();
                       if (!nextLine || nextLine.startsWith("#")) {
                         l++;
-                      } else if (nextLine.startsWith("inpoint ")) {
-                        currentInpoint = parseFfmpegTimestamp(nextLine.slice(8));
-                        l++;
-                      } else if (nextLine.startsWith("outpoint ")) {
-                        currentOutpoint = parseFfmpegTimestamp(nextLine.slice(9));
-                        l++;
-                      } else if (nextLine.startsWith("duration ")) {
-                        currentDuration = parseFfmpegTimestamp(nextLine.slice(9));
+                      } else if (["inpoint", "outpoint", "duration"].includes(nextLine.split(/[ \t]/, 1)[0]!)) {
+                        const directive = nextLine.split(/[ \t]/, 1)[0]!;
+                        const value = nextLine.slice(directive.length).trim();
+                        // FFmpeg durations are decimal seconds (optionally s/ms/us)
+                        // or signed [hours:]minutes:seconds, with no trailing text.
+                        if (!/^-?(?:(?:\d+(?:\.\d*)?|\.\d+)(?:s|ms|us)?|(?:\d+:)?[0-5]?\d:[0-5]?\d(?:\.\d*)?)$/.test(value)) {
+                          throw new Error(`Line ${l + 2}: invalid ${directive} '${value}'`);
+                        }
+                        const seconds = value.startsWith("-")
+                          ? -parseFfmpegTimestamp(value.slice(1))
+                          : parseFfmpegTimestamp(value);
+                        if (!Number.isFinite(seconds) || Math.abs(seconds) >= 2 ** 63 / 1_000_000) {
+                          throw new Error(`Line ${l + 2}: invalid ${directive} '${value}'`);
+                        }
+                        if (directive === "inpoint") currentInpoint = seconds;
+                        else if (directive === "outpoint") currentOutpoint = seconds;
+                        else currentDuration = seconds;
                         l++;
                       } else {
                         break;

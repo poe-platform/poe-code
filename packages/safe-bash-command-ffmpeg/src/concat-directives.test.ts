@@ -8,6 +8,9 @@ import { createFfmpegCommand } from "./index.js";
 for (const separator of ["", "# marker\n", "\n", "  \n  # marker\n\n"]) {
   for (const [directives, start, end] of [
     [["inpoint 0.25"], 2000, 8000],
+    [["inpoint 00:00:00.25"], 2000, 8000],
+    [["inpoint 250ms"], 2000, 8000],
+    [["inpoint 250000us"], 2000, 8000],
     [["outpoint 0.25"], 0, 2048],
     [["outpoint 0.256"], 0, 2048],
     [["outpoint 0.75"], 0, 6144],
@@ -140,5 +143,36 @@ for (const [manifest, keyword, line] of [
       if (existingOutput) assert.deepEqual(volume.readFileSync("/out.wav"), Buffer.from(wav));
       else assert.equal(volume.existsSync("/out.wav"), false);
     });
+  }
+}
+
+for (const directive of ["inpoint", "outpoint", "duration"]) {
+  for (const value of ["xyz", "abc", "nonsense", "0.25junk", "00:00:xyz", "1:2:3:4", "NaN", "Infinity", "1e3", "", "00:60:00", "0.25msjunk", "9".repeat(400)]) {
+    for (const existingOutput of [false, true]) {
+      it(`concat rejects ${directive} value ${JSON.stringify(value)} with existing output ${existingOutput}`, async () => {
+        const volume = Volume.fromJSON({ "/list.ffconcat": `file a.wav\nfile b.wav\n${directive} ${value}\n` });
+        const wav = encodeWav({ sampleRate: 8000,
+          channels: [Float64Array.from({ length: 8000 }, (_, i) => (1000 + i) / 32768)] });
+        volume.writeFileSync("/a.wav", wav);
+        volume.writeFileSync("/b.wav", wav);
+        if (existingOutput) volume.writeFileSync("/out.wav", wav);
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args: ["-y", "-v", "error", "-f", "concat", "-i", "/list.ffconcat", "-c:a", "pcm_s16le", "/out.wav"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.notEqual(result.exitCode, 0, stderr);
+        assert.ok(stderr.includes(`Line 3: invalid ${directive}`), stderr);
+        if (existingOutput) assert.deepEqual(volume.readFileSync("/out.wav"), Buffer.from(wav));
+        else assert.equal(volume.existsSync("/out.wav"), false);
+      });
+    }
   }
 }

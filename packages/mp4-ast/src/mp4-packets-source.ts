@@ -262,7 +262,11 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       await decodeSamples?.return();
     }
     if (mode === 'streams') yield {
-      ...buildProbeStream({ ...track, duration: probeDuration }, codec, stats, index, 'mp4'),
+      ...buildProbeStream({ ...track, duration: probeDuration }, codec, {
+        ...stats,
+        initialPadding: result.value && count
+          ? Math.max(0, Math.round((result.value.mediaStart - firstPts) * (codec?.sampleRate ?? timescale) / timescale)) : 0
+      }, index, 'mp4'),
       ...(primingPackets ? { nb_read_frames: String(stats.count - primingPackets) } : {})
     };
   }

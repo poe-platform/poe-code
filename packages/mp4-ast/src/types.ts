@@ -443,6 +443,7 @@ export interface MediaProbeStream {
   readonly color_space?: string | undefined;
   readonly sample_fmt?: string | undefined;
   readonly sample_rate?: string | undefined;
+  readonly initial_padding?: number | undefined;
   readonly channels?: number | undefined;
   readonly channel_layout?: string | undefined;
   readonly bits_per_sample?: number | undefined;

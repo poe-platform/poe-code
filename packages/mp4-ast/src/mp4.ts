@@ -1924,16 +1924,18 @@ export function buildProbeResultFromDoc(
       formatStart = Math.min(formatStart, start);
       formatEnd = Math.max(formatEnd, start + duration / Math.max(1, track.timescale));
     }
+    const aacMediaStart = (doc.containerFormat === "mp4" || doc.containerFormat === "mov") &&
+      track.type === "audio" && desc?.codecName === "aac"
+      ? track.editList?.find(edit => edit.mediaTime >= 0)?.mediaTime : undefined;
     const stream = buildProbeStream({ ...track, duration }, desc, {
       totalBytes: materialized.samples.reduce((total, sample) => total + sample.size, 0),
       count: materialized.samples.length,
       ticks: materialized.samples.reduce((total, sample) => total + sample.duration, 0),
       firstPts,
+      initialPadding: aacMediaStart === undefined || !firstSample ? 0
+        : Math.max(0, Math.round((aacMediaStart - firstSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale)),
       hasReorderedSamples: materialized.samples.some((sample, i, samples) => i > 0 && sample.pts < samples[i - 1]!.pts)
     }, idx, doc.containerFormat);
-    const aacMediaStart = (doc.containerFormat === "mp4" || doc.containerFormat === "mov") &&
-      track.type === "audio" && desc?.codecName === "aac"
-      ? track.editList?.find(edit => edit.mediaTime >= 0)?.mediaTime : undefined;
     const timestampOffset = aacMediaStart === undefined ? 0 : firstPts - aacMediaStart;
     const primingPackets = aacMediaStart === undefined ? 0 : materialized.samples.reduce(
       (count, sample) => count + (sample.pts + sample.duration <= aacMediaStart ? 1 : 0), 0);

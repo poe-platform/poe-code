@@ -3,7 +3,7 @@ import { probeSampleFormat, type Mp4CodecMetadata } from './mp4-codec-metadata.j
 import type { MediaTrack, MediaProbeStream, MediaProbeText } from './types.js';
 
 export type ProbeStreamTrack<T> = Pick<MediaTrack, 'id' | 'type' | 'timescale' | 'duration' | 'width' | 'height' | 'language' | 'rotation' | 'enabled' | 'declaredSampleCount'> & { handlerName?: T | undefined };
-export interface ProbeSampleStats { totalBytes: number; count: number; ticks: number; firstPts: number; hasReorderedSamples: boolean }
+export interface ProbeSampleStats { totalBytes: number; count: number; ticks: number; firstPts: number; initialPadding?: number; hasReorderedSamples: boolean }
 const CODEC_LONG_NAMES: Record<string, string> = {
   h264: "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
   hevc: "H.265 / HEVC (High Efficiency Video Coding)",
@@ -98,6 +98,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     color_range: track.type === "video" ? desc?.colorRange : undefined,
     color_space: track.type === "video" ? desc?.colorSpace : undefined,
     sample_fmt: sampleFormat,
+    initial_padding: track.type === 'audio' && codecName === 'aac' && (containerFormat === 'mp4' || containerFormat === 'mov')
+      ? stats.initialPadding ?? 0 : undefined,
     sample_rate:
       track.type === "audio" ? String(desc?.sampleRate ?? track.timescale) : undefined,
     channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined,

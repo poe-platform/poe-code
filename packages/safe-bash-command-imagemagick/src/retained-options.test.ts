@@ -12,8 +12,12 @@ it(`retains conversion options ${options.join(" ")}`, async () => {
         if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole-file conversion forbidden"); };
         const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
     } });
-    expect(await runConvertCli(args, { filesystem, cwd: "/" })).toEqual(await runConvertCli(args, files));
-    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+    expect(await runConvertCli(args, { filesystem, cwd: "/" })).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    expect(await runConvertCli(args, files)).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    const outputs = options[0] === "-layers" ? ["out.png"] : ["out-0.png", "out-1.png"];
+    for (const output of outputs) {
+        expect(decodeImage(await fs.readFile(`/${output}`))).toEqual(decodeImage(files.get(output)!));
+    }
 });
 
 for (const args of [[], ["--help", "input"], ["input", "--version"], ["input", "-list", "format"], ["input", "-list", "unknown"], ["-unknown", "out.png"], ["-transpose", "out.png"]])

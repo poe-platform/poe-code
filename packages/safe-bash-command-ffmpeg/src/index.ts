@@ -2066,7 +2066,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               const rawBytes = await readInput(filePath);
 
-              if (explicitFormat === "concat") {
+              const concatSignature = "ffconcat version 1.0";
+              if (explicitFormat === "concat" || (explicitFormat === undefined &&
+                new TextDecoder("utf-8", { ignoreBOM: true }).decode(rawBytes.subarray(0, concatSignature.length)) === concatSignature)) {
                 const listText = new TextDecoder().decode(rawBytes);
                 const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
                 const concatDocs: MediaDocument[] = [];

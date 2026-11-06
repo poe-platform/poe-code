@@ -133,7 +133,7 @@ function* jsonValue(value: SqlValue | undefined): Generator<string> {
 
 /** Replay result rows for widths; never retain a second formatted row set or full output. */
 export function* formatQueryParts({columns, rows}: QueryResultSet, state: QueryOutputOptions): Generator<string> {
-  if (!columns.length) return;
+  if (!columns.length || !rows.length) return;
   const {mode} = state;
   if (mode === 'json') {
     yield '[';
@@ -161,7 +161,6 @@ export function* formatQueryParts({columns, rows}: QueryResultSet, state: QueryO
     return;
   }
   if (mode === 'column' || mode === 'table' || mode === 'markdown' || mode === 'box') {
-    if (!state.showHeaders && !rows.length) return;
     const widths: number[] = [];
     let multiline = false;
     for (let col = 0; col < columns.length; col++) {

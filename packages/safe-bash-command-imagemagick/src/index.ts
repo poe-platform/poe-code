@@ -1432,19 +1432,32 @@ function hasSceneOutputPattern(path: string): boolean {
 }
 
 function formatSceneOutputPath(pattern: string, index: number): string {
-  const padMatch = /%0(\d+)d/.exec(pattern);
-  if (padMatch) {
-    const width = parseInt(padMatch[1]!, 10);
-    return pattern.replace(/%0\d+d/, String(index).padStart(width, "0"));
+  let path = "", hasScene = false;
+  for (let cursor = 0; cursor < pattern.length; cursor++) {
+    if (pattern[cursor] === "%") {
+      if (pattern[cursor + 1] === "%") {
+        path += "%";
+        cursor++;
+        continue;
+      }
+      let end = cursor + 1;
+      while (pattern[end] !== undefined && pattern[end]! >= "0" && pattern[end]! <= "9") end++;
+      if (pattern[end] === "d") {
+        const width = Number(pattern.slice(cursor + 1, end));
+        path += String(index).padStart(width, pattern[cursor + 1] === "0" ? "0" : " ");
+        hasScene = true;
+        cursor = end;
+        continue;
+      }
+    }
+    path += pattern[cursor];
   }
-  if (pattern.includes("%d")) {
-    return pattern.replace(/%d/, String(index));
-  }
-  const dot = pattern.lastIndexOf(".");
+  if (hasScene) return path;
+  const dot = path.lastIndexOf(".");
   if (dot > 0) {
-    return `${pattern.slice(0, dot)}-${index}${pattern.slice(dot)}`;
+    return `${path.slice(0, dot)}-${index}${path.slice(dot)}`;
   }
-  return `${pattern}-${index}`;
+  return `${path}-${index}`;
 }
 
 function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean } {

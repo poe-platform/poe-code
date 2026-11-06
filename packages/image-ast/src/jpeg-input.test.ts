@@ -1322,7 +1322,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "2a6131e7c84a112f037b451cd2fee7dab2fe38395fec8a22a55e5175ef1221d9"
+    hash: "1f207ae8a8768ab261951e7cba36c296f681a954232f07dd6b1f97fdef9d3c84"
   },
   {
     name: "encoded 7x9 shrink128",
@@ -1354,7 +1354,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "2a6131e7c84a112f037b451cd2fee7dab2fe38395fec8a22a55e5175ef1221d9"
+    hash: "1f207ae8a8768ab261951e7cba36c296f681a954232f07dd6b1f97fdef9d3c84"
   },
   {
     name: "encoded 7x9 shrink256",
@@ -1386,7 +1386,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "2a6131e7c84a112f037b451cd2fee7dab2fe38395fec8a22a55e5175ef1221d9"
+    hash: "1f207ae8a8768ab261951e7cba36c296f681a954232f07dd6b1f97fdef9d3c84"
   },
   {
     name: "encoded 17x19 shrinkundefined",
@@ -1418,7 +1418,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
+    hash: "b522b54b27d8a8646da0825e487ea14a4716b60a334ecf4c2c8990facf1b3353"
   },
   {
     name: "encoded 17x19 shrink128",
@@ -1450,7 +1450,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
+    hash: "b522b54b27d8a8646da0825e487ea14a4716b60a334ecf4c2c8990facf1b3353"
   },
   {
     name: "encoded 17x19 shrink256",
@@ -1482,7 +1482,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
+    hash: "b522b54b27d8a8646da0825e487ea14a4716b60a334ecf4c2c8990facf1b3353"
   },
   {
     name: "encoded 511x512 shrinkundefined",
@@ -1514,7 +1514,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "4c85177e08e3ee0bef3f1c947b71b5b5f3e6e2c86bc0644b59a0135626ac223f"
+    hash: "49ed3843e54710e30de161ac9dafa465365259784b18d800c8d8350c7999f24b"
   },
   {
     name: "encoded 511x512 shrink128",
@@ -1610,7 +1610,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "fd59b3035a34da44e982668e2e63d4b7e9e95cd0a144fad69c6e45bbd8e10cef"
+    hash: "cf2d2a0f0a516b199f76644512aa065deb45fb0a2680f3ab79f61fadcb5f3d55"
   },
   {
     name: "encoded 512x512 shrink128",
@@ -1706,7 +1706,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "dcf7676d8733913d49c9caefa748a8d23556026edba7142e36b5ff06af617af5"
+    hash: "d05882ab77df8af5836a7ee3f0e0f18d90962452af28044f87ad52c52efb322d"
   },
   {
     name: "encoded 513x512 shrink128",
@@ -1802,7 +1802,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "3b151dc1088b3b56ed5f9457f70a6ce1531ddc8e921f57cfceccaa057049297a"
+    hash: "f2f7cbd0b0a612cd3a435c1453b73344c54fd0169fe611f1d7d42d4136e7ae89"
   },
   {
     name: "encoded 513x9 shrink128",
@@ -1898,7 +1898,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "ce186c2f3cbf5e984f91d2aff8c24315c83059d88b74ca546aedc5fc72d3b211"
+    hash: "fd261aa8dcf738b0289515dea1ba49bc92dccb2869b7715c3bb6943b5fb30af7"
   },
   {
     name: "encoded 513x256 shrink128",
@@ -3482,7 +3482,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
+    hash: "b522b54b27d8a8646da0825e487ea14a4716b60a334ecf4c2c8990facf1b3353"
   },
   {
     name: "encoded truncated-2",
@@ -3514,7 +3514,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       orientation: 6,
       isProgressive: false
     },
-    hash: "5e877255e9b3871ba2932436a910a44b9d72f33b17432b60982639a8a5432396"
+    hash: "b522b54b27d8a8646da0825e487ea14a4716b60a334ecf4c2c8990facf1b3353"
   },
   {
     name: "encoded truncated-3",

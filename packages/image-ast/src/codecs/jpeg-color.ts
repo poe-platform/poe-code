@@ -43,11 +43,9 @@ export function jpegColor(
     const b = Math.round(((inverted ? cr + 128 : 127 - cr) * black) / 255);
     return r | (g << 8) | (b << 16);
   }
-  let r = strip ? y + ((91881 * cr + 32768) >> 16) : Math.round(y + 1.402 * cr);
-  let g = strip
-    ? y - ((22554 * cb + 46802 * cr + 32768) >> 16)
-    : Math.round(y - 0.344136 * cb - 0.714136 * cr);
-  let b = strip ? y + ((116130 * cb + 32768) >> 16) : Math.round(y + 1.772 * cb);
+  let r = y + Math.floor((91881 * cr + 32768) / 65536);
+  let g = y + Math.floor((-22554 * cb - 46802 * cr + 32768) / 65536);
+  let b = y + Math.floor((116130 * cb + 32768) / 65536);
   r = r < 0 ? 0 : r > 255 ? 255 : r;
   g = g < 0 ? 0 : g > 255 ? 255 : g;
   b = b < 0 ? 0 : b > 255 ? 255 : b;

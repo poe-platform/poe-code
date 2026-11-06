@@ -183,62 +183,47 @@ export function idct8x8(coeffs: Int32Array | Int16Array, quant: Uint16Array, out
       IDCT_DEQUANT[ZIGZAG[i]!] = c * quant[i]!;
     }
   }
-  for (let y = 0; y < 8; y++) {
-    const rowOff = y * 8;
-    const d0 = IDCT_DEQUANT[rowOff]!;
-    const d1 = IDCT_DEQUANT[rowOff + 1]!;
-    const d2 = IDCT_DEQUANT[rowOff + 2]!;
-    const d3 = IDCT_DEQUANT[rowOff + 3]!;
-    const d4 = IDCT_DEQUANT[rowOff + 4]!;
-    const d5 = IDCT_DEQUANT[rowOff + 5]!;
-    const d6 = IDCT_DEQUANT[rowOff + 6]!;
-    const d7 = IDCT_DEQUANT[rowOff + 7]!;
-    if (d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0 && d5 === 0 && d6 === 0 && d7 === 0) {
-      const v = d0 * COS_TABLE[0]! * 0.5;
-      IDCT_TEMP[rowOff] = v;
-      IDCT_TEMP[rowOff + 1] = v;
-      IDCT_TEMP[rowOff + 2] = v;
-      IDCT_TEMP[rowOff + 3] = v;
-      IDCT_TEMP[rowOff + 4] = v;
-      IDCT_TEMP[rowOff + 5] = v;
-      IDCT_TEMP[rowOff + 6] = v;
-      IDCT_TEMP[rowOff + 7] = v;
-      continue;
-    }
-    for (let x = 0; x < 8; x++) {
-      const sum =
-        d0 * COS_TABLE[x]! +
-        d1 * COS_TABLE[8 + x]! +
-        d2 * COS_TABLE[16 + x]! +
-        d3 * COS_TABLE[24 + x]! +
-        d4 * COS_TABLE[32 + x]! +
-        d5 * COS_TABLE[40 + x]! +
-        d6 * COS_TABLE[48 + x]! +
-        d7 * COS_TABLE[56 + x]!;
-      IDCT_TEMP[rowOff + x] = sum * 0.5;
-    }
-  }
-  for (let x = 0; x < 8; x++) {
-    const t0 = IDCT_TEMP[x]!;
-    const t1 = IDCT_TEMP[8 + x]!;
-    const t2 = IDCT_TEMP[16 + x]!;
-    const t3 = IDCT_TEMP[24 + x]!;
-    const t4 = IDCT_TEMP[32 + x]!;
-    const t5 = IDCT_TEMP[40 + x]!;
-    const t6 = IDCT_TEMP[48 + x]!;
-    const t7 = IDCT_TEMP[56 + x]!;
-    for (let y = 0; y < 8; y++) {
-      const sum =
-        t0 * COS_TABLE[y]! +
-        t1 * COS_TABLE[8 + y]! +
-        t2 * COS_TABLE[16 + y]! +
-        t3 * COS_TABLE[24 + y]! +
-        t4 * COS_TABLE[32 + y]! +
-        t5 * COS_TABLE[40 + y]! +
-        t6 * COS_TABLE[48 + y]! +
-        t7 * COS_TABLE[56 + y]!;
-      const val = Math.round(sum * 0.5 + 128);
-      out[y * 8 + x] = val < 0 ? 0 : val > 255 ? 255 : val;
+  // libjpeg's accurate integer IDCT: 13-bit constants, two retained bits
+  // after the column pass, and rounded descaling at each pass boundary.
+  for (let pass = 0; pass < 2; pass++) {
+    const input = pass === 0 ? IDCT_DEQUANT : IDCT_TEMP;
+    const stride = pass === 0 ? 8 : 1;
+    const divisor = pass === 0 ? 2048 : 262144;
+    for (let line = 0; line < 8; line++) {
+      const offset = pass === 0 ? line : line * 8;
+      const d0 = input[offset]!;
+      const d1 = input[offset + stride]!;
+      const d2 = input[offset + 2 * stride]!;
+      const d3 = input[offset + 3 * stride]!;
+      const d4 = input[offset + 4 * stride]!;
+      const d5 = input[offset + 5 * stride]!;
+      const d6 = input[offset + 6 * stride]!;
+      const d7 = input[offset + 7 * stride]!;
+      const z1 = (d2 + d6) * 4433;
+      const t2 = z1 - d6 * 15137;
+      const t3 = z1 + d2 * 6270;
+      const t0 = (d0 + d4) * 8192;
+      const t1 = (d0 - d4) * 8192;
+      const t10 = t0 + t3, t13 = t0 - t3;
+      const t11 = t1 + t2, t12 = t1 - t2;
+      const z5 = (d7 + d3 + d5 + d1) * 9633;
+      const z3 = (d7 + d3) * -16069 + z5;
+      const z4 = (d5 + d1) * -3196 + z5;
+      const z12 = (d7 + d1) * -7373;
+      const z2 = (d5 + d3) * -20995;
+      const o0 = d7 * 2446 + z12 + z3;
+      const o1 = d5 * 16819 + z2 + z4;
+      const o2 = d3 * 25172 + z2 + z3;
+      const o3 = d1 * 12299 + z12 + z4;
+      for (let i = 0; i < 8; i++) {
+        const value = i === 0 ? t10 + o3 : i === 1 ? t11 + o2 :
+          i === 2 ? t12 + o1 : i === 3 ? t13 + o0 :
+          i === 4 ? t13 - o0 : i === 5 ? t12 - o1 :
+          i === 6 ? t11 - o2 : t10 - o3;
+        const sample = Math.floor((value + divisor / 2) / divisor);
+        if (pass === 0) IDCT_TEMP[offset + i * stride] = sample;
+        else out[offset + i] = Math.max(0, Math.min(255, sample + 128));
+      }
     }
   }
 }

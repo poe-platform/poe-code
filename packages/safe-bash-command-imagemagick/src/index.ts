@@ -3404,6 +3404,16 @@ function magickMirrorCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
         : { ...page, x: page.width ? page.width - image.width - page.x : page.x };
 }
 
+function magickTransposeCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, transverse: boolean) {
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    let scaleX = image.height / image.width, scaleY = image.width / image.height;
+    // Native CloneImage scales the page before transpose swaps its axes.
+    const width = Math.floor(scaleY * page.height + 0.5), height = Math.floor(scaleX * page.width + 0.5);
+    if (Math.abs(scaleX - scaleY) < 2) scaleX = scaleY = Math.min(scaleX, scaleY);
+    const x = Math.ceil(scaleY * page.y - 0.5), y = Math.ceil(scaleX * page.x - 0.5);
+    return { width, height, x: transverse && width ? width - image.height - x : x, y: transverse && height ? height - image.width - y : y };
+}
+
 function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, left: number, top: number) {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     return { ...page, x: page.x + left, y: page.y + top };
@@ -5588,12 +5598,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-transpose") {
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background));
+                return { ...yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background), virtualCanvas: magickTransposeCanvas(im, false) };
             }));
         }
         else if (t === "-transverse") {
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background));
+                return { ...yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background), virtualCanvas: magickTransposeCanvas(im, true) };
             }));
         }
         else if (t === "-auto-orient") {
@@ -6640,7 +6650,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, raisePixelSteps(image, border, raised), signal) : undefined);
         } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
-            steps.push(async (image, backend) => image ? transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) : undefined);
+            steps.push(async (image, backend) => image ? { ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal), virtualCanvas: magickTransposeCanvas(image, kind === "flop") } : undefined);
         } else if (!operandsOnly && token === "-vignette") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             const background = state.background;

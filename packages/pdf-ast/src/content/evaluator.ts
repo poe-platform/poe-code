@@ -30,6 +30,7 @@ import {
   type PdfPlacedGlyph,
   type PdfPaintOperation,
   type PdfRgbColor,
+  type PdfRect,
   type PdfSoftMask,
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
@@ -1450,8 +1451,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             delete maskState.clipImages;
             delete maskState.clipRect;
             stateStack.push(maskState);
+            let bounds: PdfRect | undefined;
             try {
-              yield* paintForm(form, activeResources, activeFonts, depth, undefined, undefined, true);
+              bounds = yield* paintForm(form, activeResources, activeFonts, depth, undefined, undefined, true);
             } finally {
               stateStack.pop();
               capturedOperations = parentOperations;
@@ -1460,7 +1462,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             }
             const parameters = yield { kind: "mask-parameters", mask, form, resources: activeResources };
             if (!parameters || !("kind" in parameters) || parameters.kind !== "mask-parameters") throw new TypeError("Expected PDF soft-mask parameters");
-            st.softMask = { ...(params.geometryStorage ? {retainedId: maskIdentity++} : {}), subtype: subtype.decoded, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
+            st.softMask = { ...(params.geometryStorage ? {retainedId: maskIdentity++} : {}), subtype: subtype.decoded, bounds, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
           }
         }
         const bmNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "BM", true), true);
@@ -1682,7 +1684,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     mcid?: number,
     actualText?: string | PdfStoredBytes,
     maskGroup = false
-  ): EvaluationWork {
+  ): EvaluationWork<PdfRect | undefined> {
     const st = curState();
     const group = yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(form.dict, "Group", true), undefined, true);
     const groupType = group ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(group, "S")) : undefined;
@@ -1709,6 +1711,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     }
     let nextClip = !compositeGroup && st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
     let formClip: PdfClipPath | undefined;
+    let bounds: PdfRect | undefined;
     const bboxArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(form.dict, "BBox", true), true);
     if (bboxArr && (bboxArr.storedItems?.length ?? bboxArr.items.length) >= 4) {
       const items = yield* evaluationArrayPrefix(bboxArr, 4);
@@ -1731,6 +1734,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const fMinY = Math.min(...pts.map(p => p[1]));
       const fMaxX = Math.max(...pts.map(p => p[0]));
       const fMaxY = Math.max(...pts.map(p => p[1]));
+      bounds = [fMinX, fMinY, fMaxX, fMaxY];
       if (fMaxX > fMinX && fMaxY > fMinY) {
         nextClip = nextClip
           ? [
@@ -1765,6 +1769,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       capturedOperations = parentOperations;
     }
     if (compositeGroup) yield* emit({ kind: "group", value: { operations: children instanceof StoredOperationsWriter ? [] : children, ...(children instanceof StoredOperationsWriter ? {storedOperations:children.snapshot()} : {}), alpha: st.fillAlpha, isolated, bboxClip: formClip, blendMode: st.blendMode, clipRect: st.clipRect } });
+    return bounds;
   };
 
   function* markedContext(node: Extract<PdfContentNode, { kind: "marked-content" }>,

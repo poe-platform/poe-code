@@ -1051,11 +1051,15 @@ function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, sc
   const bitmap = (yield* renderDisplayListLayerSteps({
     ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
   }, { scale, transparent: true }, scale, undefined, window, undefined, images, mask.storedOperations));
-  yield* applySoftMaskPixelsSteps(mask, bitmap.data);
+  yield* applySoftMaskPixelsSteps(mask, bitmap, displayList, scale, window);
   return bitmap;
 }
 
-function *applySoftMaskPixelsSteps(mask: PdfSoftMask, data: Uint8Array): Generator<void, void, void> {
+function *applySoftMaskPixelsSteps(mask: PdfSoftMask, bitmap: RgbaBitmap, page: Pick<PdfDisplayList, "height" | "origin">, scale: number, window?: PdfCropRect): Generator<void, void, void> {
+  const { data, width } = bitmap;
+  const [originX, originY] = page.origin ?? [0, 0];
+  const bounds = mask.bounds;
+  const outsideAlpha = Math.round(pdfLum(mask.backdrop.r * 255, mask.backdrop.g * 255, mask.backdrop.b * 255));
   let work = 0;
   for (let i = 0; i < data.length; i += 4) {
     if (++work % 16384 === 0) yield;
@@ -1067,8 +1071,17 @@ function *applySoftMaskPixelsSteps(mask: PdfSoftMask, data: Uint8Array): Generat
       const b = Math.round(data[i + 2]! * alpha + mask.backdrop.b * 255 * (1 - alpha));
       value = Math.round(pdfLum(r, g, b));
     }
+    value = mask.transferMap?.[value] ?? value;
+    // Poppler uses the backdrop directly outside an Alpha group; TR applies
+    // only to pixels in the group. Unpainted pixels inside still have alpha 0.
+    if (mask.subtype === "Alpha" && bounds) {
+      const pixel = i / 4;
+      const x = originX + ((window?.x ?? 0) + pixel % width + 0.5) / scale;
+      const y = originY + page.height - ((window?.y ?? 0) + Math.floor(pixel / width) + 0.5) / scale;
+      if (x < bounds[0] || x >= bounds[2] || y < bounds[1] || y >= bounds[3]) value = outsideAlpha;
+    }
     data[i] = data[i + 1] = data[i + 2] = 0;
-    data[i + 3] = mask.transferMap?.[value] ?? value;
+    data[i + 3] = value;
   }
 }
 
@@ -2126,7 +2139,7 @@ export async function* encodeSvgSoftMaskChunks(mask:PdfSoftMask,page:Pick<PdfDis
       const bitmap=await renderOperationStreamWindow(page,async function*(){
         if(mask.storedOperations)yield* readStoredOperations(mask.storedOperations,signal);else yield* mask.operations;
       },{x,y,width:Math.min(tileSize,width-x),height:Math.min(tileSize,height-y)},{scale,transparent:true,...(signal?{signal}:{})});
-      for(const ignored of applySoftMaskPixelsSteps(mask,bitmap.data)){void ignored;await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}
+      for(const ignored of applySoftMaskPixelsSteps(mask,bitmap,page,scale,{x,y,width:bitmap.width,height:bitmap.height})){void ignored;await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}
       yield bitmap.data;
     }
   }

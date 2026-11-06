@@ -39,10 +39,28 @@ describe("ExtGState soft masks", () => {
     expect(pixel(bitmap, 60, 20)).toEqual([255, 255, 255, 255]);
   });
 
-  it("uses opacity for Alpha masks, independently of their color and backdrop", () => {
+  it("uses opacity inside Alpha masks and backdrop luminosity outside their bounds", () => {
     const bitmap = maskedPdf({ subtype: "Alpha", content: "/A gs 0 g 0 0 40 40 re f", backdrop: [1, 1, 1] }).getPage(0).renderToBitmap({ scale: 1 });
     expect(pixel(bitmap, 20, 20)).toEqual([255, 127, 127, 255]);
-    expect(pixel(bitmap, 60, 20)).toEqual([255, 255, 255, 255]);
+    expect(pixel(bitmap, 60, 20)).toEqual([255, 0, 0, 255]);
+  });
+
+  it("keeps unpainted Alpha-mask pixels transparent inside transformed bounds", () => {
+    const bitmap = maskedPdf({ subtype: "Alpha", backdrop: [1, 1, 1],
+      matrix: [1, 0, 0, 1, 20, 10], content: "1 g 0 0 10 10 re f",
+    }).getPage(0).renderToBitmap({ scale: 1 });
+    expect(pixel(bitmap, 25, 15)).toEqual([255, 0, 0, 255]);
+    expect(pixel(bitmap, 45, 25)).toEqual([255, 255, 255, 255]);
+    expect(pixel(bitmap, 10, 25)).toEqual([255, 0, 0, 255]);
+  });
+
+  it("keeps the outside Alpha-mask backdrop independent of transfer", () => {
+    const bitmap = maskedPdf({ subtype: "Alpha", backdrop: [1, 1, 1], transfer: true,
+      content: "1 g 0 0 10 10 re f",
+    }).getPage(0).renderToBitmap({ scale: 1 });
+    expect(pixel(bitmap, 5, 5)).toEqual([255, 255, 255, 255]);
+    expect(pixel(bitmap, 20, 20)).toEqual([255, 0, 0, 255]);
+    expect(pixel(bitmap, 60, 20)).toEqual([255, 0, 0, 255]);
   });
 
   it("uses PDF luminosity coefficients, including mask alpha over the backdrop", () => {
@@ -212,7 +230,7 @@ describe("ExtGState soft masks", () => {
   });
 
   it.each([
-    ["smask_alpha_bc", 20, 20, [242, 242, 242, 255]],
+    ["smask_alpha_bc", 20, 20, [51, 153, 229, 255]],
     ["smask_alpha_oob", 100, 100, [153, 204, 242, 255]],
     ["smask_alpha_oob_transfer", 300, 300, [153, 204, 242, 255]],
     ["smask_luminosity_oob_transfer", 250, 200, [223, 99, 80, 255]],

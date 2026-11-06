@@ -240,6 +240,8 @@ export interface PdfSoftMask {
   /** Identity within one retained page evaluation, preserved across capture records. */
   readonly retainedId?: number;
   readonly subtype: "Alpha" | "Luminosity";
+  /** Transformed Form BBox in page coordinates. */
+  readonly bounds?: PdfRect | undefined;
   readonly operations: readonly PdfPaintOperation[];
   readonly storedOperations?: PdfStoredOperations | undefined;
   readonly backdrop: PdfRgbColor;

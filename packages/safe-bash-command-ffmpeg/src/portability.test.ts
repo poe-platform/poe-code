@@ -44,7 +44,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes canonical ffconcat signature probing (118 emitted bytes).
   // Includes concat directive ordering and reversed-range validation.
   // Includes concat version, unknown-keyword, and complete timestamp validation.
-  // Includes native concat filename tokenization.
+  // Includes per-input concat safe policy and filename validation.
   assert.ok(otherCodeBytes < 457_300, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required

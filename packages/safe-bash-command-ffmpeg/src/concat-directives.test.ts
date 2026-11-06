@@ -29,7 +29,7 @@ for (const separator of ["", "# marker\n", "\n", "  \n  # marker\n\n"]) {
       }
       let stderr = "";
       const result = await createFfmpegCommand().execute({
-        args: ["-y", "-v", "error", "-f", "concat", "-i", "/list.ffconcat", "-c:a", "pcm_s16le", "/out.wav"],
+        args: ["-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", "/list.ffconcat", "-c:a", "pcm_s16le", "/out.wav"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },

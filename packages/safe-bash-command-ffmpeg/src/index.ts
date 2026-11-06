@@ -1569,6 +1569,7 @@ export function evalSyncFfmpeg(
 interface InputSpec {
   readonly path: string;
   readonly format?: string | undefined;
+  readonly safe?: boolean | undefined;
   readonly startSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
@@ -1628,6 +1629,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
       const inputs: InputSpec[] = [];
       let pendingFormat: string | undefined;
+      let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingSs: number | undefined;
       let pendingTo: number | undefined;
@@ -1699,7 +1701,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             overwrite = arg === "-y";
-          } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-update" || arg === "-loop") {
+          } else if (arg === "-safe") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -safe must be 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingSafe = value === "1";
+          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-update" || arg === "-loop") {
             i++;
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
@@ -1823,6 +1832,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             inputs.push({
               path,
               format: pendingFormat,
+              safe: pendingSafe,
               startSeconds: pendingSs,
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
@@ -1831,6 +1841,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               startNumber: pendingStartNumber
             });
             pendingFormat = undefined;
+            pendingSafe = undefined;
             pendingSs = undefined;
             pendingTo = undefined;
             pendingDuration = undefined;
@@ -2083,6 +2094,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const line = lines[l]!.trimStart();
                   if (!line || line.startsWith("#")) continue;
                   const keyword = line.split(/[ \t]/, 1)[0]!;
+                  if (keyword === "option" && input?.safe !== false) {
+                    throw new Error(`Line ${l + 1}: option not allowed if safe`);
+                  }
                   if (keyword === "ffconcat") {
                     const [, declaration, version] = line.split("\t").join(" ").split(" ").filter(Boolean);
                     if (declaration !== "version" || version !== "1.0") {
@@ -2121,6 +2135,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     while (target.length > protectedEnd && whitespace.includes(target[target.length - 1]!)) {
                       target = target.slice(0, -1);
+                    }
+                    if (input?.safe !== false && target.split("/").some(component =>
+                      !component || component.startsWith(".") || Array.from(component).some(char =>
+                        !(char >= "a" && char <= "z") && !(char >= "A" && char <= "Z") &&
+                        !(char >= "0" && char <= "9") && char !== "_" && char !== "-" && char !== "."
+                      )
+                    )) {
+                      throw new Error(`Unsafe file name '${target}'`);
                     }
                     const resolvedItem = resolvePath(listDir, target);
                     // Look ahead for inpoint/outpoint/duration directives following this `file`

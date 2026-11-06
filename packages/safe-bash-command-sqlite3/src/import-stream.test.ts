@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, type ByteSource } from "safe-bash-contracts";
-import { createSqlite3Command, type Sqlite3CommandsOptions } from "./index.js";
+import { createSqlite3Command, evalSyncSqlite3, type Sqlite3CommandsOptions } from "./index.js";
 
 async function importFile(content: string, script: string[], options: Sqlite3CommandsOptions = {}) {
   const fs = createMemoryFileSystem(), bytes = new TextEncoder().encode(content);
@@ -42,7 +42,8 @@ for (const [skip, expected] of [[0, '1\n2\n3\n'], [1, '2\n3\n'], [-1, '3\n'], [-
 test("imports custom multi-character separators, empty records and permissive quotes", async () => {
   const result = await importFile('a<>b\n\n"x<>y"<>"z"tail\nend<>"unclosed',
     ['.separator <>', '.import /input t', '.mode list', 'SELECT * FROM t;']);
-  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, 'x<>y|ztail\nend|unclosed\n');
+  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, '|\nx<>y|ztail\nend|unclosed\n');
+  assert.equal(result.stderr, '/input:2: expected 2 columns but found 1 - filling the rest with NULL\n');
 });
 
 test("preserves native bulk-import change counts across many rows", async () => {
@@ -70,3 +71,40 @@ test("native bulk imports yield to cancellation and close their row source", asy
   finally { clearTimeout(timer); }
   assert.equal(closed, true); assert.ok(db.findTable('t')!.rows.length < 10000);
 });
+
+for (const key of ['', 'trigger']) {
+  for (const constraint of ['', 'NOT NULL']) {
+    test(`imports missing fields as NULL and continues after rejected rows (${key}, ${constraint})`, async () => {
+      const result = await importFile('x\ny,z\nend,\na,b,c\n\n', [
+        `CREATE TABLE t(a TEXT, b TEXT ${constraint}); ${key ? "CREATE TRIGGER inserted AFTER INSERT ON t BEGIN SELECT 1; END;" : ""}`,
+        '.import --csv /input t', 'SELECT quote(a),quote(b),typeof(b) FROM t;'
+      ]);
+      assert.deepEqual(result, {
+        code: constraint ? 1 : 0,
+        stdout: (constraint ? '' : "'x'|NULL|null\n") + "'y'|'z'|text\n'end'|''|text\n'a'|'b'|text\n" + (constraint ? '' : "''|NULL|null\n"),
+        stderr: '/input:1: expected 2 columns but found 1 - filling the rest with NULL\n' +
+          (constraint ? '/input:1: INSERT failed: NOT NULL constraint failed: t.b\n' : '') +
+          '/input:4: expected 2 columns but found 3 - extras ignored\n' +
+          '/input:5: expected 2 columns but found 1 - filling the rest with NULL\n' +
+          (constraint ? '/input:5: INSERT failed: NOT NULL constraint failed: t.b\n' : '')
+      });
+    });
+  }
+}
+
+test('import diagnostics use physical record start lines after skipped and multiline records', async () => {
+  const result = await importFile('skip\na,b\n"one\ntwo"\nlast,x,extra', [
+    '.import --csv --skip 1 /input t', 'SELECT quote(a),quote(b) FROM t;'
+  ]);
+  assert.deepEqual(result, { code: 0, stdout: "'one\ntwo'|NULL\n'last'|'x'\n", stderr:
+    '/input:3: expected 2 columns but found 1 - filling the rest with NULL\n' +
+    '/input:5: expected 2 columns but found 3 - extras ignored\n' });
+});
+
+for (const content of ['x\n', 'a,b,c\n', '\n']) {
+  test(`sync imports defer records needing diagnostics: ${JSON.stringify(content)}`, () => {
+    const script = 'CREATE TABLE t(a,b);\n.import --csv /input t\nSELECT * FROM t;';
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [':memory:'],
+      () => new TextEncoder().encode(content)), undefined);
+  });
+}

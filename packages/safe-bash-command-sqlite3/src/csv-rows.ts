@@ -3,6 +3,8 @@
  * arbitrary decoder boundaries. */
 export class CsvRows {
   private pending = "";
+  private line = 1;
+  public rowLine = 1;
   private field = "";
   private row: string[] = [];
   private quoted = false;
@@ -20,6 +22,7 @@ export class CsvRows {
           if (content[at + 1] === '"') { this.field += '"'; at += 2; continue; }
           this.quoted = false; at++; continue;
         }
+        if (char === "\n") this.line++;
         this.field += char; at++; continue;
       }
       if (char === '"' && !this.field.length) { this.quoted = true; at++; continue; }
@@ -29,7 +32,10 @@ export class CsvRows {
       if (char === "\n" || char === "\r" && content[at + 1] === "\n") {
         this.row.push(this.field); this.field = "";
         const row = this.row; this.row = []; at += char === "\r" ? 2 : 1;
-        yield row; continue;
+        this.line++;
+        yield row;
+        this.rowLine = this.line;
+        continue;
       }
       this.field += char; at++;
     }

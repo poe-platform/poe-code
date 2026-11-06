@@ -2227,14 +2227,13 @@ export class SqliteDatabase {
     let inserted = 0;
     return {
       insert: function* (this: SqliteDatabase, r: readonly string[]): SqlSteps<boolean> {
-        if (r.length === 1 && r[0] === "" && colCount > 1) return true;
         const data: Record<string, SqlValue> = {};
         for (let cIdx = 0; cIdx < colCount; cIdx++) {
           const col = cols[cIdx]!;
-          const raw = r[cIdx] ?? "";
+          const raw = r[cIdx] ?? null;
           const val = applyColumnAffinity(raw, col.type, tbl.strict);
           if (col.notNull && (val === null || val === undefined)) {
-            return false;
+            throw new SqliteConstraintError(`NOT NULL constraint failed: ${tbl.name}.${col.name}`);
           }
           data[col.name] = val;
         }
@@ -2262,14 +2261,19 @@ export class SqliteDatabase {
     plan.finish(); return true;
   }
 
-  public async bulkImportRowsAsync(tableName: string, rows: AsyncIterable<readonly string[]>, signal: AbortSignal): Promise<boolean> {
+  public async bulkImportRowsAsync(tableName: string, rows: AsyncIterable<readonly string[]>, signal: AbortSignal, onConstraint?: (error: SqliteConstraintError) => Promise<void>): Promise<boolean> {
     const plan = this.prepareBulkImport(tableName);
     if (!plan) return false;
     let work = 0;
     for await (const row of rows) {
       if (++work % 512 === 0) await yieldTurn(signal);
       signal.throwIfAborted();
-      if (!await runCooperatively(plan.insert(row), signal)) return false;
+      try {
+        if (!await runCooperatively(plan.insert(row), signal)) return false;
+      } catch (error) {
+        if (!(error instanceof SqliteConstraintError) || !onConstraint) throw error;
+        await onConstraint(error);
+      }
     }
     signal.throwIfAborted(); plan.finish(); return true;
   }

@@ -978,10 +978,13 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         let failed = false;
         try {
           const sep = csvOverride ? "," : state.colSeparator;
+          let importLine = 1;
           const rows = async function* (): AsyncGenerator<string[]> {
             const parser = new CsvRows(sep);
-            for await (const text of input.text()) yield* parser.push(text);
-            yield* parser.push("", true);
+            for await (const text of input.text()) {
+              for (const row of parser.push(text)) { importLine = parser.rowLine; yield row; }
+            }
+            for (const row of parser.push("", true)) { importLine = parser.rowLine; yield row; }
           };
           skipRows = Math.trunc(skipRows);
           if (skipRows < 0) {
@@ -1029,23 +1032,43 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             let header = !tableExists;
             for await (const row of selected()) {
               if (header) { header = false; continue; }
+              if (row.length !== colCount) {
+                await writeText(context.stderr, `${fileArg}:${importLine}: expected ${colCount} columns but found ${row.length} - ${row.length < colCount ? "filling the rest with NULL" : "extras ignored"}\n`);
+              }
               yield row;
             }
           };
-          if (db instanceof SqliteDatabase && await db.bulkImportRowsAsync(targetTableName, dataRows(), context.signal)) {
+          const reportConstraint = async (error: SqliteConstraintError) => {
+            await writeText(context.stderr, `${fileArg}:${importLine}: INSERT failed: ${error.message}\n`);
+            state.exitCode = 1;
+          };
+          if (db instanceof SqliteDatabase && await db.bulkImportRowsAsync(targetTableName, dataRows(), context.signal, reportConstraint)) {
             state.dirty = true;
           } else {
-            const batchValues: string[] = [];
-            for await (const r of dataRows()) {
-              if (r.length === 1 && r[0] === "" && colCount > 1) continue;
-              const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replaceAll("'", "''")}'`).join(", ");
-              batchValues.push(`(${valsSql})`);
-              if (batchValues.length === 500) {
-                await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${batchValues.join(", ")}`);
-                batchValues.length = 0;
+            const batch: { values: string; line: number }[] = [];
+            const flush = async () => {
+              try {
+                await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${batch.map(row => row.values).join(", ")}`);
+              } catch (error) {
+                if (!(error instanceof SqliteConstraintError)) throw error;
+                for (const row of batch) {
+                  try {
+                    await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${row.values}`);
+                  } catch (error) {
+                    if (!(error instanceof SqliteConstraintError)) throw error;
+                    await writeText(context.stderr, `${fileArg}:${row.line}: INSERT failed: ${error.message}\n`);
+                    state.exitCode = 1;
+                  }
+                }
               }
+              batch.length = 0;
+            };
+            for await (const r of dataRows()) {
+              const valsSql = Array.from({ length: colCount }, (_, cIdx) => r[cIdx] === undefined ? "NULL" : `'${r[cIdx]!.replaceAll("'", "''")}'`).join(", ");
+              batch.push({ values: `(${valsSql})`, line: importLine });
+              if (r.length !== colCount || batch.length === 500) await flush();
             }
-            if (batchValues.length) await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${batchValues.join(", ")}`);
+            if (batch.length) await flush();
           }
           state.dirty = true;
           return;
@@ -1698,7 +1721,7 @@ export function evalSyncSqlite3(
         }
         const batchValues: string[] = [];
         for (const r of dataRows) {
-          if (r.length === 1 && r[0] === "" && colCount > 1) continue;
+          if (r.length !== colCount) return false;
           const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
           batchValues.push(`(${valsSql})`);
         }

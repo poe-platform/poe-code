@@ -223,7 +223,11 @@ export function createCompressionCodec(runtime: CodecRuntime = defaultRuntime): 
           memberEnded = true;
         }
         if (!consumed && !produced && status !== Z_STREAM_END) {
-          if (eof) throw diagnostic(new CodecError("unexpected end of file"));
+          if (eof) {
+            // Preserve decoded bytes even when the stream never reaches its end marker.
+            if (filled) yield output.subarray(0, filled);
+            throw diagnostic(new CodecError("unexpected end of file"));
+          }
           if (stream.avail_in) throw codecError(status, stream.msg);
         }
         needsInput = stream.avail_in === 0 && stream.avail_out !== 0;

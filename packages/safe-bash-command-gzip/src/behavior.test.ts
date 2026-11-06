@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { gunzipSync, gzipSync } from "node:zlib";
+import { constants, gunzipSync, gzipSync } from "node:zlib";
 import { toByteSource } from "safe-bash-contracts";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { binary, chunks, emptyMember, helloMember, run } from "./test-helpers.js";
@@ -112,6 +112,39 @@ test("decodes concatenated members at every single-byte boundary", async () => {
   const result = await run("gunzip", [], chunks(...Array.from(members, (byte) => Uint8Array.of(byte))));
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(result.stdout, Buffer.concat([Buffer.from("hello\n"), binary]));
+});
+
+test("truncated deflate preserves recoverable stdout across chunk boundaries", async () => {
+  const payload = Buffer.from("Recoverable gzip output with repeated words and numbers 0123456789.\n".repeat(100));
+  const truncated = gzipSync(payload).subarray(0, -12);
+  const recovered = gunzipSync(truncated, { finishFlush: constants.Z_SYNC_FLUSH });
+  assert.ok(recovered.length > 0 && recovered.length < payload.length);
+  assert.deepEqual(recovered, payload.subarray(0, recovered.length));
+  for (const prefix of [Buffer.alloc(0), helloMember]) {
+    const bytes = Buffer.concat([prefix, truncated]);
+    for (const width of [bytes.length, 7, 1]) {
+      const parts = Array.from({ length: Math.ceil(bytes.length / width) }, (_, index) => bytes.subarray(index * width, (index + 1) * width));
+      const result = await run("gzip", ["-dc"], chunks(...parts));
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /unexpected end of file/u);
+      assert.deepEqual(result.stdout, Buffer.concat([prefix.length ? gunzipSync(prefix) : prefix, recovered]));
+    }
+  }
+});
+
+test("truncated deflate never publishes partial file output", async () => {
+  const bytes = gzipSync(binary).subarray(0, -12);
+  for (const existing of [false, true]) {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input.gz", bytes);
+    if (existing) await fs.writeFile("/input", Buffer.from("original"));
+    const result = await run("gunzip", ["-f", "input.gz"], undefined, { fs });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout.length, 0);
+    assert.deepEqual(Buffer.from(await fs.readFile("/input.gz")), bytes);
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), existing ? ["input", "input.gz"] : ["input.gz"]);
+    if (existing) assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "original");
+  }
 });
 
 for (const [name, bytes] of [

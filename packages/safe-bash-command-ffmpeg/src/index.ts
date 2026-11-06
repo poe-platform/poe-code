@@ -2289,7 +2289,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else if (index !== undefined) {
               matches = matches.filter((_, i) => i === Number(index));
             }
-            if (matches.length === 0 && !optional) {
+            if ((matches.length === 0 || (exclude && !mapped)) && !optional) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Stream map '${clean}' matches no streams.\nTo ignore this, add a trailing '?' to the map.\n`), context.signal);
               return { exitCode: 234 };
             }

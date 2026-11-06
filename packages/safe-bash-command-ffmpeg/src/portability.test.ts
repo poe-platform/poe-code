@@ -38,6 +38,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   assert.ok(otherCodeBytes < 448_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
-  // implementation, plus legal notices, in the complete Worker bundle budget.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_000_000);
+  // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_001_000);
 });

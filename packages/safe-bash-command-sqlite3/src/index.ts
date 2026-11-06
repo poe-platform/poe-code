@@ -23,6 +23,35 @@ import {
   type SqlValue
 } from "./engine.js";
 
+function parseDumpOptions(parts: string[]) {
+  const options = new Set<string>();
+  const patterns: string[] = [];
+  for (const part of parts.slice(1)) {
+    if (part.startsWith("-")) {
+      const option = part.startsWith("--") ? part.slice(2) : part.slice(1);
+      if (!["data-only", "preserve-rowids", "nosys", "newlines"].includes(option)) {
+        throw new Error(`unknown option: ${part}`);
+      }
+      options.add(option);
+    } else patterns.push(part);
+  }
+  return {
+    dataOnly: options.has("data-only"),
+    preserveRowids: options.has("preserve-rowids"),
+    noSys: options.has("nosys"),
+    newlines: options.has("newlines"),
+    all: patterns.length === 0,
+    matches: (name: string) => !(options.has("nosys") && name.toLowerCase().startsWith("sqlite_")) &&
+      (patterns.length === 0 || patterns.some(pattern => matchLike(name, pattern, true)))
+  };
+}
+
+function dumpRowid(columns: string[], sql: string): string | undefined {
+  const tokens = tokenizeSql(sql);
+  if (tokens.some((token, index) => token.value.toUpperCase() === "WITHOUT" && tokens[index + 1]?.value.toUpperCase() === "ROWID")) return undefined;
+  return ["rowid", "_rowid_", "oid"].find(alias => !columns.some(column => column.toLowerCase() === alias));
+}
+
 // Register virtual tables without invoking their module, which would create the
 // shadow tables before the dump restores them.
 function virtualTableDump(name: string, sql: string): string | undefined {
@@ -57,7 +86,7 @@ export interface SqliteEngineInstance {
   exec?(sql: string, positionalParams?: SqlValue[]): Promise<QueryResultSet[]> | QueryResultSet[];
   loadFromBytes?(bytes: Uint8Array): Promise<void> | void;
   serializeToBytes?(): Promise<Uint8Array> | Uint8Array;
-  readonly tables?: Map<string, { name: string; sql: string; columns: { name: string; generatedExpr?: string | undefined }[]; rows: { data: Record<string, SqlValue> }[] }> | undefined;
+  readonly tables?: Map<string, { name: string; sql: string; columns: { name: string; generatedExpr?: string | undefined }[]; rows: { data: Record<string, SqlValue>; rowid?: number }[] }> | undefined;
   readonly indexes?: Map<string, { name: string; tableName: string; sql: string }> | undefined;
   readonly views?: Map<string, { name: string; sql: string }> | undefined;
   readonly triggers?: Map<string, { name: string; tableName: string; sql: string }> | undefined;
@@ -65,7 +94,7 @@ export interface SqliteEngineInstance {
   readonly inTransaction?: boolean | undefined;
   readonly lastChanges?: number | undefined;
   readonly totalChanges?: number | undefined;
-  findTable?(name: string): { name: string; sql: string; columns: { name: string; generatedExpr?: string | undefined }[]; rows: { data: Record<string, SqlValue> }[] } | undefined;
+  findTable?(name: string): { name: string; sql: string; columns: { name: string; generatedExpr?: string | undefined }[]; rows: { data: Record<string, SqlValue>; rowid?: number }[] } | undefined;
 }
 
 export interface CloudflareSqlStorageCursor {
@@ -904,32 +933,38 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
 
       if (cmd === ".dump") {
-        const patterns = parts.slice(1);
-        const selected = (name: string): boolean => patterns.length === 0 || patterns.some(pattern => matchLike(name, pattern, true));
+        const options = parseDumpOptions(parts);
+        const selected = options.matches;
         async function* dump(): AsyncGenerator<string> {
-          yield "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n";
+          if (!options.dataOnly) yield "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n";
           if (db.tables) {
             const virtualTables = importedVirtualTableDumps(db);
             for (const [name, schema] of virtualTables) {
-              if (selected(name)) yield schema;
+              if (!options.dataOnly && selected(name)) yield schema;
             }
             for (const tbl of db.tables.values()) {
               if (virtualTables.has(tbl.name)) continue;
               if (!selected(tbl.name)) {
                 continue;
               }
-              yield tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;\n" : `${tbl.sql.replace(/;*\s*$/, "")};\n`;
+              if (!options.dataOnly) yield tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;\n" : `${tbl.sql.replace(/;*\s*$/, "")};\n`;
               const columns = tbl.columns.filter(column => !column.generatedExpr);
+              const rowid = options.preserveRowids ? dumpRowid(tbl.columns.map(column => column.name), tbl.sql) : undefined;
+              const columnList = rowid ? `("${rowid}",${columns.map(column => `"${column.name.replaceAll('"', '""')}"`).join(",")})` : "";
               for (const r of tbl.rows) {
-                yield `INSERT INTO "${tbl.name.replaceAll('"', '""')}" VALUES(`;
+                yield `INSERT INTO "${tbl.name.replaceAll('"', '""')}"${columnList} VALUES(`;
+                if (rowid) {
+                  if (r.rowid === undefined) throw new Error("engine does not expose rowids for --preserve-rowids");
+                  yield `${r.rowid},`;
+                }
                 for (let column = 0; column < columns.length; column++) {
                   if (column) yield ",";
-                  yield* sqlQuoteParts(r.data[columns[column]!.name] ?? null);
+                  yield* sqlQuoteParts(r.data[columns[column]!.name] ?? null, options.newlines);
                 }
                 yield ");\n";
               }
             }
-            if (patterns.length === 0 && db instanceof SqliteDatabase) {
+            if (options.all && !options.noSys && db instanceof SqliteDatabase) {
               for (const tbl of db.tables.values()) {
                 if (!tbl.columns.some(column => column.autoIncrement)) continue;
                 yield `DELETE FROM sqlite_sequence WHERE name=${formatSqlQuote(tbl.name)};\n`;
@@ -937,17 +972,17 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
               }
             }
             for (const idx of db.indexes?.values() ?? []) {
-              if (selected(idx.name)) {
+              if (!options.dataOnly && selected(idx.name)) {
                 yield `${idx.sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
             for (const v of db.views?.values() ?? []) {
-              if (selected(v.name)) {
+              if (!options.dataOnly && selected(v.name)) {
                 yield `${v.sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
             for (const tr of db.triggers?.values() ?? []) {
-              if (selected(tr.name)) {
+              if (!options.dataOnly && selected(tr.name)) {
                 yield `${tr.sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
@@ -965,28 +1000,32 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                 }
                 const virtualSchema = virtualTableDump(name, sql);
                 if (virtualSchema) {
-                  yield virtualSchema;
+                  if (!options.dataOnly) yield virtualSchema;
                   continue;
                 }
-                yield name === "sqlite_stat1" ? "ANALYZE sqlite_schema;\n" : `${sql.replace(/;*\s*$/, "")};\n`;
+                if (!options.dataOnly) yield name === "sqlite_stat1" ? "ANALYZE sqlite_schema;\n" : `${sql.replace(/;*\s*$/, "")};\n`;
                 const identifier = `"${name.replaceAll('"', '""')}"`;
                 const info = await execSingleStmt(`PRAGMA table_info(${identifier});`);
-                const columns = info?.rows.map(column => `"${String(column[1]).replaceAll('"', '""')}"`).join(",");
+                const names = info?.rows.map(column => String(column[1])) ?? [];
+                const rowid = options.preserveRowids ? dumpRowid(names, sql) : undefined;
+                if (rowid) names.unshift(rowid);
+                const columns = names.map(name => `"${name.replaceAll('"', '""')}"`).join(",");
+                const columnList = rowid ? `(${columns})` : "";
                 const rowsRes = await execSingleStmt(`SELECT ${columns || "*"} FROM ${identifier};`);
                 for (const r of rowsRes?.rows ?? []) {
-                  yield `INSERT INTO "${name.replaceAll('"', '""')}" VALUES(`;
+                  yield `INSERT INTO "${name.replaceAll('"', '""')}"${columnList} VALUES(`;
                   for (let column = 0; column < r.length; column++) {
                     if (column) yield ",";
-                    yield* sqlQuoteParts(r[column] ?? null);
+                    yield* sqlQuoteParts(r[column] ?? null, options.newlines);
                   }
                   yield ");\n";
                 }
-              } else if (selected(name)) {
+              } else if (!options.dataOnly && selected(name)) {
                 yield `${sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
           }
-          if (!(db instanceof SqliteDatabase) && patterns.length === 0) {
+          if (!(db instanceof SqliteDatabase) && options.all && !options.noSys) {
             const sequence = await execSingleStmt("SELECT name FROM sqlite_master WHERE name='sqlite_sequence';");
             if (sequence?.rows.length) {
               yield "DELETE FROM sqlite_sequence;\n";
@@ -996,7 +1035,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
               }
             }
           }
-          yield "COMMIT;\n";
+          if (!options.dataOnly) yield "COMMIT;\n";
         }
         await emitOutput(dump());
         return;
@@ -1697,24 +1736,26 @@ export function evalSyncSqlite3(
         return true;
       }
       if (cmd === ".dump") {
-        const patterns = parts.slice(1);
-        const selected = (name: string): boolean => patterns.length === 0 || patterns.some(pattern => matchLike(name, pattern, true));
-        const dumpLines: string[] = ["PRAGMA foreign_keys=OFF;", "BEGIN TRANSACTION;"];
+        const options = parseDumpOptions(parts);
+        const selected = options.matches;
+        const dumpLines: string[] = options.dataOnly ? [] : ["PRAGMA foreign_keys=OFF;", "BEGIN TRANSACTION;"];
         const virtualTables = importedVirtualTableDumps(db);
         for (const [name, schema] of virtualTables) {
-          if (selected(name)) dumpLines.push(schema.trimEnd());
+          if (!options.dataOnly && selected(name)) dumpLines.push(schema.trimEnd());
         }
         for (const tbl of db.tables.values()) {
           if (virtualTables.has(tbl.name)) continue;
           if (!selected(tbl.name)) continue;
-          dumpLines.push(tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;" : `${tbl.sql.replace(/;*\s*$/, "")};`);
+          if (!options.dataOnly) dumpLines.push(tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;" : `${tbl.sql.replace(/;*\s*$/, "")};`);
           const columns = tbl.columns.filter(column => !column.generatedExpr);
+          const rowid = options.preserveRowids ? dumpRowid(tbl.columns.map(column => column.name), tbl.sql) : undefined;
+          const columnList = rowid ? `("${rowid}",${columns.map(column => `"${column.name.replaceAll('"', '""')}"`).join(",")})` : "";
           for (const r of tbl.rows) {
-            const vals = columns.map((c) => [...sqlQuoteParts(r.data[c.name] ?? null)].join("")).join(",");
-            dumpLines.push(`INSERT INTO "${tbl.name.replaceAll('"', '""')}" VALUES(${vals});`);
+            const vals = columns.map((c) => [...sqlQuoteParts(r.data[c.name] ?? null, options.newlines)].join("")).join(",");
+            dumpLines.push(`INSERT INTO "${tbl.name.replaceAll('"', '""')}"${columnList} VALUES(${rowid ? `${r.rowid},` : ""}${vals});`);
           }
         }
-        if (patterns.length === 0) {
+        if (options.all && !options.noSys) {
           for (const tbl of db.tables.values()) {
             if (!tbl.columns.some(column => column.autoIncrement)) continue;
             dumpLines.push(`DELETE FROM sqlite_sequence WHERE name=${formatSqlQuote(tbl.name)};`);
@@ -1722,15 +1763,15 @@ export function evalSyncSqlite3(
           }
         }
         for (const idx of db.indexes.values()) {
-          if (selected(idx.name)) dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
+          if (!options.dataOnly && selected(idx.name)) dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
         }
         for (const v of db.views.values()) {
-          if (selected(v.name)) dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
+          if (!options.dataOnly && selected(v.name)) dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
         }
         for (const tr of db.triggers.values()) {
-          if (selected(tr.name)) dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
+          if (!options.dataOnly && selected(tr.name)) dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
         }
-        dumpLines.push("COMMIT;");
+        if (!options.dataOnly) dumpLines.push("COMMIT;");
         emitOutput(`${dumpLines.join("\n")}\n`);
         return true;
       }

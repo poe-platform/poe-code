@@ -2792,3 +2792,21 @@ for (const [width, height] of [[32, 24], [96, 72], [33, 25]]) {
     assert.ok(maximum <= 1, `maximum channel difference: ${maximum}`);
   });
 }
+
+// AArch64 FFmpeg 9.0.2: -i INPUT -frames:v 1 -pix_fmt rgba -f rawvideo pipe:1
+for (const [fixture, digest] of [
+  ["b-frames", "68986c03462fedd147eef9959cb52a43873aaf4e114e500e0021fd849da2d00d"],
+  ["edit-list", "8dc4baf2a5199799ef15d73d05a4afea5eb4ba6219230df1f50becc1ef3743aa"],
+  ["picture-types", "a253d97c06a4832773769dda0f4405fce188627d3ba7d2fdce809b2dca0d3520"]
+]) {
+  it(`matches native YUV-to-RGBA rounding for H.264 ${fixture}`, async () => {
+    const { readFileSync } = await import("node:fs");
+    const { createHash } = await import("node:crypto");
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const vfs = createTestVfs({ "/input.mp4": readFileSync(new URL(`../../mp4-ast/src/fixtures/h264-${fixture}.mp4`, import.meta.url)) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.mp4", "-frames:v", "1", "/out.png"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const pixels = decodeImage(vfs.store.get("/out.png")!).data;
+    assert.equal(createHash("sha256").update(pixels).digest("hex"), digest);
+  });
+}

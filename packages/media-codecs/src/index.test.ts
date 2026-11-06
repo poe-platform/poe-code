@@ -68,3 +68,27 @@ it("scales native pixels after decoder disposal and declines edited RGBA frames"
   assert.equal(scaleVideoPicture({ ...frame, width: 8 }, 8, 8), undefined);
   assert.throws(() => scaleVideoPicture(frame, 0, 8), /dimensions/);
 });
+
+// Native AArch64 FFmpeg 9.0.2, raw YUV input with explicit colorspace/range, RGBA output.
+for (const [format, colorspace, fullRange, digest] of [
+  [12, 6, 1, "790c2b063bf5974bac396b4e7d357d8e9ae768ba939c86ec1be1401b49533639"],
+  [13, 6, 1, "46b3fc1b4e40f6e063aaff5ba873a609ed7669bcf6d72bff46e4608ccfd4548e"],
+  [0, 1, 0, "c16e1d291b34bb26759d2ba713e3a29a448a026de74fc841c5679bdb88044cda"],
+  [0, 1, 1, "56e43f303a0ff49d1853ad74ca806c0194ddd8a62ae7d521420d8e48d8a1c1e1"],
+  [0, 6, 0, "66a4bd6eb8b1c554157b60f77593dcb9f871899bcb35b1851d22a84aff180a9f"],
+  [0, 6, 1, "790c2b063bf5974bac396b4e7d357d8e9ae768ba939c86ec1be1401b49533639"],
+  [4, 1, 0, "53158bfa99b9e07f9c61c3f3dcea3f1acb6f38a829c2fa6631de98946a18b0b1"],
+  [4, 1, 1, "284f8fc823ba6166ae17b4f50759e4e65c6de5d414c5437e0a12793479b81ceb"],
+  [4, 6, 0, "29e04fe82d4c28c31d94ce174c65e9c9f2cebdaa19976eec8fcaccc746a20754"],
+  [4, 6, 1, "46b3fc1b4e40f6e063aaff5ba873a609ed7669bcf6d72bff46e4608ccfd4548e"]
+] as const) {
+  it(`matches native unscaled YUV format ${format}, matrix ${colorspace}, range ${fullRange}`, async () => {
+    const { createHash } = await import("node:crypto");
+    const data = new Uint8Array(16 * 16 * 4);
+    const pixels = Uint8Array.from({ length: 16 * 16 * (format === 0 || format === 12 ? 1.5 : 2) }, (_, i) => (i * 73 + Math.floor(i / 7)) % 256);
+    const frame = { width: 16, height: 16, data,
+      native: { width: 16, height: 16, rgba: data, pixels, format, colorspace, fullRange } };
+    const actual = scaleVideoPicture(frame, 16, 16)!;
+    assert.equal(createHash("sha256").update(actual).digest("hex"), digest);
+  });
+}

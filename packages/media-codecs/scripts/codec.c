@@ -115,6 +115,38 @@ int decoder_send(Decoder *decoder, const uint8_t *data, int length, double pts, 
     return result;
 }
 
+/* Portable equivalent of FFmpeg's AArch64 unscaled YUV-to-RGBA conversion.
+ * It truncates each signed multiply separately, then rounds the final sum.
+ * Keep its format/dimension guards: other layouts use libswscale below. */
+static int unscaled_rgba(const uint8_t *const planes[], const int strides[],
+    int width, int height, int format, const int *coefficients, int full_range, uint8_t *rgba) {
+    if (format == AV_PIX_FMT_YUVJ420P) format = AV_PIX_FMT_YUV420P;
+    if (format == AV_PIX_FMT_YUVJ422P) format = AV_PIX_FMT_YUV422P;
+    if ((format != AV_PIX_FMT_YUV420P && format != AV_PIX_FMT_YUV422P) ||
+        (width & 15) || (height & 1)) return 0;
+    int chroma[4];
+    for (int i = 0; i < 4; i++) {
+        int coefficient = i < 2 ? coefficients[i] : -coefficients[i];
+        if (full_range) coefficient = coefficient * 224 / 255;
+        chroma[i] = (coefficient + 4) >> 3;
+    }
+    int luma = full_range ? 8192 : ((65536 * 255 / 219 + 4) >> 3);
+    int offset = full_range ? 0 : 128;
+    for (int row = 0; row < height; row++) {
+        int chroma_row = format == AV_PIX_FMT_YUV420P ? row / 2 : row;
+        for (int col = 0; col < width; col++) {
+            int y = ((planes[0][row * strides[0] + col] * 8 - offset) * luma) >> 15;
+            int u = (planes[1][chroma_row * strides[1] + col / 2] - 128) * 8;
+            int v = (planes[2][chroma_row * strides[2] + col / 2] - 128) * 8;
+            *rgba++ = av_clip_uint8((y + ((v * chroma[0]) >> 15) + 1) >> 1);
+            *rgba++ = av_clip_uint8((y + ((u * chroma[2]) >> 15) + ((v * chroma[3]) >> 15) + 1) >> 1);
+            *rgba++ = av_clip_uint8((y + ((u * chroma[1]) >> 15) + 1) >> 1);
+            *rgba++ = 255;
+        }
+    }
+    return height;
+}
+
 /* A positive result points to Picture; zero means more input/end; negative means error. */
 intptr_t decoder_receive(Decoder *decoder) {
     AVFrame *frame = decoder->frame;
@@ -130,14 +162,16 @@ intptr_t decoder_receive(Decoder *decoder) {
         decoder->capacity = length;
     }
     decoder->scaler = sws_getCachedContext(decoder->scaler, frame->width, frame->height,
-        frame->format, frame->width, frame->height, AV_PIX_FMT_RGBA, SWS_POINT | SWS_ACCURATE_RND | SWS_FULL_CHR_H_INT, NULL, NULL, NULL);
+        frame->format, frame->width, frame->height, AV_PIX_FMT_RGBA, SWS_BICUBIC, NULL, NULL, NULL);
     if (!decoder->scaler) return AVERROR(ENOMEM);
     const int *coefficients = sws_getCoefficients(frame->colorspace == AVCOL_SPC_UNSPECIFIED ? SWS_CS_DEFAULT : frame->colorspace);
     sws_setColorspaceDetails(decoder->scaler, coefficients, frame->color_range == AVCOL_RANGE_JPEG,
         coefficients, 1, 0, 1 << 16, 1 << 16);
     uint8_t *output[] = { decoder->rgba, NULL, NULL, NULL };
     int strides[] = { frame->width * 4, 0, 0, 0 };
-    result = sws_scale(decoder->scaler, (const uint8_t *const *)frame->data,
+    result = unscaled_rgba((const uint8_t *const *)frame->data, frame->linesize,
+        frame->width, frame->height, frame->format, coefficients, frame->color_range == AVCOL_RANGE_JPEG, decoder->rgba);
+    if (!result) result = sws_scale(decoder->scaler, (const uint8_t *const *)frame->data,
         frame->linesize, 0, frame->height, output, strides);
     if (result != frame->height) return AVERROR_INVALIDDATA;
     int pixel_length = av_image_get_buffer_size(frame->format, frame->width, frame->height, 1);
@@ -162,16 +196,16 @@ int scale_picture(const uint8_t *pixels, int length, int width, int height, int 
     int strides[4];
     if (av_image_fill_arrays(planes, strides, pixels, format, width, height, 1) < 0)
         return AVERROR_INVALIDDATA;
-    int flags = width == target_width && height == target_height
-        ? SWS_POINT | SWS_ACCURATE_RND | SWS_FULL_CHR_H_INT : SWS_BICUBIC;
     struct SwsContext *scaler = sws_getContext(width, height, format, target_width, target_height,
-        AV_PIX_FMT_RGBA, flags, NULL, NULL, NULL);
+        AV_PIX_FMT_RGBA, SWS_BICUBIC, NULL, NULL, NULL);
     if (!scaler) return AVERROR(ENOMEM);
     const int *coefficients = sws_getCoefficients(colorspace == AVCOL_SPC_UNSPECIFIED ? SWS_CS_DEFAULT : colorspace);
     sws_setColorspaceDetails(scaler, coefficients, full_range, coefficients, 1, 0, 1 << 16, 1 << 16);
     uint8_t *output[] = { rgba, NULL, NULL, NULL };
     int output_strides[] = { target_width * 4, 0, 0, 0 };
-    int result = sws_scale(scaler, (const uint8_t *const *)planes, strides, 0, height, output, output_strides);
+    int result = width == target_width && height == target_height
+        ? unscaled_rgba((const uint8_t *const *)planes, strides, width, height, format, coefficients, full_range, rgba) : 0;
+    if (!result) result = sws_scale(scaler, (const uint8_t *const *)planes, strides, 0, height, output, output_strides);
     sws_freeContext(scaler);
     return result == target_height ? 0 : AVERROR_INVALIDDATA;
 }

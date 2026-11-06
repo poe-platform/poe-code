@@ -7,7 +7,7 @@ import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources,
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
-import { stretchAudio } from "./audio-tempo.js";
+import { filterUnityTempo, stretchAudio } from "./audio-tempo.js";
 import { scaleFrame } from "./scale.js";
 import { rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -2640,7 +2640,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {
                           throw new Error("atempo must be in the range [0.5, 100]");
                         }
-                        stretched = await stretchAudio(stretched, origRate, tempo, budget, context.signal);
+                        stretched = tempo === 1
+                          ? await filterUnityTempo(stretched, origRate, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
+                          : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                       } else {

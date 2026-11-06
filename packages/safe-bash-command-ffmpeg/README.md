@@ -26,7 +26,9 @@ and MP3 encoder delay and padding:
 `ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported
 audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac` accept AAC input as well as decoded PCM
 input, such as WAV or a `lavfi` source. Audio filters run in chain order; each
-`atempo` stage processes the preceding stage’s samples, including `areverse`. `-filter:a:0 volume=0` (or `-af:0 volume=0`)
+`atempo` stage processes the preceding stage’s samples, including `areverse`.
+`atempo=1` still aligns and blends audio windows, so it can change PCM samples and clip length.
+`-filter:a:0 volume=0` (or `-af:0 volume=0`)
 mutes the first output audio stream; numeric audio selectors follow output mapping
 and leave nonmatching streams unchanged. Filtering a matching stream with `-c:a copy`
 fails without writing output. `-ac 1` downmixes stereo and

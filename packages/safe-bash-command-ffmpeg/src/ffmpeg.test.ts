@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import { encodeWav } from "@poe-code/audio-ast";
 import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
@@ -1586,6 +1587,39 @@ describe("decoded audio editing", () => {
         "Chaining must match separate stages within intermediate PCM rounding");
     }
   });
+
+  // Native FFmpeg 9.0.1 PCM16 reference digests, generated with
+  // -f s16le -ar RATE -ac CHANNELS -i pipe:0 -af atempo=1 -f s16le pipe:1.
+  for (const [length, channels, silent, expectedLength, hash] of [
+    [8000, 1, false, 7983, "30101832ed75ca4c55f051619ecf4c5382f9b591c56ad84e1b161ba94516c3da"],
+    [8000, 2, false, 7983, "71543292be1e5bffe6a5aab05065a4960642849beb980268abf6e19b4b8abdc6"],
+    [8000, 1, true, 7744, "787857ffbf80480c021e8ff0ca37e20fb89a00439eb18f55baa555404df9649d"],
+    [80, 1, false, 0, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+    [256, 1, false, 256, "ce6c7bf02f1ba651bb0b97828aa790d3ea5756660a648bd86ce246aef555e48e"],
+    [500, 1, false, 500, "9556cffa76c60fa403500b21963da446220acdcc917041dfdb1897b4193d59ab"]
+  ] as const) {
+    it(`matches native unity-tempo PCM: length=${length}, channels=${channels}, silence=${silent}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, (_, c) =>
+        Float64Array.from({ length }, (_, i) => silent ? 0 : (12000 + i % 50) * (c ? -1 : 1) / 32768)) });
+      for (const filtered of [false, true]) {
+        const vfs = createTestVfs({ "/input.wav": input });
+        const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav",
+          ...(filtered ? ["-af", "atempo=1"] : []), "-c:a", "pcm_s16le", "/output.wav"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const samples = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!.channelData;
+        if (!filtered) {
+          assert.deepEqual(samples, parseWav(input).tracks[0]!.decodedAudio!.channelData);
+          continue;
+        }
+        assert.equal(samples[0]!.length, expectedLength);
+        const pcm = Buffer.alloc(expectedLength * channels * 2);
+        for (let i = 0; i < expectedLength; i++) {
+          for (let c = 0; c < channels; c++) pcm.writeInt16LE(Math.round(samples[c]![i]! * 32768), (i * channels + c) * 2);
+        }
+        assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+      }
+    });
+  }
 
   for (const tempo of [0.5, 8, 100]) {
     it(`honors atempo=${tempo} without clamping`, async () => {

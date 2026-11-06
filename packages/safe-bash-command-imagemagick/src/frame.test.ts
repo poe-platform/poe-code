@@ -1,0 +1,69 @@
+import { spawnSync } from "node:child_process";
+import { expect, it } from "vitest";
+import { decodeImage } from "@poe-code/image-ast";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
+
+const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        { options: [], corner: [189, 189, 189, 255] },
+        { options: ["-mattecolor", "blue"], corner: [0, 0, 255, 255] },
+        { options: ["-bordercolor", "green"], corner: [189, 189, 189, 255] },
+    ])(`uses mattecolor for a flat frame, ${mode}: $options`, async ({ options, corner }) => {
+        const args = ["-size", "1x1", "xc:red", ...options, "-frame", "2x2", "png:-"];
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        const image = decodeImage(result.stdoutBytes!);
+        expect([image.width, image.height]).toEqual([5, 5]);
+        expect([...image.data.slice(0, 4)]).toEqual(corner);
+        expect([...image.data.slice(48, 52)]).toEqual([255, 0, 0, 255]);
+    });
+    it(`renders all four bevel shades, ${mode}`, async () => {
+        const args = ["-size", "1x1", "xc:red", "-frame", "3x3+1+1", "png:-"];
+        const result = mode === "sync" ? runConvertCliSync(args, new Map())
+            : await runConvertCli(args, mode === "retained" ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map());
+        expect(result.exitCode, result.stderr).toBe(0);
+        const image = decodeImage(result.stdoutBytes!);
+        for (const [x, y, shade] of [[0, 0, 210], [0, 1, 221], [6, 1, 100], [0, 6, 82], [1, 1, 189], [2, 2, 82], [2, 3, 100], [4, 3, 221], [2, 4, 210]]) {
+            const offset = (y! * image.width + x!) * 4;
+            expect([...image.data.slice(offset, offset + 4)]).toEqual([shade, shade, shade, 255]);
+        }
+    });
+    it.each(["2x2+2+1", "2x2-1-1"])(`rejects impossible bevels %s, ${mode}`, async geometry => {
+        const args = ["xc:red", "-frame", geometry, "png:-"], files = new Map<string, Uint8Array>();
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem: new MemoryFileSystem(), cwd: "/" } : files);
+        expect(result.exitCode).not.toBe(0);
+    });
+    it.skipIf(!nativeAvailable).each([
+        ["-frame", "3x3+1+1"],
+        ["-mattecolor", "#5588bb", "-frame", "7x5+2+3"],
+        ["-frame", "4x6+0+2"],
+        ["-frame", "4x6+2+0"],
+        ["-mattecolor", "blue", "-bordercolor", "green", "-frame", "3x3+1+1"],
+        ["-mattecolor", "blue", "-bordercolor", "red", "-border", "3x2"],
+    ])(`matches native frame and border pixels, ${mode}: %j`, async (...options) => {
+        const args = ["-size", "3x2", options.includes("-border") ? "xc:red" : "xc:#ff000080", ...options, "png:-"];
+        const result = mode === "sync" ? runConvertCliSync(args, new Map())
+            : await runConvertCli(args, mode === "retained" ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map());
+        expect(result.exitCode, result.stderr).toBe(0);
+        const reference = spawnSync("magick", [...args.slice(0, -1), "-depth", "8", "png:-"]);
+        expect(reference.status, reference.stderr.toString()).toBe(0);
+        const actual = decodeImage(result.stdoutBytes!), expected = decodeImage(reference.stdout);
+        expect([actual.width, actual.height]).toEqual([expected.width, expected.height]);
+        expect(Math.max(...actual.data.map((value, i) => Math.abs(value - expected.data[i]!)))).toBeLessThanOrEqual(1);
+    });
+}
+
+it("applies mattecolor and frame through mogrify", async () => {
+    const files = new Map<string, Uint8Array>();
+    expect(runConvertCliSync(["-size", "1x1", "xc:red", "input.png"], files).exitCode).toBe(0);
+    const result = await runMogrifyCli(["-mattecolor", "blue", "-frame", "2x2", "input.png"], files);
+    expect(result.exitCode, result.stderr).toBe(0);
+    const image = decodeImage(files.get("input.png")!);
+    expect([image.width, image.height]).toEqual([5, 5]);
+    expect([...image.data.slice(0, 4)]).toEqual([0, 0, 255, 255]);
+});

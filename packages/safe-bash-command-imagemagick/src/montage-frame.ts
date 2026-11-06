@@ -1,14 +1,15 @@
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-// Frame mode uses ImageMagick's 15-pixel matte with 3-pixel inner/outer bevels.
-export function* montageFramePixels(source: { width: number; height: number }, width: number, height: number,
-    border: RgbaColor, matte: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+// Shared by convert frames and montage's 15-pixel matte with 3-pixel bevels.
+export function* magickFramePixels(source: { width: number; height: number }, width: number, height: number,
+    border: RgbaColor, matte: RgbaColor, frameX: number, frameY: number, outer: number, inner: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    if (outer < 0 || inner < 0 || outer + inner > Math.min(frameX, frameY)) throw new Error("frame is less than image size");
     const shade = (factor: number, lighten: boolean) => [matte.r, matte.g, matte.b].map(value =>
         Math.round(lighten ? value + (255 - value) * factor / 255 : value * factor / 255)).concat(matte.a);
     const accent = shade(80, true), highlight = shade(125, true), shadow = shade(135, false), trough = shade(110, false);
     const flat = [matte.r, matte.g, matte.b, matte.a], interior = [border.r, border.g, border.b, border.a];
-    const insetX = Math.ceil((width - 30 - source.width) / 2), insetY = Math.ceil((height - 30 - source.height) / 2);
+    const insetX = Math.ceil((width - 2 * frameX - source.width) / 2), insetY = Math.ceil((height - 2 * frameY - source.height) / 2);
     const innerW = source.width + insetX * 2, innerH = source.height + insetY * 2;
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;
@@ -16,23 +17,23 @@ export function* montageFramePixels(source: { width: number; height: number }, w
         for (let i = 0; i < count; i++) {
             const x = left + i;
             let color = flat;
-            if (y < 3) color = x < y ? highlight : x >= width - y ? shadow : accent;
-            else if (y >= height - 3) color = x < height - 1 - y ? highlight : x >= width - (height - 1 - y) ? shadow : trough;
-            else if (x < 3) color = highlight;
-            else if (x >= width - 3) color = shadow;
-            else if (x >= 12 && x < 18 + innerW && y >= 12 && y < 18 + innerH) {
-                const dx = x - 12;
-                if (y < 15) color = dx < y - 12 ? shadow : dx >= innerW + 6 - (y - 12) ? highlight : trough;
-                else if (y >= 15 + innerH) {
-                    const edge = 17 + innerH - y;
-                    color = dx < edge ? shadow : dx >= innerW + 6 - edge ? highlight : accent;
-                } else color = x < 15 ? shadow : x >= 15 + innerW ? highlight : interior;
+            if (y < outer) color = x < y ? highlight : x >= width - y ? shadow : accent;
+            else if (y >= height - outer) color = x < height - 1 - y ? highlight : x >= width - (height - 1 - y) ? shadow : trough;
+            else if (x < outer) color = highlight;
+            else if (x >= width - outer) color = shadow;
+            else if (x >= frameX - inner && x < frameX + innerW + inner && y >= frameY - inner && y < frameY + innerH + inner) {
+                const dx = x - frameX + inner;
+                if (y < frameY) color = dx < y - frameY + inner ? shadow : dx >= innerW + 2 * inner - (y - frameY + inner) ? highlight : trough;
+                else if (y >= frameY + innerH) {
+                    const edge = frameY + innerH + inner - 1 - y;
+                    color = dx < edge ? shadow : dx >= innerW + 2 * inner - edge ? highlight : accent;
+                } else color = x < frameX ? shadow : x >= frameX + innerW ? highlight : interior;
             }
             data.set(color, i * 4);
         }
-        const sy = y - 15 - insetY, first = Math.max(left, 15 + insetX), end = Math.min(left + count, 15 + insetX + source.width);
+        const sy = y - frameY - insetY, first = Math.max(left, frameX + insetX), end = Math.min(left + count, frameX + insetX + source.width);
         if (sy >= 0 && sy < source.height && end > first) {
-            const bytes = yield { kind: "read", position: (sy * source.width + first - 15 - insetX) * 4, length: (end - first) * 4 };
+            const bytes = yield { kind: "read", position: (sy * source.width + first - frameX - insetX) * 4, length: (end - first) * 4 };
             if (!bytes) throw new Error("Missing montage frame pixels");
             for (let x = first; x < end; x++) {
                 const src = (x - first) * 4, dst = (x - left) * 4, alpha = bytes[src + 3]! / 255;

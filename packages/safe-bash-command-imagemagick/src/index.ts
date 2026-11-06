@@ -5,7 +5,7 @@ import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { convertHslPixels, prepareHslOutput, formatHslPixel, hslTextPixel, type HslMetadata } from "./colorspace-hsl.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
-import { montageFramePixels, montageShadowPixels } from "./montage-frame.js";
+import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
@@ -480,6 +480,7 @@ interface MagickState {
   stroke: RgbaColor;
   strokeWidth: number;
   borderColor: RgbaColor;
+  matteColor: RgbaColor;
   pointsize: number;
   gravity: GravityPosition;
   quality: number;
@@ -518,6 +519,7 @@ function createDefaultState(): MagickState {
     stroke: { r: 0, g: 0, b: 0, a: 0 },
     strokeWidth: 1,
     borderColor: { r: 223, g: 223, b: 223, a: 255 },
+    matteColor: { r: 189, g: 189, b: 189, a: 255 },
     pointsize: 12,
     gravity: "northwest",
     quality: 92,
@@ -5024,6 +5026,9 @@ if (t === "-seed") {
         else if (t === "-strokewidth") {
             state.strokeWidth = Math.max(0, Number(tokens[++i] ?? 1));
         }
+        else if (t === "-mattecolor") {
+            state.matteColor = parseColor(tokens[++i] ?? "#bdbdbd");
+        }
         else if (t === "-bordercolor") {
             state.borderColor = parseColor(tokens[++i] ?? "#dfdfdf");
         }
@@ -5514,16 +5519,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(tokens[++i] ?? "4x4");
             const fw = Math.max(0, Math.round(g.width ?? 4));
             const fh = Math.max(0, Math.round(g.height ?? fw));
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* extendImageSteps(im, {
-                    top: fh,
-                    bottom: fh,
-                    left: fw,
-                    right: fw,
-                    background: state.borderColor,
-                    extendWith: "background"
-                }));
-            }));
+            stack = yield* mapSteps(stack, function* (im) {
+                const width = im.width + 2 * fw, height = im.height + 2 * fh;
+                return yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y), signal,
+                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 });
+            });
         }
         else if (t === "-deskew") {
             i++;
@@ -6588,8 +6588,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const overlay = await transformStoredImage(image, backend.storage, { kind: "extract", ...layout.area }, signal);
                 return transformStoredImage(canvas, backend.storage, { kind: "composite", layers: [{ input: new Uint8Array(), left: layout.left, top: layout.top, blend: "over" }] }, signal, { async readImage() { return overlay; } });
             });
-        } else if (!operandsOnly && (token === "-border" || token === "-frame")) {
-            const geometry = parseMagickGeometry(tokens[++i] ?? (token === "-frame" ? "4x4" : "0x0")), left = Math.max(0, Math.round(geometry.width ?? (token === "-frame" ? 4 : 0))), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
+        } else if (!operandsOnly && token === "-frame") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "4x4"), left = Math.max(0, Math.round(geometry.width ?? 4)), top = Math.max(0, Math.round(geometry.height ?? left));
+            const { borderColor, matteColor } = state;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const width = image.width + 2 * left, height = image.height + 2 * top;
+                return transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y), signal,
+                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 });
+            });
+        } else if (!operandsOnly && token === "-border") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), left = Math.max(0, Math.round(geometry.width ?? 0)), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
             transform(() => ({ kind: "extend", left, right: left, top, bottom: top, background, extendWith: "background" }));
         } else {
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) throw new Error(`unrecognized option '${token}'`);
@@ -6746,6 +6755,8 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
         "-extent",
         "-border",
         "-bordercolor",
+        "-mattecolor",
+        "-frame",
         "-shave",
         "-rotate",
         "-background",
@@ -7606,7 +7617,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const cellY = (variableCells ? tileY : row * slotH) + padY;
             if (frame) {
                 const previous = im;
-                im = yield* applyMagickRasterSteps(im, montageFramePixels(im, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
+                im = yield* applyMagickRasterSteps(im, magickFramePixels(im, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte, 15, 15, 3, 3), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
                 detachRgbaBuffer(previous.data);
                 const shadow = yield* applyMagickRasterSteps(im, montageShadowPixels(im), signal, { width: im.width + 20, height: im.height + 20, hasAlpha: true });
                 yield* blitOverRgbaInPlaceSteps(shadow, im, 0, 0);
@@ -7780,7 +7791,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 directPng = await sources.get(BigInt(index * 5 + 4)) === 1n;
             } else image = (await images.get(index))!;
             if (frame) {
-                image = await transformStoredMagickRaster(image, backend, montageFramePixels(image, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
+                image = await transformStoredMagickRaster(image, backend, magickFramePixels(image, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte, 15, 15, 3, 3), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
                 let shadow = await transformStoredMagickRaster(image, backend, montageShadowPixels(image), signal, { width: image.width + 20, height: image.height + 20, hasAlpha: true });
                 shadow = await compositeStoredMagick(shadow, image, backend, signal, 0, 0, "over", undefined, false, true);
                 canvas = await compositeStoredMagick(canvas, shadow, backend, signal, col * slotW + padX, row * slotH + padY, "over", undefined, false, true);

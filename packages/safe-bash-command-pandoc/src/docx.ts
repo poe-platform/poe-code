@@ -5,6 +5,7 @@ import type {AdapterContext, ReaderCapability, WriterCapability} from "./types.j
 import {PandocError} from "./errors.js";
 import {literalInlines} from "./literal-inlines.js";
 import {imageLength} from "./image-dimensions.js";
+import {headingIdentifier} from "./heading-attributes.js";
 interface RichRun extends DocxRunInput {
   readonly code?: boolean;
   readonly raw?: string;
@@ -53,6 +54,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
     const definitions = new Map<number, ReturnType<InstanceType<typeof NumberingGraph>["resolve"]>>();
     const notes = new Map<string, ReturnType<typeof model.store.ref>>();
     const activeNotes = new Set<string>();
+    const identifiers = new Set<string>();
     for (const edge of model.part.rels.values()) {
       ctx.checkpoint();
       if (edge.is_external || !["http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes", "http://purl.oclc.org/ooxml/officeDocument/relationships/footnotes"].includes(edge.reltype)) continue;
@@ -126,7 +128,15 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       }
       const name = p.style?.name ?? "";
       const level = name.startsWith("Heading ") ? Number(name.slice(8)) : 0;
-      return level >= 1 && level <= 6 ? {t: "Header", c: [level, attr, inlines]} : {t: "Para", c: inlines};
+      if (level >= 1 && level <= 6) {
+        const base = headingIdentifier(inlines, ctx);
+        let id = base;
+        for (let suffix = 1; identifiers.has(id); suffix++) {ctx.checkpoint(); id = `${base}-${suffix}`;}
+        ctx.charge("references", 1); ctx.charge("retainedBytes", id.length * 2);
+        identifiers.add(id);
+        return {t: "Header", c: [level, [id, [], []], inlines]};
+      }
+      return {t: "Para", c: inlines};
     };
     type ListFrame = {id: number; level: number; items: Block[][]};
     const appendParagraph = async (p: Paragraph, blocks: Block[], stack: ListFrame[]) => {

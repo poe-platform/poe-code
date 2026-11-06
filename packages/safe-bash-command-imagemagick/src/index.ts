@@ -548,7 +548,7 @@ function magickMedianRows(spec: string): number[] {
   return Array<number>(height).fill((width - 1) / 2);
 }
 
-type MorphologyStep = { mode: "min" | "max" | "median"; source: number } | { mode: "diff"; a: number; b: number };
+type MorphologyStep = { mode: "min" | "max" | "median" | "mean"; source: number } | { mode: "diff"; a: number; b: number };
 function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: number[]; steps: MorphologyStep[] } {
   let rx = 1;
   let ry = 1;
@@ -579,12 +579,13 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: nu
     return rx;
   });
 
-  const filter = (source: number, mode: "min" | "max" | "median"): MorphologyStep => ({ source, mode });
+  const filter = (source: number, mode: "min" | "max" | "median" | "mean"): MorphologyStep => ({ source, mode });
   const diff = (a: number, b: number): MorphologyStep => ({ mode: "diff", a, b });
   let steps: MorphologyStep[];
   switch (methodRaw.toLowerCase()) {
     case "erode": case "minimum": steps = [filter(0, "min")]; break;
     case "median": steps = [filter(0, "median")]; break;
+    case "mean": steps = [filter(0, "mean")]; break;
     case "open": steps = [filter(0, "min"), filter(1, "max")]; break;
     case "close": steps = [filter(0, "max"), filter(1, "min")]; break;
     case "edgein": steps = [filter(0, "min"), diff(0, 1)]; break;

@@ -37,16 +37,16 @@ it("preserves original morphology pixel vectors", async () => {
         "5c97f08bd90d5aa6cdd5d4cbd206be407e8d41a882f604db2433b6c2a7a398aa",
         "238307eb2f8ffb95415581d796f95c37296756e075f44210da0c936e7ac7f1b3",
         "c3c1d1ec79853dc2ded937f636c21d74f8e04a5d4a55c647695a61f87cd5bacc",
-        "d9f0f157e2d496a288a3ebc6d75046bdba62192bc849d261f2b93acacfe4fbcd",
-        "1fb7fe525b5f654ec4b9face9e3cefcece7d6285b78a2a3f6ff11b21457f4740",
+        "8c8313ef9c5744071f553effac956c376b3f6752fb9a48658d68d63595a6adec",
+        "0e4b82f79d07cd3a77e81b38102362519ac905192bf62e78a73d845d13c27498",
         "603a6aa8e4cefa823a0f315557fc47fe0206348e386271a03bf304850def1c35",
         "4f444da8e253d27f00c0b9eecef35b86fc4de2bdc7c21f6c10d4a7c449ad6e1e",
         "83e7e62459e7f7c8f9e118eebf6f055725a8c69cf5e23ebe03115a83cc569d4e",
-        "83e7e62459e7f7c8f9e118eebf6f055725a8c69cf5e23ebe03115a83cc569d4e",
+        "143c9c20d63f066331cf97b485262f5e59945fda884f9ea5f25e8fa2716bf0b0",
       ]
     `);
 });
-it.each(operators.flatMap(args => (["median", "open"].includes(args[1]!) ? [13, 2053] : [13]).map(width => ({ width, args }))))("retains width=$width $args", async ({ width, args }) => {
+it.each(operators.flatMap(args => (["median", "mean", "open"].includes(args[1]!) ? [13, 2053] : [13]).map(width => ({ width, args }))))("retains width=$width $args", async ({ width, args }) => {
     const bytes = await fixture(width), fs = new MemoryFileSystem(), files = new Map([["input", bytes]]);
     await fs.writeFile("/input", bytes);
     const filesystem = new Proxy(fs, { get(target, key) {

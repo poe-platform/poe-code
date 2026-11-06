@@ -2079,7 +2079,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const lines = listText.split(/\r?\n/);
                 for (let l = 0; l < lines.length; l++) {
                   const line = lines[l]!.trim();
-                  if (!line || line.startsWith("#") || line.startsWith("ffconcat")) continue;
+                  if (!line || line.startsWith("#")) continue;
+                  const keyword = line.split(/[ \t]/, 1)[0]!;
+                  if (keyword === "ffconcat") continue;
                   if (concatDocs.length === 0) {
                     const directive = ["duration", "inpoint", "outpoint"].find(name =>
                       line === name || line.startsWith(`${name} `) || line.startsWith(`${name}\t`)
@@ -2142,6 +2144,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     startTimesSeconds.push(nextStartSeconds);
                     nextStartSeconds += currentDuration ?? itemDoc.durationSeconds;
                     concatDocs.push(itemDoc);
+                  } else {
+                    throw new Error(`Line ${l + 1}: unknown keyword '${keyword}'`);
                   }
                 }
                 budget.checkConcatInputs(concatDocs.length);

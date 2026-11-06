@@ -5,6 +5,7 @@ import { checkLinearization } from "./linearization-check.js";
 import { linearizationReport } from "./linearization-report.js";
 import { encryptionReport } from "./encryption-report.js";
 import { qpdfJsonField } from "./json-acroform.js";
+import { qpdfJsonOutlines } from "./json-outlines.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import type { JsonValue } from "./json-output.js";
 import { parseQpdfPageLabels } from "./page-labels.js";
@@ -36,7 +37,6 @@ import {
   serializeCosDocumentSteps,
   encryptCosDocumentSteps,
   generateDocumentFormAppearancesSteps,
-  resolveDestinationPageIndex,
   decodePdfString,
   cosDict,
   cosNumber,
@@ -1618,35 +1618,14 @@ function* executeQpdfCli(
       needappearances: needAppJson?.kind === "boolean" ? needAppJson.value : false,
       fields: acroFieldsJson
     };
-    const outlinesJson: Array<{ title: string; destpagepos: number; destpageobject: string }> = [];
-    const outlinesRootJson = rootDictForJson ? asDict(baseDoc.cos.resolve(dictGet(rootDictForJson, "Outlines"))) : undefined;
-    const collectJsonOutlines = (nodeOrRef: PdfCosNode | undefined, visited = new Set<number>()) => {
-      let cur = nodeOrRef;
-      while (cur) {
-        if (cur.kind === "ref") {
-          if (visited.has(cur.objectNumber)) break;
-          visited.add(cur.objectNumber);
-        }
-        const d = asDict(baseDoc.cos.resolve(cur));
-        if (!d) break;
-        const tNode = baseDoc.cos.resolve(dictGet(d, "Title"));
-        const title = tNode?.kind === "string" ? decodePdfString(tNode) : "";
-        const destPageIdx =
-          resolveDestinationPageIndex(baseDoc, dictGet(d, "Dest") ?? dictGet(d, "A")) ?? 0;
-        const pageRef = baseDoc.getPageCount() > 0 ? baseDoc.getPage(destPageIdx).ref : { objectNumber: 0, generationNumber: 0 };
-        if (title) {
-          outlinesJson.push({
-            title,
-            destpagepos: destPageIdx + 1,
-            destpageobject: `obj:${pageRef.objectNumber} ${pageRef.generationNumber} R`
-          });
-        }
-        const firstChild = dictGet(d, "First");
-        if (firstChild) collectJsonOutlines(firstChild, visited);
-        cur = dictGet(d, "Next");
-      }
-    };
-    if (include("outlines") && outlinesRootJson) collectJsonOutlines(dictGet(outlinesRootJson, "First"));
+    let outlinesJson: unknown[] = [];
+    if (include("outlines")) {
+      const positions = new Map(baseDoc.getPages().map((page, index) => [`${page.ref.objectNumber} ${page.ref.generationNumber} R`, index + 1]));
+      const steps = qpdfJsonOutlines(rootDictForJson, positions, jsonVersion);
+      let step = steps.next();
+      while (!step.done) { yield; step = steps.next(baseDoc.cos.resolve(step.value)); }
+      outlinesJson = step.value.map(materialize);
+    }
 
     const pagelabelsJson: Array<{ index: number; label: Record<string, string | number> }> = [];
     const plTreeJson = rootDictForJson ? asDict(baseDoc.cos.resolve(dictGet(rootDictForJson, "PageLabels"))) : undefined;

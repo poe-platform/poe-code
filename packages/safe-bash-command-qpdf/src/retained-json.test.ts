@@ -109,13 +109,24 @@ for (const count of [64, 256]) it(`bounds outstanding JSON writes for ${count} p
   assert.equal(result.exitCode, 0); assert.ok(output > count * 50); assert.ok(peak > 0); assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 
-for (const title of ["chapter", "", "decode-first"]) it(`preserves out-of-range JSON outline diagnostics for ${JSON.stringify(title)}`, async () => {
+for (const title of ["chapter", "", "decode-first"]) it(`matches buffered JSON for non-page outline destinations for ${JSON.stringify(title)}`, async () => {
   const doc = PdfDocument.create(); doc.addPage(); doc.addPage();
   dictSet(doc.cos.resolveDict(doc.cos.rootRef)!, "Outlines", cosDict({ First: cosDict({ Title: cosString(title), Dest: cosArray([cosNumber(1.9), cosName("Fit")]) }) }));
   if (title === "decode-first") { const stream = cosStream(new Uint8Array(10), { compress: false }); dictSet(stream.dict, "Filter", cosName("UnsupportedFirstFilter")); doc.cos.allocateObject(stream); }
   const input = doc.save(), args = ["in.pdf", "--json=2", "--json-stream-data=inline"], expected = await runQpdfCli(args, new Map([["in.pdf", input]])).catch(error => error as Error);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input); const carrier = createCommandArguments(args); let writes = 0;
-  await assert.rejects(async () => createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
-    stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write() { writes++; } }, stderr: { async write() {} } }), error => error instanceof Error && expected instanceof Error && error.message === expected.message);
-  assert.equal(writes, 0); assert.deepEqual(await fs.readdir("/scratch"), []);
+  const chunks: Uint8Array[] = [];
+  const execute = async () => createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+    stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write(bytes) { writes++; chunks.push(bytes.slice()); } }, stderr: { async write() {} } });
+  if (title === "decode-first") {
+    await assert.rejects(execute, error => error instanceof Error && expected instanceof Error && error.message === expected.message);
+    assert.equal(writes, 0);
+  } else {
+    assert.ok(!(expected instanceof Error));
+    assert.equal((await execute()).exitCode, 0);
+    const actual = JSON.parse(Buffer.concat(chunks).toString());
+    assert.deepEqual(actual, JSON.parse(expected.stdout));
+    assert.equal(actual.outlines[0].destpageposfrom1, null);
+  }
+  assert.deepEqual(await fs.readdir("/scratch"), []);
 });

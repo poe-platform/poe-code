@@ -1,6 +1,7 @@
 import { qpdfJsonAttachment } from "./json-attachments.js";
 import { qpdfJsonEncryption } from "./json-encryption.js";
 import { qpdfJsonField } from "./json-acroform.js";
+import { qpdfJsonOutlines } from "./json-outlines.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosNull, cosString, decodePdfString, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
@@ -101,12 +102,6 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       }) })];
     }
   }
-  async function pageObject(index: number) {
-    if (!count) return "obj:0 0 R";
-    if (index >= count) throw new PdfError("E_CAPABILITY", `Page index out of bounds: ${index}`);
-    const bytes = await pages.read(pageBase + index * 16, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
-    return `obj:${view.getFloat64(0)} ${view.getFloat64(8)} R`;
-  }
   async function* pageValues(): AsyncGenerator<JsonValue> {
     const root = (await document.lookup(document.crossReference.rootRef))?.value;
     let index = 0;
@@ -118,11 +113,18 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     }
   }
   async function* outlines(): AsyncGenerator<JsonValue> {
-    for await (const outline of document.outlines()) {
-      const reference = await pageObject(outline.pageIndex);
-      if (outline.title) yield jsonRecord({ title: outline.title, destpagepos: outline.pageIndex + 1, destpageobject: reference });
+    const positions = new Map<string, number>();
+    for (let index = 0; index < count; index++) {
+      const bytes = await pages.read(pageBase + index * 16, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      positions.set(`${view.getFloat64(0)} ${view.getFloat64(8)} R`, index + 1);
     }
+    const root = (await document.lookup(document.crossReference.rootRef))?.value;
+    const steps = qpdfJsonOutlines(root?.kind === "dict" ? root : undefined, positions, options.jsonVersion ?? 2);
+    let step = steps.next();
+    while (!step.done) { signal.throwIfAborted(); step = steps.next((await document.lookup(step.value))?.value); }
+    yield* step.value;
   }
+
   async function* labels(): AsyncGenerator<JsonValue> {
     for await (const { index, start, prefix, style } of document.pageLabels()) yield jsonRecord({
       index,

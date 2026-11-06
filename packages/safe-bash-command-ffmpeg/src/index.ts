@@ -1359,6 +1359,7 @@ export function evalSyncFfmpeg(
     }
 
     if (inputs.length === 0 || !outputTarget) return undefined;
+    if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
     const isNullMux = outputFormat === "null" || outputTarget === "/dev/null";
     if (!isNullMux && !writeFileSync) return undefined;
     if (noOverwrite && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
@@ -1781,6 +1782,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           encodeUtf8("ffmpeg: must specify an output file\n"),
           context.signal
         );
+        return { exitCode: 1 };
+      }
+
+      if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) {
+        await writeBytes(context.stderr, encodeUtf8("ffmpeg: -to value smaller than -ss; aborting.\n"), context.signal);
         return { exitCode: 1 };
       }
 

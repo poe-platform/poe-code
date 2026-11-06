@@ -39,7 +39,7 @@ try {
   assert.equal(exact.stdout, '9007199254740993123456789\n');
   const missing = await shell.exec('jq . /missing');
   assert.equal(missing.exitCode, 2);
-  assert.ok(missing.stderr.includes('ENOENT'));
+  assert.equal(missing.stderr, 'jq: error: Could not open file /missing: No such file or directory\n');
   const collision = new Shell({ fs }).use(agentCommands()).use(jqCommands());
   try { await assert.rejects(collision.exec(':'), /already registered/i); }
   finally { await collision.dispose(); }

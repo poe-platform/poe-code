@@ -932,9 +932,22 @@ export class Interpreter {
       if (value === deleted) deletions.push(path);
       else { result = await this.set(result, path, value); this.budget.value(result); }
     }
-    await stableSort(deletions, this.budget, async (first, second) => -await compare(first, second, this.budget));
-    let lastDeletion: Path | undefined;
+    // Expand terminal slices into original indexes before sorting deletions.
+    // Keep paths through a slice intact: jq applies those to the sliced value.
+    const expanded: Path[] = [];
     for (const path of deletions) {
+      const last = path[path.length - 1];
+      if (typeof last === "object" && path.slice(0, -1).every(key => typeof key !== "object")) {
+        for (let index = last.start; index < last.end; index++) {
+          const pending = this.budget.tickSync(); if (pending) await pending;
+          this.budget.collection(expanded.length + 1);
+          expanded.push([...path.slice(0, -1), index]);
+        }
+      } else { this.budget.collection(expanded.length + 1); expanded.push(path); }
+    }
+    await stableSort(expanded, this.budget, async (first, second) => -await compare(first, second, this.budget));
+    let lastDeletion: Path | undefined;
+    for (const path of expanded) {
       if (!lastDeletion || await compare(lastDeletion, path, this.budget) !== 0) result = await this.set(result, path, deleted);
       lastDeletion = path;
     }

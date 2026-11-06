@@ -57,3 +57,27 @@ test("array assignment accepts exact configured collection and byte boundaries",
   const interpreter = new Interpreter(budget, new Map());
   assert.deepEqual(await interpreter.set(null, [3], 7), [null, null, null, 7]);
 });
+
+for (const [selection, expected] of [
+  [".[1:3], .[2:4]", [0, 4]],
+  [".[2:4], .[1:3]", [0, 4]],
+  [".[1], .[0:2]", [2, 3, 4]],
+  [".[0:2], .[1]", [2, 3, 4]],
+  [".[1], .[2]", [0, 3, 4]],
+  [".[-6], .[1]", [0, 2, 3, 4]],
+  [".[1:3], .[1:3]", [0, 3, 4]],
+  [".[-4:-2], .[2:4]", [0, 4]],
+  [".[2:2], .[1]", [0, 2, 3, 4]],
+] as const) {
+  for (const filter of [`del(${selection})`, `(${selection}) |= empty`]) {
+    test(`${filter} deletes original array positions`, async () => {
+      const budget = new Budget(resolveJqLimits(), new AbortController().signal);
+      const interpreter = new Interpreter(budget, new Map());
+      const input = [0, 1, 2, 3, 4];
+      const results: Json[] = [];
+      for await (const value of interpreter.run(parse(filter, new Map(), budget), input)) results.push(value);
+      assert.deepEqual(results, [expected]);
+      assert.deepEqual(input, [0, 1, 2, 3, 4]);
+    });
+  }
+}

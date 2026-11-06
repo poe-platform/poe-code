@@ -139,7 +139,7 @@ function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
     if (state.childOffset !== undefined && state.childOffset < body.length) {
       for (const child of parseMp4Boxes(body.subarray(state.childOffset))) {
         if (state.kind === 'video') {
-          if (child.type === 'avcC') { avcC = parseAvcC(child.payload); applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payload.length, levelIdc: avcC.levelIdc, nalLengthSize: avcC.lengthSizeMinusOne + 1, sps: avcC.sps[0] }); }
+          if (child.type === 'avcC') { avcC = parseAvcC(child.payload); applyCodecMetadata(state, { type: 'avcC', extradataSize: child.payload.length, profileIdc: avcC.profileIdc, profileCompatibility: avcC.profileCompatibility, levelIdc: avcC.levelIdc, nalLengthSize: avcC.lengthSizeMinusOne + 1, sps: avcC.sps[0] }); }
           else if (child.type === 'hvcC') { hvcC = parseHvcC(child.payload); applyCodecMetadata(state, { ...hvcC, type: 'hvcC' }); }
           else if (child.type === 'av1C') { av1C = parseAv1C(child.payload); applyCodecMetadata(state, { ...av1C, type: 'av1C' }); }
           else if (child.type === 'vpcC') { vpcC = parseVpcC(child.payload); applyCodecMetadata(state, { ...vpcC, type: 'vpcC' }); }

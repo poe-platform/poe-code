@@ -74,6 +74,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     index: idx,
     id: `0x${track.id.toString(16)}`,
     codec_name: codecName,
+    mime_codec_string: desc?.mimeCodecString,
     codec_long_name: codecLongName,
     profile: desc?.profile,
     codec_type: track.type,

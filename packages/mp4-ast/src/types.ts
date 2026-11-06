@@ -301,6 +301,7 @@ export interface Mp4OpusConfig {
 export interface MediaCodecDescription {
   readonly formatFourCC: string; // e.g. 'avc1', 'hvc1', 'av01', 'vp09', 'mp4a', 'Opus', 'fLaC', 'alac', 'jpeg', 'tx3g'
   readonly codecName: string; // e.g. 'h264', 'hevc', 'av1', 'vp9', 'aac', 'opus', 'flac', 'alac', 'mjpeg', 'mov_text'
+  readonly mimeCodecString?: string | undefined;
   readonly codecTagString?: string | undefined;
   readonly compressorName?: string | undefined;
   readonly extradataSize?: number | undefined;
@@ -424,6 +425,7 @@ export interface MediaProbeStream {
   readonly id?: string | undefined;
   readonly codec_name: string;
   readonly codec_long_name: string;
+  readonly mime_codec_string?: string | undefined;
   readonly profile?: string | undefined;
   readonly codec_type: MediaTrackType;
   readonly codec_tag_string: string;

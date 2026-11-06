@@ -156,6 +156,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
   if ((sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0))
     for (const [index, stream] of audio.streams.entries()) {
       if (parsed.selector && index !== 0) continue;
+      const mimeCodec = ({ mp3: "mp4a.40.34", flac: "flac", vorbis: "vorbis", opus: "opus", aac: "mp4a.40.2" } as Record<string, string>)[stream.codec];
       const row = filter("stream", {
         index,
         ...(stream.tags && Object.keys(stream.tags).length ? { tags: stream.tags } : {}),
@@ -175,6 +176,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
             ? `PCM ${stream.bitsPerSample}-bit floating point little-endian`
             : codecLongNames[stream.codec] ?? stream.codec,
         codec_type: "audio",
+        ...(mimeCodec ? { mime_codec_string: mimeCodec } : {}),
         ...(["pcm", "pcm_float", "mp3", "flac"].includes(stream.codec)
           ? { sample_fmt: stream.codec === "mp3"
               ? "fltp"

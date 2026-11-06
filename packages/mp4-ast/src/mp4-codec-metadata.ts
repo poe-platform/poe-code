@@ -7,7 +7,7 @@ export type Mp4CodecMetadata = Omit<MediaCodecDescription, 'avcC' | 'hvcC' | 'av
 type MutableMetadata = { -readonly [K in keyof Mp4CodecMetadata]: Mp4CodecMetadata[K] };
 export type CodecEntryState = { metadata: MutableMetadata; kind?: 'video' | 'audio'; childOffset?: number };
 export type CodecMetadataChild =
-  | { type: 'avcC'; extradataSize: number; levelIdc: number; nalLengthSize: number; sps?: Uint8Array | undefined }
+  | { type: 'avcC'; extradataSize: number; profileIdc: number; profileCompatibility: number; levelIdc: number; nalLengthSize: number; sps?: Uint8Array | undefined }
   | { type: 'hvcC'; generalLevelIdc: number; generalProfileIdc: number; bitDepthLumaMinus8: number }
   | { type: 'av1C'; seqProfile: number; seqLevelIdx0: number; highBitdepth: boolean }
   | { type: 'vpcC'; profile: number; level: number }
@@ -47,6 +47,7 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
   if (state.kind === 'video') {
     if (child.type === 'avcC') {
       metadata.extradataSize = child.extradataSize;
+      metadata.mimeCodecString = `avc1.${[child.profileIdc, child.profileCompatibility, child.levelIdc].map(value => value.toString(16).padStart(2, '0')).join('')}`;
       metadata.codecName = 'h264'; metadata.level = child.levelIdc;
       if (child.sps) {
         const sps = parseH264Sps(child.sps);
@@ -69,6 +70,8 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
   } else if (state.kind === 'audio') {
     if (child.type === 'esds' || child.type === 'wave-esds') {
       metadata.extradataSize = child.config.decoderSpecificInfoSize;
+      if (child.config.objectTypeIndication === 0x40 && child.config.audioObjectType > 0)
+        metadata.mimeCodecString = `mp4a.40.${child.config.audioObjectType}`;
       if (child.config.sampleRate > 0) metadata.sampleRate = child.config.sampleRate;
       if (child.config.channelCount > 0) metadata.channels = child.config.channelCount;
       if (child.type === 'esds') {
@@ -95,6 +98,7 @@ export function finishCodecMetadata(state: CodecEntryState): Mp4CodecMetadata {
   } else if (format === 'tx3g' || format === 'text') metadata.codecName = 'mov_text';
   else if (format === 'wvtt') metadata.codecName = 'webvtt';
   else if (format === 'stpp') metadata.codecName = 'ttml';
+  metadata.mimeCodecString ??= ({ mp3: "mp4a.40.34", flac: "flac", vorbis: "vorbis", opus: "opus", ac3: "ac-3", eac3: "ec-3" } as Record<string, string>)[metadata.codecName];
   return metadata;
 }
 

@@ -1273,10 +1273,14 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     // Native splice rounds the gravity box and the splice anchor separately.
     const box = gravityAdjustBox(img.width, img.height, sw, sh, g.x, g.y, gravity);
     const anchor = resolveGravityOffset(sw, sh, gravity);
-    const sx = Math.max(0, Math.min(img.width, box.x + anchor.left));
-    const sy = Math.max(0, Math.min(img.height, box.y + anchor.top));
     const outW = img.width + sw;
     const outH = img.height + sh;
+    const xOffset = box.x + anchor.left;
+    // Native splice skips insertion outside the horizontal bounds and reads
+    // virtual edge pixels for the added columns.
+    const sx = xOffset < 0 || xOffset > img.width ? outW : xOffset;
+    if (box.y + anchor.top > outH) throw new Error("pixels are not authentic");
+    const sy = Math.max(0, Math.min(img.height, box.y + anchor.top));
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
@@ -1292,7 +1296,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 3] = bg.a;
             }
             else {
-                const origX = x < sx ? x : x - sw;
+                const origX = Math.min(img.width - 1, x < sx ? x : x - sw);
                 const origY = y < sy ? y : y - sh;
                 const srcIdx = (origY * img.width + origX) * 4;
                 out[dstIdx] = img.data[srcIdx]!;
@@ -6209,10 +6213,12 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const sh = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? h / 100 : 1)));
         const box = gravityAdjustBox(w, h, sw, sh, g.x, g.y, state.gravity);
         const anchor = resolveGravityOffset(sw, sh, state.gravity);
-        const x = Math.max(0, Math.min(w, box.x + anchor.left));
-        const y = Math.max(0, Math.min(h, box.y + anchor.top));
         width += sw; height += sh;
-        xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + sw, length: w - x }];
+        const xOffset = box.x + anchor.left;
+        const x = xOffset < 0 || xOffset > w ? width : xOffset;
+        if (box.y + anchor.top > height) throw new Error("pixels are not authentic");
+        const y = Math.max(0, Math.min(h, box.y + anchor.top));
+        xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + sw, length: Math.max(0, w - x) }];
         ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: h - y }];
     } else {
         const cw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
@@ -6232,7 +6238,16 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         for (let offset = 0; offset < x.length; offset += 4096) {
             if (work++ % 64 === 0) await yieldTurn(signal);
             const length = Math.min(4096, x.length - offset) * 4;
-            const bytes = await backend.storage.read(image.position + ((y.source + row) * w + x.source + offset) * 4, length);
+            const sourceX = Math.min(w - 1, x.source + offset);
+            const sourceLength = Math.min(length, (w - sourceX) * 4);
+            let bytes = await backend.storage.read(image.position + ((y.source + row) * w + sourceX) * 4, sourceLength);
+            if (sourceLength < length) {
+                const extended = new Uint8Array(length);
+                extended.set(bytes);
+                const edge = bytes.subarray(sourceLength - 4);
+                for (let i = sourceLength; i < length; i += 4) extended.set(edge, i);
+                bytes = extended;
+            }
             await backend.storage.write(position + ((y.target + row) * width + x.target + offset) * 4, bytes);
         }
     }

@@ -27,7 +27,8 @@ Use `-lv` for stream and block offsets and sizes, or `-lvv` to also show
 checksums, filters, header sizes, and decoder memory. Both support `--robot`.
 The codec runs as bundled JavaScript without native processes or runtime fetches.
 It is single-threaded: `--threads=0` (automatic) and `--threads=1` both use one thread. Listing requires a retained
-virtual-file read handle and does not read stdin.
+virtual-file read handle and does not read stdin. Listing follows symlinks to regular
+files within the virtual filesystem and displays the supplied filename.
 
 Pass `maxDecodedBytes` to `createXzCommands` to enforce an optional decoded-byte
 quota. Explicit XZ compression and decompression memory limits retain their

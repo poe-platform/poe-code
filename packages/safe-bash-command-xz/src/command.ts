@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { withInputByteBudget, type CommandDefinition } from "safe-bash-contracts";
-import { codeOf, diagnostic, output } from "safe-bash-compression-engine/internal";
+import { codeOf, diagnostic, output, pathOf } from "safe-bash-compression-engine/internal";
 import { UsageError } from "safe-bash-contracts/diagnostics";
 import { runOperand } from "safe-bash-compression-engine/operand";
 import { planOperands, verifyOperandDestinations } from "safe-bash-compression-engine/files";
@@ -43,7 +43,9 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
           plans = [];
           for (const name of options.operands) {
             try {
-              plans.push(...await planOperands(context, { ...options, operands: [name] }));
+              const source = options.xzList && name && name !== "-"
+                ? await context.fs.realpath(pathOf(context, name), { signal: context.signal }) : name;
+              plans.push(...await planOperands(context, { ...options, operands: [source] }));
               listingNames.push(name);
             } catch (error) {
               context.signal.throwIfAborted();

@@ -40,7 +40,7 @@ export interface FormatSelection {
 }
 const compare = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 const OPTIONAL_MARKDOWN_EXTENSIONS = new Set([
-  "simple_tables", "grid_tables", "pandoc_title_block", "fancy_lists", "citations", "yaml_metadata_block", "tex_math_dollars", "fenced_code_blocks",
+  "multiline_tables", "simple_tables", "grid_tables", "pandoc_title_block", "fancy_lists", "citations", "yaml_metadata_block", "tex_math_dollars", "fenced_code_blocks",
   "backtick_code_blocks", "fenced_code_attributes", "footnotes", "smart", "implicit_figures", "table_captions",
   "line_blocks", "definition_lists", "fenced_divs", "header_attributes", "auto_identifiers",
   "raw_attribute", "link_attributes", "bracketed_spans", "native_divs", "native_spans", "superscript", "subscript"
@@ -127,7 +127,7 @@ export function createFormatRegistry(
       Object.entries(descriptor.extensions).sort(([a], [b]) => compare(a, b))
     );
     if (name === "markdown" || name === "md") {extensions.auto_identifiers = true; extensions.table_captions = true; extensions.citations = true; extensions.bracketed_spans = true; extensions.link_attributes = true; extensions.line_blocks = true; extensions.header_attributes = true; extensions.footnotes = true; extensions.fancy_lists = true; extensions.definition_lists = true; extensions.fenced_divs = true; extensions.fenced_code_attributes = true;}
-    if (selectedDirection === "read" && (name === "markdown" || name === "md")) {extensions.grid_tables = true; extensions.simple_tables = true; extensions.pandoc_title_block = true; extensions.native_divs = true; extensions.native_spans = true; extensions.superscript = true; extensions.subscript = true; extensions.smart = true; extensions.implicit_figures = true;}
+    if (selectedDirection === "read" && (name === "markdown" || name === "md")) {extensions.multiline_tables = true; extensions.grid_tables = true; extensions.simple_tables = true; extensions.pandoc_title_block = true; extensions.native_divs = true; extensions.native_spans = true; extensions.superscript = true; extensions.subscript = true; extensions.smart = true; extensions.implicit_figures = true;}
     if (name === "markdown" || name === "md") {
       extensions.tex_math_dollars = true;
       extensions.raw_attribute = true;

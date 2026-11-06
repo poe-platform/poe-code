@@ -74,7 +74,7 @@ export async function assembleRetainedCommonMark(
     const block = await parser.node(position), header = block.first, columns = await ast.array();
     for await (const cell of parser.lines(header)) {
       const name = (["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"] as const)[cell.alignment]!;
-      await ast.push(columns, await ast.value([await ast.tag(name), await ast.tag("ColWidthDefault")]));
+      await ast.push(columns, await ast.value([await ast.tag(name), cell.column ? await ast.tag("ColWidth", await ast.value(cell.column)) : await ast.tag("ColWidthDefault")]));
     }
     const count = (await parser.node(header)).lineCount;
     const row = async (position: number) => {
@@ -93,7 +93,7 @@ export async function assembleRetainedCommonMark(
     const rows = await ast.array(); let first = true;
     for await (const child of parser.children(position)) {if (first) {first = false; continue;} await ast.push(rows, await row(child));}
     return ast.tag("Table", await ast.value([
-      await attrs(), [null, caption ?? await ast.array()], columns, [await attrs(), [await row(header)]], [[await attrs(), 0, [], rows]], [await attrs(), []]
+      await attrs(), [null, caption ?? await ast.array()], columns, [await attrs(), (await parser.node(header)).blank ? [] : [await row(header)]], [[await attrs(), 0, [], rows]], [await attrs(), []]
     ]));
   };
   const rawHtml = async (range: SourceRange) => {

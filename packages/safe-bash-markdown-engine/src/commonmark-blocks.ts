@@ -1,5 +1,5 @@
 import type { AdapterContext } from "./types.js";
-import { pipeRow, simpleTableColumns } from "./gfm-syntax.js";
+import { pipeRow, simpleTableColumns, multilineTable } from "./gfm-syntax.js";
 import type { Alignment, Attr } from "./ast-types.js";
 import { fencedDivAttributes, normalizeLabel, romanListNumber } from "./commonmark-syntax.js";
 
@@ -16,7 +16,7 @@ export type PendingBlock =
   | { kind: "div"; attributes: Attr; blocks: PendingBlock[]; source: BlockSource }
   | { kind: "definitionList"; items: {term: PendingInline; definitions: PendingDefinition[]}[]; source: BlockSource }
   | { kind: "footnote"; label: string; blocks: PendingBlock[]; source: BlockSource }
-  | { kind: "table"; alignments: Alignment[]; header: string[]; rows: string[][]; source: BlockSource }
+  | { kind: "table"; widths?: number[]; alignments: Alignment[]; header: string[]; rows: string[][]; source: BlockSource }
   | { kind: "paragraph"; inline: PendingInline; source: BlockSource }
   | { kind: "heading"; level: number; inline: PendingInline; source: BlockSource }
   | { kind: "thematicBreak"; source: BlockSource }
@@ -667,6 +667,24 @@ export async function parseCommonMarkBlocks(
         if (end < content.length && (end === 0 || content[end - 1] === " " || content[end - 1] === "\t")) content = trimEnd(content.slice(0, end));
         add({ kind: "heading", level, inline: { kind: "pendingInline", lines: [inlineLine(line, at + level + spaces(line.text, at + level), content)] }, source: range(line, at) });
         break;
+      }
+      if (extensions.multiline_tables && spaces(line.text, offset) <= 3 && line.text[offset] === "-") {
+        let stop = cursor, count = 0, lastLength = 0;
+        const prefix = line.text.slice(0, offset);
+        const table = await multilineTable(rawFrom(line, offset), async () => {
+          if (stop >= text.length) return;
+          const begin = stop;
+          while (stop < text.length && text[stop] !== "\n" && text[stop] !== "\r") {context.checkpoint(); stop++;}
+          const value = text.slice(begin, stop);
+          if (stop < text.length) {const ending = text[stop++]; if (ending === "\r" && text[stop] === "\n") stop++;}
+          if (!value.startsWith(prefix)) return;
+          count++; lastLength = value.length;
+          return value.slice(prefix.length);
+        }, context);
+        if (table) {
+          add({kind: "table", ...table, source: {...range(line, offset), end: {line: number + count, column: lastLength}}});
+          cursor = stop; number += count; break;
+        }
       }
       if (indent <= 3 && rule(line.text, at)) { add({ kind: "thematicBreak", source: range(line, at) }); break; }
       const opening = indent <= 3 ? fence(line.text, at) : undefined;

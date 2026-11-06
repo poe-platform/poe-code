@@ -1,3 +1,4 @@
+import type { Alignment } from "./ast-types.js";
 import type { AdapterContext } from "./types.js";
 import { letter, digit } from "./commonmark-syntax.js";
 import { unicodeWhitespace } from "./commonmark-characters.js";
@@ -98,4 +99,57 @@ export function bareAutolink(text: string, start: number, context: AdapterContex
   if (!domain.includes(".") || domain.endsWith("-") || domain.endsWith("_") || text[end] === "+") return;
   const label = text.slice(start, end);
   return { label, url: "mailto:" + label, end };
+}
+
+/** Multiline tables have a top border, fixed columns and blank-separated rows. */
+export async function multilineTable(top: string, next: () => Promise<string | undefined>, context: AdapterContext) {
+  const border = (text: string) => {
+    if (text.trim().length < 3) return false;
+    for (const char of text) {context.checkpoint(); if (char !== "-" && char !== " ") return false;}
+    return true;
+  };
+  if (!border(top)) return;
+  let columns = simpleTableColumns(top, context), header: string[] | undefined;
+  let pending: string[] = [], alignments: Alignment[] = [];
+  const rows: string[][] = [];
+  const cells = (lines: string[]) => {
+    context.charge("tableCells", columns!.length);
+    context.charge("retainedBytes", columns!.length * 32 + lines.reduce((sum, line) => sum + line.length * 2, 0));
+    return columns!.map((column, index) => lines.map(line => line.slice(index ? column.start : 0, columns![index + 1]?.start).trim()).filter(Boolean).join("\n"));
+  };
+  const alignment = (pending: string[]): Alignment[] => {
+    return columns!.map((column, index) => {
+      const parts = pending.map(line => line.slice(index ? column.start : 0, columns![index + 1]?.start));
+      const left = parts.some(part => part.length > 0 && part[0] !== " ");
+      const right = parts.some(part => part.trimEnd().length >= column.end - column.start);
+      return left ? right ? "AlignDefault" : "AlignLeft" : right ? "AlignRight" : "AlignCenter";
+    });
+  };
+  for (;;) {
+    const line = await next();
+    if (line === undefined) return;
+    await context.cooperate(line.length);
+    context.bound("text", line.length); context.charge("retainedBytes", line.length * 2 + 16);
+    if (border(line)) {
+      if (!header && !rows.length && pending.length) {
+        const separator = simpleTableColumns(line, context);
+        if (!separator) return;
+        columns = separator;
+        header = cells(pending);
+        alignments = alignment(pending);
+        pending = []; continue;
+      }
+      if (!columns) return;
+      if (pending.length) rows.push(cells(pending));
+      if (!rows.length) return;
+      const last = columns.at(-1)!, gap = columns.length > 1 ? last.start - columns.at(-2)!.end : 0;
+      const total = last.end + gap, denominator = Math.max(72, total);
+      return {header: header ?? [], rows, alignments,
+        widths: columns.map((column, index) => ((columns![index + 1]?.start ?? total) - column.start) / denominator)};
+    }
+    if (!line.trim()) {
+      if (!columns) return;
+      if (pending.length) {if (!header && !rows.length) alignments = alignment(pending); rows.push(cells(pending)); pending = [];}
+    } else pending.push(line);
+  }
 }

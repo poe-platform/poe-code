@@ -133,7 +133,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           };
           const rows: Row[] = [];
           for (const cells of block.rows) rows.push(await row(cells));
-          result.push({ t: "Table", c: [["", [], []], [null, caption], block.alignments.map((alignment) => [alignment, { t: "ColWidthDefault" }]), [["", [], []], [await row(block.header)]], [[["", [], []], 0, [], rows]], [["", [], []], []]] });
+          result.push({ t: "Table", c: [["", [], []], [null, caption], block.alignments.map((alignment, index) => [alignment, block.widths ? {t: "ColWidth", c: block.widths[index]!} : { t: "ColWidthDefault" }]), [["", [], []], block.header.length ? [await row(block.header)] : []], [[["", [], []], 0, [], rows]], [["", [], []], []]] });
           break;
         }
         case "definitionList": {

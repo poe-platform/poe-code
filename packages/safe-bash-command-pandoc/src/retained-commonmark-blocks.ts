@@ -1,4 +1,4 @@
-import {simpleTableColumns} from "safe-bash-markdown-engine/gfm-syntax";
+import {simpleTableColumns, multilineTable} from "safe-bash-markdown-engine/gfm-syntax";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
 import {asciiPunctuation, fencedDivAttributes, normalizeLabel} from "./commonmark-syntax.js";
@@ -490,6 +490,37 @@ export class RetainedCommonMarkBlocks {
           if (stop < content.end && (stop === content.start || [" ", "\t"].includes(await source.unit(stop - 1)))) content = await this.trim({start: content.start, end: stop});
           const value = await prepareInline(line, at + level + await line.spaces(at + level), content);
           const node = await add("heading", line, at, {number: level}); await this.addLine(node, value.range, line.number, value.column); break;
+        }
+        if (extensions.multiline_tables && await line.spaces(offset) <= 3 && await line.at(offset) === "-") {
+          let stop = cursor, count = 0, lastLength = 0, top = "", prefix = "";
+          const topRange = await line.rawFrom(offset);
+          context.bound("text", topRange.end - topRange.start); context.charge("retainedBytes", (topRange.end - topRange.start) * 2);
+          for await (const chunk of source.chunks(topRange)) top += chunk;
+          for await (const chunk of source.chunks({start: line.text.start, end: line.text.start + offset})) prefix += chunk;
+          const table = await multilineTable(top, async () => {
+            if (stop >= range.end) return;
+            const begin = stop;
+            while (stop < range.end && !["\n", "\r"].includes(await source.unit(stop))) {context.checkpoint(); stop++;}
+            context.bound("text", stop - begin); context.charge("retainedBytes", (stop - begin) * 2);
+            let value = ""; for await (const chunk of source.chunks({start: begin, end: stop})) value += chunk;
+            if (stop < range.end) {const ending = await source.unit(stop++); if (ending === "\r" && await source.unit(stop) === "\n" && stop < range.end) stop++;}
+            if (!value.startsWith(prefix)) return;
+            count++; lastLength = value.length;
+            return value.slice(prefix.length);
+          }, context);
+          if (table) {
+            const node = await add("table", line, offset);
+            for (const [index, values] of [table.header.length ? table.header : table.widths.map(() => ""), ...table.rows].entries()) {
+              const row = await this.create("row", {blank: Number(index === 0 && !table.header.length)});
+              for (const [column, value] of values.entries()) {
+                const alignment = index === 0 ? ["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"].indexOf(table.alignments[column]!) : 0;
+                await this.addLine(row, await source.append([value]), 0, index === 0 ? table.widths[column]! : 0, alignment);
+              }
+              await this.append(node, row);
+            }
+            await this.set(node, "endLine", number + count); await this.set(node, "endColumn", lastLength);
+            cursor = stop; number += count; break;
+          }
         }
         if (indent <= 3 && await line.rule(at)) {await add("thematicBreak", line, at); break;}
         const opening = indent <= 3 ? await line.fence(at) : undefined;

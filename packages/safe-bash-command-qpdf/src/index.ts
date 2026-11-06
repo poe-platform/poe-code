@@ -1475,7 +1475,9 @@ function* executeQpdfCli(
     if (showObject !== "trailer" && showObject.objNum === 0) {
       return { exitCode: 0, stdout: "", stderr: "" };
     }
-    const node = showObject === "trailer" ? baseDoc.cos.revisions[0]?.trailer : baseDoc.cos.getObject(showObject.objNum);
+    const object = showObject === "trailer" ? undefined : baseDoc.cos.objects.get(showObject.objNum);
+    const node = showObject === "trailer" ? baseDoc.cos.revisions[0]?.trailer
+      : object?.generationNumber === showObject.genNum ? object.value : undefined;
     if (node?.kind === "stream" && (filteredStreamData || rawStreamData)) {
       const bytes = filteredStreamData ? baseDoc.cos.decodeStream(node) : node.rawBytes;
       return { exitCode: 0, stdout: bytesToLatin1(bytes), stdoutBytes: bytes, stderr: "" };

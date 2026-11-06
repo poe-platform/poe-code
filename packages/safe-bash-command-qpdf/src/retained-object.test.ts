@@ -49,7 +49,7 @@ for (const mode of ["plain", "encrypted", "compressed", "missing", "invalid", "g
     }
     if (mode === "missing") number = 999;
     if (mode === "invalid") number = NaN;
-    const args = [`--show-object=${number},99`, ...(flag ? [flag] : []), ...(mode === "encrypted" ? ["--password=reader"] : []), "in.pdf"], expected = await runQpdfCli(args, new Map([["in.pdf", input]]));
+    const args = [`--show-object=${number},${mode === "generation" ? 7 : 0}`, ...(flag ? [flag] : []), ...(mode === "encrypted" ? ["--password=reader"] : []), "in.pdf"], expected = await runQpdfCli(args, new Map([["in.pdf", input]]));
     const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
     const guarded = new Proxy(Object.create(fs) as typeof fs, { get(_target, key) {
       if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file I/O forbidden"); };

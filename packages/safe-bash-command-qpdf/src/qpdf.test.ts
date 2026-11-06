@@ -171,6 +171,47 @@ describe("safe-bash-command-qpdf", () => {
     assert.ok(Array.isArray(parsedJson.qpdf));
   });
 
+  it("looks up the exact generation with --show-object", async () => {
+    const fixture = readFileSync(new URL("./fixtures/compressed-pages.pdf", import.meta.url));
+    const doc = PdfDocument.create();
+    doc.cos.setObject(42, cosNumber(123), 7);
+    doc.cos.setObject(44, cosStream(new TextEncoder().encode("payload")), 7);
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/compressed.pdf", fixture);
+    await fs.writeFile("/nonzero.pdf", doc.save());
+    for (const [file, selector, expected] of [
+      ["/compressed.pdf", "1,99", "null\n"],
+      ["/compressed.pdf", "1,0", "<< /Count 3 /Kids [ 4 0 R 5 0 R 6 0 R ] /Type /Pages >>\n"],
+      ["/nonzero.pdf", "42,7", "123\n"],
+      ["/nonzero.pdf", "42,0", "null\n"],
+      ["/nonzero.pdf", "42", "null\n"],
+      ["/nonzero.pdf", "43,7", "null\n"],
+      ["/nonzero.pdf", "44,0", "null\n"],
+    ] as const) {
+      for (const flags of [[], ["--raw-stream-data"], ["--filtered-stream-data"]]) {
+        const stdout: Uint8Array[] = [];
+        const stderr: Uint8Array[] = [];
+        const carrier = createCommandArguments([`--show-object=${selector}`, ...flags, file]);
+        for (const run of [runQpdfCli, runQpdfCliSync]) {
+          const result = await run(carrier.args, new Map([[file, await fs.readFile(file)]]));
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, expected, `${file}: ${selector}`);
+        }
+        const result = await createQpdfCommand().execute({
+          command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: {}, fs,
+          signal: new AbortController().signal,
+          stdin: (async function* () { yield assert.fail("unexpected stdin read"); })(),
+          stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
+          stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } }
+        });
+        assert.equal(result.exitCode, 0);
+        assert.equal(Buffer.concat(stderr).toString(), "");
+        assert.equal(Buffer.concat(stdout).toString(), expected, `${file}: ${selector}`);
+      }
+    }
+  });
+
   it("merges pages across multiple PDFs with --empty --pages ... --", async () => {
     const docA = createNumberedPdf(3, "Alpha");
     const docB = createNumberedPdf(3, "Beta");

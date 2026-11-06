@@ -1331,15 +1331,17 @@ export class Interpreter {
     }
     if (name === "del") { yield* this.assign(args[0]!, { kind: "call", name: "empty", args: [] }, "|=", input); return; }
     if (name === "debug" || name === "stderr") {
-      const remaining = budget.limits.maxOutputBytes - budget.outputBytes;
-      const text = name === "debug"
-        ? `${await stringify(["DEBUG:", input], budget, { indent: "", ascii: false, color: false }, Math.max(0, remaining - 1), "maxOutputBytes")}\n`
-        : typeof input === "string" ? input
-          : await stringify(input, budget, { indent: "", ascii: false, color: false }, remaining, "maxOutputBytes");
-      const bytes = utf8ByteLength(text);
-      if (bytes > remaining) throw new JqLimitError("maxOutputBytes");
-      budget.outputBytes += bytes;
-      await budget.writeDiagnostic?.(text);
+      for await (const value of args.length ? this.run(args[0]!, input) : [input]) {
+        const remaining = budget.limits.maxOutputBytes - budget.outputBytes;
+        const text = name === "debug"
+          ? `${await stringify(["DEBUG:", value], budget, { indent: "", ascii: false, color: false }, Math.max(0, remaining - 1), "maxOutputBytes")}\n`
+          : typeof value === "string" ? value
+            : await stringify(value, budget, { indent: "", ascii: false, color: false }, remaining, "maxOutputBytes");
+        const bytes = utf8ByteLength(text);
+        if (bytes > remaining) throw new JqLimitError("maxOutputBytes");
+        budget.outputBytes += bytes;
+        await budget.writeDiagnostic?.(text);
+      }
       yield input;
       return;
     }

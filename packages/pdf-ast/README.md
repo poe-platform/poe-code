@@ -436,7 +436,9 @@ chunks while retaining only eight RGBA rows and one MCU's entropy bytes.
 It shares the buffered encoder's quality and pixel conversion, including
 zero-filling truncated input. Set `colorSpace: "cmyk"` for four-component Adobe CMYK output
 (the default is RGB). Buffered `encodeJpeg` and `encodeJpegSteps` accept the same
-color space as their third argument. Set `chunkBytes`, `maxWorkingBytes`,
+color space as their third argument. Set `dpi` and `dpiY` for JFIF resolution
+(defaults: 72 DPI and the X resolution, respectively); buffered encoders accept
+them as their fourth and fifth arguments. Set `chunkBytes`, `maxWorkingBytes`,
 `maxOutputBytes`, and `signal` to control output ownership, admission and
 cancellation. The caller's current input chunk and fixed codec tables are
 additional memory; upstream retained image rows provide bounded input chunks.

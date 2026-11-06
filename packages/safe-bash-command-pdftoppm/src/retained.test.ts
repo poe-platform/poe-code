@@ -348,3 +348,31 @@ for (const retained of [false, true]) {
     assert.deepEqual([tags.get(282), tags.get(283), tags.get(296)], [24, 48, 2]);
   });
 }
+
+for (const retained of [false, true]) {
+  for (const [flags, expected] of [
+    [[], [150, 150]],
+    [["-r", "96"], [96, 96]],
+    [["-rx", "24", "-ry", "48"], [24, 48]],
+    [["-scale-to", "36"], [36, 36]],
+  ] as const) {
+    test(`JPEG preserves JFIF resolution ${flags.join(" ")} (${retained ? "retained" : "buffered"})`, async () => {
+      const doc = PdfDocument.create(); doc.addPage([72, 72]);
+      const input = doc.save(), args = [...flags, "-jpeg", "-singlefile", "in.pdf", "out"];
+      let bytes: Uint8Array;
+      if (retained) {
+        const f = await fixture(input, args);
+        assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, 0);
+        bytes = await f.fs.readFile("/out.jpg"); await f.clean();
+      } else {
+        const files = new Map([["in.pdf", input]]);
+        assert.equal((await runPdftoppmCli(args, files)).exitCode, 0);
+        bytes = files.get("out.jpg")!;
+      }
+      assert.equal(new TextDecoder().decode(bytes.subarray(6, 11)), "JFIF\0");
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      assert.equal(bytes[13], 1); // Densities are pixels per inch.
+      assert.deepEqual([view.getUint16(14), view.getUint16(16)], expected);
+    });
+  }
+}

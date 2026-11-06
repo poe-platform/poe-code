@@ -16,7 +16,7 @@ import { readStoredPath } from "../content/stored-path.js";
 import { prepareRetainedImageSampler } from "./retained-image-sampling.js";
 import { createTiffHeader, encodePackBitsRowSteps } from "./tiff-stream.js";
 import { jpegEncodingProgram } from "./jpeg-stream.js";
-import { pngResolutionChunk, updatePngCrc } from "./png-stream.js";
+import { updatePngCrc } from "./png-stream.js";
 import { encodePortableBitmapSteps } from "./portable-bitmap-stream.js";
 import { getStandardFontOutlines } from "../fonts/standard-outlines.js";
 import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
@@ -35,8 +35,8 @@ export interface RgbaBitmap {
   readonly data: Uint8Array;
 }
 
-export function *encodePngSteps(bitmap: RgbaBitmap, dpi?: number, dpiY = dpi): Generator<void, Uint8Array, void> {
-  return (yield* encodeRgbaToPngSteps(bitmap.width, bitmap.height, bitmap.data, true, dpi, dpiY));
+export function *encodePngSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
+  return (yield* encodeRgbaToPngSteps(bitmap.width, bitmap.height, bitmap.data, true));
 }
 
 export function *decodePngSteps(pngBytes: Uint8Array): Generator<void, RgbaBitmap, void> {
@@ -218,9 +218,9 @@ export interface RenderToPngOptions {
   readonly thinLineMode?: "none" | "solid" | "shape" | undefined;
 }
 
-export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb"): Generator<void, Uint8Array, void> {
+export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb", dpi = 72, dpiY = dpi): Generator<void, Uint8Array, void> {
   const width = Math.max(1, bitmap.width);
-  const program = jpegEncodingProgram(width, bitmap.height, quality, colorSpace);
+  const program = jpegEncodingProgram(width, bitmap.height, quality, colorSpace, dpi, dpiY);
   const chunks: Uint8Array[] = []; let length = 0;
   let step = program.next();
   while (!step.done) {
@@ -377,7 +377,7 @@ function *makePngChunkSteps(type: string, data: Uint8Array): Generator<void, Uin
   return out;
 }
 
-export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8Array, consumeInput = false, dpi?: number, dpiY = dpi): Generator<void, Uint8Array, void> {
+export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8Array, consumeInput = false): Generator<void, Uint8Array, void> {
   let work = 0;
   let opaque = consumeInput && width >= 1 && height >= 1 && rgba.length >= height * (width * 3 + 1);
   if (opaque) {
@@ -445,11 +445,10 @@ export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8
   }
   const iendChunk = (yield* makePngChunkSteps("IEND", new Uint8Array(0)));
 
-  const resolution = dpi === undefined ? new Uint8Array(0) : pngResolutionChunk(dpi, dpiY);
-  const total = signature.length + ihdrChunk.length + resolution.length + idatChunk.length + iendChunk.length;
+  const total = signature.length + ihdrChunk.length + idatChunk.length + iendChunk.length;
   const out = new Uint8Array(total);
   let offset = 0;
-  for (const part of [signature, ihdrChunk, resolution, idatChunk, iendChunk]) {
+  for (const part of [signature, ihdrChunk, idatChunk, iendChunk]) {
     if (++work % 16384 === 0) yield;
     out.set(part, offset);
     offset += part.length;
@@ -1851,11 +1850,9 @@ export function *renderPdfPageToPngSteps(
 }
 
 export function encodePng(
-  bitmap: RgbaBitmap,
-  dpi?: number,
-  dpiY = dpi
+  bitmap: RgbaBitmap
 ): Uint8Array {
-  const steps = encodePngSteps(bitmap, dpi, dpiY);
+  const steps = encodePngSteps(bitmap);
   let next = steps.next();
   while (!next.done) next = steps.next();
   return next.value;
@@ -1873,9 +1870,11 @@ export function decodePng(
 export function encodeJpeg(
   bitmap: RgbaBitmap,
   quality = 90,
-  colorSpace: "rgb" | "cmyk" = "rgb"
+  colorSpace: "rgb" | "cmyk" = "rgb",
+  dpi = 72,
+  dpiY = dpi
 ): Uint8Array {
-  const steps = encodeJpegSteps(bitmap, quality, colorSpace);
+  const steps = encodeJpegSteps(bitmap, quality, colorSpace, dpi, dpiY);
   let next = steps.next();
   while (!next.done) next = steps.next();
   return next.value;

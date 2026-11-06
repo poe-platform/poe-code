@@ -110,7 +110,7 @@ function *bitLengthAndMagSteps(val: number): Generator<void, { size: number; bit
   return { size, bits };
 }
 
-export function *jpegEncodingProgram(width: number, height: number, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb"): Generator<Uint8Array | { rowStart: number; rowCount: number } | undefined, void, Uint8Array | undefined> {
+export function *jpegEncodingProgram(width: number, height: number, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb", dpi = 72, dpiY = dpi): Generator<Uint8Array | { rowStart: number; rowCount: number } | undefined, void, Uint8Array | undefined> {
   let work = 0;
   const w = Math.max(1, width);
   const h = Math.max(1, height);
@@ -133,6 +133,10 @@ export function *jpegEncodingProgram(width: number, height: number, quality = 90
     0x00, 0x48, 0x00, 0x48,
     0x00, 0x00,
   ]);
+
+  const density = new DataView(app0.buffer);
+  density.setUint16(14, Math.round(dpi));
+  density.setUint16(16, Math.round(dpiY));
 
   const dqt = new Uint8Array(69);
   dqt[0] = 0xff;
@@ -312,6 +316,8 @@ function bitLengthAndMag(
 export interface PdfJpegChunkOptions {
   readonly quality?: number;
   readonly colorSpace?: "rgb" | "cmyk";
+  readonly dpi?: number;
+  readonly dpiY?: number;
   readonly chunkBytes?: number;
   /** Eight RGBA rows, one output chunk and conservative codec scratch. The
    * caller's current input chunk and shared static tables are additional. */
@@ -335,7 +341,7 @@ export async function* encodeJpegChunks(width: number, height: number, input: As
   if (width * Math.min(8, height) * 4 + chunkBytes + 65536 > working) throw new PdfError("E_LIMIT", "JPEG working byte limit exceeded");
   if (outputLimit < 328) throw new PdfError("E_LIMIT", "JPEG output byte limit exceeded");
   const { signal } = options; signal?.throwIfAborted();
-  const source = readBytes(input, signal)[Symbol.asyncIterator](); const program = jpegEncodingProgram(width, height, options.quality, options.colorSpace);
+  const source = readBytes(input, signal)[Symbol.asyncIterator](); const program = jpegEncodingProgram(width, height, options.quality, options.colorSpace, options.dpi, options.dpiY);
   let pending: Uint8Array | undefined; let cursor = 0; let ended = false; let emitted = 0; let failed = false;
   try {
     let step = program.next();

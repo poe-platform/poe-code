@@ -269,8 +269,10 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
           for await (const bytes of old.range(position, oldStart)) await append(bytes);
           await text(`#if${change.oldCount ? "n" : ""}def ${options.symbol}\n`);
           for await (const bytes of old.range(oldStart, oldEnd)) await append(bytes);
+          if (change.oldCount && (await old.data.read(8 + oldEnd - 1, 1))[0] !== 10) await text("\n");
           if (change.oldCount && change.newCount) await text(`#else /* ${options.symbol} */\n`);
           for await (const bytes of next.range(newStart, newEnd)) await append(bytes);
+          if (change.newCount && (await next.data.read(8 + newEnd - 1, 1))[0] !== 10) await text("\n");
           await text(`#endif /* ${change.oldCount && !change.newCount ? "! " : ""}${options.symbol} */\n`);
           position = oldEnd;
         }

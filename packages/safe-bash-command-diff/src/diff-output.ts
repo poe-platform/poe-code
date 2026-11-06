@@ -216,8 +216,10 @@ export async function ifdef(changes: readonly Edit[], symbol: string, budget: Bu
     if (changes[scan - 1]!.ignored) { await append(old.join("")); continue; }
     await append(`#if${old.length ? "n" : ""}def ${symbol}\n`);
     if (old.length) await append(old.join(""));
+    if (old.length && !old[old.length - 1]!.endsWith("\n")) await append("\n");
     if (old.length && next.length) await append(`#else /* ${symbol} */\n`);
     if (next.length) await append(next.join(""));
+    if (next.length && !next[next.length - 1]!.endsWith("\n")) await append("\n");
     await append(`#endif /* ${old.length && !next.length ? "! " : ""}${symbol} */\n`);
   }
 }

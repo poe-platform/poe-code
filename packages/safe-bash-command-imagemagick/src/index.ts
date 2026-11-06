@@ -1348,6 +1348,8 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     const geometry = parseMagickGeometry(raw);
+    // Native percentage roll geometries leave the pixel offsets at zero.
+    if (geometry.isPercent) return { ...geometry, x: 0, y: 0 };
     // A size followed by offsets needs an x separator, even with no height.
     if (geometry.hasOffset && geometry.width !== undefined && !raw.toLowerCase().includes("x")) {
         throw new Error(`invalid argument for option '-roll': ${raw}`);

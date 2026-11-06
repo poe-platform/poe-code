@@ -5960,6 +5960,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (composed !== overlay) detachRgbaBuffer(overlay.data);
                 }
                 stack = [composed, ...stack.slice(2)];
+            } else {
+                throw new Error("image sequence is required '-composite'");
             }
         }
         else {
@@ -6503,7 +6505,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-layers") i++;
             const settings = { ...state };
             stackStep(async (stack, backend) => {
-                if (!stack.length || (token === "-composite" && stack.length < 2)) return stack;
+                if (token === "-composite" && stack.length < 2) throw new Error("image sequence is required '-composite'");
+                if (!stack.length) return stack;
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;

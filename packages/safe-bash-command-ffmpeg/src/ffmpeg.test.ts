@@ -1525,6 +1525,47 @@ describe("decoded audio editing", () => {
       }
       const actual = parseWav(vfs.store.get("/expression.wav")!).tracks[0]!.decodedAudio!;
       const expected = parseWav(vfs.store.get("/constant.wav")!).tracks[0]!.decodedAudio!;
+  for (const [filter, positional] of [
+    ["volume", "volume=1"],
+    ["volume=volume=0.5", "volume=0.5"],
+    ["volume=volume=-6dB", "volume=-6dB"],
+    ["atempo", "atempo=1"],
+    ["atempo=tempo=1", "atempo=1"],
+    ["atempo=tempo=2", "atempo=2"]
+  ]) {
+    it(`matches ${positional} PCM samples with ${filter}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 8000 }, (_, i) => (12000 + i % 50) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      for (const [expression, path] of [[positional!, "/expected.wav"], [filter!, "/actual.wav"]]) {
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/input.wav", "-af", expression!, "-c:a", "pcm_s16le", path!
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const expected = parseWav(vfs.store.get("/expected.wav")!).tracks[0]!.decodedAudio!;
+      const actual = parseWav(vfs.store.get("/actual.wav")!).tracks[0]!.decodedAudio!;
+      assert.ok(expected.channelData[0]!.length > 0);
+      assert.deepEqual(actual, expected);
+    });
+  }
+
+  for (const filter of ["volume=volume=invalid", "volume=wrong=0.5", "atempo=tempo=0.25", "atempo=wrong=1"]) {
+    it(`rejects ${filter} without replacing output`, async () => {
+      const vfs = createTestVfs({
+        "/input.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(800).fill(0.25)] }),
+        "/output.wav": "existing output"
+      });
+      const before = vfs.store.get("/output.wav")!.slice();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-i", "/input.wav", "-af", filter, "/output.wav"
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.deepEqual(vfs.store.get("/output.wav"), before);
+    });
+  }
+
       assert.equal(actual.sampleRate, 16000);
       assert.equal(actual.channelData[0]!.length, 8000);
       assert.deepEqual(actual.channelData, expected.channelData, expression);

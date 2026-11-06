@@ -2621,8 +2621,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                       const trimmed = item.trim();
-                      if (trimmed.startsWith("volume=")) {
-                        const volSpec = trimmed.slice("volume=".length).trim();
+                      if (trimmed === "volume" || trimmed.startsWith("volume=")) {
+                        const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
+                        const volSpec = argument.startsWith("volume=") ? argument.slice("volume=".length).trim() : argument;
                         const decibels = volSpec.endsWith("dB");
                         const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", {});
                         const factor = decibels ? Math.pow(10, gain / 20) : gain;
@@ -2635,8 +2636,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           return output;
                         }, context.signal);
-                      } else if (trimmed.startsWith("atempo=")) {
-                        const tempo = Number(trimmed.slice(7));
+                      } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
+                        const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
+                        const tempo = Number(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument);
                         if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {
                           throw new Error("atempo must be in the range [0.5, 100]");
                         }

@@ -87,11 +87,12 @@ export async function verifyMarkdownYaml({createStorage, bucket}) {
   const encoder = new TextEncoder();
   const lua = createLuaFilterCapability({readStream: () => [encoder.encode(`
 function Meta(meta)
-  assert(#meta.payload == 262144)
-  assert(string.sub(meta.payload, 1, 1) == "a")
-  assert(string.sub(meta.payload, -1) == "a")
+  local payload = pandoc.utils.stringify(meta.payload)
+  assert(#payload == 262144)
+  assert(string.sub(payload, 1, 1) == "A")
+  assert(string.sub(payload, -1) == "A")
   assert(meta.nested.list[1] == true)
-  assert(meta.nested.list[2] == "12")
+  assert(pandoc.utils.stringify(meta.nested.list[2]) == "12")
   return meta
 end
 function Str(el) return pandoc.Str(string.upper(el.text)) end`)]});

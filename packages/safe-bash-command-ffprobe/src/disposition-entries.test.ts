@@ -6,6 +6,32 @@ import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
 const bytes = readFileSync(new URL("../../mp4-ast/src/fixtures/packet-positions-faststart.mp4", import.meta.url));
 
+for (const fixture of ["h264-b-frames.mp4", "aac-external.mp4"]) {
+  for (const selected of [false, true]) {
+    it(`includes zero-valued newer dispositions for ${fixture} in ${selected ? "selected" : "ordinary"} output`, async () => {
+      const disposition = { non_diegetic: 0, captions: 0, descriptions: 0, metadata: 0, dependent: 0, still_image: 0, multilayer: 0 };
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/clip.mp4", readFileSync(new URL(`../../mp4-ast/src/fixtures/${fixture}`, import.meta.url)));
+      const args = ["-v", "error", ...(selected ? ["-show_entries", `stream_disposition=${Object.keys(disposition).join(",")}`] : ["-show_streams"]), "-of", "json", "/clip.mp4"];
+      let output = "", diagnostic = "";
+      const result = await createFfprobeCommand().execute({
+        command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
+        signal: new AbortController().signal,
+        stdin: { async *[Symbol.asyncIterator]() {} },
+        stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+        stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+      });
+      expect(result.exitCode, diagnostic).toBe(0);
+      const streams = JSON.parse(output).streams;
+      expect(streams).toHaveLength(fixture === "aac-external.mp4" ? 2 : 1);
+      for (const stream of streams) {
+        if (selected) expect(stream.disposition).toEqual(disposition);
+        else expect(stream.disposition).toMatchObject(disposition);
+      }
+    });
+  }
+}
+
 for (const mode of ["file", "stdin", "sync"]) {
   it.each([
     ["stream=index:stream_disposition=default", { programs: [], stream_groups: [], streams: [{ index: 0, disposition: { default: 1 } }] }],

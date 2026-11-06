@@ -8,9 +8,11 @@ import { createFfmpegCommand } from "./index.js";
 for (const separator of ["", "# marker\n", "\n", "  \n  # marker\n\n"]) {
   for (const [directives, start, end] of [
     [["inpoint 0.25"], 2000, 8000],
-    [["outpoint 0.75"], 0, 6000],
+    [["outpoint 0.25"], 0, 2048],
+    [["outpoint 0.256"], 0, 2048],
+    [["outpoint 0.75"], 0, 6144],
     [["duration 0.5"], 0, 8000],
-    [["inpoint 0.25", "outpoint 0.75"], 2000, 6000]
+    [["inpoint 0.25", "outpoint 0.75"], 2000, 6096]
   ] as const) {
     it(`concat preserves ${directives.join(", ")} across ${JSON.stringify(separator)}`, async () => {
       const volume = Volume.fromJSON({

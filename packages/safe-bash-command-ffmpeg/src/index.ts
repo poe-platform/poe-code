@@ -2111,13 +2111,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                     }
                     let itemDoc = await loadSingleDocument(resolvedItem);
+                    let sliceEnd = currentOutpoint;
+                    const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;
+                    const packetFrames = wavTrack?.samples[0]?.duration;
+                    if (sliceEnd !== undefined && wavTrack && packetFrames) {
+                      // WAV seeking starts a new packet at the inpoint. Concat keeps
+                      // the whole packet whose DTS precedes the outpoint.
+                      const start = Math.max(0, currentInpoint ?? 0);
+                      const packets = Math.ceil(Math.max(0, sliceEnd - start) * wavTrack.timescale / packetFrames);
+                      sliceEnd = start + packets * packetFrames / wavTrack.timescale;
+                    }
                     if (
                       currentInpoint !== undefined ||
                       currentOutpoint !== undefined
                     ) {
                       itemDoc = sliceMp4(itemDoc, {
                         startSeconds: currentInpoint,
-                        endSeconds: currentOutpoint
+                        endSeconds: sliceEnd
                       });
                     }
                     startTimesSeconds.push(nextStartSeconds);

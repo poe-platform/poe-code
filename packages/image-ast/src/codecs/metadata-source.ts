@@ -37,7 +37,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isTiffBytes(prefix)) {
   if(!storage)throw new UnsupportedStoredResource();
   const decoded=await decodeTiffToStorage(source,storage,signal);
-  metadata={format:"tiff",width:decoded.width,height:decoded.height,space:decoded.space,channels:decoded.channels,depth:decoded.depth,
+  metadata={...(decoded.properties?{properties:decoded.properties}:{}),format:"tiff",width:decoded.width,height:decoded.height,space:decoded.space,channels:decoded.channels,depth:decoded.depth,
    ...(decoded.bitsPerSample===undefined?{}:{bitsPerSample:decoded.bitsPerSample}),density:decoded.density,hasAlpha:decoded.hasAlpha,
    ...(decoded.orientation===undefined?{}:{orientation:decoded.orientation}),size:source.size};
  }

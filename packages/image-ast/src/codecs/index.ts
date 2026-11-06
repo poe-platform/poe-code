@@ -165,6 +165,7 @@ export function readImageMetadata(
     case "tiff": {
       const decoded = decodeTiffImage(bytes);
       meta = {
+        ...(decoded.properties ? {properties:decoded.properties} : {}),
         format: "tiff",
         width: decoded.width,
         height: decoded.height,

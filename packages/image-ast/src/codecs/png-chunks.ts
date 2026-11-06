@@ -51,6 +51,16 @@ export function canvasChunk(canvas: { width: number; height: number; x: number; 
   return makeChunk("caNv", bytes);
 }
 
+export function* textChunks(properties: Readonly<Record<string, string>> | undefined): Generator<Uint8Array> {
+  for (const [key, value] of Object.entries(properties ?? {})) {
+    const keyword = Uint8Array.from(key, char => char.charCodeAt(0));
+    if (!key.length || key.length > 79 || [...key].some(char => char.charCodeAt(0) > 255 || char === "\0")) continue;
+    const text = new TextEncoder().encode(value), payload = new Uint8Array(keyword.length + 5 + text.length);
+    payload.set(keyword); payload.set(text, keyword.length + 5);
+    yield makeChunk("iTXt", payload);
+  }
+}
+
 export function iccChunk(icc: Uint8Array): Uint8Array {
   const compressed = transformBytes(icc, {direction:"encode",format:"zlib"});
   const payload = new Uint8Array(5 + compressed.length);

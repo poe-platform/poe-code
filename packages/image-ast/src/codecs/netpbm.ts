@@ -447,6 +447,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let xRes = 72;
   let resUnit = 2;
   let orientation: number | undefined;
+  let properties: Record<string,string> | undefined;
   let jpegTables: Uint8Array | undefined;
   for (let i = 0; i < numEntries; i++) {
     const p = ifdOffset + 2 + i * 12;
@@ -458,6 +459,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 258 && first > 0) bitsPerSample = first;
     else if (tag === 259 && first > 0) compression = first;
     else if (tag === 262) photometric = first;
+    else if (tag === 270) properties = {comment: new TextDecoder().decode(new Uint8Array(vals.slice(0, vals.indexOf(0) < 0 ? vals.length : vals.indexOf(0))))};
     else if (tag === 273 && vals.length > 0) stripOffsets = vals;
     else if (tag === 274 && first >= 1 && first <= 8) orientation = first;
     else if (tag === 277 && first > 0) samplesPerPixel = first;
@@ -654,6 +656,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     bitsPerSample,
     density,
     hasAlpha: samplesPerPixel === 2 || samplesPerPixel === 4,
+    ...(properties ? {properties} : {}),
     ...(orientation !== undefined ? { orientation } : {})
   };
 }

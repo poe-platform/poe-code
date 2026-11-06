@@ -207,6 +207,15 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
     if (position + 2 > source.size) break;
     const length = ((await reader.at(position))! << 8) | (await reader.at(position + 1))!;
     if (length < 2 || position + length > source.size) break;
+    if (marker === 0xfe) {
+      const decoder = new TextDecoder(); let comment = "";
+      for (let offset = 0; offset < length - 2; offset += 4096) {
+        const payload = await payloadBytes(reader, position + 2 + offset, Math.min(4096, length - 2 - offset));
+        comment += decoder.decode(payload, {stream:true});
+      }
+      state.properties ??= {};
+      state.properties.comment = (state.properties.comment ?? "") + comment + decoder.decode();
+    }
     if (
       marker === 0xdb ||
       marker === 0xda ||
@@ -229,6 +238,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
   const { width, height, channels, isProgressive, density, orientation } = state;
   if (width <= 0 || height <= 0) throw new Error("Invalid JPEG dimensions");
   return {
+    ...(state.properties === undefined ? {} : {properties: state.properties}),
     ...(state.icc === undefined ? {} : {icc: state.icc}),
     format: "jpeg",
     ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
@@ -536,6 +546,7 @@ export async function decodeJpegToStorage(
       depth: "uchar",
       density: meta.density,
       hasAlpha: false,
+      ...(meta.properties === undefined ? {} : {properties: meta.properties}),
       ...(meta.icc === undefined ? {} : {icc: meta.icc}),
       ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
       ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
@@ -644,6 +655,7 @@ export async function decodeJpegToStorage(
     depth: "uchar",
     density: meta.density,
     hasAlpha: false,
+    ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})

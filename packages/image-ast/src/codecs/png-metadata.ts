@@ -17,6 +17,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let resolution: ImageMetadata["resolution"];
   let hasTrns = false;
   let virtualCanvas: ImageMetadata["virtualCanvas"];
+  const properties: Record<string, string> = Object.create(null);
   let icc: Uint8Array | undefined;
   let orientation: number | undefined;
   let backgroundColor: ImageMetadata["backgroundColor"];
@@ -38,6 +39,41 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       bitDepth = chunk[8]!;
       colorType = chunk[9]!;
       interlace = chunk[12]!;
+    } else if (type === "tEXt" || type === "zTXt" || type === "iTXt") {
+      if (len > 16 * 1024 * 1024) throw new Error("PNG text exceeds 16 MiB");
+      const keyword = yield {position:dataStart,length:Math.min(len,80)};
+      const end = keyword.indexOf(0);
+      if (end < 1 || end > 79) { pos = dataStart + len + 4; continue; }
+      const chunk = yield {position:dataStart,length:len};
+      let start = end + 1, compressed = type === "zTXt";
+      if (type === "zTXt") {
+        if (chunk[start++] !== 0) throw new Error("Invalid PNG text compression");
+      } else if (type === "iTXt") {
+        const flag = chunk[start++];
+        if (flag !== 0 && flag !== 1 || chunk[start++] !== 0) throw new Error("Invalid PNG text compression");
+        compressed = flag === 1;
+        for (let field = 0; field < 2; field++) {
+          const zero = chunk.indexOf(0, start);
+          if (zero < 0) throw new Error("Invalid PNG international text");
+          start = zero + 1;
+        }
+      }
+      let value = chunk.subarray(start);
+      if (compressed) {
+        const codec = createByteCodec({direction:"decode",format:"zlib"});
+        const parts: Uint8Array[] = []; let length = 0;
+        try {
+          for (const part of codec.push(value, true)) {
+            length += part.length;
+            if (length > 16 * 1024 * 1024) throw new Error("PNG text exceeds 16 MiB");
+            parts.push(part);
+          }
+        } finally { codec.close(); }
+        value = new Uint8Array(length); let offset = 0;
+        for (const part of parts) { value.set(part, offset); offset += part.length; }
+      }
+      const latin1 = (bytes: Uint8Array) => Array.from(bytes, byte => String.fromCharCode(byte)).join("");
+      properties[latin1(chunk.subarray(0, end))] = type === "iTXt" ? new TextDecoder().decode(value) : latin1(value);
     } else if (type === "iCCP") {
       if (len > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
       const chunk = yield {position:dataStart,length:len};
@@ -129,6 +165,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   const depth = bitDepth === 16 ? "ushort" : bitDepth < 8 ? "bit" : "uchar";
 
   return {
+    ...(Object.keys(properties).length ? {properties} : {}),
     ...(icc === undefined ? {} : {icc}),
     format: "png",
     ...(colorType === 3 ? {isPalette: true} : {}),

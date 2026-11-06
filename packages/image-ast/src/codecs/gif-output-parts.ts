@@ -6,7 +6,7 @@ export interface GifOptions {
   readonly loop?: number;
   readonly optimizeFrames?: boolean;
 }
-export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor">;
+export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor" | "properties">;
 /** The wire palette is fixed at 256 entries, independent of raster size. */
 export class GifPalette {
   readonly bytes = new Uint8Array(768);
@@ -93,10 +93,11 @@ export function gifHeader(
   layout: ReturnType<typeof gifLayout>,
   palette: GifPalette
 ) {
+  const comment = new TextEncoder().encode(image.properties?.comment ?? "");
   const { frames } = layout,
     width = image.virtualCanvas?.width || layout.width, frameHeight = image.virtualCanvas?.height || layout.frameHeight,
     loop = options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
-    out = new Uint8Array(13 + 768 + (loop === undefined || loop === 1 ? 0 : 19));
+    out = new Uint8Array(13 + 768 + (loop === undefined || loop === 1 ? 0 : 19) + (comment.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0));
   out.set([
     71,
     73,
@@ -139,6 +140,14 @@ export function gifHeader(
       ],
       781
     );
+  }
+  if (comment.length) {
+    let at = 781 + (loop === undefined || loop === 1 ? 0 : 19);
+    out.set([33,254], at); at += 2;
+    for (let offset = 0; offset < comment.length; offset += 255) {
+      const part = comment.subarray(offset, offset + 255);
+      out[at++] = part.length; out.set(part, at); at += part.length;
+    }
   }
   return out;
 }

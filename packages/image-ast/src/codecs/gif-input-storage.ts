@@ -130,7 +130,7 @@ export async function decodeGifToStorage(
     }
     return at;
   };
-  const {frames,loop}=await scanGifAnimation(reader,source.size,start);
+  const {frames,loop,properties}=await scanGifAnimation(reader,source.size,start);
   const totalPages = Math.max(1, frames),
     multi = options?.coalesce !== false && (
       options?.animated === true ||
@@ -343,6 +343,7 @@ export async function decodeGifToStorage(
     height: height * (virtualCanvas ? 1 : pages),
     ...(virtualCanvas ? { virtualCanvas, disposal } : {}),
     ...(backgroundColor ? { backgroundColor } : {}),
+    ...(properties ? {properties} : {}),
     position: output,
     format: "gif",
     space: "srgb",

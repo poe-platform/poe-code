@@ -1,6 +1,7 @@
 import { JpegTables } from "./jpeg-tables.js";
 import { parseExifBuffer } from "./exif.js";
 export interface JpegMetadataState {
+  properties?: Record<string, string>;
   icc?: Uint8Array;
   iccParts?: Map<number, Uint8Array>;
   iccCount?: number;
@@ -20,6 +21,10 @@ export function applyJpegMetadata(
   marker: number,
   payload: Uint8Array
 ): boolean {
+  if (marker === 0xfe) {
+    state.properties ??= {};
+    state.properties.comment = (state.properties.comment ?? "") + new TextDecoder().decode(payload);
+  }
   let { width, height, channels, isProgressive, density, orientation } = state;
   if (marker === 0xe2 && payload.length >= 14 && new TextDecoder().decode(payload.subarray(0, 12)) === "ICC_PROFILE\0") {
     const index = payload[12]!, count = payload[13]!;

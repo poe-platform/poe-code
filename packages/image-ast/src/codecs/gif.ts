@@ -9,7 +9,7 @@ export function readGifMetadata(bytes:Uint8Array,options?:{readonly animated?:bo
  if(!isGifBytes(bytes)||bytes.length<13)throw new Error("Invalid GIF header");
  const start=13+(bytes[10]!&128?3*(1<<((bytes[10]!&7)+1)):0),steps=gifAnimationSteps(bytes.length,start),delays:number[]=[];let next=steps.next();
  while(!next.done){if(typeof next.value==="number")next=steps.next(bytes[next.value]);else {delays.push(next.value.delay);next=steps.next();}}
- return {...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options),...(delays.length?{delay:delays}:{})};
+ return {...(next.value.properties ? {properties:next.value.properties} : {}),...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options),...(delays.length?{delay:delays}:{})};
 }
 
 function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): Uint8Array {
@@ -196,7 +196,7 @@ export function decodeGifImage(
           const index = indices[sy * imgW + x]!, at = (rowMap[sy]! * imgW + x) * 4;
           if (index !== transparentIdx) data.set([palette[index * 3] ?? 0, palette[index * 3 + 1] ?? 0, palette[index * 3 + 2] ?? 0, 255], at);
         }
-        return { width: imgW, height: imgH, data, format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72,
+        return { ...(meta.properties ? {properties:meta.properties} : {}), width: imgW, height: imgH, data, format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72,
           backgroundColor: { r: palette[bytes[11]! * 3] ?? 0, g: palette[bytes[11]! * 3 + 1] ?? 0, b: palette[bytes[11]! * 3 + 2] ?? 0, a: 1 },
           hasAlpha: transparentIdx !== -1, virtualCanvas: { width, height, x: left, y: top }, disposal: disposalMethod,
           ...(meta.delay ? { delay: meta.delay } : {}), ...(meta.loop === undefined ? {} : { loop: meta.loop }) };
@@ -271,6 +271,7 @@ export function decodeGifImage(
     width,
     height: height * numPages,
     data: outData,
+    ...(meta.properties ? {properties:meta.properties} : {}),
     format: "gif",
     space: "srgb",
     channels: 4,

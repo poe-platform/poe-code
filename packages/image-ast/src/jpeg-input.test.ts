@@ -3935,7 +3935,7 @@ it.each(jpegInputVectors.filter((v) => v.error))(
     await expect(env.decode(vector.options)).rejects.toThrow(vector.error);
   }
 );
-it("does not collect ignored maximum-size marker payloads", async () => {
+it("reads maximum-size comment segments in bounded pages", async () => {
   const plain = small(),
     input = Uint8Array.from([
       255,

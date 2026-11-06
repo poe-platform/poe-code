@@ -125,6 +125,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
   }
 
   return {
+    ...(state.properties === undefined ? {} : {properties: state.properties}),
     ...(state.icc === undefined ? {} : {icc: state.icc}),
     format: "jpeg",
     ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
@@ -606,6 +607,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       depth: "uchar",
       density: meta.density,
       hasAlpha: false,
+      ...(meta.properties === undefined ? {} : {properties: meta.properties}),
       ...(meta.icc === undefined ? {} : {icc: meta.icc}),
       ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
       ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
@@ -707,6 +709,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
     depth: "uchar",
     density: meta.density,
     hasAlpha: false,
+    ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
@@ -806,7 +809,7 @@ function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
 }
 
 export function createJpegEncoder(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation"|"icc">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation"|"icc"|"properties">,
   options?: {
     readonly quality?: number;
     readonly samplingFactor?: string;
@@ -858,6 +861,14 @@ export function createJpegEncoder(
   ]);
   writeSegment(0xe0, app0);
 
+  if (img.properties?.comment !== undefined) {
+    const comment = new TextEncoder().encode(img.properties.comment);
+    for (let offset = 0; offset < comment.length;) {
+      let end = Math.min(comment.length, offset + 65533);
+      while (end < comment.length && (comment[end]! & 0xc0) === 0x80) end--;
+      writeSegment(0xfe, comment.subarray(offset, end)); offset = end;
+    }
+  }
   if (img.icc) {
     const count = Math.ceil(img.icc.length / 65519);
     if (count > 255) throw new Error("ICC profile exceeds JPEG segment limit");

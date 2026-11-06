@@ -1,5 +1,5 @@
 import {encodeXML} from "entities";
-import type {Paragraph, DocxBlock, DocxRunInput, DocumentModelContext} from "safe-bash-docx-engine";
+import type {Paragraph, Table, DocxBlock, DocxRunInput, DocumentModelContext} from "safe-bash-docx-engine";
 import type {Block, Inline, Row} from "./ast-types.js";
 import type {AdapterContext, ReaderCapability, WriterCapability} from "./types.js";
 import {PandocError} from "./errors.js";
@@ -33,7 +33,7 @@ async function guarded<T>(ctx: AdapterContext, action: () => Promise<T>): Promis
 }
 export const docxReader: ReaderCapability = {format: "docx", async read(input, ctx) {
   return guarded(ctx, async () => {
-    const {Document: openDocument, Paragraph, Run, NumberingGraph, numberingAttribute} = await import("safe-bash-docx-engine/pandoc-adapter");
+    const {Document: openDocument, Paragraph, Run, NumberingGraph, numberingAttribute, modelText, activeModelChildren} = await import("safe-bash-docx-engine/pandoc-adapter");
     const model = await openDocument(input.bytes, await modelContext(ctx));
     const related = (kind: string) => {
       const edge = [...model.part.rels.values()].find(edge => !edge.is_external && edge.reltype.endsWith(`/${kind}`));
@@ -42,6 +42,21 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
     const numberingXml = related("numbering");
     const numbering = numberingXml ? new NumberingGraph(numberingXml, related("styles")?.root, model.store.context.budget) : undefined;
     const definitions = new Map<number, ReturnType<InstanceType<typeof NumberingGraph>["resolve"]>>();
+    const notes = new Map<string, ReturnType<typeof model.store.ref>>();
+    const activeNotes = new Set<string>();
+    for (const edge of model.part.rels.values()) {
+      ctx.checkpoint();
+      if (edge.is_external || !["http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes", "http://purl.oclc.org/ooxml/officeDocument/relationships/footnotes"].includes(edge.reltype)) continue;
+      const part = edge.target_part.partname.toString();
+      const root = model.store.xml(part).root;
+      for (const node of activeModelChildren(model.store, part)(root)) {
+        ctx.checkpoint();
+        if (node.namespace !== root.namespace || node.localName !== "footnote") continue;
+        const id = node.attributes.find(a => a.namespace === root.namespace && a.localName === "id")?.value;
+        const type = node.attributes.find(a => a.namespace === root.namespace && a.localName === "type")?.value;
+        if (id !== undefined && (!type || type === "normal")) notes.set(id, model.store.ref(part, node));
+      }
+    }
     const paragraph = async (p: Paragraph): Promise<Block> => {
       const inlines: Inline[] = [];
       for (const item of p.iter_inner_content()) {
@@ -50,12 +65,40 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
         const content: Inline[] = [];
         for (const run of runs) {
           ctx.checkpoint();
-          let inlines: Inline[] = run.style?.style_id === "VerbatimChar"
-            ? [{t: "Code", c: [attr, run.text]}]
-            : await literalInlines(run.text, ctx);
-          if (run.bold) inlines = [{t: "Strong", c: inlines}];
-          if (run.italic) inlines = [{t: "Emph", c: inlines}];
-          content.push(...inlines);
+          const children = activeModelChildren(run.store, run.ref.part);
+          const node = run.store.node(run.ref);
+          let text = "";
+          const flush = async () => {
+            if (!text) return;
+            let inlines: Inline[] = run.style?.style_id === "VerbatimChar"
+              ? [{t: "Code", c: [attr, text]}]
+              : await literalInlines(text, ctx);
+            if (run.bold) inlines = [{t: "Strong", c: inlines}];
+            if (run.italic) inlines = [{t: "Emph", c: inlines}];
+            content.push(...inlines);
+            text = "";
+          };
+          for (const child of children(node)) {
+            ctx.checkpoint();
+            if (child.namespace === node.namespace && child.localName === "footnoteReference") {
+              await flush();
+              const id = child.attributes.find(a => a.namespace === node.namespace && a.localName === "id")?.value ?? "";
+              const ref = notes.get(id);
+              if (!ref || activeNotes.has(id)) throw new PandocError("E_PARSE", "read", `Invalid DOCX footnote reference: ${id}`, "docx");
+              activeNotes.add(id);
+              const blocks = await readBlocks(model.store.blocks(ref));
+              activeNotes.delete(id);
+              // Word separates the automatic note marker from its text with whitespace.
+              const first = blocks[0];
+              if (first?.t === "Para") {
+                let start = 0;
+                while (first.c[start]?.t === "Space") start++;
+                blocks[0] = {...first, c: first.c.slice(start)};
+              }
+              content.push({t: "Note", c: blocks});
+            } else if (child.namespace === node.namespace) text += modelText(child, children);
+          }
+          await flush();
         }
         if (item instanceof Run) inlines.push(...content);
         else inlines.push({t: "Link", c: [attr, content, [item.url, ""]]});
@@ -99,28 +142,31 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       }
       stack.at(-1)!.items.push([block.t === "Para" && p.style?.style_id === "Compact" ? {t: "Plain", c: block.c} : block]);
     };
-    const blocks: Block[] = [];
-    const stack: ListFrame[] = [];
-    for (const item of model.iter_inner_content()) {
-      await ctx.cooperate();
-      if (item instanceof Paragraph) await appendParagraph(item, blocks, stack);
-      else {
-        stack.length = 0;
-        const rows: Row[] = [];
-        for (const row of item.rows) {
-          const cells: Row[1][number][] = [];
-          for (const cell of row.cells) {
-            const blocks: Block[] = [];
-            const stack: ListFrame[] = [];
-            for (const p of cell.paragraphs) await appendParagraph(p, blocks, stack);
-            cells.push([attr, "AlignDefault", 1, 1, blocks]);
+    const readBlocks = async (items: Iterable<Paragraph | Table>): Promise<Block[]> => {
+      const blocks: Block[] = [];
+      const stack: ListFrame[] = [];
+      for (const item of items) {
+        await ctx.cooperate();
+        if (item instanceof Paragraph) await appendParagraph(item, blocks, stack);
+        else {
+          stack.length = 0;
+          const rows: Row[] = [];
+          for (const row of item.rows) {
+            const cells: Row[1][number][] = [];
+            for (const cell of row.cells) {
+              const blocks: Block[] = [];
+              const stack: ListFrame[] = [];
+              for (const p of cell.paragraphs) await appendParagraph(p, blocks, stack);
+              cells.push([attr, "AlignDefault", 1, 1, blocks]);
+            }
+            rows.push([attr, cells]);
           }
-          rows.push([attr, cells]);
+          blocks.push({t: "Table", c: [attr, [null, []], Array.from({length: item.columns.length}, () => ["AlignDefault", {t: "ColWidthDefault"}]), [attr, []], [[attr, 0, [], rows]], [attr, []]]});
         }
-        blocks.push({t: "Table", c: [attr, [null, []], Array.from({length: item.columns.length}, () => ["AlignDefault", {t: "ColWidthDefault"}]), [attr, []], [[attr, 0, [], rows]], [attr, []]]});
       }
-    }
-    return {blocks, metadata: {}, resources: []};
+      return blocks;
+    };
+    return {blocks: await readBlocks(model.iter_inner_content()), metadata: {}, resources: []};
   });
 }};
 export const docxWriter: WriterCapability = {format: "docx", imageResources: "embed", async write(document, ctx) {

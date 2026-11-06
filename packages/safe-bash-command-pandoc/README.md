@@ -25,6 +25,7 @@ capabilities before conversion: support is format-specific and does not imply fu
 compatibility. DOCX output accepts raw `openxml` inlines and omits raw inlines for other formats.
 DOCX output preserves table column alignment and explicit widths, including cell alignment overrides.
 DOCX output preserves footnotes, including formatted paragraphs, links, lists, tables, and images in notes.
+DOCX input preserves footnote references and note text, including formatted paragraphs, hyperlinks, and tables.
 Built-in DOCX conversion preserves headings, bold/italic text, inline code, hyperlinks, lists,
 tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,
 and embedded raster images (including inline images in table cells). PPTX renders blockquotes as indented

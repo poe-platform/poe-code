@@ -208,6 +208,8 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
     const length = ((await reader.at(position))! << 8) | (await reader.at(position + 1))!;
     if (length < 2 || position + length > source.size) break;
     if (
+      marker === 0xdb ||
+      marker === 0xda ||
       marker === 0xe0 ||
       marker === 0xe1 ||
       marker === 0xc0 ||
@@ -217,7 +219,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
       const payload = await payloadBytes(
         reader,
         position + 2,
-        Math.min(length - 2, marker === 0xe0 ? 12 : marker === 0xe1 ? 65533 : 6 + 255 * 3)
+        Math.min(length - 2, marker === 0xe0 ? 12 : marker === 0xe1 || marker === 0xdb ? 65533 : 6 + 255 * 3)
       );
       if (applyJpegMetadata(state, marker, payload)) break;
     }
@@ -237,6 +239,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
     density,
     hasAlpha: false,
     ...(orientation === undefined ? {} : { orientation }),
+    ...(state.quality === undefined ? {} : { quality: state.quality }),
     isProgressive,
     size: source.size
   };

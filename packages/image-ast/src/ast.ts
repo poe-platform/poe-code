@@ -69,6 +69,7 @@ export interface RgbaImage {
 
 export interface ImageMetadata {
   readonly jpegSamplingFactor?: string;
+  readonly quality?: number;
   readonly isPalette?: boolean;
   readonly backgroundColor?: RgbaColor;
   readonly format: ImageFormat;

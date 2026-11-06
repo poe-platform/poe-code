@@ -989,7 +989,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     y: String(resolution ? Number((resolution.y / resolutionScale).toPrecision(6)) : meta.density ?? 72),
     s: String(context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     g: `${page.width}x${page.height}${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
-    C: compression, Q: String(context.quality ?? 92)
+    C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
   const properties: Record<string, string> = {
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",

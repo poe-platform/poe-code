@@ -135,6 +135,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
     density,
     hasAlpha: false,
     ...(orientation !== undefined ? { orientation } : {}),
+    ...(state.quality === undefined ? {} : { quality: state.quality }),
     isProgressive,
     size: bytes.byteLength
   };

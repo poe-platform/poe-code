@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
@@ -23,6 +24,10 @@ const mp3 = new Uint8Array(834);
 mp3.set([255, 251, 144, 0]);
 mp3.set([255, 251, 144, 0], 417);
 cases.push({ name: "tone.mp3", bytes: mp3, sampleFormat: "fltp" });
+for (const name of ["tone.ogg", "tone.m4a"]) {
+  cases.push({ name, sampleFormat: "fltp",
+    bytes: readFileSync(new URL(`../../safe-bash-command-audio/fixtures/${name}`, import.meta.url)) });
+}
 
 it.each(cases)("reports decoded sample format for $name", async ({ name, bytes, sampleFormat }) => {
   const fs = new MemoryFileSystem();

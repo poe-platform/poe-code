@@ -179,8 +179,8 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
             : codecLongNames[stream.codec] ?? stream.codec,
         codec_type: "audio",
         ...(mimeCodec ? { mime_codec_string: mimeCodec } : {}),
-        ...(["pcm", "pcm_float", "mp3", "flac"].includes(stream.codec)
-          ? { sample_fmt: stream.codec === "mp3"
+        ...(["pcm", "pcm_float", "mp3", "flac", "vorbis"].includes(stream.codec)
+          ? { sample_fmt: stream.codec === "mp3" || stream.codec === "vorbis"
               ? "fltp"
               : stream.codec === "pcm_float"
                 ? stream.bitsPerSample === 64 ? "dbl" : "flt"

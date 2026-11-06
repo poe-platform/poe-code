@@ -158,6 +158,7 @@ const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselin
 
 export async function verifySafeBashProfiles(consumer, { budgets = reviewedBudgets, smoke = true } = {}) {
   const results = {};
+  const budgetFailures = [];
   let pdfDecoderMarkers;
   for (const [name, profile] of Object.entries(safeBashProfiles)) {
     const source = `${profile.imports}
@@ -206,11 +207,11 @@ export default { async fetch() {
       assert.ok(!javascript.includes(engineMarkers[engine]), `${name}: unused ${engine} engine code`);
       assert.ok(!result.outputFiles.some(output => output.path.includes(engineMarkers[engine])), `${name}: unused ${engine} asset`);
     }
-    if (budgets) assert.ok(bytes <= budgets[name], `${name}: ${bytes} exceeds reviewed ${budgets[name]} byte budget`);
+    if (budgets && !(bytes <= budgets[name])) budgetFailures.push(`${name}: ${bytes} exceeds reviewed ${budgets[name]} byte budget`);
     const baselineDelta = safeBashProfileBaselines[name] - safeBashProfileBaselines.core;
     const delta = name === "core" ? 0 : bytes - results.core.bytes;
     const deltaBudget = baselineDelta + Math.max(16_384, Math.ceil(Math.abs(baselineDelta) * 0.05));
-    assert.ok(delta <= deltaBudget, `${name}: ${delta} incremental bytes exceeds reviewed ${deltaBudget} byte budget`);
+    if (!(delta <= deltaBudget)) budgetFailures.push(`${name}: ${delta} incremental bytes exceeds reviewed ${deltaBudget} byte budget`);
     if (name === "git") assert.equal(result.outputFiles.filter(output => output.path.endsWith(".wasm")).length, 1, "one selected Git Wasm");
     // Buffered and incremental decoding each contain this diagnostic. Adding
     // PDF commands must retain the same shared implementation as one command.
@@ -219,7 +220,7 @@ export default { async fetch() {
       assert.ok(pdfDecoderMarkers > 0, "selected PDF decoder");
     }
     if (name === "multiplePdf") assert.equal(javascript.split(engineMarkers.pdf).length - 1, pdfDecoderMarkers, "one shared PDF decoder");
-    if (smoke) {
+    if (smoke && !budgetFailures.length) {
       const entry = Object.entries(result.metafile.outputs).find(([, output]) => output.entryPoint && path.resolve(output.entryPoint) === path.resolve(consumer, "profile.mjs"))?.[0];
       assert.ok(entry, name + ": Worker ESM entry");
       const outputs = [...result.outputFiles].sort((left, right) => Number(right.path === path.resolve(entry ?? "")) - Number(left.path === path.resolve(entry ?? "")));
@@ -241,6 +242,7 @@ export default { async fetch() {
       staticModules: result.outputFiles.length, contributingModules: new Set(contributing).size };
     console.log(JSON.stringify({ profile: name, ...results[name] }));
   }
+  assert.equal(budgetFailures.length, 0, budgetFailures.join("\n"));
   if (smoke) await verifySafeBashPortableCommands(consumer);
   return results;
 }

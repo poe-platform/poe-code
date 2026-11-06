@@ -688,7 +688,7 @@ class JsonParser {
     return this.#done() ?? output;
   }
   finish(boundary?: { line: number; column: number; eof: boolean }): Json | undefined {
-    if (boundary && !this.#quoted && !this.#stack.length && this.#token && numericToken(this.#token, this.#budget) !== undefined) {
+    if (boundary && !this.#stream && !this.#quoted && !this.#stack.length && this.#token && numericToken(this.#token, this.#budget) !== undefined) {
       throw new JqParseError(`Potentially truncated top-level numeric value${boundary.eof ? " at EOF" : ""}`, this.#offset, boundary.line, boundary.column);
     }
     if (boundary && !boundary.eof && this.#stack.length && !this.#quoted && !this.#token) return undefined;

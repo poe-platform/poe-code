@@ -1,7 +1,29 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { jsonFragments, jsonValues, renderJsonFragment, tryProcessFlatJsonChunkSync } from "./input.js";
+import { jsonFragments, jsonValues, parseJson, renderJsonFragment, tryProcessFlatJsonChunkSync } from "./input.js";
 import { Budget, objectKeys, objectSize, resolveJqLimits, type Json } from "./limits.js";
+
+for (const input of ["\x1e1", "\x1e1\x1e2\n", "\x1e1\n\x1e2\n"]) {
+  for (const streamErrors of [false, true]) {
+    test(`streaming sequences preserve numeric records: ${JSON.stringify(input)}, errors=${streamErrors}`, async () => {
+      const bytes = Buffer.from(input);
+      for (const size of [1, bytes.length]) {
+        const budget = new Budget(resolveJqLimits(), new AbortController().signal);
+        const warnings: string[] = [];
+        const actual: Json[] = [];
+        const source = (async function* () {
+          for (let offset = 0; offset < bytes.length; offset += size) yield bytes.subarray(offset, offset + size);
+        })();
+        for await (const value of jsonValues(source, budget, {
+          sequence: true, stream: true, streamErrors,
+          async warning(message) { warnings.push(message); },
+        })) actual.push(value);
+        assert.deepEqual(actual, parseJson(input.includes("2") ? "[[[],1],[[],2]]" : "[[[],1]]", budget));
+        assert.deepEqual(warnings, []);
+      }
+    });
+  }
+}
 
 test("flat JSON parsing uses each invocation's value limit", () => {
   const bytes = new TextEncoder().encode('{"x":1}\n');

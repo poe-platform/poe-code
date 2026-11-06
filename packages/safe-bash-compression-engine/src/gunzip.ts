@@ -83,10 +83,21 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
         return;
       }
       const second = await input.byte();
+      const prefix = second === undefined ? [first] : [first, second];
+      if (!members && first === 0x50 && second === 0x4b) {
+        const third = await input.byte();
+        const fourth = third === undefined ? undefined : await input.byte();
+        if (third !== undefined) prefix.push(third);
+        if (fourth !== undefined) prefix.push(fourth);
+        if (third === 3 && fourth === 4) {
+          yield* decodeZipMember(input, signal);
+          return;
+        }
+      }
       if (first !== 31 || second !== 139) {
         // GNU forced stdout/test passes non-member bytes through after valid members too.
         if (force) {
-          yield Uint8Array.from(second === undefined ? [first] : [first, second]);
+          yield Uint8Array.from(prefix);
           for (;;) { const chunk = await input.chunk(); if (!chunk) return; yield chunk; }
         }
         if (members && first === 0) {
@@ -108,6 +119,34 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
       members++;
     }
   } finally { controller.abort(); await reader.close(); }
+}
+
+// gzip reads the first deflated ZIP entry directly; it does not extract paths.
+async function* decodeZipMember(input: Input, signal: AbortSignal): ByteSource {
+  const fixed = await input.exact(26);
+  const view = new DataView(fixed.buffer);
+  const flags = view.getUint16(2, true);
+  if (flags & 1) throw new PublicDiagnostic("encrypted ZIP entry is unsupported");
+  if (view.getUint16(4, true) !== 8) throw new PublicDiagnostic("unsupported ZIP compression method");
+  await input.exact(view.getUint16(22, true) + view.getUint16(24, true));
+  let expectedCrc = view.getUint32(10, true);
+  let expectedSize = view.getUint32(18, true);
+  let crc = 0xffffffff;
+  let size = 0;
+  for await (const chunk of codec(input, { mode: "inflate-raw" }, signal)) {
+    crc = updateCrc(crc, chunk);
+    size += chunk.length;
+    yield chunk;
+  }
+  if (flags & 8) {
+    const first = new DataView((await input.exact(4)).buffer).getUint32(0, true);
+    expectedCrc = first === 0x08074b50
+      ? new DataView((await input.exact(4)).buffer).getUint32(0, true) : first;
+    const sizes = new DataView((await input.exact(8)).buffer);
+    expectedSize = sizes.getUint32(4, true);
+  }
+  if (((crc ^ 0xffffffff) >>> 0) !== expectedCrc) throw new PublicDiagnostic("incorrect data check (CRC)");
+  if (size !== expectedSize) throw new PublicDiagnostic("incorrect length check");
 }
 
 async function* decodeMember(input: Input, signal: AbortSignal): ByteSource {

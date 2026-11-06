@@ -1392,7 +1392,11 @@ export function evalSyncFfmpeg(
         }
       } else if (arg === "-display_rotation") rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
       else if (arg.startsWith("-") && arg !== "-") return undefined;
-      else outputTarget = arg;
+      else {
+        // Multi-output and trailing groups use the async path before any writes.
+        if (i + 1 < args.length) return undefined;
+        outputTarget = arg;
+      }
     }
 
     if (inputs.length === 0 || !outputTarget) return undefined;
@@ -1531,7 +1535,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     description: "Multimedia converter, merger, and stream processor powered by pluggable ASTs",
     async execute(context: CommandContext) {
       const budget = new MediaBudgetTracker(options.limits);
-      const readInput = createInputReader(context, budget);
+      const readSource = createInputReader(context, budget);
       const argsObj = getCommandArguments(context);
       const args = argsObj.args;
 
@@ -1577,1301 +1581,1324 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingLoop: number | undefined;
       let pendingFps: number | undefined;
       let pendingStartNumber: number | undefined;
-      let outputStartNumber: number | undefined;
-
-      let outputFormat: string | undefined;
-      let outputSs: number | undefined;
-      let outputTo: number | undefined;
-      let outputDuration: number | undefined;
-      let videoCodec: string | undefined;
-      let audioCodec: string | undefined;
-      let audioRate: number | undefined;
-      let audioChannels: number | undefined;
-      let hlsTime = 2;
-      let hlsListSize = 5;
-      let hlsDeleteSegments = false;
-      let hlsOmitEndlist = false;
-      let hlsIndependentSegments = false;
-      let hlsDeleteThreshold = 1;
-      let hlsSegmentFilename: string | undefined;
-      let hlsSegmentType: string | undefined;
-      let stripAudio = false;
-      let stripVideo = false;
-      let stripSubtitles = false;
-      let shortest = false;
-      let faststart = true;
-      let fragmented = false;
-      let maxVideoFrames: number | undefined;
-      let maxAudioFrames: number | undefined;
-      let outputFps: number | undefined;
-      let videoSync = "auto";
-      let outputSize: string | undefined;
-      let rotation: number | undefined;
       let overwrite = false;
-      const maps: string[] = [];
-      const vfFilters: string[] = [];
-      const afFilters: string[] = [];
       let filterComplex: string | undefined;
-      let chapterSource: number | undefined;
-      let metadataSource: number | undefined;
-      const metadata: Record<string, string> = {};
-      const streamLanguages: [string, string][] = [];
-      const streamDispositions: [string, string][] = [];
-      let outputTarget: string | undefined;
-
-      for (let i = 0; i < args.length; i++) {
-        const arg = args[i]!;
-        if (arg === "-y") {
-          overwrite = true;
-        } else if (arg === "-n") {
-          overwrite = false;
-        } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
-          i++;
-        } else if (arg === "-vsync" || arg === "-fps_mode") {
-          videoSync = args[++i] ?? "";
-        } else if (arg === "-hls_time" || arg === "-seg_duration") {
-          hlsTime = parseFloat(args[++i] ?? "2") || 2;
-        } else if (arg === "-hls_segment_filename") {
-          hlsSegmentFilename = args[++i];
-        } else if (arg === "-hls_segment_type") {
-          hlsSegmentType = args[++i];
-        } else if (arg === "-hls_list_size") {
-          const value = args[++i];
-          hlsListSize = value?.trim() ? Number(value) : NaN;
-          if (!Number.isSafeInteger(hlsListSize) || hlsListSize < 0) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_list_size\n"), context.signal);
-            return { exitCode: 1 };
-          }
-        } else if (arg === "-hls_flags") {
-          const value = args[++i] ?? "";
-          if (!value.startsWith("+") && !value.startsWith("-")) {
-            hlsDeleteSegments = false;
-            hlsOmitEndlist = false;
-            hlsIndependentSegments = false;
-          }
-          for (const flag of value.replaceAll("-", "+-").split("+")) {
-            if (flag === "delete_segments") hlsDeleteSegments = true;
-            if (flag === "-delete_segments") hlsDeleteSegments = false;
-            if (flag === "independent_segments") hlsIndependentSegments = true;
-            if (flag === "-independent_segments") hlsIndependentSegments = false;
-            if (flag === "omit_endlist") hlsOmitEndlist = true;
-            if (flag === "-omit_endlist") hlsOmitEndlist = false;
-          }
-        } else if (arg === "-hls_delete_threshold") {
-          const value = args[++i];
-          hlsDeleteThreshold = value?.trim() ? Number(value) : NaN;
-          if (!Number.isSafeInteger(hlsDeleteThreshold) || hlsDeleteThreshold < 1) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_delete_threshold\n"), context.signal);
-            return { exitCode: 1 };
-          }
-        } else if (arg === "-map_chapters") {
-          const value = args[++i];
-          chapterSource = value?.trim() ? Number(value) : NaN;
-          if (!Number.isSafeInteger(chapterSource)) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid chapter input index\n"), context.signal);
-            return { exitCode: 1 };
-          }
-        } else if (arg === "-map_metadata") {
-          const value = args[++i];
-          metadataSource = value?.trim() ? Number(value) : NaN;
-          if (!Number.isSafeInteger(metadataSource)) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);
-            return { exitCode: 1 };
-          }
-        } else if (arg === "-start_number") {
-          const val = Number(args[++i]);
-          if (!Number.isSafeInteger(val) || val < 0) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid start_number\n"), context.signal);
-            return { exitCode: 1 };
-          }
-          if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
-          else outputStartNumber = val;
-        } else if (arg === "-ar") {
-          audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
-        } else if (arg === "-ac") {
-          audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
-        } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") {
-          // no-op
-        } else if (arg === "-f") {
-          const val = args[++i];
-          if (inputs.length === 0 || (i + 1 < args.length && args.slice(i + 1).includes("-i"))) {
-            pendingFormat = val;
-          } else {
-            outputFormat = val;
-          }
-        } else if (arg === "-ss") {
-          const val = parseFfmpegTimestamp(args[++i] ?? "0");
-          if (args.slice(i + 1).includes("-i")) {
-            pendingSs = val;
-          } else {
-            outputSs = val;
-          }
-        } else if (arg === "-to") {
-          const val = parseFfmpegTimestamp(args[++i] ?? "0");
-          if (args.slice(i + 1).includes("-i")) {
-            pendingTo = val;
-          } else {
-            outputTo = val;
-          }
-        } else if (arg === "-t") {
-          const val = parseFfmpegTimestamp(args[++i] ?? "0");
-          if (args.slice(i + 1).includes("-i")) {
-            pendingDuration = val;
-          } else {
-            outputDuration = val;
-          }
-        } else if (arg === "-stream_loop") {
-          pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
-        } else if (arg === "-r" || arg === "-framerate") {
-          const val = parseFloat(args[++i] ?? "25") || 25;
-          if (args.slice(i + 1).includes("-i")) {
-            pendingFps = val;
-          } else {
-            outputFps = val;
-          }
-        } else if (arg === "-s") {
-          outputSize = args[++i];
-        } else if (arg === "-i") {
-          const path = args[++i] ?? "";
-          inputs.push({
-            path,
-            format: pendingFormat,
-            startSeconds: pendingSs,
-            endSeconds: pendingTo,
-            durationSeconds: pendingDuration,
-            streamLoop: pendingLoop,
-            fps: pendingFps,
-            startNumber: pendingStartNumber
-          });
-          pendingFormat = undefined;
-          pendingSs = undefined;
-          pendingTo = undefined;
-          pendingDuration = undefined;
-          pendingLoop = undefined;
-          pendingFps = undefined;
-          pendingStartNumber = undefined;
-        } else if (arg === "-c" || arg === "-codec") {
-          const val = args[++i];
-          videoCodec = val;
-          audioCodec = val;
-        } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") {
-          videoCodec = args[++i];
-        } else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
-          audioCodec = args[++i];
-        } else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") {
-          i++;
-        } else if (arg === "-an") {
-          stripAudio = true;
-        } else if (arg === "-vn") {
-          stripVideo = true;
-        } else if (arg === "-sn") {
-          stripSubtitles = true;
-        } else if (arg === "-shortest") {
-          shortest = true;
-        } else if (arg === "-frames:v" || arg === "-vframes") {
-          maxVideoFrames = parseInt(args[++i] ?? "1", 10) || 1;
-        } else if (arg === "-frames:a" || arg === "-aframes") {
-          const value = args[++i];
-          maxAudioFrames = value?.trim() ? Number(value) : NaN;
-          if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
-            return { exitCode: 1 };
-          }
-        } else if (arg === "-movflags") {
-          const flags = args[++i] ?? "";
-          if (flags.includes("faststart")) faststart = true;
-          if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) {
-            fragmented = true;
-          }
-        } else if (arg === "-map") {
-          const m = args[++i];
-          if (m) maps.push(m);
-        } else if (arg === "-vf" || arg === "-filter:v") {
-          const f = args[++i];
-          if (f) vfFilters.push(f);
-        } else if (arg === "-af" || arg === "-filter:a") {
-          const f = args[++i];
-          if (f) afFilters.push(f);
-        } else if (arg === "-filter_complex" || arg === "-lavfi") {
-          filterComplex = args[++i];
-        } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
-          streamDispositions.push([arg.slice("-disposition:".length), args[++i] ?? ""]);
-        } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
-          const kv = args[++i] ?? "";
-          const eq = kv.indexOf("=");
-          if (eq >= 0) {
-            const k = kv.slice(0, eq).trim().toLowerCase();
-            const v = kv.slice(eq + 1).trim();
-            if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
-              streamLanguages.push([arg.slice("-metadata:s:".length), v]);
-            } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
-            else metadata[k] = v;
-          }
-        } else if (arg === "-display_rotation") {
-          rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
-        } else if (!arg.startsWith("-") || arg === "-") {
-          outputTarget = arg;
+      const outputs: (() => Promise<{ exitCode: number }>)[] = [];
+      const inputBytes = new Map<string, Uint8Array>();
+      const readInput = async (path: string): Promise<Uint8Array> => {
+        if (outputs.length === 1) return readSource(path);
+        let bytes = inputBytes.get(path);
+        if (!bytes) {
+          bytes = await readSource(path);
+          inputBytes.set(path, bytes);
         }
-      }
+        // Each output may detach parsed buffers; retain the source for later outputs.
+        return bytes.slice();
+      };
+      let i = 0;
+      while (i < args.length) {
+        let outputStartNumber: number | undefined;
 
+        let outputFormat: string | undefined;
+        let outputSs: number | undefined;
+        let outputTo: number | undefined;
+        let outputDuration: number | undefined;
+        let videoCodec: string | undefined;
+        let audioCodec: string | undefined;
+        let audioRate: number | undefined;
+        let audioChannels: number | undefined;
+        let hlsTime = 2;
+        let hlsListSize = 5;
+        let hlsDeleteSegments = false;
+        let hlsOmitEndlist = false;
+        let hlsIndependentSegments = false;
+        let hlsDeleteThreshold = 1;
+        let hlsSegmentFilename: string | undefined;
+        let hlsSegmentType: string | undefined;
+        let stripAudio = false;
+        let stripVideo = false;
+        let stripSubtitles = false;
+        let shortest = false;
+        let faststart = true;
+        let fragmented = false;
+        let maxVideoFrames: number | undefined;
+        let maxAudioFrames: number | undefined;
+        let outputFps: number | undefined;
+        let videoSync = "auto";
+        let outputSize: string | undefined;
+        let rotation: number | undefined;
+        const maps: string[] = [];
+        const vfFilters: string[] = [];
+        const afFilters: string[] = [];
+        let chapterSource: number | undefined;
+        let metadataSource: number | undefined;
+        const metadata: Record<string, string> = {};
+        const streamLanguages: [string, string][] = [];
+        const streamDispositions: [string, string][] = [];
+        let outputTarget: string | undefined;
 
-      if (inputs.length === 0) {
-        await writeBytes(
-          context.stderr,
-          encodeUtf8("ffmpeg: must specify at least one input (-i)\n"),
-          context.signal
-        );
-        return { exitCode: 1 };
-      }
-
-      if (!outputTarget) {
-        await writeBytes(
-          context.stderr,
-          encodeUtf8("ffmpeg: must specify an output file\n"),
-          context.signal
-        );
-        return { exitCode: 1 };
-      }
-
-      if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) {
-        await writeBytes(context.stderr, encodeUtf8("ffmpeg: -to value smaller than -ss; aborting.\n"), context.signal);
-        return { exitCode: 1 };
-      }
-
-      try {
-        if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
-          const inputIndex = inputs.findIndex(input =>
-            input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget);
-          if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
+        for (; i < args.length; i++) {
+          const arg = args[i]!;
+          if (arg === "-y") {
+            overwrite = true;
+          } else if (arg === "-n") {
+            overwrite = false;
+          } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-update" || arg === "-loop") {
+            i++;
+          } else if (arg === "-vsync" || arg === "-fps_mode") {
+            videoSync = args[++i] ?? "";
+          } else if (arg === "-hls_time" || arg === "-seg_duration") {
+            hlsTime = parseFloat(args[++i] ?? "2") || 2;
+          } else if (arg === "-hls_segment_filename") {
+            hlsSegmentFilename = args[++i];
+          } else if (arg === "-hls_segment_type") {
+            hlsSegmentType = args[++i];
+          } else if (arg === "-hls_list_size") {
+            const value = args[++i];
+            hlsListSize = value?.trim() ? Number(value) : NaN;
+            if (!Number.isSafeInteger(hlsListSize) || hlsListSize < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_list_size\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-hls_flags") {
+            const value = args[++i] ?? "";
+            if (!value.startsWith("+") && !value.startsWith("-")) {
+              hlsDeleteSegments = false;
+              hlsOmitEndlist = false;
+              hlsIndependentSegments = false;
+            }
+            for (const flag of value.replaceAll("-", "+-").split("+")) {
+              if (flag === "delete_segments") hlsDeleteSegments = true;
+              if (flag === "-delete_segments") hlsDeleteSegments = false;
+              if (flag === "independent_segments") hlsIndependentSegments = true;
+              if (flag === "-independent_segments") hlsIndependentSegments = false;
+              if (flag === "omit_endlist") hlsOmitEndlist = true;
+              if (flag === "-omit_endlist") hlsOmitEndlist = false;
+            }
+          } else if (arg === "-hls_delete_threshold") {
+            const value = args[++i];
+            hlsDeleteThreshold = value?.trim() ? Number(value) : NaN;
+            if (!Number.isSafeInteger(hlsDeleteThreshold) || hlsDeleteThreshold < 1) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_delete_threshold\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-map_chapters") {
+            const value = args[++i];
+            chapterSource = value?.trim() ? Number(value) : NaN;
+            if (!Number.isSafeInteger(chapterSource)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid chapter input index\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-map_metadata") {
+            const value = args[++i];
+            metadataSource = value?.trim() ? Number(value) : NaN;
+            if (!Number.isSafeInteger(metadataSource)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-start_number") {
+            const val = Number(args[++i]);
+            if (!Number.isSafeInteger(val) || val < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid start_number\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
+            else outputStartNumber = val;
+          } else if (arg === "-ar") {
+            audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+          } else if (arg === "-ac") {
+            audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
+          } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") {
+            // no-op
+          } else if (arg === "-f") {
+            const val = args[++i];
+            if (inputs.length === 0 || (i + 1 < args.length && args.slice(i + 1).includes("-i"))) {
+              pendingFormat = val;
+            } else {
+              outputFormat = val;
+            }
+          } else if (arg === "-ss") {
+            const val = parseFfmpegTimestamp(args[++i] ?? "0");
+            if (args.slice(i + 1).includes("-i")) {
+              pendingSs = val;
+            } else {
+              outputSs = val;
+            }
+          } else if (arg === "-to") {
+            const val = parseFfmpegTimestamp(args[++i] ?? "0");
+            if (args.slice(i + 1).includes("-i")) {
+              pendingTo = val;
+            } else {
+              outputTo = val;
+            }
+          } else if (arg === "-t") {
+            const val = parseFfmpegTimestamp(args[++i] ?? "0");
+            if (args.slice(i + 1).includes("-i")) {
+              pendingDuration = val;
+            } else {
+              outputDuration = val;
+            }
+          } else if (arg === "-stream_loop") {
+            pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
+          } else if (arg === "-r" || arg === "-framerate") {
+            const val = parseFloat(args[++i] ?? "25") || 25;
+            if (args.slice(i + 1).includes("-i")) {
+              pendingFps = val;
+            } else {
+              outputFps = val;
+            }
+          } else if (arg === "-s") {
+            outputSize = args[++i];
+          } else if (arg === "-i") {
+            const path = args[++i] ?? "";
+            inputs.push({
+              path,
+              format: pendingFormat,
+              startSeconds: pendingSs,
+              endSeconds: pendingTo,
+              durationSeconds: pendingDuration,
+              streamLoop: pendingLoop,
+              fps: pendingFps,
+              startNumber: pendingStartNumber
+            });
+            pendingFormat = undefined;
+            pendingSs = undefined;
+            pendingTo = undefined;
+            pendingDuration = undefined;
+            pendingLoop = undefined;
+            pendingFps = undefined;
+            pendingStartNumber = undefined;
+          } else if (arg === "-c" || arg === "-codec") {
+            const val = args[++i];
+            videoCodec = val;
+            audioCodec = val;
+          } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") {
+            videoCodec = args[++i];
+          } else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
+            audioCodec = args[++i];
+          } else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") {
+            i++;
+          } else if (arg === "-an") {
+            stripAudio = true;
+          } else if (arg === "-vn") {
+            stripVideo = true;
+          } else if (arg === "-sn") {
+            stripSubtitles = true;
+          } else if (arg === "-shortest") {
+            shortest = true;
+          } else if (arg === "-frames:v" || arg === "-vframes") {
+            maxVideoFrames = parseInt(args[++i] ?? "1", 10) || 1;
+          } else if (arg === "-frames:a" || arg === "-aframes") {
+            const value = args[++i];
+            maxAudioFrames = value?.trim() ? Number(value) : NaN;
+            if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-movflags") {
+            const flags = args[++i] ?? "";
+            if (flags.includes("faststart")) faststart = true;
+            if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) {
+              fragmented = true;
+            }
+          } else if (arg === "-map") {
+            const m = args[++i];
+            if (m) maps.push(m);
+          } else if (arg === "-vf" || arg === "-filter:v") {
+            const f = args[++i];
+            if (f) vfFilters.push(f);
+          } else if (arg === "-af" || arg === "-filter:a") {
+            const f = args[++i];
+            if (f) afFilters.push(f);
+          } else if (arg === "-filter_complex" || arg === "-lavfi") {
+            filterComplex = args[++i];
+          } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
+            streamDispositions.push([arg.slice("-disposition:".length), args[++i] ?? ""]);
+          } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
+            const kv = args[++i] ?? "";
+            const eq = kv.indexOf("=");
+            if (eq >= 0) {
+              const k = kv.slice(0, eq).trim().toLowerCase();
+              const v = kv.slice(eq + 1).trim();
+              if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+                streamLanguages.push([arg.slice("-metadata:s:".length), v]);
+              } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
+              else metadata[k] = v;
+            }
+          } else if (arg === "-display_rotation") {
+            rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
+          } else if (!arg.startsWith("-") || arg === "-") {
+            outputTarget = arg;
+            i++;
+            break;
+          }
         }
-        // Virtual streams are non-interactive: replacing a file requires -y.
-        if (
-          !overwrite &&
-          !isStdout(outputTarget) &&
-          outputFormat !== "null"
-        ) {
-          const outFull = resolvePath(context.cwd, outputTarget);
+
+
+        if (inputs.length === 0) {
+          await writeBytes(
+            context.stderr,
+            encodeUtf8("ffmpeg: must specify at least one input (-i)\n"),
+            context.signal
+          );
+          return { exitCode: 1 };
+        }
+
+        // A filename closes its option group; trailing options have no output.
+        if (!outputTarget) break;
+        const target = outputTarget;
+        outputs.push(async () => {
+          const outputTarget = target;
+          if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) {
+            await writeBytes(context.stderr, encodeUtf8("ffmpeg: -to value smaller than -ss; aborting.\n"), context.signal);
+            return { exitCode: 1 };
+          }
+
           try {
-            await context.fs.stat(outFull, { signal: context.signal });
-            await writeBytes(
-              context.stderr,
-              encodeUtf8(`File '${outputTarget}' already exists. Exiting.\n`),
-              context.signal
-            );
-            return { exitCode: 1 };
-          } catch (error) {
-            rethrowRuntimeError(context, error);
-            if ((error as { code?: string }).code !== "ENOENT") throw error;
-            // File does not exist, proceed
-          }
-        }
-
-        const loadSingleDocument = async (
-          filePath: string,
-          explicitFormat?: string,
-          fpsHint?: number,
-          input?: InputSpec
-        ): Promise<MediaDocument> => {
-          if (explicitFormat === "lavfi") {
-            if (features.lavfiSources === false) {
-              throw new Error("lavfi synthetic sources are disabled by consumer feature configuration");
+            if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
+              const inputIndex = inputs.findIndex(input =>
+                input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget);
+              if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
             }
-            const steps = lavfiSteps(filePath, budget, input?.durationSeconds !== undefined
-              ? (input.startSeconds ?? 0) + input.durationSeconds
-              : input?.endSeconds ?? (outputDuration !== undefined
-                ? (input?.startSeconds ?? 0) + (outputSs ?? 0) + outputDuration
-                : outputTo !== undefined ? (input?.startSeconds ?? 0) + outputTo : undefined));
-            let step = steps.next();
-            while (!step.done) {
-              await yieldTurn(context.signal);
-              context.signal.throwIfAborted();
-              step = steps.next();
-            }
-            return step.value;
-          }
-
-          if (filePath.startsWith("concat:")) {
-            const parts = filePath
-              .slice("concat:".length)
-              .split("|")
-              .map((x) => x.trim())
-              .filter(Boolean);
-            budget.checkConcatInputs(parts.length);
-            const docs: MediaDocument[] = [];
-            for (const p of parts) {
-              docs.push(await loadSingleDocument(p));
-            }
-            return concatMp4(docs, { limits: options.limits, budget });
-          }
-
-          // Check printf sequence pattern like `frame_%03d.png`
-          if (/%0?\d*d/.test(filePath)) {
-            const frames: MediaVideoFrame[] = [];
-            const fps = fpsHint ?? 25;
-            for (let idx = input?.startNumber ?? 0; ; idx++) {
-              budget.checkCpu();
-              context.signal.throwIfAborted();
-              const formatted = filePath.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
-                const padLen = parseInt(widthDigits || "0", 10) || 0;
-                return String(idx).padStart(padLen, "0");
-              });
-              const resolved = resolvePath(context.cwd, formatted);
-              let imgBytes: Uint8Array;
+            // Virtual streams are non-interactive: replacing a file requires -y.
+            if (
+              !overwrite &&
+              !isStdout(outputTarget) &&
+              outputFormat !== "null"
+            ) {
+              const outFull = resolvePath(context.cwd, outputTarget);
               try {
-                imgBytes = await readInput(resolved);
+                await context.fs.stat(outFull, { signal: context.signal });
+                await writeBytes(
+                  context.stderr,
+                  encodeUtf8(`File '${outputTarget}' already exists. Exiting.\n`),
+                  context.signal
+                );
+                return { exitCode: 1 };
               } catch (error) {
                 rethrowRuntimeError(context, error);
                 if ((error as { code?: string }).code !== "ENOENT") throw error;
-                if (idx === 0 && input?.startNumber === undefined) continue;
-                break;
-              }
-              {
-                const decoded = decodeImage(imgBytes);
-                detachBytesBuffer(imgBytes);
-                if (decoded.width * decoded.height >= 16384) {
-                  const gc = (globalThis as { gc?: () => void }).gc;
-                  if (typeof gc === "function") { gc(); gc(); }
-                }
-                budget.recordFrame(decoded.width, decoded.height);
-                frames.push({
-                  width: decoded.width,
-                  height: decoded.height,
-                  data: decoded.data,
-                  ptsSeconds: frames.length / fps,
-                  durationSeconds: 1 / fps,
-                  keyframe: true
-                });
+                // File does not exist, proceed
               }
             }
-            if (frames.length === 0) {
-              throw new Error(`${filePath}: No matching image sequence files found`);
-            }
-            const first = frames[0]!;
-            const synthBytes = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), createSyntheticMp4({
-              width: 16,
-              height: 16,
-              fps,
-              frameCount: 1,
-              includeAudio: false
-            }));
-            const base = parseMp4(synthBytes);
-            detachBytesBuffer(synthBytes);
-            return {
-              ...base,
-              tracks: base.tracks.map((t) =>
-                t.type === "video" ? { ...t, width: first.width, height: first.height, samples: [], decodedVideoFrames: frames } : t
-              )
-            };
-          }
 
-          const rawBytes = await readInput(filePath);
-
-          if (explicitFormat === "concat") {
-            const listText = new TextDecoder().decode(rawBytes);
-            const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
-            const concatDocs: MediaDocument[] = [];
-            let currentInpoint: number | undefined;
-            let currentOutpoint: number | undefined;
-            let currentDuration: number | undefined;
-
-            const lines = listText.split(/\r?\n/);
-            for (let l = 0; l < lines.length; l++) {
-              const line = lines[l]!.trim();
-              if (!line || line.startsWith("#") || line.startsWith("ffconcat")) continue;
-              if (line.startsWith("file ")) {
-                let target = line.slice(5).trim();
-                if (
-                  (target.startsWith("'") && target.endsWith("'")) ||
-                  (target.startsWith('"') && target.endsWith('"'))
-                ) {
-                  target = target.slice(1, -1);
+            const loadSingleDocument = async (
+              filePath: string,
+              explicitFormat?: string,
+              fpsHint?: number,
+              input?: InputSpec
+            ): Promise<MediaDocument> => {
+              if (explicitFormat === "lavfi") {
+                if (features.lavfiSources === false) {
+                  throw new Error("lavfi synthetic sources are disabled by consumer feature configuration");
                 }
-                const resolvedItem = resolvePath(listDir, target);
-                // Look ahead for inpoint/outpoint/duration directives following this `file`
-                currentInpoint = undefined;
-                currentOutpoint = undefined;
-                currentDuration = undefined;
-                while (l + 1 < lines.length) {
-                  const nextLine = lines[l + 1]!.trim();
-                  if (nextLine.startsWith("inpoint ")) {
-                    currentInpoint = parseFfmpegTimestamp(nextLine.slice(8));
-                    l++;
-                  } else if (nextLine.startsWith("outpoint ")) {
-                    currentOutpoint = parseFfmpegTimestamp(nextLine.slice(9));
-                    l++;
-                  } else if (nextLine.startsWith("duration ")) {
-                    currentDuration = parseFfmpegTimestamp(nextLine.slice(9));
-                    l++;
-                  } else {
+                const steps = lavfiSteps(filePath, budget, input?.durationSeconds !== undefined
+                  ? (input.startSeconds ?? 0) + input.durationSeconds
+                  : input?.endSeconds ?? (outputDuration !== undefined
+                    ? (input?.startSeconds ?? 0) + (outputSs ?? 0) + outputDuration
+                    : outputTo !== undefined ? (input?.startSeconds ?? 0) + outputTo : undefined));
+                let step = steps.next();
+                while (!step.done) {
+                  await yieldTurn(context.signal);
+                  context.signal.throwIfAborted();
+                  step = steps.next();
+                }
+                return step.value;
+              }
+
+              if (filePath.startsWith("concat:")) {
+                const parts = filePath
+                  .slice("concat:".length)
+                  .split("|")
+                  .map((x) => x.trim())
+                  .filter(Boolean);
+                budget.checkConcatInputs(parts.length);
+                const docs: MediaDocument[] = [];
+                for (const p of parts) {
+                  docs.push(await loadSingleDocument(p));
+                }
+                return concatMp4(docs, { limits: options.limits, budget });
+              }
+
+              // Check printf sequence pattern like `frame_%03d.png`
+              if (/%0?\d*d/.test(filePath)) {
+                const frames: MediaVideoFrame[] = [];
+                const fps = fpsHint ?? 25;
+                for (let idx = input?.startNumber ?? 0; ; idx++) {
+                  budget.checkCpu();
+                  context.signal.throwIfAborted();
+                  const formatted = filePath.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
+                    const padLen = parseInt(widthDigits || "0", 10) || 0;
+                    return String(idx).padStart(padLen, "0");
+                  });
+                  const resolved = resolvePath(context.cwd, formatted);
+                  let imgBytes: Uint8Array;
+                  try {
+                    imgBytes = await readInput(resolved);
+                  } catch (error) {
+                    rethrowRuntimeError(context, error);
+                    if ((error as { code?: string }).code !== "ENOENT") throw error;
+                    if (idx === 0 && input?.startNumber === undefined) continue;
                     break;
                   }
+                  {
+                    const decoded = decodeImage(imgBytes);
+                    detachBytesBuffer(imgBytes);
+                    if (decoded.width * decoded.height >= 16384) {
+                      const gc = (globalThis as { gc?: () => void }).gc;
+                      if (typeof gc === "function") { gc(); gc(); }
+                    }
+                    budget.recordFrame(decoded.width, decoded.height);
+                    frames.push({
+                      width: decoded.width,
+                      height: decoded.height,
+                      data: decoded.data,
+                      ptsSeconds: frames.length / fps,
+                      durationSeconds: 1 / fps,
+                      keyframe: true
+                    });
+                  }
                 }
-                let itemDoc = await loadSingleDocument(resolvedItem);
-                if (
-                  currentInpoint !== undefined ||
-                  currentOutpoint !== undefined ||
-                  currentDuration !== undefined
-                ) {
-                  itemDoc = sliceMp4(itemDoc, {
-                    startSeconds: currentInpoint,
-                    endSeconds: currentOutpoint,
-                    durationSeconds: currentDuration
+                if (frames.length === 0) {
+                  throw new Error(`${filePath}: No matching image sequence files found`);
+                }
+                const first = frames[0]!;
+                const synthBytes = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), createSyntheticMp4({
+                  width: 16,
+                  height: 16,
+                  fps,
+                  frameCount: 1,
+                  includeAudio: false
+                }));
+                const base = parseMp4(synthBytes);
+                detachBytesBuffer(synthBytes);
+                return {
+                  ...base,
+                  tracks: base.tracks.map((t) =>
+                    t.type === "video" ? { ...t, width: first.width, height: first.height, samples: [], decodedVideoFrames: frames } : t
+                  )
+                };
+              }
+
+              const rawBytes = await readInput(filePath);
+
+              if (explicitFormat === "concat") {
+                const listText = new TextDecoder().decode(rawBytes);
+                const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
+                const concatDocs: MediaDocument[] = [];
+                let currentInpoint: number | undefined;
+                let currentOutpoint: number | undefined;
+                let currentDuration: number | undefined;
+
+                const lines = listText.split(/\r?\n/);
+                for (let l = 0; l < lines.length; l++) {
+                  const line = lines[l]!.trim();
+                  if (!line || line.startsWith("#") || line.startsWith("ffconcat")) continue;
+                  if (line.startsWith("file ")) {
+                    let target = line.slice(5).trim();
+                    if (
+                      (target.startsWith("'") && target.endsWith("'")) ||
+                      (target.startsWith('"') && target.endsWith('"'))
+                    ) {
+                      target = target.slice(1, -1);
+                    }
+                    const resolvedItem = resolvePath(listDir, target);
+                    // Look ahead for inpoint/outpoint/duration directives following this `file`
+                    currentInpoint = undefined;
+                    currentOutpoint = undefined;
+                    currentDuration = undefined;
+                    while (l + 1 < lines.length) {
+                      const nextLine = lines[l + 1]!.trim();
+                      if (nextLine.startsWith("inpoint ")) {
+                        currentInpoint = parseFfmpegTimestamp(nextLine.slice(8));
+                        l++;
+                      } else if (nextLine.startsWith("outpoint ")) {
+                        currentOutpoint = parseFfmpegTimestamp(nextLine.slice(9));
+                        l++;
+                      } else if (nextLine.startsWith("duration ")) {
+                        currentDuration = parseFfmpegTimestamp(nextLine.slice(9));
+                        l++;
+                      } else {
+                        break;
+                      }
+                    }
+                    let itemDoc = await loadSingleDocument(resolvedItem);
+                    if (
+                      currentInpoint !== undefined ||
+                      currentOutpoint !== undefined ||
+                      currentDuration !== undefined
+                    ) {
+                      itemDoc = sliceMp4(itemDoc, {
+                        startSeconds: currentInpoint,
+                        endSeconds: currentOutpoint,
+                        durationSeconds: currentDuration
+                      });
+                    }
+                    concatDocs.push(itemDoc);
+                  }
+                }
+                budget.checkConcatInputs(concatDocs.length);
+                return concatMp4(concatDocs, { limits: options.limits, budget });
+              }
+
+              const plugin = registry.detect(rawBytes, filePath, explicitFormat);
+              if (!plugin || !plugin.canDemux) {
+                throw new Error(
+                  explicitFormat
+                    ? `Unknown input format: '${explicitFormat}' (AST not registered)`
+                    : `${filePath}: Unsupported input format (AST not registered)`
+                );
+              }
+
+              const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget);
+              return plugin.parse(rawBytes, {
+                resolveResource,
+                filename: filePath,
+                limits: options.limits,
+                budget
+              });
+            };
+
+            // Load all inputs and apply per-input slicing / looping
+            const loadedDocs: MediaDocument[] = [];
+            for (const inp of inputs) {
+              await yieldTurn(context.signal);
+              context.signal.throwIfAborted();
+              let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
+              if (
+                inp.startSeconds !== undefined ||
+                inp.endSeconds !== undefined ||
+                inp.durationSeconds !== undefined
+              ) {
+                doc = sliceMp4(doc, {
+                  startSeconds: inp.startSeconds,
+                  endSeconds: inp.endSeconds,
+                  durationSeconds: inp.durationSeconds
+                });
+              }
+              if (inp.streamLoop && inp.streamLoop > 0) {
+                const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
+                doc = concatMp4(copies, { limits: options.limits, budget });
+              }
+              loadedDocs.push(doc);
+            }
+
+            // Combine inputs according to `-filter_complex`, `-map`, or default mux
+            let workingDoc: MediaDocument;
+            if (filterComplex) {
+              if (features.filterGraph === false) {
+                throw new Error("Filtergraph processing is disabled by consumer feature configuration");
+              }
+              if (filterComplex.includes("concat=")) {
+                workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
+                if (/concat=[^;[]*\ba=0\b/.test(filterComplex)) {
+                  workingDoc = {
+                    ...workingDoc,
+                    tracks: workingDoc.tracks.filter((t) => t.type !== "audio")
+                  };
+                }
+                if (/concat=[^;[]*\bv=0\b/.test(filterComplex)) {
+                  workingDoc = {
+                    ...workingDoc,
+                    tracks: workingDoc.tracks.filter((t) => t.type !== "video")
+                  };
+                }
+              } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
+                const track0 = loadedDocs[0]!.tracks.find((t) => t.type === "video")!;
+                const track1 = loadedDocs[1]!.tracks.find((t) => t.type === "video")!;
+                const f0 = await ensureDecodedFrames(
+                  track0,
+                  loadedDocs[0]!.timescale, budget
+                , context.signal);
+                const f1 = await ensureDecodedFrames(
+                  track1,
+                  loadedDocs[1]!.timescale, budget
+                , context.signal);
+                if (f0[0] && f1[0]) {
+                  if (f0[0].width !== f1[0].width || f0[0].height !== f1[0].height) {
+                    throw new Error(`xfade input size ${f0[0].width}x${f0[0].height} does not match ${f1[0].width}x${f1[0].height}`);
+                  }
+                  // Lavfi's timebase is its frame interval, not the synthetic MP4 timescale.
+                  const timebase0 = inputs[0]!.format === "lavfi" ? f0[0].durationSeconds : 1 / track0.timescale;
+                  const timebase1 = inputs[1]!.format === "lavfi" ? f1[0].durationSeconds : 1 / track1.timescale;
+                  if (timebase0 !== timebase1) {
+                    throw new Error(`xfade input timebase ${timebase0} does not match ${timebase1}`);
+                  }
+                }
+                const xfadeSpec = filterComplex.slice(filterComplex.indexOf("xfade") + "xfade".length)
+                  .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
+                const positional = (xfadeSpec.startsWith("=") ? xfadeSpec.slice(1) : "").split(":");
+                const named: Record<string, string> = {};
+                for (const part of positional) {
+                  const eqIdx = part.indexOf("=");
+                  if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+                }
+                const transition = named.transition ?? (positional[0]!.includes("=") ? "fade" : positional[0] || "fade");
+                if (transition !== "fade" && transition !== "wipeleft") {
+                  throw new Error(`Unsupported xfade transition: ${transition}`);
+                }
+                const fadeDur = parseFloat(named.duration ?? "0.5") || 0.5;
+                const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
+                const overlapFrames = Math.max(1, Math.min(f0.length, f1.length, Math.round(fadeDur * fps)));
+                const offsetSec = named.offset !== undefined ? parseFloat(named.offset) : Math.max(0, (f0.length - overlapFrames) / fps);
+                const preCount = Math.max(0, Math.min(f0.length - overlapFrames, Math.round(offsetSec * fps)));
+                const outFrames: MediaVideoFrame[] = [];
+                let cursor = 0;
+                for (let i = 0; i < preCount; i++) {
+                  const f = f0[i]!;
+                  outFrames.push({ ...f, ptsSeconds: cursor });
+                  cursor += f.durationSeconds;
+                }
+                for (let k = 0; k < overlapFrames; k++) {
+                  const a = f0[Math.min(f0.length - 1, preCount + k)]!;
+                  const b = f1[Math.min(f1.length - 1, k)]!;
+                  const progress = k / (fadeDur * fps);
+                  const blended = new Uint8Array(a.data.byteLength);
+                  for (let pIdx = 0; pIdx < blended.byteLength; pIdx += 4) {
+                    const alpha = transition === "wipeleft"
+                      ? ((pIdx / 4) % a.width > Math.floor(a.width * (1 - progress)) ? 1 : 0)
+                      : progress;
+                    blended[pIdx] = Math.round(a.data[pIdx]! * (1 - alpha) + b.data[pIdx]! * alpha);
+                    blended[pIdx + 1] = Math.round(a.data[pIdx + 1]! * (1 - alpha) + b.data[pIdx + 1]! * alpha);
+                    blended[pIdx + 2] = Math.round(a.data[pIdx + 2]! * (1 - alpha) + b.data[pIdx + 2]! * alpha);
+                    blended[pIdx + 3] = 255;
+                  }
+                  outFrames.push({
+                    width: a.width,
+                    height: a.height,
+                    data: blended,
+                    ptsSeconds: cursor,
+                    durationSeconds: a.durationSeconds,
+                    keyframe: true
+                  });
+                  cursor += a.durationSeconds;
+                }
+                for (let j = overlapFrames; j < f1.length; j++) {
+                  const b = f1[j]!;
+                  outFrames.push({ ...b, ptsSeconds: cursor });
+                  cursor += b.durationSeconds;
+                }
+                workingDoc = {
+                  ...loadedDocs[0]!,
+                  durationSeconds: cursor,
+                  tracks: loadedDocs[0]!.tracks.map((t) =>
+                    t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
+                  )
+                };
+              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack")) && loadedDocs.length >= 2) {
+                const f0 = await ensureDecodedFrames(
+                  loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
+                  loadedDocs[0]!.timescale, budget
+                , context.signal);
+                const f1 = await ensureDecodedFrames(
+                  loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
+                  loadedDocs[1]!.timescale, budget
+                , context.signal);
+                const vertical = filterComplex.includes("vstack");
+                const filter = vertical ? "vstack" : "hstack";
+                const spec = filterComplex.slice(filterComplex.indexOf(filter) + filter.length)
+                  .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
+                const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
+                const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
+                  ?.split("=")[1]?.trim() ?? options[1]?.trim();
+                const stopAtShortest = ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
+                const count = stopAtShortest || !f0.length || !f1.length
+                  ? Math.min(f0.length, f1.length) : Math.max(f0.length, f1.length);
+                const stacked: MediaVideoFrame[] = [];
+                for (let i = 0; i < count; i++) {
+                  const a = f0[Math.min(i, f0.length - 1)]!;
+                  const b = f1[Math.min(i, f1.length - 1)]!;
+                  const timing = f0[i] ?? f1[i]!;
+                  const axis = vertical ? "width" : "height";
+                  if (a[axis] !== b[axis]) {
+                    throw new Error(`Input 1 ${axis} ${b[axis]} does not match input 0 ${axis} ${a[axis]}`);
+                  }
+                  const w = vertical ? a.width : a.width + b.width;
+                  const h = vertical ? a.height + b.height : a.height;
+                  const outData = new Uint8Array(w * h * 4);
+                  for (let y = 0; y < a.height; y++) {
+                    outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);
+                  }
+                  for (let y = 0; y < b.height; y++) {
+                    outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (vertical ? (a.height + y) * w : y * w + a.width) * 4);
+                  }
+                  stacked.push({
+                    width: w,
+                    height: h,
+                    data: outData,
+                    ptsSeconds: timing.ptsSeconds,
+                    durationSeconds: timing.durationSeconds,
+                    keyframe: true
                   });
                 }
-                concatDocs.push(itemDoc);
-              }
-            }
-            budget.checkConcatInputs(concatDocs.length);
-            return concatMp4(concatDocs, { limits: options.limits, budget });
-          }
-
-          const plugin = registry.detect(rawBytes, filePath, explicitFormat);
-          if (!plugin || !plugin.canDemux) {
-            throw new Error(
-              explicitFormat
-                ? `Unknown input format: '${explicitFormat}' (AST not registered)`
-                : `${filePath}: Unsupported input format (AST not registered)`
-            );
-          }
-
-          const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget);
-          return plugin.parse(rawBytes, {
-            resolveResource,
-            filename: filePath,
-            limits: options.limits,
-            budget
-          });
-        };
-
-        // Load all inputs and apply per-input slicing / looping
-        const loadedDocs: MediaDocument[] = [];
-        for (const inp of inputs) {
-          await yieldTurn(context.signal);
-          context.signal.throwIfAborted();
-          let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
-          if (
-            inp.startSeconds !== undefined ||
-            inp.endSeconds !== undefined ||
-            inp.durationSeconds !== undefined
-          ) {
-            doc = sliceMp4(doc, {
-              startSeconds: inp.startSeconds,
-              endSeconds: inp.endSeconds,
-              durationSeconds: inp.durationSeconds
-            });
-          }
-          if (inp.streamLoop && inp.streamLoop > 0) {
-            const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
-            doc = concatMp4(copies, { limits: options.limits, budget });
-          }
-          loadedDocs.push(doc);
-        }
-
-        // Combine inputs according to `-filter_complex`, `-map`, or default mux
-        let workingDoc: MediaDocument;
-        if (filterComplex) {
-          if (features.filterGraph === false) {
-            throw new Error("Filtergraph processing is disabled by consumer feature configuration");
-          }
-          if (filterComplex.includes("concat=")) {
-            workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
-            if (/concat=[^;[]*\ba=0\b/.test(filterComplex)) {
-              workingDoc = {
-                ...workingDoc,
-                tracks: workingDoc.tracks.filter((t) => t.type !== "audio")
-              };
-            }
-            if (/concat=[^;[]*\bv=0\b/.test(filterComplex)) {
-              workingDoc = {
-                ...workingDoc,
-                tracks: workingDoc.tracks.filter((t) => t.type !== "video")
-              };
-            }
-          } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
-            const track0 = loadedDocs[0]!.tracks.find((t) => t.type === "video")!;
-            const track1 = loadedDocs[1]!.tracks.find((t) => t.type === "video")!;
-            const f0 = await ensureDecodedFrames(
-              track0,
-              loadedDocs[0]!.timescale, budget
-            , context.signal);
-            const f1 = await ensureDecodedFrames(
-              track1,
-              loadedDocs[1]!.timescale, budget
-            , context.signal);
-            if (f0[0] && f1[0]) {
-              if (f0[0].width !== f1[0].width || f0[0].height !== f1[0].height) {
-                throw new Error(`xfade input size ${f0[0].width}x${f0[0].height} does not match ${f1[0].width}x${f1[0].height}`);
-              }
-              // Lavfi's timebase is its frame interval, not the synthetic MP4 timescale.
-              const timebase0 = inputs[0]!.format === "lavfi" ? f0[0].durationSeconds : 1 / track0.timescale;
-              const timebase1 = inputs[1]!.format === "lavfi" ? f1[0].durationSeconds : 1 / track1.timescale;
-              if (timebase0 !== timebase1) {
-                throw new Error(`xfade input timebase ${timebase0} does not match ${timebase1}`);
-              }
-            }
-            const xfadeSpec = filterComplex.slice(filterComplex.indexOf("xfade") + "xfade".length)
-              .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
-            const positional = (xfadeSpec.startsWith("=") ? xfadeSpec.slice(1) : "").split(":");
-            const named: Record<string, string> = {};
-            for (const part of positional) {
-              const eqIdx = part.indexOf("=");
-              if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
-            }
-            const transition = named.transition ?? (positional[0]!.includes("=") ? "fade" : positional[0] || "fade");
-            if (transition !== "fade" && transition !== "wipeleft") {
-              throw new Error(`Unsupported xfade transition: ${transition}`);
-            }
-            const fadeDur = parseFloat(named.duration ?? "0.5") || 0.5;
-            const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
-            const overlapFrames = Math.max(1, Math.min(f0.length, f1.length, Math.round(fadeDur * fps)));
-            const offsetSec = named.offset !== undefined ? parseFloat(named.offset) : Math.max(0, (f0.length - overlapFrames) / fps);
-            const preCount = Math.max(0, Math.min(f0.length - overlapFrames, Math.round(offsetSec * fps)));
-            const outFrames: MediaVideoFrame[] = [];
-            let cursor = 0;
-            for (let i = 0; i < preCount; i++) {
-              const f = f0[i]!;
-              outFrames.push({ ...f, ptsSeconds: cursor });
-              cursor += f.durationSeconds;
-            }
-            for (let k = 0; k < overlapFrames; k++) {
-              const a = f0[Math.min(f0.length - 1, preCount + k)]!;
-              const b = f1[Math.min(f1.length - 1, k)]!;
-              const progress = k / (fadeDur * fps);
-              const blended = new Uint8Array(a.data.byteLength);
-              for (let pIdx = 0; pIdx < blended.byteLength; pIdx += 4) {
-                const alpha = transition === "wipeleft"
-                  ? ((pIdx / 4) % a.width > Math.floor(a.width * (1 - progress)) ? 1 : 0)
-                  : progress;
-                blended[pIdx] = Math.round(a.data[pIdx]! * (1 - alpha) + b.data[pIdx]! * alpha);
-                blended[pIdx + 1] = Math.round(a.data[pIdx + 1]! * (1 - alpha) + b.data[pIdx + 1]! * alpha);
-                blended[pIdx + 2] = Math.round(a.data[pIdx + 2]! * (1 - alpha) + b.data[pIdx + 2]! * alpha);
-                blended[pIdx + 3] = 255;
-              }
-              outFrames.push({
-                width: a.width,
-                height: a.height,
-                data: blended,
-                ptsSeconds: cursor,
-                durationSeconds: a.durationSeconds,
-                keyframe: true
-              });
-              cursor += a.durationSeconds;
-            }
-            for (let j = overlapFrames; j < f1.length; j++) {
-              const b = f1[j]!;
-              outFrames.push({ ...b, ptsSeconds: cursor });
-              cursor += b.durationSeconds;
-            }
-            workingDoc = {
-              ...loadedDocs[0]!,
-              durationSeconds: cursor,
-              tracks: loadedDocs[0]!.tracks.map((t) =>
-                t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
-              )
-            };
-          } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack")) && loadedDocs.length >= 2) {
-            const f0 = await ensureDecodedFrames(
-              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              loadedDocs[0]!.timescale, budget
-            , context.signal);
-            const f1 = await ensureDecodedFrames(
-              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              loadedDocs[1]!.timescale, budget
-            , context.signal);
-            const vertical = filterComplex.includes("vstack");
-            const filter = vertical ? "vstack" : "hstack";
-            const spec = filterComplex.slice(filterComplex.indexOf(filter) + filter.length)
-              .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
-            const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
-            const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
-              ?.split("=")[1]?.trim() ?? options[1]?.trim();
-            const stopAtShortest = ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
-            const count = stopAtShortest || !f0.length || !f1.length
-              ? Math.min(f0.length, f1.length) : Math.max(f0.length, f1.length);
-            const stacked: MediaVideoFrame[] = [];
-            for (let i = 0; i < count; i++) {
-              const a = f0[Math.min(i, f0.length - 1)]!;
-              const b = f1[Math.min(i, f1.length - 1)]!;
-              const timing = f0[i] ?? f1[i]!;
-              const axis = vertical ? "width" : "height";
-              if (a[axis] !== b[axis]) {
-                throw new Error(`Input 1 ${axis} ${b[axis]} does not match input 0 ${axis} ${a[axis]}`);
-              }
-              const w = vertical ? a.width : a.width + b.width;
-              const h = vertical ? a.height + b.height : a.height;
-              const outData = new Uint8Array(w * h * 4);
-              for (let y = 0; y < a.height; y++) {
-                outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);
-              }
-              for (let y = 0; y < b.height; y++) {
-                outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (vertical ? (a.height + y) * w : y * w + a.width) * 4);
-              }
-              stacked.push({
-                width: w,
-                height: h,
-                data: outData,
-                ptsSeconds: timing.ptsSeconds,
-                durationSeconds: timing.durationSeconds,
-                keyframe: true
-              });
-            }
-            workingDoc = {
-              ...loadedDocs[0]!,
-              tracks: loadedDocs[0]!.tracks.map((t) =>
-                t.type === "video"
-                  ? {
-                      ...t,
-                      width: stacked[0]?.width ?? t.width,
-                      height: stacked[0]?.height ?? t.height,
-                      samples: [],
-                      decodedVideoFrames: stacked
+                workingDoc = {
+                  ...loadedDocs[0]!,
+                  tracks: loadedDocs[0]!.tracks.map((t) =>
+                    t.type === "video"
+                      ? {
+                          ...t,
+                          width: stacked[0]?.width ?? t.width,
+                          height: stacked[0]?.height ?? t.height,
+                          samples: [],
+                          decodedVideoFrames: stacked
+                        }
+                      : t
+                  )
+                };
+              } else if (filterComplex.includes("overlay") && loadedDocs.length >= 2) {
+                const f0 = await ensureDecodedFrames(
+                  loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
+                  loadedDocs[0]!.timescale, budget
+                , context.signal);
+                const f1 = await ensureDecodedFrames(
+                  loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
+                  loadedDocs[1]!.timescale, budget
+                , context.signal);
+                const overlaySpec = filterComplex.slice(filterComplex.indexOf("overlay") + "overlay".length)
+                  .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
+                const positional = (overlaySpec.startsWith("=") ? overlaySpec.slice(1) : "").split(":");
+                const named: Record<string, string> = {};
+                for (const part of positional) {
+                  const eqIdx = part.indexOf("=");
+                  if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+                }
+                const xExpression = named.x ?? (positional[0] && !positional[0].includes("=") ? positional[0] : "0");
+                const yExpression = named.y ?? (positional[1] && !positional[1].includes("=") ? positional[1] : "0");
+                const format = named.format ?? "yuv420";
+                const horizontalGrid = format.startsWith("yuv420") || format.startsWith("yuv422") ? 2 : 1;
+                const verticalGrid = format.startsWith("yuv420") ? 2 : 1;
+                const overlaid: MediaVideoFrame[] = f0.map((a, idx) => {
+                  const b = f1[Math.min(idx, f1.length - 1)];
+                  if (!b) return a;
+                  const variables = {
+                    main_w: a.width, main_h: a.height, overlay_w: b.width, overlay_h: b.height,
+                    W: a.width, H: a.height, w: b.width, h: b.height
+                  };
+                  // FFmpeg rounds integer positions down to the output chroma grid, including negatives.
+                  const ox = Math.floor(Math.trunc(parseFilterExpression(xExpression, "overlay", variables)) / horizontalGrid) * horizontalGrid;
+                  const oy = Math.floor(Math.trunc(parseFilterExpression(yExpression, "overlay", variables)) / verticalGrid) * verticalGrid;
+                  const outData = new Uint8Array(a.data);
+                  for (let y = 0; y < b.height && oy + y < a.height; y++) {
+                    if (oy + y < 0) continue;
+                    for (let x = 0; x < b.width && ox + x < a.width; x++) {
+                      if (ox + x < 0) continue;
+                      const srcOff = (y * b.width + x) * 4;
+                      const dstOff = ((oy + y) * a.width + (ox + x)) * 4;
+                      const alpha = b.data[srcOff + 3]!;
+                      if (alpha === 0) continue;
+                      for (let channel = 0; channel < 3; channel++) {
+                        outData[dstOff + channel] = Math.round(
+                          (b.data[srcOff + channel]! * alpha + outData[dstOff + channel]! * (255 - alpha)) / 255
+                        );
+                      }
+                      outData[dstOff + 3] = 255;
                     }
-                  : t
-              )
-            };
-          } else if (filterComplex.includes("overlay") && loadedDocs.length >= 2) {
-            const f0 = await ensureDecodedFrames(
-              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              loadedDocs[0]!.timescale, budget
-            , context.signal);
-            const f1 = await ensureDecodedFrames(
-              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              loadedDocs[1]!.timescale, budget
-            , context.signal);
-            const overlaySpec = filterComplex.slice(filterComplex.indexOf("overlay") + "overlay".length)
-              .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
-            const positional = (overlaySpec.startsWith("=") ? overlaySpec.slice(1) : "").split(":");
-            const named: Record<string, string> = {};
-            for (const part of positional) {
-              const eqIdx = part.indexOf("=");
-              if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
-            }
-            const xExpression = named.x ?? (positional[0] && !positional[0].includes("=") ? positional[0] : "0");
-            const yExpression = named.y ?? (positional[1] && !positional[1].includes("=") ? positional[1] : "0");
-            const format = named.format ?? "yuv420";
-            const horizontalGrid = format.startsWith("yuv420") || format.startsWith("yuv422") ? 2 : 1;
-            const verticalGrid = format.startsWith("yuv420") ? 2 : 1;
-            const overlaid: MediaVideoFrame[] = f0.map((a, idx) => {
-              const b = f1[Math.min(idx, f1.length - 1)];
-              if (!b) return a;
-              const variables = {
-                main_w: a.width, main_h: a.height, overlay_w: b.width, overlay_h: b.height,
-                W: a.width, H: a.height, w: b.width, h: b.height
-              };
-              // FFmpeg rounds integer positions down to the output chroma grid, including negatives.
-              const ox = Math.floor(Math.trunc(parseFilterExpression(xExpression, "overlay", variables)) / horizontalGrid) * horizontalGrid;
-              const oy = Math.floor(Math.trunc(parseFilterExpression(yExpression, "overlay", variables)) / verticalGrid) * verticalGrid;
-              const outData = new Uint8Array(a.data);
-              for (let y = 0; y < b.height && oy + y < a.height; y++) {
-                if (oy + y < 0) continue;
-                for (let x = 0; x < b.width && ox + x < a.width; x++) {
-                  if (ox + x < 0) continue;
-                  const srcOff = (y * b.width + x) * 4;
-                  const dstOff = ((oy + y) * a.width + (ox + x)) * 4;
-                  const alpha = b.data[srcOff + 3]!;
-                  if (alpha === 0) continue;
-                  for (let channel = 0; channel < 3; channel++) {
-                    outData[dstOff + channel] = Math.round(
-                      (b.data[srcOff + channel]! * alpha + outData[dstOff + channel]! * (255 - alpha)) / 255
-                    );
                   }
-                  outData[dstOff + 3] = 255;
+                  return { ...a, data: outData };
+                });
+                workingDoc = {
+                  ...loadedDocs[0]!,
+                  tracks: loadedDocs[0]!.tracks.map((t) =>
+                    t.type === "video" ? { ...t, samples: [], decodedVideoFrames: overlaid } : t
+                  )
+                };
+              } else {
+                workingDoc = await muxMp4Cooperatively(loadedDocs, { shortest }, context.signal);
+                const cleanedComplex = filterComplex.replace(/\[[^\]]+\]/g, "").trim();
+                if (cleanedComplex) vfFilters.push(cleanedComplex);
+              }
+            } else if (maps.length > 0) {
+              let selectedTracks: { input: number; track: MediaTrack }[] = [];
+              let mapped = false;
+              for (const map of maps) {
+                const exclude = map.startsWith("-");
+                let clean = exclude ? map.slice(1) : map;
+                const optional = clean.endsWith("?");
+                if (optional) clean = clean.slice(0, -1);
+                if (clean.startsWith("[")) continue;
+                const [input, ...specifier] = clean.split(":");
+                const selector = specifier[0];
+                const inputIdx = Number(input);
+                const srcDoc = loadedDocs[inputIdx];
+                if (!srcDoc) {
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid input file index: ${inputIdx}.\n`), context.signal);
+                  return { exitCode: 234 };
+                }
+                const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
+                let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
+                const streamSpecifier = type ? specifier.slice(1) : specifier;
+                const [index, key, ...valueParts] = streamSpecifier;
+                if (index?.startsWith("#")) {
+                  matches = matches.filter(track => track.id === Number(index.slice(1)));
+                } else if (index === "m") {
+                  const value = valueParts.length ? valueParts.join(":") : undefined;
+                  matches = matches.filter(track => key === "language" &&
+                    (value === undefined || track.language === value));
+                } else if (index !== undefined) {
+                  matches = matches.filter((_, i) => i === Number(index));
+                }
+                if ((matches.length === 0 || (exclude && !mapped)) && !optional) {
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Stream map '${clean}' matches no streams.\nTo ignore this, add a trailing '?' to the map.\n`), context.signal);
+                  return { exitCode: 234 };
+                }
+                if (exclude) {
+                  selectedTracks = selectedTracks.filter(entry => entry.input !== inputIdx || !matches.includes(entry.track));
+                } else {
+                  mapped ||= matches.length > 0;
+                  selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
                 }
               }
-              return { ...a, data: outData };
-            });
-            workingDoc = {
-              ...loadedDocs[0]!,
-              tracks: loadedDocs[0]!.tracks.map((t) =>
-                t.type === "video" ? { ...t, samples: [], decodedVideoFrames: overlaid } : t
-              )
-            };
-          } else {
-            workingDoc = await muxMp4Cooperatively(loadedDocs, { shortest }, context.signal);
-            const cleanedComplex = filterComplex.replace(/\[[^\]]+\]/g, "").trim();
-            if (cleanedComplex) vfFilters.push(cleanedComplex);
-          }
-        } else if (maps.length > 0) {
-          let selectedTracks: { input: number; track: MediaTrack }[] = [];
-          let mapped = false;
-          for (const map of maps) {
-            const exclude = map.startsWith("-");
-            let clean = exclude ? map.slice(1) : map;
-            const optional = clean.endsWith("?");
-            if (optional) clean = clean.slice(0, -1);
-            if (clean.startsWith("[")) continue;
-            const [input, ...specifier] = clean.split(":");
-            const selector = specifier[0];
-            const inputIdx = Number(input);
-            const srcDoc = loadedDocs[inputIdx];
-            if (!srcDoc) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid input file index: ${inputIdx}.\n`), context.signal);
-              return { exitCode: 234 };
-            }
-            const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
-            let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
-            const streamSpecifier = type ? specifier.slice(1) : specifier;
-            const [index, key, ...valueParts] = streamSpecifier;
-            if (index?.startsWith("#")) {
-              matches = matches.filter(track => track.id === Number(index.slice(1)));
-            } else if (index === "m") {
-              const value = valueParts.length ? valueParts.join(":") : undefined;
-              matches = matches.filter(track => key === "language" &&
-                (value === undefined || track.language === value));
-            } else if (index !== undefined) {
-              matches = matches.filter((_, i) => i === Number(index));
-            }
-            if ((matches.length === 0 || (exclude && !mapped)) && !optional) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Stream map '${clean}' matches no streams.\nTo ignore this, add a trailing '?' to the map.\n`), context.signal);
-              return { exitCode: 234 };
-            }
-            if (exclude) {
-              selectedTracks = selectedTracks.filter(entry => entry.input !== inputIdx || !matches.includes(entry.track));
+              const filteredTracks = selectedTracks.map(entry => entry.track);
+              if (mapped && filteredTracks.length === 0) {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
+                return { exitCode: 234 };
+              }
+              if (!mapped) {
+                // Ignored optional maps leave automatic video/audio selection enabled.
+                const tracks = selectAutomaticAudio(loadedDocs).flatMap(doc => doc.tracks);
+                for (const type of ["video", "audio"] as const) {
+                  const track = tracks.find(track => track.type === type);
+                  if (track) filteredTracks.push(track);
+                }
+              }
+
+              workingDoc = await muxMp4Cooperatively(
+                [{ ...loadedDocs[0]!, tracks: filteredTracks }],
+                { stripAudio, stripVideo, stripSubtitles, shortest, rotation }
+              , context.signal);
             } else {
-              mapped ||= matches.length > 0;
-              selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
+              workingDoc = await muxMp4Cooperatively(selectAutomaticAudio(loadedDocs), {
+                stripAudio,
+                stripVideo,
+                stripSubtitles,
+                shortest,
+                rotation
+              }, context.signal);
             }
-          }
-          const filteredTracks = selectedTracks.map(entry => entry.track);
-          if (mapped && filteredTracks.length === 0) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
-            return { exitCode: 234 };
-          }
-          if (!mapped) {
-            // Ignored optional maps leave automatic video/audio selection enabled.
-            const tracks = selectAutomaticAudio(loadedDocs).flatMap(doc => doc.tracks);
-            for (const type of ["video", "audio"] as const) {
-              const track = tracks.find(track => track.type === type);
-              if (track) filteredTracks.push(track);
+
+            if (audioCodec === "copy" && afFilters.length > 0 && workingDoc.tracks.some(track => track.type === "audio")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Filtering and streamcopy cannot be used together for audio.\n"), context.signal);
+              return { exitCode: 218 };
             }
-          }
 
-          workingDoc = await muxMp4Cooperatively(
-            [{ ...loadedDocs[0]!, tracks: filteredTracks }],
-            { stripAudio, stripVideo, stripSubtitles, shortest, rotation }
-          , context.signal);
-        } else {
-          workingDoc = await muxMp4Cooperatively(selectAutomaticAudio(loadedDocs), {
-            stripAudio,
-            stripVideo,
-            stripSubtitles,
-            shortest,
-            rotation
-          }, context.signal);
-        }
-
-        if (audioCodec === "copy" && afFilters.length > 0 && workingDoc.tracks.some(track => track.type === "audio")) {
-          await writeBytes(context.stderr, encodeUtf8("ffmpeg: Filtering and streamcopy cannot be used together for audio.\n"), context.signal);
-          return { exitCode: 218 };
-        }
-
-        // Apply output-level time slicing (`-ss`, `-to`, `-t`)
-        if (
-          outputSs !== undefined ||
-          outputTo !== undefined ||
-          outputDuration !== undefined
-        ) {
-          workingDoc = sliceMp4(workingDoc, {
-            startSeconds: outputSs,
-            endSeconds: outputDuration === undefined ? outputTo : undefined,
-            durationSeconds: outputDuration
-          });
-        }
-
-        // Apply `-s <WxH>` or `-r <fps>` as video filter operations when transcoding
-        if (outputSize && videoCodec !== "copy") {
-          const [w, h] = outputSize.toLowerCase().split("x");
-          if (w && h) vfFilters.push(`scale=${w}:${h}`);
-        }
-        if (outputFps && videoCodec !== "copy") {
-          vfFilters.push(`fps=${outputFps}`);
-        }
-
-        const imageOutput = (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id === "image2";
-        // Output frame counts refer to displayed pictures, never encoded packets.
-        if (imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) {
-          workingDoc = {
-            ...workingDoc,
-            tracks: await mapWork(workingDoc.tracks, async track => {
-              if (track.type !== "video") return track;
-              const limit = vfFilters.length === 0 ? maxVideoFrames : undefined;
-              const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
-              return { ...track, samples: [], decodedVideoFrames: frames };
-            }, context.signal)
-          };
-        }
-
-        // Apply video filters (`-vf`)
-        if (vfFilters.length > 0) {
-          if (features.videoTranscode === false || features.filterGraph === false) {
-            throw new Error("Video transcoding / filtergraph is disabled by consumer feature configuration");
-          }
-          const combinedChain = vfFilters.join(",");
-          let loadedSubtitleCues: { startSec: number; endSec: number; text: string }[] | undefined;
-          const subMatch = /subtitles=(?:filename=)?['"]?([^:'",]+)['"]?/.exec(combinedChain);
-          if (subMatch?.[1]) {
-            const subPath = resolvePath(context.cwd, subMatch[1]);
-            const subBytes = await readInput(subPath);
-            const subFmt = subPath.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt";
-            const subDoc = parseSubtitleDocument(subBytes, subFmt);
-            const st = subDoc.tracks.find((t) => t.type === "subtitle");
-            if (st) {
-              const sts = st.timescale || 1000;
-              loadedSubtitleCues = st.samples.map((s) => ({
-                startSec: s.pts / sts,
-                endSec: (s.pts + s.duration) / sts,
-                text: decodeUtf8(s.data).trim()
-              }));
+            // Apply output-level time slicing (`-ss`, `-to`, `-t`)
+            if (
+              outputSs !== undefined ||
+              outputTo !== undefined ||
+              outputDuration !== undefined
+            ) {
+              workingDoc = sliceMp4(workingDoc, {
+                startSeconds: outputSs,
+                endSeconds: outputDuration === undefined ? outputTo : undefined,
+                durationSeconds: outputDuration
+              });
             }
-          }
-          workingDoc = {
-            ...workingDoc,
-            tracks: await mapWork(workingDoc.tracks, async (t) => {
 
+            // Apply `-s <WxH>` or `-r <fps>` as video filter operations when transcoding
+            if (outputSize && videoCodec !== "copy") {
+              const [w, h] = outputSize.toLowerCase().split("x");
+              if (w && h) vfFilters.push(`scale=${w}:${h}`);
+            }
+            if (outputFps && videoCodec !== "copy") {
+              vfFilters.push(`fps=${outputFps}`);
+            }
 
-              if (t.type !== "video") return t;
-              let presentationOffset = 0;
-              for (const edit of t.editList ?? []) {
-                if (edit.mediaTime < 0) presentationOffset -= edit.segmentDuration / workingDoc.timescale;
-                else { presentationOffset += edit.mediaTime / t.timescale; break; }
-              }
-              const offsetTicks = Math.round(presentationOffset * t.timescale);
-              const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
-              // Filters use the displayed timeline; retain media coordinates for the existing edit list.
-              const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
-              const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, loadedSubtitleCues, context.signal);
-              const first = filtered[0];
-              return {
-                ...t,
-                width: first?.width ?? t.width,
-                height: first?.height ?? t.height,
-                samples: [],
-                decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
+            const imageOutput = (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id === "image2";
+            // Output frame counts refer to displayed pictures, never encoded packets.
+            if (imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) {
+              workingDoc = {
+                ...workingDoc,
+                tracks: await mapWork(workingDoc.tracks, async track => {
+                  if (track.type !== "video") return track;
+                  const limit = vfFilters.length === 0 ? maxVideoFrames : undefined;
+                  const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
+                  return { ...track, samples: [], decodedVideoFrames: frames };
+                }, context.signal)
               };
-            }, context.signal)
-          };
-        }
+            }
 
-        // Apply `-frames:v <N>` limit
-        if (maxVideoFrames !== undefined && !outputTarget.includes("%")) {
-          workingDoc = {
-            ...workingDoc,
-            tracks: workingDoc.tracks.map((t) => {
-              if (t.type !== "video") return t;
-              if (t.decodedVideoFrames && t.decodedVideoFrames.length > maxVideoFrames!) {
-                return {
-                  ...t,
-                  samples: [],
-                  decodedVideoFrames: t.decodedVideoFrames.slice(0, maxVideoFrames)
-                };
+            // Apply video filters (`-vf`)
+            if (vfFilters.length > 0) {
+              if (features.videoTranscode === false || features.filterGraph === false) {
+                throw new Error("Video transcoding / filtergraph is disabled by consumer feature configuration");
               }
-              if (t.samples.length > maxVideoFrames!) {
-                const slicedSamples = t.samples.slice(0, maxVideoFrames);
-                const dur = slicedSamples.reduce((acc, s) => acc + s.duration, 0);
-                return {
-                  ...t,
-                  duration: dur,
-                  samples: slicedSamples
-                };
-              }
-              return t;
-            })
-          };
-        }
-
-        if (audioCodec === "copy" && maxAudioFrames !== undefined) {
-          workingDoc = limitAudioCopyPackets(workingDoc, maxAudioFrames);
-        }
-
-        // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
-        if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0) && audioCodec !== "copy") {
-          workingDoc = {
-            ...workingDoc,
-            tracks: await mapWork(workingDoc.tracks, async (t) => {
-  let work = 0;
-
-              if (t.type !== "audio") return t;
-              const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
-                ? decodeAacTrack(workingDoc, t) : undefined);
-              if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
-              const origRate = audio.sampleRate;
-              const origCh = audio.channels;
-              const targetRate = audioRate ?? origRate;
-              const targetCh = audioChannels ?? origCh;
-              const channelMask = audio.channelMask;
-              const surroundMono = origCh === 6 && targetCh === 1;
-              const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
-              if (targetCh !== origCh && origCh > 2 &&
-                  (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
-                throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
-              }
-              const durSec = (audio.channelData[0]?.length ?? 0) / origRate;
-              let volFactor = t.volume ?? 1.0;
-              let tempoFactor = 1.0;
-              let reverseAudio = false;
-              for (const af of afFilters) {
-                if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-
-                for (const item of af.split(",")) {
-                  if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-
-                  const trimmed = item.trim();
-                  if (trimmed.startsWith("volume=")) {
-                    const volSpec = trimmed.slice("volume=".length).trim();
-                    const decibels = volSpec.endsWith("dB");
-                    const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", {});
-                    const factor = decibels ? Math.pow(10, gain / 20) : gain;
-                    if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
-                    volFactor *= factor;
-                  } else if (trimmed.startsWith("atempo=")) {
-                    const tempo = Number(trimmed.slice(7));
-                    if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {
-                      throw new Error("atempo must be in the range [0.5, 100]");
-                    }
-                    tempoFactor *= tempo;
-                  } else if (trimmed === "areverse") {
-                    reverseAudio = !reverseAudio;
-                  } else {
-                    throw new Error(`Unsupported audio filter: ${trimmed}`);
-                  }
+              const combinedChain = vfFilters.join(",");
+              let loadedSubtitleCues: { startSec: number; endSec: number; text: string }[] | undefined;
+              const subMatch = /subtitles=(?:filename=)?['"]?([^:'",]+)['"]?/.exec(combinedChain);
+              if (subMatch?.[1]) {
+                const subPath = resolvePath(context.cwd, subMatch[1]);
+                const subBytes = await readInput(subPath);
+                const subFmt = subPath.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt";
+                const subDoc = parseSubtitleDocument(subBytes, subFmt);
+                const st = subDoc.tracks.find((t) => t.type === "subtitle");
+                if (st) {
+                  const sts = st.timescale || 1000;
+                  loadedSubtitleCues = st.samples.map((s) => ({
+                    startSec: s.pts / sts,
+                    endSec: (s.pts + s.duration) / sts,
+                    text: decodeUtf8(s.data).trim()
+                  }));
                 }
               }
+              workingDoc = {
+                ...workingDoc,
+                tracks: await mapWork(workingDoc.tracks, async (t) => {
 
-              const targetSamples = Math.max(0, Math.round((durSec / tempoFactor) * targetRate));
-              let stretched = await stretchAudio(audio.channelData, origRate, tempoFactor, budget, context.signal);
-              if (targetRate !== origRate) stretched = await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
-              const newChannelData: Float32Array[] = [];
-              for (let c = 0; c < targetCh; c++) {
-                if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
-                const dst = new Float32Array(targetSamples);
-                const srcCh = monoStereo && c >= 2 ? undefined : stretched[origCh === 1 ? 0 : c];
-                const rightCh = origCh === 2 && targetCh === 1 ? stretched[1] : undefined;
-                if (srcCh && srcCh.length > 0) {
-                  for (let i = 0; i < targetSamples; i++) {
+                  if (t.type !== "video") return t;
+                  let presentationOffset = 0;
+                  for (const edit of t.editList ?? []) {
+                    if (edit.mediaTime < 0) presentationOffset -= edit.segmentDuration / workingDoc.timescale;
+                    else { presentationOffset += edit.mediaTime / t.timescale; break; }
+                  }
+                  const offsetTicks = Math.round(presentationOffset * t.timescale);
+                  const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
+                  // Filters use the displayed timeline; retain media coordinates for the existing edit list.
+                  const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
+                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, loadedSubtitleCues, context.signal);
+                  const first = filtered[0];
+                  return {
+                    ...t,
+                    width: first?.width ?? t.width,
+                    height: first?.height ?? t.height,
+                    samples: [],
+                    decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
+                  };
+                }, context.signal)
+              };
+            }
+
+            // Apply `-frames:v <N>` limit
+            if (maxVideoFrames !== undefined && !outputTarget.includes("%")) {
+              workingDoc = {
+                ...workingDoc,
+                tracks: workingDoc.tracks.map((t) => {
+                  if (t.type !== "video") return t;
+                  if (t.decodedVideoFrames && t.decodedVideoFrames.length > maxVideoFrames!) {
+                    return {
+                      ...t,
+                      samples: [],
+                      decodedVideoFrames: t.decodedVideoFrames.slice(0, maxVideoFrames)
+                    };
+                  }
+                  if (t.samples.length > maxVideoFrames!) {
+                    const slicedSamples = t.samples.slice(0, maxVideoFrames);
+                    const dur = slicedSamples.reduce((acc, s) => acc + s.duration, 0);
+                    return {
+                      ...t,
+                      duration: dur,
+                      samples: slicedSamples
+                    };
+                  }
+                  return t;
+                })
+              };
+            }
+
+            if (audioCodec === "copy" && maxAudioFrames !== undefined) {
+              workingDoc = limitAudioCopyPackets(workingDoc, maxAudioFrames);
+            }
+
+            // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
+            if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0) && audioCodec !== "copy") {
+              workingDoc = {
+                ...workingDoc,
+                tracks: await mapWork(workingDoc.tracks, async (t) => {
+      let work = 0;
+
+                  if (t.type !== "audio") return t;
+                  const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
+                    ? decodeAacTrack(workingDoc, t) : undefined);
+                  if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
+                  const origRate = audio.sampleRate;
+                  const origCh = audio.channels;
+                  const targetRate = audioRate ?? origRate;
+                  const targetCh = audioChannels ?? origCh;
+                  const channelMask = audio.channelMask;
+                  const surroundMono = origCh === 6 && targetCh === 1;
+                  const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
+                  if (targetCh !== origCh && origCh > 2 &&
+                      (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
+                    throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
+                  }
+                  const durSec = (audio.channelData[0]?.length ?? 0) / origRate;
+                  let volFactor = t.volume ?? 1.0;
+                  let tempoFactor = 1.0;
+                  let reverseAudio = false;
+                  for (const af of afFilters) {
                     if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
-                    const srcIdx = Math.min(srcCh.length - 1, i);
-                    // FFmpeg's normalized 5.1 mono matrix: FL/FR at sqrt(1/2),
-                    // center at 1, surrounds at 1/2, and no LFE contribution.
-                    const sample = surroundMono
-                      ? ((stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) * Math.SQRT1_2 +
-                          stretched[2]![srcIdx]! + (stretched[4]![srcIdx]! + stretched[5]![srcIdx]!) / 2) / (2 + Math.SQRT2)
-                      : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
-                    // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
-                    dst[i] = Math.max(-1, Math.min(1, sample * volFactor * (monoStereo ? Math.SQRT1_2 : 1)));
+                    for (const item of af.split(",")) {
+                      if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
+                      const trimmed = item.trim();
+                      if (trimmed.startsWith("volume=")) {
+                        const volSpec = trimmed.slice("volume=".length).trim();
+                        const decibels = volSpec.endsWith("dB");
+                        const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", {});
+                        const factor = decibels ? Math.pow(10, gain / 20) : gain;
+                        if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
+                        volFactor *= factor;
+                      } else if (trimmed.startsWith("atempo=")) {
+                        const tempo = Number(trimmed.slice(7));
+                        if (!Number.isFinite(tempo) || tempo < 0.5 || tempo > 100) {
+                          throw new Error("atempo must be in the range [0.5, 100]");
+                        }
+                        tempoFactor *= tempo;
+                      } else if (trimmed === "areverse") {
+                        reverseAudio = !reverseAudio;
+                      } else {
+                        throw new Error(`Unsupported audio filter: ${trimmed}`);
+                      }
+                    }
+                  }
+
+                  const targetSamples = Math.max(0, Math.round((durSec / tempoFactor) * targetRate));
+                  let stretched = await stretchAudio(audio.channelData, origRate, tempoFactor, budget, context.signal);
+                  if (targetRate !== origRate) stretched = await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
+                  const newChannelData: Float32Array[] = [];
+                  for (let c = 0; c < targetCh; c++) {
+                    if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
+                    const dst = new Float32Array(targetSamples);
+                    const srcCh = monoStereo && c >= 2 ? undefined : stretched[origCh === 1 ? 0 : c];
+                    const rightCh = origCh === 2 && targetCh === 1 ? stretched[1] : undefined;
+                    if (srcCh && srcCh.length > 0) {
+                      for (let i = 0; i < targetSamples; i++) {
+                        if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
+                        const srcIdx = Math.min(srcCh.length - 1, i);
+                        // FFmpeg's normalized 5.1 mono matrix: FL/FR at sqrt(1/2),
+                        // center at 1, surrounds at 1/2, and no LFE contribution.
+                        const sample = surroundMono
+                          ? ((stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) * Math.SQRT1_2 +
+                              stretched[2]![srcIdx]! + (stretched[4]![srcIdx]! + stretched[5]![srcIdx]!) / 2) / (2 + Math.SQRT2)
+                          : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
+                        // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
+                        dst[i] = Math.max(-1, Math.min(1, sample * volFactor * (monoStereo ? Math.SQRT1_2 : 1)));
+                      }
+                    }
+                    if (reverseAudio) dst.reverse();
+                    newChannelData.push(dst);
+                  }
+
+                  const nextDescs = t.codecDescriptions.map((d) => ({
+                    ...d,
+                    sampleRate: targetRate,
+                    channels: targetCh
+                  }));
+
+                  return {
+                    ...t,
+                    timescale: targetRate,
+                    duration: targetSamples,
+                    volume: volFactor,
+                    codecDescriptions: nextDescs,
+                    samples: [],
+                    decodedAudio: {
+                      sampleRate: targetRate,
+                      channels: targetCh,
+                      channelData: newChannelData,
+                      ...(targetCh === origCh ? { channelMask } : {})
+                    }
+                  };
+                }, context.signal)
+              };
+            }
+
+            if (chapterSource !== undefined) {
+              if (chapterSource >= loadedDocs.length) {
+                throw new Error(`Invalid chapter input index: ${chapterSource}`);
+              }
+              workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
+            }
+            if (metadataSource !== undefined && metadataSource >= loadedDocs.length) {
+              throw new Error(`Invalid metadata input index: ${metadataSource}`);
+            }
+            const sourceMetadata = metadataSource === undefined ? loadedDocs[0]!.metadata
+              : metadataSource < 0 ? {} : loadedDocs[metadataSource]!.metadata;
+
+            // Apply `-metadata` tags
+            const metaTags: Mp4MetadataTags = {
+              ...sourceMetadata,
+              title: metadata.title ?? sourceMetadata.title,
+              artist: metadata.artist ?? sourceMetadata.artist,
+              album: metadata.album ?? sourceMetadata.album,
+              date: metadata.date ?? metadata.year ?? sourceMetadata.date,
+              comment: metadata.comment ?? sourceMetadata.comment,
+              genre: metadata.genre ?? sourceMetadata.genre,
+              encoder: metadata.encoder ?? sourceMetadata.encoder
+            };
+            workingDoc = {
+              ...workingDoc,
+              faststart,
+              metadata: metaTags,
+              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions)
+            };
+
+            // Null muxer (`-f null -`)
+            if (outputFormat === "null" || outputTarget === "/dev/null") {
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: 0 };
+            }
+
+            if (outputFormat === "dash" || outputTarget.toLowerCase().endsWith(".mpd")) {
+              if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
+              const outResolved = resolvePath(context.cwd, outputTarget);
+              const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
+              const { manifest, resources } = serializeDashDocument(workingDoc, { limits: options.limits, budget });
+              await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
+              for (const [uri, bytes] of resources) {
+                await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));
+              }
+              await writeFileOutput(context, manifest, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: 0 };
+            }
+
+            // Handle HLS (.m3u8 / -f hls) multi-segment muxing
+            if (outputFormat === "hls" || /\.m3u8?$/i.test(outputTarget)) {
+              const outResolved = resolvePath(context.cwd, outputTarget);
+              const outDir = outResolved.includes("/")
+                ? outResolved.slice(0, outResolved.lastIndexOf("/")) || "/"
+                : "/";
+              const isFmp4 = hlsSegmentType === "fmp4";
+              const segExt = isFmp4 ? "m4s" : "ts";
+              const segPlugin = registry.findByFormatName(isFmp4 ? "mp4" : "mpegts");
+              if (!segPlugin) {
+                throw new Error(`HLS segment format AST (${isFmp4 ? "mp4" : "mpegts"}) is not registered`);
+              }
+              const vTrk = workingDoc.tracks.find((t) => t.type === "video");
+              const totalSec = Math.max(
+                0.1,
+                vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
+              );
+              const segDur = Math.max(0.2, hlsTime);
+              const boundaries = [0];
+              if (vTrk?.samples.length) {
+                for (const sample of vTrk.samples) {
+                  const seconds = sample.dts / vTrk.timescale;
+                  if (sample.isKeyframe && seconds >= boundaries[boundaries.length - 1]! + segDur - 1e-6 && seconds < totalSec) {
+                    boundaries.push(seconds);
                   }
                 }
-                if (reverseAudio) dst.reverse();
-                newChannelData.push(dst);
+              } else {
+                for (let seconds = segDur; seconds < totalSec - 1e-6; seconds += segDur) boundaries.push(seconds);
               }
+              boundaries.push(totalSec);
+              let targetDuration = 0;
+              for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
+              const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
+              const independentSegments = hlsIndependentSegments && !!vTrk && workingDoc.tracks
+                .filter(track => track.type === "video")
+                .every(track => boundaries.slice(firstSegment, -1).every((start, index) => {
+                  const first = track.samples.find(sample => sample.dts >= start * track.timescale);
+                  return first?.isKeyframe && first.dts < boundaries[firstSegment + index + 1]! * track.timescale;
+                }));
+              const playlistLines: string[] = [
+                "#EXTM3U",
+                isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : "#EXT-X-VERSION:3",
+                `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
+                `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
+              ];
 
-              const nextDescs = t.codecDescriptions.map((d) => ({
-                ...d,
-                sampleRate: targetRate,
-                channels: targetCh
-              }));
+              if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
+              if (isFmp4) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
 
-              return {
-                ...t,
-                timescale: targetRate,
-                duration: targetSamples,
-                volume: volFactor,
-                codecDescriptions: nextDescs,
-                samples: [],
-                decodedAudio: {
-                  sampleRate: targetRate,
-                  channels: targetCh,
-                  channelData: newChannelData,
-                  ...(targetCh === origCh ? { channelMask } : {})
+              const retainedSegments: { path: string; duration: number }[] = [];
+              for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
+                const st = boundaries[sIdx]!;
+                const en = boundaries[sIdx + 1]!;
+                const actualDur = Math.max(0.04, en - st);
+                // Segment on decode timestamps without applying edit lists or re-encoding packets.
+                const segmentDoc = {
+                  ...workingDoc,
+                  tracks: workingDoc.tracks.map(track => ({
+                    ...track,
+                    samples: track.samples.filter(sample => sample.dts >= st * track.timescale && sample.dts < en * track.timescale)
+                  }))
+                };
+                let segBytes = segPlugin.serialize(segmentDoc, {
+                  fragmented: isFmp4,
+                  limits: options.limits,
+                  budget
+                });
+
+                if (isFmp4) {
+                  const moof = parseMp4Boxes(segBytes, 0, 0, budget).find(box => box.type === "moof");
+                  if (!moof) throw new Error("HLS fMP4 output requires fragmented MP4 samples");
+                  if (sIdx === 0) {
+                    await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
+                    await writeFileOutput(context, segBytes.subarray(0, moof.offset), data =>
+                      context.fs.writeFile(resolvePath(outDir, "init.mp4"), data, { signal: context.signal }));
+                  }
+                  segBytes = segBytes.subarray(moof.offset);
                 }
-              };
-            }, context.signal)
-          };
-        }
 
-        if (chapterSource !== undefined) {
-          if (chapterSource >= loadedDocs.length) {
-            throw new Error(`Invalid chapter input index: ${chapterSource}`);
-          }
-          workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
-        }
-        if (metadataSource !== undefined && metadataSource >= loadedDocs.length) {
-          throw new Error(`Invalid metadata input index: ${metadataSource}`);
-        }
-        const sourceMetadata = metadataSource === undefined ? loadedDocs[0]!.metadata
-          : metadataSource < 0 ? {} : loadedDocs[metadataSource]!.metadata;
+                const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
+                const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}%d.${segExt}`;
+                const formattedSeg = segPattern.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
+                  const padLen = parseInt(widthDigits || "0", 10) || 0;
+                  return String(sIdx + (outputStartNumber ?? 0)).padStart(padLen, "0");
+                });
+                const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
+                const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
+                  ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
+                  : formattedSeg;
 
-        // Apply `-metadata` tags
-        const metaTags: Mp4MetadataTags = {
-          ...sourceMetadata,
-          title: metadata.title ?? sourceMetadata.title,
-          artist: metadata.artist ?? sourceMetadata.artist,
-          album: metadata.album ?? sourceMetadata.album,
-          date: metadata.date ?? metadata.year ?? sourceMetadata.date,
-          comment: metadata.comment ?? sourceMetadata.comment,
-          genre: metadata.genre ?? sourceMetadata.genre,
-          encoder: metadata.encoder ?? sourceMetadata.encoder
-        };
-        workingDoc = {
-          ...workingDoc,
-          faststart,
-          metadata: metaTags,
-          tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions)
-        };
-
-        // Null muxer (`-f null -`)
-        if (outputFormat === "null" || outputTarget === "/dev/null") {
-          options.onMetrics?.(budget.getStats());
-          return { exitCode: 0 };
-        }
-
-        if (outputFormat === "dash" || outputTarget.toLowerCase().endsWith(".mpd")) {
-          if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
-          const outResolved = resolvePath(context.cwd, outputTarget);
-          const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-          const { manifest, resources } = serializeDashDocument(workingDoc, { limits: options.limits, budget });
-          await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-          for (const [uri, bytes] of resources) {
-            await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));
-          }
-          await writeFileOutput(context, manifest, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
-          options.onMetrics?.(budget.getStats());
-          return { exitCode: 0 };
-        }
-
-        // Handle HLS (.m3u8 / -f hls) multi-segment muxing
-        if (outputFormat === "hls" || /\.m3u8?$/i.test(outputTarget)) {
-          const outResolved = resolvePath(context.cwd, outputTarget);
-          const outDir = outResolved.includes("/")
-            ? outResolved.slice(0, outResolved.lastIndexOf("/")) || "/"
-            : "/";
-          const isFmp4 = hlsSegmentType === "fmp4";
-          const segExt = isFmp4 ? "m4s" : "ts";
-          const segPlugin = registry.findByFormatName(isFmp4 ? "mp4" : "mpegts");
-          if (!segPlugin) {
-            throw new Error(`HLS segment format AST (${isFmp4 ? "mp4" : "mpegts"}) is not registered`);
-          }
-          const vTrk = workingDoc.tracks.find((t) => t.type === "video");
-          const totalSec = Math.max(
-            0.1,
-            vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
-          );
-          const segDur = Math.max(0.2, hlsTime);
-          const boundaries = [0];
-          if (vTrk?.samples.length) {
-            for (const sample of vTrk.samples) {
-              const seconds = sample.dts / vTrk.timescale;
-              if (sample.isKeyframe && seconds >= boundaries[boundaries.length - 1]! + segDur - 1e-6 && seconds < totalSec) {
-                boundaries.push(seconds);
+                budget.checkOutputBytes(segBytes.byteLength);
+                await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
+                await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
+                if (sIdx >= firstSegment) playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
+                if (hlsDeleteSegments && hlsListSize > 0) {
+                  retainedSegments.push({ path: fullSegPath, duration: actualDur });
+                  const expiredCount = retainedSegments.length - hlsListSize;
+                  if (expiredCount > 0) {
+                    // FFmpeg retains expired segments until either the count threshold or
+                    // one playlist duration plus the newest expired segment is reached.
+                    const playlistDuration = boundaries[sIdx + 1]! - boundaries[sIdx + 1 - hlsListSize]!;
+                    const retentionDuration = playlistDuration + retainedSegments[expiredCount - 1]!.duration;
+                    let duration = 0;
+                    let count = 0;
+                    for (let i = expiredCount - 1; i >= 0; i--) {
+                      duration += retainedSegments[i]!.duration;
+                      count++;
+                      if (count >= hlsDeleteThreshold || duration >= retentionDuration) break;
+                    }
+                    for (const segment of retainedSegments.splice(0, expiredCount - count)) {
+                      await context.fs.rm(segment.path, { signal: context.signal });
+                    }
+                  }
+                }
               }
+
+              if (!hlsOmitEndlist) playlistLines.push("#EXT-X-ENDLIST");
+              playlistLines.push("");
+              const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
+              await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
+              await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: 0 };
             }
-          } else {
-            for (let seconds = segDur; seconds < totalSec - 1e-6; seconds += segDur) boundaries.push(seconds);
-          }
-          boundaries.push(totalSec);
-          let targetDuration = 0;
-          for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
-          const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
-          const independentSegments = hlsIndependentSegments && !!vTrk && workingDoc.tracks
-            .filter(track => track.type === "video")
-            .every(track => boundaries.slice(firstSegment, -1).every((start, index) => {
-              const first = track.samples.find(sample => sample.dts >= start * track.timescale);
-              return first?.isKeyframe && first.dts < boundaries[firstSegment + index + 1]! * track.timescale;
-            }));
-          const playlistLines: string[] = [
-            "#EXTM3U",
-            isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : "#EXT-X-VERSION:3",
-            `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
-            `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
-          ];
 
-          if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
-          if (isFmp4) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
+            if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames?.length)) {
+              throw new Error("No video frame in the requested presentation interval");
+            }
 
-          const retainedSegments: { path: string; duration: number }[] = [];
-          for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
-            const st = boundaries[sIdx]!;
-            const en = boundaries[sIdx + 1]!;
-            const actualDur = Math.max(0.04, en - st);
-            // Segment on decode timestamps without applying edit lists or re-encoding packets.
-            const segmentDoc = {
-              ...workingDoc,
-              tracks: workingDoc.tracks.map(track => ({
-                ...track,
-                samples: track.samples.filter(sample => sample.dts >= st * track.timescale && sample.dts < en * track.timescale)
-              }))
-            };
-            let segBytes = segPlugin.serialize(segmentDoc, {
-              fragmented: isFmp4,
+            // Check if outputTarget is an image sequence pattern like `frame_%03d.png`
+            if (/%0?\d*d/.test(outputTarget)) {
+              const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
+              const imgPlugin = registry.findByFilename(`x.${outExt}`);
+              if (!imgPlugin || !imgPlugin.canMux) {
+                throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
+              }
+              const vTrack = workingDoc.tracks.find((t) => t.type === "video");
+              const frames = vTrack ? await ensureDecodedFrames(vTrack, workingDoc.timescale, budget, context.signal) : [];
+              const limit = maxVideoFrames ?? Infinity;
+              const duration = frames[0]?.durationSeconds ?? 1;
+              const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
+              let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
+              let idx = 0;
+              const imgFmt: ImageFormat =
+                outExt === "jpg" || outExt === "jpeg" ? "jpeg" :
+                outExt === "webp" ? "webp" :
+                outExt === "gif" ? "gif" :
+                outExt === "bmp" ? "bmp" :
+                outExt === "ppm" ? "ppm" : "png";
+
+              for (let sourceIndex = 0; sourceIndex < frames.length && idx < limit; sourceIndex++) {
+                const source = frames[sourceIndex]!;
+                const delta0 = source.ptsSeconds / duration - nextPts;
+                const delta = delta0 + source.durationSeconds / duration;
+                // Match FFmpeg's CFR thresholds, including its tolerance for close timestamps.
+                const copies = constantRate ? (delta < -1.1 ? 0 : delta > 1.1 ? Math.round(delta) : 1) : 1;
+                const previousCopies = constantRate && delta0 > 1.1 ? Math.max(0, Math.round(delta0 - 0.6)) : 0;
+                if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
+                for (let copy = 0; copy < copies && idx < limit; copy++, idx++, nextPts++) {
+                  budget.checkCpu();
+                  budget.checkSamples(idx + 1);
+                  budget.checkDuration((idx + 1) * duration);
+                  const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
+                  if (copy > 0) budget.recordFrame(f.width, f.height);
+                  const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
+                    const padLen = parseInt(widthDigits || "0", 10) || 0;
+                    return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
+                  });
+                  const fullOutPath = resolvePath(context.cwd, fileName);
+                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
+                    format: imgFmt
+                  })).data;
+                  budget.checkOutputBytes(encoded.byteLength);
+                  await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
+                }
+              }
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: 0 };
+            }
+
+            // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
+            const outPlugin = outputFormat
+              ? registry.findByFormatName(outputFormat)
+              : registry.findByFilename(outputTarget);
+
+            if (!outPlugin || !outPlugin.canMux) {
+              const fmtDesc = outputFormat ?? outputTarget;
+              throw new Error(
+                `Unable to find a suitable output format for '${fmtDesc}' (format AST not registered)`
+              );
+            }
+
+            { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
+            const outExt = outputTarget.split(".").pop()?.toLowerCase();
+            const serializedBytes = outPlugin.serialize(workingDoc, {
+              format: outputFormat ?? outExt,
+              audioCodec,
+              faststart,
+              fragmented,
+              metadata: metaTags,
               limits: options.limits,
               budget
             });
-
-            if (isFmp4) {
-              const moof = parseMp4Boxes(segBytes, 0, 0, budget).find(box => box.type === "moof");
-              if (!moof) throw new Error("HLS fMP4 output requires fragmented MP4 samples");
-              if (sIdx === 0) {
-                await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-                await writeFileOutput(context, segBytes.subarray(0, moof.offset), data =>
-                  context.fs.writeFile(resolvePath(outDir, "init.mp4"), data, { signal: context.signal }));
+            for (const trk of workingDoc.tracks) {
+              if (trk.decodedVideoFrames) {
+                for (const f of trk.decodedVideoFrames) detachBytesBuffer(f.data);
               }
-              segBytes = segBytes.subarray(moof.offset);
-            }
-
-            const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
-            const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}%d.${segExt}`;
-            const formattedSeg = segPattern.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
-              const padLen = parseInt(widthDigits || "0", 10) || 0;
-              return String(sIdx + (outputStartNumber ?? 0)).padStart(padLen, "0");
-            });
-            const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
-            const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
-              ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
-              : formattedSeg;
-
-            budget.checkOutputBytes(segBytes.byteLength);
-            await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
-            await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
-            if (sIdx >= firstSegment) playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
-            if (hlsDeleteSegments && hlsListSize > 0) {
-              retainedSegments.push({ path: fullSegPath, duration: actualDur });
-              const expiredCount = retainedSegments.length - hlsListSize;
-              if (expiredCount > 0) {
-                // FFmpeg retains expired segments until either the count threshold or
-                // one playlist duration plus the newest expired segment is reached.
-                const playlistDuration = boundaries[sIdx + 1]! - boundaries[sIdx + 1 - hlsListSize]!;
-                const retentionDuration = playlistDuration + retainedSegments[expiredCount - 1]!.duration;
-                let duration = 0;
-                let count = 0;
-                for (let i = expiredCount - 1; i >= 0; i--) {
-                  duration += retainedSegments[i]!.duration;
-                  count++;
-                  if (count >= hlsDeleteThreshold || duration >= retentionDuration) break;
-                }
-                for (const segment of retainedSegments.splice(0, expiredCount - count)) {
-                  await context.fs.rm(segment.path, { signal: context.signal });
-                }
+              if (trk.samples) {
+                for (const s of trk.samples) detachBytesBuffer(s.data);
               }
             }
-          }
 
-          if (!hlsOmitEndlist) playlistLines.push("#EXT-X-ENDLIST");
-          playlistLines.push("");
-          const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
-          await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-          await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
-          options.onMetrics?.(budget.getStats());
-          return { exitCode: 0 };
-        }
+            budget.checkOutputBytes(serializedBytes.byteLength);
 
-        if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames?.length)) {
-          throw new Error("No video frame in the requested presentation interval");
-        }
-
-        // Check if outputTarget is an image sequence pattern like `frame_%03d.png`
-        if (/%0?\d*d/.test(outputTarget)) {
-          const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
-          const imgPlugin = registry.findByFilename(`x.${outExt}`);
-          if (!imgPlugin || !imgPlugin.canMux) {
-            throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
-          }
-          const vTrack = workingDoc.tracks.find((t) => t.type === "video");
-          const frames = vTrack ? await ensureDecodedFrames(vTrack, workingDoc.timescale, budget, context.signal) : [];
-          const limit = maxVideoFrames ?? Infinity;
-          const duration = frames[0]?.durationSeconds ?? 1;
-          const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
-          let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
-          let idx = 0;
-          const imgFmt: ImageFormat =
-            outExt === "jpg" || outExt === "jpeg" ? "jpeg" :
-            outExt === "webp" ? "webp" :
-            outExt === "gif" ? "gif" :
-            outExt === "bmp" ? "bmp" :
-            outExt === "ppm" ? "ppm" : "png";
-
-          for (let sourceIndex = 0; sourceIndex < frames.length && idx < limit; sourceIndex++) {
-            const source = frames[sourceIndex]!;
-            const delta0 = source.ptsSeconds / duration - nextPts;
-            const delta = delta0 + source.durationSeconds / duration;
-            // Match FFmpeg's CFR thresholds, including its tolerance for close timestamps.
-            const copies = constantRate ? (delta < -1.1 ? 0 : delta > 1.1 ? Math.round(delta) : 1) : 1;
-            const previousCopies = constantRate && delta0 > 1.1 ? Math.max(0, Math.round(delta0 - 0.6)) : 0;
-            if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
-            for (let copy = 0; copy < copies && idx < limit; copy++, idx++, nextPts++) {
-              budget.checkCpu();
-              budget.checkSamples(idx + 1);
-              budget.checkDuration((idx + 1) * duration);
-              const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
-              if (copy > 0) budget.recordFrame(f.width, f.height);
-              const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
-                const padLen = parseInt(widthDigits || "0", 10) || 0;
-                return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
-              });
-              const fullOutPath = resolvePath(context.cwd, fileName);
-              const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
-                format: imgFmt
-              })).data;
-              budget.checkOutputBytes(encoded.byteLength);
-              await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
+            if (isStdout(outputTarget)) {
+              await writeBytes(context.stdout, serializedBytes, context.signal);
+            } else {
+              const fullOutPath = resolvePath(context.cwd, outputTarget);
+              await writeFileOutput(context, serializedBytes, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
             }
+
+            options.onMetrics?.(budget.getStats());
+            return { exitCode: 0 };
+          } catch (err) {
+            rethrowRuntimeError(context, err);
+            const msg = err instanceof Error ? err.message : String(err);
+            await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+            return { exitCode: 1 };
+          } finally {
+            const gc = (globalThis as { gc?: () => void }).gc;
+            if (typeof gc === "function") { gc(); gc(); }
           }
-          options.onMetrics?.(budget.getStats());
-          return { exitCode: 0 };
-        }
-
-        // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
-        const outPlugin = outputFormat
-          ? registry.findByFormatName(outputFormat)
-          : registry.findByFilename(outputTarget);
-
-        if (!outPlugin || !outPlugin.canMux) {
-          const fmtDesc = outputFormat ?? outputTarget;
-          throw new Error(
-            `Unable to find a suitable output format for '${fmtDesc}' (format AST not registered)`
-          );
-        }
-
-        { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
-        const outExt = outputTarget.split(".").pop()?.toLowerCase();
-        const serializedBytes = outPlugin.serialize(workingDoc, {
-          format: outputFormat ?? outExt,
-          audioCodec,
-          faststart,
-          fragmented,
-          metadata: metaTags,
-          limits: options.limits,
-          budget
         });
-        for (const trk of workingDoc.tracks) {
-          if (trk.decodedVideoFrames) {
-            for (const f of trk.decodedVideoFrames) detachBytesBuffer(f.data);
-          }
-          if (trk.samples) {
-            for (const s of trk.samples) detachBytesBuffer(s.data);
-          }
-        }
-
-        budget.checkOutputBytes(serializedBytes.byteLength);
-
-        if (isStdout(outputTarget)) {
-          await writeBytes(context.stdout, serializedBytes, context.signal);
-        } else {
-          const fullOutPath = resolvePath(context.cwd, outputTarget);
-          await writeFileOutput(context, serializedBytes, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
-        }
-
-        options.onMetrics?.(budget.getStats());
-        return { exitCode: 0 };
-      } catch (err) {
-        rethrowRuntimeError(context, err);
-        const msg = err instanceof Error ? err.message : String(err);
-        await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
-        return { exitCode: 1 };
-      } finally {
-        const gc = (globalThis as { gc?: () => void }).gc;
-        if (typeof gc === "function") { gc(); gc(); }
       }
+      if (outputs.length === 0) {
+        await writeBytes(context.stderr, encodeUtf8("ffmpeg: must specify an output file\n"), context.signal);
+        return { exitCode: 1 };
+      }
+      for (const output of outputs) {
+        const result = await output();
+        if (result.exitCode !== 0) return result;
+      }
+      return { exitCode: 0 };
     }
   };
 }

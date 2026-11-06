@@ -33,6 +33,9 @@ multichannel inputs fail explicitly. Unsupported audio filters fail
 without creating or replacing the output. Stream copying remains supported. Without `-map`, automatic audio selection keeps one track, preferring the default track, then the most channels, then input order. Use `-map 0:a` to copy every audio track from the first input. Global metadata defaults to the first input;
 `-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying.
 Explicit `-metadata key=value` tags override copied metadata.
+Each output filename closes its option group: `-t 0.025 a.wav -t 0.075 b.wav`
+writes both files with independent durations. Output options reset after each filename;
+trailing options without a filename do not change earlier outputs.
 `-metadata:s:a:0 language=fra` sets the first output audio track’s language;
 stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all streams (`s`).
 `-disposition:a:0 0 -disposition:a:1 default` selects the second output audio track as the MP4 default.

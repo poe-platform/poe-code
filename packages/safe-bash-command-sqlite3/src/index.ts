@@ -963,7 +963,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             skipRows = Number(parts[pIdx + 1]) || 0;
             pIdx += 2;
           } else {
-            pIdx += 1;
+            throw new Error(`unknown option: "${flag}"`);
           }
         }
         const fileArg = parts[pIdx] ?? "";
@@ -1711,7 +1711,7 @@ export function evalSyncSqlite3(
             skipRows = Number(parts[pIdx + 1]) || 0;
             pIdx += 2;
           } else {
-            pIdx += 1;
+            return false;
           }
         }
         const fileArg = parts[pIdx] ?? "";

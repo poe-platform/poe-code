@@ -151,6 +151,7 @@ export async function createCodec(
         const status = active.bridge_step(inputPointer, input.length, outputPointer, output.length, flush === "block" ? 2 : flush === "sync" ? 3 : Number(finish));
         signal.throwIfAborted();
         if (status === -4) throw new CompressedDataError("unexpected end of file");
+        if (status === -5) throw new CompressedDataError("Restored data doesn't match checksum");
         if (status === -2 || status === -3) throw new CompressedDataError("invalid compressed data or codec memory limit exceeded");
         if (status !== 1 && status !== 2 && status !== 3 && status !== 4) throw new Error(`invalid codec status ${status}`);
         const consumed = active.bridge_consumed();

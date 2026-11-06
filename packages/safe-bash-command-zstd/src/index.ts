@@ -1,5 +1,5 @@
 import { commandRuntimeIdentity, withInputByteBudget, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
-import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { define } from "safe-bash-io-engine/internal";
 import { codeOf, diagnostic, output } from "safe-bash-compression-engine/internal";
@@ -74,7 +74,9 @@ export function createZstdCommand(config: ZstdCommandsOptions = {}, name: typeof
         }
       } catch (error) {
         context.signal.throwIfAborted();
-        if (options.quiet < 2) await diagnostic(context, error);
+        if (options.quiet < 2) await diagnostic(context, error instanceof PublicDiagnostic
+          ? new PublicDiagnostic(`${plan.source === "-" ? "stdin" : plan.source}: ${publicDiagnosticMessage(error, context.onInternalError)}`)
+          : error);
         exitCode = 1;
         if (decodedBudget.exceeded) break;
       }

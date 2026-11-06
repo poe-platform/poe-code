@@ -3,6 +3,40 @@ import { test } from 'node:test';
 import { createMemoryFileSystem } from '@poe-code/safe-fs';
 import { chunks, run } from './helpers.js';
 
+for (const args of [['-t'], ['-df'], ['-t', 'good.zst']]) {
+  test(`checksum failures identify the damaged operand with ${args.join(' ')}`, async () => {
+    const encoded = await run('zstd', ['-c'], chunks(Buffer.from('checksum\n'.repeat(200))));
+    assert.equal(encoded.exitCode, 0, encoded.stderr);
+    const damaged = Buffer.from(encoded.stdout);
+    damaged[damaged.length - 1]! ^= 1;
+    const fs = createMemoryFileSystem();
+    await fs.writeFile('/good.zst', encoded.stdout);
+    await fs.writeFile('/broken.zst', damaged);
+    await fs.writeFile('/broken', Buffer.from('existing output'));
+    const result = await run('zstd', [...args, 'broken.zst'], chunks(), { fs });
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes('broken.zst: Restored data doesn\'t match checksum'), result.stderr);
+    assert.ok(!result.stderr.includes('memory limit'), result.stderr);
+    assert.deepEqual(Buffer.from(await fs.readFile('/broken.zst')), damaged);
+    assert.equal(Buffer.from(await fs.readFile('/broken')).toString(), 'existing output');
+    const valid = await run('zstd', ['-t', 'good.zst'], chunks(), { fs });
+    assert.equal(valid.exitCode, 0, valid.stderr);
+  });
+}
+
+test('checksum diagnostics label stdin and respect double quiet', async () => {
+  const encoded = await run('zstd', ['-c'], chunks(Buffer.from('checksum')));
+  assert.equal(encoded.exitCode, 0, encoded.stderr);
+  const damaged = Buffer.from(encoded.stdout);
+  damaged[damaged.length - 1]! ^= 1;
+  const result = await run('zstd', ['-t'], chunks(damaged));
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, "zstd: stdin: Restored data doesn't match checksum\n");
+  const quiet = await run('zstd', ['-qqt'], chunks(damaged));
+  assert.equal(quiet.exitCode, 1);
+  assert.equal(quiet.stderr, '');
+});
+
 test('integrity checks report decoded sizes without writing or removing files', async () => {
   const input = Buffer.from('integrity\n'.repeat(200));
   const encoded = await run('zstd', ['-c'], chunks(input));

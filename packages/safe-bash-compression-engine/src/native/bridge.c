@@ -10,6 +10,7 @@
 #else
 #define ZSTD_STATIC_LINKING_ONLY
 #include "zstd.h"
+#include "zstd_errors.h"
 #endif
 #define API __attribute__((visibility("default")))
 #define CHUNK 65536
@@ -187,7 +188,7 @@ API int bridge_step(uint8_t*in,uint32_t inlen,uint8_t*out,uint32_t outlen,int fi
 #else
  ZSTD_inBuffer ib={in,inlen,0};ZSTD_outBuffer ob={out,outlen,0};
  size_t r=decompressing?ZSTD_decompressStream(dec,&ob,&ib):ZSTD_compressStream2(enc,&ob,&ib,finish?ZSTD_e_end:ZSTD_e_continue);
- taken=ib.pos;made=ob.pos;if(ZSTD_isError(r))return -3;if(r==0&&(decompressing||finish))return 1;
+ taken=ib.pos;made=ob.pos;if(ZSTD_isError(r))return ZSTD_getErrorCode(r)==ZSTD_error_checksum_wrong?-5:-3;if(r==0&&(decompressing||finish))return 1;
 #endif
  if(!taken&&!made&&finish)return -4;return made==outlen?3:2;
 }

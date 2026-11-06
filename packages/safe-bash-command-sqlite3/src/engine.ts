@@ -6791,6 +6791,14 @@ export class SqliteDatabase {
         }, this)
         : [];
 
+      const groupStarts: number[] = [];
+      if (over.frameBounds?.type === "GROUPS") {
+        for (let pos = 0; pos < indices.length; pos += 1) {
+          yield;
+          if (pos === 0 || orderPeerKeys[pos] !== orderPeerKeys[pos - 1]) groupStarts.push(pos);
+        }
+      }
+
       let currentRank = 1;
       let currentDenseRank = 1;
       let currentPeerEnd = -1;
@@ -6814,7 +6822,12 @@ export class SqliteDatabase {
 
         let frameStart = 0;
         let frameEnd = over.orderBy.length > 0 ? pPos : indices.length - 1;
-        if (over.frameBounds && over.frameBounds.type !== "RANGE") {
+        if (over.frameBounds?.type === "GROUPS") {
+          const startGroup = currentDenseRank - 1 + over.frameBounds.start;
+          const endGroup = currentDenseRank - 1 + over.frameBounds.end;
+          frameStart = startGroup < 0 ? 0 : (groupStarts[startGroup] ?? indices.length);
+          frameEnd = endGroup < 0 ? -1 : (groupStarts[endGroup + 1] ?? indices.length) - 1;
+        } else if (over.frameBounds?.type === "ROWS") {
           frameStart = Math.max(0, pPos + over.frameBounds.start);
           frameEnd = Math.min(indices.length - 1, pPos + over.frameBounds.end);
         } else {

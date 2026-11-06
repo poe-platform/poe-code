@@ -374,7 +374,7 @@ export function encodePngImage(
 
   const orientation = options?.orientation ?? img.orientation;
   const exifChunk = orientation !== undefined
-    ? [makeChunk("eXIf", buildExifApp1Segment({ orientation, density }).subarray(6))]
+    ? [makeChunk("eXIf", buildExifApp1Segment({ orientation, density, resolution }).subarray(6))]
     : [];
   const chunks = [
     PNG_SIGNATURE,

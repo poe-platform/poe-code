@@ -105,3 +105,41 @@ for (const name of ["issue19484_1", "issue19484_2"]) for (const password of [und
     }
   });
 }
+
+it("matches the native qpdf encryption report for an unsigned permission mask", async () => {
+  const input = readFileSync(new URL("../../pdf-ast/src/fixtures/pypdf-r5-saslprep.pdf", import.meta.url));
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/scratch");
+  await fs.writeFile("/in.pdf", input);
+  const carrier = createCommandArguments(["--show-encryption", "/in.pdf"]);
+  const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+  const result = await createQpdfCommand().execute({
+    command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/",
+    env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+    stdin: (async function* () {})(),
+    stdout: { async write(bytes: Uint8Array) { output.push(bytes.slice()); } },
+    stderr: { async write(bytes: Uint8Array) { errors.push(bytes.slice()); } },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(Buffer.concat(errors).toString(), "");
+  // Complete report from native qpdf for the checked-in fixture.
+  assert.equal(Buffer.concat(output).toString(), [
+    "Incorrect password supplied",
+    "R = 5",
+    "P = -4",
+    "User password = ",
+    "extract for accessibility: allowed",
+    "extract for any purpose: allowed",
+    "print low resolution: allowed",
+    "print high resolution: allowed",
+    "modify document assembly: allowed",
+    "modify forms: allowed",
+    "modify annotations: allowed",
+    "modify other: allowed",
+    "modify anything: allowed",
+    "stream encryption method: AESv3",
+    "string encryption method: AESv3",
+    "file encryption method: AESv3",
+    "",
+  ].join("\n"));
+});

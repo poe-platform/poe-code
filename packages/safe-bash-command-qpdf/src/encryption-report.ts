@@ -17,7 +17,7 @@ export function encryptionReport(encryption: PdfEncryptionState | PdfPasswordErr
     ["modify other", p.modify],
     ["modify anything", assembly && forms && p.addNotes && p.modify],
   ];
-  const lines = [`R = ${encryption.revision}`, `P = ${info.permissionsMask}`, `User password = ${info.userPassword}`];
+  const lines = [`R = ${encryption.revision}`, `P = ${info.permissionsMask | 0}`, `User password = ${info.userPassword}`];
   if (encryption instanceof PdfPasswordError) lines.unshift("Incorrect password supplied");
   if (info.ownerPasswordMatched) lines.push("Supplied password is owner password");
   if (info.userPasswordMatched) lines.push("Supplied password is user password");

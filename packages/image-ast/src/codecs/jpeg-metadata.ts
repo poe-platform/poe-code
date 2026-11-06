@@ -1,5 +1,6 @@
 import { parseExifBuffer } from "./exif.js";
 export interface JpegMetadataState {
+  jpegSamplingFactor?: string;
   width: number;
   height: number;
   channels: 1 | 2 | 3 | 4;
@@ -41,6 +42,14 @@ export function applyJpegMetadata(
     width = (payload[3]! << 8) | payload[4]!;
     const comps = payload[5]!;
     channels = comps === 1 ? 1 : comps === 4 ? 4 : 3;
+    if (comps > 0 && payload.length >= 6 + comps * 3) {
+      const factors: string[] = [];
+      for (let i = 0; i < comps; i++) {
+        const factor = payload[7 + i * 3]!;
+        factors.push(`${factor >>> 4}x${factor & 15}`);
+      }
+      state.jpegSamplingFactor = factors.join(",");
+    }
   }
   Object.assign(state, { width, height, channels, isProgressive, density, orientation });
   return marker === 0xc0 || marker === 0xc1 || marker === 0xc2;

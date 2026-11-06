@@ -217,7 +217,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
       const payload = await payloadBytes(
         reader,
         position + 2,
-        Math.min(length - 2, marker === 0xe0 ? 12 : marker === 0xe1 ? 65533 : 6)
+        Math.min(length - 2, marker === 0xe0 ? 12 : marker === 0xe1 ? 65533 : 6 + 255 * 3)
       );
       if (applyJpegMetadata(state, marker, payload)) break;
     }
@@ -228,6 +228,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
   if (width <= 0 || height <= 0) throw new Error("Invalid JPEG dimensions");
   return {
     format: "jpeg",
+    ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
     width,
     height,
     space: channels === 1 ? "b-w" : channels === 4 ? "cmyk" : "srgb",

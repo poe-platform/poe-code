@@ -126,6 +126,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
 
   return {
     format: "jpeg",
+    ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
     width,
     height,
     space: channels === 1 ? "b-w" : channels === 4 ? "cmyk" : "srgb",

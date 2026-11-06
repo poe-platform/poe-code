@@ -970,6 +970,34 @@ it("rejects required negative maps before any positive stream selection", async 
   }
 });
 
+it("rejects an empty final stream selection without touching the destination", async () => {
+  const doc = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 5, includeAudio: true }));
+  const audio = doc.tracks.find(track => track.type === "audio")!;
+  const input = serializeMp4({ ...doc, tracks: [
+    { ...audio, id: 1, language: "eng" },
+    { ...audio, id: 2, language: "fra", samples: audio.samples.slice(0, 2) }
+  ] });
+  for (const existing of [false, true]) {
+    const vfs = createTestVfs({ "/in.mp4": input, ...(existing ? { "/out.mp4": input } : {}) });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-y", "-v", "error", "-i", "/in.mp4", "-map", "0:a", "-map", "-0:a", "-c", "copy", "/out.mp4"
+    ], vfs);
+    assert.equal(result.exitCode, 234);
+    assert.ok(result.stderr.includes("Output file does not contain any stream"));
+    assert.deepEqual(vfs.store.get("/out.mp4"), existing ? input : undefined);
+  }
+  for (const maps of [["0:a", "-0:a:1"], ["0:a", "-0:a", "0:a:0"]]) {
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/in.mp4", ...maps.flatMap(map => ["-map", map]), "-c", "copy", "/out.mp4"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const tracks = parseMp4(vfs.store.get("/out.mp4")!).tracks;
+    assert.deepEqual(tracks.map(track => track.language), ["eng"]);
+    assert.deepEqual(tracks[0]!.samples.map(sample => sample.data), parseMp4(input).tracks[0]!.samples.map(sample => sample.data));
+  }
+});
+
 it("negative maps match input, subtitle, absolute and typed stream indices in order", async () => {
   const bytes = createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 5, includeAudio: true });
   for (const [maps, expected] of [

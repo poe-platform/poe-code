@@ -656,18 +656,7 @@ async function renderBitmapTextToRgba(
   return out;
 }
 
-async function applyVideoFilterChain(
-  frames: MediaVideoFrame[],
-  filterChainStr: string,
-  budget: MediaBudgetTracker,
-  subtitleCues?: readonly { startSec: number; endSec: number; text: string }[],
-  signal?: AbortSignal
-): Promise<MediaVideoFrame[]> {
-  let work = 0;
-
-  let current = frames;
-  if (current.length === 0) return current;
-
+function parseFilterChain(filterChainStr: string): string[] {
   const filters: string[] = [];
   let filter = "";
   let quoted = false;
@@ -687,7 +676,22 @@ async function applyVideoFilterChain(
   }
   if (filter.trim()) filters.push(filter.trim());
 
-  for (const filterSpec of filters) {
+  return filters;
+}
+
+async function applyVideoFilterChain(
+  frames: MediaVideoFrame[],
+  filterChainStr: string,
+  budget: MediaBudgetTracker,
+  subtitleCues?: readonly { startSec: number; endSec: number; text: string }[],
+  signal?: AbortSignal
+): Promise<MediaVideoFrame[]> {
+  let work = 0;
+
+  let current = frames;
+  if (current.length === 0) return current;
+
+  for (const filterSpec of parseFilterChain(filterChainStr)) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
     budget.checkCpu();
@@ -2617,7 +2621,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const volFactor = t.volume ?? 1.0;
                   let stretched: readonly Float32Array[] = audio.channelData;
                   if (filter) {
-                    for (const item of filter.expression.split(",")) {
+                    for (const item of parseFilterChain(filter.expression)) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                       const trimmed = item.trim();

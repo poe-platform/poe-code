@@ -1525,6 +1525,25 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
+  for (const expression of ["volume='1/2'", "volume=1\\/2", "volume='1/2',volume=1"]) {
+    it(`matches unquoted volume gain for filtergraph ${expression}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 80 }, (_, i) => (12000 + 2 * i) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      for (const [filter, path] of [["volume=1/2", "/plain.wav"], [expression, "/quoted.wav"]]) {
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/input.wav", "-af", filter!, "-c:a", "pcm_s16le", path!
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const plain = parseWav(vfs.store.get("/plain.wav")!).tracks[0]!.decodedAudio!;
+      const quoted = parseWav(vfs.store.get("/quoted.wav")!).tracks[0]!.decodedAudio!;
+      assert.deepEqual(quoted.channelData, plain.channelData);
+      assert.deepEqual(quoted.channelData[0], Float32Array.from({ length: 80 }, (_, i) => (6000 + i) / 32768));
+    });
+  }
+
   for (const filter of ["volume=1", "areverse"]) {
     it(`preserves every PCM sample at unchanged rate with ${filter}`, async () => {
       const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 800 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 1000 * i / 8000))] });

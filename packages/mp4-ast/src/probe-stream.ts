@@ -107,7 +107,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
           ? "mono"
           : "stereo"
         : undefined,
-    bits_per_sample: track.type === "audio" ? (desc?.bitsPerSample ?? 16) : undefined,
+    bits_per_sample: track.type === "audio" ? (codecName === 'aac' ? 0 : desc?.bitsPerSample ?? 16) : undefined,
     r_frame_rate: avgFrameRate,
     avg_frame_rate: avgFrameRate,
     time_base: `1/${track.timescale}`,

@@ -20,6 +20,7 @@ for (const [tag, bits, codec, format] of [[1, 8, "pcm_u8", "u8"], [1, 16, "pcm_s
     const stream = result.streams[0]!;
     assert.equal(stream.codec_name, codec);
     assert.equal(stream.sample_fmt, format);
+    assert.equal(stream.bits_per_sample, bits);
     assert.equal(stream.codec_tag_string, `[${tag}][0][0][0]`);
     assert.equal(stream.codec_tag, `0x000${tag}`);
     assert.equal(stream.has_b_frames, undefined);

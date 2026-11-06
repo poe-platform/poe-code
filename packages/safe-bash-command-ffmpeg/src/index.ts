@@ -86,16 +86,17 @@ export {
   type MediaResourceLimits as FfmpegLimits
 };
 
-function parseFrameRate(value: string): number {
+function parseFrameRate(value: string): number | undefined {
   switch (value) {
     case "ntsc": case "qntsc": case "sntsc": return 30000 / 1001;
     case "pal": case "qpal": case "spal": return 25;
     case "film": return 24;
     case "ntsc-film": return 24000 / 1001;
   }
-  const [numerator, denominator = "1"] = value.split("/");
+  const [numerator, denominator = "1", extra] = value.split("/");
+  if (extra !== undefined || !numerator?.trim() || !denominator.trim()) return undefined;
   const rate = Number(numerator) / Number(denominator);
-  return Number.isFinite(rate) && rate > 0 ? rate : 25;
+  return Number.isFinite(rate) && rate > 0 ? rate : undefined;
 }
 
 function loopToOutputEnd(
@@ -1391,7 +1392,8 @@ export function evalSyncFfmpeg(
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
       else if (arg === "-r" || arg === "-framerate") {
-        const val = parseFrameRate(args[++i] ?? "25");
+        const val = parseFrameRate(args[++i] ?? "");
+        if (val === undefined) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingFps = val;
         else outputFps = val;
       } else if (arg === "-s") outputSize = args[++i];
@@ -1830,7 +1832,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
           } else if (arg === "-r" || arg === "-framerate") {
-            const val = parseFrameRate(args[++i] ?? "25");
+            const val = parseFrameRate(args[++i] ?? "");
+            if (val === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid framerate\n"), context.signal);
+              return { exitCode: 1 };
+            }
             if (args.slice(i + 1).includes("-i")) {
               pendingFps = val;
             } else {

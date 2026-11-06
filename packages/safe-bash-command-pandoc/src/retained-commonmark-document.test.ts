@@ -10,6 +10,10 @@ import {assembleRetainedCommonMark} from "./retained-commonmark-document.js";
 import {convert} from "./engine.js";
 
 const samples = [
+  "Header  Right\n------  -----\nabc     xyz\ndef     uvw\n",
+  "Left     Right   Center\n-------  ------  -------\n**a**    b       c\nx        y       z\n-------  ------  -------\n\nAfter",
+  "> Header  Right\n> ------  -----\n> abc     xyz\n> def     uvw\n",
+  "   Right  Center \n--------  --------\nx         y\n",
   "[@a] **[-@b]**\n\n> [@c]\n\n- [@d]\n\n![[@e]](img) [link\n[@f]](url)",
   "a\u0000b\n", "```a\u0000b\nx\u0000y\n```", "[a\u0000b]: /x\u0000y\n[a\u0000b]",
   "# Title\n\nText with *emphasis*, **bold**, [link](target 'title') and ![image](image.png).",
@@ -24,13 +28,13 @@ it.each(samples.map((text, index) => ({text, index})))("assembles backed Markdow
   const store = () => {const value = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1); stores.push(value); return value;};
   try {
     const source = new RetainedSourceText(store(), units => context.cooperate(units)); await source.append([text]);
-    const extensions = {citations: true, pipe_tables: true, raw_html: true, strikeout: true, task_lists: true, autolink_bare_uris: true};
+    const extensions = {simple_tables: true, citations: true, pipe_tables: true, raw_html: true, strikeout: true, task_lists: true, autolink_bare_uris: true};
     const blocks = new RetainedCommonMarkBlocks(source, store(), context, "input", extensions); await blocks.parse({start: 0, end: text.length});
     const ast = new RetainedRtfAst(store(), units => context.cooperate(units));
     const result = await assembleRetainedCommonMark(blocks, ast, store(), context, extensions);
     const wire = new BackedJson(store(), units => context.cooperate(units)); await ast.write(result, wire);
     let actual = ""; for await (const bytes of wire.chunks()) actual += new TextDecoder().decode(bytes);
-    const expected = await convert([{bytes: new TextEncoder().encode(text)}], {from: "gfm+citations", to: "json", fileScope: true}, {});
+    const expected = await convert([{bytes: new TextEncoder().encode(text)}], {from: "gfm+citations+simple_tables", to: "json", fileScope: true}, {});
     expect(expected.kind).toBe("text");
     expect(JSON.parse(actual)).toEqual(JSON.parse(expected.kind === "text" ? expected.text : "{}").blocks);
   } finally {for (const store of stores) await store.close(); await context.close(); expect(await fs.readdir("/")).toEqual([]);}

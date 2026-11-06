@@ -21,6 +21,24 @@ export function pipeRow(text: string, context: AdapterContext): string[] | undef
   return cells;
 }
 
+/** Dash runs define the fixed columns of a Pandoc simple table. */
+export function simpleTableColumns(text: string, context: AdapterContext): {start: number; end: number}[] | undefined {
+  context.checkpoint(text.length);
+  const columns: {start: number; end: number}[] = [];
+  let at = 0;
+  while (at < text.length) {
+    context.checkpoint();
+    while (text[at] === " ") at++;
+    if (at === text.length) break;
+    const start = at;
+    while (text[at] === "-") at++;
+    if (at === start || (at < text.length && text[at] !== " ")) return;
+    context.charge("retainedBytes", 32);
+    columns.push({start, end: at});
+  }
+  return columns.length > 1 ? columns : undefined;
+}
+
 const disallowed = new Set(["title", "textarea", "style", "xmp", "iframe", "noembed", "noframes", "script", "plaintext"]);
 /** GFM tagfilter is output filtering, not an HTML sanitizer. */
 export function filterGfmHtml(text: string, context: AdapterContext): string {

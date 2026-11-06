@@ -1,5 +1,5 @@
 import type { AdapterContext } from "./types.js";
-import { pipeRow } from "./gfm-syntax.js";
+import { pipeRow, simpleTableColumns } from "./gfm-syntax.js";
 import type { Alignment, Attr } from "./ast-types.js";
 import { fencedDivAttributes, normalizeLabel, romanListNumber } from "./commonmark-syntax.js";
 
@@ -52,7 +52,7 @@ type Container =
   | { kind: "list"; node: ListBlock }
   | { kind: "item"; node: PendingItem; indent: number; list: ListBlock; blank: boolean; empty: boolean };
 type Leaf =
-  | { kind: "table"; node: Extract<PendingBlock, { kind: "table" }> }
+  | { kind: "table"; node: Extract<PendingBlock, { kind: "table" }>; columns?: {start: number; end: number}[] }
   | { kind: "paragraph"; node: Extract<PendingBlock, { kind: "paragraph" }> }
   | { kind: "fence"; node: Extract<PendingBlock, { kind: "code" }>; char: string; length: number; indent: number }
   | { kind: "indent"; node: Extract<PendingBlock, { kind: "code" }>; blanks: string[] }
@@ -485,6 +485,37 @@ export async function parseCommonMarkBlocks(
       const top = stack[stack.length - 1];
       if (top?.kind === "definition") top.blank = true;
       continue;
+    }
+    if (leaf?.kind === "table" && leaf.columns) {
+      const text = rawFrom(line, offset), columns = leaf.columns;
+      if (simpleTableColumns(text, context)) {finish(); continue;}
+      context.charge("tableCells", columns.length);
+      context.charge("retainedBytes", text.length * 2 + columns.length * 32);
+      leaf.node.rows.push(columns.map((column, index) => text.slice(index ? column.start : 0, columns[index + 1]?.start).trim()));
+      leaf.node.source.end = endPoint(line);
+      continue;
+    }
+    if (extensions.simple_tables && leaf?.kind === "paragraph" && leaf.node.inline.lines.length === 1) {
+      const columns = simpleTableColumns(rawFrom(line, offset), context);
+      if (columns) {
+        let next = cursor;
+        while (text[next] === " " || text[next] === "\t") next++;
+        if (next === text.length || text[next] === "\n" || text[next] === "\r") {
+          leaf.node.inline.lines.push(inlineLine(line, offset)); leaf.node.source.end = endPoint(line); continue;
+        }
+        const previous = leaf.node, headerText = " ".repeat(Math.max(0, previous.source.start.column - offset - 1)) + previous.inline.lines[0]!.text;
+        const header = columns.map((column, index) => headerText.slice(index ? column.start : 0, columns[index + 1]?.start).trim());
+        const alignments: Alignment[] = columns.map((column, index) => {
+          const value = headerText.slice(column.start, columns[index + 1]?.start).trimEnd();
+          const left = value.length > 0 && value[0] !== " ", right = value.length >= column.end - column.start;
+          return left ? right ? "AlignDefault" : "AlignLeft" : right ? "AlignRight" : "AlignCenter";
+        });
+        context.charge("tableCells", columns.length);
+        context.charge("retainedBytes", headerText.length * 2 + columns.length * 32);
+        const node: Extract<PendingBlock, {kind: "table"}> = {kind: "table", alignments, header, rows: [], source: {...previous.source, end: endPoint(line)}};
+        const siblings = blocks(); siblings[siblings.indexOf(previous)] = node;
+        leaf = {kind: "table", node, columns}; continue;
+      }
     }
     if (leaf?.kind === "table") {
       const row = !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists) ? pipeRow(rawFrom(line, offset), context) : undefined;

@@ -1,3 +1,4 @@
+import {simpleTableColumns} from "safe-bash-markdown-engine/gfm-syntax";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
 import {asciiPunctuation, fencedDivAttributes, normalizeLabel} from "./commonmark-syntax.js";
@@ -11,7 +12,7 @@ type Field = typeof fields[number];
 type Node = Record<Field, number> & {kind: typeof kinds[number]; info: SourceRange};
 type Line = {position: number; range: SourceRange; line: number; column: number; next: number; alignment: number};
 type Definition = {label: SourceRange; destination: SourceRange; title: SourceRange; startLine: number; startColumn: number; endLine: number; endColumn: number};
-type Leaf = {kind: "paragraph" | "table" | "fence" | "indent" | "html"; node: number; char?: string; length?: number; indent?: number; blanks?: number; end?: readonly string[] | null};
+type Leaf = {kind: "paragraph" | "table" | "fence" | "indent" | "html"; node: number; char?: string; length?: number; indent?: number; blanks?: number; end?: readonly string[] | null; columns?: {start: number; end: number}[]};
 
 /** Pending blocks, source pieces, definitions, and container continuations are
  * fixed-size records in caller storage. Only the current line/leaf is resident. */
@@ -76,6 +77,28 @@ export class RetainedCommonMarkBlocks {
     while (start < end && [" ", "\t"].includes(await this.source.unit(start))) start++;
     while (end > start && [" ", "\t"].includes(await this.source.unit(end - 1))) end--;
     return {start, end};
+  }
+  private async simpleColumns(range: SourceRange) {
+    let at = range.start;
+    while (at < range.end && await this.source.unit(at) === " ") at++;
+    if (await this.source.unit(at) !== "-") return;
+    this.context.bound("text", range.end - range.start);
+    this.context.charge("retainedBytes", (range.end - range.start) * 2);
+    let text = ""; for await (const chunk of this.source.chunks(range)) text += chunk;
+    return simpleTableColumns(text, this.context);
+  }
+  private async simpleRow(range: SourceRange, columns: {start: number; end: number}[], header = false, indent = 0): Promise<number> {
+    const row = await this.create("row");
+    this.context.charge("tableCells", columns.length);
+    this.context.charge("retainedBytes", (range.end - range.start) * 2 + columns.length * 32);
+    for (let index = 0; index < columns.length; index++) {
+      const column = columns[index]!, start = Math.min(range.end, range.start + Math.max(0, (index ? column.start : 0) - indent));
+      const end = Math.min(range.end, range.start + Math.max(0, (columns[index + 1]?.start ?? range.end - range.start + indent) - indent));
+      const cell = await this.trim({start, end});
+      const left = cell.start <= range.start + column.start - indent, right = cell.end >= range.start + column.end - indent;
+      await this.addLine(row, cell, 0, 0, header ? left ? right ? 0 : 1 : right ? 2 : 3 : 0);
+    }
+    return row;
   }
   private async definition(position: number): Promise<Definition> {
     const value = await this.get(position, 12);
@@ -333,6 +356,26 @@ export class RetainedCommonMarkBlocks {
         if (deepest) await this.put(deepest + 48, [1]);
         if (lastStack && kinds[(await this.get(lastStack, 4))[3]!] === "definition") await this.put(lastStack + 48, [1]);
         continue;
+      }
+      if (leaf?.kind === "table" && leaf.columns) {
+        const range = await line.rawFrom(offset);
+        if (await this.simpleColumns(range)) {await finish(); continue;}
+        await this.append(leaf.node, await this.simpleRow(range, leaf.columns)); await end(leaf.node, line); continue;
+      }
+      if (extensions.simple_tables && leaf?.kind === "paragraph" && (await this.node(leaf.node)).lineCount === 1) {
+        const columns = await this.simpleColumns(await line.rawFrom(offset));
+        if (columns) {
+          let next = cursor;
+          while (next < range.end && [" ", "\t"].includes(await source.unit(next))) next++;
+          if (next === range.end || ["\n", "\r"].includes(await source.unit(next))) {
+            await inline(leaf.node, line, offset); await end(leaf.node, line); continue;
+          }
+          const previous = await this.node(leaf.node), headerLine = await this.line(previous.firstLine);
+          const header = await this.simpleRow(headerLine.range, columns, true, Math.max(0, previous.startColumn - await line.column(offset)));
+          await this.put(leaf.node, [kinds.indexOf("table")]);
+          await this.set(leaf.node, "firstLine", 0); await this.set(leaf.node, "lastLine", 0); await this.set(leaf.node, "lineCount", 0);
+          await this.append(leaf.node, header); await end(leaf.node, line); leaf = {kind: "table", node: leaf.node, columns}; continue;
+        }
       }
       if (leaf?.kind === "table") {
         const row = !await line.interrupts(offset, extensions.raw_html !== false, extensions.fancy_lists) ? await this.pipeRow(await line.rawFrom(offset)) : undefined;

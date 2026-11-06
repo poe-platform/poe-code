@@ -1,6 +1,6 @@
 import { readJpegFrame } from "./jpeg-frame.js";
 import { JpegTables } from "./jpeg-tables.js";
-import { jpegColor } from "./jpeg-color.js";
+import { jpegColor, JpegColorEncoding } from "./jpeg-color.js";
 import { defaultRuntime } from "@poe-code/compression";
 import type { ImageMetadata, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
@@ -267,6 +267,7 @@ export async function decodeJpegToStorage(
   let outWidth = 0;
   let outHeight = 0;
   let useStripDecode = false;
+  const colorEncoding = new JpegColorEncoding();
   let outRgba: Region | undefined;
   let maxH = 1;
   let maxV = 1;
@@ -289,12 +290,13 @@ export async function decodeJpegToStorage(
     if (pos + 2 > source.size) break;
     const segLen = ((await reader.at(pos))! << 8) | (await reader.at(pos + 1))!;
     if (segLen < 2 || pos + segLen > source.size) break;
-    if (![0xdb, 0xc4, 0xdd, 0xc0, 0xc1, 0xc2, 0xda].includes(marker)) {
+    if (![0xdb, 0xc4, 0xdd, 0xc0, 0xc1, 0xc2, 0xda, 0xe0, 0xee].includes(marker)) {
       pos += segLen;
       continue;
     }
     const payload = await payloadBytes(reader, pos + 2, segLen - 2);
 
+    colorEncoding.read(marker, payload);
     if (tables.read(marker, payload)) {
       pos += segLen;
       continue;
@@ -500,7 +502,7 @@ export async function decodeJpegToStorage(
                     const g = sample(0, x);
                     row[at] = g; row[at + 1] = g; row[at + 2] = g;
                   } else if (components.length >= 3) {
-                    const rgb = jpegColor(sample(0, x), sample(1, x) - 128, sample(2, x) - 128, components.length === 4 ? sample(3, x) : undefined, true);
+                    const rgb = jpegColor(sample(0, x), sample(1, x) - 128, sample(2, x) - 128, components.length === 4 ? sample(3, x) : undefined, true, colorEncoding.rgb, colorEncoding.adobeTransform);
                     row[at] = rgb & 255; row[at + 1] = (rgb >>> 8) & 255; row[at + 2] = rgb >>> 16;
                   }
                   row[at + 3] = 255;
@@ -620,7 +622,7 @@ export async function decodeJpegToStorage(
               Math.floor((y * cK.comp.v) / maxV) * cK.stride + Math.floor((x * cK.comp.h) / maxH)
             )
           : undefined;
-        const rgb = jpegColor(yVal, cbVal, crVal, kVal, false);
+        const rgb = jpegColor(yVal, cbVal, crVal, kVal, false, colorEncoding.rgb, colorEncoding.adobeTransform);
         await rgba.set(outIdx, rgb & 255);
         await rgba.set(outIdx + 1, (rgb >>> 8) & 255);
         await rgba.set(outIdx + 2, rgb >>> 16);

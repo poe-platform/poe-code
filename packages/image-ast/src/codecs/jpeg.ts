@@ -1,7 +1,7 @@
 import {readJpegFrame} from "./jpeg-frame.js";
 import {JpegTables} from "./jpeg-tables.js";
 import {applyJpegMetadata,type JpegMetadataState} from "./jpeg-metadata.js";
-import {jpegColor} from "./jpeg-color.js";
+import {jpegColor, JpegColorEncoding} from "./jpeg-color.js";
 import {createJpegScan} from "./jpeg-decode-kernel.js";
 import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
 import { buildExifApp1Segment } from "./exif.js";
@@ -395,6 +395,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
   let outWidth = 0;
   let outHeight = 0;
   let useStripDecode = false;
+  const colorEncoding = new JpegColorEncoding();
   let outRgba: Uint8Array | undefined;
   let maxH = 1;
   let maxV = 1;
@@ -419,6 +420,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
     if (segLen < 2 || pos + segLen > bytes.length) break;
     const payload = bytes.subarray(pos + 2, pos + segLen);
 
+    colorEncoding.read(marker, payload);
     if (tables.read(marker,payload)) {pos+=segLen;continue;}
     if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
       const frame=readJpegFrame(payload,meta.isProgressive??false,options,scaleDenom,blockStep);
@@ -588,7 +590,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
                   const cbVal = pCb[cbRow + (hCb === maxH ? x : Math.floor((x * hCb) / maxH))]! - 128;
                   const crVal = pCr[crRow + (hCr === maxH ? x : Math.floor((x * hCr) / maxH))]! - 128;
                   const kVal = hasK && pK && c3 ? Number(pK[kRow + (c3.h === maxH ? x : Math.floor((x * c3.h) / maxH))]) : undefined;
-                  const rgb=jpegColor(yVal,cbVal,crVal,kVal,true);
+                  const rgb=jpegColor(yVal,cbVal,crVal,kVal,true,colorEncoding.rgb, colorEncoding.adobeTransform);
                   outRgba[outIdx] = rgb&255;
                   outRgba[outIdx + 1] = (rgb>>>8)&255;
                   outRgba[outIdx + 2] = rgb>>>16;
@@ -699,7 +701,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
 
         const cK=compPixels.length===4?compPixels[3]:undefined;
         const kVal=cK?Number(cK.pixels[Math.floor((y * cK.comp.v) / maxV) * cK.stride + Math.floor((x * cK.comp.h) / maxH)]):undefined;
-        const rgb=jpegColor(yVal,cbVal,crVal,kVal,false);
+        const rgb=jpegColor(yVal,cbVal,crVal,kVal,false,colorEncoding.rgb, colorEncoding.adobeTransform);
         rgba[outIdx] = rgb&255;
         rgba[outIdx + 1] = (rgb>>>8)&255;
         rgba[outIdx + 2] = rgb>>>16;

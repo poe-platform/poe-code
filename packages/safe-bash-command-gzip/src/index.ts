@@ -4,7 +4,7 @@ import { runOperand } from "safe-bash-compression-engine/operand";
 import { parseOptions,profiles } from "safe-bash-compression-engine/options";
 import { DecodedBudget,type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
 import type { CommandDefinition,VirtualShellPlugin } from "safe-bash-contracts";
-import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { builtInDirectContextExecutors,codeOf,define,diagnostic,output } from "safe-bash-io-engine/internal";
 export interface GzipLimits { readonly maxDecodedBytes: number; }
 export interface GzipCommandsOptions extends CompressionCommandOptions { readonly replace?: boolean; }
@@ -46,15 +46,18 @@ export function createGzipCommands(config: GzipCommandsOptions = {}): readonly C
     const decodedBudget = new DecodedBudget(maxDecodedBytes);
     let exitCode = planningFailed ? 1 : 0;
     for (const plan of plans) {
+      const source = plan.source === "-" ? "stdin" : plan.source;
       try {
         const warned = await runOperand(context, plan, options, decodedBudget);
         if (warned) {
-          if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
+          if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${source}: decompression OK, trailing garbage ignored`));
           if (exitCode === 0) exitCode = 2;
         }
       } catch (error) {
         context.signal.throwIfAborted();
-        if (options.quiet < 2) await diagnostic(context, error);
+        if (options.quiet < 2) await diagnostic(context, error instanceof PublicDiagnostic
+          ? new PublicDiagnostic(`${source}: ${publicDiagnosticMessage(error, context.onInternalError)}`)
+          : error);
         exitCode = 1;
         if (decodedBudget.exceeded) break;
       }

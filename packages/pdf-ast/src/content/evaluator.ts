@@ -2216,7 +2216,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 }
               }
               const advUser = ((advance1000 * st.fontSize) / 1000 + st.charSpace + (item.isSpace ? st.wordSpace : 0)) * scaleH;
-              const [nextX, nextY] = transformPoint(totalMatrix, advUser, 0);
+              // Ordinary word boundaries use the glyph width without spacing.
+              // Type 3 ordering needs the full advance to reconstruct font-space positions.
+              const [nextX, nextY] = transformPoint(totalMatrix,
+                font?.type3TextScale !== undefined ? advUser : advance1000 * st.fontSize / 1000 * scaleH, 0);
               const glyphWidth = Math.max(
                 Math.hypot(nextX - px, nextY - py),
                 (advance1000 * effectiveFontSize) / 1000

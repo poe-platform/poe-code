@@ -2762,7 +2762,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
     const dh = dst.height;
     const sw = src.width;
     const sh = src.height;
-    const maskDestination = norm === "dstin" || norm === "destin";
+    const maskDestination = ["dstin", "destin", "srcin", "in"].includes(norm);
     const extendSource = maskDestination || ["src", "source", "copy"].includes(norm);
     for (let sy = extendSource ? -top : 0; sy < (extendSource ? dh - top : sh); sy++) {
         if (++cooperativeWork % 65536 === 0)
@@ -6161,7 +6161,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));
     }
-    const maskDestination = !generic && ["dstin", "destin"].includes(compositeMode.name);
+    const maskDestination = !generic && ["dstin", "destin", "srcin", "in"].includes(compositeMode.name);
     const extendSource = maskDestination || (!generic && ["src", "source", "copy"].includes(compositeMode.name));
     const right = tile || extendSource ? base.width : Math.min(base.width, left + overlay.width);
     const bottom = tile || extendSource ? base.height : Math.min(base.height, top + overlay.height);

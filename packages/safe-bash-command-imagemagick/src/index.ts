@@ -5283,7 +5283,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (operandsOnly) {
             const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes);
-            if (loaded) stack.push(...loaded);
+            if (!loaded) throw new Error(`unable to open image '${t}'`);
+            stack.push(...loaded);
             i++;
             continue;
         }
@@ -6008,13 +6009,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (mergeOntoCanvas) {
                 state.background = prevBg;
             }
-            if (loaded) {
-                if (mergeOntoCanvas && loaded[0]) {
-                    yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
-                    detachRgbaBuffer(loaded[0].data);
-                } else {
-                    stack.push(...loaded);
-                }
+            if (!loaded) throw new Error(`unable to open image '${t}'`);
+            if (mergeOntoCanvas && loaded[0]) {
+                yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
+                detachRgbaBuffer(loaded[0].data);
+            } else {
+                stack.push(...loaded);
             }
         }
         i++;
@@ -6909,13 +6909,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();
                 const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
                 const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
-                await parseStoredCompareInput(token, settings, backend, signal, { visit: async image => {
+                const loaded = await parseStoredCompareInput(token, settings, backend, signal, { visit: async image => {
                     if (merge) {
                         const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
                         await stack.set(0, { ...composed, hasAlpha: base.hasAlpha, channels: base.channels });
                     }
                     else await stack.push(image);
-                }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) }); return stack;
+                }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) });
+                if (!loaded) throw new Error(`unable to open image '${token}'`);
+                return stack;
             });
         }
     }

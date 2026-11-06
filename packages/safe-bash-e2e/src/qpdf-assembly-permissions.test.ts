@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { it } from "node:test";
-import { runQpdfCli } from "../../safe-bash-command-qpdf/src/index.js";
+import { runQpdfCli } from "safe-bash-command-qpdf";
 
 for (const [flag, mask] of [["--modify=assembly", -300], ["--assemble=n", -1028]] as const) {
   it(`native qpdf verifies ${flag} permissions written by safe-bash`, async () => {

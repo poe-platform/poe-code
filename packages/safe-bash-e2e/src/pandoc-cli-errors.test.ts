@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {spawnSync} from "node:child_process";
 import test from "node:test";
 import {MemoryFileSystem, Shell} from "@poe-platform/safe-bash";
-import {pandocCommands} from "../../safe-bash-command-pandoc/src/command.js";
+import {pandocCommands} from "safe-bash-command-pandoc/command";
 import {RustWasmBash} from "@poe-code/safe-bash-rust";
 
 // Pinned oracle: Pandoc 3.11. No host files are needed for these diagnostics.

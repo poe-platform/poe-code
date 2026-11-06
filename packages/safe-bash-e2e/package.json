@@ -17,7 +17,9 @@
     "@poe-platform/safe-bash": "*",
     "@poe-code/safe-fs": "*",
     "@poe-platform/safe-fs": "file:../safe-fs",
-    "@poe-code/safe-bash-rust": "*"
+    "@poe-code/safe-bash-rust": "*",
+    "safe-bash-command-pandoc": "*",
+    "safe-bash-command-qpdf": "*"
   },
   "exports": {
     ".": {

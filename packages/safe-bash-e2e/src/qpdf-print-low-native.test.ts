@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { it } from "node:test";
 import { PdfDocument } from "@poe-code/pdf-ast";
-import { runQpdfCli } from "../../safe-bash-command-qpdf/src/index.js";
+import { runQpdfCli } from "safe-bash-command-qpdf";
 
 it("native qpdf confirms --print=low denies high-resolution printing", async () => {
   const out = resolve(import.meta.dirname, "../../../out");

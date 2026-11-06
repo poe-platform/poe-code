@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { createQpdfCommand, runQpdfCli } from "../../safe-bash-command-qpdf/src/index.js";
+import { createQpdfCommand, runQpdfCli } from "safe-bash-command-qpdf";
 
 it("native qpdf confirms attachment MIME type and explicit creation and modification dates through both paths", async () => {
   const out = join(process.cwd(), "out");

@@ -46,8 +46,12 @@ backend for large documents. Decoded image pixels and resampling levels use a
 resources and nested paint captures retain their current memory requirements.
 Cairo PDF output copies selected pages through caller-backed storage, preserves
 metadata and page-box options, and streams the staged result to stdout or atomic
-file publication. Individual source COS values remain resident. PS/EPS and
-the buffered convenience runners still use their existing execution paths. Cairo
+file publication. Individual source COS values remain resident. PS/EPS output
+paints the full rendered page as an RGB image (150 DPI by default, configurable
+with `-r`, `-rx`, and `-ry`), including graphics, clipping, images and text. It
+flattens transparency onto white and rasterizes vectors and text. The command
+streams bounded pixel chunks through caller-backed storage; buffered convenience
+runners collect the rendered page and output in memory. Cairo
 raster formats share the retained pipeline and preserve their output naming,
 color-conversion and error conventions.
 

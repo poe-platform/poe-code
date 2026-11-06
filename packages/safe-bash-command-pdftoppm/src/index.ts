@@ -1,3 +1,4 @@
+import { postscriptPageHeader, postscriptPixels } from "./postscript.js";
 import { monochromePixel } from "./monochrome.js";
 import { VALUE_FLAGS, parsePdftoppmArgsSteps, parsePdftocairoArgsSteps } from "./parse.js";
 import { executeRetainedCairoDocument } from "./retained-cairo-pdf.js";
@@ -438,6 +439,8 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
         }
         const firstIdx = selectedIndices[0] ?? 0;
         const firstSize = doc.getPage(firstIdx).getSize();
+        const firstRotation = doc.getPage(firstIdx).getRotation();
+        if (firstRotation === 90 || firstRotation === 270) [firstSize.width, firstSize.height] = [firstSize.height, firstSize.width];
         const bboxW = hasCrop && cropW > 0 ? cropW : Math.round(firstSize.width);
         const bboxH = hasCrop && cropH > 0 ? cropH : Math.round(firstSize.height);
         const psLines: string[] = [
@@ -451,26 +454,22 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
             if (++cooperativeWork % 64 === 0)
                 yield;
             const page = doc.getPage(selectedIndices[s]!);
-            psLines.push(`%%Page: ${s + 1} ${s + 1}`);
-            psLines.push("/Helvetica findfont 12 scalefont setfont");
-            const extracted = page.extractPage();
-            for (const block of extracted.blocks) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                for (const line of block.lines) {
-                    if (++cooperativeWork % 64 === 0)
-                        yield;
-                    const escaped = line.text
-                        .replaceAll("\\", "\\\\")
-                        .replaceAll("(", "\\(")
-                        .replaceAll(")", "\\)");
-                    psLines.push(`${Math.round(line.bbox[0])} ${Math.round(line.bbox[1])} moveto (${escaped}) show`);
-                }
-            }
-            psLines.push("showpage");
+            const raster = yield* parsePdftoppmArgsSteps([...forwardedArgs, "--", inputPath], true);
+            if (!("inputPath" in raster)) return raster;
+            const dpiX = raster.dpiX ?? raster.dpi, dpiY = raster.dpiY ?? raster.dpi;
+            const bitmap = yield* renderDisplayListToBitmapSteps(page.evaluateDisplayList(), {
+                dpiX, dpiY,
+                ...(hasCrop ? { cropRect: { x: cropX, y: cropY, width: cropW, height: cropH } } : {}),
+            });
+            options.onAllocateBytes?.(bitmap.data.byteLength);
+            psLines.push(postscriptPageHeader(s + 1, bitmap.width, bitmap.height, dpiX, dpiY, format === "eps"));
+            const pixels: string[] = [];
+            for (const chunk of postscriptPixels(bitmap.data)) { yield; pixels.push(chunk); }
+            psLines.push(pixels.join(""), "grestore", "showpage");
         }
         psLines.push("%%Trailer", "%%EOF", "");
         const psBytes = new TextEncoder().encode(psLines.join("\n"));
+        options.onAllocateBytes?.(psBytes.byteLength);
         if (finalOut === "-") {
             return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: psBytes };
         }

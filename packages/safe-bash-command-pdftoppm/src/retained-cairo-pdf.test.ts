@@ -33,13 +33,13 @@ it("preserves existing output after a backing write failure",async()=>{
 });
 
 for(const format of ['ps','eps'])it.each([[],['-f','2','-l','3'],['-o'],['-e'],['-o','-e'],['-x','7','-y','8'],['-W','75','-H','80'],['-paper','A4'],['-f','8']].map(flags=>({flags})))(`retains Cairo ${format} $flags bytes`,async({flags})=>{
- const bytes=input(),args=[`-${format}`,...flags,'in.pdf','out'],files=new Map([['in.pdf',bytes]]),expected=await runPdftocairoCli(args,files),f=await fixture(bytes,args);
+ const bytes=input(),args=[`-${format}`,'-r','36',...flags,'in.pdf','out'],files=new Map([['in.pdf',bytes]]),expected=await runPdftocairoCli(args,files),f=await fixture(bytes,args);
  expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(expected.exitCode);expect(f.error()).toBe(expected.stderr);if(files.has(`out.${format}`))expect(await f.fs.readFile(`/out.${format}`)).toEqual(files.get(`out.${format}`));expect(await f.fs.readdir('/scratch')).toEqual([]);
 });
 for(const format of ['ps','eps'])it(`streams ${format} from reused stdin and cleans sink failures`,async()=>{
- const bytes=input(),args=[`-${format}`,'-','-'],expected=await runPdftocairoCli(args,new Map([['-',bytes]])),f=await fixture(bytes,args,true);
+ const bytes=input(),args=[`-${format}`,'-r','36','-','-'],expected=await runPdftocairoCli(args,new Map([['-',bytes]])),f=await fixture(bytes,args,true);
  expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(0);expect(new Uint8Array(Buffer.concat(f.stdout))).toEqual(expected.stdoutBytes);expect(await f.fs.readdir('/scratch')).toEqual([]);
- const failure=await fixture(bytes,[`-${format}`,'in.pdf','-']),reason=new Error('sink failed');failure.context.stdout.write=async()=>{throw reason;};await expect(createPdftocairoCommand().execute(failure.context)).rejects.toBe(reason);expect(await failure.fs.readdir('/scratch')).toEqual([]);
+ const failure=await fixture(bytes,[`-${format}`,'-r','36','in.pdf','-']),reason=new Error('sink failed');failure.context.stdout.write=async()=>{throw reason;};await expect(createPdftocairoCommand().execute(failure.context)).rejects.toBe(reason);expect(await failure.fs.readdir('/scratch')).toEqual([]);
 });
 it('preserves empty-document PostScript page errors',async()=>{
  const bytes=PdfDocument.create().save(),args=['-ps','in.pdf','-'],f=await fixture(bytes,args);
@@ -85,4 +85,17 @@ it("orients retained PDF paper for each source page",async()=>{
  const output=PdfDocument.load(new Uint8Array(Buffer.concat(f.stdout)));
  expect(output.getPage(0).getSize()).toEqual({width:842,height:595});
  expect(output.getPage(1).getSize()).toEqual({width:595,height:842});
+});
+
+for(const format of ['ps','eps'])it(`retains image-only and clipped vector paints in ${format}`,async()=>{
+ const {readFileSync}=await import('node:fs');
+ const doc=PdfDocument.create(),page=doc.addPage([20,20]);
+ page.setRawContentStream('q 2 2 10 10 re W n 1 0 0 rg 0 0 20 20 re f Q 0 0 1 RG 1 w 1 1 m 18 18 l S');
+ for(const bytes of [doc.save(),new Uint8Array(readFileSync(new URL('../../pdf-ast/src/fixtures/pdfjs-cmykjpeg.pdf',import.meta.url)))]){
+  const args=[`-${format}`,'-r','18','in.pdf','-'],expected=await runPdftocairoCli(args,new Map([['in.pdf',bytes]])),f=await fixture(bytes,args);
+  expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(0);
+  expect(new Uint8Array(Buffer.concat(f.stdout))).toEqual(expected.stdoutBytes);
+  expect(new TextDecoder().decode(expected.stdoutBytes)).toContain('colorimage');
+  expect(await f.fs.readdir('/scratch')).toEqual([]);
+ }
 });

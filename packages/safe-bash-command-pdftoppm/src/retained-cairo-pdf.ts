@@ -1,4 +1,8 @@
-import {encodePostscriptPageChunks,createRetainedPageCopy,PdfFileSource,PdfRetainedDocument,PdfStagingStorage,PdfError,type PdfRetainedPageCopy,type PdfRect} from "@poe-code/pdf-ast";
+import {postscriptPageHeader,postscriptPixels} from "./postscript.js";
+import {parsePdftoppmArgsSteps} from "./parse.js";
+import {drainCooperativeSteps} from "safe-bash-contracts/yield";
+import {PagedStorage} from "@poe-code/safe-fs/storage";
+import {renderRetainedPagePixels,createRetainedPageCopy,PdfFileSource,PdfRetainedDocument,PdfStagingStorage,PdfError,type PdfRetainedPageCopy,type PdfRect} from "@poe-code/pdf-ast";
 import type {CommandContext} from "safe-bash-contracts/command";
 import {readBytes,writeBytes,type ByteSink} from "safe-bash-contracts/io";
 import {resolvePath} from "safe-bash-contracts/path";
@@ -7,7 +11,7 @@ import type {PdftocairoPlan} from "./parse.js";
 import {publish} from "./retained.js";
 
 /** Retain document input and stage PDF/PS/EPS output without collecting pages.
- * PDF copies preserve resource identities; PostScript streams indexed text. */
+ * PDF copies preserve resource identities; PostScript streams rendered page pixels. */
 export async function executeRetainedCairoDocument(context:CommandContext,plan:PdftocairoPlan,stdout:ByteSink,signal:AbortSignal,maximum:number):Promise<{exitCode:number}>{
  const directory=resolvePath(context.cwd,context.env.TMPDIR||"/tmp"),storage=new PdfStagingStorage({fs:context.fs,directory}),encoder=new TextEncoder();
  async function diagnostic(message:string,exitCode:number){if(!plan.quiet)await writeBytes(context.stderr,encoder.encode(message),signal);return {exitCode};}
@@ -34,15 +38,26 @@ export async function executeRetainedCairoDocument(context:CommandContext,plan:P
   }else{
    const selected=(page:number)=>page>=plan.firstPage&&page<=last&&!(plan.oddOnly&&page%2===0||plan.evenOnly&&page%2===1);
    let selectedCount=0,firstIndex=0;for(let page=plan.firstPage;page<=last;page++){if(selected(page)){if(!selectedCount)firstIndex=page-1;selectedCount++;}}
-   let box:PdfRect|undefined;for await(const page of retained.pages()){if(page.index===firstIndex){box=(await page.attributes()).mediaBox;break;}}
+   let box:PdfRect|undefined;for await(const page of retained.pages()){if(page.index===firstIndex){const attributes=await page.attributes();box=attributes.mediaBox;if(attributes.rotation===90||attributes.rotation===270)box=[box[1],box[0],box[3],box[2]];break;}}
    if(!box)throw new PdfError("E_CAPABILITY",`Page index out of bounds: ${firstIndex}`);
    const width=plan.hasCrop&&plan.cropW>0?plan.cropW:Math.round(Math.abs(box[2]-box[0])),height=plan.hasCrop&&plan.cropH>0?plan.cropH:Math.round(Math.abs(box[3]-box[1]));
    async function* postscript(){
     yield encoder.encode(`${plan.format==="eps"?"%!PS-Adobe-3.0 EPSF-3.0":"%!PS-Adobe-3.0"}\n%%Creator: @poe-code/pdf-ast (pdftocairo 24.08.0)\n%%BoundingBox: 0 0 ${width} ${height}\n%%Pages: ${selectedCount}\n%%EndComments\n`);
     let ordinal=0;for await(const page of retained.pages()){
      await yieldTurn(signal);if(!selected(page.index+1))continue;
-     const index=await page.indexText(storage,{mode:"layout",signal});let pageFailed=false;
-     try{yield* encodePostscriptPageChunks(index,++ordinal,{signal});}catch(error){pageFailed=true;throw error;}finally{await index.close().catch(error=>{if(!pageFailed)throw error;});}
+     const raster=await drainCooperativeSteps(parsePdftoppmArgsSteps([...plan.forwardedArgs,"--",plan.inputPath],true),signal);
+     if(!("inputPath" in raster))throw new PdfError("E_CAPABILITY","Invalid PostScript rendering options");
+     const dpiX=raster.dpiX??raster.dpi,dpiY=raster.dpiY??raster.dpi;
+     const imageStorage=new PagedStorage({fs:context.fs,cwd:directory,env:{},signal},4);
+     let pageFailed=false;
+     try{
+      const bitmap=await renderRetainedPagePixels(page,storage,{dpiX,dpiY,signal,imageStorage,tileSize:256,
+       ...(plan.hasCrop?{cropRect:{x:plan.cropX,y:plan.cropY,width:plan.cropW,height:plan.cropH}}:{})});
+      yield encoder.encode(postscriptPageHeader(++ordinal,bitmap.width,bitmap.height,dpiX,dpiY,plan.format==="eps")+"\n");
+      let work=0;
+      for await(const pixels of bitmap.pixels)for(const chunk of postscriptPixels(pixels)){if(++work%64===0)await yieldTurn(signal);signal.throwIfAborted();yield encoder.encode(chunk);}
+      yield encoder.encode("\ngrestore\nshowpage\n");
+     }catch(error){pageFailed=true;throw error;}finally{await imageStorage.close().catch(error=>{if(!pageFailed)throw error;});}
     }
     yield encoder.encode("%%Trailer\n%%EOF\n");
    }

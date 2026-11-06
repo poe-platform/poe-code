@@ -556,7 +556,7 @@ describe("safe-bash-command-pdftoppm", () => {
     const epsStr = new TextDecoder().decode(files.get("fig1.eps")!);
     expect(epsStr).toContain("%!PS-Adobe-3.0 EPSF-3.0");
     expect(epsStr).toContain("%%BoundingBox: 0 0 200 150");
-    expect(epsStr).toContain("(Cairo Page One) show");
+    expect(epsStr).toContain("colorimage");
 
     const grayPngRes = await runPdftocairoCli(
       ["-png", "-gray", "-r", "72", "-singlefile", "deck.pdf", "graythumb"],

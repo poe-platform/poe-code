@@ -1607,6 +1607,55 @@ function formatImageSequence(pattern: string, number: number): string | undefine
   return numbered ? filename : undefined;
 }
 
+function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTracker): boolean {
+  const characters = Array.from(name);
+  let positions = new Set([0]);
+  for (let i = 0; i < pattern.length; i++) {
+    budget.checkCpu();
+    const token = pattern[i]!;
+    const next = new Set<number>();
+    if (token === "*") {
+      let start = characters.length;
+      for (const p of positions) start = Math.min(start, p);
+      for (let p = start; p <= characters.length; p++) next.add(p);
+    } else {
+      let literal = token;
+      let contents: string | undefined;
+      if (token === "\\") literal = pattern[++i] ?? "\\";
+      if (token === "[") {
+        let end = i + 1;
+        if (pattern[end] === "!" || pattern[end] === "^") end++;
+        if (pattern[end] === "]") end++;
+        while (end < pattern.length && pattern[end] !== "]") end++;
+        if (end < pattern.length) { contents = pattern.slice(i + 1, end); i = end; }
+      }
+      for (const p of positions) {
+        budget.checkCpu();
+        const character = characters[p];
+        if (character === undefined) continue;
+        let matches = token === "?" || character === literal;
+        if (contents !== undefined) {
+          const negated = contents[0] === "!" || contents[0] === "^";
+          let included = false;
+          for (let c = negated ? 1 : 0; c < contents.length; c++) {
+            let start = contents[c]!;
+            if (start === "\\" && c + 1 < contents.length) start = contents[++c]!;
+            if (contents[c + 1] === "-" && c + 2 < contents.length) {
+              included ||= character >= start && character <= contents[c + 2]!;
+              c += 2;
+            } else included ||= character === start;
+          }
+          matches = negated ? !included : included;
+        }
+        if (matches) next.add(p + 1);
+      }
+    }
+    positions = next;
+    if (positions.size === 0) return false;
+  }
+  return positions.has(characters.length);
+}
+
 interface InputSpec {
   readonly path: string;
   readonly format?: string | undefined;
@@ -1619,6 +1668,7 @@ interface InputSpec {
   readonly fps?: number | undefined;
   readonly startNumber?: number | undefined;
   readonly startNumberRange?: number | undefined;
+  readonly patternType?: "glob" | "none" | "sequence" | undefined;
 }
 
 export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
@@ -1682,6 +1732,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingFps: number | undefined;
       let pendingStartNumber: number | undefined;
       let pendingStartNumberRange: number | undefined;
+      let pendingPatternType: InputSpec["patternType"];
       let overwrite: boolean | undefined;
       let exitOnError = false;
       let inputReadFailed = false;
@@ -1870,6 +1921,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputDuration = val;
             }
+          } else if (arg === "-pattern_type") {
+            const value = args[++i];
+            if (value !== "glob" && value !== "none" && value !== "sequence") {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid image2 pattern type: ${value ?? ""}\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingPatternType = value;
           } else if (arg === "-loop") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -1910,6 +1968,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               imageLoop: pendingImageLoop,
               fps: pendingFps,
               startNumber: pendingStartNumber,
+              patternType: pendingPatternType,
               startNumberRange: pendingStartNumberRange
             });
             pendingFormat = undefined;
@@ -1922,6 +1981,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingFps = undefined;
             pendingStartNumber = undefined;
             pendingStartNumberRange = undefined;
+            pendingPatternType = undefined;
           } else if (arg === "-c" || arg === "-codec") {
             const val = args[++i];
             videoCodec = val;
@@ -2089,16 +2149,43 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return concatMp4(docs, { limits: options.limits, budget });
               }
 
-              // Check printf sequence pattern like `frame_%03d.png`
-              if (formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined) {
+              let globPaths: string[] | undefined;
+              if (input?.patternType === "glob") {
+                globPaths = ["/"];
+                for (const component of resolvePath(context.cwd, filePath).split("/").filter(Boolean)) {
+                  const matches: string[] = [];
+                  for (const directory of globPaths) {
+                    budget.checkCpu();
+                    context.signal.throwIfAborted();
+                    let entries;
+                    try {
+                      entries = await context.fs.readdir(directory, { signal: context.signal });
+                    } catch (error) {
+                      rethrowRuntimeError(context, error);
+                      if (["ENOENT", "ENOTDIR"].includes((error as { code?: string }).code ?? "")) continue;
+                      throw error;
+                    }
+                    for (const entry of entries) {
+                      budget.checkCpu();
+                      if (entry.name.startsWith(".") && !component.startsWith(".") && !component.startsWith("\\.")) continue;
+                      if (matchesImageGlob(component, entry.name, budget)) matches.push(resolvePath(directory, entry.name));
+                    }
+                  }
+                  globPaths = matches;
+                }
+                globPaths.sort();
+              }
+
+              // Literal image inputs bypass numbered-pattern expansion.
+              if (globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
                 const fps = fpsHint ?? 25;
                 const startNumber = input?.startNumber ?? 0;
                 const startNumberRange = input?.startNumberRange ?? 5;
-                for (let idx = startNumber; ; idx++) {
+                for (let idx = globPaths ? 0 : startNumber; !globPaths || idx < globPaths.length; idx++) {
                   budget.checkCpu();
                   context.signal.throwIfAborted();
-                  const formatted = formatImageSequence(filePath, idx)!;
+                  const formatted = globPaths ? globPaths[idx]! : formatImageSequence(filePath, idx)!;
                   const resolved = resolvePath(context.cwd, formatted);
                   let imgBytes: Uint8Array;
                   try {
@@ -2106,6 +2193,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   } catch (error) {
                     rethrowRuntimeError(context, error);
                     if ((error as { code?: string }).code !== "ENOENT") throw error;
+                    if (globPaths) throw error;
                     if (frames.length === 0 && idx - startNumber < startNumberRange - 1) continue;
                     break;
                   }

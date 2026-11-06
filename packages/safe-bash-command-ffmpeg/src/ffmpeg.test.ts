@@ -431,6 +431,17 @@ function createTestVfs(initialFiles: Record<string, Uint8Array | string> = {}) {
     store,
     fs: {
       async mkdir() {},
+      async readdir(path: string) {
+        const prefix = path.endsWith("/") ? path : `${path}/`;
+        const entries = new Map<string, { name: string; type: "file" | "directory" }>();
+        for (const key of store.keys()) {
+          if (!key.startsWith(prefix)) continue;
+          const suffix = key.slice(prefix.length);
+          const name = suffix.split("/")[0]!;
+          entries.set(name, { name, type: suffix.includes("/") ? "directory" : "file" });
+        }
+        return [...entries.values()];
+      },
       async readFile(path: string) {
         const key = path.startsWith("/") ? path : `/${path}`;
         const val = store.get(key);
@@ -3497,4 +3508,99 @@ it("rejects invalid volume precision without replacing output", async () => {
   assert.notEqual(result.exitCode, 0);
   assert.match(result.stderr, /volume/);
   assert.deepEqual(vfs.store.get("/output.wav"), original);
+});
+
+
+describe("image2 pattern_type", () => {
+  for (const [mode, pattern, indices] of [
+    ["glob", "f*.png", [0, 1, 2]],
+    ["glob", "f0[12].png", [1, 2]],
+    ["glob", "f0[!1].png", [0, 2]],
+    ["glob", "f0[0-1].png", [0, 1]],
+    ["glob", "literal\\%02d.png", [3]],
+    ["glob", "f0?.png", [0, 1, 2]],
+    ["glob", "frames*/f*.png", [0, 1, 2]],
+    ["none", "literal%02d.png", [3]],
+    ["sequence", "f%02d.png", [0, 1, 2]],
+    [undefined, "f%02d.png", [0, 1, 2]]
+  ] as const) {
+    it(`selects native filenames and colors for ${mode ?? "default"}: ${pattern}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255], [255, 255, 255, 255]];
+      const images = colors.map(color => encodeImage({ width: 1, height: 1, data: Uint8Array.from(color),
+        channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data);
+      const vfs = createTestVfs({
+        "/f02.png": images[2]!, "/f00.png": images[0]!, "/f01.png": images[1]!,
+        "/literal%02d.png": images[3]!, "/literal00.png": images[0]!, "/literal01.png": images[1]!,
+        "/.f03.png": images[3]!, "/other.png": images[3]!,
+        "/frames/f02.png": images[2]!, "/frames/f00.png": images[0]!, "/frames/f01.png": images[1]!
+      });
+      const result = await runCmd(createFfmpegCommand(), [
+        ...(mode ? ["-pattern_type", mode] : []), "-i", pattern, "/out%02d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = [...vfs.store.entries()].filter(([name]) => name.startsWith("/out"));
+      assert.deepEqual(output.map(([name]) => name), indices.map((_, i) => `/out${String(i + 1).padStart(2, "0")}.png`));
+      assert.deepEqual(output.map(([, bytes]) => [...decodeImage(bytes).data]), indices.map(i => colors[i]));
+      if (mode === "none") {
+        const reset = await runCmd(createFfmpegCommand(), [
+          "-pattern_type", "none", "-i", "literal%02d.png", "-i", "f%02d.png",
+          "-map", "1:v", "/reset%02d.png"
+        ], vfs);
+        assert.equal(reset.exitCode, 0, reset.stderr);
+        const resetOutput = [...vfs.store.entries()].filter(([name]) => name.startsWith("/reset"));
+        assert.deepEqual(resetOutput.map(([, bytes]) => [...decodeImage(bytes).data]), colors.slice(0, 3));
+      }
+    });
+  }
+  for (const [mode, path] of [["glob", "missing*.png"], ["invalid", "f00.png"]]) {
+    it(`rejects ${mode} without writing output`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), ["-pattern_type", mode!, "-i", path!, "/out%02d.png"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(vfs.store.size, 0);
+    });
+  }
+});
+
+describe("image2 frame_pts", () => {
+  for (const [flags, timestamps, indices] of [
+    [[], [1, 2, 3], [0, 1, 2]],
+    [["-frame_pts", "0", "-start_number", "7"], [7, 8, 9], [0, 1, 2]],
+    [["-frame_pts", "1", "-start_number", "7"], [0, 1, 2], [0, 1, 2]],
+    [["-frame_pts", "1", "-vf", "setpts=2*PTS", "-fps_mode", "passthrough"], [0, 2, 4], [0, 1, 2]],
+    [["-frame_pts", "1", "-vf", "setpts=2*PTS"], [0, 1, 2, 3, 4], [0, 1, 1, 2, 2]]
+  ] as const) {
+    it(`names frames and preserves pixels with ${flags.join(" ") || "defaults"}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]];
+      const vfs = createTestVfs(Object.fromEntries(colors.map((color, i) => [
+        `/f0${i}.png`, encodeImage({ width: 1, height: 1, data: Uint8Array.from(color),
+          channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data
+      ])));
+      const result = await runCmd(createFfmpegCommand(), ["-i", "f%02d.png", ...flags, "o%02d.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = [...vfs.store.entries()].filter(([name]) => name.startsWith("/o"));
+      assert.deepEqual(output.map(([name]) => name), timestamps.map(t => `/o${String(t).padStart(2, "0")}.png`));
+      assert.deepEqual(output.map(([, bytes]) => [...decodeImage(bytes).data]), indices.map(i => colors[i]));
+    });
+  }
+  it("resets timestamp naming for each output", async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=2",
+      "-frame_pts", "1", "pts%d.png", "seq%d.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual([...vfs.store.keys()], ["/pts0.png", "/pts1.png", "/seq1.png", "/seq2.png"]);
+  });
+  it("rejects invalid timestamp naming without replacing output", async () => {
+    const vfs = createTestVfs({ "/out.png": "original" });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=1", "-frame_pts", "invalid", "out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /frame_pts/);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "original");
+  });
 });

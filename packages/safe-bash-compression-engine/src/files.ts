@@ -2,7 +2,7 @@ import {
   FsError,
   type ByteSource, type CommandContext, type FileReadHandle, type FileStat,
 } from "safe-bash-contracts";
-import { codeOf, pathOf } from "./internal.js";
+import { codeOf, diagnostic, pathOf } from "./internal.js";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { dirname, joinPath, retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { formats, type CompressionOptions } from "./options.js";
@@ -56,6 +56,7 @@ function outputPath(source: string, options: CompressionOptions): string {
       : options.format === "xz" && (options.decompress ? source.endsWith(".lzma") : options.xzFormat === "lzma")
       ? ".lzma" : formats[options.format].suffix);
     if (options.decompress) {
+      if (options.format === "bzip2" && !source.endsWith(suffix)) return source + ".out";
       if (!source.endsWith(suffix)) throw new FsError("EINVAL", { path: source, message: `unknown ${options.format} suffix (use -c for stdout)` });
       const destination = source.slice(0, -suffix.length);
       if (destination.endsWith("/")) throw new FsError("EINVAL", { path: source, message: "empty output filename" });
@@ -150,6 +151,9 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     const realSource = await context.fs.realpath(source, { signal: context.signal });
     if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource }); continue; }
     const destination = outputPath(realSource, options);
+    if (options.format === "bzip2" && options.decompress && destination === realSource + ".out" && !options.quiet) {
+      await diagnostic(context, new PublicDiagnostic(`Can't guess original name for ${name} -- using ${name}.out`));
+    }
     const capabilities = await context.fs.capabilitiesFor?.(destination, { signal: context.signal }) ?? context.fs.capabilities;
     if (context.fs.capabilities.readOnly === true || sourceCapabilities.readOnly === true || capabilities.readOnly === true) {
       throw new FsError("EROFS", { syscall: context.command, path: capabilities.readOnly === true ? destination : realSource });

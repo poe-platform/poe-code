@@ -2,6 +2,14 @@ import {readFileSync} from "node:fs";
 import {expect, it} from "vitest";
 import {convert} from "./engine.js";
 
+it("preserves inline code when writing Markdown to ODT", async () => {
+  const source = "A **bold** *italic* `a < b & c` [link](https://example.com).";
+  const odt = await convert([{bytes: new TextEncoder().encode(source)}], {from: "markdown", to: "odt"}, {});
+  if (odt.kind !== "binary") throw new Error("Expected ODT");
+  const html = await convert([{bytes: odt.bytes}], {from: "odt", to: "html"}, {});
+  expect(html).toMatchObject({text: '<p>A <strong>bold</strong> <em>italic</em> <code>a &lt; b &amp; c</code> <a href="https://example.com">link</a>.</p>\n'});
+});
+
 // Pandoc 3.10.1: A **bold** *italic* `code` [link](https://example.com).
 // The nested fixture adds repeated spaces, a tab, a line break, bold and code spans inside code.
 // Native Pandoc splits text into Str/Space; our ODT reader preserves text runs.

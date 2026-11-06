@@ -96,7 +96,7 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
         else if (tag === "LineBreak") await add("<text:line-break/>");
         else if (["Strong", "Emph", "Strikeout", "Superscript", "Subscript", "Underline", "SmallCaps"].includes(tag))
           await sequence(literal(`<text:span text:style-name="${tag}">`), list(c, "inline"), literal("</text:span>"));
-        else if (tag === "Code") await sequence(literal('<text:span text:style-name="Code">'), {op: "escape", node: await at(c, 1), mode: "text"}, literal("</text:span>"));
+        else if (tag === "Code") await sequence(literal('<text:span text:style-name="Source_20_Text">'), {op: "escape", node: await at(c, 1), mode: "text"}, literal("</text:span>"));
         else if (tag === "Span" || tag === "Cite") await push(list(await at(c, 1), "inline"));
         else if (tag === "Quoted") {const single = await tagOf(c + 32) === "SingleQuote"; await sequence(literal(single ? "‘" : "“"), list(await at(c, 1), "inline"), literal(single ? "’" : "”"));}
         else if (tag === "Link") await sequence(literal('<text:a xlink:type="simple" xlink:href="'), {op: "escape", node: (await at(c, 2)) + 32}, literal('">'), list(await at(c, 1), "inline"), literal("</text:a>"));

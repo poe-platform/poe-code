@@ -2,6 +2,20 @@ import {JsonText, toSqlString, type QueryResultSet, type SqlValue} from './engin
 import {sqlQuoteParts} from './stream-output.js';
 import {formatReal} from './real-output.js';
 
+// SQLite's keyword list: https://www.sqlite.org/lang_keywords.html
+const sqlKeywords = new Set((
+  'ABORT ACTION ADD AFTER ALL ALTER ANALYZE AND AS ASC ATTACH AUTOINCREMENT BEFORE BEGIN BETWEEN BY ' +
+  'CASCADE CASE CAST CHECK COLLATE COLUMN COMMIT CONFLICT CONSTRAINT CREATE CROSS CURRENT CURRENT_DATE ' +
+  'CURRENT_TIME CURRENT_TIMESTAMP DATABASE DEFAULT DEFERRABLE DEFERRED DELETE DESC DETACH DISTINCT DO DROP ' +
+  'EACH ELSE END ESCAPE EXCEPT EXCLUDE EXCLUSIVE EXISTS EXPLAIN FAIL FILTER FIRST FOLLOWING FOR FOREIGN FROM ' +
+  'FULL GENERATED GLOB GROUP GROUPS HAVING IF IGNORE IMMEDIATE IN INDEX INDEXED INITIALLY INNER INSERT INSTEAD ' +
+  'INTERSECT INTO IS ISNULL JOIN KEY LAST LEFT LIKE LIMIT MATCH MATERIALIZED NATURAL NO NOT NOTHING NOTNULL ' +
+  'NULL NULLS OF OFFSET ON OR ORDER OTHERS OUTER OVER PARTITION PLAN PRAGMA PRECEDING PRIMARY QUERY RAISE ' +
+  'RANGE RECURSIVE REFERENCES REGEXP REINDEX RELEASE RENAME REPLACE RESTRICT RETURNING RIGHT ROLLBACK ROW ' +
+  'ROWS SAVEPOINT SELECT SET TABLE TEMP TEMPORARY THEN TIES TO TRANSACTION TRIGGER UNBOUNDED UNION UNIQUE ' +
+  'UPDATE USING VACUUM VALUES VIEW VIRTUAL WHEN WHERE WINDOW WITH WITHOUT'
+).split(' '));
+
 export interface QueryOutputOptions {
   mode: 'list' | 'csv' | 'column' | 'line' | 'json' | 'tabs' | 'html' | 'markdown' | 'box' | 'table' | 'quote' | 'ascii' | 'insert';
   insertTable: string;
@@ -213,7 +227,17 @@ export function* formatQueryParts({columns, rows}: QueryResultSet, state: QueryO
   }
   function* rowParts(row: SqlValue[], header = false): Generator<string> {
     if (mode === 'html') yield '<TR>';
-    if (mode === 'insert') { yield 'INSERT INTO '; yield* textParts(state.insertTable || 'table'); yield ' VALUES('; }
+    if (mode === 'insert') {
+      const table = state.insertTable || 'table';
+      const quote = sqlKeywords.has(table.toUpperCase()) || [...table].some((char, index) =>
+        !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || char === '_' ||
+          (index > 0 && char >= '0' && char <= '9')));
+      yield 'INSERT INTO ';
+      if (quote) yield '"';
+      for (const part of textParts(table)) yield quote ? part.replaceAll('"', '""') : part;
+      if (quote) yield '"';
+      yield ' VALUES(';
+    }
     for (let col = 0; col < row.length; col++) {
       if (col && mode !== 'html') yield* textParts(mode === 'quote' || mode === 'insert' ? ',' : state.colSeparator);
       if (mode === 'quote' || mode === 'insert') yield* sqlQuoteParts(row[col]!);

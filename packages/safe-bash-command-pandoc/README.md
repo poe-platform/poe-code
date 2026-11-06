@@ -23,6 +23,7 @@ The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
 capabilities before conversion: support is format-specific and does not imply full native Pandoc
 compatibility. DOCX output accepts raw `openxml` inlines and omits raw inlines for other formats.
+DOCX output preserves table column alignment and explicit widths, including cell alignment overrides.
 DOCX output preserves footnotes, including formatted paragraphs, links, lists, tables, and images in notes.
 Built-in DOCX conversion preserves headings, bold/italic text, inline code, hyperlinks, lists,
 tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,

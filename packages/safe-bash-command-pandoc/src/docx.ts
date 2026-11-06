@@ -81,6 +81,7 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
 export const docxWriter: WriterCapability = {format: "docx", imageResources: "embed", async write(document, ctx) {
   return guarded(ctx, async () => {
     const blocks: DocxBlock[] = [];
+    const tableWidths: (readonly number[] | undefined)[] = [];
     const paragraphs: {runs: readonly RichRun[]; properties: string}[] = [];
     const numbering: string[] = [];
     const notes: (readonly Block[])[] = [];
@@ -136,11 +137,11 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       paragraphs.push({runs: content, properties});
       target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({code: _code, link: _link, strike: _strike, baseline: _baseline, image: _image, raw: _raw, ...run}) => run)});
     };
-    const visit = async (nodes: readonly Block[], target: DocxBlock[], indent = 0, list?: {id: number; level: number; pending: boolean}): Promise<void> => {
+    const visit = async (nodes: readonly Block[], target: DocxBlock[], indent = 0, list?: {id: number; level: number; pending: boolean}, alignment = ""): Promise<void> => {
       for (const block of nodes) {
         await ctx.cooperate();
         const properties = (list?.pending ? `<w:numPr><w:ilvl w:val="${list.level}"/><w:numId w:val="${list.id}"/></w:numPr>` : "") +
-          (indent ? `<w:ind w:left="${indent}"/>` : "");
+          (indent ? `<w:ind w:left="${indent}"/>` : "") + alignment;
         if (block.t === "Header") {paragraph(target, runs(block.c[2]), properties, block.c[0]); if (list) list.pending = false;}
         else if (block.t === "Para" || block.t === "Plain") {
           const compact = block.t === "Plain" && list !== undefined;
@@ -150,11 +151,11 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
         }
         else if (block.t === "CodeBlock") {paragraph(target, [{text: block.c[1]}], properties); if (list) list.pending = false;}
         else if (block.t === "Figure") {
-          await visit(block.c[2], target, indent, list);
+          await visit(block.c[2], target, indent, list, alignment);
           await visit(block.c[1][1], target, indent);
         }
-        else if (block.t === "Div") await visit(block.c[1], target, indent, list);
-        else if (block.t === "BlockQuote") await visit(block.c, target, indent + 720, list);
+        else if (block.t === "Div") await visit(block.c[1], target, indent, list, alignment);
+        else if (block.t === "BlockQuote") await visit(block.c, target, indent + 720, list, alignment);
         else if (block.t === "HorizontalRule") paragraph(target, [], `<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="auto"/></w:pBdr>`);
         else if (block.t === "BulletList" || block.t === "OrderedList") {
           const level = list ? list.level + 1 : 0;
@@ -165,16 +166,21 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           if (!format) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Unsupported DOCX list style", "docx");
           const marker = block.t === "BulletList" ? "•" : block.c[0][2] === "TwoParens" ? `(%${level + 1})` : block.c[0][2] === "OneParen" ? `%${level + 1})` : `%${level + 1}.`;
           numbering.push(`<w:abstractNum w:abstractNumId="${id}"><w:multiLevelType w:val="multilevel"/><w:lvl w:ilvl="${level}"><w:start w:val="${block.t === "BulletList" ? 1 : block.c[0][0]}"/><w:numFmt w:val="${format}"/><w:lvlText w:val="${marker}"/><w:pPr><w:ind w:left="${720 * (level + 1)}" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>`);
-          for (const item of block.t === "BulletList" ? block.c : block.c[1]) await visit(item, target, indent, {id, level, pending: true});
+          for (const item of block.t === "BulletList" ? block.c : block.c[1]) await visit(item, target, indent, {id, level, pending: true}, alignment);
         } else if (block.t === "Table") {
           if (block.c[1][1].length) await visit(block.c[1][1], target, indent);
           else if (block.c[1][0]?.length) paragraph(target, runs(block.c[1][0]), "");
+          const specs = block.c[2];
+          tableWidths.push(specs.some(([, width]) => width.t === "ColWidth")
+            ? specs.map(([, width]) => width.t === "ColWidth" ? width.c : 1 / specs.length) : undefined);
           const rows = [];
           for (const row of [...block.c[3][1], ...block.c[4].flatMap(body => [...body[2], ...body[3]]), ...block.c[5][1]]) {
             const cells = [];
-            for (const cell of row[1]) {
+            for (const [column, cell] of row[1].entries()) {
               if (cell[2] !== 1 || cell[3] !== 1) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "DOCX table spans are unsupported", "docx");
-              const children: DocxBlock[] = []; await visit(cell[4], children);
+              const align = cell[1] === "AlignDefault" ? specs[column]?.[0] : cell[1];
+              const justification = align === "AlignLeft" ? "left" : align === "AlignRight" ? "right" : align === "AlignCenter" ? "center" : undefined;
+              const children: DocxBlock[] = []; await visit(cell[4], children, 0, undefined, justification ? `<w:jc w:val="${justification}"/>` : "");
               if (!children.length || children.at(-1)?.kind !== "paragraph") paragraph(children, [], "");
               cells.push({blocks: children});
             }
@@ -200,7 +206,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     const archive = await createDocumentArchive({content: {version: 1, blocks}}, archiveContext);
     const main = new DocumentXmlEditor(archive.members.find(member => member.name === "word/document.xml")!.bytes, {}, undefined, mc.budget);
     const relationships = new DocumentXmlEditor(archive.members.find(member => member.name === "word/_rels/document.xml.rels")!.bytes, {}, undefined, mc.budget);
-    let paragraphIndex = 0, relationshipId = 2;
+    let paragraphIndex = 0, tableIndex = 0, relationshipId = 2;
     const linkRelationships: string[] = [];
     const media = new Map<string, {name: string; bytes: Uint8Array; type: string; id: string; asset: import("safe-bash-docx-engine").Image}>();
     let drawingId = 0;
@@ -259,7 +265,29 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           if (codeStyle || format || run.image || run.link !== undefined) replacements.set(native, xml);
         }
         if (extra.properties || replacements.size) main.replaceElement(node, `<w:p xmlns:w="${w}" xmlns:r="${r}">${!properties && extra.properties ? `<w:pPr>${extra.properties}</w:pPr>` : ""}${main.sourceXml(node, replacements, true)}</w:p>`);
-      } else for (const child of node.children) await edit(child);
+      } else {
+        if (node.namespace === w && node.localName === "tbl") {
+          const widths = tableWidths[tableIndex++];
+          if (widths) {
+            const total = widths.reduce((sum, width) => sum + width, 0);
+            const grid = node.children.find(child => child.localName === "tblGrid")!;
+            const columns = grid.children;
+            const available = columns.reduce((sum, column) => sum + Number(column.attributes.find(attribute => attribute.localName === "w")!.value), 0);
+            const preferred = node.children.find(child => child.localName === "tblPr")!.children.find(child => child.localName === "tblW")!;
+            main.setAttribute(preferred, "w:w", String(Math.round(total * 5000)));
+            main.setAttribute(preferred, "w:type", "pct");
+            for (const [index, column] of columns.entries()) main.setAttribute(column, "w:w", String(Math.max(1, Math.round(available * widths[index]!))));
+            for (const row of node.children.filter(child => child.localName === "tr")) {
+              for (const [index, cell] of row.children.filter(child => child.localName === "tc").entries()) {
+                const width = cell.children.find(child => child.localName === "tcPr")!.children.find(child => child.localName === "tcW")!;
+                main.setAttribute(width, "w:w", String(Math.round(widths[index]! / total * 5000)));
+                main.setAttribute(width, "w:type", "pct");
+              }
+            }
+          }
+        }
+        for (const child of node.children) await edit(child);
+      }
     };
     await edit(main.root);
     let documentBytes = main.serialize();

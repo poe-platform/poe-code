@@ -33,8 +33,15 @@ async function guarded<T>(ctx: AdapterContext, action: () => Promise<T>): Promis
 }
 export const docxReader: ReaderCapability = {format: "docx", async read(input, ctx) {
   return guarded(ctx, async () => {
-    const {Document: openDocument, Paragraph, Run} = await import("safe-bash-docx-engine/pandoc-adapter");
+    const {Document: openDocument, Paragraph, Run, NumberingGraph, numberingAttribute} = await import("safe-bash-docx-engine/pandoc-adapter");
     const model = await openDocument(input.bytes, await modelContext(ctx));
+    const related = (kind: string) => {
+      const edge = [...model.part.rels.values()].find(edge => !edge.is_external && edge.reltype.endsWith(`/${kind}`));
+      return edge ? model.store.xml(edge.target_part.partname.toString()) : undefined;
+    };
+    const numberingXml = related("numbering");
+    const numbering = numberingXml ? new NumberingGraph(numberingXml, related("styles")?.root, model.store.context.budget) : undefined;
+    const definitions = new Map<number, ReturnType<InstanceType<typeof NumberingGraph>["resolve"]>>();
     const paragraph = async (p: Paragraph): Promise<Block> => {
       const inlines: Inline[] = [];
       for (const item of p.iter_inner_content()) {
@@ -57,17 +64,55 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       const level = name.startsWith("Heading ") ? Number(name.slice(8)) : 0;
       return level >= 1 && level <= 6 ? {t: "Header", c: [level, attr, inlines]} : {t: "Para", c: inlines};
     };
+    type ListFrame = {id: number; level: number; items: Block[][]};
+    const appendParagraph = async (p: Paragraph, blocks: Block[], stack: ListFrame[]) => {
+      const block = await paragraph(p);
+      const node = p.store.node(p.ref);
+      numbering?.project(node);
+      const binding = numbering?.paragraph(node);
+      if (!binding || !numbering) {stack.length = 0; blocks.push(block); return;}
+      const {id, level} = binding;
+      while (stack.length && stack.at(-1)!.level > level) stack.pop();
+      if (stack.at(-1)?.level === level && stack.at(-1)!.id !== id) stack.pop();
+      if (stack.at(-1)?.level !== level) {
+        let definition = definitions.get(id);
+        if (!definition) {definition = numbering.resolve(id); definitions.set(id, definition);}
+        const properties = definition.levels.get(level);
+        if (!properties) throw new PandocError("E_PARSE", "read", "Missing DOCX numbering level", "docx");
+        const value = (name: string) => numberingAttribute(numbering.child(properties, name));
+        const format = value("numFmt");
+        const items: Block[][] = [];
+        let list: Block;
+        if (format === "bullet") list = {t: "BulletList", c: items};
+        else {
+          const styles = {decimal: "Decimal", lowerLetter: "LowerAlpha", upperLetter: "UpperAlpha", lowerRoman: "LowerRoman", upperRoman: "UpperRoman"} as const;
+          const style = styles[format as keyof typeof styles];
+          if (!style) throw new PandocError("E_UNSUPPORTED_FEATURE", "read", "Unsupported DOCX numbering format", "docx");
+          const marker = value("lvlText") ?? "";
+          const delimiter = marker.startsWith("(") && marker.endsWith(")") ? "TwoParens" : marker.endsWith(")") ? "OneParen" : "Period";
+          const start = Number(numberingAttribute(definition.starts.get(level)) ?? value("start") ?? 1);
+          list = {t: "OrderedList", c: [[start, style, delimiter], items]};
+        }
+        const parent = stack.at(-1);
+        (parent ? parent.items.at(-1)! : blocks).push(list);
+        stack.push({id, level, items});
+      }
+      stack.at(-1)!.items.push([block.t === "Para" && p.style?.style_id === "Compact" ? {t: "Plain", c: block.c} : block]);
+    };
     const blocks: Block[] = [];
+    const stack: ListFrame[] = [];
     for (const item of model.iter_inner_content()) {
       await ctx.cooperate();
-      if (item instanceof Paragraph) blocks.push(await paragraph(item));
+      if (item instanceof Paragraph) await appendParagraph(item, blocks, stack);
       else {
+        stack.length = 0;
         const rows: Row[] = [];
         for (const row of item.rows) {
           const cells: Row[1][number][] = [];
           for (const cell of row.cells) {
             const blocks: Block[] = [];
-            for (const p of cell.paragraphs) blocks.push(await paragraph(p));
+            const stack: ListFrame[] = [];
+            for (const p of cell.paragraphs) await appendParagraph(p, blocks, stack);
             cells.push([attr, "AlignDefault", 1, 1, blocks]);
           }
           rows.push([attr, cells]);

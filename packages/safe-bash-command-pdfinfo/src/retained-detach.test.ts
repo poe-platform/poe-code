@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosArray, cosDict, cosName, cosString, cosStream, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { bindFileOutputBudget } from "safe-bash-contracts/filesystem-output-budget";
-import { createPdfdetachCommand, executePdfdetach } from "./index.js";
+import { createPdfdetachCommand, executePdfdetach, runPdfdetachCli, runPdfdetachCliSync } from "./index.js";
 
 function pdf(attachments: readonly (readonly [string, string, string?])[]) {
   const doc = PdfDocument.create(); doc.addPage([8, 8]);
@@ -93,3 +93,24 @@ it("observes cancellation after an admitted sink write without publishing partia
   assert.deepEqual(f.published, []); assert.deepEqual(await f.fs.readdir("/tmp"), []);
   assert.deepEqual((await f.fs.readdir("/work")).map(entry => entry.name), ["in.pdf"]);
 });
+
+for (const mode of ["async", "sync", "retained"] as const) {
+  it(`${mode} numbers attachments in native filename order and preserves name selection`, async () => {
+    const attachments = ["zeta.txt", "Résumé.txt", "alpha.txt", "Z.txt", "é.txt"].map(name => [name, name] as const);
+    const expected = ["Résumé.txt", "Z.txt", "alpha.txt", "zeta.txt", "é.txt"];
+    for (const args of [["-list"], ["-save", "1", "-o", "/work/saved"], ["-save", "3", "-o", "/work/saved"], ["-savefile", "zeta.txt", "-o", "/work/saved"]]) {
+      const f = await fixture(attachments, [...args, "in.pdf"]);
+      const files = new Map([["in.pdf", f.bytes]]);
+      const result = mode === "retained" ? await createPdfdetachCommand().execute(f.context)
+        : await (mode === "async" ? runPdfdetachCli : runPdfdetachCliSync)([...args, "in.pdf"], files);
+      assert.equal(result.exitCode, 0);
+      if (args[0] === "-list") {
+        assert.equal("stdout" in result ? result.stdout : f.stdout, `5 embedded files\n${expected.map((name, i) => `${i + 1}: ${name}\n`).join("")}`);
+      } else {
+        const saved = mode === "retained" ? await f.fs.readFile("/work/saved") : files.get("/work/saved");
+        assert.equal(new TextDecoder().decode(saved), args[0] === "-savefile" ? "zeta.txt" : expected[Number(args[1]) - 1]);
+      }
+      assert.deepEqual(await f.fs.readdir("/tmp"), []);
+    }
+  });
+}

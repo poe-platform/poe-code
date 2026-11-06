@@ -13,7 +13,7 @@ import {
 import { createBytePipe, readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, type PdfOutputEntry, type PdfIndexStorage, type PdfRetainedFont, PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
+import { PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, type PdfOutputEntry, type PdfIndexStorage, type PdfRetainedFont, type PdfRetainedAttachment, PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
 
 export interface PdfinfoLimits {
   readonly maxInputBytes: number;
@@ -1763,7 +1763,11 @@ function collectEmbeddedAttachments(doc: PdfDocument): DetachedEmbeddedFile[] {
       }
     }
   }
-  return results;
+  return results.sort(compareAttachmentNames);
+}
+
+function compareAttachmentNames(a: { readonly name: string }, b: { readonly name: string }): number {
+  return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
 }
 
 function attachmentBasename(name: string): string {
@@ -2038,13 +2042,16 @@ export async function executePdfdetach(context: CommandContext, options: Pdfinfo
   return executeRetainedPdf(context, options, parsePdfdetachArgs(getCommandArguments(context).args), async (doc, plan, { storage, signal, emit, error }) => {
     let outputs: PdfStagedOutputs | undefined; let failed = false;
     try {
+      const attachments: PdfRetainedAttachment[] = [];
+      for await (const attachment of doc.attachments()) attachments.push(attachment);
+      attachments.sort(compareAttachmentNames);
       const listing = plan.listOnly || (!plan.saveNumber && !plan.saveFileName && !plan.saveAll);
       if (listing) {
         let count = 0;
         // Validate all payloads before stdout, preserving buffered-runner errors.
-        for await (const attachment of doc.attachments()) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } count++; }
+        for (const attachment of attachments) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } count++; }
         await emit(`${count} embedded files\n`);
-        for await (const attachment of doc.attachments()) await emit(`${attachment.index + 1}: ${applyPopplerOutputEncoding(attachment.name, plan.encoding)}\n`);
+        for (const [index, attachment] of attachments.entries()) await emit(`${index + 1}: ${applyPopplerOutputEncoding(attachment.name, plan.encoding)}\n`);
         return { exitCode: 0 };
       }
       let destination = plan.outputPath;
@@ -2055,8 +2062,8 @@ export async function executePdfdetach(context: CommandContext, options: Pdfinfo
       let selected = false;
       const selection = plan;
       async function* entries(): AsyncGenerator<PdfOutputEntry> {
-        for await (const attachment of doc.attachments()) {
-          const matches = selection.saveNumber > 0 ? attachment.index === selection.saveNumber - 1 : selection.saveFileName ? attachment.name === selection.saveFileName : selection.saveAll;
+        for (const [index, attachment] of attachments.entries()) {
+          const matches = selection.saveNumber > 0 ? index === selection.saveNumber - 1 : selection.saveFileName ? attachment.name === selection.saveFileName : selection.saveAll;
           if (!matches) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } continue; }
           selected = true;
           const explicit = (selection.saveNumber > 0 || selection.saveFileName) && destination && !destination.endsWith("/");

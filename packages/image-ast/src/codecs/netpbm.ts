@@ -444,7 +444,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let samplesPerPixel = 4;
   let rowsPerStrip = 0;
   let predictor = 1;
-  let xRes = 72;
+  let xRes = 72, yRes = 72;
   let resUnit = 2;
   let orientation: number | undefined;
   let properties: Record<string,string> | undefined;
@@ -466,7 +466,8 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 278 && first > 0) rowsPerStrip = first;
     else if (tag === 279 && vals.length > 0) stripByteCounts = vals;
     else if (tag === 282 && first > 0) xRes = first;
-    else if (tag === 296 && (first === 2 || first === 3)) resUnit = first;
+    else if (tag === 283 && first > 0) yRes = first;
+    else if (tag === 296 && (first === 1 || first === 2 || first === 3)) resUnit = first;
     else if (tag === 317 && first > 0) predictor = first;
     else if (tag === 322 && first > 0) tileWidth = first;
     else if (tag === 323 && first > 0) tileLength = first;
@@ -655,6 +656,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     depth: bitsPerSample === 16 ? "ushort" : "uchar",
     bitsPerSample,
     density,
+    resolution: {x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},
     hasAlpha: samplesPerPixel === 2 || samplesPerPixel === 4,
     ...(properties ? {properties} : {}),
     ...(orientation !== undefined ? { orientation } : {})

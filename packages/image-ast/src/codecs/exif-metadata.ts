@@ -1,6 +1,8 @@
+import type { ImageMetadata } from "../ast.js";
 export interface ExifMetadata {
   readonly orientation?: number;
   readonly density?: number;
+  readonly resolution?: ImageMetadata["resolution"];
 }
 export interface MetadataRead {readonly position:number;readonly length:number;}
 
@@ -21,7 +23,7 @@ export function* exifMetadataSteps(size:number,base=0):Generator<MetadataRead,Ex
   if(ifd+2>length)return {};
   const countBytes=yield {position:start+ifd,length:2};
   const count=new DataView(countBytes.buffer,countBytes.byteOffset,countBytes.byteLength).getUint16(0,little);
-  let orientation:number|undefined,xRes:number|undefined,unit=2;
+  let orientation:number|undefined,xRes:number|undefined,yRes:number|undefined,unit=2;
   for(let i=0;i<count;i++) {
     const position=ifd+2+i*12;if(position+12>length)break;
     const bytes=yield {position:start+position,length:12};
@@ -32,13 +34,13 @@ export function* exifMetadataSteps(size:number,base=0):Generator<MetadataRead,Ex
       if(value>=1 && value<=8)orientation=value;
     } else if(tag===0x0128) {
       const value=type===3?entry.getUint16(8,little):valueOffset;
-      if(value===2 || value===3)unit=value;
-    } else if(tag===0x011a && type===5 && valueOffset+8<=length) {
+      if(value===1 || value===2 || value===3)unit=value;
+    } else if((tag===0x011a || tag===0x011b) && type===5 && valueOffset+8<=length) {
       const bytes=yield {position:start+valueOffset,length:8};
       const ratio=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),den=ratio.getUint32(4,little);
-      if(den>0)xRes=ratio.getUint32(0,little)/den;
+      if(den>0) { const value=ratio.getUint32(0,little)/den; if(tag===0x011a)xRes=value;else yRes=value; }
     }
   }
   const density=xRes!==undefined && xRes>0?Math.round(xRes*(unit===3?2.54:1)):undefined;
-  return {...(orientation===undefined?{}:{orientation}),...(density===undefined?{}:{density})};
+  return {...(xRes!==undefined && yRes!==undefined ? {resolution:{x:xRes,y:yRes,unit:unit===3?"cm" as const:unit===1?"unknown" as const:"inch" as const}} : {}),...(orientation===undefined?{}:{orientation}),...(density===undefined?{}:{density})};
 }

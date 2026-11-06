@@ -50,6 +50,7 @@ export interface RgbaImage {
   readonly channels: 1 | 2 | 3 | 4;
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly density: number;
+  readonly resolution?: NonNullable<ImageMetadata["resolution"]>;
   readonly hasAlpha: boolean;
   readonly isPremultiplied?: boolean;
   readonly wasPremultiplied?: boolean;
@@ -86,7 +87,7 @@ export interface ImageMetadata {
   readonly density: number;
   readonly hasAlpha: boolean;
   readonly compression?: "hevc" | "av1";
-  readonly resolution?: { readonly x: number; readonly y: number; readonly unit: "meter" | "unknown" };
+  readonly resolution?: { readonly x: number; readonly y: number; readonly unit: "meter" | "inch" | "cm" | "unknown" };
   readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
   readonly properties?: Readonly<Record<string, string>>;
   readonly icc?: Uint8Array;

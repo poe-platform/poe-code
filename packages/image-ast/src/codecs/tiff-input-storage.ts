@@ -68,7 +68,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const le=(await byte(0))===73;
  const number=async(at:number,size:number)=>{let value=0;for(let i=0;i<size;i++)value+=(await byte(at+i))*2**(8*(le?i:size-i-1));return value;};
  const ifd=await number(4,4),count=await number(ifd,2);
- let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
+ let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
  let properties: Record<string,string> | undefined;
  let jpegTables:{start:number;length:number}|undefined;
  let offsets:Values={count:1,async at(i){return i===0?8:undefined;}},counts=empty,tileOffsets=empty,tileCounts=empty;
@@ -87,7 +87,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===262)photometric=first;else if(tag===273&&available)offsets=values;
   else if(tag===274&&first>=1&&first<=8)orientation=first;else if(tag===277&&first>0)samples=first;
   else if(tag===278&&first>0)rows=first;else if(tag===279&&available)counts=values;
-  else if(tag===282&&first>0)xRes=first;else if(tag===296&&(first===2||first===3))resUnit=first;
+  else if(tag===282&&first>0)xRes=first;else if(tag===283&&first>0)yRes=first;else if(tag===296&&(first===1||first===2||first===3))resUnit=first;
   else if(tag===317&&first>0)predictor=first;else if(tag===322&&first>0)tileWidth=first;
   else if(tag===323&&first>0)tileHeight=first;else if(tag===324&&available)tileOffsets=values;else if(tag===325&&available)tileCounts=values;
   else if(tag===347){const offset=n<=4?p+8:await number(p+8,4);if(offset+n<=source.size)jpegTables={start:offset,length:n};}
@@ -167,7 +167,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
    for(let row=0;row<validHeight;row++){const from=row*tileStride,to=(y+row)*stride+x*pixelBytes;if(from+rowBytes<=tile.length&&to+rowBytes<=total)await copy(tile.position+from,combined+to,rowBytes);}
   }
  }else {let destination=0;for(let i=0;i<offsets.count&&destination<total;i++){const off=(await offsets.at(i))!,raw=await counts.at(i)??Math.max(0,source.size-off),expected=Math.min(total-destination,(rows>0?rows:height)*stride),strip=await decompress(off,raw,expected,total-destination);await copy(strip.position,combined+destination,strip.length);destination+=strip.length;}await predict(combined,total,height,stride);}
- const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:samples===4?4:samples===1?1:samples===2?2:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),hasAlpha:samples===2||samples===4,...(orientation===undefined?{}:{orientation})};
+ const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:samples===4?4:samples===1?1:samples===2?2:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha:samples===2||samples===4,...(orientation===undefined?{}:{orientation})};
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
  for(let i=0;i<width*height;i++){const base=i*pixelBytes+(sampleBytes===2&&le?1:0),r=await raster.at(base);
   if(samples<3){const gray=photometric===0?255-r:r;await output.pixel(gray,gray,gray,samples===2?await raster.at(base+sampleBytes):255);}

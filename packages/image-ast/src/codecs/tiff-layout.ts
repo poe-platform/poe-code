@@ -3,7 +3,7 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 4
   return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : 4;
 }
 export function createTiffLayout(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation"|"space"|"hasAlpha"|"properties">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
   options?: { readonly density?: number; readonly orientation?: number },
   offset = 0, hasNext = false
 ) {
@@ -11,6 +11,10 @@ export function createTiffLayout(
   const channels = tiffChannels(img), hasAlpha = channels !== 1;
   const pixelBytes = width * height * channels;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
+  const resolution = options?.density === undefined ? img.resolution : undefined;
+  const scale = resolution?.unit === "meter" ? 100 : 1;
+  const x = resolution ? resolution.x / scale : density, y = resolution ? resolution.y / scale : density;
+  const denominator = Number.isInteger(x) && Number.isInteger(y) ? 1 : 10000;
   const orientation = options?.orientation ?? img.orientation ?? 1;
   // Keep the single-page layout byte-compatible. Later pages start with their
   // directory so the preceding page can link to them without reading ahead.
@@ -59,7 +63,7 @@ export function createTiffLayout(
   writeEntry(10, 282, 5, 1, xResOffset); // XResolution
   writeEntry(11, 283, 5, 1, yResOffset); // YResolution
   writeEntry(12, 284, 3, 1, 1); // PlanarConfiguration = Chunky
-  writeEntry(13, 296, 3, 1, 2); // ResolutionUnit = Inch
+  writeEntry(13, 296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2); // ResolutionUnit
   if (hasAlpha) writeEntry(14, 338, 3, 1, 2); // ExtraSamples = Unassociated Alpha
   if (comment) {
     writeEntry(5, 270, 2, comment.length, comment.length <= 4 ? 0 : yResOffset + 8);
@@ -72,10 +76,10 @@ export function createTiffLayout(
   view.setUint16(bpsOffset-ifdOffset + 2, 8, true);
   view.setUint16(bpsOffset-ifdOffset + 4, 8, true);
   view.setUint16(bpsOffset-ifdOffset + 6, 8, true);
-  view.setUint32(xResOffset-ifdOffset, density, true);
-  view.setUint32(xResOffset-ifdOffset + 4, 1, true);
-  view.setUint32(yResOffset-ifdOffset, density, true);
-  view.setUint32(yResOffset-ifdOffset + 4, 1, true);
+  view.setUint32(xResOffset-ifdOffset, Math.round(x * denominator), true);
+  view.setUint32(xResOffset-ifdOffset + 4, denominator, true);
+  view.setUint32(yResOffset-ifdOffset, Math.round(y * denominator), true);
+  view.setUint32(yResOffset-ifdOffset + 4, denominator, true);
   return {header,directory,channels,padding,end};
 }
 

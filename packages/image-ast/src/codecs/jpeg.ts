@@ -135,6 +135,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
     channels,
     depth: "uchar",
     density,
+    ...(state.resolution ? {resolution: state.resolution} : {}),
     hasAlpha: false,
     ...(orientation !== undefined ? { orientation } : {}),
     ...(state.quality === undefined ? {} : { quality: state.quality }),
@@ -606,6 +607,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       channels: meta.channels,
       depth: "uchar",
       density: meta.density,
+      ...(meta.resolution ? {resolution: meta.resolution} : {}),
       hasAlpha: false,
       ...(meta.properties === undefined ? {} : {properties: meta.properties}),
       ...(meta.icc === undefined ? {} : {icc: meta.icc}),
@@ -708,6 +710,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
     channels: meta.channels,
     depth: "uchar",
     density: meta.density,
+    ...(meta.resolution ? {resolution: meta.resolution} : {}),
     hasAlpha: false,
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
@@ -809,7 +812,7 @@ function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
 }
 
 export function createJpegEncoder(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation"|"icc"|"properties">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"icc"|"properties">,
   options?: {
     readonly quality?: number;
     readonly samplingFactor?: string;
@@ -832,6 +835,10 @@ export function createJpegEncoder(
   const blockWidth = maxH * 8, blockHeight = maxV * 8;
   const quality = options?.quality ?? 85;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
+  const resolution = options?.density === undefined ? img.resolution : undefined;
+  const scale = resolution?.unit === "meter" ? 100 : 1;
+  const xDensity = resolution ? Math.round(resolution.x / scale) : density;
+  const yDensity = resolution ? Math.round(resolution.y / scale) : density;
   const orientation = options?.orientation ?? img.orientation;
 
   const lumaQ = scaleQuantTable(STD_LUMA_QUANT, quality);
@@ -854,9 +861,9 @@ export function createJpegEncoder(
   const app0 = new Uint8Array([
     0x4a, 0x46, 0x49, 0x46, 0x00,
     0x01, 0x01,
-    0x01, // units = DPI
-    (density >>> 8) & 0xff, density & 0xff,
-    (density >>> 8) & 0xff, density & 0xff,
+    resolution?.unit === "meter" || resolution?.unit === "cm" ? 2 : resolution?.unit === "unknown" ? 0 : 1, // density units
+    (xDensity >>> 8) & 0xff, xDensity & 0xff,
+    (yDensity >>> 8) & 0xff, yDensity & 0xff,
     0x00, 0x00
   ]);
   writeSegment(0xe0, app0);
@@ -883,7 +890,7 @@ export function createJpegEncoder(
 
   // Optional APP1 Exif
   if (orientation !== undefined && orientation >= 1 && orientation <= 8) {
-    writeSegment(0xe1, buildExifApp1Segment({ orientation, density }));
+    writeSegment(0xe1, buildExifApp1Segment({ orientation, density, resolution }));
   }
 
   // DQT

@@ -207,8 +207,10 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
   const density = options.density ?? image.density ?? 72;
+  const resolution = options.density === undefined ? image.resolution : undefined;
+  const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
   const physical = new Uint8Array(9), physicalView = new DataView(physical.buffer);
-  physicalView.setUint32(0,Math.round(density / 0.0254)); physicalView.setUint32(4,Math.round(density / 0.0254)); physical[8] = 1;
+  physicalView.setUint32(0,Math.round(resolution ? resolution.x * scale : density / 0.0254)); physicalView.setUint32(4,Math.round(resolution ? resolution.y * scale : density / 0.0254)); physical[8] = resolution?.unit === "unknown" ? 0 : 1;
   signal.throwIfAborted(); yield makeChunk("pHYs",physical);
   if (image.virtualCanvas !== undefined) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
   for (const chunk of textChunks(image.properties)) {
@@ -219,7 +221,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
   const orientation = options.orientation ?? image.orientation;
-  if (orientation !== undefined) {signal.throwIfAborted(); yield makeChunk("eXIf",buildExifApp1Segment({orientation,density}).subarray(6));}
+  if (orientation !== undefined) {signal.throwIfAborted(); yield makeChunk("eXIf",buildExifApp1Segment({orientation,density,resolution}).subarray(6));}
   const encoder = createByteCodec({direction:"encode",format:"zlib",chunkSize:4084,level:Math.max(0,Math.min(9,options.compressionLevel ?? 6))});
   try {
     for (let y=0;y<height;y++) {

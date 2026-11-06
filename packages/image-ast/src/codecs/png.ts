@@ -217,6 +217,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     ...(meta.bitsPerSample === undefined ? {} : {bitsPerSample: meta.bitsPerSample}),
     ...(meta.backgroundColor === undefined ? {} : {backgroundColor: meta.backgroundColor}),
     density: meta.density,
+    ...(meta.resolution ? {resolution: meta.resolution} : {}),
     hasAlpha: meta.hasAlpha,
     ...(meta.virtualCanvas === undefined ? {} : {virtualCanvas: meta.virtualCanvas}),
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
@@ -239,6 +240,8 @@ export function encodePngImage(
 ): Uint8Array {
   const { width, height, data, data16 } = img;
   const density = options?.density ?? img.density ?? 72;
+  const resolution = options?.density === undefined ? img.resolution : undefined;
+  const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
   let hasAlpha = Boolean(img.hasAlpha || img.channels === 4 || img.channels === 2);
   if (options?.forceOpaque) {
     hasAlpha = false;
@@ -364,13 +367,13 @@ export function encodePngImage(
   const phys = new Uint8Array(9);
   const physView = new DataView(phys.buffer);
   const ppu = Math.round(density / 0.0254);
-  physView.setUint32(0, ppu, false);
-  physView.setUint32(4, ppu, false);
-  phys[8] = 1; // meter
+  physView.setUint32(0, resolution ? Math.round(resolution.x * scale) : ppu, false);
+  physView.setUint32(4, resolution ? Math.round(resolution.y * scale) : ppu, false);
+  phys[8] = resolution?.unit === "unknown" ? 0 : 1; // meter
 
   const orientation = options?.orientation ?? img.orientation;
   const exifChunk = orientation !== undefined
-    ? [makeChunk("eXIf", buildExifApp1Segment({ orientation, density }).subarray(6))]
+    ? [makeChunk("eXIf", buildExifApp1Segment({ orientation, density, resolution }).subarray(6))]
     : [];
   const chunks = [
     PNG_SIGNATURE,

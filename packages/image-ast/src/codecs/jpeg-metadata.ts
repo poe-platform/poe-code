@@ -1,3 +1,4 @@
+import type { ImageMetadata } from "../ast.js";
 import { JpegTables } from "./jpeg-tables.js";
 import { parseExifBuffer } from "./exif.js";
 export interface JpegMetadataState {
@@ -13,6 +14,7 @@ export interface JpegMetadataState {
   channels: 1 | 2 | 3 | 4;
   isProgressive: boolean;
   density: number;
+  resolution?: ImageMetadata["resolution"];
   orientation: number | undefined;
 }
 /** Read headers through SOS: quantization tables can follow the frame header. */
@@ -54,8 +56,10 @@ export function applyJpegMetadata(
       payload[4] === 0x00
     ) {
       const units = payload[7]!;
+      const yDensity = (payload[10]! << 8) | payload[11]!;
       const xDensity = (payload[8]! << 8) | payload[9]!;
       if (xDensity > 0) {
+        state.resolution = {x:xDensity,y:yDensity,unit:units===1?"inch":units===2?"cm":"unknown"};
         if (units === 1) density = xDensity;
         else if (units === 2) density = Math.round(xDensity * 2.54);
       }
@@ -64,6 +68,7 @@ export function applyJpegMetadata(
     // EXIF APP1
     const exif = parseExifBuffer(payload);
     if (exif.orientation !== undefined) orientation = exif.orientation;
+    if (exif.resolution !== undefined) state.resolution = exif.resolution;
     if (exif.density !== undefined) density = exif.density;
   } else if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
     isProgressive = marker === 0xc2;

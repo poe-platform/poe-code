@@ -174,6 +174,7 @@ export function readImageMetadata(
         depth: decoded.depth,
         ...(decoded.bitsPerSample !== undefined ? { bitsPerSample: decoded.bitsPerSample } : {}),
         density: decoded.density,
+        ...(decoded.resolution ? {resolution: decoded.resolution} : {}),
         hasAlpha: decoded.hasAlpha,
         ...(decoded.orientation !== undefined ? { orientation: decoded.orientation } : {}),
         size: bytes.byteLength
@@ -408,7 +409,7 @@ export function encodeImage(
           ? { compressionLevel: options.compressionLevel }
           : {}),
         ...(options.consumeInput ? { consumeInput: true } : {}),
-        density: options.density ?? img.density,
+        ...(options.density === undefined ? {} : {density: options.density}),
         ...(options.orientation !== undefined ? { orientation: options.orientation } : img.orientation !== undefined ? { orientation: img.orientation } : {})
       });
       const isBw = img.space === "b-w" || img.channels === 1 || img.channels === 2;
@@ -420,7 +421,7 @@ export function encodeImage(
         quality: options.quality ?? 85,
         ...(options.samplingFactor === undefined ? {} : { samplingFactor: options.samplingFactor }),
         ...(options.chromaSubsampling === undefined ? {} : { chromaSubsampling: options.chromaSubsampling }),
-        density: options.density ?? img.density,
+        ...(options.density === undefined ? {} : {density: options.density}),
         ...(options.orientation !== undefined ? { orientation: options.orientation } : {})
       });
       return { data, format: "jpeg", channels: 3 };
@@ -479,7 +480,7 @@ export function encodeImage(
     case "tiff": {
       const orientation = options.orientation ?? img.orientation;
       const data = encodeTiffImage(img, {
-        density: options.density ?? img.density,
+        ...(options.density === undefined ? {} : {density: options.density}),
         ...(orientation !== undefined ? { orientation } : {})
       });
       return { data, format: "tiff", channels: tiffChannels(img) };

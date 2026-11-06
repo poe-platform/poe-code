@@ -130,6 +130,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       const exif = yield* exifMetadataSteps(len,dataStart);
       if (exif.orientation !== undefined) orientation = exif.orientation;
       if (exif.density !== undefined) density = exif.density;
+      resolution ??= exif.resolution;
     } else if (type === "IDAT" || type === "IEND") {
       if (type === "IEND") break;
     }

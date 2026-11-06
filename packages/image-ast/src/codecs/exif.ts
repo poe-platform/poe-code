@@ -1,3 +1,4 @@
+import type { ImageMetadata } from "../ast.js";
 import {exifMetadataSteps,type ExifMetadata} from "./exif-metadata.js";
 export type {ExifMetadata} from "./exif-metadata.js";
 
@@ -10,9 +11,14 @@ export function parseExifBuffer(raw:Uint8Array):ExifMetadata {
 export function buildExifApp1Segment(options: {
   readonly orientation?: number;
   readonly density?: number;
+  readonly resolution?: ImageMetadata["resolution"];
 }): Uint8Array {
   const orientation = options.orientation ?? 1;
   const density = Math.max(1, Math.round(options.density ?? 72));
+  const resolution = options.resolution;
+  const scale = resolution?.unit === "meter" ? 100 : 1;
+  const x = resolution ? resolution.x / scale : density, y = resolution ? resolution.y / scale : density;
+  const denominator = Number.isInteger(x) && Number.isInteger(y) ? 1 : 10000;
   // Exif\0\0 (6) + TIFF header (8) + count (2) + 4 entries (48) + nextIFD (4) + 2 rationals (16) = 84 bytes
   const payload = new Uint8Array(84);
   const view = new DataView(payload.buffer);
@@ -51,13 +57,13 @@ export function buildExifApp1Segment(options: {
   writeEntry(0, 0x0112, 3, 1, orientation); // Orientation
   writeEntry(1, 0x011a, 5, 1, ratOffsetX); // XResolution
   writeEntry(2, 0x011b, 5, 1, ratOffsetY); // YResolution
-  writeEntry(3, 0x0128, 3, 1, 2); // ResolutionUnit = inches
+  writeEntry(3, 0x0128, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2); // ResolutionUnit
 
   view.setUint32(ifd + 2 + 4 * 12, 0, true); // next IFD = 0
-  view.setUint32(tiff + ratOffsetX, density, true);
-  view.setUint32(tiff + ratOffsetX + 4, 1, true);
-  view.setUint32(tiff + ratOffsetY, density, true);
-  view.setUint32(tiff + ratOffsetY + 4, 1, true);
+  view.setUint32(tiff + ratOffsetX, Math.round(x * denominator), true);
+  view.setUint32(tiff + ratOffsetX + 4, denominator, true);
+  view.setUint32(tiff + ratOffsetY, Math.round(y * denominator), true);
+  view.setUint32(tiff + ratOffsetY + 4, denominator, true);
 
   return payload;
 }

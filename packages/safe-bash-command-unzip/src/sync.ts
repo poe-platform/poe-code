@@ -167,14 +167,12 @@ export function evalSyncUnzip(
     }
 
     const matchedPatterns = new Set<number>();
+    const matchedExclusions = new Set<number>();
     const patRegexes = patterns.map(zipGlobToRe);
     const exRegexes = excludePatterns.map(zipGlobToRe);
     const selectedMembers: ParsedZipMember[] = [];
     for (const m of members) {
-      if (exRegexes.some(re => re.test(m.name))) continue;
-      if (patterns.length === 0) {
-        selectedMembers.push(m);
-      } else {
+      if (patterns.length > 0) {
         let hit = false;
         for (let pIdx = 0; pIdx < patRegexes.length; pIdx++) {
           if (patRegexes[pIdx]!.test(m.name)) {
@@ -182,9 +180,18 @@ export function evalSyncUnzip(
             matchedPatterns.add(pIdx);
           }
         }
-        if (hit) selectedMembers.push(m);
+        if (!hit) continue;
       }
+      const exclusion = exRegexes.findIndex(re => re.test(m.name));
+      if (exclusion !== -1) {
+        matchedExclusions.add(exclusion);
+        continue;
+      }
+      selectedMembers.push(m);
     }
+
+    // The synchronous result cannot carry stderr; defer before any extraction.
+    if (!list && matchedExclusions.size !== excludePatterns.length) return undefined;
 
     if (selectedMembers.length === 0 || (patterns.length > 0 && matchedPatterns.size !== patterns.length)) {
       return undefined;

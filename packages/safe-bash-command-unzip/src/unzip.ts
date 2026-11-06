@@ -139,6 +139,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
           await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
         }
+        for (let index = 0; index < parsed.exclusions.length; index++) if (!exclusions.matched.has(index)) {
+          await budget.output(`caution: excluded filename not matched:  ${filtered(parsed.exclusions[index]!)}\n`, true);
+        }
         return { exitCode: selected ? 0 : 11 };
       }
       if (parsed.list) await budget.output(parsed.verbose
@@ -348,6 +351,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         exitCode = 11;
       }
       const resultCode = badPasswords ? badPasswords === selected ? 82 : 1 : selected ? exitCode : 11;
+      for (let index = 0; !parsed.list && index < parsed.exclusions.length; index++) if (!exclusions.matched.has(index)) {
+        await budget.output(`caution: excluded filename not matched:  ${filtered(parsed.exclusions[index]!)}\n`, !parsed.test);
+      }
       if (parsed.test && parsed.quiet < 2) await budget.output(resultCode
         ? `At least one error was detected in ${filtered(archive)}.\n`
         : `No errors detected in compressed data of ${filtered(archive)}.\n`);

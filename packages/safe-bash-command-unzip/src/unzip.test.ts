@@ -792,3 +792,36 @@ test("unzip stages stdin through the injected filesystem before range reads", as
   assert.equal(stages, 1);
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
 });
+
+for (const mode of ["-p", "-c", "-Z1", "-t", "-tqq", "-l", "-v", "-oq"]) {
+  test(`unzip ${mode} diagnoses unmatched exclusions without changing status or payload`, async () => {
+    const baseline = await run(await fixture(), [mode, "sample.zip", "hello.txt"]);
+    const result = await run(await fixture(), [mode, "sample.zip", "hello.txt", "-x", "no-such", "folder/data.txt"]);
+    const warning = "caution: excluded filename not matched:  no-such\ncaution: excluded filename not matched:  folder/data.txt\n";
+    assert.equal(result.exitCode, baseline.exitCode);
+    if (mode.startsWith("-t")) {
+      assert.equal(result.stderr, baseline.stderr);
+      assert.ok(result.stdout.includes(warning));
+      assert.equal(result.stdout.replace(warning, ""), baseline.stdout);
+    } else {
+      assert.equal(result.stdout, baseline.stdout);
+      assert.equal(result.stderr, mode === "-l" || mode === "-v" ? "" : warning);
+    }
+  });
+}
+
+test("unzip exclusion matching stops at the first match and honors case folding", async () => {
+  const result = await run(await fixture(), ["-Cp", "sample.zip", "-x", "*.TXT", "hello.txt"]);
+  assert.deepEqual(result, { exitCode: 0, stdout: "", stderr: "caution: excluded filename not matched:  hello.txt\n" });
+  const matched = await run(await fixture(), ["-Cp", "sample.zip", "-x", "HELLO.TXT"]);
+  assert.deepEqual(matched, { exitCode: 0, stdout: "data\n", stderr: "" });
+});
+
+for (const mode of ["-p", "-Z1", "-t", "-oq"]) test(`unzip sync ${mode} defers unmatched exclusions before writing`, () => {
+  const bytes = zip([{ name: "hello.txt", body: "hello\n" }, { name: "other.txt", body: "other\n" }]);
+  for (const exclusions of [["no-such"], ["other.txt"], ["*.txt", "hello.txt"]]) {
+    const result = evalSyncUnzip([mode, "sample.zip", "hello.txt", "-x", ...exclusions], () => bytes,
+      () => { assert.fail("must defer before extracting"); }, () => { assert.fail("must defer before creating directories"); });
+    assert.equal(result, undefined);
+  }
+});

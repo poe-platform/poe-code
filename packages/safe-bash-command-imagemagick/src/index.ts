@@ -4748,6 +4748,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const strength = parseFloat(tokens[++i] ?? "100") / 100;
         const fill = [state.fill.r, state.fill.g, state.fill.b];
         apply = function* (image) {
+            if ((image.space === "b-w" || image.space === "grey16") && (fill[0] !== fill[1] || fill[1] !== fill[2]))
+                image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             const out = new Uint8Array(image.data);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;

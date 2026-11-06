@@ -7,6 +7,7 @@ import { retainTextPdf } from "./retained-pdf.js";
 import { retainOfficeXml } from "./retained-docx.js";
 import { docxDocumentPrefix, docxDocumentSuffix } from "./docx-parts.js";
 import { xlsxMetadata, xlsxDocumentPrefix, xlsxDocumentSuffix } from "./xlsx-parts.js";
+import { xlsxDateSerial } from "./xlsx-dates.js";
 import { escapeHtmlText } from "./html.js";
 import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.js";
 
@@ -62,6 +63,18 @@ export async function retainSpreadsheetConversion(storage: PagedStorage, source:
           else {
             let letters = "";
             for (let column = cell + 1; column > 0; column = Math.floor((column - 1) / 26)) letters = String.fromCharCode(65 + (column - 1) % 26) + letters;
+            if (input === "csv") {
+              let candidate = "";
+              for await (const text of cellText(row, cell)) {
+                candidate += text;
+                if (candidate.length > 10) break;
+              }
+              const serial = xlsxDateSerial(candidate);
+              if (serial !== undefined) {
+                yield `<c r="${letters}${row + 1}" s="1" t="n"><v>${serial}</v></c>`;
+                continue;
+              }
+            }
             yield `<c r="${letters}${row + 1}" t="${numeric ? 'n"><v>' : 'inlineStr"><is><t>'}`;
           }
           for await (const text of cellText(row, cell)) yield format === "html" ? escapeHtmlText(text) : escapeXml(text);

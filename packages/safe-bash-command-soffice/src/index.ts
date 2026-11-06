@@ -1,6 +1,6 @@
 import { isCsvNumber } from "./csv-number.js";
 import { parseXml } from "@poe-code/safe-fs/xml";
-import { xlsxDateText } from "./xlsx-dates.js";
+import { xlsxDateText, xlsxDateSerial } from "./xlsx-dates.js";
 import { xlsxMetadata, xlsxDocumentPrefix, xlsxDocumentSuffix } from "./xlsx-parts.js";
 import { docxMetadata, docxDocumentPrefix, docxDocumentSuffix } from "./docx-parts.js";
 import { tryRetainedTextConversion } from "./retained-conversion.js";
@@ -831,7 +831,7 @@ function buildDocxFromBlocks(blocks: readonly DocBlock[]): Uint8Array {
   });
 }
 
-function buildXlsxFromRows(rows: readonly (readonly string[])[], numericCells?: ReadonlySet<string>): Uint8Array {
+function buildXlsxFromRows(rows: readonly (readonly string[])[], inferDates = false, numericCells?: ReadonlySet<string>): Uint8Array {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const sheetRows = rows
@@ -842,6 +842,8 @@ function buildXlsxFromRows(rows: readonly (readonly string[])[], numericCells?: 
           for (let column = cIdx + 1; column > 0; column = Math.floor((column - 1) / 26)) {
             colLetter = String.fromCharCode(65 + (column - 1) % 26) + colLetter;
           }
+          const serial = inferDates ? xlsxDateSerial(val) : undefined;
+          if (serial !== undefined) return `<c r="${colLetter}${rIdx + 1}" s="1" t="n"><v>${serial}</v></c>`;
           if (numericCells?.has(`${rIdx}:${cIdx}`)) return `<c r="${colLetter}${rIdx + 1}" t="n"><v>${val}</v></c>`;
           return `<c r="${colLetter}${rIdx + 1}" t="inlineStr"><is><t>${esc(val)}</t></is></c>`;
         })
@@ -1078,7 +1080,7 @@ function* runSofficeSteps(
         if (targetExt === "csv") {
           outBytes = formatStarCalcCsv(rows, filterOpts);
         } else if (targetExt === "xlsx") {
-          outBytes = buildXlsxFromRows(rows, numericCells);
+          outBytes = buildXlsxFromRows(rows, lowerIn.endsWith(".csv"), numericCells);
         } else if (targetExt === "docx") {
           outBytes = buildDocxFromBlocks([{ kind: "table", rows }]);
         } else if (targetExt === "html") {

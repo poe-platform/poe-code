@@ -26,3 +26,17 @@ export function xlsxDateText(raw: string, format: string | number | undefined, d
   const result = formatText({ kind: "number", value }, pattern, host);
   return result.kind === "string" ? result.value : raw;
 }
+
+/** Strict ISO dates only: do not guess locale-dependent dates or normalize invalid days. */
+export function xlsxDateSerial(text: string): number | undefined {
+  if (text.length !== 10 || text[4] !== "-" || text[7] !== "-") return undefined;
+  for (let index = 0; index < text.length; index++) {
+    if (index !== 4 && index !== 7 && (text[index]! < "0" || text[index]! > "9")) return undefined;
+  }
+  const year = Number(text.slice(0, 4)), month = Number(text.slice(5, 7)), day = Number(text.slice(8));
+  if (year < 1900) return undefined;
+  const timestamp = Date.UTC(year, month - 1, day), date = new Date(timestamp);
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return undefined;
+  // Excel reserves serial 60 for the nonexistent 1900-02-29.
+  return (timestamp - Date.UTC(1899, 11, 31)) / 86400000 + (timestamp >= Date.UTC(1900, 2, 1) ? 1 : 0);
+}

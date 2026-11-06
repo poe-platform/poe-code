@@ -20,6 +20,8 @@ console.log(info.stdout); // PNG 60x40
 
 Output parent directories must already exist, including directories selected with `mogrify -path`.
 
+Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.
+
 `-wave` preserves native grayscale background handling, including PNG background metadata. Use `-virtual-pixel background` to retain a colored `-background` on grayscale input.
 
 `-ordered-dither` applies the built-in ImageMagick threshold, checkerboard, ordered, halftone and circle maps (including their aliases). Append a level count, such as `o8x8,4`, to quantize each channel to that many levels; `-channel` selects the channels to change. Unsupported maps return an error.

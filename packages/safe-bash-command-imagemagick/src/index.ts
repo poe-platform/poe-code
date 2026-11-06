@@ -5467,6 +5467,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i += 3;
             continue;
         }
+        if (t === "+set") {
+            const key = tokens[++i] ?? "";
+            stack = yield* mapSteps(stack, function* (image) {
+                yield;
+                const properties = { ...image.properties };
+                delete properties[key];
+                return { ...image, properties };
+            });
+            i++;
+            continue;
+        }
         const setting = applyMagickReadSetting(tokens, state, i);
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
         const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i) : undefined;
@@ -6615,6 +6626,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i += 2;
             continue;
         }
+        if (!operandsOnly && token === "+set") {
+            const key = tokens[++i] ?? "";
+            steps.push(async image => {
+                if (!image) return;
+                const properties = { ...image.properties };
+                delete properties[key];
+                return { ...image, properties };
+            });
+            continue;
+        }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) { i = setting; continue; }
         const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i);
@@ -7251,6 +7272,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
         "-liquid-rescale",
         "-adaptive-resize",
         "-define",
+        "+set",
         "-write",
         "+write",
         "-compose",

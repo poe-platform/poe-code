@@ -1,5 +1,6 @@
 import { commandRuntimeIdentity, withInputByteBudget, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { define } from "safe-bash-io-engine/internal";
 import { codeOf, diagnostic, output } from "safe-bash-compression-engine/internal";
 import { planOperands, verifyOperandDestinations } from "safe-bash-compression-engine/files";
@@ -52,9 +53,21 @@ export function createZstdCommand(config: ZstdCommandsOptions = {}, name: typeof
     }
     const decodedBudget = new DecodedBudget(maxDecodedBytes);
     let exitCode = planningFailed ? 1 : 0;
+    let testedFiles = 0;
+    let testedBytes = 0;
+    const multipleFiles = options.operands.length > 1 || plans.length > 1;
     for (const plan of plans) {
       try {
+        const before = decodedBudget.size;
         const warned = await runOperand(context, plan, options, decodedBudget);
+        if (options.test && !warned) {
+          testedFiles++;
+          testedBytes += decodedBudget.size - before;
+          if (!options.quiet && !multipleFiles) {
+            const source = plan.source === "-" ? "/*stdin*\\" : options.operands[0] ?? plan.source;
+            await writeDiagnostic(context.stderr, `${source.padEnd(20)}: ${testedBytes} bytes \n`, context.signal);
+          }
+        }
         if (warned) {
           if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
           if (exitCode === 0) exitCode = 2;
@@ -65,6 +78,9 @@ export function createZstdCommand(config: ZstdCommandsOptions = {}, name: typeof
         exitCode = 1;
         if (decodedBudget.exceeded) break;
       }
+    }
+    if (options.test && !options.quiet && multipleFiles && testedFiles > 0) {
+      await writeDiagnostic(context.stderr, `${testedFiles} files decompressed :   ${testedBytes} bytes total \n`, context.signal);
     }
     return { exitCode };
   });

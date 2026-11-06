@@ -73,6 +73,8 @@ export class DecodedBudget {
 
   constructor(readonly limit = Infinity) {}
 
+  get size(): number { return this.#size; }
+
   admit(bytes: number): void {
     if (bytes > this.limit - this.#size) {
       this.exceeded = true;

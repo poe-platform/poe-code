@@ -28,7 +28,9 @@ it.each(operations.map(args => ({ args })))("retains intermediate writes $args",
     } });
     const argv = ["input", ...args, "out.png"];
     const expected = await runConvertCli(argv, files);
-    expect(await runConvertCli(argv, { filesystem, cwd: "/" })).toEqual(expected);
+    const actual = await runConvertCli(argv, { filesystem, cwd: "/" });
+    expect({ ...actual, stdoutBytes: undefined }).toEqual({ ...expected, stdoutBytes: undefined });
+    if (expected.stdoutBytes) expect(decodeImage(actual.stdoutBytes!)).toEqual(decodeImage(expected.stdoutBytes));
     for (const [path, bytes] of files) if (path !== "broken") {
         expect(decodeImage(await fs.readFile("/" + path))).toEqual(decodeImage(bytes));
     }
@@ -70,7 +72,7 @@ it("discards pending intermediate snapshots when a later read is cancelled", asy
     expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input", "palette"]);
     expect(await fs.readFile("/input")).toEqual(bytes);
 });
-it("keeps stdin distinct from a literal dash intermediate output", async () => {
+it("keeps stdin distinct from intermediate stdout", async () => {
     const bytes = await fixture(), stdin = await sharp({ create: { width: 1, height: 1, channels: 4, background: "red" } }).png().toBuffer();
     const fs = new MemoryFileSystem(), files = new Map([["input", bytes]]);
     await fs.writeFile("/input", bytes);
@@ -80,7 +82,10 @@ it("keeps stdin distinct from a literal dash intermediate output", async () => {
         return typeof value === "function" ? value.bind(target) : value;
     } });
     const argv = ["input", "-write", "png:-", "-remap", "-", "out.png"];
-    expect(await runConvertCli(argv, { filesystem, cwd: "/" }, stdin)).toEqual(await runConvertCli(argv, files, stdin));
+    const actual = await runConvertCli(argv, { filesystem, cwd: "/" }, stdin), expected = await runConvertCli(argv, files, stdin);
+    expect({ ...actual, stdoutBytes: undefined }).toEqual({ ...expected, stdoutBytes: undefined });
+    expect(decodeImage(actual.stdoutBytes!)).toEqual(decodeImage(expected.stdoutBytes!));
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
-    expect(decodeImage(await fs.readFile("/-"))).toEqual(decodeImage(files.get("-")!));
+    expect(files.has("-")).toBe(false);
+    expect((await fs.readdir("/")).some(entry => entry.name === "-")).toBe(false);
 });

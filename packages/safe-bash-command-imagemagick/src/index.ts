@@ -5378,7 +5378,7 @@ if (t === "-seed") {
     return i;
 }
 
-function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "" }): Generator<void, RgbaImage[], void> {
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] }): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
     let operandsOnly = false;
@@ -5493,7 +5493,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 else {
                     const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareHueOutput(top, format);
                     const { data: encoded } = encodeImage(image, { format, ...(stack.length > 1 && format === "gif" ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
-                    files.set(path, encoded);
+                    if (path === "-") analysis.bytes.push(encoded);
+                    else files.set(path, encoded);
                 }
             }
         }
@@ -6133,12 +6134,22 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     return stack;
 }
 
-function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
-    const analysis = { text: "", warnings: "" };
-    const result = yield* runConvertCliResultSteps(argv, files, stdinBytes, signal, analysis);
-    return { ...result, stdout: analysis.text + result.stdout, stderr: analysis.warnings + result.stderr };
+function combineConvertOutput(result: ImageMagickCliResult, analysis: { text: string; warnings: string; bytes: Uint8Array[] }): ImageMagickCliResult {
+    const stdout = analysis.text + result.stdout, stderr = analysis.warnings + result.stderr;
+    if (!analysis.bytes.length) return { ...result, stdout, stderr };
+    const chunks = [...analysis.bytes, ...(result.stdoutBytes ? [result.stdoutBytes] : stdout ? [new TextEncoder().encode(stdout)] : [])];
+    const stdoutBytes = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.length, 0));
+    let offset = 0;
+    for (const chunk of chunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
+    return { ...result, stdout: "", stderr, stdoutBytes };
 }
-function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "" }): Generator<void, ImageMagickCliResult, void> {
+
+function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    const analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] };
+    const result = yield* runConvertCliResultSteps(argv, files, stdinBytes, signal, analysis);
+    return combineConvertOutput(result, analysis);
+}
+function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] }): Generator<void, ImageMagickCliResult, void> {
     const listRes = tryHandleMagickListOption(argv);
     if (listRes) return listRes;
     let cooperativeWork = 63;
@@ -6406,11 +6417,11 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
 }
 
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
-    const analysis = { text: "", warnings: "" };
+    const analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] };
     const result = await tryConvertFilesResult(argv, input, stdinBytes, signal, analysis);
-    return result ? { ...result, stdout: analysis.text + result.stdout, stderr: analysis.warnings + result.stderr } : undefined;
+    return result ? combineConvertOutput(result, analysis) : undefined;
 }
-async function tryConvertFilesResult(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, analysis: { text: string; warnings: string }): Promise<ImageMagickCliResult | undefined> {
+async function tryConvertFilesResult(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, analysis: { text: string; warnings: string; bytes: Uint8Array[] }): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1);
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
@@ -6766,7 +6777,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
                         const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
-                        await backend.stage(frames, output.path, { format: output.format, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
+                        const bytes = await backend.stage(frames, output.path, { format: output.format, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
+                        if (bytes) analysis.bytes.push(bytes);
                     }
                 }
                 return stack;

@@ -18,7 +18,7 @@ export interface CompareFileSession {
     readonly read: ImageInputReader;
     load(path: string, options: (metadata: ImageMetadata | undefined) => SharpInputOptions | Iterable<SharpInputOptions>, visit?: (image: StoredRgbaImage, options: SharpInputOptions, metadata: ImageMetadata | undefined, byteLength: number) => Promise<void>, source?: ImageByteSource | null): Promise<StoredRgbaImage | undefined>;
     retain(image: RgbaImage): Promise<StoredRgbaImage>;
-    stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<void>;
+    stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
     publishPending(): Promise<void>;
     publishText(image: StoredRgbaImage, path: string, chunks: AsyncIterable<Uint8Array>): Promise<void>;
     publish(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
@@ -171,7 +171,10 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                     throw error;
                 }
             },
-            stage: snapshots.stage.bind(snapshots),
+            async stage(image, path, encoding) {
+                if (path === "-") return publishImage(image, path, encoding, undefined, false);
+                await snapshots.stage(image, path, encoding);
+            },
             publishPending,
             async publishText(image, path, chunks) {
                 const encoded = (async function* () {

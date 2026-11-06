@@ -734,8 +734,14 @@ async function applyVideoFilterChain(
       const iw = current[0]!.width;
       const ih = current[0]!.height;
       const dimensions = { iw, ih, in_w: iw, in_h: ih };
-      const cw = roundToEven(parseFilterExpression(named.w ?? positional[0] ?? String(iw), "crop", dimensions));
-      const ch = roundToEven(parseFilterExpression(named.h ?? positional[1] ?? String(ih), "crop", dimensions));
+      // Preserve the decoded chroma grid even after earlier RGBA filter operations.
+      // AVPixelFormat: YUV420P/YUVJ420P and YUV422P/YUVJ422P.
+      const format = current[0]!.native?.format;
+      const exact = ["1", "true", "yes", "on"].includes(named.exact ?? positional[5] ?? "0");
+      const hsub = !exact && (format === 0 || format === 12 || format === 4 || format === 13) ? 2 : 1;
+      const vsub = !exact && (format === 0 || format === 12) ? 2 : 1;
+      const cw = Math.floor(roundToEven(parseFilterExpression(named.w ?? positional[0] ?? String(iw), "crop", dimensions)) / hsub) * hsub;
+      const ch = Math.floor(roundToEven(parseFilterExpression(named.h ?? positional[1] ?? String(ih), "crop", dimensions)) / vsub) * vsub;
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
@@ -750,8 +756,8 @@ async function applyVideoFilterChain(
           Math.min(ih - ch, roundToEven(parseFilterExpression(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
         );
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
-          left: cx,
-          top: cy,
+          left: Math.floor(cx / hsub) * hsub,
+          top: Math.floor(cy / vsub) * vsub,
           width: cw,
           height: ch
         });

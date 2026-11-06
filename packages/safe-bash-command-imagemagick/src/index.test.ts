@@ -600,7 +600,7 @@ describe("safe-bash-command-imagemagick", () => {
     const badCmp = await runCompareCli(["/garbage.png", "/valid.png", "null:"], files);
     expect(badCmp.exitCode).not.toBe(0);
 
-    // 2. Stack underflow & unmatched parentheses resilience (+swap and -delete 999 on 1-item stack)
+    // 2. Reject stack underflow (+swap on a 1-item stack) without writing output.
     const underflowRes = await runMagickCli(
       [
         "/valid.png",
@@ -615,8 +615,8 @@ describe("safe-bash-command-imagemagick", () => {
       ],
       files
     );
-    expect(underflowRes.exitCode).toBe(0);
-    expect(files.has("/survived-stack.png")).toBe(true);
+    expect(underflowRes.exitCode).not.toBe(0);
+    expect(files.has("/survived-stack.png")).toBe(false);
 
     // 3. Extreme boundary geometries (0x0, negative crop/shave/chop/roll larger than image)
     const extremeGeom = await runMagickCli(

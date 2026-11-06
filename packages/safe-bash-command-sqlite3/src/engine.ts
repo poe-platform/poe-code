@@ -4663,9 +4663,7 @@ export class SqliteDatabase {
   ): SqlSteps<QueryResultSet | null> {
     const cteMap = new Map(outerCtes);
     let idx = 1;
-    let isRecursive = false;
     if (tokens[idx]?.value.toUpperCase() === "RECURSIVE") {
-      isRecursive = true;
       idx += 1;
     }
 
@@ -4718,7 +4716,7 @@ export class SqliteDatabase {
         bodyTokens.push(t);
       }
 
-      if (isRecursive && this.containsTokenWord(bodyTokens, cteName)) {
+      if (this.containsTableReference(bodyTokens, cteName)) {
         const evaluated = yield* this.evalRecursiveCte(
           cteName,
           explicitCols,
@@ -4745,9 +4743,30 @@ export class SqliteDatabase {
     return yield* this.executeStatementSteps(mainSql, positionalParams, cteMap);
   }
 
-  private containsTokenWord(tokens: Token[], word: string): boolean {
-    const lower = word.toLowerCase();
-    return tokens.some((t) => t.value.toLowerCase() === lower);
+  private containsTableReference(tokens: Token[], name: string): boolean {
+    const lower = name.toLowerCase();
+    const fromClauses = [false];
+    for (let i = 0; i < tokens.length; i += 1) {
+      const token = tokens[i]!;
+      if (token.type === "punct" && token.value === "(") {
+        fromClauses.push(false);
+      } else if (token.type === "punct" && token.value === ")") {
+        fromClauses.pop();
+      } else {
+        const keyword = token.type === "word" ? token.value.toUpperCase() : "";
+        const depth = fromClauses.length - 1;
+        if (["WHERE", "GROUP", "HAVING", "WINDOW", "ORDER", "LIMIT", "UNION", "EXCEPT", "INTERSECT"].includes(keyword)) {
+          fromClauses[depth] = false;
+        }
+        if (keyword === "FROM" || keyword === "JOIN" ||
+            (fromClauses[depth] && token.type === "punct" && token.value === ",")) {
+          fromClauses[depth] = true;
+          const source = tokens[i + 1];
+          if (source && source.value.toLowerCase() === lower && tokens[i + 2]?.value !== ".") return true;
+        }
+      }
+    }
+    return false;
   }
 
   private *evalRecursiveCte(

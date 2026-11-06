@@ -1066,6 +1066,10 @@ class ExprParser {
           over = { partitionBy, orderBy, frameBounds };
         }
 
+        if (over && distinct) throw new Error("DISTINCT is not supported for window functions");
+        if (over && filterWhere && !isAggregateFunction({ kind: "func", name, args })) {
+          throw new Error("FILTER clause may only be used with aggregate window functions");
+        }
         return { kind: "func", name, args, distinct, star, filterWhere, over };
       }
 

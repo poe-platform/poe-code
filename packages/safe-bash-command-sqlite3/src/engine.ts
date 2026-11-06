@@ -6890,7 +6890,12 @@ export class SqliteDatabase {
               )
             )
           );
-          result[rowIdx] = Math.floor((pPos * buckets) / indices.length) + 1;
+          const bucketSize = Math.floor(indices.length / buckets);
+          const largerBuckets = indices.length % buckets;
+          const largerRows = largerBuckets * (bucketSize + 1);
+          result[rowIdx] = pPos < largerRows
+            ? Math.floor(pPos / (bucketSize + 1)) + 1
+            : largerBuckets + Math.floor((pPos - largerRows) / bucketSize) + 1;
         } else if (fnUpper === "PERCENT_RANK") {
           result[rowIdx] = indices.length <= 1 ? 0 : (currentRank - 1) / (indices.length - 1);
         } else if (fnUpper === "CUME_DIST") {
@@ -6935,12 +6940,16 @@ export class SqliteDatabase {
               result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, lastG.representative, positionalParams, cteScope, { group: lastG.group });
             }
           } else if (fnUpper === "NTH_VALUE") {
-            const n = Math.trunc(
-              toSqlNumber(
-                yield* this.evalExprSteps(fnExpr.args[1]!, g.representative, positionalParams, cteScope, { group: g.group })
-              )
+            const position = applyColumnAffinity(
+              yield* this.evalExprSteps(fnExpr.args[1]!, g.representative, positionalParams, cteScope, { group: g.group }),
+              "INTEGER", false
             );
-            if (n >= 1 && n <= frameIndices.length) {
+            if (typeof position === "bigint" ? position < 1n || position > INT64_MAX
+              : typeof position !== "number" || !Number.isInteger(position) || position < 1 || position >= 9223372036854775808) {
+              throw new Error("second argument to nth_value must be a positive integer");
+            }
+            const n = Number(position);
+            if (n <= frameIndices.length) {
               const nthG = groupedRows[frameIndices[n - 1]!]!;
               result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, nthG.representative, positionalParams, cteScope, { group: nthG.group });
             } else {

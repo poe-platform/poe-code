@@ -60,7 +60,12 @@ export async function* walkRetainedFonts(document: PdfRetainedDocument, storage:
       }
     } else if (descriptor && dictGet(descriptor, "FontFile3")) type = "Type 1C";
     const enc = (await document.lookup(dictGet(value, "Encoding")))?.value;
-    const encoding = enc?.kind === "name" ? enc.decoded === "WinAnsiEncoding" ? "WinAnsi" : enc.decoded === "MacRomanEncoding" ? "MacRoman" : enc.decoded === "StandardEncoding" ? "Standard" : enc.decoded : enc?.kind === "dict" ? "Custom" : "Builtin";
+    const defaultEncoding = raw === "TrueType" ? "WinAnsi"
+      : raw === "Type3" ? "Standard"
+      : !embedded && (raw === "Type1" || raw === "MMType1")
+        ? name === "Symbol" || name === "ZapfDingbats" ? name : "Standard"
+        : "Builtin";
+    const encoding = enc?.kind === "name" ? enc.decoded === "WinAnsiEncoding" ? "WinAnsi" : enc.decoded === "MacRomanEncoding" ? "MacRoman" : enc.decoded === "StandardEncoding" ? "Standard" : enc.decoded : enc?.kind === "dict" ? "Custom" : defaultEncoding;
     yield { name, type, encoding, embedded, unicode: Boolean(dictGet(value, "ToUnicode")), ...(node.kind === "ref" ? { reference: node } : {}) };
     if (raw === "Type3") yield* resources(await dictionary(dictGet(value, "Resources"), "Resources"), depth + 1);
   }

@@ -58,7 +58,7 @@ it.each([false,true])("inspects Type 3, CID, pattern and graphics-state fonts (b
     dictSet(doc.getPage(0).pageDict, "Annots", cosArray([]));
   }, backed);
   const rows = []; for await (const font of f.document.fonts()) rows.push([font.name, font.type, font.encoding, font.embedded, font.unicode]);
-  expect(rows).toEqual([["Glyphs", "Type 3", "Builtin", true, false], ["ABCDEF+CID", "CID TrueType", "Identity-H", true, true], ["Simple", "TrueType", "Custom", false, false]]);
+  expect(rows).toEqual([["Glyphs", "Type 3", "Standard", true, false], ["ABCDEF+CID", "CID TrueType", "Identity-H", true, true], ["Simple", "TrueType", "Custom", false, false]]);
   await f.close();
 });
 
@@ -81,4 +81,23 @@ it("does not mistake stream dictionaries for font dictionaries", async () => {
   });
   const names = []; for await (const font of f.document.fonts()) names.push(font.name);
   expect(names).not.toContain("Invalid"); await f.close();
+});
+
+it.each([
+  ["TrueType", "Example", undefined, "WinAnsi"],
+  ["Type1", "Helvetica", undefined, "Standard"],
+  ["MMType1", "Example", undefined, "Standard"],
+  ["Type1", "Symbol", undefined, "Symbol"],
+  ["Type1", "ZapfDingbats", undefined, "ZapfDingbats"],
+  ["TrueType", "Example", "MacRomanEncoding", "MacRoman"],
+  ["Type1", "Example", "StandardEncoding", "Standard"],
+  ["Type0", "Example", "Identity-H", "Identity-H"],
+])("infers %s %s encoding while preserving %s", async (subtype, name, encoding, expected) => {
+  const f = await fixture(3, doc => {
+    const font = cosDict({ Subtype: cosName(subtype!), BaseFont: cosName(name!) });
+    if (encoding) dictSet(font, "Encoding", cosName(encoding));
+    dictSet(doc.getPage(0).pageDict, "Resources", cosDict({ Font: cosDict({ Test: font }) }));
+  });
+  try { expect((await f.document.fonts().next()).value?.encoding).toBe(expected); }
+  finally { await f.close(); }
 });

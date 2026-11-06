@@ -1,5 +1,5 @@
 import { resolvePath } from "@poe-code/safe-fs/core";
-import { formatPdfNumber, cosDict, cosName, cosNumber, cosRef, cosString, serializeRetainedCosDocumentChunks, type PdfRetainedOutputObject, type PdfSerializedOutputObject } from "@poe-code/pdf-ast";
+import { encodeWinAnsiChar, encodeWinAnsiBytes, serializeCosNodeBytes, cosArray, formatPdfNumber, cosDict, cosName, cosNumber, cosRef, cosString, serializeRetainedCosDocumentChunks, type PdfRetainedOutputObject, type PdfSerializedOutputObject } from "@poe-code/pdf-ast";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import type { RetainedSofficeContext } from "./retained-input.js";
 import type { retainPdfImage } from "./retained-pdf-image.js";
@@ -37,6 +37,8 @@ export class RetainedPdf {
   private readonly pageImages: IntegerTable;
   private readonly signal: AbortSignal;
   private page: ByteChain;
+  private readonly unicodeCharacters: IntegerTable;
+  private readonly unicodeMappings: ByteChain;
   private imageCount = 0;
   private pageImageFirst = 0;
   private pageCount = 0;
@@ -44,8 +46,45 @@ export class RetainedPdf {
     this.signal = context.signal;
     this.pages = new IntegerTable(storage); this.images = new IntegerTable(storage); this.pageImages = new IntegerTable(storage);
     this.page = new ByteChain(storage, this.signal);
+    this.unicodeCharacters = new IntegerTable(storage);
+    this.unicodeMappings = new ByteChain(storage, this.signal);
   }
   async append(value: string | Uint8Array): Promise<void> { await this.page.append(typeof value === "string" ? this.encoder.encode(value) : value); }
+  async text(value: string, heading: boolean, size: number): Promise<void> {
+    // Keep Helvetica's metrics for WinAnsi runs; predefined CJK fonts use UTF-16
+    // character codes and let PDF viewers supply the corresponding CID font.
+    let run = "", unicode = false;
+    const flush = async () => {
+      if (!run) return;
+      if (unicode) {
+        const bytes = new Uint8Array(run.length * 2);
+        const view = new DataView(bytes.buffer);
+        for (let index = 0; index < run.length; index++) view.setUint16(index * 2, run.charCodeAt(index));
+        await this.append(`/Unicode ${size} Tf\n`);
+        await this.append(serializeCosNodeBytes(cosString(bytes)));
+        await this.append(` Tj\n/${heading ? "Heading" : "Body"} ${size} Tf\n`);
+      } else {
+        await this.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(run))));
+        await this.append(" Tj\n");
+      }
+      run = "";
+    };
+    for (const character of value) {
+      const next = character.codePointAt(0)! >= 0xa0 && encodeWinAnsiChar(character) === 63;
+      if (next !== unicode) await flush();
+      if (next) {
+        const code = BigInt(character.codePointAt(0)!);
+        if (!await this.unicodeCharacters.get(code)) {
+          await this.unicodeCharacters.set(code, 1n);
+          let hex = "";
+          for (let index = 0; index < character.length; index++) hex += character.charCodeAt(index).toString(16).padStart(4, "0");
+          await this.unicodeMappings.append(this.encoder.encode(`1 beginbfchar\n<${hex}> <${hex}>\nendbfchar\n`));
+        }
+      }
+      unicode = next; run += character;
+    }
+    await flush();
+  }
   async finishPage(): Promise<void> {
     await this.pageImages.set(BigInt(this.pageCount * 2), BigInt(this.pageImageFirst));
     await this.pageImages.set(BigInt(this.pageCount * 2 + 1), BigInt(this.imageCount - this.pageImageFirst)); this.pageImageFirst = this.imageCount;
@@ -58,7 +97,8 @@ export class RetainedPdf {
     await this.append(`q\n${formatPdfNumber(placement.width)} 0 0 ${formatPdfNumber(placement.height)} ${formatPdfNumber(placement.x)} ${formatPdfNumber(placement.y)} cm\n/Image${this.imageCount} Do\nQ\n`); this.imageCount++;
   }
   async save(options: {title?: string; creator: string; width?: number; height?: number; filterOptions?: string | undefined}): Promise<{size: number; read(): AsyncGenerator<Uint8Array>}> {
-    const {storage, context, signal, encoder, pages, images, pageImages, imageCount, pageCount} = this;
+    const {storage, context, signal, encoder, pages, images, pageImages, imageCount, pageCount, unicodeMappings} = this;
+    const unicode = unicodeMappings.size > 0;
     const {title, creator, filterOptions, width = 612, height = 792} = options;
   let firstPage = 0, outputPages = pageCount, version = "1.7", copied = false;
   if (filterOptions?.trim().startsWith("{")) {
@@ -88,6 +128,7 @@ export class RetainedPdf {
     for (let index = 0; index < outputPages; index++) { signal.throwIfAborted(); yield encoder.encode(`${6 + index * 2} 0 R `); }
     yield encoder.encode("] >>");
   }
+  const unicodeFont = 6 + outputPages * 2 + imageCount * 2;
   let kidsLength = 0; for await (const bytes of kids()) kidsLength += bytes.length;
   async function* objects(): AsyncGenerator<PdfRetainedOutputObject | PdfSerializedOutputObject> {
     yield object(1, cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }));
@@ -97,7 +138,7 @@ export class RetainedPdf {
     for (let index = 0; index < outputPages; index++) {
       const first = Number(await pageImages.get(BigInt((firstPage + index) * 2))), count = Number(await pageImages.get(BigInt((firstPage + index) * 2 + 1)));
       async function* pageBody() {
-        yield encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /Body 4 0 R /Heading 5 0 R >> /XObject << `);
+        yield encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /Body 4 0 R /Heading 5 0 R ${unicode ? `/Unicode ${unicodeFont} 0 R ` : ""}>> /XObject << `);
         for (let image = first; image < first + count; image++) yield encoder.encode(`/Image${image} ${6 + outputPages * 2 + image * 2} 0 R `);
         yield encoder.encode(`>> >> /Contents ${7 + index * 2} 0 R >>`);
       }
@@ -114,6 +155,17 @@ export class RetainedPdf {
       const common = {Type: cosName("XObject"), Subtype: cosName("Image"), Width: cosNumber(width), Height: cosNumber(height), BitsPerComponent: cosNumber(8)};
       yield {...object(number, cosDict({...common, ColorSpace: cosName(components === 1 ? "DeviceGray" : components === 4 ? "DeviceCMYK" : "DeviceRGB"), ...(jpeg ? {Filter: cosName("DCTDecode")} : {}), ...(alpha ? {SMask: cosRef(number + 1)} : {})})), stream: {length: size, chunks: read(position, size)}};
       if (alpha) yield {...object(number + 1, cosDict({...common, ColorSpace: cosName("DeviceGray")})), stream: {length: width * height, chunks: read(alpha, width * height)}};
+    }
+    if (unicode) {
+      yield object(unicodeFont, cosDict({Type: cosName("Font"), Subtype: cosName("Type0"), BaseFont: cosName("HeiseiMin-W3"), Encoding: cosName("UniJIS-UTF16-H"), DescendantFonts: cosArray([cosRef(unicodeFont + 1)]), ToUnicode: cosRef(unicodeFont + 3)}));
+      yield object(unicodeFont + 1, cosDict({Type: cosName("Font"), Subtype: cosName("CIDFontType0"), BaseFont: cosName("HeiseiMin-W3"), CIDSystemInfo: cosDict({Registry: cosString("Adobe"), Ordering: cosString("Japan1"), Supplement: cosNumber(6)}), FontDescriptor: cosRef(unicodeFont + 2), DW: cosNumber(1000)}));
+      yield object(unicodeFont + 2, cosDict({Type: cosName("FontDescriptor"), FontName: cosName("HeiseiMin-W3"), Flags: cosNumber(6), FontBBox: cosArray([-123, -257, 1001, 910].map(value => cosNumber(value))), ItalicAngle: cosNumber(0), Ascent: cosNumber(880), Descent: cosNumber(-120), CapHeight: cosNumber(880), StemV: cosNumber(80)}));
+      const prefix = encoder.encode(`/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n/CMapName /Unicode def\n/CMapType 2 def\n3 begincodespacerange\n<0000> <D7FF>\n<E000> <FFFF>\n<D800DC00> <DBFFDFFF>\nendcodespacerange\n`);
+      const suffix = encoder.encode("endcmap\nCMapName currentdict /CMap defineresource pop\nend\nend\n");
+      yield {...object(unicodeFont + 3, cosDict({})), stream: {
+        length: prefix.length + unicodeMappings.size + suffix.length,
+        chunks: (async function* () { yield prefix; yield* readChain(storage, unicodeMappings.first, signal); yield suffix; })()
+      }};
     }
   }
   const output = new ByteChain(storage, signal);

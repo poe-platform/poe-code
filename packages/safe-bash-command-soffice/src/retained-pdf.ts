@@ -1,6 +1,5 @@
 import { RetainedPdf } from "./retained-pdf-storage.js";
 import { retainPdfImage } from "./retained-pdf-image.js";
-import { cosString, encodeWinAnsiBytes, serializeCosNodeBytes } from "@poe-code/pdf-ast";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { RetainedTextBlocks, RetainedTextSnapshot } from "./retained-blocks.js";
@@ -41,10 +40,10 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
           const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
           for await (const bytes of table.streamCell(row, cell)) {
             const value = decoder.decode(bytes, { stream: true });
-            if (value) { await pdf.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(value)))); await pdf.append(" Tj\n"); }
+            if (value) await pdf.text(value, row === 0, 10);
           }
           const tail = decoder.decode();
-          if (tail) { await pdf.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(tail)))); await pdf.append(" Tj\n"); }
+          if (tail) await pdf.text(tail, row === 0, 10);
           await pdf.append("ET\nQ\n");
         }
         y = bottom; await yieldTurn(signal);
@@ -84,10 +83,10 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
         const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
         for await (const bytes of text.streamBlock(snapshot, block, range)) {
           const value = decoder.decode(bytes, { stream: true });
-          if (value) { await pdf.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(value)))); await pdf.append(" Tj\n"); }
+          if (value) await pdf.text(value, heading, heading ? 18 : 11);
         }
         const tail = decoder.decode();
-        if (tail) { await pdf.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(tail)))); await pdf.append(" Tj\n"); }
+        if (tail) await pdf.text(tail, heading, heading ? 18 : 11);
       }
       if (first === end) await pdf.append("() Tj\n");
       await pdf.append("ET\nQ\n"); y -= heading ? 24 : 15; first = end;

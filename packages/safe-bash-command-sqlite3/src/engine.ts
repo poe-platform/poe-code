@@ -474,7 +474,7 @@ export type ExprNode =
       over?: {
         partitionBy: ExprNode[];
         orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined | undefined }[];
-        frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number } | undefined;
+        frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
       } | undefined;
     }
   | { kind: "subquery"; sql: string; exists?: boolean; notExists?: boolean };
@@ -962,13 +962,13 @@ class ExprParser {
           | {
               partitionBy: ExprNode[];
               orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[];
-              frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number } | undefined;
+              frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
             }
           | undefined;
         if (this.matchWord("OVER")) {
           const partitionBy: ExprNode[] = [];
           const orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[] = [];
-          let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number } | undefined;
+          let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
           if (this.matchValue("(")) {
             if (this.matchWord("PARTITION")) {
               this.matchWord("BY");
@@ -1027,11 +1027,24 @@ class ExprParser {
                 const start = parseBound();
                 frameBounds = { type, start, end: 0 };
               }
+              if (this.matchWord("EXCLUDE")) {
+                if (this.matchWord("CURRENT") && this.matchWord("ROW")) {
+                  frameBounds.exclude = "CURRENT ROW";
+                } else if (this.matchWord("GROUP")) {
+                  frameBounds.exclude = "GROUP";
+                } else if (this.matchWord("TIES")) {
+                  frameBounds.exclude = "TIES";
+                } else if (this.matchWord("NO") && this.matchWord("OTHERS")) {
+                  frameBounds.exclude = "NO OTHERS";
+                } else {
+                  throw new Error("invalid EXCLUDE clause");
+                }
+              }
               if (type === "RANGE" && hasOffset && orderBy.length !== 1) {
                 throw new Error("RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression");
               }
             }
-            // Skip any remaining window specification tokens (e.g. EXCLUDE ...)
+            // Skip any remaining window specification tokens.
             let depth = 1;
             while (this.pos < this.tokens.length && depth > 0) {
               const t = this.peek()!;
@@ -6900,40 +6913,52 @@ export class SqliteDatabase {
             const targetG = groupedRows[indices[targetPos]!]!;
             result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, targetG.representative, positionalParams, cteScope, { group: targetG.group });
           }
-        } else if (fnUpper === "FIRST_VALUE") {
-          if (frameStart <= frameEnd && frameStart < indices.length) {
-            const firstG = groupedRows[indices[frameStart]!]!;
-            result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, firstG.representative, positionalParams, cteScope, { group: firstG.group });
-          }
-        } else if (fnUpper === "LAST_VALUE") {
-          if (frameStart <= frameEnd && frameEnd >= 0) {
-            const lastG = groupedRows[indices[frameEnd]!]!;
-            result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, lastG.representative, positionalParams, cteScope, { group: lastG.group });
-          }
-        } else if (fnUpper === "NTH_VALUE") {
-          const n = Math.trunc(
-            toSqlNumber(
-              yield* this.evalExprSteps(fnExpr.args[1]!, g.representative, positionalParams, cteScope, { group: g.group })
-            )
-          );
-          if (n >= 1 && frameStart + n - 1 <= frameEnd) {
-            const nthG = groupedRows[indices[frameStart + n - 1]!]!;
-            result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, nthG.representative, positionalParams, cteScope, { group: nthG.group });
-          } else {
-            result[rowIdx] = null;
-          }
         } else {
-          // Aggregate window function (SUM, COUNT, AVG, MIN, MAX, etc.)
-          const frameRows = yield* stepFlatMap(indices.slice(frameStart, Math.max(0, frameEnd + 1)), function* (idx) { yield;
-            return groupedRows[idx]!.group;
-          }, this);
-          const strippedFn: Extract<ExprNode, { kind: "func" }> = { ...fnExpr, over: undefined };
-          result[rowIdx] = yield* this.evalAggregateFunction(
-            strippedFn,
-            frameRows,
-            positionalParams,
-            cteScope
-          );
+          const frameIndices: number[] = [];
+          for (let pos = frameStart; pos <= frameEnd; pos += 1) {
+            yield;
+            const exclude = over.frameBounds?.exclude;
+            const peer = orderPeerKeys[pos] === orderPeerKeys[pPos];
+            if (exclude === "CURRENT ROW" && pos === pPos) continue;
+            if (exclude === "GROUP" && peer) continue;
+            if (exclude === "TIES" && peer && pos !== pPos) continue;
+            frameIndices.push(indices[pos]!);
+          }
+          if (fnUpper === "FIRST_VALUE") {
+            if (frameIndices.length > 0) {
+              const firstG = groupedRows[frameIndices[0]!]!;
+              result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, firstG.representative, positionalParams, cteScope, { group: firstG.group });
+            }
+          } else if (fnUpper === "LAST_VALUE") {
+            if (frameIndices.length > 0) {
+              const lastG = groupedRows[frameIndices[frameIndices.length - 1]!]!;
+              result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, lastG.representative, positionalParams, cteScope, { group: lastG.group });
+            }
+          } else if (fnUpper === "NTH_VALUE") {
+            const n = Math.trunc(
+              toSqlNumber(
+                yield* this.evalExprSteps(fnExpr.args[1]!, g.representative, positionalParams, cteScope, { group: g.group })
+              )
+            );
+            if (n >= 1 && n <= frameIndices.length) {
+              const nthG = groupedRows[frameIndices[n - 1]!]!;
+              result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, nthG.representative, positionalParams, cteScope, { group: nthG.group });
+            } else {
+              result[rowIdx] = null;
+            }
+          } else {
+            // Aggregate window function (SUM, COUNT, AVG, MIN, MAX, etc.)
+            const frameRows = yield* stepFlatMap(frameIndices, function* (idx) { yield;
+              return groupedRows[idx]!.group;
+            }, this);
+            const strippedFn: Extract<ExprNode, { kind: "func" }> = { ...fnExpr, over: undefined };
+            result[rowIdx] = yield* this.evalAggregateFunction(
+              strippedFn,
+              frameRows,
+              positionalParams,
+              cteScope
+            );
+          }
         }
       }
     }

@@ -34,10 +34,13 @@ export async function* documentText(document: IndexedDocument, start: number, en
   if (utf8) { const tail = decoder.decode(); if (tail) yield tail; }
 }
 
-export async function* expandedSource(document: IndexedDocument, start: number, end: number, utf8: boolean): ByteSource {
+export async function* expandedSource(document: IndexedDocument, start: number, end: number, utf8: boolean, prefix: string): ByteSource {
   let column = 0, pending = "";
+  let afterCr = false;
   for await (const text of documentText(document, start, end, utf8)) {
     for (const character of text) {
+      if (afterCr && character !== "\n") pending += prefix;
+      afterCr = character === "\r";
       if (character === "\t") { const count = 8 - column % 8; pending += " ".repeat(count); column += count; }
       else {
         pending += character;

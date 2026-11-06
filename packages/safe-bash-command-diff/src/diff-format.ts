@@ -8,8 +8,9 @@ function range(start: number, count: number): string {
 }
 
 function outputLine(prefix: string, line: string, options?: DisplayOptions, color?: 31 | 32): string {
+  const repeatPrefix = prefix.length === 2;
   if (options?.initialTab) prefix = (prefix.length === 2 ? prefix.slice(0, -1) : prefix.trimEnd()) + "\t";
-  if (options?.expand) line = expandTabs(line);
+  if (options?.expand) line = expandTabs(line, repeatPrefix ? prefix : "");
   const text = `${prefix}${line.endsWith("\n") ? line : line + "\n"}`;
   return (color === undefined ? text : colorText(text, color, options))
     + (line.endsWith("\n") ? "" : "\\ No newline at end of file\n");

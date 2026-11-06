@@ -47,10 +47,13 @@ export function quoteDiffArgument(argument: string): string {
   return `'${argument.replaceAll("'", "'\\''")}'`;
 }
 
-export function expandTabs(line: string): string {
+export function expandTabs(line: string, prefix = ""): string {
   let column = 0;
   let result = "";
+  let afterCr = false;
   for (const character of line) {
+    if (afterCr && character !== "\n") result += prefix;
+    afterCr = character === "\r";
     if (character === "\t") {
       const count = 8 - column % 8;
       result += " ".repeat(count);

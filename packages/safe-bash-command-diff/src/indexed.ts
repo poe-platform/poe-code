@@ -106,7 +106,7 @@ async function line(document: IndexedDocument, position: number, prefix: string,
   if (options.color && color !== undefined) await append(encoder.encode(`\u001b[${color}m`));
   await append(encoder.encode(prefix));
   const end = bounds.end - Number(terminated);
-  const source = options.expand ? expandedSource(document, bounds.start, end, utf8) : document.range(bounds.start, end);
+  const source = options.expand ? expandedSource(document, bounds.start, end, utf8, options.format === "unified" ? "" : prefix) : document.range(bounds.start, end);
   for await (const bytes of source) await append(bytes);
   if (options.color && color !== undefined) await append(encoder.encode("\u001b[0m"));
   await append(encoder.encode("\n"));

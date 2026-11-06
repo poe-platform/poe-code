@@ -263,7 +263,9 @@ export function evalSyncUnzip(
         }
       }
       if (testMode) {
-        if (quiet < 2) out += `No errors detected in compressed data of ${filteredZipName(chosenArchive)}.\n`;
+        if (quiet < 2) out += patterns.length || excludePatterns.length
+          ? `No errors detected in ${filteredZipName(chosenArchive)} for the ${selectedMembers.length} file${selectedMembers.length === 1 ? "" : "s"} tested.\n`
+          : `No errors detected in compressed data of ${filteredZipName(chosenArchive)}.\n`;
         return out;
       }
       for (const item of staged) {

@@ -69,6 +69,34 @@ async function run(fs: FileSystem, args: readonly string[], input = "", options:
 }
 
 const heading = "Archive:  sample.zip\n";
+for (const [selectors, summary] of [
+  [[], "in compressed data of sample.zip."],
+  [["-x", "release/installer"], "in sample.zip for the 4 files tested."],
+  [["release/*", "-x", "release/installer"], "in sample.zip for the 4 files tested."],
+  [["release/install-sh"], "in sample.zip for the 1 file tested."],
+  [["release/*", "-x", "release/cmake/*", "release/installer", "release/"], "in sample.zip for the 1 file tested."],
+  [["*"], "in sample.zip for the 5 files tested."],
+] as const) {
+  for (const mode of ["-t", "-tq", "-tqq"]) {
+    test(`unzip ${mode} reports the tested subset for ${JSON.stringify(selectors)}`, async () => {
+      const members = [
+        { name: "release/" },
+        { name: "release/install-sh", body: "install\n" },
+        { name: "release/cmake/" },
+        { name: "release/cmake/README.md", body: "readme\n" },
+        { name: "release/installer", body: "install-sh", mode: 0o120777 },
+      ];
+      const args = [mode, "sample.zip", ...selectors];
+      const result = await run(await fixture(members), args);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      if (mode === "-tqq") assert.equal(result.stdout, "");
+      else assert.ok(result.stdout.endsWith(`No errors detected ${summary}\n`), result.stdout);
+      assert.equal(evalSyncUnzip(args, () => zip(members)), result.stdout);
+    });
+  }
+}
+
 for (const [name, spaces] of [["hello.txt", 16], ["é.txt", 19], ["a".repeat(22), 3], ["a".repeat(25), 3]] as const) {
   test(`unzip -t matches native result spacing for ${name}`, async () => {
     const fs = await fixture([{ name, body: "hello\n" }]);

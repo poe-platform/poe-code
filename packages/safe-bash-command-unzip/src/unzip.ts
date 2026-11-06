@@ -356,7 +356,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       }
       if (parsed.test && parsed.quiet < 2) await budget.output(resultCode
         ? `At least one error was detected in ${filtered(archive)}.\n`
-        : `No errors detected in compressed data of ${filtered(archive)}.\n`);
+        : parsed.patterns.length || parsed.exclusions.length
+          ? `No errors detected in ${filtered(archive)} for the ${selected} file${selected === 1 ? "" : "s"} tested.\n`
+          : `No errors detected in compressed data of ${filtered(archive)}.\n`);
       return { exitCode: resultCode };
     } catch (error) {
       original.signal.throwIfAborted();

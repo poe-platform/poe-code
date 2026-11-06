@@ -503,6 +503,7 @@ interface MagickState {
   loop?: number;
   optimizeLayers?: boolean;
   density: number;
+  orientation?: number;
   units?: "inch" | "cm" | "unknown";
   fuzz: number;
   alphaFuzz: number;
@@ -4146,6 +4147,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const {baseToken,pageSpec,inlineGeom}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
+            if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
             for (const key of ["comment", "label"] as const) {
                 const value = state[key];
@@ -5297,6 +5299,12 @@ function parseMagickDisposal(value: string): number {
     return 0;
 }
 
+function parseMagickOrientation(value: string): number {
+    const orientation = ["undefined", "topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(value.toLowerCase());
+    if (orientation < 0) throw new Error(`unrecognized image orientation '-orient' '${value}'`);
+    return orientation;
+}
+
 function parseMagickUnits(value: string): NonNullable<MagickState["units"]> {
     switch (value.toLowerCase()) {
         case "pixelsperinch": return "inch";
@@ -5490,6 +5498,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis, registers));
             stack.push(...subResult);
             i = j;
+            continue;
+        }
+        if (t === "-orient") {
+            const orientation = state.orientation = parseMagickOrientation(tokens[++i] ?? "");
+            stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, orientation }; });
+            i++;
             continue;
         }
         if (t === "-units") {
@@ -6676,6 +6690,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-orient") {
+            const orientation = state.orientation = parseMagickOrientation(tokens[++i] ?? "");
+            steps.push(async image => image ? { ...image, orientation } : undefined);
+            continue;
+        }
         if (!operandsOnly && token === "-units") {
             const units = state.units = parseMagickUnits(tokens[++i] ?? "");
             steps.push(async image => image ? applyMagickUnits(image, units) : undefined);
@@ -7644,6 +7663,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+  if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);
  for (const key of ["comment", "label"] as const) {
   const value = state[key];

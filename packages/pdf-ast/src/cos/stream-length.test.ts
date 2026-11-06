@@ -42,8 +42,8 @@ describe("PDF.js stream Length recovery", () => {
     const doc = PdfDocument.load(bytes);
     const bitmap = doc.getPage(0).renderToBitmap({ scale: 1 });
     expect([bitmap.width, bitmap.height]).toEqual([200, 100]);
-    expect(Array.from(bitmap.data.slice(0, 4))).toEqual([254, 0, 0, 255]);
-    expect(Array.from(bitmap.data.slice(-4))).toEqual([254, 0, 0, 255]);
+    expect(Array.from(bitmap.data.slice(0, 4))).toEqual([255, 255, 255, 255]);
+    expect(Array.from(bitmap.data.slice(-4))).toEqual([255, 255, 255, 255]);
     expect(PdfDocument.load(doc.save()).getPage(0).renderToBitmap({ scale: 1 })).toEqual(bitmap);
   });
 });

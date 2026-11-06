@@ -968,10 +968,19 @@ export function *decodeXObjectImageToRgbaSteps(
         decode: (yield* parseDecodePairsSteps(doc, dict)),
         colorTransform: colorTransform?.kind === "number" ? colorTransform.value : undefined,
       }));
-      width = decoded.width;
-      height = decoded.height;
       bitsPerComponent = 8;
       rgba = decoded.data;
+      // DCT samples form a continuous stream; the PDF dictionary determines
+      // its shape. Poppler fills missing samples with white, without scaling.
+      if (rgba.length !== width * height * 4) {
+        rgba = new Uint8Array(width * height * 4);
+        for (let offset = 0; offset < rgba.length; offset += 65536) {
+          yield;
+          const end = Math.min(offset + 65536, rgba.length);
+          rgba.fill(255, offset, end);
+          rgba.set(decoded.data.subarray(offset, end), offset);
+        }
+      }
     }
     if (smaskNode?.kind === "stream") {
       (yield* applySmaskStreamToRgbaSteps(doc, smaskNode, rgba, width, height, activeRes));

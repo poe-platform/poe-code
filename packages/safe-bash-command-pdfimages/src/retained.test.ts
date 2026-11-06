@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { PdfDocument } from "@poe-code/pdf-ast";
+import { cosNumber, decodeJpegToRgba, decodePng, dictSet, encodeJpeg, PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createPdfimagesCommand, runPdfimagesCli } from "./index.js";
 
@@ -94,4 +94,39 @@ it("preserves inline CCITT payloads and sidecar defaults",async()=>{
 it.each([["-png"], ["-list"], ["-u", "-png"]].map(flags => ({ flags })))("extracts painted shared resources through the command: $flags", async ({ flags }) => {
   const { readFileSync } = await import("node:fs");
   await compareCommand(new Uint8Array(readFileSync(new URL("../../pdf-ast/src/fixtures/qpdf-shared-images.pdf", import.meta.url))), flags);
+});
+
+it.each([[200, 100], [1, 1], [1, 4], [4, 1]])("honors PDF JPEG dimensions %sx%s in both command paths", async (width, height) => {
+  const jpeg = encodeJpeg({ width: 2, height: 2, data: new Uint8Array([255,0,0,255, 0,255,0,255, 0,0,255,255, 255,255,0,255]) });
+  const doc = PdfDocument.create();
+  const image = doc.embedJpg(jpeg);
+  const stream = doc.cos.resolve(image.xobjectRef);
+  if (stream?.kind !== "stream") throw new Error("Missing image");
+  dictSet(stream.dict, "Width", cosNumber(width));
+  dictSet(stream.dict, "Height", cosNumber(height));
+  doc.addPage([200, 100]).drawImage(image, { x: 0, y: 0, width: 200, height: 100 });
+  const input = doc.save();
+  const files = new Map([["in.pdf", input]]);
+  expect((await runPdfimagesCli(["-png", "in.pdf", "out"], files)).exitCode).toBe(0);
+  const bitmap = decodePng(files.get("out-000.png")!);
+  expect([bitmap.width, bitmap.height]).toEqual([width, height]);
+  const expected = new Uint8Array(width * height * 4).fill(255);
+  expected.set(decodeJpegToRgba(jpeg).data.subarray(0, expected.length));
+  expect(bitmap.data).toEqual(expected);
+  const listing = await runPdfimagesCli(["-list", "in.pdf"], files);
+  expect(listing.stdout.trimEnd().split("\n")[2]!.trim().split(/\s+/).slice(3, 5)).toEqual([String(width), String(height)]);
+  for (const flags of [["-png"], ["-list"], ["-j"]]) await compareCommand(input, flags);
+});
+
+it("uses dictionary dimensions for the checked-in PDF.js JPEG fixture", async () => {
+  const { readFileSync } = await import("node:fs");
+  const input = new Uint8Array(readFileSync(new URL("../../pdf-ast/src/fixtures/pdfjs-xobject-image.pdf", import.meta.url)));
+  const files = new Map([["in.pdf", input]]);
+  expect((await runPdfimagesCli(["-png", "in.pdf", "out"], files)).exitCode).toBe(0);
+  const bitmap = decodePng(files.get("out-000.png")!);
+  expect([bitmap.width, bitmap.height]).toEqual([200, 100]);
+  expect([...bitmap.data.slice(4, 12)]).toEqual(new Array(8).fill(255));
+  const listing = await runPdfimagesCli(["-list", "in.pdf"], files);
+  expect(listing.stdout.split("\n")[2]).toContain("   1     0 image     200   100  rgb     3   8  jpeg   no         4  0    29    18  580B");
+  for (const flags of [["-png"], ["-list"]]) await compareCommand(input, flags);
 });

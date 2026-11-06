@@ -209,7 +209,7 @@ export class PdfRetainedDecodedImage {
           ?await PdfRetainedJpeg.open(samples,{...storedOptions,isSourcePdf:true,decode,colorTransform:colorTransform?.kind==="number"?colorTransform.value:undefined})
           :await PdfRetainedJpx.open(samples,{...storedOptions,...(colorNode?{color}:{})});
       }
-      if (codec) { width = codec.width; height = codec.height; bitsPerComponent = encoding === "jbig2" ? bitsPerComponent : 8;
+      if (codec) { if (encoding !== "jpeg") { width = codec.width; height = codec.height; } bitsPerComponent = encoding === "jbig2" ? bitsPerComponent : 8;
         if (encoding === "jpx" && !colorNode) { const components = (codec as PdfRetainedJpx).components; color = { colorSpace: components === 1 ? "gray" : components === 4 ? "cmyk" : "rgb", components }; } }
       admitOutput();
       const maskScratch = masks.reduce((sum, mask) => sum + width * 8 + mask.width * 4 + Math.min(chunkBytes, mask.width * 4), 0);
@@ -218,8 +218,31 @@ export class PdfRetainedDecodedImage {
       let bounds: number[] | undefined; const key = await prefix(await readPdfDictionaryValue(dict, "Mask", signal, {preserveDeferred:true}), 6);
       if (!native && !(stencil && options.fillColor) && key && key.length >= 2) { bounds = []; charge(48); for (const node of key) bounds.push(await number(node, 0)); }
       const currentCodec = codec;
+      async function* jpegRows(): AsyncGenerator<Uint8Array> {
+        const rows = currentCodec!.rows();
+        let source: Uint8Array = new Uint8Array(0);
+        let offset = 0, done = false;
+        try {
+          for (let y = 0; y < height; y++) {
+            signal?.throwIfAborted();
+            const row = new Uint8Array(width * 4).fill(255);
+            let written = 0;
+            while (written < row.length && !done) {
+              if (offset === source.length) {
+                const next = await rows.next();
+                if (next.done) { done = true; break; }
+                source = next.value; offset = 0;
+              }
+              const length = Math.min(row.length - written, source.length - offset);
+              row.set(source.subarray(offset, offset + length), written);
+              offset += length; written += length;
+            }
+            yield row;
+          }
+        } finally { await rows.return(); }
+      }
       async function* produce(): AsyncGenerator<Uint8Array> {
-        let rows: AsyncIterable<Uint8Array> = currentCodec ? currentCodec.rows() : decodeRetainedSampleRows(samples, width, height, bitsPerComponent, color, { maxWorkingBytes: pixelScratch, maxOutputBytes: outputLimit, ...(decode ? { decode } : {}), ...(signal ? { signal } : {}) });
+        let rows: AsyncIterable<Uint8Array> = currentCodec ? encoding === "jpeg" && (width !== currentCodec.width || height !== currentCodec.height) ? jpegRows() : currentCodec.rows() : decodeRetainedSampleRows(samples, width, height, bitsPerComponent, color, { maxWorkingBytes: pixelScratch, maxOutputBytes: outputLimit, ...(decode ? { decode } : {}), ...(signal ? { signal } : {}) });
         for (const mask of masks) rows = applyRetainedImageMask(rows, width, height, mask, { mode: mask.mode, ...(mask.matte ? { matte: mask.matte } : {}), maxWorkingBytes: maskScratch, maxOutputBytes: outputLimit, ...(signal ? { signal } : {}) });
         let y = 0;
         for await (const row of rows) {

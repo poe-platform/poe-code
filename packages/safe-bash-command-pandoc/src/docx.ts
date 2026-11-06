@@ -67,6 +67,14 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       }
     }
     const paragraph = async (p: Paragraph): Promise<Block> => {
+      const onlyChild = (node: XmlElement | undefined, name: string, namespace = node?.namespace): XmlElement | undefined => {
+        if (!node) return undefined;
+        const children = activeModelChildren(p.store, p.ref.part)(node);
+        return children.length === 1 && children[0]!.namespace === namespace && children[0]!.localName === name ? children[0] : undefined;
+      };
+      const node = p.store.node(p.ref);
+      if (onlyChild(onlyChild(onlyChild(node, "pPr"), "pBdr"), "bottom") ||
+          onlyChild(onlyChild(onlyChild(node, "r"), "pict"), "rect", "urn:schemas-microsoft-com:vml")) return {t: "HorizontalRule"};
       const inlines: Inline[] = [];
       for (const item of p.iter_inner_content()) {
         ctx.checkpoint();

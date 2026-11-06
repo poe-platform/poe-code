@@ -1,0 +1,33 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { Shell } from "../../src/shell/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { createStandardCommands } from "../../src/commands/index.js";
+import { CommandRegistry } from "../../src/contracts/index.js";
+import { createXmllintCommands } from "../../src/commands/xml/index.js";
+
+for (const [input, expected] of [
+  ['<r a="1" Z="2" z="3" A="4"/>', '<r A="4" Z="2" a="1" z="3"></r>'],
+  ['<r a="1" Z="2"/>', '<r Z="2" a="1"></r>'],
+] as const) {
+  for (const flags of ["--c14n", "--exc-c14n"]) {
+    test(`xmllint ${flags} preserves canonical attribute order in substitution: ${input}`, async () => {
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/doc.xml", new TextEncoder().encode(input));
+      const shell = new Shell({ fs, commands: new CommandRegistry([...createStandardCommands(), ...createXmllintCommands()]) });
+      try {
+        const direct = await shell.exec(`xmllint ${flags} /doc.xml`);
+        assert.equal(direct.exitCode, 0, direct.stderr);
+        assert.equal(direct.stdout, expected);
+        const assignment = await shell.exec(`value="$(xmllint ${flags} /doc.xml)"`);
+        assert.equal(assignment.exitCode, 0, assignment.stderr);
+        assert.equal(assignment.stderr, "");
+        const captured = await shell.exec(`value="$(xmllint ${flags} /doc.xml)"; printf %s "$value"`);
+        assert.equal(captured.exitCode, 0, captured.stderr);
+        assert.equal(captured.stdout, expected);
+      } finally {
+        await shell.dispose();
+      }
+    });
+  }
+}

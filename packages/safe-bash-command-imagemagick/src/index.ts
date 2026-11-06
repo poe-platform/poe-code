@@ -316,6 +316,7 @@ export interface MagickGeometry {
   readonly percentY?: number;
   readonly areaLimit?: number;
   readonly isSubdivide?: boolean;
+  readonly aspectRatio?: number;
 }
 
 export function parseMagickGeometry(raw: string): MagickGeometry {
@@ -385,6 +386,14 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
       s = s.slice(0, -1);
     } else {
       break;
+    }
+  }
+
+  if (s.includes(":")) {
+    const parts = s.split(":");
+    const ratio = Number(parts[0]) / Number(parts[1]);
+    if (parts.length === 2 && Number(parts[0]) > 0 && Number(parts[1]) > 0 && Number.isFinite(ratio)) {
+      return { aspectRatio: ratio, x, y, hasOffset, forceExact, shrinkOnly, enlargeOnly, fillArea, isPercent: false };
     }
   }
 
@@ -3545,8 +3554,8 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
 
 function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: string, state: MagickState) {
     const g = parseMagickGeometry(geomStr);
-    const targetW = Math.max(1, Math.round(g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width ?? img.width));
-    const targetH = Math.max(1, Math.round(g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height ?? img.height));
+    const targetW = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width ?? img.width));
+    const targetH = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height ?? img.height));
     if ((g.enlargeOnly && img.width > targetW && img.height > targetH)
         || (g.shrinkOnly && img.width < targetW && img.height < targetH)) return undefined;
     const offset = gravityAdjustBox(img.width, img.height, targetW, targetH, g.x, g.y, state.gravity);

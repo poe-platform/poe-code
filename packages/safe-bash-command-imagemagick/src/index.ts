@@ -503,6 +503,7 @@ interface MagickState {
   loop?: number;
   optimizeLayers?: boolean;
   density: number;
+  units?: "inch" | "cm" | "unknown";
   fuzz: number;
   alphaFuzz: number;
   kernel: ResizeKernel | undefined;
@@ -4145,6 +4146,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const {baseToken,pageSpec,inlineGeom}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
+            if (state.units !== undefined) im = applyMagickUnits(im, state.units);
             for (const key of ["comment", "label"] as const) {
                 const value = state[key];
                 if (value !== undefined) {
@@ -5295,6 +5297,22 @@ function parseMagickDisposal(value: string): number {
     return 0;
 }
 
+function parseMagickUnits(value: string): NonNullable<MagickState["units"]> {
+    switch (value.toLowerCase()) {
+        case "pixelsperinch": return "inch";
+        case "pixelspercentimeter": return "cm";
+        case "undefined": return "unknown";
+        default: throw new Error(`unrecognized units type '-units' '${value}'`);
+    }
+}
+
+function applyMagickUnits<T extends ImageMetadata>(image: T, unit: NonNullable<MagickState["units"]>): T {
+    const scale = image.resolution?.unit === "meter" ? 100 : 1;
+    const x = image.resolution ? image.resolution.x / scale : image.density;
+    const y = image.resolution ? image.resolution.y / scale : image.density;
+    return { ...image, density: x * (unit === "cm" ? 2.54 : 1), resolution: { x, y, unit } };
+}
+
 function applyMagickDensity<T extends ImageMetadata>(image: T, value: string): T {
     const geometry = parseMagickGeometry(value);
     const x = geometry.width ?? 72, y = geometry.height ?? x;
@@ -5472,6 +5490,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis, registers));
             stack.push(...subResult);
             i = j;
+            continue;
+        }
+        if (t === "-units") {
+            const units = state.units = parseMagickUnits(tokens[++i] ?? "");
+            stack = yield* mapSteps(stack, function* (image) { yield; return applyMagickUnits(image, units); });
+            i++;
             continue;
         }
         if (t === "-density") {
@@ -6652,6 +6676,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-units") {
+            const units = state.units = parseMagickUnits(tokens[++i] ?? "");
+            steps.push(async image => image ? applyMagickUnits(image, units) : undefined);
+            continue;
+        }
         if (!operandsOnly && token === "-density") {
             const value = tokens[++i] ?? "72";
             state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
@@ -7615,6 +7644,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+  if(state.units!==undefined)image=applyMagickUnits(image,state.units);
  for (const key of ["comment", "label"] as const) {
   const value = state[key];
   if (value !== undefined) {

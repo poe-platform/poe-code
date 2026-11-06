@@ -151,3 +151,33 @@ it("observes timer cancellation after loading a tile pattern and before output p
         expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["input"]);
     } finally { clearTimeout(timer); vi.unstubAllGlobals(); vi.restoreAllMocks(); }
 });
+
+for (const retained of [false, true]) {
+    it.each([
+        ["center", "1x1+0+0", ["WWW", "WAB", "WCD"]],
+        ["center", "1x1+1+0", ["WWW", "AWB", "CWD"]],
+        ["center", "1x1+0+1", ["WAB", "WWW", "WCD"]],
+        ["center", "1x1-1-1", ["WWW", "WAB", "WCD"]],
+        ["center", "2x2+0+0", ["AWWB", "WWWW", "WWWW", "CWWD"]],
+        ["center", "3x3+0+0", ["AWWWB", "WWWWW", "WWWWW", "WWWWW", "CWWWD"]],
+        ["north", "1x1+0+0", ["WWW", "WAB", "WCD"]],
+        ["east", "1x1+0+0", ["WWW", "ABW", "CDW"]],
+        ["southeast", "1x1+0+0", ["ABW", "CDW", "WWW"]],
+        ["southeast", "1x1+1+0", ["AWB", "CWD", "WWW"]],
+    ])(`matches native splice pixels, retained=${retained}, gravity=%s, geometry=%s`, async (gravity, geometry, rows) => {
+        // Decoded RGBA layouts verified against native ImageMagick.
+        const colors: Record<string, number[]> = {
+            A: [12, 34, 56, 255], B: [78, 90, 123, 128],
+            C: [144, 160, 180, 64], D: [210, 220, 230, 255], W: [255, 255, 255, 255]
+        };
+        const pixels = Uint8Array.from([...colors.A!, ...colors.B!, ...colors.C!, ...colors.D!]);
+        const bytes = await sharp(pixels, { raw: { width: 2, height: 2, channels: 4 } }).png().toBuffer();
+        const files = new Map([["input", bytes]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input", bytes);
+        const result = await runMagickCli(["input", "-gravity", gravity, "-splice", geometry, "out.png"], retained ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        expect([output.width, output.height]).toEqual([rows[0]!.length, rows.length]);
+        expect(output.data).toEqual(Uint8Array.from([...rows.join("")].flatMap(pixel => colors[pixel]!)));
+    });
+}

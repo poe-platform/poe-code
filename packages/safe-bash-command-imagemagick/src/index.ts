@@ -1270,11 +1270,11 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const g = parseMagickGeometry(geomStr);
     const sw = Math.max(0, Math.round(g.width ?? 0));
     const sh = Math.max(0, Math.round(g.height ?? 0));
-    const base = resolveGravityOffset(img.width, img.height, gravity);
-    const isEast = gravity === "east" || gravity === "northeast" || gravity === "southeast";
-    const isSouth = gravity === "south" || gravity === "southwest" || gravity === "southeast";
-    const sx = Math.max(0, Math.min(img.width, Math.round(base.left + (isEast ? -g.x : g.x))));
-    const sy = Math.max(0, Math.min(img.height, Math.round(base.top + (isSouth ? -g.y : g.y))));
+    // Native splice rounds the gravity box and the splice anchor separately.
+    const box = gravityAdjustBox(img.width, img.height, sw, sh, g.x, g.y, gravity);
+    const anchor = resolveGravityOffset(sw, sh, gravity);
+    const sx = Math.max(0, Math.min(img.width, box.x + anchor.left));
+    const sy = Math.max(0, Math.min(img.height, box.y + anchor.top));
     const outW = img.width + sw;
     const outH = img.height + sh;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
@@ -6189,11 +6189,10 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {
         const sw = Math.max(0, Math.round(g.width ?? 0)), sh = Math.max(0, Math.round(g.height ?? 0));
-        const base = resolveGravityOffset(w, h, state.gravity);
-        const east = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
-        const south = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";
-        const x = Math.max(0, Math.min(w, Math.round(base.left + (east ? -g.x : g.x))));
-        const y = Math.max(0, Math.min(h, Math.round(base.top + (south ? -g.y : g.y))));
+        const box = gravityAdjustBox(w, h, sw, sh, g.x, g.y, state.gravity);
+        const anchor = resolveGravityOffset(sw, sh, state.gravity);
+        const x = Math.max(0, Math.min(w, box.x + anchor.left));
+        const y = Math.max(0, Math.min(h, box.y + anchor.top));
         width += sw; height += sh;
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + sw, length: w - x }];
         ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: h - y }];

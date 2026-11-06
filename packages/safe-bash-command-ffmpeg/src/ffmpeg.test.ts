@@ -13,6 +13,48 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("stream-scoped audio filters", () => {
+  it("counts output audio ordinals after mapping", async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(800).fill(0.375)] });
+    const vfs = createTestVfs({ "/in.wav": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/in.wav", "-i", "/in.wav", "-map", "1:a:0", "-filter:a:0", "volume=0", "/out.wav"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const samples = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+    assert.equal(samples.length, 800);
+    assert.ok(samples.every(value => value === 0));
+  });
+
+  for (const alias of ["-filter:a", "-af"]) {
+    for (const ordinal of [0, 1]) {
+      for (const codec of ["pcm_s16le", "copy"]) {
+        it(`${alias}:${ordinal} applies only to matching output audio with ${codec}`, async () => {
+          const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000).fill(0.375)] });
+          const vfs = createTestVfs({ "/in.wav": input });
+          const args = ["-y", "-v", "error", "-i", "/in.wav", `${alias}:${ordinal}`, "volume=0", "-c:a", codec, "/out.wav"];
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), () => {
+            assert.fail("scoped audio filters must defer without writing");
+          }), undefined);
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          if (codec === "copy" && ordinal === 0) {
+            assert.notEqual(result.exitCode, 0);
+            assert.ok(result.stderr.includes("Filtering and streamcopy"), result.stderr);
+            assert.equal(vfs.store.has("/out.wav"), false);
+          } else {
+            assert.equal(result.exitCode, 0, result.stderr);
+            const samples = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+            const source = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!;
+            assert.equal(samples.length, source.length);
+            if (ordinal === 0) assert.ok(samples.every(value => value === 0));
+            else assert.deepEqual(samples, source);
+          }
+        });
+      }
+    }
+  }
+});
+
 describe("negative duration", () => {
   for (const inputOption of [false, true]) {
     it(`rejects negative ${inputOption ? "input" : "output"} -t without writing a completed WAV`, async () => {

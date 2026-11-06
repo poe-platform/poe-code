@@ -1412,7 +1412,7 @@ export function evalSyncFfmpeg(
         if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) fragmented = true;
       } else if (arg === "-vf" || arg === "-filter:v") {
         const f = args[++i]; if (f) vfFilters.push(f);
-      } else if (arg === "-af" || arg === "-filter:a") {
+      } else if (arg === "-af" || arg === "-filter:a" || arg.startsWith("-af:") || arg.startsWith("-filter:a:")) {
         // Audio filtering and validation require the async command.
         return undefined;
       } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
@@ -1673,7 +1673,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let rotation: number | undefined;
         const maps: string[] = [];
         const vfFilters: string[] = [];
-        const afFilters: string[] = [];
+        const afFilters: { ordinal: number | undefined; expression: string }[] = [];
         let chapterSource: number | undefined;
         let metadataSource: number | undefined;
         const metadata: Record<string, string> = {};
@@ -1864,9 +1864,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-vf" || arg === "-filter:v") {
             const f = args[++i];
             if (f) vfFilters.push(f);
-          } else if (arg === "-af" || arg === "-filter:a") {
+          } else if (arg === "-af" || arg === "-filter:a" || arg.startsWith("-af:") || arg.startsWith("-filter:a:")) {
             const f = args[++i];
-            if (f) afFilters.push(f);
+            const selector = arg.startsWith("-af:") ? arg.slice(4)
+              : arg.startsWith("-filter:a:") ? arg.slice(10) : undefined;
+            const ordinal = selector === undefined ? undefined : Number(selector);
+            if (selector !== undefined && (!selector || !Array.from(selector).every(char => char >= "0" && char <= "9") || !Number.isSafeInteger(ordinal))) {
+              throw new Error(`Unsupported audio stream specifier: ${selector}`);
+            }
+            if (f) afFilters.push({ ordinal, expression: f });
           } else if (arg === "-filter_complex" || arg === "-lavfi") {
             filterComplex = args[++i];
           } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
@@ -2446,7 +2452,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
 
-            if (audioCodec === "copy" && afFilters.length > 0 && workingDoc.tracks.some(track => track.type === "audio")) {
+            const audioTrackCount = workingDoc.tracks.filter(track => track.type === "audio").length;
+            if (audioCodec === "copy" && audioTrackCount > 0 && afFilters.some(filter => filter.ordinal === undefined || filter.ordinal < audioTrackCount)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Filtering and streamcopy cannot be used together for audio.\n"), context.signal);
               return { exitCode: 218 };
             }
@@ -2571,12 +2578,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
             if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0) && audioCodec !== "copy") {
+              let audioOrdinal = 0;
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (t) => {
       let work = 0;
 
                   if (t.type !== "audio") return t;
+                  const ordinal = audioOrdinal++;
+                  const filters = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal);
+                  if (audioRate === undefined && audioChannels === undefined && filters.length === 0) return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
@@ -2595,10 +2606,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let volFactor = t.volume ?? 1.0;
                   let tempoFactor = 1.0;
                   let reverseAudio = false;
-                  for (const af of afFilters) {
+                  for (const { expression } of filters) {
                     if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
-                    for (const item of af.split(",")) {
+                    for (const item of expression.split(",")) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                       const trimmed = item.trim();

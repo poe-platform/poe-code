@@ -25,7 +25,10 @@ WAV extraction decodes Ogg Vorbis, AAC and CBR/VBR MP3 in memory, honoring MP4 e
 and MP3 encoder delay and padding:
 `ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported
 audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac` accept AAC input as well as decoded PCM
-input, such as WAV or a `lavfi` source. `-ac 1` downmixes stereo and
+input, such as WAV or a `lavfi` source. `-filter:a:0 volume=0` (or `-af:0 volume=0`)
+mutes the first output audio stream; numeric audio selectors follow output mapping
+and leave nonmatching streams unchanged. Filtering a matching stream with `-c:a copy`
+fails without writing output. `-ac 1` downmixes stereo and
 5.1 WAV audio (back or side surrounds) using normalized FFmpeg weights, preserving
 center dialogue and omitting LFE. Stereo upmixing with `-ac 3` or `-ac 4` preserves
 left and right audio and leaves added channels silent. Other conversions from

@@ -43,7 +43,12 @@ describe("volume timeline enable", () => {
 
 describe("frame-evaluated volume", () => {
   // Native FFmpeg 7.0.2 and 9.0.1 restore this 8 kHz signal at sample 4096.
-  for (const expression of ["if(lt(t\\,0.5)\\,0\\,1)", "'if(lt(t,0.5),0,1)'", "if(lt(n\\,8)\\,0\\,1)"]) {
+  for (const [expression, transition] of [
+    ["if(lt(t\\,0.5)\\,0\\,1)", 4096],
+    ["'if(lt(t,0.5),0,1)'", 4096],
+    ["if(lt(n\\,8)\\,0\\,1)", 4096],
+    ["if(lt(t\\,0.07)\\,0\\,1)", 1024]
+  ] as const) {
     it(`matches native frame transitions and every PCM sample: ${expression}`, async () => {
       const input = encodeWav({ sampleRate: 8000, channels: [
         Float64Array.from({ length: 8000 }, (_, i) => (12000 + i % 50) / 32768)
@@ -54,7 +59,7 @@ describe("frame-evaluated volume", () => {
       ], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       const expected = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!.slice();
-      expected.fill(0, 0, 4096);
+      expected.fill(0, 0, transition);
       assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0], expected);
     });
   }

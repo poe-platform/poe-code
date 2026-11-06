@@ -375,7 +375,7 @@ export function decodeImage(
     case "ppm":
     case "pgm":
     case "pbm":
-      decoded = decodeNetpbmImage(bytes);
+      decoded = decodeNetpbmImage(bytes, options?.page);
       break;
     case "bmp":
       decoded = decodeBmpImage(bytes);

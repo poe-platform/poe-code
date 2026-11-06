@@ -1,6 +1,6 @@
 import {createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader} from "./bmp-header.js";
-import {parseNetpbmHeader} from "./netpbm-header.js";
+import {parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
 import { decodeJpegImage } from "./jpeg.js";
@@ -26,7 +26,7 @@ export function isTiffBytes(bytes: Uint8Array): boolean {
 }
 
 export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
-  const hdr = parseNetpbmHeader(bytes);
+  const { header: hdr, pages } = parseNetpbmSequence(bytes);
   return {
     format: hdr.format,
     width: hdr.width,
@@ -36,12 +36,13 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
     depth: hdr.format === "pbm" ? "bit" : hdr.maxval > 255 ? "ushort" : "uchar",
     density: 72,
     hasAlpha: false,
-    size: bytes.byteLength
+    size: bytes.byteLength,
+    ...(pages > 1 ? { pages } : {})
   };
 }
 
-export function decodeNetpbmImage(bytes: Uint8Array): RgbaImage {
-  const hdr = parseNetpbmHeader(bytes);
+export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
+  const { header: hdr } = parseNetpbmSequence(bytes, page);
   const { width, height, maxval, magic, format } = hdr;
   if (magic === "P6" && bytes.length - hdr.dataOffset < width * height * 3 * (maxval > 255 ? 2 : 1)) {
     throw new Error("Truncated PPM raster");

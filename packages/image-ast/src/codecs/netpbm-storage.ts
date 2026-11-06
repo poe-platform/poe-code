@@ -1,16 +1,16 @@
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
-import {netpbmHeaderSteps} from "./netpbm-header.js";
+import {netpbmSequenceSteps} from "./netpbm-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {Pixels,Output} from "../ops/storage-raster.js";
 
 /** Decode all six Netpbm variants without retaining the encoded file or raster. */
 export async function decodeNetpbmToStorage(source:ImageByteSource,storage:ImageByteStorage,signal:AbortSignal,options?:SharpInputOptions):Promise<StoredRgbaImage> {
  signal.throwIfAborted();
- const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmHeaderSteps(source.size);let next=steps.next();
+ const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size,options?.page??0);let next=steps.next();
  while(!next.done) next=steps.next(await reader.at(next.value));
- const {width,height,maxval,magic,format,dataOffset}=next.value;
+ const {width,height,maxval,magic,format,dataOffset}=next.value.header;
  if(!["P1","P2","P3","P4","P5","P6"].includes(magic)) throw new Error("Invalid Netpbm signature");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid Netpbm dimensions");
  checkLimitInputPixels(width,height,options);

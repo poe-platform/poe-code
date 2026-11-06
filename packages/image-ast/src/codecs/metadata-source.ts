@@ -15,7 +15,7 @@ import {readImageMetadata} from "./index.js";
 import {isPngBytes} from "./png.js";
 import {isJpegBytes} from "./jpeg.js";
 import {isBmpBytes,isNetpbmBytes,isTiffBytes,readBmpMetadata} from "./netpbm.js";
-import {netpbmHeaderSteps} from "./netpbm-header.js";
+import {netpbmSequenceSteps} from "./netpbm-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {UnsupportedStoredResource,rejectUnknownImage} from "./unsupported-storage.js";
 import {checkLimitInputPixels} from "../limits.js";
@@ -43,10 +43,10 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  }
  else if(isBmpBytes(prefix))metadata={...readBmpMetadata(prefix),size:source.size};
  else if(isNetpbmBytes(prefix)) {
-  const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmHeaderSteps(source.size);let next=steps.next();
+  const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size);let next=steps.next();
   while(!next.done)next=steps.next(await reader.at(next.value));
-  const {format,width,height,maxval}=next.value;
-  metadata={format,width,height,space:format==="ppm"?"srgb":"b-w",channels:format==="ppm"?3:1,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha:false,size:source.size};
+  const {header:{format,width,height,maxval},pages}=next.value;
+  metadata={format,width,height,space:format==="ppm"?"srgb":"b-w",channels:format==="ppm"?3:1,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha:false,size:source.size,...(pages>1?{pages}:{})};
  } else {
   const length=Math.min(1029,source.size),head=await source.read(0,length,{signal});signal.throwIfAborted();
   if(!(head instanceof Uint8Array)||head.length!==length)throw new Error("Truncated image metadata source");

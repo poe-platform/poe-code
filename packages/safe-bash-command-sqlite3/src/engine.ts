@@ -474,7 +474,7 @@ export type ExprNode =
       over?: {
         partitionBy: ExprNode[];
         orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined | undefined }[];
-        frameBounds?: { start: number; end: number } | undefined;
+        frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number } | undefined;
       } | undefined;
     }
   | { kind: "subquery"; sql: string; exists?: boolean; notExists?: boolean };
@@ -962,13 +962,13 @@ class ExprParser {
           | {
               partitionBy: ExprNode[];
               orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[];
-              frameBounds?: { start: number; end: number } | undefined;
+              frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number } | undefined;
             }
           | undefined;
         if (this.matchWord("OVER")) {
           const partitionBy: ExprNode[] = [];
           const orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[] = [];
-          let frameBounds: { start: number; end: number } | undefined;
+          let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number } | undefined;
           if (this.matchValue("(")) {
             if (this.matchWord("PARTITION")) {
               this.matchWord("BY");
@@ -998,6 +998,8 @@ class ExprParser {
               } while (this.matchValue(","));
             }
             if (this.matchWord("ROWS") || this.matchWord("RANGE") || this.matchWord("GROUPS")) {
+              const type = this.tokens[this.pos - 1]!.value.toUpperCase() as "ROWS" | "RANGE" | "GROUPS";
+              let hasOffset = false;
               const parseBound = (): number => {
                 if (this.matchWord("UNBOUNDED")) {
                   if (this.matchWord("PRECEDING")) return -Infinity;
@@ -1008,6 +1010,7 @@ class ExprParser {
                   this.matchWord("ROW");
                   return 0;
                 }
+                hasOffset = true;
                 const numTok = this.peek();
                 const n = Number(numTok?.value ?? 0);
                 if (numTok) this.pos += 1;
@@ -1019,10 +1022,13 @@ class ExprParser {
                 const start = parseBound();
                 this.matchWord("AND");
                 const end = parseBound();
-                frameBounds = { start, end };
+                frameBounds = { type, start, end };
               } else {
                 const start = parseBound();
-                frameBounds = { start, end: 0 };
+                frameBounds = { type, start, end: 0 };
+              }
+              if (type === "RANGE" && hasOffset && orderBy.length !== 1) {
+                throw new Error("RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression");
               }
             }
             // Skip any remaining window specification tokens (e.g. EXCLUDE ...)
@@ -6778,8 +6784,16 @@ export class SqliteDatabase {
         );
       }, this);
 
+      const rangeValues = over.frameBounds?.type === "RANGE" && over.orderBy.length === 1
+        ? yield* stepMap(indices, function* (idx) {
+          const g = groupedRows[idx]!;
+          return yield* this.evalExprSteps(over.orderBy[0]!.expr, g.representative, positionalParams, cteScope, { group: g.group });
+        }, this)
+        : [];
+
       let currentRank = 1;
       let currentDenseRank = 1;
+      let currentPeerEnd = -1;
 
       for (let pPos = 0; pPos < indices.length; pPos += 1) {
         yield;
@@ -6788,6 +6802,51 @@ export class SqliteDatabase {
         if (pPos > 0 && orderPeerKeys[pPos] !== orderPeerKeys[pPos - 1]) {
           currentRank = pPos + 1;
           currentDenseRank += 1;
+        }
+
+        if (pPos > currentPeerEnd) {
+          currentPeerEnd = pPos;
+          while (currentPeerEnd + 1 < indices.length && orderPeerKeys[currentPeerEnd + 1] === orderPeerKeys[pPos]) {
+            yield;
+            currentPeerEnd += 1;
+          }
+        }
+
+        let frameStart = 0;
+        let frameEnd = over.orderBy.length > 0 ? pPos : indices.length - 1;
+        if (over.frameBounds && over.frameBounds.type !== "RANGE") {
+          frameStart = Math.max(0, pPos + over.frameBounds.start);
+          frameEnd = Math.min(indices.length - 1, pPos + over.frameBounds.end);
+        } else {
+          // RANGE boundaries use ordering values; CURRENT ROW includes every peer.
+          const bounds = over.frameBounds;
+          const current = rangeValues[pPos];
+          const numeric = typeof current === "number" || typeof current === "bigint" || current instanceof Number;
+          const findBound = function* (offset: number, end: boolean): SqlSteps<number> {
+            if (offset === -Infinity) return 0;
+            if (offset === Infinity) return indices.length - 1;
+            if (!numeric || offset === 0) {
+              return end ? currentPeerEnd : currentRank - 1;
+            }
+            const order = over.orderBy[0]!;
+            const delta = order.desc ? -offset : offset;
+            const target = typeof current === "bigint" && Number.isInteger(delta)
+              ? current + BigInt(delta) : Number(current) + delta;
+            let low = 0, high = indices.length;
+            while (low < high) {
+              yield;
+              const mid = Math.floor((low + high) / 2);
+              const value = rangeValues[mid]!;
+              const cmp = value === null && order.nulls
+                ? (order.nulls === "FIRST" ? -1 : 1)
+                : compareSqlValues(value, target) * (order.desc ? -1 : 1);
+              if (cmp < 0 || (end && cmp === 0)) low = mid + 1;
+              else high = mid;
+            }
+            return end ? low - 1 : low;
+          };
+          frameStart = bounds ? yield* findBound(bounds.start, false) : 0;
+          frameEnd = yield* findBound(bounds?.end ?? (over.orderBy.length ? 0 : Infinity), true);
         }
 
         if (fnUpper === "ROW_NUMBER") {
@@ -6809,15 +6868,7 @@ export class SqliteDatabase {
         } else if (fnUpper === "PERCENT_RANK") {
           result[rowIdx] = indices.length <= 1 ? 0 : (currentRank - 1) / (indices.length - 1);
         } else if (fnUpper === "CUME_DIST") {
-          let peerEnd = pPos;
-          while (
-            peerEnd + 1 < indices.length &&
-            orderPeerKeys[peerEnd + 1] === orderPeerKeys[pPos]
-          ) {
-            yield;
-            peerEnd += 1;
-          }
-          result[rowIdx] = (peerEnd + 1) / indices.length;
+          result[rowIdx] = (currentPeerEnd + 1) / indices.length;
         } else if (fnUpper === "LAG" || fnUpper === "LEAD") {
           const offset = fnExpr.args[1]
             ? Math.trunc(
@@ -6837,44 +6888,22 @@ export class SqliteDatabase {
             result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, targetG.representative, positionalParams, cteScope, { group: targetG.group });
           }
         } else if (fnUpper === "FIRST_VALUE") {
-          const frameStart = over.frameBounds
-            ? over.frameBounds.start === -Infinity
-              ? 0
-              : Math.max(0, pPos + over.frameBounds.start)
-            : 0;
-          const firstG = groupedRows[indices[frameStart]!]!;
-          result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, firstG.representative, positionalParams, cteScope, { group: firstG.group });
-        } else if (fnUpper === "LAST_VALUE") {
-          let peerEnd = over.orderBy.length > 0 ? pPos : indices.length - 1;
-          if (over.frameBounds) {
-            peerEnd =
-              over.frameBounds.end === Infinity
-                ? indices.length - 1
-                : Math.min(indices.length - 1, Math.max(0, pPos + over.frameBounds.end));
-          } else {
-            while (
-              over.orderBy.length > 0 &&
-              peerEnd + 1 < indices.length &&
-              orderPeerKeys[peerEnd + 1] === orderPeerKeys[pPos]
-            ) {
-              yield;
-              peerEnd += 1;
-            }
+          if (frameStart <= frameEnd && frameStart < indices.length) {
+            const firstG = groupedRows[indices[frameStart]!]!;
+            result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, firstG.representative, positionalParams, cteScope, { group: firstG.group });
           }
-          const lastG = groupedRows[indices[peerEnd]!]!;
-          result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, lastG.representative, positionalParams, cteScope, { group: lastG.group });
+        } else if (fnUpper === "LAST_VALUE") {
+          if (frameStart <= frameEnd && frameEnd >= 0) {
+            const lastG = groupedRows[indices[frameEnd]!]!;
+            result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, lastG.representative, positionalParams, cteScope, { group: lastG.group });
+          }
         } else if (fnUpper === "NTH_VALUE") {
           const n = Math.trunc(
             toSqlNumber(
               yield* this.evalExprSteps(fnExpr.args[1]!, g.representative, positionalParams, cteScope, { group: g.group })
             )
           );
-          const frameStart = over.frameBounds
-            ? over.frameBounds.start === -Infinity
-              ? 0
-              : Math.max(0, pPos + over.frameBounds.start)
-            : 0;
-          if (n >= 1 && frameStart + n - 1 < indices.length) {
+          if (n >= 1 && frameStart + n - 1 <= frameEnd) {
             const nthG = groupedRows[indices[frameStart + n - 1]!]!;
             result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, nthG.representative, positionalParams, cteScope, { group: nthG.group });
           } else {
@@ -6882,28 +6911,7 @@ export class SqliteDatabase {
           }
         } else {
           // Aggregate window function (SUM, COUNT, AVG, MIN, MAX, etc.)
-          let frameStart = 0;
-          let frameEnd = over.orderBy.length > 0 ? pPos : indices.length - 1;
-          if (over.frameBounds) {
-            frameStart =
-              over.frameBounds.start === -Infinity
-                ? 0
-                : Math.max(0, pPos + over.frameBounds.start);
-            frameEnd =
-              over.frameBounds.end === Infinity
-                ? indices.length - 1
-                : Math.min(indices.length - 1, Math.max(-1, pPos + over.frameBounds.end));
-          } else {
-            while (
-              over.orderBy.length > 0 &&
-              frameEnd + 1 < indices.length &&
-              orderPeerKeys[frameEnd + 1] === orderPeerKeys[pPos]
-            ) {
-              yield;
-              frameEnd += 1;
-            }
-          }
-          const frameRows = yield* stepFlatMap(indices.slice(frameStart, frameEnd + 1), function* (idx) { yield;
+          const frameRows = yield* stepFlatMap(indices.slice(frameStart, Math.max(0, frameEnd + 1)), function* (idx) { yield;
             return groupedRows[idx]!.group;
           }, this);
           const strippedFn: Extract<ExprNode, { kind: "func" }> = { ...fnExpr, over: undefined };

@@ -38,6 +38,8 @@ export interface QueryResultSet {
   rows: SqlValue[][];
 }
 
+type CteScope = Map<string, QueryResultSet | (() => SqlSteps<QueryResultSet>)>;
+
 export interface ColumnDef {
   name: string;
   type: string;
@@ -2343,7 +2345,7 @@ export class SqliteDatabase {
   public executeStatement(
     rawSql: string,
     positionalParams: SqlValue[] = [],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
+    cteScope: CteScope = new Map()
   ): QueryResultSet | null {
     return runSynchronously(this.executeStatementSteps(rawSql, positionalParams, cteScope));
   }
@@ -2351,7 +2353,7 @@ export class SqliteDatabase {
   private *executeStatementSteps(
     rawSql: string,
     positionalParams: SqlValue[] = [],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
+    cteScope: CteScope = new Map()
   ): SqlSteps<QueryResultSet | null> {
     const sql = rawSql.trim().replace(/;+\s*$/, "");
     if (!sql) {
@@ -3882,7 +3884,7 @@ export class SqliteDatabase {
     _sql: string,
     tokens: Token[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: CteScope
   ): SqlSteps<QueryResultSet | null> {
     let idx = 0;
     let conflictAction: "ABORT" | "REPLACE" | "IGNORE" = "ABORT";
@@ -4328,7 +4330,7 @@ export class SqliteDatabase {
   private *executeUpdate(
     tokens: Token[],
     positionalParams: SqlValue[],
-    _cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    _cteScope: CteScope
   ): SqlSteps<QueryResultSet | null> {
     let idx = 1;
     let conflictAction = "ABORT";
@@ -4514,7 +4516,7 @@ export class SqliteDatabase {
   private *executeDelete(
     tokens: Token[],
     positionalParams: SqlValue[],
-    _cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    _cteScope: CteScope
   ): SqlSteps<QueryResultSet | null> {
     let idx = 1;
     if (tokens[idx]?.value.toUpperCase() === "FROM") {
@@ -4623,7 +4625,7 @@ export class SqliteDatabase {
     rows: TableRow[],
     returningTokens: Token[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
+    cteScope: CteScope = new Map()
   ): SqlSteps<QueryResultSet> {
     const items = this.splitTopLevelComma(returningTokens);
     const outCols: string[] = [];
@@ -4659,9 +4661,10 @@ export class SqliteDatabase {
   private *executeWith(
     tokens: Token[],
     positionalParams: SqlValue[],
-    outerCtes: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    outerCtes: CteScope
   ): SqlSteps<QueryResultSet | null> {
     const cteMap = new Map(outerCtes);
+    const definitionRows = this.outerRows.slice();
     let idx = 1;
     if (tokens[idx]?.value.toUpperCase() === "RECURSIVE") {
       idx += 1;
@@ -4716,20 +4719,31 @@ export class SqliteDatabase {
         bodyTokens.push(t);
       }
 
-      if (this.containsTableReference(bodyTokens, cteName)) {
-        const evaluated = yield* this.evalRecursiveCte(
-          cteName,
-          explicitCols,
-          bodyTokens,
-          positionalParams,
-          cteMap
-        );
-        cteMap.set(cteName.toLowerCase(), evaluated);
-      } else {
-        const res = yield* this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
-        const cols = explicitCols && explicitCols.length > 0 ? explicitCols : res.columns;
-        cteMap.set(cteName.toLowerCase(), { columns: cols, rows: res.rows });
-      }
+      let result: QueryResultSet | undefined;
+      let evaluating = false;
+      cteMap.set(cteName.toLowerCase(), function* (this: SqliteDatabase) {
+        if (result) return result;
+        if (evaluating) throw new Error(`circular reference: ${cteName}`);
+        evaluating = true;
+        const callerRows = this.outerRows;
+        this.outerRows = definitionRows.slice();
+        try {
+          if (this.containsTableReference(bodyTokens, cteName)) {
+            result = yield* this.evalRecursiveCte(
+              cteName, explicitCols, bodyTokens, positionalParams, cteMap
+            );
+          } else {
+            const res = yield* this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
+            const columns = explicitCols && explicitCols.length > 0 ? explicitCols : res.columns;
+            result = { columns, rows: res.rows };
+          }
+          return result;
+        } finally {
+          if (this.preparing) result = undefined;
+          this.outerRows = callerRows;
+          evaluating = false;
+        }
+      }.bind(this));
 
       if (tokens[idx]?.value === ",") {
         idx += 1;
@@ -4774,7 +4788,7 @@ export class SqliteDatabase {
     explicitCols: string[] | undefined,
     bodyTokens: Token[],
     positionalParams: SqlValue[],
-    cteMap: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteMap: CteScope
   ): SqlSteps<{ columns: string[]; rows: SqlValue[][] }> {
     // Split at top-level UNION / UNION ALL
     let d = 0;
@@ -4899,7 +4913,7 @@ export class SqliteDatabase {
   private *executeSelectCompound(
     tokens: Token[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: CteScope
   ): SqlSteps<QueryResultSet> {
     if (tokens[0]?.value.toUpperCase() === "WITH") {
       return (
@@ -5069,7 +5083,7 @@ export class SqliteDatabase {
   private *executeSingleSelect(
     tokens: Token[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: CteScope
   ): SqlSteps<QueryResultSet> {
     if (tokens[0]?.value.toUpperCase() === "VALUES") {
       let idx = 1;
@@ -5733,7 +5747,7 @@ export class SqliteDatabase {
   private *evaluateFromClause(
     fromTokens: Token[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: CteScope
   ): SqlSteps<{
     rows: Record<string, SqlValue>[];
     schema: { tableAlias: string; columns: string[]; table?: TableDef | undefined; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[];
@@ -6274,7 +6288,7 @@ export class SqliteDatabase {
     srcTokens: Token[],
     outerRows: Record<string, SqlValue>[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>,
+    cteScope: CteScope,
     prepareTvf = false
   ): SqlSteps<{
     alias: string;
@@ -6409,8 +6423,9 @@ export class SqliteDatabase {
     const alias = srcTokens[idx]?.value ?? name;
 
     // Check CTE scope first
-    const cte = cteScope.get(name.toLowerCase());
-    if (cte) {
+    const entry = cteScope.get(name.toLowerCase());
+    if (entry) {
+      const cte = typeof entry === "function" ? yield* entry() : entry;
       const rows = yield* stepMap(cte.rows, function* (r) { yield;
         const obj: Record<string, SqlValue> = {};
         cte.columns.forEach((c, cIdx) => {
@@ -6793,7 +6808,7 @@ export class SqliteDatabase {
     expr: ExprNode,
     groupedRows: { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>,
+    cteScope: CteScope,
     out: Map<ExprNode, SqlValue[]>
   ): SqlSteps<void> {
     if (expr.kind === "func" && expr.over) {
@@ -6810,7 +6825,7 @@ export class SqliteDatabase {
     fnExpr: Extract<ExprNode, { kind: "func" }>,
     groupedRows: { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: CteScope
   ): SqlSteps<SqlValue[]> {
     const result: SqlValue[] = new Array(groupedRows.length).fill(null);
     const parsedOver = fnExpr.over!;
@@ -7090,7 +7105,7 @@ export class SqliteDatabase {
     expr: Extract<ExprNode, { kind: "func" }>,
     group: Record<string, SqlValue>[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: CteScope
   ): SqlSteps<SqlValue> {
     const u = expr.name.toUpperCase();
     let filteredGroup = group;
@@ -7239,7 +7254,7 @@ export class SqliteDatabase {
     node: unknown,
     scope: Record<string, SqlValue>,
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: CteScope
   ): SqlSteps<void> {
     if (!node || typeof node !== "object") return;
     if ("kind" in node && node.kind === "binary" && (node as Extract<ExprNode, { kind: "binary" }>).op === "MATCH") {
@@ -7497,7 +7512,7 @@ export class SqliteDatabase {
     expr: ExprNode,
     row: Record<string, SqlValue>,
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
+    cteScope: CteScope = new Map()
   ): SqlValue {
     return runSynchronously(this.evalExprSteps(expr, row, positionalParams, cteScope));
   }
@@ -7506,7 +7521,7 @@ export class SqliteDatabase {
     expr: ExprNode,
     row: Record<string, SqlValue>,
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map(),
+    cteScope: CteScope = new Map(),
     evaluation?: ExprEvaluation
   ): SqlSteps<SqlValue> {
     if (evaluation?.window?.results.has(expr)) {

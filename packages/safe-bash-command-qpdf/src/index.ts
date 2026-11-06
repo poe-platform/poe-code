@@ -1,3 +1,4 @@
+import { qpdfJsonAttachment } from "./json-attachments.js";
 import { qpdfJsonEncryption } from "./json-encryption.js";
 import { linearizationAssignments } from "./linearization-assignments.js";
 import { checkLinearization } from "./linearization-check.js";
@@ -443,11 +444,12 @@ function parseStrictJsonObjectSelector(
   return { kind: "obj", objNum, genNum };
 }
 
-function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: string; reference: PdfCosRef | undefined; data: Uint8Array }[] {
-  const entries: { key: string; filename: string; reference: PdfCosRef | undefined; data: Uint8Array }[] = [];
+function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: string; reference: PdfCosRef | undefined; filespec: PdfCosNode; data: Uint8Array }[] {
+  const entries: { key: string; filename: string; reference: PdfCosRef | undefined; filespec: PdfCosNode; data: Uint8Array }[] = [];
   const seenKeys = new Set<string>();
-  const pushFilespec = (fsDict: PdfCosDict | undefined, fallbackKey: string) => {
-    if (!fsDict) return;
+  const pushFilespec = (filespec: PdfCosNode | undefined, fallbackKey: string) => {
+    const fsDict = asDict(doc.cos.resolve(filespec));
+    if (!fsDict || !filespec) return;
     const ufNode = doc.cos.resolve(dictGet(fsDict, "UF") ?? dictGet(fsDict, "F"));
     const fnStr = ufNode?.kind === "string" ? decodePdfString(ufNode) : fallbackKey;
     const keyStr = fallbackKey || fnStr;
@@ -459,7 +461,7 @@ function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: 
     const stNode = doc.cos.resolve(streamReference);
     if (stNode?.kind === "stream") {
       seenKeys.add(keyStr);
-      entries.push({ key: keyStr, filename: fnStr, reference: asRef(streamReference), data: doc.cos.decodeStream(stNode) });
+      entries.push({ key: keyStr, filename: fnStr, filespec, reference: asRef(streamReference), data: doc.cos.decodeStream(stNode) });
     }
   };
   const walkNames = (nodeDict: PdfCosDict | undefined, visited = new Set<number>()) => {
@@ -469,8 +471,7 @@ function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: 
       for (let idx = 0; idx + 1 < namesArr.items.length; idx += 2) {
         const kNode = doc.cos.resolve(namesArr.items[idx]);
         const keyStr = kNode?.kind === "string" ? decodePdfString(kNode) : `att_${idx}`;
-        const fsDict = asDict(doc.cos.resolve(namesArr.items[idx + 1]));
-        pushFilespec(fsDict, keyStr);
+        pushFilespec(namesArr.items[idx + 1], keyStr);
       }
     }
     const kidsArr = asArray(doc.cos.resolve(dictGet(nodeDict, "Kids")));
@@ -490,7 +491,7 @@ function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: 
   const rootAfArr = rootDict ? asArray(doc.cos.resolve(dictGet(rootDict, "AF"))) : undefined;
   if (rootAfArr) {
     for (const item of rootAfArr.items) {
-      pushFilespec(asDict(doc.cos.resolve(item)), "");
+      pushFilespec(item, "");
     }
   }
   for (const p of doc.getPages()) {
@@ -500,7 +501,7 @@ function collectDocumentAttachments(doc: PdfDocument): { key: string; filename: 
       const aDict = asDict(doc.cos.resolve(item));
       if (!aDict) continue;
       if (asName(dictGet(aDict, "Subtype"))?.decoded === "FileAttachment") {
-        pushFilespec(asDict(doc.cos.resolve(dictGet(aDict, "FS"))), "");
+        pushFilespec(dictGet(aDict, "FS"), "");
       }
     }
   }
@@ -1548,10 +1549,19 @@ function* executeQpdfCli(
         }
       };
     }
+    function materialize(value: JsonValue): unknown {
+      if (value === null || typeof value !== "object") return value;
+      if (value.kind === "array") return Array.from(value.values as Iterable<JsonValue>, materialize);
+      if (value.kind === "object") return Object.fromEntries(Array.from(value.entries as Iterable<readonly [string, JsonValue]>, ([key, item]) => [key, materialize(item)]));
+      throw new Error("Unexpected summary JSON value");
+    }
     const attachmentsJson: Record<string, unknown> = {};
     const rootDictForJson = asDict(baseDoc.cos.resolve(baseDoc.cos.rootRef));
     for (const att of include("attachments") ? collectDocumentAttachments(baseDoc) : []) {
-      attachmentsJson[att.key] = { filename: att.filename };
+      const steps = qpdfJsonAttachment(att.filespec);
+      let step = steps.next();
+      while (!step.done) { yield; step = steps.next(baseDoc.cos.resolve(step.value)); }
+      attachmentsJson[att.key] = materialize(step.value);
     }
     const acroDictJson = rootDictForJson ? asDict(baseDoc.cos.resolve(dictGet(rootDictForJson, "AcroForm"))) : undefined;
     const needAppJson = acroDictJson ? baseDoc.cos.resolve(dictGet(acroDictJson, "NeedAppearances")) : undefined;
@@ -1618,12 +1628,6 @@ function* executeQpdfCli(
         const steps = qpdfJsonPage(page.dict, page.ref, index, rootDictForJson, jsonVersion);
         let step = steps.next();
         while (!step.done) { yield; step = steps.next(baseDoc.cos.resolve(step.value)); }
-        function materialize(value: JsonValue): unknown {
-          if (value === null || typeof value !== "object") return value;
-          if (value.kind === "array") return Array.from(value.values as Iterable<JsonValue>, materialize);
-          if (value.kind === "object") return Object.fromEntries(Array.from(value.entries as Iterable<readonly [string, JsonValue]>, ([key, item]) => [key, materialize(item)]));
-          throw new Error("Unexpected page JSON value");
-        }
         values.push(materialize(step.value));
       }
       pagesVal = values;

@@ -1176,8 +1176,8 @@ describe("safe-bash-command-qpdf", () => {
     const jsonRes = await runQpdfCli(["src.pdf", "--json"], files);
     assert.equal(jsonRes.exitCode, 0);
     const parsedJson = JSON.parse(jsonRes.stdout);
-    assert.equal(parsedJson.attachments["script-key"].filename, "script.sh");
-    assert.equal(parsedJson.attachments["zugferd.xml"].filename, "zugferd.xml");
+    assert.equal(parsedJson.attachments["script-key"].preferredname, "script.sh");
+    assert.equal(parsedJson.attachments["zugferd.xml"].preferredname, "zugferd.xml");
     assert.equal(parsedJson.pagelabels.length, 1);
     assert.equal(parsedJson.pagelabels[0].label["/P"], "u:Intro-");
 

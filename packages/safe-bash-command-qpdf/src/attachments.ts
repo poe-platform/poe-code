@@ -10,7 +10,7 @@ export class QpdfMissingAttachment extends Error {
  * Traversal frames and membership live on caller storage; output is consumed
  * into publication staging so a later decoding failure cannot leak a prefix. */
 export async function* retainedAttachments(document: PdfRetainedDocument, storage: PdfIndexStorage,
-  signal: AbortSignal): AsyncGenerator<{ key: string; filename: string; reference: PdfCosRef }> {
+  signal: AbortSignal): AsyncGenerator<{ key: string; filename: string; reference: PdfCosRef; filespec: PdfCosNode }> {
   const values = new PdfMutableObjectStore(storage, { signal }), names = new PdfNameIndex(storage, Infinity, signal);
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const visited = new IntegerTable(backing), accepted = new IntegerTable(backing);
@@ -77,7 +77,7 @@ export async function* retainedAttachments(document: PdfRetainedDocument, storag
       const stream = embedded && await document.lookup(dictGet(embedded, "UF") ?? dictGet(embedded, "F") ?? dictGet(embedded, "DOS") ?? dictGet(embedded, "Mac") ?? dictGet(embedded, "Unix"));
       if (!stream?.stream || !stream.reference) continue;
       await accepted.set(BigInt(identity), 1n);
-      yield { key: name, filename, reference: stream.reference };
+      yield { key: name, filename, reference: stream.reference, filespec: spec.node };
     }
   } catch (error) {
     failed = true;

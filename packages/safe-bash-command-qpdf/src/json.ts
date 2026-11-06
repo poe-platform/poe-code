@@ -1,3 +1,4 @@
+import { qpdfJsonAttachment } from "./json-attachments.js";
 import { qpdfJsonEncryption } from "./json-encryption.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
@@ -112,8 +113,11 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     const integerKey = (key: string) => { const value = Number(key); return Number.isInteger(value) && value >= 0 && value < 4294967295 && String(value) === key ? value : undefined; };
     async function row(number: number): Promise<readonly [string, JsonValue]> {
       const node = (await values.get(number))!.value;
-      if (node.kind !== "array" || node.items[0]?.kind !== "string" || node.items[1]?.kind !== "string") throw new Error("Invalid JSON attachment record");
-      return [decodePdfString(node.items[0]), jsonRecord({ filename: decodePdfString(node.items[1]) })];
+      if (node.kind !== "array" || node.items[0]?.kind !== "string" || !node.items[1]) throw new Error("Invalid JSON attachment record");
+      const steps = qpdfJsonAttachment(node.items[1]);
+      let step = steps.next();
+      while (!step.done) step = steps.next((await document.lookup(step.value))?.value);
+      return [decodePdfString(node.items[0]), step.value];
     }
     try {
       for await (const attachment of retainedAttachments(document, storage, signal)) {
@@ -121,7 +125,7 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
         // Assignment to this key on the compatibility object's prototype setter
         // creates no enumerable property.
         if (attachment.key === "__proto__") continue;
-        const ref = await values.allocate(cosArray([cosString(attachment.key), cosString(attachment.filename)])), key = integerKey(attachment.key);
+        const ref = await values.allocate(cosArray([cosString(attachment.key), attachment.filespec])), key = integerKey(attachment.key);
         if (key !== undefined) await numeric.set(BigInt(key), BigInt(ref.objectNumber));
       }
       for await (const [, number] of numeric.entries()) yield await row(Number(number));

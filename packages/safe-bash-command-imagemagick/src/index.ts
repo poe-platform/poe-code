@@ -3545,8 +3545,8 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
 
 function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: string, state: MagickState) {
     const g = parseMagickGeometry(geomStr);
-    const targetW = Math.max(1, Math.round(g.width ?? img.width));
-    const targetH = Math.max(1, Math.round(g.height ?? img.height));
+    const targetW = Math.max(1, Math.round(g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width ?? img.width));
+    const targetH = Math.max(1, Math.round(g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height ?? img.height));
     const offset = resolveGravityOffset(targetW - img.width, targetH - img.height, state.gravity);
     const isEast = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
     const isSouth = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";

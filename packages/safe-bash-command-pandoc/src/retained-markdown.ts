@@ -236,7 +236,7 @@ class MarkdownTape {
       if (job.op === "post") {
         if (job.mode === "surround" && job.rest) await this.addProjection(job.rest.length);
         if (job.mode === "surround") result = await this.join(await this.literal(job.first!), result, await this.literal(job.rest!));
-        if (job.mode === "indent") result = result.units || job.first === "> " ? await this.indent(result, job.first!, job.rest!) : await this.literal(job.first!.trimEnd());
+        if (job.mode === "indent") result = result.units || job.first === "> " || job.first === ": " || job.first === "| " ? await this.indent(result, !result.units && job.first === "| " ? "|" : job.first!, job.rest!) : await this.literal(job.first!.trimEnd());
         if (job.mode === "escape") result = await this.escape(result);
         if (job.mode === "trim") {if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2); result = await this.text.trimFinalNewline(result);}
         continue;
@@ -284,11 +284,28 @@ class MarkdownTape {
         }
         continue;
       }
+      if (job.op === "markdownTableCaption") {
+        if (!job.stage) {
+          await this.push({...job, stage: 1, text: result});
+          const long = await this.at(job.node, 1), hasLong = await this.count(long);
+          await this.push(this.list(hasLong ? long : job.node + 32, job.path, hasLong ? "block" : "inline"));
+        } else result = result.units ? await this.join(job.text!, await this.literal("\n\n"), await this.indent(result, ": ", "  ")) : job.text!;
+        continue;
+      }
       if (job.op === "definition") {
-        await this.push({op: "parts", node: 0, path: job.path, sep: "\n", parts: [
-          this.list(await this.at(job.node, 0), await this.path(job.path, "[0]"), "inline"),
-          this.list(await this.at(job.node, 1), await this.path(job.path, "[1]"), "definitionBody", {sep: "\n"})
-        ]}); continue;
+        if (!job.stage) {
+          const definitions = await this.at(job.node, 1);
+          await this.push({...job, stage: 1, cursor: definitions + 32, end: (await this.tree.describe(definitions)).end, index: 0, text: emptyText()});
+          await this.push(this.list(await this.at(job.node, 0), await this.path(job.path, "[0]"), "inline")); continue;
+        }
+        if (job.stage === 2) await this.text.append(job.text!, await this.literal("\n"));
+        await this.text.append(job.text!, result);
+        if (job.cursor! < job.end!) {
+          const node = job.cursor!, path = await this.path(job.path, `[1][${job.index!++}]`);
+          await this.push({...job, stage: 2, cursor: (await this.tree.describe(node)).end});
+          await this.push({op: "definitionBody", node, path});
+        } else {result = job.text!; this.reserve(result.units);}
+        continue;
       }
       if (job.op === "definitionBody") {
         await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: ": ", rest: "  "});
@@ -391,8 +408,7 @@ class MarkdownTape {
           const value = await this.code(original, tag === "CodeBlock", job.cell), details = await this.inspect(value), size = Math.max(tag === "CodeBlock" ? 3 : 1, details.run + 1);
           this.reserve(value.units + size * 2 + (tag === "CodeBlock" ? info.units : 0) + 2);
           if (tag === "CodeBlock") result = await this.join(await this.repeat("`", size), info, await this.literal("\n"), value, await this.literal(details.last === "\n" ? "" : "\n"), await this.repeat("`", size));
-          else {const padding = details.first === "`" || details.last === "`" || details.first === " " && details.last === " " && details.nonspace ? " " : ""; result = await this.join(await this.repeat("`", size), await this.literal(padding), value, await this.literal(padding), await this.repeat("`", size));}
-          if (tag === "RawInline") result = await this.join(result, await this.literal("{="), await this.scalar(attr), await this.literal("}"));
+          else {const padding = details.first === "`" || details.last === "`" || details.first === " " && details.last === " " && details.nonspace ? " " : ""; result = await this.join(await this.repeat("`", size), await this.literal(padding), value, await this.literal(padding), await this.repeat("`", size), ...(tag === "RawInline" ? [await this.literal("{="), await this.scalar(attr), await this.literal("}")] : []));}
           continue;
         }
         if (tag === "Link" || tag === "Image") {
@@ -577,7 +593,7 @@ class MarkdownTape {
       if (!job.stage) {
         if (hasCaption && !this.selection.extensions.table_captions) await this.loss(caption.path, "Flattened table caption", true);
         await this.push({...job, projection: this.projection, stage: 1});
-        if (hasCaption) await this.push({...caption, op: "tableCaption", node: await this.count(long) ? long : short, mode: await this.count(long) ? "fblock" : "finline"});
+        if (hasCaption && !this.selection.extensions.table_captions) await this.push({...caption, op: "tableCaption", node: await this.count(long) ? long : short, mode: await this.count(long) ? "fblock" : "finline"});
         else await this.push({op: "empty", node: 0, path});
         return result;
       }
@@ -611,19 +627,13 @@ class MarkdownTape {
       await rowAttrs(await this.at(foot.node, 1), await this.path(foot.path, "[1]"));
       const captionJob: Job = {op: "savedText", node: 0, path, text: captionText};
       const parts: Job[] = [{...head, columns, width: count}, {...bodies, width: count}, {...foot, width: count}];
-      if (this.selection.extensions.table_captions) parts.push(captionJob);
-      else parts.unshift(captionJob);
+      if (!this.selection.extensions.table_captions) parts.unshift(captionJob);
+      if (hasCaption && this.selection.extensions.table_captions) await this.push({op: "markdownTableCaption", node: caption.node, path: caption.path, projection: 0});
       await this.push({op: "post", node: 0, path, mode: "trim"});
       await this.push({op: "parts", node: 0, path, parts});
       return result;
     }
     if (job.op === "tableCaption") {
-      if (this.selection.extensions.table_captions) {
-        await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: "\n", rest: "\n"});
-        await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: ": ", rest: "  "});
-        await this.push(this.list(job.node, job.path, job.mode === "fblock" ? "block" : "inline"));
-        return result;
-      }
       await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: "", rest: "\n\n"});
       await this.push({op: "tableEscape", node: 0, path: job.path}); await this.push(this.list(job.node, job.path, job.mode!, {sep: job.mode === "fblock" ? " " : "", projection: this.storage.allocate(8)})); return result;
     }

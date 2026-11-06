@@ -2081,7 +2081,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const line = lines[l]!.trim();
                   if (!line || line.startsWith("#")) continue;
                   const keyword = line.split(/[ \t]/, 1)[0]!;
-                  if (keyword === "ffconcat") continue;
+                  if (keyword === "ffconcat") {
+                    const [, declaration, version] = line.split("\t").join(" ").split(" ").filter(Boolean);
+                    if (declaration !== "version" || version !== "1.0") {
+                      throw new Error(`Line ${l + 1}: invalid version`);
+                    }
+                    continue;
+                  }
                   if (concatDocs.length === 0) {
                     const directive = ["duration", "inpoint", "outpoint"].find(name =>
                       line === name || line.startsWith(`${name} `) || line.startsWith(`${name}\t`)

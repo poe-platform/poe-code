@@ -155,7 +155,7 @@ for (const mode of ["-o", "-t", "-l", "-Z1", "-p", "-c"]) test(`unzip stops at t
   const fs = await fixture([{ name: "a.txt", body: "hello" }]);
   const result = await run(fs, [mode, "sample.zip", "*.txt", "a.txt"]);
   assert.equal(result.exitCode, mode === "-l" || mode === "-Z1" ? 0 : 11);
-  assert.equal(result.stderr, mode === "-l" ? "" : "caution: filename not matched:  a.txt\n");
+  assert.equal(result.stderr, mode === "-l" || mode === "-t" ? "" : "caution: filename not matched:  a.txt\n");
 });
 
 for (const quiet of ["", "-q", "-qq"]) test(`unzip -c streams binary payloads with headers at quiet level ${quiet}`, async () => {
@@ -187,10 +187,13 @@ for (const patterns of [["a.txt", "missing.txt"], ["missing.txt"]]) test(`unzip 
   const fs = await fixture([{ name: "a.txt", body: "hello" }]);
   const result = await run(fs, ["-t", "sample.zip", ...patterns]);
   assert.equal(result.exitCode, 11);
-  assert.ok(result.stdout.endsWith("At least one error was detected in sample.zip.\n"));
+  const warning = "caution: filename not matched:  missing.txt\n";
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, heading
+    + (patterns.length === 2 ? "    testing: a.txt                    OK\n" : "")
+    + warning + "At least one error was detected in sample.zip.\n");
   const quiet = await run(fs, ["-tqq", "sample.zip", ...patterns]);
-  assert.equal(quiet.exitCode, 11);
-  assert.equal(quiet.stdout, "");
+  assert.deepEqual(quiet, { exitCode: 11, stdout: warning, stderr: "" });
 });
 
 for (const mode of ["-l", "-v", "-t", "-p", "-Z1", "-oq"]) test(`unzip exclusions and case-insensitive matching in ${mode}`, async () => {

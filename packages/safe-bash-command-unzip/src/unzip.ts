@@ -347,7 +347,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         }
       }
       for (let index = 0; !parsed.list && index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
-        await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
+        await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, !parsed.test);
         exitCode = 11;
       }
       const resultCode = badPasswords ? badPasswords === selected ? 82 : 1 : selected ? exitCode : 11;

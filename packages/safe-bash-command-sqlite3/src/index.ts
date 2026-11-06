@@ -904,17 +904,18 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
 
       if (cmd === ".dump") {
-        const pattern = parts[1];
+        const patterns = parts.slice(1);
+        const selected = (name: string): boolean => patterns.length === 0 || patterns.some(pattern => matchLike(name, pattern, true));
         async function* dump(): AsyncGenerator<string> {
           yield "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n";
           if (db.tables) {
             const virtualTables = importedVirtualTableDumps(db);
             for (const [name, schema] of virtualTables) {
-              if (!pattern || matchGlob(name.toLowerCase(), pattern.toLowerCase())) yield schema;
+              if (selected(name)) yield schema;
             }
             for (const tbl of db.tables.values()) {
               if (virtualTables.has(tbl.name)) continue;
-              if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) {
+              if (!selected(tbl.name)) {
                 continue;
               }
               yield tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;\n" : `${tbl.sql.replace(/;*\s*$/, "")};\n`;
@@ -928,7 +929,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                 yield ");\n";
               }
             }
-            if (!pattern && db instanceof SqliteDatabase) {
+            if (patterns.length === 0 && db instanceof SqliteDatabase) {
               for (const tbl of db.tables.values()) {
                 if (!tbl.columns.some(column => column.autoIncrement)) continue;
                 yield `DELETE FROM sqlite_sequence WHERE name=${formatSqlQuote(tbl.name)};\n`;
@@ -936,17 +937,17 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
               }
             }
             for (const idx of db.indexes?.values() ?? []) {
-              if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) {
+              if (selected(idx.name)) {
                 yield `${idx.sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
             for (const v of db.views?.values() ?? []) {
-              if (!pattern || v.name.toLowerCase() === pattern.toLowerCase()) {
+              if (selected(v.name)) {
                 yield `${v.sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
             for (const tr of db.triggers?.values() ?? []) {
-              if (!pattern || tr.tableName.toLowerCase() === pattern.toLowerCase()) {
+              if (selected(tr.name)) {
                 yield `${tr.sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
@@ -957,10 +958,9 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             for (const row of masterRes?.rows ?? []) {
               const type = String(row[0] ?? "");
               const name = String(row[1] ?? "");
-              const tblName = String(row[2] ?? "");
               const sql = String(row[3] ?? "");
               if (type === "table") {
-                if (pattern && !matchGlob(name.toLowerCase(), pattern.toLowerCase()) && name.toLowerCase() !== pattern.toLowerCase()) {
+                if (!selected(name)) {
                   continue;
                 }
                 const virtualSchema = virtualTableDump(name, sql);
@@ -981,12 +981,12 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                   }
                   yield ");\n";
                 }
-              } else if (!pattern || tblName.toLowerCase() === pattern.toLowerCase() || name.toLowerCase() === pattern.toLowerCase()) {
+              } else if (selected(name)) {
                 yield `${sql.replace(/;*\s*$/, "")};` + "\n";
               }
             }
           }
-          if (!(db instanceof SqliteDatabase) && !pattern) {
+          if (!(db instanceof SqliteDatabase) && patterns.length === 0) {
             const sequence = await execSingleStmt("SELECT name FROM sqlite_master WHERE name='sqlite_sequence';");
             if (sequence?.rows.length) {
               yield "DELETE FROM sqlite_sequence;\n";
@@ -1697,15 +1697,16 @@ export function evalSyncSqlite3(
         return true;
       }
       if (cmd === ".dump") {
-        const pattern = parts[1];
+        const patterns = parts.slice(1);
+        const selected = (name: string): boolean => patterns.length === 0 || patterns.some(pattern => matchLike(name, pattern, true));
         const dumpLines: string[] = ["PRAGMA foreign_keys=OFF;", "BEGIN TRANSACTION;"];
         const virtualTables = importedVirtualTableDumps(db);
         for (const [name, schema] of virtualTables) {
-          if (!pattern || matchGlob(name.toLowerCase(), pattern.toLowerCase())) dumpLines.push(schema.trimEnd());
+          if (selected(name)) dumpLines.push(schema.trimEnd());
         }
         for (const tbl of db.tables.values()) {
           if (virtualTables.has(tbl.name)) continue;
-          if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) continue;
+          if (!selected(tbl.name)) continue;
           dumpLines.push(tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;" : `${tbl.sql.replace(/;*\s*$/, "")};`);
           const columns = tbl.columns.filter(column => !column.generatedExpr);
           for (const r of tbl.rows) {
@@ -1713,7 +1714,7 @@ export function evalSyncSqlite3(
             dumpLines.push(`INSERT INTO "${tbl.name.replaceAll('"', '""')}" VALUES(${vals});`);
           }
         }
-        if (!pattern) {
+        if (patterns.length === 0) {
           for (const tbl of db.tables.values()) {
             if (!tbl.columns.some(column => column.autoIncrement)) continue;
             dumpLines.push(`DELETE FROM sqlite_sequence WHERE name=${formatSqlQuote(tbl.name)};`);
@@ -1721,13 +1722,13 @@ export function evalSyncSqlite3(
           }
         }
         for (const idx of db.indexes.values()) {
-          if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
+          if (selected(idx.name)) dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
         }
         for (const v of db.views.values()) {
-          if (!pattern || v.name.toLowerCase() === pattern.toLowerCase()) dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
+          if (selected(v.name)) dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
         }
         for (const tr of db.triggers.values()) {
-          if (!pattern || tr.tableName.toLowerCase() === pattern.toLowerCase()) dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
+          if (selected(tr.name)) dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
         }
         dumpLines.push("COMMIT;");
         emitOutput(`${dumpLines.join("\n")}\n`);

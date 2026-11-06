@@ -6,9 +6,9 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin,
 } from "safe-bash-contracts";
-import { codeOf, diagnostic, output } from "safe-bash-compression-engine/internal";
+import { diagnostic, output } from "safe-bash-compression-engine/internal";
 import { runOperand } from "safe-bash-compression-engine/operand";
-import { planOperands, verifyOperandDestinations } from "safe-bash-compression-engine/files";
+import { planOperands } from "safe-bash-compression-engine/files";
 import { parseOptions, profiles } from "safe-bash-compression-engine/options";
 import { CompressedDataError, UnrecognizedCompressionFormatError } from "safe-bash-compression-engine/errors";
 import { DecodedBudget, type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
@@ -68,38 +68,17 @@ function createNamedBzip2Command(
         if (parsed.test && parsed.stdout) {
           throw new PublicDiagnostic("-c and -t cannot be used together.");
         }
-        let plans;
-        let planningFailed = false;
-        try {
-          if (parsed.operands.length > 1) {
-            plans = [];
-            for (const operand of parsed.operands) {
-              try {
-                plans.push(...await planOperands(context, { ...parsed, operands: [operand] }));
-              } catch (error) {
-                context.signal.throwIfAborted();
-                if (codeOf(error) === "EROFS") throw error;
-                planningFailed = true;
-                if (parsed.quiet < 2) await diagnostic(context, error);
-              }
-            }
-            if (plans.length > 1) await verifyOperandDestinations(context, plans);
-          } else {
-            plans = await planOperands(context, parsed);
-          }
-        } catch (error) {
-          context.signal.throwIfAborted();
-          if (parsed.quiet < 2) throw error;
-          return { exitCode: 1 };
-        }
         const decodedBudget = new DecodedBudget(limits.maxDecodedBytes);
-        let exitCode = planningFailed ? 1 : 0;
-        for (const plan of plans) {
+        let exitCode = 0;
+        for (const operand of parsed.operands) {
           try {
-            const warned = await runOperand(context, plan, parsed, decodedBudget);
-            if (warned) {
-              if (!parsed.quiet) {
-                await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
+            const plans = await planOperands(context, { ...parsed, operands: [operand] });
+            for (const plan of plans) {
+              const warned = await runOperand(context, plan, parsed, decodedBudget);
+              if (warned) {
+                if (!parsed.quiet) {
+                  await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
+                }
               }
             }
           } catch (error) {

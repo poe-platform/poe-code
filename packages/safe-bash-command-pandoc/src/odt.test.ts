@@ -95,3 +95,27 @@ it("loads safe-bash-docx-engine/pandoc-adapter in odt-writer and defers fengari/
   const distIndex = fsNode.readFileSync(new URL("../dist/index.js", import.meta.url), "utf8");
   expect(distIndex).not.toMatch(/from\s*["'][^"']*(?:fengari|citeproc)[^"']*["']/);
 });
+
+
+it.each(["footnote", "endnote"])("reads formatted, multi-block ODT %s bodies inside spans and links", async noteClass => {
+  const bytes = createStoredZipArchive({mimetype: encode("application/vnd.oasis.opendocument.text"),
+    "content.xml": encode(`<o:document-content xmlns:o="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:t="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:s="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:f="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:x="http://www.w3.org/1999/xlink">
+      <o:automatic-styles><s:style s:name="Bold" s:family="text"><s:text-properties f:font-weight="bold"/></s:style></o:automatic-styles>
+      <o:body><o:text><t:p>Before<t:span><t:a x:href="https://example.com"><t:note t:id="n1" t:note-class="${noteClass}"><t:note-citation>*</t:note-citation><t:note-body><t:p><t:span t:style-name="Bold">Bold</t:span></t:p><t:p>Second</t:p><t:list><t:list-item><t:p>Item</t:p></t:list-item></t:list></t:note-body></t:note></t:a></t:span>After<t:note t:id="n2" t:note-class="${noteClass}"><t:note-citation>2</t:note-citation><t:note-body><t:p>Other</t:p></t:note-body></t:note></t:p></o:text></o:body></o:document-content>`)});
+  const parsed = await readDocument({bytes}, {from: "odt"}, context);
+  expect(parsed.blocks).toEqual([{t: "Para", c: [
+    {t: "Str", c: "Before"},
+    {t: "Link", c: [["", [], []], [{t: "Note", c: [
+      {t: "Para", c: [{t: "Strong", c: [{t: "Str", c: "Bold"}]}]},
+      {t: "Para", c: [{t: "Str", c: "Second"}]},
+      {t: "BulletList", c: [[{t: "Para", c: [{t: "Str", c: "Item"}]}]]}
+    ]}], ["https://example.com", ""]]},
+    {t: "Str", c: "After"}, {t: "Note", c: [{t: "Para", c: [{t: "Str", c: "Other"}]}]}
+  ]}]);
+});
+
+it.each(["", "<t:note-body/><t:note-body/>"])("rejects ODT notes without exactly one body: %s", async body => {
+  const bytes = createStoredZipArchive({mimetype: encode("application/vnd.oasis.opendocument.text"),
+    "content.xml": encode(`<o:document-content xmlns:o="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:t="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><o:body><o:text><t:p><t:note><t:note-citation>1</t:note-citation>${body}</t:note></t:p></o:text></o:body></o:document-content>`)});
+  await expect(readDocument({bytes}, {from: "odt"}, context)).rejects.toMatchObject({code: "E_PARSE", message: "Expected one ODT note body"});
+});

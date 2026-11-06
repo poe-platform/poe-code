@@ -45,7 +45,7 @@ export const odtReader: ReaderCapability = {format: "odt", async read(input, ctx
     if (n > maximum) odtFailure(ctx, "ODT repetition limit exceeded", "E_LIMIT");
     ctx.checkpoint(n); return n;
   };
-  const inlines = (nodes: readonly (OdtElement | string)[]): Inline[] => {
+  const inlines = async (nodes: readonly (OdtElement | string)[]): Promise<Inline[]> => {
     const result: Inline[] = [];
     for (const node of nodes) {
       ctx.checkpoint();
@@ -54,9 +54,13 @@ export const odtReader: ReaderCapability = {format: "odt", async read(input, ctx
         if (node.name === "s") {const n = count(a(node, "c", ns.text), ctx.limits.text); ctx.charge("retainedBytes", n * 2); result.push({t: "Str", c: " ".repeat(n)});}
         else if (node.name === "tab") result.push({t: "Str", c: "\t"});
         else if (node.name === "line-break") result.push({t: "LineBreak"});
-        else if (node.name === "a") result.push({t: "Link", c: [attr, inlines(node.children), [a(node, "href", xlink), ""]]});
-        else if (node.name === "span") {
-          let content = inlines(node.children);
+        else if (node.name === "a") result.push({t: "Link", c: [attr, await inlines(node.children), [a(node, "href", xlink), ""]]});
+        else if (node.name === "note") {
+          const bodies = children(node, "note-body", ns.text);
+          if (bodies.length !== 1) odtFailure(ctx, "Expected one ODT note body");
+          result.push({t: "Note", c: await blocks(bodies[0]!.children)});
+        } else if (node.name === "span") {
+          let content = await inlines(node.children);
           const props = properties(a(node, "style-name", ns.text));
           const tags: {tag: "Strong" | "Emph" | "Strikeout" | "Superscript" | "Subscript" | "Underline" | "SmallCaps"; enabled: boolean}[] = [
             {tag: "Strong", enabled: props.get(`${fo}:font-weight`) === "bold"}, {tag: "Emph", enabled: props.get(`${fo}:font-style`) === "italic"},
@@ -90,7 +94,7 @@ export const odtReader: ReaderCapability = {format: "odt", async read(input, ctx
       await ctx.cooperate();
       if (typeof node === "string") {if (node.trim()) odtFailure(ctx, "Text outside ODT paragraph"); continue;}
       if (node.uri === ns.text && ["p", "h"].includes(node.name)) {
-        const content = inlines(node.children), names = styleChain(a(node, "style-name", ns.text));
+        const content = await inlines(node.children), names = styleChain(a(node, "style-name", ns.text));
         if (node.name === "h") result.push({t: "Header", c: [count(a(node, "outline-level", ns.text), 6), attr, content]});
         else if (names.includes("Rule")) result.push({t: "HorizontalRule"});
         else if (names.includes("Preformatted")) result.push({t: "CodeBlock", c: [attr, content.map(n => n.t === "Str" ? n.c : n.t === "LineBreak" ? "\n" : n.t === "Space" ? " " : "").join("")]});

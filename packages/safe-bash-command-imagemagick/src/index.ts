@@ -5250,7 +5250,7 @@ if (t === "-seed") {
     return i;
 }
 
-function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "" }): Generator<void, RgbaImage[], void> {
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "" }): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
     let operandsOnly = false;
@@ -5799,7 +5799,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "+clone" || t === "-clone") {
-            const sourcePool = stack.length > 0 ? stack : parentStack;
+            const sourcePool = parentStack ?? stack;
+            if (sourcePool.length === 0) throw new Error(`UnableToCloneImage ${t}`);
             const spec = t === "+clone" ? "-1" : (tokens[++i] ?? "-1");
             for (const idx of parseMagickIndexSpec(spec, sourcePool.length)) {
                 if (++cooperativeWork % 65536 === 0)
@@ -6033,7 +6034,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
     const pipelineTokens = argv.slice(0, -1);
     const state = createDefaultState();
     try {
-        const stack = (yield* evaluatePipelineTokensSteps(pipelineTokens, files, state, [], stdinBytes, signal, analysis));
+        const stack = (yield* evaluatePipelineTokensSteps(pipelineTokens, files, state, undefined, stdinBytes, signal, analysis));
         if (stack.length === 0) {
             return {
                 exitCode: 1,
@@ -6342,7 +6343,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, _backend, parents) => {
                 if (token.endsWith("duplicate") && stack.length === 0) throw new Error(`no images found for operation ${token}`);
                 if (token.endsWith("clone") || token.endsWith("duplicate")) {
-                    const source = stack.length ? stack : parents.at(-1) ?? stack, length = source.length;
+                    const source = token.endsWith("clone") ? parents.at(-1) ?? stack : stack;
+                    const length = source.length;
+                    if (token.endsWith("clone") && length === 0) throw new Error(`UnableToCloneImage ${token}`);
                     for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length)) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
                 } else if (token.endsWith("delete")) await stack.remove(parseMagickIndexSpec(spec, stack.length));
                 else if (token === "-reverse") { for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); } }

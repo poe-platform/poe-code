@@ -11,6 +11,7 @@ export const odtWriter: WriterCapability = {format: "odt", imageResources: "embe
   const images = new Map<string, {name: string; width: number; height: number}>();
   const styles = new Map(odtBaseStyles);
   let serial = 0;
+  let noteSerial = 0;
   const escaped = (value: string): string => {
     ctx.checkpoint(value.length);
     for (const ch of value) {const code = ch.codePointAt(0)!; if (code < 32 && ![9, 10, 13].includes(code) || code === 0xfffe || code === 0xffff) odtFailure(ctx, "Invalid XML character");}
@@ -30,6 +31,11 @@ export const odtWriter: WriterCapability = {format: "odt", imageResources: "embe
         case "Span": case "Cite": output.push(await inlines(node.c[1])); break;
         case "Quoted": output.push((node.c[0] === "SingleQuote" ? "‘" : "“") + await inlines(node.c[1]) + (node.c[0] === "SingleQuote" ? "’" : "”")); break;
         case "Link": output.push(`<text:a xlink:type="simple" xlink:href="${escaped(node.c[2][0])}">${await inlines(node.c[1])}</text:a>`); break;
+        case "Note": {
+          const number = ++noteSerial;
+          output.push(`<text:note text:id="ftn${number}" text:note-class="footnote"><text:note-citation>${number}</text:note-citation><text:note-body>${await blocks(node.c)}</text:note-body></text:note>`);
+          break;
+        }
         case "Image": {
           const source = node.c[2][0]; let image = images.get(source);
           ctx.charge("images", 1);

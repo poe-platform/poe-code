@@ -1067,7 +1067,10 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
     if (!(error instanceof JqParseError)) throw error;
     if (options.streamErrors) yield [error.diagnostic(), parser.path(true)];
     else if (options.sequence) await options.warning?.(`ignoring parse error: ${error.diagnostic()}${eof ? "" : " (need RS to resync)"}`);
-    else throw new JqError(`parse error: ${error.diagnostic()}`);
+    else {
+      error.message = `parse error: ${error.diagnostic()}`;
+      throw error;
+    }
     failed = true;
   };
   let scanned = 0;

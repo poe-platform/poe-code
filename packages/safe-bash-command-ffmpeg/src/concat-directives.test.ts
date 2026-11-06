@@ -12,6 +12,8 @@ for (const separator of ["", "# marker\n", "\n", "  \n  # marker\n\n"]) {
     [["outpoint 0.256"], 0, 2048],
     [["outpoint 0.75"], 0, 6144],
     [["duration 0.5"], 0, 8000],
+    [["inpoint 0.5", "outpoint 0.5"], 4000, 4000],
+    [["inpoint 0", "outpoint 0"], 0, 0],
     [["inpoint 0.25", "outpoint 0.75"], 2000, 6096]
   ] as const) {
     it(`concat preserves ${directives.join(", ")} across ${JSON.stringify(separator)}`, async () => {
@@ -43,4 +45,34 @@ for (const separator of ["", "# marker\n", "\n", "  \n  # marker\n\n"]) {
       ]);
     });
   }
+}
+
+for (const directives of [
+  ["inpoint 0.5", "outpoint 0.25"],
+  ["outpoint 0.25", "inpoint 0.5", "duration 1"]
+]) {
+  it(`concat rejects reversed range: ${directives.join(", ")}`, async () => {
+    const volume = Volume.fromJSON({
+      "/list.ffconcat": `file a.wav\n${directives.join("\n")}\nfile b.wav\n`
+    });
+    for (const [name, base] of [["a.wav", 1000], ["b.wav", -9000]] as const) {
+      volume.writeFileSync(`/${name}`, encodeWav({ sampleRate: 8000,
+        channels: [Float64Array.from({ length: 8000 }, (_, i) => (base + i) / 32768)] }));
+    }
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error", "-f", "concat", "-i", "/list.ffconcat", "-c:a", "pcm_s16le", "/out.wav"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(stderr.includes("outpoint") && stderr.includes("inpoint"), stderr);
+    assert.equal(volume.existsSync("/out.wav"), false);
+  });
 }

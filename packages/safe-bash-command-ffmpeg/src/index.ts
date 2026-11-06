@@ -2110,6 +2110,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         break;
                       }
                     }
+                    if (currentInpoint !== undefined && currentOutpoint !== undefined && currentOutpoint < currentInpoint) {
+                      throw new Error(`${resolvedItem}: outpoint must not precede inpoint`);
+                    }
                     let itemDoc = await loadSingleDocument(resolvedItem);
                     let sliceEnd = currentOutpoint;
                     const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;

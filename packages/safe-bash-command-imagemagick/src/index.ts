@@ -5142,6 +5142,18 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     return result;
 }
 
+function* prepareTiffPages(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
+    const tiffPages: RgbaImage[] = [];
+    for (const frame of stack) { yield; tiffPages.push(yield* prepareHueOutput(frame, "tiff")); }
+    return { ...tiffPages[0]!, tiffPages };
+}
+
+function prepareStoredTiffPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal): StoredRgbaImage {
+    return { ...image, storedTiffPages: { length: stack.length, async at(index) {
+        return prepareStoredHueOutput((await stack.get(index))!, "tiff", backend, signal);
+    } } };
+}
+
 function* prepareGifFrames(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
     let cooperativeWork = 0;
     let fw = 0, fh = 0;
@@ -5450,7 +5462,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 else {
-                    const image = stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareHueOutput(top, format);
+                    const image = stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareHueOutput(top, format);
                     const { data: encoded } = encodeImage(image, { format, ...(stack.length > 1 && format === "gif" ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     files.set(path, encoded);
                 }
@@ -6167,7 +6179,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             }
             return { exitCode: 0, stdout: "", stderr: "" };
         }
-        let toEncode = yield* prepareHueOutput(finalImg, format);
+        let toEncode = stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareHueOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && format === "gif") {
             toEncode = yield* prepareGifFrames(stack);
@@ -6715,7 +6727,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format)))) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
-                        const frames = stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
+                        const frames = stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
                         await backend.stage(frames, output.path, { format: output.format, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
                     }
                 }
@@ -7024,6 +7036,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             await backend.publishPending();
             return { exitCode: 0, stdout: "", stderr: "" };
         }
+        if (stack.length > 1 && output.format === "tiff") image = prepareStoredTiffPages(stack, image, backend, signal);
         let pageHeight: number | undefined;
         if (stack.length > 1 && output.format === "gif") {
             image = await prepareStoredGifFrames(stack, backend, signal);

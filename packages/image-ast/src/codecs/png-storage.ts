@@ -17,7 +17,8 @@ export interface ImageByteStorage extends Pick<ImageByteSource, "read"> {
   allocate(length: number): number;
   write(position: number, bytes: Uint8Array, options?: {readonly signal?: AbortSignal}): Promise<void>;
 }
-export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16"> {
+export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16" | "tiffPages"> {
+  readonly storedTiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly position: number;
   /** Original high-depth raw samples retain the same lifetime as buffered data16. */
   readonly storedData16?: {readonly position:number;readonly length:number};

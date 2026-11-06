@@ -292,15 +292,20 @@ export function encodeBmpImage(img: RgbaImage): Uint8Array {
 }
 
 export function encodeTiffImage(img:RgbaImage,options?:{readonly density?:number;readonly orientation?:number}):Uint8Array {
- const {header,directory,channels,padding}=createTiffLayout(img,options),pixelBytes=img.width*img.height*channels;
- const out=new Uint8Array(header.length+pixelBytes+padding+directory.length);
- out.set(header);
- if(channels===4) out.set(img.data,header.length);
- else for(let src=0,dst=header.length;dst<header.length+pixelBytes;src+=4) {
-  out[dst++]=img.data[src]!;
-  if(channels===2) out[dst++]=img.data[src+3]!;
+ const pages=img.tiffPages ?? [img];
+ const layouts: ReturnType<typeof createTiffLayout>[]=[];
+ let end=0;
+ for(let index=0;index<pages.length;index++) { layouts[index]=createTiffLayout(pages[index]!,options,end,index+1<pages.length);end=layouts[index]!.end; }
+ const out=new Uint8Array(end);
+ let offset=0;
+ for(let index=0;index<pages.length;index++) {
+  const page=pages[index]!,{header,directory,channels,padding}=layouts[index]!,pixelBytes=page.width*page.height*channels;
+  out.set(index===0?header:directory,offset);offset+=index===0?header.length:directory.length;
+  if(channels===4) out.set(page.data.subarray(0,pixelBytes),offset);
+  else for(let src=0,dst=offset;dst<offset+pixelBytes;src+=4) { out[dst++]=page.data[src]!;if(channels===2) out[dst++]=page.data[src+3]!; }
+  offset+=pixelBytes+padding;
+  if(index===0) { out.set(directory,offset);offset+=directory.length; }
  }
- out.set(directory,header.length+pixelBytes+padding);
  return out;
 }
 

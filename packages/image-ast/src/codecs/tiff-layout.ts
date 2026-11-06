@@ -4,22 +4,26 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 4
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"orientation"|"space"|"hasAlpha">,
-  options?: { readonly density?: number; readonly orientation?: number }
+  options?: { readonly density?: number; readonly orientation?: number },
+  offset = 0, hasNext = false
 ) {
   const { width, height } = img;
   const channels = tiffChannels(img), hasAlpha = channels !== 1;
   const pixelBytes = width * height * channels;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const orientation = options?.orientation ?? img.orientation ?? 1;
-  // Little-endian baseline TIFF: header + pixel data + IFD + extras
+  // Keep the single-page layout byte-compatible. Later pages start with their
+  // directory so the preceding page can link to them without reading ahead.
   const padding = pixelBytes % 2;
-  const ifdOffset = 8 + pixelBytes + padding;
   const numEntries = hasAlpha ? 15 : 14;
+  const directorySize = 2 + numEntries * 12 + 4 + 24;
+  const pixelOffset = offset === 0 ? 8 : offset + directorySize;
+  const ifdOffset = offset === 0 ? pixelOffset + pixelBytes + padding : offset;
   const bpsOffset = ifdOffset + 2 + numEntries * 12 + 4;
   const xResOffset = bpsOffset + 8;
   const yResOffset = xResOffset + 8;
   // Classic TIFF uses 32-bit offsets and LONG fields, including directory payloads.
-  if (!Number.isSafeInteger(width) || width <= 0 || width > 0xffffffff || !Number.isSafeInteger(height) || height <= 0 || height > 0xffffffff || !Number.isSafeInteger(pixelBytes) || pixelBytes > 0xffffffff || yResOffset + 8 > 0x100000000) {
+  if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(width) || width <= 0 || width > 0xffffffff || !Number.isSafeInteger(height) || height <= 0 || height > 0xffffffff || !Number.isSafeInteger(pixelBytes) || pixelBytes > 0xffffffff || pixelOffset + pixelBytes + padding > 0x100000000 || yResOffset + 8 > 0x100000000) {
     throw new RangeError("TIFF layout exceeds classic TIFF offsets");
   }
   const header=new Uint8Array(8),directory=new Uint8Array(yResOffset+8-ifdOffset);
@@ -45,7 +49,7 @@ export function createTiffLayout(
   writeEntry(2, 258, 3, channels, channels === 1 ? 8 : channels === 2 ? 0x00080008 : bpsOffset); // BitsPerSample
   writeEntry(3, 259, 3, 1, 1); // Compression = None
   writeEntry(4, 262, 3, 1, channels < 3 ? 1 : 2); // BlackIsZero or RGB
-  writeEntry(5, 273, 4, 1, 8); // StripOffsets
+  writeEntry(5, 273, 4, 1, pixelOffset); // StripOffsets
   writeEntry(6, 274, 3, 1, orientation); // Orientation
   writeEntry(7, 277, 3, 1, channels); // SamplesPerPixel
   writeEntry(8, 278, 4, 1, height); // RowsPerStrip
@@ -55,7 +59,9 @@ export function createTiffLayout(
   writeEntry(12, 284, 3, 1, 1); // PlanarConfiguration = Chunky
   writeEntry(13, 296, 3, 1, 2); // ResolutionUnit = Inch
   if (hasAlpha) writeEntry(14, 338, 3, 1, 2); // ExtraSamples = Unassociated Alpha
-  view.setUint32(2 + numEntries * 12, 0, true);
+  const end = offset === 0 ? yResOffset + 8 : pixelOffset + pixelBytes + padding;
+  if (hasNext && end > 0xffffffff) throw new RangeError("TIFF layout exceeds classic TIFF offsets");
+  view.setUint32(2 + numEntries * 12, hasNext ? end : 0, true);
   view.setUint16(bpsOffset-ifdOffset, 8, true);
   view.setUint16(bpsOffset-ifdOffset + 2, 8, true);
   view.setUint16(bpsOffset-ifdOffset + 4, 8, true);
@@ -64,6 +70,6 @@ export function createTiffLayout(
   view.setUint32(xResOffset-ifdOffset + 4, 1, true);
   view.setUint32(yResOffset-ifdOffset, density, true);
   view.setUint32(yResOffset-ifdOffset + 4, 1, true);
-  return {header,directory,channels,padding};
+  return {header,directory,channels,padding,end};
 }
 

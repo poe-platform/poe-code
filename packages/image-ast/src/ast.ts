@@ -36,6 +36,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly tiffPages?: readonly RgbaImage[];
   readonly isPalette?: boolean;
   readonly backgroundColor?: RgbaColor;
   readonly width: number;

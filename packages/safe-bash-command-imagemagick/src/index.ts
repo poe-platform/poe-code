@@ -3,7 +3,7 @@ import { compareLayerBounds } from "./compare-layers.js";
 import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
-import { convertHslPixels, prepareHslOutput, formatHslPixel, hslTextPixel, type HslMetadata } from "./colorspace-hsl.js";
+import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
@@ -50,9 +50,9 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
-type RgbaImage = BaseRgbaImage & HslMetadata;
-type StoredRgbaImage = BaseStoredRgbaImage & HslMetadata;
-type ImageMetadata = BaseImageMetadata & HslMetadata;
+type RgbaImage = BaseRgbaImage & HueMetadata;
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata;
+type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -1053,12 +1053,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
           const channels: number[] = [];
           for (let ch = 0; ch < (img.hasAlpha ? 4 : 3); ch++) {
             ctx.vars.clear();
-            channels.push(img.magickColorspace === "HSL" && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
+            channels.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
           }
           if (key.startsWith("hex:")) {
             parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(2, "0")).join(""));
           } else {
-            if (img.magickColorspace === "HSL") { parts.push(formatHslPixel(channels)); continue; }
+            if (img.magickColorspace === "HSL" || img.magickColorspace === "HSB") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
             // Preserve the existing RGB pixel spelling for opaque samples.
             parts.push(channels[3] !== undefined && channels[3] !== 255
               ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
@@ -1076,7 +1076,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
 function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal):Generator<IdentifyStep,string,void>{
- const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,{data:Uint8Array;data16?:Uint16Array;hslSamples?:Float64Array}>();
+ const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array}>();
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
  const context:FxEvalContext={statistics,stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
@@ -1099,14 +1099,14 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
    signal?.throwIfAborted();context.vars.clear();
    try{value=fn({...context,ch});break;}
    catch(error){if(!(error instanceof FxPixelDemand))throw error;
-    yield {async run(){const data=await storage.read(image.position+error.position,4,signal?{signal}:undefined);const hsl = (image as StoredRgbaImage).storedHslSamples; const floatBytes = hsl === undefined ? undefined : await storage.read(hsl+error.position*8,32,signal?{signal}:undefined); const original=image.storedData16 ? await storage.read(image.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(error.position,{data:new Uint8Array(data),...(floatBytes?{hslSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
+    yield {async run(){const data=await storage.read(image.position+error.position,4,signal?{signal}:undefined);const hue = (image as StoredRgbaImage).storedHueSamples; const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=image.storedData16 ? await storage.read(image.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(error.position,{data:new Uint8Array(data),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
    }
   }
   if(key.startsWith("fx:"))return formatMetricNum(value);
-  channels.push((image as StoredRgbaImage).magickColorspace === "HSL" && key.startsWith("pixel:") ? value : clampByteVal(value*255));
+  channels.push(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(2,"0")).join("");
- if((image as StoredRgbaImage).magickColorspace === "HSL")return formatHslPixel(channels);
+ if(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HSL" | "HSB", image.hasAlpha);
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
@@ -1133,7 +1133,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
 function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, void> {
     let work = 0;
     const lines: string[] = [
-        img.magickColorspace === "HSL" ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,hsl${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},255,srgba`
+        (img.magickColorspace === "HSL" || img.magickColorspace === "HSB") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},255,srgba`
     ];
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)
@@ -1146,7 +1146,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
             const g = img.data[idx + 1]!;
             const b = img.data[idx + 2]!;
             const a = img.data[idx + 3]!;
-            lines.push(img.magickColorspace === "HSL" ? `${x},${y}: ${hslTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha)}` : pixelEnumerationLine(x, y, r, g, b, a));
+            lines.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace)}` : pixelEnumerationLine(x, y, r, g, b, a));
         }
     }
     return lines.join("\n") + "\n";
@@ -1158,7 +1158,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     for (let i = 0; i < img.data.length; i += 4) {
         if (++work % 16384 === 0)
             yield;
-        const key = img.magickColorspace === "HSL" ? hslTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
+        const key = (img.magickColorspace === "HSL" || img.magickColorspace === "HSB") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const lines: string[] = [];
@@ -1742,8 +1742,8 @@ function sampleFxImage(
   const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
   const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
   const idx = (cy * img.width + cx) * 4;
-  if (img.magickColorspace === "HSL" && img.hslSamples && ch < 4) return img.hslSamples[idx + ch]!;
-  if (img.magickColorspace === "HSL" && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
+  if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
+  if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
   return sampleFxPixel(img.data!, idx, ch);
 }
 function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number): number {
@@ -4488,8 +4488,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (space === "lab") throw new Error("unsupported colorspace 'Lab'");
         apply = function* (image) {
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
-            if (image.magickColorspace === "HSL" && space === "hsl") return image;
-            if (image.magickColorspace === "HSL") image = yield* convertHslPixels(image, false);
+            if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB") && space === image.magickColorspace.toLowerCase()) return image;
+            if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") image = yield* convertHuePixels(image, "sRGB");
             if (space === "rgb" || image.magickColorspace === "RGB") {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
@@ -4507,7 +4507,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 image = { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
                 if (linearize) return image;
             }
-            if (space === "hsl") return yield* convertHslPixels(image, true);
+            if (space === "hsl" || space === "hsb") return yield* convertHuePixels(image, space === "hsb" ? "HSB" : "HSL");
             if (token !== "-grayscale" && !space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
             const out = new Uint8Array(image.data);
             for (let idx = 0; idx < out.length; idx += 4) {
@@ -4948,34 +4948,34 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     const size = image.width * image.height * 4, position = backend.storage.allocate(size);
     let result = image;
     let storedData16: StoredRgbaImage["storedData16"];
-    let storedHslSamples: number | undefined;
+    let storedHueSamples: number | undefined;
     for (let offset = 0; offset < size; offset += 16384) {
         if (offset % 1048576 === 0) await yieldTurn(signal);
         const data = await backend.storage.read(image.position + offset, Math.min(16384, size - offset));
         const bytes16 = (highDepth || operation.highDepth) && image.storedData16 ? await backend.storage.read(image.storedData16.position + offset * 2, data.length * 2) : undefined;
         const data16 = bytes16 ? new Uint16Array(bytes16.buffer, bytes16.byteOffset, bytes16.byteLength / 2) : undefined;
-        const floatBytes = (highDepth || operation.highDepth) && image.storedHslSamples !== undefined ? await backend.storage.read(image.storedHslSamples + offset * 8, data.length * 8) : undefined;
-        const hslSamples = floatBytes ? new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset, floatBytes.byteOffset + floatBytes.byteLength)) : undefined;
-        const { storedData16: ignoredSource, storedHslSamples: ignoredHsl, ...inputMetadata } = image;
-        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(data16 ? {data16} : {}), ...(hslSamples ? {hslSamples} : {}) }, offset / 4), signal);
-        const { data: pixels, data16: output16, hslSamples: outputHsl, ...metadata } = transformed;
-        if (outputHsl) {
-            storedHslSamples ??= backend.storage.allocate(size * 8);
-            await backend.storage.write(storedHslSamples + offset * 8, new Uint8Array(outputHsl.buffer, outputHsl.byteOffset, outputHsl.byteLength));
+        const floatBytes = (highDepth || operation.highDepth) && image.storedHueSamples !== undefined ? await backend.storage.read(image.storedHueSamples + offset * 8, data.length * 8) : undefined;
+        const hueSamples = floatBytes ? new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset, floatBytes.byteOffset + floatBytes.byteLength)) : undefined;
+        const { storedData16: ignoredSource, storedHueSamples: ignoredHue, ...inputMetadata } = image;
+        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4), signal);
+        const { data: pixels, data16: output16, hueSamples: outputHue, ...metadata } = transformed;
+        if (outputHue) {
+            storedHueSamples ??= backend.storage.allocate(size * 8);
+            await backend.storage.write(storedHueSamples + offset * 8, new Uint8Array(outputHue.buffer, outputHue.byteOffset, outputHue.byteLength));
         }
         if (output16) {
             storedData16 ??= {position: backend.storage.allocate(size * 2), length: size};
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(output16.buffer, output16.byteOffset, output16.byteLength));
         }
         await backend.storage.write(position + offset, pixels);
-        result = { ...metadata, width: image.width, height: image.height, position, ...(storedData16 ? {storedData16} : {}), ...(storedHslSamples === undefined ? {} : {storedHslSamples}) };
+        result = { ...metadata, width: image.width, height: image.height, position, ...(storedData16 ? {storedData16} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
     }
     return result;
 }
 
-async function prepareStoredHslOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
-    if (image.magickColorspace !== "HSL") return image;
-    return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHslOutput(frame, format) }, signal);
+async function prepareStoredHueOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    if (image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB") return image;
+    return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
 }
 
 function parseMagickDisposal(value: string): number {
@@ -5180,7 +5180,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-colors") {
             const colors = Number(tokens[++i]);
             stack = yield* mapSteps(stack, image => {
-                const { data16: ignored, hslSamples: ignoredHsl, ...pixels } = image;
+                const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
                 return applyMagickRasterSteps(pixels, quantizePixelSteps(image.data.length, colors, state.quantizeGray), signal);
             });
         }
@@ -5210,12 +5210,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         if (++cooperativeWork % 65536 === 0)
                             yield;
                         const framePath = formatSceneOutputPath(path, idx);
-                        const { data: frameBytes } = encodeImage(yield* prepareHslOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                        const { data: frameBytes } = encodeImage(yield* prepareHueOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                         files.set(framePath, frameBytes);
                     }
                 }
                 else {
-                    const { data: encoded } = encodeImage(yield* prepareHslOutput(top, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                    const { data: encoded } = encodeImage(yield* prepareHueOutput(top, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     files.set(path, encoded);
                 }
             }
@@ -5913,12 +5913,12 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const framePath = formatSceneOutputPath(outPath, idx);
-                const { data: frameBytes } = encodeImage(yield* prepareHslOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                const { data: frameBytes } = encodeImage(yield* prepareHueOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                 files.set(framePath, frameBytes);
             }
             return { exitCode: 0, stdout: "", stderr: "" };
         }
-        let toEncode = yield* prepareHslOutput(finalImg, format);
+        let toEncode = yield* prepareHueOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && format === "gif") {
             let fw = 0, fh = 0;
@@ -5929,7 +5929,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (let idx = 0; idx < stack.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
-                const outputFrame = yield* prepareHslOutput(stack[idx]!, format);
+                const outputFrame = yield* prepareHueOutput(stack[idx]!, format);
                 disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 1);
                 delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
                 for (let y = 0; y < outputFrame.height; y++) {
@@ -5938,7 +5938,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 }
             }
             toEncode = {
-                ...(yield* prepareHslOutput(stack[0]!, format)),
+                ...(yield* prepareHueOutput(stack[0]!, format)),
                 width: fw,
                 height: fh * stack.length,
                 pages: stack.length,
@@ -6432,8 +6432,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
                     if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin)) {
-                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
-                    } else await backend.stage(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality });
+                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
+                    } else await backend.stage(await prepareStoredHueOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality });
                 }
                 return stack;
             });
@@ -6699,14 +6699,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !state.adjoin)) {
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
-                await backend.stage(await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
             }
             await backend.publishPending();
             return { exitCode: 0, stdout: "", stderr: "" };
         }
         let pageHeight: number | undefined;
         if (stack.length > 1 && output.format === "gif") {
-            const first = await prepareStoredHslOutput((await stack.get(0))!, output.format, backend, signal);
+            const first = await prepareStoredHueOutput((await stack.get(0))!, output.format, backend, signal);
             let width = first.width, height = first.height;
             for (let index = 1; index < stack.length; index++) {
                 const frame = (await stack.get(index))!;
@@ -6714,7 +6714,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
             for (let index = 0; index < stack.length; index++) {
-                const frame = await prepareStoredHslOutput((await stack.get(index))!, output.format, backend, signal);
+                const frame = await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal);
                 for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 4096) {
                     await yieldTurn(signal);
                     const count = Math.min(4096, width - x), bytes = new Uint8Array(count * 4);
@@ -6742,7 +6742,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const scene = pageHeight === undefined ? (await stack.get(0))![magickInput]?.sceneIdx ?? 0 : 0;
         const delay = pageHeight === undefined ? await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] : undefined;
-        const stdoutBytes = await backend.publish(await prepareStoredHslOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}) });
+        const stdoutBytes = await backend.publish(await prepareStoredHueOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }

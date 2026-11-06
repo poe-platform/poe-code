@@ -28,6 +28,8 @@ Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce
 
 Raw `rgba:` output is unsupported and returns an error instead of emitting PNG bytes, including for `rgba:-` and intermediate `-write` outputs.
 
+`-colorspace HSB` and `-colorspace HSL` convert pixels and report their hue, saturation, and brightness or lightness; converting back to `sRGB` restores RGB pixels.
+
 `-colorspace CMYK` and `-colorspace Lab` are unsupported and return an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
 
 Unsupported `-draw` primitives, including the old `matte` primitive, return an error without replacing the output. Use `-alpha on -fill none -draw 'alpha 0,0 floodfill'` to remove a connected background while preserving RGB values and enclosed details. Alpha floodfill uses four-connected neighbors and alpha-aware `-fuzz` matching (percentages or Q16 units); `color x,y floodfill` replaces all RGBA channels.

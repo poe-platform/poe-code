@@ -4735,6 +4735,9 @@ export class SqliteDatabase {
           } else {
             const res = yield* this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
             const columns = explicitCols && explicitCols.length > 0 ? explicitCols : res.columns;
+            if (columns.length !== res.columns.length) {
+              throw new Error(`in prepare, table ${cteName} has ${res.columns.length} values for ${columns.length} columns`);
+            }
             result = { columns, rows: res.rows };
           }
           return result;
@@ -4836,12 +4839,18 @@ export class SqliteDatabase {
 
     const anchorRes = yield* this.executeSelectCompound(anchorTokens, positionalParams, cteMap);
     const cols = explicitCols && explicitCols.length > 0 ? explicitCols : anchorRes.columns;
+    if (cols.length !== anchorRes.columns.length) {
+      throw new Error(`in prepare, table ${cteName} has ${anchorRes.columns.length} values for ${cols.length} columns`);
+    }
     const scope = new Map(cteMap);
     scope.set(cteName.toLowerCase(), { columns: cols, rows: [] });
     const preparing = this.preparing;
     this.preparing = true;
     try {
-      yield* this.executeSelectCompound(recTokens, positionalParams, scope, cteName);
+      const recursiveRes = yield* this.executeSelectCompound(recTokens, positionalParams, scope, cteName);
+      if (recursiveRes.columns.length !== anchorRes.columns.length) {
+        throw new Error(`in prepare, SELECTs to the left and right of ${unionAll ? "UNION ALL" : "UNION"} do not have the same number of result columns`);
+      }
       // Prepare tail expressions even when no rows will be visited.
       if (orderTokens) {
         scope.set("__recursive_queue__", { columns: cols, rows: [] });
@@ -4993,6 +5002,9 @@ export class SqliteDatabase {
     const results: QueryResultSet[] = [];
     for (const seg of segments) {
       const res = yield* this.executeSingleSelect(seg.tokens, positionalParams, cteScope, recursiveCte);
+      if (results.length > 0 && res.columns.length !== results[0]!.columns.length) {
+        throw new Error(`in prepare, SELECTs to the left and right of ${seg.op} do not have the same number of result columns`);
+      }
       results.push(res);
       for (let i = 0; i < res.columns.length; i += 1) {
         yield;

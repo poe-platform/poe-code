@@ -2080,7 +2080,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                 const lines = listText.split(/\r?\n/);
                 for (let l = 0; l < lines.length; l++) {
-                  const line = lines[l]!.trim();
+                  const line = lines[l]!.trimStart();
                   if (!line || line.startsWith("#")) continue;
                   const keyword = line.split(/[ \t]/, 1)[0]!;
                   if (keyword === "ffconcat") {
@@ -2096,13 +2096,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     );
                     if (directive) throw new Error(`Line ${l + 1}: ${directive} without file`);
                   }
-                  if (line.startsWith("file ")) {
-                    let target = line.slice(5).trim();
-                    if (
-                      (target.startsWith("'") && target.endsWith("'")) ||
-                      (target.startsWith('"') && target.endsWith('"'))
-                    ) {
-                      target = target.slice(1, -1);
+                  if (keyword === "file") {
+                    // Match av_get_token: only single quotes group text; a
+                    // backslash escapes the next character outside quotes.
+                    let target = "";
+                    let protectedEnd = 0;
+                    let cursor = keyword.length;
+                    const whitespace = " \t\r\n";
+                    while (cursor < line.length && whitespace.includes(line[cursor]!)) cursor++;
+                    while (cursor < line.length && !whitespace.includes(line[cursor]!)) {
+                      const char = line[cursor++]!;
+                      if (char === "\\" && cursor < line.length) {
+                        target += line[cursor++]!;
+                        protectedEnd = target.length;
+                      } else if (char === "'") {
+                        while (cursor < line.length && line[cursor] !== "'") target += line[cursor++]!;
+                        if (cursor < line.length) {
+                          cursor++;
+                          protectedEnd = target.length;
+                        }
+                      } else {
+                        target += char;
+                      }
+                    }
+                    while (target.length > protectedEnd && whitespace.includes(target[target.length - 1]!)) {
+                      target = target.slice(0, -1);
                     }
                     const resolvedItem = resolvePath(listDir, target);
                     // Look ahead for inpoint/outpoint/duration directives following this `file`

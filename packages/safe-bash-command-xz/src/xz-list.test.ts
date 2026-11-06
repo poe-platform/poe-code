@@ -50,7 +50,75 @@ test('XZ listing checks indices, concatenated streams and stdin restrictions', a
   assert.match(missing.stdout.toString(), /totals\t0\t0\t0\t0\t---\tNone\t0\t0/);
 });
 
+test('XZ human listing prints a header only when a file can be listed', async () => {
+  const fixture = listingFixtures.find(value => value.name === 'blocks')!;
+  const bytes = Buffer.from(fixture.hex, 'hex');
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/data.xz', bytes);
+  await fs.writeFile('/bad.xz', bytes.subarray(0, bytes.length - 4));
+  const expected = fixture.outputs.find(value => value.args.length === 1 && value.args[0] === '-l')!.stdout;
+  for (const operand of ['bad.xz', 'missing.xz', '-']) {
+    const failed = await run('xz', ['-l', operand], chunks(), { fs });
+    assert.equal(failed.exitCode, 1, operand);
+    assert.equal(failed.stdout.toString(), '', operand);
+    assert.notEqual(failed.stderr, '', operand);
+    for (const operands of [[operand, 'data.xz'], ['data.xz', operand]]) {
+      const mixed = await run('xz', ['-l', ...operands], chunks(), { fs });
+      assert.equal(mixed.exitCode, 1, operands.join(' '));
+      assert.equal(mixed.stdout.toString(), expected, operands.join(' '));
+    }
+  }
+});
+
 // Captured with XZ Utils 5.8.4, LC_ALL=C; archives are identical in the VFS.
+test('XZ listing follows VFS symlinks and preserves the operand name and files', async () => {
+  const fixture = listingFixtures.find(value => value.name === 'blocks')!;
+  const fs = createMemoryFileSystem();
+  const bytes = Buffer.from(fixture.hex, 'hex');
+  await fs.mkdir('/archives');
+  await fs.writeFile('/archives/data.xz', bytes);
+  await fs.symlink('archives/data.xz', '/link.xz');
+  for (const args of [['-l'], ['-lv'], ['-lvv'], ['--robot', '-l']]) {
+    const direct = await run('xz', [...args, 'archives/data.xz'], chunks(), { fs });
+    const linked = await run('xz', [...args, 'link.xz'], chunks(), { fs });
+    assert.equal(linked.exitCode, 0, linked.stderr);
+    assert.equal(linked.stdout.toString(), direct.stdout.toString().replaceAll('archives/data.xz', 'link.xz'));
+  }
+  for (const args of [[], ['-d'], ['-df']]) {
+    assert.equal((await run('xz', [...args, 'link.xz'], chunks(), { fs })).exitCode, 1);
+  }
+  assert.equal(await fs.readlink('/link.xz'), 'archives/data.xz');
+  assert.deepEqual(Buffer.from(await fs.readFile('/archives/data.xz')), bytes);
+});
+
+test('XZ listing rejects dangling, cyclic and directory symlink targets', async () => {
+  const fs = createMemoryFileSystem();
+  await fs.symlink('missing.xz', '/dangling.xz');
+  await fs.symlink('cycle.xz', '/cycle.xz');
+  await fs.mkdir('/directory');
+  await fs.symlink('directory', '/directory.xz');
+  for (const name of ['dangling.xz', 'cycle.xz', 'directory.xz']) {
+    assert.equal((await run('xz', ['-l', name], chunks(), { fs })).exitCode, 1);
+  }
+});
+
+test('XZ symlink listing rejects a target replaced before the checked read', async () => {
+  const fixture = listingFixtures.find(value => value.name === 'blocks')!;
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/data.xz', Buffer.from(fixture.hex, 'hex'));
+  await fs.symlink('data.xz', '/link.xz');
+  const openReadFile = fs.openReadFile!.bind(fs);
+  fs.openReadFile = async (path, options) => {
+    await fs.unlink('/data.xz');
+    await fs.writeFile('/data.xz', Buffer.from(fixture.hex, 'hex'));
+    return openReadFile(path, options);
+  };
+  const result = await run('xz', ['-l', 'link.xz'], chunks(), { fs });
+  assert.equal(result.exitCode, 1);
+  assert.doesNotMatch(result.stderr, /non-symlink/);
+  assert.doesNotMatch(result.stdout.toString(), /link.xz/);
+});
+
 for (const fixture of listingFixtures) {
   test(`XZ listing matches native at every verbosity: ${fixture.name}`, async () => {
     const fs = createMemoryFileSystem();

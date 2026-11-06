@@ -65,13 +65,13 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
       const verbosity = options.xzVerbose ?? 0;
       if (verbosity > 1) totals.details = { streams: [], memory: 0, allSizes: true, minVersion: 50000002 };
       let listed = 0;
-      if (options.xzList && !options.xzRobot && !verbosity) await output(context, "Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
       let exitCode = planningFailed ? 1 : 0;
       for (const plan of plans) {
         try {
           if (options.xzList) {
             const value = await inspectXz(context, plan, options);
             const name = listingNames[plans.indexOf(plan)] ?? plan.source;
+            if (!listed && !options.xzRobot && !verbosity) await output(context, "Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
             if (options.xzRobot) await output(context, `name\t${name}\nfile\t${value.streams}\t${value.blocks}\t${value.compressed}\t${value.uncompressed}\t${listingRatio(value)}\t${listingChecks(value)}\t${value.padding}\n`);
             else await output(context, verbosity
               ? `${listed ? "\n" : ""}${name} (${plans.indexOf(plan) + 1}/${options.operands.length})\n${humanListingSummary(value)}`

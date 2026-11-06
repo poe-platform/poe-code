@@ -12,17 +12,19 @@ export function histogramLine(key: number, count: number): string {
     return `  ${count}: (${r},${g},${b}) #${hex(r)}${hex(g)}${hex(b)} srgb(${r},${g},${b})`;
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
-    yield (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},255,srgba\n`;
+    yield (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},255,srgba\n`;
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
-        const original = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
+        const original = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
         const data16 = original ? new Uint16Array(original.buffer.slice(original.byteOffset, original.byteOffset + original.byteLength)) : undefined;
+        const samples = (image.magickColorspace === "HWB") && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, bytes.length * 8) : undefined;
+        const hueSamples = samples ? new Float64Array(samples.buffer.slice(samples.byteOffset, samples.byteOffset + samples.byteLength)) : undefined;
         for (let offset = 0; offset < bytes.length; offset += 4) {
             const pixel = (start + offset) / 4;
-            if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB")) {
-                yield `${pixel % image.width},${Math.floor(pixel / image.width)}: ${hueTextPixel(Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => data16 ? value : value * 257), image.hasAlpha, image.magickColorspace)}\n`;
+            if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB")) {
+                yield `${pixel % image.width},${Math.floor(pixel / image.width)}: ${hueTextPixel(Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => data16 ? value : value * 257), image.hasAlpha, image.magickColorspace, hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4)) : undefined)}\n`;
                 continue;
             }
             yield pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!) + "\n";
@@ -31,22 +33,28 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
 }
 export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
     const counts = new IntegerTable(storage, 512), order = new IntegerTable(storage, 128), size = image.width * image.height * 4;
+    const sampleOffsets = (image.magickColorspace === "HWB") && image.storedHueSamples !== undefined ? new IntegerTable(storage, 128) : undefined;
     let unique = 0;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
-        const original = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
+        const original = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
         const data16 = original ? new Uint16Array(original.buffer.slice(original.byteOffset, original.byteOffset + original.byteLength)) : undefined;
         for (let offset = 0; offset < bytes.length; offset += 4) {
-            const key = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") ? Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => BigInt(data16 ? value : value * 257)).reduce((key, value) => (key << 16n) | value, 0n) : BigInt(((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0), count = await counts.get(key);
-            if (count === undefined) await order.set(BigInt(unique++), key);
+            const key = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB") ? Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => BigInt(data16 ? value : value * 257)).reduce((key, value) => (key << 16n) | value, 0n) : BigInt(((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0), count = await counts.get(key);
+            if (count === undefined) {
+                if (sampleOffsets) await sampleOffsets.set(BigInt(unique), BigInt(start + offset));
+                await order.set(BigInt(unique++), key);
+            }
             await counts.set(key, (count ?? 0n) + 1n);
         }
     }
     for (let index = 0; index < unique; index++) {
         if (index % 128 === 0) await yieldTurn(signal);
         const key = (await order.get(BigInt(index)))!;
-        yield (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") ? `  ${Number(await counts.get(key))}: ${hueTextPixel([48n, 32n, 16n, 0n].map(shift => Number((key >> shift) & 65535n)), image.hasAlpha, image.magickColorspace)}\n` : histogramLine(Number(key), Number(await counts.get(key))) + "\n";
+        const samples = sampleOffsets ? await storage.read(image.storedHueSamples! + Number(await sampleOffsets.get(BigInt(index))) * 8, 32) : undefined;
+        const hueSamples = samples ? Array.from(new Float64Array(samples.buffer.slice(samples.byteOffset, samples.byteOffset + samples.byteLength))) : undefined;
+        yield (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB") ? `  ${Number(await counts.get(key))}: ${hueTextPixel([48n, 32n, 16n, 0n].map(shift => Number((key >> shift) & 65535n)), image.hasAlpha, image.magickColorspace, hueSamples)}\n` : histogramLine(Number(key), Number(await counts.get(key))) + "\n";
     }
     if (!unique) yield "\n";
 }

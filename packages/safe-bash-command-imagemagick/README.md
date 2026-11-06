@@ -28,7 +28,7 @@ Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce
 
 Raw `rgba:` output is unsupported and returns an error instead of emitting PNG bytes, including for `rgba:-` and intermediate `-write` outputs.
 
-`-colorspace HSB` and `-colorspace HSL` convert pixels and report their hue, saturation, and brightness or lightness; converting back to `sRGB` restores RGB pixels.
+`-colorspace HSB`, `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.
 
 `-colorspace CMYK` and `-colorspace Lab` are unsupported and return an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
 

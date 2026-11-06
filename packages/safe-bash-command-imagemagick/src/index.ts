@@ -1053,12 +1053,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
           const channels: number[] = [];
           for (let ch = 0; ch < (img.hasAlpha ? 4 : 3); ch++) {
             ctx.vars.clear();
-            channels.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
+            channels.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
           }
           if (key.startsWith("hex:")) {
             parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(2, "0")).join(""));
           } else {
-            if (img.magickColorspace === "HSL" || img.magickColorspace === "HSB") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
+            if (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
             // Preserve the existing RGB pixel spelling for opaque samples.
             parts.push(channels[3] !== undefined && channels[3] !== 255
               ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
@@ -1103,10 +1103,10 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
    }
   }
   if(key.startsWith("fx:"))return formatMetricNum(value);
-  channels.push(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
+  channels.push(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(2,"0")).join("");
- if(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HSL" | "HSB", image.hasAlpha);
+ if(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HSL" | "HSB" | "HWB", image.hasAlpha);
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
@@ -1133,7 +1133,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
 function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, void> {
     let work = 0;
     const lines: string[] = [
-        (img.magickColorspace === "HSL" || img.magickColorspace === "HSB") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},255,srgba`
+        (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},255,srgba`
     ];
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)
@@ -1146,7 +1146,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
             const g = img.data[idx + 1]!;
             const b = img.data[idx + 2]!;
             const a = img.data[idx + 3]!;
-            lines.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace)}` : pixelEnumerationLine(x, y, r, g, b, a));
+            lines.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, img.magickColorspace === "HWB" && img.hueSamples ? Array.from(img.hueSamples.subarray(idx, idx + 4)) : undefined)}` : pixelEnumerationLine(x, y, r, g, b, a));
         }
     }
     return lines.join("\n") + "\n";
@@ -1158,7 +1158,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     for (let i = 0; i < img.data.length; i += 4) {
         if (++work % 16384 === 0)
             yield;
-        const key = (img.magickColorspace === "HSL" || img.magickColorspace === "HSB") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
+        const key = (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, img.magickColorspace === "HWB" && img.hueSamples ? Array.from(img.hueSamples.subarray(i, i + 4)) : undefined) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const lines: string[] = [];
@@ -1742,8 +1742,8 @@ function sampleFxImage(
   const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
   const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
   const idx = (cy * img.width + cx) * 4;
-  if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
-  if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
+  if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
+  if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
   return sampleFxPixel(img.data!, idx, ch);
 }
 function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number): number {
@@ -4488,8 +4488,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (space === "lab") throw new Error("unsupported colorspace 'Lab'");
         apply = function* (image) {
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
-            if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB") && space === image.magickColorspace.toLowerCase()) return image;
-            if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") image = yield* convertHuePixels(image, "sRGB");
+            if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB") && space === image.magickColorspace.toLowerCase()) return image;
+            if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB") image = yield* convertHuePixels(image, "sRGB");
             if (space === "rgb" || image.magickColorspace === "RGB") {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
@@ -4507,7 +4507,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 image = { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
                 if (linearize) return image;
             }
-            if (space === "hsl" || space === "hsb") return yield* convertHuePixels(image, space === "hsb" ? "HSB" : "HSL");
+            if (space === "hsl" || space === "hsb" || space === "hwb") return yield* convertHuePixels(image, space === "hwb" ? "HWB" : space === "hsb" ? "HSB" : "HSL");
             if (token !== "-grayscale" && !space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
             const out = new Uint8Array(image.data);
             for (let idx = 0; idx < out.length; idx += 4) {
@@ -4974,7 +4974,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
 }
 
 async function prepareStoredHueOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
-    if (image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB") return image;
+    if (image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB" && image.magickColorspace !== "HWB") return image;
     return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
 }
 

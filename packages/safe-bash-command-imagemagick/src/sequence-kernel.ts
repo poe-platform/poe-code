@@ -58,10 +58,10 @@ export function* combinePixelSteps(size: number, lengths: readonly number[]): St
         const length = Math.min(16384, size - position), data = new Uint8Array(length);
         for (let image = 0; image < 4; image++) {
             if (image === 3 && lengths.length < 4) { for (let offset = 3; offset < length; offset += 4) data[offset] = 255; continue; }
-            const count = Math.max(0, Math.min(length, lengths[image]! - position));
+            const count = Math.max(0, Math.min(length, (lengths[image] ?? 0) - position));
             if (!count) continue;
             const source = (yield { kind: "read", image, position, length: count })!;
-            for (let offset = 0; offset < count; offset += 4) data[offset + image] = source[offset]!;
+            for (let offset = 0; offset < count; offset += 4) data[offset + image] = Math.round(0.212656 * source[offset]! + 0.715158 * source[offset + 1]! + 0.072186 * source[offset + 2]!);
         }
         yield { kind: "write", position, data };
     }

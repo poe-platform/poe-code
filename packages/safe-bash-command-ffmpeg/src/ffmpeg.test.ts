@@ -3604,3 +3604,44 @@ describe("image2 frame_pts", () => {
     assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "original");
   });
 });
+
+describe("B-frame limit", () => {
+  for (const sync of [false, true]) {
+    for (const target of sync ? ["/out%02d.png"] : ["/out.mp4", "/out%02d.png"]) {
+      it(`${sync ? "sync" : "async"} consumes -bf 0 for ${target}`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]];
+        const vfs = createTestVfs(Object.fromEntries(colors.map((color, i) => [
+          `/f0${i}.png`, encodeImage({ width: 16, height: 16,
+            data: Uint8Array.from(Array(256).fill(color).flat()), channels: 4,
+            format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+          }, { format: "png" }).data
+        ])));
+        const args = ["-y", "-v", "error", "-framerate", "25", "-i", sync ? "/f00.png" : "/f%02d.png",
+          ...(target.endsWith("mp4") ? ["-c:v", "libx264"] : []), "-bf", "0", "-pix_fmt", "yuv420p", target];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const outputs = [...vfs.store.keys()].filter(path => !path.startsWith("/f"));
+        if (target.endsWith("mp4")) {
+          assert.deepEqual(outputs, ["/out.mp4"]);
+          const track = parseMp4(vfs.store.get(target)!).tracks[0]!;
+          const frames = [...decodeH264Samples(track.samples, track.codecDescriptions, 16, 16, track.timescale)];
+          assert.deepEqual(frames.map(frame => frame.ptsSeconds), [0, 0.04, 0.08]);
+          for (const [i, frame] of frames.entries()) {
+            for (let channel = 0; channel < 4; channel++) {
+              assert.ok(Math.abs(frame.data[channel]! - colors[i]![channel]!) <= 3);
+            }
+          }
+        } else {
+          assert.deepEqual(outputs, sync ? ["/out01.png"] : ["/out01.png", "/out02.png", "/out03.png"]);
+          assert.deepEqual(outputs.map(path => [...decodeImage(vfs.store.get(path)!).data.slice(0, 4)]), sync ? colors.slice(0, 1) : colors);
+        }
+      });
+    }
+  }
+});

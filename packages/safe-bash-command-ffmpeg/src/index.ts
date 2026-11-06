@@ -1354,7 +1354,7 @@ export function evalSyncFfmpeg(
         if (noOverwrite !== undefined && noOverwrite !== (arg === "-n")) return undefined;
         noOverwrite = arg === "-n";
       }
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
       else if (arg === "-map_chapters") {
         const value = args[++i];
         chapterSource = value?.trim() ? Number(value) : NaN;
@@ -1810,7 +1810,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSafe = value === "1";
-          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
+          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-update") {
             updateImage = args[++i] === "1";

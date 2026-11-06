@@ -15,4 +15,29 @@ await build({
   })),
   outdir: "dist", bundle: true, splitting: true, format: "esm", platform: "browser",
   target: "es2022", external: Object.keys(manifest.devDependencies),
+  plugins: [{
+    name: "pack-idna-ranges",
+    setup(builder) {
+      builder.onLoad({ filter: /[/\\]tr46[/\\]lib[/\\]mappingTable\.json$/ }, async ({ path }) => {
+        const rows = JSON.parse(await readFile(path, "utf8"));
+        // UTS #46 covers consecutive code points. Store widths instead of both endpoints.
+        let next = 0;
+        for (const row of rows) {
+          const [start, end] = Array.isArray(row[0]) ? row[0] : [row[0], row[0]];
+          if (start !== next || end < start) throw new Error("Non-contiguous IDNA mapping table");
+          row[0] = end - start;
+          next = end + 1;
+        }
+        return { loader: "js", contents: `
+          const rows = ${JSON.stringify(rows)};
+          let next = 0;
+          for (const row of rows) {
+            const start = next;
+            next += row[0] + 1;
+            row[0] = row[0] ? [start, next - 1] : start;
+          }
+          export default rows;` };
+      });
+    },
+  }],
 });

@@ -702,7 +702,7 @@ function inputs(
     source = joined();
   }
   return jsonValues(source, budget, {
-    stream: options.stream, streamErrors: options.streamErrors, sequence: options.sequence,
+    stream: options.stream, streamErrors: options.streamErrors, sequence: options.sequence, slurp: options.slurp,
     ...(onValue ? { onValue } : {}),
     ...(retainValues ? { retainValues } : {}),
     ...(onChunkEnd ? { onChunkEnd } : {}),

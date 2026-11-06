@@ -3,8 +3,20 @@ import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { run } from "./test-helpers.js";
 
-for (const input of ["\x1e1", "\x1e1\x1e2\n", "\x1e1\n\x1e2\n"]) {
-  for (const flags of [[], ["--stream"], ["--stream", "--stream-errors"]]) {
+for (const input of [
+  "\x1e1",
+  "\x1e1\x1e2\n",
+  "\x1e1\n\x1e2\n",
+  "\x1e{}\n\x1e3",
+  "\x1e{}\n\x1e3\n",
+  "\x1e{}\x1e3",
+  "\x1e{}\n \x1e3",
+  "\x1e{}\n\x1e3\x1e4",
+  "\x1e{}\n\x1e{}",
+  "\x1e{}\n3",
+  '\x1e{\n  "name": "fixture"\n}\n\x1e3',
+]) {
+  for (const flags of [[], ["--slurp"], ["--stream"], ["--stream", "--stream-errors"]]) {
     test(`jq numeric sequence matches native jq: ${JSON.stringify(input)}, ${flags.join(" ")}`, async () => {
       const args = ["-c", "--seq", ...flags, "."];
       const native = spawnSync("jq", args, { input, encoding: "utf8" });

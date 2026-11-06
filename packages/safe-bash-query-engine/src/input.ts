@@ -129,7 +129,7 @@ class JsonParser {
     return !this.#quoted && this.#bom >= 3;
   }
   isTopLevelIdle(): boolean {
-    return !this.#quoted && !this.#escaped && this.#stack.length === 0 && this.#token === "" && this.#next === undefined && !this.#stream;
+    return !this.#quoted && !this.#escaped && this.#stack.length === 0 && this.#token === "" && this.#next === undefined;
   }
   tryParseFlatLine(bytes: Uint8Array, start: number, end: number): Json | undefined {
     const byteLen = end - start;
@@ -688,6 +688,14 @@ class JsonParser {
     return this.#done() ?? output;
   }
   finish(boundary?: { line: number; column: number; eof: boolean }): Json | undefined {
+    if (boundary && !boundary.eof && this.#stream && this.#quoted && !this.#stack.length) {
+      // jq validates an interrupted top-level string as a literal in stream mode,
+      // then discards it when resynchronizing at the record separator.
+      this.#line = boundary.line;
+      this.#column = boundary.column;
+      this.#literal();
+      return undefined;
+    }
     if (boundary && !this.#stream && !this.#quoted && !this.#stack.length && this.#token && numericToken(this.#token, this.#budget) !== undefined) {
       throw new JqParseError(`Potentially truncated top-level numeric value${boundary.eof ? " at EOF" : ""}`, this.#offset, boundary.line, boundary.column);
     }
@@ -752,6 +760,7 @@ export interface JsonInputOptions {
   readonly stream?: boolean;
   readonly streamErrors?: boolean;
   readonly sequence?: boolean;
+  readonly slurp?: boolean;
   readonly warning?: (message: string) => Promise<void>;
   readonly onValue?: (value: Json) => Promise<void> | void;
   readonly retainValues?: boolean;
@@ -1060,12 +1069,15 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let parser = new JsonParser(budget, options.stream, 1, 0, options.stringChunks, options.profile);
   let active = !options.sequence;
   let failed = false;
+  let lineReturned = false;
   const values = function* (value: Json | undefined): Generator<Json> {
+    if (options.stream ? parser.events.length > 0 : value !== undefined) lineReturned = column !== 0;
     if (options.stream) yield* parser.events.splice(0);
     else if (value !== undefined) yield value;
   };
   const failure = async function* (error: unknown, eof = false): AsyncGenerator<Json> {
     if (!(error instanceof JqParseError)) throw error;
+    lineReturned = column !== 0;
     if (options.streamErrors) yield [error.diagnostic(), parser.path(true)];
     else if (options.sequence) {
       const message = `${error.diagnostic()}${eof ? "" : " (need RS to resync)"}`;
@@ -1085,7 +1097,8 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let scanned = 0;
   let line = 1;
   let column = 0;
-  let nulTail: string | undefined;
+  let pendingTail: string | undefined;
+  let sequenceTail = false;
   const input = python ? pythonJsonBytes(source, budget, options.stringChunks?.codePoints) : source;
   const iter = (typeof (input as { tryNextSync?: unknown }).tryNextSync === "function"
     ? (input as unknown as AsyncIterator<Uint8Array>)
@@ -1119,7 +1132,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
         if (newline >= 0 && segEnd === newline + 1) {
           budget.inputLocation.line++;
           budget.inputLocation.complete = true;
-          if (nulTail === undefined && active && !failed && !options.sequence && !options.stream && !options.streamErrors && !options.profile && parser.isTopLevelIdle()) {
+          if (pendingTail === undefined && active && !failed && !options.sequence && !options.stream && !options.streamErrors && !options.profile && parser.isTopLevelIdle()) {
             const fastObj = parser.tryParseFlatLine(rawChunk, chunkOffset, newline);
             if (fastObj !== undefined) {
               line++;
@@ -1153,7 +1166,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             const p = budget.tickSync();
             if (p) await p;
           }
-          if (nulTail === undefined && active && !failed) {
+          if (pendingTail === undefined && active && !failed) {
             if (parser.isQuotedUnescaped()) {
               let end = index;
               while (end < segEnd && (!options.stringChunks || end - index < 4096)) {
@@ -1190,20 +1203,27 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             }
           }
           const character = segmentText[index - textOffset]!;
-          if (!options.stringChunks && !options.profile && character === "\0" && nulTail === undefined) nulTail = "";
-          if (nulTail !== undefined) {
-            nulTail += character;
-            if (nulTail.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          // jq's line reader stops at an empty RS result in its final, unterminated
+          // line. Hold that suffix until LF proves that reading should continue.
+          if (options.sequence && !options.slurp && active && !failed && !lineReturned && character === "\x1e" && parser.isTopLevelIdle() && pendingTail === undefined) {
+            pendingTail = "";
+            sequenceTail = true;
+          }
+          if (!options.stringChunks && !options.profile && character === "\0" && pendingTail === undefined) pendingTail = "";
+          if (pendingTail !== undefined) {
+            pendingTail += character;
+            if (!sequenceTail && pendingTail.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
             if (character === "\n") {
-              const tail = nulTail;
-              nulTail = undefined;
+              const tail = pendingTail;
+              pendingTail = undefined;
+              sequenceTail = false;
               for (let ti = 0; ti < tail.length; ti++) {
                 if ((++scanned & 1023) === 0) {
                   const p = budget.tickSync();
                   if (p) await p;
                 }
                 const tc = tail[ti]!;
-                if (tc === "\n") { line++; column = 0; } else column++;
+                if (tc === "\n") { line++; column = 0; lineReturned = false; } else column++;
                 if (options.sequence && tc === "\x1e") {
                   if (active && !failed) {
                     try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
@@ -1217,8 +1237,9 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
                   try {
                     const produced = parser.feed(tc);
                     if (options.stream) {
-                      if (parser.events.length) yield* parser.events.splice(0);
+                      if (parser.events.length) { lineReturned = column !== 0; yield* parser.events.splice(0); }
                     } else if (produced !== undefined) {
+                      lineReturned = column !== 0;
                       yield produced;
                     }
                   } catch (error) { yield* failure(error); }
@@ -1231,7 +1252,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             }
             continue;
           }
-          if (character === "\n") { line++; column = 0; } else column++;
+          if (character === "\n") { line++; column = 0; lineReturned = false; } else column++;
           if (options.sequence && character === "\x1e") {
             if (active && !failed) {
               try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
@@ -1245,8 +1266,9 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             try {
               const produced = parser.feed(character);
               if (options.stream) {
-                if (parser.events.length) yield* parser.events.splice(0);
+                if (parser.events.length) { lineReturned = column !== 0; yield* parser.events.splice(0); }
               } else if (produced !== undefined) {
+                lineReturned = column !== 0;
                 yield produced;
               }
             } catch (error) { yield* failure(error); }

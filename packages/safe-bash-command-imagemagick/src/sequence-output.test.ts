@@ -8,10 +8,11 @@ for (const mode of ["buffered", "retained", "command"] as const)
 for (const format of ["png", "jpeg", "bmp"])
 for (const write of [false, true])
 for (const numbered of [false, true])
-it(`preserves sequence frames: ${mode}, ${format}, write=${write}, numbered=${numbered}`, async () => {
+for (const count of [1, 2])
+it(`preserves sequence frames: ${mode}, ${format}, write=${write}, numbered=${numbered}, count=${count}`, async () => {
     const filesystem = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
     const output = `out${numbered ? "%02d" : ""}.${format}`;
-    const args = ["-size", "1x1", "xc:red", "xc:blue", ...(write ? ["-write", output, "null:"] : [output])];
+    const args = ["-size", "1x1", "xc:red", ...(count === 2 ? ["xc:blue"] : []), ...(write ? ["-write", output, "null:"] : [output])];
     if (mode === "command") {
         const command = createMagickCommand(), arguments_ = createCommandArguments(args);
         const sink = { async write() {} };
@@ -19,7 +20,7 @@ it(`preserves sequence frames: ${mode}, ${format}, write=${write}, numbered=${nu
     } else {
         expect(await runMagickCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0 });
     }
-    const names = [0, 1].map(index => `out${numbered ? String(index).padStart(2, "0") : `-${index}`}.${format}`);
+    const names = Array.from({ length: count }, (_, index) => `out${numbered ? String(index).padStart(2, "0") : count > 1 ? `-${index}` : ""}.${format}`);
     expect(mode === "buffered" ? [...files.keys()].sort() : (await filesystem.readdir("/")).map(entry => entry.name).sort()).toEqual(names);
     for (const [index, name] of names.entries()) {
         const image = decodeImage(mode === "buffered" ? files.get(name)! : await filesystem.readFile(`/${name}`));

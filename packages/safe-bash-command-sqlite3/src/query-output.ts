@@ -112,7 +112,17 @@ function* jsonString(parts: Iterable<string>): Generator<string> {
 
 function* jsonValue(value: SqlValue | undefined): Generator<string> {
   if (value instanceof JsonText) yield* textParts(value.valueOf());
-  else if (typeof value === 'string' || value instanceof String || value instanceof Uint8Array) yield* jsonString(cellParts(value, ''));
+  else if (value instanceof Uint8Array) {
+    yield '"';
+    // SQLite renders BLOBs byte by byte, without UTF-8 decoding or NUL termination.
+    for (let offset = 0; offset < value.length; offset += 512) {
+      let part = '';
+      for (const byte of value.subarray(offset, offset + 512)) part += '\\u00' + byte.toString(16).padStart(2, '0');
+      yield part;
+    }
+    yield '"';
+  }
+  else if (typeof value === 'string' || value instanceof String) yield* jsonString(cellParts(value, ''));
   else if (value instanceof Number || (typeof value === 'number' && !Number.isInteger(value))) {
     const number = value.valueOf();
     yield Number.isFinite(number) ? formatReal(number, 20) : 'null';

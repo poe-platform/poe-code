@@ -84,7 +84,7 @@ export class DecodedBudget {
   }
 }
 
-async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unknown) => void, prefetch = true): ByteSource {
+async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unknown) => void, prefetch = true, statistics?: CompressionOptions["statistics"]): ByteSource {
   signal.throwIfAborted();
   const sourceIterator = source[Symbol.asyncIterator]();
   const iterator = readBytes({
@@ -107,6 +107,7 @@ async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unk
       const next = await pending;
       if (next.done) return;
       const chunk = next.value;
+      if (statistics) statistics.inputBytes += chunk.byteLength;
       if (!chunk.byteLength) {
         if (++emptyChunks >= 64) { await yieldTurn(signal); emptyChunks = 0; }
         pending = iterator.next();
@@ -147,7 +148,7 @@ export async function transform(
   const fail = (error: unknown): void => {
     if (!controller.signal.aborted) { hasFailure = true; failure = error; controller.abort(error); }
   };
-  let prepared: ByteSource = split(typeof source === "function" ? source(signal) : source, signal, fail, options.asyncIO !== false);
+  let prepared: ByteSource = split(typeof source === "function" ? source(signal) : source, signal, fail, options.asyncIO !== false, options.statistics);
   let warned = false;
   if (options.format === "gzip" && options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
   const reader = options.format === "gzip" && options.decompress ? undefined : new CodecReader(prepared, signal);
@@ -169,6 +170,7 @@ export async function transform(
           bytes[9 - size] = 255;
         }
         size += chunk.length;
+        if (options.statistics) options.statistics.outputBytes += chunk.length;
         yield bytes;
       }
       consumed = true;

@@ -1,4 +1,5 @@
-import { PublicDiagnostic, UsageError } from "safe-bash-contracts/diagnostics";
+import { PublicDiagnostic, UsageError, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
+import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import {
   builtInDirectContextExecutors,
   commandRuntimeIdentity,
@@ -71,10 +72,19 @@ function createNamedBzip2Command(
         const decodedBudget = new DecodedBudget(limits.maxDecodedBytes);
         let exitCode = 0;
         for (const operand of parsed.operands) {
+          const label = operand === "-" ? "(stdin)" : operand;
           try {
             const plans = await planOperands(context, { ...parsed, operands: [operand] });
             for (const plan of plans) {
-              const warned = await runOperand(context, plan, parsed, decodedBudget);
+              const statistics = { inputBytes: 0, outputBytes: 0 };
+              const warned = await runOperand(context, plan, parsed.bzip2Verbose ? { ...parsed, statistics } : parsed, decodedBudget);
+              if (parsed.bzip2Verbose) {
+                const { inputBytes, outputBytes } = statistics;
+                const result = parsed.test ? "ok" : parsed.decompress ? "done"
+                  : inputBytes === 0 ? " no data compressed."
+                  : ` ${(inputBytes / outputBytes).toFixed(3)}:1, ${(8 * outputBytes / inputBytes).toFixed(3).padStart(6)} bits/byte, ${(100 * (1 - outputBytes / inputBytes)).toFixed(2)}% saved, ${inputBytes} in, ${outputBytes} out.`;
+                await writeDiagnostic(context.stderr, `  ${label}: ${result}\n`, context.signal);
+              }
               if (warned) {
                 if (!parsed.quiet) {
                   await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
@@ -83,7 +93,11 @@ function createNamedBzip2Command(
             }
           } catch (error) {
             context.signal.throwIfAborted();
-            if (parsed.quiet < 2) await diagnostic(context, error);
+            if (parsed.quiet < 2) {
+              await diagnostic(context, parsed.bzip2Verbose
+                ? new PublicDiagnostic(`${label}: ${publicDiagnosticMessage(error, context.onInternalError)}`)
+                : error);
+            }
             exitCode = Math.max(exitCode, error instanceof CompressedDataError ? 2 : 1);
             if (decodedBudget.exceeded) break;
             if (parsed.decompress && !parsed.test && error instanceof CompressedDataError &&

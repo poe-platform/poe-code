@@ -12,6 +12,8 @@ export interface CompressionOptions {
   xzList?: boolean;
   xzRobot?: boolean;
   xzVerbose?: number;
+  bzip2Verbose?: boolean;
+  statistics?: { inputBytes: number; outputBytes: number };
   decompress: boolean;
   stdout: boolean;
   keep: boolean;
@@ -263,6 +265,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
         case "c": result.stdout = true; break;
         case "v":
           if (profile.format === "xz") result.xzVerbose = Math.min(2, (result.xzVerbose ?? 0) + 1);
+          if (profile.format === "bzip2") result.bzip2Verbose = true;
           break;
         case "l":
           if (profile.format === "gzip") break;

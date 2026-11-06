@@ -20,6 +20,8 @@ console.log(info.stdout); // PNG 60x40
 
 Output parent directories must already exist, including directories selected with `mogrify -path`.
 
+Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`.
+
 Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.
 
 `-wave` preserves native grayscale background handling, including PNG background metadata. Use `-virtual-pixel background` to retain a colored `-background` on grayscale input.

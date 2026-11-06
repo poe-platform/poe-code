@@ -5467,6 +5467,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i += 3;
             continue;
         }
+        if (t === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("filename:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
+            const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
+            stack = yield* mapSteps(stack, function* (image) {
+                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, (image as MagickImage)[magickInput]);
+                return { ...image, properties: { ...image.properties, [key]: expanded } };
+            });
+            i++;
+            continue;
+        }
         if (t === "+set") {
             const key = tokens[++i] ?? "";
             stack = yield* mapSteps(stack, function* (image) {
@@ -6624,6 +6633,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
             steps.push(async image => image ? { ...image, disposal } : undefined);
             i += 2;
+            continue;
+        }
+        if (!operandsOnly && token === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("filename:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
+            const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(value, image, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
+                return { ...image, properties: { ...image.properties, [key]: expanded } };
+            });
             continue;
         }
         if (!operandsOnly && token === "+set") {

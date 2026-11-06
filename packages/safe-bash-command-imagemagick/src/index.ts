@@ -5627,6 +5627,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapSteps(stack, function* (im) {
                 for (const step of magickDrawSteps(im, drawSpec, state)) {
                     if (!step) { yield; continue; }
+                    if ((im.space === "b-w" || im.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
+                        im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
                     if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step), signal);
                     else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, undefined, step.color, step.alphaOnly ? state.alphaFuzz : state.fuzz, signal, step.alphaOnly);
                     else {
@@ -6460,6 +6462,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 for (const step of magickDrawSteps(image, drawing, settings)) {
                     if (!step) { await yieldTurn(signal); continue; }
+                    if ((image.space === "b-w" || image.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
+                        image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
                     if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step), signal);
                     else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, undefined, step.color, step.alphaOnly ? settings.alphaFuzz : settings.fuzz, signal, step.alphaOnly);
                     else {

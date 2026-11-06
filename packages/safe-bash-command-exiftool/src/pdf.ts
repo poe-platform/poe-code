@@ -296,6 +296,7 @@ function parsePdfStructure(bytes: Uint8Array): {
   version: string;
   pageCount: number;
   info: Map<string, string>;
+  postScriptCreator: string | undefined;
 } {
   const text = latin1Decoder.decode(bytes);
   if (!text.startsWith("%PDF-")) {
@@ -303,6 +304,7 @@ function parsePdfStructure(bytes: Uint8Array): {
   }
   // Scan PDF tokens, not string/comment/stream contents. Names may use #xx escapes.
   const delimiters = "\0\t\n\f\r ()<>[]{}/%";
+  let postScriptCreator: string | undefined;
   for (let i = 0; i < text.length;) {
     const ch = text[i]!;
     if (ch === "%") {
@@ -335,6 +337,19 @@ function parsePdfStructure(bytes: Uint8Array): {
       while (i < text.length && !delimiters.includes(text[i]!)) i++;
       if (text.slice(start, i) === "stream") {
         const end = text.indexOf("endstream", i);
+        if (end >= 0) {
+          const stream = text.slice(i, end).trimStart();
+          if (stream.startsWith("%!PS-Adobe-")) {
+            for (const line of stream.split("\r").join("\n").split("\n")) {
+              if (line === "%%EndComments" || (line && !line.startsWith("%"))) break;
+              if (line.startsWith("%%Creator:")) {
+                const creator = line.slice("%%Creator:".length).trim();
+                if (creator && creator !== "(atend)") postScriptCreator = creator;
+                break;
+              }
+            }
+          }
+        }
         i = end < 0 ? text.length : end + "endstream".length;
       }
     }
@@ -441,13 +456,13 @@ function parsePdfStructure(bytes: Uint8Array): {
     }
   }
 
-  return { version, pageCount, info };
+  return { version, pageCount, info, postScriptCreator };
 }
 
 export function inspectPdf(bytes: Uint8Array, resources: Resources): { readonly tags: readonly MetadataTag[] } {
   resources.admit("work", bytes.length * 4 + 256);
   resources.admit("decoded", bytes.length + 256);
-  const { version, pageCount, info } = parsePdfStructure(bytes);
+  const { version, pageCount, info, postScriptCreator } = parsePdfStructure(bytes);
   const tags: MetadataTag[] = [];
 
   tags.push(makeTag("PDFVersion", info.get("PDFVersion") ?? version));
@@ -470,6 +485,10 @@ export function inspectPdf(bytes: Uint8Array, resources: Resources): { readonly 
     if (val !== undefined && val !== "") {
       tags.push(makeTag(key, val));
     }
+  }
+
+  if (postScriptCreator !== undefined) {
+    tags.push({ ...makeTag("Creator", postScriptCreator), group: "PostScript" });
   }
 
   resources.admit("retained", tags.length * 128);

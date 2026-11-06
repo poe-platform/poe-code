@@ -82,3 +82,47 @@ it("copies WAV PCM packets without passing through lossy decoded samples", () =>
   const output = parseWav(serializeWav(input, { audioCodec: "copy" }));
   assert.deepEqual(output.tracks[0]!.samples, input.tracks[0]!.samples);
 });
+
+for (const [codec, bits, tag] of [
+  ["pcm_u8", 8, 1], ["pcm_s16le", 16, 1], ["pcm_s24le", 24, 1],
+  ["pcm_s32le", 32, 1], ["pcm_f32le", 32, 3]
+] as const) {
+  it(`writes ${codec} WAV headers and interleaved samples and preserves them on copy`, () => {
+    const source = audio(48000, [Float32Array.from([-1, 0, .5]), Float32Array.from([.25, -.5, 1])]);
+    const bytes = serializeWav(source, { audioCodec: codec });
+    const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    assert.equal(header.getUint16(20, true), tag);
+    assert.equal(header.getUint16(34, true), bits);
+    assert.equal(header.getUint16(32, true), 2 * bits / 8);
+    assert.equal(header.getUint32(28, true), 48000 * 2 * bits / 8);
+    assert.equal(header.getUint32(40, true), 6 * bits / 8);
+    const output = parseWav(bytes);
+    assert.equal(output.tracks[0]!.codecDescriptions[0]!.codecName, codec);
+    const payload = bytes.subarray(44);
+    const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+    const samples = Array.from({ length: 6 }, (_, i) => {
+      const offset = i * bits / 8;
+      if (tag === 3) return view.getFloat32(offset, true);
+      if (bits === 8) return view.getUint8(offset) - 128;
+      if (bits === 16) return view.getInt16(offset, true);
+      if (bits === 24) return (payload[offset]! | payload[offset + 1]! << 8 | payload[offset + 2]! << 16) << 8 >> 8;
+      return view.getInt32(offset, true);
+    });
+    const scale = 2 ** (bits - 1);
+    assert.deepEqual(samples, tag === 3 ? [-1, .25, 0, -.5, .5, 1] : [-scale, scale / 4, 0, -scale / 2, scale / 2, scale - 1]);
+    output.tracks[0]!.decodedAudio!.channelData.forEach(channel => channel.fill(0));
+    assert.deepEqual(serializeWav(output, { audioCodec: "copy" }), bytes);
+  });
+}
+
+it("preserves floating WAV values outside the integer PCM range", () => {
+  const source = audio(4, [Float32Array.from([-2, 1.5])]);
+  const result = parseWav(serializeWav(source, { audioCodec: "pcm_f32le" }));
+  assert.deepEqual(result.tracks[0]!.decodedAudio!.channelData, source.tracks[0]!.decodedAudio!.channelData);
+});
+
+it("matches native FFmpeg PCM24 quantization through signed 32-bit samples", () => {
+  const source = audio(48000, [Float32Array.from([-1.5, -.5, .5, 1.5], value => value / 8388608)]);
+  const output = parseWav(serializeWav(source, { audioCodec: "pcm_s24le" }));
+  assert.deepEqual(Array.from(output.tracks[0]!.decodedAudio!.channelData[0]!, value => value * 8388608), [-2, -1, 0, 1]);
+});

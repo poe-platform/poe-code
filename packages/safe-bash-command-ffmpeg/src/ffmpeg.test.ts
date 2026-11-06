@@ -2890,3 +2890,19 @@ for (const [fixture, count] of [["cbr", 6912], ["vbr", 5760]] as const) {
     assert.deepEqual(vfs.store.get("/out.wav"), previous);
   });
 }
+
+for (const [codec, bitsPerSample, float] of [
+  ["pcm_u8", 8, false], ["pcm_s24le", 24, false], ["pcm_s32le", 32, false], ["pcm_f32le", 32, true]
+] as const) {
+  it(`honors requested WAV codec ${codec}`, async () => {
+    const pcm = { sampleRate: 48000, channels: [Float64Array.from([-.75, -.25, 0, .25, .75])] };
+    const vfs = createTestVfs({ "/input.wav": encodeWav(pcm, { bitsPerSample: 32, float: true }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", codec, "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = parseWav(vfs.store.get("/output.wav")!).tracks[0]!;
+    const expected = parseWav(encodeWav(pcm, { bitsPerSample, float })).tracks[0]!;
+    assert.equal(actual.codecDescriptions[0]!.codecName, codec);
+    assert.equal(actual.codecDescriptions[0]!.bitsPerSample, bitsPerSample);
+    assert.deepEqual(actual.samples, expected.samples);
+  });
+}

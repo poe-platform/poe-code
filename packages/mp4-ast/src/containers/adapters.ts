@@ -515,18 +515,39 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       audioTrack.codecDescriptions[0]?.codecName === "mp3" ? decodeMp3Track(audioTrack) :
       audioTrack.codecDescriptions[0]?.codecName === "vorbis" ? decodeVorbisTrack(audioTrack) : undefined));
   if (decodedAudio) {
+    switch (options.audioCodec) {
+      case "pcm_u8": bitsPerSample = 8; break;
+      case "pcm_s24le": bitsPerSample = 24; break;
+      case "pcm_s32le": bitsPerSample = 32; break;
+      case "pcm_f32le": bitsPerSample = 32; formatTag = 3; break;
+    }
     const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);
-    pcmBytes = new Uint8Array(numSamples * channels * 2);
+    const bytesPerSample = bitsPerSample >>> 3;
+    // FFmpeg packs PCM24 from the high three bytes of signed PCM32.
+    const scale = 2 ** ((bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
+    pcmBytes = new Uint8Array(numSamples * channels * bytesPerSample);
     const pView = new DataView(pcmBytes.buffer);
     for (let i = 0; i < numSamples; i++) {
       for (let c = 0; c < channels; c++) {
+        const offset = (i * channels + c) * bytesPerSample;
+        if (formatTag === 3) {
+          pView.setFloat32(offset, chData[c]?.[i] ?? 0, true);
+          continue;
+        }
         const val = Math.max(-1, Math.min(1, chData[c]?.[i] ?? 0));
-        const scaled = val * 32768;
+        const scaled = val * scale;
         const lower = Math.floor(scaled);
         // FFmpeg rounds halfway PCM values to the nearest even integer.
         const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
-        pView.setInt16((i * channels + c) * 2, Math.min(32767, rounded), true);
+        const sample = Math.min(scale - 1, rounded);
+        if (bitsPerSample === 8) pView.setUint8(offset, sample + 128);
+        else if (bitsPerSample === 16) pView.setInt16(offset, sample, true);
+        else if (bitsPerSample === 24) {
+          pcmBytes[offset] = (sample >> 8) & 255;
+          pcmBytes[offset + 1] = (sample >> 16) & 255;
+          pcmBytes[offset + 2] = (sample >> 24) & 255;
+        } else pView.setInt32(offset, sample, true);
       }
     }
   } else if (

@@ -33,8 +33,9 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes PCM conversion, lossless WAV copying, audio probe metadata,
   // native single-precision drawbox blending, named overlay offsets, xfade input validation,
   // HLS playlist window handling, trim bounds, native-pixel video filtering,
-  // MP3/Vorbis packet timing and PCM assembly, and pad chroma alignment.
-  assert.ok(otherCodeBytes < 446_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // MP3/Vorbis packet timing and PCM assembly, pad chroma alignment,
+  // and WAV output PCM precision selection.
+  assert.ok(otherCodeBytes < 447_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices, in the complete Worker bundle budget.

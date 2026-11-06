@@ -1082,6 +1082,14 @@ async function applyVideoFilterChain(
       }), signal);
     } else if (name === "drawbox") {
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
+      // FFmpeg uses limited-range BT.601 integer coefficients for drawbox colors.
+      const [r, g, b] = col;
+      const yuvColor = [
+        (263 * r + 516 * g + 100 * b + 512 + (16 << 10)) >> 10,
+        ((-152 * r - 298 * g + 450 * b + 511) >> 10) + 128,
+        ((450 * r - 377 * g - 73 * b + 511) >> 10) + 128
+      ];
+      const yuvAlpha = col[3] / 255;
       // Native packed-RGB drawbox blends with single-precision arithmetic.
       const alpha = Math.fround(col[3] / 255);
       const inverseAlpha = Math.fround(1 - alpha);
@@ -1089,7 +1097,7 @@ async function applyVideoFilterChain(
       const thickness = thicknessOption === "fill" ? Infinity : parseInt(thicknessOption, 10);
       const replace = named.replace === "1";
       current = await mapWork(current, async (f) => {
-  let work = 0;
+        let work = 0;
 
         const variables = { iw: f.width, ih: f.height, in_w: f.width, in_h: f.height };
         const width = Math.trunc(parseFilterExpression(named.w ?? named.width ?? positional[2] ?? "0", "drawbox", variables));
@@ -1099,7 +1107,15 @@ async function applyVideoFilterChain(
         const positionVariables = { ...variables, w: bw, h: bh };
         const bx = Math.trunc(parseFilterExpression(named.x ?? positional[0] ?? "0", "drawbox", positionVariables));
         const by = Math.trunc(parseFilterExpression(named.y ?? positional[1] ?? "0", "drawbox", positionVariables));
-        const nextData = new Uint8Array(f.data);
+        const source = f.native;
+        const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
+          [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
+        const hsub = planar && [0, 4, 12, 13].includes(planar.format) ? 1 : 0;
+        const vsub = planar && [0, 12].includes(planar.format) ? 1 : 0;
+        const chromaWidth = Math.ceil(f.width / (1 << hsub));
+        const chromaSize = chromaWidth * Math.ceil(f.height / (1 << vsub));
+        const lumaSize = f.width * f.height;
+        const nextData = new Uint8Array(planar ? planar.pixels : f.data);
         for (let y = Math.max(0, by); y < Math.min(f.height, by + bh); y++) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
@@ -1107,6 +1123,17 @@ async function applyVideoFilterChain(
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
             if (Math.min(x - bx, y - by, bx + bw - 1 - x, by + bh - 1 - y) >= thickness) continue;
+            if (planar) {
+              // Native drawbox updates shared chroma once per covered luma pixel,
+              // including repeated alpha blends and pixels just outside box edges.
+              const chromaIndex = (y >> vsub) * chromaWidth + (x >> hsub);
+              const indices = [y * f.width + x, lumaSize + chromaIndex, lumaSize + chromaSize + chromaIndex];
+              for (let plane = 0; plane < 3; plane++) {
+                const index = indices[plane]!;
+                nextData[index] = (1 - yuvAlpha) * nextData[index]! + yuvAlpha * yuvColor[plane]!;
+              }
+              continue;
+            }
             const idx = (y * f.width + x) * 4;
             if (replace) {
               nextData.set(col, idx);
@@ -1118,6 +1145,11 @@ async function applyVideoFilterChain(
               );
             }
           }
+        }
+        if (planar) {
+          const native = { ...planar, pixels: nextData };
+          const data = scaleVideoPicture({ ...f, native }, f.width, f.height)!;
+          return { ...f, data, native: { ...native, rgba: data } };
         }
         return { ...f, data: nextData };
       }, signal);

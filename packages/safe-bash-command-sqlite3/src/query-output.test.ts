@@ -72,3 +72,17 @@ test('aligned BLOB and null cells split newlines across chunk boundaries with ex
   assert.equal([...formatQueryParts(result, {...options, mode: 'column', showHeaders: false, nullValue: 'b\nc', widths: [4095, 1]})].join(''),
     first + '  b\nnext' + ' '.repeat(4091) + '  c\n');
 });
+
+ test('CSV distinguishes NULL from empty text and quotes whitespace',()=>{
+  assert.equal([...formatQueryParts({columns:['x'],rows:[[null,'',0,' ','a b','\t']]},{...options,mode:'csv',showHeaders:false,colSeparator:',',rowSeparator:'\r\n',nullValue:''})].join(''),',"",0," ","a b","\t"\r\n');
+ });
+ test('CSV writes NULL replacements verbatim while quoting empty headers and BLOBs',()=>{
+  assert.equal([...formatQueryParts({columns:[''],rows:[[null],[''],[new Uint8Array()]]},{...options,mode:'csv',colSeparator:',',nullValue:'a,b'})].join(''),'""\na,b\n""\n""\n');
+ });
+
+test('CSV quotes ASCII controls and spaces',()=>{
+ for (let code = 1; code <= 32; code++) {
+  const value = String.fromCharCode(code);
+  assert.equal([...formatQueryParts({columns:['x'],rows:[[value]]},{...options,mode:'csv',showHeaders:false,colSeparator:','})].join(''),'"'+value+'"\n');
+ }
+});

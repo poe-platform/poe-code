@@ -52,13 +52,22 @@ function* repeat(character: string, count: number): Generator<string> {
 }
 
 function* csvParts(value: SqlValue, state: QueryOutputOptions): Generator<string> {
-  let quoted = state.colSeparator === '', tail = '';
+  if (value === null || value === undefined) {
+    yield* cellParts(value, state.nullValue);
+    return;
+  }
+  let quoted = state.colSeparator === '', tail = '', empty = true;
   for (const part of cellParts(value, state.nullValue)) {
     yield "";
+    if (part.length) empty = false;
     const text = tail + part;
-    if (text.includes('"') || text.includes(state.colSeparator) || text.includes('\n') || text.includes('\r')) { quoted = true; break; }
+    for (let i = 0; i < part.length; i++) {
+      if (part.charCodeAt(i) <= 32) { quoted = true; break; }
+    }
+    if (quoted || text.includes('"') || text.includes(state.colSeparator)) { quoted = true; break; }
     tail = state.colSeparator.length > 1 ? text.slice(1 - state.colSeparator.length) : '';
   }
+  quoted ||= empty;
   if (quoted) yield '"';
   for (const part of cellParts(value, state.nullValue)) yield quoted ? part.replaceAll('"', '""') : part;
   if (quoted) yield '"';

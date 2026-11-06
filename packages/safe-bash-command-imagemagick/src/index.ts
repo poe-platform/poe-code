@@ -3416,16 +3416,22 @@ function* applyMagickCropSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     return (yield* applyMagickCropToStackSteps(img, geomStr, gravity))[0]!;
 }
 
-function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition): Generator<void, RgbaImage[], void> {
+function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition, analysis?: { warnings: string }): Generator<void, RgbaImage[], void> {
     const tiles: RgbaImage[] = [];
     for (const area of magickCropAreas(img, geomStr, gravity)) {
         yield;
+        if (area === null) {
+            if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
+            tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 })),
+                virtualCanvas: { ...magickCropCanvas(img, 0, 0), x: -1, y: -1 } });
+            continue;
+        }
         tiles.push(area ? { ...(yield* extractImageSteps(img, area)), virtualCanvas: magickCropCanvas(img, area.left, area.top) } : img);
     }
     return tiles;
 }
 
-function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined> {
+function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined | null> {
     const g = parseMagickGeometry(geomStr);
     if (g.isSubdivide) {
         const cols = Math.max(1, Math.round(g.width ?? 1));
@@ -3450,7 +3456,7 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
     }
 }
 
-function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined {
+function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined|null {
  const g=parseMagickGeometry(geomStr);
     const rawW = g.isPercent
         ? Math.max(1, Math.round((img.width * (g.percentX ?? 100)) / 100))
@@ -3470,7 +3476,7 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
     const ix1 = Math.min(img.width, x0 + rawW);
     const iy1 = Math.min(img.height, y0 + rawH);
     if (ix1 <= ix0 || iy1 <= iy0) {
-        return {left:0,top:0,width:1,height:1};
+        return null;
     }
     return {
             left: ix0,
@@ -5516,7 +5522,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                nextStack.push(...(yield* applyMagickCropToStackSteps(im, geom, state.gravity)));
+                nextStack.push(...(yield* applyMagickCropToStackSteps(im, geom, state.gravity, analysis)));
             }
             stack = nextStack;
         }
@@ -6709,6 +6715,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const image = (await stack.get(n))!;
                     for (const area of magickCropAreas(image, geometry, gravity)) {
                         await yieldTurn(signal);
+                        if (area === null) {
+                            analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+                            await frames.push({ ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
+                                virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 } });
+                            continue;
+                        }
                         await frames.push(area ? {
                             ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
                             virtualCanvas: magickCropCanvas(image, area.left, area.top)
@@ -7230,7 +7242,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
  if(state.delay!==undefined){const delay=state.delay;image={...image,storedDelay:{length:image.storedDelay?.length??image.delay?.length??1,async at(){return delay;}}};}
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal);}}
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal);}}
  return image;
  }
 }

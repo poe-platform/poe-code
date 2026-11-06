@@ -11,8 +11,10 @@ class StoredSelection implements NodeSelection {
   private table: IntegerTable | undefined;
   private readonly initial = new Set<number>();
   size = 0;
+  private namespaces = false;
   constructor(private readonly evaluator: StoredXPath) {}
   async add(reference: number): Promise<void> {
+    if (this.evaluator.document.isNamespaceNode(reference)) this.namespaces = true;
     if (!this.table) {
       if (this.initial.has(reference)) return;
       if (this.initial.size < 128) { this.initial.add(reference); this.size++; return; }
@@ -26,6 +28,22 @@ class StoredSelection implements NodeSelection {
     this.size++;
   }
   async *references(): AsyncGenerator<number> {
+    if (this.namespaces) {
+      const has = async (reference: number): Promise<boolean> => this.table
+        ? await this.table.get(BigInt(reference)) !== undefined : this.initial.has(reference);
+      const document = this.evaluator.document;
+      const owners = new StoredSelection(this.evaluator);
+      for await (const reference of this.rawReferences())
+        await owners.add(document.isNamespaceNode(reference) ? await document.parent(reference) : reference);
+      for await (const owner of owners.references()) {
+        if (await has(owner)) yield owner;
+        for await (const reference of document.namespaceNodes(owner, false)) if (await has(reference)) yield reference;
+      }
+      return;
+    }
+    yield* this.rawReferences();
+  }
+  private async *rawReferences(): AsyncGenerator<number> {
     if (!this.table) {
       for (const reference of [...this.initial].sort((a, b) => a - b)) {
         const checkpoint = this.evaluator.budget.tick(); if (checkpoint) await checkpoint;
@@ -47,7 +65,7 @@ async function matches(node: Node, step: QueryStep, namespace: string | number, 
   if (step.kind === "self" || step.kind === "parent") return true;
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
-  return (node.kind === "element" || node.kind === "attribute") &&
+  return (node.kind === "element" || node.kind === "attribute" || node.kind === "namespace") &&
     (step.name === "*" || await document.nameEquals(node.value, localName, true) && await document.namespaceEquals(node.value, namespace));
 }
 
@@ -62,7 +80,7 @@ export class StoredXPath {
     const stored = { document: this.document, reference };
     if (reference === this.document.document) return { kind: "document", children: [], stored };
     const value = await this.document.metadata(reference);
-    if (value.kind === "attribute") return { ...value, stored };
+    if (value.kind === "attribute") return { kind: value.namespaceNode ? "namespace" : "attribute", value: value.value, stored };
     if (value.kind === "element") return { kind: "element", value, children: [], attributes: [], stored };
     return { kind: value.kind, value, stored };
   }
@@ -98,6 +116,7 @@ export class StoredXPath {
           let matched = new StoredSelection(this);
           const candidates = step.kind === "self" ? [parent]
             : step.kind === "parent" ? parent === this.document.document ? [] : [await this.document.parent(parent)]
+            : step.kind === "namespace" ? this.document.namespaceNodes(parent)
             : this.children(parent, step.kind === "attribute");
           for await (const candidate of candidates) {
             if (await matches(await this.node(candidate), step, namespace, localName, this.document)) await matched.add(candidate);

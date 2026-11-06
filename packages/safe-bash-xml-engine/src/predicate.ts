@@ -265,12 +265,12 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
         case "name": case "local-name": case "namespace-uri": {
           let selected: Node | undefined;
           for await (const item of nodes().nodes()) { selected = item; break; }
-          result = selected?.kind === "element" || selected?.kind === "attribute"
+          result = selected?.kind === "element" || selected?.kind === "attribute" || selected?.kind === "namespace"
             ? instruction.name === "name" ? selected.value.name : instruction.name === "local-name" ? selected.value.localName : selected.value.namespace
             : selected?.kind === "processing-instruction" && instruction.name !== "namespace-uri" ? selected.value.kind === "processing-instruction" ? selected.value.target : "" : "";
-          if (instruction.name === "namespace-uri" && selected?.stored && (selected.kind === "element" || selected.kind === "attribute"))
+          if (instruction.name === "namespace-uri" && selected?.stored && (selected.kind === "element" || selected.kind === "attribute" || selected.kind === "namespace"))
             result = await TextValue.create(selected.stored.document.namespaceText(selected.value), budget, storage);
-          else if (instruction.name !== "namespace-uri" && selected?.stored && (selected.kind === "element" || selected.kind === "attribute"))
+          else if (instruction.name !== "namespace-uri" && selected?.stored && (selected.kind === "element" || selected.kind === "attribute" || selected.kind === "namespace"))
             result = await TextValue.create(selected.stored.document.nameText(selected.value, instruction.name === "local-name"), budget, storage);
           else if (instruction.name !== "namespace-uri" && selected?.stored && selected.kind === "processing-instruction" && selected.value.kind === "processing-instruction")
             result = await TextValue.create(selected.stored.document.targetText(selected.value), budget, storage);

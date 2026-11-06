@@ -190,3 +190,52 @@ test("paged XPath streams large attribute values through scalar and node results
   } finally { await document.close(); }
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const [source, expected] of [
+  ['count(/*/namespace::*)', '3'],
+  ['count(/*/@*)', '1'],
+  ['count(/*/*/namespace::*)', '2'],
+  ['string(/*/*/namespace::x)', 'urn:shadow'],
+  ['string(/*/*/*/namespace::x)', 'urn:shadow'],
+  ['name(/*/namespace::xml)', 'xml'],
+  ['local-name(/*/namespace::x)', 'x'],
+  ['namespace-uri(/*/namespace::x)', ''],
+  ['count(/*/namespace::*[name()=""])', '1'],
+  ['count(/*/*/namespace::*[name()=""])', '0'],
+  ['count(/*/namespace::x | /*/namespace::x)', '1'],
+  ['count(/*/namespace::x | /*/*/namespace::x)', '2'],
+  ['count(/*/*/namespace::x/..)', '1'],
+  ['count(/*/*/namespace::x/*)', '0'],
+  ['count(//namespace::xml)', '3'],
+  ['string(/*/namespace::xml)', 'http://www.w3.org/XML/1998/namespace'],
+] as const) test(`namespace scopes in buffered and paged XPath: ${source}`, async () => {
+  const input = '<feed xmlns="urn:atom" xmlns:x="urn:extra" xml:lang="en-US"><child xmlns="" xmlns:x="urn:shadow"><leaf/></child></feed>';
+  const signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const query = await parseQuery(source, budget);
+  assert.equal(await evaluateScalar(query, parseXml(input), budget), expected);
+  const fs = createMemoryFileSystem();
+  const document = await StoredXmlDocument.parse([input], { fs, cwd: '/', env: {}, signal }, budget, 1);
+  try {
+    assert.equal(await new StoredXPath(document, budget).scalar(query), expected);
+  } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir('/'), []);
+});
+
+test('namespace selections spill, deduplicate, and retain element order', async () => {
+  const signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const fs = createMemoryFileSystem();
+  const input = '<r xmlns:x="urn:&amp;extra">' + '<child/>'.repeat(140) + '</r>';
+  const document = await StoredXmlDocument.parse([input], { fs, cwd: '/', env: {}, signal }, budget, 1);
+  try {
+    const query = await parseQuery('//namespace::x | //namespace::x | /*/namespace::xml', budget);
+    let actual = '', expected = '';
+    for (const node of await evaluate(query, parseXml(input), budget)) for await (const part of serialize(node, budget)) expected += part;
+    const selected = await new StoredXPath(document, budget).select(query);
+    assert.equal(selected.size, 142);
+    for await (const node of selected.nodes()) for await (const part of serialize(node, budget)) actual += part;
+    assert.equal(actual, expected);
+  } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir('/'), []);
+});

@@ -21,6 +21,8 @@ the top level and inside predicates: `concat`, `contains`, `starts-with`,
 `normalize-space`, `string`, `count`, `name`, `local-name`, `namespace-uri`,
 `not`, `boolean`, `true`, `false`, `sum`, `number`, `floor`, `ceiling`,
 and `round`. Predicates also support comparisons, `and`, `or`, and positions.
+Use `/*/namespace::*` to inspect in-scope namespace bindings, including `xml`;
+`/*/namespace::prefix` selects one binding. Namespace declarations are excluded from `@*`.
 
 Supported modes include `--noout`, `--format`, `--c14n`, `--exc-c14n`,
 and `--xpath`. Use `--noblanks` to remove ignorable whitespace before queries

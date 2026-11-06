@@ -6,13 +6,14 @@ import { XmlBudget } from "./limits.js";
 
 // Fixed-size links are separate from the variable-size node metadata. Pointers
 // are safe integer byte offsets; zero is the absent-link sentinel.
-const headerBytes = 80;
+const headerBytes = 88;
+const namespaceNodesField = 80;
 const namespacesField = 72;
 const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48, flagsField = 56, fragmentField = 64;
 const textFlag = 1, preserveSpaceFlag = 2;
 
 export type StoredAttribute = XmlAttribute & { readonly valueReference?: number; readonly namespaceValueReference?: number };
-export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
+export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute; namespaceNode?: boolean };
 type XmlStreamEvent = Parameters<NonNullable<Parameters<typeof parseStoredXml>[4]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
   kind: "element"; name: string; localName: string; namespace: string; namespaceReference?: number; nameReference?: number; localNameReference?: number; prefix?: string;
@@ -24,6 +25,7 @@ type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
 export class StoredXmlDocument {
   private rootReference = 0;
   private documentReference = 0;
+  private namespaceStart = Infinity;
   readonly storage: PagedStorage;
   private closing: Promise<void> | undefined;
 
@@ -258,6 +260,31 @@ export class StoredXmlDocument {
     return new StoredNamespaces(this.storage, this.budget, await this.field(reference, namespacesField));
   }
 
+  isNamespaceNode(reference: number): boolean { return reference >= this.namespaceStart; }
+
+  async *namespaceNodes(reference: number, create = true): AsyncGenerator<number> {
+    if (reference === this.document || (await this.metadata(reference)).kind !== "element") return;
+    let first = await this.field(reference, namespaceNodesField);
+    if (!first && create) {
+      const scope = await this.namespaceScope(reference);
+      let previous = 0;
+      for await (const [prefix, uri] of scope.tokenReferences()) {
+        if (await scope.equals(uri, "")) continue;
+        const value: StoredAttribute = { name: "", localName: "", namespace: "", value: "", nameReference: prefix, localNameReference: prefix, namespaceValueReference: uri };
+        const node = await this.append(reference, { kind: "attribute", value, namespaceNode: true }, true);
+        this.namespaceStart = Math.min(this.namespaceStart, node);
+        if (previous) await this.set(previous, nextField, node);
+        else first = node;
+        previous = node;
+      }
+      await this.set(reference, namespaceNodesField, first);
+    }
+    while (first) {
+      yield first;
+      first = await this.field(first, nextField);
+    }
+  }
+
   /** Load scalar metadata only; attributes and namespace scopes have separate iterators. */
   async metadata(reference: number): Promise<XmlContent | StoredXmlAttribute> {
     const size = await this.field(reference, sizeField);
@@ -284,7 +311,9 @@ export class StoredXmlDocument {
     while (fragment) {
       const node = await this.metadata(fragment);
       if (node.kind === "element") throw new TypeError("Expected XML value node");
-      yield node.kind === "attribute" ? node.value.value : node.text;
+      if (node.kind === "attribute" && node.namespaceNode) {
+        yield* new StoredNamespaces(this.storage, this.budget).valueParts((node.value as StoredAttribute).namespaceValueReference!);
+      } else yield node.kind === "attribute" ? node.value.value : node.text;
       fragment = await this.field(fragment, fragmentField);
     }
   }

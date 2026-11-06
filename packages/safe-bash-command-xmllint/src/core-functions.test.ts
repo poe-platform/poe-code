@@ -327,3 +327,30 @@ for (const mode of [[], ["--format"], ["--c14n"], ["--exc-c14n"], ["--xpath", "/
     }
   });
 }
+
+for (const [query, expected] of [
+  ['count(/*/namespace::*)', '3'],
+  ['count(/*/namespace::node())', '3'],
+  ['count(/*/@*)', '1'],
+  ['string(/*/namespace::x)', 'urn:extra'],
+  ['name(/*/namespace::x)', 'x'],
+  ['local-name(/*/namespace::x)', 'x'],
+  ['namespace-uri(/*/namespace::x)', ''],
+  ['count(/*/namespace::*[name()=""])', '1'],
+  ['count(/*/namespace::* | /*/namespace::*)', '3'],
+  ['count(/*/namespace::x/..)', '1'],
+  ['/*/namespace::x', ' xmlns:x="urn:extra"'],
+] as const) test(`namespace axis: ${query}`, async () => {
+  const result = await run(['--xpath', query, '-'], '<feed xmlns="urn:atom" xmlns:x="urn:extra" xml:lang="en-US"/>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + '\n');
+});
+
+test('namespace-only declarations are excluded from attributes', async () => {
+  const input = '<w:document ' + Array.from({ length: 9 }, (_, i) => `xmlns:${i === 0 ? 'w' : 'p' + i}="urn:${i}"`).join(' ') + '/>';
+  for (const [query, expected] of [['count(/*/namespace::*)', '10\n'], ['count(/*/@*)', '0\n']]) {
+    const result = await run(['--xpath', query!, '-'], input);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  }
+});

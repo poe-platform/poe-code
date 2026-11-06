@@ -10,16 +10,21 @@ interface ElementNode {
   value: XmlElement;
   children: Node[];
   attributes: AttributeNode[];
+  namespaces?: NamespaceNode[];
 }
 interface AttributeNode {
   kind: "attribute";
+  value: XmlAttribute;
+}
+interface NamespaceNode {
+  kind: "namespace";
   value: XmlAttribute;
 }
 interface ContentNode {
   kind: Exclude<XmlContent["kind"], "element">;
   value: Exclude<XmlContent, XmlElement>;
 }
-export type Node = (Container | AttributeNode | ContentNode) & { stored?: { document: StoredXmlDocument; reference: number } };
+export type Node = (Container | AttributeNode | NamespaceNode | ContentNode) & { stored?: { document: StoredXmlDocument; reference: number } };
 const xmlns = "http://www.w3.org/2000/xmlns/";
 
 async function indexTree(
@@ -46,6 +51,15 @@ async function indexTree(
       parent.children.push(node);
       parentOf.set(node, parent);
       order.push(node);
+      node.namespaces = [];
+      for (const [prefix, uri] of [...content.namespaces].sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)) {
+        const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+        if (!uri) continue;
+        const selected: NamespaceNode = { kind: "namespace", value: { name: prefix, localName: prefix, namespace: "", value: uri } };
+        node.namespaces.push(selected);
+        parentOf.set(selected, node);
+        order.push(selected);
+      }
       for (const attribute of content.attributes) {
         { const _p = budget.tick(); if (_p) await _p; }
         if (attribute.namespace === xmlns) continue;
@@ -72,7 +86,7 @@ function matches(node: Node, step: QueryStep, namespace: string, localName: stri
   if (step.kind === "self" || step.kind === "parent") return true;
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
-  if (node.kind === "element" || node.kind === "attribute") {
+  if (node.kind === "element" || node.kind === "attribute" || node.kind === "namespace") {
     return step.name === "*" || (node.value.namespace === namespace && node.value.localName === localName);
   }
   return false;
@@ -141,6 +155,8 @@ async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof index
               ? parentOf.has(parent)
                 ? [parentOf.get(parent)!]
                 : []
+              : step.kind === "namespace"
+                ? parent.kind === "element" ? parent.namespaces ?? [] : []
               : step.kind === "attribute"
                 ? parent.kind === "element"
                   ? parent.attributes
@@ -206,7 +222,7 @@ export async function* stringValue(
   budget: XmlBudget
 ): AsyncGenerator<string> {
   if (node === undefined) return;
-  if (node.kind === "attribute") {
+  if (node.kind === "attribute" || node.kind === "namespace") {
     if (node.stored) yield* node.stored.document.text(node.stored.reference);
     else yield node.value.value;
     return;
@@ -252,8 +268,20 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
     yield node.value.text;
     return;
   }
-  if (node.kind === "attribute") {
-    if (node.stored) { yield " "; yield* node.stored.document.nameText(node.value); yield '="'; }
+  if (node.kind === "attribute" || node.kind === "namespace") {
+    if (node.kind === "namespace") {
+      yield " xmlns";
+      if (node.stored) {
+        let first = true;
+        for await (const part of node.stored.document.nameText(node.value)) {
+          if (!part) continue;
+          if (first) { yield ":"; first = false; }
+          yield part;
+        }
+      } else if (node.value.name) yield `:${node.value.name}`;
+      yield '="';
+    }
+    else if (node.stored) { yield " "; yield* node.stored.document.nameText(node.value); yield '="'; }
     else yield ` ${node.value.name}="`;
     for await (const part of stringValue(node, budget)) yield* escape(part, true, budget);
     yield '"';

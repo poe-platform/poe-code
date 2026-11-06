@@ -5,7 +5,7 @@ import { parsePredicate, type Instruction } from "./predicate.js";
 export type Predicate = readonly Instruction[];
 export interface QueryStep {
   readonly descendant: boolean;
-  readonly kind: "element" | "attribute" | "text" | "self" | "parent";
+  readonly kind: "element" | "attribute" | "namespace" | "text" | "self" | "parent";
   readonly name: string;
   readonly predicates: readonly Predicate[];
 }
@@ -108,8 +108,13 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
         kind = "attribute";
         at++;
       }
+      if (source.startsWith("namespace::", at) && kind === "element") {
+        kind = "namespace";
+        at += "namespace::".length;
+      }
       let selected: string;
       if (source[at] === ".") {
+        if (kind === "namespace") fail();
         at++;
         selected = ".";
         kind = source[at] === "." ? "parent" : "self";
@@ -121,10 +126,11 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
         selected = name();
         space();
         if (source[at] === "(") {
-          if (selected !== "text" || kind !== "element") fail();
+          if (!(selected === "text" && kind === "element" || selected === "node" && kind === "namespace")) fail();
           expect("(");
           expect(")");
-          kind = "text";
+          if (kind === "namespace") selected = "*";
+          else kind = "text";
         }
       }
       const predicates: Predicate[] = [];

@@ -41,9 +41,10 @@ test("unzip restores spilled directory identities and deferred symlinks", async 
   await fs.mkdir("/work");
   const signal = new AbortController().signal, limits = settings({});
   const modified = new Date(2026, 0, 2, 3, 4, 6);
+  const accessed = new Date(1900000123000);
   const entries = [];
   for (let index = 0; index < 70; index++) {
-    entries.push(await makeZipEntry(`dir-${index}/`, new Uint8Array(), { modified, mode: 0o40750, directory: true, symlink: false }, limits, signal, 0));
+    entries.push(await makeZipEntry(`dir-${index}/`, new Uint8Array(), { modified, accessed, mode: 0o40750, directory: true, symlink: false }, limits, signal, 0));
     entries.push(await makeZipEntry(`link-${index}`, new TextEncoder().encode("target"), { modified, mode: 0o120777, directory: false, symlink: true }, limits, signal, 0));
   }
   await fs.writeFile("/work/archive.zip", await writeZipArchive({ entries, comment: new Uint8Array() }, limits, signal));
@@ -54,6 +55,7 @@ test("unzip restores spilled directory identities and deferred symlinks", async 
     const directory = await fs.stat(`/work/dir-${index}`);
     assert.equal(directory.mode & 0o777, 0o750);
     assert.equal(directory.mtimeMs, modified.getTime());
+    assert.equal(directory.atimeMs, accessed.getTime());
     assert.equal(await fs.readlink!(`/work/link-${index}`), "target");
   }
   assert.equal((await fs.readdir("/work")).length, 141);

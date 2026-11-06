@@ -9,7 +9,7 @@ import type { ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archiv
 import { createUnzipCommand, evalSyncUnzip } from "./index.js";
 
 
-interface Member { name: string; body?: string | Uint8Array; mode?: number; method?: number; extra?: Uint8Array; crc?: number; flags?: number }
+interface Member { name: string; body?: string | Uint8Array; mode?: number; method?: number; extra?: Uint8Array; centralExtra?: Uint8Array; crc?: number; flags?: number }
 
 function crc32(bytes: Uint8Array): number {
   let crc = 0xffffffff;
@@ -36,11 +36,13 @@ function zip(members: readonly Member[], comment = ""): Uint8Array {
     local.writeUInt16LE((3 << 11) | (4 << 5) | 3, 10); local.writeUInt16LE((44 << 9) | (1 << 5) | 2, 12);
     local.writeUInt32LE(member.crc ?? crc32(body), 14); local.writeUInt32LE(data.length, 18); local.writeUInt32LE(body.length, 22);
     local.writeUInt16LE(name.length, 26); local.writeUInt16LE(extra.length, 28);
+    const centralExtra = Buffer.from(member.centralExtra ?? extra);
     const central = Buffer.alloc(46);
     central.writeUInt32LE(0x02014b50); central.writeUInt16LE(0x0314, 4); local.copy(central, 6, 4, 30);
     central.writeUInt32LE(((member.mode ?? (member.name.endsWith("/") ? 0o40755 : 0o100644)) << 16) >>> 0, 38);
     central.writeUInt32LE(offset, 42);
-    locals.push(local, name, extra, data); centrals.push(central, name, extra);
+    central.writeUInt16LE(centralExtra.length, 30);
+    locals.push(local, name, extra, data); centrals.push(central, name, centralExtra);
     offset += local.length + name.length + extra.length + data.length;
   }
   const directory = Buffer.concat(centrals);
@@ -856,3 +858,26 @@ for (const mode of ["-p", "-Z1", "-t", "-oq"]) test(`unzip sync ${mode} defers u
     assert.equal(result, undefined);
   }
 });
+
+for (const flags of [0, 1, 2, 3, 7]) {
+  test(`unzip restores file and directory timestamps with UT flags ${flags}`, async () => {
+    const extra = Buffer.alloc(5 + ((flags & 1) + ((flags >> 1) & 1) + ((flags >> 2) & 1)) * 4);
+    extra.writeUInt16LE(0x5455, 0); extra.writeUInt16LE(extra.length - 4, 2); extra[4] = flags;
+    let offset = 5;
+    for (const [flag, seconds] of [[1, 1700000001], [2, 1900000123], [4, 1600000000]] as const) {
+      if (flags & flag) { extra.writeInt32LE(seconds, offset); offset += 4; }
+    }
+    const centralExtra = Buffer.from(extra.subarray(0, flags & 1 ? 9 : 5));
+    centralExtra.writeUInt16LE(centralExtra.length - 4, 2);
+    const fields = flags ? { extra, centralExtra } : {};
+    const fs = await fixture([{ name: "folder/", ...fields }, { name: "folder/guide.md", body: "guide", ...fields }]);
+    const result = await run(fs, ["-oq", "sample.zip"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    for (const path of ["/work/folder", "/work/folder/guide.md"]) {
+      const stat = await fs.lstat!(path);
+      const modified = flags & 1 ? 1700000001000 : new Date(2024, 0, 2, 3, 4, 6).getTime();
+      assert.equal(stat.mtimeMs, modified);
+      assert.equal(stat.atimeMs, flags & 2 ? 1900000123000 : modified);
+    }
+  });
+}

@@ -22,7 +22,8 @@ member streaming (`-p`, `-c`), include/exclude patterns (`-x`), case-insensitive
 matching (`-C`), destination selection (`-d`), overwrite policy (`-o`, `-n`),
 update/freshen (`-u`, `-f`), and flattened paths (`-j`). Unsafe member paths and
 escaping symlinks are rejected; extraction uses staged publication and retained
-cleanup. ZIP files use retained ranges; stdin, nonseekable archives and authenticated
+cleanup. Extraction restores stored access and modification times for files and
+directories; when access time is absent, it uses modification time. ZIP files use retained ranges; stdin, nonseekable archives and authenticated
 plaintext use owned staging in the injected filesystem. Large streams need an
 external backend with retained reads, retained staged writes and cleanup; a memory
 filesystem still stores its contents in RAM. Qualified backends also keep member indexes

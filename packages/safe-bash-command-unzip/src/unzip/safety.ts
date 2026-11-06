@@ -150,7 +150,7 @@ export class Extraction {
     const current = await this.stat(path);
     if (!current || current.type !== expected.type || !sameIdentity(current, expected)) fail("extraction entry changed before mutation");
   }
-  async metadata(root: string, path: string, identity: FileStat, parent: FileStat, mode: number, modified: Date): Promise<void> {
+  async metadata(root: string, path: string, identity: FileStat, parent: FileStat, mode: number, modified: Date, accessed = modified): Promise<void> {
     const { fs, signal } = this.context;
     await this.parents(root, path, false);
     const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
@@ -159,15 +159,15 @@ export class Extraction {
     await this.operation(() => fs.prepareDirectory!(path, {
       signal, expected: identity, parent,
       ...(capabilities.permissions === false ? {} : { mode: mode & 0o777 }),
-      ...(capabilities.timestamps === false ? {} : { atimeMs: modified.getTime(), mtimeMs: modified.getTime() }),
+      ...(capabilities.timestamps === false ? {} : { atimeMs: accessed.getTime(), mtimeMs: modified.getTime() }),
     }));
   }
-  publish(root: string, path: string, chunks: ByteSource | readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target?: string): Promise<void> {
-    const publication = this.stage(root, path, chunks, expected, parent, mode, modified, target);
+  publish(root: string, path: string, chunks: ByteSource | readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target?: string, accessed = modified): Promise<void> {
+    const publication = this.stage(root, path, chunks, expected, parent, mode, modified, target, accessed);
     this.publications.add(publication);
     return publication.finally(() => { this.publications.delete(publication); });
   }
-  private async stage(root: string, path: string, chunks: ByteSource | readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target: string | undefined): Promise<void> {
+  private async stage(root: string, path: string, chunks: ByteSource | readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target: string | undefined, accessed: Date): Promise<void> {
     const { fs, signal } = this.context;
     const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
     if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic owned file staging");
@@ -202,7 +202,7 @@ export class Extraction {
             staging = await fs.createStagedFile!(temporary, "entry", content, {
               signal, parent, ...(capabilities.retainedStagingCleanup ? { retainCleanup: true } : {}),
               ...(target !== undefined || capabilities.permissions === false ? {} : { mode: mode & 0o777 }),
-              ...(target !== undefined || capabilities.timestamps === false ? {} : { atimeMs: modified.getTime(), mtimeMs: modified.getTime() }),
+              ...(target !== undefined || capabilities.timestamps === false ? {} : { atimeMs: accessed.getTime(), mtimeMs: modified.getTime() }),
             });
           });
           break;

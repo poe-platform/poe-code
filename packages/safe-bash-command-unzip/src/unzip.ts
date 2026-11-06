@@ -209,7 +209,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         return identityScopeIndex === undefined ? rest : { ...rest, identityScope: identityScopes[identityScopeIndex]! };
       };
       type Link = { path: string; shown: string; target: string; existing: StoredStat | undefined; parent: StoredStat; mode: number; modified: Date };
-      type Directory = { path: string; identity: StoredStat; parent: StoredStat; mode: number; modified: Date };
+      type Directory = { path: string; identity: StoredStat; parent: StoredStat; mode: number; modified: Date; accessed?: Date };
       const links = scratch ? new ZipMetadataMap<Link>(scratch, context.signal) : new Map<string, Link>();
       const directories = scratch ? new ZipMetadataMap<Directory>(scratch, context.signal) : new Map<string, Directory>();
       for await (const entry of zip.entries) {
@@ -266,7 +266,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
               if (!parsed.quiet) await budget.output(`   creating: ${filtered(shown)}\n`);
             }
             if (!identity || identity.type !== "directory") fail("directory changed during creation");
-            await directories.set(String(directories.size), { path, mode: entry.mode, modified: entry.modified, identity: storeStat(identity), parent: storeStat(parent) });
+            await directories.set(String(directories.size), { path, mode: entry.mode, modified: entry.modified, accessed: entry.accessed ?? entry.modified, identity: storeStat(identity), parent: storeStat(parent) });
             continue;
           }
           let parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
@@ -319,7 +319,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             await links.set(String(links.size), { path, shown, target, existing: existing && storeStat(existing), parent: storeStat(parent), mode: entry.mode, modified: entry.modified });
             if (!parsed.quiet) await budget.output(`    linking: ${padded(filtered(shown))}  -> ${filtered(target)} \n`);
           } else {
-            await extraction.publish(root, path, payload(entry), existing, parent, entry.mode, entry.modified);
+            await extraction.publish(root, path, payload(entry), existing, parent, entry.mode, entry.modified, undefined, entry.accessed);
             if (!parsed.quiet) await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(shown))}  \n`);
           }
         } catch (error) {
@@ -343,7 +343,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         }
         for (let ordinal = directories.size - 1; ordinal >= 0; ordinal--) {
           const directory = (await directories.get(String(ordinal)))!;
-          await extraction.metadata(root, directory.path, restoreStat(directory.identity), restoreStat(directory.parent), directory.mode, directory.modified);
+          await extraction.metadata(root, directory.path, restoreStat(directory.identity), restoreStat(directory.parent), directory.mode, directory.modified, directory.accessed);
         }
       }
       for (let index = 0; !parsed.list && index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {

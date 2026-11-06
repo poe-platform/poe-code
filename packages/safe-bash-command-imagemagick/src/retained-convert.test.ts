@@ -18,8 +18,10 @@ for (const operators of [[], ["-roll", "+3-5"], ["-roll", "-99+87"], ["-roll", "
         } });
         const args = ["input", ...operators, "out.png"], files = new Map([["input", bytes]]);
         expect(await runConvertCli(args, { filesystem, cwd: "/" })).toEqual(await runConvertCli(args, files));
-        expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
-        expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input", "out.png"]);
+        expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual([...files.keys()].sort());
+        for (const [name, output] of files) {
+            if (name !== "input") expect(decodeImage(await fs.readFile(`/${name}`))).toEqual(decodeImage(output));
+        }
     });
 }
 
@@ -32,7 +34,9 @@ it.each(["tile:frames.gif", "tile:frames.gif[-1]", "frames.gif", "frames.gif[-1]
     await fs.writeFile("/frames.gif", files.get("frames.gif")!);
     const args = [operand, "-flip", "out.png"];
     expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, files));
-    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+    const outputs = [...files.keys()].filter(name => name.startsWith("out"));
+    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["frames.gif", ...outputs].sort());
+    for (const name of outputs) expect(decodeImage(await fs.readFile(`/${name}`))).toEqual(decodeImage(files.get(name)!));
 });
 it("preserves JPEG reduced DCT decoding and ordered settings", async () => {
     const bytes = await sharp(Uint8Array.from({ length: 128 * 96 * 4 }, (_, i) => i * 37 % 256), { raw: { width: 128, height: 96, channels: 4 } }).jpeg().toBuffer();

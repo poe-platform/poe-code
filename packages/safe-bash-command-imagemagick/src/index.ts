@@ -5142,6 +5142,71 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     return result;
 }
 
+function* prepareGifFrames(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
+    let cooperativeWork = 0;
+    let fw = 0, fh = 0;
+    for (const frame of stack) { fw = Math.max(fw, frame.width); fh = Math.max(fh, frame.height); }
+    const combined = new Uint8Array(fw * fh * stack.length * 4);
+    const delays: number[] = [];
+    const disposals: number[] = [];
+    for (let idx = 0; idx < stack.length; idx++) {
+        if (++cooperativeWork % 64 === 0) yield;
+        const outputFrame = yield* prepareHueOutput(stack[idx]!, "gif");
+        disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 1);
+        delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
+        for (let y = 0; y < outputFrame.height; y++) {
+            if (++cooperativeWork % 64 === 0) yield;
+            combined.set(outputFrame.data.subarray(y * outputFrame.width * 4, (y + 1) * outputFrame.width * 4), (idx * fw * fh + y * fw) * 4);
+        }
+    }
+    return {
+        ...(yield* prepareHueOutput(stack[0]!, "gif")),
+        width: fw,
+        height: fh * stack.length,
+        pages: stack.length,
+        pageHeight: fh,
+        delay: delays,
+        disposal: disposals,
+        gifFrames: stack.map(frame => ({ width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
+        data: combined
+    };
+}
+
+async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const first = await prepareStoredHueOutput((await stack.get(0))!, "gif", backend, signal);
+    let width = first.width, height = first.height;
+    for (let index = 1; index < stack.length; index++) {
+        const frame = (await stack.get(index))!;
+        width = Math.max(width, frame.width); height = Math.max(height, frame.height);
+    }
+    const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
+    for (let index = 0; index < stack.length; index++) {
+        const frame = await prepareStoredHueOutput((await stack.get(index))!, "gif", backend, signal);
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 4096) {
+            await yieldTurn(signal);
+            const count = Math.min(4096, width - x), bytes = new Uint8Array(count * 4);
+            if (y < frame.height && x < frame.width) bytes.set(await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(count, frame.width - x) * 4));
+            await backend.storage.write(position + index * size + (y * width + x) * 4, bytes);
+        }
+    }
+    const { storedData16: ignored, ...metadata } = first;
+    return { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight: height,
+        storedGifFrame: { async at(index) {
+            const frame = (await stack.get(index))!;
+            return { width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };
+        } },
+        storedDisposal: { length: stack.length, async at(index) {
+            const frame = (await stack.get(index))!;
+            return typeof frame.disposal === "number" ? frame.disposal : 1;
+        } },
+        storedDelay: { length: stack.length, async at(index) {
+            const frame = (await stack.get(index))!;
+            const scene = frame[magickInput]?.sceneIdx ?? 0;
+            return await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 100;
+        } }
+    };
+}
+
 async function prepareStoredHueOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
     if (image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB" && image.magickColorspace !== "HWB" && image.magickColorspace !== "XYZ" && image.magickColorspace !== "YCbCr" && image.magickColorspace !== "YUV") return image;
     return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
@@ -5385,7 +5450,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 else {
-                    const { data: encoded } = encodeImage(yield* prepareHueOutput(top, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                    const image = stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareHueOutput(top, format);
+                    const { data: encoded } = encodeImage(image, { format, ...(stack.length > 1 && format === "gif" ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     files.set(path, encoded);
                 }
             }
@@ -6104,34 +6170,8 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         let toEncode = yield* prepareHueOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && format === "gif") {
-            let fw = 0, fh = 0;
-            for (const frame of stack) { fw = Math.max(fw, frame.width); fh = Math.max(fh, frame.height); }
-            const combined = new Uint8Array(fw * fh * stack.length * 4);
-            const delays: number[] = [];
-            const disposals: number[] = [];
-            for (let idx = 0; idx < stack.length; idx++) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const outputFrame = yield* prepareHueOutput(stack[idx]!, format);
-                disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 1);
-                delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
-                for (let y = 0; y < outputFrame.height; y++) {
-                    if (++cooperativeWork % 64 === 0) yield;
-                    combined.set(outputFrame.data.subarray(y * outputFrame.width * 4, (y + 1) * outputFrame.width * 4), (idx * fw * fh + y * fw) * 4);
-                }
-            }
-            toEncode = {
-                ...(yield* prepareHueOutput(stack[0]!, format)),
-                width: fw,
-                height: fh * stack.length,
-                pages: stack.length,
-                pageHeight: fh,
-                delay: delays,
-                disposal: disposals,
-                gifFrames: stack.map(frame => ({ width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
-                data: combined
-            };
-            encodePageHeight = fh;
+            toEncode = yield* prepareGifFrames(stack);
+            encodePageHeight = toEncode.pageHeight;
         }
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Collection is best-effort. */ } }
         const { data: encoded } = encodeImage(toEncode, {
@@ -6667,14 +6707,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
-            const path = tokens[++i] ?? "", quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin;
+            const path = tokens[++i] ?? "", quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 const image = await stack.get(stack.length - 1);
                 if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
                     if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format)))) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
-                    } else await backend.stage(await prepareStoredHueOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality });
+                    } else {
+                        const frames = stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
+                        await backend.stage(frames, output.path, { format: output.format, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
+                    }
                 }
                 return stack;
             });
@@ -6983,39 +7026,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         let pageHeight: number | undefined;
         if (stack.length > 1 && output.format === "gif") {
-            const first = await prepareStoredHueOutput((await stack.get(0))!, output.format, backend, signal);
-            let width = first.width, height = first.height;
-            for (let index = 1; index < stack.length; index++) {
-                const frame = (await stack.get(index))!;
-                width = Math.max(width, frame.width); height = Math.max(height, frame.height);
-            }
-            const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
-            for (let index = 0; index < stack.length; index++) {
-                const frame = await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal);
-                for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 4096) {
-                    await yieldTurn(signal);
-                    const count = Math.min(4096, width - x), bytes = new Uint8Array(count * 4);
-                    if (y < frame.height && x < frame.width) bytes.set(await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(count, frame.width - x) * 4));
-                    await backend.storage.write(position + index * size + (y * width + x) * 4, bytes);
-                }
-            }
-            pageHeight = height;
-            const { storedData16: ignored, ...metadata } = first;
-            image = { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight,
-                storedGifFrame: { async at(index) {
-                    const frame = (await stack.get(index))!;
-                    return { width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };
-                } },
-                storedDisposal: { length: stack.length, async at(index) {
-                    const frame = (await stack.get(index))!;
-                    return typeof frame.disposal === "number" ? frame.disposal : 1;
-                } },
-                storedDelay: { length: stack.length, async at(index) {
-                    const frame = (await stack.get(index))!;
-                    const scene = frame[magickInput]?.sceneIdx ?? 0;
-                    return await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 100;
-                } }
-            };
+            image = await prepareStoredGifFrames(stack, backend, signal);
+            pageHeight = image.pageHeight;
         }
         const scene = pageHeight === undefined ? (await stack.get(0))![magickInput]?.sceneIdx ?? 0 : 0;
         const delay = pageHeight === undefined ? await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] : undefined;

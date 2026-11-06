@@ -953,7 +953,7 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
 
   const root = cos.resolveDict(cos.rootRef);
 
-  // Mode priority: meta > js > struct > dests > url > ordinary (with optional custom)
+  // Mode priority: meta > js > struct > dests > url > custom > ordinary
   if (args.meta) {
     const metaObj = root ? cos.resolve(dictGet(root, "Metadata")) : undefined;
     if (metaObj?.kind === "stream") {
@@ -1017,9 +1017,16 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
       }
     }
   }
-  customKeys.sort((a, b) => a.localeCompare(b));
 
   let out = "";
+  if (args.custom) {
+    for (const key of [...infoMap.keys()].sort()) {
+      yield;
+      const value = infoMap.get(key)!;
+      out += formatField(key, key === "CreationDate" || key === "ModDate" ? formatPdfDate(value, dateMode, options.timeZone) : value);
+    }
+    return { exitCode: 0, stdout: applyPopplerOutputEncoding(out, args.encoding), stderr: "" };
+  }
   for (const key of ["Title", "Subject", "Keywords", "Author", "Creator", "Producer"]) {
     yield;
     const val = infoMap.get(key);
@@ -1029,14 +1036,6 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
     yield;
     const val = infoMap.get(dateKey);
     if (val !== undefined) out += formatField(dateKey, formatPdfDate(val, dateMode, options.timeZone));
-  }
-
-  if (args.custom) {
-    for (const customKey of customKeys) {
-    yield;
-      const val = infoMap.get(customKey);
-      if (val !== undefined) out += formatField(customKey, val);
-    }
   }
 
   out += formatField("Custom Metadata", customKeys.length > 0 ? "yes" : "no");
@@ -1258,24 +1257,33 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
       }
       return text;
     }
+    let hasCustom = false;
+    async function* infoIndices() {
+      for (let i = 0; i < infoEntries.length; i++) {
+        if (i % 64 === 0) await yieldTurn(signal);
+        const entry = infoEntries[i]!;
+        if ((args.custom || !STANDARD_INFO_KEYS.has(entry.key.decoded)) && (await resolve(entry.value))?.kind === "string") { hasCustom = true; yield i; }
+      }
+    }
+    if (args.custom) {
+      const compare = (a: number, b: number) => {
+        const left = infoEntries[a]!.key.decoded, right = infoEntries[b]!.key.decoded;
+        return left < right ? -1 : left > right ? 1 : 0;
+      };
+      for await (const index of sortMetadataIndices(infoIndices(), compare, storage, signal)) {
+        const entry = infoEntries[index]!, key = entry.key.decoded;
+        const node = await resolve(entry.value);
+        if (node?.kind !== "string") continue;
+        const value = decodePdfString(node);
+        await field(key, key === "CreationDate" || key === "ModDate" ? formatPdfDate(value, args.isodates ? "iso" : args.rawdates ? "raw" : "normal", context.env.TZ) : value);
+      }
+      return { exitCode: 0 };
+    }
     for (const key of ["Title", "Subject", "Keywords", "Author", "Creator", "Producer", "CreationDate", "ModDate"]) {
       const value = await infoValue(key);
       if (value !== undefined) await field(key, key === "CreationDate" || key === "ModDate" ? formatPdfDate(value, args.isodates ? "iso" : args.rawdates ? "raw" : "normal", context.env.TZ) : value);
     }
-    let hasCustom = false;
-    async function* customIndices() {
-      for (let i = 0; i < infoEntries.length; i++) {
-        if (i % 64 === 0) await yieldTurn(signal);
-        const entry = infoEntries[i]!;
-        if (!STANDARD_INFO_KEYS.has(entry.key.decoded) && (await resolve(entry.value))?.kind === "string") { hasCustom = true; yield i; }
-      }
-    }
-    if (args.custom) {
-      const compare = (a: number, b: number) => infoEntries[a]!.key.decoded.localeCompare(infoEntries[b]!.key.decoded);
-      for await (const index of sortMetadataIndices(customIndices(), compare, storage, signal)) {
-        const key = infoEntries[index]!.key.decoded; await field(key, (await infoValue(key))!);
-      }
-    } else for await (const ignored of customIndices()) break;
+    for await (const ignored of infoIndices()) break;
     await field("Custom Metadata", hasCustom ? "yes" : "no");
     await field("Metadata Stream", (await doc.lookup(rootEntry("Metadata")))?.stream ? "yes" : "no");
     const mark = await resolve(rootEntry("MarkInfo"));

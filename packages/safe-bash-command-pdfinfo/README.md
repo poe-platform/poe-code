@@ -9,7 +9,7 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 | Standard Info & Geometry | `pdfinfo file.pdf` | Extracts `Title`, `Author`, `Pages`, `Encrypted`, `Page size`, `Page rot`, `Form`, `JavaScript`, `Tagged`, `File size`, `PDF version`, and PDF/X subtype standards metadata. |
 | Page Bounding Boxes | `-box` | Prints `MediaBox`, `CropBox`, `BleedBox`, `TrimBox`, and `ArtBox` coordinates (`%8.2f`). |
 | Multi-Page Ranges | `-f <first> -l <last>` | Inspects page geometry and boxes across a specific range of pages. |
-| Custom Metadata | `-custom` | Includes sorted custom `/Info` dictionary string entries. |
+| Custom Metadata | `-custom` | Prints only standard and custom `/Info` dictionary string entries, sorted by key. |
 | Raw XMP Stream | `-meta` | Outputs the raw `/Metadata` XML packet from the document catalog. |
 | Date Formatting | `-isodates` / `-rawdates` | Default dates use `TZ` (UTC when unset); formats PDF dates as ISO-8601 (`YYYY-MM-DDTHH:MM:SSZ`) or raw `D:...` strings. |
 | URL & Link Extraction | `-url` | Lists all `/URI` link actions and URLs across inspected pages. |

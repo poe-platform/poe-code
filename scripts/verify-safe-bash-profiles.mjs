@@ -247,6 +247,29 @@ export default { async fetch() {
 
 export async function verifySafeBashPortableCommands(consumer) {
   consumer = path.resolve(consumer);
+  // Measure consent, token lifecycle and account lookup without the shell fixture.
+  const consent = ["prepareRemoteMcpAuthorization", "exchangeAuthorizationCode"];
+  const oauth = [...consent, "discoverOAuthMetadata", "OAuthMetadataError", "refreshAccessToken", "revokeOAuthToken"];
+  for (const [profile, names, maxKiB] of [
+    ["mcpConsent", consent, 10],
+    ["mcpOAuth", oauth, 20],
+    ["mcpAccountLookup", [...oauth, "callRemoteMcpTool"], 150],
+  ]) {
+    const result = await build({
+      absWorkingDir: consumer,
+      stdin: { contents: `export { ${names.join(", ")} } from "@poe-platform/safe-bash/mcp";`, resolveDir: consumer },
+      bundle: true, minify: true, format: "esm", platform: "browser", conditions: ["workerd"],
+      write: false, metafile: true, plugins: [rejectNodeImports],
+    });
+    const bytes = result.outputFiles.reduce((total, file) => total + file.contents.length, 0);
+    assert.ok(bytes <= maxKiB * 1024, `${profile}: ${bytes} bytes exceeds ${maxKiB} KiB`);
+    for (const output of Object.values(result.metafile.outputs)) {
+      for (const [input, { bytesInOutput }] of Object.entries(output.inputs)) {
+        assert.ok(!bytesInOutput || !input.includes("/safe-fs/"), `${profile} includes ${input}`);
+      }
+    }
+    console.log(JSON.stringify({ profile, bytes }));
+  }
   // Keep every public export, including lazy engines, in the qualification graph.
   for (const condition of ["browser", "workerd"]) {
     for (const route of ["commands/sips", "commands/pandoc", "commands/shuf", "sharp", "image-ast"]) {

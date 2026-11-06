@@ -14,6 +14,8 @@ on:
       - "packages/safe-bash-csv-engine/**"
       - "packages/safe-bash-*-engine/**"
       - "packages/safe-bash-command-*/**"
+      - "packages/mcp-oauth/**"
+      - "packages/tiny-mcp-client/**"
       - "packages/safe-playwright/**"
       - "packages/safe-playwright-cloudflare/**"
       - "packages/package-lint/**"

@@ -60,6 +60,16 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
       entryPoints[workspace.dir + "/" + runtime.slice(2, -3)] = path.join(rootDir, "packages", workspace.dir, input);
     }
   }
+  if (portable && entryPoints["safe-bash-command-mcp/dist/index.browser"]) {
+    // Separate the full SDK, OAuth and transport so a named import from /mcp
+    // doesn't execute the shell and filesystem initialization of the command bundle.
+    for (const [name, source] of Object.entries({
+      sdk: "safe-bash-command-mcp/src/index.ts",
+      authorization: "mcp-oauth/src/client/resumable.ts",
+      discovery: "tiny-mcp-client/src/oauth-discovery.ts",
+      tool: "safe-bash-command-mcp/src/tool-call.ts",
+    })) entryPoints["safe-bash/dist/command-chunks/mcp-" + name] = path.join(rootDir, "packages", source);
+  }
   if (!Object.keys(entryPoints).length) return undefined;
   return {
     absWorkingDir: rootDir, entryPoints, alias, external: subpathImports.size ? [...new Set([...(external ?? []), ...subpathImports])] : external,

@@ -1179,6 +1179,15 @@ function* runSofficeSteps(
         } else outBytes = isHtml || lowerIn.endsWith(".md") ? renderBlocksToText(blocks, isHtml && targetExt === "txt" ? "\n" : "\n\n") : inputBytes;
       }
 
+      if (targetExt === "txt" && filterNameRaw === "Text" &&
+        ![".pdf", ".xlsx", ".csv", ".ods", ".pptx", ".odp"].some(ext => lowerIn.endsWith(ext)) &&
+        !(outBytes[0] === 0xef && outBytes[1] === 0xbb && outBytes[2] === 0xbf)) {
+        const encoded = new Uint8Array(outBytes.length + 3);
+        encoded.set([0xef, 0xbb, 0xbf]);
+        encoded.set(outBytes, 3);
+        outBytes = encoded;
+      }
+
       if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {
         try {
           const parsedFilter = JSON.parse(filterOpts) as Record<string, { value?: unknown } | unknown>;

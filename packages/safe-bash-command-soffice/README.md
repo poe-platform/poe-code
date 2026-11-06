@@ -21,6 +21,7 @@ and emits nested HTML lists with their starting numbers. DOCX HTML exports prese
 inline bold and italic text in paragraphs, headings, lists, and tables.
 DOCX PDF exports preserve inline bold and italic runs in paragraphs, headings, and lists.
 DOCX TXT exports and `--cat` output include the UTF-8 BOM used by LibreOffice.
+Explicit `txt:Text` exports from HTML/HTM, ODT, RTF, TXT, and Markdown also include this signature.
 TXT and Markdown inputs also produce valid DOCX archives; CSV and XLSX inputs produce DOCX tables.
 Tabular text (comma- or tab-separated), Markdown pipe tables, and HTML/HTM tables
 export to real XLSX workbooks or CSV with StarCalc filter options. Markdown alignment

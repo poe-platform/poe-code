@@ -156,6 +156,19 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
         if (written !== size) throw new FsError("EIO", { message: "Text encoder returned fewer bytes than measured" });
         output = { position, size };
       }
+      if (format === "txt" && explicitFilter === "Text" &&
+        ![".xlsx", ".csv", ".ods", ".pptx", ".odp"].some(extension => input.toLowerCase().endsWith(extension))) {
+        const prefix = new Uint8Array(await storage.read(output.position, Math.min(3, output.size)));
+        if (!(prefix[0] === 0xef && prefix[1] === 0xbb && prefix[2] === 0xbf)) {
+          const position = storage.allocate(output.size + 3);
+          await storage.write(position, Uint8Array.of(0xef, 0xbb, 0xbf));
+          for (let offset = 0; offset < output.size; offset += 16384) {
+            signal.throwIfAborted();
+            await storage.write(position + 3 + offset, new Uint8Array(await storage.read(output.position + offset, Math.min(16384, output.size - offset))));
+          }
+          output = { position, size: output.size + 3 };
+        }
+      }
       sources.set(path, output);
       if (original.get(path) === output) pending.delete(path); else pending.set(path, output);
       const filter = explicitFilter || (format === "csv" ? "Text - txt - csv (StarCalc)" : format === "pdf"

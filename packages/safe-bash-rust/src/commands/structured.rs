@@ -34249,6 +34249,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         }
     }
 
+    let mut invalid_option = None;
     let mut from_fmt: Option<String> = None;
     let mut to_fmt: Option<String> = None;
     let mut out_path: Option<String> = None;
@@ -34399,16 +34400,34 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         } else if a == "--epub-title" && i + 1 < args.len() {
             meta.insert("title".to_string(), args[i + 1].clone());
             i += 2;
-        } else if let Some(w) = a.strip_prefix("--wrap=") {
-            if !matches!(w, "none" | "auto" | "preserve") {
-                return err_out("E_OPTION: Invalid wrap policy\n", 2);
+        } else if a == "--wrap" || a.starts_with("--wrap=") || a == "--columns" || a.starts_with("--columns=") {
+            let (name, value) = if let Some((name, value)) = a.split_once('=') {
+                (name, Some(value))
+            } else {
+                i += 1;
+                (a.as_str(), args.get(i).map(String::as_str))
+            };
+            let Some(value) = value else {
+                let argument = if name == "--columns" { "NUMBER" } else { "auto|none|preserve" };
+                return err_out(&format!("option `{name}' requires an argument {argument}\nTry pandoc --help for more information.\n"), 6);
+            };
+            if name == "--wrap" {
+                if !matches!(value, "none" | "auto" | "preserve") {
+                    invalid_option.get_or_insert("--wrap must be auto, none, or preserve\n");
+                }
+            } else {
+                let text = value.trim();
+                let (digits, radix) = if text.starts_with("0x") || text.starts_with("0X") {
+                    (&text[2..], 16)
+                } else if text.starts_with("0o") || text.starts_with("0O") {
+                    (&text[2..], 8)
+                } else { (text, 10) };
+                if usize::from_str_radix(digits, radix).ok()
+                    .filter(|v| *v > 0 && !digits.starts_with('+')).is_none() {
+                    invalid_option.get_or_insert("Argument of --columns must be a number greater than 0\n");
+                }
             }
             i += 1;
-        } else if a == "--wrap" && i + 1 < args.len() {
-            if !matches!(args[i + 1].as_str(), "none" | "auto" | "preserve") {
-                return err_out("E_OPTION: Invalid wrap policy\n", 2);
-            }
-            i += 2;
         } else if let Some(rc) = a.strip_prefix("--raw-content=") {
             if !matches!(rc, "reject" | "escape" | "retain") {
                 return err_out("E_OPTION: Invalid raw-content policy\n", 2);
@@ -34429,7 +34448,6 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 | "--citeproc"
                 | "-C"
         ) || a.starts_with("--eol=")
-            || a.starts_with("--columns=")
             || a.starts_with("--resource-path=")
             || a.starts_with("--extract-media=")
             || a.starts_with("--pdf-")
@@ -34441,7 +34459,6 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         } else if matches!(
             a.as_str(),
             "--eol"
-                | "--columns"
                 | "--resource-path"
                 | "--extract-media"
                 | "--filter"
@@ -34472,6 +34489,10 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             files.push(a.clone());
             i += 1;
         }
+    }
+
+    if let Some(message) = invalid_option {
+        return err_out(message, 6);
     }
 
     let infer_fmt = |path: &str| -> Option<String> {
@@ -37671,6 +37692,45 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn pandoc_cli_option_errors() {
+        let fs = MemoryVfs::new();
+        let columns = "Argument of --columns must be a number greater than 0\n";
+        let wrap = "--wrap must be auto, none, or preserve\n";
+        let mut cases = vec![
+            (args(&["--columns"]), "option `--columns' requires an argument NUMBER\nTry pandoc --help for more information.\n"),
+            (args(&["--wrap"]), "option `--wrap' requires an argument auto|none|preserve\nTry pandoc --help for more information.\n"),
+            (args(&["--columns=0", "--wrap"]), "option `--wrap' requires an argument auto|none|preserve\nTry pandoc --help for more information.\n"),
+            (args(&["--wrap=bad", "--columns"]), "option `--columns' requires an argument NUMBER\nTry pandoc --help for more information.\n"),
+            (args(&["--columns=0", "--wrap=bad"]), columns),
+            (args(&["--wrap=bad", "--columns=0"]), wrap),
+            (args(&["--columns", "--wrap"]), columns),
+            (args(&["--columns=8", "--columns=0"]), columns),
+        ];
+        for (option, values, message) in [
+            ("--columns", vec!["0", "-1", "bad", "", "1.5", "1e2", "+2"], columns),
+            ("--wrap", vec!["bad", "", "AUTO", "--columns"], wrap),
+        ] {
+            for value in values {
+                cases.push((args(&[option, value]), message));
+                cases.push((vec![format!("{option}={value}")], message));
+            }
+        }
+        for (options, message) in cases {
+            for output in [vec![], args(&["-o", "/result"])] {
+                fs.write_file("/result", b"existing output").unwrap();
+                let mut argv = args(&["-f", "gfm", "-t", "plain"]);
+                argv.extend(output);
+                argv.extend(options.clone());
+                let result = cmd_pandoc(&argv, "hello", "/", &fs);
+                assert_eq!(result.exit_code, 6);
+                assert_eq!(result.stdout, "");
+                assert_eq!(result.stderr, message);
+                assert_eq!(fs.read_file("/result").unwrap(), b"existing output");
+            }
+        }
     }
 
     #[test]

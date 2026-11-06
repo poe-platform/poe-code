@@ -106,7 +106,7 @@ it("rejects unconfigured local files and malformed metadata/options before readi
 it("accepts Markdown wrapping policies", async () => {
   const ctx = context(["-f", "commonmark", "-t", "commonmark", "--wrap=none"], "hi\nthere\n");
   expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
-  expect(text(ctx.stdout)).toBe("hi\nthere\n");
+  expect(text(ctx.stdout)).toBe("hi there\n");
   for(const wrap of ["auto", "preserve"]) {
     const wrapped = context(["-f", "commonmark", "-t", "gfm", `--wrap=${wrap}`], "hi");
     expect(await createStandalonePandocCommand().execute(wrapped)).toEqual({exitCode: 0}); expect(text(wrapped.stdout)).toBe("hi\n");

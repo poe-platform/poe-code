@@ -3,6 +3,11 @@ import type { ConversionOptions, InputSource, MetadataObject, WriteOptions, Stre
 import {createFormatRegistry} from "./formats.js";
 import { resourceDirectory } from "./resources.js";
 
+/** Native CLI diagnostics; SDK validation continues to use PandocError. */
+export class PandocCliError extends PandocError {
+  constructor(message: string) {super("E_OPTION", "convert", message);}
+}
+
 export interface CommandInputs {
   readonly cwd?: string;
   readonly stdin?: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
@@ -26,7 +31,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   let destination: string | undefined;
   let outputSeen = false;
   let yes = false;
-  const names = new Map<string, "from" | "to" | "rawContent" | "wrap">([["-f", "from"], ["--from", "from"], ["-r", "from"], ["--read", "from"], ["-t", "to"], ["--to", "to"], ["-w", "to"], ["--write", "to"], ["--raw-content", "rawContent"], ["--wrap", "wrap"]]);
+  const names = new Map<string, "from" | "to" | "rawContent">([["-f", "from"], ["--from", "from"], ["-r", "from"], ["--read", "from"], ["-t", "to"], ["--to", "to"], ["-w", "to"], ["--write", "to"], ["--raw-content", "rawContent"]]);
   const fail = (message: string): never => {throw new PandocError("E_OPTION", "convert", message);};
   const source = (path: string, metadata = false): InputSource => {
     if (!files.readStream && !files.readFile) fail("File operands require an explicit readStream or readFile capability");
@@ -37,6 +42,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       else yield await files.readFile!(path, signal);
     })()};
   };
+  let invalidOption: string | undefined;
   let positional = false;
   let stdinUsed = false;
   for (let i = 0; i < args.length; i++) {
@@ -60,6 +66,24 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
+    if (name === "--columns" || name === "--wrap") {
+      const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
+      if (value === undefined) throw new PandocCliError(`option \`${name}' requires an argument ${name === "--columns" ? "NUMBER" : "auto|none|preserve"}\nTry pandoc --help for more information.`);
+      if (name === "--wrap") {
+        if (!["auto", "none", "preserve"].includes(value)) invalidOption ??= "--wrap must be auto, none, or preserve";
+        else options.wrap = value as NonNullable<WriteOptions["wrap"]>;
+      } else {
+        const text = value.trim();
+        const base = text.slice(0, 2).toLowerCase();
+        const digits = base === "0x" ? "0123456789abcdef" : base === "0o" ? "01234567" : "0123456789";
+        const body = base === "0x" || base === "0o" ? text.slice(2) : text;
+        const width = Number(text);
+        if (!body || [...body.toLowerCase()].some(ch => !digits.includes(ch)) || !Number.isSafeInteger(width) || width <= 0)
+          invalidOption ??= "Argument of --columns must be a number greater than 0";
+        else options.columns = width;
+      }
+      continue;
+    }
     const filterKind = new Map<string, "json" | "lua" | "citeproc">([["--filter", "json"], ["-F", "json"], ["--lua-filter", "lua"], ["-L", "lua"], ["--citeproc", "citeproc"], ["-C", "citeproc"]]).get(name);
     if (filterKind) {
       if (filterKind === "citeproc") {
@@ -72,7 +96,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       }
       continue;
     }
-    const writerOption = new Map<string, string>([["--columns", "columns"], ["--shift-heading-level-by", "shiftHeadingLevelBy"], ["--eol", "eol"], ["--number-sections", "numberSections"], ["-N", "numberSections"], ["--toc", "toc"], ["--table-of-contents", "toc"], ["--strip-comments", "stripComments"], ["--ascii", "ascii"], ["--standalone", "standalone"]]).get(name);
+    const writerOption = new Map<string, string>([["--shift-heading-level-by", "shiftHeadingLevelBy"], ["--eol", "eol"], ["--number-sections", "numberSections"], ["-N", "numberSections"], ["--toc", "toc"], ["--table-of-contents", "toc"], ["--strip-comments", "stripComments"], ["--ascii", "ascii"], ["--standalone", "standalone"]]).get(name);
     if (writerOption) {
       const boolean = ["numberSections", "toc", "stripComments", "ascii", "standalone"].includes(writerOption);
       const value = equals < 0 ? boolean ? "true" : args[++i] : arg.slice(equals + 1);
@@ -214,10 +238,10 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     if (options[key!] !== undefined) fail(`Repeated option: ${name}`);
     const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
     if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
-    if (key === "wrap") {if (!["none", "auto", "preserve"].includes(value!)) fail("Invalid wrap policy"); options.wrap = value as NonNullable<WriteOptions["wrap"]>;}
-    else if (key === "rawContent") {if (value !== "reject" && value !== "escape" && value !== "retain") fail("Invalid raw-content policy"); options.rawContent = value as "reject" | "escape" | "retain";}
+    if (key === "rawContent") {if (value !== "reject" && value !== "escape" && value !== "retain") fail("Invalid raw-content policy"); options.rawContent = value as "reject" | "escape" | "retain";}
     else if (key === "from" || key === "to") options[key] = value!;
   }
+  if (invalidOption) throw new PandocCliError(invalidOption);
   if (!operands.length) for (const path of defaultInputs) {
     if (path === "-") {
       if (stdinUsed || !files.stdin) fail("Stdin may be supplied once");

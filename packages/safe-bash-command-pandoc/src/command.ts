@@ -8,6 +8,7 @@ import {createJsonFilterCapability, type JsonFilterRuntime, type JsonStreamFilte
 import {createLuaFilterCapability} from "./lua-filters.js";
 import {resolveConversionArgs} from "./defaults.js";
 import {inspectCommand} from "./inspection.js";
+import {PandocCliError} from "./cli.js";
 import {PandocError} from "./errors.js";
 import {defaultLimits} from "./execution.js";
 import type {ConversionContext, FilterCapability} from "./types.js";
@@ -299,6 +300,10 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       if (outputFailure) throw outputFailure.reason;
       stdout?.signal.throwIfAborted();
       if (!(error instanceof PandocError) && !(error instanceof FsError)) throw error;
+      if (error instanceof PandocCliError) {
+        await context.stderr.write(new TextEncoder().encode(`${error.message}\n`));
+        return {exitCode: 6};
+      }
       const code = error instanceof PandocError ? error.code : "E_IO";
       if (!(error instanceof PandocError) || !deliveredLuaErrors.has(error))
         await context.stderr.write(new TextEncoder().encode(`${code}: ${error.message}\n`));

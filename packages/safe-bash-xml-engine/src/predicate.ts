@@ -10,7 +10,7 @@ export interface NodeSelection {
 }
 export type Value = string | number | boolean | NodeSelection | TextValue;
 type Selector = (query: Query, absolute: boolean) => Promise<Node[] | NodeSelection>;
-type Operator = "+" | "-" | "or" | "and" | "=" | "!=" | "<" | "<=" | ">" | ">=";
+type Operator = "+" | "-" | "*" | "div" | "mod" | "or" | "and" | "=" | "!=" | "<" | "<=" | ">" | ">=";
 type FunctionName = keyof typeof arity;
 export type Instruction =
   | { kind: "path"; source: string; query?: Query }
@@ -18,7 +18,7 @@ export type Instruction =
   | { kind: "literal"; value: string | number }
   | { kind: "operator"; name: Operator }
   | { kind: "function"; name: FunctionName; count: number };
-const precedence: Record<Operator, number> = { "+": 5, "-": 5, or: 1, and: 2, "=": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4 };
+const precedence: Record<Operator, number> = { "*": 6, div: 6, mod: 6, "+": 5, "-": 5, or: 1, and: 2, "=": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4 };
 const arity = {
   id: [1], lang: [1], contains: [2], "starts-with": [2], "normalize-space": [0, 1], not: [1],
   position: [0], last: [0], concat: [2, Infinity], substring: [2, 3],
@@ -95,7 +95,7 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
     }
     if (!expecting) {
       let operator: string;
-      if (c === "+" || c === "-") { operator = c; at++; }
+      if (c === "+" || c === "-" || c === "*") { operator = c; at++; }
       else if (c === "=" || c === "!" || c === "<" || c === ">") {
         operator = c; at++;
         if (source[at] === "=") { operator += "="; at++; }
@@ -128,6 +128,12 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
         else if (!brackets && ch === "(") parentheses++;
         else if (!brackets && ch === ")") { if (!parentheses) break; parentheses--; }
         else if (!brackets && !parentheses && (ch === "+" || ch === "," || ch === "=" || ch === "!" || ch === "<" || ch === ">" )) break;
+        if (!quote && !brackets && !parentheses && ch === "*") {
+          let previous = at - 1;
+          while (previous >= start && whitespace(source[previous]!)) previous--;
+          // A star starts a name test only at the start of a path step.
+          if (previous >= start && !"/@:|".includes(source[previous]!)) break;
+        }
         if (!quote && !brackets && !parentheses && whitespace(ch)) {
           let next = at;
           while (whitespace(source[next] ?? "")) next++;
@@ -274,9 +280,10 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
       values.push(-await numeric(values.pop()!));
     } else if (instruction.kind === "operator") {
       const right = values.pop()!, left = values.pop()!;
-      if (instruction.name === "+" || instruction.name === "-") {
+      if (instruction.name === "+" || instruction.name === "-" || instruction.name === "*" || instruction.name === "div" || instruction.name === "mod") {
         const a = await numeric(left), b = await numeric(right);
-        values.push(instruction.name === "+" ? a + b : a - b);
+        values.push(instruction.name === "+" ? a + b : instruction.name === "-" ? a - b :
+          instruction.name === "*" ? a * b : instruction.name === "div" ? a / b : a % b);
       } else values.push(await compare(left, right, instruction.name, budget, storage));
     } else {
       const args = values.splice(values.length - instruction.count);

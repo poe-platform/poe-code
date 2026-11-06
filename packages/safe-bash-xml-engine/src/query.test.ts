@@ -101,6 +101,18 @@ for (const [source, expected] of [
   ["number(/root/@n)+2", "12"], ["- /root/@n", "-10"],
   ["-number(/root/@missing)", "NaN"], ["-(-2)", "2"],
   ["count(/root/item[-@n + 2 = 1])", "1"],
+  ["5 div 2", "2.5"], ["5 mod 2", "1"], ["3+4*2", "11"],
+  ["(3+4)*2", "14"], ["24 div 3*2", "16"], ["20 mod 6 mod 3", "2"],
+  ["-5 mod 2", "-1"], ["5 mod -2", "1"], ["2*-3", "-6"],
+  ["1 div 0", "Infinity"], ["0 div 0", "NaN"], ["5 mod 0", "NaN"],
+  ["'3'*true()", "3"], ["/root/@n*2", "20"],
+  ["count(/root/item[position()*2=4])", "1"],
+  ["count(/root/item[position() div 2=1])", "1"],
+  ["count(/root/item[position() mod 2=1])", "1"],
+  ["count(/root/item[@n*2=4])", "1"],
+  ["count(/root/item[@* * 2=4])", "1"],
+  ["count(/root/item[2*@*=4])", "1"],
+  ["count(/root/*)*2", "4"],
 ] as const) {
   test(`XPath arithmetic ${source}`, async () => {
     const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
@@ -109,7 +121,7 @@ for (const [source, expected] of [
   });
 }
 
-for (const source of ["-", "1 +", "-(1 +)", "number(1 +)"]) {
+for (const source of ["-", "1 +", "-(1 +)", "number(1 +)", "1 *", "1 div", "1 mod", "1 div mod 2"]) {
   test(`XPath rejects incomplete arithmetic ${source}`, async () => {
     const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
     await assert.rejects(parseQuery(source, budget), /unsupported XPath/);

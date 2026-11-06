@@ -194,6 +194,8 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
     if (morePaths) at++;
   } while (morePaths);
   space();
+  if (source[at] === "*" || source.startsWith("div", at) || source.startsWith("mod", at))
+    return { paths: [], expression: parsePredicate(source, budget) };
   if (at !== source.length) fail();
   return { paths };
 }

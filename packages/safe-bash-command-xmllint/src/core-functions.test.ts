@@ -86,6 +86,24 @@ for (const [input, query] of [
   assert.equal(result.output, "2\n");
 });
 
+for (const [query, expected] of [
+  ["5 div 2", "2.5"], ["5 mod 2", "1"], ["3+4*2", "11"],
+  ["count(//item[position() mod 2=1])", "2"],
+  ["count(//item[position()*2=4])", "1"],
+  ["count(//item[position() div 2=1])", "1"],
+  ["count(//item[n*2=4])", "1"],
+  ["count(//item[* * 2=4])", "1"],
+  ["count(//item[n div 2=1])", "1"],
+  ["count(//item[n mod 2=1])", "2"],
+  ["/catalog/item[1]/n*2", "2"],
+  ["count(/catalog/*)", "3"],
+] as const) test(`multiplicative XPath: ${query}`, async () => {
+  const result = await run(["--xpath", query, "-"],
+    '<catalog xml:lang="en-US"><item id="a" xml:id="first"><n>1</n><n>2</n><s>AB</s></item><item id="b" xml:lang="fr"><n>2</n><s>xy</s></item><item id="c"><n>03</n><n>3</n></item></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
 test("namespace naming functions", async () => {
   const result = await run(["--xpath", 'concat(name(/*), "|", local-name(/*), "|", namespace-uri(/*))'], '<p:root xmlns:p="urn:p"/>');
   assert.equal(result.exitCode, 0, result.errors);

@@ -5810,6 +5810,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-duplicate" || t === "+duplicate") {
+            if (stack.length === 0) throw new Error(`no images found for operation ${t}`);
             let count = 1;
             let idxSpec = "-1";
             if (t === "-duplicate") {
@@ -5826,7 +5827,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
             }
-            const sourcePool = stack.length > 0 ? stack : parentStack;
+            const sourcePool = stack;
             const sourceLength = sourcePool.length;
             for (let k = 0; k < count; k++) {
                 if (++cooperativeWork % 65536 === 0)
@@ -6339,6 +6340,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const value = tokens[++i]!, comma = value.indexOf(","); count = Math.max(0, parseInt(value, 10)); spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
             }
             stackStep(async (stack, _backend, parents) => {
+                if (token.endsWith("duplicate") && stack.length === 0) throw new Error(`no images found for operation ${token}`);
                 if (token.endsWith("clone") || token.endsWith("duplicate")) {
                     const source = stack.length ? stack : parents.at(-1) ?? stack, length = source.length;
                     for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length)) { await yieldTurn(signal); await stack.push((await source.get(index))!); }

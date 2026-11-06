@@ -510,6 +510,7 @@ interface MagickState {
   tile: string | undefined;
   strip: boolean;
   adjoin: boolean;
+  scene: number;
   dither: boolean;
   quantizeGray?: boolean;
   formatStr: string | undefined;
@@ -544,6 +545,7 @@ function createDefaultState(): MagickState {
     tile: undefined,
     strip: false,
     adjoin: true,
+    scene: 0,
     dither: true,
     formatStr: undefined,
     channels: { r: true, g: true, b: true, a: false },
@@ -5483,7 +5485,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     for (let idx = 0; idx < stack.length; idx++) {
                         if (++cooperativeWork % 65536 === 0)
                             yield;
-                        const framePath = formatSceneOutputPath(path, idx);
+                        const framePath = formatSceneOutputPath(path, state.scene + idx);
                         const { data: frameBytes } = encodeImage(yield* prepareHueOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                         files.set(framePath, frameBytes);
                     }
@@ -5512,6 +5514,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-adjoin") {
             state.adjoin = true;
+        }
+        else if (t === "-scene") {
+            state.scene = Number(tokens[++i]);
+            if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
         }
         else if (t === "-delay") {
             state.delay = Number(tokens[++i] ?? 0) * 10;
@@ -6200,7 +6206,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (let idx = 0; idx < stack.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
-                const framePath = formatSceneOutputPath(outPath, idx);
+                const framePath = formatSceneOutputPath(outPath, state.scene + idx);
                 const { data: frameBytes } = encodeImage(yield* prepareHueOutput(stack[idx]!, format), { format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                 files.set(framePath, frameBytes);
             }
@@ -6728,6 +6734,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-scene") {
+            state.scene = Number(tokens[++i]);
+            if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
+            continue;
+        }
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
@@ -6746,13 +6757,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
-            const path = tokens[++i] ?? "", quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, loop = state.loop, optimizeLayers = state.optimizeLayers;
+            const path = tokens[++i] ?? "", quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 const image = await stack.get(stack.length - 1);
                 if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
                     if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
-                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
+                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
                         const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
                         await backend.stage(frames, output.path, { format: output.format, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
@@ -7058,7 +7069,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!state.adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
-                await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, state.scene + index), { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
             }
             await backend.publishPending();
             return { exitCode: 0, stdout: "", stderr: "" };

@@ -17,6 +17,13 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  if(magic==="P6"&&source.size-dataOffset<width*height*3*(maxval>255?2:1)) throw new Error("Truncated PPM raster");
  const metadata:StoredRgbaImage={width,height,position:0,format,space:format==="ppm"?"srgb":"b-w",channels:format==="ppm"?3:1,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha:false};
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;
+ const storedData16=maxval>255?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
+ const samples16=storedData16?new Uint16Array(2048):undefined;let used16=0,offset16=0;
+ const flush16=async():Promise<void>=>{
+  if(!storedData16||!samples16||!used16) return;
+  await storage.write(storedData16.position+offset16,new Uint8Array(samples16.buffer,0,used16*2),{signal});
+  offset16+=used16*2;used16=0;
+ };
  const ascii=async():Promise<number>=>{
   while(position<source.size) {
    const value=(await reader.at(position))!;
@@ -42,10 +49,18 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
    const value=await reader.at(dataOffset+y*Math.ceil(width/8)+(x>>>3))??0,g=(value>>>(7-(x&7)))&1?0:255;
    await output.pixel(g,g,g,255);
   } else if(magic==="P1") {const g=await ascii()===1?0:255;await output.pixel(g,g,g,255);}
-  else if(format==="ppm") await output.pixel(Math.round((await sample())*255/maxval),Math.round((await sample())*255/maxval),Math.round((await sample())*255/maxval),255);
-  else {const g=Math.round((await sample())*255/maxval);await output.pixel(g,g,g,255);}
+  else {
+   const r=await sample(),g=format==="ppm"?await sample():r,b=format==="ppm"?await sample():r;
+   await output.pixel(Math.round(r*255/maxval),Math.round(g*255/maxval),Math.round(b*255/maxval),255);
+   if(samples16) {
+    for(const value of [r,g,b]) samples16[used16++]=Math.round(value*65535/maxval);
+    samples16[used16++]=65535;
+    if(used16===samples16.length) await flush16();
+   }
+  }
  }
- return output.finish();
+ await flush16();
+ return {...await output.finish(),...(storedData16?{storedData16}:{})};
 }
 /** Owned output chunks and pull-driven backpressure; rows never require full buffers. */
 export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm"):AsyncGenerator<Uint8Array> {

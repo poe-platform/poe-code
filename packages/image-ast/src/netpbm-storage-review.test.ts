@@ -102,7 +102,7 @@ it.each(vectors)("preserves P$spec.magic max=$spec.maxval header=$spec.variant t
   return;
  }
  const actual=await decodeNetpbmToStorage(input,storage,signal),buffered=decodeNetpbmImage(bytes);
- expect({...actual,position:undefined}).toEqual(vector.expected);expect({...buffered,data:undefined}).toEqual(vector.expected);expect(readNetpbmMetadata(bytes)).toEqual(vector.metadata);expect(digest(buffered.data)).toBe(vector.hash);expect(digest(memory.subarray(actual.position,actual.position+actual.width*actual.height*4))).toBe(vector.hash);
+ expect({...actual,position:undefined,storedData16:undefined}).toEqual(vector.expected);expect({...buffered,data:undefined,data16:undefined}).toEqual(vector.expected);expect(readNetpbmMetadata(bytes)).toEqual(vector.metadata);expect(digest(buffered.data)).toBe(vector.hash);expect(digest(memory.subarray(actual.position,actual.position+actual.width*actual.height*4))).toBe(vector.hash);
  for(const format of ["ppm","pgm","pbm"] as const){const hash=createHash("sha256");for await(const chunk of encodeNetpbmFromStorage(actual,storage,signal,format))hash.update(chunk);expect(hash.digest("hex")).toBe(vector.encoded[format]);}expect(bytes).toEqual(before);
 });
 it("scans huge header comments and wide binary rows with bounded owned pages",async()=>{

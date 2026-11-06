@@ -48,6 +48,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     throw new Error("Truncated PPM raster");
   }
   const rgba = new Uint8Array(width * height * 4);
+  const data16 = maxval > 255 ? new Uint16Array(width * height * 4) : undefined;
   let pos = hdr.dataOffset;
 
   const readNextAsciiInt = (): number => {
@@ -69,36 +70,19 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     return val;
   };
 
-  if (magic === "P6") {
-    const readSample =
-      maxval > 255
-        ? () => {
-            const hi = bytes[pos++] ?? 0;
-            const lo = bytes[pos++] ?? 0;
-            return (hi << 8) | lo;
-          }
-        : () => bytes[pos++] ?? 0;
+  if (magic === "P6" || magic === "P5" || magic === "P3" || magic === "P2") {
+    const readSample = magic === "P3" || magic === "P2" ? readNextAsciiInt : () => {
+      const hi = bytes[pos++] ?? 0;
+      return maxval > 255 ? (hi << 8) | (bytes[pos++] ?? 0) : hi;
+    };
     for (let i = 0; i < width * height; i++) {
-      rgba[i * 4] = Math.round((readSample() * 255) / maxval);
-      rgba[i * 4 + 1] = Math.round((readSample() * 255) / maxval);
-      rgba[i * 4 + 2] = Math.round((readSample() * 255) / maxval);
+      const r = readSample(), g = format === "ppm" ? readSample() : r, b = format === "ppm" ? readSample() : r;
+      for (const [channel, value] of [r, g, b].entries()) {
+        rgba[i * 4 + channel] = Math.round(value * 255 / maxval);
+        if (data16) data16[i * 4 + channel] = Math.round(value * 65535 / maxval);
+      }
       rgba[i * 4 + 3] = 255;
-    }
-  } else if (magic === "P5") {
-    const readSample =
-      maxval > 255
-        ? () => {
-            const hi = bytes[pos++] ?? 0;
-            const lo = bytes[pos++] ?? 0;
-            return (hi << 8) | lo;
-          }
-        : () => bytes[pos++] ?? 0;
-    for (let i = 0; i < width * height; i++) {
-      const g = Math.round((readSample() * 255) / maxval);
-      rgba[i * 4] = g;
-      rgba[i * 4 + 1] = g;
-      rgba[i * 4 + 2] = g;
-      rgba[i * 4 + 3] = 255;
+      if (data16) data16[i * 4 + 3] = 65535;
     }
   } else if (magic === "P4") {
     const rowBytes = Math.ceil(width / 8);
@@ -113,21 +97,6 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
         rgba[idx + 2] = g;
         rgba[idx + 3] = 255;
       }
-    }
-  } else if (magic === "P3") {
-    for (let i = 0; i < width * height; i++) {
-      rgba[i * 4] = Math.round((readNextAsciiInt() * 255) / maxval);
-      rgba[i * 4 + 1] = Math.round((readNextAsciiInt() * 255) / maxval);
-      rgba[i * 4 + 2] = Math.round((readNextAsciiInt() * 255) / maxval);
-      rgba[i * 4 + 3] = 255;
-    }
-  } else if (magic === "P2") {
-    for (let i = 0; i < width * height; i++) {
-      const g = Math.round((readNextAsciiInt() * 255) / maxval);
-      rgba[i * 4] = g;
-      rgba[i * 4 + 1] = g;
-      rgba[i * 4 + 2] = g;
-      rgba[i * 4 + 3] = 255;
     }
   } else if (magic === "P1") {
     for (let i = 0; i < width * height; i++) {
@@ -144,6 +113,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     width,
     height,
     data: rgba,
+    ...(data16 ? {data16} : {}),
     format,
     space: format === "ppm" ? "srgb" : "b-w",
     channels: format === "ppm" ? 3 : 1,

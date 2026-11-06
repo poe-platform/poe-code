@@ -4841,7 +4841,7 @@ export class SqliteDatabase {
     const preparing = this.preparing;
     this.preparing = true;
     try {
-      yield* this.executeSelectCompound(recTokens, positionalParams, scope);
+      yield* this.executeSelectCompound(recTokens, positionalParams, scope, cteName);
       // Prepare tail expressions even when no rows will be visited.
       if (orderTokens) {
         scope.set("__recursive_queue__", { columns: cols, rows: [] });
@@ -4913,7 +4913,8 @@ export class SqliteDatabase {
   private *executeSelectCompound(
     tokens: Token[],
     positionalParams: SqlValue[],
-    cteScope: CteScope
+    cteScope: CteScope,
+    recursiveCte?: string
   ): SqlSteps<QueryResultSet> {
     if (tokens[0]?.value.toUpperCase() === "WITH") {
       return (
@@ -4956,7 +4957,7 @@ export class SqliteDatabase {
     }
 
     if (segments.length === 0) {
-      return yield* this.executeSingleSelect(tokens, positionalParams, cteScope);
+      return yield* this.executeSingleSelect(tokens, positionalParams, cteScope, recursiveCte);
     }
 
     // Check if the last segment has top-level ORDER BY / LIMIT
@@ -4991,7 +4992,7 @@ export class SqliteDatabase {
     const collations: string[] = [];
     const results: QueryResultSet[] = [];
     for (const seg of segments) {
-      const res = yield* this.executeSingleSelect(seg.tokens, positionalParams, cteScope);
+      const res = yield* this.executeSingleSelect(seg.tokens, positionalParams, cteScope, recursiveCte);
       results.push(res);
       for (let i = 0; i < res.columns.length; i += 1) {
         yield;
@@ -5083,7 +5084,8 @@ export class SqliteDatabase {
   private *executeSingleSelect(
     tokens: Token[],
     positionalParams: SqlValue[],
-    cteScope: CteScope
+    cteScope: CteScope,
+    recursiveCte?: string
   ): SqlSteps<QueryResultSet> {
     if (tokens[0]?.value.toUpperCase() === "VALUES") {
       let idx = 1;
@@ -5369,6 +5371,21 @@ export class SqliteDatabase {
           );
           start = i + 1;
         }
+      }
+    }
+
+    if (recursiveCte && this.containsTableReference(tokens, recursiveCte)) {
+      if (groupByTokens?.length) throw new Error("recursive aggregate queries not supported");
+      const expressions = selectTargets.map(target => target.expr);
+      if (havingTokens) expressions.push(new ExprParser(havingTokens, windows).parseExpression());
+      while (expressions.length > 0) {
+        yield;
+        const expr = expressions.pop()!;
+        if (expr.kind === "func" && expr.over) {
+          throw new Error("cannot use window functions in recursive queries");
+        }
+        if (isAggregateFunction(expr)) throw new Error("recursive aggregate queries not supported");
+        expressions.push(...expressionChildren(expr));
       }
     }
 

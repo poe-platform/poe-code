@@ -1,9 +1,30 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
-import { createQpdfCommand, runQpdfCli } from "./index.js";
+import { createQpdfCommand, runQpdfCli, runQpdfCliSync } from "./index.js";
+
+for (const name of ["empty_protected", "issue17069"]) for (const password of [undefined, "", "wrong"]) {
+  it(`recognizes empty user passwords in ${name} with password ${JSON.stringify(password)}`, async () => {
+    const input = readFileSync(new URL(`../../pdf-ast/src/fixtures/pdfjs-${name}.pdf`, import.meta.url));
+    const args = ["--requires-password", ...(password === undefined ? [] : [`--password=${password}`]), "/in.pdf"];
+    const expected = { exitCode: password === "wrong" ? 0 : 3, stdout: "", stderr: "" };
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
+    const carrier = createCommandArguments(args), stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+    const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+      stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } }, stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } } });
+    assert.equal(result.exitCode, expected.exitCode);
+    assert.equal(Buffer.concat(stdout).toString(), expected.stdout);
+    assert.equal(Buffer.concat(stderr).toString(), expected.stderr);
+    assert.ok(input.equals(await fs.readFile("/in.pdf")));
+    assert.deepEqual(await fs.readdir("/scratch"), []);
+    for (const run of [runQpdfCli, runQpdfCliSync]) {
+      assert.deepEqual(await run(args, new Map([["/in.pdf", input]])), expected);
+    }
+  });
+}
 
 for (const mode of ["plain", "encrypted", "malformed", "boundary", "repaired"]) for (const password of [undefined, "reader", "wrong"]) for (const flag of ["--is-encrypted", "--requires-password"]) {
   it(`streams ${flag} for ${mode} input with password ${password}`, async () => {

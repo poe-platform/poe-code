@@ -1164,11 +1164,8 @@ function* executeQpdfCli(
     if (!hasEncryptRef) {
       return { exitCode: 2, stdout: "", stderr: "" };
     }
-    if (password === undefined) {
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
     try {
-      (yield* parseCosDocumentSteps(raw, { password }));
+      (yield* parseCosDocumentSteps(raw, { password: password ?? "" }));
       return { exitCode: 3, stdout: "", stderr: "" };
     } catch {
       return { exitCode: 0, stdout: "", stderr: "" };

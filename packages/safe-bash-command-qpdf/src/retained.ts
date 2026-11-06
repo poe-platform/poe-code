@@ -156,9 +156,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         if (encrypted) break;
       }
       if (options.isEncrypted || !encrypted) return { exitCode: encrypted ? 0 : 2 };
-      if (options.password === undefined) return { exitCode: 0 };
       try {
-        document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "strict", password: options.password });
+        document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "strict", password: options.password ?? "" });
         for await (const object of retainedCosObjects(document, storage, { signal })) {
           if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
         }

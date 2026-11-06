@@ -1554,7 +1554,7 @@ export function evalSyncFfmpeg(
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
-    if (/%0?\d*d/.test(outputTarget)) {
+    if (formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined) {
       const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
       const vTrack = workingDoc.tracks.find((t) => t.type === "video");
       if (vTrack && !vTrack.decodedVideoFrames) return undefined;
@@ -1563,7 +1563,7 @@ export function evalSyncFfmpeg(
       const imgFmt: ImageFormat = outExt === "jpg" || outExt === "jpeg" ? "jpeg" : outExt === "webp" ? "webp" : outExt === "gif" ? "gif" : outExt === "bmp" ? "bmp" : outExt === "ppm" ? "ppm" : "png";
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
-        const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => String(idx + (outputStartNumber ?? 1)).padStart(parseInt(widthDigits || "0", 10) || 0, "0"));
+        const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = encodeImage(makeRgbaImg(f.width, f.height, f.data), { format: imgFmt }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
@@ -1580,6 +1580,31 @@ export function evalSyncFfmpeg(
   } catch {
     return undefined;
   }
+}
+
+function formatImageSequence(pattern: string, number: number): string | undefined {
+  let filename = "";
+  let numbered = false;
+  for (let i = 0; i < pattern.length; i++) {
+    if (pattern[i] !== "%") {
+      filename += pattern[i];
+      continue;
+    }
+    i++;
+    if (pattern[i] === "%") {
+      filename += "%";
+      continue;
+    }
+    let width = 0;
+    while (i < pattern.length && pattern[i]! >= "0" && pattern[i]! <= "9") {
+      width = width * 10 + Number(pattern[i]);
+      i++;
+    }
+    if (pattern[i] !== "d") return undefined;
+    filename += String(number).padStart(width, "0");
+    numbered = true;
+  }
+  return numbered ? filename : undefined;
 }
 
 interface InputSpec {
@@ -2065,7 +2090,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               // Check printf sequence pattern like `frame_%03d.png`
-              if (/%0?\d*d/.test(filePath)) {
+              if (formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined) {
                 const frames: MediaVideoFrame[] = [];
                 const fps = fpsHint ?? 25;
                 const startNumber = input?.startNumber ?? 0;
@@ -2073,10 +2098,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 for (let idx = startNumber; ; idx++) {
                   budget.checkCpu();
                   context.signal.throwIfAborted();
-                  const formatted = filePath.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
-                    const padLen = parseInt(widthDigits || "0", 10) || 0;
-                    return String(idx).padStart(padLen, "0");
-                  });
+                  const formatted = formatImageSequence(filePath, idx)!;
                   const resolved = resolvePath(context.cwd, formatted);
                   let imgBytes: Uint8Array;
                   try {
@@ -3130,7 +3152,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Image files share frame processing and encoding.
-            const numberedImageOutput = /%0?\d*d/.test(outputTarget);
+            const numberedImageOutput = formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
             if ((imageOutput && !isStdout(outputTarget)) || numberedImageOutput) {
               const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
               const imgPlugin = registry.findByFilename(`x.${outExt}`);
@@ -3168,10 +3190,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget.checkDuration((idx + 1) * duration);
                   const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
                   if (copy > 0) budget.recordFrame(f.width, f.height);
-                  const fileName = updateImage ? outputTarget : outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
-                    const padLen = parseInt(widthDigits || "0", 10) || 0;
-                    return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
-                  });
+                  const fileName = updateImage ? outputTarget : (formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1)) ?? outputTarget);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
                     format: imgFmt

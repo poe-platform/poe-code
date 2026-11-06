@@ -126,7 +126,15 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
       const node = p.store.node(p.ref);
       numbering?.project(node);
       const binding = numbering?.paragraph(node);
-      if (!binding || !numbering) {stack.length = 0; blocks.push(block); return;}
+      if (!binding || !numbering) {
+        stack.length = 0;
+        if (p.style?.style_id === "BlockText" || (p.paragraph_format.left_indent?.twips ?? 0) > 0) {
+          const previous = blocks.at(-1);
+          if (previous?.t === "BlockQuote") blocks[blocks.length - 1] = {t: "BlockQuote", c: [...previous.c, block]};
+          else blocks.push({t: "BlockQuote", c: [block]});
+        } else blocks.push(block);
+        return;
+      }
       const {id, level} = binding;
       while (stack.length && stack.at(-1)!.level > level) stack.pop();
       if (stack.at(-1)?.level === level && stack.at(-1)!.id !== id) stack.pop();

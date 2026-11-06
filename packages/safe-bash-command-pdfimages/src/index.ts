@@ -30,13 +30,18 @@ export interface PdfimagesCliResult {
 }
 
 function formatPopplerSize(byteLength: number): string {
-  if (byteLength >= 1024 * 1024) {
-    return `${(byteLength / (1024 * 1024)).toFixed(1)}M`;
+  if (byteLength < 0) return "   - ";
+  if (byteLength <= 9999) return `${byteLength}B`;
+  let size = byteLength;
+  for (const unit of ["K", "M", "G"]) {
+    size /= 1024;
+    if (size <= 9999 || unit === "G") {
+      // Poppler keeps four numeric columns even when rounding adds a digit.
+      const number = size.toFixed(size < 10 ? 2 : size < 100 ? 1 : 0);
+      return `${size < 10 ? number.slice(0, 4) : size < 100 && number[3] === "." ? number.slice(0, 3) : number}${unit}`;
+    }
   }
-  if (byteLength >= 1024) {
-    return `${(byteLength / 1024).toFixed(1)}K`;
-  }
-  return `${byteLength}B`;
+  return "   - ";
 }
 
 function formatPopplerRatio(
@@ -46,10 +51,10 @@ function formatPopplerRatio(
   components: number,
   bpc: number
 ): string {
-  const uncompressedBits = Math.max(1, width * height * components * bpc);
-  const uncompressedBytes = Math.max(1, uncompressedBits / 8);
-  const pct = Math.min(999, Math.max(0.1, (byteLength / uncompressedBytes) * 100));
-  return `${pct.toFixed(0)}%`;
+  const uncompressedBytes = Math.floor(width * height * components * bpc / 8);
+  if (uncompressedBytes <= 0 || byteLength < 0) return "  - ";
+  const pct = 100 * byteLength / uncompressedBytes;
+  return `${pct.toFixed(pct > 9.9 ? 0 : 1)}%`;
 }
 
 const PDFIMAGES_VALUE_FLAGS = new Set(["-f", "-l", "-upw", "-opw", "-min-width", "-min-height"]);

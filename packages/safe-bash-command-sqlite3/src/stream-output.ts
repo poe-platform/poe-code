@@ -83,7 +83,8 @@ export function formatSqlQuote(v: SqlValue): string {
   }
   if (v instanceof Number) {
     const n = v.valueOf();
-    return Number.isFinite(n) && Number.isInteger(n) ? `${n}.0` : String(n);
+    const text = String(n);
+    return Number.isFinite(n) && Number.isInteger(n) && !text.includes("e") ? `${text}.0` : text;
   }
   if (typeof v === "number") {
     return String(v);

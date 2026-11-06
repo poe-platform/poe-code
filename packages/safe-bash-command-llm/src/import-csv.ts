@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import {FsError,type FileSystem} from 'safe-bash-contracts';
 import {CsvBudget,CsvParser} from 'safe-bash-csv-engine';
 import {createPrivateSqliteStorage,withPrivateSqliteSession,withSqliteStatement} from 'safe-bash-sqlite-engine/storage';
@@ -56,7 +57,7 @@ export async function withCsvEmbeddingEntries<T>(options:{
       });
       yield {id:(options.prefix??'')+id,input:{async dispose(){active=false;},bytes:{async *[Symbol.asyncIterator](){
        if(!active||consumed)throw new FsError('EBADF',{message:'CSV row lease is closed'});consumed=true;
-       if(options.prepend)for(let offset=0;offset<options.prepend.length;){if(!active)throw new FsError('EBADF',{message:'CSV row lease is closed'});signal.throwIfAborted();let end=Math.min(offset+4096,options.prepend.length);const last=options.prepend.charCodeAt(end-1);if(end<options.prepend.length&&last>=0xd800&&last<=0xdbff)end--;yield encoder.encode(options.prepend.slice(offset,end));offset=end;}
+       if(options.prepend)for(let offset=0;offset<options.prepend.length;){if(!active)throw new FsError('EBADF',{message:'CSV row lease is closed'});signal.throwIfAborted();const end = textChunkEnd(options.prepend, offset+4096);yield encoder.encode(options.prepend.slice(offset,end));offset=end;}
        signal.throwIfAborted();
        let first=true,position=-1,contentFields=0;
        while(true){

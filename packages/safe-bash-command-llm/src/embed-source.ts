@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import type {CommandContext} from 'safe-bash-contracts';
 import {pathOf} from 'safe-bash-contracts/path';
 import type {LlmInputSource} from './types.js';
@@ -11,7 +12,7 @@ export async function acquireEmbeddingInput(context:CommandContext,values:Readon
  let input:LlmInputSource;
  if(values.content){
   const content=values.content,encoder=new TextEncoder();
-  input={async dispose(){},bytes:{async *[Symbol.asyncIterator](){for(let offset=0;offset<content.length;){let end=Math.min(offset+4096,content.length);const last=content.charCodeAt(end-1);if(end<content.length&&last>=0xd800&&last<=0xdbff)end--;yield encoder.encode(content.slice(offset,end));offset=end;}}}};
+  input={async dispose(){},bytes:{async *[Symbol.asyncIterator](){for(let offset=0;offset<content.length;){const end = textChunkEnd(content, offset+4096);yield encoder.encode(content.slice(offset,end));offset=end;}}}};
  }else if(values.input&&values.input!=='-'){
   const path=pathOf(context,values.input),stat=await context.fs.stat(path,{signal:context.signal});
   if(!stat.size)return undefined;

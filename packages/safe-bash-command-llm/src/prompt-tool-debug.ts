@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import type {CommandContext} from "safe-bash-contracts";
 import {yieldTurn} from "safe-bash-contracts/yield";
 import {JqError, JqLimitError} from "safe-bash-query-engine/limits";
@@ -27,9 +28,7 @@ export async function debugToolResult(options: {
   const emit = async (text: string, sink = write): Promise<void> => {
     for (let offset = 0; offset < text.length;) {
       await yieldTurn(signal);
-      let end = Math.min(text.length, offset + 4096);
-      const last = text.charCodeAt(end - 1);
-      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
+      const end = textChunkEnd(text, offset + 4096);
       await sink(encoder.encode(text.slice(offset, end))); offset = end;
     }
   };

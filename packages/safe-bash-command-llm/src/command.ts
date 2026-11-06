@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import {loadLlmHelp} from './help-text.js';
 import {pluginsCommand} from './plugins-command.js';
 import type {LlmPluginQuery} from './tool-registry.js';
@@ -237,9 +238,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   const emitText = async (text: string): Promise<void> => {
     for (let offset = 0; offset < text.length;) {
       await step();
-      let end = Math.min(text.length, offset + 16_384);
-      const last = text.charCodeAt(end - 1);
-      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
+      const end = textChunkEnd(text, offset + 16_384);
       await write(new TextEncoder().encode(text.slice(offset, end)));
       offset = end;
     }
@@ -513,9 +512,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       bytes: { async *[Symbol.asyncIterator]() {
         for (let offset = 0; offset < value.length;) {
           await step();
-          let end = Math.min(value.length, offset + 16384);
-          const last = value.charCodeAt(end - 1);
-          if (end < value.length && last >= 0xd800 && last <= 0xdbff) end--;
+          const end = textChunkEnd(value, offset + 16384);
           yield new TextEncoder().encode(value.slice(offset, end));
           offset = end;
         }
@@ -667,9 +664,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         if (stdinBytes) await promptSpool.write(new TextEncoder().encode(" "));
         for (let start = 0; start < args.prompt.length;) {
           await step();
-          let end = Math.min(args.prompt.length, start + 8192);
-          const last = args.prompt.charCodeAt(end - 1);
-          if (end < args.prompt.length && last >= 0xd800 && last <= 0xdbff) end--;
+          const end = textChunkEnd(args.prompt, start + 8192);
           await promptSpool.write(new TextEncoder().encode(args.prompt.slice(start, end)));
           start = end;
         }

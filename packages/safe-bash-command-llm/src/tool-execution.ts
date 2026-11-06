@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import {LlmPluginExit} from "./loader-provider.js";
 import type { CommandContext, FileSystem } from "safe-bash-contracts";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
@@ -68,9 +69,7 @@ async function* outputBytes(output: LlmOption, signal: AbortSignal): AsyncIterab
   const encoder = new TextEncoder();
   for (let offset = 0; offset < output.length; ) {
     signal.throwIfAborted();
-    let end = Math.min(output.length, offset + 4096);
-    const last = output.charCodeAt(end - 1);
-    if (end < output.length && last >= 0xd800 && last <= 0xdbff) end--;
+    const end = textChunkEnd(output, offset + 4096);
     yield encoder.encode(output.slice(offset, end));
     offset = end;
   }

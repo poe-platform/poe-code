@@ -1,3 +1,10 @@
+/** End of a bounded text slice without splitting a surrogate pair. */
+export function textChunkEnd(text: string, limit: number): number {
+  if (limit >= text.length) return text.length;
+  const last = text.charCodeAt(limit - 1);
+  return last >= 0xd800 && last <= 0xdbff ? limit - 1 : limit;
+}
+
 /** JavaScript strings can retain lone surrogates; Python's UTF8 encoder cannot. */
 export function hasUnpairedSurrogate(value: string): boolean {
   for (const char of value) {

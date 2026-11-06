@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import {FsError,type FileSystem} from 'safe-bash-contracts';
 import {PythonTextDecoder,PythonTextDecodeError,PythonIso2022PendingError,PythonUtf7EncodingError} from 'safe-bash-csv-engine/text-decoder';
 import {fileSource} from './file-source.js';
@@ -67,7 +68,7 @@ export async function withFileEmbeddingEntries<T>(options:LlmFileEmbeddingOption
      if(closed||consumed)throw new FsError('EBADF',{message:'File embedding lease is closed'});consumed=true;
      if(!binary&&options.prepend)for(let offset=0;offset<options.prepend.length;){
       signal.throwIfAborted();if(closed)throw new FsError('EBADF',{message:'File embedding lease is closed'});
-      let end=Math.min(offset+4096,options.prepend.length);const last=options.prepend.charCodeAt(end-1);if(end<options.prepend.length&&last>=0xd800&&last<=0xdbff)end--;
+      const end = textChunkEnd(options.prepend, offset+4096);
       yield encoder.encode(options.prepend.slice(offset,end));offset=end;
      }
      for await(const bytes of retained.replay()){if(closed)throw new FsError('EBADF',{message:'File embedding lease is closed'});yield bytes;}

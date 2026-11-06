@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import {commandArguments} from './command-arguments.js';
 import {FsError} from 'safe-bash-contracts';
 import {pathOf} from 'safe-bash-contracts/path';
@@ -30,7 +31,7 @@ export function createLlmCollectionCommands(options:{readonly maxFileBytes:numbe
   if(group==='similar')return similarCommand(invocation,{...limits,now});
   if(group==='embed-multi')return embedMultiCommand(invocation,{...limits,now});
   const encoder=new TextEncoder();
-  const emit=async(text:string)=>{for(let offset=0;offset<text.length;){await step();let end=Math.min(offset+4096,text.length);const last=text.charCodeAt(end-1);if(end<text.length&&last>=0xd800&&last<=0xdbff)end--;await write(encoder.encode(text.slice(offset,end)));offset=end;}};
+  const emit=async(text:string)=>{for(let offset=0;offset<text.length;){await step();const end = textChunkEnd(text, offset+4096);await write(encoder.encode(text.slice(offset,end)));offset=end;}};
   if(group==='embed')return embeddingCommand(context,service,tokens,write,diagnostic,step,admit,maxConfigurationBytes,async request=>{
    const config=createLlmConfiguration(context,maxConfigurationBytes);
    const database=request.values.database||context.env.LLM_EMBEDDINGS_DB,path=pathOf(context,database||config.directory+'/embeddings.db');

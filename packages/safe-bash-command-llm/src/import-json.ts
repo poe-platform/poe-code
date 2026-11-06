@@ -1,4 +1,4 @@
-import {pythonSurrogateId} from './python-unicode.js';
+import { pythonSurrogateId, textChunkEnd } from './python-unicode.js';
 import type {FileSystem} from 'safe-bash-contracts';
 import {FsError} from 'safe-bash-contracts';
 import {withEmbeddingJsonDocument,type EmbeddingJsonNode,type EmbeddingJsonDocument} from './import-json-document.js';
@@ -80,7 +80,7 @@ export async function withEmbeddingJsonRows<T>(options:Parameters<typeof withJso
     const identifier=(options.prefix??'')+await id(first.node);let active=true,consumed=false;
     try{yield {id:identifier,...(invalidId?{[pythonSurrogateId]:true as const}:{}),input:{async dispose(){active=false;},bytes:{async *[Symbol.asyncIterator](){
      if(!active||consumed)throw new FsError('EBADF',{message:'JSON row lease is closed'});consumed=true;
-     if(options.prepend)for(let offset=0;offset<options.prepend.length;){if(!active)throw new FsError('EBADF',{message:'JSON row lease is closed'});options.signal.throwIfAborted();let end=Math.min(offset+4096,options.prepend.length);const last=options.prepend.charCodeAt(end-1);if(end<options.prepend.length&&last>=0xd800&&last<=0xdbff)end--;yield encoder.encode(options.prepend.slice(offset,end));offset=end;}
+     if(options.prepend)for(let offset=0;offset<options.prepend.length;){if(!active)throw new FsError('EBADF',{message:'JSON row lease is closed'});options.signal.throwIfAborted();const end = textChunkEnd(options.prepend, offset+4096);yield encoder.encode(options.prepend.slice(offset,end));offset=end;}
      let after=first.position,index=0;
      while(true){
       options.signal.throwIfAborted();if(!active)throw new FsError('EBADF',{message:'JSON row lease is closed'});

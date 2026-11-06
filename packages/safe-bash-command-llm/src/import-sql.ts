@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import {FsError} from 'safe-bash-contracts';
 import {withSqliteQueryRecords,type SqliteRecordValue} from 'safe-bash-sqlite-engine/storage';
 import type {LlmCollectionBatchEntry} from './collections-batch.js';
@@ -38,7 +39,7 @@ export async function withSqlEmbeddingEntries<T>(options:Parameters<typeof withS
     try{yield {id:identifier,input:{async dispose(){active=false;},bytes:{async *[Symbol.asyncIterator](){
      const check=()=>{signal.throwIfAborted();if(!active)throw new FsError('EBADF',{message:'SQL row lease is closed'});};check();if(consumed)throw new FsError('EBADF',{message:'SQL row lease is closed'});consumed=true;
      const prefix=options.prepend??'';
-     for(let offset=0;offset<prefix.length;){check();let end=Math.min(offset+4096,prefix.length);const last=prefix.charCodeAt(end-1);if(end<prefix.length&&last>=0xd800&&last<=0xdbff)end--;const bytes=encoder.encode(prefix.slice(offset,end));options.admit?.(bytes.length);yield bytes;offset=end;}
+     for(let offset=0;offset<prefix.length;){check();const end = textChunkEnd(prefix, offset+4096);const bytes=encoder.encode(prefix.slice(offset,end));options.admit?.(bytes.length);yield bytes;offset=end;}
      for(let index=0;index<fields.length;index++){
       check();if(index){options.admit?.(1);yield Uint8Array.of(32);}
       const field=fields[index]!;if(field&&typeof field==='object')for await(const bytes of field.bytes){check();options.admit?.(bytes.length);yield bytes;}

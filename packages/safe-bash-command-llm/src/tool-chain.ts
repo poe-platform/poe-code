@@ -1,3 +1,4 @@
+import { textChunkEnd } from "./python-unicode.js";
 import { shellValueByteLength } from "safe-bash-contracts";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import type { LlmStreamEvent } from "./service.js";
@@ -74,9 +75,7 @@ export async function* streamLlmToolChain(options: LlmToolChainOptions): AsyncGe
             // an encoded copy of a potentially large provider string.
             for (let offset = 0; offset < event.text.length;) {
               await yieldTurn(signal);
-              let end = Math.min(event.text.length, offset + 4096);
-              const last = event.text.charCodeAt(end - 1);
-              if (end < event.text.length && last >= 0xd800 && last <= 0xdbff) end--;
+              const end = textChunkEnd(event.text, offset + 4096);
               const text = event.text.slice(offset, end);
               admit(shellValueByteLength(text));
               yield {type: "text", text};

@@ -2360,6 +2360,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }, context.signal);
         }
 
+        if (audioCodec === "copy" && afFilters.length > 0 && workingDoc.tracks.some(track => track.type === "audio")) {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: Filtering and streamcopy cannot be used together for audio.\n"), context.signal);
+          return { exitCode: 218 };
+        }
+
         // Apply output-level time slicing (`-ss`, `-to`, `-t`)
         if (
           outputSs !== undefined ||

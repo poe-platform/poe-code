@@ -1,3 +1,6 @@
+import { csvFormulaCell, calculateCsvFormulas } from "./csv-formulas.js";
+import type { Cell } from "@poe-code/spreadsheet-engine";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import type { PagedStorage } from "@poe-code/safe-fs/storage";
 import { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { retainTextTable } from "./retained-text-table.js";
@@ -15,8 +18,9 @@ import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.j
 export async function retainSpreadsheetConversion(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext,
   format: string, title: string, filter?: string, input: "xlsx" | "csv" | "text" | "markdown" = "xlsx"): Promise<SofficeSnapshot> {
   const { signal } = context, blocks = new RetainedOfficeBlocks(storage, signal), encoder = new TextEncoder();
+  let hasFormulas = false;
   if (input === "text" || input === "markdown") await retainTextTable(storage, source, blocks, signal, input === "markdown");
-  else if (input === "csv") await retainCsv(storage, source, blocks, signal);
+  else if (input === "csv") hasFormulas = await retainCsv(storage, source, blocks, signal);
   else await retainXlsxText(storage, source, context, blocks, format === "csv" || format === "html");
   const snapshot = blocks.snapshot(), table = (await blocks.table(snapshot, 0))!;
   const escapeXml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -33,6 +37,22 @@ export async function retainSpreadsheetConversion(storage: PagedStorage, source:
       signal.throwIfAborted(); yield decoder.decode(bytes.subarray(offset, offset + 4096), { stream: true });
     }
     yield decoder.decode();
+  }
+  let formulas: Map<string, string> | undefined;
+  if (input === "csv" && format === "xlsx" && hasFormulas) {
+    const cells: Cell[] = [];
+    for (let row = 0; row < table.rows; row++) {
+      const count = await table.cells(row);
+      for (let column = 0; column < count; column++) {
+        let text = "";
+        for await (const chunk of cellText(row, column)) text += chunk;
+        cells.push(csvFormulaCell(row, column, text, await table.isNumeric?.(row, column) ?? false));
+      }
+    }
+    const calculation = calculateCsvFormulas(cells, signal);
+    let step = calculation.next();
+    while (!step.done) { await yieldTurn(signal); step = calculation.next(); }
+    formulas = step.value;
   }
   async function* markup(): AsyncGenerator<string> {
     if (format === "html") yield `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${escapeHtmlText(title)}</title></head><body>\n<table>\n`;
@@ -63,6 +83,11 @@ export async function retainSpreadsheetConversion(storage: PagedStorage, source:
           else {
             let letters = "";
             for (let column = cell + 1; column > 0; column = Math.floor((column - 1) / 26)) letters = String.fromCharCode(65 + (column - 1) % 26) + letters;
+            const formula = formulas?.get(`${row}:${cell}`);
+            if (formula !== undefined) {
+              yield `<c r="${letters}${row + 1}" ${formula}`;
+              continue;
+            }
             if (input === "csv") {
               let candidate = "";
               for await (const text of cellText(row, cell)) {

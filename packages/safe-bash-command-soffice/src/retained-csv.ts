@@ -5,12 +5,14 @@ import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import type { SofficeSnapshot } from "./retained-input.js";
 
 /** Parse cells incrementally; payloads and row indexes belong to caller storage. */
-export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, blocks: RetainedOfficeBlocks, signal: AbortSignal, separator = ","): Promise<void> {
+export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, blocks: RetainedOfficeBlocks, signal: AbortSignal, separator = ","): Promise<boolean> {
   const decoder = new TextDecoder(), encoder = new TextEncoder();
+  let hasFormulas = false;
   let field = "", position = storage.allocate(0), size = 0, cells = 0;
   let wasQuoted = false, quoted = false, pendingQuote = false, skipLF = false, last = "", work = 0;
   const flush = async () => {
     if (!field) return;
+    if (!size && field.startsWith("=")) hasFormulas = true;
     const bytes = encoder.encode(field); await storage.append(bytes); size += bytes.length; field = "";
   };
   const cell = async () => {
@@ -49,4 +51,5 @@ export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, 
   if (quoted && !pendingQuote) throw new Error("Invalid CSV: unterminated quoted field");
   if (last && (size || field.length || cells || (last !== "\r" && last !== "\n"))) await row();
   await blocks.endTable(true);
+  return hasFormulas;
 }

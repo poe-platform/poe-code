@@ -1,3 +1,4 @@
+import { csvFormulaCell, calculateCsvFormulas } from "./csv-formulas.js";
 import { isCsvNumber } from "./csv-number.js";
 import { parseXml } from "@poe-code/safe-fs/xml";
 import { xlsxDateText, xlsxDateSerial } from "./xlsx-dates.js";
@@ -834,6 +835,14 @@ function buildDocxFromBlocks(blocks: readonly DocBlock[]): Uint8Array {
 function buildXlsxFromRows(rows: readonly (readonly string[])[], inferDates = false, numericCells?: ReadonlySet<string>): Uint8Array {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let formulas: Map<string, string> | undefined;
+  if (inferDates && rows.some(row => row.some(text => text.startsWith("=")))) {
+    const calculation = calculateCsvFormulas(rows.flatMap((row, r) => row.map((text, c) =>
+      csvFormulaCell(r, c, text, numericCells?.has(`${r}:${c}`) ?? false))), new AbortController().signal);
+    let step = calculation.next();
+    while (!step.done) step = calculation.next();
+    formulas = step.value;
+  }
   const sheetRows = rows
     .map((row, rIdx) => {
       const cells = row
@@ -842,6 +851,8 @@ function buildXlsxFromRows(rows: readonly (readonly string[])[], inferDates = fa
           for (let column = cIdx + 1; column > 0; column = Math.floor((column - 1) / 26)) {
             colLetter = String.fromCharCode(65 + (column - 1) % 26) + colLetter;
           }
+          const formula = formulas?.get(`${rIdx}:${cIdx}`);
+          if (formula !== undefined) return `<c r="${colLetter}${rIdx + 1}" ${formula}`;
           const serial = inferDates ? xlsxDateSerial(val) : undefined;
           if (serial !== undefined) return `<c r="${colLetter}${rIdx + 1}" s="1" t="n"><v>${serial}</v></c>`;
           if (numericCells?.has(`${rIdx}:${cIdx}`)) return `<c r="${colLetter}${rIdx + 1}" t="n"><v>${val}</v></c>`;

@@ -1,9 +1,32 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosArray, cosBool, cosDict, cosHexString, cosName, cosNull, cosNumber, cosRef, cosStream, dictGet, dictSet, serializeCosDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
+
+for (const flag of [undefined, "--raw-stream-data", "--filtered-stream-data"]) it(`matches native stream inspection (${flag ?? "display"})`, async () => {
+  const input = new Uint8Array(readFileSync(new URL("./fixtures/linearized.pdf", import.meta.url)));
+  const document = PdfDocument.load(input);
+  const stream = document.cos.getObject(2);
+  assert.equal(stream?.kind, "stream");
+  if (stream?.kind !== "stream") assert.fail("expected fixture stream");
+  const expected = flag === "--raw-stream-data" ? stream.rawBytes : flag === "--filtered-stream-data" ? document.cos.decodeStream(stream) : new TextEncoder().encode("Object is stream.  Dictionary:\n<< /Filter /FlateDecode /Length 59 >>\n");
+  const args = ["--show-object=2", ...(flag ? [flag] : []), "/in.pdf"];
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/in.pdf", input);
+  const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [], carrier = createCommandArguments(args);
+  const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: {}, fs, signal: new AbortController().signal,
+    stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write(bytes: Uint8Array) { stdout.push(bytes.slice()); } }, stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } } });
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(new Uint8Array(Buffer.concat(stdout)), expected);
+  assert.equal(Buffer.concat(stderr).toString(), "");
+  const buffered = await runQpdfCli(args, new Map([["/in.pdf", input]]));
+  assert.equal(buffered.exitCode, 0);
+  assert.deepEqual(buffered.stdoutBytes ?? new TextEncoder().encode(buffered.stdout), expected);
+  assert.equal(buffered.stderr, "");
+});
 
 for (const mode of ["plain", "encrypted", "compressed", "missing", "invalid", "generation", "inline", "unicode", "wide"]) for (const flag of [undefined, "--raw-stream-data", "--filtered-stream-data"]) {
   it(`streams ${mode} object inspection (${flag ?? "display"}) with exact bytes`, async () => {

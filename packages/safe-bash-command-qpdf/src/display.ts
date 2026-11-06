@@ -19,7 +19,7 @@ export function* displayNodeParts(node: PdfCosNode | undefined): Generator<strin
       for (let i = 0; i < node.entries.length; i++) { const entry = node.entries[i]!; if (i) yield " "; yield "/"; yield entry.key.decoded; yield " "; yield* displayNodeParts(entry.value); }
       yield " >>"; return;
     case "stream":
-      yield* displayNodeParts(node.dict); yield `\nstream\n...(${node.rawBytes.byteLength} bytes)...\nendstream`; return;
+      yield "Object is stream.  Dictionary:\n"; yield* displayNodeParts(node.dict); return;
   }
 }
 

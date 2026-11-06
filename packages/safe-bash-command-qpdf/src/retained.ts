@@ -247,7 +247,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
           chunks = (async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })();
         } else if (selectedLength !== undefined && (options.rawStreamData || options.filteredStreamData)) chunks = document.objects.decodeStream(number, generation, { raw: !options.filteredStreamData });
         else {
-          function* parts() { yield* displayNodeParts(selectedValue ?? inlinePage); if (selectedLength !== undefined) yield `\nstream\n...(${selectedLength} bytes)...\nendstream`; yield "\n"; }
+          function* parts() { if (selectedLength !== undefined) yield "Object is stream.  Dictionary:\n"; yield* displayNodeParts(selectedValue ?? inlinePage); yield "\n"; }
           chunks = encodeDisplayParts(parts(), signal);
         }
         await publishInspection(chunks);

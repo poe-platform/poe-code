@@ -10,6 +10,11 @@ for (const sync of [false, true]) {
     [["-to", "0.125"], undefined],
     [["-to", "0.25"], undefined],
     [["-to", "0.5"], 2000],
+    [["-t", "0.125"], 1000],
+    [["-t", "0.125", "-to", "0.875"], 1000],
+    [["-to", "0.875", "-t", "0.125"], 1000],
+    [["-t", "0.125", "-to", "0.125"], 1000],
+    [["-to", "0.125", "-t", "0.125"], 1000],
     [["-t", "0"], 0],
     [["-to", "0.125", "-t", "0"], 0]
   ] as const) {
@@ -47,6 +52,8 @@ for (const sync of [false, true]) {
         } else {
           const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
           assert.equal(audio.channelData[0]!.length, samples);
+          assert.deepEqual(Array.from(audio.channelData[0]!),
+            Array.from({ length: samples }, (_, i) => (i - 2000) / 32768));
         }
       });
     }

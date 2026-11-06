@@ -1392,7 +1392,7 @@ export function evalSyncFfmpeg(
 
     let workingDoc = muxMp4(loadedDocs, { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
-      workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputTo, durationSeconds: outputDuration });
+      workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
     if (outputSize && videoCodec !== "copy") {
       const [w, h] = outputSize.toLowerCase().split("x");
@@ -2298,7 +2298,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         ) {
           workingDoc = sliceMp4(workingDoc, {
             startSeconds: outputSs,
-            endSeconds: outputTo,
+            endSeconds: outputDuration === undefined ? outputTo : undefined,
             durationSeconds: outputDuration
           });
         }

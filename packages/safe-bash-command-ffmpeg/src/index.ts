@@ -2278,7 +2278,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
             let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
             const index = type ? ordinal : selector;
-            if (index !== undefined) matches = matches.filter((_, i) => i === Number(index));
+            if (index?.startsWith("#")) {
+              matches = matches.filter(track => track.id === Number(index.slice(1)));
+            } else if (index !== undefined) matches = matches.filter((_, i) => i === Number(index));
             if (matches.length === 0 && !optional) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Stream map '${clean}' matches no streams.\nTo ignore this, add a trailing '?' to the map.\n`), context.signal);
               return { exitCode: 234 };

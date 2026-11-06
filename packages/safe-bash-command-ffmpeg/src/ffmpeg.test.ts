@@ -923,6 +923,29 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
   });
 });
 
+it("maps MP4 container stream IDs independently of stream ordinals", async () => {
+  const doc = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 5, includeAudio: true }));
+  const audio = doc.tracks.find(track => track.type === "audio")!;
+  const input = serializeMp4({ ...doc, tracks: [
+    { ...audio, id: 1, language: "eng" },
+    { ...audio, id: 2, language: "fra", samples: audio.samples.slice(0, 2) }
+  ] });
+  const french = parseMp4(input).tracks[1]!;
+  for (const maps of [["0:#0x2"], ["0:#2"], ["0:a:1"], ["0:1"], ["0", "-0:#0x1"], ["0:#99?", "0:#2"]]) {
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", ...maps.flatMap(map => ["-map", map]), "-c", "copy", "/out.mp4"], vfs);
+    assert.equal(result.exitCode, 0, `${maps}: ${result.stderr}`);
+    const tracks = parseMp4(vfs.store.get("/out.mp4")!).tracks;
+    assert.equal(tracks.length, 1);
+    assert.equal(tracks[0]!.language, "fra");
+    assert.deepEqual(tracks[0]!.samples.map(sample => sample.data), french.samples.map(sample => sample.data));
+  }
+  const vfs = createTestVfs({ "/in.mp4": input });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0:#0", "-c", "copy", "/out.mp4"], vfs);
+  assert.equal(result.exitCode, 234);
+  assert.equal(vfs.store.has("/out.mp4"), false);
+});
+
 it("negative maps match input, subtitle, absolute and typed stream indices in order", async () => {
   const bytes = createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 5, includeAudio: true });
   for (const [maps, expected] of [

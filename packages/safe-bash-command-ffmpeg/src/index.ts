@@ -1753,6 +1753,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       while (i < args.length) {
         let outputStartNumber: number | undefined;
         let updateImage = false;
+        let framePts = false;
 
         let outputFormat: string | undefined;
         let outputSs: number | undefined;
@@ -1864,6 +1865,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-frame_pts") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid frame_pts\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            framePts = value === "1";
           } else if (arg === "-start_number_range") {
             const value = Number(args[++i]);
             if (!Number.isInteger(value) || value < 1 || value > 2147483647) {
@@ -3278,7 +3286,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget.checkDuration((idx + 1) * duration);
                   const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
                   if (copy > 0) budget.recordFrame(f.width, f.height);
-                  const fileName = updateImage ? outputTarget : (formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1)) ?? outputTarget);
+                  const number = framePts
+                    ? Math.round(constantRate ? nextPts : source.ptsSeconds / duration)
+                    : idx + (outputStartNumber ?? 1);
+                  const fileName = updateImage ? outputTarget : (formatImageSequence(outputTarget, number) ?? outputTarget);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
                     format: imgFmt

@@ -24,6 +24,22 @@ async function fixture(input: Uint8Array, args: readonly string[], stdin = false
 }
 const joined = (chunks: Uint8Array[]) => new Uint8Array(Buffer.concat(chunks));
 
+for (const zoom of [undefined, 1, 2]) test(`pdftohtml XML scales page, text, and fonts with zoom ${zoom ?? "default"}`, async () => {
+  const doc = PdfDocument.create();
+  doc.addPage([612, 792]).drawText("Scaled text", { x: 20, y: 700, size: 12 });
+  const scale = zoom ?? 1.5;
+  const args = ["-xml", "-stdout", "-i", ...(zoom === undefined ? [] : ["-zoom", String(zoom)]), "/input.pdf"];
+  const f = await fixture(doc.save(), args);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  assert.equal(new TextDecoder().decode(joined(f.stderr)), "");
+  const xml = new TextDecoder().decode(joined(f.stdout));
+  assert.ok(xml.includes(`height="${792 * scale}" width="${612 * scale}"`));
+  assert.ok(xml.includes(`<fontspec id="0" size="${12 * scale}"`));
+  assert.ok(xml.includes(`left="${20 * scale}"`));
+  assert.ok(xml.includes("Scaled text</text>"));
+  await f.clean();
+});
+
 for (const mode of [[], ["-xml"]]) for (const image of [[], ["-i"], ["-dataurls"], ["-fmt", "jpg"]]) {
   test(`retained HTML preserves bytes without whole input reads: ${[...mode, ...image]}`, async () => {
     const doc = PdfDocument.create(), page = doc.addPage([200, 200]);

@@ -2177,6 +2177,41 @@ describe("animated GIF and lavfi source regressions", () => {
   });
 });
 
+it("decodes AAC before audio filters, resampling and channel conversion", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../../safe-bash-command-audio/fixtures/tone.m4a", import.meta.url));
+  const command = createFfmpegCommand();
+  const vfs = createTestVfs({ "/in.m4a": source });
+  const plain = await runCmd(command, ["-i", "/in.m4a", "-c:a", "pcm_s16le", "/plain.wav"], vfs);
+  assert.equal(plain.exitCode, 0, plain.stderr);
+  for (const options of [["-af", "volume=0.5"], ["-af", "atempo=2"], ["-af", "areverse"], ["-ar", "24000"], ["-ac", "1"]]) {
+    const result = await runCmd(command, ["-y", "-v", "error", "-i", "/in.m4a", ...options, "-c:a", "pcm_s16le", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const control = await runCmd(command, ["-y", "-i", "/plain.wav", ...options, "-c:a", "pcm_s16le", "/control.wav"], vfs);
+    assert.equal(control.exitCode, 0, control.stderr);
+    const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+    const expected = parseWav(vfs.store.get("/control.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(actual.sampleRate, expected.sampleRate);
+    assert.equal(actual.channels, expected.channels);
+    for (let channel = 0; channel < actual.channels; channel++) {
+      assert.equal(actual.channelData[channel]!.length, expected.channelData[channel]!.length);
+      for (let i = 0; i < actual.channelData[channel]!.length; i++) {
+        assert.ok(Math.abs(actual.channelData[channel]![i]! - expected.channelData[channel]![i]!) <= 2 / 32768, options.join(" "));
+      }
+    }
+  }
+  const parsed = parseMp4(source);
+  const broken = { ...parsed, tracks: parsed.tracks.map(track => ({
+    ...track, samples: track.samples.map((sample, index) => index === 0 ? { ...sample, data: Uint8Array.of(255) } : sample)
+  })) };
+  vfs.store.set("/in.m4a", serializeMp4(broken));
+  const previous = vfs.store.get("/out.wav");
+  const failure = await runCmd(command, ["-y", "-i", "/in.m4a", "-af", "volume=0.5", "/out.wav"], vfs);
+  assert.equal(failure.exitCode, 1);
+  assert.match(failure.stderr, /AAC/);
+  assert.deepEqual(vfs.store.get("/out.wav"), previous);
+});
+
 it("extracts external AAC to WAV and leaves existing output intact on corrupt AAC", async () => {
   const { readFileSync } = await import("node:fs");
   const source = readFileSync(new URL("../../mp4-ast/src/fixtures/aac-external.mp4", import.meta.url));

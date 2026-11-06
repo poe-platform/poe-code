@@ -29,3 +29,5 @@ export type { Mp4CodecMetadata } from './mp4-codec-metadata.js';
 export { probeMp4MetadataSource } from './mp4-metadata-source.js';
 
 export { scaleVideoPicture } from "@poe-code/media-codecs";
+
+export { decodeAacTrack } from "./aac.js";

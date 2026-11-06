@@ -41,6 +41,7 @@ import {
   createMediaAstRegistry,
   createSyntheticMp4,
   decodeH264Samples,
+  decodeAacTrack,
   scaleVideoPicture,
   decodeUtf8,
   encodeUtf8,
@@ -2369,19 +2370,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
   let work = 0;
 
               if (t.type !== "audio") return t;
-              if (!t.decodedAudio) throw new Error("Audio filtering requires decoded PCM audio");
-              const origRate = t.decodedAudio?.sampleRate ?? t.codecDescriptions[0]?.sampleRate ?? t.timescale ?? 44100;
-              const origCh = t.decodedAudio?.channels ?? t.codecDescriptions[0]?.channels ?? 2;
+              const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
+                ? decodeAacTrack(workingDoc, t) : undefined);
+              if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
+              const origRate = audio.sampleRate;
+              const origCh = audio.channels;
               const targetRate = audioRate ?? origRate;
               const targetCh = audioChannels ?? origCh;
-              const channelMask = t.decodedAudio.channelMask;
+              const channelMask = audio.channelMask;
               const surroundMono = origCh === 6 && targetCh === 1;
               const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
               if (targetCh !== origCh && origCh > 2 &&
                   (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                 throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
               }
-              const durSec = t.duration / Math.max(1, t.timescale || origRate);
+              const durSec = (audio.channelData[0]?.length ?? 0) / origRate;
               let volFactor = t.volume ?? 1.0;
               let tempoFactor = 1.0;
               let reverseAudio = false;
@@ -2414,7 +2417,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               const targetSamples = Math.max(0, Math.round((durSec / tempoFactor) * targetRate));
-              let stretched = await stretchAudio(t.decodedAudio.channelData, origRate, tempoFactor, budget, context.signal);
+              let stretched = await stretchAudio(audio.channelData, origRate, tempoFactor, budget, context.signal);
               if (targetRate !== origRate) stretched = await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
               const newChannelData: Float32Array[] = [];
               for (let c = 0; c < targetCh; c++) {

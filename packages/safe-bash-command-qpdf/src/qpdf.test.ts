@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
@@ -945,6 +946,49 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(unpackedDoc.pageCount, 1);
     assert.ok(unpackedDoc.getPages()[0]!.extractText().includes("Packed Object Stream Text"));
   });
+
+  for (const fixture of ["./fixtures/compressed-pages.pdf", "../../pdf-ast/src/fixtures/qpdf-shared-images.pdf"]) {
+    for (const mode of ["none", "inline", "file"]) {
+      it(`describes emitted JSON stream bytes for ${fixture} in ${mode} mode`, async () => {
+        const bytes = readFileSync(new URL(fixture, import.meta.url));
+        const document = PdfDocument.load(bytes);
+        const files = new Map<string, Uint8Array>([["in.pdf", bytes]]);
+        const result = await runQpdfCli(["--json=2", "--json-key=qpdf", `--json-stream-data=${mode}`, "--json-stream-prefix=stream-", "in.pdf"], files);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const objects = JSON.parse(result.stdout).qpdf[1];
+        let streams = 0;
+        for (const [number, object] of document.cos.objects) {
+          if (object.value.kind !== "stream") continue;
+          streams++;
+          const stream = objects[`obj:${number} ${object.generationNumber} R`].stream;
+          if (mode === "none") {
+            assert.ok("/Length" in stream.dict);
+            assert.equal("/Filter" in stream.dict, Boolean(dictGet(object.value.dict, "Filter")));
+            assert.equal(stream.data, undefined);
+            assert.equal(stream.datafile, undefined);
+          } else {
+            assert.equal("/Length" in stream.dict, false);
+            assert.equal("/Filter" in stream.dict, false);
+            assert.equal("/DecodeParms" in stream.dict, false);
+            const data = mode === "inline" ? Buffer.from(stream.data, "base64") : files.get(stream.datafile)!;
+            assert.deepEqual(new Uint8Array(data), new Uint8Array(document.cos.decodeStream(object.value)));
+          }
+        }
+        assert.ok(streams > 0);
+        if (mode !== "file") {
+          const native = spawnSync("qpdf", ["--json=2", "--json-key=qpdf", `--json-stream-data=${mode}`, new URL(fixture, import.meta.url).pathname]);
+          if (!native.error) {
+            assert.equal(native.status, 0, native.stderr.toString());
+            const nativeObjects = JSON.parse(native.stdout.toString()).qpdf[1];
+            for (const [key, value] of Object.entries(objects)) {
+              const stream = (value as { stream?: unknown }).stream;
+              if (stream) assert.deepEqual(stream, nativeObjects[key].stream);
+            }
+          }
+        }
+      });
+    }
+  }
 
   it("writes external stream data files with --json-stream-data=file and --json-stream-prefix", async () => {
     const doc = PdfDocument.create();

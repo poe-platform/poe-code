@@ -32,7 +32,7 @@ PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach 
 
 Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce black and white. The setting applies to subsequent `-colors` operations until `+quantize` resets it.
 
-Raw `rgba:` output is unsupported and returns an error instead of emitting PNG bytes, including for `rgba:-` and intermediate `-write` outputs.
+Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) and explicit coders (`rgba:out.bin`, `gray:-`), including intermediate `-write` outputs.
 
 `-colorspace HSB`, `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.
 

@@ -1,4 +1,5 @@
-import { encodeStoredImage, type ImageByteSource, type OutputEncodeOptions, type StoredImageFileInput, type StoredRgbaImage } from "@poe-code/image-ast/portable";
+import { encodeStoredImage, type OutputEncodeOptions } from "./raw-output.js";
+import { type ImageByteSource, type StoredImageFileInput, type StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { StoredImageStack } from "./stored-stack.js";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";

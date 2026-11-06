@@ -1,3 +1,4 @@
+import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan } from "./deskew.js";
 import { compareLayerBounds } from "./compare-layers.js";
 import { createMagickRandom } from "./random.js";
@@ -48,7 +49,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type RgbaImage = BaseRgbaImage & HueMetadata;
 type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata;
@@ -4015,7 +4016,6 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { forma
   if (prefixMatch) {
     const prefix = prefixMatch[1]!.toLowerCase();
     const rest = prefixMatch[2]!;
-    if (prefix === "rgba") throw new Error("unsupported output coder 'rgba'");
     const fmt = extToImageFormat(prefix);
     if (fmt) {
       return { format: fmt, path: rest };
@@ -4031,6 +4031,8 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { forma
 }
 
 function extToImageFormat(ext: string): ImageFormat | undefined {
+  const rawCoder = ext.toLowerCase();
+  if (isRawCoder(rawCoder)) return rawCoder;
   switch (ext.toLowerCase()) {
     case "miff":
       return "miff";

@@ -1,6 +1,7 @@
+import { encodeStoredImage, isRawCoder, type OutputEncodeOptions } from "./raw-output.js";
 import { EncodedSnapshots } from "./encoded-snapshots.js";
 import { decodeFileImage } from "./image-raster.js";
-import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, decodeImage, encodeStoredImage, tryImageFile, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource, type OutputEncodeOptions } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, decodeImage, tryImageFile, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource } from "@poe-code/image-ast/portable";
 import { PagedStorage, PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { FsError, type FileSystem } from "@poe-code/safe-fs/contracts";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -59,7 +60,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
         const publishImage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, snapshot?: NonNullable<import("@poe-code/image-ast/portable").StoredImageFileInput["encoded"]>, retire = true): Promise<Uint8Array | undefined> => {
                 try {
                 if (path !== "-" || snapshot) {
-                    const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, encoding);
+                    const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, { ...encoding, format: isRawCoder(encoding.format) ? "raw" : encoding.format });
                     if (info)
                         return;
                 }
@@ -193,7 +194,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 await publishPending();
             },
             async publish(image, path, encoding) {
-                if (!snapshots.size) return publishImage(image, path, encoding);
+                if (!snapshots.size && (!isRawCoder(encoding.format) || path === "-")) return publishImage(image, path, encoding);
                 let bytes: Uint8Array | undefined;
                 if (path === "-") bytes = await publishImage(image, path, encoding);
                 else await snapshots.stage(image, path, encoding);

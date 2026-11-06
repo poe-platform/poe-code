@@ -7,6 +7,8 @@ import type { PdfRawTextIndex, PdfStoredTextLine, PdfStoredTextWord } from "./ra
 
 export interface PdfHtmlPageTextOptions {
   readonly xml?: boolean;
+  /** Emit flowing HTML lines instead of positioned paragraphs. */
+  readonly flowing?: boolean;
   /** Preserve style suffixes in XML font family names. */
   readonly fontFullName?: boolean;
   /** Emit XML text coordinates with six decimal places. */
@@ -133,7 +135,7 @@ export async function* streamHtmlPageText(document: PdfRetainedDocument, page: P
       if (names) {
         const size = Math.max(1, Math.round((word?.fontSize ?? 12) * zoom)), identity = await names.intern(fontKey(word, size));
         yield `    <text top="${top}" left="${left}" width="${xml && options.noRoundCoord ? ((x1 - x0) * zoom).toFixed(6) : Math.max(1, Math.round((x1 - x0) * zoom))}" height="${xml && options.noRoundCoord ? ((y1 - y0) * zoom).toFixed(6) : Math.max(1, Math.round((y1 - y0) * zoom))}" font="${identity.index}">`;
-      } else yield `  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">`;
+      } else if (!options.flowing) yield `  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">`;
       if (uri) { yield '<a href="'; for await (const part of chunks(uri)) yield escape(part); yield '">'; }
       if (bold) yield "<b>"; if (italic) yield "<i>";
       let first = true;
@@ -142,7 +144,7 @@ export async function* streamHtmlPageText(document: PdfRetainedDocument, page: P
         for await (const part of word.text()) { signal?.throwIfAborted(); yield escape(part); }
       }
       if (italic) yield "</i>"; if (bold) yield "</b>"; if (uri) yield "</a>";
-      yield names ? "</text>\n" : "</p>\n";
+      yield names ? "</text>\n" : options.flowing ? "<br/>\n" : "</p>\n";
     }
   } catch (error) { failed = true; throw error; }
   finally { await names?.close().catch(error => { if (!failed) throw error; }); }

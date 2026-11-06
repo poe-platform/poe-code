@@ -1094,7 +1094,7 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
             const extracted = page.extractPage({ discardInvisible: !parsed.hidden, wordBreakThreshold: parsed.wordBreakThreshold });
             const annots = extractPageAnnotations(doc.cos, page.pageDict);
             const pageImages = ignoreImages ? [] : (yield* extractDocumentImagesSteps(doc.cos, { firstPage: p, lastPage: p, signal: signal }));
-            lines.push(`<div class="page" id="page${p}" style="position:relative;width:${Math.round(width * zoom)}pt;height:${Math.round(height * zoom)}pt;">`);
+            lines.push(!parsed.singleDocument ? `<a id="page${p}"></a>` : `<div class="page" id="page${p}" style="position:relative;width:${Math.round(width * zoom)}pt;height:${Math.round(height * zoom)}pt;">`);
             for (let imgIdx = 0; imgIdx < pageImages.length; imgIdx++) {
                 yield;
                 const img = pageImages[imgIdx]!;
@@ -1144,10 +1144,10 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
                     const innerText = matchingLink?.uri
                         ? `<a href="${escapeHtmlXml(matchingLink.uri)}">${styledHtmlText}</a>`
                         : styledHtmlText;
-                    lines.push(`  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">${innerText}</p>`);
+                    lines.push(!parsed.singleDocument ? `${innerText}<br/>` : `  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">${innerText}</p>`);
                 }
             }
-            lines.push(`</div>`);
+            lines.push(parsed.singleDocument ? "</div>" : "<hr/>");
         }
         if (outlineTree.length > 0) {
             lines.push(`<hr/>`, `<a name="outline"></a><h1>Document Outline</h1>`);

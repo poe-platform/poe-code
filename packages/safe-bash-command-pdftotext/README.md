@@ -16,7 +16,7 @@ Extract structured, layout-preserving, raw, XHTML bounding-box, HTML metadata, o
 | HTML Metadata | `-htmlmeta` | Wraps extracted text in an HTML document with `<meta>` tags from `/Info`. |
 | Crop Area & Ranges | `-f`/`-l`, `-x`/`-y`/`-W`/`-H` | Restricts extraction to specific page ranges and rectangular crop regions. |
 | Line Endings & Page Breaks | `-eol unix\|dos\|mac`, `-nopgbrk` | Controls line terminator bytes and form-feed (`\f`) output. |
-| PDF to HTML / XML (`pdftohtml`) | `pdftohtml -xml` / `-s file.pdf` | Converts PDF pages into structured HTML or Poppler `pdf2xml` XML with positioned text blocks. |
+| PDF to HTML / XML (`pdftohtml`) | `pdftohtml -xml` / `-s file.pdf` | Emits flowing HTML by default, positioned single-document HTML with `-s`, or Poppler `pdf2xml` XML with `-xml`. |
 
 ## Quick Start
 

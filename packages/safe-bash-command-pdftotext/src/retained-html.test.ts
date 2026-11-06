@@ -272,10 +272,27 @@ for (const mode of [[], ["-xml"]]) for (const [threshold, expected] of [[undefin
     const f = await fixture(input, args);
     assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
     assert.equal(f.stderr.length, 0);
-    assert.ok(new TextDecoder().decode(joined(f.stdout)).includes(`>${expected}</`));
+    assert.ok(new TextDecoder().decode(joined(f.stdout)).includes(mode.length ? `>${expected}</text>` : `${expected}<br/>`));
     const buffered = await runPdftohtmlCli(args, new Map([["/input.pdf", input]]));
     assert.equal(buffered.exitCode, 0);
-    assert.ok(buffered.stdout.includes(`>${expected}</`));
+    assert.ok(buffered.stdout.includes(mode.length ? `>${expected}</text>` : `${expected}<br/>`));
     await f.clean();
   });
 }
+
+for (const single of [false, true]) for (const stdout of [false, true]) test(`pdftohtml HTML structure: single=${single}, stdout=${stdout}`, async () => {
+  const input = await readFile(new URL("../../pdf-ast/src/fixtures/qpdf-form-xobjects-no-resources.pdf", import.meta.url));
+  const args = ["-i", "-zoom", "1.5", ...(single ? ["-s"] : []), ...(stdout ? ["-stdout"] : []), "/input.pdf", "/output.html"];
+  const f = await fixture(input, args);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  assert.equal(f.stderr.length, 0);
+  const html = new TextDecoder().decode(stdout ? joined(f.stdout) : await f.fs.readFile("/output.html"));
+  assert.equal(html.includes("position:absolute"), single);
+  assert.equal(html.includes('<div class="page"'), single);
+  for (const text of ["Page", "FX1", "FX2"]) assert.ok(html.includes(single ? `>${text}</p>` : `${text}<br/>`));
+  const files = new Map([["/input.pdf", input]]);
+  const buffered = await runPdftohtmlCli(args, files);
+  assert.equal(buffered.exitCode, 0);
+  assert.equal(stdout ? buffered.stdout : new TextDecoder().decode(files.get("/output.html")), html);
+  await f.clean();
+});

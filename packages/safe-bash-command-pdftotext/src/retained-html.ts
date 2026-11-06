@@ -145,12 +145,12 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
         if (number < plan.firstPage) continue; if (number > endPage) break;
         const { mediaBox } = await page.attributes(), width = Math.abs(mediaBox[2] - mediaBox[0]), height = Math.abs(mediaBox[3] - mediaBox[1]);
         yield plan.xmlMode ? `  <page number="${number}" position="absolute" top="0" left="0" height="${Math.round(height * plan.zoom)}" width="${Math.round(width * plan.zoom)}">\n`
-          : `<div class="page" id="page${number}" style="position:relative;width:${Math.round(width * plan.zoom)}pt;height:${Math.round(height * plan.zoom)}pt;">\n`;
+          : !plan.singleDocument ? `<a id="page${number}"></a>\n` : `<div class="page" id="page${number}" style="position:relative;width:${Math.round(width * plan.zoom)}pt;height:${Math.round(height * plan.zoom)}pt;">\n`;
         const index = await page.indexText(storage, { mode: "layout", discardInvisible: !plan.hidden, wordBreakThreshold: plan.wordBreakThreshold, retainFontNames: true, signal }); let pageFailed = false;
-        try { yield* streamHtmlPageText(doc, page, index, storage, { xml: plan.xmlMode, fontFullName: plan.fontFullName, noRoundCoord: plan.noRoundCoord, zoom: plan.zoom, height, signal, images: () => imageMarkup(number) }); }
+        try { yield* streamHtmlPageText(doc, page, index, storage, { xml: plan.xmlMode, flowing: !plan.singleDocument, fontFullName: plan.fontFullName, noRoundCoord: plan.noRoundCoord, zoom: plan.zoom, height, signal, images: () => imageMarkup(number) }); }
         catch (failure) { pageFailed = true; throw failure; }
         finally { await index.close().catch(failure => { if (!pageFailed) throw failure; }); }
-        yield plan.xmlMode ? "  </page>\n" : "</div>\n";
+        yield plan.xmlMode ? "  </page>\n" : plan.singleDocument ? "</div>\n" : "<hr/>\n";
       }
       yield* outlines(); yield plan.xmlMode ? "</pdf2xml>\n" : "</body>\n</html>\n";
     }

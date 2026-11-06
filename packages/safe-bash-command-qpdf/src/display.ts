@@ -1,6 +1,6 @@
 import { decodePdfString, type PdfCosNode } from "@poe-code/pdf-ast";
 
-/** qpdf's human-readable object syntax, emitted without collecting containers. */
+/** qpdf's human-readable object syntax with sorted dictionary keys. */
 export function* displayNodeParts(node: PdfCosNode | undefined): Generator<string> {
   if (!node) { yield "null"; return; }
   switch (node.kind) {
@@ -14,10 +14,12 @@ export function* displayNodeParts(node: PdfCosNode | undefined): Generator<strin
       yield "[ ";
       for (let i = 0; i < node.items.length; i++) { if (i) yield " "; yield* displayNodeParts(node.items[i]); }
       yield " ]"; return;
-    case "dict":
+    case "dict": {
+      const entries = [...node.entries].sort((a, b) => a.key.decoded < b.key.decoded ? -1 : a.key.decoded > b.key.decoded ? 1 : 0);
       yield "<< ";
-      for (let i = 0; i < node.entries.length; i++) { const entry = node.entries[i]!; if (i) yield " "; yield "/"; yield entry.key.decoded; yield " "; yield* displayNodeParts(entry.value); }
+      for (let i = 0; i < entries.length; i++) { const entry = entries[i]!; if (i) yield " "; yield "/"; yield entry.key.decoded; yield " "; yield* displayNodeParts(entry.value); }
       yield " >>"; return;
+    }
     case "stream":
       yield "Object is stream.  Dictionary:\n"; yield* displayNodeParts(node.dict); return;
   }

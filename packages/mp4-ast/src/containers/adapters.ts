@@ -562,19 +562,31 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     throw new Error("WAV encoding requires decoded PCM audio");
   }
 
+  // FFmpeg's default layouts from 2.1 through 7.1; explicit masks take precedence.
+  const channelMask = audioTrack?.decodedAudio?.channelMask ?? (decodedAudio ? decodedAudio.channelMask : undefined) ??
+    [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
+  const extensible = channelMask !== undefined || channels > 2;
+  const fmtSize = extensible ? 40 : 16;
   const padding = pcmBytes.byteLength % 2;
-  const writer = new BinaryWriter(44 + pcmBytes.byteLength + padding);
+  const writer = new BinaryWriter(28 + fmtSize + pcmBytes.byteLength + padding);
   writer.writeFourCC("RIFF");
-  writer.writeU32LE(36 + pcmBytes.byteLength + padding);
+  writer.writeU32LE(20 + fmtSize + pcmBytes.byteLength + padding);
   writer.writeFourCC("WAVE");
   writer.writeFourCC("fmt ");
-  writer.writeU32LE(16);
-  writer.writeU16LE(formatTag);
+  writer.writeU32LE(fmtSize);
+  writer.writeU16LE(extensible ? 0xfffe : formatTag);
   writer.writeU16LE(channels);
   writer.writeU32LE(sampleRate);
   writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
   writer.writeU16LE(channels * (bitsPerSample >>> 3));
   writer.writeU16LE(bitsPerSample);
+  if (extensible) {
+    writer.writeU16LE(22);
+    writer.writeU16LE(bitsPerSample);
+    writer.writeU32LE(channelMask ?? 0);
+    writer.writeU32LE(formatTag);
+    writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
+  }
   writer.writeFourCC("data");
   writer.writeU32LE(pcmBytes.byteLength);
   writer.writeBytes(pcmBytes);

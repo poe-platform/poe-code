@@ -3084,8 +3084,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               throw new Error("No video frame in the requested presentation interval");
             }
 
-            // Image sequences and update mode share frame processing and encoding.
-            if ((imageOutput && updateImage) || /%0?\d*d/.test(outputTarget)) {
+            // Image files share frame processing and encoding.
+            const numberedImageOutput = /%0?\d*d/.test(outputTarget);
+            if ((imageOutput && !isStdout(outputTarget)) || numberedImageOutput) {
               const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
               const imgPlugin = registry.findByFilename(`x.${outExt}`);
               if (!imgPlugin || !imgPlugin.canMux) {
@@ -3114,6 +3115,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const previousCopies = constantRate && delta0 > 1.1 ? Math.max(0, Math.round(delta0 - 0.6)) : 0;
                 if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
                 for (let copy = 0; copy < copies && idx < limit; copy++, idx++, nextPts++) {
+                  if (idx > 0 && !numberedImageOutput && !updateImage) {
+                    throw new Error("Cannot write more than one file with the same name. Use a numbered pattern or -update 1.");
+                  }
                   budget.checkCpu();
                   budget.checkSamples(idx + 1);
                   budget.checkDuration((idx + 1) * duration);

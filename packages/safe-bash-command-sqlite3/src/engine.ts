@@ -6469,15 +6469,35 @@ export class SqliteDatabase {
         columns: [],
         rows: []
       };
+      // A derived table needs unique names before its positional values become row keys.
+      const usedNames = new Set<string>();
+      const columns = yield* stepMap(res.columns, function* (column) {
+        let name = column;
+        if (usedNames.has(name.toLowerCase())) {
+          let end = name.length;
+          while (end > 0 && name[end - 1]! >= "0" && name[end - 1]! <= "9") {
+            yield;
+            end -= 1;
+          }
+          const base = name[end - 1] === ":" ? name.slice(0, end - 1) : name;
+          let suffix = 1;
+          do {
+            yield;
+            name = `${base}:${suffix++}`;
+          } while (usedNames.has(name.toLowerCase()));
+        }
+        usedNames.add(name.toLowerCase());
+        return name;
+      }, this);
       const rows = yield* stepMap(res.rows, function* (r) { yield;
         const obj: Record<string, SqlValue> = {};
-        res.columns.forEach((c, idx) => {
+        columns.forEach((c, idx) => {
           obj[c] = r[idx] ?? null;
           obj[`${alias}.${c}`] = r[idx] ?? null;
         });
         return obj;
       }, this);
-      return { alias, columns: res.columns, rows };
+      return { alias, columns, rows };
     }
 
     let idx = 0;

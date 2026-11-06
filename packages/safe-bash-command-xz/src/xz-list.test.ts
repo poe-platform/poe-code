@@ -6,6 +6,31 @@ import { chunks, run } from '../tests/helpers.js';
 import { humanListing } from './xz-list.js';
 import { parseOptions } from './options.js';
 
+for (const size of [0, 1, 4, 8, 12, 16, 23, 24, 25, 32, 1024, 1717]) {
+  test(`XZ listing classifies non-XZ input of ${size} bytes`, async () => {
+    const fs = createMemoryFileSystem();
+    const bytes = Buffer.alloc(size, 97);
+    await fs.writeFile('/plain', bytes);
+    const result = await run('xz', ['-l', 'plain'], chunks(), { fs });
+    const diagnostic = size === 0 ? 'File is empty'
+      : size < 24 ? 'Too small to be a valid .xz file' : 'File format not recognized';
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, `xz: ${diagnostic}\n`);
+    assert.equal(result.stdout.toString(), '');
+    assert.deepEqual(Buffer.from(await fs.readFile('/plain')), bytes);
+  });
+}
+
+test('XZ listing still reports a truncated XZ footer as corruption', async () => {
+  const fixture = listingFixtures.find(value => value.name === 'blocks')!;
+  const bytes = Buffer.from(fixture.hex, 'hex');
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/broken.xz', bytes.subarray(0, bytes.length - 4));
+  const result = await run('xz', ['-l', 'broken.xz'], chunks(), { fs });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, 'xz: Compressed data is corrupt\n');
+});
+
 test('XZ human units and list mode selectors match native', () => {
   assert.match(humanListing({ streams: 1, blocks: 1, compressed: 76, uncompressed: 1024, padding: 0, checks: new Set([4]) }, 'data.xz'), /1024 B/);
   assert.match(humanListing({ streams: 1, blocks: 1, compressed: 284, uncompressed: 1048576, padding: 0, checks: new Set([4]) }, 'data.xz'), /1024\.0 KiB/);

@@ -62,7 +62,8 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
     handle = await operation.run(() => operation.fs.openReadFile!(plan.source, { signal: operation.signal, ...(plan.sourceStat ? { expected: plan.sourceStat } : {}) }));
     const stat = await operation.run(() => handle!.stat({ signal: operation.signal }));
     if (!plan.sourceStat || !sameObservation(plan.sourceStat, stat)) throw new PublicDiagnostic("input identity or metadata changed");
-    if (stat.size % 4) corrupt();
+    if (stat.size === 0) throw new PublicDiagnostic("File is empty");
+    if (stat.size < 24) throw new PublicDiagnostic("Too small to be a valid .xz file");
     const read = async (offset: number, length: number): Promise<Uint8Array> => {
       if (!Number.isSafeInteger(offset) || offset < 0 || length < 0 || length > 65536 || length > stat.size - offset) corrupt();
       const result = new Uint8Array(length);
@@ -75,6 +76,11 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
       }
       return result;
     };
+    const magic = await read(0, 6);
+    if (![0xfd, 0x37, 0x7a, 0x58, 0x5a, 0].every((value, index) => magic[index] === value)) {
+      throw new PublicDiagnostic("File format not recognized");
+    }
+    if (stat.size % 4) corrupt();
     const listing: XzListing = { streams: 0, blocks: 0, compressed: stat.size, uncompressed: 0, padding: 0, checks: new Set() };
     if (options.xzVerbose) listing.details = { streams: [], memory: 0, allSizes: true, minVersion: 50000002 };
     const memoryLimit = options.xzDecompressMemory ?? 0;

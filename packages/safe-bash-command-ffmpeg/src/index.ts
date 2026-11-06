@@ -1382,6 +1382,8 @@ export function evalSyncFfmpeg(
     if (inputs.length === 0 || !outputTarget) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
     const isNullMux = outputFormat === "null" || outputTarget === "/dev/null";
+    if (!isNullMux && !isStdout(outputTarget) && inputs.some(input =>
+      input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget)) return undefined;
     if (!isNullMux && !writeFileSync) return undefined;
     if (noOverwrite && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
 
@@ -1812,6 +1814,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       }
 
       try {
+        if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
+          const inputIndex = inputs.findIndex(input =>
+            input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget);
+          if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
+        }
         // Virtual streams are non-interactive: replacing a file requires -y.
         if (
           !overwrite &&

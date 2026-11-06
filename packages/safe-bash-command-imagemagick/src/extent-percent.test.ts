@@ -12,9 +12,23 @@ it.each([
     expect(parseMagickGeometry(geometry)).toMatchObject({ isPercent: true, percentX, percentY });
 });
 
+it.each([
+    { geometry: "2x2+0-1", x: 0, y: -1 },
+    { geometry: "2x2-1-1", x: -1, y: -1 },
+    { geometry: "2x2-1+0", x: -1, y: 0 }
+])("parses signed extent offsets $geometry", ({ geometry, x, y }) => {
+    expect(parseMagickGeometry(geometry)).toMatchObject({ width: 2, height: 2, x, y });
+});
+
 for (const mode of ["buffered", "sync", "retained", "command"]) {
     // Native ImageMagick results for an opaque 4x3 grayscale grid numbered 1–12.
     it.each([
+        { geometry: "2x2+0-1", gravity: "center", width: 2, height: 2, values: [2, 3, 6, 7] },
+        { geometry: "2x2-1-1", gravity: "center", width: 2, height: 2, values: [1, 2, 5, 6] },
+        { geometry: "2x2-1+0", gravity: "center", width: 2, height: 2, values: [1, 2, 5, 6] },
+        { geometry: "3x2-1-1", gravity: "center", width: 3, height: 2, values: [1, 2, 3, 5, 6, 7] },
+        { geometry: "3x2+1+1", gravity: "center", width: 3, height: 2, values: [6, 7, 8, 10, 11, 12] },
+        { geometry: "5x4-1-1", gravity: "center", width: 5, height: 4, values: [255, 255, 255, 255, 255, 255, 1, 2, 3, 4, 255, 5, 6, 7, 8, 255, 9, 10, 11, 12] },
         { geometry: "50%", gravity: "northwest", width: 2, height: 2, values: [1, 2, 5, 6] },
         { geometry: "25x100%", gravity: "center", width: 1, height: 3, values: [2, 6, 10] },
         { geometry: "62.5x50%", gravity: "northwest", width: 3, height: 2, values: [1, 2, 3, 5, 6, 7] },

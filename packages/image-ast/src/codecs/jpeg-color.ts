@@ -1,4 +1,4 @@
-/** JPEG headers identify whether three components are RGB or YCbCr. */
+/** JPEG headers identify RGB, YCbCr, CMYK, and YCCK component encoding. */
 export class JpegColorEncoding {
   private jfif = false;
   adobeTransform: number | undefined;

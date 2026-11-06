@@ -1,7 +1,8 @@
+import {unzipSync} from "fflate";
 import {rawReaderLibrary, readerLibrary} from "./python/readers.js";
 import {WASI, wasi as definitions, File, OpenFile, ConsoleStdout, PreopenDirectory, Directory, type Inode} from '@bjorn3/browser_wasi_shim';
 declare const PYTHON_WASM: string;
-declare const PYTHON_LIBRARIES: string;
+declare const PYTHON_WHEELS: readonly string[];
 interface Start {shared: SharedArrayBuffer; payload: string; banner: string; workLimit: number}
 const decode = (text: string): Uint8Array<ArrayBuffer> => {
   const binary = atob(text);
@@ -37,9 +38,10 @@ async function run(start: Start, send: (message: unknown) => void): Promise<void
     }
   }
   try {
-    const [wasm, libraries] = await Promise.all([inflate(PYTHON_WASM), inflate(PYTHON_LIBRARIES)]);
+    const wasm = await inflate(PYTHON_WASM);
     const site = new Directory(new Map());
-    for (const [path, data] of Object.entries(JSON.parse(new TextDecoder().decode(libraries)) as Record<string, string>)) {
+    for (const wheel of PYTHON_WHEELS) for (const [path, data] of Object.entries(unzipSync(decode(wheel)))) {
+      if (path.endsWith("/")) continue;
       const parts = path.split('/'); let directory = site;
       for (const name of parts.slice(0, -1)) {
         let child = directory.contents.get(name);
@@ -47,7 +49,7 @@ async function run(start: Start, send: (message: unknown) => void): Promise<void
         if (!(child instanceof Directory)) throw new Error('Invalid Python library tree');
         directory = child;
       }
-      directory.contents.set(parts.at(-1)!, new File(decode(data), {readonly: true}));
+      directory.contents.set(parts.at(-1)!, new File(data, {readonly: true}));
     }
     class ReaderFile extends File {override path_open() {return {ret: 0, fd_obj: new Input('reader')};}}
     const root = new Map<string, Inode>([['records', new ReaderFile([])], ['site', site], ['input.json', new File(new TextEncoder().encode(start.payload), {readonly: true})]]);

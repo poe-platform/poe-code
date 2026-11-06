@@ -1223,6 +1223,22 @@ export class Interpreter {
           for (const component of candidate) {
             { const _p = budget.tickSync(); if (_p) await _p; }
             budget.collection(path.length + 1);
+            if (isObject(component) && (base === null || Array.isArray(base))) {
+              const start = Object.hasOwn(component, "start") ? component.start! : undefined;
+              const end = Object.hasOwn(component, "end") ? component.end! : undefined;
+              if ((start !== null && (!isNumber(start) || !Number.isFinite(numberValue(start))))
+                || (end !== null && (!isNumber(end) || !Number.isFinite(numberValue(end))))) {
+                throw new JqError("Array/string slice indices must be integers");
+              }
+              const length = base === null ? 0 : base.length;
+              let first = start === null ? 0 : Math.floor(numberValue(start as Numeric));
+              let last = end === null ? length : Math.ceil(numberValue(end as Numeric));
+              first = Math.max(0, Math.min(length, first < 0 ? length + first : first));
+              last = Math.max(first, Math.min(length, last < 0 ? length + last : last));
+              path.push({ start: first, end: last });
+              base = await sliceValue(base, first, last, budget);
+              continue;
+            }
             // Read each old value before normalizing relative array indexes.
             const previous = indexValue(base, component);
             let key: string | number;

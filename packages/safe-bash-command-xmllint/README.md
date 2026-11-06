@@ -31,7 +31,7 @@ Results are deduplicated and returned in document order.
 Use `/*/namespace::*` to inspect in-scope namespace bindings, including `xml`;
 `/*/namespace::prefix` selects one binding. Namespace declarations are excluded from `@*`.
 
-Supported modes include `--noout`, `--format`, `--c14n`, `--exc-c14n`,
+Supported modes include `--noout`, `--format`, `--c14n`, `--c14n11`, `--exc-c14n`,
 and `--xpath`. Use `--noblanks` to remove ignorable whitespace before queries
 or serialization, `--nocdata` to serialize CDATA as escaped text, and `--output FILE` / `-o FILE` to write serialized XML to
 the virtual filesystem. File output streams into retained staging when the filesystem

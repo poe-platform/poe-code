@@ -104,8 +104,8 @@ async function argumentsFor(
       const value = await admitted(index++, "maxInputBytes");
       if (flag === "--encode") encoding = outputEncoding(value);
       else output = value;
-    } else if (flag === "--c14n" || flag === "--exc-c14n") {
-      mode = flag === "--c14n" ? "c14n" : "exc-c14n";
+    } else if (flag === "--c14n" || flag === "--c14n11" || flag === "--exc-c14n") {
+      mode = flag === "--c14n" ? "c14n" : flag === "--c14n11" ? "c14n11" : "exc-c14n";
       index++;
     } else if (flag === "--xpath") {
       if (xpathIndex !== undefined) throw new XmlQueryError("expected one --xpath QUERY", 2);

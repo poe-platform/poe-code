@@ -6,7 +6,7 @@ import { StoredAttributes } from "./stored-attributes.js";
 import { StoredXmlDocument } from "./stored-document.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 
-export type DocumentMode = "format" | "c14n" | "exc-c14n";
+export type DocumentMode = "format" | "c14n" | "c14n11" | "exc-c14n";
 const xmlns = "http://www.w3.org/2000/xmlns/";
 const xml = "http://www.w3.org/XML/1998/namespace";
 type NamespaceScope = ReadonlyMap<string, string> | StoredNamespaces;
@@ -208,6 +208,8 @@ export async function* serializeDocument(
     return typeof reference === "number" ? stored!.namespaceScope(reference) : element.namespaces;
   }
   const root = await load(rootReference) as XmlElement;
+  // Whole-document C14N 1.1 shares inclusive serialization with 1.0:
+  // no omitted ancestors require xml:base fixup or xml:id inheritance handling.
   const canonical = mode !== "format";
   const documentDeclaration = options.declaration ?? root.declaration;
   const escaping = { canonical, ascii: !canonical && !documentDeclaration?.includes("encoding") };

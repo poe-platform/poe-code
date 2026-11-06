@@ -6,7 +6,7 @@ import { createStandardCommands } from "../../src/commands/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { createXmllintCommands } from "../../src/commands/xml/index.js";
 
-for (const flags of ["", "--format", "--c14n", "--exc-c14n"]) {
+for (const flags of ["", "--format", "--c14n", "--c14n11", "--exc-c14n"]) {
   test(`xmllint ${flags || "ordinary output"} preserves serialization escaping in substitution`, async () => {
     const fs = new MemoryFileSystem();
     await fs.writeFile("/doc.xml", new TextEncoder().encode('<r label="a>b">café 😀 a>b</r>'));
@@ -34,7 +34,7 @@ for (const flags of ["", "--format", "--c14n", "--exc-c14n"]) {
   });
 }
 
-for (const flags of ["--c14n", "--exc-c14n", "--format"]) {
+for (const flags of ["--c14n", "--c14n11", "--exc-c14n", "--format"]) {
   test(`xmllint ${flags} validates relative namespaces in substitution`, async () => {
     const fs = new MemoryFileSystem();
     await fs.writeFile("/doc.xml", new TextEncoder().encode('<r xmlns:p="relative"><p:x/></r>'));
@@ -67,7 +67,7 @@ for (const [input, expected] of [
   ['<r a="1" Z="2" z="3" A="4"/>', '<r A="4" Z="2" a="1" z="3"></r>'],
   ['<r a="1" Z="2"/>', '<r Z="2" a="1"></r>'],
 ] as const) {
-  for (const flags of ["--c14n", "--exc-c14n"]) {
+  for (const flags of ["--c14n", "--c14n11", "--exc-c14n"]) {
     test(`xmllint ${flags} preserves canonical attribute order in substitution: ${input}`, async () => {
       const fs = new MemoryFileSystem();
       await fs.writeFile("/doc.xml", new TextEncoder().encode(input));

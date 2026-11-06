@@ -86,6 +86,18 @@ export {
   type MediaResourceLimits as FfmpegLimits
 };
 
+function parseFrameRate(value: string): number {
+  switch (value) {
+    case "ntsc": case "qntsc": case "sntsc": return 30000 / 1001;
+    case "pal": case "qpal": case "spal": return 25;
+    case "film": return 24;
+    case "ntsc-film": return 24000 / 1001;
+  }
+  const [numerator, denominator = "1"] = value.split("/");
+  const rate = Number(numerator) / Number(denominator);
+  return Number.isFinite(rate) && rate > 0 ? rate : 25;
+}
+
 function loopToOutputEnd(
   doc: MediaDocument,
   endSeconds: number | undefined,
@@ -1379,7 +1391,7 @@ export function evalSyncFfmpeg(
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
       else if (arg === "-r" || arg === "-framerate") {
-        const val = parseFloat(args[++i] ?? "25") || 25;
+        const val = parseFrameRate(args[++i] ?? "25");
         if (args.slice(i + 1).includes("-i")) pendingFps = val;
         else outputFps = val;
       } else if (arg === "-s") outputSize = args[++i];
@@ -1818,7 +1830,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
           } else if (arg === "-r" || arg === "-framerate") {
-            const val = parseFloat(args[++i] ?? "25") || 25;
+            const val = parseFrameRate(args[++i] ?? "25");
             if (args.slice(i + 1).includes("-i")) {
               pendingFps = val;
             } else {

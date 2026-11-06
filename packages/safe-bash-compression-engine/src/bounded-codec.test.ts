@@ -241,3 +241,17 @@ test("bzip2 distinguishes unrecognized split headers from truncated streams", as
     )), error => error instanceof CompressedDataError && !(error instanceof UnrecognizedCompressionFormatError));
   }
 });
+
+for (const [status, message] of [
+  [-6, 'data integrity (CRC) error'],
+  [-7, 'bad magic number (file not created by bzip2)'],
+  [-3, 'invalid compressed data or codec memory limit exceeded'],
+] as const) {
+  test(`bzip2 codec preserves native failure status ${status}`, async () => {
+    const codec = await createCodec({ format: 'bzip2', decompress: true, level: 9 },
+      new AbortController().signal, () => raw({ bridge_step() { return status; } }));
+    try {
+      assert.throws(() => codec.step(Uint8Array.of(1), new Uint8Array(1), false), { message });
+    } finally { codec.close(); }
+  });
+}

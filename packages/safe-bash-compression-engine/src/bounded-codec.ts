@@ -145,7 +145,7 @@ export async function* boundedCodec(
               options.onTrailingGarbage?.();
               return;
             }
-            throw new UnrecognizedCompressionFormatError("invalid compressed data or codec memory limit exceeded");
+            throw new UnrecognizedCompressionFormatError("bad magic number (file not created by bzip2)");
           }
         }
       }

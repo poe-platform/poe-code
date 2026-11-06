@@ -210,6 +210,7 @@ API int bridge_step(uint8_t*in,uint32_t inlen,uint8_t*out,uint32_t outlen,int fi
  int r=decompressing?BZ2_bzDecompress(&s):BZ2_bzCompress(&s,action);
  taken=offered-s.avail_in;made=outlen-s.avail_out;
  if(!decompressing){buffered+=taken;if(action==BZ_FLUSH){flush_remaining=s.avail_in;if(r==BZ_RUN_OK){buffered=0;flushing=0;}}}
+ if(r==BZ_DATA_ERROR)return -6;if(r==BZ_DATA_ERROR_MAGIC)return -7;
  if(r==BZ_STREAM_END)return 1;if(r!=BZ_OK&&r!=BZ_RUN_OK&&r!=BZ_FINISH_OK&&r!=BZ_FLUSH_OK)return -3;
 #elif defined(XZ)
  s.next_in=in;s.avail_in=inlen;s.next_out=out;s.avail_out=outlen;

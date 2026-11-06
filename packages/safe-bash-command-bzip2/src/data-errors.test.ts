@@ -67,3 +67,57 @@ for (const damage of ['crc', 'truncated', 'plaintext'] as const) {
     });
   }
 }
+
+for (const command of ['bzip2', 'bunzip2']) {
+  test(`${command} identifies damaged operands and distinguishes integrity failures`, async () => {
+    const encoded = await run('bzip2', ['-c'], chunks(Buffer.from('archive contents\n')));
+    assert.equal(encoded.exitCode, 0, encoded.stderr);
+    const corrupt = Buffer.from(encoded.stdout);
+    corrupt[10] = corrupt[10]! ^ 1;
+    const fs = createMemoryFileSystem();
+    await fs.writeFile('/bad.bz2', corrupt);
+    await fs.writeFile('/plain', Buffer.from('README text\n'));
+    await fs.writeFile('/short.bz2', encoded.stdout.subarray(0, -4));
+    await fs.writeFile('/good.bz2', encoded.stdout);
+    const tested = await run(command, ['-t', './bad.bz2', 'plain', 'good.bz2'], chunks(), { fs });
+    assert.equal(tested.exitCode, 2, tested.stderr);
+    const lines = tested.stderr.trim().split('\n');
+    assert.equal(lines.length, 2, tested.stderr);
+    assert.ok(lines[0]!.includes('./bad.bz2:') && lines[0]!.includes('CRC'), tested.stderr);
+    assert.ok(lines[1]!.includes('plain:') && lines[1]!.includes('bad magic'), tested.stderr);
+    const truncated = await run(command, ['-dc', './short.bz2'], chunks(), { fs });
+    assert.equal(truncated.exitCode, 2, truncated.stderr);
+    assert.ok(truncated.stderr.includes('./short.bz2: unexpected end of file'), truncated.stderr);
+    const missing = await run(command, ['-dc', './absent', 'good.bz2'], chunks(), { fs });
+    assert.equal(missing.exitCode, 1, missing.stderr);
+    assert.ok(missing.stderr.includes('./absent: ENOENT: no such file or directory'), missing.stderr);
+    assert.ok(!missing.stderr.includes("'/absent'"), missing.stderr);
+    assert.equal(missing.stdout.toString(), 'archive contents\n');
+  });
+}
+
+test('bzip2 identifies standard input in integrity diagnostics', async () => {
+  const result = await run('bzip2', ['-t'], chunks(Buffer.from('plain text')));
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stderr.includes('(stdin):') && result.stderr.includes('bad magic'), result.stderr);
+});
+
+test('bzcat names CRC failures without exposing internal error details', async () => {
+  const encoded = await run('bzip2', ['-c'], chunks(Buffer.from('archive contents')));
+  const corrupt = Buffer.from(encoded.stdout);
+  corrupt[10] = corrupt[10]! ^ 1;
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/bad.bz2', corrupt);
+  const result = await run('bzcat', ['./bad.bz2'], chunks(), { fs });
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr, 'bzcat: ./bad.bz2: data integrity (CRC) error\n');
+  const failure = new Error('private sink details');
+  const seen: unknown[] = [];
+  const failed = await run('bzcat', [], chunks(encoded.stdout), {
+    stdout: { async write() { throw failure; } },
+    onInternalError(error) { seen.push(error); },
+  });
+  assert.equal(failed.exitCode, 1);
+  assert.equal(failed.stderr, 'bzcat: (stdin): internal error\n');
+  assert.deepEqual(seen, [failure]);
+});

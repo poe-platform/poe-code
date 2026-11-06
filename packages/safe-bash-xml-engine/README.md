@@ -2,7 +2,8 @@
 
 Safe Bash shares XML tree queries, serialization, input decoding and resource
 budgets between its XML commands. The engine uses the canonical safe-fs XML
-parser and preserves UTF-8 admission, cancellation and explicit limits. Resource
+parser and accepts UTF-8 and BOM-marked UTF-16 input while preserving cancellation
+and explicit byte limits. Resource
 quotas default to `Infinity`; configure finite byte, depth, node, attribute,
 namespace, work or result limits as needed. Explicit `Infinity` disables a quota.
 

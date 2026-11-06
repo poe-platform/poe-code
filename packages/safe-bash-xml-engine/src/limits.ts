@@ -63,6 +63,7 @@ export class XmlBudget {
   private checkpoint = 0;
   outputBytes = 0;
   inputBytes = 0;
+  inputEncoding: "UTF-8" | "UTF-16LE" | "UTF-16BE" = "UTF-8";
   constructor(
     readonly limits: XmlQueryLimits,
     readonly signal: AbortSignal,

@@ -11,6 +11,32 @@ const runtime: XmlCommandRuntime = {
   writeDiagnostic: async () => {}
 };
 
+for (const little of [true, false]) test(`XML decodes split UTF-16 BOM and code units (little=${little})`, async () => {
+  const text = '<?xml version="1.0" encoding="UTF-16"?><r>é😀</r>';
+  const bytes = new Uint8Array(2 + text.length * 2);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(0, 0xfeff, little);
+  for (let i = 0; i < text.length; i++) view.setUint16(2 + i * 2, text.charCodeAt(i), little);
+  const context = {
+    signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() {
+      const reused = new Uint8Array(1);
+      for (const byte of bytes) { reused[0] = byte; yield reused; }
+    } }
+  } as unknown as CommandContext;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), context.signal, runtime.yieldTurn);
+  assert.equal(await readXmlInput(context, undefined, budget, runtime), text);
+  assert.equal(budget.inputBytes, bytes.length);
+});
+
+for (const bytes of [[0xff], [0xff, 0xfe, 0x3c], [0xfe, 0xff, 0xd8, 0x00], [0xc3]]) {
+  test(`XML rejects incomplete encoded input ${bytes}`, async () => {
+    const context = { signal: new AbortController().signal, stdin: toByteSource(Uint8Array.from(bytes)) } as CommandContext;
+    const budget = new XmlBudget(resolveXmlQueryLimits(), context.signal, runtime.yieldTurn);
+    await assert.rejects(readXmlInput(context, undefined, budget, runtime));
+  });
+}
+
 for (const input of ["stdin", "stream", "file"] as const) {
   for (const maximum of [6, 7]) {
     test(`XML ${input} honors host byte ceiling ${maximum}`, async () => {

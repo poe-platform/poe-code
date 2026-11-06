@@ -3,6 +3,43 @@ import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createXmllintCommand, xmllintCommands } from "./index.js";
+
+for (const little of [true, false]) for (const args of [[], ["--format"], ["--c14n"], ["--exc-c14n"], ["--noout"], ["--xpath", "string(/r)"]]) {
+  test(`xmllint reads UTF-16 input (little=${little}, args=${args})`, async () => {
+    const xml = '<?xml version="1.0" encoding="UTF-16"?><r>é😀</r>';
+    const input = Buffer.from('\ufeff' + xml, "utf16le");
+    if (!little) input.swap16();
+    const chunks: Uint8Array[] = [];
+    let errors = "";
+    const context: CommandContext = {
+      ...createCommandArguments(args), command: "xmllint", cwd: "/", env: {},
+      fs: createMemoryFileSystem(), signal: new AbortController().signal, stdin: toByteSource(input),
+      stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+      stderr: { async write(bytes) { errors += new TextDecoder().decode(bytes); } },
+    };
+    assert.equal((await createXmllintCommand().execute(context)).exitCode, 0, errors);
+    const expected = args.includes("--noout") ? Buffer.alloc(0)
+      : args.includes("--xpath") ? Buffer.from("é😀\n")
+      : args.some(arg => arg.includes("c14n")) ? Buffer.from("<r>é😀</r>")
+      : Buffer.from('\ufeff<?xml version="1.0" encoding="UTF-16"?>\n<r>é😀</r>\n', "utf16le");
+    assert.deepEqual(Buffer.concat(chunks), expected);
+    assert.equal(errors, "");
+  });
+}
+for (const [declarationEncoding, maxInputBytes, expectedCode] of [["UTF-8", Infinity, 1], ["UTF-16", 10, 5]] as const) {
+  test(`UTF-16 input enforces declaration and byte limits (${declarationEncoding}, ${maxInputBytes})`, async () => {
+    let errors = "";
+    const context: CommandContext = {
+      ...createCommandArguments(["--c14n"]), command: "xmllint", cwd: "/", env: {},
+      fs: createMemoryFileSystem(), signal: new AbortController().signal,
+      stdin: toByteSource(Buffer.from(`\ufeff<?xml version="1.0" encoding="${declarationEncoding}"?><r/>`, "utf16le")),
+      stdout: { async write() { assert.fail("invalid input must not produce output"); } },
+      stderr: { async write(bytes) { errors += new TextDecoder().decode(bytes); } },
+    };
+    assert.equal((await createXmllintCommand({ limits: { maxInputBytes } }).execute(context)).exitCode, expectedCode, errors);
+  });
+}
+
 for (const [args, input, expected] of [
   [["--xpath", '//item[@id=1]/text()'], '<root><item id="01">alpha</item><item id="2">beta</item></root>', "alpha\n"],
   [["--xpath", '//item[price=10.5]/name/text()'], '<root><item><price>10.50</price><name>alpha</name></item><item><price>11</price><name>beta</name></item></root>', "alpha\n"],

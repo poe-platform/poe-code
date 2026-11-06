@@ -37,10 +37,25 @@ export async function* readXmlChunks(
       chunkSize: Math.max(1, Math.min(65536, remainingBytes)),
     });
   }
-  const decoder = new TextDecoder("utf-8", { fatal: true });
+  budget.inputEncoding = "UTF-8";
+  let decoder: TextDecoder | undefined;
+  let firstByte: number | undefined;
   const decode = (bytes?: Uint8Array) => {
-    try { return bytes ? decoder.decode(bytes, { stream: true }) : decoder.decode(); }
-    catch { throw new XmlQueryError("XML input must be UTF-8", 1); }
+    try {
+      let prefix = "";
+      if (!decoder) {
+        if (firstByte === undefined && bytes?.length) {
+          firstByte = bytes[0]!;
+          bytes = bytes.subarray(1);
+        }
+        if (bytes && !bytes.length && (firstByte === 0xff || firstByte === 0xfe)) return "";
+        if (firstByte === 0xff && bytes?.[0] === 0xfe) budget.inputEncoding = "UTF-16LE";
+        else if (firstByte === 0xfe && bytes?.[0] === 0xff) budget.inputEncoding = "UTF-16BE";
+        decoder = new TextDecoder(budget.inputEncoding, { fatal: true });
+        if (firstByte !== undefined) prefix = decoder.decode(Uint8Array.of(firstByte), { stream: true });
+      }
+      return prefix + (bytes ? decoder.decode(bytes, { stream: true }) : decoder.decode());
+    } catch { throw new XmlQueryError(`XML input must be valid ${budget.inputEncoding}`, 1); }
   };
   let chunksSinceYield = 0;
   for await (const chunk of readBytes(source, context.signal)) {

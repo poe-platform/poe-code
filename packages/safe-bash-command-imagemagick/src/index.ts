@@ -7007,7 +7007,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     virtualCanvas: magickBorderCanvas(image, left, top) };
             });
         } else {
-            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) throw new Error(`unrecognized option '${token}'`);
+            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) {
+                // Execute preceding writes before reporting the option error.
+                stackStep(async () => { throw new Error(`unrecognized option '${token}'`); });
+                break;
+            }
             if (!operandsOnly && (token === "(" || token === ")")) continue;
             const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {

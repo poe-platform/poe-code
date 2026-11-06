@@ -49,3 +49,27 @@ for (const retained of [false, true]) {
         }
     });
 }
+
+for (const retained of [false, true]) {
+    it.each([
+        { operators: ["-extent", "20x18+1+1"], width: 20, height: 18, page: [69, 58, 9, 7], hash: "b10401a3d13492c3c05a00afbd20bab618a107e127015655ff15b0cab4e76b6c" },
+        { operators: ["-gravity", "center", "-extent", "20x18"], width: 20, height: 18, page: [69, 58, 9, 7], hash: "9911be8c02b5bcb11e6d6f4f0cd552d891e892f52264530a2b9a36c63050796e" },
+        { operators: ["-extent", "7x5"], width: 7, height: 5, page: [24, 16, 3, 2], hash: "3cfa718ef56cb5f9c778529f4e5f7e9537d6e0dc19473cfdb3f38c127fb4fbe7" },
+        { operators: ["-extent", "20x18+99+99"], width: 20, height: 18, page: [69, 58, 9, 7], hash: "333e0d6cb69b42d3e10970274437bd7d250ee18cd25df2f5fc9e7bfd024735ca" },
+        { operators: ["-extent", "70x5"], width: 70, height: 5, page: [240, 16, 30, 2], hash: "fc257155782865e42adb54cec932778c3d7cdc26fe78bdf779e50c6714c95945" }
+    ])("preserves extent page geometry for $operators (retained=" + retained + ")", async ({ operators, width, height, page, hash }) => {
+        const files = new Map([["part.png", new Uint8Array(part)]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/part.png", part);
+        const context = retained ? { filesystem, cwd: "/" } : files;
+        for (const reset of [false, true]) {
+            expect(await runMagickCli(["part.png", ...(reset ? ["+repage"] : []), ...operators, "out.png"], context)).toMatchObject({ exitCode: 0 });
+            const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            expect(output).toMatchObject({ width, height });
+            // Native ImageMagick RGBA output for the same PNG bytes.
+            expect(createHash("sha256").update(output.data).digest("hex")).toBe(hash);
+            expect(output.virtualCanvas ?? { width, height, x: 0, y: 0 }).toEqual(reset
+                ? { width, height, x: 0, y: 0 }
+                : { width: page[0], height: page[1], x: page[2], y: page[3] });
+        }
+    });
+}

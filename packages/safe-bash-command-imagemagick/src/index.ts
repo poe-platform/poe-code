@@ -3554,7 +3554,9 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: s
 }
 function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     yield;
-    const layout = magickExtentLayout(img, geomStr, state), canvas = yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background);
+    const layout = magickExtentLayout(img, geomStr, state);
+    const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
+    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (!layout.area) return canvas;
     const subImg = yield* extractImageSteps(img, layout.area);
     return yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(subImg, layout.left, layout.top, "over")]);
@@ -6805,7 +6807,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "100%", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const layout = magickExtentLayout(image, geometry, captured), canvas = await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal);
+                const layout = magickExtentLayout(image, geometry, captured);
+                const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
+                const canvas = { ...await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal), ...(virtualCanvas ? { virtualCanvas } : {}) };
                 if (!layout.area) return canvas;
                 const overlay = await transformStoredImage(image, backend.storage, { kind: "extract", ...layout.area }, signal);
                 return transformStoredImage(canvas, backend.storage, { kind: "composite", layers: [{ input: new Uint8Array(), left: layout.left, top: layout.top, blend: "over" }] }, signal, { async readImage() { return overlay; } });

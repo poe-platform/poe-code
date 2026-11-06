@@ -12,6 +12,7 @@ import type { PdfRetainedOutputObject } from "./retained-writer.js";
 
 export interface PdfRetainedObjectsOptions {
   readonly normalizeContent?: boolean;
+  readonly compressStreams?: boolean;
   readonly streamMode?: "preserve" | "compress" | "uncompress";
   /** Number of live indirect objects admitted before parsing their values. */
   readonly maxObjects?: number;
@@ -60,15 +61,16 @@ export async function* retainedCosObjects(document: PdfRetainedDocument, storage
       if (!object) throw new PdfError("E_PARSE", "Missing indexed PDF object");
       const identity = { objectNumber: entry.objectNumber, generationNumber, value: object.value };
       if (!object.stream) { yield identity; continue; }
-      if (options.streamMode && options.streamMode !== "preserve" && object.value.kind === "dict") {
+      const compress = options.streamMode === "compress" || (options.compressStreams && !options.normalizeContent && object.value.kind === "dict" && !dictGet(object.value, "Filter"));
+      if ((compress || (options.streamMode && options.streamMode !== "preserve")) && object.value.kind === "dict") {
         const activeSignal = signal ?? new AbortController().signal;
         const input = document.objects.decodeStream(entry.objectNumber, generationNumber);
-        const staged = options.streamMode === "compress" ? await stageDeflatedPdf(input, storage, activeSignal, maxStreamBytes)
+        const staged = compress ? await stageDeflatedPdf(input, storage, activeSignal, maxStreamBytes)
           : await PdfFileSource.fromStream(storage.fs, storage.directory, input, { signal: activeSignal, maxInputBytes: maxStreamBytes });
         let failed = false;
         try {
-          const value = { ...object.value, entries: object.value.entries.filter(item => item.key.decoded !== "Filter" && item.key.decoded !== "DecodeParms") };
-          if (options.streamMode === "compress") dictSet(value, "Filter", cosName("FlateDecode"));
+          const value = { ...object.value, entries: object.value.entries.filter(item => item.key.decoded !== "Filter" && item.key.decoded !== "DecodeParms" && !(options.compressStreams && item.key.decoded === "Length")) };
+          if (compress) dictSet(value, "Filter", cosName("FlateDecode"));
           dictSet(value, "Length", cosNumber(staged.size));
           yield { ...identity, value, stream: { decoded: true, length: staged.size, chunks: staged.stream(0, staged.size, activeSignal) } };
         } catch (error) { failed = true; throw error; }

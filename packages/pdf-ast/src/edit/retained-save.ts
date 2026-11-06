@@ -24,6 +24,8 @@ export interface SaveRetainedDocumentOptions {
   readonly qdf?: boolean;
   /** Retained snapshots keep their encoded streams; normalization prevents packing. */
   readonly normalizeContent?: boolean;
+  /** Flate-compress unfiltered streams, preserving existing encoded streams. */
+  readonly compressStreams?: boolean;
   /** Decode and rewrite every stream using caller-backed staging. */
   readonly streamMode?: "preserve" | "compress" | "uncompress";
   readonly objectStreams?: "generate" | "disable" | "preserve";
@@ -114,7 +116,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
     if (object.stream) { yield encoder.encode("\nstream\n"); yield* object.stream.chunks; yield encoder.encode("\nendstream"); }
   }
   try {
-    for await (const object of retainedCosObjects(document, storage, { ...(options.streamMode ? { streamMode: options.streamMode } : {}), ...(options.normalizeContent ? { normalizeContent: true } : {}), ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) {
+    for await (const object of retainedCosObjects(document, storage, { ...(options.compressStreams ? { compressStreams: true } : {}), ...(options.streamMode ? { streamMode: options.streamMode } : {}), ...(options.normalizeContent ? { normalizeContent: true } : {}), ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) {
       const type = object.value.kind === "dict" ? dictGet(object.value, "Type") : undefined;
       // Members are expanded separately into the mutable store. Replaying their
       // old container would expose stale definitions alongside edited objects.

@@ -1,3 +1,4 @@
+import { stageDeflatedPdf } from "../cos/deflate-staging.js";
 import { normalizeContentChunks } from "../content/normalize.js";
 import { serializeRetainedObjectStreams } from "../cos/retained-object-streams.js";
 import { serializeLinearizedRetainedChunks } from "../cos/retained-linearization.js";
@@ -23,6 +24,8 @@ export interface CopyRetainedPageOptions {
   readonly objectStreams?: "generate" | "disable" | "preserve";
   /** Emit streams decoded by earlier edits without their encoded filters. */
   readonly normalizeContent?: boolean;
+  /** Flate-compress unfiltered streams, preserving existing encoded streams. */
+  readonly compressStreams?: boolean;
   /** Override a source page's rotation before cloning its indirect values.
    * Return undefined to preserve the source; angles must be quarter turns. */
   readonly pageRotation?: (document: PdfRetainedDocument, index: number) => number | undefined | Promise<number | undefined>;
@@ -189,9 +192,14 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
           // Decrypted encoded streams can change length, so admit a retained
           // snapshot before constructing the target stream's /Length.
           const input = document.objects.decodeStream(original.objectNumber, original.generationNumber, { raw: !(options.normalizeContent && (original.decoded || content)) });
-          const source = await PdfFileSource.fromStream(storage.fs, storage.directory, options.normalizeContent && content ? normalizeContentChunks(input, storage, signal) : input, { signal });
+          const compress = options.compressStreams && !options.normalizeContent && value.kind === "dict" && !dictGet(value, "Filter");
+          const source = compress ? await stageDeflatedPdf(input, storage, signal) : await PdfFileSource.fromStream(storage.fs, storage.directory, options.normalizeContent && content ? normalizeContentChunks(input, storage, signal) : input, { signal });
           let streamFailed = false;
           try {
+            if (compress && value.kind === "dict") {
+              value = { ...value, entries: value.entries.filter(entry => entry.key.decoded !== "Length") };
+              dictSet(value, "Filter", cosName("FlateDecode")); dictSet(value, "Length", cosNumber(source.size));
+            }
             if (options.normalizeContent && (original.decoded || content) && value.kind === "dict") {
               value = { ...value, entries: value.entries.filter(entry => !["Filter", "DecodeParms", "Length"].includes(entry.key.decoded)) };
               dictSet(value, "Length", cosNumber(source.size));

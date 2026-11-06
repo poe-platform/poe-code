@@ -92,7 +92,7 @@ for (const mode of ["slow", "cancel", "write", "input-limit", "output-limit"]) i
     };
     const value = Reflect.get(owner, key); return typeof value === "function" ? value.bind(owner) : value;
   } });
-  const carrier = createCommandArguments(["-", mode === "slow" ? "-" : "out.pdf", "--json-input"]);
+  const carrier = createCommandArguments(["-", mode === "slow" ? "-" : "out.pdf", "--json-input", "--stream-data=preserve"]);
   const execute = async () => createQpdfCommand({ limits: mode === "input-limit" ? { maxInputBytes: 10000 } : mode === "output-limit" ? { maxOutputBytes: 10 } : {} }).execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs: guarded,
     signal: controller.signal, stdin: (async function* () {
       yield encode(json.slice(0, -2) + ',"obj:9 0 R":{"stream":{"dict":{},"data":"');

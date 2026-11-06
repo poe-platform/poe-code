@@ -391,7 +391,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (!editedGraph) for await (const object of retainedCosObjects(document, storage, { signal })) {
         if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
       }
-      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal, normalizeContent, options.linearize, options.objectStreamsMode, options.qdf);
+      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal, normalizeContent, options.linearize, options.objectStreamsMode, options.qdf, options.streamDataMode === "compress");
       async function* entries() {
         // Preserve original Map insertion order when a split filename replaces
         // an input. Empty seed entries are discarded after staging.
@@ -427,7 +427,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       return await success();
     }
-    const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, normalizeContent, qdf: options.qdf && !options.linearize, objectStreams: options.decrypt && document.encryption ? "preserve" : options.objectStreamsMode, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
+    const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, normalizeContent, compressStreams: options.streamDataMode === "compress", qdf: options.qdf && !options.linearize, objectStreams: options.decrypt && document.encryption ? "preserve" : options.objectStreamsMode, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }
     if (options.encryptConfig && !options.decrypt) {

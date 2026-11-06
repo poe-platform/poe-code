@@ -607,7 +607,7 @@ function parseQpdfArguments(argv: readonly string[]) {
   let generateAppearances = false;
   let normalizeContentFlag: boolean | undefined;
   let objectStreamsMode: "preserve" | "disable" | "generate" = "preserve";
-  let streamDataMode: "uncompress" | "compress" | "preserve" = "preserve";
+  let streamDataMode: "uncompress" | "compress" | "preserve" = "compress";
   let decrypt = false;
   let password: string | undefined;
   let splitPagesGroup: number | undefined;
@@ -2540,6 +2540,16 @@ function* executeQpdfCli(
       ? normalizeContentFlag
       : qdf || streamDataMode === "uncompress";
 
+  function* compressStreams(document: PdfDocument): Generator<void, void, void> {
+    if (streamDataMode !== "compress" || shouldNormalizeContent) return;
+    for (const [number, object] of document.cos.objects) {
+      yield;
+      if (object.value.kind === "stream" && !dictGet(object.value.dict, "Filter")) {
+        document.cos.objects.set(number, { ...object, value: cosStream(object.value.rawBytes, { dict: { ...object.value.dict, entries: object.value.dict.entries.filter(entry => entry.key.decoded !== "Length") }, compress: true }) });
+      }
+    }
+  }
+
   // Split pages if requested (--split-pages[=n])
   if (splitPagesGroup !== undefined) {
     const total = workingDoc.getPageCount();
@@ -2561,6 +2571,7 @@ function* executeQpdfCli(
           page.getRawContentStream();
         }
       }
+      yield* compressStreams(subDoc);
       const splitName = formatSplitName(finalTarget, total, splitPagesGroup, startIdx + 1, endIdx + 1);
       let bytes = (yield* subDoc.saveSteps({ qdf, normalizeContent: shouldNormalizeContent, linearize, objectStreams: objectStreamsMode }));
       if (encryptConfig && !decrypt) {
@@ -2572,6 +2583,7 @@ function* executeQpdfCli(
   }
 
   // Save final PDF
+  yield* compressStreams(workingDoc);
   let outBytes = (yield* workingDoc.saveSteps({
     qdf: qdf && !linearize, normalizeContent: shouldNormalizeContent,
     objectStreams: objectStreamsMode

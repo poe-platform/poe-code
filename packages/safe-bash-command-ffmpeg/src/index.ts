@@ -1249,6 +1249,14 @@ function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDoc
   };
 }
 
+function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
+  if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
+  const name = codec === "libopus" ? "opus" : codec === "libvorbis" ? "vorbis" : codec;
+  if (!plugins.some(plugin => plugin.canMux && plugin.supportedAudioCodecs.includes(name))) {
+    throw new Error(`Unknown encoder '${codec}'`);
+  }
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -1460,6 +1468,7 @@ export function evalSyncFfmpeg(
     }
 
     let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
+    validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
@@ -2407,6 +2416,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 rotation
               }, context.signal);
             }
+
+            validateAudioEncoder(audioCodec, workingDoc, astPlugins);
 
             if (audioCodec === "copy" && afFilters.length > 0 && workingDoc.tracks.some(track => track.type === "audio")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Filtering and streamcopy cannot be used together for audio.\n"), context.signal);

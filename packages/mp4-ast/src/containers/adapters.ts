@@ -655,7 +655,7 @@ export function wavAst(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
-    supportedAudioCodecs: ["pcm_s16le", "pcm_u8"],
+    supportedAudioCodecs: ["pcm_s16le", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le"],
     detect(bytes, filename) {
       if (isWavSignature(bytes)) return true;
       if (filename && filename.toLowerCase().endsWith(".wav")) return isWavSignature(bytes);

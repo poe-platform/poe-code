@@ -1596,7 +1596,8 @@
             "safe-bash-diff-engine": "*",
             "safe-bash-regex-engine": "*",
             "safe-bash-io-engine": "*",
-            "safe-bash-command-pr": "*"
+            "safe-bash-command-pr": "*",
+            "safe-bash-command-fold": "*"
           },
           "portable": true
         },

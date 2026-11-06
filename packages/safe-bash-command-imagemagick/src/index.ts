@@ -5321,6 +5321,16 @@ function applyMagickUnits<T extends ImageMetadata>(image: T, unit: NonNullable<M
     return { ...image, density: x * (unit === "cm" ? 2.54 : 1), resolution: { x, y, unit } };
 }
 
+function magickResampleGeometry(image: ImageMetadata, value: string): string {
+    const geometry = parseMagickGeometry(value);
+    const x = geometry.width ?? 72, y = geometry.height ?? x;
+    if (!(x > 0) || !(y > 0)) throw new Error(`invalid argument '-resample' '${value}'`);
+    const scale = image.resolution?.unit === "meter" ? 100 : 1;
+    const sourceX = (image.resolution ? image.resolution.x / scale : image.density) || 72;
+    const sourceY = (image.resolution ? image.resolution.y / scale : image.density) || 72;
+    return `${Math.max(1, Math.round(image.width * x / sourceX))}x${Math.max(1, Math.round(image.height * y / sourceY))}!`;
+}
+
 function applyMagickDensity<T extends ImageMetadata>(image: T, value: string): T {
     const geometry = parseMagickGeometry(value);
     const x = geometry.width ?? 72, y = geometry.height ?? x;
@@ -5847,6 +5857,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 yield;
                 const { virtualCanvas: ignoredCanvas, ...reset } = image;
                 return reset;
+            });
+        }
+        else if (t === "-resample") {
+            const value = tokens[++i] ?? "72";
+            stack = yield* mapSteps(stack, function* (image) {
+                const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel);
+                return applyMagickDensity(resized, value);
             });
         }
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
@@ -7092,6 +7109,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
+        } else if (!operandsOnly && token === "-resample") {
+            const value = tokens[++i] ?? "72", kernel = state.kernel;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const options = magickResizeOptions(image, magickResampleGeometry(image, value), kernel);
+                const resized = options ? await resizeStoredMagickImage(image, backend, options, signal) : image;
+                return applyMagickDensity(resized, value);
+            });
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail";
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale") : image; });
@@ -7331,6 +7356,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
     const readSettings: string[] = [];
     const targets: string[] = [];
     const flagsWithOneArg = new Set([
+        "-resample",
         "-resize",
         "-scale",
         "-sample",

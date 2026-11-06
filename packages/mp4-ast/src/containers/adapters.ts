@@ -1,5 +1,6 @@
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
 import { decodeMp3Track } from "../mp3.js";
+import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
 import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio, type AudioStream } from "@poe-code/audio-ast";
@@ -511,7 +512,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   let pcmBytes: Uint8Array;
   const decodedAudio = options.audioCodec === "copy" ? undefined : audioTrack?.decodedAudio ?? (audioTrack?.samples.length &&
     (audioTrack.codecDescriptions[0]?.codecName === "aac" ? decodeAacTrack(doc, audioTrack) :
-      audioTrack.codecDescriptions[0]?.codecName === "mp3" ? decodeMp3Track(audioTrack) : undefined));
+      audioTrack.codecDescriptions[0]?.codecName === "mp3" ? decodeMp3Track(audioTrack) :
+      audioTrack.codecDescriptions[0]?.codecName === "vorbis" ? decodeVorbisTrack(audioTrack) : undefined));
   if (decodedAudio) {
     const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);

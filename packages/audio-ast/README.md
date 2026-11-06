@@ -9,6 +9,7 @@ Inspect audio containers, edit their metadata, and process PCM samples in JavaSc
 | `probeFlacSource({ size, read }, { signal, onComment })` | Strict FLAC metadata validation with bounded ranges; skips frames, pictures and seek-point models |
 | `probeId3Source({ size, read }, { signal, onTag })` | ID3v2 validation with bounded reads and replayable text spans; skips picture models |
 | `probeMp3Source({ size, read }, { signal, onTag })` | Strict MPEG timing and ID3 tags through bounded source reads; skips encoded samples |
+| `readOgg(bytes)` | Validated Ogg packets with logical stream IDs and page granules |
 | `scanOggPages(source, { signal, checkpoint })` | Verified Ogg page spans from retained ranges or sequential bytes; bounded CRC validation without payload models |
 | `probeOggStreamSource({ head, comments, granule, size }, { signal, onComment })` | Opus/Vorbis logical-stream metadata from indexed packet sources; replayable comment spans |
 | `probeAudio(bytes)`                                  | Format, stream, duration, bitrate, and normalized tags                                                    |

@@ -1,0 +1,40 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { it } from "node:test";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { encodeWav } from "@poe-code/audio-ast";
+import { oggAst, parseWav } from "@poe-code/mp4-ast";
+import { createFfmpegCommand } from "./index.js";
+
+for (const count of [6720, 4800, 64]) {
+  const fixture = count === 6720;
+  it(`decodes ${fixture ? "fixture" : `${count}-sample`} Ogg Vorbis to PCM WAV with native sample timing`, async () => {
+    const fs = createMemoryFileSystem();
+    const source = fixture ? readFileSync(new URL("../../safe-bash-command-audio/fixtures/tone.ogg", import.meta.url))
+      : oggAst().serialize(parseWav(encodeWav({ sampleRate: 48000,
+        channels: [Float64Array.from({ length: count }, (_, i) => Math.sin(i * 0.1) * 0.4)] })));
+    await fs.writeFile("/in.ogg", source);
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error", "-i", "/in.ogg", "-vn", "-c:a", "pcm_s16le", "/out.wav"],
+      command: "ffmpeg", cwd: "/", env: {}, fs, signal: new AbortController().signal,
+      stdin: (async function* () {})(),
+      stdout: { async write() {} },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(await fs.readFile("/out.wav")).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 48000);
+    assert.equal(audio.channels, fixture ? 2 : 1);
+    assert.equal(audio.channelData[0]!.length, count);
+    if (!fixture) return;
+    // Native FFmpeg 9.0.2, sampled from the decoded PCM16 output.
+    const positions = [0, 1, 20, 100, 1000, 5000, 6719];
+    const expected = [[-219, 334, 8899, -5105, 8582, -8626, 3], [-64, 486, 6602, 4608, -6751, -6562, -6]];
+    for (const [channel, values] of expected.entries()) {
+      for (const [index, value] of values.entries()) {
+        assert.ok(Math.abs(audio.channelData[channel]![positions[index]!]! * 32768 - value) <= 1);
+      }
+    }
+  });
+}

@@ -2121,11 +2121,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const eqIdx = part.indexOf("=");
               if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
             }
-            const ox = parseInt(named.x ?? positional[0] ?? "0", 10) || 0;
-            const oy = parseInt(named.y ?? positional[1] ?? "0", 10) || 0;
+            const xExpression = named.x ?? (positional[0] && !positional[0].includes("=") ? positional[0] : "0");
+            const yExpression = named.y ?? (positional[1] && !positional[1].includes("=") ? positional[1] : "0");
+            const format = named.format ?? "yuv420";
+            const horizontalGrid = format.startsWith("yuv420") || format.startsWith("yuv422") ? 2 : 1;
+            const verticalGrid = format.startsWith("yuv420") ? 2 : 1;
             const overlaid: MediaVideoFrame[] = f0.map((a, idx) => {
               const b = f1[Math.min(idx, f1.length - 1)];
               if (!b) return a;
+              const variables = {
+                main_w: a.width, main_h: a.height, overlay_w: b.width, overlay_h: b.height,
+                W: a.width, H: a.height, w: b.width, h: b.height
+              };
+              // FFmpeg rounds integer positions down to the output chroma grid, including negatives.
+              const ox = Math.floor(Math.trunc(parseFilterExpression(xExpression, "overlay", variables)) / horizontalGrid) * horizontalGrid;
+              const oy = Math.floor(Math.trunc(parseFilterExpression(yExpression, "overlay", variables)) / verticalGrid) * verticalGrid;
               const outData = new Uint8Array(a.data);
               for (let y = 0; y < b.height && oy + y < a.height; y++) {
                 if (oy + y < 0) continue;

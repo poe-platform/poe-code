@@ -1156,19 +1156,13 @@ function* executeQpdfCli(
     if (!raw) {
       return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${inputFile}\n` };
     }
-    // Check if /Encrypt exists in trailer without password first
-    const hasEncryptRef = new TextDecoder("latin1").decode(raw).includes("/Encrypt");
-    if (isEncrypted) {
-      return { exitCode: hasEncryptRef ? 0 : 2, stdout: "", stderr: "" };
-    }
-    if (!hasEncryptRef) {
-      return { exitCode: 2, stdout: "", stderr: "" };
-    }
     try {
-      (yield* parseCosDocumentSteps(raw, { password: password ?? "" }));
-      return { exitCode: 3, stdout: "", stderr: "" };
-    } catch {
-      return { exitCode: 0, stdout: "", stderr: "" };
+      const document = yield* parseCosDocumentSteps(raw, { password: password ?? "", recovery: "repair", xrefMode: "qpdf" });
+      return { exitCode: document.encryption ? (isEncrypted ? 0 : 3) : 2, stdout: "", stderr: "" };
+    } catch (error) {
+      if (error instanceof PdfPasswordError) return { exitCode: 0, stdout: "", stderr: "" };
+      if (error instanceof PdfError && error.code !== "E_LIMIT") return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile}: ${error.message}\n` };
+      throw error;
     }
   }
 

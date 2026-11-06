@@ -144,27 +144,13 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (!source) return await diagnostic(`qpdf: cannot open ${inputName}\n`);
     }
     if (options.isEncrypted || options.requiresPassword) {
-      // Preserve the compatibility predicate's literal marker test, including
-      // malformed inputs, without decoding or retaining the complete payload.
-      const marker = new TextEncoder().encode("/Encrypt");
-      let matched = 0, encrypted = false;
-      for await (const bytes of source.stream(0, source.size, signal)) {
-        for (const byte of bytes) {
-          matched = byte === marker[matched] ? matched + 1 : byte === marker[0] ? 1 : 0;
-          if (matched === marker.length) { encrypted = true; break; }
-        }
-        if (encrypted) break;
-      }
-      if (options.isEncrypted || !encrypted) return { exitCode: encrypted ? 0 : 2 };
       try {
-        document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "strict", password: options.password ?? "" });
-        for await (const object of retainedCosObjects(document, storage, { signal })) {
-          if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
-        }
-        return { exitCode: 3 };
+        document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", xref: { xrefMode: "qpdf" }, password: options.password ?? "" });
+        return { exitCode: document.encryption ? (options.isEncrypted ? 0 : 3) : 2 };
       } catch (error) {
         signal.throwIfAborted();
-        if (error instanceof PdfError && error.code !== "E_LIMIT") return { exitCode: 0 };
+        if (error instanceof PdfPasswordError) return { exitCode: 0 };
+        if (error instanceof PdfError && error.code !== "E_LIMIT") return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
         throw error;
       }
     }

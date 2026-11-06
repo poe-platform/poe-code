@@ -121,7 +121,12 @@ export const odtReader: ReaderCapability = {format: "odt", async read(input, ctx
         const style = styles.get(a(node, "style-name", ns.text));
         const level = style?.children.find((child): child is OdtElement => typeof child !== "string" && child.uri === ns.text && Number(a(child, "level", ns.text)) === listLevel);
         const items = children(node, "list-item", ns.text), content: Block[][] = [];
-        for (const item of items) content.push(await blocks(item.children, listLevel + 1));
+        for (const item of items) {
+          const itemBlocks = await blocks(item.children, listLevel + 1), final = itemBlocks.at(-1);
+          // Native ODT compacts each item independently, and only its final paragraph.
+          if (final?.t === "Para" && itemBlocks.every(block => block === final || block.t !== "Para")) itemBlocks[itemBlocks.length - 1] = {t: "Plain", c: final.c};
+          content.push(itemBlocks);
+        }
         if (level?.name === "list-level-style-number") {
           const start = count((items[0] && a(items[0], "start-value", ns.text)) || a(level, "start-value", ns.text), Number.MAX_SAFE_INTEGER);
           const style = ({"1": "Decimal", a: "LowerAlpha", A: "UpperAlpha", i: "LowerRoman", I: "UpperRoman"} as const)[a(level, "num-format", ns.style) as "1" | "a" | "A" | "i" | "I"] ?? "Decimal";

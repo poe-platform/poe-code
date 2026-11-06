@@ -60,6 +60,34 @@ it("reads inherited quotation styles from native ODT producers", async () => {
   const parsed = await readDocument({bytes}, {from: "odt"}, context);
   expect(parsed.blocks).toEqual([{t: "BlockQuote", c: [{t: "Para", c: [{t: "Str", c: "Quote"}]}]}]);
 });
+it.each([false, true])("compacts ODT list items independently (ordered: %s)", async ordered => {
+  const bytes = createStoredZipArchive({mimetype: encode("application/vnd.oasis.opendocument.text"),
+    "content.xml": encode(`<o:document-content xmlns:o="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:t="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:s="urn:oasis:names:tc:opendocument:xmlns:style:1.0">
+      <o:automatic-styles><t:list-style s:name="L"><t:list-level-style-${ordered ? 'number s:num-format="1" s:num-suffix="." t:start-value="3"' : 'bullet t:bullet-char="•"'} t:level="1"/></t:list-style><t:list-style s:name="B"><t:list-level-style-bullet t:bullet-char="•" t:level="2"/></t:list-style></o:automatic-styles>
+      <o:body><o:text><t:p>Outside</t:p><t:list t:style-name="L">
+        <t:list-item t:start-value="3"><t:p>one</t:p></t:list-item>
+        <t:list-item><t:p>two</t:p></t:list-item>
+        <t:list-item><t:p>first</t:p><t:p>second</t:p></t:list-item>
+        <t:list-item><t:p>parent</t:p><t:list t:style-name="B"><t:list-item><t:p>child</t:p></t:list-item></t:list></t:list-item>
+        <t:list-item><t:list t:style-name="B"><t:list-item><t:p>child</t:p></t:list-item></t:list><t:p>last</t:p></t:list-item>
+      </t:list></o:text></o:body></o:document-content>`)});
+  const paragraph = (t: "Plain" | "Para", text: string) => ({t, c: [{t: "Str", c: text}]});
+  const nested = {t: "BulletList", c: [[paragraph("Plain", "child")]]};
+  const items = [[paragraph("Plain", "one")], [paragraph("Plain", "two")],
+    [paragraph("Para", "first"), paragraph("Para", "second")],
+    [paragraph("Para", "parent"), nested], [nested, paragraph("Plain", "last")]];
+  const json = await convert([{bytes}], {from: "odt", to: "json"}, context);
+  if (json.kind !== "text") throw new Error("Expected JSON");
+  expect(JSON.parse(json.text).blocks).toEqual([paragraph("Para", "Outside"),
+    ordered ? {t: "OrderedList", c: [[3, {t: "Decimal"}, {t: "Period"}], items]} : {t: "BulletList", c: items}]);
+  const html = await convert([{bytes}], {from: "odt", to: "html"}, context);
+  if (html.kind !== "text") throw new Error("Expected HTML");
+  expect(html.text).toContain("<li>one</li>");
+  expect(html.text).toContain("<li>two</li>");
+  expect(html.text).toContain("<p>first</p>");
+  expect(html.text).toContain("<li>child</li>");
+  if (ordered) expect(html.text).toContain('<ol start="3"');
+});
 it("embeds images using the ODF drawing namespace and preserves dimensions and rich text", async () => {
   const bytes = new Uint8Array(jpeg({width: 2, height: 1, data: Buffer.alloc(8, 255)}, 80).data);
   const result = await writeDocument({blocks: [{t: "Para", c: [
@@ -108,7 +136,7 @@ it.each(["footnote", "endnote"])("reads formatted, multi-block ODT %s bodies ins
     {t: "Link", c: [["", [], []], [{t: "Note", c: [
       {t: "Para", c: [{t: "Strong", c: [{t: "Str", c: "Bold"}]}]},
       {t: "Para", c: [{t: "Str", c: "Second"}]},
-      {t: "BulletList", c: [[{t: "Para", c: [{t: "Str", c: "Item"}]}]]}
+      {t: "BulletList", c: [[{t: "Plain", c: [{t: "Str", c: "Item"}]}]]}
     ]}], ["https://example.com", ""]]},
     {t: "Str", c: "After"}, {t: "Note", c: [{t: "Para", c: [{t: "Str", c: "Other"}]}]}
   ]}]);

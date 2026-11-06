@@ -13,6 +13,43 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("required option arguments", () => {
+  for (const option of ["-ar", "-t", "-ac", "-v"]) {
+    for (const existing of [false, true]) {
+      it(`rejects missing ${option} before ${existing ? "overwriting" : "creating"} outputs`, async () => {
+        const input = encodeWav({ sampleRate: 8000, channels: [
+          Float64Array.from({ length: 800 }, (_, i) => (i - 400) / 32768)
+        ] });
+        const vfs = createTestVfs({ "/in.wav": input, ...(existing ? { "/a.wav": input } : {}) });
+        const args = ["-v", "error", "-y", "-i", "/in.wav", "/a.wav", "/b.wav", option];
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), () => {
+          assert.fail("sync fallback must not write output");
+        }), undefined);
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 234, result.stderr);
+        assert.ok(result.stderr.includes(`Missing argument for option '${option.slice(1)}'`));
+        assert.equal(vfs.store.has("/b.wav"), false);
+        assert.deepEqual(vfs.store.get("/a.wav"), existing ? input : undefined);
+        assert.deepEqual(vfs.store.get("/in.wav"), input);
+      });
+    }
+  }
+
+  it("preserves explicit -t 0 and valid trailing options", async () => {
+    for (const args of [["-t", "0", "/out.wav"], ["/out.wav", "-t", "0"], ["/out.wav", "-ar", "16000"]]) {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 800 }, (_, i) => (i - 400) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", ...args], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const samples = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+      const expected = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.deepEqual(samples, args[0] === "-t" ? expected.slice(0, 0) : expected);
+    }
+  });
+});
+
 describe("tile frame grouping", () => {
   // Native FFmpeg with RGB input: occupied cells are white, unused cells black.
   for (const [options, occupied] of [

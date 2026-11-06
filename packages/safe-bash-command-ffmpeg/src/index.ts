@@ -1887,6 +1887,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unrecognized option '${arg.slice(1)}'\n`), context.signal);
             return { exitCode: 8 };
           }
+          if (i >= args.length) {
+            await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Missing argument for option '${arg.slice(1)}'\n`), context.signal);
+            return { exitCode: 234 };
+          }
         }
 
 

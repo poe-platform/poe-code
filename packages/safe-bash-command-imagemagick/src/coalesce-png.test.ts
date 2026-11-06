@@ -28,3 +28,24 @@ it.each([false, true])("coalesces a single offset PNG onto its full canvas (reta
     expect(full).toMatchObject({ width: 48, height: 32, virtualCanvas: { width: 48, height: 32, x: 0, y: 0 } });
     expect(full.data).toEqual(output.data);
 });
+
+for (const retained of [false, true]) {
+    it.each([
+        { operators: ["-bordercolor", "red", "-border", "2x3"], width: 18, height: 16, canvasWidth: 52, canvasHeight: 38, hash: "19c848ae9752656fe546ef5a5004fd77cc2554b6a4bb77ddf080840a771aedf6" },
+        { operators: ["-shave", "2x2"], width: 10, height: 6, canvasWidth: 44, canvasHeight: 28, hash: "d1047b11098b96fcbb8ca2a1cdd13101df9c4861373adde189e3ac2e833ebf64" }
+    ])("adjusts the canvas for $operators (retained=" + retained + ")", async ({ operators, width, height, canvasWidth, canvasHeight, hash }) => {
+        const files = new Map([["part.png", new Uint8Array(part)]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/part.png", part);
+        const context = retained ? { filesystem, cwd: "/" } : files;
+        for (const reset of [false, true]) {
+            expect(await runMagickCli(["part.png", ...(reset ? ["+repage"] : []), ...operators, "out.png"], context)).toMatchObject({ exitCode: 0 });
+            const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            expect(output).toMatchObject({ width, height });
+            // Native ImageMagick RGBA output for the same PNG bytes.
+            expect(createHash("sha256").update(output.data).digest("hex")).toBe(hash);
+            expect(output.virtualCanvas ?? { width, height, x: 0, y: 0 }).toEqual(reset
+                ? { width, height, x: 0, y: 0 }
+                : { width: canvasWidth, height: canvasHeight, x: 6, y: 5 });
+        }
+    });
+}

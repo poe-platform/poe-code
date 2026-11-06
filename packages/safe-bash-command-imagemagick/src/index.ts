@@ -3426,6 +3426,11 @@ function magickTransposeCanvas(image: Pick<RgbaImage, "width" | "height" | "virt
     return { width, height, x: transverse && width ? width - image.height - x : x, y: transverse && height ? height - image.width - y : y };
 }
 
+function magickBorderCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, width: number, height: number) {
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    return { ...page, width: page.width ? page.width + width * 2 : 0, height: page.height ? page.height + height * 2 : 0 };
+}
+
 function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, left: number, top: number) {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     return { ...page, x: page.x + left, y: page.y + top };
@@ -5569,7 +5574,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapSteps(stack, function* (im) {
                 const canvas = yield* createSolidRgbaImageSteps(im.width + bw * 2, im.height + bh * 2, state.borderColor);
                 yield* blitOverRgbaInPlaceSteps(canvas, im, bw, bh);
-                return canvas;
+                return { ...canvas, virtualCanvas: magickBorderCanvas(im, bw, bh) };
             }));
         }
         else if (t === "-shave") {
@@ -5579,12 +5584,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapSteps(stack, function* (im) {
                 const clampedSw = Math.min(Math.floor((im.width - 1) / 2), sw);
                 const clampedSh = Math.min(Math.floor((im.height - 1) / 2), sh);
-                return (yield* extractImageSteps(im, {
+                return { ...yield* extractImageSteps(im, {
                     left: clampedSw,
                     top: clampedSh,
                     width: Math.max(1, im.width - clampedSw * 2),
                     height: Math.max(1, im.height - clampedSh * 2)
-                }));
+                }), virtualCanvas: magickBorderCanvas(im, -clampedSw, -clampedSh) };
             }));
         }
         else if (t === "-trim") {
@@ -6264,15 +6269,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     await yieldTurn(signal);
     let state = createDefaultState();
     const tokens = argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
-    type Operation = Parameters<typeof transformStoredImage>[2];
     type StackStep = (stack: StoredImageStack, backend: CompareFileSession, parents: StoredImageStack[]) => Promise<StoredImageStack>;
     type Step = ((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) | { runStack: StackStep };
     const steps: Step[] = [];
     const stackStep = (runStack: StackStep) => { steps.push({ runStack }); };
     let operandsOnly = false;
-    const transform = (operation: (image: StoredRgbaImage) => Operation | undefined) => {
-        steps.push(async (image, backend) => { if (!image) return; const node = operation(image); return node ? transformStoredImage(image, backend.storage, node, signal) : image; });
-    };
     try {
     output = inferOutputFormat(outSpec, "png");
     for (let i = 0; i < tokens.length; i++) {
@@ -6769,7 +6770,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-shave") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), width = Math.max(0, Math.round(geometry.width ?? 0)), height = Math.max(0, Math.round(geometry.height ?? width));
-            transform(image => { const left = Math.min(Math.floor((image.width - 1) / 2), width), top = Math.min(Math.floor((image.height - 1) / 2), height); return { kind: "extract", left, top, width: Math.max(1, image.width - left * 2), height: Math.max(1, image.height - top * 2) }; });
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const left = Math.min(Math.floor((image.width - 1) / 2), width), top = Math.min(Math.floor((image.height - 1) / 2), height);
+                return { ...await transformStoredImage(image, backend.storage, { kind: "extract", left, top, width: Math.max(1, image.width - left * 2), height: Math.max(1, image.height - top * 2) }, signal),
+                    virtualCanvas: magickBorderCanvas(image, -left, -top) };
+            });
         } else if (!operandsOnly && token === "-trim") {
             const fuzz = state.alphaFuzz;
             steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal) : undefined);
@@ -6799,7 +6805,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const canvas = await createStoredCanvas(image.width + left * 2, image.height + top * 2, background, backend, signal);
-                return compositeStoredMagick(canvas, image, backend, signal, left, top, "over", undefined, false, true);
+                return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, "over", undefined, false, true),
+                    virtualCanvas: magickBorderCanvas(image, left, top) };
             });
         } else {
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) throw new Error(`unrecognized option '${token}'`);

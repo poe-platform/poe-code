@@ -31,6 +31,7 @@ function createSampleGradient(width = 64, height = 48): Uint8Array {
     channels: 3,
     depth: "uchar",
     density: 144,
+    resolution: { x: 144, y: 144, unit: "inch" },
     hasAlpha: false
   });
 }

@@ -234,6 +234,7 @@ export function encodePngImage(
     readonly compressionLevel?: number;
     readonly density?: number;
     readonly orientation?: number;
+    readonly omitPngResolution?: boolean;
     readonly forceOpaque?: boolean;
     readonly consumeInput?: boolean;
   }
@@ -373,12 +374,12 @@ export function encodePngImage(
 
   const orientation = options?.orientation ?? img.orientation;
   const exifChunk = orientation !== undefined
-    ? [makeChunk("eXIf", buildExifApp1Segment({ orientation, density, resolution }).subarray(6))]
+    ? [makeChunk("eXIf", buildExifApp1Segment({ orientation, density }).subarray(6))]
     : [];
   const chunks = [
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),
-    makeChunk("pHYs", phys),
+    ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
     ...exifChunk,
     ...textChunks(img.properties),
     ...(img.icc ? [iccChunk(img.icc)] : []),

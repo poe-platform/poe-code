@@ -1342,7 +1342,8 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
         }
     }
-    return { ...img, width: outW, height: outH, data: out };
+    const virtualCanvas = magickResizeCanvas(img, outW, outH);
+    return { ...img, width: outW, height: outH, data: out, ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
@@ -6211,7 +6212,9 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             await backend.storage.write(position + ((y.target + row) * width + x.target + offset) * 4, bytes);
         }
     }
-    return { ...image, position, width, height, ...(token === "-splice" ? { hasAlpha: true } : {}) };
+    const virtualCanvas = token === "-chop" ? magickResizeCanvas(image, width, height) : undefined;
+    return { ...image, position, width, height, ...(token === "-splice" ? { hasAlpha: true } : {}),
+        ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false, tile = false): Promise<StoredRgbaImage> {

@@ -783,8 +783,12 @@ async function applyVideoFilterChain(
       const variables = { iw, ih, ow: pw, oh: ph, in_w: iw, in_h: ih, out_w: pw, out_h: ph };
       const x = Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? "0", "pad", variables));
       const y = Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? "0", "pad", variables));
-      const px = x < 0 ? Math.trunc((pw - iw) / 2) : Math.min(pw - iw, x);
-      const py = y < 0 ? Math.trunc((ph - ih) / 2) : Math.min(ph - ih, y);
+      // Align placement to the source chroma grid, as with crop.
+      const format = current[0]!.native?.format;
+      const hsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
+      const vsub = format === 0 || format === 12 ? 2 : 1;
+      const px = Math.floor((x < 0 ? Math.trunc((pw - iw) / 2) : Math.min(pw - iw, x)) / hsub) * hsub;
+      const py = Math.floor((y < 0 ? Math.trunc((ph - ih) / 2) : Math.min(ph - ih, y)) / vsub) * vsub;
       const col = parseColorRgba(named.color ?? positional[4] ?? "black");
       current = await mapWork(current, async (f) => {
 

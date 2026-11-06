@@ -480,6 +480,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
 }
 
 interface MagickState {
+  filenameProperties?: Record<string, string>;
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
@@ -3981,6 +3982,28 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     return { ...canvas, hasAlpha };
 }
 
+function expandFilenameProperties(spec: string, state: MagickState): string {
+    let output = "";
+    for (let i = 0; i < spec.length;) {
+        if (spec.startsWith("%%", i)) {
+            output += "%%";
+            i += 2;
+            continue;
+        }
+        if (spec.startsWith("%[filename:", i)) {
+            const end = spec.indexOf("]", i + 11);
+            if (end >= 0) {
+                const key = spec.slice(i + 2, end).toLowerCase();
+                output += state.filenameProperties?.[key] ?? spec.slice(i, end + 1);
+                i = end + 1;
+                continue;
+            }
+        }
+        output += spec[i++];
+    }
+    return output;
+}
+
 function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { format: ImageFormat; path: string } {
   const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(spec);
   if (prefixMatch) {
@@ -5372,6 +5395,7 @@ if (t === "-seed") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
             if (k.startsWith("option:connected-components:") || k.startsWith("connected-components:")) throw new Error(`Unsupported connected-components setting: ${k}`);
+            if (k.startsWith("filename:")) state.filenameProperties = { ...state.filenameProperties, [k]: v };
             if (k === "option:compose:args")
                 state.composeArgs = v;
         } else return undefined;
@@ -5477,7 +5501,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-write" || t === "+write") {
-            const writePath = tokens[++i] ?? "";
+            const writePath = expandFilenameProperties(tokens[++i] ?? "", state);
             if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
                 const { format, path } = inferOutputFormat(writePath, top.format);
@@ -6168,7 +6192,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             stderr: ""
         };
     }
-    const outSpec = argv[argv.length - 1]!;
+    let outSpec = argv[argv.length - 1]!;
     const pipelineTokens = argv.slice(0, -1);
     const state = createDefaultState();
     try {
@@ -6180,6 +6204,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 stderr: `magick: no images defined '${outSpec}'\n`
             };
         }
+        outSpec = expandFilenameProperties(outSpec, state);
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
         if (outLower === "null:") return { exitCode: 0, stdout: "", stderr: "" };
@@ -6423,7 +6448,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
 }
 async function tryConvertFilesResult(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, analysis: { text: string; warnings: string; bytes: Uint8Array[] }): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
-    const outSpec = argv.at(-1);
+    let outSpec = argv.at(-1) ?? "";
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
     if (!outSpec || tryHandleMagickListOption(argv) || optionArgs.some(token => ["--help", "-help", "-h", "--version", "-version"].includes(token))) {
         await probeImageArguments(argv, input, stdinBytes, signal);
@@ -6768,7 +6793,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
-            const path = tokens[++i] ?? "", quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
+            const path = expandFilenameProperties(tokens[++i] ?? "", state), quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 const image = await stack.get(stack.length - 1);
                 if (image && path && path.toLowerCase() !== "null:") {
@@ -7055,6 +7080,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);
+        outSpec = expandFilenameProperties(outSpec, state);
+        output = inferOutputFormat(outSpec, "png");
         if (outSpec.toLowerCase() === "null:") { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower === "info:" || lower === "info:-";
         if (info || lower.startsWith("txt:") || lower.startsWith("histogram:")) {

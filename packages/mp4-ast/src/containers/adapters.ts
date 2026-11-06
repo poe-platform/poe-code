@@ -1,4 +1,5 @@
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
+import { decodeMp3Track } from "../mp3.js";
 import { decodeAacTrack } from "../aac.js";
 import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio, type AudioStream } from "@poe-code/audio-ast";
@@ -509,7 +510,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
 
   let pcmBytes: Uint8Array;
   const decodedAudio = options.audioCodec === "copy" ? undefined : audioTrack?.decodedAudio ?? (audioTrack?.samples.length &&
-    audioTrack.codecDescriptions[0]?.codecName === "aac" ? decodeAacTrack(doc, audioTrack) : undefined);
+    (audioTrack.codecDescriptions[0]?.codecName === "aac" ? decodeAacTrack(doc, audioTrack) :
+      audioTrack.codecDescriptions[0]?.codecName === "mp3" ? decodeMp3Track(audioTrack) : undefined));
   if (decodedAudio) {
     const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);
@@ -772,7 +774,8 @@ export function mp3Ast(): MediaAstPlugin {
       const samples = frames.map(frame => {
         const duration = frame.samples * 14112000 / frame.sampleRate;
         const sample = { data: bytes.subarray(frame.offset, frame.offset + frame.size), dts: pts, pts,
-          cts: 0, duration, size: frame.size, isKeyframe: true, sampleDescriptionIndex: 1 };
+          cts: 0, duration, size: frame.size, isKeyframe: true, sampleDescriptionIndex: 1,
+          skipSamples: frame.skipSamples, discardPadding: frame.discardPadding };
         pts += duration;
         return sample;
       });

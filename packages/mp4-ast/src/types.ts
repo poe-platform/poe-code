@@ -210,6 +210,9 @@ export interface MediaAudioData {
 }
 
 export interface MediaSample {
+  /** Decoder priming and trailing padding, in PCM samples per channel. */
+  readonly skipSamples?: number;
+  readonly discardPadding?: number;
   /** Absolute source file offset when the sample was parsed from a container. */
   readonly offset?: number;
   readonly data: Uint8Array;

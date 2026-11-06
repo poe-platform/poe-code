@@ -2810,3 +2810,31 @@ for (const [fixture, digest] of [
     assert.equal(createHash("sha256").update(pixels).digest("hex"), digest);
   });
 }
+
+for (const [fixture, count] of [["cbr", 6912], ["vbr", 5760]] as const) {
+  it(`decodes ${fixture} MP3 to PCM WAV with native sample count`, async () => {
+    const { readFileSync } = await import("node:fs");
+    const source = readFileSync(new URL(`../../safe-bash-command-audio/fixtures/${fixture}.mp3`, import.meta.url));
+    const vfs = createTestVfs({ "/in.mp3": source });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/in.mp3", "-vn", "-c:a", "pcm_s16le", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 48000);
+    assert.equal(audio.channels, 2);
+    assert.equal(audio.channelData[0]!.length, count);
+    // Native FFmpeg PCM reference; allow one s16 rounding step across decoder platforms.
+    const reference = parseWav(readFileSync(new URL(`./fixtures/mp3-${fixture}.wav`, import.meta.url))).tracks[0]!.decodedAudio!;
+    for (let channel = 0; channel < 2; channel++) {
+      assert.equal(audio.channelData[channel]!.length, reference.channelData[channel]!.length);
+      for (let sample = 0; sample < count; sample++) {
+        assert.ok(Math.abs(audio.channelData[channel]![sample]! - reference.channelData[channel]![sample]!) <= 1 / 32768,
+          `channel ${channel}, sample ${sample}`);
+      }
+    }
+    vfs.store.set("/in.mp3", source.subarray(0, source.length - 1));
+    const previous = vfs.store.get("/out.wav");
+    const failure = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.mp3", "-c:a", "pcm_s16le", "/out.wav"], vfs);
+    assert.equal(failure.exitCode, 1);
+    assert.deepEqual(vfs.store.get("/out.wav"), previous);
+  });
+}

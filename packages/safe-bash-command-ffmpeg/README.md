@@ -21,7 +21,8 @@ stdin chunks, media files, playlists, image sequences, and subtitles. The portab
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
-WAV extraction decodes AAC in memory and honors MP4 priming and edit timing:
+WAV extraction decodes AAC and CBR/VBR MP3 in memory, honoring MP4 edit timing
+and MP3 encoder delay and padding:
 `ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported
 audio fails without replacing an existing output. Audio filters still require
 decoded PCM input, such as WAV or a `lavfi` source. `-ac 1` downmixes stereo and

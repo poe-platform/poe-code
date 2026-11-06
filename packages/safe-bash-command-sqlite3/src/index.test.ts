@@ -2272,3 +2272,25 @@ for (const [headers, names] of [
       renamed.length ? undefined : expected);
   });
 }
+
+for (const [source, stdout, diagnostics] of [
+  ['ok,1\n"x"oops,2\nend,3\n', 'ok|1\nx"oops,2\nend,3\n|\n',
+    '2: unescaped " character\n2: unterminated "-quoted field\n2: expected 2 columns but found 1 - filling the rest with NULL\n'],
+  ['ok,1\n"x', 'ok|1\nx|\n',
+    '2: unterminated "-quoted field\n2: expected 2 columns but found 1 - filling the rest with NULL\n'],
+  ['"x"oops"end",2\n', 'x"oops"end|2\n', '1: unescaped " character\n1: unescaped " character\n'],
+  ['"a""b","c,d"\n', 'a"b|c,d\n', '']
+]) {
+  test(`sqlite3 import quote diagnostics: ${JSON.stringify(source)}`, async () => {
+    const csv = new TextEncoder().encode(source);
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/rows.csv", csv);
+    const script = 'CREATE TABLE t(a,b);\n.import --csv /rows.csv t\nSELECT * FROM t;';
+    assert.deepEqual(await runSqlite3(fs, [":memory:"], script), {
+      code: 0, stdout,
+      stderr: diagnostics!.split('\n').filter(Boolean).map(line => `/rows.csv:${line}\n`).join('')
+    });
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"], () => csv),
+      diagnostics ? undefined : stdout);
+  });
+}

@@ -285,10 +285,6 @@ function normalizeInjectedEngine(raw: InjectableSqliteEngine): SqliteEngineInsta
   return candidate;
 }
 
-function parseCsvContent(content: string, separator: string): string[][] {
-  return [...new CsvRows(separator).push(content, true)];
-}
-
 function splitDotCommandArgs(line: string): string[] {
   const args: string[] = [];
   let i = 0;
@@ -979,12 +975,21 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         try {
           const sep = csvOverride ? "," : state.colSeparator;
           let importLine = 1;
-          const rows = async function* (): AsyncGenerator<string[]> {
-            const parser = new CsvRows(sep);
+          const rows = async function* (report = false): AsyncGenerator<string[]> {
+            let diagnostics = "";
+            const parser = new CsvRows(sep, message => { if (report) diagnostics += `${fileArg}:${message}`; });
             for await (const text of input.text()) {
-              for (const row of parser.push(text)) { importLine = parser.rowLine; yield row; }
+              for (const row of parser.push(text)) {
+                if (diagnostics) { await writeText(context.stderr, diagnostics); diagnostics = ""; }
+                importLine = parser.rowLine; yield row;
+              }
+              if (diagnostics) { await writeText(context.stderr, diagnostics); diagnostics = ""; }
             }
-            for (const row of parser.push("", true)) { importLine = parser.rowLine; yield row; }
+            for (const row of parser.push("", true)) {
+              if (diagnostics) { await writeText(context.stderr, diagnostics); diagnostics = ""; }
+              importLine = parser.rowLine; yield row;
+            }
+            if (diagnostics) await writeText(context.stderr, diagnostics);
           };
           skipRows = Math.trunc(skipRows);
           if (skipRows < 0) {
@@ -992,9 +997,9 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             for await (const row of rows()) { void row; context.signal.throwIfAborted(); count++; }
             skipRows = Math.max(0, count + skipRows);
           }
-          const selected = async function* (): AsyncGenerator<string[]> {
+          const selected = async function* (report = false): AsyncGenerator<string[]> {
             let index = 0;
-            for await (const row of rows()) {
+            for await (const row of rows(report)) {
               context.signal.throwIfAborted();
               if (index++ >= skipRows) yield row;
             }
@@ -1036,7 +1041,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           const targetTableName = tbl ? tbl.name : tableArg;
           const dataRows = async function* (): AsyncGenerator<string[]> {
             let header = !tableExists;
-            for await (const row of selected()) {
+            for await (const row of selected(true)) {
               if (header) { header = false; continue; }
               if (row.length !== colCount) {
                 await writeText(context.stderr, `${fileArg}:${importLine}: expected ${colCount} columns but found ${row.length} - ${row.length < colCount ? "filling the rest with NULL" : "extras ignored"}\n`);
@@ -1710,7 +1715,11 @@ export function evalSyncSqlite3(
         if (fileBytes.includes(0)) return false;
         const content = fatalSyncSqliteDecoder.decode(fileBytes);
         const sep = csvOverride ? "," : state.colSeparator;
-        const parsedRows = parseCsvContent(content, sep).slice(skipRows);
+        let hasDiagnostics = false;
+        const parser = new CsvRows(sep, () => { hasDiagnostics = true; });
+        const parsedRows = [...parser.push(content, true)].slice(skipRows);
+        // The stdout-only fast path must defer imports that need diagnostics.
+        if (hasDiagnostics) return false;
         let tbl = db.findTable(tableArg);
         if (parsedRows.length === 0) return Boolean(tbl);
         let dataRows = parsedRows;

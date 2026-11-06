@@ -60,8 +60,9 @@ for (const [skip, expected] of [[0, '1\n2\n3\n'], [1, '2\n3\n'], [-1, '3\n'], [-
 test("imports custom multi-character separators, empty records and permissive quotes", async () => {
   const result = await importFile('a<>b\n\n"x<>y"<>"z"tail\nend<>"unclosed',
     ['.separator <>', '.import /input t', '.mode list', 'SELECT * FROM t;']);
-  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, '|\nx<>y|ztail\nend|unclosed\n');
-  assert.equal(result.stderr, '/input:2: expected 2 columns but found 1 - filling the rest with NULL\n');
+  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, '|\nx<>y|z"tail\nend<>"unclosed\n');
+  assert.equal(result.stderr, '/input:2: expected 2 columns but found 1 - filling the rest with NULL\n' +
+    '/input:3: unescaped " character\n/input:4: unescaped " character\n/input:3: unterminated "-quoted field\n');
 });
 
 test("preserves native bulk-import change counts across many rows", async () => {

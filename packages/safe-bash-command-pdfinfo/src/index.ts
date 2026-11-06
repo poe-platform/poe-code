@@ -1407,6 +1407,7 @@ function fontTableHeader(options: { showSubst: boolean; showLoc: boolean }): str
 function parsePdffontsArgs(argv: readonly string[]): PdfinfoCliResult | {
   firstPage: number; lastPage: number; password: string; showLoc: boolean; showLocPs: boolean; showSubst: boolean; inputPath: string;
 } {
+    const usage = { exitCode: 99, stdout: "", stderr: "Usage: pdffonts [options] <PDF-file>\n" };
     let firstPage = 1;
     let lastPage = 0;
     let password = "";
@@ -1426,12 +1427,19 @@ function parsePdffontsArgs(argv: readonly string[]): PdfinfoCliResult | {
                 stderr: ""
             };
         }
-        if (arg === "-f")
-            firstPage = Math.max(1, Number.parseInt(argv[++i] ?? "1", 10) || 1);
-        else if (arg === "-l")
-            lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-        else if (arg === "-upw" || arg === "-opw")
-            password = argv[++i] ?? "";
+        if (arg === "-f" || arg === "-l") {
+            const value = argv[++i];
+            if (!value) return usage;
+            const digits = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+            if (!digits || [...digits].some(char => char < "0" || char > "9")) return usage;
+            if (arg === "-f") firstPage = Math.max(1, Number.parseInt(value, 10));
+            else lastPage = Math.max(0, Number.parseInt(value, 10));
+        }
+        else if (arg === "-upw" || arg === "-opw") {
+            const value = argv[++i];
+            if (value === undefined) return usage;
+            password = value;
+        }
         else if (arg === "-loc")
             showLoc = true;
         else if (arg === "-locPS") {
@@ -1440,11 +1448,12 @@ function parsePdffontsArgs(argv: readonly string[]): PdfinfoCliResult | {
         }
         else if (arg === "-subst")
             showSubst = true;
-        else if (!arg.startsWith("-") || arg === "-")
-            inputPath ??= arg;
+        else if ((!arg.startsWith("-") || arg === "-") && inputPath === undefined)
+            inputPath = arg;
+        else return usage;
     }
     if (!inputPath) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdffonts [options] <PDF-file>\n" };
+        return usage;
     }
     return { firstPage, lastPage, password, showLoc, showLocPs, showSubst, inputPath };
 }

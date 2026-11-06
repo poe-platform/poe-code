@@ -7715,7 +7715,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const n = images.length;
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
-        const maxThumbW = Math.max(cellW ?? 0, ...images.map((im) => im.width));
+        const maxThumbW = Math.max((cellW ?? 0) + (frame ? 0 : borderW * 2), ...images.map((im) => im.width));
         const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
         const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0);
         const slotH = maxThumbH + padY * 2 + (frame ? 34 : 0);
@@ -7852,7 +7852,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             } catch { signal.throwIfAborted(); fast = false; }
         }
         if (!fast) {
-            maxThumbW = cellW ?? 0; maxThumbH = cellH ?? 0;
+            maxThumbW = (cellW ?? 0) + (frame ? 0 : borderW * 2); maxThumbH = cellH ?? 0;
             for (let index = 0; index < paths.length; index++) {
                 const path = paths[index]!;
                 try {

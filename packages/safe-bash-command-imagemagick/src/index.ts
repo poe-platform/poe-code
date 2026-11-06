@@ -1446,6 +1446,7 @@ function clampByteVal(n: number): number {
 function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
+    const gray = img.space === "b-w" || img.space === "grey16";
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1458,13 +1459,14 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
             + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
         const matched = distance <= fuzz ** 2;
         if (invert ? !matched : matched) {
-            out[i] = replacement.r;
-            out[i + 1] = replacement.g;
+            // Native grayscale channel writes share one sample; blue is written last.
+            out[i] = gray ? replacement.b : replacement.r;
+            out[i + 1] = gray ? replacement.b : replacement.g;
             out[i + 2] = replacement.b;
             out[i + 3] = replacement.a;
         }
     }
-    return { ...img, data: out, hasAlpha: true };
+    return { ...img, data: out, hasAlpha: img.hasAlpha || replacement.a < 255 };
 }
 
 function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {

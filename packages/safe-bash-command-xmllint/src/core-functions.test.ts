@@ -83,6 +83,28 @@ test("namespace naming functions", async () => {
   assert.equal(result.output, "p:root|root|urn:p\n");
 });
 
+const namespacedDocument = '<w:document xmlns:w="urn:word" xmlns:custom="urn:custom"><w:p custom:id="1" xml:space="preserve"/><w:p/></w:document>';
+for (const query of ['count(//w:p)', '//w:p', 'count(//@custom:id)', 'count(//*[ @custom:id = "1" ])']) {
+  test(`XPath does not register document prefixes: ${query}`, async () => {
+    const result = await run(["--xpath", query, "-"], namespacedDocument);
+    assert.equal(result.exitCode, 10, result.errors);
+    assert.equal(result.output, "");
+    assert.ok(result.errors.includes("undefined XPath namespace prefix"), result.errors);
+  });
+}
+for (const [query, expected] of [
+  ['count(//*[local-name()="p"])', "2\n"],
+  ['count(//@xml:space)', "1\n"],
+  ['count(//*[local-name()="p"][@xml:space="preserve"])', "1\n"],
+  ['string("custom:id")', "custom:id\n"],
+] as const) {
+  test(`XPath namespace controls: ${query}`, async () => {
+    const result = await run(["--xpath", query, "-"], namespacedDocument);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  });
+}
+
 for (const flag of ["--output", "-o"]) test(flag, async () => {
   const result = await run([flag, "out.xml", "--noblanks", "--format", "--encode", "UTF-8", "-"], "<root>\n <item/>\n</root>");
   assert.equal(result.exitCode, 0, result.errors);
@@ -244,8 +266,8 @@ for (const [query, expected] of [
   assert.equal(result.output, expected + "\n");
 });
 
-test("namespace-prefixed steps and xml attributes work together in the command", async () => {
-  const result = await run(["--xpath", "//ns:book[@xml:lang='en']/@id"],
+test("local-name selection and xml attributes work together in the command", async () => {
+  const result = await run(["--xpath", "//*[local-name()='book'][@xml:lang='en']/@id"],
     '<catalog xmlns:ns="urn:books"><ns:book id="bk101" xml:lang="en"/><ns:book id="bk102" xml:lang="fr"/></catalog>');
   assert.equal(result.exitCode, 0, result.errors);
   assert.equal(result.output, ' id="bk101"\n');

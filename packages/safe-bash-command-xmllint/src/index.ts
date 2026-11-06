@@ -255,14 +255,15 @@ async function executeDocument(
       return { exitCode: 0 };
     }
     if (options.query.expression) {
-      if (stored) for await (const part of new StoredXPath(stored, budget).scalarChunks(options.query)) await write(part);
+      // CLI XPath only has the predefined xml binding, before any element declarations.
+      if (stored) for await (const part of new StoredXPath(stored, budget, stored.document).scalarChunks(options.query)) await write(part);
       else await write(await evaluateScalar(options.query, root, budget));
       await write("\n");
       await finish();
       completed = true;
       return { exitCode: 0 };
     }
-    const selection = stored ? await new StoredXPath(stored, budget).select(options.query) : await evaluate(options.query, root, budget);
+    const selection = stored ? await new StoredXPath(stored, budget, stored.document).select(options.query) : await evaluate(options.query, root, budget);
     const nodes = Array.isArray(selection) ? selection : selection.nodes();
     if ((Array.isArray(selection) ? selection.length : selection.size) === 0) throw new XmlQueryError("XPath set is empty", 11);
     let pendingText = "";

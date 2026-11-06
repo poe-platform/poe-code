@@ -52,7 +52,11 @@ async function matches(node: Node, step: QueryStep, namespace: string | number, 
 }
 
 export class StoredXPath {
-  constructor(readonly document: StoredXmlDocument, readonly budget: XmlBudget) {}
+  constructor(
+    readonly document: StoredXmlDocument,
+    readonly budget: XmlBudget,
+    private readonly namespaceContext = document.root
+  ) {}
 
   async node(reference: number): Promise<Node> {
     const stored = { document: this.document, reference };
@@ -70,7 +74,7 @@ export class StoredXPath {
   }
 
   async select(query: Query, context = this.document.document): Promise<StoredSelection> {
-    const namespaces = await this.document.namespaceScope(this.document.root);
+    const namespaces = await this.document.namespaceScope(this.namespaceContext);
     const union = new StoredSelection(this);
     for (const path of query.paths) {
       let contexts = new StoredSelection(this);

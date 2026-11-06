@@ -23,6 +23,28 @@ import {
   type SqlValue
 } from "./engine.js";
 
+// Register virtual tables without invoking their module, which would create the
+// shadow tables before the dump restores them.
+function virtualTableDump(name: string, sql: string): string | undefined {
+  const tokens = tokenizeSql(sql);
+  if (tokens[0]?.value.toUpperCase() !== "CREATE" || tokens[1]?.value.toUpperCase() !== "VIRTUAL") return undefined;
+  return "PRAGMA writable_schema=ON;\n" +
+    `INSERT INTO sqlite_master(type,name,tbl_name,rootpage,sql) VALUES('table',${formatSqlQuote(name)},${formatSqlQuote(name)},0,${formatSqlQuote(sql)});\n` +
+    "PRAGMA writable_schema=OFF;\n";
+}
+
+function importedVirtualTableDumps(db: SqliteEngineInstance): Map<string, string> {
+  const dumps = new Map<string, string>();
+  if (db instanceof SqliteDatabase) {
+    for (const entry of db.loadedMaster ?? []) {
+      if (entry.type !== "table" || !entry.sql) continue;
+      const dump = virtualTableDump(entry.name, entry.sql);
+      if (dump) dumps.set(entry.name, dump);
+    }
+  }
+  return dumps;
+}
+
 export interface Sqlite3Limits {
   readonly maxInputBytes: number;
   readonly maxOutputBytes: number;
@@ -886,7 +908,12 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         async function* dump(): AsyncGenerator<string> {
           yield "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n";
           if (db.tables) {
+            const virtualTables = importedVirtualTableDumps(db);
+            for (const [name, schema] of virtualTables) {
+              if (!pattern || matchGlob(name.toLowerCase(), pattern.toLowerCase())) yield schema;
+            }
             for (const tbl of db.tables.values()) {
+              if (virtualTables.has(tbl.name)) continue;
               if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) {
                 continue;
               }
@@ -926,6 +953,11 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
               const sql = String(row[3] ?? "");
               if (type === "table") {
                 if (pattern && !matchGlob(name.toLowerCase(), pattern.toLowerCase()) && name.toLowerCase() !== pattern.toLowerCase()) {
+                  continue;
+                }
+                const virtualSchema = virtualTableDump(name, sql);
+                if (virtualSchema) {
+                  yield virtualSchema;
                   continue;
                 }
                 yield `${sql.replace(/;*\s*$/, "")};` + "\n";
@@ -1646,7 +1678,12 @@ export function evalSyncSqlite3(
       if (cmd === ".dump") {
         const pattern = parts[1];
         const dumpLines: string[] = ["PRAGMA foreign_keys=OFF;", "BEGIN TRANSACTION;"];
+        const virtualTables = importedVirtualTableDumps(db);
+        for (const [name, schema] of virtualTables) {
+          if (!pattern || matchGlob(name.toLowerCase(), pattern.toLowerCase())) dumpLines.push(schema.trimEnd());
+        }
         for (const tbl of db.tables.values()) {
+          if (virtualTables.has(tbl.name)) continue;
           if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) continue;
           dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
           for (const r of tbl.rows) {

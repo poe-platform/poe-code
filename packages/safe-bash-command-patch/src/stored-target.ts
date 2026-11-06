@@ -73,7 +73,6 @@ export class TargetDocuments {
     const document = new IndexedDocument(this.documentBudget, 2);
     this.documents.add(document);
     await document.load(source);
-    if (document.binary) throw new ToolError("binary input is unsupported (NUL byte)");
     return document;
   }
 

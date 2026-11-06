@@ -1,6 +1,8 @@
 # patch
 
 Run `patch` against an injected virtual filesystem with portable byte streams.
+Text patches from `diff -a` preserve NUL bytes in hunks and targets, including
+untouched bytes outside a hunk.
 Target and hunk content preserves non-UTF-8 bytes without transcoding.
 
 ```ts

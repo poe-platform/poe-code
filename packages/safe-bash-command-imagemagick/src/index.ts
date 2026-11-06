@@ -3988,6 +3988,8 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { forma
 
 function extToImageFormat(ext: string): ImageFormat | undefined {
   switch (ext.toLowerCase()) {
+    case "miff":
+      return "miff";
     case "png":
       return "png";
     case "jpg":
@@ -5142,6 +5144,18 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     return result;
 }
 
+function* prepareMiffPages(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
+    const miffPages: RgbaImage[] = [];
+    for (const frame of stack) { yield; miffPages.push(yield* prepareHueOutput(frame, "miff")); }
+    return { ...miffPages[0]!, miffPages };
+}
+
+function prepareStoredMiffPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal): StoredRgbaImage {
+    return { ...image, storedMiffPages: { length: stack.length, async at(index) {
+        return prepareStoredHueOutput((await stack.get(index))!, "miff", backend, signal);
+    } } };
+}
+
 function* prepareTiffPages(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
     const tiffPages: RgbaImage[] = [];
     for (const frame of stack) { yield; tiffPages.push(yield* prepareHueOutput(frame, "tiff")); }
@@ -5462,7 +5476,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 else {
-                    const image = stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareHueOutput(top, format);
+                    const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareHueOutput(top, format);
                     const { data: encoded } = encodeImage(image, { format, ...(stack.length > 1 && format === "gif" ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     files.set(path, encoded);
                 }
@@ -6179,7 +6193,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             }
             return { exitCode: 0, stdout: "", stderr: "" };
         }
-        let toEncode = stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareHueOutput(finalImg, format);
+        let toEncode = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareHueOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && format === "gif") {
             toEncode = yield* prepareGifFrames(stack);
@@ -6727,7 +6741,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format)))) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
-                        const frames = stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
+                        const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
                         await backend.stage(frames, output.path, { format: output.format, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
                     }
                 }
@@ -7036,6 +7050,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             await backend.publishPending();
             return { exitCode: 0, stdout: "", stderr: "" };
         }
+        if (stack.length > 1 && output.format === "miff") image = prepareStoredMiffPages(stack, image, backend, signal);
         if (stack.length > 1 && output.format === "tiff") image = prepareStoredTiffPages(stack, image, backend, signal);
         let pageHeight: number | undefined;
         if (stack.length > 1 && output.format === "gif") {

@@ -1,3 +1,4 @@
+import { encodeMiffImage } from "./miff.js";
 import {tiffChannels} from "./tiff-layout.js";
 import {imageOutputFormat} from "../output-format.js";
 import {TextPixels} from "./text-pixels.js";
@@ -399,6 +400,7 @@ export function encodeImage(
   const fmt = imageOutputFormat(img.format,options.format);
 
   switch (fmt) {
+    case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };
     case "png": {
       const data = encodePngImage(img, {
         ...(options.compressionLevel !== undefined

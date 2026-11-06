@@ -12,6 +12,7 @@ export type ImageFormat =
   | "pgm"
   | "pbm"
   | "bmp"
+  | "miff"
   | "tiff"
   | "svg"
   | "pdf"
@@ -36,6 +37,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly miffPages?: readonly RgbaImage[];
   readonly tiffPages?: readonly RgbaImage[];
   readonly isPalette?: boolean;
   readonly backgroundColor?: RgbaColor;

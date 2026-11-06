@@ -5457,14 +5457,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const bw = Math.max(0, Math.round(g.width ?? 0));
             const bh = Math.max(0, Math.round(g.height ?? bw));
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* extendImageSteps(im, {
-                    top: bh,
-                    bottom: bh,
-                    left: bw,
-                    right: bw,
-                    background: state.borderColor,
-                    extendWith: "background"
-                }));
+                const canvas = yield* createSolidRgbaImageSteps(im.width + bw * 2, im.height + bh * 2, state.borderColor);
+                yield* blitOverRgbaInPlaceSteps(canvas, im, bw, bh);
+                return canvas;
             }));
         }
         else if (t === "-shave") {
@@ -6625,7 +6620,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-border") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), left = Math.max(0, Math.round(geometry.width ?? 0)), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
-            transform(() => ({ kind: "extend", left, right: left, top, bottom: top, background, extendWith: "background" }));
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const canvas = await createStoredCanvas(image.width + left * 2, image.height + top * 2, background, backend, signal);
+                return compositeStoredMagick(canvas, image, backend, signal, left, top, "over", undefined, false, true);
+            });
         } else {
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) throw new Error(`unrecognized option '${token}'`);
             if (!operandsOnly && (token === "(" || token === ")")) continue;

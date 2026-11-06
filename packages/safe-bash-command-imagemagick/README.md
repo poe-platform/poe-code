@@ -20,7 +20,7 @@ console.log(info.stdout); // PNG 60x40
 
 Output parent directories must already exist, including directories selected with `mogrify -path`.
 
-Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`.
+Use `-comment text` or `-label text` before an input to set its text metadata when it is read; settings after an input leave that image unchanged. Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`.
 
 Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.
 

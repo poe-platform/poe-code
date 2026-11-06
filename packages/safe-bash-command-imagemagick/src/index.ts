@@ -480,6 +480,8 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
 }
 
 interface MagickState {
+  comment?: string;
+  label?: string;
   filenameProperties?: Record<string, string>;
   sizeWidth: number;
   sizeHeight: number;
@@ -4142,6 +4144,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const {baseToken,pageSpec,inlineGeom}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
+            for (const key of ["comment", "label"] as const) {
+                const value = state[key];
+                if (value !== undefined) {
+                    const expanded = yield* formatMagickPropertyStringSteps(value, im, () => im, { filePath: baseToken });
+                    im = { ...im, properties: { ...im.properties, [key]: expanded } };
+                }
+            }
             if (state.delay !== undefined) im = { ...im, delay: Array(im.delay?.length ?? 1).fill(state.delay) };
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel) : im;
         });
@@ -5350,6 +5359,9 @@ if (t === "-seed") {
         }
         else if (t === "+gravity") {
             state.gravity = "northwest";
+        }
+        else if (t === "-comment" || t === "-label") {
+            state[t === "-comment" ? "comment" : "label"] = tokens[++i] ?? "";
         }
         else if (t === "-sampling-factor") {
             state.samplingFactor = tokens[++i] ?? "";
@@ -7361,7 +7373,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
             t === "+distort") {
             opTokens.push(t, argv[++i] ?? "", argv[++i] ?? "");
         }
-        else if (["-density", "-background", "-fuzz", "-filter", "-size"].includes(t)) {
+        else if (["-density", "-background", "-fuzz", "-filter", "-size", "-comment", "-label"].includes(t)) {
             readSettings.push(t, argv[++i] ?? "");
         }
         else if (flagsWithOneArg.has(t)) {
@@ -7577,6 +7589,13 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+ for (const key of ["comment", "label"] as const) {
+  const value = state[key];
+  if (value !== undefined) {
+   const expanded = await formatRetainedIdentify(value, image, { filePath: baseToken }, async () => ({ image, storage: backend.storage }), signal);
+   image = { ...image, properties: { ...image.properties, [key]: expanded } };
+  }
+ }
  if(state.delay!==undefined){const delay=state.delay;image={...image,storedDelay:{length:image.storedDelay?.length??image.delay?.length??1,async at(){return delay;}}};}
  if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal);}}
  return image;

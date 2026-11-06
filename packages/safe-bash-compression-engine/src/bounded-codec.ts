@@ -2,7 +2,7 @@ import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { CodecInput } from "./codec.js";
 import { createCodec } from "./codec-loader.js";
-import { CompressedDataError } from "./errors.js";
+import { CompressedDataError, UnrecognizedCompressionFormatError } from "./errors.js";
 import type { ZstdOptions } from "./options.js";
 
 export interface CodecStep {
@@ -133,6 +133,16 @@ export async function* boundedCodec(
         headerOffset = 0;
       }
       const bytes = flushing ? new Uint8Array() : current.subarray(offset, Math.min(current.length, offset + 64 * 1024, offset + blockRemaining));
+      if (options.format === "bzip2" && options.decompress) {
+        const magic = [0x42, 0x5a, 0x68];
+        for (let index = 0; index < bytes.length && headerOffset + index < 4; index++) {
+          const position = headerOffset + index;
+          const byte = bytes[index]!;
+          if (position < 3 ? byte !== magic[position] : byte < 0x31 || byte > 0x39) {
+            throw new UnrecognizedCompressionFormatError("invalid compressed data or codec memory limit exceeded");
+          }
+        }
+      }
       if (options.format === "xz" && options.decompress && options.xzFormat === "xz") {
         const magic = [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0];
         for (let index = 0; index < bytes.length && headerOffset + index < magic.length; index++) {

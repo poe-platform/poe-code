@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { boundedCodec, type CodecStep, type BoundedCodec } from "./bounded-codec.js";
 import { CodecReader } from "./codec.js";
+import { CompressedDataError, UnrecognizedCompressionFormatError } from "./errors.js";
 import { createCodec } from "./codec-loader.js";
 import type { RawCodecModule } from "./native/types.js";
 
@@ -223,5 +224,20 @@ test("codec loader maps truncation and corrupt-data failures to diagnostics", as
     const codec = await createCodec(options, new AbortController().signal, () => raw({ bridge_step() { return status; } }));
     try { assert.throws(() => codec.step(Uint8Array.of(1), new Uint8Array(1), true), message); }
     finally { codec.close(); }
+  }
+});
+
+test("bzip2 distinguishes unrecognized split headers from truncated streams", async () => {
+  for (const header of ['X', 'BX', 'BZX', 'BZh0', 'BZh:']) {
+    await assert.rejects(collect(boundedCodec(
+      input(...Array.from(Buffer.from(header), byte => Uint8Array.of(byte))),
+      { format: 'bzip2', decompress: true, level: 9 }, new AbortController().signal,
+    )), UnrecognizedCompressionFormatError);
+  }
+  for (const header of ['', 'B', 'BZ', 'BZh', 'BZh9']) {
+    await assert.rejects(collect(boundedCodec(
+      input(...Array.from(Buffer.from(header), byte => Uint8Array.of(byte))),
+      { format: 'bzip2', decompress: true, level: 9 }, new AbortController().signal,
+    )), error => error instanceof CompressedDataError && !(error instanceof UnrecognizedCompressionFormatError));
   }
 });

@@ -2,6 +2,8 @@ import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 
 export class CompressedDataError extends PublicDiagnostic {}
 
+export class UnrecognizedCompressionFormatError extends CompressedDataError {}
+
 const dataErrors = new Set([
   "incorrect header check", "unknown compression method", "invalid window size",
   "unknown header flags set", "header crc mismatch", "invalid block type",

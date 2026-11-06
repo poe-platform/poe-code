@@ -31,15 +31,15 @@ for (const format of ["bzip2", "xz", "zstd"] as const) {
       const signal = new AbortController().signal;
       const reader = new CodecReader((async function* () {
         pulls++;
-        yield split ? Uint8Array.of(7) : Uint8Array.of(7, 0, 8);
+        yield split ? Uint8Array.of(0x42, 0x5a, 0x68, 0x31) : Uint8Array.of(0x42, 0x5a, 0x68, 0x31, 0, 8);
         if (split) { pulls++; yield Uint8Array.of(0, 8); }
       })(), signal);
       const output = boundedCodec(reader, { format, decompress: true, level: 1, singleMember: true }, signal, () => {
         creates++;
         return {
           step(bytes, result) {
-            result[0] = bytes[0]!;
-            return { consumed: 1, produced: 1, status: "end" };
+            result[0] = 7;
+            return { consumed: 4, produced: 1, status: "end" };
           },
           close() { closes++; },
         };

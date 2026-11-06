@@ -7,6 +7,8 @@ import type { PdfRawTextIndex, PdfStoredTextLine, PdfStoredTextWord } from "./ra
 
 export interface PdfHtmlPageTextOptions {
   readonly xml?: boolean;
+  /** Preserve style suffixes in XML font family names. */
+  readonly fontFullName?: boolean;
   /** Emit XML text coordinates with six decimal places. */
   readonly noRoundCoord?: boolean;
   readonly zoom?: number;
@@ -70,6 +72,29 @@ export async function* streamHtmlPageText(document: PdfRetainedDocument, page: P
       else yield* chunks(decodePdfString(selected));
     } else yield* rawName(word);
   }
+  async function* xmlFamily(word: PdfStoredTextWord | undefined) {
+    if (options.fontFullName) { yield* family(word); return; }
+    // Match Poppler's ordered, last-occurrence style removal without retaining
+    // arbitrarily large stored font names.
+    const suffixes = ["-Regular", "-Bold", "-BoldOblique", "-BoldItalic", "-Oblique", "-Italic", "-Roman"];
+    const positions = suffixes.map(() => -1);
+    let offset = 0, tail = "";
+    for await (const part of family(word)) {
+      const text = tail + part;
+      for (let i = 0; i < suffixes.length; i++) {
+        const position = text.lastIndexOf(suffixes[i]!);
+        if (position >= 0) positions[i] = offset - tail.length + position;
+      }
+      offset += part.length;
+      tail = text.slice(-11);
+    }
+    let remaining = positions.find(position => position >= 0) ?? offset;
+    for await (const part of family(word)) {
+      if (remaining <= 0) return;
+      yield part.slice(0, remaining);
+      remaining -= part.length;
+    }
+  }
   async function firstWord(line: PdfStoredTextLine) { for await (const word of line.words()) return word; }
   async function* fontKey(word: PdfStoredTextWord | undefined, size: number) {
     for await (const part of family(word)) for (let i = 0; i < part.length; i++) yield part.charCodeAt(i);
@@ -86,7 +111,7 @@ export async function* streamHtmlPageText(document: PdfRetainedDocument, page: P
         const identity = await names.intern(fontKey(word, size));
         if (!identity.added) continue;
         yield `    <fontspec id="${identity.index}" size="${size}" family="`;
-        for await (const part of family(word)) yield escape(part);
+        for await (const part of xmlFamily(word)) yield escape(part);
         yield '" color="#000000"/>\n';
       }
     }

@@ -564,7 +564,7 @@ describe("safe-bash-command-pdftotext", () => {
     const files = new Map<string, Uint8Array>([["styled.pdf", doc.save()]]);
     const xmlRes = await runPdftohtmlCli(["-xml", "-fmt", "jpg", "-stdout", "styled.pdf"], files);
     assert.equal(xmlRes.exitCode, 0);
-    assert.match(xmlRes.stdout, /<fontspec id="1" size="27" family="Helvetica-Bold"/);
+    assert.match(xmlRes.stdout, /<fontspec id="1" size="27" family="Helvetica"/);
     assert.match(xmlRes.stdout, /<b>BoldHeading<\/b>/);
     assert.match(xmlRes.stdout, /<i>ItalicNote<\/i>/);
     assert.match(xmlRes.stdout, /src="page1_1\.jpg"/);

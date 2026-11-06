@@ -1025,10 +1025,17 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
                     const h = noRoundCoord ? ((y1 - y0) * zoom).toFixed(6) : Math.max(1, Math.round((y1 - y0) * zoom));
                     const firstWord = line.words[0];
                     const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
-                    const family = fontKeyToBaseFont.get(rawFontName) ?? rawFontName;
+                    const fullFamily = fontKeyToBaseFont.get(rawFontName) ?? rawFontName;
+                    let family = fullFamily;
+                    if (!parsed.fontFullName) {
+                        for (const suffix of ["-Regular", "-Bold", "-BoldOblique", "-BoldItalic", "-Oblique", "-Italic", "-Roman"]) {
+                            const position = family.lastIndexOf(suffix);
+                            if (position >= 0) { family = family.slice(0, position); break; }
+                        }
+                    }
                     const rawFontSize = firstWord?.fontSize ?? firstWord?.glyphs[0]?.fontSize ?? 12;
                     const scaledSize = Math.max(1, Math.round(rawFontSize * zoom));
-                    const specKey = `${family}:${scaledSize}`;
+                    const specKey = `${fullFamily}:${scaledSize}`;
                     let specId = fontSpecIdByKey.get(specKey);
                     if (specId === undefined) {
                         specId = fontSpecIdByKey.size;
@@ -1039,7 +1046,7 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
                         Math.min(x1, Math.max(a.rect[0], a.rect[2])) > Math.max(x0, Math.min(a.rect[0], a.rect[2])) &&
                         Math.min(y1, Math.max(a.rect[1], a.rect[3])) > Math.max(y0, Math.min(a.rect[1], a.rect[3])));
                     let styledText = escapeHtmlXml(line.text);
-                    const lowerFam = family.toLowerCase();
+                    const lowerFam = fullFamily.toLowerCase();
                     if (lowerFam.includes("italic") || lowerFam.includes("oblique")) {
                         styledText = `<i>${styledText}</i>`;
                     }

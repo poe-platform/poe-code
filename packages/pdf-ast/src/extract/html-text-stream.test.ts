@@ -47,7 +47,7 @@ it.each([false, true])("preserves font styles, zoom, first overlapping link and 
         expect(result).toContain('<a href="https://example.test/?a=1&amp;b=2"><b><i>Styled</i></b></a>');
         expect(result).not.toContain("ignored");
         if (xml) {
-          expect(result).toContain('id="1" size="24" family="Helvetica-BoldOblique"');
+          expect(result).toContain('id="1" size="24" family="Helvetica"');
           expect(result.indexOf("IMAGE")).toBeGreaterThan(result.indexOf("<fontspec"));
           expect(result.indexOf("IMAGE")).toBeLessThan(result.indexOf("<text"));
         } else expect(result.startsWith("IMAGE\n")).toBe(true);

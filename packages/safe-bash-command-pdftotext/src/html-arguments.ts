@@ -9,11 +9,12 @@ export const SUPPORTED_ENCODINGS = new Set([
 
 export interface HtmlPlan {
   readonly inputPath: string; readonly outPath: string; readonly imageDirectory: string;
-  readonly hidden: boolean; readonly noRoundCoord: boolean; readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
+  readonly fontFullName: boolean; readonly hidden: boolean; readonly noRoundCoord: boolean; readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
   readonly firstPage: number; readonly lastPage: number; readonly zoom: number; readonly wordBreakThreshold: number;
   readonly imageFmt: "png" | "jpg"; readonly encoding: string; readonly password: string;
 }
 export function parseHtmlArguments(argv: readonly string[], hasStdin = false): HtmlPlan | { exitCode: number; stdout: string; stderr: string } {
+    let fontFullName = false;
     let hidden = false;
     let xmlMode = false;
     let noRoundCoord = false;
@@ -47,6 +48,8 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
         }
         if (arg === "-xml")
             xmlMode = true;
+        else if (arg === "-fontfullname")
+            fontFullName = true;
         else if (arg === "-hidden")
             hidden = true;
         else if (arg === "-noroundcoord")
@@ -118,5 +121,5 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             : `${explicitOut}${defaultExt}`
         : inputStem + defaultExt;
     const imageDirectory = outPath.slice(0, outPath.lastIndexOf("/") + 1);
-    return { inputPath, outPath, imageDirectory, hidden, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, wordBreakThreshold, imageFmt, encoding, password };
+    return { inputPath, outPath, imageDirectory, fontFullName, hidden, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, wordBreakThreshold, imageFmt, encoding, password };
 }

@@ -6758,13 +6758,28 @@ export class SqliteDatabase {
     const result: SqlValue[] = new Array(groupedRows.length).fill(null);
     const over = fnExpr.over!;
     const partitions = new Map<string, number[]>();
+    const collationRow = groupedRows[0]?.representative ?? {};
+    const partitionCollations = over.partitionBy.map(expr => this.expressionCollation(expr, collationRow).toUpperCase());
+    const orderCollations = over.orderBy.map(ob => this.expressionCollation(ob.expr, collationRow).toUpperCase());
+    const keyValue = (value: SqlValue, collation: string): SqlValue => {
+      if (typeof value !== "string" && !(value instanceof String)) return value;
+      const text = String(value);
+      if (collation === "NOCASE") return foldAsciiCase(text);
+      if (collation === "RTRIM") {
+        let end = text.length;
+        while (end > 0 && text[end - 1] === " ") end -= 1;
+        return text.slice(0, end);
+      }
+      return value;
+    };
 
     for (let i = 0; i < groupedRows.length; i += 1) {
       yield;
       const g = groupedRows[i]!;
       const pKey = serializeSqlJson(
-        yield* stepMap(over.partitionBy, function* (pe) {
-          return yield* this.evalExprSteps(pe, g.representative, positionalParams, cteScope, { group: g.group });
+        yield* stepMap(over.partitionBy, function* (pe, i) {
+          const value = yield* this.evalExprSteps(pe, g.representative, positionalParams, cteScope, { group: g.group });
+          return keyValue(value, partitionCollations[i]!);
         }, this),
         false
       );
@@ -6784,14 +6799,15 @@ export class SqliteDatabase {
         yield* stepSort(indices, function* (iA, iB) {
           const gA = groupedRows[iA]!;
           const gB = groupedRows[iB]!;
-          for (const ob of over.orderBy) {
+          for (let i = 0; i < over.orderBy.length; i += 1) {
+            const ob = over.orderBy[i]!;
             yield;
             const vA = yield* this.evalExprSteps(ob.expr, gA.representative, positionalParams, cteScope, { group: gA.group });
             const vB = yield* this.evalExprSteps(ob.expr, gB.representative, positionalParams, cteScope, { group: gB.group });
             if (ob.nulls && (vA === null) !== (vB === null)) {
               return (vA === null) === (ob.nulls === "FIRST") ? -1 : 1;
             }
-            const cmp = compareSqlValues(vA, vB);
+            const cmp = compareSqlValues(vA, vB, orderCollations[i]);
             if (cmp !== 0) {
               return ob.desc ? -cmp : cmp;
             }
@@ -6803,8 +6819,9 @@ export class SqliteDatabase {
       const orderPeerKeys = yield* stepMap(indices, function* (idx) {
         const g = groupedRows[idx]!;
         return serializeSqlJson(
-          yield* stepMap(over.orderBy, function* (ob) {
-            return yield* this.evalExprSteps(ob.expr, g.representative, positionalParams, cteScope, { group: g.group });
+          yield* stepMap(over.orderBy, function* (ob, i) {
+            const value = yield* this.evalExprSteps(ob.expr, g.representative, positionalParams, cteScope, { group: g.group });
+            return keyValue(value, orderCollations[i]!);
           }, this),
           false
         );

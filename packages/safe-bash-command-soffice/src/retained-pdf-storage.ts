@@ -50,9 +50,11 @@ export class RetainedPdf {
     this.unicodeMappings = new ByteChain(storage, this.signal);
   }
   async append(value: string | Uint8Array): Promise<void> { await this.page.append(typeof value === "string" ? this.encoder.encode(value) : value); }
-  async text(value: string, heading: boolean, size: number): Promise<void> {
+  async text(value: string, heading: boolean, size: number, italic = false): Promise<void> {
     // Keep Helvetica's metrics for WinAnsi runs; predefined CJK fonts use UTF-16
     // character codes and let PDF viewers supply the corresponding CID font.
+    const font = italic ? heading ? "BoldItalic" : "Italic" : heading ? "Heading" : "Body";
+    await this.append(`/${font} ${size} Tf\n`);
     let run = "", unicode = false;
     const flush = async () => {
       if (!run) return;
@@ -62,7 +64,7 @@ export class RetainedPdf {
         for (let index = 0; index < run.length; index++) view.setUint16(index * 2, run.charCodeAt(index));
         await this.append(`/Unicode ${size} Tf\n`);
         await this.append(serializeCosNodeBytes(cosString(bytes)));
-        await this.append(` Tj\n/${heading ? "Heading" : "Body"} ${size} Tf\n`);
+        await this.append(` Tj\n/${font} ${size} Tf\n`);
       } else {
         await this.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(run))));
         await this.append(" Tj\n");
@@ -128,7 +130,8 @@ export class RetainedPdf {
     for (let index = 0; index < outputPages; index++) { signal.throwIfAborted(); yield encoder.encode(`${6 + index * 2} 0 R `); }
     yield encoder.encode("] >>");
   }
-  const unicodeFont = 6 + outputPages * 2 + imageCount * 2;
+  const italicFont = 6 + outputPages * 2 + imageCount * 2;
+  const unicodeFont = italicFont + 2;
   let kidsLength = 0; for await (const bytes of kids()) kidsLength += bytes.length;
   async function* objects(): AsyncGenerator<PdfRetainedOutputObject | PdfSerializedOutputObject> {
     yield object(1, cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }));
@@ -138,7 +141,7 @@ export class RetainedPdf {
     for (let index = 0; index < outputPages; index++) {
       const first = Number(await pageImages.get(BigInt((firstPage + index) * 2))), count = Number(await pageImages.get(BigInt((firstPage + index) * 2 + 1)));
       async function* pageBody() {
-        yield encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /Body 4 0 R /Heading 5 0 R ${unicode ? `/Unicode ${unicodeFont} 0 R ` : ""}>> /XObject << `);
+        yield encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /Body 4 0 R /Heading 5 0 R /Italic ${italicFont} 0 R /BoldItalic ${italicFont + 1} 0 R ${unicode ? `/Unicode ${unicodeFont} 0 R ` : ""}>> /XObject << `);
         for (let image = first; image < first + count; image++) yield encoder.encode(`/Image${image} ${6 + outputPages * 2 + image * 2} 0 R `);
         yield encoder.encode(`>> >> /Contents ${7 + index * 2} 0 R >>`);
       }
@@ -156,6 +159,8 @@ export class RetainedPdf {
       yield {...object(number, cosDict({...common, ColorSpace: cosName(components === 1 ? "DeviceGray" : components === 4 ? "DeviceCMYK" : "DeviceRGB"), ...(jpeg ? {Filter: cosName("DCTDecode")} : {}), ...(alpha ? {SMask: cosRef(number + 1)} : {})})), stream: {length: size, chunks: read(position, size)}};
       if (alpha) yield {...object(number + 1, cosDict({...common, ColorSpace: cosName("DeviceGray")})), stream: {length: width * height, chunks: read(alpha, width * height)}};
     }
+    for (const [index, name] of ["Helvetica-Oblique", "Helvetica-BoldOblique"].entries())
+      yield object(italicFont + index, cosDict({Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName(name), Encoding: cosName("WinAnsiEncoding")}));
     if (unicode) {
       yield object(unicodeFont, cosDict({Type: cosName("Font"), Subtype: cosName("Type0"), BaseFont: cosName("HeiseiMin-W3"), Encoding: cosName("UniJIS-UTF16-H"), DescendantFonts: cosArray([cosRef(unicodeFont + 1)]), ToUnicode: cosRef(unicodeFont + 3)}));
       yield object(unicodeFont + 1, cosDict({Type: cosName("Font"), Subtype: cosName("CIDFontType0"), BaseFont: cosName("HeiseiMin-W3"), CIDSystemInfo: cosDict({Registry: cosString("Adobe"), Ordering: cosString("Japan1"), Supplement: cosNumber(6)}), FontDescriptor: cosRef(unicodeFont + 2), DW: cosNumber(1000)}));

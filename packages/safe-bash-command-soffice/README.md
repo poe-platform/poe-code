@@ -19,6 +19,7 @@ for TXT, PDF, DOCX, and `--cat` output. Scripts, styles, and document metadata a
 Asynchronous DOCX conversion preserves bullet and decimal list markers in TXT and PDF,
 and emits nested HTML lists with their starting numbers. DOCX HTML exports preserve
 inline bold and italic text in paragraphs, headings, lists, and tables.
+DOCX PDF exports preserve inline bold and italic runs in paragraphs, headings, and lists.
 DOCX TXT exports and `--cat` output include the UTF-8 BOM used by LibreOffice.
 TXT and Markdown inputs also produce valid DOCX archives; CSV and XLSX inputs produce DOCX tables.
 Tabular text (comma- or tab-separated), Markdown pipe tables, and HTML/HTM tables

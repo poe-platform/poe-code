@@ -67,6 +67,8 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
     };
     for await (const bytes of text.streamBlock(snapshot, block)) { await scan(decoder.decode(bytes, { stream: true })); await yieldTurn(signal); }
     await scan(decoder.decode()); await finishWord();
+    const styles = text.styles?.(snapshot, block)[Symbol.asyncIterator]();
+    let style = await styles?.next();
     let first = 0;
     do {
       let end = first, units = 0;
@@ -80,13 +82,21 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
       for (let word = first; word < end; word++) {
         if (word > first) await pdf.append("( ) Tj\n");
         const range = { start: Number(await words.get(BigInt(word * 3))), length: Number(await words.get(BigInt(word * 3 + 1))) };
-        const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
-        for await (const bytes of text.streamBlock(snapshot, block, range)) {
-          const value = decoder.decode(bytes, { stream: true });
-          if (value) await pdf.text(value, heading, heading ? 18 : 11);
+        let offset = range.start;
+        const limit = range.start + range.length;
+        while (offset < limit) {
+          while (style && !style.done && style.value.start + style.value.length <= offset) style = await styles!.next();
+          const active = style && !style.done && style.value.start <= offset ? style.value : undefined;
+          const end = Math.min(limit, active ? active.start + active.length : style && !style.done ? style.value.start : limit);
+          const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+          for await (const bytes of text.streamBlock(snapshot, block, {start: offset, length: end - offset})) {
+            const value = decoder.decode(bytes, { stream: true });
+            if (value) await pdf.text(value, heading || !!active?.bold, heading ? 18 : 11, active?.italic);
+          }
+          const tail = decoder.decode();
+          if (tail) await pdf.text(tail, heading || !!active?.bold, heading ? 18 : 11, active?.italic);
+          offset = end;
         }
-        const tail = decoder.decode();
-        if (tail) await pdf.text(tail, heading, heading ? 18 : 11);
       }
       if (first === end) await pdf.append("() Tj\n");
       await pdf.append("ET\nQ\n"); y -= heading ? 24 : 15; first = end;

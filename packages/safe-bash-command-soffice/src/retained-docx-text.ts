@@ -95,36 +95,58 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     await output.add(html && element ? await inlineHtml(element) : await escaped(span));
     await output.add(await literal(html ? heading ? "</h1>\n" : "</p>\n" : "</w:t></w:r></w:p>"));
   };
-  const text = async (element: OfficeElement, trim = true): Promise<SofficeSnapshot> => {
-    const runs = new RetainedSpans(storage, signal);
+  const runStyle = async (run: OfficeElement) => {
+    let bold = false, italic = false;
+    for await (const properties of xml.elements(run.open + 1, run.end, ["rPr"])) {
+      for await (const property of xml.elements(properties.open + 1, properties.end, ["b", "i"], true)) {
+        const value = await xml.attribute(property, "val");
+        let setting = "";
+        if (value && value.length <= 5) for await (const bytes of xml.xml.read(value)) setting += new TextDecoder().decode(bytes);
+        const enabled = !value || setting === "1" || setting === "true" || setting === "on";
+        if (await xml.name(property.name) === "b") bold = enabled;
+        else italic = enabled;
+      }
+    }
+    return {bold, italic};
+  };
+  const text = async (element: OfficeElement, preserveStyles = false, trim = true): Promise<SofficeSnapshot & { trim?: number; styles?: SofficeSnapshot }> => {
+    const runs = new RetainedSpans(storage, signal), styles = new RetainedSpans(storage, signal);
+    const owners = xml.elements(element.open + 1, element.end, ["r"])[Symbol.asyncIterator]();
+    let owner = preserveStyles ? await owners.next() : undefined, bold = false, italic = false, styledOwner = -1, length = 0;
     for await (const run of xml.elements(element.open + 1, element.end, ["t", "tab", "br", "cr"], true)) {
       const name = await xml.name(run.name);
-      if (name === "t" && run.end !== run.open) await runs.add(await retainXmlText(storage, xml.xml.read(run.body), signal, false));
-      else if (name !== "t" && run.end === run.open) await runs.add(name === "tab" ? tab : await literal(" "));
+      let span: SofficeSnapshot | undefined;
+      if (name === "t" && run.end !== run.open) span = await retainXmlText(storage, xml.xml.read(run.body), signal, false);
+      else if (name !== "t" && run.end === run.open) span = name === "tab" ? tab : await literal(" ");
+      if (!span) continue;
+      if (preserveStyles) {
+        while (owner && !owner.done && owner.value.end < run.first) owner = await owners.next();
+        const current = owner && !owner.done && owner.value.first < run.first ? owner.value : undefined;
+        if ((current?.first ?? -1) !== styledOwner) {
+          bold = false; italic = false; styledOwner = current?.first ?? -1;
+          if (current) ({bold, italic} = await runStyle(current));
+        }
+        if (bold || italic) {
+          const bytes = new Uint8Array(32), view = new DataView(bytes.buffer);
+          for (const [index, value] of [length, span.size, Number(bold), Number(italic)].entries()) view.setFloat64(index * 8, value);
+          const position = storage.allocate(32); await storage.write(position, bytes); await styles.add({position, size: 32});
+        }
+      }
+      await runs.add(span); length += span.size;
     }
     const joined = await runs.finish(), decoder = new TextDecoder("utf-8", { ignoreBOM: true });
     if (!trim) return joined;
     let first = -1, last = 0, offset = 0;
     const inspect = (text: string) => { for (const char of text) { const point = char.codePointAt(0)!, size = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4; if (char.trim()) { if (first < 0) first = offset; last = offset + size; } offset += size; } };
     for await (const bytes of read(joined)) inspect(decoder.decode(bytes, { stream: true })); inspect(decoder.decode());
-    return { position: joined.position + Math.max(0, first), size: first < 0 ? 0 : last - first };
+    return { position: joined.position + Math.max(0, first), size: first < 0 ? 0 : last - first, trim: Math.max(0, first), ...(preserveStyles ? {styles: await styles.finish()} : {}) };
   };
   const inlineHtml = async (element: OfficeElement): Promise<SofficeSnapshot> => {
     const runs = new RetainedSpans(storage, signal);
     for await (const run of xml.elements(element.open + 1, element.end, ["r"])) {
-      let bold = false, italic = false;
-      for await (const properties of xml.elements(run.open + 1, run.end, ["rPr"])) {
-        for await (const property of xml.elements(properties.open + 1, properties.end, ["b", "i"], true)) {
-          const value = await xml.attribute(property, "val");
-          let setting = "";
-          if (value && value.length <= 5) for await (const bytes of xml.xml.read(value)) setting += new TextDecoder().decode(bytes);
-          const enabled = !value || setting === "1" || setting === "true" || setting === "on";
-          if (await xml.name(property.name) === "b") bold = enabled;
-          else italic = enabled;
-        }
-      }
+      const {bold, italic} = await runStyle(run);
       await runs.add(await literal((bold ? "<b>" : "") + (italic ? "<i>" : "")));
-      await runs.add(await escaped(await text(run, false)));
+      await runs.add(await escaped(await text(run, false, false)));
       await runs.add(await literal((italic ? "</i>" : "") + (bold ? "</b>" : "")));
     }
     return runs.finish();
@@ -225,7 +247,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
           else await addBlock(await table.finish());
         }
       } else {
-        const value = await text(block), list = await lists?.next(xml, block);
+        const value = await text(block, !!documentBlocks), list = await lists?.next(xml, block);
         if (html && list) {
           await closeLists(list.level);
           const current = htmlLists.at(-1);
@@ -241,7 +263,8 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
           await closeLists();
           if (value.size || list) {
             const marked = list?.marker ? await retain((async function* () { yield encoder.encode(list.marker + " "); yield* read(value); })()) : value;
-            await addBlock(marked, await heading(block), false, block);
+            if (documentBlocks) await documentBlocks.paragraph(marked, await heading(block), value.styles, (list?.marker ? encoder.encode(list.marker + " ").length : 0) - (value.trim ?? 0));
+            else await addBlock(marked, await heading(block), false, block);
           }
         }
         for await (const drawing of xml.elements(block.open + 1, block.end, ["drawing", "pict"])) {

@@ -17,8 +17,26 @@ export class RetainedOfficeBlocks implements RetainedTextBlocks {
     this.blocks = new IntegerTable(storage); this.rows = new IntegerTable(storage); this.cells = new IntegerTable(storage);
   }
   snapshot(): RetainedTextSnapshot { return { firstPage: 0, firstBlock: 0, count: this.count }; }
-  async paragraph(span: SofficeSnapshot, heading: boolean): Promise<void> {
-    await this.record(heading ? 1 : 0, span.position, span.size, 0);
+  async paragraph(span: SofficeSnapshot, heading: boolean, styles?: SofficeSnapshot, styleOffset = 0): Promise<void> {
+    let pointer = 0;
+    if (styles?.size) {
+      pointer = this.storage.allocate(24);
+      const bytes = new Uint8Array(24), view = new DataView(bytes.buffer);
+      for (const [field, value] of [styles.position, styles.size, styleOffset].entries()) view.setFloat64(field * 8, value);
+      await this.storage.write(pointer, bytes);
+    }
+    await this.record(heading ? 1 : 0, span.position, span.size, pointer);
+  }
+  async *styles(snapshot: RetainedTextSnapshot, index: number) {
+    const pointer = Number(await this.blocks.get(BigInt((snapshot.firstBlock + index) * 4 + 3)));
+    if (!pointer) return;
+    const bytes = await this.storage.read(pointer, 24), view = new DataView(bytes.buffer, bytes.byteOffset, 24);
+    const position = view.getFloat64(0), size = view.getFloat64(8), shift = view.getFloat64(16);
+    for (let offset = 0; offset < size; offset += 32) {
+      this.signal.throwIfAborted();
+      const bytes = await this.storage.read(position + offset, 32), view = new DataView(bytes.buffer, bytes.byteOffset, 32);
+      yield {start: view.getFloat64(0) + shift, length: view.getFloat64(8), bold: !!view.getFloat64(16), italic: !!view.getFloat64(24)};
+    }
   }
   async addImage(span: SofficeSnapshot, width: number, height: number): Promise<void> {
     const pointer = this.storage.allocate(32), bytes = new Uint8Array(32), view = new DataView(bytes.buffer);

@@ -5511,6 +5511,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-write" || t === "+write") {
+            if (i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
             if (stack.length === 0) throw new Error(`no images for write '${t}'`);
             const writePath = expandFilenameProperties(tokens[++i] ?? "", state);
             if (writePath.slice(0, 4).toLowerCase() === "mpr:") {
@@ -6813,6 +6814,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
+            if (i + 1 >= tokens.length) {
+                stackStep(async () => { throw new Error(`missing argument '${token}'`); });
+                break;
+            }
             const path = expandFilenameProperties(tokens[++i] ?? "", state), quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);

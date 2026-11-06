@@ -21,7 +21,7 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
   const release = context.onClose(() => storage.close()), text = new BackedText(storage, units => context.cooperate(units));
   const mediaManifest = emptyText(), images = new IntegerTable(storage, 64); let imageCount = 0;
   const content = emptyText(), styles = await text.from(odtBaseStyles.values());
-  let top = 0, serial = 0, failure: {reason: unknown} | undefined;
+  let top = 0, serial = 0, noteSerial = 0, failure: {reason: unknown} | undefined;
   const fail = (message: string, code: "E_PARSE" | "E_UNSUPPORTED_FEATURE" = "E_PARSE"): never => {throw new PandocError(code, "convert", message, "odt");};
   const add = async (value: string) => {await text.append(content, await text.from([value]));};
   const push = async (job: Job) => {
@@ -100,6 +100,10 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
         else if (tag === "Span" || tag === "Cite") await push(list(await at(c, 1), "inline"));
         else if (tag === "Quoted") {const single = await tagOf(c + 32) === "SingleQuote"; await sequence(literal(single ? "‘" : "“"), list(await at(c, 1), "inline"), literal(single ? "’" : "”"));}
         else if (tag === "Link") await sequence(literal('<text:a xlink:type="simple" xlink:href="'), {op: "escape", node: (await at(c, 2)) + 32}, literal('">'), list(await at(c, 1), "inline"), literal("</text:a>"));
+        else if (tag === "Note") {
+          const number = ++noteSerial;
+          await sequence(literal(`<text:note text:id="ftn${number}" text:note-class="footnote"><text:note-citation>${number}</text:note-citation><text:note-body>`), list(c, "block"), literal("</text:note-body></text:note>"));
+        }
         else if (tag === "Image") {
           const target = await at(c, 2), resource = await resources.image(target + 32);
           context.charge("images", 1);

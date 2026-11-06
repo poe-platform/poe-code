@@ -86,6 +86,26 @@ export {
   type MediaResourceLimits as FfmpegLimits
 };
 
+function loopToOutputEnd(
+  doc: MediaDocument,
+  endSeconds: number | undefined,
+  budget: MediaBudgetTracker
+): MediaDocument {
+  if (endSeconds === undefined || !Number.isFinite(endSeconds)) {
+    throw new Error("-stream_loop -1 requires a finite output -t or -to");
+  }
+  budget.checkDuration(endSeconds);
+  if (doc.durationSeconds <= 0 || endSeconds <= doc.durationSeconds) return doc;
+  const copies = Math.ceil(endSeconds / doc.durationSeconds);
+  budget.checkConcatInputs(copies);
+  budget.allocateMemory(copies * 8);
+  try {
+    return concatMp4(Array.from({ length: copies }, () => doc), { budget });
+  } finally {
+    budget.releaseMemory(copies * 8);
+  }
+}
+
 function isStdout(path: string): boolean {
   return ["-", "pipe:", "pipe:1", "/dev/stdout", "/dev/fd/1"].includes(path);
 }
@@ -1429,7 +1449,9 @@ export function evalSyncFfmpeg(
       if (inp.startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceMp4(doc, { startSeconds: inp.startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
       }
-      if (inp.streamLoop && inp.streamLoop > 0) {
+      if (inp.streamLoop === -1) {
+        doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
+      } else if (inp.streamLoop && inp.streamLoop > 0) {
         doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
       }
       loadedDocs.push(doc);
@@ -2080,7 +2102,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   durationSeconds: inp.durationSeconds
                 });
               }
-              if (inp.streamLoop && inp.streamLoop > 0) {
+              if (inp.streamLoop === -1) {
+                doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
+              } else if (inp.streamLoop && inp.streamLoop > 0) {
                 const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
                 doc = concatMp4(copies, { limits: options.limits, budget });
               }

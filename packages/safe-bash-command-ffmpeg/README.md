@@ -36,6 +36,8 @@ Explicit `-metadata key=value` tags override copied metadata.
 Each output filename closes its option group: `-t 0.025 a.wav -t 0.075 b.wav`
 writes both files with independent durations. Output options reset after each filename;
 trailing options without a filename do not change earlier outputs.
+`-stream_loop -1` repeats an input up to a finite output `-t` or `-to`, subject to
+media resource limits. Without either output bound, infinite looping fails explicitly.
 `-metadata:s:a:0 language=fra` sets the first output audio track’s language;
 stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all streams (`s`).
 `-disposition:a:0 0 -disposition:a:1 default` selects the second output audio track as the MP4 default.

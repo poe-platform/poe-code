@@ -50,11 +50,30 @@ test("imports quoted UTF-8 fields across chunk boundaries without whole-file rea
   assert.equal(result.stdout, 'é😀|one\r\ntwo\na"b|42\nlast|\n');
 });
 
-for (const [skip, expected] of [[0, '1\n2\n3\n'], [1, '2\n3\n'], [-1, '3\n'], [-2, '2\n3\n'], [1.9, '2\n3\n'], [Infinity, ''], [-Infinity, '1\n2\n3\n']] as const) {
-  test(`retains import skip semantics for ${skip}`, async () => {
+for (const [skip, expected] of [[0, '1\n2\n3\n'], [1, '2\n3\n'], [-1, '1\n2\n3\n'], [-2, '1\n2\n3\n'], [1.9, '2\n3\n'], [Infinity, ''], [-Infinity, '1\n2\n3\n']] as const) {
+  test(`imports with skip ${skip}`, async () => {
     const result = await importFile('1\n2\n3\n', ['CREATE TABLE t(x);', `.import --skip ${skip} /input t`, 'SELECT * FROM t;']);
     assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, expected);
   });
+}
+
+for (const existing of [false, true]) {
+  for (const skip of [-1, -2, -10, 0, 1]) {
+    const content = `${existing ? '' : 'a,b\n'}1,a\n2,b\n3,c\n`;
+    const script = [
+      ...(existing ? ['CREATE TABLE t(a,b);'] : []),
+      `.import --csv --skip ${skip} /input t`,
+      'SELECT * FROM t;'
+    ];
+    const expected = skip > 0 ? '2|b\n3|c\n' : '1|a\n2|b\n3|c\n';
+    test(`CSV import skip ${skip} with ${existing ? 'existing' : 'inferred'} table`, async () => {
+      assert.deepEqual(await importFile(content, script), { code: 0, stdout: expected, stderr: '' });
+    });
+    test(`sync CSV import skip ${skip} with ${existing ? 'existing' : 'inferred'} table`, () => {
+      assert.equal(evalSyncSqlite3(new TextEncoder().encode(script.join('\n')), [':memory:'],
+        () => new TextEncoder().encode(content)), expected);
+    });
+  }
 }
 
 test("imports custom multi-character separators, empty records and permissive quotes", async () => {

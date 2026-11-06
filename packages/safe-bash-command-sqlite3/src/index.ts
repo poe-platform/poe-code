@@ -991,12 +991,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             }
             if (diagnostics) await writeText(context.stderr, diagnostics);
           };
-          skipRows = Math.trunc(skipRows);
-          if (skipRows < 0) {
-            let count = 0;
-            for await (const row of rows()) { void row; context.signal.throwIfAborted(); count++; }
-            skipRows = Math.max(0, count + skipRows);
-          }
+          skipRows = Math.max(0, Math.trunc(skipRows));
           const selected = async function* (report = false): AsyncGenerator<string[]> {
             let index = 0;
             for await (const row of rows(report)) {
@@ -1717,7 +1712,7 @@ export function evalSyncSqlite3(
         const sep = csvOverride ? "," : state.colSeparator;
         let hasDiagnostics = false;
         const parser = new CsvRows(sep, () => { hasDiagnostics = true; });
-        const parsedRows = [...parser.push(content, true)].slice(skipRows);
+        const parsedRows = [...parser.push(content, true)].slice(Math.max(0, skipRows));
         // The stdout-only fast path must defer imports that need diagnostics.
         if (hasDiagnostics) return false;
         let tbl = db.findTable(tableArg);

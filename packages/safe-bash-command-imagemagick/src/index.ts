@@ -3411,31 +3411,37 @@ function* applyMagickCropSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition): Generator<void, RgbaImage[], void> {
-    let work = 0;
+    const tiles: RgbaImage[] = [];
+    for (const area of magickCropAreas(img, geomStr, gravity)) {
+        yield;
+        tiles.push(area ? { ...(yield* extractImageSteps(img, area)), virtualCanvas: magickCropCanvas(img, area.left, area.top) } : img);
+    }
+    return tiles;
+}
+
+function* magickCropAreas(img: Pick<RgbaImage, "width" | "height">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined> {
     const g = parseMagickGeometry(geomStr);
     if (g.isSubdivide) {
         const cols = Math.max(1, Math.round(g.width ?? 1));
         const rows = Math.max(1, Math.round(g.height ?? 1));
-        const tiles: RgbaImage[] = [];
         for (let r = 0; r < rows; r++) {
-            if (++work % 16384 === 0)
-                yield;
             const top = Math.min(img.height - 1, Math.round((r * img.height) / rows));
             const nextTop = Math.max(top + 1, Math.min(img.height, Math.round(((r + 1) * img.height) / rows)));
-            const h = nextTop - top;
             for (let c = 0; c < cols; c++) {
-                if (++work % 16384 === 0)
-                    yield;
                 const left = Math.min(img.width - 1, Math.round((c * img.width) / cols));
                 const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * img.width) / cols)));
-                const w = nextLeft - left;
-                tiles.push({ ...(yield* extractImageSteps(img, { left, top, width: w, height: h })), virtualCanvas: magickCropCanvas(img, left, top) });
+                yield { left, top, width: nextLeft - left, height: nextTop - top };
             }
         }
-        return tiles;
+    } else if (!g.hasOffset) {
+        const width = Math.max(1, Math.round(g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width || img.width));
+        const height = Math.max(1, Math.round(g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height || img.height));
+        for (let top = 0; top < img.height; top += height)
+            for (let left = 0; left < img.width; left += width)
+                yield { left, top, width: Math.min(width, img.width - left), height: Math.min(height, img.height - top) };
+    } else {
+        yield magickCropArea(img, geomStr, gravity);
     }
-    const area = magickCropArea(img, geomStr, gravity);
-    return area ? [{ ...(yield* extractImageSteps(img, area)), virtualCanvas: magickCropCanvas(img, area.left, area.top) }] : [img];
 }
 
 function magickCropArea(img:Pick<RgbaImage,"width"|"height">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined {
@@ -6590,19 +6596,20 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-crop") {
-            const geometry = tokens[++i] ?? "100%", parsed = parseMagickGeometry(geometry), gravity = state.gravity;
-            steps.push(async (image, backend) => {
-                if (!image) return;
-                let area;
-                if (parsed.isSubdivide) {
-                    const columns = Math.max(1, Math.round(parsed.width ?? 1)), rows = Math.max(1, Math.round(parsed.height ?? 1));
-                    const left = Math.min(image.width - 1, Math.round((columns - 1) * image.width / columns)), top = Math.min(image.height - 1, Math.round((rows - 1) * image.height / rows));
-                    area = { left, top, width: image.width - left, height: image.height - top };
-                } else area = magickCropArea(image, geometry, gravity);
-                return area ? {
-                    ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
-                    virtualCanvas: magickCropCanvas(image, area.left, area.top)
-                } : image;
+            const geometry = tokens[++i] ?? "100%", gravity = state.gravity;
+            stackStep(async (stack, backend) => {
+                const frames = new StoredImageStack(backend.storage, signal);
+                for (let n = 0; n < stack.length; n++) {
+                    const image = (await stack.get(n))!;
+                    for (const area of magickCropAreas(image, geometry, gravity)) {
+                        await yieldTurn(signal);
+                        await frames.push(area ? {
+                            ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                            virtualCanvas: magickCropCanvas(image, area.left, area.top)
+                        } : image);
+                    }
+                }
+                return frames;
             });
         } else if (!operandsOnly && token === "-shave") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), width = Math.max(0, Math.round(geometry.width ?? 0)), height = Math.max(0, Math.round(geometry.height ?? width));

@@ -1,6 +1,9 @@
 import { JpegTables } from "./jpeg-tables.js";
 import { parseExifBuffer } from "./exif.js";
 export interface JpegMetadataState {
+  icc?: Uint8Array;
+  iccParts?: Map<number, Uint8Array>;
+  iccCount?: number;
   jpegSamplingFactor?: string;
   tables?: JpegTables;
   quality?: number | undefined;
@@ -18,6 +21,19 @@ export function applyJpegMetadata(
   payload: Uint8Array
 ): boolean {
   let { width, height, channels, isProgressive, density, orientation } = state;
+  if (marker === 0xe2 && payload.length >= 14 && new TextDecoder().decode(payload.subarray(0, 12)) === "ICC_PROFILE\0") {
+    const index = payload[12]!, count = payload[13]!;
+    if (!index || index > count || (state.iccCount !== undefined && state.iccCount !== count) || state.iccParts?.has(index)) throw new Error("Invalid JPEG ICC sequence");
+    state.iccCount = count;
+    (state.iccParts ??= new Map()).set(index, payload.slice(14));
+    if (state.iccParts.size === count) {
+      let length = 0;
+      for (const part of state.iccParts.values()) length += part.length;
+      state.icc = new Uint8Array(length); let offset = 0;
+      for (let i = 1; i <= count; i++) { const part = state.iccParts.get(i)!; state.icc.set(part, offset); offset += part.length; }
+    }
+  }
+  if (marker === 0xda && state.iccParts && !state.icc) throw new Error("Incomplete JPEG ICC sequence");
   if (marker === 0xdb) {
     state.tables ??= new JpegTables();
     state.tables.read(marker, payload);

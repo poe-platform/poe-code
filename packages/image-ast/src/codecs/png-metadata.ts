@@ -1,3 +1,4 @@
+import {createByteCodec} from "@poe-code/compression";
 import type {ImageMetadata} from "../ast.js";
 import {PNG_SIGNATURE} from "./png-chunks.js";
 import {exifMetadataSteps,type MetadataRead} from "./exif-metadata.js";
@@ -16,6 +17,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let resolution: ImageMetadata["resolution"];
   let hasTrns = false;
   let virtualCanvas: ImageMetadata["virtualCanvas"];
+  let icc: Uint8Array | undefined;
   let orientation: number | undefined;
   let backgroundColor: ImageMetadata["backgroundColor"];
   let palette: Uint8Array | undefined;
@@ -36,6 +38,22 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       bitDepth = chunk[8]!;
       colorType = chunk[9]!;
       interlace = chunk[12]!;
+    } else if (type === "iCCP") {
+      if (len > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
+      const chunk = yield {position:dataStart,length:len};
+      const end = chunk.indexOf(0);
+      if (end < 1 || end > 79 || chunk[end + 1] !== 0) throw new Error("Invalid PNG ICC profile");
+      const codec = createByteCodec({direction:"decode",format:"zlib"});
+      const parts: Uint8Array[] = []; let length = 0;
+      try {
+        for (const part of codec.push(chunk.subarray(end + 2), true)) {
+          length += part.length;
+          if (length > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
+          parts.push(part);
+        }
+      } finally { codec.close(); }
+      icc = new Uint8Array(length); let offset = 0;
+      for (const part of parts) { icc.set(part, offset); offset += part.length; }
     } else if (type === "PLTE" && len <= 768) {
       palette = yield {position:dataStart,length:len};
     } else if (type === "bKGD") {
@@ -111,6 +129,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   const depth = bitDepth === 16 ? "ushort" : bitDepth < 8 ? "bit" : "uchar";
 
   return {
+    ...(icc === undefined ? {} : {icc}),
     format: "png",
     ...(colorType === 3 ? {isPalette: true} : {}),
     width,

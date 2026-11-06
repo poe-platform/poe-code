@@ -1,3 +1,4 @@
+import {transformBytes} from "@poe-code/compression";
 export const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 
 const CRC_TABLE = (() => {
@@ -48,4 +49,12 @@ export function canvasChunk(canvas: { width: number; height: number; x: number; 
   view.setUint32(0, canvas.width); view.setUint32(4, canvas.height);
   view.setInt32(8, canvas.x); view.setInt32(12, canvas.y);
   return makeChunk("caNv", bytes);
+}
+
+export function iccChunk(icc: Uint8Array): Uint8Array {
+  const compressed = transformBytes(icc, {direction:"encode",format:"zlib"});
+  const payload = new Uint8Array(5 + compressed.length);
+  payload.set([73, 67, 67, 0, 0]);
+  payload.set(compressed, 5);
+  return makeChunk("iCCP", payload);
 }

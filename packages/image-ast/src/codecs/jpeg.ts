@@ -125,6 +125,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
   }
 
   return {
+    ...(state.icc === undefined ? {} : {icc: state.icc}),
     format: "jpeg",
     ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
     width,
@@ -605,6 +606,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       depth: "uchar",
       density: meta.density,
       hasAlpha: false,
+      ...(meta.icc === undefined ? {} : {icc: meta.icc}),
       ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
       ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
     };
@@ -705,6 +707,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
     depth: "uchar",
     density: meta.density,
     hasAlpha: false,
+    ...(meta.icc === undefined ? {} : {icc: meta.icc}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
   };
@@ -803,7 +806,7 @@ function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
 }
 
 export function createJpegEncoder(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation"|"icc">,
   options?: {
     readonly quality?: number;
     readonly samplingFactor?: string;
@@ -854,6 +857,18 @@ export function createJpegEncoder(
     0x00, 0x00
   ]);
   writeSegment(0xe0, app0);
+
+  if (img.icc) {
+    const count = Math.ceil(img.icc.length / 65519);
+    if (count > 255) throw new Error("ICC profile exceeds JPEG segment limit");
+    for (let index = 0; index < count; index++) {
+      const part = img.icc.subarray(index * 65519, (index + 1) * 65519);
+      const payload = new Uint8Array(14 + part.length);
+      payload.set(new TextEncoder().encode("ICC_PROFILE\0"));
+      payload[12] = index + 1; payload[13] = count; payload.set(part, 14);
+      writeSegment(0xe2, payload);
+    }
+  }
 
   // Optional APP1 Exif
   if (orientation !== undefined && orientation >= 1 && orientation <= 8) {

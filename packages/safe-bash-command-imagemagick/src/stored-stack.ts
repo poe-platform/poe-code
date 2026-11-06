@@ -14,7 +14,7 @@ export interface MagickFormatContext {
 }
 export type StoredMagickImage = StoredRgbaImage & { [magickInput]?: MagickFormatContext };
 interface DelayRegion { position: number; length: number }
-interface FrameRecord { image: Omit<StoredMagickImage, "delay" | "storedDelay">; source?: MagickFormatContext; delays?: DelayRegion }
+interface FrameRecord { image: Omit<StoredMagickImage, "delay" | "storedDelay" | "icc">; source?: MagickFormatContext; delays?: DelayRegion; icc?: DelayRegion }
 
 /** Immutable frame records and frame indices live in caller backing. */
 export class StoredImageStack {
@@ -22,11 +22,13 @@ export class StoredImageStack {
     private readonly frames: Map<number, StoredMagickImage>;
     private readonly records: WeakMap<StoredMagickImage, number>;
     private readonly delayRegions: WeakMap<object, DelayRegion>;
+    private readonly iccRegions: WeakMap<Uint8Array, DelayRegion>;
     length = 0;
     constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal, parent?: StoredImageStack) {
         this.frames = parent?.frames ?? new Map();
         this.records = parent?.records ?? new WeakMap();
         this.delayRegions = parent?.delayRegions ?? new WeakMap();
+        this.iccRegions = parent?.iccRegions ?? new WeakMap();
         this.indices = new IntegerTable(storage, 128);
     }
     private cache(position: number, image: StoredMagickImage): void {
@@ -37,7 +39,7 @@ export class StoredImageStack {
     private async retain(image: StoredMagickImage): Promise<number> {
         const known = this.records.get(image);
         if (known !== undefined) return known;
-        const { delay, storedDelay, ...metadata } = image, source = storedDelay ?? delay;
+        const { delay, storedDelay, icc, ...metadata } = image, source = storedDelay ?? delay;
         let delays = source ? this.delayRegions.get(source) : undefined;
         if (source && !delays) {
             delays = { position: this.storage.allocate(source.length * 9), length: source.length };
@@ -52,7 +54,16 @@ export class StoredImageStack {
             }
             this.delayRegions.set(source, delays);
         }
-        const record: FrameRecord = { image: metadata, ...(image[magickInput] ? { source: image[magickInput] } : {}), ...(delays ? { delays } : {}) };
+        let profile = icc ? this.iccRegions.get(icc) : undefined;
+        if (icc && !profile) {
+            profile = {position:this.storage.allocate(icc.length),length:icc.length};
+            for (let offset=0;offset<icc.length;offset+=4096) {
+                await yieldTurn(this.signal);
+                await this.storage.write(profile.position+offset,icc.subarray(offset,offset+4096));
+            }
+            this.iccRegions.set(icc,profile);
+        }
+        const record: FrameRecord = { image: metadata, ...(profile ? {icc:profile} : {}), ...(image[magickInput] ? { source: image[magickInput] } : {}), ...(delays ? { delays } : {}) };
         const text = JSON.stringify(record), encoder = new TextEncoder(), position = this.storage.allocate(8);
         let size = 0;
         for (let offset = 0; offset < text.length;) {
@@ -77,6 +88,14 @@ export class StoredImageStack {
         }
         const record = JSON.parse(text + decoder.decode()) as FrameRecord;
         const image: StoredMagickImage = { ...record.image, ...(record.source ? { [magickInput]: record.source } : {}) };
+        if (record.icc) {
+            const icc = new Uint8Array(record.icc.length);
+            for (let offset=0;offset<icc.length;offset+=4096) {
+                await yieldTurn(this.signal);
+                icc.set(await this.storage.read(record.icc.position+offset,Math.min(4096,icc.length-offset)),offset);
+            }
+            Object.assign(image,{icc}); this.iccRegions.set(icc,record.icc);
+        }
         if (record.delays) {
             const region = record.delays, storage = this.storage, signal = this.signal;
             const reader: ImageDelayReader = { length: region.length, async at(index, options) {

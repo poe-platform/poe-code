@@ -211,7 +211,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
       marker === 0xdb ||
       marker === 0xda ||
       marker === 0xe0 ||
-      marker === 0xe1 ||
+      marker === 0xe2 || marker === 0xe1 ||
       marker === 0xc0 ||
       marker === 0xc1 ||
       marker === 0xc2
@@ -219,7 +219,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
       const payload = await payloadBytes(
         reader,
         position + 2,
-        Math.min(length - 2, marker === 0xe0 ? 12 : marker === 0xe1 || marker === 0xdb ? 65533 : 6 + 255 * 3)
+        Math.min(length - 2, marker === 0xe0 ? 12 : marker === 0xe2 || marker === 0xe1 || marker === 0xdb ? 65533 : 6 + 255 * 3)
       );
       if (applyJpegMetadata(state, marker, payload)) break;
     }
@@ -229,6 +229,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
   const { width, height, channels, isProgressive, density, orientation } = state;
   if (width <= 0 || height <= 0) throw new Error("Invalid JPEG dimensions");
   return {
+    ...(state.icc === undefined ? {} : {icc: state.icc}),
     format: "jpeg",
     ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
     width,
@@ -535,6 +536,7 @@ export async function decodeJpegToStorage(
       depth: "uchar",
       density: meta.density,
       hasAlpha: false,
+      ...(meta.icc === undefined ? {} : {icc: meta.icc}),
       ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
       ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
     };
@@ -642,6 +644,7 @@ export async function decodeJpegToStorage(
     depth: "uchar",
     density: meta.density,
     hasAlpha: false,
+    ...(meta.icc === undefined ? {} : {icc: meta.icc}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
   };

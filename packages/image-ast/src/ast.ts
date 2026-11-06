@@ -54,6 +54,7 @@ export interface RgbaImage {
   readonly isPremultiplied?: boolean;
   readonly wasPremultiplied?: boolean;
   readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
+  readonly icc?: Uint8Array;
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;
@@ -86,6 +87,7 @@ export interface ImageMetadata {
   readonly compression?: "hevc" | "av1";
   readonly resolution?: { readonly x: number; readonly y: number; readonly unit: "meter" | "unknown" };
   readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
+  readonly icc?: Uint8Array;
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;

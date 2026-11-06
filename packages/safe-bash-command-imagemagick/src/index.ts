@@ -5550,6 +5550,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-strip") {
             state.strip = true;
+            for (let index = 0; index < stack.length; index++) { const {icc: ignored, ...image} = stack[index]!; stack[index] = image; }
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
@@ -6799,7 +6800,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
-        if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
+        if (!operandsOnly && token === "-strip") {
+            state.strip = true;
+            steps.push(async image => { if (!image) return image; const {icc: ignored, ...rest} = image; return rest; });
+            continue;
+        }
         if (!operandsOnly && token === "+repage") {
             steps.push(async image => {
                 if (!image) return;

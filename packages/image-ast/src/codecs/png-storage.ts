@@ -1,5 +1,5 @@
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, makeChunk, canvasChunk} from "./png-chunks.js";
+import {PNG_SIGNATURE, makeChunk, canvasChunk, iccChunk} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
@@ -211,6 +211,10 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   physicalView.setUint32(0,Math.round(density / 0.0254)); physicalView.setUint32(4,Math.round(density / 0.0254)); physical[8] = 1;
   signal.throwIfAborted(); yield makeChunk("pHYs",physical);
   if (image.virtualCanvas !== undefined) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
+  if (image.icc) {
+    const chunk = iccChunk(image.icc);
+    for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
+  }
   const orientation = options.orientation ?? image.orientation;
   if (orientation !== undefined) {signal.throwIfAborted(); yield makeChunk("eXIf",buildExifApp1Segment({orientation,density}).subarray(6));}
   const encoder = createByteCodec({direction:"encode",format:"zlib",chunkSize:4084,level:Math.max(0,Math.min(9,options.compressionLevel ?? 6))});

@@ -13,9 +13,9 @@ for (const known of [false, true]) for (const file of [false, true]) {
       const view = new DataView(bytes.buffer);
       view.setBigUint64(18, view.getBigUint64(18) | 1600n);
     }
-    const args = ["-v", "quiet", "-show_entries", "stream=duration,bit_rate:format=duration,size,bit_rate", "-of", "json", file ? "/input.flac" : "-"];
+    const args = ["-v", "quiet", "-show_entries", "stream=duration_ts,duration,bit_rate:format=duration,size,bit_rate", "-of", "json", file ? "/input.flac" : "-"];
     const expected = {
-      streams: [known ? { duration: "0.200000" } : {}],
+      streams: [known ? { duration_ts: 1600, duration: "0.200000" } : {}],
       format: known ? { duration: "0.200000", size: "8976", bit_rate: "359040" } : { size: "8976" }
     };
     const fs = new MemoryFileSystem();

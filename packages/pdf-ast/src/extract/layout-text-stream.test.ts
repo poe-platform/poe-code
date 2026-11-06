@@ -14,7 +14,7 @@ for(const fixedPitch of [undefined,5])for(const lineSpacing of [undefined,10])it
 });
 it('recomputes cropped text columns',async()=>{
  const fs=createMemoryFileSystem();await fs.mkdir('/scratch');const index=await PdfRawTextIndex.create([glyph('left',0,80),glyph('right',150,80),glyph('next',10,50)],{fs,directory:'/scratch'},{mode:'layout'});
- try{let result='';for await(const part of index.layoutText({crop:[0,0,20,100]}))result+=part;expect(result).toBe('left\n       next');}finally{await index.close();}expect(await fs.readdir('/scratch')).toEqual([]);
+ try{let result='';for await(const part of index.layoutText({crop:[0,0,20,100]}))result+=part;expect(result).toBe('left\n\n\n       next');}finally{await index.close();}expect(await fs.readdir('/scratch')).toEqual([]);
 });
 it('admits all layout caches and retires scratch after early output cancellation',async()=>{
  const fs=createMemoryFileSystem();await fs.mkdir('/scratch');const storage={fs,directory:'/scratch'};

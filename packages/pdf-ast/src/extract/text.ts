@@ -318,10 +318,15 @@ export function formatExtractedPageText(
           }
         }
         let prefixNewlines = "";
-        if (rowIdx > 0 && options.lineSpacing !== undefined && options.lineSpacing > 0) {
+        if (rowIdx > 0) {
           const prevY = rows[rowIdx - 1]![0]!.baselineY;
           const curY = row[0]!.baselineY;
-          const blankCount = Math.max(0, Math.min(40, Math.round((prevY - curY) / options.lineSpacing) - 1));
+          const previous = rows[rowIdx - 1]!.at(-1)!;
+          // Poppler truncates the gap in preceding-font units and caps it at five returns.
+          const fontSize = previous.words[0]?.fontSize ?? 12;
+          const blankCount = options.lineSpacing !== undefined && options.lineSpacing > 0
+            ? Math.max(0, Math.min(40, Math.round((prevY - curY) / options.lineSpacing) - 1))
+            : Math.max(0, Math.min(4, Math.trunc((previous.baselineY - curY) / (fontSize > 0 ? fontSize : 12)) - 1));
           if (blankCount > 0) {
             prefixNewlines = "\n".repeat(blankCount);
           }

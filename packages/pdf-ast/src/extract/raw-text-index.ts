@@ -299,7 +299,7 @@ export class PdfRawTextIndex {
       for(let position=firstLayoutLine;position;position=(await read(position))[0]!)yield position;
     }
     const order=await PdfTextRecordOrder.create(columnLines(),async(a,b)=>{const x=await read(a),y=await read(b),dy=y[7]!-x[7]!;return Math.abs(dy)>4?dy:x[3]!-y[3]!;},this.storage,sortOptions);
-    const cursor=order.values();let failed=false,previousY:number|undefined;
+    const cursor=order.values();let failed=false,previousY:number|undefined,previousEndY=0,previousFontSize=12;
     try{
       let next=await cursor.next(),pending=next.done?undefined:{position:next.value,record:await read(next.value)};
       while(pending){const reference=pending.record[7]!;
@@ -307,7 +307,17 @@ export class PdfRawTextIndex {
         const row=await PdfTextRecordOrder.create(group(),async(a,b)=>(await read(a))[3]!-(await read(b))[3]!,this.storage,sortOptions);let rowFailed=false;
         try{
           let baseline=reference;for await(const position of row.values()){baseline=(await read(position))[7]!;break;}
-          if(previousY!==undefined){let blanks=0;if(options.lineSpacing!==undefined&&options.lineSpacing>0)blanks=Math.max(0,Math.min(40,Math.round((previousY-baseline)/options.lineSpacing)-1));yield "\n".repeat(1+blanks);}previousY=baseline;
+          if(previousY!==undefined){
+            const blanks=options.lineSpacing!==undefined&&options.lineSpacing>0
+              ?Math.max(0,Math.min(40,Math.round((previousY-baseline)/options.lineSpacing)-1))
+              :Math.max(0,Math.min(4,Math.trunc((previousEndY-baseline)/previousFontSize)-1));
+            yield "\n".repeat(1+blanks);
+          }
+          previousY=baseline;
+          for await(const position of row.values()){
+            const line=await read(position);previousEndY=line[7]!;
+            for await(const word of records(line[1]!,line[2]!))if(selected(bounds(word))){previousFontSize=word[7]!>0?word[7]!:12;break;}
+          }
           const pitch=fixed?options.fixedPitch!:6;
           async function* words(){for await(const linePosition of row.values()){const line=await read(linePosition);for await(const wordPosition of positions(line[1]!,line[2]!)){if(selected(bounds(await read(wordPosition))))yield wordPosition;}}}
           const wordOrder=fixed?await PdfTextRecordOrder.create(words(),async(a,b)=>(await read(a))[3]!-(await read(b))[3]!,storage,sortOptions):undefined;

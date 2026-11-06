@@ -1291,6 +1291,7 @@ export function evalSyncFfmpeg(
     const budget = new MediaBudgetTracker();
     const inputs: InputSpec[] = [];
     let pendingFormat: string | undefined;
+    let pendingAudioDecoder: string | undefined;
     let pendingSs: number | undefined;
     let pendingTo: number | undefined;
     let pendingDuration: number | undefined;
@@ -1372,6 +1373,8 @@ export function evalSyncFfmpeg(
         else outputFps = val;
       } else if (arg === "-s") outputSize = args[++i];
       else if (arg === "-i") {
+        if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) return undefined;
+        pendingAudioDecoder = undefined;
         inputs.push({
           path: args[++i] ?? "",
           format: pendingFormat,
@@ -1386,7 +1389,11 @@ export function evalSyncFfmpeg(
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val;
       } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") videoCodec = args[++i];
-      else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") audioCodec = args[++i];
+      else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
+        const value = args[++i];
+        if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;
+        else audioCodec = value;
+      }
       else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") i++;
       else if (arg === "-an") stripAudio = true;
       else if (arg === "-vn") stripVideo = true;
@@ -1610,6 +1617,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
       const inputs: InputSpec[] = [];
       let pendingFormat: string | undefined;
+      let pendingAudioDecoder: string | undefined;
       let pendingSs: number | undefined;
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
@@ -1787,6 +1795,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-s") {
             outputSize = args[++i];
           } else if (arg === "-i") {
+            if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown decoder '${pendingAudioDecoder}'\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingAudioDecoder = undefined;
             const path = args[++i] ?? "";
             inputs.push({
               path,
@@ -1812,7 +1825,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") {
             videoCodec = args[++i];
           } else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
-            audioCodec = args[++i];
+            const value = args[++i];
+            if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;
+            else audioCodec = value;
           } else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") {
             i++;
           } else if (arg === "-an") {

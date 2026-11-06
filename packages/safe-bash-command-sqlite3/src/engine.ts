@@ -479,6 +479,8 @@ export type ExprNode =
     }
   | { kind: "subquery"; sql: string; exists?: boolean; notExists?: boolean };
 
+type WindowSpec = NonNullable<Extract<ExprNode, { kind: "func" }>["over"]>;
+
 interface ExprEvaluation {
   group: Record<string, SqlValue>[];
   window?: { rowIdx: number; results: Map<ExprNode, SqlValue[]> };
@@ -551,7 +553,109 @@ function isFromClause(tokens: Token[], index: number): boolean {
 class ExprParser {
   public pos = 0;
   private paramCounter = 0;
-  constructor(public tokens: Token[]) {}
+  constructor(public tokens: Token[], private windows = new Map<string, WindowSpec>()) {}
+
+  parseWindow(): WindowSpec {
+    if (!this.matchValue("(")) {
+      const name = this.tokens[this.pos++]?.value ?? "";
+      const window = this.windows.get(foldAsciiCase(name));
+      if (!window) throw new Error(`no such window: ${name}`);
+      return window;
+    }
+    let partitionBy: ExprNode[] = [];
+    let orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[] = [];
+    let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
+    const baseToken = this.peek();
+    let base: WindowSpec | undefined;
+    if (baseToken && (baseToken.type === "ident" || baseToken.type === "string" ||
+        (baseToken.type === "word" && !["PARTITION", "ORDER", "ROWS", "RANGE", "GROUPS"].includes(baseToken.value.toUpperCase())))) {
+      this.pos += 1;
+      base = this.windows.get(foldAsciiCase(baseToken.value));
+      if (!base) throw new Error(`no such window: ${baseToken.value}`);
+      if (base.frameBounds) throw new Error(`cannot override frame specification of window: ${baseToken.value}`);
+      partitionBy = base.partitionBy;
+      orderBy = base.orderBy;
+    }
+    if (this.matchWord("PARTITION")) {
+      if (base) throw new Error(`cannot override PARTITION clause of window: ${baseToken!.value}`);
+      this.matchWord("BY");
+      do {
+        partitionBy.push(this.parseExpression());
+      } while (this.matchValue(","));
+    }
+    if (this.matchWord("ORDER")) {
+      if (base?.orderBy.length) throw new Error(`cannot override ORDER BY clause of window: ${baseToken!.value}`);
+      orderBy = [];
+      this.matchWord("BY");
+      do {
+        const expr = this.parseExpression();
+        let desc = false;
+        if (this.matchWord("DESC")) {
+          desc = true;
+        } else {
+          this.matchWord("ASC");
+        }
+        let nulls: "FIRST" | "LAST" | undefined;
+        if (this.matchWord("NULLS")) {
+          if (this.matchWord("FIRST")) {
+            nulls = "FIRST";
+          } else if (this.matchWord("LAST")) {
+            nulls = "LAST";
+          }
+        }
+        orderBy.push({ expr, desc, nulls });
+      } while (this.matchValue(","));
+    }
+    if (this.matchWord("ROWS") || this.matchWord("RANGE") || this.matchWord("GROUPS")) {
+      const type = this.tokens[this.pos - 1]!.value.toUpperCase() as "ROWS" | "RANGE" | "GROUPS";
+      let hasOffset = false;
+      const parseBound = (): number => {
+        if (this.matchWord("UNBOUNDED")) {
+          if (this.matchWord("PRECEDING")) return -Infinity;
+          this.matchWord("FOLLOWING");
+          return Infinity;
+        }
+        if (this.matchWord("CURRENT")) {
+          this.matchWord("ROW");
+          return 0;
+        }
+        hasOffset = true;
+        const numTok = this.peek();
+        const n = Number(numTok?.value ?? 0);
+        if (numTok) this.pos += 1;
+        if (this.matchWord("PRECEDING")) return -n;
+        this.matchWord("FOLLOWING");
+        return n;
+      };
+      if (this.matchWord("BETWEEN")) {
+        const start = parseBound();
+        this.matchWord("AND");
+        const end = parseBound();
+        frameBounds = { type, start, end };
+      } else {
+        const start = parseBound();
+        frameBounds = { type, start, end: 0 };
+      }
+      if (this.matchWord("EXCLUDE")) {
+        if (this.matchWord("CURRENT") && this.matchWord("ROW")) {
+          frameBounds.exclude = "CURRENT ROW";
+        } else if (this.matchWord("GROUP")) {
+          frameBounds.exclude = "GROUP";
+        } else if (this.matchWord("TIES")) {
+          frameBounds.exclude = "TIES";
+        } else if (this.matchWord("NO") && this.matchWord("OTHERS")) {
+          frameBounds.exclude = "NO OTHERS";
+        } else {
+          throw new Error("invalid EXCLUDE clause");
+        }
+      }
+      if (type === "RANGE" && hasOffset && orderBy.length !== 1) {
+        throw new Error("RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression");
+      }
+    }
+    if (!this.matchValue(")")) throw new Error("invalid window specification");
+    return { partitionBy, orderBy, frameBounds };
+  }
 
   peek(offset = 0): Token | undefined {
     return this.tokens[this.pos + offset];
@@ -958,118 +1062,12 @@ class ExprParser {
           this.matchValue(")");
         }
 
-        let over:
-          | {
-              partitionBy: ExprNode[];
-              orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[];
-              frameBounds?: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
-            }
-          | undefined;
-        if (this.matchWord("OVER")) {
-          const partitionBy: ExprNode[] = [];
-          const orderBy: { expr: ExprNode; desc: boolean; nulls?: "FIRST" | "LAST" | undefined }[] = [];
-          let frameBounds: { type: "ROWS" | "RANGE" | "GROUPS"; start: number; end: number; exclude?: "CURRENT ROW" | "GROUP" | "TIES" | "NO OTHERS" } | undefined;
-          if (this.matchValue("(")) {
-            if (this.matchWord("PARTITION")) {
-              this.matchWord("BY");
-              do {
-                partitionBy.push(this.parseExpression());
-              } while (this.matchValue(","));
-            }
-            if (this.matchWord("ORDER")) {
-              this.matchWord("BY");
-              do {
-                const expr = this.parseExpression();
-                let desc = false;
-                if (this.matchWord("DESC")) {
-                  desc = true;
-                } else {
-                  this.matchWord("ASC");
-                }
-                let nulls: "FIRST" | "LAST" | undefined;
-                if (this.matchWord("NULLS")) {
-                  if (this.matchWord("FIRST")) {
-                    nulls = "FIRST";
-                  } else if (this.matchWord("LAST")) {
-                    nulls = "LAST";
-                  }
-                }
-                orderBy.push({ expr, desc, nulls });
-              } while (this.matchValue(","));
-            }
-            if (this.matchWord("ROWS") || this.matchWord("RANGE") || this.matchWord("GROUPS")) {
-              const type = this.tokens[this.pos - 1]!.value.toUpperCase() as "ROWS" | "RANGE" | "GROUPS";
-              let hasOffset = false;
-              const parseBound = (): number => {
-                if (this.matchWord("UNBOUNDED")) {
-                  if (this.matchWord("PRECEDING")) return -Infinity;
-                  this.matchWord("FOLLOWING");
-                  return Infinity;
-                }
-                if (this.matchWord("CURRENT")) {
-                  this.matchWord("ROW");
-                  return 0;
-                }
-                hasOffset = true;
-                const numTok = this.peek();
-                const n = Number(numTok?.value ?? 0);
-                if (numTok) this.pos += 1;
-                if (this.matchWord("PRECEDING")) return -n;
-                this.matchWord("FOLLOWING");
-                return n;
-              };
-              if (this.matchWord("BETWEEN")) {
-                const start = parseBound();
-                this.matchWord("AND");
-                const end = parseBound();
-                frameBounds = { type, start, end };
-              } else {
-                const start = parseBound();
-                frameBounds = { type, start, end: 0 };
-              }
-              if (this.matchWord("EXCLUDE")) {
-                if (this.matchWord("CURRENT") && this.matchWord("ROW")) {
-                  frameBounds.exclude = "CURRENT ROW";
-                } else if (this.matchWord("GROUP")) {
-                  frameBounds.exclude = "GROUP";
-                } else if (this.matchWord("TIES")) {
-                  frameBounds.exclude = "TIES";
-                } else if (this.matchWord("NO") && this.matchWord("OTHERS")) {
-                  frameBounds.exclude = "NO OTHERS";
-                } else {
-                  throw new Error("invalid EXCLUDE clause");
-                }
-              }
-              if (type === "RANGE" && hasOffset && orderBy.length !== 1) {
-                throw new Error("RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression");
-              }
-            }
-            // Skip any remaining window specification tokens.
-            let depth = 1;
-            while (this.pos < this.tokens.length && depth > 0) {
-              const t = this.peek()!;
-              if (t.value === "(") {
-                depth += 1;
-              } else if (t.value === ")") {
-                depth -= 1;
-                if (depth === 0) {
-                  this.pos += 1;
-                  break;
-                }
-              }
-              this.pos += 1;
-            }
-          } else {
-            // OVER window_name
-            this.pos += 1;
-          }
-          over = { partitionBy, orderBy, frameBounds };
-        }
-
+        const over = this.matchWord("OVER") ? this.parseWindow() : undefined;
         if (over && distinct) throw new Error("DISTINCT is not supported for window functions");
         if (over && filterWhere && !isAggregateFunction({ kind: "func", name, args })) {
           throw new Error("FILTER clause may only be used with aggregate window functions");
         }
+
         return { kind: "func", name, args, distinct, star, filterWhere, over };
       }
 
@@ -4845,6 +4843,7 @@ export class SqliteDatabase {
       limitTokens: Token[] | undefined;
       targetItems: Token[][];
       staticTargets: { expr: ExprNode; alias: string }[] | undefined;
+      windows: Map<string, WindowSpec>;
     }
   >();
 
@@ -5119,6 +5118,14 @@ export class SqliteDatabase {
         return tokens.slice(startTok, endTok);
       };
 
+      const windows = new Map<string, WindowSpec>();
+      for (const definition of this.splitTopLevelComma(getClauseTokens("WINDOW") ?? [])) {
+        const parser = new ExprParser(definition, windows);
+        const name = definition[parser.pos++]!.value;
+        if (!parser.matchWord("AS")) throw new Error("invalid WINDOW clause");
+        const window = parser.parseWindow();
+        windows.set(foldAsciiCase(name), window);
+      }
       const fromTokens = getClauseTokens("FROM");
       const whereTokens = getClauseTokens("WHERE");
       const groupByTokens = getClauseTokens("GROUP BY");
@@ -5139,7 +5146,7 @@ export class SqliteDatabase {
       const staticTargets = hasWildcard
         ? undefined
         : targetItems.map((itemToks) => {
-            return this.parseSelectTarget(itemToks);
+            return this.parseSelectTarget(itemToks, windows);
           });
       plan = {
         distinct,
@@ -5150,7 +5157,8 @@ export class SqliteDatabase {
         orderByTokens,
         limitTokens,
         targetItems,
-        staticTargets
+        staticTargets,
+        windows
       };
       this.singleSelectCache.set(tokens, plan);
     }
@@ -5164,7 +5172,8 @@ export class SqliteDatabase {
       orderByTokens,
       limitTokens,
       targetItems,
-      staticTargets
+      staticTargets,
+      windows
     } = plan;
 
     // 1. Evaluate FROM & JOINs into row contexts
@@ -5216,7 +5225,7 @@ export class SqliteDatabase {
             }
           }
         } else {
-          selectTargets.push(this.parseSelectTarget(itemToks));
+          selectTargets.push(this.parseSelectTarget(itemToks, windows));
         }
       }
     }
@@ -5514,7 +5523,7 @@ export class SqliteDatabase {
     // 5. Evaluate ORDER BY
     if (orderByTokens && orderByTokens.length > 0) {
       const orderSpecs = this.splitTopLevelComma(orderByTokens).map((ot) => {
-        const p = new ExprParser(ot);
+        const p = new ExprParser(ot, windows);
         const expr = p.parseExpression();
         let desc = false;
         let collation = "BINARY";
@@ -6696,8 +6705,8 @@ export class SqliteDatabase {
     return items;
   }
 
-  private parseSelectTarget(itemToks: Token[]): { expr: ExprNode; alias: string } {
-    const p = new ExprParser(itemToks);
+  private parseSelectTarget(itemToks: Token[], windows?: Map<string, WindowSpec>): { expr: ExprNode; alias: string } {
+    const p = new ExprParser(itemToks, windows);
     const expr = p.parseExpression();
     let alias: string | undefined;
     if (p.matchWord("AS")) {

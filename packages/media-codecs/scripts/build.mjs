@@ -55,7 +55,7 @@ run("./configure", ["--cc=" + compiler, "--ar=" + join(compilerRoot, "emar"), "-
   "--disable-debug", "--enable-decoder=h264,aac", "--enable-parser=h264", "--extra-cflags=-O2"], "ffmpeg-configure", source);
 run("make", ["-j4"], "ffmpeg-make", source);
 const artifact = join(output, "runtime.js");
-const exports = ["_malloc", "_free", "_decoder_create", "_decoder_free", "_decoder_send", "_decoder_receive", "_aac_create", "_aac_receive", "_audio_create", "_audio_free", "_audio_header", "_audio_send", "_audio_receive"];
+const exports = ["_malloc", "_free", "_decoder_create", "_decoder_free", "_decoder_send", "_decoder_receive", "_scale_picture", "_aac_create", "_aac_receive", "_audio_create", "_audio_free", "_audio_header", "_audio_send", "_audio_receive"];
 const arguments_ = ["-O2", join(root, "scripts/codec.c"), "-I" + source, "-I" + join(prefix, "include"),
   join(source, "libavcodec/aom_film_grain.c"), join(source, "libavcodec/libavcodec.a"), join(source, "libswscale/libswscale.a"), join(source, "libavutil/libavutil.a"),
   ...["libvorbisenc.a", "libvorbis.a", "libogg.a", "libopus.a"].map(name => join(prefix, "lib", name)),

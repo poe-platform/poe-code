@@ -7,7 +7,18 @@ export interface VideoPacket {
   readonly duration: number;
 }
 
+export interface NativeVideoPixels {
+  readonly rgba: Uint8Array;
+  readonly pixels: Uint8Array;
+  readonly width: number;
+  readonly height: number;
+  readonly format: number;
+  readonly colorspace: number;
+  readonly fullRange: number;
+}
+
 export interface VideoPicture {
+  readonly native?: NativeVideoPixels;
   readonly width: number;
   readonly height: number;
   readonly data: Uint8Array;
@@ -62,7 +73,7 @@ export function* decodeH264(
       const pointer = module._decoder_receive(decoder);
       if (pointer === 0) return;
       if (pointer < 0) throw new Error(`H.264 frame decode failed (${pointer})`);
-      const view = new DataView(module.HEAPU8.buffer, pointer, 32);
+      const view = new DataView(module.HEAPU8.buffer, pointer, 52);
       const width = view.getInt32(0, true);
       const height = view.getInt32(4, true);
       const data = view.getUint32(8, true);
@@ -70,13 +81,49 @@ export function* decodeH264(
       if (width <= 0 || height <= 0 || width * height > maxPixels || length !== width * height * 4) {
         throw new Error("H.264 frame exceeds configured dimensions");
       }
+      const rgba = module.HEAPU8.slice(data, data + length);
+      const pixels = view.getUint32(32, true);
+      const pixelLength = view.getInt32(36, true);
       yield {
         width, height,
-        data: module.HEAPU8.slice(data, data + length),
+        data: rgba,
+        native: {
+          rgba, pixels: module.HEAPU8.slice(pixels, pixels + pixelLength), width, height,
+          format: view.getInt32(40, true), colorspace: view.getInt32(44, true), fullRange: view.getInt32(48, true)
+        },
         pts: view.getFloat64(16, true),
         duration: view.getFloat64(24, true)
       };
     }
+  }
+}
+
+/** Scale original decoded pixels; changed RGBA frames must use the caller's RGB scaler. */
+export function scaleVideoPicture(
+  frame: { data: Uint8Array; width: number; height: number; native?: NativeVideoPixels },
+  width: number, height: number
+): Uint8Array | undefined {
+  const source = frame.native;
+  if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height) return undefined;
+  if (![width, height].every(value => Number.isSafeInteger(value) && value > 0) || width * height > 33554432) {
+    throw new Error("Invalid scaled video dimensions");
+  }
+  const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
+  let input = 0;
+  let output = 0;
+  try {
+    input = module._malloc(source.pixels.length + 64);
+    output = module._malloc(width * height * 4 + 64);
+    if (!input || !output) throw new Error("Video scaling allocation failed");
+    module.HEAPU8.set(source.pixels, input);
+    module.HEAPU8.fill(0, input + source.pixels.length, input + source.pixels.length + 64);
+    const status = module._scale_picture(input, source.pixels.length, source.width, source.height,
+      source.format, source.colorspace, source.fullRange, output, width, height);
+    if (status < 0) throw new Error(`Video scaling failed (${status})`);
+    return module.HEAPU8.slice(output, output + width * height * 4);
+  } finally {
+    module._free(input);
+    module._free(output);
   }
 }
 

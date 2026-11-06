@@ -20,6 +20,7 @@ and `pipe:` aliases. Shell and media input limits count bytes cumulatively acros
 stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
+Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 WAV extraction decodes AAC in memory and honors MP4 priming and edit timing:
 `ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported
 audio fails without replacing an existing output. Audio filters still require

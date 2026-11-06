@@ -1,3 +1,5 @@
+import type { NativeVideoPixels } from "@poe-code/media-codecs";
+
 /**
  * Consumer-defined resource limits.
  * IMPORTANT: No limits are imposed by default when omitted (`undefined`).
@@ -189,6 +191,7 @@ export class MediaBudgetTracker {
 export type MediaTrackType = "video" | "audio" | "subtitle" | "data";
 
 export interface MediaVideoFrame {
+  readonly native?: NativeVideoPixels;
   readonly width: number;
   readonly height: number;
   readonly data: Uint8Array; // RGBA 4 bytes per pixel

@@ -40,6 +40,7 @@ import {
   createMediaAstRegistry,
   createSyntheticMp4,
   decodeH264Samples,
+  scaleVideoPicture,
   decodeUtf8,
   encodeUtf8,
   parseSubtitleDocument,
@@ -708,7 +709,7 @@ async function applyVideoFilterChain(
             ...f,
             width: targetW,
             height: targetH,
-            data: await scaleFrame(f.data, f.width, f.height, targetW, targetH, signal)
+            data: scaleVideoPicture(f, targetW, targetH) ?? await scaleFrame(f.data, f.width, f.height, targetW, targetH, signal)
           };
         }
         const resized = resizeImage(makeRgbaImg(f.width, f.height, f.data), {

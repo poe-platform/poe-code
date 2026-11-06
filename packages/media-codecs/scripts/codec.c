@@ -12,6 +12,8 @@ typedef struct {
     uint8_t *rgba;
     int length;
     double pts, duration;
+    uint8_t *pixels;
+    int pixel_length, format, colorspace, full_range;
 } Picture;
 
 typedef struct {
@@ -20,6 +22,7 @@ typedef struct {
     AVPacket *packet;
     struct SwsContext *scaler;
     uint8_t *rgba;
+    uint8_t *pixels;
     size_t capacity;
     Picture picture;
     struct { int rate, channels, count; float *data; double pts; } audio;
@@ -32,6 +35,7 @@ void decoder_free(Decoder *decoder) {
     av_packet_free(&decoder->packet);
     sws_freeContext(decoder->scaler);
     av_free(decoder->rgba);
+    av_free(decoder->pixels);
     av_free(decoder);
 }
 
@@ -136,8 +140,40 @@ intptr_t decoder_receive(Decoder *decoder) {
     result = sws_scale(decoder->scaler, (const uint8_t *const *)frame->data,
         frame->linesize, 0, frame->height, output, strides);
     if (result != frame->height) return AVERROR_INVALIDDATA;
-    decoder->picture = (Picture){frame->width, frame->height, decoder->rgba, length, (double)frame->pts, (double)frame->duration};
+    int pixel_length = av_image_get_buffer_size(frame->format, frame->width, frame->height, 1);
+    if (pixel_length < 0) return pixel_length;
+    av_freep(&decoder->pixels);
+    decoder->pixels = av_mallocz(pixel_length + AV_INPUT_BUFFER_PADDING_SIZE);
+    if (!decoder->pixels) return AVERROR(ENOMEM);
+    result = av_image_copy_to_buffer(decoder->pixels, pixel_length,
+        (const uint8_t *const *)frame->data, frame->linesize, frame->format, frame->width, frame->height, 1);
+    if (result < 0) return result;
+    decoder->picture = (Picture){frame->width, frame->height, decoder->rgba, length, (double)frame->pts, (double)frame->duration,
+        decoder->pixels, pixel_length, frame->format, frame->colorspace, frame->color_range == AVCOL_RANGE_JPEG};
     return (intptr_t)&decoder->picture;
+}
+
+/* Packed native pixels remain valid after their decoder has been released. */
+int scale_picture(const uint8_t *pixels, int length, int width, int height, int format,
+    int colorspace, int full_range, uint8_t *rgba, int target_width, int target_height) {
+    int expected = av_image_get_buffer_size(format, width, height, 1);
+    if (expected <= 0 || expected != length) return AVERROR_INVALIDDATA;
+    uint8_t *planes[4];
+    int strides[4];
+    if (av_image_fill_arrays(planes, strides, pixels, format, width, height, 1) < 0)
+        return AVERROR_INVALIDDATA;
+    int flags = width == target_width && height == target_height
+        ? SWS_POINT | SWS_ACCURATE_RND | SWS_FULL_CHR_H_INT : SWS_BICUBIC;
+    struct SwsContext *scaler = sws_getContext(width, height, format, target_width, target_height,
+        AV_PIX_FMT_RGBA, flags, NULL, NULL, NULL);
+    if (!scaler) return AVERROR(ENOMEM);
+    const int *coefficients = sws_getCoefficients(colorspace == AVCOL_SPC_UNSPECIFIED ? SWS_CS_DEFAULT : colorspace);
+    sws_setColorspaceDetails(scaler, coefficients, full_range, coefficients, 1, 0, 1 << 16, 1 << 16);
+    uint8_t *output[] = { rgba, NULL, NULL, NULL };
+    int output_strides[] = { target_width * 4, 0, 0, 0 };
+    int result = sws_scale(scaler, (const uint8_t *const *)planes, strides, 0, height, output, output_strides);
+    sws_freeContext(scaler);
+    return result == target_height ? 0 : AVERROR_INVALIDDATA;
 }
 
 #include <vorbis/vorbisenc.h>

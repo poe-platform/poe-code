@@ -2773,3 +2773,22 @@ it("bounds frames duplicated by output synchronization", async () => {
   assert.match(result.stderr, /maxFrames/);
   assert.ok(vfs.store.size <= 5);
 });
+
+for (const [width, height] of [[32, 24], [96, 72], [33, 25]]) {
+  it(`matches native default scaling of decoded YUV H.264 pixels at ${width}x${height}`, async () => {
+    const { readFileSync } = await import("node:fs");
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const vfs = createTestVfs({ "/input.mp4": readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mp4", import.meta.url)) });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/input.mp4", "-vf", `scale=${width}:${height}`, "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = decodeImage(vfs.store.get("/out.png")!);
+    // FFmpeg 9.0.2: -i h264-b-frames.mp4 -vf scale=32:24 -frames:v 1 reference.png
+    const expected = decodeImage(readFileSync(new URL(`./fixtures/h264-scale-${width}x${height}.png`, import.meta.url)));
+    assert.equal(actual.width, expected.width);
+    assert.equal(actual.height, expected.height);
+    const maximum = Math.max(...actual.data.map((value, index) => Math.abs(value - expected.data[index]!)));
+    assert.ok(maximum <= 1, `maximum channel difference: ${maximum}`);
+  });
+}

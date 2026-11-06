@@ -27,3 +27,5 @@ export { scanMp4CodecDescriptions } from './mp4-codec-source.js';
 export type { Mp4CodecMetadata } from './mp4-codec-metadata.js';
 
 export { probeMp4MetadataSource } from './mp4-metadata-source.js';
+
+export { scaleVideoPicture } from "@poe-code/media-codecs";

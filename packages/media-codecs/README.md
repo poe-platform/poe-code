@@ -5,7 +5,9 @@ browser and Worker runtimes without Node, network access, or runtime WebAssembly
 compilation. The static JavaScript runtime initializes only when a codec is used.
 
 - H.264: CAVLC/CABAC, intra/inter prediction, reference pictures, B-frame ordering,
-  SPS cropping, color conversion, and delayed-frame flushing.
+  SPS cropping, color conversion, and delayed-frame flushing. `scaleVideoPicture(frame, width, height)`
+  scales retained native pixels before RGB conversion; it returns `undefined` for
+  frames whose RGBA buffer or dimensions have been replaced. Treat decoded buffers as immutable.
 - AAC: decode access units to planar float PCM, retaining timestamps and priming
   for the container to apply presentation edits.
 - Ogg audio: Vorbis and mono/stereo Opus packets, codec headers, encoder delay,

@@ -12,6 +12,7 @@ export interface CodecRuntime {
   _decoder_create(extra: number, length: number, maxPixels: number): number;
   _decoder_free(decoder: number): void;
   _decoder_send(decoder: number, data: number, length: number, pts: number, dts: number, duration: number): number;
+  _scale_picture(pixels: number, length: number, width: number, height: number, format: number, colorspace: number, fullRange: number, rgba: number, targetWidth: number, targetHeight: number): number;
   _decoder_receive(decoder: number): number;
 }
 export default function createCodecRuntime(options?: { printErr?: (text: string) => void; locateFile?: () => string }): CodecRuntime;

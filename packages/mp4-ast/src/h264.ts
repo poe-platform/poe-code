@@ -45,6 +45,7 @@ export function* decodeH264Samples(
       width: picture.width,
       height: picture.height,
       data: picture.data,
+      ...(picture.native ? { native: picture.native } : {}),
       ptsSeconds: picture.pts / timescale,
       durationSeconds: source.duration / timescale,
       keyframe: source.isKeyframe

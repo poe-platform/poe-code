@@ -1,6 +1,6 @@
 # `@poe-platform/safe-bash/commands/pdfimages`
 
-Zero-dependency Poppler `pdfimages` image extractor and inspector for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. List and extract embedded XObject, nested Form XObject, and inline PDF images to `.png`, `.jpg`, `.ppm`, or `.pbm`.
+Zero-dependency Poppler `pdfimages` image extractor and inspector for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. List and extract embedded XObject, nested Form XObject, and inline PDF images to `.png`, `.jpg`, `.ppm`, or `.pbm`. Soft masks appear as separate numbered `smask` images; the primary image retains its original colors without applying the mask.
 
 ## Features
 

@@ -4,6 +4,7 @@ import { pdfImageCodec } from "../cos/filter-stream.js";
 import { assertDecodedByteBudget } from "../cos/limits.js";
 import { Jbig2Image, JpegImage, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { DeviceCmykCS } from "../vendor/pdfjs-fonts.mjs";
+import { cmykToRgb } from "./cmyk.js";
 import { createCalibratedColorSpace, type CalibratedColorSpace } from "../content/calibrated-color.js";
 import { PdfError } from "../errors.js";
 import {
@@ -20,12 +21,13 @@ import { evalShadingFunctionToComponents, evalShadingFunctionSteps, type PdfFunc
 import { decodePdfFilter } from "../cos/filters.js";
 import { ParsedCosDocument } from "../cos/parser.js";
 import type { RgbaBitmap } from "../render/raster.js";
+
 const cmykColorSpace = new DeviceCmykCS();
 
 export interface PdfExtractedImage {
   readonly pageNumber: number;
   readonly imageIndex: number;
-  readonly type: "image" | "stencil";
+  readonly type: "image" | "stencil" | "smask";
   readonly objectId?: { readonly objNum: number; readonly genNum: number } | undefined;
   readonly inline: boolean;
   readonly width: number;
@@ -384,14 +386,19 @@ export function *decodeJpegToRgbaSteps(
   }
   if (![1, 3, 4].includes(components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG component count");
   assertDecodedByteBudget(width * height * 4, maxDecodedBytes);
-  const rgb = decoder.getData({ width, height, forceRGB: true, isSourcePDF: options.isSourcePdf ?? false });
-  if (rgb.length !== width * height * 3) throw new PdfError("E_PARSE", "Invalid decoded JPEG sample count");
+  const rgb = decoder.getData({ width, height, forceRGB: components !== 4, isSourcePDF: options.isSourcePdf ?? false });
+  const channels = components === 4 ? 4 : 3;
+  if (rgb.length !== width * height * channels) throw new PdfError("E_PARSE", "Invalid decoded JPEG sample count");
   const rgba = new Uint8Array(width * height * 4);
   for (let p = 0; p < width * height; p++) {
     if (++work % 16384 === 0) yield;
+    if (components === 4) {
+      cmykToRgb(rgb[p * 4]! / 255, rgb[p * 4 + 1]! / 255, rgb[p * 4 + 2]! / 255, rgb[p * 4 + 3]! / 255, rgba, p * 4);
+    } else {
     rgba[p * 4] = rgb[p * 3]!;
     rgba[p * 4 + 1] = rgb[p * 3 + 1]!;
     rgba[p * 4 + 2] = rgb[p * 3 + 2]!;
+    }
     rgba[p * 4 + 3] = 255;
   }
   return { width, height, components, data: rgba };
@@ -1082,6 +1089,7 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
     readonly firstPage?: number;
     readonly lastPage?: number;
     readonly signal?: AbortSignal | undefined;
+    readonly separateSoftMasks?: boolean;
 } = {}): Generator<void, PdfExtractedImage[], void> {
     let work = 0;
     const catalog = doc.resolveDict(doc.rootRef);
@@ -1104,12 +1112,13 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
         const extractFromXObjectStreamSteps = function* (xobjStream: PdfCosStream, objectId: {
             readonly objNum: number;
             readonly genNum: number;
-        } | undefined, ctm: Matrix6, activeRes: PdfCosDict | undefined): Generator<void, void, void> {
+        } | undefined, ctm: Matrix6, activeRes: PdfCosDict | undefined, softMask = false): Generator<void, void, void> {
             const dict = xobjStream.dict;
             const interpNode = doc.resolve(dictGet(dict, "Interpolate") ?? dictGet(dict, "I"));
             const imageMaskNode = doc.resolve(dictGet(dict, "ImageMask") ?? dictGet(dict, "IM"));
             const isMask = imageMaskNode?.kind === "boolean" && imageMaskNode.value;
-            const { width, height, bitsPerComponent, rgba, colorSpace } = (yield* decodeXObjectImageToRgbaSteps(doc, xobjStream, activeRes));
+            const source = options.separateSoftMasks ? { ...xobjStream, dict: { ...dict, entries: dict.entries.filter(entry => entry.key.decoded !== "SMask") } } : xobjStream;
+            const { width, height, bitsPerComponent, rgba, colorSpace } = (yield* decodeXObjectImageToRgbaSteps(doc, source, activeRes));
             const interpolate = interpNode?.kind === "boolean" ? interpNode.value : false;
             const csNode = dictGet(dict, "ColorSpace") ?? dictGet(dict, "CS");
             const csInfo: ResolvedColorSpace = isMask
@@ -1164,7 +1173,7 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
             extracted.push({
                 pageNumber,
                 imageIndex: imageIndex++,
-                type: isMask ? "stencil" : "image",
+                type: softMask ? "smask" : isMask ? "stencil" : "image",
                 objectId,
                 inline: false,
                 width,
@@ -1184,6 +1193,10 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
                 ...(jbig2GlobalsBytes !== undefined ? { jbig2GlobalsBytes } : {}),
                 ...(ccittParams !== undefined ? { ccittParams } : {}),
             });
+            if (options.separateSoftMasks && !softMask) {
+                const mask = doc.resolve(dictGet(dict, "SMask"));
+                if (mask?.kind === "stream") yield* extractFromXObjectStreamSteps(mask, objectId, ctm, activeRes, true);
+            }
         };
         const ctmStack: Matrix6[] = [[1, 0, 0, 1, 0, 0]];
         const currentCtm = (): Matrix6 => ctmStack[ctmStack.length - 1]!;
@@ -1481,7 +1494,7 @@ export function decodeInlineImageNodeToRgba(
 
 export function extractDocumentImages(
   doc: ParsedCosDocument,
-  options: { readonly firstPage?: number; readonly lastPage?: number } = {}
+  options: { readonly firstPage?: number; readonly lastPage?: number; readonly separateSoftMasks?: boolean } = {}
 ): PdfExtractedImage[] {
   const steps = extractDocumentImagesSteps(doc, options);
   let next = steps.next();

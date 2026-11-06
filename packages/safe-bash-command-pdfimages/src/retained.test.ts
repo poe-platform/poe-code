@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosNumber, decodeJpegToRgba, decodePng, dictSet, encodeJpeg, PdfDocument } from "@poe-code/pdf-ast";
+import { cosNumber, decodeJpegToRgba, decodePng, dictSet, encodePng, encodeJpeg, PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createPdfimagesCommand, runPdfimagesCli } from "./index.js";
 
@@ -129,4 +129,25 @@ it("uses dictionary dimensions for the checked-in PDF.js JPEG fixture", async ()
   const listing = await runPdfimagesCli(["-list", "in.pdf"], files);
   expect(listing.stdout.split("\n")[2]).toContain("   1     0 image     200   100  rgb     3   8  jpeg   no         4  0    29    18  580B");
   for (const flags of [["-png"], ["-list"]]) await compareCommand(input, flags);
+});
+
+it("extracts numbered soft masks on selected pages in both paths", async () => {
+  const doc = PdfDocument.create();
+  const image = doc.embedPng(encodePng({width:2,height:2,data:new Uint8Array([255,10,20,128,10,250,30,64,20,30,240,255,255,255,0,0])}));
+  for (let page = 0; page < 2; page++) doc.addPage([100,100]).drawImage(image,{x:10,y:10,width:50,height:50});
+  const input = doc.save();
+  const files = new Map([["in.pdf",input]]);
+  const result = await runPdfimagesCli(["-list","-f","2","-l","2","in.pdf"], files);
+  // Poppler 26.08.0 reports the parent object ID for both rows.
+  expect(result.stdout.split("\n").slice(2)).toEqual([
+    "   2     0 image       2     2  rgb     3   8  image  no         5  0     3     3   20B 167%",
+    "   2     1 smask       2     2  gray    1   8  image  no         5  0     3     3   12B 300%",
+    "",
+  ]);
+  const extracted = await runPdfimagesCli(["-f","2","-l","2","-p","-png","-print-filenames","in.pdf","out"], files);
+  expect(extracted.stdout).toBe("out-002-000.png\nout-002-001.png\n");
+  const unique = new Map([["in.pdf",input]]);
+  await runPdfimagesCli(["-u","-png","in.pdf","out"], unique);
+  expect([...unique.keys()]).toEqual(["in.pdf","out-000.png","out-001.png"]);
+  for (const flags of [["-list"],["-png"],["-u","-png"],["-f","2","-l","2","-list"],["-f","2","-l","2","-p","-png","-print-filenames"]]) await compareCommand(input,flags);
 });

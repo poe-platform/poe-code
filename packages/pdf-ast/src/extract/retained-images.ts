@@ -10,7 +10,7 @@ import type { PdfRetainedDocument, PdfRetainedValue } from "../retained-document
 import { PdfFileSource } from "../source.js";
 
 type Matrix = [number, number, number, number, number, number];
-export interface PdfImageSelection { readonly firstPage?: number; readonly lastPage?: number }
+export interface PdfImageSelection { readonly firstPage?: number; readonly lastPage?: number; readonly separateSoftMasks?: boolean }
 /** A lazy occurrence. Consume its payload before advancing the image iterator.
  * Neither decoded pixels nor encoded image bytes are retained by the occurrence. */
 export interface PdfRetainedImage {
@@ -20,6 +20,7 @@ export interface PdfRetainedImage {
   readonly resources: PdfCosDict;
   readonly matrix: Readonly<Matrix>;
   readonly reference?: PdfCosRef;
+  readonly softMaskOf?: PdfCosRef;
   readonly inline: boolean;
   readonly byteLength: number;
   contents(options?: { native?: boolean; raw?: boolean }): AsyncGenerator<Uint8Array, void, void>;
@@ -47,12 +48,12 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
     if (page.index + 1 > last) break;
     const resources = (await page.attributes()).resources;
     async function* occurrence(dict: PdfCosDict, activeResources: PdfCosDict, matrix: Matrix, length: number,
-      read: (native: boolean, raw: boolean) => AsyncIterable<Uint8Array>, reference?: PdfCosRef, inline = false): AsyncGenerator<PdfRetainedImage, void, void> {
+      read: (native: boolean, raw: boolean) => AsyncIterable<Uint8Array>, reference?: PdfCosRef, inline = false, softMaskOf?: PdfCosRef): AsyncGenerator<PdfRetainedImage, void, void> {
       let alive = true;
       function check() { options.signal?.throwIfAborted(); if (!alive) throw new PdfError("E_CAPABILITY", "PDF image occurrence expired"); }
       try {
         yield { pageNumber: page.index + 1, imageIndex: imageIndex++, dict, resources: activeResources, matrix: [...matrix], byteLength: length, inline,
-          ...(reference ? { reference } : {}),
+          ...(reference ? { reference } : {}), ...(softMaskOf ? { softMaskOf } : {}),
           async *contents(selection = {}) {
             check();
             for await (const chunk of read(selection.native ?? false, selection.raw ?? false)) { check(); yield chunk; }
@@ -65,6 +66,14 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
       const ref = value.reference;
       yield* occurrence(value.value, activeResources, matrix, value.stream.end - value.stream.start,
         (native, raw) => document.objects.decodeStream(ref.objectNumber, ref.generationNumber, { stopBeforeImageCodec: native, raw }), ref);
+      if (options.separateSoftMasks) {
+        const mask = await document.lookup(await readPdfDictionaryValue(value.value, "SMask", options.signal));
+        if (mask?.value.kind === "dict" && mask.stream && mask.reference) {
+          const maskRef = mask.reference;
+          yield* occurrence(mask.value, activeResources, matrix, mask.stream.end - mask.stream.start,
+            (native, raw) => document.objects.decodeStream(maskRef.objectNumber, maskRef.generationNumber, { stopBeforeImageCodec: native, raw }), maskRef, false, ref);
+        }
+      }
     }
     async function* content(input: AsyncIterable<Uint8Array>, activeResources: PdfCosDict, initial: Matrix,
       active: Set<number>, depth: number): AsyncGenerator<PdfRetainedImage, void, void> {

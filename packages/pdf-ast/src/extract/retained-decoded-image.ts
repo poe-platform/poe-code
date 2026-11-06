@@ -18,6 +18,7 @@ import { decodeRetainedSampleRows } from "./retained-samples.js";
 
 type Input = Pick<PdfRetainedImage, "dict" | "resources" | "contents">;
 export interface PdfRetainedImageDecodeOptions {
+  readonly applySoftMask?: boolean;
   readonly maxWorkingBytes?: number;
   /** Compose decoder and color allocations with a containing resource owner. */
   readonly onAllocation?: (bytes: number) => void;
@@ -132,6 +133,7 @@ export class PdfRetainedDecodedImage {
       const parameter = parameters?.kind === "array" ? await resolve(parameters.items[index]) : parameters;
       const masks: { source: PdfFileSource; width: number; height: number; mode: "soft" | "explicit"; matte?: [number, number, number] }[] = [];
       for (const key of ["SMask", "Mask"] as const) {
+        if (key === "SMask" && options.applySoftMask === false) continue;
         if (key === "Mask" && !native && stencil && options.fillColor) continue;
         const value = await document.lookup(await readPdfDictionaryValue(dict, key, signal, {preserveDeferred:true}), backedValues, undefined, true); if (!value?.stream || value.value.kind !== "dict" || !value.reference) continue;
         const ref = value.reference;

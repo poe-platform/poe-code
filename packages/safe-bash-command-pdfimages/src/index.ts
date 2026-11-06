@@ -229,6 +229,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         };
     }
     const allExtracted = (yield* extractDocumentImagesSteps(doc.cos, {
+        separateSoftMasks: true,
         firstPage,
         ...(lastPage > 0 ? { lastPage } : {}),
         signal: options.signal
@@ -239,7 +240,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         ? sizedImages.filter((img) => {
             if (img.inline || !img.objectId)
                 return true;
-            const key = `${img.objectId.objNum}:${img.objectId.genNum}`;
+            const key = `${img.type}:${img.objectId.objNum}:${img.objectId.genNum}`;
             if (seenObjectIds.has(key))
                 return false;
             seenObjectIds.add(key);
@@ -394,18 +395,18 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
     const identities = seen = new PdfNameIndex(storage, Infinity, signal);
     async function* images() {
       let idx = 0;
-      for await (const occurrence of doc.images({ firstPage: selection.firstPage, lastPage: endPage })) {
-        const decoded = await PdfRetainedDecodedImage.open(doc, occurrence, storage, { signal });
+      for await (const occurrence of doc.images({ firstPage: selection.firstPage, lastPage: endPage, separateSoftMasks: true })) {
+        const decoded = await PdfRetainedDecodedImage.open(doc, occurrence, storage, { signal, applySoftMask: false });
         let imageFailed = false;
         try {
           if (decoded.width < selection.minWidth || decoded.height < selection.minHeight) continue;
-          const ref = occurrence.reference;
-          if (selection.uniqueOnly && ref && !(await identities.intern(`${ref.objectNumber}:${ref.generationNumber}`)).added) continue;
+          const ref = occurrence.softMaskOf ?? occurrence.reference;
+          if (selection.uniqueOnly && ref && !(await identities.intern(`${occurrence.softMaskOf ? "smask" : "image"}:${ref.objectNumber}:${ref.generationNumber}`)).added) continue;
           const resolve = async (key: string, alias?: string) => (await doc.lookup(dictGet(occurrence.dict, key) ?? (alias ? dictGet(occurrence.dict, alias) : undefined)))?.value;
           const mask = await resolve("ImageMask", "IM"), interpolate = await resolve("Interpolate", "I");
           const [a,b,c,d] = occurrence.matrix;
           const ppi = (pixels: number, extent: number) => extent > 1e-6 ? Math.max(1, Math.round(pixels * 72 / extent)) : 72;
-          const metadata: ImageListing = { pageNumber: occurrence.pageNumber, imageIndex: idx, type: mask?.kind === "boolean" && mask.value ? "stencil" : "image", objectId: ref ? { objNum: ref.objectNumber, genNum: ref.generationNumber } : undefined,
+          const metadata: ImageListing = { pageNumber: occurrence.pageNumber, imageIndex: idx, type: occurrence.softMaskOf ? "smask" : mask?.kind === "boolean" && mask.value ? "stencil" : "image", objectId: ref ? { objNum: ref.objectNumber, genNum: ref.generationNumber } : undefined,
             inline: occurrence.inline, width: decoded.width, height: decoded.height, colorSpace: decoded.color.colorSpace, colorSpaceLabel: mask?.kind === "boolean" && mask.value ? "-" : decoded.color.colorSpaceLabel ?? decoded.color.colorSpace,
             components: decoded.color.components, bitsPerComponent: decoded.bitsPerComponent, encoding: decoded.encoding, interpolate: interpolate?.kind === "boolean" && interpolate.value,
             xPpi: ppi(decoded.width, Math.hypot(a,b)), yPpi: ppi(decoded.height, Math.hypot(c,d)), byteLength: occurrence.byteLength };

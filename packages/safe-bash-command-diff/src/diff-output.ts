@@ -1,3 +1,4 @@
+import { portableWidth } from "safe-bash-command-fold";
 import type { Edit } from "./diff-format.js";
 import { ToolError,type Budget } from "safe-bash-diff-engine/shared";
 import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
@@ -62,7 +63,7 @@ export function expandTabs(line: string, prefix = ""): string {
       result += character;
       if (character === "\r") column = 0;
       else if (character === "\b") column = Math.max(0, column - 1);
-      else column++;
+      else column += (character < "\u00a0" ? 1 : portableWidth(character.codePointAt(0)!));
     }
   }
   return result;
@@ -72,7 +73,7 @@ function clipped(line: string, width: number, expand: boolean): { text: string; 
   let column = 0, text = "";
   for (const character of line) {
     if (character === "\n") break;
-    const next = character === "\t" ? column + 8 - column % 8 : column + 1;
+    const next = character === "\t" ? column + 8 - column % 8 : column + (character < "\u00a0" ? 1 : portableWidth(character.codePointAt(0)!));
     if (next > width) break;
     text += character === "\t" && expand ? " ".repeat(next - column) : character;
     column = next;

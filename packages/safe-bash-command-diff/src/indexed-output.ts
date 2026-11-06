@@ -1,3 +1,4 @@
+import { portableWidth } from "safe-bash-command-fold";
 import type { IndexedDocument } from "safe-bash-diff-engine/document";
 import { ToolError, type Budget } from "safe-bash-diff-engine/shared";
 import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
@@ -35,7 +36,7 @@ async function clipped(document: IndexedDocument, position: number, width: numbe
   outer: for await (const text of documentText(document, bounds.start, bounds.end, utf8)) {
     for (const character of text) {
       if (character === "\n") break outer;
-      const next = character === "\t" ? column + 8 - column % 8 : column + 1;
+      const next = character === "\t" ? column + 8 - column % 8 : column + (character < "\u00a0" ? 1 : portableWidth(character.codePointAt(0)!));
       if (next > width) break outer;
       pending += character === "\t" && expand ? " ".repeat(next - column) : character;
       column = next;

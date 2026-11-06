@@ -1,3 +1,4 @@
+import { portableWidth } from "safe-bash-command-fold";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { readBytes, type ByteSource } from "safe-bash-contracts";
 import { IndexedDocument } from "safe-bash-diff-engine/document";
@@ -46,7 +47,7 @@ export async function* expandedSource(document: IndexedDocument, start: number, 
         pending += character;
         if (character === "\r") column = 0;
         else if (character === "\b") column = Math.max(0, column - 1);
-        else column++;
+        else column += (character < "\u00a0" ? 1 : portableWidth(character.codePointAt(0)!));
       }
       if (pending.length >= 4096) { yield encodeBytes(pending, utf8 ? "utf8" : "latin1"); pending = ""; }
     }
@@ -80,7 +81,7 @@ export async function* comparisonSource(document: IndexedDocument, options: Diff
             if (character === "\t") { const count = 8 - column % 8; expanded = " ".repeat(count); column += count; }
             else if (character === "\r") column = 0;
             else if (character === "\b") column = Math.max(0, column - 1);
-            else column++;
+            else column += (character < "\u00a0" ? 1 : portableWidth(character.codePointAt(0)!));
           }
           for (let value of expanded) {
             const whitespace = value === " " || value === "\t" || value === "\v" || value === "\f" || value === "\r";

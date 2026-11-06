@@ -4,6 +4,7 @@ Compare files and directories in a virtual filesystem, with byte-preserving
 output and explicit resource limits.
 
 - Normal, unified, context, side-by-side, ed, RCS and conditional output.
+- Tab expansion and side-by-side clipping account for wide and combining characters.
 - Recursive directory comparison, exclusions and ignored-change options.
 - Exit status 0 for equal inputs, 1 for differences and 2 for errors.
 - Optional input, output, line, work, matrix, file, hunk and exclusion limits.

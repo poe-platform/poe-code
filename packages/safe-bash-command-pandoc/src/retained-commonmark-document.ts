@@ -1,3 +1,4 @@
+import {gridTable} from "./grid-tables.js";
 import {BackedTextSet} from "./backed-text-set.js";
 import {scanMarkdownRawAttribute} from "./commonmark-inlines.js";
 import {retainedHeadingIdentifier} from "./retained-heading-identifier.js";
@@ -7,7 +8,7 @@ import {nativeDivBlocks} from "./html.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "./types.js";
 import {fencedDivAttributes, letter} from "./commonmark-syntax.js";
-import type {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
+import {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
 import {parseRetainedCommonMarkInlines} from "./retained-commonmark-inlines.js";
 import {RetainedCommonMarkSyntax} from "./retained-commonmark-syntax.js";
 import type {RetainedRtfAst, RtfValue} from "./retained-rtf-ast.js";
@@ -160,6 +161,45 @@ export async function assembleRetainedCommonMark(
       continue;
     }
     await context.cooperate();
+    if (block.kind === "paragraph" && extensions.grid_tables) {
+      const first = await parser.lines(current).next();
+      if (!first.done && await source.starts(first.value.range, "+-")) {
+        const lines: string[] = [];
+        for await (const line of parser.lines(current)) {
+          context.bound("text", line.range.end - line.range.start);
+          context.charge("retainedBytes", (line.range.end - line.range.start) * 2 + 16);
+          let text = ""; for await (const chunk of source.chunks(line.range)) text += chunk;
+          lines.push(text);
+        }
+        const grid = gridTable(lines, context);
+        if (grid) {
+          const blocks = async (text: string, cell = false) => {
+            context.bound("depth", depth + 1);
+            const range = await source.append([text]);
+            const nested = new RetainedCommonMarkBlocks(source, tape, context, parser.sourceName, extensions);
+            await nested.parse(range);
+            const content = await assembleRetainedCommonMark(nested, ast, tape, context, extensions, imageTarget, nested.root, active, depth + 1, citationsState, identifiers);
+            if (cell && await ast.count(content) === 1) {
+              const first = (await ast.at(content, 0))!;
+              if (await ast.name(first) === "Para") await ast.set(content, 0, await ast.tag("Plain", (await ast.content(first))!));
+            }
+            return content;
+          };
+          const row = async (values: string[]) => {
+            const cells = await ast.array();
+            for (const value of values) await ast.push(cells, await ast.value([await attrs(), await ast.tag("AlignDefault"), 1, 1, await blocks(value, true)]));
+            return ast.value([await attrs(), cells]);
+          };
+          const columns = await ast.array(), rows = await ast.array();
+          for (const width of grid.widths) await ast.push(columns, await ast.value([await ast.tag("AlignDefault"), await ast.tag("ColWidth", await ast.value(width))]));
+          for (const values of grid.rows) await ast.push(rows, await row(values));
+          await ast.push(out, await ast.tag("Table", await ast.value([await attrs(), [null, []], columns,
+            [await attrs(), grid.header ? [await row(grid.header)] : []], [[await attrs(), 0, [], rows]], [await attrs(), []]])));
+          if (grid.consumed < lines.length) for await (const child of ast.children(await blocks(lines.slice(grid.consumed).join("\n")))) await ast.push(out, child);
+          continue;
+        }
+      }
+    }
     if (block.kind === "paragraph" && extensions.line_blocks) {
       const lines = parser.lines(current);
       let next = await lines.next();

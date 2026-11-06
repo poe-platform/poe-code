@@ -1,3 +1,4 @@
+import {gridTable} from "./grid-tables.js";
 import {markdownTitleBlock} from "./markdown-title-block.js";
 import {headingAttributes, headingIdentifier} from "./heading-attributes.js";
 import {nativeDivBlocks} from "./html.js";
@@ -146,6 +147,25 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           break;
         }
         case "paragraph": {
+          const grid = extensions.grid_tables && block.inline.lines[0]?.text.startsWith("+-") ? gridTable(block.inline.lines.map(line => line.text), context) : undefined;
+          if (grid) {
+            const row = async (cells: string[]): Promise<Row> => {
+              const values: Row[1][number][] = [];
+              for (const cell of cells) {
+                const parsed = await parseCommonMarkBlocks(cell, context, input.base, extensions);
+                const content = await assemble(parsed.blocks, depth + 1);
+                if (content.length === 1 && content[0]?.t === "Para") content[0] = {t: "Plain", c: content[0].c};
+                values.push([["", [], []], "AlignDefault", 1, 1, content]);
+              }
+              return [["", [], []], values];
+            };
+            const rows: Row[] = [];
+            for (const cells of grid.rows) rows.push(await row(cells));
+            result.push({t: "Table", c: [["", [], []], [null, []], grid.widths.map(c => ["AlignDefault", {t: "ColWidth", c}]),
+              [["", [], []], grid.header ? [await row(grid.header)] : []], [[["", [], []], 0, [], rows]], [["", [], []], []]]});
+            if (grid.consumed < block.inline.lines.length) result.push(...await assemble([{...block, inline: {...block.inline, lines: block.inline.lines.slice(grid.consumed)}}], depth, tight));
+            break;
+          }
           const lines = block.inline.lines;
           const first = lines[0];
           if (extensions.line_blocks && first && (first.text === "|" || first.text.startsWith("| ") || first.text.startsWith("|\t"))) {

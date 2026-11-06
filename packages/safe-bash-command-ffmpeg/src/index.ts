@@ -1364,6 +1364,7 @@ export function evalSyncFfmpeg(
         else outputTo = val;
       } else if (arg === "-t") {
         const val = parseFfmpegTimestamp(args[++i] ?? "0");
+        if (val < 0) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingDuration = val;
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
@@ -1778,6 +1779,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-t") {
             const val = parseFfmpegTimestamp(args[++i] ?? "0");
+            if (val < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -t duration must be nonnegative\n"), context.signal);
+              return { exitCode: 1 };
+            }
             if (args.slice(i + 1).includes("-i")) {
               pendingDuration = val;
             } else {

@@ -13,6 +13,31 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("negative duration", () => {
+  for (const inputOption of [false, true]) {
+    it(`rejects negative ${inputOption ? "input" : "output"} -t without writing a completed WAV`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 800 }, (_, i) => (i - 400) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const args = inputOption
+        ? ["-t", "-0.025", "-i", "/in.wav", "/out.wav"]
+        : ["-i", "/in.wav", "-t", "-0.025", "/out.wav"];
+      let syncWrites = 0;
+      assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), () => {
+        syncWrites++;
+        return true;
+      }), undefined);
+      assert.equal(syncWrites, 0);
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("duration must be nonnegative"), result.stderr);
+      assert.equal(vfs.store.has("/out.wav"), false);
+      assert.deepEqual(vfs.store.get("/in.wav"), input);
+    });
+  }
+});
+
 describe("required option arguments", () => {
   for (const option of ["-ar", "-t", "-ac", "-v"]) {
     for (const existing of [false, true]) {

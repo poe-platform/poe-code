@@ -1613,7 +1613,15 @@ describe("decoded audio editing", () => {
     ["volume=volume=-6dB", "volume=-6dB"],
     ["atempo", "atempo=1"],
     ["atempo=tempo=1", "atempo=1"],
-    ["atempo=tempo=2", "atempo=2"]
+    ["atempo=tempo=2", "atempo=2"],
+    ["areverse@flip", "areverse"],
+    ["volume@quiet=0.5", "volume=0.5"],
+    ["atempo@fast=2", "atempo=2"],
+    ["volume@default", "volume"],
+    ["atempo@default", "atempo"],
+    ["volume@quiet=volume=0.5", "volume=0.5"],
+    ["atempo@fast=tempo=2", "atempo=2"],
+    ["areverse@flip,volume@quiet=0.5,atempo@fast=2", "areverse,volume=0.5,atempo=2"]
   ]) {
     it(`matches ${positional} PCM samples with ${filter}`, async () => {
       const input = encodeWav({ sampleRate: 8000, channels: [
@@ -1633,7 +1641,8 @@ describe("decoded audio editing", () => {
     });
   }
 
-  for (const filter of ["volume=volume=invalid", "volume=wrong=0.5", "atempo=tempo=0.25", "atempo=wrong=1"]) {
+  for (const filter of ["volume=volume=invalid", "volume=wrong=0.5", "atempo=tempo=0.25", "atempo=wrong=1",
+    "volume@quiet=invalid", "atempo@fast=0.25", "unsupported@label", "volume=0.5@quiet"]) {
     it(`rejects ${filter} without replacing output`, async () => {
       const vfs = createTestVfs({
         "/input.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(800).fill(0.25)] }),

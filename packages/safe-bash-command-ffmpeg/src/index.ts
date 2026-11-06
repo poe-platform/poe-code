@@ -2627,7 +2627,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     for (const item of parseFilterChain(filter.expression)) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
-                      const trimmed = item.trim();
+                      let trimmed = item.trim();
+                      const equals = trimmed.indexOf("=");
+                      const instance = trimmed.indexOf("@");
+                      if (instance >= 0 && (equals < 0 || instance < equals)) {
+                        trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
+                      }
                       if (trimmed === "volume" || trimmed.startsWith("volume=")) {
                         const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
                         let volSpec = "1";

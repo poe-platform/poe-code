@@ -1531,12 +1531,17 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         descSubtype?.kind === "name" && descSubtype.decoded === "CIDFontType2"
                             ? "CID TrueType"
                             : "CID Type 0";
+
                 }
                 else if (descriptorDict && dictGet(descriptorDict, "FontFile3")) {
                     fontTypeLabel = "Type 1C";
                 }
                 const encNode = cos.resolve(dictGet(fontDict, "Encoding"));
-                let encodingLabel = "Builtin";
+                let encodingLabel = rawSubtype === "TrueType" ? "WinAnsi"
+                    : rawSubtype === "Type3" ? "Standard"
+                    : !hasEmbeddedFile && (rawSubtype === "Type1" || rawSubtype === "MMType1")
+                        ? fontName === "Symbol" || fontName === "ZapfDingbats" ? fontName : "Standard"
+                        : "Builtin";
                 if (encNode?.kind === "name") {
                     const eName = encNode.decoded;
                     if (eName === "WinAnsiEncoding")
@@ -1548,7 +1553,7 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     else
                         encodingLabel = eName;
                 }
-                else if (encNode?.kind === "dict") {
+                else if (encNode?.kind === "dict" || encNode?.kind === "stream") {
                     encodingLabel = "Custom";
                 }
                 const row = formatPdfFont({ name: fontName, type: fontTypeLabel, encoding: encodingLabel,

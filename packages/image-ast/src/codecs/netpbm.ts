@@ -124,28 +124,33 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
 }
 
 export function encodePpm(img: RgbaImage): Uint8Array {
-  const header = new TextEncoder().encode(`P6\n${img.width} ${img.height}\n255\n`);
-  const out = new Uint8Array(header.length + img.width * img.height * 3);
+  const header = new TextEncoder().encode(`P6\n${img.width} ${img.height}\n${img.data16 ? 65535 : 255}\n`);
+  const out = new Uint8Array(header.length + img.width * img.height * 3 * (img.data16 ? 2 : 1));
   out.set(header, 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
-    out[dst++] = img.data[i * 4]!;
-    out[dst++] = img.data[i * 4 + 1]!;
-    out[dst++] = img.data[i * 4 + 2]!;
+    for (let channel = 0; channel < 3; channel++) {
+      const value = (img.data16 ?? img.data)[i * 4 + channel]!;
+      if (img.data16) out[dst++] = value >>> 8;
+      out[dst++] = value & 255;
+    }
   }
   return out;
 }
 
 export function encodePgm(img: RgbaImage): Uint8Array {
-  const header = new TextEncoder().encode(`P5\n${img.width} ${img.height}\n255\n`);
-  const out = new Uint8Array(header.length + img.width * img.height);
+  const header = new TextEncoder().encode(`P5\n${img.width} ${img.height}\n${img.data16 ? 65535 : 255}\n`);
+  const out = new Uint8Array(header.length + img.width * img.height * (img.data16 ? 2 : 1));
   out.set(header, 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
-    const r = img.data[i * 4]!;
-    const g = img.data[i * 4 + 1]!;
-    const b = img.data[i * 4 + 2]!;
-    out[dst++] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    const samples = img.data16 ?? img.data;
+    const r = samples[i * 4]!;
+    const g = samples[i * 4 + 1]!;
+    const b = samples[i * 4 + 2]!;
+    const value = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    if (img.data16) out[dst++] = value >>> 8;
+    out[dst++] = value & 255;
   }
   return out;
 }

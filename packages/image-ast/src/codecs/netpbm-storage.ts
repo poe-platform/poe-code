@@ -1,3 +1,4 @@
+import {defaultRuntime} from "@poe-code/compression";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
@@ -68,6 +69,25 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  if(format!=="ppm"&&format!=="pgm"&&format!=="pbm") throw new Error(`Unsupported Netpbm output format: ${format}`);
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid Netpbm backing dimensions");
+ if(format!=="pbm"&&image.storedData16) {
+  const samples=image.storedData16,count=width*height;
+  if(!Number.isSafeInteger(samples.position)||samples.position<0||!Number.isSafeInteger(samples.position+count*8)||!Number.isSafeInteger(samples.length)||samples.length<count*4) throw new RangeError("Invalid Netpbm sample backing");
+  yield new TextEncoder().encode(`${format==="ppm"?"P6":"P5"}\n${width} ${height}\n65535\n`);
+  for(let offset=0;offset<count;offset+=512) {
+   signal.throwIfAborted();if(offset%16384===0) await defaultRuntime.yieldTurn(signal);
+   const pixels=Math.min(512,count-offset),length=pixels*8;
+   const bytes=await storage.read(samples.position+offset*8,length,{signal});
+   signal.throwIfAborted();
+   if(bytes.length!==length) throw new Error("Truncated Netpbm sample storage");
+   const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(pixels*(format==="ppm"?6:2));let dst=0;
+   for(let i=0;i<pixels;i++) {
+    const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
+    for(const value of format==="ppm"?[r,g,b]:[Math.round(0.299*r+0.587*g+0.114*b)]) {out[dst++]=value>>>8;out[dst++]=value&255;}
+   }
+   yield out;
+  }
+  return;
+ }
  yield new TextEncoder().encode(`${format==="ppm"?"P6":format==="pgm"?"P5":"P4"}\n${width} ${height}\n${format==="pbm"?"":"255\n"}`);
  const pixels=new Pixels(image,storage,signal),buffer=new Uint8Array(4096);let used=0;
  for(let y=0;y<height;y++) {

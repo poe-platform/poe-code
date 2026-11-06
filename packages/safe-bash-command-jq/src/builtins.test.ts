@@ -8,10 +8,10 @@ test("builtins lists supported functions and their arities through the public co
   assert.equal(result.stderr, "");
   const names: string[] = JSON.parse(result.stdout);
   assert.equal(new Set(names).size, names.length);
-  for (const name of ["builtins/0", "length/0", "range/1", "range/2", "range/3", "match/1", "match/2", "env/0"]) {
+  for (const name of ["builtins/0", "length/0", "range/1", "range/2", "range/3", "match/1", "match/2", "env/0", "input/0"]) {
     assert.ok(names.includes(name), name);
   }
-  for (const name of ["range/0", "length/1", "builtins/1", "input/0", "now/0"]) {
+  for (const name of ["range/0", "length/1", "builtins/1", "now/0"]) {
     assert.ok(!names.includes(name), name);
   }
 });

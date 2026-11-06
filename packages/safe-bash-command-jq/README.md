@@ -7,6 +7,7 @@ filters such as `jq -c '-.a'` without an extra `--`. `env` and `$ENV` expose the
 Safe Bash command environment, never the host process environment. Use
 `jq -Rn '[inputs | split(",")]'` to collect raw input lines; `inputs` consumes
 the remaining values from the same input stream, including virtual files.
+`input` reads just the next value from that stream and raises `"break"` at end of input.
 `input_filename` returns the current file operand, `"<stdin>"` for standard input,
 or `null` before reading an input source. `input_line_number` returns the current
 input line count, or `0` before reading input.

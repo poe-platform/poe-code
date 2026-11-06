@@ -594,7 +594,7 @@ export class Interpreter {
         try { yield* this.run(ast.body, input); }
         catch (error) {
           if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted) throw error;
-          if (ast.handler) yield* this.run(ast.handler, error instanceof UserError ? error.value : error.message);
+          if (ast.handler) yield* this.run(ast.handler, error instanceof UserError ? error.value : error instanceof JqParseError ? error.diagnostic() : error.message);
         }
         return;
       case "reduce":
@@ -1026,14 +1026,16 @@ export class Interpreter {
       yield budget.inputLocation.name;
       return;
     }
-    if (name === "inputs") {
+    if (name === "input" || name === "inputs") {
       while (this.inputSource) {
         const pending = budget.tickSync(); if (pending) await pending;
         const next = await this.inputSource.next();
-        if (next.done) return;
+        if (next.done) break;
         budget.value(next.value);
         yield next.value;
+        if (name === "input") return;
       }
+      if (name === "input") throw new JqError("break");
       return;
     }
     if (name === "builtins") {

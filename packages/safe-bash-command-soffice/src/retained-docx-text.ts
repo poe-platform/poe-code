@@ -87,15 +87,15 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
       yield encoder.encode(escape(decoder.decode()));
     })());
   };
-  const addBlock = async (span: SofficeSnapshot, heading = false, image = false) => {
+  const addBlock = async (span: SofficeSnapshot, heading = false, image = false, element?: OfficeElement) => {
     if (documentBlocks) { if (!image) await documentBlocks.paragraph(span, heading); return; }
     if (!markup) { if (blocks++) await output.add(gap); await output.add(span); return; }
     if (html && image) return;
     await output.add(await literal(html ? heading ? "<h1>" : "<p>" : "<w:p>" + (heading ? '<w:pPr><w:pStyle w:val="Heading1"/></w:pPr>' : "") + "<w:r><w:t>"));
-    await output.add(await escaped(span));
+    await output.add(html && element ? await inlineHtml(element) : await escaped(span));
     await output.add(await literal(html ? heading ? "</h1>\n" : "</p>\n" : "</w:t></w:r></w:p>"));
   };
-  const text = async (element: OfficeElement): Promise<SofficeSnapshot> => {
+  const text = async (element: OfficeElement, trim = true): Promise<SofficeSnapshot> => {
     const runs = new RetainedSpans(storage, signal);
     for await (const run of xml.elements(element.open + 1, element.end, ["t", "tab", "br", "cr"], true)) {
       const name = await xml.name(run.name);
@@ -103,10 +103,31 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
       else if (name !== "t" && run.end === run.open) await runs.add(name === "tab" ? tab : await literal(" "));
     }
     const joined = await runs.finish(), decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+    if (!trim) return joined;
     let first = -1, last = 0, offset = 0;
     const inspect = (text: string) => { for (const char of text) { const point = char.codePointAt(0)!, size = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4; if (char.trim()) { if (first < 0) first = offset; last = offset + size; } offset += size; } };
     for await (const bytes of read(joined)) inspect(decoder.decode(bytes, { stream: true })); inspect(decoder.decode());
     return { position: joined.position + Math.max(0, first), size: first < 0 ? 0 : last - first };
+  };
+  const inlineHtml = async (element: OfficeElement): Promise<SofficeSnapshot> => {
+    const runs = new RetainedSpans(storage, signal);
+    for await (const run of xml.elements(element.open + 1, element.end, ["r"])) {
+      let bold = false, italic = false;
+      for await (const properties of xml.elements(run.open + 1, run.end, ["rPr"])) {
+        for await (const property of xml.elements(properties.open + 1, properties.end, ["b", "i"], true)) {
+          const value = await xml.attribute(property, "val");
+          let setting = "";
+          if (value && value.length <= 5) for await (const bytes of xml.xml.read(value)) setting += new TextDecoder().decode(bytes);
+          const enabled = !value || setting === "1" || setting === "true" || setting === "on";
+          if (await xml.name(property.name) === "b") bold = enabled;
+          else italic = enabled;
+        }
+      }
+      await runs.add(await literal((bold ? "<b>" : "") + (italic ? "<i>" : "")));
+      await runs.add(await escaped(await text(run, false)));
+      await runs.add(await literal((italic ? "</i>" : "") + (bold ? "</b>" : "")));
+    }
+    return runs.finish();
   };
   const headingStyles = new SpanMap(storage, signal);
   const classify = async (span: SofficeSnapshot) => {
@@ -188,7 +209,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
                 rows++; await table.add(await literal(html ? "  <tr>" : "<w:tr>"));
               }
               cells++; await table.add(await literal(html ? "<td>" : "<w:tc><w:p><w:r><w:t>"));
-              await table.add(await escaped(await text(cell)));
+              await table.add(html ? await inlineHtml(cell) : await escaped(await text(cell)));
               await table.add(await literal(html ? "</td>" : "</w:t></w:r></w:p></w:tc>"));
             } else {
               if (cells++) await table.add(tab); else if (rows++) await table.add(newline);
@@ -215,12 +236,12 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
             htmlLists.push(list);
           }
           await output.add(await literal(list.ordered ? `<li value="${list.number}">` : "<li>"));
-          await output.add(await escaped(value));
+          await output.add(await inlineHtml(block));
         } else {
           await closeLists();
           if (value.size || list) {
             const marked = list?.marker ? await retain((async function* () { yield encoder.encode(list.marker + " "); yield* read(value); })()) : value;
-            await addBlock(marked, await heading(block));
+            await addBlock(marked, await heading(block), false, block);
           }
         }
         for await (const drawing of xml.elements(block.open + 1, block.end, ["drawing", "pict"])) {

@@ -1370,6 +1370,23 @@ describe("decoded audio editing", () => {
     });
   }
 
+  for (const [length, stereo] of [[5760, false], [5760, true], [6240, true], [1440, true]] as const) {
+    it(`preserves a trailing tone when doubling a ${length}-sample ${stereo ? "stereo" : "mono"} clip`, async () => {
+      const toneStart = length - 960;
+      const tone = Float64Array.from({ length }, (_, i) => i < toneStart ? 0 : 0.5 * Math.sin(2 * Math.PI * 500 * (i - toneStart) / 48000));
+      const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 48000, channels: stereo ? [tone, tone.map(value => -value)] : [tone] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", "atempo=2", "-c:a", "pcm_s16le", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const [left, right] = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!.channelData;
+      assert.equal(left!.length, length / 2);
+      assert.ok(left!.some(sample => Math.abs(sample) > 0.49), "The trailing tone must remain audible");
+      for (let i = left!.length - 240; i < left!.length; i++) {
+        assert.ok(Math.abs(left![i]! - tone[length - left!.length + i]!) < 0.0001, "Retain the final tone samples without changing pitch");
+        if (stereo) assert.ok(Math.abs(left![i]! + right![i]!) < 0.0001, "Stereo channels must remain aligned");
+      }
+    });
+  }
+
   it("preserves mono pitch when doubling tempo", async () => {
     const tone = Float64Array.from({ length: 16000 }, (_, i) => 0.5 * Math.sin(2 * Math.PI * 440 * i / 16000));
     const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 16000, channels: [tone] }) });

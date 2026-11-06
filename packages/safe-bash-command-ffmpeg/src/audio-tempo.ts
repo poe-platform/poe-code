@@ -14,21 +14,28 @@ export async function stretchAudio(
   const output = channels.map(() => new Float32Array(outputLength));
   if (length === 1) return output.map((channel, c) => channel.fill(channels[c]![0]!));
   const hop = Math.max(1, Math.min(Math.floor(length / 2), Math.round(sampleRate * 0.02)));
-  const window = Math.min(length, hop * 2);
+  const window = Math.min(length, hop * 2, outputLength);
+  const finalPosition = outputLength - window;
   const search = Math.round(sampleRate * 0.01);
   const stride = Math.max(1, Math.floor(sampleRate / 4000));
   let work = 0;
   for (let c = 0; c < channels.length; c++) {
-    output[c]!.set(channels[c]!.subarray(0, Math.min(window, outputLength)));
+    const start = finalPosition === 0 ? length - window : 0;
+    output[c]!.set(channels[c]!.subarray(start, start + window));
   }
-  for (let position = hop; position < outputLength; position += hop) {
+  let previousPosition = 0;
+  while (previousPosition < finalPosition) {
+    const position = Math.min(previousPosition + hop, finalPosition);
     await yieldTurn(signal);
     signal?.throwIfAborted();
     budget.checkCpu();
-    const expected = Math.min(length - window, Math.round(position * tempo));
-    const start = Math.max(0, expected - search);
-    const end = Math.min(length - window, expected + search);
-    const overlap = Math.min(hop, outputLength - position);
+    // Anchor the last complete window to the input tail. A truncated window
+    // can otherwise omit trailing audio entirely, especially on short clips.
+    const final = position === finalPosition;
+    const expected = final ? length - window : Math.min(length - window, Math.round(position * tempo));
+    const start = final ? expected : Math.max(0, expected - search);
+    const end = final ? expected : Math.min(length - window, expected + search);
+    const overlap = window - (position - previousPosition);
     let best = expected;
     let bestError = Infinity;
     for (let candidate = start; candidate <= end; candidate++) {
@@ -51,12 +58,13 @@ export async function stretchAudio(
     }
     // Use the same alignment for every channel, including opposite-phase stereo.
     for (let c = 0; c < channels.length; c++) {
-      for (let i = 0; i < Math.min(window, outputLength - position); i++) {
+      for (let i = 0; i < window; i++) {
         const sample = channels[c]![best + i]!;
-        const weight = Math.min(1, i / hop);
+        const weight = Math.min(1, i / overlap);
         output[c]![position + i] = output[c]![position + i]! * (1 - weight) + sample * weight;
       }
     }
+    previousPosition = position;
   }
   return output;
 }

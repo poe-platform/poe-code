@@ -8,7 +8,7 @@ const expected = {
  list:'v\nab\nN\n', tabs:'v\nab\nN\n', ascii:'v\nab\nN\n',
  csv:'v\nab\nN\n', json:'[{"v":"ab"},\n{"v":null}]\n',
  line:'    v = ab\n\n    v = N\n', html:'<TR><TH>v</TH>\n</TR>\n<TR><TD>ab</TD>\n</TR>\n<TR><TD>N</TD>\n</TR>\n',
- quote:"'v'\n'ab'\nNULL\n",insert:"INSERT INTO items VALUES('ab');\nINSERT INTO items VALUES(NULL);\n",
+ quote:"'v'\n'ab'\nNULL\n",insert:"INSERT INTO items(\"v\") VALUES('ab');\nINSERT INTO items(\"v\") VALUES(NULL);\n",
  column:'v \n--\nab\nN \n',markdown:'| v  |\n|----|\n| ab |\n| N  |\n',
  table:'+----+\n| v  |\n+----+\n| ab |\n| N  |\n+----+\n',
  box:'┌────┐\n│ v  │\n├────┤\n│ ab │\n│ N  │\n└────┘\n'

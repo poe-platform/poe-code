@@ -236,6 +236,16 @@ export function* formatQueryParts({columns, rows}: QueryResultSet, state: QueryO
       if (quote) yield '"';
       for (const part of textParts(table)) yield quote ? part.replaceAll('"', '""') : part;
       if (quote) yield '"';
+      if (state.showHeaders) {
+        yield '(';
+        for (let col = 0; col < columns.length; col++) {
+          if (col) yield ',';
+          yield '"';
+          for (const part of cellParts(columns[col]!, '')) yield part.replaceAll('"', '""');
+          yield '"';
+        }
+        yield ')';
+      }
       yield ' VALUES(';
     }
     for (let col = 0; col < row.length; col++) {

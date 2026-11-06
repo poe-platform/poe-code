@@ -15,7 +15,7 @@ for (const size of [0, 1, 4, 8, 12, 16, 23, 24, 25, 32, 1024, 1717]) {
     const diagnostic = size === 0 ? 'File is empty'
       : size < 24 ? 'Too small to be a valid .xz file' : 'File format not recognized';
     assert.equal(result.exitCode, 1);
-    assert.equal(result.stderr, `xz: ${diagnostic}\n`);
+    assert.equal(result.stderr, `xz: plain: ${diagnostic}\n`);
     assert.equal(result.stdout.toString(), '');
     assert.deepEqual(Buffer.from(await fs.readFile('/plain')), bytes);
   });
@@ -28,7 +28,7 @@ test('XZ listing still reports a truncated XZ footer as corruption', async () =>
   await fs.writeFile('/broken.xz', bytes.subarray(0, bytes.length - 4));
   const result = await run('xz', ['-l', 'broken.xz'], chunks(), { fs });
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stderr, 'xz: Compressed data is corrupt\n');
+  assert.equal(result.stderr, 'xz: broken.xz: Compressed data is corrupt\n');
 });
 
 test('XZ human units and list mode selectors match native', () => {

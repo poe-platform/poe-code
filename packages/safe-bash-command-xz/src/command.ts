@@ -1,5 +1,5 @@
-import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
-import { withInputByteBudget, type CommandDefinition } from "safe-bash-contracts";
+import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
+import { FsError, withInputByteBudget, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { codeOf, diagnostic, output, pathOf } from "safe-bash-compression-engine/internal";
 import { UsageError } from "safe-bash-contracts/diagnostics";
 import { runOperand } from "safe-bash-compression-engine/operand";
@@ -17,6 +17,16 @@ export interface XzLimits {
 export interface XzCommandsOptions extends CompressionCommandOptions {
   readonly limits?: Partial<XzLimits>;
   readonly replace?: boolean;
+}
+
+function listingError(context: CommandContext, name: string, error: unknown): PublicDiagnostic {
+  let reason = publicDiagnosticMessage(error, context.onInternalError);
+  if (error instanceof FsError) {
+    const suffix = `${error.syscall ? `, ${error.syscall}` : ""}${error.path === undefined ? "" : ` '${error.path}'`}${error.dest === undefined ? "" : ` -> '${error.dest}'`}`;
+    reason = reason.slice(error.code.length + 2, reason.length - suffix.length);
+    reason = reason.charAt(0).toUpperCase() + reason.slice(1);
+  }
+  return new PublicDiagnostic(`${name}: ${reason}`);
 }
 
 export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): CommandDefinition {
@@ -51,7 +61,7 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
               context.signal.throwIfAborted();
               if (codeOf(error) === "EROFS") throw error;
               planningFailed = true;
-              if (options.quiet < 2) await diagnostic(context, error);
+              if (options.quiet < 2) await diagnostic(context, options.xzList ? listingError(context, name, error) : error);
             }
           }
           if (!options.xzList && plans.length > 1) await verifyOperandDestinations(context, plans);
@@ -96,7 +106,8 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
           }
         } catch (error) {
           context.signal.throwIfAborted();
-          if (options.quiet < 2) await diagnostic(context, error);
+          if (options.quiet < 2) await diagnostic(context, options.xzList
+            ? listingError(context, listingNames[plans.indexOf(plan)] ?? plan.source, error) : error);
           exitCode = 1;
           if (decodedBudget.exceeded) break;
         }

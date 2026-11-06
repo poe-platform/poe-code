@@ -49,6 +49,7 @@ export interface ColumnDef {
   checkExpr?: string | undefined;
   collate?: string | undefined;
   generatedExpr?: string | undefined;
+  generatedStored?: boolean | undefined;
 }
 
 export interface IndexDef {
@@ -132,11 +133,12 @@ function* ftsTokens(text: string, query: boolean): SqlSteps<string[]> {
 }
 
 function tableStorageColumns(table: TableDef): ColumnDef[] {
-  if (!table.withoutRowId) return table.columns;
+  const columns = table.columns.filter(column => !column.generatedExpr || column.generatedStored);
+  if (!table.withoutRowId) return columns;
   const keys = table.primaryKeyCols.map((name) => name.toLowerCase());
   return [
     ...keys.map((name) => table.columns.find((column) => column.name.toLowerCase() === name)!),
-    ...table.columns.filter((column) => !keys.includes(column.name.toLowerCase()))
+    ...columns.filter((column) => !keys.includes(column.name.toLowerCase()))
   ];
 }
 
@@ -3171,6 +3173,7 @@ export class SqliteDatabase {
     let checkExpr: string | undefined;
     let collate: string | undefined;
     let generatedExpr: string | undefined;
+    let generatedStored: boolean | undefined;
 
     while (p < part.length) {
       const w = part[p]!.value.toUpperCase();
@@ -3266,6 +3269,7 @@ export class SqliteDatabase {
             p += 1;
           }
           generatedExpr = reconstructTokensSql(exprToks);
+          generatedStored = part[p]?.value.toUpperCase() === "STORED";
         }
       } else {
         p += 1;
@@ -3282,7 +3286,8 @@ export class SqliteDatabase {
       defaultExpr,
       checkExpr,
       collate,
-      generatedExpr
+      generatedExpr,
+      generatedStored
     };
   }
 

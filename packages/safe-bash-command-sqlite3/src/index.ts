@@ -57,7 +57,7 @@ export interface SqliteEngineInstance {
   exec?(sql: string, positionalParams?: SqlValue[]): Promise<QueryResultSet[]> | QueryResultSet[];
   loadFromBytes?(bytes: Uint8Array): Promise<void> | void;
   serializeToBytes?(): Promise<Uint8Array> | Uint8Array;
-  readonly tables?: Map<string, { name: string; sql: string; columns: { name: string }[]; rows: { data: Record<string, SqlValue> }[] }> | undefined;
+  readonly tables?: Map<string, { name: string; sql: string; columns: { name: string; generatedExpr?: string | undefined }[]; rows: { data: Record<string, SqlValue> }[] }> | undefined;
   readonly indexes?: Map<string, { name: string; tableName: string; sql: string }> | undefined;
   readonly views?: Map<string, { name: string; sql: string }> | undefined;
   readonly triggers?: Map<string, { name: string; tableName: string; sql: string }> | undefined;
@@ -65,7 +65,7 @@ export interface SqliteEngineInstance {
   readonly inTransaction?: boolean | undefined;
   readonly lastChanges?: number | undefined;
   readonly totalChanges?: number | undefined;
-  findTable?(name: string): { name: string; sql: string; columns: { name: string }[]; rows: { data: Record<string, SqlValue> }[] } | undefined;
+  findTable?(name: string): { name: string; sql: string; columns: { name: string; generatedExpr?: string | undefined }[]; rows: { data: Record<string, SqlValue> }[] } | undefined;
 }
 
 export interface CloudflareSqlStorageCursor {
@@ -917,12 +917,13 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
               if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) {
                 continue;
               }
-              yield `${tbl.sql.replace(/;*\s*$/, "")};` + "\n";
+              yield tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;\n" : `${tbl.sql.replace(/;*\s*$/, "")};\n`;
+              const columns = tbl.columns.filter(column => !column.generatedExpr);
               for (const r of tbl.rows) {
                 yield `INSERT INTO "${tbl.name.replaceAll('"', '""')}" VALUES(`;
-                for (let column = 0; column < tbl.columns.length; column++) {
+                for (let column = 0; column < columns.length; column++) {
                   if (column) yield ",";
-                  yield* sqlQuoteParts(r.data[tbl.columns[column]!.name] ?? null);
+                  yield* sqlQuoteParts(r.data[columns[column]!.name] ?? null);
                 }
                 yield ");\n";
               }
@@ -951,7 +952,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             }
           } else {
             const masterRes = await execSingleStmt(
-              "SELECT type, name, tbl_name, sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%';"
+              "SELECT type, name, tbl_name, sql FROM sqlite_master WHERE sql IS NOT NULL AND (name NOT LIKE 'sqlite_%' OR name='sqlite_stat1');"
             );
             for (const row of masterRes?.rows ?? []) {
               const type = String(row[0] ?? "");
@@ -967,8 +968,11 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                   yield virtualSchema;
                   continue;
                 }
-                yield `${sql.replace(/;*\s*$/, "")};` + "\n";
-                const rowsRes = await execSingleStmt(`SELECT * FROM "${name.replace(/"/g, '""')}";`);
+                yield name === "sqlite_stat1" ? "ANALYZE sqlite_schema;\n" : `${sql.replace(/;*\s*$/, "")};\n`;
+                const identifier = `"${name.replaceAll('"', '""')}"`;
+                const info = await execSingleStmt(`PRAGMA table_info(${identifier});`);
+                const columns = info?.rows.map(column => `"${String(column[1]).replaceAll('"', '""')}"`).join(",");
+                const rowsRes = await execSingleStmt(`SELECT ${columns || "*"} FROM ${identifier};`);
                 for (const r of rowsRes?.rows ?? []) {
                   yield `INSERT INTO "${name.replaceAll('"', '""')}" VALUES(`;
                   for (let column = 0; column < r.length; column++) {
@@ -1702,9 +1706,10 @@ export function evalSyncSqlite3(
         for (const tbl of db.tables.values()) {
           if (virtualTables.has(tbl.name)) continue;
           if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) continue;
-          dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
+          dumpLines.push(tbl.name === "sqlite_stat1" ? "ANALYZE sqlite_schema;" : `${tbl.sql.replace(/;*\s*$/, "")};`);
+          const columns = tbl.columns.filter(column => !column.generatedExpr);
           for (const r of tbl.rows) {
-            const vals = tbl.columns.map((c) => [...sqlQuoteParts(r.data[c.name] ?? null)].join("")).join(",");
+            const vals = columns.map((c) => [...sqlQuoteParts(r.data[c.name] ?? null)].join("")).join(",");
             dumpLines.push(`INSERT INTO "${tbl.name.replaceAll('"', '""')}" VALUES(${vals});`);
           }
         }

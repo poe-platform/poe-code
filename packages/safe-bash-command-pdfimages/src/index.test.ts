@@ -64,6 +64,17 @@ function createMultiImagePdf(): Uint8Array {
 }
 
 describe("safe-bash-command-pdfimages", () => {
+  it("extracts only the ten painted images from shared page resources", async () => {
+    const input = codecFixture("qpdf-shared-images.pdf");
+    const files = new Map([["in.pdf", input]]);
+    expect((await runPdfimagesCli(["-png", "in.pdf", "fig"], files)).exitCode).toBe(0);
+    expect([...files.keys()].slice(1)).toEqual(Array.from({ length: 10 }, (_, i) => `fig-${String(i).padStart(3, "0")}.png`));
+    const listing = await runPdfimagesCli(["-list", "in.pdf"], files);
+    expect(listing.exitCode).toBe(0);
+    expect(listing.stdout.trimEnd().split("\n").slice(2).map(line => line.trim().split(/\s+/).slice(0, 2).map(Number)))
+      .toEqual(Array.from({ length: 10 }, (_, i) => [i + 1, i]));
+  });
+
   it("outputs the exact Poppler table header and rows for -list", async () => {
     const pdfBytes = createMultiImagePdf();
     const files = new Map<string, Uint8Array>([["paper.pdf", pdfBytes]]);

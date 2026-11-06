@@ -4,7 +4,6 @@ import { multiplyMatrices } from "../content/evaluator.js";
 import { PdfOperandStack } from "../content/operand-stack.js";
 import { parseContentRangeOperators } from "../content/range-operator-parser.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
-import { PdfNameIndex } from "../cos/name-index.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument, PdfRetainedValue } from "../retained-document.js";
@@ -47,14 +46,8 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
     if (page.index + 1 < first) continue;
     if (page.index + 1 > last) break;
     const resources = (await page.attributes()).resources;
-    const seen = new PdfNameIndex(storage, () => maximum - stagedBytes, options.signal);
-    let failed = false;
     async function* occurrence(dict: PdfCosDict, activeResources: PdfCosDict, matrix: Matrix, length: number,
       read: (native: boolean, raw: boolean) => AsyncIterable<Uint8Array>, reference?: PdfCosRef, inline = false): AsyncGenerator<PdfRetainedImage, void, void> {
-      for (const key of ["SMask", "Mask"]) {
-        const mask = dictGet(dict, key);
-        if (mask?.kind === "ref") await seen.intern(`${mask.objectNumber}:${mask.generationNumber}`);
-      }
       let alive = true;
       function check() { options.signal?.throwIfAborted(); if (!alive) throw new PdfError("E_CAPABILITY", "PDF image occurrence expired"); }
       try {
@@ -78,7 +71,7 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
       options.signal?.throwIfAborted();
       if (depth > options.maxDepth) throw new PdfError("E_LIMIT", "PDF image form depth limit exceeded");
       const source = await PdfFileSource.fromStream(storage.fs, storage.directory, input, {
-        ...decodeOptions, cacheBytes: chunkBytes, maxInputBytes: Math.max(0, maximum - stagedBytes - seen.stagedBytes),
+        ...decodeOptions, cacheBytes: chunkBytes, maxInputBytes: Math.max(0, maximum - stagedBytes),
       });
       stagedBytes += source.size;
       const stack = new PdfOperandStack(storage, { chunkBytes, maxStagingBytes: maximum,
@@ -106,7 +99,6 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
             if (subtype?.kind !== "name") continue;
             const ref = target.reference;
             if (subtype.decoded === "Image") {
-              await seen.intern(`${ref.objectNumber}:${ref.generationNumber}`);
               yield* image(target, activeResources, matrix);
             } else if (subtype.decoded === "Form" && !active.has(ref.objectNumber)) {
               const formMatrix = (await document.lookup(dictGet(target.value, "Matrix")))?.value;
@@ -140,37 +132,23 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
           await dictionary(dictGet(value.value, "Resources"), "Resources") ?? inherited, identity, new Set([value.reference.objectNumber]), 0);
       } else for (const entry of value.value.entries) yield* auxiliary(entry.value, inherited, depth + 1);
     }
-    try {
-      yield* content(page.streamContents(), resources, identity, new Set(), 0);
-      const patterns = await dictionary(dictGet(resources, "Pattern"), "Pattern");
-      if (patterns) for await (const entry of readPdfDictionaryEntries(patterns, options.signal)) yield* auxiliary(entry.value, resources);
-      const fonts = await dictionary(dictGet(resources, "Font"), "Font");
-      if (fonts) for await (const entry of readPdfDictionaryEntries(fonts, options.signal)) {
-        const font = await dictionary(entry.value); if (!font) continue;
-        const subtype = (await document.lookup(dictGet(font, "Subtype")))?.value;
-        if (subtype?.kind !== "name" || subtype.decoded !== "Type3") continue;
-        const procedures = await dictionary(dictGet(font, "CharProcs"));
-        const inherited = await dictionary(dictGet(font, "Resources"), "Resources") ?? resources;
-        if (procedures) for (const entry of procedures.entries) yield* auxiliary(entry.value, inherited);
-      }
-      const annotations = (await document.lookup(dictGet(page.dict, "Annots")))?.value;
-      if (annotations?.kind === "array") for (const node of annotations.items) {
-        const annotation = await dictionary(node);
-        const appearance = annotation ? await dictionary(dictGet(annotation, "AP")) : undefined;
-        if (appearance) yield* auxiliary(dictGet(appearance, "N"), resources);
-      }
-      const objects = await dictionary(dictGet(resources, "XObject"), "XObject");
-      if (objects) for await (const entry of readPdfDictionaryEntries(objects, options.signal)) {
-        const ref = entry.value;
-        if (ref.kind === "ref" && !(await seen.intern(`${ref.objectNumber}:${ref.generationNumber}`)).added) continue;
-        const target = await document.lookup(ref);
-        if (target?.value.kind !== "dict" || !target.stream) continue;
-        const subtype = (await document.lookup(dictGet(target.value, "Subtype")))?.value;
-        if (subtype?.kind === "name" && subtype.decoded === "Image") yield* image(target, resources,
-          [await number(dictGet(target.value, "Width") ?? dictGet(target.value, "W"), 1), 0, 0,
-            await number(dictGet(target.value, "Height") ?? dictGet(target.value, "H"), 1), 0, 0]);
-      }
-    } catch (error) { failed = true; throw error; }
-    finally { await seen.close().catch(error => { if (!failed) throw error; }); }
+    yield* content(page.streamContents(), resources, identity, new Set(), 0);
+    const patterns = await dictionary(dictGet(resources, "Pattern"), "Pattern");
+    if (patterns) for await (const entry of readPdfDictionaryEntries(patterns, options.signal)) yield* auxiliary(entry.value, resources);
+    const fonts = await dictionary(dictGet(resources, "Font"), "Font");
+    if (fonts) for await (const entry of readPdfDictionaryEntries(fonts, options.signal)) {
+      const font = await dictionary(entry.value); if (!font) continue;
+      const subtype = (await document.lookup(dictGet(font, "Subtype")))?.value;
+      if (subtype?.kind !== "name" || subtype.decoded !== "Type3") continue;
+      const procedures = await dictionary(dictGet(font, "CharProcs"));
+      const inherited = await dictionary(dictGet(font, "Resources"), "Resources") ?? resources;
+      if (procedures) for (const entry of procedures.entries) yield* auxiliary(entry.value, inherited);
+    }
+    const annotations = (await document.lookup(dictGet(page.dict, "Annots")))?.value;
+    if (annotations?.kind === "array") for (const node of annotations.items) {
+      const annotation = await dictionary(node);
+      const appearance = annotation ? await dictionary(dictGet(annotation, "AP")) : undefined;
+      if (appearance) yield* auxiliary(dictGet(appearance, "N"), resources);
+    }
   }
 }

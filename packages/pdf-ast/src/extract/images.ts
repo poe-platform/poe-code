@@ -1092,7 +1092,6 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
         const pageResources = doc.resolveDict(dictGet(leaf.pageDict, "Resources")) ?? leaf.inheritedResources;
         const contentBytes = (yield* decodeContentBytesSteps(doc, dictGet(leaf.pageDict, "Contents")));
         const rootAst = parseContentStream(contentBytes);
-        const referencedImageKeysOnPage = new Set<string>();
         const extractFromXObjectStreamSteps = function* (xobjStream: PdfCosStream, objectId: {
             readonly objNum: number;
             readonly genNum: number;
@@ -1149,13 +1148,6 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
                         blackIs1: biNode?.kind === "boolean" ? biNode.value : false,
                         byteAlign: baNode?.kind === "boolean" ? baNode.value : false,
                     };
-                }
-            }
-            for (const key of ["SMask", "Mask"]) {
-                yield;
-                const mask = dictGet(dict, key);
-                if (mask?.kind === "ref") {
-                    referencedImageKeysOnPage.add(`${mask.objectNumber}:${mask.generationNumber}`);
                 }
             }
             if (encoding === "jpeg")
@@ -1223,9 +1215,6 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
                         const subtypeNode = doc.resolve(dictGet(targetStream.dict, "Subtype"));
                         const subtype = subtypeNode?.kind === "name" ? subtypeNode.decoded : "";
                         if (subtype === "Image") {
-                            if (objectId) {
-                                referencedImageKeysOnPage.add(`${objectId.objNum}:${objectId.genNum}`);
-                            }
                             (yield* extractFromXObjectStreamSteps(targetStream, objectId, currentCtm(), activeRes));
                         }
                         else if (subtype === "Form") {
@@ -1402,32 +1391,6 @@ export function* extractDocumentImagesSteps(doc: ParsedCosDocument, options: {
                 const apDict = aDict ? doc.resolveDict(dictGet(aDict, "AP")) : undefined;
                 if (apDict) {
                     (yield* walkApNodeSteps(dictGet(apDict, "N")));
-                }
-            }
-        }
-        const xobjDict = pageResources ? doc.resolveDict(dictGet(pageResources, "XObject")) : undefined;
-        if (xobjDict) {
-            for (const entry of xobjDict.entries) {
-                yield;
-                if (++work % 16384 === 0)
-                    yield;
-                const rawVal = entry.value;
-                const objectId = rawVal.kind === "ref"
-                    ? { objNum: rawVal.objectNumber, genNum: rawVal.generationNumber }
-                    : undefined;
-                if (objectId && referencedImageKeysOnPage.has(`${objectId.objNum}:${objectId.genNum}`)) {
-                    continue;
-                }
-                const resolved = doc.resolve(rawVal);
-                if (resolved?.kind === "stream") {
-                    const sub = doc.resolve(dictGet(resolved.dict, "Subtype"));
-                    if (sub?.kind === "name" && sub.decoded === "Image") {
-                        const wNode = doc.resolve(dictGet(resolved.dict, "Width") ?? dictGet(resolved.dict, "W"));
-                        const hNode = doc.resolve(dictGet(resolved.dict, "Height") ?? dictGet(resolved.dict, "H"));
-                        const w = wNode?.kind === "number" ? wNode.value : 1;
-                        const h = hNode?.kind === "number" ? hNode.value : 1;
-                        (yield* extractFromXObjectStreamSteps(resolved, objectId, [w, 0, 0, h, 0, 0], pageResources));
-                    }
                 }
             }
         }

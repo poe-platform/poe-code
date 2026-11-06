@@ -559,19 +559,7 @@ describe("safe-bash-command-pdftotext", () => {
     const p1 = doc.addPage({ width: 200, height: 200 });
     p1.drawText("BoldHeading", { x: 20, y: 150, size: 18, font: "Helvetica-Bold" });
     p1.drawText("ItalicNote", { x: 20, y: 120, size: 14, font: "Times-Italic" });
-    const imgRef = doc.cos.allocateObject(
-      cosStream(Uint8Array.from([0, 255, 0]), {
-        dict: cosDict({
-          Type: cosName("XObject"),
-          Subtype: cosName("Image"),
-          Width: cosNumber(1),
-          Height: cosNumber(1),
-          BitsPerComponent: cosNumber(8),
-          ColorSpace: cosName("DeviceRGB"),
-        }),
-      })
-    );
-    p1.ensureXObjectResource(imgRef);
+    p1.drawImage(doc.embedRgbImage(1, 1, Uint8Array.from([0, 255, 0])), { x: 20, y: 20, width: 10, height: 10 });
 
     const files = new Map<string, Uint8Array>([["styled.pdf", doc.save()]]);
     const xmlRes = await runPdftohtmlCli(["-xml", "-fmt", "jpg", "-stdout", "styled.pdf"], files);

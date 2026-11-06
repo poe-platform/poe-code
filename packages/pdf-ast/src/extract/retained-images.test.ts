@@ -56,16 +56,16 @@ it("keeps inline image ranges alive only during their occurrence", async () => {
   await f.close(); expect((await images.next()).done).toBe(true);
 });
 
-it("spills deep graphics saves and excludes referenced masks from fallback enumeration", async () => {
+it("spills deep graphics saves without extracting unpainted masks", async () => {
   const f = await fixture(`${"q 2 0 0 2 0 0 cm ".repeat(70)}/I Do ${"Q ".repeat(70)}/I Do`);
   const matrices = []; for await (const image of f.document.images()) matrices.push(image.matrix);
   expect(matrices).toEqual([[2 ** 70, 0, 0, 2 ** 70, 0, 0], [1, 0, 0, 1, 0, 0]]); await f.close();
 });
 
-it.each([false,true])("finds unreferenced resource images and selects pages (backed=%s)", async backed => {
+it.each([false,true])("ignores unpainted resource images and selects pages (backed=%s)", async backed => {
   const f = await fixture("", doc => { doc.addPage(); },backed);
   const rows = []; for await (const image of f.document.images({ firstPage: 1, lastPage: 1 })) rows.push(image.matrix);
-  expect(rows).toEqual([[2, 0, 0, 1, 0, 0]]);
+  expect(rows).toEqual([]);
   const empty = []; for await (const image of f.document.images({ firstPage: 2 })) empty.push(image);
   expect(empty).toEqual([]); await f.close();
 });

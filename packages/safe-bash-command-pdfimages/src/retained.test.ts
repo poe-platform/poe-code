@@ -90,3 +90,8 @@ it("preserves inline CCITT payloads and sidecar defaults",async()=>{
   const prefix=new TextEncoder().encode("BI /W 8 /H 2 /BPC 1 /CS /G /F /CCF /DP << /K -1 /Columns 8 /Rows 2 >> ID ");const suffix=new TextEncoder().encode(" EI");const bytes=new Uint8Array(prefix.length+1+suffix.length);bytes.set(prefix);bytes[prefix.length]=255;bytes.set(suffix,prefix.length+1);
   dictSet(page.pageDict,"Contents",doc.cos.allocateObject(cosStream(bytes)));await compareCommand(doc.save(),["-all","-print-filenames"]);
 });
+
+it.each([["-png"], ["-list"], ["-u", "-png"]].map(flags => ({ flags })))("extracts painted shared resources through the command: $flags", async ({ flags }) => {
+  const { readFileSync } = await import("node:fs");
+  await compareCommand(new Uint8Array(readFileSync(new URL("../../pdf-ast/src/fixtures/qpdf-shared-images.pdf", import.meta.url))), flags);
+});

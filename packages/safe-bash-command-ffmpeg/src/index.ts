@@ -2093,7 +2093,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     currentDuration = undefined;
                     while (l + 1 < lines.length) {
                       const nextLine = lines[l + 1]!.trim();
-                      if (nextLine.startsWith("inpoint ")) {
+                      if (!nextLine || nextLine.startsWith("#")) {
+                        l++;
+                      } else if (nextLine.startsWith("inpoint ")) {
                         currentInpoint = parseFfmpegTimestamp(nextLine.slice(8));
                         l++;
                       } else if (nextLine.startsWith("outpoint ")) {

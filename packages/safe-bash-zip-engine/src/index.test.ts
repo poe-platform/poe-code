@@ -7,7 +7,7 @@ test("ZIP CRC agrees with the standard check vector", () => {
 
 import { collectBytes } from "safe-bash-contracts";
 import { settings } from "safe-bash-io-engine/commands/archive/internal";
-import { makeZipEntry, readZipArchive, decodeZipEntry, writeZipArchive } from "./zip-format.js";
+import { makeZipEntry, readZipArchive, decodeZipEntry, writeZipArchive, updateZipExtras } from "./zip-format.js";
 
 for (const [bytes, name] of [
   [[0xc3, 0xa9], "é"],
@@ -116,3 +116,32 @@ for (const accessed of [undefined, new Date(0), new Date(1900000123000), new Dat
     assert.deepEqual(rewritten.entries[0]!.localExtra, extra);
   });
 }
+
+test("ZIP owner extras replace stale ownership and omit unavailable or invalid IDs", async () => {
+  const signal = new AbortController().signal;
+  const limits = settings({});
+  const entry = await makeZipEntry("guide.md", Uint8Array.of(42), {
+    modified: new Date(1700000001000), uid: 501, gid: 20,
+    mode: 0o100644, directory: false, symlink: false,
+  }, limits, signal);
+  const previous = updateZipExtras(entry, undefined, "all", limits);
+  for (const owner of [{ uid: 0, gid: 0 }, { uid: 0xffffffff, gid: 0xffffffff }, {},
+    { uid: 1 }, { gid: 1 }, { uid: -1, gid: 0 }, { uid: 0, gid: 0x100000000 }, { uid: 0.5, gid: 0 }]) {
+    const fresh = { ...entry };
+    delete fresh.uid;
+    delete fresh.gid;
+    Object.assign(fresh, owner);
+    const updated = updateZipExtras(fresh, previous, "all", limits);
+    const valid = owner.uid !== undefined && owner.gid !== undefined && Number.isInteger(owner.uid)
+      && owner.uid >= 0 && owner.gid <= 0xffffffff;
+    for (const extra of [updated.localExtra!, updated.centralExtra!]) {
+      assert.equal(extra.length, valid ? 24 : 9);
+      if (valid) {
+        const view = new DataView(extra.buffer, extra.byteOffset, extra.byteLength);
+        assert.equal(view.getUint16(9, true), 0x7875);
+        assert.equal(view.getUint32(15, true), owner.uid);
+        assert.equal(view.getUint32(20, true), owner.gid);
+      }
+    }
+  }
+});

@@ -747,7 +747,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   let visits = 0;
   let work = 0;
   let compressedBytes = 0;
-  const encodeSelected = async (source: string, name: string, input: Uint8Array | ByteSource, attributes: Pick<ZipEntry, "modified" | "accessed" | "mode" | "directory" | "symlink">, expectedSize?: number, sourceStat?: FileStat, sourceCanonical?: string, sourceFifo?: boolean) => {
+  const encodeSelected = async (source: string, name: string, input: Uint8Array | ByteSource, attributes: Pick<ZipEntry, "modified" | "accessed" | "uid" | "gid" | "mode" | "directory" | "symlink">, expectedSize?: number, sourceStat?: FileStat, sourceCanonical?: string, sourceFifo?: boolean) => {
     const live = !(input instanceof Uint8Array);
     let bytes = live ? new Uint8Array() : input;
     const sourceSize = live ? expectedSize ?? 0 : bytes.length;
@@ -934,7 +934,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
               if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
               budget.totalBytes += size;
             })();
-            await encodeSelected(source, name, input, { modified: new Date(stat.mtimeMs), ...(stat.atimeMs === undefined ? {} : { accessed: new Date(stat.atimeMs) }), mode: 0o100644, directory: false, symlink: false }, undefined, stat, canonical, true);
+            await encodeSelected(source, name, input, { ...(stat.uid === undefined ? {} : { uid: stat.uid }), ...(stat.gid === undefined ? {} : { gid: stat.gid }), modified: new Date(stat.mtimeMs), ...(stat.atimeMs === undefined ? {} : { accessed: new Date(stat.atimeMs) }), mode: 0o100644, directory: false, symlink: false }, undefined, stat, canonical, true);
             return;
           }
           if (!directory && !symlink) {
@@ -948,7 +948,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
               const current = await inspectSource(scope, path, parsed.storeLinks);
               if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
             })();
-            await encodeSelected(source, name, input, { modified: new Date(stat.mtimeMs), ...(stat.atimeMs === undefined ? {} : { accessed: new Date(stat.atimeMs) }), mode: stat.mode, directory, symlink }, stat.size, stat, canonical);
+            await encodeSelected(source, name, input, { ...(stat.uid === undefined ? {} : { uid: stat.uid }), ...(stat.gid === undefined ? {} : { gid: stat.gid }), modified: new Date(stat.mtimeMs), ...(stat.atimeMs === undefined ? {} : { accessed: new Date(stat.atimeMs) }), mode: stat.mode, directory, symlink }, stat.size, stat, canonical);
             return;
           }
           let bytes: Uint8Array;
@@ -969,7 +969,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
           if (!directory && bytes.length !== stat.size) fail(`source changed while reading: ${source}`);
           const current = await inspectSource(scope, path, parsed.storeLinks);
           if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
-          await encodeSelected(source, name, bytes, { modified: new Date(stat.mtimeMs), ...(stat.atimeMs === undefined ? {} : { accessed: new Date(stat.atimeMs) }), mode: stat.mode, directory, symlink });
+          await encodeSelected(source, name, bytes, { ...(stat.uid === undefined ? {} : { uid: stat.uid }), ...(stat.gid === undefined ? {} : { gid: stat.gid }), modified: new Date(stat.mtimeMs), ...(stat.atimeMs === undefined ? {} : { accessed: new Date(stat.atimeMs) }), mode: stat.mode, directory, symlink });
         }
       }
     }

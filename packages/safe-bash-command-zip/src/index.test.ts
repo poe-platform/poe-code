@@ -189,3 +189,47 @@ for (const flags of [[], ["-X"], ["-X-"], ["-0"], ["--encryption=aes-256-ae2", "
     }
   });
 }
+
+for (const flags of [[], ["-X"], ["-X-"], ["-0"], ["--encryption=aes-256-ae2", "-P", "secret"]]) {
+  for (const owner of [{ uid: 0, gid: 0 }, { uid: 501, gid: 20 }, {}]) {
+    test(`zip records only virtual owner IDs (${JSON.stringify(owner)}, ${flags.join(" ")})`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/guide.md", new TextEncoder().encode("guide"));
+      const view = new Proxy(fs, { get(target, property) {
+        if (property === "stat") return async (...args: Parameters<typeof fs.stat>) => {
+          const stat = { ...await fs.stat(...args) };
+          delete stat.uid;
+          delete stat.gid;
+          return { ...stat, ...owner };
+        };
+        const value = Reflect.get(target, property);
+        return typeof value === "function" ? value.bind(target) : value;
+      } });
+      const command = createZipCommand({ zipHost: { entropy: async size => new Uint8Array(size).fill(7) } });
+      const result = await run(command, ["-q", ...flags, "a.zip", "guide.md"], "", view);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const archive = await readZipArchive(await fs.readFile("/a.zip"), settings({}), new AbortController().signal);
+      for (const extra of [archive.entries[0]!.localExtra!, archive.entries[0]!.centralExtra!]) {
+        const data = new DataView(extra.buffer, extra.byteOffset, extra.byteLength);
+        const owners: Uint8Array[] = [];
+        for (let offset = 0; offset < extra.length;) {
+          const length = data.getUint16(offset + 2, true);
+          if (data.getUint16(offset, true) === 0x7875) owners.push(extra.subarray(offset + 4, offset + 4 + length));
+          offset += 4 + length;
+        }
+        if (flags.includes("-X") || owner.uid === undefined) assert.equal(owners.length, 0);
+        else {
+          assert.equal(owners.length, 1);
+          const field = owners[0]!;
+          assert.equal(field[0], 1);
+          assert.equal(field[1], 4);
+          assert.equal(field[6], 4);
+          const ids = new DataView(field.buffer, field.byteOffset, field.byteLength);
+          const stat = await view.stat("/guide.md");
+          assert.equal(ids.getUint32(2, true), stat.uid);
+          assert.equal(ids.getUint32(7, true), stat.gid);
+        }
+      }
+    });
+  }
+}

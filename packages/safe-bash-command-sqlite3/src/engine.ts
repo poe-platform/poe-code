@@ -4794,10 +4794,11 @@ export class SqliteDatabase {
     positionalParams: SqlValue[],
     cteMap: CteScope
   ): SqlSteps<{ columns: string[]; rows: SqlValue[][] }> {
-    // Split at top-level UNION / UNION ALL
+    // Split at the UNION before the first member that references this CTE.
     let d = 0;
     let unionIdx = -1;
     let unionAll = false;
+    let memberStart = 0;
     for (let i = 0; i < bodyTokens.length; i += 1) {
       yield;
       const t = bodyTokens[i]!;
@@ -4806,9 +4807,10 @@ export class SqliteDatabase {
       } else if (t.value === ")") {
         d -= 1;
       } else if (d === 0 && t.type === "word" && t.value.toUpperCase() === "UNION") {
+        if (this.tableReferenceDepths(bodyTokens.slice(memberStart, i), cteName).length > 0) break;
         unionIdx = i;
         unionAll = bodyTokens[i + 1]?.type === "word" && bodyTokens[i + 1]?.value.toUpperCase() === "ALL";
-        break;
+        memberStart = i + (unionAll ? 2 : 1);
       }
     }
 

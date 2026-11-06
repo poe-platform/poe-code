@@ -2513,6 +2513,44 @@ describe("chapter mapping", () => {
 });
 
 
+describe("stream language mapping", () => {
+  for (const [maps, languages] of [
+    [["0:m:language:fra"], ["fra"]],
+    [["0:a:m:language:fra"], ["fra"]],
+    [["0:a:1"], ["fra"]],
+    [["0:a:m:language"], ["eng", "fra"]],
+    [["0:a", "-0:m:language:eng"], ["fra"]],
+    [["0:a:1", "0:m:language:deu?"], ["fra"]],
+    [["0:v:m:language:fra"], []],
+    [["0:m:language:deu"], []]
+  ] as const) {
+    it(`maps ${maps.join(" ")} and preserves selected packets`, async () => {
+      const base = parseMp4(createSyntheticMp4({ frameCount: 2, includeAudio: true }));
+      const audio = base.tracks.find(t => t.type === "audio")!;
+      const input = serializeMp4({ ...base, tracks: [
+        { ...audio, id: 1, language: "eng" },
+        { ...audio, id: 2, language: "fra", samples: audio.samples.slice(0, 1) }
+      ] });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4",
+        ...maps.flatMap(map => ["-map", map]), "-c", "copy", "/out.mp4"], vfs);
+      if (!languages.length) {
+        assert.equal(result.exitCode, 234);
+        assert.ok(result.stderr.includes("matches no streams"));
+        assert.equal(vfs.store.has("/out.mp4"), false);
+        return;
+      }
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseMp4(vfs.store.get("/out.mp4")!);
+      assert.deepEqual(output.tracks.map(t => t.language), languages);
+      for (const track of output.tracks) {
+        const source = parseMp4(input).tracks.find(t => t.language === track.language)!;
+        assert.deepEqual(track.samples.map(s => s.data), source.samples.map(s => s.data));
+      }
+    });
+  }
+});
+
 describe("stream language metadata", () => {
   for (const sync of [false, true]) {
     for (const [selector, expected] of [

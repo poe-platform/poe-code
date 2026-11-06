@@ -2268,7 +2268,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const optional = clean.endsWith("?");
             if (optional) clean = clean.slice(0, -1);
             if (clean.startsWith("[")) continue;
-            const [input, selector, ordinal] = clean.split(":");
+            const [input, ...specifier] = clean.split(":");
+            const selector = specifier[0];
             const inputIdx = Number(input);
             const srcDoc = loadedDocs[inputIdx];
             if (!srcDoc) {
@@ -2277,10 +2278,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
             let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
-            const index = type ? ordinal : selector;
+            const streamSpecifier = type ? specifier.slice(1) : specifier;
+            const [index, key, ...valueParts] = streamSpecifier;
             if (index?.startsWith("#")) {
               matches = matches.filter(track => track.id === Number(index.slice(1)));
-            } else if (index !== undefined) matches = matches.filter((_, i) => i === Number(index));
+            } else if (index === "m") {
+              const value = valueParts.length ? valueParts.join(":") : undefined;
+              matches = matches.filter(track => key === "language" &&
+                (value === undefined || track.language === value));
+            } else if (index !== undefined) {
+              matches = matches.filter((_, i) => i === Number(index));
+            }
             if (matches.length === 0 && !optional) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Stream map '${clean}' matches no streams.\nTo ignore this, add a trailing '?' to the map.\n`), context.signal);
               return { exitCode: 234 };

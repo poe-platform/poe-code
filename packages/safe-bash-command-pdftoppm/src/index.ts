@@ -175,7 +175,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (format === "png")
                 renderedBytes = (yield* encodePngSteps(bitmap));
             else if (format === "tif")
-                renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression));
+                renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression, effDpiY));
             else if (format === "jpg")
                 renderedBytes = (yield* encodeJpegSteps(bitmap, jpegQuality, parsed.jpegColorSpace));
             else if (format === "pgm")

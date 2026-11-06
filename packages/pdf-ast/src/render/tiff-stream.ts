@@ -3,7 +3,7 @@ import { readBytes } from "@poe-code/safe-fs/contracts";
 import { encodeJpegChunks } from "./jpeg-stream.js";
 import type { TiffCompressionMode } from "./raster.js";
 
-export function createTiffHeader(width: number, height: number, dpi: number, compressionTag: number, stripLength: number): Uint8Array {
+export function createTiffHeader(width: number, height: number, dpi: number, compressionTag: number, stripLength: number, dpiY = dpi): Uint8Array {
   const numEntries = compressionTag === 7 ? 13 : 12;
   const ifdOffset = 8;
   const ifdByteLength = 2 + numEntries * 12 + 4;
@@ -60,7 +60,7 @@ export function createTiffHeader(width: number, height: number, dpi: number, com
   // XResolution & YResolution rationals
   view.setUint32(xResOffset, resolvedDpi, true);
   view.setUint32(xResOffset + 4, 1, true);
-  view.setUint32(yResOffset, resolvedDpi, true);
+  view.setUint32(yResOffset, Math.max(1, Math.round(dpiY)), true);
   view.setUint32(yResOffset + 4, 1, true);
 
   return out;

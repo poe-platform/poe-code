@@ -32,3 +32,32 @@ for (const input of [
     });
   }
 }
+
+for (const [input, serialized, canonical] of [
+  ["<!--pre--><r/><!--post-->", "<!--pre-->\n<r/>\n<!--post-->", "<!--pre-->\n<r></r>\n<!--post-->"],
+  ["<?pre before?><r/><?post after?>", "<?pre before?>\n<r/>\n<?post after?>", "<?pre before?>\n<r></r>\n<?post after?>"],
+  ["<!--pre--><?pre before?><r><!--inside--></r><?post after?><!--post-->",
+    "<!--pre-->\n<?pre before?>\n<r><!--inside--></r>\n<?post after?>\n<!--post-->",
+    "<!--pre-->\n<?pre before?>\n<r><!--inside--></r>\n<?post after?>\n<!--post-->"],
+] as const) {
+  for (const flags of ["", "--format", "--c14n", "--exc-c14n"]) {
+    test(`xmllint substitution preserves document comments and processing instructions: ${flags} ${input}`, async () => {
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/doc.xml", new TextEncoder().encode(input));
+      const shell = new Shell({ fs, commands: new CommandRegistry([...createStandardCommands(), ...createXmllintCommands()]) });
+      try {
+        const body = flags === "--format" ? serialized.replace("<r><!--inside--></r>", "<r>\n  <!--inside-->\n</r>") : serialized;
+        const expected = flags.includes("c14n") ? canonical : `<?xml version="1.0"?>\n${body}`;
+        const direct = await shell.exec(`xmllint ${flags} /doc.xml`);
+        assert.equal(direct.exitCode, 0, direct.stderr);
+        assert.equal(direct.stdout, expected + (flags.includes("c14n") ? "" : "\n"));
+        const assignment = await shell.exec(`value="$(xmllint ${flags} /doc.xml)"`);
+        assert.equal(assignment.exitCode, 0, assignment.stderr);
+        assert.equal(assignment.stderr, "");
+        const captured = await shell.exec(`value="$(xmllint ${flags} /doc.xml)"; printf %s "$value"`);
+        assert.equal(captured.exitCode, 0, captured.stderr);
+        assert.equal(captured.stdout, expected);
+      } finally { await shell.dispose(); }
+    });
+  }
+}

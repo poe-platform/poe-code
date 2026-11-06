@@ -365,8 +365,7 @@ function paperSizeLabel(width: number, height: number): string {
 }
 
 function formatNumTrimmed(n: number): string {
-  const fixed = Number(n.toFixed(2));
-  return Number.isInteger(fixed) ? String(fixed) : fixed.toString();
+  return String(Number(n.toPrecision(6)));
 }
 
 function formatBox8(box: [number, number, number, number]): string {

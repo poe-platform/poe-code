@@ -137,7 +137,14 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       visual_impaired: 0,
       clean_effects: 0,
       attached_pic: 0,
-      timed_thumbnails: 0
+      timed_thumbnails: 0,
+      non_diegetic: 0,
+      captions: 0,
+      descriptions: 0,
+      metadata: 0,
+      dependent: 0,
+      still_image: 0,
+      multilayer: 0
     },
     tags: streamTags,
     side_data_list: track.rotation

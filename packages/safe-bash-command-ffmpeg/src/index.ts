@@ -2627,16 +2627,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const trimmed = item.trim();
                       if (trimmed === "volume" || trimmed.startsWith("volume=")) {
                         const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
-                        const volSpec = argument.startsWith("volume=") ? argument.slice("volume=".length).trim() : argument;
+                        let volSpec = "1";
+                        let precision = "float";
+                        for (const [index, option] of argument.split(":").entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? (index === 0 ? "volume" : "precision") : option.slice(0, separator).trim();
+                          const value = separator < 0 ? option.trim() : option.slice(separator + 1).trim();
+                          if (key === "volume") volSpec = value;
+                          else if (key === "precision") precision = value;
+                          else throw new Error(`volume: unsupported option ${key}`);
+                        }
+                        if (!["fixed", "float", "double"].includes(precision)) throw new Error("volume: invalid precision");
                         const decibels = volSpec.endsWith("dB");
                         const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", {});
                         const factor = decibels ? Math.pow(10, gain / 20) : gain;
                         if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
+                        // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
+                        const fixedGain = Math.floor(factor * 256 + 0.5);
+                        const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
                         stretched = await mapWork(stretched, async channel => {
                           const output = new Float32Array(channel.length);
                           for (let i = 0; i < channel.length; i++) {
                             if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            output[i] = channel[i]! * factor;
+                            output[i] = precision === "fixed"
+                              ? Math.max(-sampleScale, Math.min(sampleScale - 1,
+                                  Math.floor((channel[i]! * sampleScale * fixedGain + 128) / 256))) / sampleScale
+                              : channel[i]! * (precision === "float" ? Math.fround(factor) : factor);
                           }
                           return output;
                         }, context.signal);

@@ -3389,3 +3389,32 @@ for (const [codec, bitsPerSample, float] of [
     assert.deepEqual(actual.samples, expected.samples);
   });
 }
+
+for (const [precision, gain, expected] of [
+  ["fixed", "0.5", [6000, 6001, 6001, 6002, -6000, -6001, 16384, -16384]],
+  ["float", "0.5", [6000, 6000, 6001, 6002, -6000, -6002, 16384, -16384]],
+  ["double", "0.5", [6000, 6000, 6001, 6002, -6000, -6002, 16384, -16384]],
+  ["fixed", "0.1", [1219, 1219, 1219, 1219, -1219, -1219, 3328, -3328]]
+] as const) {
+  it(`matches native volume precision=${precision} gain=${gain}`, async () => {
+    const samples = [12000, 12001, 12002, 12003, -12001, -12003, 32767, -32768];
+    const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, value => value / 32768)] });
+    for (const filter of [`volume=${gain}:precision=${precision}`, `volume=precision=${precision}:volume=${gain}`]) {
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", filter, "-c:a", "pcm_s16le", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.deepEqual(Array.from(audio.channelData[0]!, value => value * 32768), expected);
+    }
+  });
+}
+
+it("rejects invalid volume precision without replacing output", async () => {
+  const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(0.25)] });
+  const original = new Uint8Array([1, 2, 3]);
+  const vfs = createTestVfs({ "/input.wav": input, "/output.wav": original });
+  const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-af", "volume=0.5:precision=bogus", "/output.wav"], vfs);
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /volume/);
+  assert.deepEqual(vfs.store.get("/output.wav"), original);
+});

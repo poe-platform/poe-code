@@ -875,7 +875,8 @@ type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
 function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   img: Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>,
   load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},Resume>,
-  statistics?: Record<string, number>
+  statistics?: Record<string, number>,
+  countColors = false
 ): Generator<undefined|Step, Record<string, string>, Resume> {
   const channels = img.hasAlpha ? 4 : 3;
   const sums = new Array<number>(channels).fill(0);
@@ -888,6 +889,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   let bilevel = true;
   let bitDepth = 1;
   const colors = new Set<number>();
+  const uniqueColors = countColors ? new Set<string>() : undefined;
   const count = Math.max(1, img.width * img.height);
   for(let offset=0;offset<img.width*img.height*4;offset+=8192){
   const length=Math.min(8192,img.width*img.height*4-offset);
@@ -900,6 +902,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     const g = samples[i + 1]!;
     const b = samples[i + 2]!;
     const a = img.hasAlpha ? samples[i + 3]! : range;
+    uniqueColors?.add(`${r},${g},${b},${a}`);
     opaque &&= a === range;
     gray &&= r === g && g === b;
     bilevel &&= (r === 0 || r === range) && (g === 0 || g === range) && (b === 0 || b === range);
@@ -949,6 +952,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const deviation = sums.reduce((sum, value, c) => sum + Math.sqrt(Math.max(0,
     (squares[c]! - value * value / count) / Math.max(1, count - 1))), 0) / channels;
   return {
+    ...(uniqueColors ? { colors: String(uniqueColors.size) } : {}),
     mean: String(Number((sums.reduce((sum, value) => sum + value, 0) / (count * channels)).toPrecision(6))),
     min: String(min),
     max: String(max),
@@ -1029,6 +1033,15 @@ function* formatMagickPropertyStringSteps<Step=never>(
       parts.push(({ n: "\n", t: "\t", r: "\r" } as Record<string, string>)[token[1]!] ?? token[1]!);
     } else if (token === "%%") {
       parts.push("%");
+    } else if (token === "%k") {
+      if (resolvePixels) {
+        short.k ??= yield* resolvePixels("colors");
+      } else {
+        img ??= getImage();
+        if (pixels?.colors === undefined) pixels = yield* magickPixelPropertiesSteps(img, undefined, statistics, true);
+        short.k = pixels.colors!;
+      }
+      parts.push(short.k!);
     } else if (token[1] !== "[") {
       parts.push(short[token[1]!] ?? token);
     } else {
@@ -1116,7 +1129,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
   if(!raster)yield {async run(){raster=await getRaster();}};
   if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal);
-  if(!properties)properties=yield*magickPixelPropertiesSteps(raster!.image,function*(position,length):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
+  if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,function*(position,length):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
     const original=image.storedData16;
@@ -1124,7 +1137,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
     chunk={data,...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{})};
    }};
    return chunk;
-  },statistics);
+  },statistics,property === "colors");
   return properties[property.toLowerCase()]!;
  }
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);

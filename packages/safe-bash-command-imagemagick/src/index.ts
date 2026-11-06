@@ -3425,7 +3425,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
     return tiles;
 }
 
-function* magickCropAreas(img: Pick<RgbaImage, "width" | "height">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined> {
+function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined> {
     const g = parseMagickGeometry(geomStr);
     if (g.isSubdivide) {
         const cols = Math.max(1, Math.round(g.width ?? 1));
@@ -3450,7 +3450,7 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height">, geomStr: str
     }
 }
 
-function magickCropArea(img:Pick<RgbaImage,"width"|"height">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined {
+function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined {
  const g=parseMagickGeometry(geomStr);
     const rawW = g.isPercent
         ? Math.max(1, Math.round((img.width * (g.percentX ?? 100)) / 100))
@@ -3458,7 +3458,10 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height">,geomStr:string,grav
     const rawH = g.isPercent
         ? Math.max(1, Math.round((img.height * (g.percentY ?? 100)) / 100))
         : Math.max(1, Math.round(g.height ?? img.height));
-    const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, rawW, rawH, g.x, g.y, gravity);
+    const position = gravityAdjustBox(img.width, img.height, rawW, rawH, g.x, g.y, gravity);
+    // Crop geometry uses page coordinates; extraction uses local raster coordinates.
+    const x0 = position.x - (img.virtualCanvas?.x ?? 0);
+    const y0 = position.y - (img.virtualCanvas?.y ?? 0);
     if (x0 === img.width || y0 === img.height) {
         return undefined;
     }

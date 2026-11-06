@@ -74,6 +74,8 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
     catch (err) {
         return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
     }
+    const warnings = new Set<string>();
+    doc.cos.onWarning = message => { if (!quiet) warnings.add(`Syntax Error: ${message}`); };
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
     if (firstPage > totalPages || firstPage > endPage) {
@@ -175,7 +177,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             else if (format === "tif")
                 renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression));
             else if (format === "jpg")
-                renderedBytes = (yield* encodeJpegSteps(bitmap, jpegQuality));
+                renderedBytes = (yield* encodeJpegSteps(bitmap, jpegQuality, parsed.jpegColorSpace));
             else if (format === "pgm")
                 renderedBytes = (yield* encodePgmSteps(bitmap));
             else if (format === "pbm")
@@ -210,7 +212,8 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt page conversion. */ }
         }
     }
-    const stderrText = progressLines.length > 0 ? progressLines.join("\n") + "\n" : "";
+    const lines = [...warnings, ...progressLines];
+    const stderrText = lines.length > 0 ? lines.join("\n") + "\n" : "";
     if (outChunks.length > 0) {
         const totalLen = outChunks.reduce((s, c) => s + c.byteLength, 0);
         const merged = new Uint8Array(totalLen);

@@ -16,6 +16,7 @@ import { PdfFileSource } from "../source.js";
 import { decodeSamplesToRgbaAsync, imageColorSpaceProgram, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfRetainedColorOptions {
+  readonly onWarning?: ((message: string) => void) | undefined;
   /** Admission for retained color metadata, palette/function bytes and palette
    * conversion scratch. Object-reader/parser and I/O caches are additional. */
   readonly maxWorkingBytes?: number;
@@ -259,6 +260,7 @@ function createRetainedColorAccess(document: PdfRetainedReader, storage: PdfInde
   const context = new ParsedCosDocument({ version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
     rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 }, maxDecompressedBytes: maximum, maxRecursionDepth: maxDepth });
   options.signal?.throwIfAborted();
+  context.onWarning = options.onWarning;
   return { resolve, resource, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth, functionSources, storedFunctions, async close(){await functionBacking?.close();} };
 }
 

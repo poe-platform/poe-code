@@ -33,6 +33,8 @@ export interface ParseCosOptions {
 }
 
 export class ParsedCosDocument {
+  /** Report recoverable calculator errors while evaluating content. */
+  onWarning?: ((message: string) => void) | undefined;
   version: string;
   readonly bytes: Uint8Array;
   readonly objects: Map<number, PdfIndirectObject>;

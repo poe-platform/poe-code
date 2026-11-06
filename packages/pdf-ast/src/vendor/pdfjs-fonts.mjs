@@ -20423,7 +20423,9 @@ var Lexer = class _Lexer {
     if (!Number.isFinite(number)) {
       return new Token(TOKEN.number, 0);
     }
-    return new Token(TOKEN.number, number);
+    const token = new Token(TOKEN.number, number);
+    token.integer = !match[0].includes(".") && !match[0].toLowerCase().includes("e") && Number.isInteger(number);
+    return token;
   }
   _getOperator() {
     this._identifierPattern.lastIndex = this.pos;
@@ -20662,7 +20664,9 @@ var Parser = class _Parser {
       const tok = this._token;
       switch (tok.id) {
         case TOKEN.number:
-          instructions.push(new PsNumber(tok.value));
+          const number = new PsNumber(tok.value);
+          number.integer = tok.integer ?? true;
+          instructions.push(number);
           this._advance();
           break;
         case TOKEN.lbrace: {
@@ -21985,22 +21989,31 @@ var PsJsCompiler = class {
     }
   }
 };
+var PostScriptTypeError = class extends Error {};
 var PSStackBasedInterpreter = class {
   #stack = new Float64Array(100);
   #sp = 0;
-  #push(v) {
+  #integers = new Uint8Array(100);
+  #push(v, integer = Number.isInteger(v)) {
     if (this.#sp < this.#stack.length) {
+      this.#integers[this.#sp] = integer ? 1 : 0;
       this.#stack[this.#sp++] = v;
     }
   }
   #execOp(op) {
     const stack = this.#stack;
+    const integers = this.#integers;
+    const top = this.#sp - 1;
+    const aInteger = integers[top - 1], bInteger = integers[top];
+    if (op === TOKEN.mod && (!aInteger || !bInteger)) {
+      throw new PostScriptTypeError("Type mismatch in PostScript function");
+    }
     switch (op) {
       case TOKEN.true:
-        this.#push(1);
+        this.#push(1, false);
         break;
       case TOKEN.false:
-        this.#push(0);
+        this.#push(0, false);
         break;
       case TOKEN.abs:
         stack[this.#sp - 1] = Math.abs(stack[this.#sp - 1]);
@@ -22153,13 +22166,13 @@ var PSStackBasedInterpreter = class {
         break;
       }
       case TOKEN.dup:
-        this.#push(stack[this.#sp - 1]);
+        this.#push(stack[this.#sp - 1], integers[this.#sp - 1]);
         break;
       case TOKEN.exch: {
         const a = stack[--this.#sp];
         const b = stack[--this.#sp];
-        this.#push(a);
-        this.#push(b);
+        this.#push(a, bInteger);
+        this.#push(b, aInteger);
         break;
       }
       case TOKEN.pop:
@@ -22169,13 +22182,13 @@ var PSStackBasedInterpreter = class {
         const n = Math.trunc(stack[--this.#sp]);
         const base = this.#sp - n;
         for (let k = 0; k < n; k++) {
-          this.#push(stack[base + k]);
+          this.#push(stack[base + k], integers[base + k]);
         }
         break;
       }
       case TOKEN.index: {
         const i = Math.trunc(stack[--this.#sp]);
-        this.#push(stack[this.#sp - 1 - i]);
+        this.#push(stack[this.#sp - 1 - i], integers[this.#sp - 1 - i]);
         break;
       }
       case TOKEN.roll: {
@@ -22186,20 +22199,38 @@ var PSStackBasedInterpreter = class {
           if (mod !== 0) {
             const base = this.#sp - n;
             const sub = stack.slice(base, this.#sp);
+            const subIntegers = integers.slice(base, this.#sp);
             for (let k = 0; k < n; k++) {
               stack[base + k] = sub[(k - mod + n) % n];
+              integers[base + k] = subIntegers[(k - mod + n) % n];
             }
           }
         }
         break;
       }
     }
+    switch (op) {
+      case TOKEN.cvi: case TOKEN.idiv: case TOKEN.mod:
+      case TOKEN.bitshift:
+        integers[this.#sp - 1] = 1;
+        break;
+      case TOKEN.and: case TOKEN.or: case TOKEN.xor:
+      case TOKEN.add: case TOKEN.sub: case TOKEN.mul:
+      case TOKEN.min: case TOKEN.max:
+        integers[this.#sp - 1] = aInteger && bInteger && Number.isInteger(stack[this.#sp - 1]) ? 1 : 0;
+        break;
+      case TOKEN.cvr: case TOKEN.div: case TOKEN.sqrt: case TOKEN.exp:
+      case TOKEN.sin: case TOKEN.cos: case TOKEN.ln: case TOKEN.log: case TOKEN.atan:
+      case TOKEN.eq: case TOKEN.ne: case TOKEN.gt: case TOKEN.ge: case TOKEN.lt: case TOKEN.le:
+        integers[this.#sp - 1] = 0;
+        break;
+    }
   }
   #execBlock(instructions) {
     for (const instr of instructions) {
       switch (instr.type) {
         case PS_NODE.number:
-          this.#push(instr.value);
+          this.#push(instr.value, instr.integer);
           break;
         case PS_NODE.operator:
           this.#execOp(instr.op);
@@ -22225,7 +22256,7 @@ var PSStackBasedInterpreter = class {
    * @param {number[]} range   – flat [min0,max0, …]
    * @returns {Function}  – `(src, srcOffset, dest, destOffset) => void`
    */
-  push(value) { this.#push(value); }
+  push(value, integer = Number.isInteger(value)) { this.#push(value, integer); }
   execute(op) { this.#execOp(op); }
   pop() { return this.#stack[--this.#sp]; }
   result(range) {
@@ -22241,7 +22272,7 @@ var PSStackBasedInterpreter = class {
     return (src, srcOffset, dest, destOffset) => {
       machine.#sp = 0;
       for (let i = 0; i < nIn; i++) {
-        machine.#push(src[srcOffset + i]);
+        machine.#push(src[srcOffset + i], false);
       }
       machine.#execBlock(instructions);
       const base = machine.#sp - nOut;
@@ -22254,7 +22285,12 @@ var PSStackBasedInterpreter = class {
 };
 function buildPostScriptJsFunction(source, domain, range, forceInterpreter = false) {
   const program = parsePostScriptFunction(source);
-  const ir = !forceInterpreter && new PsJsCompiler(domain, range).compile(program);
+  // The optimizer erases integer/real distinctions. Keep mod programs on the
+  // typed stack: floor(real) is still real, which PostScript mod rejects.
+  const usesMod = block => block.instructions.some(instruction =>
+    instruction.op === TOKEN.mod || instruction.then && usesMod(instruction.then) ||
+    instruction.otherwise && usesMod(instruction.otherwise));
+  const ir = !forceInterpreter && !usesMod(program.body) && new PsJsCompiler(domain, range).compile(program);
   if (ir) {
     return (src, srcOffset, dest, destOffset) => {
       PsJsCompiler.execute(ir, src, srcOffset, dest, destOffset);
@@ -23058,6 +23094,7 @@ export {
   WinAnsiEncoding,
   ZapfDingbatsEncoding,
   buildPostScriptJsFunction,
+  PostScriptTypeError,
   encodeToXmlString,
   getDingbatsGlyphsUnicode,
   getEncoding,

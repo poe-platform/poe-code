@@ -469,13 +469,18 @@ cover non-unit domains, zero/negative exponents, output ranges, segment bounds,
 reversed encoding, and image tint consistency. Domain and Range clipping also
 follow the PDF function contract.
 
-Calculator functions use the unmodified PDF.js `buildPostScriptJsFunction`
+Calculator functions use PDF.js `buildPostScriptJsFunction`
 from `src/core/postscript/js_evaluator.js`, together with its AST and lexer.
 The JavaScript evaluator interprets instructions without `eval`, `Function`,
 or WebAssembly compilation. Compiled functions are cached weakly by COS stream;
 code, Domain, or Range edits invalidate the entry. `pdfjs-postscript.test.ts`
 ports 35 complete input/output vectors from `test/unit/postscript_spec.js`,
 alongside comment, image-function integration, and edit-invalidation coverage.
+Local lexer and stack-interpreter changes preserve integer/real types for `mod`,
+including real function inputs and integer-valued real literals. Programs using
+`mod` bypass the optimizer, which erases these types. A type mismatch produces
+zero output components and a caller warning, matching Poppler's malformed
+function-shading recovery; stored instructions retain the same numeric types.
 
 The vendor bundle includes unmodified PDF.js `DeviceCmykCS` from
 `src/core/colorspace.js`. Path, shading, and image color conversion use this

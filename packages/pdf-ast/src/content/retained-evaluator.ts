@@ -23,6 +23,7 @@ import { parseContentStreamEvents } from "./range-events.js";
 import type { ParseContentRangeOptions } from "./range-operator-parser.js";
 
 export interface PdfRetainedEvaluationOptions extends ParseContentRangeOptions {
+  readonly onWarning?: ((message: string) => void) | undefined;
   /** Conservative cumulative resource admission for this traversal. Path and
    * composite capture arrays and object-reader caches have separate ownership. */
   readonly maxResourceBytes?: number;
@@ -111,7 +112,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedReader,
   const work = evaluateContentSteps({...params,geometryStorage:options.imageStorage ?? options.pathStorage,geometrySignal:options.signal});
   const nested = new Map<PdfEvaluationContentSource, AsyncGenerator<PdfContentEvent, void, void>>();
   const fonts: { resources: PdfCosDict | undefined; name: string; font: ResolvedPageFont | undefined }[] = [];
-  const resourceOptions = { chunkBytes, maxStagingBytes: options.maxStagingBytes ?? Infinity, onAllocation: charge, ...(signal ? { signal } : {}) };
+  const resourceOptions = { onWarning: options.onWarning, chunkBytes, maxStagingBytes: options.maxStagingBytes ?? Infinity, onAllocation: charge, ...(signal ? { signal } : {}) };
   const memberships = new StoredReferenceMembership(shared, signal, charge);
   let failed = false;
   try {

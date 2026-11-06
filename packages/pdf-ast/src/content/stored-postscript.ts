@@ -16,7 +16,7 @@ export async function compileStoredPostScript(source:PdfFunctionSource,storage:P
     return page[cursor++-pageAt]!;
   }
   const digit=(ch:number)=>ch>=48&&ch<=57;
-  async function next():Promise<{id:number;value:number}>{
+  async function next():Promise<{id:number;value:number;integer?:boolean}>{
     let ch=await byte();
     for(;;){
       if([0,9,10,12,13,32].includes(ch)){ch=await byte();continue;}
@@ -41,8 +41,9 @@ export async function compileStoredPostScript(source:PdfFunctionSource,storage:P
       else {if(point)fraction++;if(ch!==48||nonzero){nonzero=true;digits++;if(significand.length<1200)significand+=String.fromCharCode(ch);}}
       ch=await byte();
     }
-    let exponent=0;
+    let exponent=0,hasExponent=false;
     if(ch===69||ch===101){
+      hasExponent=true;
       const exponentAt=cursor-1;let exponentSign=1;ch=await byte();
       if(ch===43||ch===45){exponentSign=ch===45?-1:1;ch=await byte();}
       if(digit(ch)){do{exponent=Math.min(Number.MAX_SAFE_INTEGER,exponent*10+ch-48);ch=await byte();}while(digit(ch));exponent*=exponentSign;}
@@ -51,7 +52,7 @@ export async function compileStoredPostScript(source:PdfFunctionSource,storage:P
     if(ch!==-1)cursor--;
     if(cursor<=start)throw new PdfError("E_PARSE","Invalid PostScript number");
     const value=Number(sign+(significand||"0")+"e"+(exponent-fraction+digits-significand.length));
-    return {id:token.number!,value:Number.isFinite(value)?value:0};
+    return {id:token.number!,value:Number.isFinite(value)?value:0,integer:!point&&!hasExponent&&Number.isInteger(value)};
   }
   function fail():never{throw new PdfError("E_PARSE","Invalid PostScript procedure structure");}
   if((await next()).id!==token.lbrace)fail();
@@ -64,7 +65,7 @@ export async function compileStoredPostScript(source:PdfFunctionSource,storage:P
   await emit(0);
   for(;;){
     const current=await next();
-    if(current.id===token.number){await emit(1,current.value);continue;}
+    if(current.id===token.number){await emit(current.integer===false?5:1,current.value);continue;}
     if(current.id>=token.true!&&current.id<token.if!){await emit(2,current.id);continue;}
     if(current.id===token.lbrace){
       parent=await record([parent,branch,phase,jump]);branch=await emit(3);phase=0;jump=-1;continue;

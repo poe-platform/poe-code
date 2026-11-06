@@ -200,7 +200,7 @@ export class MeshPatchDecoder {
 
 export const PostScriptToken: Readonly<Record<string,number>>;
 export class PSStackBasedInterpreter {
-  push(value:number):void;
+  push(value:number,integer?:boolean):void;
   execute(op:number):void;
   pop():number;
   result(range:readonly number[]):number[];
@@ -217,3 +217,5 @@ export class StoredType1CharString {
 }
 
 export function recoverGlyphName(name:string,glyphsUnicode:Record<string,number>):string;
+
+export class PostScriptTypeError extends Error {}

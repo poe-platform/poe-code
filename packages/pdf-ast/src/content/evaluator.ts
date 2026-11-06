@@ -7,7 +7,7 @@ import { StoredOperationsWriter } from "./stored-operations.js";
 import { StoredPathWriter } from "./stored-path.js";
 import { annotationNameDestinationSteps, annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationFrame } from "./annotations.js";
 import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
-import { PSStackBasedInterpreter, buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
+import { PSStackBasedInterpreter, PostScriptTypeError, buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
 import {
   decodePdfString,
@@ -205,32 +205,38 @@ export function* evalShadingFunctionSteps(
       const d1 = dom[i * 2 + 1] ?? 1;
       return Math.max(d0, Math.min(d1, v));
     });
-    const stored=sources?.get(resolved);
-    if(stored?.format==="postscript"){
-      const machine=new PSStackBasedInterpreter();
-      for(let i=0;i<dom.length>>1;i++)machine.push(clampedInputs[i]!);
-      let position=0;
-      while(position>=0){
-        const bytes=yield {source:stored,position,length:32};
-        const instruction=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
-        const kind=instruction.getFloat64(0,true),next=instruction.getFloat64(8,true),value=instruction.getFloat64(16,true),target=instruction.getFloat64(24,true);
-        if(kind===1)machine.push(value);
-        else if(kind===2)machine.execute(value);
-        position=kind===4||kind===3&&machine.pop()===0?target:next;
+    try {
+      const stored=sources?.get(resolved);
+      if(stored?.format==="postscript"){
+        const machine=new PSStackBasedInterpreter();
+        for(let i=0;i<dom.length>>1;i++)machine.push(clampedInputs[i]!, false);
+        let position=0;
+        while(position>=0){
+          const bytes=yield {source:stored,position,length:32};
+          const instruction=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+          const kind=instruction.getFloat64(0,true),next=instruction.getFloat64(8,true),value=instruction.getFloat64(16,true),target=instruction.getFloat64(24,true);
+          if(kind===1||kind===5)machine.push(value,kind===1);
+          else if(kind===2)machine.execute(value);
+          position=kind===4||kind===3&&machine.pop()===0?target:next;
+        }
+        return machine.result(range);
       }
-      return machine.result(range);
+      const source = bytesToString(doc.decodeStream(resolved));
+      let cached = postScriptFunctions.get(resolved);
+      if (!cached || cached.source !== source ||
+        cached.domain.length !== dom.length || cached.domain.some((value, index) => value !== dom[index]) ||
+        cached.range.length !== range.length || cached.range.some((value, index) => value !== range[index])) {
+        cached = { source, domain: dom, range, evaluate: buildPostScriptJsFunction(source, dom, range) };
+        postScriptFunctions.set(resolved, cached);
+      }
+      const output: number[] = [];
+      cached.evaluate(clampedInputs, 0, output, 0);
+      return output;
+    } catch (error) {
+      if (!(error instanceof PostScriptTypeError)) throw error;
+      doc.onWarning?.(error.message);
+      return Array.from({length: range.length >> 1}, () => 0);
     }
-    const source = bytesToString(doc.decodeStream(resolved));
-    let cached = postScriptFunctions.get(resolved);
-    if (!cached || cached.source !== source ||
-      cached.domain.length !== dom.length || cached.domain.some((value, index) => value !== dom[index]) ||
-      cached.range.length !== range.length || cached.range.some((value, index) => value !== range[index])) {
-      cached = { source, domain: dom, range, evaluate: buildPostScriptJsFunction(source, dom, range) };
-      postScriptFunctions.set(resolved, cached);
-    }
-    const output: number[] = [];
-    cached.evaluate(clampedInputs, 0, output, 0);
-    return output;
   }
 
   if (ft === 3) {

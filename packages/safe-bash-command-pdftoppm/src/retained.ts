@@ -14,6 +14,8 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
   const encoder = new TextEncoder(), directory = resolvePath(context.cwd, context.env.TMPDIR || "/tmp");
   const storage = new PdfStagingStorage({ fs: context.fs, directory });
   const diagnostic = async (message: string, exitCode: number) => { if (!plan.quiet) await writeBytes(context.stderr, encoder.encode(message), signal); return { exitCode }; };
+  const warnings = new Set<string>();
+  const onWarning = (message: string) => { if (!plan.quiet) warnings.add(message); };
   let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, outputs: PdfStagedOutputs | undefined, failed = false;
   try {
     await context.fs.mkdir(directory, { recursive: true, signal });
@@ -69,7 +71,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
           if (scaleToY > 0) { dpiY = (scaleToY * 72) / Math.max(ptH, 1) * rounding; if (scaleToX < 0) dpiX = dpiY; }
         }
         if(plan.format === "svg") {
-          yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,
+          yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,onWarning,
             ...(plan.hasCrop?{cropRect:{x:plan.cropX,y:plan.cropY,width:plan.cropW,height:plan.cropH}}:{})})};
           if(plan.singleFile)break;
           continue;
@@ -79,7 +81,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         let pixelIterator: AsyncIterator<Uint8Array> | undefined;
         try {
         const bitmap = await renderRetainedPagePixels(page, storage, { dpiX, dpiY, useCropBox: plan.useCropBox, hideAnnotations: plan.hideAnnotations, transparent: plan.transparent,
-          antialiasText: plan.antialiasText, antialiasVector: plan.antialiasVector, thinLineMode: plan.thinLineMode, tileSize: 256, signal, imageStorage,
+          antialiasText: plan.antialiasText, antialiasVector: plan.antialiasVector, thinLineMode: plan.thinLineMode, tileSize: 256, signal, imageStorage, onWarning,
           ...(plan.hasCrop ? { cropRect: { x: plan.cropX, y: plan.cropY, width: plan.cropW, height: plan.cropH } } : {}) });
         pixelIterator = bitmap.pixels[Symbol.asyncIterator]();
         const ownedPixels = { [Symbol.asyncIterator]: () => pixelIterator! };
@@ -99,7 +101,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         }
         const chunks = plan.format === "png" ? encodeRetainedPng(bitmap.width, bitmap.height, pixels(), storage, { signal })
           : plan.format === "tif" ? encodeRetainedTiff(bitmap.width, bitmap.height, pixels(), storage, { dpi: dpiX, compression: plan.tiffCompression, signal })
-          : plan.format === "jpg" ? encodeJpegChunks(bitmap.width, bitmap.height, pixels(), { quality: plan.jpegQuality, signal })
+          : plan.format === "jpg" ? encodeJpegChunks(bitmap.width, bitmap.height, pixels(), { quality: plan.jpegQuality, colorSpace: plan.jpegColorSpace, signal })
           : encodePortableBitmapChunks(plan.format === "pgm" || plan.format === "pbm" ? plan.format : "ppm", bitmap.width, bitmap.height, pixels(), { signal });
         yield { name: name(number), chunks }; if (plan.singleFile) break;
         } catch (error) { pageFailed = true; throw error; }
@@ -115,6 +117,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
     try { outputs = await PdfStagedOutputs.create(storage, producer, { signal }); }
     catch (error) { producerFailed = true; throw error; }
     finally { await producer.return(undefined).catch(error => { if (!producerFailed) throw error; }); }
+    for (const message of warnings) await writeBytes(context.stderr, encoder.encode(`Syntax Error: ${message}\n`), signal);
     if (plan.progress && !plan.quiet) for (let number = plan.firstPage; number <= endPage; number++) {
       if (!selected(number)) continue;
       await writeBytes(context.stderr, encoder.encode(`${number} ${endPage} ${toStdout ? "-" : name(number)}\n`), signal); if (plan.singleFile) break;

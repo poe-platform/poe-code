@@ -2598,6 +2598,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const channelMask = audio.channelMask;
                   const surroundMono = origCh === 6 && targetCh === 1;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
+                  const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
+                    t.codecDescriptions[0]?.codecName === "pcm_s16le" &&
+                    (audioCodec === "pcm_s16le" || audioCodec === undefined &&
+                      (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav");
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
                   if (targetCh !== origCh && origCh > 2 &&
                       (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
@@ -2657,7 +2661,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               stretched[2]![srcIdx]! + (stretched[4]![srcIdx]! + stretched[5]![srcIdx]!) / 2) / (2 + Math.SQRT2)
                           : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
                         // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
-                        dst[i] = Math.max(-1, Math.min(1, sample * volFactor * (monoStereo ? Math.SQRT1_2 : 1)));
+                        // The s16 mixer uses a Q15 coefficient and rounds half upward.
+                        const mixed = pcm16MonoStereo
+                          ? Math.floor((sample * 32768 * 23170 + 16384) / 32768) / 32768
+                          : sample * (monoStereo ? Math.SQRT1_2 : 1);
+                        dst[i] = Math.max(-1, Math.min(1, mixed * volFactor));
                       }
                     }
                     if (reverseAudio) dst.reverse();

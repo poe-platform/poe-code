@@ -2925,6 +2925,30 @@ for (const bitsPerSample of [8, 24, 32] as const) {
   });
 }
 
+for (const channels of [1, 2, 3]) {
+  for (const codec of [[], ["-c:a", "pcm_s16le"]]) {
+    it(`matches native PCM16 mono mixing across every amplitude into ${channels} channels (${codec.join(" ") || "default"})`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 65536 }, (_, i) => (i - 32768) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-ac", String(channels), ...codec, "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channels, channels);
+      for (const [channel, samples] of audio.channelData.entries()) {
+        assert.equal(samples.length, 65536);
+        for (const [i, sample] of samples.entries()) {
+          // Verified against native FFmpeg for all signed 16-bit input values.
+          const expected = channels === 1 ? i - 32768 : channel === 2 ? 0
+            : Math.floor(((i - 32768) * 23170 + 16384) / 32768);
+          assert.equal(sample * 32768, expected, `channel ${channel}, input ${i - 32768}`);
+        }
+      }
+    });
+  }
+}
+
 for (const channels of [2, 3]) {
   for (const level of [0.5, -0.5]) {
     it(`matches native mono upmix to ${channels} channels at ${level}`, async () => {

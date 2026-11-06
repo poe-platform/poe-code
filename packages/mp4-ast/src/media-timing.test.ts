@@ -57,3 +57,20 @@ it("successive trims use the existing edit-list presentation origin", () => {
   assert.equal(video.editList?.[0]?.mediaTime, video.timescale * 1.2);
   assert.equal(second.durationSeconds, 0.3);
 });
+
+it("slicing decoded video preserves pixels and leaves the source reusable", () => {
+  const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 2, frameCount: 3, includeAudio: false }));
+  const frames = [0, 1, 2].map(i => ({
+    width: 16, height: 16, ptsSeconds: i / 2, durationSeconds: 0.5, keyframe: true,
+    data: Uint8Array.from({ length: 1024 }, (_, channel) => channel % 4 === i || channel % 4 === 3 ? 255 : 0)
+  }));
+  const track = { ...source.tracks[0]!, samples: [], decodedVideoFrames: frames };
+  const doc = { ...source, tracks: [track] };
+  const sliced = sliceMp4(doc, { startSeconds: 0.5, durationSeconds: 0.5 });
+  assert.equal(sliced.durationSeconds, 0.5);
+  assert.deepEqual(sliced.tracks[0]!.decodedVideoFrames, [{ ...frames[1]!, ptsSeconds: 0 }]);
+  assert.equal(sliced.tracks[0]!.decodedVideoFrames![0]!.data, frames[1]!.data);
+  assert.equal(track.decodedVideoFrames, frames);
+  assert.deepEqual(track.samples, []);
+  assert.equal(sliceMp4(doc, { startSeconds: 1 }).tracks[0]!.decodedVideoFrames![0]!.data, frames[2]!.data);
+});

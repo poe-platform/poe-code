@@ -49,12 +49,13 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes rational and native named frame-rate parsing in both execution paths.
   // Includes image sequence startup search and start_number_range validation.
   // Includes the single-filename image2 guard and partial-output error.
-  assert.ok(otherCodeBytes < 458_700, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes decoded-frame slicing and bounded image sequence timing.
+  assert.ok(otherCodeBytes < 460_300, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
   // Include argument validation before publishing outputs.
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
   // Include independent concat timeline offsets while preserving PCM samples.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_020_800);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_022_400);
 });

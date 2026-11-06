@@ -1661,6 +1661,21 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
   for (const track of doc.tracks) {
     if (++work % 256 === 0) yield;
 
+    if (track.type === "video" && track.decodedVideoFrames) {
+      const frames = track.decodedVideoFrames
+        .filter((frame) => frame.ptsSeconds + frame.durationSeconds > startSec && frame.ptsSeconds < endSec)
+        .map((frame) => ({ ...frame, ptsSeconds: Math.max(0, frame.ptsSeconds - startSec) }));
+      slicedTracks.push({
+        ...track,
+        duration: Math.round(Math.max(0, Math.min(endSec, track.duration / track.timescale) - startSec) * track.timescale),
+        editList: undefined,
+        declaredSampleCount: undefined,
+        samples: [],
+        decodedVideoFrames: frames
+      });
+      continue;
+    }
+
     const useEditList = (options.useEditList ?? true) && !track.decodedAudio;
     const materialized = materializeTrackSamples(track);
     const ts = track.timescale || 1000;

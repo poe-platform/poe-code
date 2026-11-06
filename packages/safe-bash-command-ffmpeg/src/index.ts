@@ -2109,8 +2109,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 detachBytesBuffer(synthBytes);
                 return {
                   ...base,
+                  duration: Math.round(frames.length / fps * base.timescale),
+                  durationSeconds: frames.length / fps,
                   tracks: base.tracks.map((t) =>
-                    t.type === "video" ? { ...t, width: first.width, height: first.height, samples: [], decodedVideoFrames: frames } : t
+                    t.type === "video" ? { ...t, width: first.width, height: first.height, duration: Math.round(frames.length / fps * t.timescale), samples: [], decodedVideoFrames: frames } : t
                   )
                 };
               }

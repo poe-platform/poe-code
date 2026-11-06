@@ -59,3 +59,24 @@ for (const filter of ["[inputs|.name]", "try [inputs|.name] catch .", "input, tr
     }
   });
 }
+
+for (const partial of ["[", "[1,", "[1", "[1 ", "[[", "{", '{"a":', '{"a":1,']) {
+  for (const flags of [[], ["--stream"], ["--stream-errors"]]) {
+    test(`jq sequence interrupted containers match native jq: ${partial}, ${flags.join(" ")}`, async () => {
+      const input = `\x1e{"name":"safe-bash-command-jq"}\n\x1e${partial}\x1e{"ok":true}\n`;
+      const args = ["--seq", "-c", ...flags, flags.length ? "." : "type"];
+      const native = spawnSync("jq", args, { input, encoding: "utf8" });
+      assert.equal(native.error, undefined);
+      assert.equal(native.signal, null);
+      for (const source of [input, (async function* () {
+        for (const byte of Buffer.from(input)) yield Uint8Array.of(byte);
+      })()]) {
+        const result = await run(args, source);
+        assert.deepEqual(
+          { stdout: result.stdout, stderr: result.stderr, status: result.exitCode },
+          { stdout: native.stdout, stderr: native.stderr, status: native.status },
+        );
+      }
+    });
+  }
+}

@@ -691,8 +691,8 @@ class JsonParser {
     if (boundary && !this.#stream && !this.#quoted && !this.#stack.length && this.#token && numericToken(this.#token, this.#budget) !== undefined) {
       throw new JqParseError(`Potentially truncated top-level numeric value${boundary.eof ? " at EOF" : ""}`, this.#offset, boundary.line, boundary.column);
     }
-    if (boundary && !boundary.eof && this.#stack.length && !this.#quoted && !this.#token) return undefined;
-    if (boundary && !boundary.eof && (this.#quoted || this.#token && this.#stack.length)) {
+    if (boundary && !boundary.eof && this.#stack.length && !this.#stream && !this.#quoted && !this.#token && this.#next !== undefined) return undefined;
+    if (boundary && !boundary.eof && (this.#quoted || this.#stack.length)) {
       throw new JqParseError("Truncated value", this.#offset, boundary.line, boundary.column);
     }
     if (this.#quoted) this.#fail("Unfinished string at EOF");

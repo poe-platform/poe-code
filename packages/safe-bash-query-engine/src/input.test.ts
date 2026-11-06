@@ -3,6 +3,28 @@ import { test } from "node:test";
 import { jsonFragments, jsonValues, parseJson, renderJsonFragment, tryProcessFlatJsonChunkSync } from "./input.js";
 import { Budget, objectKeys, objectSize, resolveJqLimits, type Json } from "./limits.js";
 
+for (const stream of [false, true]) {
+  test(`sequence reports an interrupted array and recovers: stream=${stream}`, async () => {
+    const bytes = Buffer.from('\x1e[1,\x1e{"ok":true}\n');
+    for (const size of [1, bytes.length]) {
+      const budget = new Budget(resolveJqLimits(), new AbortController().signal);
+      const warnings: string[] = [];
+      const actual: Json[] = [];
+      const source = (async function* () {
+        for (let offset = 0; offset < bytes.length; offset += size) yield bytes.subarray(offset, offset + size);
+      })();
+      for await (const value of jsonValues(source, budget, {
+        sequence: true, stream, streamErrors: stream,
+        async warning(message) { warnings.push(message); },
+      })) actual.push(value);
+      assert.deepEqual(actual, stream
+        ? [[[0], parseJson("1", budget)], ["Truncated value at line 1, column 5", [1]], [["ok"], true], [["ok"]]]
+        : [parseJson('{"ok":true}', budget)]);
+      assert.deepEqual(warnings, stream ? [] : ["ignoring parse error: Truncated value at line 1, column 5"]);
+    }
+  });
+}
+
 for (const input of ["\x1e1", "\x1e1\x1e2\n", "\x1e1\n\x1e2\n"]) {
   for (const streamErrors of [false, true]) {
     test(`streaming sequences preserve numeric records: ${JSON.stringify(input)}, errors=${streamErrors}`, async () => {

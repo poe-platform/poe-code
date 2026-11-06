@@ -1629,7 +1629,7 @@ function* executeQpdfCli(
 
     const sections: Record<string, unknown> = {
       pages: pagesVal, pagelabels: pagelabelsJson, outlines: outlinesJson,
-      acroform: acroformSection, encrypt: jsonVersion === 1 ? qpdfJsonEncryption(baseDoc.cos.encryption) : { encrypted: Boolean(baseDoc.cos.encryption) },
+      acroform: acroformSection, encrypt: qpdfJsonEncryption(baseDoc.cos.encryption, jsonVersion),
       attachments: attachmentsJson, objects: objectsMap, objectinfo: objectInfo,
       qpdf: [{ jsonversion: 2, pdfversion: baseDoc.cos.version, pushedinheritedpageresources: false,
         calledgetallpages: ["pages", "pagelabels", "acroform", "outlines"].some(include), maxobjectid: baseDoc.cos.maxObjectNumber }, objectsMap]

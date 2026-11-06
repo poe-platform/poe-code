@@ -164,12 +164,12 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     const fieldValue = await summary({ kind: "array", values: include("acroform") ? fields() : [] });
     const outlineValue = await summary({ kind: "array", values: include("outlines") ? outlines() : [] });
     const labelValue = await summary({ kind: "array", values: include("pagelabels") ? labels() : [] });
-    const encryption = qpdfJsonEncryption(sourceDocument.encryption);
+    const encryption = qpdfJsonEncryption(sourceDocument.encryption, options.jsonVersion ?? 2);
     const metadata: Record<string, JsonValue> = {
       pages: include("pages") ? { kind: "array", values: pageValues() } : count,
       pagelabels: labelValue, outlines: outlineValue,
       acroform: jsonRecord({ hasacroform: form?.kind === "dict" && hasFields, needappearances: appearances?.kind === "boolean" ? appearances.value : false, fields: fieldValue }),
-      encrypt: options.jsonVersion === 1 ? jsonRecord({ ...encryption, capabilities: jsonRecord(encryption.capabilities), parameters: jsonRecord(encryption.parameters) }) : jsonRecord({ encrypted: Boolean(sourceDocument.encryption) }), attachments: attachmentValue,
+      encrypt: jsonRecord({ ...encryption, capabilities: jsonRecord(encryption.capabilities), parameters: jsonRecord(encryption.parameters) }), attachments: attachmentValue,
     };
     const sections: Record<string, JsonValue> = { ...metadata, objects: objectValue,
       objectinfo: { kind: "object", entries: objectInfoEntries() },

@@ -1,6 +1,6 @@
 import { getPdfEncryptionInfo, type PdfEncryptionState } from "@poe-code/pdf-ast";
 
-export function qpdfJsonEncryption(encryption: PdfEncryptionState | undefined) {
+export function qpdfJsonEncryption(encryption: PdfEncryptionState | undefined, version: number) {
   const info = encryption ? getPdfEncryptionInfo(encryption) : undefined;
   const p = encryption?.permissions, legacy = encryption?.revision === 2;
   const assembly = p ? legacy ? p.modify : p.assemble : true;
@@ -11,7 +11,7 @@ export function qpdfJsonEncryption(encryption: PdfEncryptionState | undefined) {
       accessibility: p ? legacy ? p.copy : encryption!.revision >= 5 || p.extractAccessibility : true,
       extract: p?.copy ?? true,
       // qpdf's version 1 schema preserves this historical spelling.
-      moddifyannotations: annotations,
+      [version === 1 ? "moddifyannotations" : "modifyannotations"]: annotations,
       modify: assembly && forms && annotations && other,
       modifyassembly: assembly, modifyforms: forms, modifyother: other,
       printhigh: p ? p.print && (legacy || p.printHighRes) : true,

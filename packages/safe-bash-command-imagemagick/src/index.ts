@@ -16,7 +16,7 @@ import { clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequence
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
-import { StoredImageStack, magickInput, type MagickFormatContext } from "./stored-stack.js";
+import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
 import { cannyPixelSteps } from "./canny-kernel.js";
@@ -3556,7 +3556,9 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     yield;
     const layout = magickExtentLayout(img, geomStr, state);
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
-    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    const source = (img as MagickImage)[magickInput];
+    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background),
+        ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (!layout.area) return canvas;
     const subImg = yield* extractImageSteps(img, layout.area);
     return yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(subImg, layout.left, layout.top, "over")]);
@@ -6809,7 +6811,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const layout = magickExtentLayout(image, geometry, captured);
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
-                const canvas = { ...await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal), ...(virtualCanvas ? { virtualCanvas } : {}) };
+                const source = (image as StoredMagickImage)[magickInput];
+                const canvas = { ...await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal),
+                    ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
+                    ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
                 if (!layout.area) return canvas;
                 const overlay = await transformStoredImage(image, backend.storage, { kind: "extract", ...layout.area }, signal);
                 return transformStoredImage(canvas, backend.storage, { kind: "composite", layers: [{ input: new Uint8Array(), left: layout.left, top: layout.top, blend: "over" }] }, signal, { async readImage() { return overlay; } });

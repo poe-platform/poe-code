@@ -5295,6 +5295,15 @@ function parseMagickDisposal(value: string): number {
     return 0;
 }
 
+function applyMagickDensity<T extends ImageMetadata>(image: T, value: string): T {
+    const geometry = parseMagickGeometry(value);
+    const x = geometry.width ?? 72, y = geometry.height ?? x;
+    const unit = image.resolution?.unit ?? "unknown";
+    const scale = unit === "meter" ? 100 : 1;
+    return { ...image, density: x * (unit === "cm" || unit === "meter" ? 2.54 : 1),
+        resolution: { x: x * scale, y: y * scale, unit } };
+}
+
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
@@ -5465,6 +5474,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = j;
             continue;
         }
+        if (t === "-density") {
+            const value = tokens[++i] ?? "72";
+            state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
+            stack = yield* mapSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
+            i++;
+            continue;
+        }
         if (t === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
             const delay = Number(tokens[i + 2] ?? 0) * 10;
             stack = yield* mapSteps(stack, function* (image) {
@@ -5487,7 +5503,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
             stack = yield* mapSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, (image as MagickImage)[magickInput]);
-                return { ...image, properties: { ...image.properties, [key]: expanded } };
+                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: { ...image.properties, [key]: expanded } };
             });
             i++;
             continue;
@@ -6636,6 +6652,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-density") {
+            const value = tokens[++i] ?? "72";
+            state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
+            steps.push(async image => image ? applyMagickDensity(image, value) : undefined);
+            continue;
+        }
         if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
             const delay = Number(tokens[i + 2] ?? 0) * 10;
             steps.push(async image => image ? {
@@ -6656,7 +6678,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(value, image, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
-                return { ...image, properties: { ...image.properties, [key]: expanded } };
+                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: { ...image.properties, [key]: expanded } };
             });
             continue;
         }

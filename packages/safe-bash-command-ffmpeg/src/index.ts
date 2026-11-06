@@ -1289,7 +1289,7 @@ export function evalSyncFfmpeg(
     let outputFps: number | undefined;
     let outputSize: string | undefined;
     let rotation: number | undefined;
-    let noOverwrite = true;
+    let noOverwrite: boolean | undefined;
     const vfFilters: string[] = [];
     let chapterSource: number | undefined;
     let metadataSource: number | undefined;
@@ -1300,8 +1300,10 @@ export function evalSyncFfmpeg(
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]!;
-      if (arg === "-y") noOverwrite = false;
-      else if (arg === "-n") noOverwrite = true;
+      if (arg === "-y" || arg === "-n") {
+        if (noOverwrite !== undefined && noOverwrite !== (arg === "-n")) return undefined;
+        noOverwrite = arg === "-n";
+      }
       else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
       else if (arg === "-map_chapters") {
         const value = args[++i];
@@ -1405,7 +1407,7 @@ export function evalSyncFfmpeg(
     if (!isNullMux && !isStdout(outputTarget) && inputs.some(input =>
       input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget)) return undefined;
     if (!isNullMux && !writeFileSync) return undefined;
-    if (noOverwrite && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
+    if (noOverwrite !== false && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
 
     const loadedDocs: MediaDocument[] = [];
     for (const inp of inputs) {
@@ -1581,7 +1583,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingLoop: number | undefined;
       let pendingFps: number | undefined;
       let pendingStartNumber: number | undefined;
-      let overwrite = false;
+      let overwrite: boolean | undefined;
       let filterComplex: string | undefined;
       const outputs: (() => Promise<{ exitCode: number }>)[] = [];
       const inputBytes = new Map<string, Uint8Array>();
@@ -1639,10 +1641,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         for (; i < args.length; i++) {
           const arg = args[i]!;
-          if (arg === "-y") {
-            overwrite = true;
-          } else if (arg === "-n") {
-            overwrite = false;
+          if (arg === "-y" || arg === "-n") {
+            if (overwrite !== undefined && overwrite !== (arg === "-y")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: both -y and -n supplied\n"), context.signal);
+              return { exitCode: 234 };
+            }
+            overwrite = arg === "-y";
           } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-update" || arg === "-loop") {
             i++;
           } else if (arg === "-vsync" || arg === "-fps_mode") {

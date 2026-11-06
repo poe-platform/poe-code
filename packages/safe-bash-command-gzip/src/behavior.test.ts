@@ -59,7 +59,29 @@ test("static empty and hello fixtures decode without any reference executable", 
   assert.equal(result.stdout.toString(), "hello\n");
 });
 
+for (const flag of ["-dc", "-t", "-fdc"]) {
+  test(`historical gzip magic decodes and validates trailers with ${flag}`, async () => {
+    const member = gzipSync(binary);
+    member[1] = 0x9e;
+    for (const bytes of [member, Buffer.concat([helloMember, member, helloMember])]) {
+      const result = await run("gzip", [flag], chunks(...Array.from(bytes, byte => Uint8Array.of(byte))));
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdout, flag === "-t" ? Buffer.alloc(0) : bytes === member
+        ? Buffer.from(binary) : Buffer.concat([Buffer.from("hello\n"), binary, Buffer.from("hello\n")]));
+    }
+    for (const [offset, message] of [[8, "incorrect data check (CRC)"], [4, "incorrect length check"]] as const) {
+      const corrupt = Buffer.from(member);
+      corrupt[corrupt.length - offset]! ^= 1;
+      const result = await run("gzip", [flag], chunks(corrupt));
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes(message), result.stderr);
+    }
+  });
+}
+
 for (const [name, hex] of [
+  ["historical magic with CRC", "1f9e08020000000000039970"],
   ["empty filename", "1f8b080800000000000300"],
   ["empty comment", "1f8b081000000000000300"],
   ["both empty", "1f8b08180000000000030000"],

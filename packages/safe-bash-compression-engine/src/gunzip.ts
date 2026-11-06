@@ -99,7 +99,7 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
         yield* uncompress(input, await input.required(), signal);
         return;
       }
-      if (first !== 31 || second !== 139) {
+      if (first !== 31 || (second !== 139 && second !== 158)) {
         // GNU forced stdout/test passes non-member bytes through after valid members too.
         if (force) {
           yield Uint8Array.from(prefix);
@@ -120,7 +120,7 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
         warn();
         return;
       }
-      yield* decodeMember(input, signal);
+      yield* decodeMember(input, signal, Uint8Array.of(first, second));
       members++;
     }
   } finally { controller.abort(); await reader.close(); }
@@ -154,8 +154,8 @@ async function* decodeZipMember(input: Input, signal: AbortSignal): ByteSource {
   if (size !== expectedSize) throw new PublicDiagnostic("incorrect length check");
 }
 
-async function* decodeMember(input: Input, signal: AbortSignal): ByteSource {
-  await header(input, Uint8Array.of(31, 139));
+async function* decodeMember(input: Input, signal: AbortSignal, magic: Uint8Array): ByteSource {
+  await header(input, magic);
   let crc = 0xffffffff;
   let size = 0;
   for await (const chunk of codec(input, { mode: "inflate-raw" }, signal)) {
@@ -174,6 +174,6 @@ export async function* gunzipMember(reader: CodecInput, signal: AbortSignal): By
   try {
     const magic = await input.exact(2);
     if (magic[0] !== 31 || magic[1] !== 139) throw new PublicDiagnostic("not in gzip format");
-    yield* decodeMember(input, signal);
+    yield* decodeMember(input, signal, magic);
   } finally { input.release(); }
 }

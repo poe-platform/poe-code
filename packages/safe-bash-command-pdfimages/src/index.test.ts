@@ -437,7 +437,7 @@ describe("safe-bash-command-pdfimages", () => {
     expect(paramsText).toContain("-4");
     expect(paramsText).toContain("-x 64");
     expect(paramsText).toContain("-y 48");
-    expect(res.stdout).toContain("raw-002.params");
+    expect(res.stdout).toBe("raw-000.jp2\nraw-001.jb2e\nraw-002.ccitt\n");
   });
 
   it("extracts images embedded inside annotation /AP /N appearance streams, /PatternType 1 tiling patterns, and Type 3 /CharProcs", async () => {
@@ -647,7 +647,7 @@ describe("safe-bash-command-pdfimages", () => {
     expect(files.get("ch-001.jp2")).toEqual(codecFixture("rgb-lossless.jp2"));
   });
 
-  it("extracts .jb2e + .jb2g for JBIG2Decode with JBIG2Globals and includes .jb2g in -print-filenames", async () => {
+  it("extracts .jb2e + .jb2g for JBIG2Decode with JBIG2Globals and omits .jb2g from -print-filenames", async () => {
     const doc = PdfDocument.create();
     const page = doc.addPage({ width: 100, height: 100 });
 
@@ -698,8 +698,7 @@ describe("safe-bash-command-pdfimages", () => {
     expect(new TextDecoder().decode(ppmBytes!.subarray(0, 3))).toBe("P6\n");
     expect(files.get("out-001.jb2e")).toEqual(codecFixture("jbig2-symbols.0000"));
     expect(files.get("out-001.jb2g")).toEqual(codecFixture("jbig2-symbols.sym"));
-    expect(defRes.stdout).toContain("out-001.jb2e");
-    expect(defRes.stdout).toContain("out-001.jb2g");
+    expect(defRes.stdout).toBe("out-000.ppm\nout-001.jb2e\n");
   });
 
   it("extracts .jb2e and .jb2g when JBIG2 image uses multi-filter [/ASCIIHexDecode /JBIG2Decode] and /DecodeParms [null << /JBIG2Globals ... >>]", async () => {
@@ -739,6 +738,7 @@ describe("safe-bash-command-pdfimages", () => {
     expect(res.exitCode).toBe(0);
     expect(files.get("out-000.jb2e")).toEqual(codecFixture("jbig2-symbols.0000"));
     expect(files.get("out-000.jb2g")).toEqual(codecFixture("jbig2-symbols.sym"));
+    expect(res.stdout).toBe("out-000.jb2e\n");
   });
 });
 

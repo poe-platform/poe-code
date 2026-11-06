@@ -48,6 +48,7 @@ async function compareCommand(input: Uint8Array, flags: string[]) {
   expect({...result,stdout,stderr}).toEqual(reference);
   for(const [path,bytes] of expected)expect(await fs.readFile(`/${path}`),path).toEqual(bytes);
   expect(await fs.readdir("/tmp")).toEqual([]);
+  return { stdout, fs };
 }
 it.each([[],["-png"],["-tiff"],["-list"],["-u","-p","-print-filenames"],["-f","2","-l","2","-min-width","2","-png"],["-min-height","100"],["-f","8"]].map(flags=>({flags})))("preserves retained listing, selection and outputs for $flags",async ({flags})=>{
   const doc=PdfDocument.create();const first=doc.addPage([32,32]),second=doc.addPage([32,32]);const image=doc.embedRgbImage(2,2,new Uint8Array([255,0,0,0,255,0,0,0,255,255,255,255]));
@@ -64,7 +65,16 @@ it.each(["DCTDecode","JPXDecode","JBIG2Decode","CCITTFaxDecode"])("preserves ret
   if(filter==="CCITTFaxDecode")dictSet(dict,"DecodeParms",cosDict({K:cosNumber(-1),Columns:cosNumber(8),Rows:cosNumber(2)}));
   dictSet(page.pageDict,"Resources",cosDict({XObject:cosDict({I:doc.cos.allocateObject(cosStream(dict,bytes))})}));dictSet(page.pageDict,"Contents",doc.cos.allocateObject(cosStream(new TextEncoder().encode("/I Do"))));
   const input=doc.save({encrypt:{revision:3,userPassword:"secret"}});
-  await compareCommand(input,["-all","-p","-print-filenames","-upw","secret"]);await compareCommand(input,["-list","-upw","secret"]);
+  const extension = filter === "DCTDecode" ? "jpg" : filter === "JPXDecode" ? "jp2" : filter === "JBIG2Decode" ? "jb2e" : "ccitt";
+  const nativeFlag = filter === "DCTDecode" ? "-j" : filter === "JPXDecode" ? "-jp2" : filter === "JBIG2Decode" ? "-jbig2" : "-ccitt";
+  for (const flag of ["-all", nativeFlag]) {
+    const { stdout, fs } = await compareCommand(input,[flag,"-p","-print-filenames","-upw","secret"]);
+    expect(stdout).toBe(`out-001-000.${extension}\n`);
+    expect(await fs.readFile(`/out-001-000.${extension}`)).toEqual(bytes);
+    if (filter === "JBIG2Decode") expect(await fs.readFile("/out-001-000.jb2g")).toEqual(fixture("jbig2-symbols.sym"));
+    if (filter === "CCITTFaxDecode") expect(new TextDecoder().decode(await fs.readFile("/out-001-000.params"))).toBe("-4 -x 8 -y 2\n");
+  }
+  await compareCommand(input,["-list","-upw","secret"]);
 });
 it.each(["cancel","budget"])("keeps the original destination and cleans staging on %s failure",async mode=>{
   const {bindFileOutputBudget}=await import("safe-bash-contracts/filesystem-output-budget");

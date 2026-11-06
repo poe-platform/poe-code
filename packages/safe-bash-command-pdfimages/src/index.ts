@@ -309,8 +309,6 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
                     ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.jb2g`
                     : `${root}-${numStr}.jb2g`;
                 files.set(jb2gName, img.jbig2GlobalsBytes);
-                if (printFilenames)
-                    printedFilenames.push(jb2gName);
             }
             if (ext === "ccitt") {
                 const paramsBase = includePage
@@ -326,8 +324,6 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
                     ...(img.ccittParams?.byteAlign ? ["-A"] : []),
                 ].join(" ");
                 files.set(paramsBase, new TextEncoder().encode(`${extraFlags}\n`));
-                if (printFilenames)
-                    printedFilenames.push(paramsBase);
             }
             if (printFilenames)
                 printedFilenames.push(outName);
@@ -451,12 +447,9 @@ export async function executePdfimages(context: CommandContext, options: Pdfimag
     outputs = await PdfStagedOutputs.create(storage, entries(), { signal });
     if (plan.listOnly) { for await (const entry of outputs.entries()) for await (const bytes of entry.contents()) await writeBytes(stdout, bytes, signal); return { exitCode: 0 }; }
     if (plan.printFilenames) {
-      let pending: string | undefined;
       for await (const entry of outputs.entries()) {
-        if (entry.name.endsWith(".params") || entry.name.endsWith(".jb2g")) await emit(entry.name + "\n");
-        else { if (pending !== undefined) await emit(pending + "\n"); pending = entry.name; }
+        if (!entry.name.endsWith(".params") && !entry.name.endsWith(".jb2g")) await emit(entry.name + "\n");
       }
-      if (pending !== undefined) await emit(pending + "\n");
     }
     for await (const entry of outputs.entries()) {
       try { await publishPdfOutput(context, resolvePath(context.cwd, entry.name), entry.contents(), signal); }

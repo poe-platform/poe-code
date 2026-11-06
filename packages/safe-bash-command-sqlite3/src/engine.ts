@@ -4781,7 +4781,25 @@ export class SqliteDatabase {
     }
 
     const anchorTokens = bodyTokens.slice(0, unionIdx);
-    const recTokens = bodyTokens.slice(unionIdx + (unionAll ? 2 : 1));
+    const recursiveBody = bodyTokens.slice(unionIdx + (unionAll ? 2 : 1));
+    let orderIdx = -1;
+    let limitIdx = -1;
+    d = 0;
+    for (let i = 0; i < recursiveBody.length; i += 1) {
+      yield;
+      const token = recursiveBody[i]!;
+      if (token.value === "(") d += 1;
+      else if (token.value === ")") d -= 1;
+      else if (d === 0 && token.type === "word") {
+        if (token.value.toUpperCase() === "ORDER" && recursiveBody[i + 1]?.value.toUpperCase() === "BY") orderIdx = i;
+        if (token.value.toUpperCase() === "LIMIT") limitIdx = i;
+      }
+    }
+    const recTokens = recursiveBody.slice(0, orderIdx >= 0 ? orderIdx : limitIdx >= 0 ? limitIdx : undefined);
+    const orderTokens = orderIdx >= 0
+      ? tokenizeSql(`SELECT * FROM __recursive_queue__ ${reconstructTokensSql(recursiveBody.slice(orderIdx, limitIdx >= 0 ? limitIdx : undefined))}`)
+      : undefined;
+    const limitTokens = limitIdx >= 0 ? recursiveBody.slice(limitIdx + 1) : undefined;
 
     const anchorRes = yield* this.executeSelectCompound(anchorTokens, positionalParams, cteMap);
     const cols = explicitCols && explicitCols.length > 0 ? explicitCols : anchorRes.columns;
@@ -4791,42 +4809,53 @@ export class SqliteDatabase {
     this.preparing = true;
     try {
       yield* this.executeSelectCompound(recTokens, positionalParams, scope);
+      // Prepare tail expressions even when no rows will be visited.
+      if (orderTokens) {
+        scope.set("__recursive_queue__", { columns: cols, rows: [] });
+        yield* this.executeSingleSelect(orderTokens, positionalParams, scope);
+      }
+      if (limitTokens) {
+        yield* this.executeSingleSelect(
+          tokenizeSql(`SELECT 1 LIMIT ${reconstructTokensSql(limitTokens)}`),
+          positionalParams, scope
+        );
+      }
     } finally {
       this.preparing = preparing;
     }
     if (this.preparing) return { columns: cols, rows: [] };
-    this.checkRowCount(anchorRes.rows.length);
-    const allRows: SqlValue[][] = [...anchorRes.rows];
-    let workingRows: SqlValue[][] = [...anchorRes.rows];
+    const { limitVal, offsetVal } = limitTokens
+      ? yield* this.evaluateLimit(limitTokens, positionalParams)
+      : { limitVal: -1, offsetVal: 0 };
+    const allRows: SqlValue[][] = [];
+    let queue: SqlValue[][] = [];
     const seenKeys = new Set<string>();
-    if (!unionAll) {
-      for (const r of allRows) {
-        yield;
-        seenKeys.add(serializeSqlJson(r, false));
-      }
-    }
-
+    let visited = 0;
+    let pendingRows = anchorRes.rows;
     const stepMap = new Map(cteMap);
     const cteKey = cteName.toLowerCase();
-    while (workingRows.length > 0) {
-      yield;
-      stepMap.set(cteKey, { columns: cols, rows: workingRows });
-      const nextRes = yield* this.executeSelectCompound(recTokens, positionalParams, stepMap);
-      const nextWorking: SqlValue[][] = [];
-      for (const r of nextRes.rows) {
+    while (limitVal < 0 || allRows.length < limitVal) {
+      for (const row of pendingRows) {
         yield;
         if (!unionAll) {
-          const k = serializeSqlJson(r, false);
-          if (seenKeys.has(k)) {
-            continue;
-          }
-          seenKeys.add(k);
+          const key = serializeSqlJson(row, false);
+          if (seenKeys.has(key)) continue;
+          seenKeys.add(key);
         }
-        this.checkRowCount(allRows.length + 1);
-        allRows.push(r);
-        nextWorking.push(r);
+        this.checkRowCount(visited + queue.length + 1);
+        queue.push(row);
       }
-      workingRows = nextWorking;
+      if (queue.length === 0) break;
+      if (orderTokens) {
+        stepMap.set("__recursive_queue__", { columns: cols, rows: queue });
+        queue = (yield* this.executeSingleSelect(orderTokens, positionalParams, stepMap)).rows;
+      }
+      const row = queue.shift()!;
+      visited += 1;
+      if (visited > offsetVal) allRows.push(row);
+      if (limitVal >= 0 && allRows.length >= limitVal) break;
+      stepMap.set(cteKey, { columns: cols, rows: [row] });
+      pendingRows = (yield* this.executeSelectCompound(recTokens, positionalParams, stepMap)).rows;
     }
 
     return { columns: cols, rows: allRows };
@@ -5598,65 +5627,7 @@ export class SqliteDatabase {
 
     // 6. Evaluate LIMIT / OFFSET
     if (limitTokens && limitTokens.length > 0) {
-      const offsetIdx = limitTokens.findIndex((t) => {
-        return t.value.toUpperCase() === "OFFSET";
-      });
-      const commaIdx = limitTokens.findIndex((t) => {
-        return t.value === ",";
-      });
-      let limitVal = -1;
-      let offsetVal = 0;
-
-      if (offsetIdx !== -1) {
-        limitVal = Math.trunc(
-          toSqlNumber(
-            yield* this.evalExprSteps(
-              new ExprParser(limitTokens.slice(0, offsetIdx)).parseExpression(),
-              {},
-              positionalParams
-            )
-          )
-        );
-        offsetVal = Math.trunc(
-          toSqlNumber(
-            yield* this.evalExprSteps(
-              new ExprParser(limitTokens.slice(offsetIdx + 1)).parseExpression(),
-              {},
-              positionalParams
-            )
-          )
-        );
-      } else if (commaIdx !== -1) {
-        // LIMIT offset, count
-        offsetVal = Math.trunc(
-          toSqlNumber(
-            yield* this.evalExprSteps(
-              new ExprParser(limitTokens.slice(0, commaIdx)).parseExpression(),
-              {},
-              positionalParams
-            )
-          )
-        );
-        limitVal = Math.trunc(
-          toSqlNumber(
-            yield* this.evalExprSteps(
-              new ExprParser(limitTokens.slice(commaIdx + 1)).parseExpression(),
-              {},
-              positionalParams
-            )
-          )
-        );
-      } else {
-        limitVal = Math.trunc(
-          toSqlNumber(
-            yield* this.evalExprSteps(
-              new ExprParser(limitTokens).parseExpression(),
-              {},
-              positionalParams
-            )
-          )
-        );
-      }
+      const { limitVal, offsetVal } = yield* this.evaluateLimit(limitTokens, positionalParams);
 
       if (offsetVal > 0) {
         finalProjected = finalProjected.slice(offsetVal);
@@ -5672,6 +5643,72 @@ export class SqliteDatabase {
     };
     this.resultCollations.set(result, resultCollations);
     return result;
+  }
+
+  private *evaluateLimit(
+    limitTokens: Token[],
+    positionalParams: SqlValue[]
+  ): SqlSteps<{ limitVal: number; offsetVal: number }> {
+    const offsetIdx = limitTokens.findIndex((t) => {
+      return t.value.toUpperCase() === "OFFSET";
+    });
+    const commaIdx = limitTokens.findIndex((t) => {
+      return t.value === ",";
+    });
+    let limitVal = -1;
+    let offsetVal = 0;
+
+    if (offsetIdx !== -1) {
+      limitVal = Math.trunc(
+        toSqlNumber(
+          yield* this.evalExprSteps(
+            new ExprParser(limitTokens.slice(0, offsetIdx)).parseExpression(),
+            {},
+            positionalParams
+          )
+        )
+      );
+      offsetVal = Math.trunc(
+        toSqlNumber(
+          yield* this.evalExprSteps(
+            new ExprParser(limitTokens.slice(offsetIdx + 1)).parseExpression(),
+            {},
+            positionalParams
+          )
+        )
+      );
+    } else if (commaIdx !== -1) {
+      // LIMIT offset, count
+      offsetVal = Math.trunc(
+        toSqlNumber(
+          yield* this.evalExprSteps(
+            new ExprParser(limitTokens.slice(0, commaIdx)).parseExpression(),
+            {},
+            positionalParams
+          )
+        )
+      );
+      limitVal = Math.trunc(
+        toSqlNumber(
+          yield* this.evalExprSteps(
+            new ExprParser(limitTokens.slice(commaIdx + 1)).parseExpression(),
+            {},
+            positionalParams
+          )
+        )
+      );
+    } else {
+      limitVal = Math.trunc(
+        toSqlNumber(
+          yield* this.evalExprSteps(
+            new ExprParser(limitTokens).parseExpression(),
+            {},
+            positionalParams
+          )
+        )
+      );
+    }
+    return { limitVal, offsetVal };
   }
 
   private *evaluateFromClause(

@@ -12,6 +12,19 @@ export function updatePngCrc(crc: number, bytes: Uint8Array): number {
   return crc;
 }
 
+/** PNG stores physical resolution as integer pixels per metre. */
+export function pngResolutionChunk(dpi: number, dpiY = dpi): Uint8Array {
+  const chunk = new Uint8Array(21);
+  const view = new DataView(chunk.buffer);
+  view.setUint32(0, 9);
+  chunk.set([112, 72, 89, 115], 4);
+  view.setUint32(8, Math.floor(dpi / 0.0254));
+  view.setUint32(12, Math.floor(dpiY / 0.0254));
+  chunk[16] = 1;
+  view.setUint32(17, (updatePngCrc(0xffffffff, chunk.subarray(4, 17)) ^ 0xffffffff) >>> 0);
+  return chunk;
+}
+
 /** Filesystem-independent scanline conversion and DEFLATE; at most one raw
  * chunk and the shared codec's bounded state are retained. */
 export async function* deflatePngPixels(width: number, height: number, input: AsyncIterable<Uint8Array>, opaque: boolean,
@@ -52,14 +65,14 @@ export async function* deflatePngPixels(width: number, height: number, input: As
 
 /** Frame one known-length IDAT stream, preserving the buffered PNG layout. */
 export async function* framePngChunks(width: number, height: number, opaque: boolean, length: number,
-  compressed: AsyncIterable<Uint8Array>, chunkBytes: number, signal?: AbortSignal): AsyncGenerator<Uint8Array, void, void> {
+  compressed: AsyncIterable<Uint8Array>, chunkBytes: number, signal?: AbortSignal, dpi?: number, dpiY = dpi): AsyncGenerator<Uint8Array, void, void> {
   if (!Number.isSafeInteger(length) || length < 0 || length > 0xffffffff) throw new PdfError("E_LIMIT", "PNG IDAT length limit exceeded");
   const header = new Uint8Array(33); header.set([137, 80, 78, 71, 13, 10, 26, 10]);
   const view = new DataView(header.buffer); view.setUint32(8, 13); header.set([73, 72, 68, 82], 12);
   view.setUint32(16, width); view.setUint32(20, height); header[24] = 8; header[25] = opaque ? 2 : 6;
   view.setUint32(29, (updatePngCrc(0xffffffff, header.subarray(12, 29)) ^ 0xffffffff) >>> 0);
   const idat = new Uint8Array(8); new DataView(idat.buffer).setUint32(0, length); idat.set([73, 68, 65, 84], 4);
-  for (const part of [header, idat]) for (let at = 0; at < part.length; at += chunkBytes) { signal?.throwIfAborted(); yield part.slice(at, at + chunkBytes); }
+  for (const part of [header, ...(dpi === undefined ? [] : [pngResolutionChunk(dpi, dpiY)]), idat]) for (let at = 0; at < part.length; at += chunkBytes) { signal?.throwIfAborted(); yield part.slice(at, at + chunkBytes); }
   let crc = updatePngCrc(0xffffffff, idat.subarray(4)); let read = 0;
   for await (const bytes of readBytes(compressed, signal)) {
     if (bytes.length > length - read) throw new PdfError("E_PARSE", "PNG compressed length mismatch");

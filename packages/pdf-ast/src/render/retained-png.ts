@@ -5,6 +5,8 @@ import { PdfFileSource } from "../source.js";
 import { deflatePngPixels, framePngChunks } from "./png-stream.js";
 
 export interface PdfRetainedPngOptions {
+  readonly dpi?: number | undefined;
+  readonly dpiY?: number | undefined;
   readonly chunkBytes?: number;
   /** Aggregate live pixel and compressed staging bytes. */
   readonly maxStagingBytes?: number;
@@ -29,7 +31,8 @@ export async function* encodeRetainedPng(width: number, height: number, input: A
   const chunkBytes = options.chunkBytes ?? 65536;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("Invalid PNG chunk size");
   const stagingLimit = maximum(options.maxStagingBytes); const outputLimit = maximum(options.maxOutputBytes);
-  if (outputLimit < 57) throw new PdfError("E_LIMIT", "PNG output byte limit exceeded");
+  const framingBytes = options.dpi === undefined ? 57 : 78;
+  if (outputLimit < framingBytes) throw new PdfError("E_LIMIT", "PNG output byte limit exceeded");
   let opaque = options.alpha !== "rgba"; let inputBytes = 0;
   const expected = width * height * 4;
   let pixels: PdfFileSource | undefined; let compressed: PdfFileSource | undefined; let failed = false;
@@ -49,9 +52,9 @@ export async function* encodeRetainedPng(width: number, height: number, input: A
     opaque &&= inputBytes >= height * (width * 3 + 1);
     compressed = await PdfFileSource.fromStream(storage.fs, storage.directory,
       deflatePngPixels(width, height, pixels.stream(0, pixels.size, signal), opaque, chunkBytes, signal),
-      { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: Math.min(stagingLimit - pixels.size, outputLimit - 57, 0xffffffff), ...(signal ? { signal } : {}) });
+      { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: Math.min(stagingLimit - pixels.size, outputLimit - framingBytes, 0xffffffff), ...(signal ? { signal } : {}) });
     await pixels.close(); pixels = undefined;
-    yield* framePngChunks(width, height, opaque, compressed.size, compressed.stream(0, compressed.size, signal), chunkBytes, signal);
+    yield* framePngChunks(width, height, opaque, compressed.size, compressed.stream(0, compressed.size, signal), chunkBytes, signal, options.dpi, options.dpiY);
   } catch (error) { failed = true; throw error; }
   finally {
     const results = await Promise.allSettled([compressed?.close(), pixels?.close()]);

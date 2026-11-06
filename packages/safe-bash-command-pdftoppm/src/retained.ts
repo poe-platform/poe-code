@@ -99,7 +99,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
             yield bytes;
           }
         }
-        const chunks = plan.format === "png" ? encodeRetainedPng(bitmap.width, bitmap.height, pixels(), storage, { signal })
+        const chunks = plan.format === "png" ? encodeRetainedPng(bitmap.width, bitmap.height, pixels(), storage, { ...(!cairo ? { dpi: dpiX, dpiY } : {}), signal })
           : plan.format === "tif" ? encodeRetainedTiff(bitmap.width, bitmap.height, pixels(), storage, { dpi: dpiX, dpiY, compression: plan.tiffCompression, signal })
           : plan.format === "jpg" ? encodeJpegChunks(bitmap.width, bitmap.height, pixels(), { quality: plan.jpegQuality, colorSpace: plan.jpegColorSpace, dpi: dpiX, dpiY, signal })
           : encodePortableBitmapChunks(plan.format === "pgm" || plan.format === "pbm" ? plan.format : "ppm", bitmap.width, bitmap.height, pixels(), { signal });

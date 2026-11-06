@@ -173,7 +173,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 }
             }
             if (format === "png")
-                renderedBytes = (yield* encodePngSteps(bitmap));
+                renderedBytes = (yield* encodePngSteps(bitmap, cairo ? undefined : effDpiX, effDpiY));
             else if (format === "tif")
                 renderedBytes = (yield* encodeTiffSteps(bitmap, effDpiX, tiffCompression, effDpiY));
             else if (format === "jpg")

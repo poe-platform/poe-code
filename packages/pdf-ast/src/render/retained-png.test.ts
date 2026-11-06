@@ -138,3 +138,23 @@ it("cancels between output chunks and removes sealed staging", async () => {
   const reason = new Error("cancel PNG output"); controller.abort(reason);
   await expect(output.next()).rejects.toBe(reason); expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("includes resolution framing in the output budget", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const data = new Uint8Array([1, 2, 3, 255]);
+  const expected = encodePng({ width: 1, height: 1, data: data.slice() }, 24, 48);
+  async function* input() { yield data; }
+  for (const limit of [expected.length - 1, expected.length]) {
+    const collect = async () => {
+      const result: number[] = [];
+      for await (const chunk of encodeRetainedPng(1, 1, input(), { fs, directory: "/scratch" }, { dpi: 24, dpiY: 48, chunkBytes: 7, maxOutputBytes: limit })) {
+        expect(chunk.length).toBeLessThanOrEqual(7);
+        result.push(...chunk);
+      }
+      return new Uint8Array(result);
+    };
+    if (limit < expected.length) await expect(collect()).rejects.toThrow("limit");
+    else expect(await collect()).toEqual(expected);
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  }
+});

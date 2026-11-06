@@ -831,7 +831,7 @@ describe("safe-bash-command-pdfinfo", () => {
     const substRes = await runPdffontsCli(["-subst", "fonts.pdf"], files);
     assert.equal(substRes.exitCode, 0);
     assert.match(substRes.stdout, /substitute font\s+substitute font file/);
-    assert.match(substRes.stdout, /Helvetica\s+\d+\s+0\s+Nimbus Sans/);
+    assert.match(substRes.stdout, /Helvetica\s+\d+\s+0\s+\[unresolved\]\s+\[unresolved\]/);
 
     const badRange = await runPdffontsCli(["-f", "5", "-l", "6", "fonts.pdf"], files);
     assert.equal(badRange.exitCode, 99);

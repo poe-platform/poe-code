@@ -1375,13 +1375,8 @@ function formatPdfFont(font: PdfRetainedFont, options: { showLoc: boolean; showL
   const objectId = font.reference ? `${String(font.reference.objectNumber).padStart(6)} ${String(font.reference.generationNumber).padStart(2)}` : "   [none]";
   if (options.showSubst) {
     if (font.embedded) return undefined;
-    let substitute = font.name;
-    if (font.name.startsWith("Helvetica") || font.name.startsWith("Arial")) substitute = "Nimbus Sans";
-    else if (font.name.startsWith("Times")) substitute = "Nimbus Roman";
-    else if (font.name.startsWith("Courier")) substitute = "Nimbus Mono PS";
-    else if (font.name === "Symbol") substitute = "Standard Symbols PS";
-    else if (font.name === "ZapfDingbats") substitute = "D050000L";
-    return `${font.name.slice(0, 36).padEnd(36)} ${objectId} ${substitute.slice(0, 36).padEnd(36)} /usr/share/fonts/type1/urw-base35/${substitute.replaceAll(" ", "")}.t1`;
+    // This portable inspector has no system-font resolver or substitute file.
+    return `${font.name.slice(0, 36).padEnd(36)} ${objectId} ${"[unresolved]".padEnd(36)} [unresolved]`;
   }
   const location = options.showLoc ? ` ${font.embedded ? "Embedded" : options.showLocPs ? `Substitute (${font.name})` : "Substitute"}` : "";
   return `${font.name.slice(0, 36).padEnd(36)} ${font.type.padEnd(17)} ${font.encoding.slice(0, 16).padEnd(16)} ${font.embedded ? "yes" : "no "} ${isSubsetFontTag(font.name) ? "yes" : "no "} ${font.unicode ? "yes" : "no "} ${objectId}${location}`;

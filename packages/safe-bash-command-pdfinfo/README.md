@@ -44,6 +44,7 @@ Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. 
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 `pdfunite`, `pdfseparate`, `pdffonts`, and `pdfdetach` require explicit PDF operands and return exit code `99` without consuming stdin when they are omitted. Use `-` to read stdin with `pdffonts` or `pdfdetach`; `pdfinfo` also accepts an omitted input filename. Help, version, and `pdfinfo -listenc` leave stdin unread. `pdffonts` also rejects unknown options, missing option values, non-integer page arguments, and extra PDF operands with exit code `99` and usage on stderr before reading input.
+`pdffonts -subst` lists unembedded fonts with `[unresolved]` in the substitute font and file columns: this portable inspector does not resolve system fonts. Embedded fonts are omitted from this table.
 Embedded attachment filenames are reduced to their final path component when extracting, keeping them in the chosen output directory.
 
 `pdfinfo` / `pdfinfo(context, options)` and

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument } from "@poe-code/pdf-ast";
-import { createPdffontsCommand, runPdffontsCliSync } from "./index.js";
+import { createPdffontsCommand, runPdffontsCli, runPdffontsCliSync } from "./index.js";
 
 for (const flags of [[], ["-loc"], ["-locPS"], ["-subst"], ["-f", "2", "-l", "2"], ["-f", "3"]]) {
   it(`streams pdffonts output with buffered parity: ${flags.join(" ")}`, async () => {
@@ -67,5 +67,31 @@ for (const [fixture, name, encoding] of [
     }
     const row = stdout.split("\n").find(line => line.startsWith(name!));
     assert.ok(row); assert.equal(row.slice(55, 71).trim(), encoding);
+  });
+}
+
+for (const [fixture, name] of [
+  ["pdfjs-calgray.pdf", "Times-Roman"],
+  ["pdfjs-jbig2-symbol-offset.pdf", "Helvetica"],
+]) {
+  it(`reports unresolved substitutes without inventing host paths for ${name}`, async () => {
+    const bytes = await readFile(new URL(`../../pdf-ast/src/fixtures/${fixture}`, import.meta.url));
+    const args = ["-subst", "in.pdf"];
+    const files = new Map([["in.pdf", bytes]]);
+    const fs = createMemoryFileSystem(); await fs.writeFile("/in.pdf", bytes);
+    let stdout = "";
+    const result = await createPdffontsCommand().execute({
+      command: "pdffonts", args, cwd: "/", env: {}, fs, signal: new AbortController().signal,
+      stdin: { async *[Symbol.asyncIterator]() {} },
+      stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
+      stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } },
+    });
+    assert.equal(result.exitCode, 0);
+    for (const output of [stdout, runPdffontsCliSync(args, files).stdout, (await runPdffontsCli(args, files)).stdout]) {
+      const row = output.split("\n").find(line => line.startsWith(name!));
+      assert.ok(row);
+      assert.equal(row.slice(47, 83).trim(), "[unresolved]");
+      assert.equal(row.slice(84), "[unresolved]");
+    }
   });
 }

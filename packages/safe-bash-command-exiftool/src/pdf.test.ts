@@ -1,14 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { readFile } from "node:fs/promises";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { exiftoolCommand } from "./command.js";
+import { createExiftoolCommand } from "./index.js";
 
 const decoder = new TextDecoder();
 
 async function invoke(args: string[], fs = createMemoryFileSystem()) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
-  const res = await exiftoolCommand.execute({ command: "exiftool",
+  const res = await createExiftoolCommand().execute({ command: "exiftool",
     args,
     cwd: "/",
     env: {},
@@ -210,4 +211,41 @@ test("PDF JSON retains text tag types", async () => {
   const tags = JSON.parse(read.stdout)[0];
   for (const [name,value] of Object.entries(values)) assert.equal(tags[name], value);
   assert.equal(tags.PageCount, 2);
+});
+
+test("encrypted PDF Info is refused instead of returned as ciphertext", async () => {
+  const bytes = new Uint8Array(await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-issue17069.pdf", import.meta.url)));
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/encrypted.pdf", bytes);
+  for (const args of [
+    ["-j", "-s", "-n", "-Author", "-Creator", "-Producer", "-CreateDate", "-ModifyDate"],
+    ["-overwrite_original", "-Author=Changed"],
+  ]) {
+    const result = await invoke([...args, "encrypted.pdf"], fs);
+    assert.equal(result.exitCode, 1, result.stdout);
+    assert.ok(result.stderr.includes("Encrypted PDF metadata is not supported"), result.stderr);
+    assert.ok(!result.stdout.includes('"Author"'), result.stdout);
+    assert.deepEqual(await fs.readFile("/encrypted.pdf"), bytes);
+    await assert.rejects(fs.stat("/encrypted.pdf_original"), { code: "ENOENT" });
+  }
+});
+
+test("PDF encryption names are decoded and ordinary metadata text remains readable", async () => {
+  const fs = createMemoryFileSystem();
+  const plain = new TextDecoder().decode(createTwoPagePdfBytes());
+  for (const entry of ["/Encrypt 7 0 R", "/Encr#79pt 7 0 R"]) {
+    await fs.writeFile("/test.pdf", new TextEncoder().encode(plain.replace("/Size 6", entry + " /Size 6")));
+    const result = await invoke(["-j", "test.pdf"], fs);
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("Encrypted PDF metadata is not supported"));
+  }
+  await fs.writeFile("/test.pdf", new TextEncoder().encode(plain
+    .replace("Original Financial Report", "Literal /Encrypt (nested) text")
+    .replace("/Author (Risk Team)", "/Author <456e6372797074>")
+    .replace("trailer", "% /Encrypt 7 0 R\n6 0 obj\n<< /Length 14 >>\nstream\n/Encrypt 7 0 R\nendstream\nendobj\ntrailer")));
+  const result = await invoke(["-j", "test.pdf"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const tags = JSON.parse(result.stdout)[0];
+  assert.equal(tags.Title, "Literal /Encrypt (nested) text");
+  assert.equal(tags.Author, "Encrypt");
 });

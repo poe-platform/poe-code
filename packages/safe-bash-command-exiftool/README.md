@@ -133,6 +133,8 @@ inspection, broader timestamp syntax/conversions, import, extended tag catalogs 
 protocols remain open. Known unsupported readers and writers fail explicitly.
 PDF metadata removal is reversible and does not erase historical revisions or
 guarantee redaction; the required PDF parser/writer is not yet implemented.
+Encrypted PDFs are explicitly refused for metadata reads and writes, including
+files with an empty user password, so ciphertext is never returned as tag text.
 Native code evaluation, user config modules, host utilities and ambient polling
 are unavailable. Only UTF-8 argv is currently admitted. `-charset filename=UTF8` explicitly
 selects that existing filename encoding; other charsets are refused. The typed

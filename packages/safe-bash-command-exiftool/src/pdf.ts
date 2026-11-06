@@ -301,6 +301,44 @@ function parsePdfStructure(bytes: Uint8Array): {
   if (!text.startsWith("%PDF-")) {
     throw new Error("Invalid PDF header");
   }
+  // Scan PDF tokens, not string/comment/stream contents. Names may use #xx escapes.
+  const delimiters = "\0\t\n\f\r ()<>[]{}/%";
+  for (let i = 0; i < text.length;) {
+    const ch = text[i]!;
+    if (ch === "%") {
+      while (i < text.length && text[i] !== "\n" && text[i] !== "\r") i++;
+    } else if (ch === "(") {
+      i = readBalancedLiteralString(text, i).endIndex;
+    } else if (ch === "<" && text[i + 1] !== "<") {
+      const end = text.indexOf(">", i + 1);
+      i = end < 0 ? text.length : end + 1;
+    } else if (ch === "<" && text[i + 1] === "<") {
+      i += 2;
+    } else if (ch === "/") {
+      let name = "";
+      for (i++; i < text.length && !delimiters.includes(text[i]!); i++) {
+        if (text[i] === "#" && i + 2 < text.length) {
+          const hex = text.slice(i + 1, i + 3);
+          if ([...hex].every(c => "0123456789abcdefABCDEF".includes(c))) {
+            name += String.fromCharCode(parseInt(hex, 16));
+            i += 2;
+            continue;
+          }
+        }
+        name += text[i];
+      }
+      if (name === "Encrypt") throw new Error("Encrypted PDF metadata is not supported");
+    } else if (delimiters.includes(ch)) {
+      i++;
+    } else {
+      const start = i;
+      while (i < text.length && !delimiters.includes(text[i]!)) i++;
+      if (text.slice(start, i) === "stream") {
+        const end = text.indexOf("endstream", i);
+        i = end < 0 ? text.length : end + "endstream".length;
+      }
+    }
+  }
   const versionMatch = /^%PDF-(\d+\.\d+)/.exec(text);
   const version = versionMatch?.[1] ?? "1.7";
 

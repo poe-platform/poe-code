@@ -5767,14 +5767,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = nextStack;
         }
         else if (t === "-combine") {
-            if (stack.length >= 3) {
+            if (stack.length > 0) {
                 const rIm = stack[0]!;
-                const gIm = stack[1] ?? rIm;
-                const bIm = stack[2] ?? rIm;
-                const aIm = stack[3];
-                const sources = [rIm, gIm, bIm, ...(aIm ? [aIm] : [])];
+                const sources = stack.slice(0, 4);
                 const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(rIm.width * rIm.height * 4, sources.map(image => image.data.length)), signal, rIm, sources);
-                stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: Boolean(aIm) }];
+                stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 }];
             }
         }
         else if (t === "-draw") {
@@ -6391,7 +6388,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     return result;
                 } else if (token === "-combine") {
-                    if (stack.length < 3) return stack;
+                    if (stack.length === 0) return stack;
                     const sources: StoredRgbaImage[] = [];
                     for (let index = 0; index < Math.min(4, stack.length); index++) sources.push((await stack.get(index))!);
                     const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(base.width * base.height * 4, sources.map(image => image.width * image.height * 4)), signal, base, sources);

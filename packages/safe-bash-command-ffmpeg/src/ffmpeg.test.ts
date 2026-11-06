@@ -82,6 +82,36 @@ describe("stream-scoped audio filters", () => {
   }
 });
 
+describe("audio sample rate validation", () => {
+  for (const existing of [false, true]) {
+    it(`rejects -ar -1 without ${existing ? "overwriting" : "creating"} output`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000).fill(0.375)] });
+      const vfs = createTestVfs({ "/in.wav": input, ...(existing ? { "/out.wav": input } : {}) });
+      const args = ["-y", "-v", "error", "-i", "/in.wav", "-ar", "-1", "-c:a", "pcm_s16le", "/out.wav"];
+      assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), () => {
+        assert.fail("invalid rate must not write synchronously");
+      }), undefined);
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("sample rate"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.wav"), existing ? input : undefined);
+    });
+  }
+
+  it("accepts -ar 0 as the input sample rate", async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000).fill(0.375)] });
+    const vfs = createTestVfs({ "/in.wav": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/in.wav", "-ar", "0", "-c:a", "pcm_s16le", "/out.wav"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+    const expected = parseWav(input).tracks[0]!.decodedAudio!;
+    assert.equal(actual.sampleRate, expected.sampleRate);
+    assert.deepEqual(actual.channelData, expected.channelData);
+  });
+});
+
 describe("negative duration", () => {
   for (const inputOption of [false, true]) {
     it(`rejects negative ${inputOption ? "input" : "output"} -t without writing a completed WAV`, async () => {

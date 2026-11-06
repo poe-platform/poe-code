@@ -1347,7 +1347,10 @@ export function evalSyncFfmpeg(
         if (!Number.isSafeInteger(val) || val < 0) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
         else outputStartNumber = val;
-      } else if (arg === "-ar") audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+      } else if (arg === "-ar") {
+        audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+        if (audioRate !== undefined && audioRate < 0) return undefined;
+      }
       else if (arg === "-ac") audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
       else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") continue;
       else if (arg === "-f") {
@@ -1752,6 +1755,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             else outputStartNumber = val;
           } else if (arg === "-ar") {
             audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+            if (audioRate !== undefined && audioRate < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: sample rate must be nonnegative\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-ac") {
             audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") {

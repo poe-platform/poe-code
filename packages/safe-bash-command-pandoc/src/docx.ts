@@ -85,6 +85,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     const numbering: string[] = [];
     const notes: (readonly Block[])[] = [];
     let noteReference = false;
+    let compactLists = false;
     const w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
     const runs = (nodes: readonly Inline[], style: Omit<RichRun, "text" | "image" | "raw"> = {}, result: RichRun[] = []): RichRun[] => {
@@ -141,7 +142,12 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
         const properties = (list?.pending ? `<w:numPr><w:ilvl w:val="${list.level}"/><w:numId w:val="${list.id}"/></w:numPr>` : "") +
           (indent ? `<w:ind w:left="${indent}"/>` : "");
         if (block.t === "Header") {paragraph(target, runs(block.c[2]), properties, block.c[0]); if (list) list.pending = false;}
-        else if (block.t === "Para" || block.t === "Plain") {paragraph(target, runs(block.c), properties); if (list) list.pending = false;}
+        else if (block.t === "Para" || block.t === "Plain") {
+          const compact = block.t === "Plain" && list !== undefined;
+          compactLists ||= compact;
+          paragraph(target, runs(block.c), (compact ? '<w:pStyle w:val="Compact"/>' : "") + properties);
+          if (list) list.pending = false;
+        }
         else if (block.t === "CodeBlock") {paragraph(target, [{text: block.c[1]}], properties); if (list) list.pending = false;}
         else if (block.t === "Figure") {
           await visit(block.c[2], target, indent, list);
@@ -282,9 +288,10 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     ];
     if (typeOverrides.length) types.insertChildren(types.root, typeOverrides.join(""));
     const parts = new Map([["word/document.xml", documentBytes], ["word/_rels/document.xml.rels", relationships.serialize()], ["[Content_Types].xml", types.serialize()]]);
-    if (paragraphs.some(paragraph => paragraph.runs.some(run => run.code))) {
+    const codeStyle = paragraphs.some(paragraph => paragraph.runs.some(run => run.code));
+    if (compactLists || codeStyle) {
       const styles = new DocumentXmlEditor(archive.members.find(member => member.name === "word/styles.xml")!.bytes, {}, undefined, mc.budget);
-      styles.insertChildren(styles.root, `<w:style xmlns:w="${w}" w:type="character" w:styleId="VerbatimChar"><w:name w:val="Verbatim Char"/><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr></w:style>`);
+      styles.insertChildren(styles.root, (compactLists ? `<w:style xmlns:w="${w}" w:type="paragraph" w:styleId="Compact"><w:name w:val="Compact"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr></w:style>` : "") + (codeStyle ? `<w:style xmlns:w="${w}" w:type="character" w:styleId="VerbatimChar"><w:name w:val="Verbatim Char"/><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr></w:style>` : ""));
       parts.set("word/styles.xml", styles.serialize());
     }
     const members = archive.members.map(member => ({...member, bytes: parts.get(member.name) ?? member.bytes}));

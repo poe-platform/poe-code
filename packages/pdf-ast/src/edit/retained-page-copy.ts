@@ -30,8 +30,9 @@ export interface CopyRetainedPageOptions {
    * Return undefined to preserve the source; angles must be quarter turns. */
   readonly pageRotation?: (document: PdfRetainedDocument, index: number) => number | undefined | Promise<number | undefined>;
   /** Override copied page boxes after cloning. Source geometry is unrotated;
-   * indices refer to the source document. Returning undefined preserves boxes. */
-  readonly pageBoxes?: (size: { readonly width: number; readonly height: number }, index: number) => { readonly mediaBox?: PdfRect; readonly cropBox?: PdfRect } | undefined;
+   * indices refer to the source document. Returning undefined preserves boxes. Optional contentWrapper streams bracket
+   * the copied contents without decoding or collecting them. */
+  readonly pageBoxes?: (size: { readonly width: number; readonly height: number }, index: number, geometry: { readonly mediaBox: PdfRect; readonly rotation: number }) => { readonly mediaBox?: PdfRect; readonly cropBox?: PdfRect; readonly contentWrapper?: readonly [string, string] } | undefined;
   /** Override copied metadata; null omits document information; an empty object keeps only the default producer. */
   readonly metadata?: Readonly<Record<string, string>> | null;
   /** Repeatable bounded chunks override metadata without collecting field values. */
@@ -296,10 +297,25 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
           const value = await box(key); if (value[0] !== 0 || value[1] !== 0 || value[2] !== width || value[3] !== height) dictSet(page, key, cosArray(value.map(value => cosNumber(value))));
         }
         dictSet(page, "Parent", cosRef(2));
-        const boxes = options.pageBoxes?.({ width, height }, selection.index);
+        const pageRotation = dictGet(page, "Rotate");
+        const boxes = options.pageBoxes?.({ width, height }, selection.index, { mediaBox: [media[0]!, media[1]!, media[2]!, media[3]!], rotation: pageRotation?.kind === "number" ? pageRotation.value : 0 });
         for (const [key, value] of [["MediaBox", boxes?.mediaBox], ["CropBox", boxes?.cropBox]] as const) if (value) {
           if (value.length !== 4 || !value.every(Number.isFinite)) throw new RangeError("Invalid copied page box");
           dictSet(page, key, cosArray(value.map(coordinate => cosNumber(coordinate))));
+        }
+        if (boxes?.contentWrapper) {
+          const refs = [];
+          for (const text of boxes.contentWrapper) {
+            const bytes = new TextEncoder().encode(text), ref = await store.allocate();
+            await store.set({ objectNumber: ref.objectNumber, generationNumber: 0, value: cosDict({}), stream: { length: bytes.length, chunks: (async function* () { yield bytes; })() } });
+            refs.push(ref);
+          }
+          let contents = dictGet(page, "Contents");
+          if (contents?.kind === "ref") {
+            const value = (await store.get(contents.objectNumber))?.value;
+            if (value?.kind === "array") contents = value;
+          }
+          dictSet(page, "Contents", cosArray([refs[0]!, ...(contents?.kind === "array" ? contents.items : contents ? [contents] : []), refs[1]!]));
         }
         await store.set({ objectNumber: pageRef.objectNumber, generationNumber: 0, value: page });
       }

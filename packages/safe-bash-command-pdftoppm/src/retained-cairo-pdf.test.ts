@@ -2,7 +2,7 @@ import {expect,it} from "vitest";
 import {createMemoryFileSystem} from "@poe-code/safe-fs";
 import {PdfDocument,cosArray,cosNumber,dictSet,cosDict,cosName,cosString} from "@poe-code/pdf-ast";
 import {createCommandArguments} from "safe-bash-contracts";
-import {createPdftocairoCommand,runPdftocairoCli} from "./index.js";
+import {createPdftocairoCommand,runPdftocairoCli,runPdftocairoCliSync} from "./index.js";
 function input(form=false){const doc=PdfDocument.create();doc.setTitle("Title");doc.setAuthor("Author");doc.setSubject("Subject");doc.setKeywords("Keywords");doc.setCreator("Creator");doc.setProducer("Producer");
  for(let i=0;i<3;i++){const page=doc.addPage([120+i*10,160]);page.drawText(`Page ${i+1}`,{x:10,y:100});if(i===1)dictSet(page.pageDict,"Rotate",cosNumber(90));if(i===2)dictSet(page.pageDict,"CropBox",cosArray([2,3,90,130].map(v=>cosNumber(v))));
  if(form){const ref=doc.cos.allocateObject(cosDict({FT:cosName("Tx"),T:cosString(`field${i}`),V:cosString("value"),Subtype:cosName("Widget"),Rect:cosArray([10,20,60,40].map(v=>cosNumber(v)))}));dictSet(page.pageDict,"Annots",cosArray([ref]));const root=doc.cos.resolveDict(doc.cos.rootRef)!;const current=doc.cos.resolveDict(root.entries.find(e=>e.key.decoded==="AcroForm")?.value);if(current)(current.entries.find(e=>e.key.decoded==="Fields")!.value as ReturnType<typeof cosArray>).items.push(ref);else dictSet(root,"AcroForm",cosDict({Fields:cosArray([ref])}));}}
@@ -10,9 +10,16 @@ function input(form=false){const doc=PdfDocument.create();doc.setTitle("Title");
 async function fixture(bytes:Uint8Array,args:string[],stdin=false){const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/in.pdf",bytes);let stderr="";const stdout:Uint8Array[]=[];const controller=new AbortController();
  const guarded=new Proxy(fs,{get(owner,key){if(key==="readFile"||key==="writeFile")return()=>{throw new Error("whole-file I/O forbidden");};const value=Reflect.get(owner,key);return typeof value==="function"?value.bind(owner):value;}});const carrier=createCommandArguments(args);
  return {fs,stdout,controller,error:()=>stderr,context:{command:"pdftocairo",args:carrier.args,argumentValues:carrier,cwd:"/",env:{TMPDIR:"/scratch"},fs:guarded,signal:controller.signal,stdin:(async function*():AsyncGenerator<Uint8Array,void,unknown>{if(stdin){const buffer=new Uint8Array(47);for(let at=0;at<bytes.length;at+=47){const size=Math.min(47,bytes.length-at);buffer.set(bytes.subarray(at,at+size));yield buffer.subarray(0,size);}}})(),stdout:{async write(bytes:Uint8Array){expect(bytes.buffer.byteLength).toBeLessThanOrEqual(65536);await Promise.resolve();stdout.push(bytes.slice());}},stderr:{async write(bytes:Uint8Array){stderr+=new TextDecoder().decode(bytes);}}}};}
-it.each([[],["-f","2","-l","3"],["-o"],["-e"],["-o","-e"],["-x","7","-y","8"],["-W","75","-H","80"],["-paper","A4"],["-paperw","90","-paperh","110"],["-paper","A4","-origpagesizes"],["-f","8"],["-q","-f","8"]].map(flags=>({flags})))("retains Cairo PDF $flags byte semantics",async({flags})=>{
+it.each([[],["-f","2","-l","3"],["-o"],["-e"],["-o","-e"],["-x","7","-y","8"],["-W","75","-H","80"],["-paper","A4"],["-paperw","90","-paperh","110"],["-paper","A4","-origpagesizes"],["-f","8"],["-q","-f","8"]].map(flags=>({flags})))("retains Cairo PDF $flags page semantics",async({flags})=>{
  const bytes=input(true),args=["-pdf",...flags,"in.pdf","out"],files=new Map([["in.pdf",bytes]]),expected=await runPdftocairoCli(args,files),f=await fixture(bytes,args);
- expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(expected.exitCode);expect(f.error()).toBe(expected.stderr);if(files.has("out.pdf"))expect(await f.fs.readFile("/out.pdf")).toEqual(files.get("out.pdf"));expect(await f.fs.readdir("/scratch")).toEqual([]);
+ expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(expected.exitCode);expect(f.error()).toBe(expected.stderr);if(files.has("out.pdf")){
+  const actual=PdfDocument.load(await f.fs.readFile("/out.pdf")),wanted=PdfDocument.load(files.get("out.pdf")!);
+  expect(actual.pageCount).toBe(wanted.pageCount);expect(actual.getMetadata()).toEqual(wanted.getMetadata());
+  for(let index=0;index<actual.pageCount;index++){
+   expect(actual.getPage(index).getSize()).toEqual(wanted.getPage(index).getSize());
+   expect(actual.getPage(index).renderToBitmap({scale:0.25})).toEqual(wanted.getPage(index).renderToBitmap({scale:0.25}));
+  }
+ }expect(await f.fs.readdir("/scratch")).toEqual([]);
 });
 it("retains reused stdin and slow stdout",async()=>{const bytes=input(),args=["-pdf","-","-"],expected=await runPdftocairoCli(args,new Map([["-",bytes]])),f=await fixture(bytes,args,true);expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(0);expect(new Uint8Array(Buffer.concat(f.stdout))).toEqual(expected.stdoutBytes);expect(await f.fs.readdir("/scratch")).toEqual([]);});
 it("admits input before reading and cleans up on sink failure",async()=>{const bytes=input(),f=await fixture(bytes,["-pdf","in.pdf","-"]);await expect(createPdftocairoCommand({limits:{maxInputBytes:bytes.length-1}}).execute(f.context)).rejects.toThrow();const reason=new Error("sink failed");f.context.stdout.write=async()=>{throw reason;};await expect(createPdftocairoCommand().execute(f.context)).rejects.toBe(reason);expect(await f.fs.readdir("/scratch")).toEqual([]);});
@@ -98,4 +105,32 @@ for(const format of ['ps','eps'])it(`retains image-only and clipped vector paint
   expect(new TextDecoder().decode(expected.stdoutBytes)).toContain('colorimage');
   expect(await f.fs.readdir('/scratch')).toEqual([]);
  }
+});
+
+it.each([
+ {flags:[],size:200,left:50,top:50,color:[255,0,0]},
+ {flags:[],rotation:90,size:200,left:50,top:50,color:[0,0,255]},
+ {flags:[],rotation:180,size:200,left:50,top:50,color:[0,0,0]},
+ {flags:[],rotation:270,size:200,left:50,top:50,color:[0,255,0]},
+ {flags:['-x','100','-y','100'],size:200,left:50,top:50,color:[0,0,0]},
+ {flags:['-r','144'],size:200,left:50,top:50,color:[255,0,0]},
+ {flags:['-W','0','-H','0','-x','100','-y','100'],size:200,left:50,top:50,color:[0,0,0]},
+ {flags:['-paperw','300','-paperh','300'],size:300,left:100,top:100,color:[255,0,0]},
+ {flags:['-paperw','50','-paperh','50'],size:50,left:0,top:0,color:[255,0,0]},
+].map(value=>({rotation:0,...value})))('selects and centers the PDF crop $flags rotation=$rotation',async({flags,size,left,top,color,rotation})=>{
+ const doc=PdfDocument.create();doc.addPage([200,200]).setRawContentStream('1 0 0 rg 0 100 100 100 re f 0 0 1 rg 0 0 100 100 re f 0 1 0 rg 100 100 100 100 re f 0 0 0 rg 100 0 100 100 re f');
+ doc.getPage(0).setRotation(rotation as 0|90|180|270);
+ const bytes=doc.save(),args=['-pdf','-r','72','-W','100','-H','100',...flags,'in.pdf','-'];
+ const buffered=await runPdftocairoCli(args,new Map([['in.pdf',bytes]])),f=await fixture(bytes,args);
+ expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(0);
+ for(const output of [buffered.stdoutBytes!,runPdftocairoCliSync(args,new Map([['in.pdf',bytes]])).stdoutBytes!,new Uint8Array(Buffer.concat(f.stdout))]){
+  const page=PdfDocument.load(output).getPage(0);expect(page.getSize()).toEqual({width:size,height:size});
+  const bitmap=page.renderToBitmap({scale:1}),cropSize=Math.min(100,size);
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+   const expected=x>=left&&x<left+cropSize&&y>=top&&y<top+cropSize?color:[255,255,255];
+   const actual=Array.from(bitmap.data.subarray((y*size+x)*4,(y*size+x)*4+3));
+   if(actual.some((value,i)=>value!==expected[i]))throw new Error(`Pixel ${x},${y}: ${actual} expected ${expected}`);
+  }
+ }
+ expect(await f.fs.readdir('/scratch')).toEqual([]);
 });

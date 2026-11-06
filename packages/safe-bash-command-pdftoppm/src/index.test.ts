@@ -549,7 +549,7 @@ describe("safe-bash-command-pdftoppm", () => {
     const subDoc = PdfDocument.load(files.get("sub.pdf")!);
     expect(subDoc.pageCount).toBe(1);
     expect(subDoc.getPage(0).extractText()).toContain("Cairo Page Two");
-    expect(subDoc.getPage(0).getSize()).toEqual({ width: 120, height: 90 });
+    expect(subDoc.getPage(0).getSize()).toEqual({ width: 200, height: 150 });
 
     const epsRes = await runPdftocairoCli(["-eps", "-f", "1", "-l", "1", "deck.pdf", "fig1.eps"], files);
     expect(epsRes.exitCode).toBe(0);

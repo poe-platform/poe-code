@@ -1,3 +1,4 @@
+import { cairoPdfLayout } from "./pdf-layout.js";
 import { postscriptPageHeader, postscriptPixels } from "./postscript.js";
 import { monochromePixel } from "./monochrome.js";
 import { VALUE_FLAGS, parsePdftoppmArgsSteps, parsePdftocairoArgsSteps } from "./parse.js";
@@ -16,7 +17,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { PdfDocument, cosArray, cosNumber, dictSet, getDisplayListCropBox, type PdfCropRect, decodePngSteps, encodeJpegSteps, encodePbmSteps, encodePgmSteps, encodePngSteps, encodePpmSteps, encodeTiffSteps, renderDisplayListToSvgSteps, renderDisplayListToBitmapSteps } from "@poe-code/pdf-ast";
+import { PdfDocument, cosArray, cosNumber, cosStream, dictGet, dictSet, getDisplayListCropBox, type PdfCropRect, decodePngSteps, encodeJpegSteps, encodePbmSteps, encodePgmSteps, encodePngSteps, encodePpmSteps, encodeTiffSteps, renderDisplayListToSvgSteps, renderDisplayListToBitmapSteps } from "@poe-code/pdf-ast";
 
 export interface PdftoppmLimits {
   readonly maxInputBytes: number;
@@ -359,7 +360,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
 } = {}): Generator<void, PdftoppmCliResult, void> {
     const parsed = yield* parsePdftocairoArgsSteps(argv, files.has("-"));
     if (!("inputPath" in parsed)) return parsed;
-    const { format, grayMode, monoMode, quiet, firstPage, lastPage, oddOnly, evenOnly, cropX, cropY, cropW, cropH, hasCrop, paperW, paperH, origPageSizes, password, forwardedArgs, positionals, inputPath } = parsed;
+    const { format, grayMode, monoMode, quiet, firstPage, lastPage, oddOnly, evenOnly, cropX, cropY, cropW, cropH, hasCrop, password, forwardedArgs, positionals, inputPath } = parsed;
     let cooperativeWork = 63;
     const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
     if (format === "svg") {
@@ -416,18 +417,18 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
                 outDoc.setCreator(srcMeta.creator);
             if (srcMeta.producer)
                 outDoc.setProducer(srcMeta.producer);
-            const hasPaper = !origPageSizes && paperW > 0 && paperH > 0;
             for (const idx of selectedIndices) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const [copied] = outDoc.copyPagesFrom(doc, [idx]);
-                if (copied && (hasCrop || hasPaper)) {
-                    const origSize = copied.getSize();
-                    const landscape = origSize.width > origSize.height;
-                    const effW = hasPaper ? (landscape ? paperH : paperW) : cropW > 0 ? cropW : Math.max(1, origSize.width - cropX);
-                    const effH = hasPaper ? (landscape ? paperW : paperH) : cropH > 0 ? cropH : Math.max(1, origSize.height - cropY);
-                    dictSet(copied.pageDict, "MediaBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
-                    dictSet(copied.pageDict, "CropBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
+                const layout = copied && cairoPdfLayout(parsed, copied.getMediaBox(), copied.getRotation());
+                if (copied && layout) {
+                    dictSet(copied.pageDict, "MediaBox", cosArray(layout.mediaBox.map(value => cosNumber(value))));
+                    dictSet(copied.pageDict, "CropBox", cosArray(layout.cropBox.map(value => cosNumber(value))));
+                    const refs = layout.contentWrapper.map(text => outDoc.cos.allocateObject(cosStream(new TextEncoder().encode(text), {compress:false})));
+                    const original = dictGet(copied.pageDict, "Contents");
+                    const contents = outDoc.cos.resolve(original);
+                    dictSet(copied.pageDict, "Contents", cosArray([refs[0]!, ...(contents?.kind === "array" ? contents.items : original ? [original] : []), refs[1]!]));
                 }
             }
             const outBytes = outDoc.save();

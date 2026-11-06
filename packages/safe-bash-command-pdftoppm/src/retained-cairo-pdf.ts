@@ -1,3 +1,4 @@
+import {cairoPdfLayout} from "./pdf-layout.js";
 import {postscriptPageHeader,postscriptPixels} from "./postscript.js";
 import {parsePdftoppmArgsSteps} from "./parse.js";
 import {drainCooperativeSteps} from "safe-bash-contracts/yield";
@@ -32,8 +33,7 @@ export async function executeRetainedCairoDocument(context:CommandContext,plan:P
   const retained=document;
   async function* selections(){for(let page=plan.firstPage;page<=last;page++){await yieldTurn(signal);if(plan.oddOnly&&page%2===0||plan.evenOnly&&page%2===1)continue;yield {document:retained,indices:[page-1]};}}
   if(plan.format==="pdf"){
-  const paper=!plan.origPageSizes&&plan.paperW>0&&plan.paperH>0;
-  copy=await createRetainedPageCopy(selections(),storage,{signal,metadataSource:key=>document!.streamInfoValue(key),...(paper||plan.hasCrop?{pageBoxes:({width,height}:{width:number;height:number})=>{const box:PdfRect=[0,0,paper?(width>height?plan.paperH:plan.paperW):plan.cropW>0?plan.cropW:Math.max(1,width-plan.cropX),paper?(width>height?plan.paperW:plan.paperH):plan.cropH>0?plan.cropH:Math.max(1,height-plan.cropY)];return {mediaBox:box,cropBox:box};}}:{})});
+  copy=await createRetainedPageCopy(selections(),storage,{signal,metadataSource:key=>document!.streamInfoValue(key),pageBoxes:(_size,_index,geometry)=>cairoPdfLayout(plan,geometry.mediaBox,geometry.rotation)});
   result=await PdfFileSource.fromStream(storage.fs,directory,copy.chunks(),{signal});
   }else{
    const selected=(page:number)=>page>=plan.firstPage&&page<=last&&!(plan.oddOnly&&page%2===0||plan.evenOnly&&page%2===1);

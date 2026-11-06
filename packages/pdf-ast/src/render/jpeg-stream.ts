@@ -110,7 +110,7 @@ function *bitLengthAndMagSteps(val: number): Generator<void, { size: number; bit
   return { size, bits };
 }
 
-export function *jpegEncodingProgram(width: number, height: number, quality = 90): Generator<Uint8Array | { rowStart: number; rowCount: number } | undefined, void, Uint8Array | undefined> {
+export function *jpegEncodingProgram(width: number, height: number, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb"): Generator<Uint8Array | { rowStart: number; rowCount: number } | undefined, void, Uint8Array | undefined> {
   let work = 0;
   const w = Math.max(1, width);
   const h = Math.max(1, height);
@@ -161,25 +161,30 @@ export function *jpegEncodingProgram(width: number, height: number, quality = 90
   dPos += 16;
   dht.set(STD_AC_LUMA_VALUES, dPos);
 
+  const cmyk = colorSpace === "cmyk";
+  const components = cmyk ? 4 : 3;
   const sof0 = Uint8Array.from([
-    0xff, 0xc0, 0x00, 17, 8,
+    0xff, 0xc0, 0x00, 8 + components * 3, 8,
     (h >> 8) & 0xff, h & 0xff,
     (w >> 8) & 0xff, w & 0xff,
-    3,
+    components,
     1, 0x11, 0,
     2, 0x11, 0,
     3, 0x11, 0,
+    ...(cmyk ? [4, 0x11, 0] : []),
   ]);
 
   const sosHeader = Uint8Array.from([
-    0xff, 0xda, 0x00, 12, 3,
+    0xff, 0xda, 0x00, 6 + components * 2, components,
     1, 0x00,
     2, 0x00,
     3, 0x00,
+    ...(cmyk ? [4, 0x00] : []),
     0, 63, 0,
   ]);
 
-  for (const header of [app0, dqt, dht, sof0, sosHeader]) yield header;
+  const adobe = Uint8Array.from([0xff, 0xd8, 0xff, 0xee, 0, 14, 65, 100, 111, 98, 101, 0, 100, 0, 0, 0, 0, 0]);
+  for (const header of [cmyk ? adobe : app0, dqt, dht, sof0, sosHeader]) yield header;
   const entropyBytes: number[] = [];
   let bitBuf = 0;
   let bitCnt = 0;
@@ -202,6 +207,7 @@ export function *jpegEncodingProgram(width: number, height: number, quality = 90
   const blockY = new Float64Array(64);
   const blockCb = new Float64Array(64);
   const blockCr = new Float64Array(64);
+  const blockK = cmyk ? new Float64Array(64) : undefined;
   const coeffs = new Float64Array(64);
   const zz = new Int32Array(64);
 
@@ -245,6 +251,7 @@ export function *jpegEncodingProgram(width: number, height: number, quality = 90
   let dcY = 0;
   let dcCb = 0;
   let dcCr = 0;
+  let dcK = 0;
 
   for (let my = 0; my < mcusY; my++) {
     const band = (yield { rowStart: my * 8, rowCount: Math.min(8, h - my * 8) })!;
@@ -262,14 +269,25 @@ export function *jpegEncodingProgram(width: number, height: number, quality = 90
           const g = band[idx + 1] ?? 0;
           const b = band[idx + 2] ?? 0;
           const k = by * 8 + bx;
-          blockY[k] = 0.299 * r + 0.587 * g + 0.114 * b - 128;
-          blockCb[k] = -0.168736 * r - 0.331264 * g + 0.5 * b;
-          blockCr[k] = 0.5 * r - 0.418688 * g - 0.081312 * b;
+          if (blockK) {
+            // Adobe CMYK stores inverted ink values. Extract the shared black
+            // component and normalize the remaining cyan, magenta and yellow.
+            const max = Math.max(r, g, b);
+            blockY[k] = (max ? r * 255 / max : 255) - 128;
+            blockCb[k] = (max ? g * 255 / max : 255) - 128;
+            blockCr[k] = (max ? b * 255 / max : 255) - 128;
+            blockK[k] = max - 128;
+          } else {
+            blockY[k] = 0.299 * r + 0.587 * g + 0.114 * b - 128;
+            blockCb[k] = -0.168736 * r - 0.331264 * g + 0.5 * b;
+            blockCr[k] = 0.5 * r - 0.418688 * g - 0.081312 * b;
+          }
         }
       }
       dcY = encodeBlock(blockY, dcY);
       dcCb = encodeBlock(blockCb, dcCb);
       dcCr = encodeBlock(blockCr, dcCr);
+      if (blockK) dcK = encodeBlock(blockK, dcK);
       if (entropyBytes.length) { yield Uint8Array.from(entropyBytes); entropyBytes.length = 0; }
     }
   }
@@ -293,6 +311,7 @@ function bitLengthAndMag(
 
 export interface PdfJpegChunkOptions {
   readonly quality?: number;
+  readonly colorSpace?: "rgb" | "cmyk";
   readonly chunkBytes?: number;
   /** Eight RGBA rows, one output chunk and conservative codec scratch. The
    * caller's current input chunk and shared static tables are additional. */
@@ -316,7 +335,7 @@ export async function* encodeJpegChunks(width: number, height: number, input: As
   if (width * Math.min(8, height) * 4 + chunkBytes + 65536 > working) throw new PdfError("E_LIMIT", "JPEG working byte limit exceeded");
   if (outputLimit < 328) throw new PdfError("E_LIMIT", "JPEG output byte limit exceeded");
   const { signal } = options; signal?.throwIfAborted();
-  const source = readBytes(input, signal)[Symbol.asyncIterator](); const program = jpegEncodingProgram(width, height, options.quality);
+  const source = readBytes(input, signal)[Symbol.asyncIterator](); const program = jpegEncodingProgram(width, height, options.quality, options.colorSpace);
   let pending: Uint8Array | undefined; let cursor = 0; let ended = false; let emitted = 0; let failed = false;
   try {
     let step = program.next();

@@ -44,7 +44,7 @@ test("retained invoice rendering evaluates once across tiles and preserves the c
     assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: 1 }); await f.clean();
   } finally { evaluate.mockRestore(); }
 });
-for (const flags of [["-svg"], [], ["-gray"], ["-mono"], ["-png"], ["-jpeg"], ["-tiff"], ["-png", "-gray"], ["-tiff", "-tiffcompression", "lzw"], ["-rx", "90", "-ry", "47", "-x", "2", "-W", "9"]]) {
+for (const flags of [["-svg"], [], ["-gray"], ["-mono"], ["-png"], ["-jpeg"], ["-jpegcmyk"], ["-tiff"], ["-png", "-gray"], ["-tiff", "-tiffcompression", "lzw"], ["-rx", "90", "-ry", "47", "-x", "2", "-W", "9"]]) {
   test(`retained rendering matches bytes without whole input or output: ${flags.join(" ")}`, async () => {
     const input = pdf(), args = [...flags, "in.pdf", "out"], files = new Map([["in.pdf", input]]); const expected = await runPdftoppmCli(args, files);
     const f = await fixture(input, args); assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, expected.exitCode);
@@ -323,3 +323,28 @@ test("Illustrator transparency overlaps retain color through the public command"
   }
   await f.clean();
 });
+
+for (const retained of [false, true]) {
+  test(`TIFF preserves both resolution axes (${retained ? "retained" : "buffered"})`, async () => {
+    const doc = PdfDocument.create(); doc.addPage([612, 792]);
+    const input = doc.save(), args = ["-rx", "24", "-ry", "48", "-tiff", "-singlefile", "in.pdf", "out"];
+    let bytes: Uint8Array;
+    if (retained) {
+      const f = await fixture(input, args);
+      assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, 0);
+      bytes = await f.fs.readFile("/out.tif"); await f.clean();
+    } else {
+      const files = new Map([["in.pdf", input]]);
+      assert.equal((await runPdftoppmCli(args, files)).exitCode, 0);
+      bytes = files.get("out.tif")!;
+    }
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const ifd = view.getUint32(4, true), tags = new Map<number, number>();
+    for (let i = 0; i < view.getUint16(ifd, true); i++) {
+      const at = ifd + 2 + i * 12, type = view.getUint16(at + 2, true), value = view.getUint32(at + 8, true);
+      tags.set(view.getUint16(at, true), type === 5 ? view.getUint32(value, true) / view.getUint32(value + 4, true) : value);
+    }
+    assert.deepEqual([tags.get(256), tags.get(257)], [204, 528]);
+    assert.deepEqual([tags.get(282), tags.get(283), tags.get(296)], [24, 48, 2]);
+  });
+}

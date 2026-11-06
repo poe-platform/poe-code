@@ -423,8 +423,10 @@ Malformed filters retain buffered recovery behavior; backend errors propagate.
 with uncompressed, PackBits, DEFLATE, LZW, or JPEG strips. It stages compressed
 bytes in the caller's filesystem to determine the strip length, then emits a
 header and bounded payload chunks. `maxStagingBytes`, `maxOutputBytes`,
-`maxWorkingBytes`, `chunkBytes`, `dpi`, and `signal` control admission and
-publication. Working admission covers conservative row/codec scratch; the
+`maxWorkingBytes`, `chunkBytes`, `dpi`, `dpiY`, and `signal` control admission and
+publication. `dpiY` defaults to `dpi`; set it for unequal axis resolutions.
+`encodeTiff(bitmap, dpi, compression, dpiY)` and `encodeTiffSteps` accept the same
+optional Y resolution. Working admission covers conservative row/codec scratch; the
 current caller input chunk and filesystem caches are additional. JPEG uses
 YCbCr metadata matching its 1:1 component sampling. Staging is removed on
 success, failure, cancellation, and consumer return.
@@ -432,7 +434,9 @@ success, failure, cancellation, and consumer return.
 `encodeJpegChunks(width, height, rgbaChunks, options)` writes sequential JPEG
 chunks while retaining only eight RGBA rows and one MCU's entropy bytes.
 It shares the buffered encoder's quality and pixel conversion, including
-zero-filling truncated input. Set `chunkBytes`, `maxWorkingBytes`,
+zero-filling truncated input. Set `colorSpace: "cmyk"` for four-component Adobe CMYK output
+(the default is RGB). Buffered `encodeJpeg` and `encodeJpegSteps` accept the same
+color space as their third argument. Set `chunkBytes`, `maxWorkingBytes`,
 `maxOutputBytes`, and `signal` to control output ownership, admission and
 cancellation. The caller's current input chunk and fixed codec tables are
 additional memory; upstream retained image rows provide bounded input chunks.

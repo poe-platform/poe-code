@@ -218,9 +218,9 @@ export interface RenderToPngOptions {
   readonly thinLineMode?: "none" | "solid" | "shape" | undefined;
 }
 
-export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90): Generator<void, Uint8Array, void> {
+export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90, colorSpace: "rgb" | "cmyk" = "rgb"): Generator<void, Uint8Array, void> {
   const width = Math.max(1, bitmap.width);
-  const program = jpegEncodingProgram(width, bitmap.height, quality);
+  const program = jpegEncodingProgram(width, bitmap.height, quality, colorSpace);
   const chunks: Uint8Array[] = []; let length = 0;
   let step = program.next();
   while (!step.done) {
@@ -248,7 +248,8 @@ export type TiffCompressionMode = "none" | "packbits" | "deflate" | "lzw" | "jpe
 export function *encodeTiffSteps(
   bitmap: RgbaBitmap,
   dpi = 72,
-  compression: TiffCompressionMode = "none"
+  compression: TiffCompressionMode = "none",
+  dpiY = dpi
 ): Generator<void, Uint8Array, void> {
   let work = 0;
   const { width, height, data } = bitmap;
@@ -284,7 +285,7 @@ export function *encodeTiffSteps(
     stripBytes = yield* encodeJpegSteps(bitmap);
   }
 
-  const header = createTiffHeader(width, height, dpi, compressionTag, stripBytes.length);
+  const header = createTiffHeader(width, height, dpi, compressionTag, stripBytes.length, dpiY);
   const output = new Uint8Array(header.length + stripBytes.length); output.set(header); output.set(stripBytes, header.length);
   return output;
 }
@@ -1868,9 +1869,10 @@ export function decodePng(
 
 export function encodeJpeg(
   bitmap: RgbaBitmap,
-  quality = 90
+  quality = 90,
+  colorSpace: "rgb" | "cmyk" = "rgb"
 ): Uint8Array {
-  const steps = encodeJpegSteps(bitmap, quality);
+  const steps = encodeJpegSteps(bitmap, quality, colorSpace);
   let next = steps.next();
   while (!next.done) next = steps.next();
   return next.value;
@@ -1897,9 +1899,10 @@ export function encodePgm(
 export function encodeTiff(
   bitmap: RgbaBitmap,
   dpi = 72,
-  compression: TiffCompressionMode = "none"
+  compression: TiffCompressionMode = "none",
+  dpiY = dpi
 ): Uint8Array {
-  const steps = encodeTiffSteps(bitmap, dpi, compression);
+  const steps = encodeTiffSteps(bitmap, dpi, compression, dpiY);
   let next = steps.next();
   while (!next.done) next = steps.next();
   return next.value;

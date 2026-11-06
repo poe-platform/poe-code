@@ -60,6 +60,7 @@ export interface PdftoppmPlan {
   readonly progress: boolean;
   readonly quiet: boolean;
   readonly jpegQuality: number;
+  readonly jpegColorSpace: "rgb" | "cmyk";
   readonly tiffCompression: "none" | "packbits" | "deflate" | "lzw" | "jpeg";
   readonly antialiasText: boolean;
   readonly antialiasVector: boolean;
@@ -100,6 +101,7 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     let progress = false;
     let quiet = false;
     let jpegQuality = 90;
+    let jpegColorSpace: "rgb" | "cmyk" = "rgb";
     let tiffCompression: "none" | "packbits" | "deflate" | "lzw" | "jpeg" = "none";
     let antialiasText = true;
     let antialiasVector = true;
@@ -151,6 +153,7 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
         }
         else if (arg === "-jpeg" || arg === "-jpg" || arg === "-jpegcmyk") {
             format = "jpg";
+            jpegColorSpace = arg === "-jpegcmyk" ? "cmyk" : "rgb";
             explicitContainer = "jpg";
         }
         else if (arg === "-gray") {
@@ -326,7 +329,7 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     if (!inputPath || positionals.length > 2) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
     }
-    return { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX, scaleToY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath };
+    return { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX, scaleToY, scaleDimensionBeforeRotation, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, jpegColorSpace, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath };
 }
 
 const VALID_CAIRO_ANTIALIAS = new Set([

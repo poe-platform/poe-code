@@ -3,12 +3,12 @@ import { createHash } from "node:crypto";
 import { encodeJpeg } from "./raster.js";
 import { encodeJpegChunks } from "./jpeg-stream.js";
 const pixels = (length: number) => Uint8Array.from({ length }, (_, i) => i * 67 % 256);
-it.each([1, 40, 90, 100])("preserves JPEG bytes at quality %i across fragmented and truncated input", async quality => {
+for (const colorSpace of ["rgb", "cmyk"] as const) it.each([1, 40, 90, 100])(`preserves ${colorSpace} JPEG bytes at quality %i across fragmented and truncated input`, async quality => {
   for (const missing of [0, 1, 51, 800]) {
-    const data = pixels(17 * 13 * 4 - missing); const expected = encodeJpeg({ width: 17, height: 13, data }, quality);
+    const data = pixels(17 * 13 * 4 - missing); const expected = encodeJpeg({ width: 17, height: 13, data }, quality, colorSpace);
     async function* input() { for (let i = 0; i < data.length; i += 7) yield data.subarray(i, i + 7); }
     const output: number[] = [];
-    for await (const bytes of encodeJpegChunks(17, 13, input(), { quality, chunkBytes: 19 })) { expect(bytes.buffer.byteLength).toBeLessThanOrEqual(19); output.push(...bytes); }
+    for await (const bytes of encodeJpegChunks(17, 13, input(), { quality, colorSpace, chunkBytes: 19 })) { expect(bytes.buffer.byteLength).toBeLessThanOrEqual(19); output.push(...bytes); }
     expect(new Uint8Array(output)).toEqual(expected);
   }
 });

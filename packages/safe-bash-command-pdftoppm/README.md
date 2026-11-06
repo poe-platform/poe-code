@@ -8,7 +8,7 @@ Zero-dependency Poppler `pdftoppm` page renderer for `@poe-platform/safe-bash` p
 
 | Option | Description |
 | --- | --- |
-| `-png` / `-jpeg` / `-gray` / `-mono` / `-svg` | Output format selection (`.png`, `.jpg`, `.pgm`, `.pbm`, `.svg`, or `.ppm` default) |
+| `-png` / `-jpeg` / `-jpegcmyk` / `-gray` / `-mono` / `-svg` | Output format selection (including four-component CMYK JPEG; `.png`, `.jpg`, `.pgm`, `.pbm`, `.svg`, or `.ppm` default) |
 | `-r <dpi>` / `-rx <dpi>` / `-ry <dpi>` | Configurable horizontal and vertical resolution (default `150` DPI) |
 | `-scale-to` / `-scale-to-x` / `-scale-to-y` | Scale PDF axes before page rotation (supports `-1` proportional aspect-ratio scaling); `-scale-dimension-before-rotation` targets the rotated axes instead |
 | `-f <page>` / `-l <page>` / `-o` / `-e` | First/last page range and odd/even page filtering |

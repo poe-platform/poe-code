@@ -5122,7 +5122,7 @@ if (t === "-seed") {
     return i;
 }
 
-function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "" }): Generator<void, RgbaImage[], void> {
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "" }): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
     let operandsOnly = false;
@@ -5345,8 +5345,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.fuzz, signal));
             });
         }
-        else if (t === "-evaluate-sequence") {
-            const op = tokens[++i] ?? "Mean";
+        else if (t === "-evaluate-sequence" || t === "-average") {
+            const op = t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
+            if (t === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
             if (stack.length > 0) {
                 stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, signal))];
             }
@@ -5854,11 +5855,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
 }
 
 function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
-    const analysis = { text: "" };
+    const analysis = { text: "", warnings: "" };
     const result = yield* runConvertCliResultSteps(argv, files, stdinBytes, signal, analysis);
-    return { ...result, stdout: analysis.text + result.stdout };
+    return { ...result, stdout: analysis.text + result.stdout, stderr: analysis.warnings + result.stderr };
 }
-function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "" }): Generator<void, ImageMagickCliResult, void> {
+function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "" }): Generator<void, ImageMagickCliResult, void> {
     const listRes = tryHandleMagickListOption(argv);
     if (listRes) return listRes;
     let cooperativeWork = 63;
@@ -6129,11 +6130,11 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
 }
 
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
-    const analysis = { text: "" };
+    const analysis = { text: "", warnings: "" };
     const result = await tryConvertFilesResult(argv, input, stdinBytes, signal, analysis);
-    return result ? { ...result, stdout: analysis.text + result.stdout } : undefined;
+    return result ? { ...result, stdout: analysis.text + result.stdout, stderr: analysis.warnings + result.stderr } : undefined;
 }
-async function tryConvertFilesResult(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, analysis: { text: string }): Promise<ImageMagickCliResult | undefined> {
+async function tryConvertFilesResult(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, analysis: { text: string; warnings: string }): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1);
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
@@ -6195,8 +6196,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence"].includes(token)) {
-            const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : "", settings = { ...state, channels: { ...state.channels } };
+        if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average"].includes(token)) {
+            const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
+            if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
             stackStep(async (stack, backend) => {
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) return stack;

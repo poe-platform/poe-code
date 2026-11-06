@@ -167,7 +167,7 @@ export function inspectJpeg(input: Uint8Array, options: EngineOptions | Resource
       const width = part.payload[3]! * 256 + part.payload[4]!;
       if (!width || !height) throw new Error("Invalid JPEG dimensions");
       add("ImageWidth", String(width), "JPEG", part.start); add("ImageHeight", String(height), "JPEG", part.start);
-      add("BitDepth", String(part.payload[0]), "JPEG", part.start); add("ImageSize", width + "x" + height, "Composite", part.start);
+      add("BitsPerSample", String(part.payload[0]), "JPEG", part.start); add("ImageSize", width + "x" + height, "Composite", part.start);
     }
     if (part.marker === 254) add("Comment", new TextDecoder().decode(part.payload), "JPEG", part.start);
     if (!isExif(part)) continue;

@@ -711,6 +711,26 @@ test("PNG header metadata, Artist writes and all deletion", async () => {
   assert.deepEqual(await fs.readFile("/image.png"), fixture());
 });
 
+test("JPEG reports BitsPerSample while PNG retains BitDepth", async () => {
+  const { createExiftoolArguments } = await import("./index.js");
+  const fs = createMemoryFileSystem();
+  const jpeg = new Uint8Array([255,216,255,192,0,11,8,0,32,0,64,1,1,17,0,255,218,0,8,1,1,0,0,63,0,7,255,0,8,255,217]);
+  await fs.writeFile("/image.jpg", jpeg);
+  await fs.writeFile("/image.png", fixture());
+  for (const [file, tag] of [["image.jpg", "BitsPerSample"], ["image.png", "BitDepth"]] as const) {
+    const selected = await invoke(["-j", "-s", "-BitDepth", "-BitsPerSample", file], fs);
+    assert.equal(selected.exitCode, 0, selected.stderr);
+    assert.deepEqual(JSON.parse(selected.stdout), [{ SourceFile: file, [tag]: 8 }]);
+    const all = await invoke(["-j", file], fs);
+    assert.equal(all.exitCode, 0, all.stderr);
+    const metadata = JSON.parse(all.stdout)[0];
+    assert.equal(metadata[tag], 8);
+    assert.equal(Object.hasOwn(metadata, tag === "BitDepth" ? "BitsPerSample" : "BitDepth"), false);
+    const { args } = createExiftoolArguments({ files: [file], tags: [tag], style: "values" }, { signal: new AbortController().signal });
+    assert.deepEqual(await invoke(args, fs), { exitCode: 0, stdout: "8\n", stderr: "" });
+  }
+});
+
 test("JPEG reads, EXIF writes, replacement and deletion preserve image segments", async () => {
   const fs = createMemoryFileSystem();
   const jpeg = new Uint8Array([255,216,255,192,0,11,8,0,32,0,64,1,1,17,0,255,218,0,8,1,1,0,0,63,0,7,255,0,8,255,217]);

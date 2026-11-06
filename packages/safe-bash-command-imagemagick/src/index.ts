@@ -3397,6 +3397,13 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     return transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel === "mitchell" ? "mitchell" : "lanczos3"), signal, { ...image, width, height });
 }
 
+function magickMirrorCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, kind: "flip" | "flop") {
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    return kind === "flip"
+        ? { ...page, y: page.height ? page.height - image.height - page.y : page.y }
+        : { ...page, x: page.width ? page.width - image.width - page.x : page.x };
+}
+
 function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, left: number, top: number) {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     return { ...page, x: page.x + left, y: page.y + top };
@@ -5571,12 +5578,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-flip") {
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* flipImageSteps(im));
+                return { ...yield* flipImageSteps(im), virtualCanvas: magickMirrorCanvas(im, "flip") };
             }));
         }
         else if (t === "-flop") {
             stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* flopImageSteps(im));
+                return { ...yield* flopImageSteps(im), virtualCanvas: magickMirrorCanvas(im, "flop") };
             }));
         }
         else if (t === "-transpose") {
@@ -6689,7 +6696,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale") : image; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";
-            transform(() => ({ kind }));
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const output = await transformStoredImage(image, backend.storage, { kind }, signal);
+                return kind === "autoOrient" ? output : { ...output, virtualCanvas: magickMirrorCanvas(image, kind) };
+            });
         } else if (!operandsOnly && token === "-deskew") {
             const spec = tokens[++i] ?? "", background = state.background;
             steps.push(async (image, backend) => {

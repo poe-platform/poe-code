@@ -376,3 +376,21 @@ for (const retained of [false, true]) {
     });
   }
 }
+
+for (const rotation of [0, 90]) for (const flags of [[], ["-r", "300"]]) test(`Cairo SVG preserves Letter page point dimensions (rotation=${rotation}, flags=${flags})`, async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([612, 792]);
+  dictSet(page.pageDict, "Rotate", cosNumber(rotation));
+  page.drawRect({ x: 10, y: 20, width: 100, height: 50, fill: { r: 1, g: 0, b: 0 } });
+  const input = doc.save(), args = ["-svg", ...flags, "in.pdf", "out.svg"];
+  const width = rotation ? 792 : 612, height = rotation ? 612 : 792;
+  const header = `width="${width}pt" height="${height}pt" viewBox="0 0 ${width} ${height}"`;
+  for (const run of [runPdftocairoCli, runPdftocairoCliSync]) {
+    const files = new Map([["in.pdf", input]]);
+    assert.equal((await run(args, files)).exitCode, 0);
+    assert.ok(new TextDecoder().decode(files.get("out.svg")).includes(header));
+  }
+  const f = await fixture(input, args); f.context.command = "pdftocairo";
+  assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode, 0);
+  assert.ok(new TextDecoder().decode(await f.fs.readFile("/out.svg")).includes(header));
+  assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: 1 }); await f.clean();
+});

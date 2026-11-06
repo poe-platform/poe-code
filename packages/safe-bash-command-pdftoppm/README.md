@@ -58,4 +58,5 @@ Unknown options, missing option values, invalid numeric values, and extra operan
 SVG output in both commands uses retained input and streams paths, glyphs, clips,
 images and transparency groups through caller-backed storage. Soft masks and
 backdrop-dependent groups use tiled rasterization; ordinary paints remain vectors.
-Output naming, page selection and atomic publication match the existing commands.
+`pdftocairo -svg` preserves page dimensions in PDF points, independent of raster
+resolution. Output naming, page selection and atomic publication match the existing commands.

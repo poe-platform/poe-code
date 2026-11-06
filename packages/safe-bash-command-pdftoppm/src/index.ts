@@ -136,6 +136,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         let renderedBytes: Uint8Array;
         if (format === "svg") {
             const svgText = (yield* renderDisplayListToSvgSteps(displayList, {
+                ...(cairo ? { dimensionUnit: "pt" as const } : {}),
                 dpiX: effDpiX,
                 dpiY: effDpiY,
                 useCropBox,
@@ -363,7 +364,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
     if (format === "svg") {
         const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.svg`);
         const rootForSvg = rawOut.toLowerCase().endsWith(".svg") ? rawOut.slice(0, -4) : rawOut;
-        return (yield* runPdftoppmCliSteps(["-svg", "-singlefile", ...forwardedArgs, "--", inputPath, rootForSvg], files, options));
+        return (yield* runPdftoppmCliSteps(["-svg", "-singlefile", ...forwardedArgs, "--", inputPath, rootForSvg], files, options, true));
     }
     if (format === "pdf" || format === "ps" || format === "eps") {
         const pdfBytes = files.get(inputPath);
@@ -557,7 +558,7 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
             plan = { ...plan, colorMode: parsed.monoMode ? "mono" : "gray" };
           }
           return await executeRetainedRaster(context, plan, invocation.child(context.stdout).output, invocation.signal, maxInputBytes,
-            name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }), parsed.format !== "svg");
+            name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }), true);
         } finally { await invocation.close(); }
       }
     },

@@ -1625,7 +1625,11 @@ function *svgPathDataSteps(segments: readonly PdfPathSegment[], height: number, 
   return parts.join(" ");
 }
 
-function svgPageStart(displayList:Pick<PdfDisplayList,"width"|"height"|"origin"|"rotation"|"cropBox">,options:RenderToPngOptions){
+interface PdfSvgDimensions {
+  readonly dimensionUnit?: "pt";
+}
+
+function svgPageStart(displayList:Pick<PdfDisplayList,"width"|"height"|"origin"|"rotation"|"cropBox">,options:RenderToPngOptions & PdfSvgDimensions){
   const baseScale=options.scale??(options.dpi?options.dpi/72:1);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
@@ -1667,7 +1671,7 @@ function svgPageStart(displayList:Pick<PdfDisplayList,"width"|"height"|"origin"|
       ? Math.round(options.cropRect.height)
       : Math.max(1, fullH - Math.round(options.cropRect?.y ?? 0));
   const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${outW}" height="${outH}" viewBox="${vbX} ${vbY} ${vbW} ${vbH}">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${options.dimensionUnit === "pt" ? `${vbW}pt` : outW}" height="${options.dimensionUnit === "pt" ? `${vbH}pt` : outH}" viewBox="${vbX} ${vbY} ${vbW} ${vbH}">`,
   ];
   if (!options.transparent) {
     parts.push(`  <rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="#ffffff"/>`);
@@ -1679,12 +1683,12 @@ function svgPageStart(displayList:Pick<PdfDisplayList,"width"|"height"|"origin"|
     const [a, b, c, d, e, f] = viewport.transform;
     parts.push(`<g transform="matrix(${a} ${b} ${-c} ${-d} ${e + c * displayList.height} ${f + d * displayList.height})">`);
   }
-  return {parts,scaleX,scaleY,originX,originY};
+  return {parts,scaleX,scaleY,originX,originY,pointWidth:vbW,pointHeight:vbH};
 }
 
 export function *renderDisplayListToSvgSteps(
   displayList: PdfDisplayList,
-  options: RenderToPngOptions = {}
+  options: RenderToPngOptions & PdfSvgDimensions = {}
 ): Generator<void, string, void> {
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
   if (containsBackdropGroup(paintOperations(displayList))) {
@@ -1695,7 +1699,8 @@ export function *renderDisplayListToSvgSteps(
       name: "PageComposite", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
       matrix: [bitmap.width, 0, 0, bitmap.height, 0, 0], colorSpace: "DeviceRGB", bitsPerComponent: 8,
     }, bitmap.height));
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${bitmap.width}" height="${bitmap.height}" viewBox="0 0 ${bitmap.width} ${bitmap.height}">${embedded}</svg>\n`;
+    const frame = svgPageStart(displayList, options);
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${options.dimensionUnit === "pt" ? `${frame.pointWidth}pt` : bitmap.width}" height="${options.dimensionUnit === "pt" ? `${frame.pointHeight}pt` : bitmap.height}" viewBox="0 0 ${bitmap.width} ${bitmap.height}">${embedded}</svg>\n`;
   }
   const {parts,scaleX,scaleY,originX,originY}=svgPageStart(displayList,options);
   let clipId = 0;
@@ -2033,7 +2038,7 @@ function svgPathData(
 
 export function renderDisplayListToSvg(
   displayList: PdfDisplayList,
-  options: RenderToPngOptions = {}
+  options: RenderToPngOptions & PdfSvgDimensions = {}
 ): string {
   const steps = renderDisplayListToSvgSteps(displayList, options);
   let next = steps.next();
@@ -2176,7 +2181,7 @@ export async function* encodeSvgSoftMaskChunks(mask:PdfSoftMask,page:Pick<PdfDis
   finally{try{await source?.close();}catch(error){if(!failed)await Promise.reject(error);}}
 }
 
-export interface PdfRetainedSvgOptions extends Omit<PdfRetainedPixelOptions,"imageStorage"|"pathStorage">, Omit<PdfSvgPathPaintOptions,"scale"> {
+export interface PdfRetainedSvgOptions extends PdfSvgDimensions, Omit<PdfRetainedPixelOptions,"imageStorage"|"pathStorage">, Omit<PdfSvgPathPaintOptions,"scale"> {
   readonly maxOperations?: number;
 }
 
@@ -2247,7 +2252,7 @@ export async function* renderRetainedPageToSvg(page:PdfRetainedPage,storage:PdfI
       let pixels:PdfFileSource|undefined,pixelFailed=false;
       try{
         pixels=await PdfFileSource.fromStream(shared.fs,shared.directory,image.pixels,{chunkBytes,cacheBytes:chunkBytes,...(signal?{signal}:{})});
-        yield* text(`<svg xmlns="http://www.w3.org/2000/svg" width="${image.width}" height="${image.height}" viewBox="0 0 ${image.width} ${image.height}">`);
+        yield* text(`<svg xmlns="http://www.w3.org/2000/svg" width="${options.dimensionUnit === "pt" ? `${frame.pointWidth}pt` : image.width}" height="${options.dimensionUnit === "pt" ? `${frame.pointHeight}pt` : image.height}" viewBox="0 0 ${image.width} ${image.height}">`);
         for await(const bytes of encodeSvgImageChunks({name:"PageComposite",width:image.width,height:image.height,storedRgba:{position:0,storage:{allocate(){throw Error("Read-only composite pixels");},async write(){throw Error("Read-only composite pixels");},read:(position,length)=>pixels!.read(position,length,signal)}},matrix:[image.width,0,0,image.height,0,0],colorSpace:"DeviceRGB",bitsPerComponent:8},image.height,shared,options))yield* emit(bytes);
         yield* text('</svg>\n');
       }catch(error){pixelFailed=true;throw error;}finally{try{await pixels?.close();}catch(error){if(!pixelFailed)await Promise.reject(error);}}

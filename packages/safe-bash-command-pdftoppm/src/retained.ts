@@ -71,7 +71,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
           if (scaleToY > 0) { dpiY = (scaleToY * 72) / Math.max(ptH, 1) * rounding; if (scaleToX < 0) dpiX = dpiY; }
         }
         if(plan.format === "svg") {
-          yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,onWarning,
+          yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{...(cairo ? { dimensionUnit: "pt" as const } : {}),dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,onWarning,
             ...(plan.hasCrop?{cropRect:{x:plan.cropX,y:plan.cropY,width:plan.cropW,height:plan.cropH}}:{})})};
           if(plan.singleFile)break;
           continue;

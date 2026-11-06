@@ -1,7 +1,7 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. */
-export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce((total, radius) => total + radius * 2 + 1, 0);
@@ -60,8 +60,16 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                         // ImageMagick 7.1.2-32 uses an unscaled Q16 ratio; convert to bytes.
                         value = c === 3 && image.hasAlpha === false ? 255
                             : maximum + minimum === 0 ? 0 : Math.round((maximum - minimum) / (maximum + minimum) / 257);
-                    } else if (mode === "median") {
+                    } else if (mode === "median" || mode === "nonpeak") {
                         for (; value < 255; value++) { seen += histogram[c * 256 + value]!; if (seen > rank) break; }
+                        if (mode === "nonpeak") {
+                            let previous = value - 1, next = value + 1;
+                            while (previous >= 0 && histogram[c * 256 + previous] === 0) previous--;
+                            while (next < 256 && histogram[c * 256 + next] === 0) next++;
+                            // Move an extreme median to the adjacent distinct value, if any.
+                            if (previous < 0 && next < 256) value = next;
+                            else if (previous >= 0 && next === 256) value = previous;
+                        }
                     } else if (mode === "max") {
                         while (value > 0 && histogram[c * 256 + value] === 0) value--;
                     } else {

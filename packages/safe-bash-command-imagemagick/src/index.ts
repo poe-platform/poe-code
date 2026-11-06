@@ -549,8 +549,9 @@ function magickMedianRows(spec: string): number[] {
   return Array<number>(height).fill((width - 1) / 2);
 }
 
-type MorphologyStep = { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast"; source: number } | { mode: "diff"; a: number; b: number };
+type MorphologyStep = { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
 function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: number[]; steps: MorphologyStep[] } {
+  if (methodRaw.toLowerCase() === "nonpeak") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "nonpeak" }] };
   if (methodRaw.toLowerCase() === "contrast") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "contrast" }] };
   if (methodRaw.toLowerCase() === "standarddeviation") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "standarddeviation" }] };
   if (methodRaw.toLowerCase() === "rootmeansquare" || methodRaw.toLowerCase() === "rms") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "rms" }] };
@@ -584,7 +585,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: nu
     return rx;
   });
 
-  const filter = (source: number, mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast"): MorphologyStep => ({ source, mode });
+  const filter = (source: number, mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"): MorphologyStep => ({ source, mode });
   const diff = (a: number, b: number): MorphologyStep => ({ mode: "diff", a, b });
   let steps: MorphologyStep[];
   switch (methodRaw.toLowerCase()) {

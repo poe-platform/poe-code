@@ -42,6 +42,7 @@ export interface ParsedH264Sps {
   readonly maxNumReorderFrames?: number | undefined;
   readonly colorRange?: string | undefined;
   readonly colorSpace?: string | undefined;
+  readonly chromaLocation?: string | undefined;
   readonly fieldOrder: "progressive" | "unknown";
   readonly pictureTiming?: { readonly delayBits: number } | undefined;
 }
@@ -200,6 +201,7 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
   let maxNumReorderFrames: number | undefined;
   let colorRange: string | undefined;
   let colorSpace: string | undefined;
+  let chromaLocation: string | undefined = "left";
   let pictureTiming: ParsedH264Sps["pictureTiming"];
 
   const vuiPresent = bits.readBit();
@@ -229,7 +231,7 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
     }
     const chromaLocInfoPresent = bits.readBit();
     if (chromaLocInfoPresent) {
-      bits.readUE();
+      chromaLocation = ["left", "center", "topleft", "top", "bottomleft", "bottom"][bits.readUE()];
       bits.readUE();
     }
     const timingInfoPresent = bits.readBit();
@@ -296,6 +298,7 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
     constraintFlags,
     levelIdc,
     spsId,
+    chromaLocation,
     chromaFormatIdc,
     pixFmt,
     bitDepthLuma,

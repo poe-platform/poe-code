@@ -98,6 +98,10 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     field_order: track.type === "video" ? desc?.fieldOrder : undefined,
     color_range: track.type === "video" ? desc?.colorRange : undefined,
     color_space: track.type === "video" ? desc?.colorSpace : undefined,
+    chroma_location: desc?.chromaLocation,
+    is_avc: codecName === "h264" ? String(desc?.nalLengthSize !== undefined) : undefined,
+    nal_length_size: codecName === "h264" ? String(desc?.nalLengthSize ?? 0) : undefined,
+    bits_per_raw_sample: desc?.bitDepthLuma === undefined ? undefined : String(desc.bitDepthLuma),
     sample_fmt: sampleFormat,
     initial_padding: track.type === 'audio' && codecName === 'aac' && (containerFormat === 'mp4' || containerFormat === 'mov')
       ? stats.initialPadding ?? 0 : undefined,

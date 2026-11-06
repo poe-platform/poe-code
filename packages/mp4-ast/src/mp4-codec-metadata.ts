@@ -47,10 +47,13 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
   if (state.kind === 'video') {
     if (child.type === 'avcC') {
       metadata.extradataSize = child.extradataSize;
+      metadata.nalLengthSize = child.nalLengthSize;
       metadata.mimeCodecString = `avc1.${[child.profileIdc, child.profileCompatibility, child.levelIdc].map(value => value.toString(16).padStart(2, '0')).join('')}`;
       metadata.codecName = 'h264'; metadata.level = child.levelIdc;
       if (child.sps) {
         const sps = parseH264Sps(child.sps);
+        metadata.chromaLocation = sps.chromaLocation;
+        metadata.bitDepthLuma = sps.bitDepthLuma;
         metadata.maxNumReorderFrames = sps.maxNumReorderFrames;
         metadata.fieldOrder = sps.fieldOrder;
         if (sps.pictureTiming) metadata.h264PictureTiming = { ...sps.pictureTiming, nalLengthSize: child.nalLengthSize };

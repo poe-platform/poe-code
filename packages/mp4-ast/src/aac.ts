@@ -1,4 +1,4 @@
-import { decodeAac } from "@poe-code/media-codecs";
+import { decodeAudio } from "@poe-code/media-codecs";
 import type { MediaAudioData, MediaDocument, MediaTrack } from "./types.js";
 
 /** Apply the presentation edits after decoding preroll, never by dropping AAC packets. */
@@ -32,7 +32,7 @@ export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudi
   const channelData = Array.from({ length: channels }, () => new Float32Array(count));
   const covered = regions.map(() => 0);
   let previousEnd = -Infinity;
-  for (const frame of decodeAac(track.samples, extra)) {
+  for (const frame of decodeAudio("AAC", track.samples, extra)) {
     if (frame.sampleRate !== sampleRate || frame.channelData.length !== channels) {
       throw new Error("AAC decoded dimensions differ from sample description");
     }

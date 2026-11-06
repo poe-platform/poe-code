@@ -232,39 +232,39 @@ export interface DecodedAudioFrame {
   readonly pts: number;
 }
 
-/** Decode AAC access units in memory, retaining priming samples for container edits. */
-export function* decodeAac(packets: Iterable<VideoPacket>, extra: Uint8Array): Generator<DecodedAudioFrame> {
-  if (!extra.length || extra.length > 65536) throw new Error("Invalid AAC decoder configuration");
+/** Decode audio packets in memory, retaining priming samples for container edits. */
+export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis", packets: Iterable<VideoPacket>, extra: Uint8Array = new Uint8Array()): Generator<DecodedAudioFrame> {
+  if ((codec !== "MP3" && !extra.length) || extra.length > 65536) throw new Error(`Invalid ${codec} decoder configuration`);
   const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
   let decoded = 0;
   let sent = 0;
   let decoder = 0;
   let input = 0;
   try {
-    input = module._malloc(extra.length);
-    if (!input) throw new Error("AAC allocation failed");
+    input = module._malloc(Math.max(1, extra.length));
+    if (!input) throw new Error(`${codec} allocation failed`);
     module.HEAPU8.set(extra, input);
-    decoder = module._aac_create(input, extra.length);
+    decoder = module._audio_decoder_create(codec === "AAC" ? 0 : codec === "MP3" ? 1 : 2, input, extra.length);
     module._free(input);
     input = 0;
-    if (!decoder) throw new Error("Invalid AAC decoder configuration");
+    if (!decoder) throw new Error(`Invalid ${codec} decoder configuration`);
     for (const packet of packets) {
       sent++;
       if (!packet.data.length || ![packet.pts, packet.dts, packet.duration].every(Number.isSafeInteger)) {
-        throw new Error("Invalid AAC packet");
+        throw new Error(`Invalid ${codec} packet`);
       }
       input = module._malloc(packet.data.length);
-      if (!input) throw new Error("AAC allocation failed");
+      if (!input) throw new Error(`${codec} allocation failed`);
       module.HEAPU8.set(packet.data, input);
       const status = module._decoder_send(decoder, input, packet.data.length, packet.pts, packet.dts, packet.duration);
       module._free(input);
       input = 0;
-      if (status < 0) throw new Error(`AAC packet decode failed (${status})`);
+      if (status < 0) throw new Error(`${codec} packet decode failed (${status})`);
       yield* receive();
     }
-    if (module._decoder_send(decoder, 0, 0, 0, 0, 0) < 0) throw new Error("AAC flush failed");
+    if (module._decoder_send(decoder, 0, 0, 0, 0, 0) < 0) throw new Error(`${codec} flush failed`);
     yield* receive();
-    if (decoded !== sent) throw new Error("AAC stream did not decode every access unit");
+    if (decoded !== sent - (codec === "Vorbis" ? 1 : 0)) throw new Error(`${codec} stream did not decode every access unit`);
   } finally {
     module._free(input);
     module._decoder_free(decoder);
@@ -272,20 +272,20 @@ export function* decodeAac(packets: Iterable<VideoPacket>, extra: Uint8Array): G
 
   function* receive(): Generator<DecodedAudioFrame> {
     for (;;) {
-      const pointer = module._aac_receive(decoder);
+      const pointer = module._audio_decoder_receive(decoder);
       if (pointer === 0) return;
-      if (pointer < 0) throw new Error(`AAC frame decode failed (${pointer})`);
+      if (pointer < 0) throw new Error(`${codec} frame decode failed (${pointer})`);
       const view = new DataView(module.HEAPU8.buffer, pointer, 24);
       const sampleRate = view.getInt32(0, true);
       const channels = view.getInt32(4, true);
       const count = view.getInt32(8, true);
       const data = view.getUint32(12, true);
       if (sampleRate < 8000 || sampleRate > 192000 || channels < 1 || channels > 8 || count < 1 || count > 8192) {
-        throw new Error("Unsupported AAC frame dimensions");
+        throw new Error(`Unsupported ${codec} frame dimensions`);
       }
       const channelData = Array.from({ length: channels }, (_, channel) =>
         new Float32Array(module.HEAPU8.slice(data + channel * count * 4, data + (channel + 1) * count * 4).buffer));
-      if (channelData.some(channel => channel.some(sample => !Number.isFinite(sample)))) throw new Error("Invalid AAC PCM sample");
+      if (channelData.some(channel => channel.some(sample => !Number.isFinite(sample)))) throw new Error(`Invalid ${codec} PCM sample`);
       decoded++;
       yield { sampleRate, channelData, pts: view.getFloat64(16, true) };
     }

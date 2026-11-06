@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libavcodec/avcodec.h>
+#include <libavcodec/vorbis_parser.h>
 #include <libavutil/imgutils.h>
 #include <libavutil/log.h>
 #include <libswscale/swscale.h>
@@ -18,6 +19,8 @@ typedef struct {
 
 typedef struct {
     AVCodecContext *context;
+    AVVorbisParseContext *vorbis;
+    int64_t vorbis_position;
     AVFrame *frame;
     AVPacket *packet;
     struct SwsContext *scaler;
@@ -30,6 +33,7 @@ typedef struct {
 
 void decoder_free(Decoder *decoder) {
     if (!decoder) return;
+    av_vorbis_parse_free(&decoder->vorbis);
     avcodec_free_context(&decoder->context);
     av_frame_free(&decoder->frame);
     av_packet_free(&decoder->packet);
@@ -58,6 +62,10 @@ static Decoder *create_decoder(const uint8_t *extra, int extra_size, double max_
         decoder->context->extradata_size = extra_size;
     }
     if (avcodec_open2(decoder->context, codec, NULL) < 0) goto failure;
+    if (id == AV_CODEC_ID_VORBIS) {
+        decoder->vorbis = av_vorbis_parse_init(extra, extra_size);
+        if (!decoder->vorbis) goto failure;
+    }
     return decoder;
 failure:
     decoder_free(decoder);
@@ -68,12 +76,12 @@ Decoder *decoder_create(const uint8_t *extra, int extra_size, double max_pixels)
     return create_decoder(extra, extra_size, max_pixels, AV_CODEC_ID_H264);
 }
 
-Decoder *aac_create(const uint8_t *extra, int extra_size) {
-    if (extra_size <= 0) return NULL;
-    return create_decoder(extra, extra_size, 0, AV_CODEC_ID_AAC);
+Decoder *audio_decoder_create(int codec, const uint8_t *extra, int extra_size) {
+    if (codec != 1 && extra_size <= 0) return NULL;
+    return create_decoder(extra, extra_size, 0, codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : AV_CODEC_ID_VORBIS);
 }
 
-intptr_t aac_receive(Decoder *decoder) {
+intptr_t audio_decoder_receive(Decoder *decoder) {
     AVFrame *frame = decoder->frame;
     int result = avcodec_receive_frame(decoder->context, frame);
     if (result == AVERROR(EAGAIN) || result == AVERROR_EOF) return 0;
@@ -110,6 +118,13 @@ int decoder_send(Decoder *decoder, const uint8_t *data, int length, double pts, 
     packet->pts = (int64_t)pts;
     packet->dts = (int64_t)dts;
     packet->duration = (int64_t)duration;
+    if (decoder->vorbis) {
+        int samples = av_vorbis_parse_frame(decoder->vorbis, data, length);
+        if (samples < 0) return samples;
+        packet->pts = packet->dts = decoder->vorbis_position;
+        packet->duration = samples;
+        decoder->vorbis_position += samples;
+    }
     result = avcodec_send_packet(decoder->context, packet);
     av_packet_unref(packet);
     return result;

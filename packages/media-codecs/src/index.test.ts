@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { runInNewContext } from "node:vm";
 import { build } from "esbuild";
-import { decodeAac, decodeH264, encodeOggAudio, scaleVideoPicture } from "./index.js";
+import { decodeAudio, decodeH264, encodeOggAudio, scaleVideoPicture } from "./index.js";
 
 const packet = Buffer.from("AAAAAWdkAAqs2V7ARAAAAwAEAAADAAg8SJZYAAAAAWjr48siwAAAAQYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NSByMzIyMiBiMzU2MDVhIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyNSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAFliIQAFf/+7M9+BTZo5i/D8UVzjn2B", "base64");
 
@@ -29,12 +30,15 @@ it("runs in a browser sandbox without Node, network, or WebAssembly code generat
     entryPoints: [new URL("./index.ts", import.meta.url).pathname],
     bundle: true, minify: true, write: false, platform: "browser", format: "iife", globalName: "codecs", logLevel: "silent"
   });
-  const context = { TextEncoder, TextDecoder, URL, packet, aacPacket, aacConfig, console,
+  const mp3Packet = readFileSync(new URL("../../safe-bash-command-audio/fixtures/cbr.mp3", import.meta.url)).subarray(74, 458);
+  const context = { TextEncoder, TextDecoder, URL, packet, aacPacket, aacConfig, mp3Packet, console,
     fetch() { throw new Error("Network access is forbidden"); },
     WebAssembly: new Proxy({}, { get() { throw new Error("Runtime WASM compilation is forbidden"); } })
   };
   const result = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeH264([{data: packet, pts: 0, dts: 0, duration: 1}], new Uint8Array(), 256)].map(frame => [frame.width, frame.height, codecs.scaleVideoPicture(frame, 8, 8)[0]]))', context, { timeout: 5000 });
-  const aac = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAac([{data: aacPacket, pts: 0, dts: 0, duration: 1024}], aacConfig)].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
+  const aac = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAudio("AAC", [{data: aacPacket, pts: 0, dts: 0, duration: 1024}], aacConfig)].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
+  const mp3 = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAudio("MP3", [{data: mp3Packet, pts: 0, dts: 0, duration: 1152}])].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
+  assert.deepEqual(JSON.parse(mp3), [[48000, 2, 1152]]);
   assert.deepEqual(JSON.parse(aac), [[24000, 1, 1024]]);
   const decoded = JSON.parse(result);
   assert.deepEqual(decoded[0].slice(0, 2), [16, 16]);
@@ -46,8 +50,8 @@ const aacConfig = Uint8Array.from([19, 8, 86, 229, 0]);
 
 it("releases AAC state after malformed packets and early iterator disposal", () => {
   for (let attempt = 0; attempt < 3; attempt++) {
-    assert.throws(() => [...decodeAac([{ data: Uint8Array.of(255), pts: 0, dts: 0, duration: 1024 }], aacConfig)], /AAC/);
-    const frames = decodeAac([{ data: aacPacket, pts: 0, dts: 0, duration: 1024 }], aacConfig);
+    assert.throws(() => [...decodeAudio("AAC", [{ data: Uint8Array.of(255), pts: 0, dts: 0, duration: 1024 }], aacConfig)], /AAC/);
+    const frames = decodeAudio("AAC", [{ data: aacPacket, pts: 0, dts: 0, duration: 1024 }], aacConfig);
     const frame = frames.next().value!;
     assert.equal(frame.sampleRate, 24000);
     assert.equal(frame.channelData[0]!.length, 1024);
@@ -92,3 +96,13 @@ for (const [format, colorspace, fullRange, digest] of [
     assert.equal(createHash("sha256").update(actual).digest("hex"), digest);
   });
 }
+
+it("releases MP3 decoder state after errors and early iterator disposal", () => {
+  const data = readFileSync(new URL("../../safe-bash-command-audio/fixtures/cbr.mp3", import.meta.url)).subarray(74, 458);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    assert.throws(() => [...decodeAudio("MP3", [{ data: Uint8Array.of(255), pts: 0, dts: 0, duration: 1152 }])], /MP3/);
+    const frames = decodeAudio("MP3", [{ data, pts: 0, dts: 0, duration: 1152 }]);
+    assert.equal(frames.next().value!.channelData[0]!.length, 1152);
+    frames.return(undefined);
+  }
+});

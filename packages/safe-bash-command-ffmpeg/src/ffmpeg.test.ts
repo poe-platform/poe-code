@@ -2565,6 +2565,41 @@ describe("chapter mapping", () => {
 });
 
 
+describe("audio stream copy frame limits", () => {
+  for (const sync of [false, true]) {
+    for (const option of ["-frames:a", "-aframes"]) {
+      for (const limit of [0, 1, undefined]) {
+        it(`${sync ? "sync" : "async"} ${option} ${limit ?? "unlimited"} preserves the selected AAC packets`, async () => {
+          const base = parseMp4(createSyntheticMp4({ frameCount: 3, includeAudio: true }));
+          const audio = base.tracks.find(t => t.type === "audio")!;
+          assert.ok(audio.samples.length > 1);
+          const input = serializeMp4({ ...base, tracks: [
+            { ...audio, id: 1, language: "eng" },
+            { ...audio, id: 2, language: "fra" }
+          ] });
+          const source = parseMp4(input).tracks[0]!;
+          const vfs = createTestVfs({ "/in.mp4": input });
+          const args = ["-i", "/in.mp4", ...(sync ? [] : ["-map", "0:a:0"]),
+            ...(limit === undefined ? [] : [option, String(limit)]), "-c", "copy", "/out.mp4"];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          const output = parseMp4(vfs.store.get("/out.mp4")!);
+          const samples = output.tracks.flatMap(t => t.samples);
+          const expected = source.samples.slice(0, limit);
+          assert.equal(samples.length, expected.length);
+          assert.deepEqual(samples.map(s => s.data), expected.map(s => s.data));
+          if (samples.length) assert.deepEqual(output.tracks.map(t => t.language), ["eng"]);
+        });
+      }
+    }
+  }
+});
+
 describe("stream language mapping", () => {
   for (const [maps, languages] of [
     [["0:m:language:fra"], ["fra"]],

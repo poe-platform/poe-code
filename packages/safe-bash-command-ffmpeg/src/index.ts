@@ -1218,6 +1218,17 @@ function selectAutomaticAudio(documents: readonly MediaDocument[]): MediaDocumen
   }));
 }
 
+function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDocument {
+  return {
+    ...document,
+    tracks: document.tracks.map(track => {
+      if (track.type !== "audio" || track.samples.length <= limit) return track;
+      const samples = track.samples.slice(0, limit);
+      return { ...track, samples, duration: samples.reduce((total, sample) => total + sample.duration, 0) };
+    })
+  };
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -1274,6 +1285,7 @@ export function evalSyncFfmpeg(
     let faststart = true;
     let fragmented = false;
     let maxVideoFrames: number | undefined;
+    let maxAudioFrames: number | undefined;
     let outputFps: number | undefined;
     let outputSize: string | undefined;
     let rotation: number | undefined;
@@ -1351,7 +1363,11 @@ export function evalSyncFfmpeg(
       else if (arg === "-sn") stripSubtitles = true;
       else if (arg === "-shortest") shortest = true;
       else if (arg === "-frames:v" || arg === "-vframes") maxVideoFrames = parseInt(args[++i] ?? "1", 10) || 1;
-      else if (arg === "-frames:a" || arg === "-aframes") i++;
+      else if (arg === "-frames:a" || arg === "-aframes") {
+        const value = args[++i];
+        maxAudioFrames = value?.trim() ? Number(value) : NaN;
+        if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) return undefined;
+      }
       else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         if (flags.includes("faststart")) faststart = true;
@@ -1441,6 +1457,9 @@ export function evalSyncFfmpeg(
           return t;
         }),
       };
+    }
+    if (audioCodec === "copy" && maxAudioFrames !== undefined) {
+      workingDoc = limitAudioCopyPackets(workingDoc, maxAudioFrames);
     }
     if (chapterSource !== undefined) {
       if (chapterSource >= loadedDocs.length) return undefined;
@@ -1583,6 +1602,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let faststart = true;
       let fragmented = false;
       let maxVideoFrames: number | undefined;
+      let maxAudioFrames: number | undefined;
       let outputFps: number | undefined;
       let videoSync = "auto";
       let outputSize: string | undefined;
@@ -1751,7 +1771,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         } else if (arg === "-frames:v" || arg === "-vframes") {
           maxVideoFrames = parseInt(args[++i] ?? "1", 10) || 1;
         } else if (arg === "-frames:a" || arg === "-aframes") {
-          i++;
+          const value = args[++i];
+          maxAudioFrames = value?.trim() ? Number(value) : NaN;
+          if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) {
+            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
+            return { exitCode: 1 };
+          }
         } else if (arg === "-movflags") {
           const flags = args[++i] ?? "";
           if (flags.includes("faststart")) faststart = true;
@@ -2447,6 +2472,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return t;
             })
           };
+        }
+
+        if (audioCodec === "copy" && maxAudioFrames !== undefined) {
+          workingDoc = limitAudioCopyPackets(workingDoc, maxAudioFrames);
         }
 
         // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio

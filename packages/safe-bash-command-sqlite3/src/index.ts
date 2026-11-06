@@ -959,6 +959,11 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           if (flag === "--csv") {
             csvOverride = true;
             pIdx += 1;
+          } else if (flag === "--schema") {
+            const schema = parts[pIdx + 1];
+            if (schema === undefined) throw new Error("missing argument to --schema");
+            if (schema.toLowerCase() !== "main") throw new Error(`unknown database ${schema}`);
+            pIdx += 2;
           } else if (flag === "--skip") {
             skipRows = Number(parts[pIdx + 1]) || 0;
             pIdx += 2;
@@ -1707,6 +1712,9 @@ export function evalSyncSqlite3(
           if (flag === "--csv") {
             csvOverride = true;
             pIdx += 1;
+          } else if (flag === "--schema") {
+            if (parts[pIdx + 1]?.toLowerCase() !== "main") return false;
+            pIdx += 2;
           } else if (flag === "--skip") {
             skipRows = Number(parts[pIdx + 1]) || 0;
             pIdx += 2;

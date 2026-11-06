@@ -21,7 +21,7 @@ const pipelines = [
     [...Array.from({ length: 45 }, (_, i) => i % 2 ? "first" : "second"), "-reverse", "-delete", "1-43", "-fx", "(u+v)/2"],
     ["first", "second", "-duplicate", "2,0-1", "-delete", "0-4"],
     ["first", "second", "+insert"],
-    ["first", "second", "-insert", "-2"],
+    ["first", "second", "first", "-insert", "-1"],
     ["first", "second", "-write", "middle.png", "-delete", "1"],
     ["first", "-duplicate", "40", "-reverse", "-delete", "1-39", "-fx", "u[1].w/w*u"],
     ["animated.gif[1,0]", "-resize", "9x7!", "-append"],

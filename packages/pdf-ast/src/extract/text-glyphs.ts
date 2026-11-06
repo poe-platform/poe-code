@@ -56,8 +56,9 @@ export function sameTextLine(reference: PdfTextGeometry, current: PdfTextGeometr
     && (raw && (a.diagonal || b.diagonal) ? Math.abs(b.normal - a.normal) < tolerance : Math.abs(b.normal - a.normal) <= tolerance);
 }
 
-export function textWordBreak(previous: PdfTextGeometry, current: PdfTextGeometry, raw = false): boolean {
+export function textWordBreak(previous: PdfTextGeometry, current: PdfTextGeometry, raw = false, wordBreakThreshold?: number): boolean {
   const a = textDirection(previous), b = textDirection(current);
+  if (wordBreakThreshold !== undefined) return b.along - a.along - a.advance > wordBreakThreshold * (previous.bbox[3] - previous.bbox[1]);
   if (raw && (a.diagonal || b.diagonal) && Math.abs(b.normal - a.normal) > 0.5) {
     // Raw output inserts spaces from the axis-aligned word edges, even for
     // vertical words; a baseline change alone only ends the internal word.

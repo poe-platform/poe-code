@@ -972,7 +972,7 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
             yield;
             const page = doc.getPage(p - 1);
             const { width, height } = page.getSize();
-            const extracted = page.extractPage({ discardInvisible: !parsed.hidden });
+            const extracted = page.extractPage({ discardInvisible: !parsed.hidden, wordBreakThreshold: parsed.wordBreakThreshold });
             const annots = extractPageAnnotations(doc.cos, page.pageDict);
             const pageImages = ignoreImages ? [] : (yield* extractDocumentImagesSteps(doc.cos, { firstPage: p, lastPage: p, signal: signal }));
             const fontKeyToBaseFont = new Map<string, string>();
@@ -1084,7 +1084,7 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
             yield;
             const page = doc.getPage(p - 1);
             const { width, height } = page.getSize();
-            const extracted = page.extractPage({ discardInvisible: !parsed.hidden });
+            const extracted = page.extractPage({ discardInvisible: !parsed.hidden, wordBreakThreshold: parsed.wordBreakThreshold });
             const annots = extractPageAnnotations(doc.cos, page.pageDict);
             const pageImages = ignoreImages ? [] : (yield* extractDocumentImagesSteps(doc.cos, { firstPage: p, lastPage: p, signal: signal }));
             lines.push(`<div class="page" id="page${p}" style="position:relative;width:${Math.round(width * zoom)}pt;height:${Math.round(height * zoom)}pt;">`);

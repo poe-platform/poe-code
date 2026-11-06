@@ -10,7 +10,7 @@ export const SUPPORTED_ENCODINGS = new Set([
 export interface HtmlPlan {
   readonly inputPath: string; readonly outPath: string; readonly imageDirectory: string;
   readonly hidden: boolean; readonly noRoundCoord: boolean; readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
-  readonly firstPage: number; readonly lastPage: number; readonly zoom: number;
+  readonly firstPage: number; readonly lastPage: number; readonly zoom: number; readonly wordBreakThreshold: number;
   readonly imageFmt: "png" | "jpg"; readonly encoding: string; readonly password: string;
 }
 export function parseHtmlArguments(argv: readonly string[], hasStdin = false): HtmlPlan | { exitCode: number; stdout: string; stderr: string } {
@@ -24,6 +24,7 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
     let firstPage = 1;
     let lastPage = 0;
     let zoom = 1.5;
+    let wordBreakThreshold = 0.1;
     let imageFmt: "png" | "jpg" = "png";
     let encoding = "UTF-8";
     let password = "";
@@ -66,6 +67,11 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             const z = Number.parseFloat(argv[++i] ?? "1");
             if (Number.isFinite(z) && z > 0)
                 zoom = z;
+        }
+        else if (arg === "-wbt") {
+            const threshold = Number.parseFloat(argv[++i] ?? "");
+            if (!Number.isFinite(threshold)) return { exitCode: 99, stdout: "", stderr: "Command Line Error: Invalid word break threshold\n" };
+            wordBreakThreshold = threshold / 100;
         }
         else if (arg === "-fmt") {
             const fmtVal = (argv[++i] ?? "").toLowerCase();
@@ -112,5 +118,5 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             : `${explicitOut}${defaultExt}`
         : inputStem + defaultExt;
     const imageDirectory = outPath.slice(0, outPath.lastIndexOf("/") + 1);
-    return { inputPath, outPath, imageDirectory, hidden, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, imageFmt, encoding, password };
+    return { inputPath, outPath, imageDirectory, hidden, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, wordBreakThreshold, imageFmt, encoding, password };
 }

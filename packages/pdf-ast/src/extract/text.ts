@@ -18,6 +18,8 @@ export interface ExtractTextOptions {
   readonly clipText?: boolean | undefined;
   /** Discard characters whose baseline advance lies outside these page bounds. */
   readonly pageBounds?: readonly [number, number, number, number] | undefined;
+  /** Gap that inserts a word space, as a fraction of the preceding glyph height. */
+  readonly wordBreakThreshold?: number | undefined;
   readonly colSpacing?: number | undefined;
   readonly fixedPitch?: number | undefined;
   readonly lineSpacing?: number | undefined;
@@ -42,7 +44,7 @@ export function extractPageFromDisplayList(
   }
 
   const lines: PdfTextLine[] = [];
-  const type3 = options.mode !== "raw" && glyphs.some(g => g.type3FontSize !== undefined) && glyphs.every(g => g.matrix[0] > 0 && g.matrix[1] === 0);
+  const type3 = options.wordBreakThreshold === undefined && options.mode !== "raw" && glyphs.some(g => g.type3FontSize !== undefined) && glyphs.every(g => g.matrix[0] > 0 && g.matrix[1] === 0);
   if (type3) {
     const pool: Type3Word[] = [], words: PdfTextWord[] = [];
     let current: PdfPlacedGlyph[] = [], baseline = 0;
@@ -148,7 +150,7 @@ export function extractPageFromDisplayList(
         }
         if (curWordGlyphs.length > 0) {
           const prev = curWordGlyphs[curWordGlyphs.length - 1]!;
-          if (textWordBreak(prev, g, options.mode === "raw")) {
+          if (textWordBreak(prev, g, options.mode === "raw", options.wordBreakThreshold)) {
             flushWord();
           }
         }

@@ -251,3 +251,31 @@ for (const mode of [[], ["-xml"]]) for (const hidden of [false, true]) test(`HTM
   }
   await f.clean();
 });
+
+test("pdftohtml consumes the word-break threshold before the PDF operand", async () => {
+  const input = await readFile(new URL("../../pdf-ast/src/fixtures/qpdf-form-xobjects-no-resources.pdf", import.meta.url));
+  const f = await fixture(input, ["-xml", "-stdout", "-i", "-zoom", "1.5", "-wbt", "5", "/input.pdf"]);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  assert.equal(f.stderr.length, 0);
+  const xml = new TextDecoder().decode(joined(f.stdout));
+  for (const text of ["Page", "FX1", "FX2"]) assert.ok(xml.includes(text));
+  await f.clean();
+});
+
+for (const mode of [[], ["-xml"]]) for (const [threshold, expected] of [[undefined, "A B C"], [5, "A B C"], [50, "ABC"], [0, "A B C"]] as const) {
+  test(`pdftohtml word grouping: mode=${mode}, threshold=${threshold ?? "default"}`, async () => {
+    const doc = PdfDocument.create(), page = doc.addPage([200, 200]);
+    page.drawText("A", { x: 10, y: 100, size: 12 });
+    page.setRawContentStream(new TextEncoder().encode("BT /F1 12 Tf 10 100 Td [(A) -150 (B) -350 (C)] TJ ET"));
+    const input = doc.save();
+    const args = [...mode, "-stdout", "-i", ...(threshold === undefined ? [] : ["-wbt", String(threshold)]), "/input.pdf"];
+    const f = await fixture(input, args);
+    assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+    assert.equal(f.stderr.length, 0);
+    assert.ok(new TextDecoder().decode(joined(f.stdout)).includes(`>${expected}</`));
+    const buffered = await runPdftohtmlCli(args, new Map([["/input.pdf", input]]));
+    assert.equal(buffered.exitCode, 0);
+    assert.ok(buffered.stdout.includes(`>${expected}</`));
+    await f.clean();
+  });
+}

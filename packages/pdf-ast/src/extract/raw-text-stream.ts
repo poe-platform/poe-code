@@ -124,7 +124,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
           if (glyph.unicode === " " || glyph.unicode === "\t") wordPrevious = undefined;
           else {
             if (wordPrevious) {
-              if (textWordBreak(wordPrevious, glyph, true)) wordPrevious = undefined;
+              if (textWordBreak(wordPrevious, glyph, true, options.wordBreakThreshold)) wordPrevious = undefined;
             }
             if (!wordPrevious) {
               originalWords++;
@@ -163,7 +163,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
             let previous: PdfPlacedGlyph | undefined, high = "";
             while (pending && sameLine(pending) && pending.unicode !== " " && pending.unicode !== "\t") {
               const glyph = pending;
-              if (previous && textWordBreak(previous, glyph, true)) break;
+              if (previous && textWordBreak(previous, glyph, true, options.wordBreakThreshold)) break;
               line.left = Math.min(line.left, glyph.bbox[0]);
               bounds[0] = Math.min(bounds[0]!, glyph.bbox[0]); bounds[1] = Math.min(bounds[1]!, glyph.bbox[1]);
               bounds[2] = Math.max(bounds[2]!, glyph.bbox[2]); bounds[3] = Math.max(bounds[3]!, glyph.bbox[3]);

@@ -44,7 +44,7 @@ export async function* orderedTextGlyphs(input:Iterable<PdfTextGlyph>|AsyncItera
   const global=await PdfTextRecordOrder.create(records(),async(left,right)=>{
     return order.compare(await read(left), await read(right));
   },storage,options);
-  if(type3&&horizontal){
+  if(type3&&horizontal&&options.wordBreakThreshold===undefined){
     let failed=false;
     try{
       const base=backing.allocate(0),buffer=new Uint8Array(72),view=new DataView(buffer.buffer);let count=0,work=0;

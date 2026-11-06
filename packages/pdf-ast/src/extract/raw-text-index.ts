@@ -13,7 +13,7 @@ import type { ExtractTextOptions } from "./text.js";
  * An explicit actualText string takes precedence. Keep storage alive until create completes. */
 export type PdfRawTextGlyph = PdfTextGlyph;
 
-export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "discardInvisible" | "clipText" | "pageBounds" | "mode" | "colSpacing"> {
+export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "discardInvisible" | "clipText" | "pageBounds" | "mode" | "colSpacing" | "wordBreakThreshold"> {
   /** Page-rounded high-water allocation, including records and UTF-16 text. */
   readonly maxStorageBytes?: number;
   /** Required page geometry for logical column classification. */
@@ -162,7 +162,7 @@ export class PdfRawTextIndex {
 
         if (possibleSpace && next?.done) { await flushWord(); return; }
         const wordStart=ordered?(glyph as PdfOrderedTextGlyph).wordStart:undefined;
-        if (wordStart===true || (wordStart===undefined && previousGlyph && textWordBreak(previousGlyph, glyph, !ordered))) await flushWord();
+        if (wordStart===true || (wordStart===undefined && previousGlyph && textWordBreak(previousGlyph, glyph, !ordered, this.options.wordBreakThreshold))) await flushWord();
         const observe = (text: string) => {
           if (line!.prefix.length >= 2) return; const part = line!.prefixStarted ? text : text.trimStart();
           if (part.length) { line!.prefixStarted = true; line!.prefix += part.slice(0, 2 - line!.prefix.length); }

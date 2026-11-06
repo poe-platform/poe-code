@@ -36,6 +36,7 @@ export function parseWav(bytes: Uint8Array): AudioAst {
   r.check(0, end);
   const nodes: AudioNode[] = [],
     tags: AudioTags = {};
+  let channelMask: number | undefined;
   let format = 0,
     sampleRate = 0,
     channels = 0,
@@ -70,6 +71,7 @@ export function parseWav(bytes: Uint8Array): AudioAst {
       if (format === 0xfffe) {
         if (size < 40 || r.u16(start + 16, true) < 22) throw new Error("Short extensible WAV fmt");
         validBits = r.u16(start + 18, true) || bits;
+        channelMask = r.u32(start + 20, true);
         const guid = r.slice(start + 24, 16);
         if (
           !guid
@@ -80,7 +82,7 @@ export function parseWav(bytes: Uint8Array): AudioAst {
         format = r.u16(start + 24, true);
         Object.assign(node.fields, {
           validBitsPerSample: validBits,
-          channelMask: r.u32(start + 20, true),
+          channelMask,
           subformat: format
         });
       }
@@ -119,6 +121,7 @@ export function parseWav(bytes: Uint8Array): AudioAst {
   if (!nodes.some((n) => n.type === "fmt ") || !nodes.some((n) => n.type === "data"))
     throw new Error("WAV requires fmt and data");
   const stream = wavStream({ format, sampleRate, channels, bits, validBits, align, dataSize });
+  if (channelMask !== undefined) Object.assign(stream, { channelMask });
   const seconds = stream.duration;
   return {
     format: "wav",

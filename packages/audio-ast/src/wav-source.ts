@@ -27,6 +27,7 @@ export async function probeWavSource(source: AudioProbeSource, options: { signal
   if (end > source.size) throw new Error("Truncated or invalid audio structure");
   const tags: AudioTags = {};
   let format = 0, sampleRate = 0, channels = 0, bits = 0, validBits = 0, align = 0, dataSize = 0;
+  let channelMask: number | undefined;
   let hasFmt = false, hasData = false;
   for (let offset = 12; offset < end;) {
     const chunk = await read(offset, 8), type = chunk.text(0, 4), declaredSize = chunk.u32(4, true), start = offset + 8;
@@ -40,6 +41,7 @@ export async function probeWavSource(source: AudioProbeSource, options: { signal
       if (format === 0xfffe) {
         if (size < 40 || fmt.u16(16, true) < 22) throw new Error("Short extensible WAV fmt");
         validBits = fmt.u16(18, true) || bits;
+        channelMask = fmt.u32(20, true);
         if (!fmt.slice(26, 14).every((value, index) => value === [0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113][index]))
           throw new Error("Unsupported WAV subformat GUID");
         format = fmt.u16(24, true);
@@ -73,5 +75,6 @@ export async function probeWavSource(source: AudioProbeSource, options: { signal
   }
   if (!hasFmt || !hasData) throw new Error("WAV requires fmt and data");
   const stream = wavStream({ format, sampleRate, channels, bits, validBits, align, dataSize });
+  if (channelMask !== undefined) Object.assign(stream, { channelMask });
   return { format: "wav", streams: [stream], tags, duration: stream.duration, bitrate: stream.duration ? source.size * 8 / stream.duration : 0 };
 }

@@ -14,6 +14,7 @@ export interface AudioStream {
   sampleRate: number;
   channels: number;
   bitsPerSample?: number;
+  channelMask?: number;
   samples: number;
   duration: number;
   bitrate: number;

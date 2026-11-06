@@ -159,6 +159,22 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
     for (const [index, stream] of audio.streams.entries()) {
       if (parsed.selector && index !== 0) continue;
       const mimeCodec = ({ mp3: "mp4a.40.34", flac: "flac", vorbis: "vorbis", opus: "opus", aac: "mp4a.40.2" } as Record<string, string>)[stream.codec];
+      let channelLayout: string | undefined;
+      if (stream.channelMask) {
+        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR", "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"]
+          .filter((_, bit) => (stream.channelMask! & (2 ** bit)) !== 0);
+        if (speakers.length === stream.channels) {
+          const layouts: Record<number, string> = {
+            4: "mono", 3: "stereo", 11: "2.1", 7: "3.0", 259: "3.0(back)",
+            15: "3.1", 263: "4.0", 51: "quad", 1539: "quad(side)",
+            271: "4.1", 55: "5.0", 1543: "5.0(side)", 63: "5.1", 1551: "5.1(side)",
+            1799: "6.0", 1807: "6.1", 1591: "7.0", 1599: "7.1", 255: "7.1(wide)"
+          };
+          channelLayout = layouts[stream.channelMask] ?? `${stream.channels} channels (${speakers.join("+")})`;
+        }
+      } else if (["flac", "mp3", "vorbis", "opus", "aac"].includes(stream.codec) && stream.channels <= 2) {
+        channelLayout = stream.channels === 1 ? "mono" : "stereo";
+      }
       const row = filter("stream", {
         index,
         ...(stream.tags && Object.keys(stream.tags).length ? { tags: stream.tags } : {}),
@@ -190,9 +206,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
           : {}),
         sample_rate: String(stream.sampleRate),
         channels: stream.channels,
-        ...(["flac", "mp3"].includes(stream.codec) && stream.channels <= 2
-          ? { channel_layout: stream.channels === 1 ? "mono" : "stereo" }
-          : {}),
+        ...(channelLayout ? { channel_layout: channelLayout } : {}),
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,
         ...(stream.codec === "flac" ? { bits_per_raw_sample: String(stream.bitsPerSample) } : {}),
         time_base: `1/${stream.codec === "mp3" ? mp3TimeBase : stream.sampleRate}`,

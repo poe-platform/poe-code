@@ -1,6 +1,6 @@
 import {encodeXML} from "entities";
-import type {Paragraph, Table, DocxBlock, DocxRunInput, DocumentModelContext} from "safe-bash-docx-engine";
-import type {Block, Inline, Row} from "./ast-types.js";
+import type {Paragraph, Table, DocxBlock, DocxRunInput, DocumentModelContext, XmlElement} from "safe-bash-docx-engine";
+import type {Block, Inline, Row, ColSpec} from "./ast-types.js";
 import type {AdapterContext, ReaderCapability, WriterCapability} from "./types.js";
 import {PandocError} from "./errors.js";
 import {literalInlines} from "./literal-inlines.js";
@@ -35,6 +35,15 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
   return guarded(ctx, async () => {
     const {Document: openDocument, Paragraph, Run, NumberingGraph, numberingAttribute, modelText, activeModelChildren} = await import("safe-bash-docx-engine/pandoc-adapter");
     const model = await openDocument(input.bytes, await modelContext(ctx));
+    const child = (node: XmlElement | undefined, name: string, part = model.part.partname.toString()): XmlElement | undefined =>
+      node && activeModelChildren(model.store, part)(node).find(value => value.namespace === node.namespace && value.localName === name);
+    const value = (node: XmlElement | undefined, name: string) =>
+      node?.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
+    const section = child(child(model.store.xml(model.part.partname.toString()).root, "body"), "sectPr");
+    const margins = child(section, "pgMar");
+    const page = [value(child(section, "pgSz"), "w"), ...["left", "right", "gutter"].map(name => value(margins, name))];
+    const textWidth = page.every(n => n !== undefined && Number.isFinite(Number(n)))
+      ? Number(page[0]) - Number(page[1]) - Number(page[2]) - Number(page[3]) : 9360;
     const related = (kind: string) => {
       const edge = [...model.part.rels.values()].find(edge => !edge.is_external && edge.reltype.endsWith(`/${kind}`));
       return edge ? model.store.xml(edge.target_part.partname.toString()) : undefined;
@@ -155,17 +164,31 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
         else {
           stack.length = 0;
           const rows: Row[] = [];
+          const headers: Row[] = [];
+          const look = child(child(item.store.node(item.ref), "tblPr", item.ref.part), "tblLook", item.ref.part);
+          const firstRow = value(look, "firstRow");
+          const firstRowHeader = firstRow === undefined ? (Number.parseInt(value(look, "val") ?? "0", 16) & 0x20) !== 0 : firstRow === "1";
+          let index = 0;
           for (const row of item.rows) {
             const cells: Row[1][number][] = [];
             for (const cell of row.cells) {
               const blocks: Block[] = [];
               const stack: ListFrame[] = [];
               for (const p of cell.paragraphs) await appendParagraph(p, blocks, stack);
-              cells.push([attr, "AlignDefault", 1, 1, blocks]);
+              if (blocks.length === 1 && blocks[0]!.t === "Para") blocks[0] = {t: "Plain", c: blocks[0]!.c};
+              const alignment = cell.paragraphs[0]?.alignment?.name;
+              cells.push([attr, alignment === "RIGHT" ? "AlignRight" : alignment === "CENTER" ? "AlignCenter" : alignment === "LEFT" || alignment === "JUSTIFY" ? "AlignLeft" : "AlignDefault", 1, 1, blocks]);
             }
-            rows.push([attr, cells]);
+            const flag = child(child(item.store.node(row.ref), "trPr", item.ref.part), "tblHeader", item.ref.part);
+            const header = (index++ === 0 && firstRowHeader) || (flag && !["0", "false", "off"].includes(value(flag, "val") ?? "1"));
+            (header ? headers : rows).push([attr, cells]);
           }
-          blocks.push({t: "Table", c: [attr, [null, []], Array.from({length: item.columns.length}, () => ["AlignDefault", {t: "ColWidthDefault"}]), [attr, []], [[attr, 0, [], rows]], [attr, []]]});
+          const widths = [...item.columns].map(column => column.width?.twips ?? 0);
+          // Pandoc subtracts ten twips between grid columns and caps tables at the text width.
+          const denominator = Math.max(textWidth - 10 * (widths.length - 1), widths.reduce((sum, width) => sum + width, 0));
+          const specs: ColSpec[] = widths.map((width, column) => [rows[0]?.[1][column]?.[1] ?? "AlignDefault",
+            width > 0 && denominator > 0 ? {t: "ColWidth", c: width / denominator} : {t: "ColWidthDefault"}]);
+          blocks.push({t: "Table", c: [attr, [null, []], specs, [attr, headers], [[attr, 0, [], rows]], [attr, []]]});
         }
       }
       return blocks;

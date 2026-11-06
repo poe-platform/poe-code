@@ -49,5 +49,6 @@ it("keeps list numbering independent across table cells and body paragraphs", as
   const blocks = [list, table, list];
   const output = await writeDocument({blocks, metadata: {}, resources: []}, {to: "docx"}, {});
   if (output.kind !== "binary") throw new Error("Expected DOCX");
-  expect((await readDocument({bytes: output.bytes}, {from: "docx"}, {})).blocks).toEqual(blocks);
+  const expectedTable: Block = {...table, c: [table.c[0], table.c[1], [["AlignDefault", {t: "ColWidth", c: 0.5}], ["AlignDefault", {t: "ColWidth", c: 0.5}]], table.c[3], table.c[4], table.c[5]]};
+  expect((await readDocument({bytes: output.bytes}, {from: "docx"}, {})).blocks).toEqual([list, expectedTable, list]);
 });

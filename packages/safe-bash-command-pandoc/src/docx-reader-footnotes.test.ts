@@ -60,7 +60,7 @@ it("reads table-cell references and tables in footnotes", async () => {
   const result = await convert([{bytes: docx.bytes}], {from: "docx", to: "json"}, {});
   if (result.kind !== "text") throw new Error("Expected JSON");
   const document = JSON.parse(result.text);
-  const cell = document.blocks[0].c[4][0][3][1][1][0][4];
+  const cell = document.blocks[0].c[4][0][3][0][1][0][4];
   expect(cell[0].c[1]).toMatchObject({t: "Note", c: [{t: "Table"}]});
   expect(result.text).toContain('"Note"');
   expect(result.text).toContain('"cell"');

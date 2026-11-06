@@ -55,7 +55,7 @@ export async function tryPdfDecode(source:ImageByteSource,storage:ImageByteStora
   let written=0;
   for await(const bytes of rendered.pixels){signal.throwIfAborted();if(bytes.length>length-written)throw new Error("Excess PDF raster pixels");await storage.write(position+written,bytes,{signal});signal.throwIfAborted();written+=bytes.length;}
   if(written!==length)throw new Error("Truncated PDF raster pixels");
-  return {format:"pdf",width,height,space:"srgb",channels:4,depth:"uchar",density:settings.density??72,hasAlpha:true,isProgressive:false,pages:owner.metadata.pages!,position};
+  return {format:"pdf",width,height,space:"srgb",channels:4,depth:"uchar",density:settings.density??72,hasAlpha:true,bitsPerSample:8,isProgressive:false,pages:owner.metadata.pages!,position};
  }catch(error){failed=true;throw error;}
  finally{await owner.close().catch(error=>{if(!failed)throw error;});}
 }

@@ -13,13 +13,13 @@ async function fixture(content: string | string[], amend?: (doc: PdfDocument) =>
   const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",original.save());const source=await PdfFileSource.open(fs,"/input");const backing=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal});const document=await PdfRetainedDocument.open(source,{fs,directory:"/scratch"},{chunkBytes:64,...(backed?{valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Properties"]}}:{})});
   return {document,fs,source,async close(){await document.close();await backing.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}};
 }
-async function collect(document: PdfRetainedDocument, includeText=true){let output="";for await(const item of document.structure({includeText})){const pad="  ".repeat(item.depth);if(item.kind==="element")output+=pad+item.role+(item.mappedRole&&item.mappedRole!==item.role?` / ${item.mappedRole}`:"")+"\n";else{const decoder=new TextDecoder();let text="";for await(const bytes of item.contents())text+=decoder.decode(bytes,{stream:true});text+=decoder.decode();if(text)output+=pad+`"${text}"\n`;}}return output;}
+async function collect(document: PdfRetainedDocument, includeText=true){let output="";for await(const item of document.structure({includeText})){const pad="  ".repeat(item.depth);if(item.kind==="element")output+=pad+item.role+(item.mappedRole&&item.mappedRole!==item.role?` / ${item.mappedRole}`:"")+"\n";else{const decoder=new TextDecoder("utf-8", { ignoreBOM: true });let text="";for await(const bytes of item.contents())text+=decoder.decode(bytes,{stream:true});text+=decoder.decode();if(text)output+=pad+`"${text}"\n`;}}return output;}
 it.each([
  {content:"/P << /MCID 0 >> BDC BT (one) Tj ET BT [(two) -150 (three)] TJ ET EMC",text:"one two three"},
  {content:"BT /P << /MCID 0 >> BDC (one) Tj /Span BMC (two) Tj EMC (three) Tj EMC ET",text:"one two three"},
  {content:"/P << /MCID 0 >> BDC BT (discard) Tj BT (keep) Tj ET EMC",text:"keep"},
  {content:"/P << /MCID 0 >> BDC BT (discard) Tj BT ET EMC",text:""},
- {content:"/P << /MCID 0 >> BDC BT (  padded  ) Tj ET BT ( end ) Tj ET EMC",text:"padded    end"},
+ {content:"/P << /MCID 0 >> BDC BT (  padded  ) Tj ET BT ( end ) Tj ET EMC",text:"  padded    end "},
  {content:"/P << /MCID 0 >> BDC BT (left) Tj q (middle) Tj Q (right) Tj ET EMC",text:"left middle right"},
  {content:"q /P << /MCID 0 >> BDC BT (one) Tj Q (excluded) Tj EMC ET",text:"one"},
  {content:"/P /Marked BDC BT (named) Tj ET EMC",text:"named"},
@@ -32,7 +32,7 @@ it("preserves alternate text, inherited pages and MCR content",async()=>{
   const f=await fixture("/P /Marked BDC BT (  mcid  ) Tj ET EMC",doc=>{
     dictSet(doc.cos.resolveDict(doc.cos.rootRef)!,"StructTreeRoot",cosDict({K:cosArray([cosDict({S:cosName("Document"),Pg:doc.getPage(0).ref,ActualText:cosString("verbatim  "),K:cosDict({Type:cosName("MCR"),MCID:cosNumber(0)})}),cosDict({S:cosName("P"),Alt:cosString("fallback")})])}));
   });
-  expect(await collect(f.document)).toBe('StructTreeRoot\n  Document\n    "verbatim  "\n    "mcid"\n  P\n    "fallback"\n');await f.close();
+  expect(await collect(f.document)).toBe('StructTreeRoot\n  Document\n    "verbatim  "\n    "  mcid  "\n  P\n    "fallback"\n');await f.close();
 });
 it("cleans staged MCID text on document close while its consumer is suspended",async()=>{
   const f=await fixture("/P /Marked BDC BT ("+"word ".repeat(1000)+") Tj ET EMC");const walk=f.document.structure({includeText:true});await walk.next();await walk.next();const item=(await walk.next()).value!;if(item.kind!=="text")throw new Error("missing text");const payload=item.contents();expect((await payload.next()).done).toBe(false);
@@ -47,8 +47,8 @@ it("spills deep marked-content state instead of retaining a growing graphics sta
 it("skips active structure cycles without suppressing later sibling occurrences",async()=>{
   const f=await fixture("",doc=>{const child=doc.cos.allocateObject(cosDict({S:cosName("P")}));dictSet(doc.cos.resolveDict(child)!,"K",child);dictSet(doc.cos.resolveDict(doc.cos.rootRef)!,"StructTreeRoot",cosDict({K:cosArray([child,child])}));});expect(await collect(f.document,false)).toBe("StructTreeRoot\n  P\n  P\n");await f.close();
 });
-it("trims Unicode whitespace and BOMs without corrupting UTF-8 byte offsets",async()=>{
-  const f=await fixture("/P /Marked BDC BT <FEFFFEFF2003D83DDE42002000E92003> Tj ET EMC");expect(await collect(f.document)).toContain('"🙂 é"');await f.close();
+it("preserves Unicode whitespace and BOMs in structure text",async()=>{
+  const f=await fixture("/P /Marked BDC BT <FEFFFEFF2003D83DDE42002000E92003> Tj ET EMC");expect(await collect(f.document)).toContain('"\uFEFF\u2003🙂 é\u2003"');await f.close();
 });
 
 it("preserves staging failures and cleans partial structure text",async()=>{

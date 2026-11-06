@@ -631,7 +631,7 @@ function extractPageMcidText(cos: ParsedCosDocument, pageDict: PdfCosDict, targe
     }
   };
   walkNodes(ast, false);
-  return parts.join(" ").trim();
+  return parts.join(" ");
 }
 
 const blockStructureRoles = new Set(["P", "H", "H1", "H2", "H3", "H4", "H5", "H6", "L", "LI", "Lbl", "LBody", "Table"]);

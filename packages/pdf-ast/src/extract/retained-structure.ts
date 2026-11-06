@@ -115,25 +115,11 @@ async function markedText(document: PdfRetainedDocument, page: PdfCosDict, mcid:
         for await (const bytes of entry.contents()) { await checkpoint(); yield bytes; }
       }
     }
-    // Scan trim boundaries without retaining a potentially huge whitespace tail.
-    let offset = 0, start: number | undefined, end = 0;
-    const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
-    function scan(text: string) {
-      for (const char of text) {
-        const point = char.codePointAt(0)!; const bytes = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
-        if (char.trim().length) { start ??= offset; end = offset + bytes; } offset += bytes;
-      }
-    }
-    for await (const bytes of joined()) { signal?.throwIfAborted(); scan(decoder.decode(bytes, { stream: true })); }
-    scan(decoder.decode());
     return { close, async *contents(): AsyncGenerator<Uint8Array, void, void> {
       signal?.throwIfAborted(); if (closed) throw new PdfError("E_CAPABILITY", "Retained structure text is closed");
-      if (start === undefined) return;
-      let at = 0;
       for await (const bytes of joined()) {
         signal?.throwIfAborted(); if (closed) throw new PdfError("E_CAPABILITY", "Retained structure text is closed");
-        const low = Math.max(0, start - at), high = Math.min(bytes.length, end - at);
-        if (high > low) yield bytes.slice(low, high); at += bytes.length; if (at >= end) break;
+        yield bytes;
       }
     } };
   } catch (error) { try { await close(); } catch { /* Preserve the primary failure. */ } throw error; }

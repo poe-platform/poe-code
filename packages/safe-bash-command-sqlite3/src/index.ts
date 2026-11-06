@@ -927,6 +927,13 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                 yield ");\n";
               }
             }
+            if (!pattern && db instanceof SqliteDatabase) {
+              for (const tbl of db.tables.values()) {
+                if (!tbl.columns.some(column => column.autoIncrement)) continue;
+                yield `DELETE FROM sqlite_sequence WHERE name=${formatSqlQuote(tbl.name)};\n`;
+                if (tbl.maxAutoInc > 0) yield `INSERT INTO sqlite_sequence VALUES(${formatSqlQuote(tbl.name)},${tbl.maxAutoInc});\n`;
+              }
+            }
             for (const idx of db.indexes?.values() ?? []) {
               if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) {
                 yield `${idx.sql.replace(/;*\s*$/, "")};` + "\n";
@@ -972,6 +979,16 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
                 }
               } else if (!pattern || tblName.toLowerCase() === pattern.toLowerCase() || name.toLowerCase() === pattern.toLowerCase()) {
                 yield `${sql.replace(/;*\s*$/, "")};` + "\n";
+              }
+            }
+          }
+          if (!(db instanceof SqliteDatabase) && !pattern) {
+            const sequence = await execSingleStmt("SELECT name FROM sqlite_master WHERE name='sqlite_sequence';");
+            if (sequence?.rows.length) {
+              yield "DELETE FROM sqlite_sequence;\n";
+              const rows = await execSingleStmt("SELECT name,seq FROM sqlite_sequence;");
+              for (const row of rows?.rows ?? []) {
+                yield `INSERT INTO sqlite_sequence VALUES(${formatSqlQuote(row[0] ?? null)},${formatSqlQuote(row[1] ?? null)});\n`;
               }
             }
           }
@@ -1689,6 +1706,13 @@ export function evalSyncSqlite3(
           for (const r of tbl.rows) {
             const vals = tbl.columns.map((c) => [...sqlQuoteParts(r.data[c.name] ?? null)].join("")).join(",");
             dumpLines.push(`INSERT INTO ${tbl.name} VALUES(${vals});`);
+          }
+        }
+        if (!pattern) {
+          for (const tbl of db.tables.values()) {
+            if (!tbl.columns.some(column => column.autoIncrement)) continue;
+            dumpLines.push(`DELETE FROM sqlite_sequence WHERE name=${formatSqlQuote(tbl.name)};`);
+            if (tbl.maxAutoInc > 0) dumpLines.push(`INSERT INTO sqlite_sequence VALUES(${formatSqlQuote(tbl.name)},${tbl.maxAutoInc});`);
           }
         }
         for (const idx of db.indexes.values()) {

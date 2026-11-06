@@ -47,5 +47,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
   // Include argument validation before publishing outputs.
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_017_300);
+  // Include independent concat timeline offsets while preserving PCM samples.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_017_800);
 });

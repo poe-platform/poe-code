@@ -612,6 +612,8 @@ export interface SerializeMediaOptions {
 }
 
 export interface ConcatMediaOptions {
+  /** Segment timeline starts; decoded PCM stays in input order without padding or truncation. */
+  readonly startTimesSeconds?: readonly number[] | undefined;
   readonly faststart?: boolean | undefined;
   readonly normalizeTimescale?: boolean | undefined;
   readonly alignTrackDurations?: boolean | undefined;

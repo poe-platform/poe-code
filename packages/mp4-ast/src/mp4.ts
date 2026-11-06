@@ -1498,6 +1498,9 @@ export function concatMp4(
       }
 
       let currentTick = runningTicksPerSlot[slotIdx]!;
+      const startSeconds = options.startTimesSeconds?.[docIdx];
+      const timestampShift = startSeconds === undefined ? 0 :
+        Math.round(startSeconds * targetTimescale) - currentTick;
       if (trk.type === "audio") {
         if (trk.decodedAudio) {
           audioSegments[slotIdx]!.push({ audio: trk.decodedAudio, offsetSeconds: currentTick / targetTimescale });
@@ -1510,8 +1513,8 @@ export function concatMp4(
         const scaledCts = Math.round(s.cts * scaleRatio);
         slotSamples.push({
           data: s.data,
-          dts: currentTick,
-          pts: currentTick + scaledCts,
+          dts: currentTick + timestampShift,
+          pts: currentTick + timestampShift + scaledCts,
           cts: scaledCts,
           duration: scaledDur,
           size: s.size,
@@ -1530,7 +1533,7 @@ export function concatMp4(
         for (const vf of trk.decodedVideoFrames) {
           mergedDecodedFrames[slotIdx]!.push({
             ...vf,
-            ptsSeconds: vf.ptsSeconds + timeOffsetSec
+            ptsSeconds: vf.ptsSeconds + timeOffsetSec + timestampShift / targetTimescale
           });
         }
       }

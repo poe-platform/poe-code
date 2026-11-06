@@ -2070,6 +2070,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const listText = new TextDecoder().decode(rawBytes);
                 const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
                 const concatDocs: MediaDocument[] = [];
+                const startTimesSeconds: number[] = [];
+                let nextStartSeconds = 0;
                 let currentInpoint: number | undefined;
                 let currentOutpoint: number | undefined;
                 let currentDuration: number | undefined;
@@ -2111,20 +2113,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     let itemDoc = await loadSingleDocument(resolvedItem);
                     if (
                       currentInpoint !== undefined ||
-                      currentOutpoint !== undefined ||
-                      currentDuration !== undefined
+                      currentOutpoint !== undefined
                     ) {
                       itemDoc = sliceMp4(itemDoc, {
                         startSeconds: currentInpoint,
-                        endSeconds: currentOutpoint,
-                        durationSeconds: currentDuration
+                        endSeconds: currentOutpoint
                       });
                     }
+                    startTimesSeconds.push(nextStartSeconds);
+                    nextStartSeconds += currentDuration ?? itemDoc.durationSeconds;
                     concatDocs.push(itemDoc);
                   }
                 }
                 budget.checkConcatInputs(concatDocs.length);
-                return concatMp4(concatDocs, { limits: options.limits, budget });
+                return concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget });
               }
 
               const plugin = explicitFormat !== undefined

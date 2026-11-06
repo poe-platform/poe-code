@@ -1531,17 +1531,19 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         descSubtype?.kind === "name" && descSubtype.decoded === "CIDFontType2"
                             ? "CID TrueType"
                             : "CID Type 0";
-
+                    if (fontTypeLabel === "CID Type 0" && descriptorDict) {
+                        const program = cos.resolve(dictGet(descriptorDict, "FontFile3"));
+                        const programType = program?.kind === "stream"
+                            ? cos.resolve(dictGet(program.dict, "Subtype")) : undefined;
+                        if (programType?.kind === "name" && programType.decoded === "CIDFontType0C")
+                            fontTypeLabel = "CID Type 0C";
+                    }
                 }
                 else if (descriptorDict && dictGet(descriptorDict, "FontFile3")) {
                     fontTypeLabel = "Type 1C";
                 }
                 const encNode = cos.resolve(dictGet(fontDict, "Encoding"));
-                let encodingLabel = rawSubtype === "TrueType" ? "WinAnsi"
-                    : rawSubtype === "Type3" ? "Standard"
-                    : !hasEmbeddedFile && (rawSubtype === "Type1" || rawSubtype === "MMType1")
-                        ? fontName === "Symbol" || fontName === "ZapfDingbats" ? fontName : "Standard"
-                        : "Builtin";
+                let encodingLabel = "Builtin";
                 if (encNode?.kind === "name") {
                     const eName = encNode.decoded;
                     if (eName === "WinAnsiEncoding")
@@ -1553,7 +1555,7 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     else
                         encodingLabel = eName;
                 }
-                else if (encNode?.kind === "dict" || encNode?.kind === "stream") {
+                else if (encNode?.kind === "dict") {
                     encodingLabel = "Custom";
                 }
                 const row = formatPdfFont({ name: fontName, type: fontTypeLabel, encoding: encodingLabel,

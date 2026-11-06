@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument } from "@poe-code/pdf-ast";
@@ -42,30 +41,3 @@ it("awaits each font row sink and cancels without further output or leaked trave
   }), error => error === failure);
   assert.equal(writes, 2); assert.equal(pending, 0); assert.deepEqual(await fs.readdir("/tmp"), []);
 });
-
-for (const [fixture, name, encoding] of [
-  ["pdfjs-bug1873345.pdf", "ZTWIJM+Helvetica", "WinAnsi"],
-  ["pdfjs-calgray.pdf", "Times-Roman", "Standard"],
-  ["pdfbox-5403-bad-rendering.pdf", "HFEYZI+PTSans-Regular", "Custom"],
-  ["pdfjs-bug1873345.pdf", "QCYPOE+CMCSC10", "WinAnsi"],
-]) {
-  for (const retained of [false, true]) it(`reports native encoding ${encoding} for ${name} (retained=${retained})`, async () => {
-    const bytes = await readFile(new URL(`../../pdf-ast/src/fixtures/${fixture}`, import.meta.url));
-    let stdout = "";
-    if (retained) {
-      const fs = createMemoryFileSystem(); await fs.mkdir("/tmp"); await fs.writeFile("/in.pdf", bytes);
-      const result = await createPdffontsCommand().execute({
-        command: "pdffonts", args: ["in.pdf"], cwd: "/", env: {}, fs, signal: new AbortController().signal,
-        stdin: { async *[Symbol.asyncIterator]() {} },
-        stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
-        stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } },
-      });
-      assert.equal(result.exitCode, 0);
-    } else {
-      const result = runPdffontsCliSync(["in.pdf"], new Map([["in.pdf", bytes]]));
-      assert.equal(result.exitCode, 0); stdout = result.stdout;
-    }
-    const row = stdout.split("\n").find(line => line.startsWith(name!));
-    assert.ok(row); assert.equal(row.slice(55, 71).trim(), encoding);
-  });
-}

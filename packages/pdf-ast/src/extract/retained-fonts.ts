@@ -52,15 +52,15 @@ export async function* walkRetainedFonts(document: PdfRetainedDocument, storage:
     else if (raw === "Type0") {
       const subtype = descendant ? (await document.lookup(dictGet(descendant, "Subtype")))?.value : undefined;
       type = subtype?.kind === "name" && subtype.decoded === "CIDFontType2" ? "CID TrueType" : "CID Type 0";
-
+      if (type === "CID Type 0" && descriptor) {
+        const program = await document.lookup(dictGet(descriptor, "FontFile3"));
+        const programType = program?.stream && program.value.kind === "dict"
+          ? (await document.lookup(dictGet(program.value, "Subtype")))?.value : undefined;
+        if (programType?.kind === "name" && programType.decoded === "CIDFontType0C") type = "CID Type 0C";
+      }
     } else if (descriptor && dictGet(descriptor, "FontFile3")) type = "Type 1C";
     const enc = (await document.lookup(dictGet(value, "Encoding")))?.value;
-    const defaultEncoding = raw === "TrueType" ? "WinAnsi"
-      : raw === "Type3" ? "Standard"
-      : !embedded && (raw === "Type1" || raw === "MMType1")
-        ? name === "Symbol" || name === "ZapfDingbats" ? name : "Standard"
-        : "Builtin";
-    const encoding = enc?.kind === "name" ? enc.decoded === "WinAnsiEncoding" ? "WinAnsi" : enc.decoded === "MacRomanEncoding" ? "MacRoman" : enc.decoded === "StandardEncoding" ? "Standard" : enc.decoded : enc?.kind === "dict" ? "Custom" : defaultEncoding;
+    const encoding = enc?.kind === "name" ? enc.decoded === "WinAnsiEncoding" ? "WinAnsi" : enc.decoded === "MacRomanEncoding" ? "MacRoman" : enc.decoded === "StandardEncoding" ? "Standard" : enc.decoded : enc?.kind === "dict" ? "Custom" : "Builtin";
     yield { name, type, encoding, embedded, unicode: Boolean(dictGet(value, "ToUnicode")), ...(node.kind === "ref" ? { reference: node } : {}) };
     if (raw === "Type3") yield* resources(await dictionary(dictGet(value, "Resources"), "Resources"), depth + 1);
   }

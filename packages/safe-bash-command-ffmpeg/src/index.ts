@@ -1883,6 +1883,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             outputTarget = arg;
             i++;
             break;
+          } else {
+            await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unrecognized option '${arg.slice(1)}'\n`), context.signal);
+            return { exitCode: 8 };
           }
         }
 

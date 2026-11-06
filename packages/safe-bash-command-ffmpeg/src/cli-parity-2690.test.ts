@@ -83,6 +83,18 @@ async function runCmd(
   };
 }
 
+for (const map of ["1:a", "1:a?", "-1:a", "-1:a?"]) {
+  for (const existing of [false, true]) {
+    it(`rejects nonexistent input map ${map} and preserves output (${existing})`, async () => {
+      const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ includeAudio: true }), ...(existing ? { "/out.mp4": "existing" } : {}) });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.mp4", "-map", "0:a", "-map", map, "-c", "copy", "/out.mp4"], vfs);
+      assert.equal(result.exitCode, 234);
+      assert.ok(result.stderr.includes("Invalid input file index: 1"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.mp4"), existing ? new TextEncoder().encode("existing") : undefined);
+    });
+  }
+}
+
 for (const maps of [["0:a:99"], ["0:v", "0:a:99"]]) {
   for (const existing of [false, true]) {
     it(`rejects unmatched required maps ${maps} and preserves output (${existing})`, async () => {

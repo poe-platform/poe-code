@@ -2250,7 +2250,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const [input, selector, ordinal] = clean.split(":");
             const inputIdx = Number(input);
             const srcDoc = loadedDocs[inputIdx];
-            if (!srcDoc) continue;
+            if (!srcDoc) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid input file index: ${inputIdx}.\n`), context.signal);
+              return { exitCode: 234 };
+            }
             const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
             let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
             const index = type ? ordinal : selector;

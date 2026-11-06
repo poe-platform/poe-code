@@ -15,17 +15,16 @@ function digit(code: number | undefined): number | undefined {
   return undefined;
 }
 
-function whitespace(code: number): boolean {
-  return code >= 9 && code <= 13 || code === 32 || code === 133 || code === 160
-    || code === 5760 || code >= 8192 && code <= 8202 || code === 8232
-    || code === 8233 || code === 8239 || code === 8287 || code === 12288;
+// Python integer parsing accepts NEL and rejects BOM; ECMAScript trim does the reverse.
+function whitespace(char: string): boolean {
+  return char !== "\ufeff" && (char === "\u0085" || !char.trim());
 }
 
 /** Canonicalize Python decimal integer text without rounding through Number. */
 export function tokenInteger(input: string): string | undefined {
   let start = 0, end = input.length;
-  while (start < end && whitespace(input.charCodeAt(start))) start++;
-  while (end > start && whitespace(input.charCodeAt(end - 1))) end--;
+  while (start < end && whitespace(input[start]!)) start++;
+  while (end > start && whitespace(input[end - 1]!)) end--;
   let normalized = "", previousDigit = false, digits = 0;
   if (input[start] === "+" || input[start] === "-") normalized = input[start++]!;
   for (let index = start; index < end;) {

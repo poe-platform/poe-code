@@ -2,6 +2,7 @@ import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { ByteSource } from "safe-bash-contracts";
 import { codec, CodecReader, type CodecInput } from "./codec.js";
+import { uncompress } from "./uncompress.js";
 
 const crcTable = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
@@ -93,6 +94,10 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
           yield* decodeZipMember(input, signal);
           return;
         }
+      }
+      if (!members && first === 31 && second === 157) {
+        yield* uncompress(input, await input.required(), signal);
+        return;
       }
       if (first !== 31 || second !== 139) {
         // GNU forced stdout/test passes non-member bytes through after valid members too.

@@ -3,7 +3,7 @@ import { qpdfJsonEncryption } from "./json-encryption.js";
 import { qpdfJsonField } from "./json-acroform.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosString, decodePdfString, dictGet, type PdfCosDict, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosNull, cosString, decodePdfString, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
 import { retainedAttachments } from "./attachments.js";
 import { qpdfObjectOrder } from "./object-order.js";
 import { base64Parts, cosJson, jsonChunks, jsonRecord, type JsonValue } from "./json-output.js";
@@ -13,6 +13,7 @@ export interface QpdfJsonOptions {
   jsonKeys: readonly string[];
   jsonObjectSelectors: readonly ({ kind: "trailer" } | { kind: "obj"; objNum: number; genNum: number })[];
   jsonStreamDataMode: "none" | "inline" | "file";
+  decodeLevel: "none" | "generalized" | "specialized" | "all";
   jsonStreamPrefix: string | undefined;
   outputFile: string | undefined;
 }
@@ -49,8 +50,30 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       signal.throwIfAborted(); if (!selected(object.objectNumber, object.generationNumber)) continue;
       let value: JsonValue;
       if (object.stream) {
-        const stream: Record<string, JsonValue> = { dict: cosJson(object.value, storage, signal) };
-        if (options.jsonStreamDataMode === "inline") stream.data = { kind: "text", parts: base64Parts(document.objects.decodeStream(object.objectNumber, object.generationNumber), signal) };
+        const dict = object.value.kind === "dict" ? { ...object.value, entries: [...object.value.entries] } : object.value;
+        if (dict.kind === "dict" && options.jsonStreamDataMode !== "none") {
+          dictDelete(dict, "Length");
+          if (options.decodeLevel !== "none") {
+            const filter = (await document.lookup(dictGet(dict, "Filter")))?.value;
+            const parms = (await document.lookup(dictGet(dict, "DecodeParms")))?.value;
+            const filters = filter?.kind === "array" ? filter.items : filter ? [filter] : [];
+            const retained = [];
+            for (const [index, item] of filters.entries()) {
+              const resolved = (await document.lookup(item))?.value;
+              if (resolved?.kind === "name" && ["DCTDecode", "DCT", "JPXDecode", "JBIG2Decode", "Identity", "Crypt"].includes(resolved.decoded)) {
+                retained.push({ filter: resolved, parms: parms?.kind === "array" ? parms.items[index] ?? cosNull() : parms ?? cosNull() });
+              }
+            }
+            dictDelete(dict, "Filter");
+            dictDelete(dict, "DecodeParms");
+            if (retained.length) {
+              dictSet(dict, "Filter", filter?.kind === "array" ? cosArray(retained.map(item => item.filter)) : retained[0]!.filter);
+              if (parms) dictSet(dict, "DecodeParms", filter?.kind === "array" ? cosArray(retained.map(item => item.parms)) : retained[0]!.parms);
+            }
+          }
+        }
+        const stream: Record<string, JsonValue> = { dict: cosJson(dict, storage, signal) };
+        if (options.jsonStreamDataMode === "inline") stream.data = { kind: "text", parts: base64Parts(document.objects.decodeStream(object.objectNumber, object.generationNumber, { raw: options.decodeLevel === "none" }), signal) };
         else if (options.jsonStreamDataMode === "file") stream.datafile = `${prefix}${object.objectNumber}`;
         value = jsonRecord({ stream: jsonRecord(stream) });
       } else value = jsonRecord({ value: cosJson(object.value, storage, signal) });
@@ -167,7 +190,7 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       for await (const object of objects()) if (object.stream && selected(object.objectNumber, object.generationNumber)) {
         async function* admitted() {
           let size = 0;
-          for await (const bytes of document.objects.decodeStream(object.objectNumber, object.generationNumber)) {
+          for await (const bytes of document.objects.decodeStream(object.objectNumber, object.generationNumber, { raw: options.decodeLevel === "none" })) {
             if (bytes.length > maxOutputBytes - size) throw new RangeError("Output byte limit exceeded"); size += bytes.length; yield bytes;
           }
         }
@@ -202,7 +225,7 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       qpdf: { kind: "array", values: [jsonRecord({ jsonversion: 2, pdfversion: document.crossReference.version, pushedinheritedpageresources: false,
         calledgetallpages: ["pages", "pagelabels", "acroform", "outlines"].some(include), maxobjectid: maximum }), objectValue] }
     };
-    const selectedPayload: Record<string, JsonValue> = { version: options.jsonVersion ?? 2, parameters: jsonRecord({ decodelevel: "generalized" }) };
+    const selectedPayload: Record<string, JsonValue> = { version: options.jsonVersion ?? 2, parameters: jsonRecord({ decodelevel: options.decodeLevel }) };
     for (const key of options.jsonKeys.length ? options.jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", ...(options.jsonVersion === 1 ? ["objects", "objectinfo"] : ["qpdf"])]) selectedPayload[key] = sections[key]!;
     json = await PdfFileSource.fromStream(storage.fs, storage.directory, jsonChunks(jsonRecord(selectedPayload), signal), { signal, maxInputBytes: maxOutputBytes });
     let total = json.size;

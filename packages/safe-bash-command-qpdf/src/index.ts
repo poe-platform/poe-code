@@ -593,6 +593,7 @@ function parseQpdfArguments(argv: readonly string[]) {
   const jsonKeys: string[] = [];
   const jsonObjectSelectors: Array<{ kind: "trailer" } | { kind: "obj"; objNum: number; genNum: number }> = [];
   let jsonStreamDataMode: "none" | "inline" | "file" = "none";
+  let decodeLevel: "none" | "generalized" | "specialized" | "all" = "generalized";
   let jsonStreamPrefix: string | undefined;
   let jsonInput = false;
   const updateFromJsonFiles: string[] = [];
@@ -842,6 +843,12 @@ function parseQpdfArguments(argv: readonly string[]) {
       } else {
         return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid json-stream-data mode ${m}\n` } };
       }
+    } else if (arg.startsWith("--decode-level=")) {
+      const level = arg.slice("--decode-level=".length);
+      if (level !== "none" && level !== "generalized" && level !== "specialized" && level !== "all") {
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid decode-level ${level}\n` } };
+      }
+      decodeLevel = level;
     } else if (arg.startsWith("--json-stream-prefix=")) {
       jsonStreamPrefix = arg.slice("--json-stream-prefix=".length);
     } else if (arg === "--json-input") {
@@ -1007,6 +1014,7 @@ function parseQpdfArguments(argv: readonly string[]) {
     jsonKeys,
     jsonObjectSelectors,
     jsonStreamDataMode,
+    decodeLevel,
     jsonStreamPrefix,
     jsonInput,
     updateFromJsonFiles,
@@ -1094,6 +1102,7 @@ function* executeQpdfCli(
     jsonKeys,
     jsonObjectSelectors,
     jsonStreamDataMode,
+    decodeLevel,
     jsonStreamPrefix,
     jsonInput,
     updateFromJsonFiles,
@@ -1522,14 +1531,33 @@ function* executeQpdfCli(
       }
       if (!includeObjects) continue;
       if (obj.value.kind === "stream") {
+        const streamDict: PdfCosDict = { ...obj.value.dict, entries: [...obj.value.dict.entries] };
+        if (jsonStreamDataMode !== "none") dictDelete(streamDict, "Length");
+        if (jsonStreamDataMode !== "none" && decodeLevel !== "none") {
+          const filter = baseDoc.cos.resolve(dictGet(streamDict, "Filter"));
+          const parms = baseDoc.cos.resolve(dictGet(streamDict, "DecodeParms"));
+          const filters = filter?.kind === "array" ? filter.items : filter ? [filter] : [];
+          const retained = filters.flatMap((item, index) => {
+            const resolved = baseDoc.cos.resolve(item);
+            return resolved?.kind === "name" && ["DCTDecode", "DCT", "JPXDecode", "JBIG2Decode", "Identity", "Crypt"].includes(resolved.decoded)
+              ? [{ filter: resolved, parms: parms?.kind === "array" ? parms.items[index] ?? cosNull() : parms ?? cosNull() }]
+              : [];
+          });
+          dictDelete(streamDict, "Filter");
+          dictDelete(streamDict, "DecodeParms");
+          if (retained.length) {
+            dictSet(streamDict, "Filter", filter?.kind === "array" ? cosArray(retained.map(item => item.filter)) : retained[0]!.filter);
+            if (parms) dictSet(streamDict, "DecodeParms", filter?.kind === "array" ? cosArray(retained.map(item => item.parms)) : retained[0]!.parms);
+          }
+        }
         const streamObj: Record<string, unknown> = {
-          dict: cosNodeToJson(obj.value.dict)
+          dict: cosNodeToJson(streamDict)
         };
         if (jsonStreamDataMode === "inline") {
-          streamObj.data = encodeBytesBase64(baseDoc.cos.decodeStream(obj.value));
+          streamObj.data = encodeBytesBase64(decodeLevel === "none" ? obj.value.rawBytes : baseDoc.cos.decodeStream(obj.value));
         } else if (jsonStreamDataMode === "file" && effectiveStreamPrefix) {
           const streamFile = `${effectiveStreamPrefix}${objNum}`;
-          const decoded = baseDoc.cos.decodeStream(obj.value);
+          const decoded = decodeLevel === "none" ? obj.value.rawBytes : baseDoc.cos.decodeStream(obj.value);
           files.set(streamFile, decoded);
           streamObj.datafile = streamFile;
         }
@@ -1647,7 +1675,7 @@ function* executeQpdfCli(
       qpdf: [{ jsonversion: 2, pdfversion: baseDoc.cos.version, pushedinheritedpageresources: false,
         calledgetallpages: ["pages", "pagelabels", "acroform", "outlines"].some(include), maxobjectid: baseDoc.cos.maxObjectNumber }, objectsMap]
     };
-    const selectedPayload: Record<string, unknown> = { version: jsonVersion, parameters: { decodelevel: "generalized" } };
+    const selectedPayload: Record<string, unknown> = { version: jsonVersion, parameters: { decodelevel: decodeLevel } };
     for (const key of jsonKeys.length ? jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", ...(jsonVersion === 1 ? ["objects", "objectinfo"] : ["qpdf"])]) selectedPayload[key] = sections[key];
     const jsonOut = JSON.stringify(selectedPayload, null, 2) + "\n";
     if (outputFile && outputFile !== "-") {
@@ -2666,7 +2694,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
       const retained = Object.entries(parsed.options).every(([key, value]) => {
-        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCounts", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup", "linearize", "objectStreamsMode", "qdf", "normalizeContentFlag", "streamDataMode", "pageLabelSpecs", "jsonVersion", "jsonKeys", "jsonObjectSelectors", "jsonStreamDataMode", "jsonStreamPrefix", "removeAttachmentKeys", "addAttachmentSpecs", "copyAttachmentsSpecs", "flattenRotation", "encryptConfig", "removeUnreferencedResources", "externalizeInlineImages", "iiMinBytes", "stampSpecs", "flattenAnnotations", "generateAppearances", "jsonInput", "updateFromJsonFiles"].includes(key)) return true;
+        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCounts", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup", "linearize", "objectStreamsMode", "qdf", "normalizeContentFlag", "streamDataMode", "pageLabelSpecs", "jsonVersion", "jsonKeys", "jsonObjectSelectors", "jsonStreamDataMode", "decodeLevel", "jsonStreamPrefix", "removeAttachmentKeys", "addAttachmentSpecs", "copyAttachmentsSpecs", "flattenRotation", "encryptConfig", "removeUnreferencedResources", "externalizeInlineImages", "iiMinBytes", "stampSpecs", "flattenAnnotations", "generateAppearances", "jsonInput", "updateFromJsonFiles"].includes(key)) return true;
         const baseline = defaults[key as keyof typeof defaults];
         return Array.isArray(value) ? value.length === 0 : value === baseline;
       });

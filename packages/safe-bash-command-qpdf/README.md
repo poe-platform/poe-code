@@ -87,8 +87,9 @@ outline and attachment traversal. Default `--json` (version 2) emits top-level d
 content references, image properties, page labels, and destination outlines using
 native qpdf reference syntax. `--json-object` filters
 object entries. Inline base64 and `--json-stream-data=file` apply only when
-object output is selected.
-JSON and decoded stream files are staged before publication; stdout and file
+object output is selected. `--decode-level=none` preserves the original compressed
+stream bytes and filters in inline and file output; the default is `generalized`.
+JSON and stream files are staged before publication; stdout and file
 writes remain bounded and honor output limits and cancellation. `--json-input`
 and `--update-from-json` parse incrementally into caller-backed object indexes,
 including inline base64, external stream datafiles, stdin and repeated updates.

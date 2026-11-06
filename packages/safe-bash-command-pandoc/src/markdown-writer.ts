@@ -76,7 +76,7 @@ class Markdown {
           parts.push(this.text(value, i === 0 || nodes[i - 1]?.t === "SoftBreak" || nodes[i - 1]?.t === "LineBreak", i === nodes.length - 1 || nodes[i + 1]?.t === "SoftBreak" || nodes[i + 1]?.t === "LineBreak", digitsBefore));
           digitsBefore = (i === 0 || digitsBefore) && value.length > 0 && [...value].every(ch => ch >= "0" && ch <= "9"); break;}
         case "Space": parts.push(i === 0 || i === nodes.length - 1 ? "&#32;" : " "); break;
-        case "SoftBreak": parts.push("\n"); break;
+        case "SoftBreak": parts.push(this.context.wrap === "none" ? " " : "\n"); break;
         case "LineBreak": parts.push("\\\n"); break;
         case "Emph": case "Strong": case "Strikeout": {
           if(node.t === "Strikeout" && !this.selection.extensions.strikeout) {this.loss(p, "strikeout"); parts.push(this.inline(node.c, `${p}.c`)); break;}

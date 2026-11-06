@@ -386,7 +386,7 @@ class MarkdownTape {
           result = await this.escape(value, false, true, job.start, job.finish, job.digits, job.cell); continue;
         }
         if (tag === "Space" || tag === "SoftBreak" || tag === "LineBreak" || tag === "HorizontalRule") {
-          result = await this.literal(tag === "Space" ? job.index === 0 || job.last ? "&#32;" : " " : tag === "SoftBreak" ? "\n" : tag === "LineBreak" ? "\\\n" : "---"); continue;
+          result = await this.literal(tag === "Space" ? job.index === 0 || job.last ? "&#32;" : " " : tag === "SoftBreak" ? this.options.wrap === "none" ? " " : "\n" : tag === "LineBreak" ? "\\\n" : "---"); continue;
         }
         if (tag === "Code" || tag === "CodeBlock" || tag === "RawInline" && this.selection.extensions.raw_attribute) {
           const attr = content! + 32, original = await this.scalar(await this.at(content!, 1)); let info = emptyText();

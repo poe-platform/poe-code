@@ -4443,7 +4443,7 @@ function parseMagickIndices(spec: string, ranges = true): number[][] {
   });
 }
 
-function* parseMagickIndexSpec(spec: string, length: number, rejectMissing = false): Generator<number> {
+function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" | "delete"): Generator<number> {
   const parts = parseMagickIndices(spec);
   if (length <= 0) return;
   const resolve = (n: number): number =>
@@ -4451,11 +4451,12 @@ function* parseMagickIndexSpec(spec: string, length: number, rejectMissing = fal
   for (const [num, end] of parts) {
     if (end !== undefined) {
       const s = resolve(num!), e = resolve(end), step = s <= e ? 1 : -1;
+      if (operation === "delete" && s > e) continue;
       for (let k = s;; k += step) { yield k; if (k === e) break; }
     } else {
       const idx = num! < 0 ? length + num! : num!;
       if (idx >= 0 && idx < length) yield idx;
-      else if (rejectMissing) throw new Error(`invalid image index ${num}`);
+      else if (operation === "clone") throw new Error(`invalid image index ${num}`);
     }
   }
 }
@@ -5807,7 +5808,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const sourcePool = parentStack ?? stack;
             if (sourcePool.length === 0) throw new Error(`UnableToCloneImage ${t}`);
             const spec = t === "+clone" ? "-1" : (tokens[++i] ?? "-1");
-            for (const idx of parseMagickIndexSpec(spec, sourcePool.length, true)) {
+            for (const idx of parseMagickIndexSpec(spec, sourcePool.length, "clone")) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
                 const chosen = sourcePool[idx];
@@ -5832,7 +5833,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (let k = 0; k < count; k++) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                for (const idx of parseMagickIndexSpec(idxSpec, sourceLength, true)) {
+                for (const idx of parseMagickIndexSpec(idxSpec, sourceLength, "clone")) {
                     if (++cooperativeWork % 65536 === 0)
                         yield;
                     const chosen = sourcePool[idx];
@@ -5869,7 +5870,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (popped) detachRgbaBuffer(popped.data);
             }
             else {
-                const toDelete = new Set(parseMagickIndexSpec(tokens[++i] ?? "-1", stack.length));
+                const toDelete = new Set(parseMagickIndexSpec(tokens[++i] ?? "-1", stack.length, "delete"));
                 stack = stack.filter((im, idx) => {
                     if (toDelete.has(idx)) {
                         detachRgbaBuffer(im.data);
@@ -6349,8 +6350,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const source = token.endsWith("clone") ? parents.at(-1) ?? stack : stack;
                     const length = source.length;
                     if (token.endsWith("clone") && length === 0) throw new Error(`UnableToCloneImage ${token}`);
-                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, true)) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
-                } else if (token.endsWith("delete")) await stack.remove(parseMagickIndexSpec(spec, stack.length));
+                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, "clone")) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
+                } else if (token.endsWith("delete")) await stack.remove(parseMagickIndexSpec(spec, stack.length, "delete"));
                 else if (token === "-reverse") { for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); } }
                 else if (token.endsWith("insert")) {
                     const raw = token === "+insert" ? 0 : Number(spec), target = raw < 0 ? stack.length - 1 + raw : raw;

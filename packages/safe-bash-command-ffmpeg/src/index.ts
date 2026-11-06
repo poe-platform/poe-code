@@ -1590,6 +1590,7 @@ interface InputSpec {
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
+  readonly imageLoop?: boolean | undefined;
   readonly fps?: number | undefined;
   readonly startNumber?: number | undefined;
   readonly startNumberRange?: number | undefined;
@@ -1652,6 +1653,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
       let pendingLoop: number | undefined;
+      let pendingImageLoop: boolean | undefined;
       let pendingFps: number | undefined;
       let pendingStartNumber: number | undefined;
       let pendingStartNumberRange: number | undefined;
@@ -1731,7 +1733,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSafe = value === "1";
-          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-loop") {
+          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-update") {
             updateImage = args[++i] === "1";
@@ -1843,6 +1845,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputDuration = val;
             }
+          } else if (arg === "-loop") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -loop must be 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingImageLoop = value === "1";
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
           } else if (arg === "-r" || arg === "-framerate") {
@@ -1873,6 +1882,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
+              imageLoop: pendingImageLoop,
               fps: pendingFps,
               startNumber: pendingStartNumber,
               startNumberRange: pendingStartNumberRange
@@ -1883,6 +1893,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
+            pendingImageLoop = undefined;
             pendingFps = undefined;
             pendingStartNumber = undefined;
             pendingStartNumberRange = undefined;
@@ -2291,6 +2302,38 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await yieldTurn(context.signal);
               context.signal.throwIfAborted();
               let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
+              if (inp.imageLoop) {
+                const fps = inp.fps ?? 25;
+                const endSeconds = Math.min(
+                  inp.durationSeconds !== undefined ? (inp.startSeconds ?? 0) + inp.durationSeconds : inp.endSeconds ?? Infinity,
+                  (inp.startSeconds ?? 0) + (outputDuration !== undefined ? (outputSs ?? 0) + outputDuration : outputTo ?? Infinity),
+                  maxVideoFrames !== undefined ? (inp.startSeconds ?? 0) + (outputSs ?? 0) + maxVideoFrames / (outputFps ?? fps) : Infinity
+                );
+                if (!Number.isFinite(endSeconds)) {
+                  throw new Error("-loop 1 requires a finite frame count or duration");
+                }
+                budget.checkDuration(endSeconds);
+                const frameCount = Math.max(0, Math.ceil(endSeconds * fps));
+                doc = {
+                  ...doc,
+                  duration: Math.round(frameCount / fps * doc.timescale),
+                  durationSeconds: frameCount / fps,
+                  tracks: await mapWork(doc.tracks, async track => {
+                    if (track.type !== "video") return track;
+                    const source = track.decodedVideoFrames;
+                    if (!source?.length) throw new Error("-loop requires decoded image input");
+                    const frames: MediaVideoFrame[] = [];
+                    for (let index = 0; index < frameCount; index++) {
+                      if (index % 64 === 0) await yieldTurn(context.signal);
+                      context.signal.throwIfAborted();
+                      const frame = source[index % source.length]!;
+                      budget.recordFrame(frame.width, frame.height);
+                      frames.push({ ...frame, ptsSeconds: index / fps, durationSeconds: 1 / fps });
+                    }
+                    return { ...track, duration: Math.round(frameCount / fps * track.timescale), samples: [], decodedVideoFrames: frames };
+                  }, context.signal)
+                };
+              }
               if (
                 inp.startSeconds !== undefined ||
                 inp.endSeconds !== undefined ||

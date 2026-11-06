@@ -10,8 +10,8 @@ export class CsvRows {
   private quoted = false;
   private fieldLine = 1;
   private started = false;
-  constructor(private readonly separator: string, private readonly report?: (message: string) => void,
-    private readonly rowSeparator = "\n") {
+  constructor(private readonly separator: string, private readonly report?: (message: string) => void, private readonly ascii = false,
+    private readonly rowSeparator = ascii ? "\x1e" : "\n") {
     for (const [name, value] of [["column", separator], ["row", rowSeparator]] as const) {
       if (!value.length) throw new Error(`non-null ${name} separator required for import`);
       if (new TextEncoder().encode(value).length !== 1) throw new Error(`multi-character ${name} separators not allowed for import`);
@@ -36,7 +36,7 @@ export class CsvRows {
         if (char === "\n") this.line++;
         this.field += char; at++; continue;
       }
-      if (char === '"' && !this.field.length) {
+      if (!this.ascii && char === '"' && !this.field.length) {
         this.quoted = true; this.started = true; this.fieldLine = this.line; at++; continue;
       }
       if (content.startsWith(this.separator, at)) {

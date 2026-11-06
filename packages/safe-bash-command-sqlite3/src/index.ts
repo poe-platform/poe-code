@@ -952,12 +952,12 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       if (cmd === ".import") {
         if (state.readonly) throw new Error("attempt to write a readonly database");
         let pIdx = 1;
-        let csvOverride = false;
+        let formatOverride: "csv" | "ascii" | undefined;
         let skipRows = 0;
         while (pIdx < parts.length && parts[pIdx]!.startsWith("-")) {
           const flag = parts[pIdx]!;
-          if (flag === "--csv") {
-            csvOverride = true;
+          if (flag === "--csv" || flag === "--ascii") {
+            formatOverride = flag === "--csv" ? "csv" : "ascii";
             pIdx += 1;
           } else if (flag === "--schema") {
             const schema = parts[pIdx + 1];
@@ -978,12 +978,13 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         const input = await retainInput(readFileStream(context.fs, filePath, { signal: context.signal, chunkSize: 16384 }), context, accountScript);
         let failed = false;
         try {
-          const sep = csvOverride ? "," : state.colSeparator;
-          const rowSep = csvOverride || state.mode === "csv" && state.rowSeparator === "\r\n" ? "\n" : state.rowSeparator;
+          const ascii = formatOverride === "ascii";
+          const sep = ascii ? "\x1f" : formatOverride === "csv" ? "," : state.colSeparator;
+          const rowSep = ascii ? "\x1e" : formatOverride === "csv" || state.mode === "csv" && state.rowSeparator === "\r\n" ? "\n" : state.rowSeparator;
           let importLine = 1;
           const rows = async function* (report = false): AsyncGenerator<string[]> {
             let diagnostics = "";
-            const parser = new CsvRows(sep, message => { if (report) diagnostics += `${fileArg}:${message}`; }, rowSep);
+            const parser = new CsvRows(sep, message => { if (report) diagnostics += `${fileArg}:${message}`; }, ascii, rowSep);
             for await (const text of input.text()) {
               for (const row of parser.push(text)) {
                 if (diagnostics) { await writeText(context.stderr, diagnostics); diagnostics = ""; }
@@ -1706,12 +1707,12 @@ export function evalSyncSqlite3(
       if (cmd === ".import") {
         if ((state.dbPath !== ":memory:" && !writeFileSync) || state.readonly || !readFileSync) return false;
         let pIdx = 1;
-        let csvOverride = false;
+        let formatOverride: "csv" | "ascii" | undefined;
         let skipRows = 0;
         while (pIdx < parts.length && parts[pIdx]!.startsWith("-")) {
           const flag = parts[pIdx]!;
-          if (flag === "--csv") {
-            csvOverride = true;
+          if (flag === "--csv" || flag === "--ascii") {
+            formatOverride = flag === "--csv" ? "csv" : "ascii";
             pIdx += 1;
           } else if (flag === "--schema") {
             if (parts[pIdx + 1]?.toLowerCase() !== "main") return false;
@@ -1729,10 +1730,11 @@ export function evalSyncSqlite3(
         if (!fileBytes || fileBytes.byteLength > 16 * 1024 * 1024) return false;
         if (fileBytes.includes(0)) return false;
         const content = fatalSyncSqliteDecoder.decode(fileBytes);
-        const sep = csvOverride ? "," : state.colSeparator;
-        const rowSep = csvOverride || state.mode === "csv" && state.rowSeparator === "\r\n" ? "\n" : state.rowSeparator;
+        const ascii = formatOverride === "ascii";
+        const sep = ascii ? "\x1f" : formatOverride === "csv" ? "," : state.colSeparator;
+        const rowSep = ascii ? "\x1e" : formatOverride === "csv" || state.mode === "csv" && state.rowSeparator === "\r\n" ? "\n" : state.rowSeparator;
         let hasDiagnostics = false;
-        const parser = new CsvRows(sep, () => { hasDiagnostics = true; }, rowSep);
+        const parser = new CsvRows(sep, () => { hasDiagnostics = true; }, ascii, rowSep);
         const parsedRows = [...parser.push(content, true)].slice(Math.max(0, skipRows));
         // The stdout-only fast path must defer imports that need diagnostics.
         if (hasDiagnostics) return false;

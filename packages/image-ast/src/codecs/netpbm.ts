@@ -43,6 +43,9 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
 export function decodeNetpbmImage(bytes: Uint8Array): RgbaImage {
   const hdr = parseNetpbmHeader(bytes);
   const { width, height, maxval, magic, format } = hdr;
+  if (magic === "P6" && bytes.length - hdr.dataOffset < width * height * 3 * (maxval > 255 ? 2 : 1)) {
+    throw new Error("Truncated PPM raster");
+  }
   const rgba = new Uint8Array(width * height * 4);
   let pos = hdr.dataOffset;
 

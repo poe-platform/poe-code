@@ -136,12 +136,10 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           await budget.output(`${filtered(entry.name)}\n`);
           selected++;
         }
-        let unmatched = false;
         for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
           await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
-          unmatched = true;
         }
-        return { exitCode: selected && !unmatched ? 0 : 11 };
+        return { exitCode: selected ? 0 : 11 };
       }
       if (parsed.list) await budget.output(parsed.verbose
         ? " Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n"
@@ -345,7 +343,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           await extraction.metadata(root, directory.path, restoreStat(directory.identity), restoreStat(directory.parent), directory.mode, directory.modified);
         }
       }
-      for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
+      for (let index = 0; !parsed.list && index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
         await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
         exitCode = 11;
       }

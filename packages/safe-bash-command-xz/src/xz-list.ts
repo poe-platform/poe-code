@@ -15,6 +15,29 @@ export interface XzListing {
   uncompressed: number;
   padding: number;
   checks: Set<number>;
+  details?: {
+    streams: XzStream[];
+    memory: number;
+    allSizes: boolean;
+    minVersion: number;
+  };
+}
+
+interface XzStream {
+  offset: number;
+  compressed: number;
+  uncompressed: number;
+  padding: number;
+  check: number;
+  blocks: XzBlock[];
+}
+interface XzBlock {
+  offset: number;
+  decodedOffset: number;
+  compressed: number;
+  uncompressed: number;
+  unpadded: number;
+  header?: { size: number; flags: string; compressed: number; memory: number; filters: string; checkValue: string };
 }
 
 function corrupt(): never { throw new PublicDiagnostic("Compressed data is corrupt"); }
@@ -30,8 +53,8 @@ function crc(bytes: Uint8Array): number {
   return (value ^ 0xffffffff) >>> 0;
 }
 
-/** Inspect only stream headers, footers and indices through a retained VFS handle. */
-export async function inspectXz(context: CommandContext, plan: Operand, options: Readonly<Pick<CompressionOptions, "xzDecompressMemory" | "xzFilters">> = {}): Promise<XzListing> {
+/** Inspect stream metadata, plus Block Headers and checks at -vv, through a retained VFS handle. */
+export async function inspectXz(context: CommandContext, plan: Operand, options: Readonly<Pick<CompressionOptions, "xzDecompressMemory" | "xzFilters" | "xzVerbose">> = {}): Promise<XzListing> {
   if (plan.source === "-") throw new PublicDiagnostic("--list does not support reading from standard input");
   let handle: FileReadHandle | undefined;
   const operation = new FileOperation(context, async () => { await handle?.close(); });
@@ -53,8 +76,9 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
       return result;
     };
     const listing: XzListing = { streams: 0, blocks: 0, compressed: stat.size, uncompressed: 0, padding: 0, checks: new Set() };
+    if (options.xzVerbose) listing.details = { streams: [], memory: 0, allSizes: true, minVersion: 50000002 };
     const memoryLimit = options.xzDecompressMemory ?? 0;
-    const module = memoryLimit || options.xzFilters ? (await loadRawCodecFactory("xz"))(Object.freeze({})) : undefined;
+    const module = memoryLimit || options.xzFilters || (options.xzVerbose ?? 0) > 1 ? (await loadRawCodecFactory("xz"))(Object.freeze({})) : undefined;
     module?._initialize?.();
     operation.check();
     if (options.xzFilters) {
@@ -126,12 +150,14 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
         const required = indexMemory(streams >>> 0, Math.floor(streams / 0x100000000), blocks >>> 0, Math.floor(blocks / 0x100000000));
         if (!Number.isFinite(required) || required > memoryLimit) throw new PublicDiagnostic("Memory usage limit reached");
       }
+      const blocks: XzBlock[] = [];
       let blockBytes = 0;
       let uncompressed = 0;
       for (let index = 0; index < count; index++) {
         const unpadded = await vli();
         const decoded = await vli();
         if (unpadded < 5) corrupt();
+        if (listing.details) blocks.push({ offset: blockBytes + 12, decodedOffset: uncompressed, compressed: Math.ceil(unpadded / 4) * 4, uncompressed: decoded, unpadded });
         blockBytes += Math.ceil(unpadded / 4) * 4;
         uncompressed += decoded;
         if (!Number.isSafeInteger(uncompressed) || blockBytes > indexStart - 12) corrupt();
@@ -146,6 +172,34 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
       if (![0xfd, 0x37, 0x7a, 0x58, 0x5a, 0].every((value, index) => header[index] === value)
         || header[6] !== footer[8] || header[7] !== footer[9]
         || new DataView(header.buffer).getUint32(8, true) !== crc(header.subarray(6, 8))) corrupt();
+      if (listing.details) {
+        for (const block of blocks) {
+          block.offset += start;
+          if ((options.xzVerbose ?? 0) < 2) continue;
+          await yieldTurn(operation.signal);
+          const check = footer[9]!;
+          const checkSize = check === 0 ? 0 : 4 * 2 ** Math.floor((check - 1) / 3);
+          const first = await read(block.offset, 1);
+          const headerSize = (first[0]! + 1) * 4;
+          if (!first[0] || headerSize + checkSize >= block.unpadded) corrupt();
+          const header = await read(block.offset, headerSize);
+          if (!module?.bridge_xz_block) throw new Error("XZ block inspector is unavailable");
+          new Uint8Array(module.memory.buffer, module.bridge_input(), headerSize).set(header);
+          if (module.bridge_xz_block(module.bridge_input(), check, block.unpadded >>> 0, Math.floor(block.unpadded / 0x100000000), block.uncompressed >>> 0, Math.floor(block.uncompressed / 0x100000000)) !== 0) corrupt();
+          const metadata = new DataView(module.memory.buffer, module.bridge_output(), 24);
+          const memory = metadata.getFloat64(8, true);
+          const flags = `${header[1]! & 64 ? "c" : "-"}${header[1]! & 128 ? "u" : "-"}`;
+          const filters = new TextDecoder().decode(new Uint8Array(module.memory.buffer, module.bridge_output() + 24, module.bridge_produced() - 24));
+          const checkBytes = await read(block.offset + block.compressed - checkSize, checkSize);
+          if (check === 1 || check === 4) checkBytes.reverse();
+          block.header = { size: headerSize, flags, compressed: metadata.getFloat64(0, true), memory, filters,
+            checkValue: checkSize ? Array.from(checkBytes, byte => byte.toString(16).padStart(2, "0")).join("") : "---" };
+          listing.details.memory = Math.max(listing.details.memory, memory);
+          listing.details.allSizes &&= flags === "cu";
+          listing.details.minVersion = Math.max(listing.details.minVersion, metadata.getFloat64(16, true));
+        }
+        listing.details.streams.push({ offset: start, compressed: end - start, uncompressed, padding, check: footer[9]!, blocks });
+      }
       listing.streams++;
       listing.blocks += count;
       listing.uncompressed += uncompressed;
@@ -156,26 +210,79 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
     if (!listing.streams) throw new PublicDiagnostic("File format not recognized");
     const current = await operation.run(() => handle!.stat({ signal: operation.signal }));
     if (!sameObservation(stat, current)) throw new PublicDiagnostic("input identity or metadata changed");
+    listing.details?.streams.reverse();
     return listing;
   } finally { await operation.close(); context.signal.throwIfAborted(); }
 }
 
-export function listingRatio(value: XzListing): string {
+export function listingRatio(value: Pick<XzListing, "compressed" | "uncompressed">): string {
   const ratio = value.compressed / value.uncompressed;
   return !Number.isFinite(ratio) || ratio > 9.999 ? "---" : ratio.toFixed(3);
 }
-export function listingChecks(value: XzListing): string {
+export function listingChecks(value: Pick<XzListing, "checks">): string {
   const names: Readonly<Record<number, string>> = { 0: "None", 1: "CRC32", 4: "CRC64", 10: "SHA-256" };
   return [...value.checks].sort((a, b) => a - b).map(check => names[check] ?? `Unknown-${check}`).join(",") || "None";
 }
+function listingSize(bytes: number): string {
+  if (bytes < 10000) return `${bytes} B`;
+  const units = ["KiB", "MiB", "GiB", "TiB", "PiB"];
+  let unit = 0;
+  let amount = bytes / 1024;
+  while (amount >= 10000 && unit < units.length - 1) { amount /= 1024; unit++; }
+  return `${amount.toFixed(1)} ${units[unit]}`;
+}
+
 export function humanListing(value: XzListing, name: string): string {
-  const size = (bytes: number): string => {
-    if (bytes < 10000) return `${bytes} B`;
-    const units = ["KiB", "MiB", "GiB", "TiB"];
-    let unit = 0;
-    let amount = bytes / 1024;
-    while (amount >= 10000 && unit < units.length - 1) { amount /= 1024; unit++; }
-    return `${amount.toFixed(1)} ${units[unit]}`;
-  };
-  return `${String(value.streams).padStart(5)} ${String(value.blocks).padStart(7)} ${size(value.compressed).padStart(12)} ${size(value.uncompressed).padStart(12)} ${listingRatio(value).padStart(6)}  ${listingChecks(value).padEnd(7)} ${name}\n`;
+  return `${String(value.streams).padStart(5)} ${String(value.blocks).padStart(7)} ${listingSize(value.compressed).padStart(12)} ${listingSize(value.uncompressed).padStart(12)} ${listingRatio(value).padStart(6)}  ${listingChecks(value).padEnd(7)} ${name}\n`;
+}
+
+export function listingSummary(value: XzListing, robot: boolean): string {
+  const details = value.details!;
+  if (robot) return `${details.memory}\t${details.allSizes ? "yes" : "no"}\t${details.minVersion}`;
+  const version = details.minVersion;
+  return `  Memory needed:     ${Math.ceil(details.memory / 1048576)} MiB\n  Sizes in headers:  ${details.allSizes ? "Yes" : "No"}\n  Minimum XZ Utils version: ${Math.floor(version / 10000000)}.${Math.floor(version / 10000) % 1000}.${Math.floor(version / 10) % 1000}\n`;
+}
+
+export function verboseListing(value: XzListing, robot: boolean, verbosity: number): string {
+  const details = value.details!;
+  const checkWidth = Math.max(8, ...[...value.checks].map(check => check === 0 ? 0 : 8 * 2 ** Math.floor((check - 1) / 3)));
+  let result = robot ? "" : "  Streams:\n    Stream    Blocks      CompOffset    UncompOffset        CompSize      UncompSize  Ratio  Check      Padding\n";
+  let decodedOffset = 0;
+  const row = (stream: number, index: number, offset: number, decoded: number, size: number, uncompressed: number, check: string): string =>
+    `  ${String(stream).padStart(8)}  ${String(index).padStart(8)}  ${String(offset).padStart(14)}  ${String(decoded).padStart(14)}  ${String(size).padStart(14)}  ${String(uncompressed).padStart(14)}  ${listingRatio({ compressed: size, uncompressed }).padStart(5)}  ${check}`;
+  for (const [index, stream] of details.streams.entries()) {
+    const check = listingChecks({ checks: new Set([stream.check]) });
+    result += robot
+      ? `stream\t${index + 1}\t${stream.blocks.length}\t${stream.offset}\t${decodedOffset}\t${stream.compressed}\t${stream.uncompressed}\t${listingRatio(stream)}\t${check}\t${stream.padding}\n`
+      : row(index + 1, stream.blocks.length, stream.offset, decodedOffset, stream.compressed, stream.uncompressed, check.padEnd(10)) + `  ${String(stream.padding).padStart(6)}\n`;
+    decodedOffset += stream.uncompressed;
+  }
+  if (!robot && value.blocks) result += "  Blocks:\n    Stream     Block      CompOffset    UncompOffset       TotalSize      UncompSize  Ratio  Check" + (verbosity > 1 ? `      ${"CheckVal".padEnd(checkWidth)}  Header  Flags        CompSize    MemUsage  Filters` : "") + "\n";
+  decodedOffset = 0;
+  let blockNumber = 0;
+  for (const [index, stream] of details.streams.entries()) {
+    const check = listingChecks({ checks: new Set([stream.check]) });
+    for (const [blockIndex, block] of stream.blocks.entries()) {
+      blockNumber++;
+      result += robot
+        ? `block\t${index + 1}\t${blockIndex + 1}\t${blockNumber}\t${block.offset}\t${decodedOffset + block.decodedOffset}\t${block.compressed}\t${block.uncompressed}\t${listingRatio(block)}\t${check}`
+        : row(index + 1, blockIndex + 1, block.offset, decodedOffset + block.decodedOffset, block.compressed, block.uncompressed, verbosity > 1 ? check.padEnd(10) : check);
+      if (verbosity > 1) {
+        const header = block.header!;
+        result += robot
+          ? `\t${header.checkValue}\t${header.size}\t${header.flags}\t${header.compressed}\t${header.memory}\t${header.filters}`
+          : ` ${header.checkValue.padEnd(checkWidth)}  ${String(header.size).padStart(6)}  ${header.flags}     ${String(header.compressed).padStart(14)}  ${String(Math.ceil(header.memory / 1048576)).padStart(6)} MiB  ${header.filters}`;
+      }
+      result += "\n";
+    }
+    decodedOffset += stream.uncompressed;
+  }
+  if (verbosity > 1) result += robot ? `summary\t${listingSummary(value, true)}\n` : listingSummary(value, false);
+  return result;
+}
+
+export function humanListingSummary(value: XzListing, files?: number): string {
+  const size = (bytes: number): string => bytes < 10000 ? listingSize(bytes) : `${listingSize(bytes)} (${bytes} B)`;
+  return (files === undefined ? "" : `  Number of files:   ${files}\n`) +
+    `  Streams:           ${value.streams}\n  Blocks:            ${value.blocks}\n  Compressed size:   ${size(value.compressed)}\n  Uncompressed size: ${size(value.uncompressed)}\n  Ratio:             ${listingRatio(value)}\n  Check:             ${listingChecks(value).split(",").join(", ")}\n  Stream Padding:    ${size(value.padding)}\n`;
 }

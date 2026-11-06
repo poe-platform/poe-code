@@ -3,6 +3,7 @@ export interface RawCodecModule {
   _initialize?(): void;
   bridge_create(decompress: number, level: number, memoryLimit: number, windowLog: number, smallOrCheck?: number, ignoreCheck?: number, alone?: number, memoryHigh?: number, noAdjust?: number): number;
   bridge_xz_adjusted_dictionary?(): number;
+  bridge_xz_block?(header: number, check: number, unpaddedLow: number, unpaddedHigh: number, decodedLow: number, decodedHigh: number): number;
   bridge_validate_filters?(spec: number): number;
   bridge_index_memusage?(streamsLow: number, streamsHigh: number, blocksLow: number, blocksHigh: number): number;
   bridge_create_filters?(decode: number, spec: number, raw: number, alone: number, check: number, memoryLow: number, memoryHigh: number, noAdjust: number, ignoreCheck: number): number;

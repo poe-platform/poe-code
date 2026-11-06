@@ -14,6 +14,7 @@
 #endif
 #define API __attribute__((visibility("default")))
 #define CHUNK 65536
+static uint8_t input[CHUNK],output[CHUNK];
 static size_t used, peak, limit;
 static uint32_t taken, made;
 static int active, decompressing;
@@ -116,6 +117,35 @@ API int bridge_validate_filters(const char *spec){
 API double bridge_index_memusage(uint32_t streams_low,uint32_t streams_high,uint32_t blocks_low,uint32_t blocks_high){
  return (double)lzma_index_memusage(((uint64_t)streams_high<<32)|streams_low,((uint64_t)blocks_high<<32)|blocks_low);
 }
+/* Inspect a bounded Block Header without decoding or allocating its dictionary.
+ * Output: compressed size, decoder memory and minimum version as doubles,
+ * followed by the NUL-terminated filter description. */
+API int bridge_xz_block(const uint8_t *header, int check, uint32_t unpadded_low, uint32_t unpadded_high, uint32_t decoded_low, uint32_t decoded_high) {
+ if(active || !header[0])return -1;
+ limit=SIZE_MAX;peak=used=0;
+ lzma_filter filters[LZMA_FILTERS_MAX+1];
+ lzma_block block={0};block.header_size=lzma_block_header_size_decode(header[0]);block.check=check;block.filters=filters;
+ if(lzma_block_header_decode(&block,&allocator,header)!=LZMA_OK)return -1;
+ uint64_t decoded=((uint64_t)decoded_high<<32)|decoded_low;
+ int result=-1;
+ char *description=NULL;
+ if(lzma_block_compressed_size(&block,((uint64_t)unpadded_high<<32)|unpadded_low)!=LZMA_OK
+   || (block.uncompressed_size!=LZMA_VLI_UNKNOWN && block.uncompressed_size!=decoded))goto done;
+ uint32_t version=50000002;
+ for(size_t i=0;filters[i].id!=LZMA_VLI_UNKNOWN;i++){
+  if(filters[i].id==LZMA_FILTER_RISCV)version=50060002;
+  if(filters[i].id==LZMA_FILTER_ARM64 && version<50040002)version=50040002;
+  if(filters[i].id==LZMA_FILTER_LZMA2 && !decoded && version<50000022)version=50000022;
+ }
+ if(lzma_str_from_filters(&description,filters,LZMA_STR_DECODER|LZMA_STR_GETOPT_LONG,&allocator)!=LZMA_OK)goto done;
+ size_t length=strlen(description);
+ if(length>=CHUNK-24)goto done;
+ double metadata[3]={(double)block.compressed_size,(double)lzma_raw_decoder_memusage(filters),(double)version};
+ memcpy(output,metadata,sizeof(metadata));memcpy(output+24,description,length+1);made=24+length;
+ result=0;
+done:
+ release(NULL,description);lzma_filters_free(filters,&allocator);return result;
+}
 API int bridge_create_filters(int decode,const char *spec,int raw,int alone,int check,uint32_t memory_low,uint32_t memory_high,int no_adjust,int ignore_check) {
  uint64_t memory_limit=((uint64_t)memory_high<<32)|memory_low;
  if(memory_limit==0)memory_limit=UINT64_MAX;
@@ -196,6 +226,5 @@ API uint32_t bridge_consumed(void){return taken;}
 API uint32_t bridge_produced(void){return made;}
 API uint32_t bridge_used(void){return used;}
 API uint32_t bridge_peak(void){return peak;}
-static uint8_t input[CHUNK],output[CHUNK];
 API void *bridge_input(void){return input;}
 API void *bridge_output(void){return output;}

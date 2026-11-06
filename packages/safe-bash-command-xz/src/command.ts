@@ -6,7 +6,7 @@ import { runOperand } from "safe-bash-compression-engine/operand";
 import { planOperands, verifyOperandDestinations } from "safe-bash-compression-engine/files";
 import { parseOptions, xzProfile, lzmaProfile } from "./options.js";
 import { DecodedBudget, type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
-import { inspectXz, listingRatio, listingChecks, humanListing, type XzListing } from "./xz-list.js";
+import { inspectXz, listingRatio, listingChecks, humanListing, verboseListing, listingSummary, humanListingSummary, type XzListing } from "./xz-list.js";
 
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 
@@ -62,8 +62,10 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
       }
       const decodedBudget = new DecodedBudget(maxDecodedBytes);
       const totals: XzListing = { streams: 0, blocks: 0, compressed: 0, uncompressed: 0, padding: 0, checks: new Set() };
+      const verbosity = options.xzVerbose ?? 0;
+      if (verbosity > 1) totals.details = { streams: [], memory: 0, allSizes: true, minVersion: 50000002 };
       let listed = 0;
-      if (options.xzList && !options.xzRobot) await output(context, "Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
+      if (options.xzList && !options.xzRobot && !verbosity) await output(context, "Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
       let exitCode = planningFailed ? 1 : 0;
       for (const plan of plans) {
         try {
@@ -71,7 +73,15 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
             const value = await inspectXz(context, plan, options);
             const name = listingNames[plans.indexOf(plan)] ?? plan.source;
             if (options.xzRobot) await output(context, `name\t${name}\nfile\t${value.streams}\t${value.blocks}\t${value.compressed}\t${value.uncompressed}\t${listingRatio(value)}\t${listingChecks(value)}\t${value.padding}\n`);
-            else await output(context, humanListing(value, name));
+            else await output(context, verbosity
+              ? `${listed ? "\n" : ""}${name} (${plans.indexOf(plan) + 1}/${options.operands.length})\n${humanListingSummary(value)}`
+              : humanListing(value, name));
+            if (verbosity) await output(context, verboseListing(value, options.xzRobot ?? false, verbosity));
+            if (totals.details && value.details) {
+              totals.details.memory = Math.max(totals.details.memory, value.details.memory);
+              totals.details.allSizes &&= value.details.allSizes;
+              totals.details.minVersion = Math.max(totals.details.minVersion, value.details.minVersion);
+            }
             for (const key of ["streams", "blocks", "compressed", "uncompressed", "padding"] as const) totals[key] += value[key];
             for (const check of value.checks) totals.checks.add(check);
             listed++;
@@ -89,8 +99,10 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
           if (decodedBudget.exceeded) break;
         }
       }
-      if (options.xzList && options.xzRobot) await output(context, `totals\t${totals.streams}\t${totals.blocks}\t${totals.compressed}\t${totals.uncompressed}\t${listingRatio(totals)}\t${listingChecks(totals)}\t${totals.padding}\t${listed}\n`);
-      else if (options.xzList && listed > 1) await output(context, "-".repeat(79) + "\n" + humanListing(totals, `${listed} files`));
+      if (options.xzList && options.xzRobot) await output(context, `totals\t${totals.streams}\t${totals.blocks}\t${totals.compressed}\t${totals.uncompressed}\t${listingRatio(totals)}\t${listingChecks(totals)}\t${totals.padding}\t${listed}${verbosity > 1 ? `\t${listingSummary(totals, true)}` : ""}\n`);
+      else if (options.xzList && listed > 1) await output(context, verbosity
+        ? `\nTotals:\n${humanListingSummary(totals, listed)}${verbosity > 1 ? listingSummary(totals, false) : ""}`
+        : "-".repeat(79) + "\n" + humanListing(totals, `${listed} files`));
       return { exitCode };
     } catch (error) {
       context.signal.throwIfAborted();

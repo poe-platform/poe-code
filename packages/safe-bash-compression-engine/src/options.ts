@@ -11,6 +11,7 @@ export interface CompressionOptions {
   xzFlushTimeout?: number;
   xzList?: boolean;
   xzRobot?: boolean;
+  xzVerbose?: number;
   decompress: boolean;
   stdout: boolean;
   keep: boolean;
@@ -260,7 +261,9 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
           break;
         }
         case "c": result.stdout = true; break;
-        case "v": break;
+        case "v":
+          if (profile.format === "xz") result.xzVerbose = Math.min(2, (result.xzVerbose ?? 0) + 1);
+          break;
         case "l":
           if (profile.format === "gzip") break;
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);

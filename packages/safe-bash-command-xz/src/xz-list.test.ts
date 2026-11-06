@@ -1,3 +1,5 @@
+import listingFixtures from '../tests/list-fixtures.json' with { type: 'json' };
+import { createMemoryFileSystem } from '@poe-code/safe-fs/core';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chunks, run } from '../tests/helpers.js';
@@ -46,4 +48,49 @@ test('XZ listing checks indices, concatenated streams and stdin restrictions', a
   const missing = await run('xz', ['--robot', '--list', '/missing', '/data.xz'], chunks(), { fs });
   assert.equal(missing.exitCode, 1);
   assert.match(missing.stdout.toString(), /totals\t0\t0\t0\t0\t---\tNone\t0\t0/);
+});
+
+// Captured with XZ Utils 5.8.4, LC_ALL=C; archives are identical in the VFS.
+for (const fixture of listingFixtures) {
+  test(`XZ listing matches native at every verbosity: ${fixture.name}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile('/data.xz', Buffer.from(fixture.hex, 'hex'));
+    for (const { args, stdout } of fixture.outputs) {
+      const result = await run('xz', [...args, 'data.xz'], chunks(), { fs });
+      assert.equal(result.exitCode, 0, result.stderr);
+      // liblzma's estimates include native structs: wasm32 uses smaller pointers
+      // than the arm64 build that captured these fixtures. All other fields match.
+      const memory = fixture.name === 'filters' ? 131888 : fixture.name === 'empty' ? 0
+        : fixture.name === 'arm64' || fixture.name === 'riscv' ? 8455672 : 8454648;
+      const expected = args.includes('--robot') ? stdout.split('\n').map(line => {
+        const fields = line.split('\t');
+        if (fields[0] === 'block' && fields.length > 10) fields[14] = String(memory);
+        if (fields[0] === 'summary') fields[1] = String(memory);
+        if (fields[0] === 'totals' && fields.length > 10) fields[9] = String(memory);
+        return fields.join('\t');
+      }).join('\n') : stdout;
+      assert.equal(result.stdout.toString(), expected, args.join(' '));
+    }
+  });
+}
+
+test('very verbose listing validates headers without decoding block payloads', async () => {
+  const fixture = listingFixtures.find(value => value.name === 'blocks')!;
+  const fs = createMemoryFileSystem();
+  const bytes = Buffer.from(fixture.hex, 'hex');
+  bytes[24] = bytes[24]! ^ 255;
+  await fs.writeFile('/data.xz', bytes);
+  assert.equal((await run('xz', ['-lvv', 'data.xz'], chunks(), { fs })).exitCode, 0);
+  assert.equal((await run('xz', ['-t', 'data.xz'], chunks(), { fs })).exitCode, 1);
+  bytes[20] = bytes[20]! ^ 1; // Block Header CRC
+  await fs.writeFile('/data.xz', bytes);
+  assert.equal((await run('xz', ['-lv', 'data.xz'], chunks(), { fs })).exitCode, 0);
+  const invalid = await run('xz', ['-lvv', 'data.xz'], chunks(), { fs });
+  assert.equal(invalid.exitCode, 1);
+  assert.match(invalid.stderr, /Compressed data is corrupt/);
+});
+
+test('long verbose flags and repeated verbosity select detailed listing', () => {
+  assert.equal(parseOptions('xz', ['--list', '--verbose', '--verbose']).xzVerbose, 2);
+  assert.equal(parseOptions('xz', ['-lvvv']).xzVerbose, 2);
 });

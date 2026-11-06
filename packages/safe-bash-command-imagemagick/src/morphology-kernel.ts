@@ -1,16 +1,17 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. */
-export function* morphologyPixelSteps(image: { width: number; height: number }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyPixelSteps(image: { width: number; height: number }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce((total, radius) => total + radius * 2 + 1, 0);
-    const rank = Math.floor(samples / 2), sums = new Float64Array(4);
+    const rank = Math.floor(samples / 2), sums = new Float64Array(4), squaredSums = new Float64Array(4);
     let work = 0;
     for (let y = 0; y < height; y++) {
         yield;
         histogram.fill(0);
         sums.fill(0);
+        squaredSums.fill(0);
         for (let left = 0; left < width; left += 1024) {
             const count = Math.min(1024, width - left), data = new Uint8Array(count * 4);
             for (let local = 0; local < count; local++) {
@@ -27,7 +28,10 @@ export function* morphologyPixelSteps(image: { width: number; height: number }, 
                             const bytes = yield { kind: "read", position: (sy * width + sx) * 4, length: 4 };
                             if (!bytes || bytes.length !== 4) throw new Error("Truncated morphology pixels");
                             for (let c = 0; c < 4; c++) {
-                                if (mode === "rms") sums[c]! += delta * bytes[c]! * bytes[c]!;
+                                if (mode === "standarddeviation") {
+                                    sums[c]! += delta * bytes[c]!;
+                                    squaredSums[c]! += delta * bytes[c]! * bytes[c]!;
+                                } else if (mode === "rms") sums[c]! += delta * bytes[c]! * bytes[c]!;
                                 else if (mode === "mean") sums[c]! += delta * bytes[c]!;
                                 else histogram[c * 256 + bytes[c]!]! += delta;
                             }
@@ -36,7 +40,10 @@ export function* morphologyPixelSteps(image: { width: number; height: number }, 
                 }
                 for (let c = 0; c < 4; c++) {
                     let value = mode === "max" ? 255 : 0, seen = 0;
-                    if (mode === "rms") {
+                    if (mode === "standarddeviation") {
+                        const mean = sums[c]! / samples;
+                        value = Math.round(Math.sqrt(Math.max(0, squaredSums[c]! / samples - mean * mean)));
+                    } else if (mode === "rms") {
                         value = Math.round(Math.sqrt(sums[c]! / samples));
                     } else if (mode === "mean") {
                         value = Math.round(sums[c]! / samples);

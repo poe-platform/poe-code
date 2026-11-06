@@ -289,8 +289,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
         case "t": result.test = true; result.decompress = true; delete result.xzList; break;
         case "h": result.help = true; break;
         case "q":
-          if (profile.format !== "zstd" && profile.format !== "gzip" && profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
-          result.quiet = profile.format === "gzip" ? 1 : result.quiet + 1;
+          result.quiet = profile.format === "gzip" || profile.format === "bzip2" ? 1 : result.quiet + 1;
           break;
         case "r":
           if (profile.format !== "gzip") throw new UsageError(`invalid option -- '${flag}'`);

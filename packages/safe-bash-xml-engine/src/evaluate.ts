@@ -87,7 +87,7 @@ async function indexTree(
 }
 
 function matches(node: Node, step: QueryStep, namespace: string, localName: string): boolean {
-  if (step.kind === "self" || step.kind === "parent") return true;
+  if (step.kind === "node" || step.kind === "self" || step.kind === "parent") return true;
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
   if (node.kind === "element" || node.kind === "attribute" || node.kind === "namespace") {
@@ -180,24 +180,74 @@ async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof index
       const selected = new Set<Node>();
       for (const parent of parents) {
         { const _p = budget.tick(); if (_p) await _p; }
-        const candidates =
-          step.kind === "self"
-            ? [parent]
-            : step.kind === "parent"
-              ? parentOf.has(parent)
-                ? [parentOf.get(parent)!]
-                : []
-              : step.kind === "namespace"
-                ? parent.kind === "element" ? parent.namespaces ?? [] : []
-              : step.kind === "attribute"
-                ? parent.kind === "element"
-                  ? parent.attributes
-                  : []
-                : parent.kind === "element" || parent.kind === "document"
-                  ? parent.children
-                  : [];
+        const axis = step.axis ?? (["self", "parent", "namespace", "attribute"].includes(step.kind) ? step.kind : "child");
+        async function* descendants(node: Node): AsyncGenerator<Node> {
+          const pending: Node[] = [node];
+          while (pending.length) {
+            const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+            const current = pending.pop()!;
+            yield current;
+            if (current.kind === "element" || current.kind === "document")
+              for (let index = current.children.length - 1; index >= 0; index--) {
+                const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+                pending.push(current.children[index]!);
+              }
+          }
+        }
+        async function* candidates(): AsyncGenerator<Node> {
+          if (axis === "self") { yield parent; return; }
+          if (axis === "parent") { const owner = parentOf.get(parent); if (owner) yield owner; return; }
+          if (axis === "ancestor" || axis === "ancestor-or-self") {
+            let current: Node | undefined = axis === "ancestor" ? parentOf.get(parent) : parent;
+            while (current) {
+              const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+              yield current; current = parentOf.get(current);
+            }
+            return;
+          }
+          if (axis === "descendant" || axis === "descendant-or-self") {
+            for await (const node of descendants(parent))
+              if (node !== parent || axis === "descendant-or-self") yield node;
+            return;
+          }
+          if (axis === "following" || axis === "preceding" || axis === "following-sibling" || axis === "preceding-sibling") {
+            if (axis.endsWith("-sibling") && (parent.kind === "attribute" || parent.kind === "namespace")) return;
+            let current: Node = parent;
+            if (current.kind === "attribute" || current.kind === "namespace") {
+              current = parentOf.get(current)!;
+            }
+            while (parentOf.has(current)) {
+              const owner: Container = parentOf.get(current)!;
+              let after = false;
+              const siblings: Node[] = [];
+              for (const sibling of owner.children) {
+                const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+                if (sibling === current) { after = true; continue; }
+                if (after === axis.startsWith("following")) siblings.push(sibling);
+              }
+              if (axis.startsWith("preceding")) siblings.reverse();
+              for (const sibling of siblings) {
+                if (axis.endsWith("-sibling")) yield sibling;
+                else if (axis === "following") yield* descendants(sibling);
+                else {
+                  const subtree: Node[] = [];
+                  for await (const node of descendants(sibling)) subtree.push(node);
+                  yield* subtree.reverse();
+                }
+              }
+              if (axis.endsWith("-sibling")) return;
+              current = owner;
+            }
+            return;
+          }
+          if (parent.kind === "element") {
+            if (axis === "attribute") yield* parent.attributes;
+            else if (axis === "namespace") yield* parent.namespaces ?? [];
+            else yield* parent.children;
+          } else if (parent.kind === "document" && axis === "child") yield* parent.children;
+        }
         let matched: Node[] = [];
-        for (const candidate of candidates) {
+        for await (const candidate of candidates()) {
           { const _p = budget.tick(); if (_p) await _p; }
           if (matches(candidate, step, namespace, localName)) matched.push(candidate);
         }

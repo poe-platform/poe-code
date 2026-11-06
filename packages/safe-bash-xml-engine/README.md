@@ -43,6 +43,11 @@ XML input also respects the shell execution input-byte limit for stdin and files
 XPath scalar expressions and predicates support unary negation, addition, and subtraction.
 Parenthesized node sets support global predicates: `(//item)[1]` selects the first
 item in document order, while `//item[1]` selects the first item under each parent.
+Explicit XPath axes support child, parent, self, attribute, ancestor,
+ancestor-or-self, descendant, descendant-or-self, preceding, following, and
+sibling traversal. Reverse-axis predicates select nearest nodes first:
+`preceding-sibling::*[1]` selects the immediately preceding element sibling.
+Results are deduplicated and returned in document order.
 XPath supports the built-in `xml:` prefix (for example, `/root/@xml:lang`).
 Other query prefixes resolve through namespace declarations on the document root;
 matching uses namespace URIs, so aliases for the same URI select the same nodes.

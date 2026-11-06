@@ -3,9 +3,11 @@ import { XmlBudget, XmlQueryError, XmlQueryLimitError } from "./limits.js";
 import { filterGroups, parsePredicate, type Instruction } from "./predicate.js";
 
 export type Predicate = readonly Instruction[];
+export type Axis = "child" | "parent" | "self" | "attribute" | "namespace" | "ancestor" | "ancestor-or-self" | "descendant" | "descendant-or-self" | "preceding-sibling" | "following-sibling" | "preceding" | "following";
 export interface QueryStep {
+  readonly axis?: Axis;
   readonly descendant: boolean;
-  readonly kind: "element" | "attribute" | "namespace" | "text" | "self" | "parent";
+  readonly kind: "element" | "attribute" | "namespace" | "node" | "text" | "self" | "parent";
   readonly name: string;
   readonly predicates: readonly Predicate[];
 }
@@ -119,7 +121,7 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
     while (namePart(source[at] ?? "")) at++;
     const selected = source.slice(start, at);
     space();
-    if (source[at] === "(" && selected !== "text")
+    if (source[at] === "(" && selected !== "text" && selected !== "node")
       return { paths: [], expression: parsePredicate(source, budget) };
   }
   at = start;
@@ -142,13 +144,24 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
         kind = "attribute";
         at++;
       }
-      if (source.startsWith("namespace::", at) && kind === "element") {
-        kind = "namespace";
-        at += "namespace::".length;
+      let axis: Axis | undefined = kind === "attribute" ? "attribute" : undefined;
+      if (kind === "element") {
+        const start = at;
+        while (namePart(source[at] ?? "")) at++;
+        const candidate = source.slice(start, at);
+        space();
+        if (source.startsWith("::", at)) {
+          if (!["child", "parent", "self", "attribute", "namespace", "ancestor", "ancestor-or-self",
+            "descendant", "descendant-or-self", "preceding-sibling", "following-sibling", "preceding", "following"].includes(candidate)) fail();
+          axis = candidate as Axis;
+          if (axis === "attribute" || axis === "namespace") kind = axis;
+          at += 2;
+          space();
+        } else at = start;
       }
       let selected: string;
       if (source[at] === ".") {
-        if (kind === "namespace") fail();
+        if (kind !== "element" || axis) fail();
         at++;
         selected = ".";
         kind = source[at] === "." ? "parent" : "self";
@@ -160,16 +173,15 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
         selected = name();
         space();
         if (source[at] === "(") {
-          if (!(selected === "text" && kind === "element" || selected === "node" && kind === "namespace")) fail();
+          if (!(selected === "text" && kind === "element" || selected === "node")) fail();
           expect("(");
           expect(")");
-          if (kind === "namespace") selected = "*";
+          if (selected === "node") kind = "node";
           else kind = "text";
         }
       }
       const predicates = readPredicates();
-      steps.push({ descendant, kind, name: selected, predicates });
-      if ((kind === "attribute" || kind === "text") && source[at] === "/") fail();
+      steps.push({ descendant, kind, name: selected, predicates, ...(axis ? { axis } : {}) });
       { const _p = budget.tick(); if (_p) await _p; }
     } while (source[at] === "/");
     space();

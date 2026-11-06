@@ -374,3 +374,16 @@ test("lang matches inherited regional languages through the public command", asy
   assert.equal(result.exitCode, 0, result.errors);
   assert.equal(result.output, "2\n");
 });
+
+for (const [query, expected] of [
+  ['count(//*[local-name()="sub"]/ancestor::*)', '2'],
+  ['count(//*[local-name()="item"][preceding-sibling::*])', '1'],
+  ['//sub/parent::item/attribute::id', ' id="b"'],
+  ['//item[2]/preceding-sibling::item/attribute::id', ' id="a"'],
+  ['//item[1]/following::sub/child::text()', 'Second'],
+  ['//item/ancestor-or-self::*/self::item/@id', ' id="a"\n id="b"'],
+] as const) test(`explicit axes through xmllint: ${query}`, async () => {
+  const result = await run(["--xpath", query, "-"]);
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});

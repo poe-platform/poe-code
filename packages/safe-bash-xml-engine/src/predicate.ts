@@ -115,7 +115,7 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
     while (namePart(source[probe] ?? "")) probe++;
     while (whitespace(source[probe] ?? "")) probe++;
     const pathStart = groups.has(at) || c === "/" || c === "@" || c === "." && !digit(source[at + 1] ?? "") ||
-      nameStart(c) && (source[probe] !== "(" || source.startsWith("text", at));
+      nameStart(c) && (source[probe] !== "(" || (source.startsWith("text", at) || source.startsWith("node", at)));
     if (pathStart) {
       const start = at;
       let brackets = 0, parentheses = 0, quote = "";
@@ -133,7 +133,7 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
           while (whitespace(source[next] ?? "")) next++;
           let previous = at - 1;
           while (previous >= start && whitespace(source[previous]!)) previous--;
-          if (!"/|".includes(source[next] ?? " ") && !"/|".includes(source[previous] ?? " ")) break;
+          if (!"/|:".includes(source[next] ?? " ") && !"/|:".includes(source[previous] ?? " ")) break;
         }
         at++;
       }

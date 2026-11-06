@@ -2,7 +2,7 @@ import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { formatScalar, type Node } from "./evaluate.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 import { evaluateExpression, expressionText, testPredicate, type NodeSelection } from "./predicate.js";
-import type { Query, QueryStep } from "./query.js";
+import type { Axis, Query, QueryStep } from "./query.js";
 import { StoredXmlDocument } from "./stored-document.js";
 
 /** Ordered references in the document's shared page cache. Selection caches are
@@ -62,7 +62,7 @@ class StoredSelection implements NodeSelection {
 }
 
 async function matches(node: Node, step: QueryStep, namespace: string | number, localName: string, document: StoredXmlDocument): Promise<boolean> {
-  if (step.kind === "self" || step.kind === "parent") return true;
+  if (step.kind === "node" || step.kind === "self" || step.kind === "parent") return true;
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
   return (node.kind === "element" || node.kind === "attribute" || node.kind === "namespace") &&
@@ -91,7 +91,56 @@ export class StoredXPath {
     } else yield* this.document.children(reference, attributes);
   }
 
-  private async filter(matched: StoredSelection, predicates: QueryStep["predicates"]): Promise<StoredSelection> {
+  private async *candidates(reference: number, axis: Axis): AsyncGenerator<number> {
+    const document = this.document;
+    if (axis === "self") { yield reference; return; }
+    if (axis === "parent") {
+      if (reference !== document.document) yield await document.parent(reference);
+      return;
+    }
+    if (axis === "ancestor" || axis === "ancestor-or-self") {
+      let current = reference;
+      if (axis === "ancestor-or-self") yield current;
+      while (current !== document.document) {
+        const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+        current = await document.parent(current);
+        yield current;
+      }
+      return;
+    }
+    if (axis === "descendant" || axis === "descendant-or-self") {
+      if (axis === "descendant-or-self") yield reference;
+      if (reference !== document.document && (await document.metadata(reference)).kind !== "element") return;
+      for await (const event of document.walk(reference === document.document ? document.root : reference))
+        if (!event.closing && event.reference !== reference) yield event.reference;
+      return;
+    }
+    if (axis === "following" || axis === "preceding" || axis === "following-sibling" || axis === "preceding-sibling") {
+      if (reference === document.document) return;
+      let current = reference;
+      if ((await document.metadata(current)).kind === "attribute") {
+        if (axis.endsWith("-sibling")) return;
+        current = await document.parent(current);
+      }
+      while (current !== document.document) {
+        const owner = await document.parent(current);
+        let after = false;
+        for await (const sibling of this.children(owner)) {
+          if (sibling === current) { after = true; continue; }
+          if (after !== axis.startsWith("following")) continue;
+          if (axis.endsWith("-sibling")) yield sibling;
+          else for await (const event of document.walk(sibling)) if (!event.closing) yield event.reference;
+        }
+        if (axis.endsWith("-sibling")) return;
+        current = owner;
+      }
+      return;
+    }
+    if (axis === "namespace") yield* document.namespaceNodes(reference);
+    else yield* this.children(reference, axis === "attribute");
+  }
+
+  private async filter(matched: StoredSelection, predicates: QueryStep["predicates"], reverse = false): Promise<StoredSelection> {
     for (const predicate of predicates) {
       const filtered = new StoredSelection(this);
       const first = predicate[0];
@@ -100,9 +149,10 @@ export class StoredXPath {
       let position = 0;
       for await (const reference of matched.references()) {
         position++;
+        const axisPosition = reverse ? matched.size - position + 1 : position;
         if (positionOnly !== undefined) {
-          if (position === positionOnly) { await filtered.add(reference); break; }
-        } else if (await testPredicate(predicate, await this.node(reference), position, matched.size, this.budget,
+          if (axisPosition === positionOnly) { await filtered.add(reference); break; }
+        } else if (await testPredicate(predicate, await this.node(reference), axisPosition, matched.size, this.budget,
           (query, absolute) => this.select(query, absolute ? this.document.document : reference))) await filtered.add(reference);
       }
       matched = filtered;
@@ -138,14 +188,12 @@ export class StoredXPath {
         const selected = new StoredSelection(this);
         for await (const parent of parents.references()) {
           let matched = new StoredSelection(this);
-          const candidates = step.kind === "self" ? [parent]
-            : step.kind === "parent" ? parent === this.document.document ? [] : [await this.document.parent(parent)]
-            : step.kind === "namespace" ? this.document.namespaceNodes(parent)
-            : this.children(parent, step.kind === "attribute");
+          const axis = step.axis ?? (step.kind === "self" || step.kind === "parent" || step.kind === "namespace" || step.kind === "attribute" ? step.kind : "child");
+          const candidates = this.candidates(parent, axis);
           for await (const candidate of candidates) {
             if (await matches(await this.node(candidate), step, namespace, localName, this.document)) await matched.add(candidate);
           }
-          matched = await this.filter(matched, step.predicates);
+          matched = await this.filter(matched, step.predicates, axis === "ancestor" || axis === "ancestor-or-self" || axis === "preceding" || axis === "preceding-sibling");
           for await (const reference of matched.references()) {
             await selected.add(reference);
             this.budget.results(selected.size);

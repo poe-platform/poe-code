@@ -2601,7 +2601,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const origRate = audio.sampleRate;
                   const origCh = audio.channels;
                   const targetRate = audioRate ?? origRate;
-                  const targetCh = audioChannels ?? origCh;
+                  const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
                   const channelMask = audio.channelMask;
                   const surroundMono = origCh === 6 && targetCh === 1;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);

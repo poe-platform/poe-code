@@ -83,6 +83,31 @@ describe("stream-scoped audio filters", () => {
   }
 });
 
+describe("audio channel count", () => {
+  for (const channels of [1, 2]) {
+    for (const options of [[], ["-ac", "-1"], ["-ac", "0"], ["-ac", "1"]]) {
+      for (const filtered of [false, true]) {
+        it(`preserves native PCM for ${channels} channels, ${options.join(" ") || "default"}, filter=${filtered}`, async () => {
+          const input = encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, () =>
+            Float64Array.from({ length: 8000 }, (_, i) => (12000 + i % 50) / 32768)) });
+          const vfs = createTestVfs({ "/in.wav": input });
+          const result = await runCmd(createFfmpegCommand(), [
+            "-y", "-v", "error", "-i", "/in.wav", ...options,
+            ...(filtered ? ["-af", "areverse"] : []), "-c:a", "pcm_s16le", "/out.wav"
+          ], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+          const expected = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!.slice();
+          if (filtered) expected.reverse();
+          assert.equal(actual.sampleRate, 8000);
+          assert.equal(actual.channels, options[1] === "1" ? 1 : channels);
+          for (const channel of actual.channelData) assert.deepEqual(channel, expected);
+        });
+      }
+    }
+  }
+});
+
 describe("audio sample rate validation", () => {
   for (const existing of [false, true]) {
     it(`rejects -ar -1 without ${existing ? "overwriting" : "creating"} output`, async () => {

@@ -9,6 +9,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { stretchAudio } from "./audio-tempo.js";
 import { scaleFrame } from "./scale.js";
+import { rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -829,6 +830,8 @@ async function applyVideoFilterChain(
       const sin = Math.sin(angle);
       current = await mapWork(current, async (f) => {
         budget.recordFrame(f.width, f.height);
+        const yuv = await rotateYuvFrame(f, angle, budget, signal);
+        if (yuv) return yuv;
         const data = new Uint8Array(f.data.length);
         const cx = (f.width - 1) / 2;
         const cy = (f.height - 1) / 2;
@@ -874,6 +877,10 @@ async function applyVideoFilterChain(
         const out = grayscaleImage(makeRgbaImg(f.width, f.height, f.data));
         return { ...f, data: out.data };
       }, signal);
+    } else if (name === "format") {
+      if (argStr.includes("rgb") || argStr.includes("bgr")) {
+        current = current.map(({ native: _native, ...frame }) => frame);
+      }
     } else if (name === "fps") {
       const targetFps = parseFloat(named.fps ?? positional[0] ?? "25") || 25;
       const totalDuration = current.reduce((acc, f) => acc + f.durationSeconds, 0) || 1;

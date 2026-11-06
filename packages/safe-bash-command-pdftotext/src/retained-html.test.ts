@@ -193,6 +193,27 @@ test("HTML accepts the owner password and pdftotext ignores copy restrictions", 
   }
 });
 
+for (const mode of [[], ["-xml"]]) for (const hidden of [false, true]) test(`HTML clipping-only text: mode=${mode}, hidden=${hidden}`, async () => {
+  const input = await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-text_clip_cff_cid.pdf", import.meta.url));
+  const args = [...mode, "-stdout", "-i", "-zoom", "1.5", ...(hidden ? ["-hidden"] : []), "/input.pdf"];
+  const f = await fixture(input, args);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  assert.equal(new TextDecoder().decode(joined(f.stdout)).includes("ABC123"), hidden);
+  assert.equal(f.stderr.length, 0);
+  const buffered = await runPdftohtmlCli(args, new Map([["/input.pdf", input]]));
+  assert.equal(buffered.exitCode, 0);
+  assert.equal(buffered.stdout.includes("ABC123"), hidden);
+  await f.clean();
+});
+
+test("pdftotext preserves clipping-only text", async () => {
+  const input = await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-text_clip_cff_cid.pdf", import.meta.url));
+  const f = await fixture(input, ["/input.pdf", "-"]);
+  assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+  assert.ok(new TextDecoder().decode(joined(f.stdout)).includes("ABC123"));
+  await f.clean();
+});
+
 for (const noRoundCoord of [false, true]) test(`pdftohtml XML coordinate precision: noroundcoord=${noRoundCoord}`, async () => {
   const input = await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-bug1873345.pdf", import.meta.url));
   const args = ["-xml", "-stdout", "-i", "-zoom", "1.5", "-l", "1", ...(noRoundCoord ? ["-noroundcoord"] : []), "/input.pdf"];
@@ -213,3 +234,20 @@ for (const noRoundCoord of [false, true]) test(`pdftohtml XML coordinate precisi
   await f.clean();
 });
 
+for (const mode of [[], ["-xml"]]) for (const hidden of [false, true]) test(`HTML text rendering modes: mode=${mode}, hidden=${hidden}`, async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([200, 400]);
+  page.drawText("Font", { x: 10, y: 20 });
+  page.setRawContentStream(new TextEncoder().encode(Array.from({ length: 8 }, (_, rendering) =>
+    `BT /F1 12 Tf ${rendering} Tr 10 ${30 + rendering * 40} Td (Mode${rendering}) Tj ET`).join("\n")));
+  const input = doc.save(), args = [...mode, "-stdout", "-i", ...(hidden ? ["-hidden"] : []), "/input.pdf"];
+  const f = await fixture(input, args);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  const buffered = await runPdftohtmlCli(args, new Map([["/input.pdf", input]]));
+  assert.equal(buffered.exitCode, 0);
+  for (const output of [new TextDecoder().decode(joined(f.stdout)), buffered.stdout]) {
+    for (let rendering = 0; rendering < 8; rendering++) {
+      assert.equal(output.includes(`Mode${rendering}`), hidden || (rendering !== 3 && rendering !== 7), `rendering mode ${rendering}`);
+    }
+  }
+  await f.clean();
+});

@@ -54,6 +54,6 @@ rendering resources.
 
 The `pdftotext -enc Latin1` option writes ISO-8859-1 bytes; `-enc UCS-2` writes big-endian 16-bit code units with a BOM. File output and stdout use the same encoding.
 
-`pdftohtml` respects PDF copy permissions unless `-nodrm` or the owner password is supplied. It scales page and text coordinates by 1.5 by default, matching Poppler; use `-zoom 1` for original PDF dimensions. XML text coordinates are integers by default; `-noroundcoord` emits six decimal places. It writes image files beside the output HTML or XML file, with relative image references. Stdout output (`-stdout` or `-`) creates no image files; use `-dataurls` to embed the images.
+`pdftohtml` respects PDF copy permissions unless `-nodrm` or the owner password is supplied. Invisible and clipping-only text is omitted unless `-hidden` is supplied. It scales page and text coordinates by 1.5 by default, matching Poppler; use `-zoom 1` for original PDF dimensions. XML text coordinates are integers by default; `-noroundcoord` emits six decimal places. It writes image files beside the output HTML or XML file, with relative image references. Stdout output (`-stdout` or `-`) creates no image files; use `-dataurls` to embed the images.
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.

@@ -10,6 +10,8 @@ import type {
 } from "../ast.js";
 
 export interface ExtractTextOptions {
+  /** Omit invisible and clipping-only text (PDF rendering modes 3 and 7). */
+  readonly discardInvisible?: boolean | undefined;
   readonly mode?: "logical" | "layout" | "raw" | "bbox" | undefined;
   readonly rejoinHyphens?: boolean | "soft" | undefined;
   readonly discardDiagonal?: boolean | undefined;

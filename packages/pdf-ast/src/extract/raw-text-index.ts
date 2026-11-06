@@ -13,7 +13,7 @@ import type { ExtractTextOptions } from "./text.js";
  * An explicit actualText string takes precedence. Keep storage alive until create completes. */
 export type PdfRawTextGlyph = PdfTextGlyph;
 
-export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "clipText" | "pageBounds" | "mode" | "colSpacing"> {
+export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "discardInvisible" | "clipText" | "pageBounds" | "mode" | "colSpacing"> {
   /** Page-rounded high-water allocation, including records and UTF-16 text. */
   readonly maxStorageBytes?: number;
   /** Required page geometry for logical column classification. */
@@ -195,7 +195,7 @@ export class PdfRawTextIndex {
         if (glyph.actualText === undefined && glyph.storedActualText && maximum(this.options.maxWorkingBytes) < 131072) throw new PdfError("E_LIMIT", "PDF text index working byte limit exceeded");
         // Paint captures/outlines are irrelevant to text grouping. Do not retain
         // them with ActualText's one pending normalized glyph.
-        const projected: PdfRawTextGlyph = { charCode: glyph.charCode, unicode: glyph.unicode, bbox: [...glyph.bbox], baselineY: glyph.baselineY,
+        const projected: PdfRawTextGlyph = { charCode: glyph.charCode, unicode: glyph.unicode, renderMode: glyph.renderMode, bbox: [...glyph.bbox], baselineY: glyph.baselineY,
           advanceWidth: glyph.advanceWidth, matrix: [...glyph.matrix], fontSize: glyph.fontSize, fontName: this.options.retainFontNames?glyph.fontName:"", color: { r: 0, g: 0, b: 0 },
           ...(this.options.retainFontNames&&glyph.storedFontName?{storedFontName:{...glyph.storedFontName}}:{}),
           ...(glyph.actualText !== undefined ? { actualText: glyph.actualText } : {}), ...(glyph.storedActualText ? { storedActualText: { ...glyph.storedActualText } } : {}), ...(glyph.mcid !== undefined ? { mcid: glyph.mcid } : {}),

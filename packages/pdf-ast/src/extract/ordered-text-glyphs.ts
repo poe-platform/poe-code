@@ -31,7 +31,7 @@ export async function* orderedTextGlyphs(input:Iterable<PdfTextGlyph>|AsyncItera
       yield lastRecord;
     }
     for await(const original of input){signal.throwIfAborted();if(++work%64===0)await new Promise<void>(resolve=>setTimeout(resolve,0));
-      const glyph:PdfTextGlyph={unicode:original.unicode,charCode:original.charCode,bbox:[...original.bbox],baselineY:original.baselineY,advanceWidth:original.advanceWidth,matrix:[...original.matrix],fontSize:original.fontSize,...(original.type3FontSize!==undefined?{type3FontSize:original.type3FontSize,type3AdvanceWidth:original.type3AdvanceWidth}:{}),fontName:options.retainFontNames?original.fontName:'',color:{r:0,g:0,b:0},
+      const glyph:PdfTextGlyph={unicode:original.unicode,renderMode:original.renderMode,charCode:original.charCode,bbox:[...original.bbox],baselineY:original.baselineY,advanceWidth:original.advanceWidth,matrix:[...original.matrix],fontSize:original.fontSize,...(original.type3FontSize!==undefined?{type3FontSize:original.type3FontSize,type3AdvanceWidth:original.type3AdvanceWidth}:{}),fontName:options.retainFontNames?original.fontName:'',color:{r:0,g:0,b:0},
         ...(options.retainFontNames&&original.storedFontName?{storedFontName:{...original.storedFontName}}:{}),
         ...(original.actualText!==undefined?{actualText:original.actualText}:{}),...(original.storedActualText?{storedActualText:{...original.storedActualText}}:{}),...(original.mcid!==undefined?{mcid:original.mcid}:{}),...(original.clipRect?{clipRect:[...original.clipRect]}:{})};
       if(pending&&pending.mcid===glyph.mcid&&await sameReplacement(pending,glyph,signal)){pending={...pending,bbox:mergeBBox(pending.bbox,glyph.bbox),advanceWidth:pending.advanceWidth+glyph.advanceWidth};continue;}

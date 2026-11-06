@@ -100,6 +100,7 @@ export class PdfTextGlyphOrder {
 
 export function textGlyphVisible(g: PdfPlacedGlyph, options: ExtractTextOptions): boolean {
   if (!g.unicode.length) return false;
+  if (options.discardInvisible && (g.renderMode === 3 || g.renderMode === 7)) return false;
   if (options.pageBounds) {
     const [x0, y0, x1, y1] = options.pageBounds;
     const x = g.matrix[4], y = g.matrix[5], direction = glyphDirection(g);

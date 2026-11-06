@@ -160,6 +160,14 @@ export function inspectJpeg(input: Uint8Array, options: EngineOptions | Resource
     tags.push({ name, rawName: name, chunkType: "JPEG", index: tags.length, group, instance: 0, offset, value, raw: new TextEncoder().encode(value) });
   };
   add("FileType", "JPEG", "File", 0); add("MIMEType", "image/jpeg", "File", 0);
+  // Selection prefers the last matching tag, so EXIF must follow JFIF regardless of segment order.
+  for (const part of parts) {
+    const p = part.payload;
+    if (part.marker !== 224 || p.length < 14 || p[0] !== 74 || p[1] !== 70 || p[2] !== 73 || p[3] !== 70 || p[4] !== 0) continue;
+    add("ResolutionUnit", String(p[7]), "JFIF", part.start + 11);
+    add("XResolution", String(p[8]! * 256 + p[9]!), "JFIF", part.start + 12);
+    add("YResolution", String(p[10]! * 256 + p[11]!), "JFIF", part.start + 14);
+  }
   for (const part of parts) {
     if ([192,193,194,195,197,198,199,201,202,203,205,206,207].includes(part.marker)) {
       if (part.payload.length < 6) throw new Error("Truncated JPEG frame");

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { createOverlayFileSystem } from "@poe-code/safe-fs/fs/overlay";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
@@ -872,6 +873,58 @@ test("exiftool reads WEBP, DOCX, PPTX, XLSX, ODT, and EPUB metadata and FileType
   assert.equal(webpJson.MIMEType, "image/webp");
   assert.equal(webpJson.ImageWidth, 320);
   assert.equal(webpJson.ImageHeight, 200);
+});
+
+test("JPEG selected JSON reads the checked-in JFIF image resolution", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/source.jpg", await readFile(new URL("../../pdf-ast/src/fixtures/jpeg-RGB-0-0-17.jpg", import.meta.url)));
+  const result = await invoke(["-j", "-s", "-XResolution", "-YResolution", "-ResolutionUnit", "source.jpg"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "source.jpg", XResolution: 1, YResolution: 1, ResolutionUnit: "None" }]);
+});
+
+test("JPEG selected JSON reads JFIF density and unit codes", async () => {
+  const fs = createMemoryFileSystem();
+  for (const [unit, description] of [[0, "None"], [1, "inches"], [2, "cm"]] as const) {
+    const bytes = new Uint8Array([255,216,255,224,0,16,74,70,73,70,0,1,1,unit,1,44,0,72,0,0,255,217]);
+    await fs.writeFile("/source.jpg", bytes);
+    for (const flags of [[], ["-n"], ["-ResolutionUnit#"]]) {
+      const result = await invoke(["-j", "-s", "-XResolution", "-YResolution", "-ResolutionUnit", ...flags, "source.jpg"], fs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "source.jpg", XResolution: 300, YResolution: 72, ResolutionUnit: flags.length ? unit : description }]);
+    }
+    assert.deepEqual(await fs.readFile("/source.jpg"), bytes);
+    await fs.writeFile("/target.jpg", new Uint8Array([255,216,255,217]));
+    const copied = await invoke(["-tagsFromFile", "source.jpg", "-overwrite_original", "target.jpg"], fs);
+    assert.equal(copied.exitCode, 0, copied.stderr);
+    const target = await invoke(["-j", "-n", "-XResolution", "-YResolution", "-ResolutionUnit", "target.jpg"], fs);
+    assert.deepEqual(JSON.parse(target.stdout), [{ SourceFile: "target.jpg", XResolution: 300, YResolution: 72, ResolutionUnit: unit + 1 }]);
+  }
+});
+
+test("JPEG EXIF resolution takes precedence over JFIF in either segment order", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/source.jpg", new Uint8Array([255,216,255,217]));
+  const write = await invoke(["-XResolution=300", "-YResolution=150", "-ResolutionUnit=3", "-overwrite_original", "source.jpg"], fs);
+  assert.equal(write.exitCode, 0, write.stderr);
+  const exif = (await fs.readFile("/source.jpg")).subarray(2, -2);
+  const jfif = [255,224,0,16,74,70,73,70,0,1,1,0,0,1,0,1,0,0];
+  for (const segments of [[...jfif, ...exif], [...exif, ...jfif]]) {
+    await fs.writeFile("/source.jpg", new Uint8Array([255,216,...segments,255,217]));
+    const result = await invoke(["-j", "-s", "-XResolution", "-YResolution", "-ResolutionUnit", "source.jpg"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "source.jpg", XResolution: 300, YResolution: 150, ResolutionUnit: "cm" }]);
+  }
+});
+
+test("JPEG ignores truncated JFIF and unrelated APP0 payloads", async () => {
+  const fs = createMemoryFileSystem();
+  for (const payload of [[74,70,73,70,0,1,1,0,0,1], [74,70,88,88,0,1,1,0,0,1,0,1,0,0]]) {
+    await fs.writeFile("/source.jpg", new Uint8Array([255,216,255,224,0,payload.length + 2,...payload,255,217]));
+    const result = await invoke(["-j", "-XResolution", "-YResolution", "-ResolutionUnit", "source.jpg"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "source.jpg" }]);
+  }
 });
 
 test("JPEG CLI admits aliases, resolution selectors, comments and metadata copying", async () => {

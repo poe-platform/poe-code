@@ -52,7 +52,9 @@ function printConverted(tags: readonly MetadataTag[], invocation: Invocation, re
   resources.admit("work", tags.length * (invocation.valueConvTags.length + 1) * 64);
   resources.admit("retained", tags.length * 512);
   return tags.map(tag => {
-    const conversions = tag.chunkType === "JPEG" && tag.group === "IFD0" ? jpegPrintConversions[tag.name] : undefined;
+    const conversions: Readonly<Record<string, string>> | undefined = tag.group === "JFIF" && tag.name === "ResolutionUnit"
+      ? { "0": "None", "1": "inches", "2": "cm" }
+      : tag.chunkType === "JPEG" && tag.group === "IFD0" ? jpegPrintConversions[tag.name] : undefined;
     if (!conversions || invocation.valueConvTags.includes(tag.name.toLowerCase())) return tag;
     return { ...tag, value: conversions[tag.value] ?? "Unknown (" + tag.value + ")" };
   });
@@ -232,7 +234,7 @@ Limits:
                 const values = selected(srcTags, invocation.tags, false, resources);
                 resources.admit("work", values.length * exiftoolRegistry.tags.length * 16);
                 resources.admit("retained", values.length * 128);
-                assignments = values.filter(tag => isPdf ? pdfWriteTags.has(tag.name) : jpeg ? Object.hasOwn(jpegWriteTags, tag.name) : Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: tag.value }));
+                assignments = values.filter(tag => isPdf ? pdfWriteTags.has(tag.name) : jpeg ? Object.hasOwn(jpegWriteTags, tag.name) : Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: jpeg && tag.group === "JFIF" && tag.name === "ResolutionUnit" ? String(Number(tag.value) + 1) : tag.value }));
               }
               const edited = jpeg ? editJpeg(bytes, assignments, resources) : isPdf ? editPdf(bytes, assignments, resources) : editPng(bytes, assignments, resources);
               resources.admit("retained", edited.length * 3);
@@ -438,7 +440,7 @@ export function evalSyncExiftool(
           if (!srcIsPdf && !srcJpeg && !srcPng) return undefined;
           const srcTags = srcJpeg ? inspectJpeg(srcBytes, resources).tags : srcIsPdf ? inspectPdf(srcBytes, resources).tags : inspectPng(srcBytes, resources).tags;
           const values = selected(srcTags, invocation.tags, false, resources);
-          assignments = values.filter(tag => isPdf ? pdfWriteTags.has(tag.name) : jpeg ? Object.hasOwn(jpegWriteTags, tag.name) : Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: tag.value }));
+          assignments = values.filter(tag => isPdf ? pdfWriteTags.has(tag.name) : jpeg ? Object.hasOwn(jpegWriteTags, tag.name) : Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: jpeg && tag.group === "JFIF" && tag.name === "ResolutionUnit" ? String(Number(tag.value) + 1) : tag.value }));
         }
         const edited = jpeg ? editJpeg(bytes, assignments, resources) : isPdf ? editPdf(bytes, assignments, resources) : editPng(bytes, assignments, resources);
         if (invocation.destination === undefined && !assignments.some(op => op.operation === "set" && op.value !== "") && edited.length === bytes.length && edited.every((byte, index) => byte === bytes[index])) {

@@ -1778,6 +1778,7 @@ function parsePdfdetachArgs(argv: readonly string[]): PdfinfoCliResult | {
   listOnly: boolean; saveNumber: number; saveFileName: string; saveAll: boolean;
   outputPath: string; password: string; encoding: string; inputPath: string;
 } {
+    const usage = { exitCode: 99, stdout: "", stderr: "Usage: pdfdetach [options] <PDF-file>\n" };
     let listOnly = false;
     let saveNumber = 0;
     let saveFileName = "";
@@ -1798,10 +1799,17 @@ function parsePdfdetachArgs(argv: readonly string[]): PdfinfoCliResult | {
                 stderr: ""
             };
         }
+        if (["-save", "-savefile", "-o", "-upw", "-opw", "-enc"].includes(arg) && argv[i + 1] === undefined) return usage;
         if (arg === "-list")
             listOnly = true;
-        else if (arg === "-save")
-            saveNumber = Number.parseInt(argv[++i] ?? "0", 10) || 0;
+        else if (arg === "-save") {
+            const value = argv[++i]!;
+            const digits = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+            if (!digits || [...digits].some(char => char < "0" || char > "9")) return usage;
+            saveNumber = Number(value);
+            if (!Number.isSafeInteger(saveNumber) || saveNumber === 0) return usage;
+            if (saveNumber < 0) return { exitCode: 99, stdout: "", stderr: "Command Line Error: Invalid file number\n" };
+        }
         else if (arg === "-savefile")
             saveFileName = argv[++i] ?? "";
         else if (arg === "-saveall")
@@ -1821,12 +1829,13 @@ function parsePdfdetachArgs(argv: readonly string[]): PdfinfoCliResult | {
             }
             encoding = nextEnc;
         }
-        else if (!arg.startsWith("-") || arg === "-")
-            inputPath ??= arg;
+        else if (!arg.startsWith("-") || arg === "-") {
+            if (inputPath !== undefined) return usage;
+            inputPath = arg;
+        }
+        else return usage;
     }
-    if (!inputPath) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdfdetach [options] <PDF-file>\n" };
-    }
+    if (!inputPath) return usage;
     return { listOnly, saveNumber, saveFileName, saveAll, outputPath, password, encoding, inputPath };
 }
 

@@ -865,8 +865,23 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "negate") {
       current = await mapWork(current, async (f) => {
-
-
+        const source = f.native;
+        // Negate planar 8-bit YUV before RGB conversion, including full-range YUV.
+        if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
+            [0, 4, 5, 12, 13, 14].includes(source.format)) {
+          const pixels = new Uint8Array(source.pixels.length);
+          for (let i = 0; i < pixels.length; i++) {
+            if (i % 65536 === 0) {
+              await yieldTurn(signal);
+              signal?.throwIfAborted();
+              budget.checkCpu();
+            }
+            pixels[i] = 255 - source.pixels[i]!;
+          }
+          const native = { ...source, pixels };
+          const data = scaleVideoPicture({ ...f, native }, f.width, f.height)!;
+          return { ...f, data, native: { ...native, rgba: data } };
+        }
         const out = negateImage(makeRgbaImg(f.width, f.height, f.data));
         return { ...f, data: out.data };
       }, signal);

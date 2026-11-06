@@ -53,7 +53,7 @@ export const verification = (async () => {
     corrupt[corrupt.length - 8] ^= 1;
     const damaged = await shell.exec('gunzip -t', { stdin: corrupt });
     equal(damaged.exitCode, 1);
-    equal(damaged.stderr, 'gunzip: incorrect data check (CRC)\n');
+    equal(damaged.stderr, 'gunzip: stdin: incorrect data check (CRC)\n');
     const invalid = await shell.exec('gzip --unknown');
     equal(invalid.exitCode, 2);
     check(invalid.stderr.includes('unknown'), 'canonical usage diagnostics');

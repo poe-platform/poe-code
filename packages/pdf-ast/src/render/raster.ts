@@ -35,8 +35,9 @@ export interface RgbaBitmap {
   readonly data: Uint8Array;
 }
 
-export function *encodePngSteps(bitmap: RgbaBitmap, dpi?: number, dpiY = dpi): Generator<void, Uint8Array, void> {
-  return (yield* encodeRgbaToPngSteps(bitmap.width, bitmap.height, bitmap.data, true, dpi, dpiY));
+/** Gray and mono modes encode already-converted opaque pixels; alpha is preserved as RGBA. */
+export function *encodePngSteps(bitmap: RgbaBitmap, dpi?: number, dpiY = dpi, colorMode: "rgb" | "gray" | "mono" = "rgb"): Generator<void, Uint8Array, void> {
+  return (yield* encodeRgbaToPngSteps(bitmap.width, bitmap.height, bitmap.data, true, dpi, dpiY, colorMode));
 }
 
 export function *decodePngSteps(pngBytes: Uint8Array): Generator<void, RgbaBitmap, void> {
@@ -377,7 +378,7 @@ function *makePngChunkSteps(type: string, data: Uint8Array): Generator<void, Uin
   return out;
 }
 
-export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8Array, consumeInput = false, dpi?: number, dpiY = dpi): Generator<void, Uint8Array, void> {
+export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8Array, consumeInput = false, dpi?: number, dpiY = dpi, colorMode: "rgb" | "gray" | "mono" = "rgb"): Generator<void, Uint8Array, void> {
   let work = 0;
   let opaque = consumeInput && width >= 1 && height >= 1 && rgba.length >= height * (width * 3 + 1);
   if (opaque) {
@@ -390,14 +391,27 @@ export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8
   const ihdrView = new DataView(ihdr.buffer);
   ihdrView.setUint32(0, width, false);
   ihdrView.setUint32(4, height, false);
-  ihdr[8] = 8; // bit depth 8
-  ihdr[9] = opaque ? 2 : 6; // color type 2 (RGB) when opaque, 6 (RGBA) otherwise
+  const grayscale = opaque && colorMode !== "rgb";
+  ihdr[8] = grayscale && colorMode === "mono" ? 1 : 8;
+  ihdr[9] = grayscale ? 0 : opaque ? 2 : 6;
   ihdr[10] = 0;
   ihdr[11] = 0;
   ihdr[12] = 0;
 
   let rawScanlines: Uint8Array;
-  if (opaque) {
+  if (grayscale) {
+    const rowBytes = (colorMode === "mono" ? Math.ceil(width / 8) : width) + 1;
+    rawScanlines = new Uint8Array(rowBytes * height);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (++work % 16384 === 0) yield;
+        const value = rgba[(y * width + x) * 4]!;
+        const rowStart = y * rowBytes + 1;
+        if (colorMode === "mono") rawScanlines[rowStart + (x >> 3)]! |= (value >= 128 ? 1 : 0) << (7 - (x & 7));
+        else rawScanlines[rowStart + x] = value;
+      }
+    }
+  } else if (opaque) {
     const rowBytes = width * 3 + 1;
     for (let y = 0; y < height; y++) {
       if (++work % 16384 === 0) yield;

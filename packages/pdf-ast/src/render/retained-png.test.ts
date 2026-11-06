@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { encodePng, encodeRgbaToPng } from "./raster.js";
+import { decodePng, encodePng, encodeRgbaToPng } from "./raster.js";
 import { encodeRetainedPng } from "./retained-png.js";
 
 it.each([true, false])("preserves PNG bytes with opaque=%s and reusable small input chunks", async opaque => {
@@ -158,3 +158,22 @@ it("includes resolution framing in the output budget", async () => {
     expect(await fs.readdir("/scratch")).toEqual([]);
   }
 });
+
+for (const colorMode of ["gray", "mono"] as const) {
+  it.each([1, 7, 32])(`packs ${colorMode} rows across input and output chunks of %s bytes`, async chunkBytes => {
+    const width = 13, height = 3;
+    const data = Uint8Array.from({ length: width * height * 4 }, (_, i) => i % 4 === 3 ? 255 : Math.floor(i / 4) % 3 === 0 ? 255 : 0);
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+    async function* input() { for (let at = 0; at < data.length; at += 7) yield data.subarray(at, at + 7); }
+    const actual: number[] = [];
+    for await (const chunk of encodeRetainedPng(width, height, input(), { fs, directory: "/scratch" }, { colorMode, chunkBytes })) {
+      expect(chunk.length).toBeLessThanOrEqual(chunkBytes);
+      actual.push(...chunk);
+    }
+    const output = new Uint8Array(actual);
+    expect(output[24]).toBe(colorMode === "mono" ? 1 : 8);
+    expect(output[25]).toBe(0);
+    expect(decodePng(output)).toEqual({ width, height, data });
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  });
+}

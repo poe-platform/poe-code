@@ -498,7 +498,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
         if (snapBefore.get(k) !== v && k.endsWith(".png")) {
             const decoded = (yield* decodePngSteps(v));
             convertRgbaInPlace(decoded.data);
-            files.set(k, (yield* encodePngSteps(decoded)));
+            files.set(k, (yield* encodePngSteps(decoded, undefined, undefined, monoMode ? "mono" : "gray")));
         }
     }
     return res;

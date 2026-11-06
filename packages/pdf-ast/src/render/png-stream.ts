@@ -28,7 +28,7 @@ export function pngResolutionChunk(dpi: number, dpiY = dpi): Uint8Array {
 /** Filesystem-independent scanline conversion and DEFLATE; at most one raw
  * chunk and the shared codec's bounded state are retained. */
 export async function* deflatePngPixels(width: number, height: number, input: AsyncIterable<Uint8Array>, opaque: boolean,
-  chunkBytes: number, signal?: AbortSignal): AsyncGenerator<Uint8Array, void, void> {
+  chunkBytes: number, signal?: AbortSignal, colorMode: "rgb" | "gray" | "mono" = "rgb"): AsyncGenerator<Uint8Array, void, void> {
   const expected = width * height * 4;
   async function* scanlines(): AsyncGenerator<Uint8Array> {
     let position = 0; let used = 0; let buffer = new Uint8Array(chunkBytes); let work = 0;
@@ -37,17 +37,27 @@ export async function* deflatePngPixels(width: number, height: number, input: As
       if (used !== buffer.length) return undefined;
       const result = buffer; buffer = new Uint8Array(chunkBytes); used = 0; return result;
     };
+    let packed = 0;
+    const sample = (value: number): Uint8Array | undefined => {
+      if (!opaque || colorMode === "rgb") return !opaque || position % 4 !== 3 ? append(value) : undefined;
+      if (position % 4 !== 0) return undefined;
+      if (colorMode === "gray") return append(value);
+      const x = (position / 4) % width;
+      packed |= (value >= 128 ? 1 : 0) << (7 - (x & 7));
+      if ((x & 7) !== 7 && x !== width - 1) return undefined;
+      const chunk = append(packed); packed = 0; return chunk;
+    };
     for await (const bytes of readBytes(input, signal)) {
       for (let at = 0; at < bytes.length && position < expected; at++, position++) {
         if (position % (width * 4) === 0) { const chunk = append(0); if (chunk) yield chunk; }
-        if (!opaque || position % 4 !== 3) { const chunk = append(bytes[at]!); if (chunk) yield chunk; }
+        { const chunk = sample(bytes[at]!); if (chunk) yield chunk; }
       }
       if (++work % 64 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
       if (position === expected) break;
     }
     while (position < expected) {
       if (position % (width * 4) === 0) { const chunk = append(0); if (chunk) yield chunk; }
-      if (!opaque || position % 4 !== 3) { const chunk = append(0); if (chunk) yield chunk; }
+      { const chunk = sample(0); if (chunk) yield chunk; }
       position++;
       if (position % (chunkBytes * 64) === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
     }
@@ -65,11 +75,11 @@ export async function* deflatePngPixels(width: number, height: number, input: As
 
 /** Frame one known-length IDAT stream, preserving the buffered PNG layout. */
 export async function* framePngChunks(width: number, height: number, opaque: boolean, length: number,
-  compressed: AsyncIterable<Uint8Array>, chunkBytes: number, signal?: AbortSignal, dpi?: number, dpiY = dpi): AsyncGenerator<Uint8Array, void, void> {
+  compressed: AsyncIterable<Uint8Array>, chunkBytes: number, signal?: AbortSignal, dpi?: number, dpiY = dpi, colorMode: "rgb" | "gray" | "mono" = "rgb"): AsyncGenerator<Uint8Array, void, void> {
   if (!Number.isSafeInteger(length) || length < 0 || length > 0xffffffff) throw new PdfError("E_LIMIT", "PNG IDAT length limit exceeded");
   const header = new Uint8Array(33); header.set([137, 80, 78, 71, 13, 10, 26, 10]);
   const view = new DataView(header.buffer); view.setUint32(8, 13); header.set([73, 72, 68, 82], 12);
-  view.setUint32(16, width); view.setUint32(20, height); header[24] = 8; header[25] = opaque ? 2 : 6;
+  view.setUint32(16, width); view.setUint32(20, height); header[24] = opaque && colorMode === "mono" ? 1 : 8; header[25] = opaque ? (colorMode === "rgb" ? 2 : 0) : 6;
   view.setUint32(29, (updatePngCrc(0xffffffff, header.subarray(12, 29)) ^ 0xffffffff) >>> 0);
   const idat = new Uint8Array(8); new DataView(idat.buffer).setUint32(0, length); idat.set([73, 68, 65, 84], 4);
   for (const part of [header, ...(dpi === undefined ? [] : [pngResolutionChunk(dpi, dpiY)]), idat]) for (let at = 0; at < part.length; at += chunkBytes) { signal?.throwIfAborted(); yield part.slice(at, at + chunkBytes); }

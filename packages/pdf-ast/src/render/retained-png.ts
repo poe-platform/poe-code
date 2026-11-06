@@ -5,6 +5,8 @@ import { PdfFileSource } from "../source.js";
 import { deflatePngPixels, framePngChunks } from "./png-stream.js";
 
 export interface PdfRetainedPngOptions {
+  /** Encode already-converted opaque pixels; transparent input retains RGBA. */
+  readonly colorMode?: "rgb" | "gray" | "mono";
   readonly dpi?: number | undefined;
   readonly dpiY?: number | undefined;
   readonly chunkBytes?: number;
@@ -51,10 +53,10 @@ export async function* encodeRetainedPng(width: number, height: number, input: A
     pixels = await PdfFileSource.fromStream(storage.fs, storage.directory, inspect(), { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: stagingLimit, ...(signal ? { signal } : {}) });
     opaque &&= inputBytes >= height * (width * 3 + 1);
     compressed = await PdfFileSource.fromStream(storage.fs, storage.directory,
-      deflatePngPixels(width, height, pixels.stream(0, pixels.size, signal), opaque, chunkBytes, signal),
+      deflatePngPixels(width, height, pixels.stream(0, pixels.size, signal), opaque, chunkBytes, signal, options.colorMode),
       { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: Math.min(stagingLimit - pixels.size, outputLimit - framingBytes, 0xffffffff), ...(signal ? { signal } : {}) });
     await pixels.close(); pixels = undefined;
-    yield* framePngChunks(width, height, opaque, compressed.size, compressed.stream(0, compressed.size, signal), chunkBytes, signal, options.dpi, options.dpiY);
+    yield* framePngChunks(width, height, opaque, compressed.size, compressed.stream(0, compressed.size, signal), chunkBytes, signal, options.dpi, options.dpiY, options.colorMode);
   } catch (error) { failed = true; throw error; }
   finally {
     const results = await Promise.allSettled([compressed?.close(), pixels?.close()]);

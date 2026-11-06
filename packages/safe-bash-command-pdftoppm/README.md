@@ -55,7 +55,8 @@ flattens transparency onto white and rasterizes vectors and text. The command
 streams bounded pixel chunks through caller-backed storage; buffered convenience
 runners collect the rendered page and output in memory. Cairo
 raster formats share the retained pipeline and preserve their output naming,
-color-conversion and error conventions.
+color-conversion and error conventions. Opaque `pdftocairo -png -gray` output
+uses 8-bit grayscale PNGs; `-png -mono` uses 1-bit grayscale PNGs.
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 

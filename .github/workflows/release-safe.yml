@@ -157,12 +157,12 @@ jobs:
         with:
           path: .turbo/ci-cache
           key: ${{ steps.check-cache.outputs.cache-primary-key }}
+      - run: npm run lint:packages
+        if: steps.queue-check.outputs.publish == 'true'
       - name: Verify Cloudflare Worker transport and resource lifecycle
         if: steps.queue-check.outputs.publish == 'true'
         run: npm run test:workers --workspace=@poe-code/safe-playwright-cloudflare
       - run: npx vitest run scripts/package-debug-maps.test.ts scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts scripts/safe-command-publication.test.ts scripts/bundle-safe-bash-private.test.ts
-        if: steps.queue-check.outputs.publish == 'true'
-      - run: npm run lint:packages
         if: steps.queue-check.outputs.publish == 'true'
       - name: Prepare scoped artifacts
         if: steps.queue-check.outputs.publish == 'true'
@@ -176,9 +176,7 @@ jobs:
         run: |
           set -euo pipefail
           TARBALLS=$(mktemp -d)
-          npm pack "$RUNNER_TEMP/safe-npm/safe-fs" --ignore-scripts --pack-destination "$TARBALLS"
-          npm pack "$RUNNER_TEMP/safe-npm/safe-js" --ignore-scripts --pack-destination "$TARBALLS"
-          npm pack "$RUNNER_TEMP/safe-npm/safe-bash" --ignore-scripts --pack-destination "$TARBALLS"
+          npm pack "$RUNNER_TEMP/safe-npm/"{safe-fs,safe-js,safe-bash} --ignore-scripts --pack-destination "$TARBALLS"
           echo "tarballs=$TARBALLS" >> "$GITHUB_OUTPUT"
           OPTIONAL_CONSUMER=$(mktemp -d)
           cp scripts/fixtures/safe-packages-mixed-entry-runtime.mjs scripts/fixtures/safe-packages-optional.mjs scripts/fixtures/safe-packages-optional-no-yaml.mjs scripts/fixtures/safe-packages-optional-types.mts scripts/fixtures/safe-packages-opt-in.mjs scripts/fixtures/safe-packages-opt-in.d.mts "$OPTIONAL_CONSUMER/"
@@ -309,17 +307,18 @@ jobs:
         run: rm -rf "$TMPDIR" "$SAFE_BASH_CF_RUNTIME_ROOT" "$SAFE_BASH_PYTHON_CONSUMER_ROOT" "$SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT" "$SAFE_BASH_LLM_PACKAGE_DIR" "$(dirname "$(dirname "$SAFE_BASH_LLM_REFERENCE_PYTHON")")"
       - name: Publish SafeFS with provenance
         if: steps.queue-check.outputs.publish == 'true'
-        run: npm publish "$RUNNER_TEMP/safe-npm/safe-fs" --provenance --access public
+        run: npm publish "${{ steps.packed-consumers.outputs.tarballs }}/poe-platform-safe-fs-${{ steps.version.outputs.next }}.tgz" --provenance --access public
       - name: Publish SafeJS with provenance
         if: steps.queue-check.outputs.publish == 'true'
-        run: npm publish "$RUNNER_TEMP/safe-npm/safe-js" --provenance --access public
+        run: npm publish "${{ steps.packed-consumers.outputs.tarballs }}/poe-platform-safe-js-${{ steps.version.outputs.next }}.tgz" --provenance --access public
       - name: Publish Safe Bash with provenance
         if: steps.queue-check.outputs.publish == 'true'
-        run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public
+        run: npm publish "${{ steps.packed-consumers.outputs.tarballs }}/poe-platform-safe-bash-${{ steps.version.outputs.next }}.tgz" --provenance --access public
       - name: Record completed publication
         if: steps.queue-check.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.next }}
         run: |
           set -euo pipefail
           # Keep publication metadata on an independent history: pushing source commits
@@ -327,7 +326,7 @@ jobs:
           gh auth setup-git
           publication_ref=refs/heads/safe-publication-record
           record_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
-          commit_args=(-m "Record safe package publication from $GITHUB_SHA")
+          commit_args=(-m "Publish safe packages $VERSION from $GITHUB_SHA")
           if [ -n "$record_head" ]; then
             git fetch --filter=blob:none origin "$publication_ref"
             commit_args+=(-p "$(git rev-parse FETCH_HEAD)")
@@ -338,7 +337,7 @@ jobs:
           tree=$(printf '100644 blob %s\tsource-sha\n' "$blob" | git mktree)
           commit=$(git commit-tree "$tree" "${commit_args[@]}")
           git push origin "$commit:$publication_ref"
-          printf 'Recorded completed safe package uploads from %s in %s\n' "$GITHUB_SHA" "$commit" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Published safe-fs, safe-js and [safe-bash@%s](https://www.npmjs.com/package/@poe-platform/safe-bash/v/%s) from %s (record %s)\n' "$VERSION" "$VERSION" "$GITHUB_SHA" "$commit" >> "$GITHUB_STEP_SUMMARY"
         shell: bash
   verify-publication:
     needs: publish

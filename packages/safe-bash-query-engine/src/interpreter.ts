@@ -1029,7 +1029,10 @@ export class Interpreter {
     if (name === "input" || name === "inputs") {
       while (this.inputSource) {
         const pending = budget.tickSync(); if (pending) await pending;
-        const next = await this.inputSource.next();
+        let next: IteratorResult<Json>;
+        budget.readingFilterInput = true;
+        try { next = await this.inputSource.next(); }
+        finally { budget.readingFilterInput = false; }
         if (next.done) break;
         budget.value(next.value);
         yield next.value;

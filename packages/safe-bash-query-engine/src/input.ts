@@ -1067,7 +1067,15 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   const failure = async function* (error: unknown, eof = false): AsyncGenerator<Json> {
     if (!(error instanceof JqParseError)) throw error;
     if (options.streamErrors) yield [error.diagnostic(), parser.path(true)];
-    else if (options.sequence) await options.warning?.(`ignoring parse error: ${error.diagnostic()}${eof ? "" : " (need RS to resync)"}`);
+    else if (options.sequence) {
+      const message = `${error.diagnostic()}${eof ? "" : " (need RS to resync)"}`;
+      if (budget.readingFilterInput) {
+        if (!budget.inputLocation.complete) budget.inputLocation.line++;
+        budget.inputLocation.complete = true;
+        throw new JqError(message);
+      }
+      await options.warning?.(`ignoring parse error: ${message}`);
+    }
     else {
       error.message = `parse error: ${error.diagnostic()}`;
       throw error;

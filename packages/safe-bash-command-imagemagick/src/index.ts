@@ -3381,20 +3381,36 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
     };
 }
 
+function magickResizeCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, width: number, height: number) {
+    const page = image.virtualCanvas;
+    if (!page) return undefined;
+    let scaleX = width / image.width, scaleY = height / image.height;
+    const pageWidth = Math.floor(scaleX * page.width + 0.5), pageHeight = Math.floor(scaleY * page.height + 0.5);
+    // CloneImage uses the smaller ratio for offsets when the ratios differ by less than two.
+    if (Math.abs(scaleX - scaleY) < 2) scaleX = scaleY = Math.min(scaleX, scaleY);
+    return { width: pageWidth, height: pageHeight, x: Math.ceil(scaleX * page.x - 0.5), y: Math.ceil(scaleY * page.y - 0.5) };
+}
+
 function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false): Generator<void, RgbaImage, void> {
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczos3" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
-    if (!scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "nearest") return yield* resizeImageSteps(img, options);
     const width = options.width!, height = options.height!;
-    return yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel === "mitchell" ? "mitchell" : "lanczos3"), undefined, { ...img, width, height });
+    const resized = !scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "nearest"
+        ? yield* resizeImageSteps(img, options)
+        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel === "mitchell" ? "mitchell" : "lanczos3"), undefined, { ...img, width, height });
+    const virtualCanvas = thumbnail ? undefined : magickResizeCanvas(img, width, height);
+    return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false): Promise<StoredRgbaImage> {
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
-    if (!scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "nearest") return transformStoredImage(image, backend.storage, { kind: "resize", ...options }, signal);
-    return transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel === "mitchell" ? "mitchell" : "lanczos3"), signal, { ...image, width, height });
+    const resized = !scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "nearest"
+        ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options }, signal)
+        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel === "mitchell" ? "mitchell" : "lanczos3"), signal, { ...image, width, height });
+    const virtualCanvas = thumbnail ? undefined : magickResizeCanvas(image, width, height);
+    return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
 function magickRotateCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, angle: number) {

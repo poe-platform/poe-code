@@ -4728,7 +4728,7 @@ export class SqliteDatabase {
         const callerRows = this.outerRows;
         this.outerRows = definitionRows.slice();
         try {
-          if (this.containsTableReference(bodyTokens, cteName)) {
+          if (this.tableReferenceDepths(bodyTokens, cteName).length > 0) {
             result = yield* this.evalRecursiveCte(
               cteName, explicitCols, bodyTokens, positionalParams, cteMap
             );
@@ -4760,7 +4760,8 @@ export class SqliteDatabase {
     return yield* this.executeStatementSteps(mainSql, positionalParams, cteMap);
   }
 
-  private containsTableReference(tokens: Token[], name: string): boolean {
+  private tableReferenceDepths(tokens: Token[], name: string): number[] {
+    const depths: number[] = [];
     const lower = name.toLowerCase();
     const fromClauses = [false];
     for (let i = 0; i < tokens.length; i += 1) {
@@ -4779,11 +4780,11 @@ export class SqliteDatabase {
             (fromClauses[depth] && token.type === "punct" && token.value === ",")) {
           fromClauses[depth] = true;
           const source = tokens[i + 1];
-          if (source && source.value.toLowerCase() === lower && tokens[i + 2]?.value !== ".") return true;
+          if (source && source.value.toLowerCase() === lower && tokens[i + 2]?.value !== ".") depths.push(depth);
         }
       }
     }
-    return false;
+    return depths;
   }
 
   private *evalRecursiveCte(
@@ -5099,6 +5100,18 @@ export class SqliteDatabase {
     cteScope: CteScope,
     recursiveCte?: string
   ): SqlSteps<QueryResultSet> {
+    if (recursiveCte) {
+      const references = this.tableReferenceDepths(tokens, recursiveCte);
+      const directCount = references.filter(depth => depth === 0).length;
+      if (directCount > 1) {
+        throw new Error(`multiple references to recursive table: ${recursiveCte}`);
+      }
+      if (references.length > directCount) {
+        throw new Error(directCount === 0
+          ? `circular reference: ${recursiveCte}`
+          : `multiple recursive references: ${recursiveCte}`);
+      }
+    }
     if (tokens[0]?.value.toUpperCase() === "VALUES") {
       let idx = 1;
       const rows: SqlValue[][] = [];
@@ -5386,7 +5399,7 @@ export class SqliteDatabase {
       }
     }
 
-    if (recursiveCte && this.containsTableReference(tokens, recursiveCte)) {
+    if (recursiveCte && this.tableReferenceDepths(tokens, recursiveCte).length > 0) {
       if (groupByTokens?.length) throw new Error("recursive aggregate queries not supported");
       const expressions = selectTargets.map(target => target.expr);
       if (havingTokens) expressions.push(new ExprParser(havingTokens, windows).parseExpression());

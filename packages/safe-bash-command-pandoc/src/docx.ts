@@ -83,6 +83,8 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     const blocks: DocxBlock[] = [];
     const paragraphs: {runs: readonly RichRun[]; properties: string}[] = [];
     const numbering: string[] = [];
+    const notes: (readonly Block[])[] = [];
+    let noteReference = false;
     const w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
     const runs = (nodes: readonly Inline[], style: Omit<RichRun, "text" | "image" | "raw"> = {}, result: RichRun[] = []): RichRun[] => {
@@ -98,6 +100,10 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
         else if (node.t === "Quoted") runs([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style, result);
         else if (node.t === "RawInline") {
           if (node.c[0] === "openxml") result.push({text: "", raw: node.c[1]});
+        }
+        else if (node.t === "Note") {
+          notes.push(node.c);
+          result.push({text: "", raw: `<w:r><w:rPr><w:vertAlign w:val="superscript"/></w:rPr><w:footnoteReference w:id="${notes.length}"/></w:r>`});
         }
         else if (node.t === "Image") result.push({...style, text: "", image: node});
         else {
@@ -121,6 +127,10 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       return result;
     };
     const paragraph = (target: DocxBlock[], content: readonly RichRun[], properties: string, level?: number) => {
+      if (noteReference) {
+        content = [{text: "", raw: '<w:r><w:rPr><w:vertAlign w:val="superscript"/></w:rPr><w:footnoteRef/></w:r>'}, ...content];
+        noteReference = false;
+      }
       // Sidecars keep relationship/paragraph properties out of the structured content API.
       paragraphs.push({runs: content, properties});
       target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({code: _code, link: _link, strike: _strike, baseline: _baseline, image: _image, raw: _raw, ...run}) => run)});
@@ -169,6 +179,15 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       }
     };
     await visit(document.blocks, blocks);
+    // Render note blocks through the same path, then move them into their OPC part.
+    const noteRanges: {start: number; end: number}[] = [];
+    for (const note of notes) {
+      const start = blocks.length;
+      noteReference = true;
+      await visit(note, blocks);
+      if (noteReference) paragraph(blocks, [], "");
+      noteRanges.push({start, end: blocks.length});
+    }
     const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image} = await import("safe-bash-docx-engine/pandoc-adapter");
     const mc = await modelContext(ctx);
     const archiveContext = {signal: mc.signal!, budget: mc.budget!};
@@ -237,22 +256,42 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       } else for (const child of node.children) await edit(child);
     };
     await edit(main.root);
+    let documentBytes = main.serialize();
+    let footnotes: string | undefined;
+    if (notes.length) {
+      const rendered = new DocumentXmlEditor(documentBytes, {}, undefined, mc.budget);
+      const body = rendered.root.children.find(child => child.namespace === w && child.localName === "body")!;
+      footnotes = `<w:footnotes xmlns:w="${w}" xmlns:r="${r}">${noteRanges.map(({start, end}, index) => {
+        const children = body.children.slice(start, end);
+        const xml = children.map(child => rendered.sourceXml(child)).join("");
+        for (const child of children) rendered.replaceElement(child, "");
+        return `<w:footnote w:id="${index + 1}">${xml}</w:footnote>`;
+      }).join("")}</w:footnotes>`;
+      documentBytes = rendered.serialize();
+    }
     if (numbering.length) linkRelationships.push(`<Relationship Id="rId${relationshipId++}" Type="${r}/numbering" Target="numbering.xml"/>`);
+    const noteRelationships = linkRelationships.join("");
+    if (notes.length) linkRelationships.push(`<Relationship Id="rId${relationshipId++}" Type="${r}/footnotes" Target="footnotes.xml"/>`);
     if (linkRelationships.length) relationships.insertChildren(relationships.root, linkRelationships.map(xml => xml.replace("<Relationship ", '<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" ')).join(""));
 
     const types = new DocumentXmlEditor(archive.members.find(member => member.name === "[Content_Types].xml")!.bytes, {}, undefined, mc.budget);
     const typeOverrides = [
+      ...(notes.length ? ['<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/>'] : []),
       ...(numbering.length ? ['<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>'] : []),
       ...[...media.values()].map(entry => `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/${entry.name}" ContentType="${entry.type}"/>`)
     ];
     if (typeOverrides.length) types.insertChildren(types.root, typeOverrides.join(""));
-    const parts = new Map([["word/document.xml", main.serialize()], ["word/_rels/document.xml.rels", relationships.serialize()], ["[Content_Types].xml", types.serialize()]]);
+    const parts = new Map([["word/document.xml", documentBytes], ["word/_rels/document.xml.rels", relationships.serialize()], ["[Content_Types].xml", types.serialize()]]);
     if (paragraphs.some(paragraph => paragraph.runs.some(run => run.code))) {
       const styles = new DocumentXmlEditor(archive.members.find(member => member.name === "word/styles.xml")!.bytes, {}, undefined, mc.budget);
       styles.insertChildren(styles.root, `<w:style xmlns:w="${w}" w:type="character" w:styleId="VerbatimChar"><w:name w:val="Verbatim Char"/><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr></w:style>`);
       parts.set("word/styles.xml", styles.serialize());
     }
     const members = archive.members.map(member => ({...member, bytes: parts.get(member.name) ?? member.bytes}));
+    if (footnotes !== undefined) {
+      members.push({name: "word/footnotes.xml", bytes: new TextEncoder().encode(footnotes), directory: false, modified: new Date(0)});
+      if (noteRelationships) members.push({name: "word/_rels/footnotes.xml.rels", bytes: new TextEncoder().encode(`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${noteRelationships}</Relationships>`), directory: false, modified: new Date(0)});
+    }
     for (const entry of media.values()) members.push({name: `word/${entry.name}`, bytes: entry.bytes, directory: false, modified: new Date(0)});
     if (numbering.length) members.push({name: "word/numbering.xml", bytes: new TextEncoder().encode(`<w:numbering xmlns:w="${w}">${numbering.join("")}${numbering.map((_, i) => `<w:num w:numId="${i + 1}"><w:abstractNumId w:val="${i + 1}"/></w:num>`).join("")}</w:numbering>`), directory: false, modified: new Date(0)});
     const chunks: Uint8Array[] = []; let size = 0;

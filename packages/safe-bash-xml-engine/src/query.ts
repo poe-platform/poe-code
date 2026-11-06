@@ -74,8 +74,11 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
     while (namePart(source[at] ?? "")) at++;
     if (source[at] === ":") {
       at++;
-      if (!nameStart(source[at] ?? "")) fail();
-      while (namePart(source[at] ?? "")) at++;
+      if (source[at] === "*") at++;
+      else {
+        if (!nameStart(source[at] ?? "")) fail();
+        while (namePart(source[at] ?? "")) at++;
+      }
       if (source[at] === ":") fail();
     }
     return source.slice(start, at);

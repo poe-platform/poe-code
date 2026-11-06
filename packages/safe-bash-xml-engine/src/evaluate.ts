@@ -91,7 +91,7 @@ function matches(node: Node, step: QueryStep, namespace: string, localName: stri
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
   if (node.kind === "element" || node.kind === "attribute" || node.kind === "namespace") {
-    return step.name === "*" || (node.value.namespace === namespace && node.value.localName === localName);
+    return step.name === "*" || (node.value.namespace === namespace && (localName === "*" || node.value.localName === localName));
   }
   return false;
 }

@@ -5649,6 +5649,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-tile") {
             state.tile = tokens[++i];
         }
+        else if (t === "-profile" || t === "+profile") {
+            const name = tokens[++i];
+            if (!name) throw new Error(`missing argument '${t}'`);
+            const profile = t === "-profile" ? files.get(name) : undefined;
+            if (t === "-profile" && !profile) throw new Error(`unable to open profile '${name}'`);
+            stack = stack.map(image => applyMagickProfile(image, name, profile));
+        }
         else if (t === "-strip") {
             state.strip = true;
             for (let index = 0; index < stack.length; index++) { const {icc: ignored, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
@@ -6570,6 +6577,19 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     return { ...base, position, hasAlpha, channels: hasAlpha ? base.channels : base.channels <= 2 ? 1 : 3 };
 }
 
+function applyMagickProfile<T extends { readonly icc?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {
+    if (profile) {
+        if (profile.length < 128 || String.fromCharCode(...profile.subarray(36, 40)) !== "acsp") throw new Error(`invalid ICC profile '${name}'`);
+        if (image.icc && (image.icc.length !== profile.length || image.icc.some((byte, index) => byte !== profile[index]))) throw new Error("ICC color conversion is unsupported");
+        return { ...image, icc: profile };
+    }
+    if (["icc", "icm", "*"].includes(name.toLowerCase())) {
+        const { icc: ignored, ...rest } = image;
+        return rest as T;
+    }
+    return image;
+}
+
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
     const analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] };
     const result = await tryConvertFilesResult(argv, input, stdinBytes, signal, analysis);
@@ -6943,6 +6963,24 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
+        if (!operandsOnly && (token === "-profile" || token === "+profile")) {
+            const name = tokens[++i];
+            if (!name) throw new Error(`missing argument '${token}'`);
+            stackStep(async (stack, backend) => {
+                const profile = token === "-profile" ? await backend.read(name, async source => {
+                    const bytes = new Uint8Array(source.size);
+                    for (let offset = 0; offset < source.size; offset += 16384) {
+                        await yieldTurn(signal);
+                        bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal }), offset);
+                    }
+                    return bytes;
+                }) : undefined;
+                if (token === "-profile" && !profile) throw new Error(`unable to open profile '${name}'`);
+                for (let index = 0; index < stack.length; index++) await stack.set(index, applyMagickProfile((await stack.get(index))!, name, profile));
+                return stack;
+            });
+            continue;
+        }
         if (!operandsOnly && token === "-strip") {
             state.strip = true;
             steps.push(async image => { if (!image) return image; const {icc: ignored, properties: ignoredProperties, ...rest} = image; return rest; });

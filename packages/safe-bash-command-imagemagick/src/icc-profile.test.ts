@@ -43,3 +43,47 @@ for (const mode of ["buffered", "retained", "command"]) {
     }
   }
 }
+
+for (const mode of ["buffered", "retained", "command"]) {
+  for (const extension of ["png", "jpg"]) {
+    it.each(["attach", "remove", "keep", "all"])(`explicit ICC %s, ${mode}, ${extension}`, async operation => {
+      const profile = spawnSync("magick", ["-", "icc:-"], { input: inputs.png }).stdout;
+      const fs = new MemoryFileSystem();
+      const files = new Map([["/input", new Uint8Array(inputs.png)], ["/color.icc", new Uint8Array(profile)]]);
+      for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+      const outputPath = `/output.${extension}`;
+      const options = operation === "attach" ? ["+profile", "icc", "-profile", "/color.icc"] : ["+profile", operation === "remove" ? "icc" : operation === "all" ? "*" : "exif"];
+      const args = ["/input", "-set", "comment", "keep me", ...options, outputPath];
+      if (mode === "command") {
+        let stderr = "";
+        const result = await createMagickCommand().execute({
+          command: "magick", args: createCommandArguments(args).args,
+          cwd: "/", env: {}, fs, stdin: (async function* () {})(), signal: new AbortController().signal,
+          stdout: { write: async () => {} }, stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } }
+        });
+        expect(result, stderr).toMatchObject({ exitCode: 0 });
+      } else {
+        expect(await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files))
+          .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+      }
+      const output = mode === "buffered" ? files.get(outputPath)! : await fs.readFile(outputPath);
+      const native = spawnSync("magick", ["identify", "-quiet", "-format", "%[profiles]|%[comment]", "-"], { input: output, encoding: "utf8" });
+      expect(native.status, native.stderr).toBe(0);
+      expect(native.stdout).toBe(`${operation === "attach" || operation === "keep" ? "icc" : ""}|keep me`);
+      if (operation === "attach") expect(spawnSync("magick", ["-", "icc:-"], { input: output }).stdout).toEqual(profile);
+    });
+  }
+}
+
+for (const mode of ["buffered", "retained"]) {
+  it.each([
+    ["-profile"], ["+profile"], ["-profile", "/missing.icc"], ["-profile", "/invalid.icc"]
+  ])(`rejects invalid profile requests without replacing output, ${mode}: %j`, async (...options) => {
+    const files = new Map([["/input", new Uint8Array(inputs.png)], ["/invalid.icc", Uint8Array.of(1, 2, 3)], ["/output.png", Uint8Array.of(42)]]);
+    const fs = new MemoryFileSystem();
+    for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+    const result = await runConvertCli(["/input", ...options, "/output.png"], mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(1);
+    expect(mode === "buffered" ? files.get("/output.png") : await fs.readFile("/output.png")).toEqual(Uint8Array.of(42));
+  });
+}

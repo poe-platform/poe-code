@@ -4,6 +4,7 @@ import { linearizationAssignments } from "./linearization-assignments.js";
 import { checkLinearization } from "./linearization-check.js";
 import { linearizationReport } from "./linearization-report.js";
 import { encryptionReport } from "./encryption-report.js";
+import { qpdfJsonField } from "./json-acroform.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import type { JsonValue } from "./json-output.js";
 import { parseQpdfPageLabels } from "./page-labels.js";
@@ -1565,13 +1566,19 @@ function* executeQpdfCli(
     }
     const acroDictJson = rootDictForJson ? asDict(baseDoc.cos.resolve(dictGet(rootDictForJson, "AcroForm"))) : undefined;
     const needAppJson = acroDictJson ? baseDoc.cos.resolve(dictGet(acroDictJson, "NeedAppearances")) : undefined;
-    const acroFieldsJson = (include("acroform") ? baseDoc.getFormFields() : []).map(f => ({
-      name: f.name,
-      type: f.type,
-      value: f.value
-    }));
+    const acroFieldsJson: unknown[] = [];
+    if (include("acroform") && acroDictJson) for (const [index, page] of baseDoc.getPages().entries()) {
+      const annotations = baseDoc.cos.resolve(dictGet(page.dict, "Annots"));
+      if (annotations?.kind !== "array") continue;
+      for (const annotation of annotations.items) {
+        const steps = qpdfJsonField(annotation, index + 1, acroDictJson, jsonVersion);
+        let step = steps.next();
+        while (!step.done) { yield; step = steps.next(baseDoc.cos.resolve(step.value)); }
+        if (step.value !== null) acroFieldsJson.push(materialize(step.value));
+      }
+    }
     const acroformSection = {
-      hasacroform: Boolean(acroDictJson && acroFieldsJson.length > 0),
+      hasacroform: Boolean(acroDictJson),
       needappearances: needAppJson?.kind === "boolean" ? needAppJson.value : false,
       fields: acroFieldsJson
     };

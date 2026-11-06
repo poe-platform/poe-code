@@ -1,8 +1,9 @@
 import { qpdfJsonAttachment } from "./json-attachments.js";
 import { qpdfJsonEncryption } from "./json-encryption.js";
+import { qpdfJsonField } from "./json-acroform.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosString, decodePdfString, dictGet, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosString, decodePdfString, dictGet, type PdfCosDict, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
 import { retainedAttachments } from "./attachments.js";
 import { qpdfObjectOrder } from "./object-order.js";
 import { base64Parts, cosJson, jsonChunks, jsonRecord, type JsonValue } from "./json-output.js";
@@ -23,7 +24,6 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
   const pageBase = pages.allocate(0);
   let objectJson: PdfFileSource | undefined;
   const summaries: PdfFileSource[] = [];
-  let hasFields = false;
   let count = 0, maximum = 0, originalMaximum = 0, json: PdfFileSource | undefined, files: PdfStagedOutputs | undefined, closing: Promise<void> | undefined;
   const prefix = options.jsonStreamPrefix ?? `${options.outputFile}-`;
   function close() {
@@ -106,7 +106,20 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       })
     });
   }
-  async function* fields(): AsyncGenerator<JsonValue> { for await (const field of document.formFields()) { hasFields = true; yield jsonRecord({ name: field.name, type: field.type, value: Array.isArray(field.value) ? { kind: "array", values: field.value } : field.value }); } }
+  async function* fields(form: PdfCosDict): AsyncGenerator<JsonValue> {
+    let index = 0;
+    for await (const page of document.pages()) {
+      index++;
+      const annotations = (await document.lookup(dictGet(page.dict, "Annots")))?.value;
+      if (annotations?.kind !== "array") continue;
+      for (const annotation of annotations.items) {
+        const steps = qpdfJsonField(annotation, index, form, options.jsonVersion ?? 2);
+        let step = steps.next();
+        while (!step.done) { signal.throwIfAborted(); step = steps.next((await document.lookup(step.value))?.value); }
+        if (step.value !== null) yield step.value;
+      }
+    }
+  }
   async function* attachments(): AsyncGenerator<readonly [string, JsonValue]> {
     const values = new PdfMutableObjectStore(storage, { signal }), backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), numeric = new IntegerTable(backing);
     let failed = false;
@@ -174,14 +187,14 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     const root = (await document.lookup(document.crossReference.rootRef))?.value;
     const form = root?.kind === "dict" ? (await document.lookup(dictGet(root, "AcroForm")))?.value : undefined;
     const appearances = form?.kind === "dict" ? (await document.lookup(dictGet(form, "NeedAppearances")))?.value : undefined;
-    const fieldValue = await summary({ kind: "array", values: include("acroform") ? fields() : [] });
+    const fieldValue = await summary({ kind: "array", values: include("acroform") && form?.kind === "dict" ? fields(form) : [] });
     const outlineValue = await summary({ kind: "array", values: include("outlines") ? outlines() : [] });
     const labelValue = await summary({ kind: "array", values: include("pagelabels") ? labels() : [] });
     const encryption = qpdfJsonEncryption(sourceDocument.encryption, options.jsonVersion ?? 2);
     const metadata: Record<string, JsonValue> = {
       pages: include("pages") ? { kind: "array", values: pageValues() } : count,
       pagelabels: labelValue, outlines: outlineValue,
-      acroform: jsonRecord({ hasacroform: form?.kind === "dict" && hasFields, needappearances: appearances?.kind === "boolean" ? appearances.value : false, fields: fieldValue }),
+      acroform: jsonRecord({ hasacroform: form?.kind === "dict", needappearances: appearances?.kind === "boolean" ? appearances.value : false, fields: fieldValue }),
       encrypt: jsonRecord({ ...encryption, capabilities: jsonRecord(encryption.capabilities), parameters: jsonRecord(encryption.parameters) }), attachments: attachmentValue,
     };
     const sections: Record<string, JsonValue> = { ...metadata, objects: objectValue,

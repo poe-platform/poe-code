@@ -37,6 +37,8 @@ The workspace entrypoint exports `qpdfCommands()` for plugin registration,
 
 `--set-page-labels 1:D z:r --` starts decimal labels on page 1 and lowercase Roman labels on the last page. Label positions accept `z` and `rN` relative to the output page count after page selection; specifications must start on page 1 and increase in page order.
 
+`--json-key=acroform` reports native QPDF widget records with field names, inherited values and flags, annotation metadata, and page positions. Fields without page widgets are omitted.
+
 Missing output parent directories are created recursively. Attachment and raw/filtered stream output preserves binary bytes. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 
 Ordinary rewrites, `--decrypt`, and removal of info, metadata, structure, forms or

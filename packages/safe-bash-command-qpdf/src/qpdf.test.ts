@@ -1016,7 +1016,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(Array.isArray(header.pages), true);
     assert.equal(header.pages[0].pageposfrom1, 1);
     assert.equal(header.acroform.hasacroform, true);
-    assert.equal(header.acroform.fields[0].name, "Email");
+    assert.equal(header.acroform.fields[0].fullname, "Email");
     assert.equal(header.outlines[0].title, "Introduction");
     assert.equal(header.pagelabels[0].label["/P"], "u:i-");
   });

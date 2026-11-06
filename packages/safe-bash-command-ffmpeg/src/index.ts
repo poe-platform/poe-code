@@ -2598,6 +2598,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const channelMask = audio.channelMask;
                   const surroundMono = origCh === 6 && targetCh === 1;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
+                  const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
                   if (targetCh !== origCh && origCh > 2 &&
                       (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
@@ -2640,7 +2641,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                     const dst = new Float32Array(targetSamples);
-                    const srcCh = monoStereo && c >= 2 ? undefined : stretched[origCh === 1 ? 0 : c];
+                    // Default 4.0 through 7.1 layouts route mono to front center only.
+                    const srcCh = (monoStereo && c >= 2) || (monoSurround && c !== 2)
+                      ? undefined : stretched[origCh === 1 ? 0 : c];
                     const rightCh = origCh === 2 && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {
                       for (let i = 0; i < targetSamples; i++) {

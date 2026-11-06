@@ -605,7 +605,7 @@ class JsonParser {
       if (!this.#stack.length) this.#fail("',' not as part of an object or array");
       this.#append();
     } else if (character === "]") {
-      if (!Array.isArray(parent)) this.#fail("Unmatched ']'");
+      if (!Array.isArray(parent)) this.#fail("Unmatched ']'" + (this.#stream ? (this.#stack.length ? " in the middle of an object" : " at the top-level") : ""));
       if (this.#next !== undefined) this.#append();
       else if (parent.length || closingCount) this.#fail("Expected another array element");
       this.#next = this.#stack.pop() as Json;
@@ -616,7 +616,8 @@ class JsonParser {
         if (typeof parent !== "string") this.#fail("Objects must consist of key:value pairs");
         this.#append();
       } else {
-        if (typeof parent === "string" || Array.isArray(parent)) this.#fail("Unmatched '}'");
+        if (this.#stream && closingCount && typeof parent !== "string") this.#fail("Expected another key:value pair");
+        if (typeof parent === "string" || Array.isArray(parent)) this.#fail("Unmatched '}'" + (this.#stream && Array.isArray(parent) ? " in the middle of an array" : ""));
         let hasKey = closingCount > 0;
         if (!hasKey) {
           for (const k in parent!) {

@@ -23,6 +23,13 @@ for (const retained of [false, true]) {
       ["hello", [], []], ["hello-1", [], []], ["hello-world", [], []]
     ]);
   });
+  it(`uses GFM base counts, punctuation and Unicode rules (retained=${retained})`, async () => {
+    const text = ["Report", "Report", "Report-1", "Report", "Report-1", "33. Hello, World! A_B.C", "École 中文", "!!!", "!!!"].map(title => `## ${title}\n\n`).join("");
+    expect((await headings(text, "gfm")).map((attrs: [string]) => attrs[0])).toEqual([
+      "report", "report-1", "report-1", "report-2", "report-1-1", "33-hello-world-a_bc", "école-中文", "", "-1"
+    ]);
+    expect(await headings("# Report\n", "gfm-gfm_auto_identifiers")).toEqual([["", [], []]]);
+  });
   it(`uses inline text and native identifier normalization (retained=${retained})`, async () => {
     expect((await headings("# 33. *Hello*, [World](/url) `A_B.C`!\n\n# 123 !!!\n\n# École 中文\n")).map((attrs: [string]) => attrs[0])).toEqual([
       "hello-world-a_b.c", "section", "école-中文"

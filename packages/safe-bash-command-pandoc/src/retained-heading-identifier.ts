@@ -2,7 +2,7 @@ import {emptyText} from "./backed-text.js";
 import type {RetainedRtfAst, RtfValue} from "./retained-rtf-ast.js";
 
 /** Extract heading text without notes, raw markup, or link/format attributes. */
-export async function retainedHeadingIdentifier(ast: RetainedRtfAst, inlines: RtfValue) {
+export async function retainedHeadingIdentifier(ast: RetainedRtfAst, inlines: RtfValue, gfm = false) {
   const text = emptyText();
   await ast.walk(inlines, async (value, _depth, leaving) => {
     if (leaving) return;
@@ -26,12 +26,12 @@ export async function retainedHeadingIdentifier(ast: RetainedRtfAst, inlines: Rt
     for await (const chunk of ast.text.unicodeChunks(lower)) {
       let output = "";
       for (const char of chunk) {
-        if (!started) {if (!/\p{L}/u.test(char)) continue; started = true;}
-        if (/^[\p{L}\p{N}_.-]$/u.test(char)) output += char;
+        if (!gfm && !started) {if (!/\p{L}/u.test(char)) continue; started = true;}
+        if (/^[\p{L}\p{N}_-]$/u.test(char) || (gfm ? /\p{M}/u.test(char) : char === ".")) output += char;
         else if (char === " " || char === "\n") output += "-";
       }
       if (output) yield output;
     }
   })());
-  return id.units ? id : ast.text.from(["section"]);
+  return gfm || id.units ? id : ast.text.from(["section"]);
 }

@@ -13,7 +13,7 @@ export function headingAttributes(text: string, context: AdapterContext) {
   }
 }
 
-export function headingIdentifier(inlines: readonly import("./ast-types.js").Inline[], context: AdapterContext): string {
+export function headingIdentifier(inlines: readonly import("./ast-types.js").Inline[], context: AdapterContext, gfm = false): string {
   let text = "";
   const append = (nodes: typeof inlines) => {
     for (const node of nodes) {
@@ -33,9 +33,9 @@ export function headingIdentifier(inlines: readonly import("./ast-types.js").Inl
   let id = "", started = false;
   for (const char of text.toLowerCase()) {
     context.checkpoint();
-    if (!started) {if (!/\p{L}/u.test(char)) continue; started = true;}
-    if (/^[\p{L}\p{N}_.-]$/u.test(char)) id += char;
+    if (!gfm && !started) {if (!/\p{L}/u.test(char)) continue; started = true;}
+    if (/^[\p{L}\p{N}_-]$/u.test(char) || (gfm ? /\p{M}/u.test(char) : char === ".")) id += char;
     else if (char === " " || char === "\n") id += "-";
   }
-  return id || "section";
+  return gfm ? id : id || "section";
 }

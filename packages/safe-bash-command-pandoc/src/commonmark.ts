@@ -73,6 +73,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
   }
   extensions = {...extensions, citations: extensions.citations ?? (metadata.bibliography !== undefined || metadata.references !== undefined)};
   const identifiers = new Set<string>();
+  const gfmIdentifiers = new Map<string, number>();
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
   const notes = new Map<string, Extract<PendingBlock, {kind: "footnote"}>>();
   function collect(blocks: readonly PendingBlock[], depth: number) {
@@ -200,13 +201,18 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           if (heading && last) lines[lines.length - 1] = {...last, text: last.text.slice(0, heading.end)};
           const inlines = await parseCommonMarkInlines({...block.inline, lines}, pending.definitions, context, extensions, footnote, citationsState);
           let attributes: import("./ast-types.js").Attr = heading?.attributes ?? ["", [], []];
-          if (!attributes[0] && extensions.auto_identifiers) {
-            const base = headingIdentifier(inlines, context);
+          if (!attributes[0] && (extensions.auto_identifiers || extensions.gfm_auto_identifiers)) {
+            const base = headingIdentifier(inlines, context, extensions.gfm_auto_identifiers);
             let id = base;
-            for (let suffix = 1; identifiers.has(id); suffix++) {context.checkpoint(); id = `${base}-${suffix}`;}
+            if (extensions.gfm_auto_identifiers) {
+              const count = gfmIdentifiers.get(base) ?? 0;
+              if (!count) {context.charge("references", 1); context.charge("retainedBytes", base.length * 2);}
+              if (count) id = `${base}-${count}`;
+              gfmIdentifiers.set(base, count + 1);
+            } else for (let suffix = 1; identifiers.has(id); suffix++) {context.checkpoint(); id = `${base}-${suffix}`;}
             attributes = [id, attributes[1], attributes[2]];
           }
-          if (attributes[0] && !identifiers.has(attributes[0])) {
+          if (!extensions.gfm_auto_identifiers && attributes[0] && !identifiers.has(attributes[0])) {
             context.charge("references", 1); context.charge("retainedBytes", attributes[0].length * 2);
             identifiers.add(attributes[0]);
           }

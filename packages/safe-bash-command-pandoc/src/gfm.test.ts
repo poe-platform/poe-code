@@ -15,13 +15,13 @@ describe("declared GFM reader", () => {
   it("uses the descriptor for availability, exact defaults, inspection and SDK validation", async () => {
     const registry = createFormatRegistry();
     expect(registry.list("read")).toContain("gfm");
-    expect(registry.listExtensions("gfm")).toEqual(["+autolink_bare_uris", "+pipe_tables", "+raw_html", "+strikeout", "+task_lists"]);
-    expect(inspectFormats(["--list-extensions=gfm-strikeout+strikeout-task_lists"])).toBe("+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n-task_lists\n");
+    expect(registry.listExtensions("gfm")).toEqual(["+autolink_bare_uris", "+pipe_tables", "+raw_html", "+strikeout", "+task_lists", "+gfm_auto_identifiers"]);
+    expect(inspectFormats(["--list-extensions=gfm-strikeout+strikeout-task_lists"])).toBe("+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n-task_lists\n+gfm_auto_identifiers\n");
     for (const extension of ["footnotes", "tex_math_dollars", "yaml_metadata_block", "smart", "definition_lists"]) {
       expect(await read("literal", `gfm+${extension}`)).toEqual([para([str("literal")])]);
       expect(inspectFormats([`--list-extensions=gfm+${extension}`]).split("\n")).toContain(`+${extension}`);
     }
-    for (const extension of ["gfm_auto_identifiers", "hard_line_breaks", "emoji", "alerts", "tex_math_gfm", "attributes"]) {
+    for (const extension of ["hard_line_breaks", "emoji", "alerts", "tex_math_gfm", "attributes"]) {
       await expect(read("literal", `gfm+${extension}`)).rejects.toMatchObject({ code: "E_EXTENSION" });
       expect(() => inspectFormats([`--list-extensions=gfm+${extension}`])).toThrowError(expect.objectContaining({ code: "E_EXTENSION" }));
     }

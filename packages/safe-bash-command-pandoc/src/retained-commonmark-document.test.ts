@@ -28,7 +28,7 @@ it.each(samples.map((text, index) => ({text, index})))("assembles backed Markdow
   const store = () => {const value = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1); stores.push(value); return value;};
   try {
     const source = new RetainedSourceText(store(), units => context.cooperate(units)); await source.append([text]);
-    const extensions = {simple_tables: true, citations: true, pipe_tables: true, raw_html: true, strikeout: true, task_lists: true, autolink_bare_uris: true};
+    const extensions = {simple_tables: true, citations: true, pipe_tables: true, raw_html: true, strikeout: true, task_lists: true, autolink_bare_uris: true, gfm_auto_identifiers: true};
     const blocks = new RetainedCommonMarkBlocks(source, store(), context, "input", extensions); await blocks.parse({start: 0, end: text.length});
     const ast = new RetainedRtfAst(store(), units => context.cooperate(units));
     const result = await assembleRetainedCommonMark(blocks, ast, store(), context, extensions);

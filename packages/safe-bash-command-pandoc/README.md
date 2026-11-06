@@ -73,6 +73,8 @@ The `markdown` and `md` readers parse rectangular Pandoc grid tables, including
 headerless tables and multiline cells; disable this with `-grid_tables`.
 The `markdown` and `md` readers keep bare URLs and email addresses as text;
 enable links with `+autolink_bare_uris` or use `gfm`. Angle-bracket links remain supported.
+The `gfm` reader preserves generated heading IDs in JSON, including repeated-heading
+suffixes. Disable generation with `-f gfm-gfm_auto_identifiers`.
 The `markdown` and `md` readers apply smart quotes, dashes, and ellipses; disable
 this with `-f markdown-smart`. Code and escaped punctuation remain literal.
 The `markdown` and `md` writers preserve citations such as `[@doe2020, p. 4]`,

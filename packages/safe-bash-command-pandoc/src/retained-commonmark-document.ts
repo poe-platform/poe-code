@@ -5,7 +5,7 @@ import {retainedHeadingIdentifier} from "./retained-heading-identifier.js";
 import {headingAttributes} from "./heading-attributes.js";
 import {translate} from "./json.js";
 import {nativeDivBlocks} from "./html.js";
-import type {PagedStorage} from "safe-bash-io-engine/storage";
+import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "./types.js";
 import {fencedDivAttributes, letter} from "./commonmark-syntax.js";
 import {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
@@ -21,7 +21,7 @@ export async function assembleRetainedCommonMark(
   extensions: Readonly<Record<string, boolean>>,
   imageTarget?: (target: RtfValue, line: number) => Promise<void>,
   noteRoot = parser.root, active: readonly number[] = [], initialDepth = 1, citationsState = {note: 0},
-  identifiers = new BackedTextSet(tape, ast.text)
+  identifiers = new BackedTextSet(tape, ast.text), gfmCounts = new IntegerTable(tape, 64)
 ): Promise<RtfValue> {
   const source = parser.source, definitions = parser.lookup.bind(parser);
   const literal = async (range: SourceRange) => ast.string(await ast.text.from(source.chunks(range)));
@@ -59,7 +59,7 @@ export async function assembleRetainedCommonMark(
             if (active.includes(position)) return undefined;
             context.bound("depth", depth + 1);
             context.charge("retainedBytes", (active.length + 1) * 8);
-            return ast.tag("Note", await assembleRetainedCommonMark(parser, ast, tape, context, extensions, imageTarget, position, [...active, position], depth + 1, citationsState, identifiers));
+            return ast.tag("Note", await assembleRetainedCommonMark(parser, ast, tape, context, extensions, imageTarget, position, [...active, position], depth + 1, citationsState, identifiers, gfmCounts));
           }
           if (block.first) {position = block.first; continue;}
           while (position && !(await parser.node(position)).next) position = (await parser.node(position)).parent;
@@ -178,7 +178,7 @@ export async function assembleRetainedCommonMark(
             const range = await source.append([text]);
             const nested = new RetainedCommonMarkBlocks(source, tape, context, parser.sourceName, extensions);
             await nested.parse(range);
-            const content = await assembleRetainedCommonMark(nested, ast, tape, context, extensions, imageTarget, nested.root, active, depth + 1, citationsState, identifiers);
+            const content = await assembleRetainedCommonMark(nested, ast, tape, context, extensions, imageTarget, nested.root, active, depth + 1, citationsState, identifiers, gfmCounts);
             if (cell && await ast.count(content) === 1) {
               const first = (await ast.at(content, 0))!;
               if (await ast.name(first) === "Para") await ast.set(content, 0, await ast.tag("Plain", (await ast.content(first))!));
@@ -289,16 +289,24 @@ export async function assembleRetainedCommonMark(
       if (block.kind === "heading") {
         const attributes = await ast.value(heading?.attributes ?? ["", [], []]);
         let id = await ast.range((await ast.at(attributes, 0))!);
-        if (!id.units && extensions.auto_identifiers) {
-          const base = await retainedHeadingIdentifier(ast, inlines);
+        if (!id.units && (extensions.auto_identifiers || extensions.gfm_auto_identifiers)) {
+          const base = await retainedHeadingIdentifier(ast, inlines, extensions.gfm_auto_identifiers);
           id = base;
-          for (let suffix = 1; await identifiers.has(id); suffix++) {
+          if (extensions.gfm_auto_identifiers) {
+            const key = BigInt(await identifiers.add(base));
+            const count = await gfmCounts.get(key) ?? 0n;
+            if (count) {
+              id = await ast.text.from(ast.text.chunks(base));
+              await ast.text.append(id, await ast.text.from([`-${count}`]));
+            }
+            await gfmCounts.set(key, count + 1n);
+          } else for (let suffix = 1; await identifiers.has(id); suffix++) {
             id = await ast.text.from(ast.text.chunks(base));
             await ast.text.append(id, await ast.text.from([`-${suffix}`]));
           }
           await ast.set(attributes, 0, await ast.string(id));
         }
-        if (id.units) await identifiers.add(id);
+        if (!extensions.gfm_auto_identifiers && id.units) await identifiers.add(id);
         await ast.push(out, await ast.tag("Header", await ast.value([block.number, attributes, inlines])));
       } else await ast.push(out, await ast.tag(tight ? "Plain" : "Para", inlines));
     } else if (block.kind === "thematicBreak") await ast.push(out, await ast.tag("HorizontalRule"));

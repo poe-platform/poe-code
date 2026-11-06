@@ -2243,3 +2243,32 @@ for (const source of ["t", "v", "other"]) {
     });
   });
 }
+
+for (const [headers, names] of [
+  [["name", "name"], ["name_1", "name_2"]],
+  [["name", "NAME"], ["name_1", "NAME_2"]],
+  [["a", "b", "b"], ["a", "b_2", "b_3"]],
+  [["a", "a", "a_1", "a_01", "b", "b"], ["a_001", "a_002", "a_1", "a_01", "b_005", "b_006"]],
+  [["", ""], ["?_1", "?_2"]],
+  [['a"b', 'a"b'], ['a"b_1', 'a"b_2']],
+  [["first", "other"], ["first", "other"]]
+]) {
+  test(`sqlite3 import preserves duplicate header fields: ${JSON.stringify(headers)}`, async () => {
+    const quote = (value: string) => `"${value.replaceAll('"', '""')}"`;
+    const values = headers!.map((_, index) => `value${index}`);
+    const csv = new TextEncoder().encode(`${headers!.map(quote).join(",")}\n${values.join(",")}\n`);
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/rows.csv", csv);
+    const script = `.import --csv /rows.csv t\nSELECT * FROM t;\nSELECT ${names!.map(quote).join(",")} FROM t;`;
+    const renamed = headers!.flatMap((name, index) => (name || "?") === names![index] ? [] :
+      [`${quote(name || "?")} to ${quote(names![index]!)}`]);
+    const expected = `${values.join("|")}\n`.repeat(2);
+    assert.deepEqual(await runSqlite3(fs, [":memory:"], script), {
+      code: 0, stdout: expected,
+      stderr: renamed.length ? `Columns renamed during .import /rows.csv due to duplicates:\n${renamed.join(",\n")}\n` : ""
+    });
+    // The stdout-only fast path must defer imports that emit renaming diagnostics.
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"], () => csv),
+      renamed.length ? undefined : expected);
+  });
+}

@@ -1015,9 +1015,12 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             }
           }
           if (!tableExists) {
-            const headerCols = first.value;
+            const { columns: headerCols, renames } = importColumns(first.value);
+            if (renames.length) {
+              await writeText(context.stderr, `Columns renamed during .import ${fileArg} due to duplicates:\n${renames.join(",\n")}\n`);
+            }
             colCount = headerCols.length;
-            const createSql = `CREATE TABLE "${tableArg}"(${headerCols.map((c) => `"${c}" TEXT`).join(", ")})`;
+            const createSql = `CREATE TABLE "${tableArg}"(${headerCols.map((c) => `"${c.replaceAll('"', '""')}" TEXT`).join(", ")})`;
             await execSingleStmt(createSql);
             tbl = db.findTable ? db.findTable(tableArg) : undefined;
           }
@@ -1300,6 +1303,27 @@ export function sqlite3Commands(options: Sqlite3CommandsOptions = {}): VirtualSh
       }
     }
   };
+}
+
+function importColumns(headers: string[]): { columns: string[]; renames: string[] } {
+  const names = headers.map(name => name || "?");
+  // SQLite identifiers fold ASCII case only.
+  const folded = names.map(name => Array.from(name, char =>
+    char >= "A" && char <= "Z" ? char.toLowerCase() : char).join(""));
+  const counts = new Map<string, number>();
+  for (const name of folded) counts.set(name, (counts.get(name) ?? 0) + 1);
+  let width = 1;
+  let columns: string[];
+  for (;;) {
+    columns = names.map((name, index) => counts.get(folded[index]!)! > 1
+      ? `${name}_${String(index + 1).padStart(width, "0")}` : name);
+    if (!folded.some((name, index) => counts.get(name)! > 1 &&
+      counts.has(`${name}_${String(index + 1).padStart(width, "0")}`))) break;
+    width++;
+  }
+  const renames = names.flatMap((name, index) => name === columns[index] ? [] :
+    [`"${name.replaceAll('"', '""')}" to "${columns[index]!.replaceAll('"', '""')}"`]);
+  return { columns, renames };
 }
 
 const fatalSyncSqliteDecoder = new TextDecoder("utf-8", { fatal: true });
@@ -1663,10 +1687,12 @@ export function evalSyncSqlite3(
         let dataRows = parsedRows;
         let colCount = tbl ? tbl.columns.length : (parsedRows[0]?.length ?? 0);
         if (!tbl) {
-          const headerCols = parsedRows[0]!;
+          const { columns: headerCols, renames } = importColumns(parsedRows[0]!);
+          // This fast path cannot publish stderr; let the command report renaming.
+          if (renames.length) return false;
           colCount = headerCols.length;
           dataRows = parsedRows.slice(1);
-          const createSql = `CREATE TABLE "${tableArg}"(${headerCols.map((c) => `"${c}" TEXT`).join(", ")})`;
+          const createSql = `CREATE TABLE "${tableArg}"(${headerCols.map((c) => `"${c.replaceAll('"', '""')}" TEXT`).join(", ")})`;
           db.executeStatement(createSql);
           tbl = db.findTable(tableArg);
         }

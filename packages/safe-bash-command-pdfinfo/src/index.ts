@@ -220,6 +220,40 @@ function formatField(label: string, value: string): string {
   return `${prefix}${" ".repeat(pad)}${sanitizeControls(value)}\n`;
 }
 
+function formatPdfXSubtype(version: string | undefined): string {
+  if (version === undefined) return "";
+  const match = /PDF\/(?:A|X|VT|E|UA)-([0-9])(?:[a-zA-Z]{1,2})?:?([0-9]{4})?/.exec(version);
+  const variant = match?.[1];
+  const year = match?.[2];
+  const part = variant === "1" ? year === "2003" ? 4 : 1
+    : variant === "2" ? 5 : variant === "3" ? year === "2003" ? 6 : 3
+    : variant === "4" ? 7 : variant === "5" ? 8 : 9;
+  const standards: Record<number, readonly [string, string]> = {
+    1: ["PDF/X-1:2001", "Complete exchange using CMYK data (PDF/X-1 and PDF/X-1a)"],
+    3: ["PDF/X-3:2002", "Complete exchange suitable for colour-managed workflows (PDF/X-3)"],
+    4: ["PDF/X-1:2003", "Complete exchange of CMYK and spot colour printing data using PDF 1.4 (PDF/X-1a)"],
+    5: ["PDF/X-2", "Partial exchange of printing data using PDF 1.4 (PDF/X-2) [Withdrawn]"],
+    6: ["PDF/X-3:2003", "Complete exchange of printing data suitable for colour-managed workflows using PDF 1.4 (PDF/X-3)"],
+    7: ["PDF/X-4", "Complete exchange of printing data (PDF/X-4) and partial exchange of printing data with external profile reference (PDF/X-4p) using PDF 1.6"],
+    8: ["PDF/X-5", "Partial exchange of printing data using PDF 1.6 (PDF/X-5)"],
+  };
+  const [abbreviation, subtitle] = standards[part] ?? ["PDF/X", ""];
+  const conformance = /PDF\/(?:A|X|VT|E|UA)-[0-9]([a-zA-Z]{1,3})/.exec(version)?.[1]?.toLowerCase();
+  const levels: Record<string, string> = {
+    a: "Level A, Accessible", b: "Level B, Basic", g: "Level G, External graphical content",
+    n: "Level N, External ICC profile", p: "Level P, Embedded ICC profile",
+    pg: "Level PG, Embedded ICC profile and external graphical content", u: "Level U, Unicode support",
+  };
+  const level = conformance === undefined ? undefined : levels[conformance];
+  // Poppler uses part 9 for an empty or unrecognized PDF/X version.
+  return `PDF subtype:    ${sanitizeControls(version)}\n`
+    + "    Title:         ISO 15930 - Electronic document file format for prepress digital data exchange (PDF/X)\n"
+    + `    Abbreviation:  ${abbreviation}\n`
+    + `    Subtitle:      Part ${part}${subtitle ? `: ${subtitle}` : ""}\n`
+    + `    Standard:      ISO 15930-${part}\n`
+    + (level ? `    Conformance:   ${level}\n` : "");
+}
+
 function isAsciiDigitChar(ch: string | undefined): boolean {
   if (!ch) return false;
   const c = ch.charCodeAt(0);
@@ -1088,6 +1122,7 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
   out += formatField("File size", `${fileSize} bytes`);
   out += formatField("Optimized", checkLinearized(cos) ? "yes" : "no");
   out += formatField("PDF version", cos.version);
+  out += formatPdfXSubtype(infoMap.get("GTS_PDFXVersion"));
 
   return { exitCode: 0, stdout: applyPopplerOutputEncoding(out, args.encoding), stderr: "" };
 }
@@ -1282,6 +1317,7 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
     }
     await field("Optimized", linearized ? "yes" : "no");
     await field("PDF version", doc.crossReference.version);
+    await emit(applyPopplerOutputEncoding(formatPdfXSubtype(await infoValue("GTS_PDFXVersion")), args.encoding));
     return { exitCode: 0 };
   }, "info");
 }

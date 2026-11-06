@@ -6,7 +6,7 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 
 | Capability | CLI Flag | Description |
 | --- | --- | --- |
-| Standard Info & Geometry | `pdfinfo file.pdf` | Extracts `Title`, `Author`, `Pages`, `Encrypted`, `Page size`, `Page rot`, `Form`, `JavaScript`, `Tagged`, `File size`, and `PDF version`. |
+| Standard Info & Geometry | `pdfinfo file.pdf` | Extracts `Title`, `Author`, `Pages`, `Encrypted`, `Page size`, `Page rot`, `Form`, `JavaScript`, `Tagged`, `File size`, `PDF version`, and PDF/X subtype standards metadata. |
 | Page Bounding Boxes | `-box` | Prints `MediaBox`, `CropBox`, `BleedBox`, `TrimBox`, and `ArtBox` coordinates (`%8.2f`). |
 | Multi-Page Ranges | `-f <first> -l <last>` | Inspects page geometry and boxes across a specific range of pages. |
 | Custom Metadata | `-custom` | Includes sorted custom `/Info` dictionary string entries. |

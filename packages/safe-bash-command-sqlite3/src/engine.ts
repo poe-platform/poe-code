@@ -6032,7 +6032,9 @@ export class SqliteDatabase {
           });
         }, this)
       );
-      schema.push({ tableAlias: resolved.alias, columns: resolved.columns, table: resolved.table, ftsTable: resolved.ftsTable });
+      const leftSchema = schema.slice();
+      const rightSchema = resolved.schema ?? [{ tableAlias: resolved.alias, columns: resolved.columns, table: resolved.table, ftsTable: resolved.ftsTable }];
+      schema.push(...rightSchema);
 
       if (itemIdx === 0) {
         currentRows = resolved.rows;
@@ -6060,7 +6062,9 @@ export class SqliteDatabase {
 
       if (usingList) {
         const shared = new Set(usingList.map((column) => column.toLowerCase()));
-        schema[schema.length - 1]!.hidden = shared;
+        for (const source of rightSchema) {
+          source.hidden = new Set([...(source.hidden ?? []), ...shared]);
+        }
         for (const source of schema) {
           source.shared = new Set([...(source.shared ?? []), ...shared]);
         }
@@ -6090,14 +6094,14 @@ export class SqliteDatabase {
         isPureSingleEqui: boolean;
         collation: string;
       } | undefined;
-      const rightAliasLower = resolved.alias.toLowerCase();
+      const rightAliases = new Set(rightSchema.map(source => source.tableAlias.toLowerCase()));
       const rightColSet = new Set(resolved.columns.map((c) => c.toLowerCase()));
-      const leftAliasSet = new Set(schema.slice(0, -1).map((s) => s.tableAlias.toLowerCase()));
+      const leftAliasSet = new Set(leftSchema.map((s) => s.tableAlias.toLowerCase()));
 
       const classifyJoinCol = (colExpr: Extract<ExprNode, { kind: "column" }>): "left" | "right" | undefined => {
         if (colExpr.table) {
           const tLower = colExpr.table.toLowerCase();
-          if (tLower === rightAliasLower) return "right";
+          if (rightAliases.has(tLower)) return "right";
           if (leftAliasSet.has(tLower)) return "left";
           return undefined;
         }
@@ -6310,29 +6314,32 @@ export class SqliteDatabase {
         }
 
         if (!matchedLeft && (item.joinType === "LEFT" || item.joinType === "FULL")) {
-          const nullObj: Record<string, SqlValue> = {};
-          for (const col of resolved.columns) {
-            nullObj[col] = null;
-          }
+          const nullPadded = { ...leftRow };
           const lTables = (leftRow as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
           if (lTables) {
-            lTables[resolved.alias] = nullObj;
-            if ((leftRow as any).__rowids) (leftRow as any).__rowids[resolved.alias] = null;
-            ((leftRow as any).__sources as Record<string, SqlValue>[]).push(nullObj);
-            this.checkRowCount(nextRows.length + 1);
-            nextRows.push(leftRow);
-          } else {
-            const nullPadded: Record<string, SqlValue> = { ...leftRow };
-            for (const col of resolved.columns) {
+            (nullPadded as any).__tables = { ...lTables };
+            (nullPadded as any).__rowids = { ...(leftRow as any).__rowids };
+            (nullPadded as any).__sources = [...((leftRow as any).__sources ?? [])];
+          }
+          for (const source of rightSchema) {
+            yield;
+            const nullObj: Record<string, SqlValue> = {};
+            for (const col of source.columns) {
               yield;
-              nullPadded[`${resolved.alias}.${col}`] = null;
-              if (!(col in nullPadded)) {
-                nullPadded[col] = null;
+              nullObj[col] = null;
+              if (!lTables) {
+                nullPadded[`${source.tableAlias}.${col}`] = null;
+                if (!(col in nullPadded)) nullPadded[col] = null;
               }
             }
-            this.checkRowCount(nextRows.length + 1);
-            nextRows.push(nullPadded);
+            if (lTables) {
+              (nullPadded as any).__tables[source.tableAlias] = nullObj;
+              (nullPadded as any).__rowids[source.tableAlias] = null;
+              (nullPadded as any).__sources.push(nullObj);
+            }
           }
+          this.checkRowCount(nextRows.length + 1);
+          nextRows.push(nullPadded);
         }
       }
 
@@ -6346,7 +6353,7 @@ export class SqliteDatabase {
               const tablesMap: Record<string, Record<string, SqlValue>> = {};
               const rowidsMap: Record<string, SqlValue> = {};
               const sourcesList: Record<string, SqlValue>[] = [];
-              for (const s of schema.slice(0, -1)) {
+              for (const s of leftSchema) {
                 const nullLeft: Record<string, SqlValue> = {};
                 for (const col of s.columns) {
                   nullLeft[col] = null;
@@ -6367,7 +6374,7 @@ export class SqliteDatabase {
               } as unknown as Record<string, SqlValue>);
             } else {
               const nullPadded: Record<string, SqlValue> = {};
-              for (const s of schema.slice(0, -1)) {
+              for (const s of leftSchema) {
                 yield;
                 for (const col of s.columns) {
                   yield;
@@ -6399,6 +6406,7 @@ export class SqliteDatabase {
     alias: string;
     columns: string[];
     rows: Record<string, SqlValue>[];
+    schema?: StepResult<ReturnType<SqliteDatabase["evaluateFromClause"]>>["schema"];
     isCorrelated?: boolean;
     ftsTable?: TableDef | undefined;
     table?: TableDef | undefined;
@@ -6407,7 +6415,7 @@ export class SqliteDatabase {
       return { alias: "", columns: [], rows: [{}] };
     }
 
-    // Subquery in FROM: (SELECT ...) [AS] alias
+    // Parenthesized table group or subquery, optionally followed by an alias.
     if (srcTokens[0]!.value === "(") {
       let d = 1;
       let p = 1;
@@ -6427,6 +6435,30 @@ export class SqliteDatabase {
       }
       if (srcTokens[p]?.value.toUpperCase() === "AS") {
         p += 1;
+      }
+      if (d !== 0 || inner.length === 0) throw new Error('near ")": syntax error');
+      const keyword = inner[0]!.type === "word" ? inner[0]!.value.toUpperCase() : "";
+      if (keyword !== "SELECT" && keyword !== "WITH" && keyword !== "VALUES") {
+        const grouped = yield* this.evaluateFromClause(inner, positionalParams, cteScope);
+        const columns = grouped.schema.flatMap(source =>
+          source.columns.filter(column => !source.hidden?.has(column.toLowerCase())));
+        const alias = srcTokens[p]?.value ?? "";
+        if (alias) {
+          for (const row of grouped.rows) {
+            yield;
+            const values: Record<string, SqlValue> = {};
+            for (const column of columns) {
+              yield;
+              values[column] = this.lookupColInRow(row, undefined, column);
+            }
+            const tables = (row as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+            if (tables) tables[alias] = values;
+            else for (const column of columns) row[`${alias}.${column}`] = values[column]!;
+          }
+          // Keep the original sources visible without expanding the alias twice in SELECT *.
+          grouped.schema.push({ tableAlias: alias, columns, hidden: new Set(columns.map(column => column.toLowerCase())) });
+        }
+        return { alias, columns, rows: grouped.rows, schema: grouped.schema };
       }
       const alias = srcTokens[p]?.value ?? "subquery";
       const res = (yield* this.executeStatementSteps(

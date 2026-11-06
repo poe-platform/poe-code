@@ -543,7 +543,24 @@ async function compileProgram(context: CommandContext, options: Options, source:
   return (await compile(source, 1, false)).ast;
 }
 
-async function* inputSources(context: CommandContext, options: Pick<Options, "files" | "rawInput">, budget: Budget, convert?: FilterInput): AsyncGenerator<ByteSource> {
+type FileInputErrorHandler = (file: string, error: FsError) => Promise<void>;
+
+async function* readInputFile(
+  context: CommandContext,
+  file: string,
+  open: () => ByteSource | Promise<ByteSource>,
+  onFileError?: FileInputErrorHandler,
+): ByteSource {
+  try {
+    yield* readBytes(await open(), context.signal);
+  } catch (error) {
+    context.signal.throwIfAborted();
+    if (!onFileError || !(error instanceof FsError) || error.code === "EPIPE") throw error;
+    await onFileError(file, error);
+  }
+}
+
+async function* inputSources(context: CommandContext, options: Pick<Options, "files" | "rawInput">, budget: Budget, convert?: FilterInput, onFileError?: FileInputErrorHandler): AsyncGenerator<ByteSource> {
   const files = options.files.length ? options.files : ["-"];
   let usedStdin = false;
   for (const file of files) {
@@ -554,20 +571,22 @@ async function* inputSources(context: CommandContext, options: Pick<Options, "fi
       source = context.stdin;
     }
     else {
-      const absolute = pathOf(context, file);
-      const remaining = budget.limits.maxInputBytes - budget.inputBytes;
-      await budget.tick();
-      const backing = getRuntimeBackingFileSystem(context.fs);
-      const needsCapabilitiesFor = Boolean(
-        context.fs.capabilitiesFor &&
-          (backing === undefined || backing.capabilitiesFor !== undefined || tryResolveMemoryDevicePath(backing, absolute) === undefined),
-      );
-      const capabilities = needsCapabilitiesFor
-        ? await interruptible(() => context.fs.capabilitiesFor!(absolute, { signal: context.signal }), context.signal)
-        : context.fs.capabilities;
-      context.signal.throwIfAborted();
-      if (context.fs.readStream && capabilities.streamingRead !== false) source = context.fs.readStream(absolute, { signal: context.signal });
-      else source = readFileStream(context.fs, absolute, { signal: context.signal, chunkSize: Math.max(1, Math.min(65536, remaining)) });
+      source = readInputFile(context, file, async () => {
+        const absolute = pathOf(context, file);
+        const remaining = budget.limits.maxInputBytes - budget.inputBytes;
+        await budget.tick();
+        const backing = getRuntimeBackingFileSystem(context.fs);
+        const needsCapabilitiesFor = Boolean(
+          context.fs.capabilitiesFor &&
+            (backing === undefined || backing.capabilitiesFor !== undefined || tryResolveMemoryDevicePath(backing, absolute) === undefined),
+        );
+        const capabilities = needsCapabilitiesFor
+          ? await interruptible(() => context.fs.capabilitiesFor!(absolute, { signal: context.signal }), context.signal)
+          : context.fs.capabilities;
+        context.signal.throwIfAborted();
+        if (context.fs.readStream && capabilities.streamingRead !== false) return context.fs.readStream(absolute, { signal: context.signal });
+        else return readFileStream(context.fs, absolute, { signal: context.signal, chunkSize: Math.max(1, Math.min(65536, remaining)) });
+      }, onFileError);
     }
     budget.inputLocation = { name: file === "-" ? "<stdin>" : file, line: 0, complete: false };
     yield convert ? await convert(source) : source;
@@ -602,6 +621,7 @@ function inputs(
   context: CommandContext,
   options: Options,
   budget: Budget,
+  onFileError: FileInputErrorHandler,
   convert?: FilterInput,
   onValue?: (value: Json) => Promise<void> | void,
   onChunkEnd?: () => Promise<void> | void,
@@ -609,7 +629,7 @@ function inputs(
   retainValues?: boolean,
 ): AsyncGenerator<Json> {
   if (options.rawInput) {
-    return rawValues(inputSources(context, options, budget, convert), budget, options.slurp);
+    return rawValues(inputSources(context, options, budget, convert, onFileError), budget, options.slurp);
   }
   let source: ByteSource | undefined;
   if (!options.files.length && !convert) {
@@ -642,7 +662,7 @@ function inputs(
         if (tickPromise) {
           return (async function* () {
             await tickPromise;
-            yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
+            yield* inputs(context, options, budget, onFileError, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
           })();
         }
         (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
@@ -666,18 +686,18 @@ function inputs(
       if (tickPromise) {
         return (async function* () {
           await tickPromise;
-          yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
+          yield* inputs(context, options, budget, onFileError, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
         })();
       }
       context.signal.throwIfAborted();
       budget.inputLocation = { name: file, line: 0, complete: false };
-      source = context.fs.readStream(absolute, { signal: context.signal });
+      source = readInputFile(context, file, () => context.fs.readStream!(absolute, { signal: context.signal }), onFileError);
     }
     }
   }
   if (source === undefined) {
     async function* joined(): ByteSource {
-      for await (const s of inputSources(context, options, budget, convert)) yield* readBytes(s, context.signal);
+      for await (const s of inputSources(context, options, budget, convert, onFileError)) yield* readBytes(s, context.signal);
     }
     source = joined();
   }
@@ -706,6 +726,15 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
   const budget = new Budget(limits, context.signal);
   context.signal.throwIfAborted();
   const diagnostics: { location: InputLocation; message: string }[] = [];
+  let fileInputFailed = false;
+  const onFileError: FileInputErrorHandler = async (file, error) => {
+    fileInputFailed = true;
+    const description = new FsError(error.code).message.slice(error.code.length + 2);
+    const message = `jq: error: Could not open file ${escapeText(file, "diagnostic")}: ${description[0]!.toUpperCase()}${description.slice(1)}\n`;
+    budget.outputBytes += utf8ByteLength(message);
+    if (budget.outputBytes > limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
+    await budget.writeDiagnostic!(message);
+  };
   let diagnosticBytes = 0;
   let diagnosticWriteFailed = false;
   let stdoutWriteFailed = false;
@@ -780,7 +809,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       ast = await compileProgram(context, options, source, budget);
     }
     const sharedInput = budget.readsInput ? (async function* () {
-      const source = inputs(context, options, budget, convert, undefined, undefined, undefined, true);
+      const source = inputs(context, options, budget, onFileError, convert, undefined, undefined, undefined, true);
       if (options.slurp && !options.rawInput) {
         const values: Json[] = [];
         let bytes = 2;
@@ -934,7 +963,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     } else if (options.nullInput) {
       await emitSyncOrAsync(null);
       // XML frontends still parse their documents when jq receives null.
-      if (convert) for await (const value of inputs(context, options, budget, convert)) budget.value(value);
+      if (convert) for await (const value of inputs(context, options, budget, onFileError, convert)) budget.value(value);
     }
     else if (options.slurp && !options.rawInput) {
       const values: Json[] = [];
@@ -945,13 +974,13 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
         if (bytes > limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         values.push(value);
       };
-      for await (const value of inputs(context, options, budget, convert, onSlurpValue, undefined, undefined, true)) {
+      for await (const value of inputs(context, options, budget, onFileError, convert, onSlurpValue, undefined, undefined, true)) {
         onSlurpValue(value);
       }
       budget.value(values);
       const pEmit = emitSyncOrAsync(values);
       if (pEmit) await pEmit;
-    } else for await (const value of inputs(context, options, budget, convert, emitSyncOrAsync, flushStdout, () => diagnostics.length > 0)) {
+    } else for await (const value of inputs(context, options, budget, onFileError, convert, emitSyncOrAsync, flushStdout, () => diagnostics.length > 0)) {
       const p = emitSyncOrAsync(value);
       if (p) await p;
       const pending = flushStdout();
@@ -964,7 +993,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     options.files.length = 0;
     interpreter.releaseScratch();
     sharedFastBudget = undefined;
-    return { exitCode: options.exitStatus && lastTruth === undefined && status === 0 ? 4 : status };
+    return { exitCode: fileInputFailed ? 2 : options.exitStatus && lastTruth === undefined && status === 0 ? 4 : status };
   } catch (error) {
     if (diagnosticWriteFailed) throw error;
     context.signal.throwIfAborted();

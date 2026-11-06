@@ -35,11 +35,11 @@ for (const fixture of ["h264-b-frames.mp4", "aac-external.mp4"]) {
 for (const mode of ["file", "stdin", "sync"]) {
   it.each([
     ["stream=index:stream_disposition=default", { programs: [], stream_groups: [], streams: [{ index: 0, disposition: { default: 1 } }] }],
-    ["stream_disposition=default,forced", { programs: [], stream_groups: [], streams: [{ disposition: { default: 1, forced: 0 } }] }],
-    ["stream_disposition=missing", { programs: [], stream_groups: [], streams: [{ disposition: {} }] }],
+    ["stream_disposition=default,forced", { streams: [{ disposition: { default: 1, forced: 0 } }] }],
+    ["stream_disposition=missing", { streams: [{ disposition: {} }] }],
     ["stream_disposition=", {}],
     ["stream=index:stream_disposition=", { programs: [], stream_groups: [], streams: [{ index: 0 }] }],
-    ["stream_disposition=default:stream_tags=language", { programs: [], stream_groups: [], streams: [{ disposition: { default: 1 }, tags: { language: "und" } }] }]
+    ["stream_disposition=default:stream_tags=language", { streams: [{ disposition: { default: 1 }, tags: { language: "und" } }] }]
   ] as const)(`selects disposition entries via ${mode}: %s`, async (entries, expected) => {
     const args = ["-v", "error", "-show_entries", entries, "-of", "json", mode === "file" ? "/clip.mp4" : "-"];
     let output = "", diagnostic = "";
@@ -63,7 +63,7 @@ for (const mode of ["file", "stdin", "sync"]) {
 it("selects all existing dispositions without a field assignment", () => {
   const full = JSON.parse(evalSyncFfprobe(bytes, ["-show_streams", "-of", "json", "-"])!);
   const selected = JSON.parse(evalSyncFfprobe(bytes, ["-show_entries", "stream_disposition", "-of", "json", "-"])!);
-  expect(selected).toEqual({ programs: [], stream_groups: [], streams: [{ disposition: full.streams[0].disposition }] });
+  expect(selected).toEqual({ streams: [{ disposition: full.streams[0].disposition }] });
   expect(selected.streams[0].disposition).toMatchObject({ default: 1, forced: 0 });
 });
 

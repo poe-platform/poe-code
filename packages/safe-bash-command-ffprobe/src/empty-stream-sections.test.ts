@@ -13,8 +13,19 @@ const fixtures = [
 ];
 
 for (const { name, bytes } of fixtures) {
-  for (const selection of [["-show_streams"], ["-show_entries", "stream=index"], ["-show_format"]]) {
-    it(`emits empty sections only with streams for ${name}: ${selection.join(" ")}`, async () => {
+  for (const [selection, keys] of [
+    [["-show_streams"], ["streams"]],
+    [["-show_streams", "-show_format"], ["streams", "format"]],
+    [["-show_entries", "stream=index"], ["programs", "stream_groups", "streams"]],
+    [["-show_streams", "-show_entries", "format=duration"], ["streams", "format"]],
+    [["-show_entries", "stream_tags"], ["streams"]],
+    [["-show_entries", "stream_disposition=default"], ["streams"]],
+    [["-show_entries", "stream="], []],
+    [["-show_programs"], ["programs"]],
+    [["-show_programs", "-show_streams"], ["programs", "streams"]],
+    [["-show_format"], ["format"]]
+  ] satisfies [string[], string[]][]) {
+    it(`matches native JSON sections for ${name}: ${selection.join(" ")}`, async () => {
       const args = ["-v", "error", ...selection, "-of", "json", "/input"];
       const fs = new MemoryFileSystem();
       await fs.writeFile("/input", bytes);
@@ -29,16 +40,12 @@ for (const { name, bytes } of fixtures) {
       expect(result.exitCode, diagnostic).toBe(0);
       for (const text of [output, evalSyncFfprobe(bytes, [...args.slice(0, -1), "-"])!]) {
         const parsed = JSON.parse(text);
-        if (selection[0] === "-show_format") {
-          expect(Object.keys(parsed)).toEqual(["format"]);
-        } else {
-          expect(Object.keys(parsed)).toEqual(["programs", "stream_groups", "streams"]);
-          expect(parsed.programs).toEqual([]);
-          expect(parsed.stream_groups).toEqual([]);
-          expect(parsed.streams.length).toBeGreaterThan(0);
-          if (selection[0] === "-show_entries")
-            expect(parsed.streams).toEqual(parsed.streams.map((_: unknown, index: number) => ({ index })));
-        }
+        expect(Object.keys(parsed)).toEqual(keys);
+        if (keys.includes("programs")) expect(parsed.programs).toEqual([]);
+        if (keys.includes("stream_groups")) expect(parsed.stream_groups).toEqual([]);
+        if (keys.includes("streams")) expect(parsed.streams.length).toBeGreaterThan(0);
+        if (selection[1] === "stream=index")
+          expect(parsed.streams).toEqual(parsed.streams.map((_: unknown, index: number) => ({ index })));
       }
     });
   }

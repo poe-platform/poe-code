@@ -480,8 +480,8 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
 
   if (fmt === "json") {
     const sections: { name: string; rows?: Iterable<unknown> | AsyncIterable<unknown>; value?: unknown }[] = [];
-    if (includePrograms || includeStreams) sections.push({ name: "programs", rows: [] });
-    if (includeStreams) sections.push({ name: "stream_groups", rows: [] });
+    if (includePrograms || includesEntries("stream")) sections.push({ name: "programs", rows: [] });
+    if (includesEntries("stream")) sections.push({ name: "stream_groups", rows: [] });
     if (includePackets && probe.packets) sections.push({ name: "packets", rows: probe.packets });
     if (includeFrames && probe.frames) sections.push({ name: "frames", rows: probe.frames });
     if (includeStreams) sections.push({ name: "streams", rows: streams });

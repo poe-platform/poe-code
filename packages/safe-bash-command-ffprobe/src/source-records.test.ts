@@ -31,7 +31,7 @@ it.each(['success','read','close','cancel'])('keeps caller input alive for lazy 
   let error:unknown;
   const result=await Promise.resolve(command.createFfprobeCommand({asts:[plugin]}).execute({command:'ffprobe',...createCommandArguments(['-f','wav','-of','json','-show_streams','/input.wav']),cwd:'/',env:{},fs,signal:controller.signal,stdin:{async *[Symbol.asyncIterator](){}},stdout:{async write(chunk){expect(closed).toBe(1);output+=new TextDecoder().decode(chunk);}},stderr:{async write(chunk){diagnostic+=new TextDecoder().decode(chunk);}}})).catch(reason=>{error=reason;});
   expect(closed).toBe(1);expect(retired).toBe(1);
-  if(mode==='success'){expect(result?.exitCode,diagnostic).toBe(0);expect(JSON.parse(output)).toEqual({programs:[],stream_groups:[],streams:probe.streams});}
+  if(mode==='success'){expect(result?.exitCode,diagnostic).toBe(0);expect(JSON.parse(output)).toEqual({streams:probe.streams});}
   else {expect(output).toBe('');if(mode==='cancel')expect(error).toEqual(new Error('cancelled lazy read'));else expect(diagnostic).toContain(mode==='read'?'late read':'close failed');}
 });
 it('retires a rejecting record iterator and preserves the read failure over cleanup',async()=>{

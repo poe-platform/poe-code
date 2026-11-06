@@ -26,7 +26,8 @@ export function parseArguments(args: readonly string[]) {
   let filename = "",
     writer = "default",
     selector: string | undefined,
-    quiet = false;
+    quiet = false,
+    streamEntries = false;
   const sections = new Map<string, string[] | undefined>();
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
@@ -51,6 +52,7 @@ export function parseArguments(args: readonly string[]) {
         const [section, fields] = entry.split("=");
         if (!["stream", "format", "stream_tags", "format_tags"].includes(section!))
           throw new Error(`Unknown section ${section}`);
+        if (section === "stream") streamEntries = fields === undefined || fields.split(",").some(Boolean);
         sections.set(
           section!,
           fields === undefined ? undefined : fields.split(",").filter(Boolean)
@@ -85,7 +87,7 @@ export function parseArguments(args: readonly string[]) {
     sections.set("stream", undefined);
     sections.set("format", undefined);
   }
-  return { filename, format: format!, sections, settings, selector, quiet };
+  return { filename, format: format!, sections, settings, selector, quiet, streamEntries };
 }
 
 type Row = Record<string, string | number | Record<string, string>>;
@@ -239,13 +241,15 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
 }
 
 export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>): string {
-  const { sections, format, settings } = parsed;
+  const { sections, format, settings, streamEntries } = parsed;
   const rows = audioProbeRows(audio, size, parsed);
   if (format === "json") {
     const result: Record<string, unknown> = {};
     if ((sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0)) {
-      result.programs = [];
-      result.stream_groups = [];
+      if (streamEntries) {
+        result.programs = [];
+        result.stream_groups = [];
+      }
       result.streams = rows.filter((r) => r.section === "stream").map((r) => r.row);
     }
     const row = rows.find((r) => r.section === "format");

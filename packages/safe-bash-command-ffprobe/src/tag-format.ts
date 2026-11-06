@@ -58,7 +58,7 @@ export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" 
 
 /** Rows may acquire per-stream indexes; iteration never collects the stream list. */
 export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, args: readonly string[]): AsyncGenerator<string> {
-  const { sections, format, settings } = parseArguments(args);
+  const { sections, format, settings, streamEntries } = parseArguments(args);
   let tags: StoredAudioTags | undefined;
   async function* tagFields(section: string) {
     const selected = sections.get(section + "_tags");
@@ -94,7 +94,10 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
   }
   if (format === "json") {
     yield "{"; let first = true, streamOpen = (sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0), firstStream = true;
-    if (streamOpen) { yield '\n    "programs": [],\n    "stream_groups": [],\n    "streams": ['; first = false; }
+    if (streamOpen) {
+      if (streamEntries) yield '\n    "programs": [],\n    "stream_groups": [],';
+      yield '\n    "streams": ['; first = false;
+    }
     for await (const entry of rows) {
       const { section, row } = entry; tags = entry.tags;
       if (section === "stream") {

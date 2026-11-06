@@ -461,6 +461,9 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
         }
         if (name === "not" && args.length === 1) value = Number(args[0] === 0);
         else if (name === "eq" && args.length === 2) value = Number(args[0] === args[1]);
+        else if (name === "gte" && args.length === 2) value = Number(args[0]! >= args[1]!);
+        else if (name === "lt" && args.length === 2) value = Number(args[0]! < args[1]!);
+        else if (name === "if" && args.length === 3) value = args[0] !== 0 ? args[1]! : args[2]!;
         else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
         else if (name === "mod" && args.length === 2) value = args[0]! - Math.floor(args[0]! / args[1]!) * args[1]!;
         else if (name === "between" && args.length === 3) value = Number(args[0]! >= args[1]! && args[0]! <= args[2]!);
@@ -2629,33 +2632,56 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
                         let volSpec = "1";
                         let precision = "float";
+                        let evaluation = "once";
+                        let enable: string | undefined;
                         for (const [index, option] of argument.split(":").entries()) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? (index === 0 ? "volume" : "precision") : option.slice(0, separator).trim();
+                          const key = separator < 0 ? (["volume", "precision", "eval"][index] ?? "") : option.slice(0, separator).trim();
                           const value = separator < 0 ? option.trim() : option.slice(separator + 1).trim();
                           if (key === "volume") volSpec = value;
                           else if (key === "precision") precision = value;
+                          else if (key === "eval") evaluation = value;
+                          else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);
                         }
                         if (!["fixed", "float", "double"].includes(precision)) throw new Error("volume: invalid precision");
+                        if (evaluation !== "once" && evaluation !== "frame") throw new Error("volume: invalid eval");
                         const decibels = volSpec.endsWith("dB");
-                        const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", {});
-                        const factor = decibels ? Math.pow(10, gain / 20) : gain;
-                        if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
-                        // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
-                        const fixedGain = Math.floor(factor * 256 + 0.5);
+                        const output = stretched.map(channel => new Float32Array(channel.length));
+                        const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
-                        stretched = await mapWork(stretched, async channel => {
-                          const output = new Float32Array(channel.length);
-                          for (let i = 0; i < channel.length; i++) {
-                            if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            output[i] = precision === "fixed"
-                              ? Math.max(-sampleScale, Math.min(sampleScale - 1,
-                                  Math.floor((channel[i]! * sampleScale * fixedGain + 128) / 256))) / sampleScale
-                              : channel[i]! * (precision === "float" ? Math.fround(factor) : factor);
+                        for (let start = 0, n = 0; start < length; n++) {
+                          // PCM packets and encoded audio samples retain the decoder's frame boundaries.
+                          const packet = t.samples[n];
+                          const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const end = evaluation === "once" && enable === undefined ? length : Math.min(length, start + count);
+                          const variables: Record<string, number> = { sample_rate: origRate, nb_channels: origCh, tb: 1 / origRate };
+                          if (evaluation === "frame") Object.assign(variables, {
+                            n, t: packet ? packet.pts / t.timescale : start / origRate,
+                            pts: packet ? packet.pts * origRate / t.timescale : start,
+                            nb_samples: end - start, nb_consumed_samples: start
+                          });
+                          const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
+                          const factor = decibels ? Math.pow(10, gain / 20) : gain;
+                          if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
+                          // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
+                          const fixedGain = Math.floor(factor * 256 + 0.5);
+                          const enabled = enable === undefined || parseFilterExpression(enable, "volume enable", {
+                            n, t: packet ? packet.pts / t.timescale : start / origRate
+                          }) !== 0;
+                          for (let c = 0; c < stretched.length; c++) {
+                            const channel = stretched[c]!;
+                            for (let i = start; i < end; i++) {
+                              if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              output[c]![i] = !enabled ? channel[i]! : precision === "fixed"
+                                ? Math.max(-sampleScale, Math.min(sampleScale - 1,
+                                    Math.floor((channel[i]! * sampleScale * fixedGain + 128) / 256))) / sampleScale
+                                : channel[i]! * (precision === "float" ? Math.fround(factor) : factor);
+                            }
                           }
-                          return output;
-                        }, context.signal);
+                          start = end;
+                        }
+                        stretched = output;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
                         const tempo = Number(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument);

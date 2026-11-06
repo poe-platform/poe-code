@@ -14,6 +14,64 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("volume timeline enable", () => {
+  for (const [expression, start, end] of [
+    ["0", 8000, 8000],
+    ["1", 0, 8000],
+    ["gte(t\\,0.5)", 4096, 8000],
+    ["gte(t\\,0.07)", 1024, 8000],
+    ["'between(t,0.2,0.4)'", 2048, 3584],
+    ["eq(n\\,1)", 512, 1024]
+  ] as const) {
+    it(`evaluates ${expression} at native audio frame boundaries`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 8000 }, (_, i) => (12000 + i % 50) / 32768),
+        Float64Array.from({ length: 8000 }, (_, i) => -(12000 + i % 50) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.wav", "-af", `volume=0:enable=${expression}`, "-c:a", "pcm_s16le", "/output.wav"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const expected = parseWav(input).tracks[0]!.decodedAudio!.channelData;
+      for (const channel of expected) channel.fill(0, start, end);
+      const actual = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!.channelData;
+      assert.deepEqual(actual, expected);
+    });
+  }
+});
+
+describe("frame-evaluated volume", () => {
+  // Native FFmpeg 7.0.2 and 9.0.1 restore this 8 kHz signal at sample 4096.
+  for (const expression of ["if(lt(t\\,0.5)\\,0\\,1)", "'if(lt(t,0.5),0,1)'", "if(lt(n\\,8)\\,0\\,1)"]) {
+    it(`matches native frame transitions and every PCM sample: ${expression}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 8000 }, (_, i) => (12000 + i % 50) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.wav", "-af", `volume=${expression}:eval=frame,volume=1`, "-c:a", "pcm_s16le", "/out.wav"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const expected = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!.slice();
+      expected.fill(0, 0, 4096);
+      assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0], expected);
+    });
+  }
+
+  for (const evaluation of ["once", "frame"]) {
+    it(`accepts scalar volume with eval=${evaluation}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000).fill(0.5)] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.wav", "-af", `volume=0.5:eval=${evaluation}`, "-c:a", "pcm_s16le", "/out.wav"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0], new Float32Array(8000).fill(0.25));
+    });
+  }
+});
+
 describe("stream-scoped audio filters", () => {
   for (const options of [
     ["-af", "volume=0", "-af", "volume=1"],
@@ -1544,31 +1602,6 @@ describe("decoded audio editing", () => {
     });
   }
 
-  for (const filter of ["volume=1", "areverse"]) {
-    it(`preserves every PCM sample at unchanged rate with ${filter}`, async () => {
-      const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 800 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 1000 * i / 8000))] });
-      const expected = parseWav(input).tracks[0]!.decodedAudio!;
-      const vfs = createTestVfs({ "/input.wav": input });
-      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", filter, "-c:a", "pcm_s16le", "/output.wav"], vfs);
-      assert.equal(result.exitCode, 0, result.stderr);
-      const actual = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
-      assert.equal(actual.sampleRate, 8000);
-      assert.equal(actual.channels, 1);
-      assert.equal(actual.channelData[0]!.length, 800);
-      assert.deepEqual(actual.channelData[0], filter === "areverse" ? expected.channelData[0]!.slice().reverse() : expected.channelData[0]);
-    });
-  }
-
-  it("matches constant volume gains when evaluating arithmetic on a sine wave", async () => {
-    const input = encodeWav({ sampleRate: 16000, channels: [Float64Array.from({ length: 8000 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 440 * i / 16000))] });
-    const vfs = createTestVfs({ "/input.wav": input });
-    for (const [expression, gain] of [["0.5+0.25", "0.75"], ["0.5+0.25*2", "1"], ["(0.5+0.25)/2", "0.375"], ["1-0.25-0.25", "0.5"], ["-0.5+1", "0.5"]]) {
-      for (const [value, path] of [[expression, "/expression.wav"], [gain, "/constant.wav"]]) {
-        const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-af", `volume=${value}`, "-c:a", "pcm_s16le", path!], vfs);
-        assert.equal(result.exitCode, 0, result.stderr);
-      }
-      const actual = parseWav(vfs.store.get("/expression.wav")!).tracks[0]!.decodedAudio!;
-      const expected = parseWav(vfs.store.get("/constant.wav")!).tracks[0]!.decodedAudio!;
   for (const [filter, positional] of [
     ["volume", "volume=1"],
     ["volume=volume=0.5", "volume=0.5"],
@@ -1610,6 +1643,31 @@ describe("decoded audio editing", () => {
     });
   }
 
+  for (const filter of ["volume=1", "areverse"]) {
+    it(`preserves every PCM sample at unchanged rate with ${filter}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 800 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 1000 * i / 8000))] });
+      const expected = parseWav(input).tracks[0]!.decodedAudio!;
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", filter, "-c:a", "pcm_s16le", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const actual = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(actual.sampleRate, 8000);
+      assert.equal(actual.channels, 1);
+      assert.equal(actual.channelData[0]!.length, 800);
+      assert.deepEqual(actual.channelData[0], filter === "areverse" ? expected.channelData[0]!.slice().reverse() : expected.channelData[0]);
+    });
+  }
+
+  it("matches constant volume gains when evaluating arithmetic on a sine wave", async () => {
+    const input = encodeWav({ sampleRate: 16000, channels: [Float64Array.from({ length: 8000 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 440 * i / 16000))] });
+    const vfs = createTestVfs({ "/input.wav": input });
+    for (const [expression, gain] of [["0.5+0.25", "0.75"], ["0.5+0.25*2", "1"], ["(0.5+0.25)/2", "0.375"], ["1-0.25-0.25", "0.5"], ["-0.5+1", "0.5"]]) {
+      for (const [value, path] of [[expression, "/expression.wav"], [gain, "/constant.wav"]]) {
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-af", `volume=${value}`, "-c:a", "pcm_s16le", path!], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const actual = parseWav(vfs.store.get("/expression.wav")!).tracks[0]!.decodedAudio!;
+      const expected = parseWav(vfs.store.get("/constant.wav")!).tracks[0]!.decodedAudio!;
       assert.equal(actual.sampleRate, 16000);
       assert.equal(actual.channelData[0]!.length, 8000);
       assert.deepEqual(actual.channelData, expected.channelData, expression);

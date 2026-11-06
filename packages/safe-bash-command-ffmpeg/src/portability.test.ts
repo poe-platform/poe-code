@@ -40,10 +40,11 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes rejection of negative durations and stream-scoped audio filter selection.
   // Includes fixed-point PCM16 mono mixing (209 emitted bytes).
   // Includes unity-tempo correlation, Hann blending, and partial-window flushing.
-  assert.ok(otherCodeBytes < 454_500, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes frame-evaluated volume and timeline enable expressions.
+  assert.ok(otherCodeBytes < 455_500, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
   // Include argument validation before publishing outputs.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_006_500);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_007_500);
 });

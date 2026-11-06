@@ -2,7 +2,7 @@
 
 `renderSvgDocument(svg, "pdf" | "png", options?)` converts generated SVG diagrams
 without a DOM, native processes, host fonts or network access. PDFs retain vector
-primitives and searchable text. PNG output uses 96 DPI by default.
+primitives and searchable text. PNG output preserves transparent backgrounds and uses 96 DPI by default.
 
 The supported profile includes rectangles (including rounded corners), circles,
 ellipses, lines, polygons, polylines, M/L/H/V/C/S/Q/T/Z paths, nested groups,

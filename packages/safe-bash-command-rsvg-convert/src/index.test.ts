@@ -36,6 +36,22 @@ test("PNG output contains drawn pixels, not an empty placeholder", async () => {
   expect([...image.data.slice(0, 4)]).toEqual([255, 0, 0, 255]);
 });
 
+test.each(["red", "white"])("PNG preserves uncovered transparency and painted %s pixels", async fill => {
+  const result = await run(`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect x="4" y="4" width="8" height="8" fill="${fill}"/></svg>`);
+  expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+  const image = decodePng(result.chunks[0]!);
+  expect([image.width, image.height]).toEqual([16, 16]);
+  const painted = fill === "red" ? [255, 0, 0, 255] : [255, 255, 255, 255];
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      const offset = (y * 16 + x) * 4;
+      expect([...image.data.slice(offset, offset + 4)], `pixel (${x},${y})`).toEqual(
+        x >= 4 && x < 12 && y >= 4 && y < 12 ? painted : [0, 0, 0, 0]
+      );
+    }
+  }
+});
+
 test("rejects malformed SVG, limits, and preserves cancellation identity", async () => {
   expect(await run("<svg><bad>")).toMatchObject({ exitCode: 1, chunks: [] });
   expect(await run(svg, [], { limits: { maxNodes: 0 } })).toMatchObject({ exitCode: 1, chunks: [] });

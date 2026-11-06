@@ -225,5 +225,5 @@ export async function renderSvgDocument(source: string, format: "pdf" | "png", o
   page.setContentAst([{ kind: "graphics-group", ops: [matrix([0.75, 0, 0, -0.75, 0, height * 0.75]), ...view, ...ops] }]);
   signal.throwIfAborted();
   if (format === "pdf") return doc.save();
-  return drainCooperativeSteps(renderDisplayListToPngSteps(page.evaluateDisplayList(), { scale: dpi / 72 }), signal);
+  return drainCooperativeSteps(renderDisplayListToPngSteps(page.evaluateDisplayList(), { scale: dpi / 72, transparent: true }), signal);
 }

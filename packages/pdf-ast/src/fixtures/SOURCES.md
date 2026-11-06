@@ -292,6 +292,12 @@ Its calibrated gray ramps cover gamma and white-point conversion. Manifest MD5:
 `ee784999bfa1ed373f55cdabbb580df1`. SHA-256:
 `5521110fbe2a8cf1d299b3a9d9a03d0db928de7addfa2ea50e32fb440575fc12`.
 
+`pdfjs-calgray-poppler-page.png`, `pdfjs-calgray-poppler-page2.png`, and
+`pdfjs-calgray-poppler-page3.png` are native Poppler 26.09.0 renders of
+pages 1–3, generated with `pdftoppm -f PAGE -l PAGE -r 24 -png -singlefile
+pdfjs-calgray.pdf OUTPUT`. Command tests compare all 20 patch interiors per
+page in both buffered and retained rendering, covering gamma and black point.
+
 `pdfjs-coons-allflags-withfunction.pdf` is the unchanged PDF.js equality fixture
 `test/pdfs/coons-allflags-withfunction.pdf` (issue4227) at revision
 `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). It covers curved

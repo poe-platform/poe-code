@@ -485,9 +485,10 @@ vectors from PDF.js `test/unit/colorspace_spec.js`, through local PDF APIs.
 
 The same bundle exports unmodified `CalGrayCS`, `CalRGBCS`, and `LabCS`.
 The shared calibrated-color adapter resolves COS parameters before calling
-these classes. Paths, gradients, images, palettes, and calibrated alternate
+CalRGBCS and LabCS. CalGray uses a local sRGB transfer function to match
+Poppler’s neutral-axis conversion. Paths, gradients, images, palettes, and calibrated alternate
 tint spaces use the same converters. `calibrated-colors.test.ts` ports the
-corresponding PDF.js `colorspace_spec.js` input/output vectors through those
+corresponding PDF.js `colorspace_spec.js` inputs (with sRGB CalGray expectations) through those
 APIs and the unchanged `calgray.pdf` equality fixture. Missing WhitePoint
 retains the local D65 fallback for malformed input.
 

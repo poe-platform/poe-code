@@ -5,9 +5,9 @@ import { PdfDocument } from "../document.js";
 import { decodeXObjectImageToRgba } from "../extract/images.js";
 
 const numbers = (values: readonly number[]) => cosArray(values.map(value => cosNumber(value)));
-// Ported from PDF.js colorspace_spec.js: CalGrayCS, CalRGBCS and LabCS.
+// PDF.js colorspace_spec.js inputs; CalGray expectations use sRGB encoding.
 const vectors = [
-  { family: "CalGray", samples: [27, 125, 250, 131], expected: [25, 25, 25, 143, 143, 143, 251, 251, 251, 149, 149, 149], input: [1], rgb: [255, 255, 255] },
+  { family: "CalGray", samples: [27, 125, 250, 131], expected: [27, 27, 27, 134, 134, 134, 251, 251, 251, 140, 140, 140], input: [1], rgb: [255, 255, 255] },
   { family: "CalRGB", samples: [27, 125, 250, 131, 139, 140, 111, 25, 198, 21, 147, 255], expected: [0, 238, 255, 185, 196, 195, 235, 0, 243, 0, 255, 255], input: [0.1, 0.2, 0.3], rgb: [0, 147, 151] },
   { family: "Lab", samples: [27, 25, 50, 31, 19, 40, 11, 25, 98, 21, 47, 55], expected: [0, 49, 101, 0, 53, 117, 0, 41, 40, 0, 43, 90], input: [55, 25, 35], rgb: [188, 100, 61] },
 ];
@@ -18,12 +18,12 @@ function colorSpace(family: string) {
   })]);
 }
 
-describe("PDF.js calibrated color reference vectors", () => {
+describe("Calibrated color reference vectors", () => {
   it("preserves the gray ramp in PDF.js's unchanged calgray equality fixture", () => {
     const doc = PdfDocument.load(new Uint8Array(readFileSync(new URL("../fixtures/pdfjs-calgray.pdf", import.meta.url))));
     const bitmap = doc.getPage(0).renderToBitmap({ scale: 400 / 1100, useCropBox: true });
     expect([bitmap.width, bitmap.height]).toEqual([309, 400]);
-    for (const [x, y, gray] of [[110, 350, 23], [180, 280, 146], [180, 200, 186], [110, 130, 209], [180, 50, 245]]) {
+    for (const [x, y, gray] of [[110, 350, 25], [180, 280, 137], [180, 200, 179], [110, 130, 203], [180, 50, 243]]) {
       const offset = (y! * bitmap.width + x!) * 4;
       expect(Array.from(bitmap.data.slice(offset, offset + 4))).toEqual([gray, gray, gray, 255]);
     }

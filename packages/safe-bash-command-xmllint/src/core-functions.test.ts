@@ -77,6 +77,15 @@ for (const [query, expected] of [
   assert.equal(result.output, expected + "\n");
 });
 
+for (const [input, query] of [
+  ['<catalog xml:lang="en-US"><item id="a" xml:id="first"><n>1</n><n>2</n><s>AB</s></item><item id="b" xml:lang="fr"><n>2</n><s>xy</s></item><item id="c"><n>03</n><n>3</n></item></catalog>', 'count(//item[*[local-name()="n"]="2"])'],
+  ['<feed xmlns="urn:feed"><entry><title>A</title><title>B</title></entry><entry><title>B</title></entry><entry><title>C</title></entry></feed>', 'count(//*[local-name()="entry"][*[local-name()="title"]="B"])'],
+] as const) test(`wildcard child comparison: ${query}`, async () => {
+  const result = await run(["--xpath", query, "-"], input);
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "2\n");
+});
+
 test("namespace naming functions", async () => {
   const result = await run(["--xpath", 'concat(name(/*), "|", local-name(/*), "|", namespace-uri(/*))'], '<p:root xmlns:p="urn:p"/>');
   assert.equal(result.exitCode, 0, result.errors);

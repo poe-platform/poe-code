@@ -122,6 +122,13 @@ The test ports `api_spec.js` issue 4888's 90,000 RGB-sample expectation.
 PDF.js and MuPDF use different CMYK profiles, so the comparison uses a bounded
 mean channel error rather than asserting identical RGB values.
 
+`pdfjs-cmykjpeg-poppler.png` and `pdfjs-cmykjpeg-poppler-page.png` are
+Poppler 26.09.0 outputs from the same PDF, generated with `pdfimages -png`
+and `pdftoppm -f 1 -l 1 -r 24 -png -singlefile`, respectively. Extraction
+checks allow at most two channel levels of JPEG decoder rounding, with mean
+RGBA error below 0.1. Page checks cover the reported color patch and aggregate
+error separately because page resampling differs from Splash.
+
 The `jpeg-{RGB,L,CMYK}-{0,1}-0-17.jpg` files are original MIT fixtures made with
 Pillow 12.3.0/libjpeg: 17x13 RGB pixels `(11*x,17*y,9*(x+y))`, converted to the
 named mode, quality 91, subsampling 0; the second field enables progressive

@@ -117,7 +117,10 @@ No Liberation font files are included.
 bundle above, replacing the local handwritten JPEG codec. PDF `/Decode` and
 `/ColorTransform` handling follows PDF.js v4.1.392 `src/core/jpeg_stream.js`.
 The vendored decoder accepts an optional dimension callback before allocating
-frame components, preserving caller-specified byte budgets.
+frame components, preserving caller-specified byte budgets. Local changes also
+interpolate 2:1 subsampled four-component JPEG samples across row boundaries.
+The local CMYK converter uses four-dimensional interpolation of the numeric
+DeviceCMYK corner colors used by Poppler, rather than PDF.js's polynomial.
 `src/extract/jpeg-reference.test.ts` ports the CMYK image shape expectation from
 `test/unit/api_spec.js` (issue 4888) and the baseline/extended/progressive SOF
 header cases from `test/unit/jpeg_stream_spec.js` at revision

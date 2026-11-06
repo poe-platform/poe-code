@@ -1,3 +1,4 @@
+import { cmykToRgb } from "./cmyk.js";
 import type {PdfPixelStorage} from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
@@ -122,11 +123,20 @@ export class PdfRetainedJpeg {
     const base = allocated; parsing = false;
     async function readRow(y: number) {
       allocated = base;
-      const rgb = await drive(decoder.getDataSteps({ width, height, forceRGB: true, isSourcePDF: options.isSourcePdf ?? false, rowStart: y, rowCount: 1 }));
-      if (rgb.length !== width * 3) throw new PdfError("E_PARSE", "Invalid JPEG row sample count");
+      const rgb = await drive(decoder.getDataSteps({ width, height, forceRGB: components !== 4, isSourcePDF: options.isSourcePdf ?? false, rowStart: y, rowCount: 1 }));
+      if (rgb.length !== width * (components === 4 ? 4 : 3)) throw new PdfError("E_PARSE", "Invalid JPEG row sample count");
       charge(width * 4);
       const row = new Uint8Array(width * 4);
-      for (let x = 0; x < width; x++) { row[x * 4] = rgb[x * 3]!; row[x * 4 + 1] = rgb[x * 3 + 1]!; row[x * 4 + 2] = rgb[x * 3 + 2]!; row[x * 4 + 3] = 255; }
+      for (let x = 0; x < width; x++) {
+        if (components === 4) {
+          cmykToRgb(rgb[x * 4]! / 255, rgb[x * 4 + 1]! / 255, rgb[x * 4 + 2]! / 255, rgb[x * 4 + 3]! / 255, row, x * 4);
+        } else {
+          row[x * 4] = rgb[x * 3]!;
+          row[x * 4 + 1] = rgb[x * 3 + 1]!;
+          row[x * 4 + 2] = rgb[x * 3 + 2]!;
+        }
+        row[x * 4 + 3] = 255;
+      }
       return row;
     }
     return new PdfRetainedJpeg(readRow, width, height, components, base, options.signal!,controller);

@@ -5593,7 +5593,24 @@ class JpegImage {
         j = 0 | y * componentScaleY;
         index = blocksPerScanline * (j & mask3LSB) | (j & 7) << 3;
         for (x = 0; x < width; x++) {
-          data[offset] = typeof output === "number" ? yield {kind:"sample",position:output,index:index+xScaleBlockOffset[x]} : output[index + xScaleBlockOffset[x]];
+          if (numComponents === 4 && scaleX === 1 && scaleY === 1 && component.scaleX === 0.5 && component.scaleY === 0.5) {
+            // Centered 2:1 chroma interpolation, including the adjacent row when
+            // the caller requests a single retained row. Clamp at image edges.
+            const sx = x >> 1, sy = y >> 1;
+            const nx = Math.max(0, Math.min(Math.ceil(this.width / 2) - 1, sx + (x & 1 ? 1 : -1)));
+            const ny = Math.max(0, Math.min(Math.ceil(this.height / 2) - 1, sy + (y & 1 ? 1 : -1)));
+            let sum = 0;
+            for (let tap = 0; tap < 4; tap++) {
+              const tx = tap & 1 ? nx : sx, ty = tap & 2 ? ny : sy;
+              const at = blocksPerScanline * (ty & mask3LSB) + ((ty & 7) << 3)
+                + ((tx & mask3LSB) << 3) + (tx & 7);
+              const value = typeof output === "number" ? yield {kind:"sample",position:output,index:at} : output[at];
+              sum += value * (tap & 1 ? 1 : 3) * (tap & 2 ? 1 : 3);
+            }
+            data[offset] = (sum + (x & 1 ? 8 : 7)) >> 4;
+          } else {
+            data[offset] = typeof output === "number" ? yield {kind:"sample",position:output,index:index+xScaleBlockOffset[x]} : output[index + xScaleBlockOffset[x]];
+          }
           offset += numComponents;
         }
       }

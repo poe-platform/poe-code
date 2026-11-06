@@ -4,6 +4,7 @@ import { pdfImageCodec } from "../cos/filter-stream.js";
 import { assertDecodedByteBudget } from "../cos/limits.js";
 import { Jbig2Image, JpegImage, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { DeviceCmykCS } from "../vendor/pdfjs-fonts.mjs";
+import { cmykToRgb } from "./cmyk.js";
 import { createCalibratedColorSpace, type CalibratedColorSpace } from "../content/calibrated-color.js";
 import { PdfError } from "../errors.js";
 import {
@@ -384,14 +385,19 @@ export function *decodeJpegToRgbaSteps(
   }
   if (![1, 3, 4].includes(components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG component count");
   assertDecodedByteBudget(width * height * 4, maxDecodedBytes);
-  const rgb = decoder.getData({ width, height, forceRGB: true, isSourcePDF: options.isSourcePdf ?? false });
-  if (rgb.length !== width * height * 3) throw new PdfError("E_PARSE", "Invalid decoded JPEG sample count");
+  const rgb = decoder.getData({ width, height, forceRGB: components !== 4, isSourcePDF: options.isSourcePdf ?? false });
+  const channels = components === 4 ? 4 : 3;
+  if (rgb.length !== width * height * channels) throw new PdfError("E_PARSE", "Invalid decoded JPEG sample count");
   const rgba = new Uint8Array(width * height * 4);
   for (let p = 0; p < width * height; p++) {
     if (++work % 16384 === 0) yield;
-    rgba[p * 4] = rgb[p * 3]!;
-    rgba[p * 4 + 1] = rgb[p * 3 + 1]!;
-    rgba[p * 4 + 2] = rgb[p * 3 + 2]!;
+    if (components === 4) {
+      cmykToRgb(rgb[p * 4]! / 255, rgb[p * 4 + 1]! / 255, rgb[p * 4 + 2]! / 255, rgb[p * 4 + 3]! / 255, rgba, p * 4);
+    } else {
+      rgba[p * 4] = rgb[p * 3]!;
+      rgba[p * 4 + 1] = rgb[p * 3 + 1]!;
+      rgba[p * 4 + 2] = rgb[p * 3 + 2]!;
+    }
     rgba[p * 4 + 3] = 255;
   }
   return { width, height, components, data: rgba };

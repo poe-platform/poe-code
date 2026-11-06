@@ -2080,6 +2080,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 for (let l = 0; l < lines.length; l++) {
                   const line = lines[l]!.trim();
                   if (!line || line.startsWith("#") || line.startsWith("ffconcat")) continue;
+                  if (concatDocs.length === 0) {
+                    const directive = ["duration", "inpoint", "outpoint"].find(name =>
+                      line === name || line.startsWith(`${name} `) || line.startsWith(`${name}\t`)
+                    );
+                    if (directive) throw new Error(`Line ${l + 1}: ${directive} without file`);
+                  }
                   if (line.startsWith("file ")) {
                     let target = line.slice(5).trim();
                     if (

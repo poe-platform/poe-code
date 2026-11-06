@@ -76,3 +76,35 @@ for (const directives of [
     assert.equal(volume.existsSync("/out.wav"), false);
   });
 }
+
+for (const directive of ["duration", "inpoint", "outpoint"]) {
+  for (const prefix of ["", "ffconcat version 1.0\n# comment\n\n"]) {
+    for (const existingOutput of [false, true]) {
+      it(`concat rejects ${directive} before a file at line ${prefix.split("\n").length} with existing output ${existingOutput}`, async () => {
+        const volume = Volume.fromJSON({
+          "/list.ffconcat": `${prefix}${directive} 0.25\nfile a.wav\n`
+        });
+        const wav = encodeWav({ sampleRate: 8000,
+          channels: [Float64Array.from({ length: 8000 }, (_, i) => (1000 + i) / 32768)] });
+        volume.writeFileSync("/a.wav", wav);
+        if (existingOutput) volume.writeFileSync("/out.wav", wav);
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args: ["-y", "-v", "error", "-f", "concat", "-i", "/list.ffconcat", "-c:a", "pcm_s16le", "/out.wav"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.notEqual(result.exitCode, 0, stderr);
+        assert.ok(stderr.includes(`Line ${prefix.split("\n").length}: ${directive} without file`), stderr);
+        if (existingOutput) assert.deepEqual(volume.readFileSync("/out.wav"), Buffer.from(wav));
+        else assert.equal(volume.existsSync("/out.wav"), false);
+      });
+    }
+  }
+}

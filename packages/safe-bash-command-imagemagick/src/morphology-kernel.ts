@@ -1,7 +1,7 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. */
-export function* morphologyPixelSteps(image: { width: number; height: number }, rows: readonly number[], mode: "min" | "max" | "median" | "mean"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyPixelSteps(image: { width: number; height: number }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce((total, radius) => total + radius * 2 + 1, 0);
@@ -37,6 +37,12 @@ export function* morphologyPixelSteps(image: { width: number; height: number }, 
                     let value = mode === "max" ? 255 : 0, seen = 0;
                     if (mode === "mean") {
                         value = Math.round(sums[c]! / samples);
+                    } else if (mode === "mode") {
+                        // Ascending traversal preserves the lowest value when frequencies tie.
+                        for (let candidate = 0; candidate < 256; candidate++) {
+                            const frequency = histogram[c * 256 + candidate]!;
+                            if (frequency > seen) { seen = frequency; value = candidate; }
+                        }
                     } else if (mode === "median") {
                         for (; value < 255; value++) { seen += histogram[c * 256 + value]!; if (seen > rank) break; }
                     } else if (mode === "max") {

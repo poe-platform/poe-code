@@ -1,7 +1,7 @@
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { formatScalar, type Node } from "./evaluate.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
-import { evaluateExpression, expressionText, testPredicate, type NodeSelection } from "./predicate.js";
+import { evaluateExpression, expressionText, matchesId, testPredicate, type NodeSelection } from "./predicate.js";
 import type { Axis, Query, QueryStep } from "./query.js";
 import { StoredXmlDocument } from "./stored-document.js";
 
@@ -161,9 +161,26 @@ export class StoredXPath {
   }
 
   async select(query: Query, context = this.document.document): Promise<StoredSelection> {
+    if (query.idTokens) {
+      const selected = new StoredSelection(this);
+      for await (const event of this.document.walk(this.document.root)) {
+        if (!event.closing && await matchesId(await this.node(event.reference), query.idTokens, this.budget)) {
+          await selected.add(event.reference);
+          this.budget.results(selected.size);
+        }
+      }
+      return selected;
+    }
+    if (query.expression) {
+      const value = await evaluateExpression(query.expression, await this.node(context), 1, 1, this.budget,
+        (selected, absolute) => this.select(selected, absolute ? this.document.document : context));
+      if (typeof value !== "object" || !("nodes" in value)) throw new XmlQueryError("XPath filter requires a node-set", 10);
+      const selected = new StoredSelection(this);
+      for await (const node of value.nodes()) await selected.add(node.stored!.reference);
+      return selected;
+    }
     if (query.filter) {
       const { input, predicates } = query.filter;
-      if (input.query!.expression) throw new XmlQueryError("XPath filter requires a node-set", 10);
       return this.filter(await this.select(input.query!, input.source.startsWith("/") ? this.document.document : context), predicates);
     }
     const namespaces = await this.document.namespaceScope(this.namespaceContext);

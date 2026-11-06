@@ -1,3 +1,4 @@
+import { isNodeSetQuery } from "safe-bash-xml-engine/query";
 import { parseStoredXml } from "safe-bash-xml-engine";
 import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
@@ -254,7 +255,7 @@ async function executeDocument(
       completed = true;
       return { exitCode: 0 };
     }
-    if (options.query.expression) {
+    if (!isNodeSetQuery(options.query)) {
       // CLI XPath only has the predefined xml binding, before any element declarations.
       if (stored) for await (const part of new StoredXPath(stored, budget, stored.document).scalarChunks(options.query)) await write(part);
       else await write(await evaluateScalar(options.query, root, budget));

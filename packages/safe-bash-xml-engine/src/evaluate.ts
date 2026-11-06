@@ -1,4 +1,4 @@
-import { evaluateExpression, expressionText, testPredicate } from "./predicate.js";
+import { evaluateExpression, expressionText, matchesId, testPredicate } from "./predicate.js";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import type { StoredXmlDocument } from "./stored-document.js";
 import type { Query, QueryStep } from "./query.js";
@@ -124,6 +124,24 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
   return evaluatePaths(query, tree, budget, tree.document);
 }
 async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof indexTree>>, budget: XmlBudget, context: Node): Promise<Node[]> {
+  if (query.idTokens) {
+    const selected: Node[] = [];
+    for (const node of tree.order) {
+      if (await matchesId(node, query.idTokens, budget)) {
+        budget.results(selected.length + 1);
+        selected.push(node);
+      }
+    }
+    return selected;
+  }
+  if (query.expression) {
+    const value = await evaluateExpression(query.expression, context, 1, 1, budget,
+      (selected, absolute) => evaluatePaths(selected, tree, budget, absolute ? tree.document : context));
+    if (typeof value !== "object" || !("nodes" in value)) throw new XmlQueryError("XPath filter requires a node-set", 10);
+    const selected: Node[] = [];
+    for await (const node of value.nodes()) selected.push(node);
+    return selected;
+  }
   const filter = async (matched: Node[], predicates: QueryStep["predicates"]): Promise<Node[]> => {
     for (const predicate of predicates) {
       { const _p = budget.tick(); if (_p) await _p; }
@@ -149,7 +167,6 @@ async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof index
   };
   if (query.filter) {
     const { input, predicates } = query.filter;
-    if (input.query!.expression) throw new XmlQueryError("XPath filter requires a node-set", 10);
     return filter(await evaluatePaths(input.query!, tree, budget, input.source.startsWith("/") ? tree.document : context), predicates);
   }
   const { order, parentOf } = tree;

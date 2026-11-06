@@ -19,8 +19,9 @@ the same default runtime as `xmllintCommands()`. XPath functions work both at
 the top level and inside predicates: `concat`, `contains`, `starts-with`,
 `substring`, `substring-before`, `substring-after`, `translate`, `string-length`,
 `normalize-space`, `string`, `count`, `name`, `local-name`, `namespace-uri`,
-`lang`, `not`, `boolean`, `true`, `false`, `sum`, `number`, `floor`, `ceiling`,
-and `round`. `lang("en")` matches the nearest inherited `xml:lang`, including
+`id`, `lang`, `not`, `boolean`, `true`, `false`, `sum`, `number`, `floor`, `ceiling`,
+and `round`. `id("first")` resolves `xml:id` across the document, including
+whitespace-separated IDs and node-set arguments, without enabling DTDs. `lang("en")` matches the nearest inherited `xml:lang`, including
 regional variants such as `en-US`, without regard to case. Predicates also support comparisons, `and`, `or`, and positions.
 Explicit XPath axes support child, parent, self, attribute, ancestor,
 ancestor-or-self, descendant, descendant-or-self, preceding, following, and

@@ -1,3 +1,4 @@
+import type { TextValue } from "./text-value.js";
 import { XmlBudget, XmlQueryError, XmlQueryLimitError } from "./limits.js";
 
 import { filterGroups, parsePredicate, type Instruction } from "./predicate.js";
@@ -12,6 +13,7 @@ export interface QueryStep {
   readonly predicates: readonly Predicate[];
 }
 export interface Query {
+  readonly idTokens?: TextValue;
   readonly expression?: readonly Instruction[];
   readonly filter?: { input: Extract<Instruction, { kind: "path" }>; predicates: readonly Predicate[] };
   readonly paths: readonly (readonly QueryStep[])[];
@@ -191,4 +193,9 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
   space();
   if (at !== source.length) fail();
   return { paths };
+}
+
+export function isNodeSetQuery(query: Query): boolean {
+  const last = query.expression?.at(-1);
+  return !query.expression || last?.kind === "function" && last.name === "id";
 }

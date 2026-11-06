@@ -20,7 +20,7 @@ export type Instruction =
   | { kind: "function"; name: FunctionName; count: number };
 const precedence: Record<Operator, number> = { "+": 5, "-": 5, or: 1, and: 2, "=": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4 };
 const arity = {
-  lang: [1], contains: [2], "starts-with": [2], "normalize-space": [0, 1], not: [1],
+  id: [1], lang: [1], contains: [2], "starts-with": [2], "normalize-space": [0, 1], not: [1],
   position: [0], last: [0], concat: [2, Infinity], substring: [2, 3],
   "substring-before": [2], "substring-after": [2], translate: [3],
   "string-length": [0, 1], string: [0, 1], count: [1], boolean: [1],
@@ -236,6 +236,28 @@ async function* language(node: Node, budget: XmlBudget): AsyncGenerator<string> 
   }
 }
 
+/** Compare complete XML whitespace-delimited IDs without buffering attribute values. */
+export async function matchesId(node: Node, tokens: TextValue, budget: XmlBudget): Promise<boolean> {
+  if (node.kind !== "element") return false;
+  const document = node.stored?.document;
+  const attributes = document ? document.attributes(node.stored!.reference) : node.value.attributes;
+  for await (const attribute of attributes) {
+    const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
+    const isId = document
+      ? await document.nameEquals(attribute, "id", true) && await document.namespaceEquals(attribute, "http://www.w3.org/XML/1998/namespace")
+      : attribute.localName === "id" && attribute.namespace === "http://www.w3.org/XML/1998/namespace";
+    if (!isId) continue;
+    const value = await TextValue.create(document ? document.attributeText(attribute) : [attribute.value], budget, document?.storage);
+    const normalized = await value.normalize();
+    if (!normalized.size) return false;
+    const needle = await TextValue.create((async function* () {
+      yield " "; yield* normalized.chunks(); yield " ";
+    })(), budget, document?.storage);
+    return await tokens.find(needle) >= 0;
+  }
+  return false;
+}
+
 export async function evaluateExpression(program: readonly Instruction[], node: Node, position: number, last: number, budget: XmlBudget, select?: Selector): Promise<Value> {
   const storage = node.stored?.document.storage;
   const text = (value: Value): Promise<TextValue> => expressionText(value, budget, storage);
@@ -265,6 +287,19 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
       };
       let result: Value;
       switch (instruction.name) {
+        case "id": {
+          if (!select) throw new XmlQueryError("document ID lookup is unavailable in this context", 10);
+          const tokens = await TextValue.create((async function* () {
+            yield " ";
+            for await (const value of comparisonValues(first, budget, storage)) {
+              yield* (await (await text(value)).normalize()).chunks();
+              yield " ";
+            }
+          })(), budget, storage);
+          const selected = await select({ paths: [], idTokens: tokens }, true);
+          result = Array.isArray(selected) ? { size: selected.length, nodes: () => selected } : selected;
+          break;
+        }
         case "lang": {
           const requested = await text(first);
           const actual = language(node, budget);

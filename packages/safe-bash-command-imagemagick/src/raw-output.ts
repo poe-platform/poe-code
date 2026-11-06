@@ -3,7 +3,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray";
 export type ImageFormat = RasterFormat | RawCoder;
-export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat };
+export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; endian?: string | undefined };
 export function isRawCoder(format: string | undefined): format is RawCoder {
     return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray";
 }
@@ -24,7 +24,7 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
                 ? 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : channel === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             const quantum = Math.round(value * maximum / scale);
-            if (depth === 16) view.setUint16(offset, quantum, true);
+            if (depth === 16) view.setUint16(offset, quantum, options.endian === undefined || options.endian === "lsb");
             else data[offset] = quantum;
             offset += depth / 8;
         }

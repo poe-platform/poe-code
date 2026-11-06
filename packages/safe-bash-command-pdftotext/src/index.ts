@@ -897,7 +897,7 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
     let cooperativeWork = 63;
     const parsed = parseHtmlArguments(argv, files.has("-"));
     if ("exitCode" in parsed) return parsed;
-    const { inputPath, outPath, imageDirectory, xmlMode, stdoutOutput, ignoreImages, dataUrls, firstPage, lastPage, zoom, imageFmt, encoding, password } = parsed;
+    const { inputPath, outPath, imageDirectory, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, firstPage, lastPage, zoom, imageFmt, encoding, password } = parsed;
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
@@ -1019,10 +1019,10 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
                     if (++cooperativeWork % 64 === 0)
                         yield;
                     const [x0, y0, x1, y1] = line.bbox;
-                    const top = Math.max(0, Math.round((height - y1) * zoom));
-                    const left = Math.max(0, Math.round(x0 * zoom));
-                    const w = Math.max(1, Math.round((x1 - x0) * zoom));
-                    const h = Math.max(1, Math.round((y1 - y0) * zoom));
+                    const top = noRoundCoord ? ((height - y1) * zoom).toFixed(6) : Math.max(0, Math.round((height - y1) * zoom));
+                    const left = noRoundCoord ? (x0 * zoom).toFixed(6) : Math.max(0, Math.round(x0 * zoom));
+                    const w = noRoundCoord ? ((x1 - x0) * zoom).toFixed(6) : Math.max(1, Math.round((x1 - x0) * zoom));
+                    const h = noRoundCoord ? ((y1 - y0) * zoom).toFixed(6) : Math.max(1, Math.round((y1 - y0) * zoom));
                     const firstWord = line.words[0];
                     const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
                     const family = fontKeyToBaseFont.get(rawFontName) ?? rawFontName;

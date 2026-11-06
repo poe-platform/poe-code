@@ -147,7 +147,7 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
         yield plan.xmlMode ? `  <page number="${number}" position="absolute" top="0" left="0" height="${Math.round(height * plan.zoom)}" width="${Math.round(width * plan.zoom)}">\n`
           : `<div class="page" id="page${number}" style="position:relative;width:${Math.round(width * plan.zoom)}pt;height:${Math.round(height * plan.zoom)}pt;">\n`;
         const index = await page.indexText(storage, { mode: "layout", retainFontNames: true, signal }); let pageFailed = false;
-        try { yield* streamHtmlPageText(doc, page, index, storage, { xml: plan.xmlMode, zoom: plan.zoom, height, signal, images: () => imageMarkup(number) }); }
+        try { yield* streamHtmlPageText(doc, page, index, storage, { xml: plan.xmlMode, noRoundCoord: plan.noRoundCoord, zoom: plan.zoom, height, signal, images: () => imageMarkup(number) }); }
         catch (failure) { pageFailed = true; throw failure; }
         finally { await index.close().catch(failure => { if (!pageFailed) throw failure; }); }
         yield plan.xmlMode ? "  </page>\n" : "</div>\n";

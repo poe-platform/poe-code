@@ -1,5 +1,6 @@
 import { FsError } from "safe-bash-contracts/errors";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { PdfDocument, PdfRetainedDocument, cosDict, cosString, cosName, cosNumber, cosArray, dictSet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
@@ -191,3 +192,24 @@ test("HTML accepts the owner password and pdftotext ignores copy restrictions", 
     assert.equal(f.stderr.length, 0);
   }
 });
+
+for (const noRoundCoord of [false, true]) test(`pdftohtml XML coordinate precision: noroundcoord=${noRoundCoord}`, async () => {
+  const input = await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-bug1873345.pdf", import.meta.url));
+  const args = ["-xml", "-stdout", "-i", "-zoom", "1.5", "-l", "1", ...(noRoundCoord ? ["-noroundcoord"] : []), "/input.pdf"];
+  const f = await fixture(input, args);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
+  assert.equal(f.stderr.length, 0);
+  const xml = new TextDecoder().decode(joined(f.stdout));
+  assert.ok(xml.includes(noRoundCoord ? 'left="419.455500"' : 'left="419"'));
+  const firstText = xml.slice(xml.indexOf("<text "), xml.indexOf(">", xml.indexOf("<text ")));
+  for (const attribute of ["top", "left", "width", "height"]) {
+    const value = firstText.split(`${attribute}="`)[1]!.split('"')[0]!;
+    assert.equal(value.includes("."), noRoundCoord);
+    if (noRoundCoord) assert.equal(value.split(".")[1]!.length, 6);
+  }
+  const buffered = await runPdftohtmlCli(args, new Map([["/input.pdf", input]]));
+  assert.equal(buffered.exitCode, 0);
+  assert.equal(buffered.stdout, xml);
+  await f.clean();
+});
+

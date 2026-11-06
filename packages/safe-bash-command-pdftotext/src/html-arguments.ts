@@ -9,12 +9,13 @@ export const SUPPORTED_ENCODINGS = new Set([
 
 export interface HtmlPlan {
   readonly inputPath: string; readonly outPath: string; readonly imageDirectory: string;
-  readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
+  readonly noRoundCoord: boolean; readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
   readonly firstPage: number; readonly lastPage: number; readonly zoom: number;
   readonly imageFmt: "png" | "jpg"; readonly encoding: string; readonly password: string;
 }
 export function parseHtmlArguments(argv: readonly string[], hasStdin = false): HtmlPlan | { exitCode: number; stdout: string; stderr: string } {
     let xmlMode = false;
+    let noRoundCoord = false;
     let toStdout = false;
     let ignoreImages = false;
     let dataUrls = false;
@@ -44,6 +45,8 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
         }
         if (arg === "-xml")
             xmlMode = true;
+        else if (arg === "-noroundcoord")
+            noRoundCoord = true;
         else if (arg === "-stdout")
             toStdout = true;
         else if (arg === "-i")
@@ -107,5 +110,5 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             : `${explicitOut}${defaultExt}`
         : inputStem + defaultExt;
     const imageDirectory = outPath.slice(0, outPath.lastIndexOf("/") + 1);
-    return { inputPath, outPath, imageDirectory, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, imageFmt, encoding, password };
+    return { inputPath, outPath, imageDirectory, noRoundCoord, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, imageFmt, encoding, password };
 }

@@ -7,6 +7,8 @@ import type { PdfRawTextIndex, PdfStoredTextLine, PdfStoredTextWord } from "./ra
 
 export interface PdfHtmlPageTextOptions {
   readonly xml?: boolean;
+  /** Emit XML text coordinates with six decimal places. */
+  readonly noRoundCoord?: boolean;
   readonly zoom?: number;
   readonly height: number;
   readonly signal?: AbortSignal;
@@ -91,7 +93,7 @@ export async function* streamHtmlPageText(document: PdfRetainedDocument, page: P
     if (options.images) yield* options.images();
     for await (const block of index.blocks()) for await (const line of block.lines()) {
       signal?.throwIfAborted();
-      const [x0, y0, x1, y1] = line.bbox, top = Math.max(0, Math.round((height - y1) * zoom)), left = Math.max(0, Math.round(x0 * zoom));
+      const [x0, y0, x1, y1] = line.bbox, top = xml && options.noRoundCoord ? ((height - y1) * zoom).toFixed(6) : Math.max(0, Math.round((height - y1) * zoom)), left = xml && options.noRoundCoord ? (x0 * zoom).toFixed(6) : Math.max(0, Math.round(x0 * zoom));
       const word = await firstWord(line);
       let bold = false, italic = false, tail = "";
       for await (const part of family(word)) {
@@ -105,7 +107,7 @@ export async function* streamHtmlPageText(document: PdfRetainedDocument, page: P
       }
       if (names) {
         const size = Math.max(1, Math.round((word?.fontSize ?? 12) * zoom)), identity = await names.intern(fontKey(word, size));
-        yield `    <text top="${top}" left="${left}" width="${Math.max(1, Math.round((x1 - x0) * zoom))}" height="${Math.max(1, Math.round((y1 - y0) * zoom))}" font="${identity.index}">`;
+        yield `    <text top="${top}" left="${left}" width="${xml && options.noRoundCoord ? ((x1 - x0) * zoom).toFixed(6) : Math.max(1, Math.round((x1 - x0) * zoom))}" height="${xml && options.noRoundCoord ? ((y1 - y0) * zoom).toFixed(6) : Math.max(1, Math.round((y1 - y0) * zoom))}" font="${identity.index}">`;
       } else yield `  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">`;
       if (uri) { yield '<a href="'; for await (const part of chunks(uri)) yield escape(part); yield '">'; }
       if (bold) yield "<b>"; if (italic) yield "<i>";

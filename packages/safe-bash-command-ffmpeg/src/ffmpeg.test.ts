@@ -14,6 +14,33 @@ import {
 } from "./index.js";
 
 describe("stream-scoped audio filters", () => {
+  for (const options of [
+    ["-af", "volume=0", "-af", "volume=1"],
+    ["-af", "areverse", "-af", "areverse"],
+    ["-af", "volume=0", "-filter:a:0", "volume=1"],
+    ["-af:0", "volume=0", "-filter:a", "volume=1"],
+    ["-af", "volume=0", "-af", "volume=1", "-af:1", "volume=0"],
+    ["-af", "unsupported", "-af", "volume=1"],
+    ["-af", "volume=0,volume=1"],
+    ["-af", "areverse,areverse"]
+  ]) {
+    it(`uses the last matching audio filter option: ${options.join(" ")}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 80 }, (_, i) => i / 256)
+      ] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.wav", ...options, "-c:a", "pcm_s16le", "/out.wav"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const expected = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!.slice();
+      if (options.includes("volume=0,volume=1")) expected.fill(0);
+      if (options.includes("areverse")) expected.reverse();
+      const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.deepEqual(actual, expected);
+    });
+  }
+
   it("counts output audio ordinals after mapping", async () => {
     const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(800).fill(0.375)] });
     const vfs = createTestVfs({ "/in.wav": input });

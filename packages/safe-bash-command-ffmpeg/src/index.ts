@@ -2586,8 +2586,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;
-                  const filters = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal);
-                  if (audioRate === undefined && audioChannels === undefined && filters.length === 0) return t;
+                  const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
+                  if (audioRate === undefined && audioChannels === undefined && !filter) return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
@@ -2606,10 +2606,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let volFactor = t.volume ?? 1.0;
                   let tempoFactor = 1.0;
                   let reverseAudio = false;
-                  for (const { expression } of filters) {
-                    if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-
-                    for (const item of expression.split(",")) {
+                  if (filter) {
+                    for (const item of filter.expression.split(",")) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                       const trimmed = item.trim();

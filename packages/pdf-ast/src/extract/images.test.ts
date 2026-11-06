@@ -286,6 +286,8 @@ describe("extractDocumentImages", () => {
       })
     );
 
+    dictSet(page.pageDict, "Contents", doc.cos.allocateObject(cosStream(new TextEncoder().encode("/St1 Do /Ch1 Do"))));
+
     const extracted = extractDocumentImages(doc.cos);
     expect(extracted).toHaveLength(2);
     expect(extracted[0]!.type).toBe("stencil");
@@ -418,6 +420,8 @@ describe("extractDocumentImages", () => {
         XObject: cosDict({ Pal4: idx4StreamRef }),
       })
     );
+
+    dictSet(page.pageDict, "Contents", doc.cos.allocateObject(cosStream(new TextEncoder().encode("/Pal4 Do"))));
 
     const extracted = extractDocumentImages(doc.cos);
     expect(extracted).toHaveLength(1);

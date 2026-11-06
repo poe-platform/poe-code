@@ -1,6 +1,6 @@
 import { XmlBudget, XmlQueryError, XmlQueryLimitError } from "./limits.js";
 
-import { parsePredicate, type Instruction } from "./predicate.js";
+import { filterGroups, parsePredicate, type Instruction } from "./predicate.js";
 
 export type Predicate = readonly Instruction[];
 export interface QueryStep {
@@ -11,6 +11,7 @@ export interface QueryStep {
 }
 export interface Query {
   readonly expression?: readonly Instruction[];
+  readonly filter?: { input: Extract<Instruction, { kind: "path" }>; predicates: readonly Predicate[] };
   readonly paths: readonly (readonly QueryStep[])[];
 }
 const nameStart = (character: string): boolean =>
@@ -28,7 +29,7 @@ export async function parseQuery(source: string, budget: XmlBudget): Promise<Que
   const pending = [{ query, depth: 0 }];
   while (pending.length) {
     const current = pending.pop()!;
-    const programs = current.query.expression ? [current.query.expression] :
+    const programs = current.query.filter ? [[current.query.filter.input], ...current.query.filter.predicates] : current.query.expression ? [current.query.expression] :
       current.query.paths.flatMap(path => path.flatMap(step => step.predicates));
     for (const program of programs) for (const instruction of program) {
       if (instruction.kind !== "path") continue;
@@ -75,9 +76,42 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
     }
     return source.slice(start, at);
   };
+  const readPredicates = (): Predicate[] => {
+    const predicates: Predicate[] = [];
+    space();
+    while (source[at] === "[") {
+      at++;
+      space();
+      const start = at;
+      let quote = "", depth = 0;
+      while (at < source.length) {
+        const character = source[at]!;
+        if (quote) { if (character === quote) quote = ""; }
+        else if (character === "'" || character === '"') quote = character;
+        else if (character === "[") depth++;
+        else if (character === "]") { if (depth === 0) break; depth--; }
+        at++;
+      }
+      if (at === source.length) fail();
+      predicates.push(parsePredicate(source.slice(start, at), budget));
+      expect("]");
+      space();
+    }
+    return predicates;
+  };
   space();
   const start = at;
   const first = source[at] ?? "";
+  const groupEnd = filterGroups(source).get(at);
+  if (groupEnd !== undefined) {
+    const input: Extract<Instruction, { kind: "path" }> = { kind: "path", source: source.slice(at + 1, groupEnd).trim() };
+    at = groupEnd + 1;
+    const predicates = readPredicates();
+    if (at === source.length) return { paths: [], filter: { input, predicates } };
+    if (source[at] === "/" || source[at] === "|") fail();
+    at = start;
+  }
+
   if (first === "-" || first === "(" || first === "\"" || first === "'" ||
       first >= "0" && first <= "9" || first === "." && source[at + 1]! >= "0" && source[at + 1]! <= "9")
     return { paths: [], expression: parsePredicate(source, budget) };
@@ -133,26 +167,7 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
           else kind = "text";
         }
       }
-      const predicates: Predicate[] = [];
-      space();
-      while (source[at] === "[") {
-        at++;
-        space();
-        const start = at;
-        let quote = "", depth = 0;
-        while (at < source.length) {
-          const character = source[at]!;
-          if (quote) { if (character === quote) quote = ""; }
-          else if (character === "'" || character === '"') quote = character;
-          else if (character === "[") depth++;
-          else if (character === "]") { if (depth === 0) break; depth--; }
-          at++;
-        }
-        if (at === source.length) fail();
-        predicates.push(parsePredicate(source.slice(start, at), budget));
-        expect("]");
-        space();
-      }
+      const predicates = readPredicates();
       steps.push({ descendant, kind, name: selected, predicates });
       if ((kind === "attribute" || kind === "text") && source[at] === "/") fail();
       { const _p = budget.tick(); if (_p) await _p; }

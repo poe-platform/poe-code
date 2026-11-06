@@ -115,3 +115,15 @@ for (const source of ["-", "1 +", "-(1 +)", "number(1 +)"]) {
     await assert.rejects(parseQuery(source, budget), /unsupported XPath/);
   });
 }
+
+for (const source of ['(//item)[', '(//item)[]', '(//item)[1]/text()', '(//item)[1] | //item']) {
+  test(`XPath rejects unsupported grouped filter syntax ${source}`, async () => {
+    const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+    await assert.rejects(parseQuery(source, budget), /unsupported XPath/);
+  });
+}
+
+test("grouped filters obey the configured query depth", async () => {
+  const budget = new XmlBudget(resolveXmlQueryLimits({ maxDepth: 2 }), new AbortController().signal, async () => {});
+  await assert.rejects(parseQuery('(((//item)[1])[1])[1]', budget), /maxDepth/);
+});

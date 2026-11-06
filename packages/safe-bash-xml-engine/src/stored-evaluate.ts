@@ -91,7 +91,31 @@ export class StoredXPath {
     } else yield* this.document.children(reference, attributes);
   }
 
+  private async filter(matched: StoredSelection, predicates: QueryStep["predicates"]): Promise<StoredSelection> {
+    for (const predicate of predicates) {
+      const filtered = new StoredSelection(this);
+      const first = predicate[0];
+      const positionOnly = predicate.length === 1 && first?.kind === "literal" && typeof first.value === "number" ? first.value
+        : predicate.length === 1 && first?.kind === "function" && first.name === "last" ? matched.size : undefined;
+      let position = 0;
+      for await (const reference of matched.references()) {
+        position++;
+        if (positionOnly !== undefined) {
+          if (position === positionOnly) { await filtered.add(reference); break; }
+        } else if (await testPredicate(predicate, await this.node(reference), position, matched.size, this.budget,
+          (query, absolute) => this.select(query, absolute ? this.document.document : reference))) await filtered.add(reference);
+      }
+      matched = filtered;
+    }
+    return matched;
+  }
+
   async select(query: Query, context = this.document.document): Promise<StoredSelection> {
+    if (query.filter) {
+      const { input, predicates } = query.filter;
+      if (input.query!.expression) throw new XmlQueryError("XPath filter requires a node-set", 10);
+      return this.filter(await this.select(input.query!, input.source.startsWith("/") ? this.document.document : context), predicates);
+    }
     const namespaces = await this.document.namespaceScope(this.namespaceContext);
     const union = new StoredSelection(this);
     for (const path of query.paths) {
@@ -121,21 +145,7 @@ export class StoredXPath {
           for await (const candidate of candidates) {
             if (await matches(await this.node(candidate), step, namespace, localName, this.document)) await matched.add(candidate);
           }
-          for (const predicate of step.predicates) {
-            const filtered = new StoredSelection(this);
-            const first = predicate[0];
-            const positionOnly = predicate.length === 1 && first?.kind === "literal" && typeof first.value === "number" ? first.value
-              : predicate.length === 1 && first?.kind === "function" && first.name === "last" ? matched.size : undefined;
-            let position = 0;
-            for await (const reference of matched.references()) {
-              position++;
-              if (positionOnly !== undefined) {
-                if (position === positionOnly) { await filtered.add(reference); break; }
-              } else if (await testPredicate(predicate, await this.node(reference), position, matched.size, this.budget,
-                (query, absolute) => this.select(query, absolute ? this.document.document : reference))) await filtered.add(reference);
-            }
-            matched = filtered;
-          }
+          matched = await this.filter(matched, step.predicates);
           for await (const reference of matched.references()) {
             await selected.add(reference);
             this.budget.results(selected.size);

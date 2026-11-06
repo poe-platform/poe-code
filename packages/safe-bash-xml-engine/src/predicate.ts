@@ -33,9 +33,29 @@ const digit = (c: string): boolean => c >= "0" && c <= "9";
 const nameStart = (c: string): boolean => c >= "a" && c <= "z" || c >= "A" && c <= "Z" || c === "_";
 const namePart = (c: string): boolean => nameStart(c) || digit(c) || c === "-" || c === ".";
 
+/** Locate grouped node-set filters without recursively scanning nested groups. */
+export function filterGroups(source: string): Map<number, number> {
+  const groups = new Map<number, number>(), stack: number[] = [];
+  let quote = "";
+  for (let at = 0; at < source.length; at++) {
+    const c = source[at]!;
+    if (quote) { if (c === quote) quote = ""; }
+    else if (c === "'" || c === '"') quote = c;
+    else if (c === "(") stack.push(at);
+    else if (c === ")") {
+      const start = stack.pop();
+      let next = at + 1;
+      while (whitespace(source[next] ?? "")) next++;
+      if (start !== undefined && source[next] === "[") groups.set(start, at);
+    }
+  }
+  return groups;
+}
+
 /** Shunting-yard compilation keeps adversarial expression nesting off the JS stack. */
 export function parsePredicate(source: string, budget: XmlBudget): readonly Instruction[] {
   const output: Instruction[] = [];
+  const groups = filterGroups(source);
   const stack: ({ kind: "negate" } | { kind: "operator"; name: Operator } | { kind: "group"; name?: FunctionName; commas: number })[] = [];
   let at = 0, expecting = true, depth = 0;
   const fail = (): never => { throw new XmlQueryError(`unsupported XPath predicate at offset ${at}`, 10); };
@@ -94,7 +114,7 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
     let probe = at;
     while (namePart(source[probe] ?? "")) probe++;
     while (whitespace(source[probe] ?? "")) probe++;
-    const pathStart = c === "/" || c === "@" || c === "." && !digit(source[at + 1] ?? "") ||
+    const pathStart = groups.has(at) || c === "/" || c === "@" || c === "." && !digit(source[at + 1] ?? "") ||
       nameStart(c) && (source[probe] !== "(" || source.startsWith("text", at));
     if (pathStart) {
       const start = at;

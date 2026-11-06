@@ -346,6 +346,19 @@ for (const [query, expected] of [
   assert.equal(result.output, expected + '\n');
 });
 
+for (const [query, expected] of [
+  ['string((//*[local-name()="t"])[1])', 'zip'],
+  ['name((//@*)[1])', 'w:id'],
+  ['(//*[local-name()="t"])[1]', '<w:t>zip</w:t>'],
+  ['count((//*[local-name()="t"])[1])', '1'],
+  ['count(//*[local-name()="t"][1])', '2'],
+] as const) test(`parenthesized node-set filter: ${query}`, async () => {
+  const result = await run(['--xpath', query, '-'], '<w:document xmlns:w="urn:word"><w:p w:id="1"><w:t>zip</w:t></w:p><w:p><w:t>other</w:t></w:p></w:document>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+
 test('namespace-only declarations are excluded from attributes', async () => {
   const input = '<w:document ' + Array.from({ length: 9 }, (_, i) => `xmlns:${i === 0 ? 'w' : 'p' + i}="urn:${i}"`).join(' ') + '/>';
   for (const [query, expected] of [['count(/*/namespace::*)', '10\n'], ['count(/*/@*)', '0\n']]) {

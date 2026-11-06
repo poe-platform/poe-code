@@ -192,6 +192,38 @@ test("paged XPath streams large attribute values through scalar and node results
 });
 
 for (const [source, expected] of [
+  ['string((//*[local-name()="n"])[1])', '10'],
+  ['name((//@*)[1])', 'xml:lang'],
+  ['(//n)[1]', '<n>10</n>'],
+  ['//n[1]', '<n>10</n><n>30</n>'],
+  ['(//n)[last()]', '<n>30</n>'],
+  ['(//n)[position() > 1][1]', '<n>20</n>'],
+  ['((//n)[position() > 1])[last()]', '<n>30</n>'],
+  ['(//n | //x/n)[2]', '<n>20</n>'],
+  ['(//n)[0]', ''],
+  ['(//n)[9]', ''],
+  ['//x[(n)[1] = 10]', '<x id="1"><n>10</n><n>20</n>é<![CDATA[😀]]></x>'],
+] as const) test(`global XPath filtering: ${source}`, async () => {
+  const signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const query = await parseQuery(source, budget);
+  const document = await StoredXmlDocument.parse([input], { fs: createMemoryFileSystem(), cwd: "/", env: {}, signal }, budget, 1);
+  try {
+    const stored = new StoredXPath(document, budget);
+    if (query.expression) {
+      assert.equal(await evaluateScalar(query, parseXml(input), budget), expected);
+      assert.equal(await stored.scalar(query), expected);
+    } else {
+      for (const nodes of [await evaluate(query, parseXml(input), budget), (await stored.select(query)).nodes()]) {
+        let actual = "";
+        for await (const node of nodes) for await (const part of serialize(node, budget)) actual += part;
+        assert.equal(actual, expected);
+      }
+    }
+  } finally { await document.close(); }
+});
+
+for (const [source, expected] of [
   ['count(/*/namespace::*)', '3'],
   ['count(/*/@*)', '1'],
   ['count(/*/*/namespace::*)', '2'],
@@ -238,4 +270,16 @@ test('namespace selections spill, deduplicate, and retain element order', async 
     assert.equal(actual, expected);
   } finally { await document.close(); }
   assert.deepEqual(await fs.readdir('/'), []);
+});
+
+test("global filters preserve positions after paged selections spill", async () => {
+  const signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const xml = `<r>${Array.from({ length: 160 }, (_, i) => `<g><n>${i}</n></g>`).join("")}</r>`;
+  const document = await StoredXmlDocument.parse([xml], { fs: createMemoryFileSystem(), cwd: "/", env: {}, signal }, budget, 1);
+  try {
+    const query = await parseQuery('string((//n)[position() > 128][last()])', budget);
+    assert.equal(await new StoredXPath(document, budget).scalar(query), "159");
+    assert.equal(await evaluateScalar(query, parseXml(xml), budget), "159");
+  } finally { await document.close(); }
 });

@@ -120,6 +120,34 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
   return evaluatePaths(query, tree, budget, tree.document);
 }
 async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof indexTree>>, budget: XmlBudget, context: Node): Promise<Node[]> {
+  const filter = async (matched: Node[], predicates: QueryStep["predicates"]): Promise<Node[]> => {
+    for (const predicate of predicates) {
+      { const _p = budget.tick(); if (_p) await _p; }
+      const first = predicate[0];
+      if (predicate.length === 1 && first?.kind === "literal" && typeof first.value === "number") {
+        matched = matched[first.value - 1] ? [matched[first.value - 1]!] : [];
+        continue;
+      }
+      if (predicate.length === 1 && first?.kind === "function" && first.name === "last") {
+        matched = matched.length ? [matched[matched.length - 1]!] : [];
+        continue;
+      }
+      const filtered: Node[] = [];
+      for (let index = 0; index < matched.length; index++) {
+        const candidate = matched[index]!;
+        if (await testPredicate(predicate, candidate, index + 1, matched.length, budget,
+          async (selected, absolute) => evaluatePaths(selected, tree, budget, absolute ? tree.document : candidate)))
+          filtered.push(candidate);
+      }
+      matched = filtered;
+    }
+    return matched;
+  };
+  if (query.filter) {
+    const { input, predicates } = query.filter;
+    if (input.query!.expression) throw new XmlQueryError("XPath filter requires a node-set", 10);
+    return filter(await evaluatePaths(input.query!, tree, budget, input.source.startsWith("/") ? tree.document : context), predicates);
+  }
   const { order, parentOf } = tree;
   const union = new Set<Node>();
   for (const path of query.paths) {
@@ -169,26 +197,7 @@ async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof index
           { const _p = budget.tick(); if (_p) await _p; }
           if (matches(candidate, step, namespace, localName)) matched.push(candidate);
         }
-        for (const predicate of step.predicates) {
-          { const _p = budget.tick(); if (_p) await _p; }
-          const first = predicate[0];
-          if (predicate.length === 1 && first?.kind === "literal" && typeof first.value === "number") {
-            matched = matched[first.value - 1] ? [matched[first.value - 1]!] : [];
-            continue;
-          }
-          if (predicate.length === 1 && first?.kind === "function" && first.name === "last") {
-            matched = matched.length ? [matched[matched.length - 1]!] : [];
-            continue;
-          }
-          const filtered: Node[] = [];
-          for (let index = 0; index < matched.length; index++) {
-            const candidate = matched[index]!;
-            if (await testPredicate(predicate, candidate, index + 1, matched.length, budget,
-              async (selected, absolute) => evaluatePaths(selected, tree, budget, absolute ? tree.document : candidate)))
-              filtered.push(candidate);
-          }
-          matched = filtered;
-        }
+        matched = await filter(matched, step.predicates);
         for (const node of matched) {
           { const _p = budget.tick(); if (_p) await _p; }
           if (!selected.has(node)) {

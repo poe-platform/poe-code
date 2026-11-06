@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { readFile } from "node:fs/promises";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosStream, cosName, dictSet } from "@poe-code/pdf-ast";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
@@ -71,3 +72,23 @@ for (const version of [1, 2]) it(`does not decode omitted JSON ${version} object
   assert.equal(result.exitCode, 0); assert.equal(Buffer.concat(stdout).toString(), buffered.stdout);
   assert.deepEqual(await fs.readdir("/scratch"), []);
 });
+
+// Native qpdf 2 JSON status for each selected section, including empty summaries.
+for (const [key, calledgetallpages] of [["", false], ["pages", true], ["pagelabels", true], ["acroform", true], ["outlines", true], ["attachments", false], ["encrypt", false]] as const) {
+  it(`matches native qpdf status flags with qpdf and ${key || "no other section"}`, async () => {
+    const input = await readFile(new URL("../../pdf-ast/src/fixtures/qpdf-shared-images.pdf", import.meta.url));
+    const args = ["--json=2", "--json-key=qpdf", ...(key ? [`--json-key=${key}`] : []), "in.pdf"];
+    const buffered = await runQpdfCli(args, new Map([["in.pdf", input]]));
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
+    const stdout: Uint8Array[] = [];
+    const retained = await createQpdfCommand().execute({ command: "qpdf", args, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal,
+      stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write() {} } });
+    assert.equal(buffered.exitCode, 0); assert.equal(retained.exitCode, 0);
+    for (const output of [buffered.stdout, Buffer.concat(stdout).toString()]) {
+      assert.deepEqual(JSON.parse(output).qpdf[0], {
+        jsonversion: 2, pdfversion: "1.3", pushedinheritedpageresources: false, calledgetallpages, maxobjectid: 54
+      });
+    }
+    assert.deepEqual(await fs.readdir("/scratch"), []);
+  });
+}

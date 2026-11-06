@@ -168,7 +168,8 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
     };
     const sections: Record<string, JsonValue> = { ...metadata, objects: objectValue,
       objectinfo: { kind: "object", entries: objectInfoEntries() },
-      qpdf: { kind: "array", values: [jsonRecord({ jsonversion: 2, pdfversion: document.crossReference.version, maxobjectid: maximum }), objectValue] }
+      qpdf: { kind: "array", values: [jsonRecord({ jsonversion: 2, pdfversion: document.crossReference.version, pushedinheritedpageresources: false,
+        calledgetallpages: ["pages", "pagelabels", "acroform", "outlines"].some(include), maxobjectid: maximum }), objectValue] }
     };
     const selectedPayload: Record<string, JsonValue> = { version: options.jsonVersion ?? 2, parameters: jsonRecord({ decodelevel: "generalized" }) };
     for (const key of options.jsonKeys.length ? options.jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", ...(options.jsonVersion === 1 ? ["objects", "objectinfo"] : ["qpdf"])]) selectedPayload[key] = sections[key]!;

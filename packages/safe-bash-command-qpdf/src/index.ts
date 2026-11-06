@@ -1631,7 +1631,8 @@ function* executeQpdfCli(
       pages: pagesVal, pagelabels: pagelabelsJson, outlines: outlinesJson,
       acroform: acroformSection, encrypt: jsonVersion === 1 ? qpdfJsonEncryption(baseDoc.cos.encryption) : { encrypted: Boolean(baseDoc.cos.encryption) },
       attachments: attachmentsJson, objects: objectsMap, objectinfo: objectInfo,
-      qpdf: [{ jsonversion: 2, pdfversion: baseDoc.cos.version, maxobjectid: baseDoc.cos.maxObjectNumber }, objectsMap]
+      qpdf: [{ jsonversion: 2, pdfversion: baseDoc.cos.version, pushedinheritedpageresources: false,
+        calledgetallpages: ["pages", "pagelabels", "acroform", "outlines"].some(include), maxobjectid: baseDoc.cos.maxObjectNumber }, objectsMap]
     };
     const selectedPayload: Record<string, unknown> = { version: jsonVersion, parameters: { decodelevel: "generalized" } };
     for (const key of jsonKeys.length ? jsonKeys : ["pages", "pagelabels", "acroform", "attachments", "encrypt", "outlines", ...(jsonVersion === 1 ? ["objects", "objectinfo"] : ["qpdf"])]) selectedPayload[key] = sections[key];

@@ -122,6 +122,17 @@ describe("overlay alpha", () => {
 
 describe("overlay offsets", () => {
   for (const [options, ox, oy] of [
+    ["3:2", 2, 2],
+    ["2:3", 2, 2],
+    ["3:3", 2, 2],
+    ["2:2", 2, 2],
+    ["-1:2", -2, 2],
+    ["2:-1", 2, -2],
+    ["3:3:format=yuv420", 2, 2],
+    ["3:3:format=yuv422", 2, 3],
+    ["3:3:format=yuv444", 3, 3],
+    ["3:3:format=auto", 3, 3],
+    ["3:3:format=rgb", 3, 3],
     ["x=2:y=2:format=rgb", 2, 2],
     ["y=3:x=2:format=rgb", 2, 3],
     ["2:3:format=rgb", 2, 3],

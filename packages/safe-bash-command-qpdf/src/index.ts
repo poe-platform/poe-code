@@ -1539,13 +1539,13 @@ function* executeQpdfCli(
       }
     }
     if (!hasSelector || jsonObjectSelectors.some((s) => s.kind === "trailer")) {
-      const trailerDict = cosDict({
-        Root: baseDoc.cos.rootRef,
-        ...(baseDoc.cos.infoRef ? { Info: baseDoc.cos.infoRef } : {}),
-        Size: cosNumber(baseDoc.cos.maxObjectNumber + 1)
-      });
       objectsMap.trailer = {
-        value: cosNodeToJson(trailerDict)
+        value: {
+          "/Root": cosNodeToJson(baseDoc.cos.rootRef),
+          ...(baseDoc.cos.infoRef ? { "/Info": cosNodeToJson(baseDoc.cos.infoRef) } : {}),
+          "/Size": baseDoc.cos.maxObjectNumber + 1,
+          ...(baseDoc.cos.idArray ? { "/ID": baseDoc.cos.idArray.items.map(item => item.kind === "string" ? `b:${Array.from(item.bytes, byte => byte.toString(16).padStart(2, "0")).join("")}` : cosNodeToJson(item)) } : {})
+        }
       };
     }
     const attachmentsJson: Record<string, unknown> = {};

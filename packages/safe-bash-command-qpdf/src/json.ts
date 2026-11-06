@@ -1,7 +1,7 @@
 import { qpdfJsonEncryption } from "./json-encryption.js";
 import { qpdfJsonPage } from "./json-pages.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosDict, cosNumber, cosString, decodePdfString, dictGet, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfMutableObjectStore, PdfStagedOutputs, cosArray, cosString, decodePdfString, dictGet, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
 import { retainedAttachments } from "./attachments.js";
 import { qpdfObjectOrder } from "./object-order.js";
 import { base64Parts, cosJson, jsonChunks, jsonRecord, type JsonValue } from "./json-output.js";
@@ -55,7 +55,12 @@ export async function createQpdfJson(sourceDocument: PdfRetainedDocument, docume
       } else value = jsonRecord({ value: cosJson(object.value, storage, signal) });
       yield [`obj:${object.objectNumber} ${object.generationNumber} R`, value];
     }
-    if (!options.jsonObjectSelectors.length || options.jsonObjectSelectors.some(item => item.kind === "trailer")) yield ["trailer", jsonRecord({ value: cosJson(cosDict({ Root: document.crossReference.rootRef, ...(document.crossReference.infoRef ? { Info: document.crossReference.infoRef } : {}), Size: cosNumber(maximum + 1) }), storage, signal) })];
+    if (!options.jsonObjectSelectors.length || options.jsonObjectSelectors.some(item => item.kind === "trailer")) yield ["trailer", jsonRecord({ value: jsonRecord({
+      "/Root": cosJson(document.crossReference.rootRef, storage, signal),
+      ...(document.crossReference.infoRef ? { "/Info": cosJson(document.crossReference.infoRef, storage, signal) } : {}),
+      "/Size": maximum + 1,
+      ...(document.crossReference.idArray ? { "/ID": { kind: "array" as const, values: document.crossReference.idArray.items.map(item => item.kind === "string" ? `b:${Array.from(item.bytes, byte => byte.toString(16).padStart(2, "0")).join("")}` : cosJson(item, storage, signal)) } } : {})
+    }) })];
   }
   async function* objectInfoEntries(): AsyncGenerator<readonly [string, JsonValue]> {
     for await (const object of objects()) {

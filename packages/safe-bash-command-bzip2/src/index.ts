@@ -55,7 +55,9 @@ function createNamedBzip2Command(
     execute: withInputByteBudget(async (context) => {
       context.signal.throwIfAborted();
       try {
-        const parsed = parseOptions(name, context.args);
+        const defaults = [context.env.BZIP2 ?? "", context.env.BZIP ?? ""]
+          .flatMap(value => value.split(/[ \t\n\r\v\f]+/).filter(Boolean));
+        const parsed = parseOptions(name, [...defaults, ...context.args]);
         if (parsed.help) {
           await output(
             context,

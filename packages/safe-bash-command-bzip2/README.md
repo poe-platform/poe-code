@@ -6,6 +6,7 @@ exports without installing the workspace separately.
 
 - `-d` / `--decompress`, `-z` / `--compress`, `-c` / `--stdout`, `-t` / `--test`
 - `-k` / `--keep`, `-f` / `--force`, `-1` through `-9` block sizes
+- Virtual shell `BZIP2` then `BZIP` supply whitespace-separated defaults; explicit arguments follow them
 - File decompression strips `.bz2` or `.bz` and replaces `.tbz2` or `.tbz` with `.tar`
 - `-s` / `--small` reduces decoder memory and caps compression at block size two
 - Concatenated streams, corruption checks, cancellation, and private VFS staging

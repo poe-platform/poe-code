@@ -45,6 +45,18 @@ export const odtReader: ReaderCapability = {format: "odt", async read(input, ctx
     if (n > maximum) odtFailure(ctx, "ODT repetition limit exceeded", "E_LIMIT");
     ctx.checkpoint(n); return n;
   };
+  const codeText = (node: OdtElement): string => {
+    ctx.checkpoint();
+    if (node.uri === ns.text) {
+      if (node.name === "s") {
+        const n = count(a(node, "c", ns.text), ctx.limits.text);
+        ctx.charge("retainedBytes", n * 2);
+        return " ".repeat(n);
+      }
+      if (node.name === "tab" || node.name === "line-break") return " ";
+    }
+    return node.children.map(child => typeof child === "string" ? child : codeText(child)).join("");
+  };
   const inlines = async (nodes: readonly (OdtElement | string)[]): Promise<Inline[]> => {
     const result: Inline[] = [];
     for (const node of nodes) {
@@ -60,6 +72,10 @@ export const odtReader: ReaderCapability = {format: "odt", async read(input, ctx
           if (bodies.length !== 1) odtFailure(ctx, "Expected one ODT note body");
           result.push({t: "Note", c: await blocks(bodies[0]!.children)});
         } else if (node.name === "span") {
+          if (a(node, "style-name", ns.text) === "Source_20_Text") {
+            result.push({t: "Code", c: [attr, codeText(node)]});
+            continue;
+          }
           let content = await inlines(node.children);
           const props = properties(a(node, "style-name", ns.text));
           const tags: {tag: "Strong" | "Emph" | "Strikeout" | "Superscript" | "Subscript" | "Underline" | "SmallCaps"; enabled: boolean}[] = [

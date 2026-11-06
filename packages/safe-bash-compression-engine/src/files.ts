@@ -119,6 +119,10 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     context.signal.throwIfAborted();
     if (name === "-") { plans.push({ source: "-" }); continue; }
     if (!name) throw new FsError("ENOENT", { path: name });
+    if (options.format === "bzip2" && !options.decompress && !options.test
+      && [".bz2", ".bz", ".tbz2", ".tbz"].some(suffix => name.endsWith(suffix))) {
+      throw new FsError("EINVAL", { path: name, message: "already has a bzip2 suffix" });
+    }
     let source = pathOf(context, name);
     if (options.excludeCompressed && !options.decompress && [".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2", ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"].some(suffix => source.endsWith(suffix))) continue;
     let sourceStat: FileStat;

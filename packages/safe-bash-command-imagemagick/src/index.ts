@@ -5375,7 +5375,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
                 const { format, path } = inferOutputFormat(writePath, top.format);
-                if (stack.length > 1 && (/%0?\d*d/.test(path) || !state.adjoin)) {
+                if (stack.length > 1 && (hasSceneOutputPattern(path) || !state.adjoin || (path !== "-" && ["png", "jpeg", "bmp"].includes(format)))) {
                     for (let idx = 0; idx < stack.length; idx++) {
                         if (++cooperativeWork % 65536 === 0)
                             yield;
@@ -6091,7 +6091,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             return { exitCode: 0, stdout: hist, stderr: "" };
         }
         const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-        if (stack.length > 1 && (/%0?\d*d/.test(outPath) || !state.adjoin)) {
+        if (stack.length > 1 && (hasSceneOutputPattern(outPath) || !state.adjoin || (outPath !== "-" && ["png", "jpeg", "bmp"].includes(format)))) {
             for (let idx = 0; idx < stack.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
@@ -6672,7 +6672,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const image = await stack.get(stack.length - 1);
                 if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
-                    if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin)) {
+                    if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format)))) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else await backend.stage(await prepareStoredHueOutput(image, output.format, backend, signal), output.path, { format: output.format, ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality });
                 }
@@ -6973,7 +6973,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             await backend.publishPending();
             return { exitCode: 0, stdout, stderr: "" };
         }
-        if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !state.adjoin)) {
+        if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !state.adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format)))) {
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
                 await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, index), { format: output.format, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });

@@ -5511,6 +5511,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-write" || t === "+write") {
+            if (stack.length === 0) throw new Error(`no images for write '${t}'`);
             const writePath = expandFilenameProperties(tokens[++i] ?? "", state);
             if (writePath.slice(0, 4).toLowerCase() === "mpr:") {
                 const saved: RgbaImage[] = [];
@@ -6814,6 +6815,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "-write" || token === "+write")) {
             const path = expandFilenameProperties(tokens[++i] ?? "", state), quality = state.quality, samplingFactor = state.samplingFactor, adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
+                if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
                 if (path.slice(0, 4).toLowerCase() === "mpr:") {
                     const saved = new StoredImageStack(backend.storage, signal, stack);

@@ -24,12 +24,28 @@ export async function* encodeOutput(parts: Iterable<string> | AsyncIterable<stri
 export function* sqlQuoteParts(value: SqlValue, newlines = true): Generator<string> {
   if (typeof value === 'string' || value instanceof String) {
     const text = String(value), zero = text.indexOf('\0'), end = zero < 0 ? text.length : zero;
-    yield "'";
-    for (let offset = 0; offset < end; offset += 4096) {
-      const chunk = text.slice(offset, Math.min(end, offset + 4096)).replaceAll("'", "''");
-      yield newlines ? chunk : chunk.replaceAll("\n", "'||char(10)||'").replaceAll("\r", "'||char(13)||'");
+    const escapes = new Map<string, string>();
+    if (!newlines) {
+      const literal = text.slice(0, end);
+      for (const [character, preferred, fallback] of [["\n", "\\n", "\\012"], ["\r", "\\r", "\\015"]] as const) {
+        if (!literal.includes(character)) continue;
+        let marker: string = preferred;
+        if (literal.includes(marker)) {
+          marker = fallback;
+          for (let i = 0; literal.includes(marker); i++) marker = `(${preferred}${i})`;
+        }
+        escapes.set(character, marker);
+        yield "replace(";
+      }
     }
     yield "'";
+    for (let offset = 0; offset < end; offset += 4096) {
+      let chunk = text.slice(offset, Math.min(end, offset + 4096)).replaceAll("'", "''");
+      for (const [character, marker] of escapes) chunk = chunk.replaceAll(character, marker);
+      yield chunk;
+    }
+    yield "'";
+    for (const [character, marker] of [...escapes].reverse()) yield `,'${marker}',char(${character.charCodeAt(0)}))`;
   } else if (value instanceof Uint8Array) {
     yield "X'";
     for (let offset = 0; offset < value.length; offset += 4096) {

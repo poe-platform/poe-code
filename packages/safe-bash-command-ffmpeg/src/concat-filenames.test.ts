@@ -22,9 +22,9 @@ const cases = [
 ] as const;
 
 for (const [token, filename] of cases) {
-  for (const separator of [" ", "\t"]) {
+  for (const separator of [" ", "\t", " \t "]) {
     it(`concat reads native filename ${JSON.stringify(token)} after ${JSON.stringify(separator)}`, async () => {
-      const volume = Volume.fromJSON({ "/list.ffconcat": `file${separator}${token}\nfile b.wav\n` });
+      const volume = Volume.fromJSON({ "/list.ffconcat": `file${separator}${token}\nfile${separator}b.wav\n` });
       // A distinct decoy detects accidentally stripping literal double quotes.
       for (const [name, base] of [["a.wav", 12000], [filename, 1000], ["b.wav", -9000]] as const) {
         volume.writeFileSync(`/${name}`, encodeWav({ sampleRate: 8000,

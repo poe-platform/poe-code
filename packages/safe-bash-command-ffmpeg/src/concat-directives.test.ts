@@ -8,10 +8,13 @@ import { createFfmpegCommand } from "./index.js";
 for (const separator of ["", "# marker\n", "\n", "  \n  # marker\n\n"]) {
   for (const [directives, start, end] of [
     [["inpoint 0.25"], 2000, 8000],
+    [["inpoint\t0.25"], 2000, 8000],
+    [["inpoint \t 0.25", "outpoint\t 0.75"], 2000, 6096],
     [["inpoint 00:00:00.25"], 2000, 8000],
     [["inpoint 250ms"], 2000, 8000],
     [["inpoint 250000us"], 2000, 8000],
     [["outpoint 0.25"], 0, 2048],
+    [["outpoint\t0.25"], 0, 2048],
     [["outpoint 0.256"], 0, 2048],
     [["outpoint 0.75"], 0, 6144],
     [["duration 0.5"], 0, 8000],

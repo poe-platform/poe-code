@@ -6901,18 +6901,15 @@ export class SqliteDatabase {
         } else if (fnUpper === "CUME_DIST") {
           result[rowIdx] = (currentPeerEnd + 1) / indices.length;
         } else if (fnUpper === "LAG" || fnUpper === "LEAD") {
-          const offset = fnExpr.args[1]
-            ? Math.trunc(
-                toSqlNumber(
-                  yield* this.evalExprSteps(fnExpr.args[1], g.representative, positionalParams, cteScope, { group: g.group })
-                )
-              )
+          const offsetValue = fnExpr.args[1]
+            ? yield* this.evalExprSteps(fnExpr.args[1], g.representative, positionalParams, cteScope, { group: g.group })
             : 1;
+          const offset = toSqlNumber(offsetValue);
           const defVal = fnExpr.args[2]
             ? yield* this.evalExprSteps(fnExpr.args[2], g.representative, positionalParams, cteScope, { group: g.group })
             : null;
           const targetPos = fnUpper === "LAG" ? pPos - offset : pPos + offset;
-          if (targetPos < 0 || targetPos >= indices.length) {
+          if (offsetValue === null || !Number.isInteger(targetPos) || targetPos < 0 || targetPos >= indices.length) {
             result[rowIdx] = defVal;
           } else {
             const targetG = groupedRows[indices[targetPos]!]!;

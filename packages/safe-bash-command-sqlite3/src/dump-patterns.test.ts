@@ -11,7 +11,7 @@ const wasmBinary = await readFile(createRequire(import.meta.url).resolve("@sqlit
 const sqlite = await init({ wasmBinary } as Parameters<typeof init>[0]);
 
 for (const mode of ["async", "sync", "injected"]) {
-  for (const [patterns, tables, views] of [
+  for (const [patterns, tables, views, objects = []] of [
     ["a b", ["a", "b"], []],
     ["pkg_%", ["pkg_a"], ["pkg_v"]],
     ["a*", [], []],
@@ -19,7 +19,10 @@ for (const mode of ["async", "sync", "injected"]) {
     ["PKG__", ["pkg_a"], ["pkg_v"]],
     ['""', [], []],
     ["é", ["é"], []],
-    ["pkg_a ix tr", ["pkg_a"], []]
+    ["pkg_a", ["pkg_a"], []],
+    ["ix", [], [], ["ix"]],
+    ["tr", [], [], ["tr"]],
+    ["pkg_a ix tr", ["pkg_a"], [], ["ix", "tr"]]
   ] as const) {
     test(`dump SQL LIKE patterns ${patterns} (${mode})`, async () => {
       const source = new sqlite.oo1.DB();
@@ -54,10 +57,13 @@ for (const mode of ["async", "sync", "injected"]) {
           });
           assert.equal(result.exitCode, 0, stderr);
         }
+        const needsTable = patterns === "ix" || patterns === "tr";
+        if (needsTable) restored.exec("CREATE TABLE pkg_a(x);");
         restored.exec(stdout);
-        assert.deepEqual(restored.selectArrays("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name"), tables.map(name => [name]));
+        assert.deepEqual(restored.selectArrays("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name"), (needsTable ? ["pkg_a"] : tables).map(name => [name]));
         assert.deepEqual(restored.selectArrays("SELECT name FROM sqlite_schema WHERE type='view' ORDER BY name"), views.map(name => [name]));
-        assert.deepEqual(restored.selectArrays("SELECT name FROM sqlite_schema WHERE type IN ('index','trigger') ORDER BY name"), patterns === "pkg_a ix tr" ? [["ix"], ["tr"]] : []);
+        assert.deepEqual(restored.selectArrays("SELECT name FROM sqlite_schema WHERE type IN ('index','trigger') ORDER BY name"), objects.map(name => [name]));
+        if (needsTable) assert.deepEqual(restored.selectArrays("SELECT * FROM pkg_a"), []);
         for (const name of tables) assert.deepEqual(restored.selectArrays(`SELECT * FROM "${name}"`), [[42]]);
         for (const name of views) assert.deepEqual(restored.selectArrays(`SELECT * FROM "${name}"`), [[42]]);
       } finally { source.close(); restored.close(); }

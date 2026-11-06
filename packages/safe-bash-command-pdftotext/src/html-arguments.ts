@@ -9,7 +9,7 @@ export const SUPPORTED_ENCODINGS = new Set([
 
 export interface HtmlPlan {
   readonly inputPath: string; readonly outPath: string; readonly imageDirectory: string;
-  readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean;
+  readonly xmlMode: boolean; readonly stdoutOutput: boolean; readonly ignoreImages: boolean; readonly dataUrls: boolean; readonly nodrm: boolean;
   readonly firstPage: number; readonly lastPage: number; readonly zoom: number;
   readonly imageFmt: "png" | "jpg"; readonly encoding: string; readonly password: string;
 }
@@ -18,6 +18,7 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
     let toStdout = false;
     let ignoreImages = false;
     let dataUrls = false;
+    let nodrm = false;
     let firstPage = 1;
     let lastPage = 0;
     let zoom = 1.5;
@@ -47,6 +48,8 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             toStdout = true;
         else if (arg === "-i")
             ignoreImages = true;
+        else if (arg === "-nodrm")
+            nodrm = true;
         else if (arg === "-dataurls")
             dataUrls = true;
         else if (arg === "-f")
@@ -83,8 +86,7 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             arg === "-p" ||
             arg === "-q" ||
             arg === "-hidden" ||
-            arg === "-nomerge" ||
-            arg === "-nodrm") {
+            arg === "-nomerge") {
             // Flag options
         }
         else if (!arg.startsWith("-") || arg === "-") {
@@ -105,5 +107,5 @@ export function parseHtmlArguments(argv: readonly string[], hasStdin = false): H
             : `${explicitOut}${defaultExt}`
         : inputStem + defaultExt;
     const imageDirectory = outPath.slice(0, outPath.lastIndexOf("/") + 1);
-    return { inputPath, outPath, imageDirectory, xmlMode, stdoutOutput, ignoreImages, dataUrls, firstPage, lastPage, zoom, imageFmt, encoding, password };
+    return { inputPath, outPath, imageDirectory, xmlMode, stdoutOutput, ignoreImages, dataUrls, nodrm, firstPage, lastPage, zoom, imageFmt, encoding, password };
 }

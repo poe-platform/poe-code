@@ -14,7 +14,7 @@ import {
 import { writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { PdfDocument, decodePdfString, dictGet, extractPageAnnotations, formatExtractedPageText, resolveDestinationPageIndex, type PdfCosDict, type PdfExtractedPage, type PdfTextBlock, type PdfTextLine, type PdfTextWord, encodeJpegSteps, encodePngSteps, extractDocumentImagesSteps } from "@poe-code/pdf-ast";
+import { getPdfEncryptionInfo, PdfDocument, decodePdfString, dictGet, extractPageAnnotations, formatExtractedPageText, resolveDestinationPageIndex, type PdfCosDict, type PdfExtractedPage, type PdfTextBlock, type PdfTextLine, type PdfTextWord, encodeJpegSteps, encodePngSteps, extractDocumentImagesSteps } from "@poe-code/pdf-ast";
 
 export interface PdftotextLimits {
   readonly maxInputBytes: number;
@@ -908,6 +908,9 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
     }
     catch (err) {
         return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+    }
+    if (!parsed.nodrm && doc.cos.encryption && !doc.cos.encryption.permissions.copy && !getPdfEncryptionInfo(doc.cos.encryption).ownerPasswordMatched) {
+        return { exitCode: 1, stdout: "", stderr: "Permission Error: Copying of text from this document is not allowed.\n" };
     }
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;

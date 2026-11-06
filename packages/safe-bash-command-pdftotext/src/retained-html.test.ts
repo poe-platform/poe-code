@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { PdfDocument, PdfRetainedDocument, cosDict, cosString, cosName, cosNumber, cosArray, dictSet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { createPdftohtmlCommand, runPdftohtmlCli } from "./index.js";
+import { createPdftohtmlCommand, createPdftotextCommand, runPdftohtmlCli } from "./index.js";
 
 async function fixture(input: Uint8Array, args: readonly string[], stdin = false) {
   const fs = createMemoryFileSystem(); await fs.writeFile("/input.pdf", input); await fs.writeFile("/output.txt", new TextEncoder().encode("old output"));
@@ -153,4 +153,41 @@ test("retained HTML reports empty implicit stdin as an input error", async () =>
   assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 1);
   assert.equal(new TextDecoder().decode(joined(f.stderr)), "I/O Error: Couldn't open file '-'\n");
   await f.clean();
+});
+
+for (const mode of [[], ["-xml"]]) for (const nodrm of [false, true]) test(`HTML copy permission: mode=${mode}, nodrm=${nodrm}`, async () => {
+  const doc = PdfDocument.create(); doc.addPage().drawText("Protected text", { x: 10, y: 100 });
+  const input = doc.save({ encrypt: { userPassword: "", ownerPassword: "owner", permissions: { copy: false } } });
+  const args = [...mode, "-stdout", "-i", ...(nodrm ? ["-nodrm"] : []), "/input.pdf"];
+  const f = await fixture(input, args);
+  const result = await createPdftohtmlCommand().execute(f.context);
+  assert.equal(result.exitCode, nodrm ? 0 : 1);
+  const stdout = new TextDecoder().decode(joined(f.stdout)), stderr = new TextDecoder().decode(joined(f.stderr));
+  assert.equal(stderr, nodrm ? "" : "Permission Error: Copying of text from this document is not allowed.\n");
+  if (nodrm) assert.ok(stdout.includes("Protected text")); else assert.equal(stdout, "");
+  const buffered = await runPdftohtmlCli(args, new Map([["/input.pdf", input]]));
+  assert.equal(buffered.exitCode, result.exitCode); assert.equal(buffered.stderr, stderr);
+  if (nodrm) assert.ok(buffered.stdout.includes("Protected text")); else assert.equal(buffered.stdout, "");
+  await f.clean();
+});
+
+test("HTML copy protection preserves existing output and cleans staging", async () => {
+  const doc = PdfDocument.create(); doc.addPage().drawText("Protected text", { x: 10, y: 100 });
+  const input = doc.save({ encrypt: { userPassword: "", ownerPassword: "owner", permissions: { copy: false } } });
+  const f = await fixture(input, ["/input.pdf", "/output.txt"]);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 1);
+  assert.equal(new TextDecoder().decode(await f.fs.readFile("/output.txt")), "old output");
+  assert.equal(f.counts().published, 0); await f.clean();
+});
+
+test("HTML accepts the owner password and pdftotext ignores copy restrictions", async () => {
+  const doc = PdfDocument.create(); doc.addPage().drawText("Protected text", { x: 10, y: 100 });
+  const input = doc.save({ encrypt: { userPassword: "", ownerPassword: "owner", permissions: { copy: false } } });
+  for (const command of [createPdftohtmlCommand(), createPdftotextCommand()]) {
+    const args = command.name === "pdftohtml" ? ["-opw", "owner", "-xml", "-stdout", "-i", "/input.pdf"] : ["/input.pdf", "-"];
+    const f = await fixture(input, args);
+    assert.equal((await command.execute(f.context)).exitCode, 0);
+    assert.ok(new TextDecoder().decode(joined(f.stdout)).includes("Protected text"));
+    assert.equal(f.stderr.length, 0);
+  }
 });

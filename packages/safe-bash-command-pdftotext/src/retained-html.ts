@@ -1,5 +1,5 @@
 import { PdfFileSource, PdfRetainedDocument, PdfRetainedDecodedImage, PdfStagingStorage, PdfStagedOutputs, PdfError,
-  encodeRetainedPng, encodeJpegChunks, streamHtmlPageText, type PdfOutputEntry } from "@poe-code/pdf-ast";
+  getPdfEncryptionInfo, encodeRetainedPng, encodeJpegChunks, streamHtmlPageText, type PdfOutputEntry } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { InputByteBudget, readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -59,6 +59,9 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
     let pageCount = 0;
     try {
       document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", ...(plan.password ? { password: plan.password } : {}) });
+      if (!plan.nodrm && document.encryption && !document.encryption.permissions.copy && !getPdfEncryptionInfo(document.encryption).ownerPasswordMatched) {
+        return await error("Permission Error: Copying of text from this document is not allowed.\n", 1);
+      }
       for await (const ignored of document.pages()) { void ignored; pageCount++; }
     } catch (failure) { signal.throwIfAborted(); return await error(`PDF Error: ${(failure as Error).message}\n`, 1); }
     const totalPages = Math.max(1, pageCount), endPage = plan.lastPage > 0 ? Math.min(totalPages, plan.lastPage) : totalPages;

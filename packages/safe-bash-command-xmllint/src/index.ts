@@ -465,15 +465,11 @@ export function evalSyncXmllint(
 ): string | undefined {
   if ((inBytes && inBytes.byteLength > 8192) || opArgs.length > 5) return undefined;
   let noout = false;
-  let format = false;
-  let c14n = false;
   let xpathQuery: string | undefined;
   let idx = 0;
   while (idx < opArgs.length) {
     const flag = opArgs[idx]!;
     if (flag === "--noout") { noout = true; idx++; }
-    else if (flag === "--format") { format = true; idx++; }
-    else if (flag === "--c14n") { c14n = true; idx++; }
     else if (flag === "--xpath" || flag.startsWith("--xpath=")) {
       if (xpathQuery !== undefined) return undefined;
       if (flag.startsWith("--xpath=")) {
@@ -495,7 +491,9 @@ export function evalSyncXmllint(
   const fileArg = opArgs[idx];
   if (idx + (fileArg !== undefined ? 1 : 0) < opArgs.length) return undefined;
   if (fileArg !== undefined && fileArg.startsWith("-") && fileArg !== "-") return undefined;
-  if (xpathQuery !== undefined && (format || c14n || noout)) return undefined;
+  if (xpathQuery !== undefined && noout) return undefined;
+  // Document output uses the shared serializer, including namespace scope and canonical ordering.
+  if (xpathQuery === undefined && !noout) return undefined;
 
   let srcBytes = inBytes;
   if (fileArg !== undefined && fileArg !== "-") {
@@ -523,44 +521,7 @@ export function evalSyncXmllint(
   } catch {
     return undefined;
   }
-  if (noout && xpathQuery === undefined) return "";
-  if (xpathQuery === undefined) {
-    const escAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/\t/g, "&#x9;").replace(/\n/g, "&#xA;").replace(/\r/g, "&#xD;");
-    const escText = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\r/g, "&#xD;");
-    const renderElem = (el: XmlElement, depth: number): string => {
-      const attrs = [...el.attributes].filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/");
-      if (c14n) attrs.sort((a, b) => a.localName.localeCompare(b.localName));
-      const attrStr = attrs.map(a => ` ${a.name}="${escAttr(a.value)}"`).join("");
-      const children: XmlContent[] = [];
-      let mixed = false;
-      for (let i = 0; i < el.content.length; i++) {
-        const ch = el.content[i]!;
-        if (ch.kind === "text") {
-          const blank = /^[ \t\n\r]*$/.test(ch.text);
-          if (format && !c14n && !mixed && blank && (children.length > 0 || i + 1 < el.content.length)) continue;
-          mixed = true;
-        } else if (ch.kind === "cdata") mixed = true;
-        children.push(ch);
-      }
-      if (children.length === 0) {
-        return c14n ? `<${el.name}${attrStr}></${el.name}>` : `<${el.name}${attrStr}/>`;
-      }
-      const doIndent = format && !c14n && !mixed;
-      let inner = "";
-      for (const ch of children) {
-        if (doIndent) inner += "\n" + "  ".repeat(depth + 1);
-        if (ch.kind === "element") inner += renderElem(ch, depth + 1);
-        else if (ch.kind === "text" || (ch.kind === "cdata" && c14n)) inner += escText(ch.text);
-        else if (ch.kind === "cdata") inner += `<![CDATA[${ch.text}]]>`;
-        else if (ch.kind === "comment") inner += `<!--${ch.text}-->`;
-      }
-      if (doIndent) inner += "\n" + "  ".repeat(depth);
-      return `<${el.name}${attrStr}>${inner}</${el.name}>`;
-    };
-    if (c14n) return renderElem(root, 0);
-    return `<?xml version="1.0"?>\n${renderElem(root, 0)}\n`;
-  }
-
+  if (xpathQuery === undefined) return "";
   // Support common XPath queries: string(...), count(...), boolean(...), and /a/b/c[@attr="v"]/text() or /a/b/@attr
   let q = xpathQuery.trim();
   let scalar: "string" | "count" | "boolean" | undefined;

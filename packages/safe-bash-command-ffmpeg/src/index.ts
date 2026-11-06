@@ -1590,6 +1590,7 @@ interface InputSpec {
   readonly streamLoop?: number | undefined;
   readonly fps?: number | undefined;
   readonly startNumber?: number | undefined;
+  readonly startNumberRange?: number | undefined;
 }
 
 export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
@@ -1651,6 +1652,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingLoop: number | undefined;
       let pendingFps: number | undefined;
       let pendingStartNumber: number | undefined;
+      let pendingStartNumberRange: number | undefined;
       let overwrite: boolean | undefined;
       let exitOnError = false;
       let inputReadFailed = false;
@@ -1779,6 +1781,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-start_number_range") {
+            const value = Number(args[++i]);
+            if (!Number.isInteger(value) || value < 1 || value > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid start_number_range\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingStartNumberRange = value;
           } else if (arg === "-start_number") {
             const val = Number(args[++i]);
             if (!Number.isSafeInteger(val) || val < 0) {
@@ -1860,7 +1869,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
               fps: pendingFps,
-              startNumber: pendingStartNumber
+              startNumber: pendingStartNumber,
+              startNumberRange: pendingStartNumberRange
             });
             pendingFormat = undefined;
             pendingSafe = undefined;
@@ -1870,6 +1880,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingLoop = undefined;
             pendingFps = undefined;
             pendingStartNumber = undefined;
+            pendingStartNumberRange = undefined;
           } else if (arg === "-c" || arg === "-codec") {
             const val = args[++i];
             videoCodec = val;
@@ -2041,7 +2052,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (/%0?\d*d/.test(filePath)) {
                 const frames: MediaVideoFrame[] = [];
                 const fps = fpsHint ?? 25;
-                for (let idx = input?.startNumber ?? 0; ; idx++) {
+                const startNumber = input?.startNumber ?? 0;
+                const startNumberRange = input?.startNumberRange ?? 5;
+                for (let idx = startNumber; ; idx++) {
                   budget.checkCpu();
                   context.signal.throwIfAborted();
                   const formatted = filePath.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
@@ -2055,7 +2068,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   } catch (error) {
                     rethrowRuntimeError(context, error);
                     if ((error as { code?: string }).code !== "ENOENT") throw error;
-                    if (idx === 0 && input?.startNumber === undefined) continue;
+                    if (frames.length === 0 && idx - startNumber < startNumberRange - 1) continue;
                     break;
                   }
                   {

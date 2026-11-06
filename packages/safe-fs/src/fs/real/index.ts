@@ -451,7 +451,13 @@ export class RealFileSystem implements FileSystem {
               immediate.futimesSync(fd, (options.atimeMs ?? stat.atimeMs) / 1000, (options.mtimeMs ?? stat.mtimeMs) / 1000);
             }
           } finally { immediate.closeSync(fd); }
-        } else immediate.symlinkSync(target!, file);
+        } else {
+          immediate.symlinkSync(target!, file);
+          if (options.atimeMs !== undefined || options.mtimeMs !== undefined) {
+            const stat = immediate.lstatSync(file);
+            immediate.lutimesSync(file, (options.atimeMs ?? stat.atimeMs) / 1000, (options.mtimeMs ?? stat.mtimeMs) / 1000);
+          }
+        }
         const virtualDirectory = `/${relative(root, directory)}`;
         const receipt = (path: string, host: string) => Object.freeze({ path, stat: Object.freeze(this.stagingSnapshot(host)!) });
         return Object.freeze({ parent: receipt(dirname(virtualDirectory), dirname(directory)), directory: receipt(virtualDirectory, directory), file: receipt(`${virtualDirectory}/${name}`, file) });

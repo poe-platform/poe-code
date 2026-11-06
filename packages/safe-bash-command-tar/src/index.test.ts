@@ -54,6 +54,31 @@ for (const type of ["x", "g"]) test(`tar lists and extracts unknown ${type} PAX 
   assert.deepEqual(await fs.readFile("/dest/a.txt"), data);
 });
 
+for (const transform of [false, true]) for (const touch of [false, true]) test(`tar restores symlink timestamps (transform=${transform}, touch=${touch})`, async () => {
+  const fs = createMemoryFileSystem();
+  const entry = { name: "install-sh", type: "0", linkname: "", size: 0, mode: 0o755, uid: 0, gid: 0, mtime: 1700000001 };
+  await fs.writeFile("/archive.tar", Buffer.concat([
+    headerBytes(entry),
+    headerBytes({ ...entry, name: "installer", type: "2", linkname: "install-sh", mtime: 1699000003 }),
+    new Uint8Array(1024),
+  ]));
+  await fs.mkdir("/dest");
+  const result = await run(createTarCommand(), ["-xf", "/archive.tar", "-C", "/dest",
+    ...(transform ? ["--transform=s,install-sh,renamed,"] : []), ...(touch ? ["--touch"] : [])], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const target = transform ? "renamed" : "install-sh";
+  assert.equal(await fs.readlink!("/dest/installer"), target);
+  const link = await fs.lstat("/dest/installer");
+  const file = await fs.lstat(`/dest/${target}`);
+  if (touch) {
+    assert.notEqual(link.mtimeMs, 1699000003000);
+    assert.notEqual(file.mtimeMs, 1700000001000);
+  } else {
+    assert.equal(link.mtimeMs, 1699000003000);
+    assert.equal(file.mtimeMs, 1700000001000);
+  }
+});
+
 for (const mutation of ["growth", "shrink", "mtime", "canonical", "opaque-version", "none"]) test(`tar validates fallback source ${mutation}`, async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/a", new Uint8Array([1, 2, 3]));

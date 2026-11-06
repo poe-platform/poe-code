@@ -24,6 +24,18 @@ beforeEach(() => { vi.restoreAllMocks(); vol.reset(); vol.fromJSON({ "/machine/w
 // Exact post-rename link counts are checked by test:staging-native: memfs
 // does not decrement the overwritten inode's link count during rename.
 
+for (const target of ["../input", "../missing"]) it(`staged symlink timestamps do not follow ${target}`, async () => {
+  const fs = new RealFileSystem("/machine");
+  await fs.utimes("/work/input", 1700000001000, 1700000001000);
+  const staged = await fs.createStagedFile("/work/.stage", "entry", { type: "symlink", target }, {
+    parent: await fs.lstat("/work"), atimeMs: 1699000002000, mtimeMs: 1699000003000,
+  });
+  expect(staged.file.stat.atimeMs).toBe(1699000002000);
+  expect(staged.file.stat.mtimeMs).toBe(1699000003000);
+  expect((await fs.lstat("/work/input")).mtimeMs).toBe(1700000001000);
+  await fs.removeStagedFile(staged);
+});
+
 for (const change of ["contents", "link-count"] as const) it(`rooted real staging rejects stale hardlinked destination ${change}`, async () => {
   const fs = new RealFileSystem("/machine");
   await fs.writeFile("/work/output", new Uint8Array([7, 8, 9]));

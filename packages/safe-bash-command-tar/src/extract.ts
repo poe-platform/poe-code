@@ -177,7 +177,7 @@ async function stageEntry(context: CommandContext, path: string, source: ByteSou
         staging = await fs.createStagedFile(temporary, "entry", entry.type === "2" ? { type: "symlink", target: entry.linkname } : { type: "file", data: data! }, {
           signal, parent, ...(capabilities.retainedStagingCleanup === true ? { retainCleanup: true } : {}),
           ...(entry.type === "2" || capabilities.permissions === false ? {} : { mode: entry.mode & (options.metadata.permissions === false ? 0o755 : 0o777) }),
-          ...(entry.type === "2" || options.metadata.touch || capabilities.timestamps === false ? {} : {
+          ...(options.metadata.touch || capabilities.timestamps === false ? {} : {
             ...(entry.atime === undefined && (entry.atimeDeleted || entry.mtime === undefined) ? {} : { atimeMs: (entry.atime ?? entry.mtime!) * 1000 }),
             ...(entry.mtime === undefined ? {} : { mtimeMs: entry.mtime * 1000 }),
           }),

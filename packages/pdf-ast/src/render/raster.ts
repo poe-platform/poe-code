@@ -1324,14 +1324,17 @@ function *renderDisplayListLayerSteps(
       const cornersPdfY = [f, b + f, b + d + f, d + f];
       const cornersPx = cornersPdfX.map(cx => (cx - originX) * scale - offsetX);
       const cornersPy = cornersPdfY.map(cy => (pageTop - cy) * scale - offsetY);
+      // Poppler paints both endpoint pixels of axis-aligned images, including
+      // fractional edges whose pixel centers lie outside the image rectangle.
+      const axisAligned = (b === 0 && c === 0) || (a === 0 && d === 0);
       const clipMinPx = img.clipRect ? Math.floor((img.clipRect[0] - originX) * scale) - offsetX : 0;
       const clipMaxPx = img.clipRect ? Math.ceil((img.clipRect[2] - originX) * scale) - offsetX - 1 : width - 1;
       const clipMinPy = img.clipRect ? Math.floor((pageTop - img.clipRect[3]) * scale) - offsetY : 0;
       const clipMaxPy = img.clipRect ? Math.ceil((pageTop - img.clipRect[1]) * scale) - offsetY - 1 : height - 1;
       const minPx = Math.max(0, clipMinPx, Math.floor(Math.min(...cornersPx)));
-      const maxPx = Math.min(width - 1, clipMaxPx, Math.ceil(Math.max(...cornersPx)) - 1);
+      const maxPx = Math.min(width - 1, clipMaxPx, axisAligned ? Math.floor(Math.max(...cornersPx)) : Math.ceil(Math.max(...cornersPx)) - 1);
       const minPy = Math.max(0, clipMinPy, Math.floor(Math.min(...cornersPy)));
-      const maxPy = Math.min(height - 1, clipMaxPy, Math.ceil(Math.max(...cornersPy)) - 1);
+      const maxPy = Math.min(height - 1, clipMaxPy, axisAligned ? Math.floor(Math.max(...cornersPy)) : Math.ceil(Math.max(...cornersPy)) - 1);
       if (minPx > maxPx || minPy > maxPy) continue;
 
       // Measure source-pixel footprints through the inverse transform so that
@@ -1362,9 +1365,12 @@ function *renderDisplayListLayerSteps(
           const xPdf = originX + (px + offsetX + 0.5) / scale;
           if (img.clipRect && (xPdf < img.clipRect[0] || xPdf > img.clipRect[2])) continue;
           const dxPdf = xPdf - e;
-          const u = (d * dxPdf - c * dyPdf) / det;
-          const v = (-b * dxPdf + a * dyPdf) / det;
-          if (u < 0 || u > 1 || v < 0 || v > 1) continue;
+          let u = (d * dxPdf - c * dyPdf) / det;
+          let v = (-b * dxPdf + a * dyPdf) / det;
+          if (axisAligned) {
+            u = Math.max(0, Math.min(1, u));
+            v = Math.max(0, Math.min(1, v));
+          } else if (u < 0 || u > 1 || v < 0 || v > 1) continue;
           if (sampler) {
             images!.request = {kind:"sample",sampler,u,v,smooth,out:sample}; yield;
           } else if (smooth) {

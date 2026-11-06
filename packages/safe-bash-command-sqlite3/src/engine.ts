@@ -4666,6 +4666,7 @@ export class SqliteDatabase {
     const cteMap = new Map(outerCtes);
     const localNames = new Set<string>();
     const definitionRows = this.outerRows.slice();
+    let outerDemand: { name: string; rows: number } | undefined;
     let idx = 1;
     if (tokens[idx]?.value.toUpperCase() === "RECURSIVE") {
       idx += 1;
@@ -4695,6 +4696,7 @@ export class SqliteDatabase {
       if (tokens[idx]?.value.toUpperCase() === "AS") {
         idx += 1;
       }
+      const materialized = tokens[idx]?.value.toUpperCase() === "MATERIALIZED";
       if (
         tokens[idx]?.value.toUpperCase() === "NOT" &&
         tokens[idx + 1]?.value.toUpperCase() === "MATERIALIZED"
@@ -4735,7 +4737,8 @@ export class SqliteDatabase {
         try {
           if (this.tableReferenceDepths(bodyTokens, cteName).length > 0) {
             result = yield* this.evalRecursiveCte(
-              cteName, explicitCols, bodyTokens, positionalParams, cteMap
+              cteName, explicitCols, bodyTokens, positionalParams, cteMap,
+              !materialized && outerDemand?.name === cteName.toLowerCase() ? outerDemand.rows : Infinity
             );
           } else {
             const res = yield* this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
@@ -4761,8 +4764,60 @@ export class SqliteDatabase {
     }
 
     const mainTokens = tokens.slice(idx);
+    // Only a single direct consumer may bound the cached CTE result.
+    if (localNames.size === 1) {
+      outerDemand = yield* this.recursiveOuterDemand(mainTokens, positionalParams);
+    }
     const mainSql = reconstructTokensSql(mainTokens);
     return yield* this.executeStatementSteps(mainSql, positionalParams, cteMap);
+  }
+
+  private *recursiveOuterDemand(
+    tokens: Token[], positionalParams: SqlValue[]
+  ): SqlSteps<{ name: string; rows: number } | undefined> {
+    if (tokens[0]?.value.toUpperCase() !== "SELECT") return;
+    if (tokens[1]?.value.toUpperCase() === "DISTINCT") return;
+    let depth = 0;
+    let from = -1;
+    let limit = -1;
+    for (let i = 1; i < tokens.length; i += 1) {
+      yield;
+      const token = tokens[i]!;
+      if (token.value === "(") depth += 1;
+      else if (token.value === ")") depth -= 1;
+      else if (depth === 0 && token.type === "word") {
+        const keyword = token.value.toUpperCase();
+        if (keyword === "FROM") from = i;
+        else if (keyword === "LIMIT") limit = i;
+        else if (["WHERE", "GROUP", "HAVING", "WINDOW", "ORDER", "UNION", "INTERSECT", "EXCEPT"].includes(keyword)) return;
+      }
+    }
+    if (from < 0 || limit < from) return;
+    const source = tokens.slice(from + 1, limit);
+    if (!(source.length === 1 ||
+      (source.length === 2 && ["word", "ident"].includes(source[1]!.type)) ||
+      (source.length === 3 && source[1]?.value.toUpperCase() === "AS" && ["word", "ident"].includes(source[2]!.type)))) return;
+    if (!source[0] || !["word", "ident"].includes(source[0].type)) return;
+    const start = tokens[1]?.value.toUpperCase() === "ALL" ? 2 : 1;
+    for (const item of this.splitTopLevelComma(tokens.slice(start, from))) {
+      if (item.length === 1 && item[0]?.value === "*" ||
+          item.length === 3 && item[1]?.value === "." && item[2]?.value === "*") continue;
+      const expressions = [this.parseSelectTarget(item).expr];
+      while (expressions.length > 0) {
+        yield;
+        const expr = expressions.pop()!;
+        if (isAggregateFunction(expr) || expr.kind === "subquery" || expr.kind === "in_subquery" ||
+            (expr.kind === "func" && expr.over)) return;
+        expressions.push(...expressionChildren(expr));
+      }
+    }
+    const tail = tokens.slice(limit + 1);
+    // Do not evaluate volatile or subquery LIMIT expressions twice.
+    if (tail.some(token => token.type !== "number" &&
+      !["+", "-", ",", "OFFSET"].includes(token.value.toUpperCase()))) return;
+    const { limitVal, offsetVal } = yield* this.evaluateLimit(tail, positionalParams);
+    if (limitVal < 0) return;
+    return { name: source[0]!.value.toLowerCase(), rows: limitVal === 0 ? 0 : limitVal + Math.max(0, offsetVal) };
   }
 
   private tableReferenceDepths(tokens: Token[], name: string): number[] {
@@ -4797,7 +4852,8 @@ export class SqliteDatabase {
     explicitCols: string[] | undefined,
     bodyTokens: Token[],
     positionalParams: SqlValue[],
-    cteMap: CteScope
+    cteMap: CteScope,
+    maxResultRows = Infinity
   ): SqlSteps<{ columns: string[]; rows: SqlValue[][] }> {
     // Split at the UNION before the first member that references this CTE.
     let d = 0;
@@ -4884,7 +4940,7 @@ export class SqliteDatabase {
     let pendingRows = anchorRes.rows;
     const stepMap = new Map(cteMap);
     const cteKey = cteName.toLowerCase();
-    while (limitVal < 0 || allRows.length < limitVal) {
+    while (allRows.length < maxResultRows && (limitVal < 0 || allRows.length < limitVal)) {
       for (const row of pendingRows) {
         yield;
         if (!unionAll) {
@@ -4903,7 +4959,7 @@ export class SqliteDatabase {
       const row = queue.shift()!;
       visited += 1;
       if (visited > offsetVal) allRows.push(row);
-      if (limitVal >= 0 && allRows.length >= limitVal) break;
+      if (allRows.length >= maxResultRows || (limitVal >= 0 && allRows.length >= limitVal)) break;
       stepMap.set(cteKey, { columns: cols, rows: [row] });
       pendingRows = (yield* this.executeSelectCompound(recTokens, positionalParams, stepMap)).rows;
     }

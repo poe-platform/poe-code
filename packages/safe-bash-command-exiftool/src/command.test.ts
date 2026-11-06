@@ -878,7 +878,7 @@ test("CLI writes every admitted standard JPEG tag", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/tags.jpg", new Uint8Array([255,216,255,217]));
   const values = { ImageDescription: "1984", Make: "true", Model: "123", Software: "false", ModifyDate: "2026:09:26 12:00:00", Orientation: "6", UserComment: "null", DateTimeOriginal: "2020:01:02 03:04:05", CreateDate: "2021:02:03 04:05:06" };
-  const write = await invoke([...Object.entries(values).map(([name,value]) => "-" + name + "=" + value), "-overwrite_original", "tags.jpg"], fs);
+  const write = await invoke(["-n", ...Object.entries(values).map(([name,value]) => "-" + name + "=" + value), "-overwrite_original", "tags.jpg"], fs);
   assert.equal(write.exitCode, 0, write.stderr);
   const read = await invoke(["-j", "-n", "tags.jpg"], fs);
   assert.equal(read.exitCode, 0, read.stderr);
@@ -937,7 +937,7 @@ test("JPEG selected JSON reads JFIF density and unit codes", async () => {
 test("JPEG EXIF resolution takes precedence over JFIF in either segment order", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/source.jpg", new Uint8Array([255,216,255,217]));
-  const write = await invoke(["-XResolution=300", "-YResolution=150", "-ResolutionUnit=3", "-overwrite_original", "source.jpg"], fs);
+  const write = await invoke(["-n", "-XResolution=300", "-YResolution=150", "-ResolutionUnit=3", "-overwrite_original", "source.jpg"], fs);
   assert.equal(write.exitCode, 0, write.stderr);
   const exif = (await fs.readFile("/source.jpg")).subarray(2, -2);
   const jfif = [255,224,0,16,74,70,73,70,0,1,1,0,0,1,0,1,0,0];
@@ -963,7 +963,7 @@ test("JPEG CLI admits aliases, resolution selectors, comments and metadata copyi
   const fs = createMemoryFileSystem();
   await fs.writeFile("/source.jpg", new Uint8Array([255,216,255,217]));
   await fs.writeFile("/target.jpg", new Uint8Array([255,216,255,217]));
-  const write = await invoke(["-Author=Alice", "-DateTime=2026:01:02 03:04:05", "-XResolution=300", "-YResolution=145/2", "-ResolutionUnit=2", "-Comment=Camera note", "-overwrite_original", "source.jpg"], fs);
+  const write = await invoke(["-n", "-Author=Alice", "-DateTime=2026:01:02 03:04:05", "-XResolution=300", "-YResolution=145/2", "-ResolutionUnit=2", "-Comment=Camera note", "-overwrite_original", "source.jpg"], fs);
   assert.equal(write.exitCode,0,write.stderr);
   const read = await invoke(["-j","-n","source.jpg"], fs);
   const tags = JSON.parse(read.stdout)[0];
@@ -1036,4 +1036,35 @@ test("JPEG print conversion respects numeric CLI and SDK selectors in both read 
       assert.deepEqual(await fs.readFile("/image.jpg"), bytes);
     }
   }
+});
+
+
+test("JPEG enum writes convert labels and skip invalid PrintConv assignments", async () => {
+  const original = new Uint8Array(await readFile(new URL("../../pdf-ast/src/fixtures/jpeg-rgb-direct.jpg", import.meta.url)));
+  for (const [flags, orientation, unit] of [[[], "Rotate 180", "inches"], [[], "rotate 180", "INCHES"], [["-n"], "3", "2"]] as const) {
+    const fs = createMemoryFileSystem(); await fs.writeFile("/image.jpg", original);
+    const args = [...flags, `-Orientation=${orientation}`, `-ResolutionUnit=${unit}`, "-overwrite_original", "image.jpg"];
+    assert.deepEqual(await invoke(args, fs), { exitCode: 0, stdout: "    1 image files updated\n", stderr: "" });
+    assert.equal((await invoke(["-n", "-s3", "-Orientation", "-ResolutionUnit", "image.jpg"], fs)).stdout, "3\n2\n");
+    let written: Uint8Array | undefined;
+    assert.equal(evalSyncExiftool(undefined, args, () => original, (_path, bytes) => { written = bytes; return true; }), "    1 image files updated\n");
+    assert.deepEqual(written, await fs.readFile("/image.jpg"));
+  }
+  const fs = createMemoryFileSystem(); await fs.writeFile("/image.jpg", original);
+  const qualified = await invoke(["-Orientation#=3", "-ResolutionUnit#=2", "-overwrite_original", "image.jpg"], fs);
+  assert.equal(qualified.exitCode, 0, qualified.stderr);
+  assert.equal((await invoke(["-n", "-s3", "-Orientation", "-ResolutionUnit", "image.jpg"], fs)).stdout, "3\n2\n");
+  const deleted = await invoke(["-Orientation=", "-ResolutionUnit=", "-overwrite_original", "image.jpg"], fs);
+  assert.equal(deleted.exitCode, 0, deleted.stderr);
+  assert.equal((await invoke(["-s3", "-Orientation", "image.jpg"], fs)).stdout, "");
+  await fs.writeFile("/image.jpg", original);
+  const invalid = ["-Orientation=3", "-ResolutionUnit=2", "image.jpg"];
+  assert.deepEqual(await invoke(invalid, fs), { exitCode: 1, stdout: "", stderr: "Warning: Can't convert IFD0:Orientation (not in PrintConv)\nWarning: Can't convert IFD0:ResolutionUnit (not in PrintConv)\nNothing to do.\n" });
+  assert.deepEqual(await fs.readFile("/image.jpg"), original);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["image.jpg"]);
+  assert.equal(evalSyncExiftool(undefined, invalid, () => original, () => { assert.fail("invalid assignments must not publish"); }), undefined);
+  const mixed = await invoke(["-Orientation=3", "-ResolutionUnit=cm", "-overwrite_original", "image.jpg"], fs);
+  assert.equal(mixed.exitCode, 0, mixed.stderr);
+  assert.equal(mixed.stderr, "Warning: Can't convert IFD0:Orientation (not in PrintConv)\n");
+  assert.equal((await invoke(["-n", "-s3", "-ResolutionUnit", "image.jpg"], fs)).stdout, "3\n");
 });

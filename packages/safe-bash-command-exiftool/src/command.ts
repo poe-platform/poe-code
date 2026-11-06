@@ -47,6 +47,30 @@ const jpegPrintConversions: Readonly<Record<string, Readonly<Record<string, stri
   },
   ResolutionUnit: { "1": "None", "2": "inches", "3": "cm" }
 };
+function convertWriteAssignments(invocation: Invocation, resources: Resources): string[] {
+  const warnings: string[] = [];
+  if (invocation.numeric) return warnings;
+  resources.admit("work", invocation.assignments.length * 1024);
+  resources.admit("retained", invocation.assignments.length * 1024);
+  let accepted = 0;
+  for (const assignment of invocation.assignments) {
+    const conversions = jpegPrintConversions[assignment.name];
+    if (!conversions || assignment.numeric || assignment.value === "" || assignment.operation !== "set") {
+      invocation.assignments[accepted++] = assignment;
+      continue;
+    }
+    resources.admit("work", assignment.value.length * 16);
+    resources.admit("retained", assignment.value.length * 2);
+    const value = assignment.value.toLowerCase();
+    const converted = Object.entries(conversions).find(([, label]) => label.toLowerCase() === value);
+    if (converted) invocation.assignments[accepted++] = { ...assignment, value: converted[0] };
+    else {
+      warnings.push("Warning: Can't convert IFD0:" + assignment.name + " (not in PrintConv)\n");
+    }
+  }
+  invocation.assignments.length = accepted;
+  return warnings;
+}
 function printConverted(tags: readonly MetadataTag[], invocation: Invocation, resources: Resources): readonly MetadataTag[] {
   if (invocation.numeric || invocation.binary) return tags;
   resources.admit("work", tags.length * (invocation.valueConvTags.length + 1) * 64);
@@ -154,6 +178,12 @@ Limits:
           context.signal.throwIfAborted();
           if (error instanceof ResourceLimitError || (error instanceof Error && error.name === "BudgetExceededError") || (error instanceof FsError && error.code === "EFBIG")) throw error;
           await output("Error: " + (error instanceof Error ? error.message : String(error)) + "\n", true);
+          return { exitCode: 1 };
+        }
+        const warnings = convertWriteAssignments(invocation, resources);
+        for (const warning of warnings) await output(warning, true);
+        if (warnings.length && !invocation.assignments.length) {
+          await output("Nothing to do.\n", true);
           return { exitCode: 1 };
         }
         const json: string[] = [];
@@ -389,6 +419,7 @@ export function evalSyncExiftool(
     const syncSignal = new AbortController().signal;
     const resources = new Resources({ signal: syncSignal });
     const invocation = parseArguments([...opArgs], resources.limits);
+    if (convertWriteAssignments(invocation, resources).length) return undefined;
     const writing = invocation.assignments.length > 0 || invocation.tagsFromFile !== undefined;
     if (invocation.binary || invocation.files.length === 0) {
       return undefined;

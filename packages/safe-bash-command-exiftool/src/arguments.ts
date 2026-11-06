@@ -2,7 +2,7 @@ import { exiftoolRegistry } from "./registry.js";
 import type { TagAssignment } from "./png.js";
 import type { ResourceLimits } from "./resources.js";
 export interface Invocation {
-  readonly files: string[]; readonly tags: string[]; readonly assignments: TagAssignment[];
+  readonly files: string[]; readonly tags: string[]; readonly assignments: (TagAssignment & { readonly numeric?: boolean })[];
   numeric: boolean; readonly valueConvTags: string[];
   json: boolean; csv: boolean; quoteScalars: boolean; duplicates: boolean; binary: boolean; missing: boolean;
   style: "short" | "compact" | "values"; overwrite: "backup" | "replace" | "in-place";
@@ -59,9 +59,10 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     let name = arg.slice(1, equals < 0 ? undefined : equals);
     const operation = name.endsWith("+") ? "add" : name.endsWith("-") ? "remove" : "set";
     if (operation !== "set") name = name.slice(0, -1);
-    if (name.endsWith("#")) { if (equals < 0) { valueConvSelector = true; result.valueConvTags.push(name.slice(0, -1).toLowerCase()); } name = name.slice(0, -1); }
+    const numeric = name.endsWith("#");
+    if (numeric) { if (equals < 0) { valueConvSelector = true; result.valueConvTags.push(name.slice(0, -1).toLowerCase()); } name = name.slice(0, -1); }
     const known = exiftoolRegistry.tags.find(tag => tag.toLowerCase() === name.toLowerCase());
-    if (equals >= 0) result.assignments.push({ name: known ?? name, operation, value: arg.slice(equals + 1) });
+    if (equals >= 0) result.assignments.push({ name: known ?? name, operation, value: arg.slice(equals + 1), ...(numeric ? { numeric: true } : {}) });
     else if (known || name === "MissingTag") result.tags.push(known ?? name);
     else throw new Error("ExifTool option/tag not yet supported: " + arg);
   }

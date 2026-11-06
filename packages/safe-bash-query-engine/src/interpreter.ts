@@ -14,7 +14,14 @@ import { delpaths } from "./delpaths.js";
 import { splitRegex } from "./splits.js";
 import { binary, compare, compareMaybeSync, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
-type Path = (string | number | { start: number; end: number })[];
+type Path = (string | number | { start: Numeric | null; end: Numeric | null })[];
+function sliceBounds(length: number, start: Numeric | null, end: Numeric | null): { start: number; end: number } {
+  let first = start === null ? 0 : Math.floor(numberValue(start));
+  let last = end === null ? length : Math.ceil(numberValue(end));
+  first = Math.max(0, Math.min(length, first < 0 ? length + first : first));
+  last = Math.max(first, Math.min(length, last < 0 ? length + last : last));
+  return { start: first, end: last };
+}
 interface Frame { readonly name: string; readonly value: Json; readonly parent: Frame | undefined; readonly depth: number }
 const deleted = Symbol("deleted");
 const NOT_SINGLE = Symbol("NOT_SINGLE");
@@ -838,12 +845,10 @@ export class Interpreter {
             const base = await this.read(input, path);
             await sliceValue(base, isNumber(start) && Number.isNaN(numberValue(start)) ? null : start, isNumber(end) && Number.isNaN(numberValue(end)) ? null : end, this.budget);
             if (base !== null && !Array.isArray(base)) throw new JqError("slice assignment requires an array");
-            const length = base === null ? 0 : base.length;
-            let first = start === null || (isNumber(start) && Number.isNaN(numberValue(start))) ? 0 : Math.floor(numberValue(start as Numeric));
-            let last = end === null || (isNumber(end) && Number.isNaN(numberValue(end))) ? length : Math.ceil(numberValue(end as Numeric));
-            first = Math.max(0, Math.min(length, first < 0 ? length + first : first));
-            last = Math.max(first, Math.min(length, last < 0 ? length + last : last));
-            yield [...path, { start: first, end: last }];
+            yield [...path, {
+              start: isNumber(start) && !Number.isNaN(numberValue(start)) ? start : null,
+              end: isNumber(end) && !Number.isNaN(numberValue(end)) ? end : null
+            }];
           }
       return;
     }
@@ -874,11 +879,12 @@ export class Interpreter {
     if (typeof key === "object") {
       if (input !== null && !Array.isArray(input)) throw new JqError("slice assignment requires an array");
       const array = input === null ? [] : input;
-      const replacement = await this.set(array.slice(key.start, key.end), path, value, depth + 1);
+      const { start, end } = sliceBounds(array.length, key.start, key.end);
+      const replacement = await this.set(array.slice(start, end), path, value, depth + 1);
       if (!(value === deleted && depth === path.length - 1) && !Array.isArray(replacement)) throw new JqError("slice assignment requires an array value");
       const items = value === deleted && depth === path.length - 1 ? [] : replacement as Json[];
-      this.budget.collection(array.length - (key.end - key.start) + items.length);
-      return [...array.slice(0, key.start), ...items, ...array.slice(key.end)];
+      this.budget.collection(array.length - (end - start) + items.length);
+      return [...array.slice(0, start), ...items, ...array.slice(end)];
     }
     const previous = indexValue(input, key);
     const remove = value === deleted && depth === path.length - 1;
@@ -938,7 +944,9 @@ export class Interpreter {
     for (const path of deletions) {
       const last = path[path.length - 1];
       if (typeof last === "object" && path.slice(0, -1).every(key => typeof key !== "object")) {
-        for (let index = last.start; index < last.end; index++) {
+        const base = await this.read(input, path.slice(0, -1));
+        const { start, end } = sliceBounds(Array.isArray(base) ? base.length : 0, last.start, last.end);
+        for (let index = start; index < end; index++) {
           const pending = this.budget.tickSync(); if (pending) await pending;
           this.budget.collection(expanded.length + 1);
           expanded.push([...path.slice(0, -1), index]);
@@ -1694,7 +1702,7 @@ export class Interpreter {
     }
     if (name === "limit") {
       for await (const argument of this.run(args[0]!, input)) {
-        if (!isNumber(argument) || !Number.isSafeInteger(numberValue(argument)) || numberValue(argument) < 0) throw new JqError("limit requires a nonnegative integer");
+        if (!isNumber(argument) || !Number.isSafeInteger(Math.ceil(numberValue(argument))) || numberValue(argument) < 0) throw new JqError("limit requires a nonnegative number within the safe integer range");
         const count = numberValue(argument);
         if (count === 0) continue;
         let emitted = 0;

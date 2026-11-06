@@ -30,7 +30,7 @@ Raw `rgba:` output is unsupported and returns an error instead of emitting PNG b
 
 `-colorspace HSB`, `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.
 
-`-colorspace XYZ` converts sRGB pixels to CIE XYZ, preserves alpha, and exposes XYZ values in pixel and channel expressions. Converting back to `sRGB` restores RGB pixels.
+`-colorspace XYZ` and `-colorspace YCbCr` convert sRGB pixels to CIE XYZ or YCbCr, preserve alpha, and expose converted values in pixel and channel expressions. Converting back to `sRGB` restores RGB pixels.
 
 `-colorspace CMYK` and `-colorspace Lab` are unsupported and return an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
 

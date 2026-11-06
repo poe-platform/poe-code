@@ -1268,8 +1268,8 @@ function* createCheckerboardImageSteps(width: number, height: number): Generator
 function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
-    const sw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? img.width / 100 : 1)));
-    const sh = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? img.height / 100 : 1)));
+    const sw = Math.max(0, Math.round(g.width ?? 0));
+    const sh = Math.max(0, Math.round(g.height ?? 0));
     // Native splice rounds the gravity box and the splice anchor separately.
     const box = gravityAdjustBox(img.width, img.height, sw, sh, g.x, g.y, gravity);
     const anchor = resolveGravityOffset(sw, sh, gravity);
@@ -5620,18 +5620,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-shave") {
-            const g = parseMagickGeometry(tokens[++i] ?? "0x0");
+            const geometry = tokens[++i] ?? "0x0";
+            const g = parseMagickGeometry(geometry);
             const sw = Math.max(0, Math.round(g.width ?? 0));
             const sh = Math.max(0, Math.round(g.height ?? sw));
             stack = (yield* mapSteps(stack, function* (im) {
-                const clampedSw = Math.min(Math.floor((im.width - 1) / 2), sw);
-                const clampedSh = Math.min(Math.floor((im.height - 1) / 2), sh);
+                if (sw * 2 >= im.width || sh * 2 >= im.height) {
+                    analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+                    return im;
+                }
                 return { ...yield* extractImageSteps(im, {
-                    left: clampedSw,
-                    top: clampedSh,
-                    width: Math.max(1, im.width - clampedSw * 2),
-                    height: Math.max(1, im.height - clampedSh * 2)
-                }), virtualCanvas: magickBorderCanvas(im, -clampedSw, -clampedSh) };
+                    left: sw,
+                    top: sh,
+                    width: im.width - sw * 2,
+                    height: im.height - sh * 2
+                }), virtualCanvas: magickBorderCanvas(im, -sw, -sh) };
             }));
         }
         else if (t === "-trim") {
@@ -6202,8 +6205,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {
-        const sw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
-        const sh = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? h / 100 : 1)));
+        const sw = Math.max(0, Math.round(g.width ?? 0)), sh = Math.max(0, Math.round(g.height ?? 0));
         const box = gravityAdjustBox(w, h, sw, sh, g.x, g.y, state.gravity);
         const anchor = resolveGravityOffset(sw, sh, state.gravity);
         const x = Math.max(0, Math.min(w, box.x + anchor.left));
@@ -6824,12 +6826,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return frames;
             });
         } else if (!operandsOnly && token === "-shave") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), width = Math.max(0, Math.round(geometry.width ?? 0)), height = Math.max(0, Math.round(geometry.height ?? width));
+            const geometry = tokens[++i] ?? "0x0", parsed = parseMagickGeometry(geometry);
+            const width = Math.max(0, Math.round(parsed.width ?? 0)), height = Math.max(0, Math.round(parsed.height ?? width));
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const left = Math.min(Math.floor((image.width - 1) / 2), width), top = Math.min(Math.floor((image.height - 1) / 2), height);
-                return { ...await transformStoredImage(image, backend.storage, { kind: "extract", left, top, width: Math.max(1, image.width - left * 2), height: Math.max(1, image.height - top * 2) }, signal),
-                    virtualCanvas: magickBorderCanvas(image, -left, -top) };
+                if (width * 2 >= image.width || height * 2 >= image.height) {
+                    analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+                    return image;
+                }
+                return { ...await transformStoredImage(image, backend.storage, { kind: "extract", left: width, top: height, width: image.width - width * 2, height: image.height - height * 2 }, signal),
+                    virtualCanvas: magickBorderCanvas(image, -width, -height) };
             });
         } else if (!operandsOnly && token === "-trim") {
             const fuzz = state.alphaFuzz;

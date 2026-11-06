@@ -34,7 +34,10 @@ for (const mode of ["sync", "async", "filesystem"]) {
         bytes = files.get(`/break.${target}`);
       }
       if (target !== "cat") text = target === "pdf" ? PdfDocument.load(bytes!).extractText() : new TextDecoder().decode(bytes);
-      assert.equal(text.trimEnd(), target === "pdf" && tag === "h1" ? "Top\n\nBottom" : "Top\nBottom");
+      if (target === "pdf") {
+        const lines = PdfDocument.load(bytes!).extractPages({ mode: "raw" }).flatMap(page => page.blocks.flatMap(block => block.lines));
+        assert.deepEqual(lines.map(line => line.text), ["Top", "Bottom"]);
+      } else assert.equal(text.trimEnd(), "Top\nBottom");
     });
   }
 }

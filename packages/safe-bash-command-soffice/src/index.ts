@@ -1176,7 +1176,7 @@ function* runSofficeSteps(
             : isHtml ? blocks.map(block => [block.text ?? ""])
             : parseDelimitedRows(rawText, rawText.includes("\t") ? "\t" : ",");
           outBytes = targetExt === "xlsx" ? buildXlsxFromRows(rows) : formatStarCalcCsv(rows, filterOpts);
-        } else outBytes = isHtml || lowerIn.endsWith(".md") ? renderBlocksToText(blocks) : inputBytes;
+        } else outBytes = isHtml || lowerIn.endsWith(".md") ? renderBlocksToText(blocks, isHtml && targetExt === "txt" ? "\n" : "\n\n") : inputBytes;
       }
 
       if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {

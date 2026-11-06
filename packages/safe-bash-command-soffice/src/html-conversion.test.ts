@@ -73,8 +73,7 @@ for (const mode of ["sync", "async", "filesystem"]) {
       assert.ok(Math.abs(indent - 2 * characterWidth) < 0.001, "two spaces of indentation");
       assert.equal(second!.baselineY - last!.baselineY, 2 * (first!.baselineY - second!.baselineY), "blank line before end");
     } else {
-      const separator = target === "cat" ? "\n" : "\n\n";
-      assert.equal(text, ["Before text", "alpha    beta\n  gamma\n\nend", "After text"].join(separator) + "\n");
+      assert.equal(text, ["Before text", "alpha    beta\n  gamma\n\nend", "After text"].join("\n") + "\n");
     }
   });
 }
@@ -96,7 +95,7 @@ for (const mode of ["sync", "async"]) {
       } else text = target === "pdf" ? PdfDocument.load(bytes).extractText() : new TextDecoder().decode(bytes);
       for (const expected of ["Hello & welcome", "A fine day !", "First", "Second", "Name", "Alice", "42"]) assert.ok(text.includes(expected), text);
       for (const hidden of ["<h1>", "<span>", "Hidden title", "hiddenScript", "color:red"]) assert.ok(!text.includes(hidden), text);
-      if (target === "txt") assert.equal(text, "Hello & welcome\n\nA fine day !\n\n• First\n\n• Second\n\nName\tValue\nAlice\t42\n");
+      if (target === "txt") assert.equal(text, "Hello & welcome\nA fine day !\n• First\n• Second\nName\tValue\nAlice\t42\n");
     });
   }
 }

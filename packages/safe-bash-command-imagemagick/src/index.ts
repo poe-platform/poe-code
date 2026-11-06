@@ -3547,6 +3547,8 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: s
     const g = parseMagickGeometry(geomStr);
     const targetW = Math.max(1, Math.round(g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width ?? img.width));
     const targetH = Math.max(1, Math.round(g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height ?? img.height));
+    if ((g.enlargeOnly && img.width > targetW && img.height > targetH)
+        || (g.shrinkOnly && img.width < targetW && img.height < targetH)) return undefined;
     const offset = resolveGravityOffset(targetW - img.width, targetH - img.height, state.gravity);
     const isEast = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
     const isSouth = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";
@@ -3561,6 +3563,7 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: s
 function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     yield;
     const layout = magickExtentLayout(img, geomStr, state);
+    if (!layout) return img;
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
     const source = (img as MagickImage)[magickInput];
     const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background),
@@ -6864,6 +6867,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const layout = magickExtentLayout(image, geometry, captured);
+                if (!layout) return image;
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];
                 const canvas = { ...await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal),

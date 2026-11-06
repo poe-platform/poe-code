@@ -42,12 +42,13 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes unity-tempo correlation, Hann blending, and partial-window flushing.
   // Includes frame-evaluated volume and timeline enable expressions.
   // Includes concat directive ordering and reversed-range validation.
-  assert.ok(otherCodeBytes < 455_900, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes concat version and unknown-keyword validation.
+  assert.ok(otherCodeBytes < 456_100, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
   // Include argument validation before publishing outputs.
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
   // Include independent concat timeline offsets while preserving PCM samples.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_018_000);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_018_200);
 });

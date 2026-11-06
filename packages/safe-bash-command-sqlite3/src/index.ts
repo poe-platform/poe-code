@@ -1072,7 +1072,18 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             for await (const r of dataRows()) {
               const valsSql = Array.from({ length: colCount }, (_, cIdx) => r[cIdx] === undefined ? "NULL" : `'${r[cIdx]!.replaceAll("'", "''")}'`).join(", ");
               batch.push({ values: `(${valsSql})`, line: importLine });
-              if (r.length !== colCount || batch.length === 500) await flush();
+              // Keep the final INSERT single-row so changes() matches the native shell.
+              if (r.length !== colCount || batch.length === 500) {
+                const last = batch.pop()!;
+                if (batch.length) await flush();
+                batch.push(last);
+                await flush();
+              }
+            }
+            if (batch.length > 1) {
+              const last = batch.pop()!;
+              await flush();
+              batch.push(last);
             }
             if (batch.length) await flush();
           }
@@ -1729,15 +1740,14 @@ export function evalSyncSqlite3(
           db.executeStatement(createSql);
           tbl = db.findTable(tableArg);
         }
-        const batchValues: string[] = [];
-        for (const r of dataRows) {
-          if (r.length !== colCount) return false;
-          const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
-          batchValues.push(`(${valsSql})`);
-        }
-        for (let b = 0; b < batchValues.length; b += 500) {
-          const chunk = batchValues.slice(b, b + 500);
-          db.executeStatement(`INSERT INTO "${tbl ? tbl.name : tableArg}" VALUES ${chunk.join(", ")}`);
+        if (dataRows.some(row => row.length !== colCount)) return false;
+        const targetTableName = tbl ? tbl.name : tableArg;
+        if (!db.bulkImportRows(targetTableName, dataRows)) {
+          const values = dataRows.map(row => `(${row.map(value => `'${value.replaceAll("'", "''")}'`).join(", ")})`);
+          for (let offset = 0; offset < values.length - 1; offset += 500) {
+            db.executeStatement(`INSERT INTO "${targetTableName}" VALUES ${values.slice(offset, Math.min(offset + 500, values.length - 1)).join(", ")}`);
+          }
+          if (values.length) db.executeStatement(`INSERT INTO "${targetTableName}" VALUES ${values.at(-1)!}`);
         }
         state.dirty = true;
         return true;

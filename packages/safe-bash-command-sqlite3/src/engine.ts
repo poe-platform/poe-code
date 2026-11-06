@@ -2224,9 +2224,9 @@ export class SqliteDatabase {
       return undefined;
     }
     const cols = tbl.columns, colCount = cols.length;
-    let inserted = 0;
     return {
       insert: function* (this: SqliteDatabase, r: readonly string[]): SqlSteps<boolean> {
+        this.lastChanges = 0;
         const data: Record<string, SqlValue> = {};
         for (let cIdx = 0; cIdx < colCount; cIdx++) {
           const col = cols[cIdx]!;
@@ -2248,9 +2248,10 @@ export class SqliteDatabase {
         tbl.nextRowId = rowid + 1;
         if (rowid > tbl.maxAutoInc) tbl.maxAutoInc = rowid;
         this.lastInsertRowid = rowid;
-        inserted++; return true;
-      }.bind(this),
-      finish: () => { this.lastChanges = inserted; this.totalChanges += inserted; }
+        this.lastChanges = 1;
+        this.totalChanges++;
+        return true;
+      }.bind(this)
     };
   }
 
@@ -2258,7 +2259,7 @@ export class SqliteDatabase {
     const plan = this.prepareBulkImport(tableName);
     if (!plan) return false;
     for (const row of rows) if (!runSynchronously(plan.insert(row))) return false;
-    plan.finish(); return true;
+    return true;
   }
 
   public async bulkImportRowsAsync(tableName: string, rows: AsyncIterable<readonly string[]>, signal: AbortSignal, onConstraint?: (error: SqliteConstraintError) => Promise<void>): Promise<boolean> {
@@ -2275,7 +2276,7 @@ export class SqliteDatabase {
         await onConstraint(error);
       }
     }
-    signal.throwIfAborted(); plan.finish(); return true;
+    signal.throwIfAborted(); return true;
   }
 
   public findTable(name: string): TableDef | undefined {

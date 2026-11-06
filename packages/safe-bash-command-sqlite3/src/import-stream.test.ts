@@ -87,7 +87,7 @@ test("imports custom multi-character separators, empty records and permissive qu
 test("preserves native bulk-import change counts across many rows", async () => {
   const result = await importFile(Array.from({ length: 1201 }, (_, i) => `${i}\n`).join(''),
     ['CREATE TABLE t(x INTEGER);', '.import /input t', 'SELECT count(*), changes(), total_changes() FROM t;']);
-  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, '1201|1201|1201\n');
+  assert.equal(result.code, 0, result.stderr); assert.equal(result.stdout, '1201|1|1201\n');
 });
 
 test("retains trigger and constraint fallback behavior", async () => {
@@ -146,3 +146,33 @@ for (const content of ['x\n', 'a,b,c\n', '\n']) {
       () => new TextEncoder().encode(content)), undefined);
   });
 }
+
+for (const schema of [
+  'CREATE TABLE t(x INTEGER);',
+  'CREATE TABLE t(x INTEGER PRIMARY KEY);',
+  'CREATE TABLE t(x); CREATE TABLE audit(x); CREATE TRIGGER inserted AFTER INSERT ON t BEGIN INSERT INTO audit VALUES(new.x); END;'
+]) {
+  test(`sync and async imports count the last row: ${schema}`, async () => {
+    const content = Array.from({ length: 502 }, (_, i) => `${i}\n`).join('');
+    const script = [schema, '.import --csv /input t', 'SELECT count(*),changes(),total_changes() FROM t;'];
+    const expected = `502|1|${schema.includes('TRIGGER') ? 1004 : 502}\n`;
+    assert.deepEqual(await importFile(content, script), { code: 0, stdout: expected, stderr: '' });
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script.join('\n')), [':memory:'],
+      () => new TextEncoder().encode(content)), expected);
+  });
+}
+
+test('empty import preserves preceding change counters', async () => {
+  const script = ['CREATE TABLE t(x); INSERT INTO t VALUES(1),(2);', '.import --csv /input t',
+    'SELECT changes(),total_changes();'];
+  assert.equal((await importFile('', script)).stdout, '2|2\n');
+  assert.equal(evalSyncSqlite3(new TextEncoder().encode(script.join('\n')), [':memory:'],
+    () => new Uint8Array()), '2|2\n');
+});
+
+test('bulk import ending in a rejected row reports zero changes', async () => {
+  const result = await importFile('1\n2\n2\n', ['CREATE TABLE t(x UNIQUE);', '.import --csv /input t',
+    'SELECT count(*),changes(),total_changes() FROM t;']);
+  assert.deepEqual(result, { code: 1, stdout: '2|0|2\n',
+    stderr: '/input:3: INSERT failed: UNIQUE constraint failed: t.x\n' });
+});

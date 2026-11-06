@@ -158,3 +158,34 @@ test("recursive ZIP spills member metadata without archiving invocation scratch"
   assert.ok(maximum <= 64, `outstanding retained handles ${maximum}`);
   assert.ok(registrations <= 8, `lifetime callbacks ${registrations}`);
 });
+
+for (const flags of [[], ["-X"], ["-X-"], ["-0"], ["--encryption=aes-256-ae2", "-P", "secret"]]) {
+  test(`zip records source access time in local timestamps (${flags.join(" ")})`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/guide.md", new TextEncoder().encode("guide"));
+    await fs.utimes!("/guide.md", 1900000123000, 1700000001000);
+    const command = createZipCommand({ zipHost: { entropy: async size => new Uint8Array(size).fill(7) } });
+    const result = await run(command, ["-q", ...flags, "a.zip", "guide.md"], "", fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/a.zip"), settings({}), new AbortController().signal);
+    const entry = archive.entries[0]!;
+    for (const [extra, central] of [[entry.localExtra!, false], [entry.centralExtra!, true]] as const) {
+      const view = new DataView(extra.buffer, extra.byteOffset, extra.byteLength);
+      let timestamp: Uint8Array | undefined;
+      for (let offset = 0; offset < extra.length;) {
+        const length = view.getUint16(offset + 2, true);
+        if (view.getUint16(offset, true) === 0x5455) timestamp = extra.subarray(offset + 4, offset + 4 + length);
+        offset += 4 + length;
+      }
+      if (flags.includes("-X")) assert.equal(timestamp, undefined);
+      else {
+        assert.ok(timestamp);
+        const time = new DataView(timestamp.buffer, timestamp.byteOffset, timestamp.byteLength);
+        assert.equal(timestamp.length, central ? 5 : 9);
+        assert.equal(timestamp[0], central ? 1 : 3);
+        assert.equal(time.getInt32(1, true), 1700000001);
+        if (!central) assert.equal(time.getInt32(5, true), 1900000123);
+      }
+    }
+  });
+}

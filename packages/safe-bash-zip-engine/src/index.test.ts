@@ -96,3 +96,23 @@ for (const from of [false, true]) for (const store of [false, true]) test(`strea
   const actual = await collectBytes(zipLineEndingStream(source, from, store, bytes.length * 2, signal), { signal });
   assert.deepEqual(actual, expected);
 });
+
+for (const accessed of [undefined, new Date(0), new Date(1900000123000), new Date(0x80000000 * 1000)]) {
+  test(`ZIP local access timestamp is optional and bounded (${accessed?.getTime()})`, async () => {
+    const signal = new AbortController().signal;
+    const limits = settings({});
+    const entry = await makeZipEntry("guide.md", Uint8Array.of(42), {
+      modified: new Date(1700000001000), ...(accessed === undefined ? {} : { accessed }),
+      mode: 0o100644, directory: false, symlink: false,
+    }, limits, signal);
+    const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal);
+    const archive = await readZipArchive(bytes, limits, signal);
+    const extra = archive.entries[0]!.localExtra!;
+    const hasAccess = accessed !== undefined && accessed.getTime() < 0x80000000 * 1000;
+    assert.equal(extra.length, hasAccess ? 13 : 9);
+    assert.equal(extra[4], hasAccess ? 3 : 1);
+    if (hasAccess) assert.equal(new DataView(extra.buffer, extra.byteOffset, extra.byteLength).getInt32(9, true), accessed.getTime() / 1000);
+    const rewritten = await readZipArchive(await writeZipArchive(archive, limits, signal), limits, signal);
+    assert.deepEqual(rewritten.entries[0]!.localExtra, extra);
+  });
+}

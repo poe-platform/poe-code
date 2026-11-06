@@ -28,6 +28,7 @@ export interface ZipEntry {
   method: number;
   crc32: number;
   modified: Date;
+  accessed?: Date;
   /** Parsed modification time came from a second-precision extra field. */
   extendedTimestamp?: boolean;
   mode: number;
@@ -116,7 +117,7 @@ function legacyName(bytes: Uint8Array): string {
   return name;
 }
 
-interface ExtraMetadata { name?: string; modified?: number; zip64?: Uint8Array; aes?: ZipAes & { readonly method: number } }
+interface ExtraMetadata { name?: string; modified?: number; accessed?: number; zip64?: Uint8Array; aes?: ZipAes & { readonly method: number } }
 
 function extras(bytes: Uint8Array, rawName: Uint8Array, comment: Uint8Array, central: boolean, limits: ArchiveLimits): ExtraMetadata {
   number(bytes.length, Math.min(limits.maxPaxBytes, 65535), "extra field");
@@ -159,6 +160,7 @@ function extras(bytes: Uint8Array, rawName: Uint8Array, comment: Uint8Array, cen
       const count = (flags & 1) + (central ? 0 : ((flags >>> 1) & 1) + ((flags >>> 2) & 1));
       if (length !== 1 + count * 4) fail("ZIP truncated or inconsistent timestamp extra field");
       if (flags & 1) result.modified = view.getInt32(offset + 1, true) * 1000;
+      if (!central && flags & 2) result.accessed = view.getInt32(offset + 1 + (flags & 1) * 4, true) * 1000;
     }
     offset += length;
   }
@@ -383,6 +385,7 @@ async function openZipDirectory(input: Uint8Array | ZipReadSource, limits: Archi
     const entry: ZipEntry = { name, data: buffered ? (await bytes.subarray(payloadStart, payloadStart + compressedSize)) : new Uint8Array(), ...(buffered ? {} : { compressedSize, compressedOffset: payloadStart, compressedSource: () => bytes.stream(payloadStart, compressedSize) }), size, method, crc32: checksum, modified, mode, directory, symlink, rawName, localName, comment, localExtra, centralExtra, flags, versionMadeBy, internalAttributes, externalAttributes, dosTime, dosDate };
     if (aes) entry.aes = aes;
     entry.extendedTimestamp = timestamp !== undefined;
+    if (localMetadata.accessed !== undefined) entry.accessed = new Date(localMetadata.accessed);
     entryBounds(entry, limits);
     if ((profile.grow || !buffered) && (centralMetadata.zip64 || localMetadata.zip64)) entry.zip64 = true;
     if (profile.grow) {
@@ -549,7 +552,7 @@ async function* decodeZipContent(entry: ZipEntry, limits: ArchiveLimits, signal:
   } finally { await reader.close(); }
 }
 
-export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: { modified: Date; mode: number; directory: boolean; symlink: boolean }, limits: ArchiveLimits, signal: AbortSignal, level = 6, forceCompression = false, method: "deflate" | "bzip2" | "lzma" = "deflate"): Promise<ZipEntry> {
+export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: Pick<ZipEntry, "modified" | "accessed" | "mode" | "directory" | "symlink">, limits: ArchiveLimits, signal: AbortSignal, level = 6, forceCompression = false, method: "deflate" | "bzip2" | "lzma" = "deflate"): Promise<ZipEntry> {
   const chunkSize = admit(limits, signal);
   const entry: ZipEntry = { name, data: bytes, size: bytes.length, method: 0, crc32: 0, ...attributes, modified: new Date(attributes.modified.getTime()) };
   entryBounds(entry, limits);
@@ -600,22 +603,25 @@ export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: 
   } finally { await reader.close(); }
 }
 
-function timestampExtra(modified: Date): Uint8Array {
+function timestampExtra(modified: Date, accessed?: Date): Uint8Array {
   const seconds = Math.floor(modified.getTime() / 1000);
   if (seconds < -0x80000000 || seconds > 0x7fffffff) return new Uint8Array();
-  const bytes = new Uint8Array(9);
+  const accessSeconds = accessed === undefined ? NaN : Math.floor(accessed.getTime() / 1000);
+  const hasAccess = accessSeconds >= -0x80000000 && accessSeconds <= 0x7fffffff;
+  const bytes = new Uint8Array(hasAccess ? 13 : 9);
   const view = new DataView(bytes.buffer);
   view.setUint16(0, 0x5455, true);
-  view.setUint16(2, 5, true);
-  bytes[4] = 1;
+  view.setUint16(2, bytes.length - 4, true);
+  bytes[4] = hasAccess ? 3 : 1;
   view.setInt32(5, seconds, true);
+  if (hasAccess) view.setInt32(9, accessSeconds, true);
   return bytes;
 }
 
 export function updateZipExtras(entry: ZipEntry, previous: ZipEntry | undefined, mode: "strip" | "all", limits: ArchiveLimits): ZipEntry {
-  const fresh = mode === "strip" ? new Uint8Array() : timestampExtra(entry.modified);
   const retained: Uint8Array[] = [];
   for (const [original, central] of [[previous?.localExtra, false], [previous?.centralExtra, true]] as const) {
+    const fresh = mode === "strip" ? new Uint8Array() : timestampExtra(entry.modified, central ? undefined : entry.accessed);
     const fields: Uint8Array[] = [];
     let length = fresh.length;
     if (mode === "all" && original) {
@@ -652,7 +658,7 @@ export function setZipEntryComment(entry: ZipEntry, comment: Uint8Array, limits:
   const rawName = entry.rawName ?? pathBytes(entry.name, limits);
   const needUnicodePath = !(flags & 0x800) && legacyName(rawName) !== entry.name;
   const metadata: Uint8Array[] = [];
-  for (const [original, central] of [[entry.localExtra ?? timestampExtra(entry.modified), false], [entry.centralExtra ?? timestampExtra(entry.modified), true]] as const) {
+  for (const [original, central] of [[entry.localExtra ?? timestampExtra(entry.modified, entry.accessed), false], [entry.centralExtra ?? timestampExtra(entry.modified), true]] as const) {
     extras(original, rawName, entry.comment ?? new Uint8Array(), central, limits);
     const fields: Uint8Array[] = [];
     const view = new DataView(original.buffer, original.byteOffset, original.byteLength);
@@ -758,7 +764,7 @@ export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArc
       entry.method = 99;
       entry.flags = entry.flags! & ~6;
       if (aes.version === 2) entry.crc32 = 0;
-      entry.localExtra = concatBytes([original.localExtra ?? timestampExtra(original.modified), extra]);
+      entry.localExtra = concatBytes([original.localExtra ?? timestampExtra(original.modified, original.accessed), extra]);
       entry.centralExtra = concatBytes([original.centralExtra ?? timestampExtra(original.modified), extra]);
     }
     if (!original.source) {
@@ -817,7 +823,7 @@ export async function* streamZipArchive(archive: ZipArchive | Omit<ZipIndexedArc
     const comment = entry.comment ?? new Uint8Array();
     number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");
     if (flags & 0x800) text(comment);
-    const originalLocalExtra = entry.localExtra ?? timestampExtra(entry.modified);
+    const originalLocalExtra = entry.localExtra ?? timestampExtra(entry.modified, entry.accessed);
     const originalLocalMetadata = extras(originalLocalExtra, rawName, comment, false, limits);
     const wide = wideProfile(entry);
     if (wide && !wideArchive) { wideArchive = true; length += 76; }
@@ -1096,7 +1102,7 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
 
 /** Prepare a seekable member using caller-owned backing storage. The pure codec
  * only sees ranges; the caller owns staging authorization and lifetime. */
-export async function makeZipEntryFromSource(name: string, source: ByteSource, attributes: Pick<ZipEntry, "modified" | "mode" | "directory" | "symlink">, limits: ArchiveLimits, signal: AbortSignal, stage: (source: ByteSource, maximum: number) => Promise<ZipReadSource>, level = 6, forceCompression = false, method: "deflate" | "bzip2" | "lzma" = "deflate"): Promise<ZipEntry> {
+export async function makeZipEntryFromSource(name: string, source: ByteSource, attributes: Pick<ZipEntry, "modified" | "accessed" | "mode" | "directory" | "symlink">, limits: ArchiveLimits, signal: AbortSignal, stage: (source: ByteSource, maximum: number) => Promise<ZipReadSource>, level = 6, forceCompression = false, method: "deflate" | "bzip2" | "lzma" = "deflate"): Promise<ZipEntry> {
   const chunkSize = admit(limits, signal);
   const entry = await makeZipEntry(name, new Uint8Array(), attributes, limits, signal, level);
   let textual = false, binary = false, size = 0, checksum = 0;

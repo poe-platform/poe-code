@@ -5347,7 +5347,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-coalesce") {
             if (stack.length) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                let canvas: RgbaImage = { ...first, width, height, data: new Uint8Array(width * height * 4), hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
+                const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 };
+                let canvas: RgbaImage = { ...first, width, height, data: (yield* createSolidRgbaImageSteps(width, height, background)).data, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
                 const frames: RgbaImage[] = [];
                 for (const frame of stack) {
                     const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
@@ -6518,7 +6519,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                let canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 };
+                let canvas = await createStoredCanvas(width, height, background, backend, signal);
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let index = 0; index < stack.length; index++) {
                     const frame = (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;

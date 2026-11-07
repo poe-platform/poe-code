@@ -6540,7 +6540,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised), signal);
+                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit)]), signal);
             });
         }
         else if (t === "-frame") {
@@ -7861,12 +7861,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stack.length = 0; await stack.push(result); return stack;
             });
         } else if (!operandsOnly && (token === "-raise" || token === "+raise")) {
-            const g = parseMagickRaiseGeometry(tokens[++i] ?? "", token), raised = token === "-raise";
+            const g = parseMagickRaiseGeometry(tokens[++i] ?? "", token), raised = token === "-raise", channels = { ...state.channels, a: state.channels.a || !state.channelExplicit };
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                return transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised), signal);
+                return transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised, [channels.r, channels.g, channels.b, image.hasAlpha && channels.a]), signal);
             });
         } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";

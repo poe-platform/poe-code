@@ -82,6 +82,8 @@ audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac
 input, such as WAV or a `lavfi` source. `[0:a][1:a]acrossfade=ns=2000[mix]` crossfades matching decoded PCM inputs with triangular fades. Use `d` for duration in seconds or `o=0` for sequential fades without overlap. The transition must fit both inputs; other curves and single-input filters before acrossfade are rejected. Labeled single-input audio chains in `-filter_complex` resolve input stream selectors and linked labels, then apply the filters selected by `-map "[label]"`. Unsupported audio filters fail without writing unfiltered output. Audio filters run in chain order; each
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 `anull` passes audio through unchanged, alone or in a filter chain.
+`afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.
+
 `apad=pad_len=19` appends 19 silent samples per channel; `whole_len=16100` pads only until the minimum sample count is reached. `pad_dur` and `whole_dur` accept durations in seconds. Infinite padding and combining padding with a minimum length are rejected.
 `silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
 `volumedetect` reports interleaved sample count, mean volume, and maximum volume

@@ -1,3 +1,4 @@
+import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
 import { measureEbur128 } from "./audio-ebur128.js";
@@ -3760,7 +3761,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
+                      if (trimmed === "afade" || trimmed.startsWith("afade=")) {
+                        stretched = await fadeAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
                         let noise = 0.001;
                         let duration = 2;
                         let mono = false;

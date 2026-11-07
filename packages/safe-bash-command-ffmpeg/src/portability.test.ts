@@ -109,7 +109,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes dialogue center extraction and its bounded FFT workspace (617,318 bytes).
   // Includes RF64 output modes and the current WAV reader graph (620,059 bytes).
   // Includes Broadcast Wave metadata serialization and the current WAV option graph (625,322 bytes).
-  assert.ok(otherCodeBytes < 627_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes PCM afade timing, gain curves, and endpoint validation (627,348 bytes).
+  assert.ok(otherCodeBytes < 630_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

@@ -1,7 +1,7 @@
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
-import { decodeImaWav, imaBlockFrames } from "./wav-ima.js";
+import { decodeImaWav, encodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
 import { decodeMp3Track } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
@@ -597,6 +597,22 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     factBytes = new Uint8Array(4);
     new DataView(factBytes.buffer).setUint32(0, codec === "aac"
       ? decodedAudio.channelData[0]!.length + encoded.delay : packets.length * frameSize, true);
+  } else if (decodedAudio && options.audioCodec === "adpcm_ima_wav") {
+    const blockAlign = 1024;
+    const frames = imaBlockFrames(blockAlign, channels);
+    pcmBytes = encodeImaWav(decodedAudio.channelData, blockAlign);
+    formatBytes = new Uint8Array(20);
+    const format = new DataView(formatBytes.buffer);
+    format.setUint16(0, 17, true);
+    format.setUint16(2, channels, true);
+    format.setUint32(4, sampleRate, true);
+    format.setUint32(8, Math.floor(sampleRate * blockAlign / frames), true);
+    format.setUint16(12, blockAlign, true);
+    format.setUint16(14, 4, true);
+    format.setUint16(16, 2, true);
+    format.setUint16(18, frames, true);
+    factBytes = new Uint8Array(4);
+    new DataView(factBytes.buffer).setUint32(0, pcmBytes.length / blockAlign * frames, true);
   } else if (formatBytes) {
     pcmBytes = concatBytes(audioTrack!.samples.map(s => s.data));
   } else if (decodedAudio) {
@@ -643,7 +659,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       }
     }
   } else if (
-    options.audioCodec !== "aac" && options.audioCodec !== "mp3" &&
+    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" &&
     audioTrack &&
     audioTrack.samples.length > 0 &&
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
@@ -781,7 +797,7 @@ export function wavAst(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
-    supportedAudioCodecs: ["pcm_s16le", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
+    supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (isWavSignature(bytes)) return true;
       if (filename && filename.toLowerCase().endsWith(".wav")) return isWavSignature(bytes);

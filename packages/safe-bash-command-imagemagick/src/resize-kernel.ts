@@ -118,7 +118,7 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
         const rounded = request.data.map((sample, index) => {
             const value = Math.max(0, Math.min(range, highDepth ? Math.fround(sample) : sample));
             // Match the Q16-HDRI float quantum conversion at half-byte ties.
-            return !highDepth && thumbnail && index % 4 !== 3 ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
+            return !highDepth && index % 4 !== 3 ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
         });
         const data = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
         yield { kind: "write", highDepth, position: request.position, data: new Uint8Array(data.buffer) };

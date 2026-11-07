@@ -8325,6 +8325,29 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             operands.reverse();
             labels.reverse();
         }
+        else if (t === "-duplicate" || t === "+duplicate") {
+            if (!operands.length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
+            let count = 1, spec = "-1";
+            if (t === "-duplicate") {
+                const value = argv[++i] ?? "", comma = value.indexOf(",");
+                count = Number(comma < 0 ? value : value.slice(0, comma));
+                if (!value || !Number.isSafeInteger(count) || count < 0) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
+                spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
+            }
+            const length = operands.length;
+            try {
+                parseMagickIndices(spec);
+                for (let repeat = 0; repeat < count; repeat++) {
+                    for (const index of parseMagickIndexSpec(spec, length, "clone")) {
+                        if (++cooperativeWork % 64 === 0) yield;
+                        operands.push(operands[index]!);
+                        labels.push(labels[index]!);
+                    }
+                }
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
+            }
+        }
         else if (t === "-set") {
             const property = argv[++i];
             const value = argv[++i] ?? "";

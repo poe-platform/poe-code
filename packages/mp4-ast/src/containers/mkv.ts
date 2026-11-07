@@ -497,7 +497,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const previous = rawSamples[i - 1];
       const inferred = next && next.dts > cur.dts ? next.dts - cur.dts
         : defaultTicks || previous?.duration || Math.max(1, timescale / (info.trackType === 1 ? 30 : 44100 / 1024));
-      const dur = cur.duration > 0 ? cur.duration : defaultTicks || inferred;
+      const pcmTicks = info.codecId.startsWith("A_PCM/") &&
+        (info.sampleRate ?? 0) > 0 && (info.channels ?? 0) > 0 && (info.bitDepth ?? 0) > 0
+        ? Math.floor(Math.floor(cur.size / (info.channels! * Math.ceil(info.bitDepth! / 8))) * timescale / info.sampleRate!)
+        : undefined;
+      const dur = cur.duration > 0 ? cur.duration : pcmTicks ?? (defaultTicks || inferred);
       rawSamples[i] = { ...cur, duration: dur };
     }
 

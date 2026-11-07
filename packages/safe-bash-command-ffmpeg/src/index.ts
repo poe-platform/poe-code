@@ -1,3 +1,4 @@
+import { vibratoAudio } from "./audio-vibrato.js";
 import { pulsateAudio } from "./audio-apulsator.js";
 import { tremoloAudio } from "./audio-tremolo.js";
 import { phaseAudio } from "./audio-aphaser.js";
@@ -4412,6 +4413,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await tremoloAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (trimmed === "vibrato" || trimmed.startsWith("vibrato=")) {
+                        stretched = await vibratoAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
                         stretched = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;

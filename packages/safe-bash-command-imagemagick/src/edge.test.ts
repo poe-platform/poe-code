@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import sharp, { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync, runConvertCli } from "./index.js";
@@ -17,14 +17,19 @@ it.each(cases)(`matches native edge radius %s (retained=${retained})`, async (ra
 });
 
 for (const retained of [false, true])
-it(`preserves unselected alpha across edge output chunks (retained=${retained})`, async () => {
+for (const highDepth of [false, true])
+it(`preserves unselected alpha across edge output chunks (retained=${retained}, highDepth=${highDepth})`, async () => {
     const width = 1031, pixels = Uint8Array.from({ length: width * 4 }, (_, i) => i % 256);
-    const input = await sharp(pixels, { raw: { width, height: 1, channels: 4 } }).png().toBuffer();
+    const data16 = Uint16Array.from(pixels, (value, i) => value * 256 + (i * 17 + 11) % 256);
+    const input = highDepth ? encodeImage({ width, height: 1, data: pixels, data16, format: "png", density: 72, channels: 4,
+        hasAlpha: true, space: "srgb", depth: "ushort" }, { format: "png" }).data
+        : await sharp(pixels, { raw: { width, height: 1, channels: 4 } }).png().toBuffer();
     const files = new Map([["input.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/input.png", input);
     expect((await runConvertCli(["input.png", "-channel", "RGB", "-edge", "3", "+channel", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
     const actual = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
-    expect(actual.data.filter((_, i) => i % 4 === 3)).toEqual(pixels.filter((_, i) => i % 4 === 3));
+    expect((highDepth ? actual.data16! : actual.data).filter((_, i) => i % 4 === 3))
+        .toEqual((highDepth ? data16 : pixels).filter((_, i) => i % 4 === 3));
 });
 
 // ImageMagick 7.1.2: six opaque 2x2 color blocks, -edge 1, RGBA8 output.
@@ -52,4 +57,35 @@ it(`${mode}: edge filters selected channels (${channel ?? "default RGBA"})`, asy
     expect([...output.data]).toEqual(Array.from(pixels, (value, i) => i % 4 === 3
         ? channel === "RGB" ? 255 : 0
         : channel === "A" ? value : rgb[Math.floor(i / 4) * 3 + i % 4]!));
+});
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+it(`${mode}: preserves sub-byte contrast in 16-bit edge convolution`, async () => {
+    const width = 32, height = 24;
+    const data16 = Uint16Array.from({ length: width * height * 4 }, (_, i) => {
+        if (i % 4 === 3) return 65535;
+        const x = Math.floor(i / 4) % width, y = Math.floor(i / 4 / width);
+        return (y === 5 && x >= 2 && x <= 29) ||
+            ((y === 10 || y === 19) && x >= 8 && x <= 21) ||
+            ((x === 8 || x === 21) && y >= 10 && y <= 19) ? 0x4020 : 0x4000;
+    });
+    const input = encodeImage({ width, height, data16, data: Uint8Array.from(data16, v => Math.round(v / 257)),
+        format: "png", density: 72, channels: 3, hasAlpha: false, space: "srgb", depth: "ushort" }, { format: "png" }).data;
+    expect(decodeImage(input).data16).toEqual(data16);
+    const files = new Map([["/input.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const args = ["/input.png", "-edge", "1", "/out.png"];
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!);
+    const samples = output.data16 ?? Uint16Array.from(output.data, value => value * 257);
+    // Native ImageMagick Q16-HDRI: line endpoint/interior and 72 responding pixels.
+    expect([...samples.slice((5 * width + 2) * 4, (5 * width + 4) * 4)]).toEqual([224, 224, 224, 65535, 192, 192, 192, 65535]);
+    expect(samples.filter((value, i) => i % 4 === 0 && value > 0)).toHaveLength(72);
+    expect(samples.filter((_, i) => i % 4 === 3).every(value => value === 65535)).toBe(true);
 });

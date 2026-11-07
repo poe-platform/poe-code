@@ -44,3 +44,54 @@ for (const sync of [false, true]) {
   });
 }
 }
+
+for (const [codec, tag, payload] of [
+  ["pcm_mulaw", 7, "000f677effffe78f80"],
+  ["pcm_alaw", 6, "2a3a4555d5d5c5baaa"]
+] as const) {
+  for (const sync of [false, true]) {
+    it(`encodes ${codec} WAV with native headers and payload (${sync ? "sync" : "async"})`, async () => {
+      const input = Buffer.from("524946463600000057415645666d74201000000001000100401f0000803e00000200100064617461120000000080ffbffffeffff0000010001010140ff7f", "hex");
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/in.wav", input);
+      const args = ["-v", "error", "-y", "-i", "/in.wav", "-c:a", codec, "/out.wav"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined,
+          path => volume.readFileSync(path) as Buffer,
+          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+      } else {
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args, cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+      }
+      const output = volume.readFileSync("/out.wav") as Buffer;
+      assert.equal(output.readUInt32LE(4), output.length - 8);
+      const chunks = new Map<string, Buffer>();
+      for (let offset = 12; offset < output.length;) {
+        const size = output.readUInt32LE(offset + 4);
+        chunks.set(output.toString("ascii", offset, offset + 4), output.subarray(offset + 8, offset + 8 + size));
+        offset += 8 + size + size % 2;
+      }
+      const fmt = chunks.get("fmt ")!;
+      assert.equal(fmt.length, 18);
+      assert.equal(fmt.readUInt16LE(0), tag);
+      assert.equal(fmt.readUInt16LE(2), 1);
+      assert.equal(fmt.readUInt32LE(4), 8000);
+      assert.equal(fmt.readUInt32LE(8), 8000);
+      assert.equal(fmt.readUInt16LE(12), 1);
+      assert.equal(fmt.readUInt16LE(14), 8);
+      assert.equal(fmt.readUInt16LE(16), 0);
+      assert.equal(chunks.get("fact")!.readUInt32LE(0), 9);
+      assert.deepEqual(chunks.get("data"), Buffer.from(payload, "hex"));
+    });
+  }
+}

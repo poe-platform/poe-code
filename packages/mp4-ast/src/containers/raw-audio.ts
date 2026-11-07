@@ -29,8 +29,8 @@ function compandingTable(alaw: boolean): Uint8Array {
   return table;
 }
 
-const mulawTable = compandingTable(false);
-const alawTable = compandingTable(true);
+export const mulawTable = compandingTable(false);
+export const alawTable = compandingTable(true);
 
 function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOptions = {}): MediaDocument {
   const sampleRate = options.sampleRate ?? 44100;

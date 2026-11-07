@@ -27,8 +27,6 @@ Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/
 Read headerless samples with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
 
-Encode mono or stereo IMA ADPCM WAV with `-c:a adpcm_ima_wav output.wav`.
-
 WAV extraction decodes Ogg Vorbis, AAC and CBR/VBR MP3 in memory, honoring MP4 edit timing
 and MP3 encoder delay and padding:
 `ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported

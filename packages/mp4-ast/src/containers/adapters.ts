@@ -1,7 +1,7 @@
-import { rawAudioAsts } from "./raw-audio.js";
+import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
-import { decodeImaWav, encodeImaWav, imaBlockFrames } from "./wav-ima.js";
+import { decodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
 import { decodeMp3Track } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
@@ -597,27 +597,13 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     factBytes = new Uint8Array(4);
     new DataView(factBytes.buffer).setUint32(0, codec === "aac"
       ? decodedAudio.channelData[0]!.length + encoded.delay : packets.length * frameSize, true);
-  } else if (decodedAudio && options.audioCodec === "adpcm_ima_wav") {
-    const blockAlign = 1024;
-    const frames = imaBlockFrames(blockAlign, channels);
-    pcmBytes = encodeImaWav(decodedAudio.channelData, blockAlign);
-    formatBytes = new Uint8Array(20);
-    const format = new DataView(formatBytes.buffer);
-    format.setUint16(0, 17, true);
-    format.setUint16(2, channels, true);
-    format.setUint32(4, sampleRate, true);
-    format.setUint32(8, Math.floor(sampleRate * blockAlign / frames), true);
-    format.setUint16(12, blockAlign, true);
-    format.setUint16(14, 4, true);
-    format.setUint16(16, 2, true);
-    format.setUint16(18, frames, true);
-    factBytes = new Uint8Array(4);
-    new DataView(factBytes.buffer).setUint32(0, pcmBytes.length / blockAlign * frames, true);
   } else if (formatBytes) {
     pcmBytes = concatBytes(audioTrack!.samples.map(s => s.data));
   } else if (decodedAudio) {
     switch (options.audioCodec) {
       case "pcm_u8": bitsPerSample = 8; break;
+      case "pcm_mulaw": bitsPerSample = 8; formatTag = 7; break;
+      case "pcm_alaw": bitsPerSample = 8; formatTag = 6; break;
       case "pcm_s24le": bitsPerSample = 24; break;
       case "pcm_s32le": bitsPerSample = 32; break;
       case "pcm_f32le": bitsPerSample = 32; formatTag = 3; break;
@@ -645,7 +631,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
         // FFmpeg rounds halfway PCM values to the nearest even integer.
         const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
         const sample = Math.min(scale - 1, rounded);
-        if (bitsPerSample === 64) pView.setBigInt64(offset, val >= 1 ? (1n << 63n) - 1n : BigInt(sample), true);
+        if (formatTag === 6 || formatTag === 7) pcmBytes[offset] = (formatTag === 7 ? mulawTable : alawTable)[(sample & 65535) >> 2]!;
+        else if (bitsPerSample === 64) pView.setBigInt64(offset, val >= 1 ? (1n << 63n) - 1n : BigInt(sample), true);
         else if (bitsPerSample === 8) pView.setUint8(offset, (sample >> 8) + 128);
         else if (bitsPerSample === 16) pView.setInt16(offset, sample, true);
         else if (bitsPerSample === 24) {
@@ -656,7 +643,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       }
     }
   } else if (
-    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" &&
+    options.audioCodec !== "aac" && options.audioCodec !== "mp3" &&
     audioTrack &&
     audioTrack.samples.length > 0 &&
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
@@ -668,11 +655,16 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     throw new Error("WAV encoding requires decoded PCM audio");
   }
 
+  if (!factBytes && (formatTag === 6 || formatTag === 7)) {
+    factBytes = new Uint8Array(4);
+    new DataView(factBytes.buffer).setUint32(0, pcmBytes.length / channels, true);
+  }
+
   // FFmpeg's default layouts from 2.1 through 7.1; explicit masks take precedence.
   const channelMask = audioTrack?.decodedAudio?.channelMask ?? (decodedAudio ? decodedAudio.channelMask : undefined) ??
     [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
   const extensible = channelMask !== undefined || channels > 2;
-  const fmtSize = formatBytes?.length ?? (extensible ? 40 : 16);
+  const fmtSize = formatBytes?.length ?? (extensible ? 40 : formatTag === 6 || formatTag === 7 ? 18 : 16);
   const fmtPadding = fmtSize % 2;
   const factSize = factBytes ? 8 + factBytes.length + factBytes.length % 2 : 0;
   const padding = pcmBytes.byteLength % 2;
@@ -692,6 +684,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
     writer.writeU16LE(channels * (bitsPerSample >>> 3));
     writer.writeU16LE(bitsPerSample);
+    if (!extensible && (formatTag === 6 || formatTag === 7)) writer.writeU16LE(0);
     if (extensible) {
       writer.writeU16LE(22);
       writer.writeU16LE(bitsPerSample);
@@ -788,7 +781,7 @@ export function wavAst(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
-    supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le"],
+    supportedAudioCodecs: ["pcm_s16le", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (isWavSignature(bytes)) return true;
       if (filename && filename.toLowerCase().endsWith(".wav")) return isWavSignature(bytes);

@@ -412,6 +412,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             } else if (cid.value === 0xa3 || cid.value === 0xa0) {
               // SimpleBlock (0xA3) or BlockGroup (0xA0)
               let blockPay = cPay;
+              let blockOffset = cPos;
               let blockDuration = 0;
               if (cid.value === 0xa0) {
                 let bgPos = cPos;
@@ -423,6 +424,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   if (!bsz) break;
                   bgPos += bsz.length;
                   if (bid.value === 0xa1) {
+                    blockOffset = bgPos;
                     blockPay = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
                   } else if (bid.value === 0x9b) {
                     blockDuration = readEbmlUint(bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value)));
@@ -451,6 +453,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 }
                 list.push({
                   data: frameData,
+                  offset: blockOffset,
                   dts: ptsMs,
                   pts: ptsMs,
                   cts: 0,

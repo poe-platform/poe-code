@@ -46,6 +46,37 @@ for (const sync of [false, true]) {
   }
 }
 
+for (const sync of [false, true]) {
+  for (const disabled of [false, true]) {
+    for (const override of [false, true]) {
+      it(`${sync ? "sync" : "async"} copies Matroska languages with metadata disabled=${disabled}, override=${override}`, async () => {
+        const fixture = parseMkv(readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url)));
+        const input = serializeMkv({ ...fixture, tracks: fixture.tracks.filter(track => track.type === "audio").map((track, index) => ({
+          ...track, language: index === 0 ? "eng" : "fra"
+        })) });
+        const vfs = createTestVfs({ "/meeting.mkv": input });
+        const args = ["-i", "/meeting.mkv", ...(sync ? [] : ["-map", "0:a"]),
+          ...(disabled ? ["-map_metadata", "-1"] : []), "-map_chapters", "-1", "-c", "copy",
+          ...(override ? ["-metadata:s:a:0", "language=deu"] : []), "/out.mkv"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const source = parseMkv(input).tracks;
+        const selected = sync ? source.filter(track => track.disposition?.default) : source;
+        const output = parseMkv(vfs.store.get("/out.mkv")!).tracks;
+        assert.deepEqual(output.map(track => track.language), selected.map((track, index) =>
+          override && index === 0 ? "deu" : disabled ? "und" : track.language));
+        assert.deepEqual(output.map(track => track.samples.map(sample => Buffer.from(sample.data))),
+          selected.map(track => track.samples.map(sample => Buffer.from(sample.data))));
+      });
+    }
+  }
+}
+
 it("keeps speaker titles with their audio tracks when stream-copy maps reorder them", async () => {
   const source = parseMkv(readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url)));
   const tracks = source.tracks.filter(track => track.type === "audio").map((track, index) => ({

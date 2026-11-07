@@ -1251,7 +1251,10 @@ async function applyVideoFilterChain(
   return current;
 }
 
-function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly [string, string][]): readonly MediaTrack[] {
+function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly [string, string][], metadataSource: number | undefined): readonly MediaTrack[] {
+  if (metadataSource !== undefined && metadataSource < 0) {
+    tracks = tracks.map(track => ({ ...track, language: "und" }));
+  }
   for (const [specifier, language] of languages) {
     const [selector, ordinal] = specifier.split(":");
     const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
@@ -1680,7 +1683,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       encoder: metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions) };
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -3289,7 +3292,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...workingDoc,
               faststart,
               metadata: metaTags,
-              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions)
+              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions)
             };
 
             let decodeExitCode = demuxExitCode;

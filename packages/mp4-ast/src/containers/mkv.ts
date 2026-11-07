@@ -955,6 +955,12 @@ export function probeMkv(
     formatName: "matroska,webm",
     formatLongName: "Matroska / WebM"
   });
+  // Matroska exposes WritingApp as ENCODER; keep normalized metadata for muxing.
+  let formatTags = probe.format.tags;
+  if (probe.format.tags?.encoder !== undefined) {
+    const { encoder, ...tags } = probe.format.tags;
+    formatTags = { ...tags, ENCODER: encoder };
+  }
   const streams = [...probe.streams, ...doc.attachments.map((attachment, index) => ({
     index: probe.streams.length + index,
     codec_type: "attachment" as const,
@@ -976,7 +982,7 @@ export function probeMkv(
     ].map(name => [name, 0])),
     tags: attachment.tags
   }))];
-  return { ...probe, streams, format: { ...probe.format, nb_streams: streams.length } };
+  return { ...probe, streams, format: { ...probe.format, tags: formatTags, nb_streams: streams.length } };
 }
 
 export function mkvAst(): MediaAstPlugin {

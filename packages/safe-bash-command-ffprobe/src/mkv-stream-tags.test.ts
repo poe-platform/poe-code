@@ -25,5 +25,32 @@ for (const route of ["file", "stdin"]) it(`preserves Matroska stream names and U
     { DURATION: "00:00:00.400000000" }
   ]);
   expect(probe.format.tags.title).toBe("Meeting");
+  expect(probe.format.tags.ENCODER).toBe("Lavf63.1.101");
+  expect(probe.format.tags).not.toHaveProperty("encoder");
   expect(probe.format.tags).not.toHaveProperty("DURATION");
 });
+
+for (const route of ["file", "stdin"]) {
+  for (const selection of ["ENCODER", "title", undefined]) {
+    it(`preserves Matroska format tag casing via ${route}, selection=${selection}`, async () => {
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/meeting.mka", bytes);
+      let output = "", diagnostic = "";
+      const result = await createFfprobeCommand().execute({
+        command: "ffprobe", ...createCommandArguments([
+          "-v", "error", "-of", "json",
+          ...(selection ? ["-show_entries", `format_tags=${selection}`] : ["-show_format"]),
+          route === "stdin" ? "-" : "/meeting.mka"
+        ]),
+        cwd: "/", env: {}, fs, signal: new AbortController().signal,
+        stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
+        stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+        stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+      });
+      expect(result.exitCode, diagnostic).toBe(0);
+      expect(JSON.parse(output).format.tags).toEqual(selection === "ENCODER"
+        ? { ENCODER: "Lavf63.1.101" }
+        : selection === "title" ? { title: "Meeting" } : { title: "Meeting", ENCODER: "Lavf63.1.101" });
+    });
+  }
+}

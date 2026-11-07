@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { decodeImage } from "@poe-code/image-ast/portable";
+import { compareLayerBounds } from "./compare-layers.js";
 import { runConvertCli } from "./index.js";
 
 function rectangles(bytes: Uint8Array) {
@@ -49,3 +50,40 @@ for (const retained of [false, true]) for (const operation of [["-deconstruct"],
     expect(playback.slice(0, 36)).toEqual(playback.slice(72, 108));
   });
 }
+
+// Native ImageMagick fixtures: a color change at x=2, or clearing x=1.
+const comparisons = [
+  { name: "color", bytes: "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQACAAAACwAAAAAAwABAAACAoQLACH5BAANAAAALAAAAAADAAEAgP8AAAAA/wICBFIAOw==", overlay: [[1, 1, 2, 0]], clear: [] },
+  { name: "clear", bytes: "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQACAAAACwAAAAAAwABAAACAoQLACH5BAENAAAALAAAAAADAAEAgAAAAP8AAAICDFIAOw==", overlay: [], clear: [[1, 1, 1, 0]] },
+];
+for (const retained of [false, true]) for (const fixture of comparisons) for (const method of ["CompareOverlay", "CompareClear"]) {
+  it(`${method} selects ${fixture.name} transitions (retained=${retained})`, async () => {
+    const bytes = new Uint8Array(Buffer.from(fixture.bytes, "base64"));
+    const files = new Map([["in.gif", bytes]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.gif", bytes);
+    expect(await runConvertCli(["in.gif", "-layers", method, "out.gif"], retained ? { filesystem, cwd: "/" } : files)).toMatchObject({ exitCode: 0 });
+    const output = retained ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
+    const tiles = method === "CompareOverlay" ? fixture.overlay : fixture.clear;
+    expect(rectangles(output)).toEqual([[3, 1, 0, 0], ...tiles]);
+    expect(decodeImage(output, { animated: true }).loop).toBe(decodeImage(bytes, { animated: true }).loop);
+    expect(decodeImage(output, { animated: true }).delay).toEqual(tiles.length ? [80, 130] : [80]);
+  });
+}
+
+// Native compares alpha against half opacity; Clear ignores color fuzz.
+it.each([
+  ["compareclear", 128, 127, 100, true],
+  ["compareclear", 127, 0, 0, false],
+  ["compareclear", 255, 128, 0, false],
+  ["compareoverlay", 255, 127, 0, false],
+  ["compareoverlay", 0, 128, 0, true],
+  ["compareoverlay", 255, 255, 255, false],
+] as const)("%s compares alpha %i to %i with fuzz %i", (method, before, after, fuzz, changed) => {
+  const frame = { width: 1, height: 1 };
+  const bounds = compareLayerBounds(frame, frame, fuzz, method);
+  let next = bounds.next();
+  while (!next.done) {
+    next = bounds.next(next.value ? new Uint8Array(next.value.image ? [0, 0, 255, after] : [255, 0, 0, before]) : undefined);
+  }
+  expect(next.value).toEqual(changed ? { left: 0, top: 0, width: 1, height: 1 } : undefined);
+});

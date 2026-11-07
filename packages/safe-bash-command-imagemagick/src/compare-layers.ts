@@ -5,7 +5,7 @@ import { matchesAlphaFloodfill } from "./floodfill.js";
 type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanvas">;
 
 // Compare the original frames, never the cropped output of the previous step.
-export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: number): Generator<
+export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: number, method: string): Generator<
     { image: 0 | 1; position: number; length: number } | undefined,
     { left: number; top: number; width: number; height: number } | undefined,
     Uint8Array | undefined
@@ -24,7 +24,12 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
             for (let pixel = 0; pixel < count; pixel++) {
                 const i = pixel * 4, px = x + pixel + dx, j = (px - start) * 4;
                 const inside = prior && px >= start && px < end;
-                if (matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, inside ? prior[j]! : 0, inside ? prior[j + 1]! : 0, inside ? prior[j + 2]! : 0, inside ? prior[j + 3]! : 0, fuzz)) continue;
+                if (method === "compareclear") {
+                    if (!inside || prior[j + 3]! < 128 || data[i + 3]! >= 128) continue;
+                } else {
+                    if (method === "compareoverlay" && data[i + 3]! < 128) continue;
+                    if (matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, inside ? prior[j]! : 0, inside ? prior[j + 1]! : 0, inside ? prior[j + 2]! : 0, inside ? prior[j + 3]! : 0, fuzz)) continue;
+                }
                 left = Math.min(left, x + pixel); right = Math.max(right, x + pixel);
                 top = Math.min(top, y); bottom = y;
             }

@@ -5783,7 +5783,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (frames.length) stack = frames;
             else if (stack.length) analysis.warnings += "magick: animation only contains zero time delays\n";
         }
-        else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+        else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+            const method = t === "-layers" ? tokens[i + 1]!.toLowerCase() : "compareany";
             const optimizePlus = t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeplus";
             const removeDups = optimizePlus || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
             if (optimizePlus) state.optimizeLayers = true;
@@ -5797,7 +5798,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     frames.push(current);
                     continue;
                 }
-                const bounds = compareLayerBounds(previous, current, state.fuzz);
+                const bounds = compareLayerBounds(previous, current, state.fuzz, method);
                 let next = bounds.next();
                 while (!next.done) {
                     if (!next.value) { yield; next = bounds.next(); }
@@ -7076,7 +7077,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+            const method = token === "-layers" ? tokens[i + 1]!.toLowerCase() : "compareany";
             const optimizePlus = token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeplus";
             const removeDups = optimizePlus || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
             if (optimizePlus) state.optimizeLayers = true;
@@ -7095,7 +7097,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         previous = current;
                         continue;
                     }
-                    const bounds = compareLayerBounds(previous!, current, fuzz);
+                    const bounds = compareLayerBounds(previous!, current, fuzz, method);
                     let next = bounds.next();
                     while (!next.done) {
                         if (!next.value) { await yieldTurn(signal); next = bounds.next(); }

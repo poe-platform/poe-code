@@ -103,9 +103,9 @@ export async function loadManifestResources(
         try {
           resources.set(uri, await readInput(resolvePath(directory, uri)));
         } catch (error) {
-          if (plugin.id !== "dash" || !segment.initialization || uri === segment.initialization ||
+          if (!segment.initialization || uri === segment.initialization ||
               typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error;
-          // An absent DASH media fragment contributes no bytes. Keep the init
+          // An absent media fragment contributes no bytes. Keep the init
           // and surviving fragments together so their tfdt timestamps retain gaps.
           resources.set(uri, new Uint8Array());
         }

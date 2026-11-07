@@ -60,7 +60,7 @@ for (const fixture of ["synthetic", "native"]) for (const missing of ["chunk-str
   });
 }
 
-for (const [plugin, code] of [[dashAst(), "EACCES"], [hlsAst(), "ENOENT"]] as const) {
+for (const [plugin, code] of [[dashAst(), "EACCES"], [hlsAst(), "EACCES"]] as const) {
   it(`does not suppress ${plugin.id} ${code} resource failures`, async () => {
     const manifest = new TextEncoder().encode(plugin.id === "dash"
       ? '<MPD mediaPresentationDuration="PT1S"><Period><AdaptationSet><Representation id="0"><SegmentTemplate initialization="init.m4s" media="$Number$.m4s" duration="1"/></Representation></AdaptationSet></Period></MPD>'

@@ -2380,6 +2380,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         const px = coordX ? coordX(ctx) : ctx.x;
         const py = coordY ? coordY(ctx) : ctx.y;
 
+        // RGB rasters have no separate black channel.
+        if (name === "k") return 0;
         if (name === "r" || name === "red") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 0);
         if (name === "g" || name === "green") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 1);
         if (name === "b" || name === "blue") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 2);

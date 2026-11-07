@@ -1,3 +1,4 @@
+import type { ResizeKernel } from "@poe-code/image-ast/portable";
 import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
@@ -5,7 +6,7 @@ function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
 }
 
-function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: "lanczos3" | "mitchell", thumbnailFactor = 0) {
+function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: ResizeKernel, thumbnailFactor = 0) {
     if (thumbnailFactor >= 3) {
         // ThumbnailImage samples to 4x, box-filters to 2x, then applies the final
         // filter. Compose the weights to retain HDRI precision without temporary rasters.
@@ -33,8 +34,10 @@ function contributions(index: number, source: number, target: number, blur: numb
             (Math.min(end, (first + i + 1) * target) - Math.max(start, (first + i) * target)) / source);
         return { first, weights };
     }
+    if (kernel === "nearest") return { first: Math.min(source - 1, Math.floor((index + 0.5) * source / target)), weights: Float64Array.of(1) };
+    const radius = kernel === "linear" || kernel === "bilinear" ? 1 : kernel === "lanczos3" ? 3 : 2;
     const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
-    const support = (kernel === "mitchell" ? 2 : 3) * scale;
+    const support = radius * scale;
     const first = Math.max(0, Math.ceil(center - support)), last = Math.min(source - 1, Math.floor(center + support));
     const weights = new Float64Array(last - first + 1);
     let sum = 0;
@@ -43,7 +46,9 @@ function contributions(index: number, source: number, target: number, blur: numb
         const x = Math.abs(distance);
         weights[i] = kernel === "mitchell"
             ? (x < 1 ? (7 * x * x * x - 12 * x * x + 16 / 3) / 6 : (-7 / 3 * x * x * x + 12 * x * x - 20 * x + 32 / 3) / 6)
-            : sinc(distance) * sinc(distance / 3);
+            : kernel === "linear" || kernel === "bilinear" ? Math.max(0, 1 - x)
+            : kernel === "cubic" ? (x < 1 ? 1.5 * x * x * x - 2.5 * x * x + 1 : -0.5 * x * x * x + 2.5 * x * x - 4 * x + 2)
+            : sinc(distance) * sinc(distance / radius);
         sum += weights[i]!;
     }
     for (let i = 0; i < weights.length; i++) weights[i]! /= sum;
@@ -54,7 +59,7 @@ type ResizeImage = { width: number; height: number; hasAlpha: boolean };
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
-function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: "lanczos3" | "mitchell", highDepth = false): ResizeSamples {
+function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: ResizeKernel, highDepth = false): ResizeSamples {
     const range = highDepth ? 65535 : 255;
     const blur = thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1;
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
@@ -119,7 +124,7 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
     }
 }
 
-export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernel?: ResizeKernel): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // ImageMagick retains the first image's alpha unless both alpha channels are active.
     const blendAlpha = a.hasAlpha && b.hasAlpha;
     if (a.width === width && a.height === height && b.width === width && b.height === height) {
@@ -128,7 +133,7 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
     }
     const sources = [a, b].map(image => resizeSamples(image, width, height, false,
         image.width === width && image.height === height,
-        image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3", highDepth));
+        kernel ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), highDepth));
     while (true) {
         let blended: Float64Array | undefined, position = 0;
         for (let image = 0; image < sources.length; image++) {

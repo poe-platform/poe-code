@@ -1,3 +1,5 @@
+import { apngAst } from "./apng.js";
+export { apngAst } from "./apng.js";
 import { pjsAst } from "./pjs.js";
 import { samiAst } from "./sami.js";
 import { lrcAst } from "./lrc.js";
@@ -1692,6 +1694,7 @@ export function image2Ast(): MediaAstPlugin {
     supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm"],
     supportedAudioCodecs: [],
     detect(bytes, filename) {
+      if (apngAst().detect(bytes)) return false;
       if (isPngSignature(bytes) || isJpegSignature(bytes) || isWebpSignature(bytes) || isPpmSignature(bytes)) {
         return true;
       }
@@ -2487,6 +2490,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     flacAst(),
     oggAst(),
     gifAst(),
+    apngAst(),
     image2Ast(),
     srtAst(),
     ttmlAst(),

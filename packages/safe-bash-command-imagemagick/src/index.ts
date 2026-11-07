@@ -5168,7 +5168,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (mode === "remove") {
             apply = function* (im) {
                 const out = new Uint8Array(im.data.length);
-                const background = [state.background.r, state.background.g, state.background.b];
+                const color = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
+                const background = [color.r, color.g, color.b];
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
                     const alpha = im.data[idx + 3]! / 255;

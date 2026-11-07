@@ -19,7 +19,7 @@ import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
-import { clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
+import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
@@ -530,6 +530,7 @@ interface MagickState {
   trimPercentBackground?: number;
   trimEdges?: string;
   trimMinSize?: { width?: number; height?: number };
+  interpolation?: LookupInterpolation;
   kernel: ResizeKernel | undefined;
   compose: BlendMode;
   composeRaw: string;
@@ -5770,6 +5771,15 @@ if (t === "-seed") {
                 ? Math.round((parseFloat(rawFuzz) / 100) * 255)
                 : Math.round(parseFloat(rawFuzz));
         }
+        else if (t === "-interpolate") {
+            const method = (tokens[++i] ?? "").toLowerCase();
+            if (method === "nearest" || method === "nearest-neighbor") state.interpolation = "nearest";
+            else if (method === "integer" || method === "average" || method === "bilinear") state.interpolation = method;
+            else throw new Error(`unrecognized interpolate method '${method}'`);
+        }
+        else if (t === "+interpolate") {
+            delete state.interpolation;
+        }
         else if (t === "-filter") {
             state.kernel = parseKernel(tokens[++i] ?? "lanczos");
         }
@@ -6239,7 +6249,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const lut = stack[t === "-clut" ? 1 : stack.length - 1]!;
                 const im = stack[0]!;
-                stack = [yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a], !!(im.data16 || lut.data16)), signal, im, [im, lut])];
+                stack = [yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a], !!(im.data16 || lut.data16), state.interpolation), signal, im, [im, lut])];
             }
         }
         else if (t === "-fx") {
@@ -7176,7 +7186,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))!;
                     const image = (await stack.get(0))!;
                     const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a];
-                    await stack.set(0, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16)), signal, image, [image, lut]));
+                    await stack.set(0, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, image, [image, lut]));
                     stack.length = 1;
                 } else if (token === "-separate") {
                     const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
@@ -8076,6 +8086,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-density",
         "-fuzz",
         "-filter",
+        "-interpolate",
         "-colorspace",
         "-grayscale",
         "-modulate",
@@ -8158,7 +8169,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
         "+region", "+write-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
-        "+read-mask",
+        "+read-mask", "+interpolate",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
     for (let i = 0; i < argv.length; i++) {

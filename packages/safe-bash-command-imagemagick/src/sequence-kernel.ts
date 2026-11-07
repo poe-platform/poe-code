@@ -2,25 +2,30 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 const byte = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
 
-export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false): Steps {
-    // Native CLUT samples the diagonal, scaling each axis independently.
+export type LookupInterpolation = "bilinear" | "nearest" | "integer" | "average";
+
+function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+    const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
+    const left = Math.floor(x + (nearest ? 0.5 : 0)), top = Math.floor(y + (nearest ? 0.5 : 0));
+    const dx = x - left, dy = y - top, values = [0, 0, 0, 0];
+    for (let row = 0; row < (single ? 1 : 2); row++) for (let column = 0; column < (single ? 1 : 2); column++) {
+        const weight = single ? 1 : interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
+        if (!weight) continue;
+        const position = (Math.max(0, Math.min(lut.height - 1, top + row)) * lut.width + Math.max(0, Math.min(lut.width - 1, left + column))) * 4;
+        const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
+        const pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : interpolation === "average" ? Number(pixel[3]! > 0) : pixel[3]!);
+        values[3]! += pixel[3]! * weight;
+    }
+    if (interpolation === "bilinear") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+    return values;
+}
+
+export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear"): Steps {
+    // Integer lookup partitions the full dimensions; other methods sample the diagonal endpoints.
     function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
-        const x = value * (lut.width - 1), y = value * (lut.height - 1);
-        const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
-        const values = [0, 0, 0, 0];
-        for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
-            const weight = (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
-            if (!weight) continue;
-            const bytes = (yield { kind: "read", highDepth, image: 1, position: ((top + row) * lut.width + left + column) * 4, length: 4 })!;
-            const pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-            const alpha = pixel[3]! * weight;
-            for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * alpha;
-            values[3]! += alpha;
-        }
-        // Interpolate premultiplied colors so transparent entries cannot leak hidden RGB.
-        for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : Math.round(values[channel]! / values[3]!);
-        values[3] = Math.round(values[3]!);
-        return values;
+        const adjust = interpolation === "integer" ? 0 : 1;
+        return (yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation)).map(Math.round);
     }
     if (highDepth) {
         for (let position = 0; position < size; position += 4096) {
@@ -50,7 +55,7 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false): Steps {
+export function* haldClutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear"): Steps {
     const range = highDepth ? 65535 : 255;
     const level = Math.max(1, Math.floor(Math.cbrt(Math.min(lut.width, lut.height)))), edge = level * level;
     for (let position = 0; position < size; position += 16384) {
@@ -60,16 +65,20 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
         for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 256 === 0) yield;
             const red = data[offset]! / range * (edge - 1), green = data[offset + 1]! / range * (edge - 1), blue = data[offset + 2]! / range * (edge - 1);
-            const r = Math.floor(red), g = Math.floor(green), b = Math.floor(blue), values = [0, 0, 0, 0];
-            for (let z = 0; z < 2; z++) for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
-                const weight = (x ? red - r : 1 - (red - r)) * (y ? green - g : 1 - (green - g)) * (z ? blue - b : 1 - (blue - b));
+            const g = Math.floor(green), b = Math.floor(blue), values = [0, 0, 0, 0];
+            const dy = interpolation === "nearest" ? Math.round(green - g) : green - g;
+            const dz = interpolation === "nearest" ? Math.round(blue - b) : blue - b;
+            // Native Hald interpolates flattened 2D samples, then blends green and blue planes.
+            for (let z = 0; z < 2; z++) for (let y = 0; y < 2; y++) {
+                const weight = (y ? dy : 1 - dy) * (z ? dz : 1 - dz);
                 if (!weight) continue;
-                const index = Math.min(r + x, edge - 1) + edge * (Math.min(g + y, edge - 1) + edge * Math.min(b + z, edge - 1));
-                const bytes = (yield { kind: "read", highDepth, image: 1, position: index * 4, length: 4 })!;
-                const sample = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-                for (let channel = 0; channel < 4; channel++) values[channel]! += sample[channel]! * weight;
+                const index = red + edge * (g + y + edge * (b + z));
+                const sample = yield* sampleLookup(lut, index % lut.width, Math.floor(index / lut.width), highDepth, interpolation);
+                for (let channel = 0; channel < 3; channel++) values[channel]! += sample[channel]! * sample[3]! * weight;
+                values[3]! += sample[3]! * weight;
             }
-            for (let channel = 0; channel < 4; channel++) if (mask[channel]) data[offset + channel] = Math.max(0, Math.min(range, Math.round(values[channel]!)));
+            for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+            for (let channel = 0; channel < 4; channel++) if (mask[channel]) data[offset + channel] = Math.max(0, Math.min(range, Math.round(values[channel]! + Number.EPSILON * range)));
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }

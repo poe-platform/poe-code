@@ -2627,6 +2627,8 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
 }
 function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const layout = magickShadowLayout(image, geometry);
+    if ((image.space === "b-w" || image.space === "grey16") && (color.r !== color.g || color.g !== color.b))
+        image = { ...image, space: "srgb", channels: 4 };
     const base = { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color), signal, layout), virtualCanvas: layout.virtualCanvas };
     return layout.sigma === 0 ? base : yield* applyMagickRasterSteps(base, blurPixelSteps(base, { height: layout.sigma }, false), signal);
 }
@@ -7840,6 +7842,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const layout = magickShadowLayout(image, geometry);
+                if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
+                    image = { ...image, space: "srgb", channels: 4 };
                 const base = { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, background), signal, layout), virtualCanvas: layout.virtualCanvas };
                 return layout.sigma === 0 ? base : transformStoredMagickRaster(base, backend, blurPixelSteps(base, { height: layout.sigma }, false), signal);
             });

@@ -124,6 +124,7 @@ interface MkvTrackInfo {
   codecPrivate?: Uint8Array;
   defaultDurationNs?: number;
   alphaMode?: number;
+  stereoMode?: number;
   rawColourBytes?: Uint8Array;
   width?: number;
   height?: number;
@@ -371,6 +372,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 const vPay = bytes.subarray(vPos, Math.min(tEnd, vPos + vsz.value));
                 if (vid.value === 0xb0) info.width = readEbmlUint(vPay);
                 else if (vid.value === 0xba) info.height = readEbmlUint(vPay);
+                else if (vid.value === 0x53b8) info.stereoMode = readEbmlUint(vPay);
                 else if (vid.value === 0x53c0) info.alphaMode = readEbmlUint(vPay);
                 else if (vid.value === 0x55b0) info.rawColourBytes = vPay;
                 vPos += vsz.value;
@@ -612,6 +614,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       width,
       height,
       alphaMode: info.alphaMode,
+      stereoMode: info.stereoMode,
       rawMkvColourBytes: info.rawColourBytes,
       pixFmt: type === "video" ? "yuv420p" : undefined,
       sampleRate,
@@ -851,6 +854,7 @@ export function serializeMkv(
       const width = trk.width ?? desc?.width ?? 320;
       const height = trk.height ?? desc?.height ?? 240;
       const videoParts = [makeEbmlUint(0xb0, width), makeEbmlUint(0xba, height)];
+      if (desc?.stereoMode !== undefined) videoParts.push(makeEbmlUint(0x53b8, desc.stereoMode));
       if (desc?.alphaMode !== undefined) videoParts.push(makeEbmlUint(0x53c0, desc.alphaMode));
       if (desc?.rawMkvColourBytes !== undefined) videoParts.push(makeEbmlElement(0x55b0, desc.rawMkvColourBytes));
       if (desc?.sarWidth && desc.sarHeight && desc.sarWidth !== desc.sarHeight) {

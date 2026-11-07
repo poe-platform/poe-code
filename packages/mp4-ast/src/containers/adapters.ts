@@ -419,6 +419,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const { formatTag, channels, sampleRate, bitsPerSample } = header;
   const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
+  const compressed = formatTag !== 1 && formatTag !== 3 && formatTag !== 0xfffe;
   const bytesPerFrame = Math.max(1, channels * (bitsPerSample >>> 3));
   const totalPcmSamples = Math.floor(pcmData.byteLength / bytesPerFrame);
   let decodedAudio: MediaAudioData | undefined;
@@ -464,7 +465,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   for (let offsetSample = 0; offsetSample < totalPcmSamples; offsetSample += chunkFrames) {
     const count = Math.min(chunkFrames, totalPcmSamples - offsetSample);
     const byteStart = offsetSample * bytesPerFrame;
-    const byteEnd = Math.min(pcmData.byteLength, (offsetSample + count) * bytesPerFrame);
+    const byteEnd = compressed && offsetSample + count === totalPcmSamples ? pcmData.byteLength : (offsetSample + count) * bytesPerFrame;
     samples.push({
       data: pcmData.subarray(byteStart, byteEnd),
       dts: offsetSample,
@@ -477,10 +478,14 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     });
   }
 
-  return wavDocument(header, samples, decodedAudio);
+  if (compressed && samples.length === 0 && pcmData.length > 0) {
+    samples.push({ data: pcmData, dts: 0, pts: 0, cts: 0, duration: 0,
+      size: pcmData.length, isKeyframe: true, sampleDescriptionIndex: 1 });
+  }
+  return wavDocument(header, samples, decodedAudio, bytes);
 }
 
-function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData): MediaDocument {
+function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData, bytes?: Uint8Array): MediaDocument {
   const { formatTag, channels, sampleRate, bitsPerSample, dataSize, byteLength } = header;
   const totalPcmSamples = Math.floor(dataSize / Math.max(1, channels * (bitsPerSample >>> 3)));
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
@@ -504,7 +509,13 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
             codecName: formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
             sampleRate,
             channels,
-            bitsPerSample
+            bitsPerSample,
+            ...(bytes && header.formatOffset !== undefined ? {
+              rawWavFormatBytes: bytes.subarray(header.formatOffset, header.formatOffset + header.formatSize!)
+            } : {}),
+            ...(bytes && header.factOffset !== undefined ? {
+              rawWavFactBytes: bytes.subarray(header.factOffset, header.factOffset + header.factSize!)
+            } : {})
           }
         ],
         samples,
@@ -523,12 +534,16 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   let bitsPerSample = 16;
   let formatTag = 1;
 
+  const copiedFormat = options.audioCodec === "copy" ? audioTrack?.codecDescriptions[0]?.rawWavFormatBytes : undefined;
+  const copiedFact = copiedFormat ? audioTrack?.codecDescriptions[0]?.rawWavFactBytes : undefined;
   let pcmBytes: Uint8Array;
   const decodedAudio = options.audioCodec === "copy" ? undefined : audioTrack?.decodedAudio ?? (audioTrack?.samples.length &&
     (audioTrack.codecDescriptions[0]?.codecName === "aac" ? decodeAacTrack(doc, audioTrack) :
       audioTrack.codecDescriptions[0]?.codecName === "mp3" ? decodeMp3Track(audioTrack) :
       audioTrack.codecDescriptions[0]?.codecName === "vorbis" ? decodeVorbisTrack(audioTrack) : undefined));
-  if (decodedAudio) {
+  if (copiedFormat) {
+    pcmBytes = concatBytes(audioTrack!.samples.map(s => s.data));
+  } else if (decodedAudio) {
     switch (options.audioCodec) {
       case "pcm_u8": bitsPerSample = 8; break;
       case "pcm_s24le": bitsPerSample = 24; break;
@@ -580,26 +595,39 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   const channelMask = audioTrack?.decodedAudio?.channelMask ?? (decodedAudio ? decodedAudio.channelMask : undefined) ??
     [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
   const extensible = channelMask !== undefined || channels > 2;
-  const fmtSize = extensible ? 40 : 16;
+  const fmtSize = copiedFormat?.length ?? (extensible ? 40 : 16);
+  const fmtPadding = fmtSize % 2;
+  const factSize = copiedFact ? 8 + copiedFact.length + copiedFact.length % 2 : 0;
   const padding = pcmBytes.byteLength % 2;
-  const writer = new BinaryWriter(28 + fmtSize + pcmBytes.byteLength + padding);
+  const writer = new BinaryWriter(28 + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding);
   writer.writeFourCC("RIFF");
-  writer.writeU32LE(20 + fmtSize + pcmBytes.byteLength + padding);
+  writer.writeU32LE(20 + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding);
   writer.writeFourCC("WAVE");
   writer.writeFourCC("fmt ");
   writer.writeU32LE(fmtSize);
-  writer.writeU16LE(extensible ? 0xfffe : formatTag);
-  writer.writeU16LE(channels);
-  writer.writeU32LE(sampleRate);
-  writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
-  writer.writeU16LE(channels * (bitsPerSample >>> 3));
-  writer.writeU16LE(bitsPerSample);
-  if (extensible) {
-    writer.writeU16LE(22);
+  if (copiedFormat) {
+    writer.writeBytes(copiedFormat);
+    if (fmtPadding) writer.writeBytes(new Uint8Array(1));
+  } else {
+    writer.writeU16LE(extensible ? 0xfffe : formatTag);
+    writer.writeU16LE(channels);
+    writer.writeU32LE(sampleRate);
+    writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
+    writer.writeU16LE(channels * (bitsPerSample >>> 3));
     writer.writeU16LE(bitsPerSample);
-    writer.writeU32LE(channelMask ?? 0);
-    writer.writeU32LE(formatTag);
-    writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
+    if (extensible) {
+      writer.writeU16LE(22);
+      writer.writeU16LE(bitsPerSample);
+      writer.writeU32LE(channelMask ?? 0);
+      writer.writeU32LE(formatTag);
+      writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
+    }
+  }
+  if (copiedFact) {
+    writer.writeFourCC("fact");
+    writer.writeU32LE(copiedFact.length);
+    writer.writeBytes(copiedFact);
+    if (copiedFact.length % 2) writer.writeBytes(new Uint8Array(1));
   }
   writer.writeFourCC("data");
   writer.writeU32LE(pcmBytes.byteLength);

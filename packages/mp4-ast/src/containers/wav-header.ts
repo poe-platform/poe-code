@@ -8,6 +8,10 @@ export interface WavHeader {
   channelMask?: number;
   sampleRate: number;
   bitsPerSample: number;
+  formatOffset?: number;
+  formatSize?: number;
+  factOffset?: number;
+  factSize?: number;
   dataOffset: number;
   dataSize: number;
 }
@@ -41,6 +45,8 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     const id = decodeFourCC(chunk, 0), size = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength).getUint32(4, true);
     const start = pos + 8, end = Math.min(byteLength, start + size);
     if (id === "fmt " && size >= 16) {
+      header.formatOffset = start;
+      header.formatSize = end - start;
       const read = yield { offset: start, length: 16 };
       acceptEnd(read.end);
       const bytes = read.bytes;
@@ -57,6 +63,9 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
         if (ext.getUint16(0, true) < 22) throw new Error("Invalid WAV extensible format");
         header.channelMask = ext.getUint32(4, true);
       }
+    } else if (id === "fact") {
+      header.factOffset = start;
+      header.factSize = end - start;
     } else if (id === "data") {
       header.dataOffset = start;
       header.dataSize = end - start;

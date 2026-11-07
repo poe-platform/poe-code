@@ -41,3 +41,17 @@ it(`matches native unequal-size morph pixels: ${mode}, count=${count}, reverse=$
     const names = mode === "command" ? (await fs.readdir("/")).map(entry => `/${entry.name}`) : [...files.keys()];
     expect(names.sort()).toEqual(["/a.png", "/b.png", ...frames.map((_, frame) => `/out-${frame}.png`)]);
 });
+
+for (const count of [0, 1, 2, 4])
+for (const mode of ["map", "sync", "filesystem"])
+it(`repeats a single morph source like native ImageMagick: ${mode}, count=${count}`, async () => {
+    const input = await sharp(Uint8Array.of(255, 0, 0, 255), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+    const files = new Map([["/red.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/red.png", input);
+    const args = ["/red.png", "-morph", String(count), "+append", "/out.png"];
+    const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "filesystem" ? await fs.readFile("/out.png") : files.get("/out.png")!);
+    expect([output.width, output.height]).toEqual([Math.max(1, count), 1]);
+    expect([...output.data]).toEqual(Array.from({ length: Math.max(1, count) }, () => [255, 0, 0, 255]).flat());
+});

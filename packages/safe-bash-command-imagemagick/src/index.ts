@@ -1489,6 +1489,14 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
 function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 0;
     const count = Math.max(0, Math.round(countRaw));
+    if (stack.length === 1 && count > 1) {
+        const out: RgbaImage[] = [];
+        for (let index = 0; index < count; index++) {
+            if (++cooperativeWork % 65536 === 0) yield;
+            out.push(stack[0]!);
+        }
+        return out;
+    }
     if (stack.length < 2 || count === 0)
         return [...stack];
     const out: RgbaImage[] = [];
@@ -7205,7 +7213,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(base.width * base.height * 4, sources.map(image => image.width * image.height * 4)), signal, base, sources);
                     stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 });
                 } else if (token === "-morph") {
-                    const count = Math.max(0, Math.round(Number(argument))); if (stack.length < 2 || count === 0) return stack;
+                    const count = Math.max(0, Math.round(Number(argument)));
+                    if (stack.length === 1 && count > 1) {
+                        const image = (await stack.get(0))!;
+                        for (let index = 1; index < count; index++) {
+                            await yieldTurn(signal);
+                            await stack.push(image);
+                        }
+                        return stack;
+                    }
+                    if (stack.length < 2 || count === 0) return stack;
                     const result = new StoredImageStack(backend.storage, signal, stack);
                     for (let index = 0; index < stack.length - 1; index++) {
                         const a = (await stack.get(index))!, b = (await stack.get(index + 1))!; await result.push(a);

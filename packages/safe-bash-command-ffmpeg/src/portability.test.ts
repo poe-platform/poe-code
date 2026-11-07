@@ -103,7 +103,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FFmetadata chapter time bases and the current metadata parser graph (600,134 bytes).
   // Includes volumedetect sample statistics and the current filter graph (603,125 bytes).
   // Includes sample-accurate atrim bounds and the current audio filter graph (608,622 bytes).
-  assert.ok(otherCodeBytes < 610_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes finite apad padding and the current audio filter graph (610,661 bytes).
+  assert.ok(otherCodeBytes < 612_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -134,6 +135,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FFmetadata chapter timing and the current metadata graph (9,747,743 bytes).
   // Includes volumedetect sample statistics and the current filter graph.
   // Includes sample-accurate atrim bounds and the current audio filter graph (9,756,236 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_758_000,
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_760_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

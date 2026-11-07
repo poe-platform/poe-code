@@ -290,22 +290,30 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
  let end=0;
  for(let index=0;index<pages.length;index++) {
   const page=pages[index]!,channels=createTiffLayout(page,options).channels,chunks:Uint8Array[]=[];
-  const rows=options?.tiffRowsPerStrip ?? page.height,stripSizes:number[]=[];
+  const rows=options?.tiffTile?.height ?? options?.tiffRowsPerStrip ?? page.height,columns=options?.tiffTile?.width ?? page.width,stripSizes:number[]=[];
   for(let row=0;row<page.height;row+=rows) {
-  const height=Math.min(rows,page.height-row),start=chunks.length;
-  if(options?.tiffCompression === "jpeg") chunks.push(encodeJpegImage({...page,height,data:page.data.subarray(row*page.width*4,(row+height)*page.width*4)},{...options,chromaSubsampling:"4:4:4"}));
+  for(let left=0;left<page.width;left+=columns) {
+  const height=options?.tiffTile ? rows : Math.min(rows,page.height-row),start=chunks.length;
+  let block=page;
+  if(options?.tiffTile) {
+   const data=new Uint8Array(columns*height*4);
+   for(let y=0;y<Math.min(height,page.height-row);y++) data.set(page.data.subarray(((row+y)*page.width+left)*4,((row+y)*page.width+Math.min(left+columns,page.width))*4),y*columns*4);
+   block={...page,width:columns,height,data};
+  } else block={...page,height,data:page.data.subarray(row*page.width*4,(row+height)*page.width*4)};
+  if(options?.tiffCompression === "jpeg") chunks.push(encodeJpegImage(block, {...options,chromaSubsampling:"4:4:4"}));
   else {
-   const compressor=createTiffCompressor(options?.tiffCompression,page.width*channels);
+   const compressor=createTiffCompressor(options?.tiffCompression,columns*channels);
    try {
-    for(let offset=row*page.width*4;offset<(row+height)*page.width*4;offset+=4096) {
-     const size=Math.min(4096,(row+height)*page.width*4-offset),raw=new Uint8Array(size/4*channels);
-     for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=page.data[src]!;if(channels===2)raw[dst++]=page.data[src+3]!;if(channels>=3){raw[dst++]=page.data[src+1]!;raw[dst++]=page.data[src+2]!;}if(channels===4)raw[dst++]=page.data[src+3]!;}
+    for(let offset=0;offset<block.data.length;offset+=4096) {
+     const size=Math.min(4096,block.data.length-offset),raw=new Uint8Array(size/4*channels);
+     for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=block.data[src]!;if(channels===2)raw[dst++]=block.data[src+3]!;if(channels>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}if(channels===4)raw[dst++]=block.data[src+3]!;}
      chunks.push(...compressor.push(raw));
     }
     chunks.push(...compressor.push(new Uint8Array(),true));
    } finally {compressor.close();}
   }
   stripSizes.push(chunks.slice(start).reduce((sum,chunk)=>sum+chunk.length,0));
+  }
   }
   payloads.push(chunks);
   layouts[index]=createTiffLayout(page,options,end,index+1<pages.length,stripSizes);end=layouts[index]!.end;

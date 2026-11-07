@@ -5,11 +5,12 @@ import {encodeJpegFromStorage} from "./jpeg-storage.js";
 import {createTiffLayout} from "./tiff-layout.js";
 import {defaultRuntime} from "@poe-code/compression";
 export type StoredTiffEncodeOptions=NonNullable<Parameters<typeof createTiffLayout>[1]>;
-/** Pull-driven TIFF output with owned chunks and a fixed-size directory. */
+/** Pull-driven TIFF output with owned chunks and a strip directory. */
 export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,options:StoredTiffEncodeOptions={}):AsyncGenerator<Uint8Array> {
  signal.throwIfAborted();
  let end=0;
  const scratch=new BackingArena(storage);
+ const tileBacking=new BackingArena(storage);
  const count=image.storedTiffPages?.length ?? 1;
  for(let index=0;index<count;index++) {
  const page=image.storedTiffPages ? await image.storedTiffPages.at(index) : image;
@@ -35,16 +36,44 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
  const compressed=options.tiffCompression !== undefined && options.tiffCompression !== "none";
  let encodedBytes:number|undefined;
  let stripSizes:number[]|undefined;
- if(compressed) {
+ if(compressed || options.tiffTile) {
   scratch.reset();encodedBytes=0;stripSizes=[];
-  const rows=options.tiffRowsPerStrip ?? height;
+  const rows=options.tiffTile?.height ?? options.tiffRowsPerStrip ?? height,columns=options.tiffTile?.width ?? width;
   for(let row=0;row<height;row+=rows) {
-  const stripHeight=Math.min(rows,height-row),start=encodedBytes;
+  for(let left=0;left<width;left+=columns) {
+  const stripHeight=options.tiffTile ? rows : Math.min(rows,height-row),start=encodedBytes;
+  let block={...page,height:stripHeight,position:position+row*width*4};
+  let blockStorage:ImageByteStorage=storage;
+  if(options.tiffTile) {
+   tileBacking.reset();const tilePosition=tileBacking.allocate(columns*stripHeight*4);
+   for(let y=0;y<stripHeight;y++) {
+    await defaultRuntime.yieldTurn(signal);
+    for(let x=0;x<columns;x+=1024) {
+     const size=Math.min(1024,columns-x),bytes=new Uint8Array(size*4),valid=Math.max(0,Math.min(size,width-left-x));
+     if(row+y<height && valid>0) {
+      const source=await storage.read(position+((row+y)*width+left+x)*4,valid*4,{signal});
+      if(source.length!==valid*4) throw new Error("Truncated TIFF backing storage");
+      bytes.set(source);
+     }
+     await tileBacking.write(tilePosition+(y*columns+x)*4,bytes,{signal});
+    }
+   }
+   block={...page,width:columns,height:stripHeight,position:tilePosition};blockStorage=tileBacking;
+  }
+  async function* blockPixels() {
+   if(!options.tiffTile) {yield* pixels(row*width*4,(row+stripHeight)*width*4);return;}
+   for(let at=0;at<columns*stripHeight*4;at+=4096) {
+    signal.throwIfAborted();
+    const bytes=await blockStorage.read(block.position+at,Math.min(4096,columns*stripHeight*4-at),{signal}),raw=new Uint8Array(bytes.length/4*channels);
+    for(let src=0,dst=0;src<bytes.length;src+=4) {raw[dst++]=bytes[src]!;if(channels===2)raw[dst++]=bytes[src+3]!;if(channels>=3){raw[dst++]=bytes[src+1]!;raw[dst++]=bytes[src+2]!;}if(channels===4)raw[dst++]=bytes[src+3]!;}
+    yield raw;
+   }
+  }
   async function* encode() {
-   if(options.tiffCompression === "jpeg") {yield* encodeJpegFromStorage({...page,height:stripHeight,position:position+row*width*4},storage,signal,{...options,chromaSubsampling:"4:4:4"});return;}
-   const compressor=createTiffCompressor(options.tiffCompression,width*channels);
+   if(options.tiffCompression === "jpeg") {yield* encodeJpegFromStorage(block,blockStorage,signal,{...options,chromaSubsampling:"4:4:4"});return;}
+   const compressor=createTiffCompressor(options.tiffCompression,columns*channels);
    try {
-    for await(const raw of pixels(row*width*4,(row+stripHeight)*width*4)) yield* compressor.push(raw);
+    for await(const raw of blockPixels()) yield* compressor.push(raw);
     yield* compressor.push(new Uint8Array(),true);
    } finally {compressor.close();}
   }
@@ -55,6 +84,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
    }
   }
   stripSizes.push(encodedBytes-start);
+  }
   }
  }
  const {header,directory,padding,end:nextEnd}=createTiffLayout(page,options,end,index+1<count,stripSizes);

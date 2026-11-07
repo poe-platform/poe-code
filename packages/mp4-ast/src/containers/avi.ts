@@ -597,6 +597,53 @@ export function aviAst(): MediaAstPlugin {
 
 // --- FLV (Flash Video) Container ---
 
+function readFlvTitle(bytes: Uint8Array): string | undefined {
+  const reader = new BinaryReader(bytes);
+  let title: string | undefined;
+  const readValue = (depth: number): string | undefined => {
+    if (reader.eof || depth > 32) {
+      reader.seek(bytes.length);
+      return undefined;
+    }
+    const type = reader.readU8();
+    if (type === 2 || type === 12) {
+      const length = type === 2 ? reader.readU16BE() : reader.readU32BE();
+      if (length > reader.remaining) {
+        reader.seek(bytes.length);
+        return undefined;
+      }
+      return decodeUtf8(reader.readSlice(length));
+    }
+    if (type === 0) reader.skip(8); // number
+    else if (type === 1) reader.skip(1); // boolean
+    else if (type === 11) reader.skip(10); // date and timezone
+    else if (type === 3 || type === 8) {
+      if (type === 8) reader.skip(4); // ECMA array count; object end is authoritative
+      while (reader.remaining >= 3) {
+        const length = reader.readU16BE();
+        if (length === 0 && reader.bytes[reader.offset] === 9) {
+          reader.skip(1);
+          break;
+        }
+        if (length > reader.remaining) break;
+        const key = decodeUtf8(reader.readSlice(length));
+        const value = readValue(depth + 1);
+        if (depth === 0 && key === "title" && value !== undefined) title = value;
+      }
+    } else if (type === 10) {
+      const count = reader.readU32BE();
+      for (let i = 0; i < count && !reader.eof; i++) readValue(depth + 1);
+    } else if (type !== 5 && type !== 6) {
+      // Unsupported AMF values must not be mistaken for subsequent properties.
+      reader.seek(bytes.length);
+    }
+    return undefined;
+  };
+  if (readValue(0) !== "onMetaData") return undefined;
+  readValue(0);
+  return title;
+}
+
 export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.byteLength);
@@ -617,6 +664,7 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const audioSamples: MediaSample[] = [];
   let width = 320;
   let height = 240;
+  let title: string | undefined;
 
   while (reader.remaining >= 11) {
     const tagType = reader.readU8();
@@ -629,7 +677,9 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     const tagData = reader.readSlice(dataSize);
     reader.skip(4); // PreviousTagSizeN
 
-    if (tagType === 9 && tagData.byteLength >= 5) {
+    if (tagType === 18) {
+      title = readFlvTitle(tagData) ?? title;
+    } else if (tagType === 9 && tagData.byteLength >= 5) {
       // Video tag
       const frameAndCodec = tagData[0]!;
       const frameType = (frameAndCodec >>> 4) & 0x0f;
@@ -756,13 +806,12 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     duration: Math.round(maxSec * 1000),
     durationSeconds: maxSec,
     tracks,
-    metadata: {},
+    metadata: title === undefined ? {} : { title },
     byteLength: bytes.byteLength
   };
 }
 
 export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
-  void options;
   const videoTrack = doc.tracks.find((t) => t.type === "video");
   const audioTrack = doc.tracks.find((t) => t.type === "audio");
 
@@ -786,6 +835,26 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
     writer.writeBytes(payload);
     writer.writeU32BE(11 + payload.byteLength);
   };
+
+  const title = options.metadata?.title ?? doc.metadata.title;
+  if (title !== undefined) {
+    const payload = new BinaryWriter();
+    payload.writeU8(2); // AMF string
+    payload.writeU16BE(10);
+    payload.writeBytes(encodeUtf8("onMetaData"));
+    payload.writeU8(8); // AMF ECMA array
+    payload.writeU32BE(1);
+    payload.writeU16BE(5);
+    payload.writeBytes(encodeUtf8("title"));
+    const value = encodeUtf8(title);
+    if (value.byteLength > 0xffffff - 33) throw new Error("FLV title exceeds tag size limit");
+    payload.writeU8(value.byteLength > 65535 ? 12 : 2);
+    if (value.byteLength > 65535) payload.writeU32BE(value.byteLength);
+    else payload.writeU16BE(value.byteLength);
+    payload.writeBytes(value);
+    payload.writeU24BE(9); // AMF object end
+    writeFlvTag(18, 0, payload.toUint8Array());
+  }
 
   let videoSamples: readonly MediaSample[] = [];
   let audioSamples: readonly MediaSample[] = [];

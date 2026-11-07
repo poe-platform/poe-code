@@ -83,12 +83,14 @@ export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageBy
     return next.value;
 }
 
-export function deskewPlan(image: Pick<RgbaImage, "width" | "height">, radians: number) {
+export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properties">, radians: number) {
     const cos = Math.cos(radians), sin = Math.sin(radians);
     const corners = [0, image.width].flatMap(x => [0, image.height].map(y => [x * cos - y * sin - 0.5, x * sin + y * cos - 0.5]));
     const x = Math.floor(Math.min(...corners.map(p => p[0]!))), y = Math.floor(Math.min(...corners.map(p => p[1]!)));
     const width = Math.ceil(Math.max(...corners.map(p => p[0]!))) - x + 1, height = Math.ceil(Math.max(...corners.map(p => p[1]!))) - y + 1;
+    const degrees = radians * 180 / Math.PI;
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x, y },
+        properties: { ...image.properties, "deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
         derivatives: () => [cos, sin, -sin, cos],
-        map: (px, py) => [(px + x + 0.5) * cos + (py + y + 0.5) * sin - 0.5, -(px + x + 0.5) * sin + (py + y + 0.5) * cos - 0.5] } satisfies WarpPlan;
+        map: (px, py) => [(px + x + 0.5) * cos + (py + y + 0.5) * sin - 0.5, -(px + x + 0.5) * sin + (py + y + 0.5) * cos - 0.5] } satisfies WarpPlan & Pick<RgbaImage, "properties">;
 }

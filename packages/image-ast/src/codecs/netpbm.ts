@@ -302,19 +302,20 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   };
 }
 
-export function encodeBmpImage(img: RgbaImage): Uint8Array {
+export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof createBmpHeader>[1]): Uint8Array {
   const { width, height, data } = img;
-  const {data:header,rowStride,pixelSize}=createBmpHeader(img);
-  const out=new Uint8Array(54+pixelSize);
+  const {data:header,rowStride,pixelSize,bytesPerPixel}=createBmpHeader(img,options);
+  const out=new Uint8Array(header.length+pixelSize);
   out.set(header);
 
   for (let y = 0; y < height; y++) {
-    const dstRow = 54 + (height - 1 - y) * rowStride;
+    const dstRow = header.length + (height - 1 - y) * rowStride;
     for (let x = 0; x < width; x++) {
       const srcIdx = (y * width + x) * 4;
-      out[dstRow + x * 3] = data[srcIdx + 2]!;
-      out[dstRow + x * 3 + 1] = data[srcIdx + 1]!;
-      out[dstRow + x * 3 + 2] = data[srcIdx]!;
+      out[dstRow + x * bytesPerPixel] = data[srcIdx + 2]!;
+      out[dstRow + x * bytesPerPixel + 1] = data[srcIdx + 1]!;
+      out[dstRow + x * bytesPerPixel + 2] = data[srcIdx]!;
+      if (bytesPerPixel === 4) out[dstRow + x * bytesPerPixel + 3] = data[srcIdx + 3]!;
     }
   }
   return out;

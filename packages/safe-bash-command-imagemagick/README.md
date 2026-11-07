@@ -18,6 +18,8 @@ const info = await shell.exec("magick identify -format '%m %wx%h' /banner.png");
 console.log(info.stdout); // PNG 60x40
 ```
 
+BMP output defaults to a 124-byte header. Use `BMP2:out.bmp` or `BMP3:out.bmp` for 12-byte or 40-byte headers; `-define bmp:format=bmp2|bmp3|bmp4` also selects the version. Coder prefixes take precedence over the define.
+
 Output parent directories must already exist, including directories selected with `mogrify -path`. Mogrify expands quoted filename patterns (`*`, `?`, and character classes such as `[ab]`) against the command filesystem, including literal SDK arguments. Unmatched patterns fail; parent directory names remain literal.
 
 Conversion accepts `-quiet` to suppress subsequent warnings and `+quiet` to restore them; errors remain visible. `-regard-warnings` and `+regard-warnings` are accepted, and an empty `-trim` still writes its 1×1 output and succeeds.

@@ -81,20 +81,20 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  }
  return output.finish();
 }
-/** Emit standard 24-bit BMP rows without retaining whole rows or output. */
-export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal):AsyncGenerator<Uint8Array> {
+/** Emit BMP color and alpha rows without retaining whole rows or output. */
+export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,options?:Parameters<typeof createBmpHeader>[1]):AsyncGenerator<Uint8Array> {
  signal.throwIfAborted();
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid BMP backing dimensions");
- const {data:header,rowStride}=createBmpHeader(image);
+ const {data:header,rowStride,bytesPerPixel}=createBmpHeader(image,options);
  yield header;
  const pixels=new Pixels(image,storage,signal),buffer=new Uint8Array(4096);let used=0;
  for(let y=height-1;y>=0;y--) {
   for(let x=0;x<width;x++) {
    const value=await pixels.pixel(y*width+x);
-   for(const byte of [value>>>16&255,value>>>8&255,value&255]) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
+   for(const byte of bytesPerPixel===4 ? [value>>>16&255,value>>>8&255,value&255,value>>>24] : [value>>>16&255,value>>>8&255,value&255]) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
   }
-  for(let i=width*3;i<rowStride;i++){buffer[used++]=0;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
+  for(let i=width*bytesPerPixel;i<rowStride;i++){buffer[used++]=0;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
  }
  signal.throwIfAborted();if(used) yield new Uint8Array(buffer.subarray(0,used));
 }

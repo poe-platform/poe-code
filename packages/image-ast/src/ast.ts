@@ -458,6 +458,7 @@ export type ImageAstNode =
     };
 
 export interface OutputEncodeOptions {
+  readonly bmpFormat?: "bmp2" | "bmp3" | "bmp4";
   /** Preserve existing EXIF only when false; PNG stores standalone orientation in orNT. */
   readonly synthesizeExif?: boolean;
   readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
@@ -471,6 +472,7 @@ export interface OutputEncodeOptions {
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
   readonly tiffPlanar?: boolean;
+  readonly bmp3Alpha?: boolean;
   readonly tiffAlpha?: "associated" | "unassociated" | "unspecified";
   readonly tiffEndian?: "msb" | "lsb";
   readonly tiffRowsPerStrip?: number;

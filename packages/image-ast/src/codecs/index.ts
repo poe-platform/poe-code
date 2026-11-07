@@ -490,8 +490,8 @@ export function encodeImage(
       return { data, format: "pbm", channels: 1 };
     }
     case "bmp": {
-      const data = encodeBmpImage(img);
-      return { data, format: "bmp", channels: 3 };
+      const data = encodeBmpImage(img, options);
+      return { data, format: "bmp", channels: data[data[14] === 12 ? 24 : 28] === 32 ? 4 : 3 };
     }
     case "tiff": {
       const orientation = options.orientation ?? img.orientation;

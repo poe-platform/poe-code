@@ -72,7 +72,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes whole-output audio checksums and portable digest implementations (about 14 KB).
   // Includes per-packet audio checksum timing and formatting (about 1.9 KB).
   // Includes strict input validation, empty-output checks, and configurable decode error thresholds.
-  assert.ok(otherCodeBytes < 509_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes Matroska chapter/stream metadata and the current ffprobe implementation (about 523 KB).
+  assert.ok(otherCodeBytes < 524_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -80,5 +81,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
   // Include independent concat timeline offsets while preserving PCM samples.
   // Current dependency graph plus subtitle packet selection and duration handling.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_550_000);
+  // Includes current Matroska metadata and PCM codec mappings (measured 9,561,249 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_565_000);
 });

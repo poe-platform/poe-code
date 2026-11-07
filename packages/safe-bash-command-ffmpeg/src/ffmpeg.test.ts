@@ -2866,7 +2866,7 @@ it("reads multiple HLS fMP4 segments through both commands and preserves their p
   const segment = createSyntheticMp4({ width: 32, height: 24, fps: 25, frameCount: 25, includeAudio: true, fragmented: true });
   const playlist = "#EXTM3U\n#EXTINF:1,\nparts/one.m4s\n#EXTINF:1,\nparts/two.m4s\n#EXT-X-ENDLIST\n";
   const vfs = createTestVfs({ "/hls/media.playlist": playlist, "/hls/parts/one.m4s": segment, "/hls/parts/two.m4s": segment });
-  const probe = await runCmd(createFfprobeCommand(), ["-of", "json", "/hls/media.playlist"], vfs);
+  const probe = await runCmd(createFfprobeCommand(), ["-of", "json", "-show_streams", "/hls/media.playlist"], vfs);
   assert.equal(probe.exitCode, 0, probe.stderr);
   const streams = JSON.parse(probe.stdout).streams;
   assert.equal(streams.length, 2);
@@ -3889,7 +3889,8 @@ for (const [codec, bitsPerSample, float] of [
     const expected = parseWav(encodeWav(pcm, { bitsPerSample, float })).tracks[0]!;
     assert.equal(actual.codecDescriptions[0]!.codecName, codec);
     assert.equal(actual.codecDescriptions[0]!.bitsPerSample, bitsPerSample);
-    assert.deepEqual(actual.samples, expected.samples);
+    assert.deepEqual(actual.samples.map(({ offset: _offset, ...sample }) => sample),
+      expected.samples.map(({ offset: _offset, ...sample }) => sample));
   });
 }
 

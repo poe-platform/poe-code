@@ -1,3 +1,4 @@
+import { mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawRgbInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan } from "./deskew.js";
@@ -7452,8 +7453,8 @@ export function runConvertCliSync(argv: readonly string[], files: Map<string, Ui
     return next.value;
 }
 
-function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target: string; args: string[] } | ImageMagickCliResult)[], void> {
-    const plans: ({ target: string; args: string[] } | ImageMagickCliResult)[] = [];
+function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target: string; args: (target: string) => string[] } | ImageMagickCliResult)[], void> {
+    const plans: ({ target: string; args: (target: string) => string[] } | ImageMagickCliResult)[] = [];
     let cooperativeWork = 63;
     let outFormatExt: string | undefined;
     let outDir: string | undefined;
@@ -7595,14 +7596,16 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             i += count;
         }
         else {
-            const { baseToken } = parseInputToken(t);
-            const colon = baseToken.indexOf(":");
-            const target = colon > 0 && extToImageFormat(baseToken.slice(0, colon)) ? baseToken.slice(colon + 1) : baseToken;
-            const baseName = target.split("/").pop() ?? target;
-            const stem = baseName.replace(/\.[^.]+$/, "");
-            const destDir = outDir ? `${outDir.replace(/\/+$/, "")}/` : target.slice(0, target.lastIndexOf("/") + 1);
-            const destPath = outFormatExt ? `${destDir}${stem}.${outFormatExt}` : outDir ? `${destDir}${baseName}` : target;
-            plans.push({ target, args: [...readSettings, t, ...opTokens, destPath] });
+            const before = [...readSettings], after = [...opTokens];
+            const directory = outDir, format = outFormatExt;
+            plans.push({ target: t, args(target) {
+                const baseName = target.slice(target.lastIndexOf("/") + 1);
+                const dot = baseName.lastIndexOf(".");
+                const stem = dot < 0 || dot === baseName.length - 1 ? baseName : baseName.slice(0, dot);
+                const destDir = directory ? (directory.endsWith("/") ? directory : directory + "/") : target.slice(0, target.lastIndexOf("/") + 1);
+                const destPath = format ? `${destDir}${stem}.${format}` : directory ? `${destDir}${baseName}` : target;
+                return [...before, target, ...after, destPath];
+            } });
         }
     }
     return plans;
@@ -7610,9 +7613,11 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
 function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     for (const plan of yield* parseMogrifySteps(argv)) {
         if ("exitCode" in plan) return plan;
-        if (!files.has(plan.target)) return { exitCode: 1, stdout: "", stderr: `mogrify: unable to open image '${plan.target}': No such file or directory\n` };
-        const result = yield* runConvertCliSteps(plan.args, files, undefined, signal);
-        if (result.exitCode !== 0) return result;
+        for (const target of yield* mogrifyTargets(plan.target, files.keys())) {
+            if (!files.has(target)) return { exitCode: 1, stdout: "", stderr: `mogrify: unable to open image '${target}': No such file or directory\n` };
+            const result = yield* runConvertCliSteps(plan.args(target), files, undefined, signal);
+            if (result.exitCode !== 0) return result;
+        }
     }
     return { exitCode: 0, stdout: "", stderr: "" };
 }
@@ -7626,32 +7631,35 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
             if (files.stderr) await writeIdentifyText(files.stderr, plan.stderr, active);
             return files.stderr ? { ...plan, stderr: "" } : plan;
         }
-        let exists = false;
-        try { exists = (await files.filesystem.stat(resolvePath(files.cwd, plan.target), { signal: active })).type === "file"; }
-        catch (error) {
-            active.throwIfAborted();
-            if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
-        }
-        if (!exists) {
-            const stderr = `mogrify: unable to open image '${plan.target}': No such file or directory\n`;
-            if (files.stderr) await writeIdentifyText(files.stderr, stderr, active);
-            return { exitCode: 1, stdout: "", stderr: files.stderr ? "" : stderr };
-        }
-        let current = 0;
-        const target = resolvePath(files.cwd, plan.target);
-        const replaceLink = resolvePath(files.cwd, plan.args.at(-1)!) === target && (await files.filesystem.lstat(target, { signal: active })).type === "symlink";
-        // Encode beside the link, then replace its directory entry only on success.
-        const staging = replaceLink ? `${target.slice(0, target.lastIndexOf("/"))}/.mogrify-${crypto.randomUUID()}` : undefined;
-        if (staging) await files.filesystem.mkdir(staging, { signal: active, mode: 0o700 });
-        try {
-            const output = staging ? `${staging}/${target.slice(target.lastIndexOf("/") + 1)}` : undefined;
-            const args = output ? [...plan.args.slice(0, -1), output] : plan.args;
-            const result = await runConvertCli(args, { ...files, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
-            accounted += current;
-            if (result.exitCode !== 0) return result;
-            if (output) await files.filesystem.rename(output, target, { signal: active });
-        } finally {
-            if (staging) await files.filesystem.rm(staging, { recursive: true, force: true });
+        for (const name of await mogrifyFileTargets(plan.target, files.filesystem, files.cwd, active)) {
+            const args = plan.args(name);
+            let exists = false;
+            try { exists = (await files.filesystem.stat(resolvePath(files.cwd, name), { signal: active })).type === "file"; }
+            catch (error) {
+                active.throwIfAborted();
+                if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
+            }
+            if (!exists) {
+                const stderr = `mogrify: unable to open image '${name}': No such file or directory\n`;
+                if (files.stderr) await writeIdentifyText(files.stderr, stderr, active);
+                return { exitCode: 1, stdout: "", stderr: files.stderr ? "" : stderr };
+            }
+            let current = 0;
+            const target = resolvePath(files.cwd, name);
+            const replaceLink = resolvePath(files.cwd, args.at(-1)!) === target && (await files.filesystem.lstat(target, { signal: active })).type === "symlink";
+            // Encode beside the link, then replace its directory entry only on success.
+            const staging = replaceLink ? `${target.slice(0, target.lastIndexOf("/"))}/.mogrify-${crypto.randomUUID()}` : undefined;
+            if (staging) await files.filesystem.mkdir(staging, { signal: active, mode: 0o700 });
+            try {
+                const output = staging ? `${staging}/${target.slice(target.lastIndexOf("/") + 1)}` : undefined;
+                const conversionArgs = output ? [...args.slice(0, -1), output] : args;
+                const result = await runConvertCli(conversionArgs, { ...files, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
+                accounted += current;
+                if (result.exitCode !== 0) return result;
+                if (output) await files.filesystem.rename(output, target, { signal: active });
+            } finally {
+                if (staging) await files.filesystem.rm(staging, { recursive: true, force: true });
+            }
         }
     }
     return { exitCode: 0, stdout: "", stderr: "" };

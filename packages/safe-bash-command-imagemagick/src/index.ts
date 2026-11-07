@@ -1380,6 +1380,13 @@ function parseMagickVignetteGeometry(raw: string): MagickGeometry {
     return parseMagickGeometry(raw);
 }
 
+function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
+    if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+        throw new Error(`invalid argument for option '${option}': ${raw}`);
+    }
+    return parseMagickGeometry(raw);
+}
+
 function validateMagickSpliceGeometry(raw: string): void {
     // Native geometry permits modifiers and separators, but never ignores unknown characters.
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
@@ -6528,7 +6535,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-raise" || t === "+raise") {
-            const g = parseMagickGeometry(tokens[++i] ?? "4");
+            const g = parseMagickRaiseGeometry(tokens[++i] ?? "", t);
             const bw = Math.max(0, Math.round(g.width ?? 4));
             const bh = Math.max(0, Math.round(g.height ?? bw));
             const raised = t === "-raise";
@@ -7854,7 +7861,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stack.length = 0; await stack.push(result); return stack;
             });
         } else if (!operandsOnly && (token === "-raise" || token === "+raise")) {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "4"), border = Math.max(0, Math.round(geometry.width ?? 4)), borderHeight = Math.max(0, Math.round(geometry.height ?? border)), raised = token === "-raise";
+            const geometry = parseMagickRaiseGeometry(tokens[++i] ?? "", token), border = Math.max(0, Math.round(geometry.width ?? 4)), borderHeight = Math.max(0, Math.round(geometry.height ?? border)), raised = token === "-raise";
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, raisePixelSteps(image, border, borderHeight, raised), signal) : undefined);
         } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";

@@ -282,7 +282,7 @@ export function encodeBmpImage(img: RgbaImage): Uint8Array {
   return out;
 }
 
-export function encodeTiffImage(img:RgbaImage,options?:{readonly density?:number;readonly orientation?:number}):Uint8Array {
+export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createTiffLayout>[1]):Uint8Array {
  const pages=img.tiffPages ?? [img];
  const layouts: ReturnType<typeof createTiffLayout>[]=[];
  let end=0;

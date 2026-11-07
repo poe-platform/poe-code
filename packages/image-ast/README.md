@@ -44,7 +44,7 @@ for BMP inputs and standard 24-bit BMP output.
 `decodeTiffToStorage` reads classic TIFF strips and tiles through caller backing,
 including uncompressed, DEFLATE, LZW, PackBits and JPEG data and horizontal prediction.
 Shared JPEG tables and strip/tile data are read through bounded logical ranges.
-`encodeTiffFromStorage` streams RGBA TIFF pixels with fixed-size header/directory
+`encodeTiffFromStorage` and `encodeImage` accept `tiffRowsPerStrip` to control TIFF strip height. `encodeTiffFromStorage` streams TIFF pixels with a header and strip directory
 state, preserving density and orientation.
 `decodeHeifToStorage`, `encodeHeifFromStorage`, and `readHeifMetadataFromSource`
 use 4 KiB pages and the shared zlib codec for the existing HEIC/HEIF/AVIF

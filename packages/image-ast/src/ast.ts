@@ -470,6 +470,7 @@ export interface OutputEncodeOptions {
   readonly rawDepth?: string;
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
+  readonly tiffRowsPerStrip?: number;
   readonly quality?: number;
   readonly samplingFactor?: string;
   readonly chromaSubsampling?: "4:2:0" | "4:4:4";

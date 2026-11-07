@@ -496,6 +496,7 @@ export function encodeImage(
     case "tiff": {
       const orientation = options.orientation ?? img.orientation;
       const data = encodeTiffImage(img, {
+        ...(options.tiffRowsPerStrip === undefined ? {} : {tiffRowsPerStrip: options.tiffRowsPerStrip}),
         ...(options.density === undefined ? {} : {density: options.density}),
         ...(orientation !== undefined ? { orientation } : {})
       });

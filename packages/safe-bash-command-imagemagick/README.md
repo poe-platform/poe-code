@@ -53,6 +53,8 @@ Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) an
 
 `-colorspace XYZ`, `-colorspace YCbCr`, and `-colorspace YUV` convert sRGB pixels to CIE XYZ, YCbCr, or YUV, preserve alpha, and expose converted values in pixel and channel expressions. Converting back to `sRGB` restores RGB pixels.
 
+Use `-define tiff:rows-per-strip=N` to set TIFF strip height for final output and `-write`; `+define tiff:rows-per-strip` restores the default.
+
 `-colorspace CMYK` and `-colorspace Lab` are unsupported and return an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
 
 Use `+antialias` for hard-edged drawing and `-antialias` to restore smoothing for subsequent draws. Filled circles preserve untouched 16-bit source pixels.

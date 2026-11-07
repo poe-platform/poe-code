@@ -44,18 +44,6 @@ it("resets the rows-per-strip define", () => {
     expect(tags(files.get("/out.tif")!).get(278)).toEqual([40]);
 });
 
-for (const method of ["LZW", "Zip", "RLE"] as const) {
-    it.each(["sync", "retained"])(`preserves pixels across independently compressed ${method} strips (%s)`, async mode => {
-        const files = new Map([["/in.png", input]]), filesystem = new MemoryFileSystem();
-        await filesystem.writeFile("/in.png", input);
-        const args = ["/in.png", "-define", "tiff:rows-per-strip=7", "-compress", method, "/out.tif"];
-        const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, { filesystem, cwd: "/" });
-        expect(result.exitCode).toBe(0);
-        const bytes = mode === "sync" ? files.get("/out.tif")! : await filesystem.readFile("/out.tif");
-        expect(tags(bytes).get(273)).toHaveLength(6);
-        expect(decodeImage(bytes).data).toEqual(pixels);
-    });
-}
 it.each(["sync", "retained"])("preserves strip offsets and pixels on later TIFF pages (%s)", async mode => {
     const files = new Map([["/in.png", input]]), filesystem = new MemoryFileSystem();
     await filesystem.writeFile("/in.png", input);

@@ -5169,3 +5169,58 @@ for (const value of [undefined, "", "2", "-1", "nope"]) {
     assert.ok(result.stderr.includes("invalid use_timeline"), result.stderr);
   });
 }
+
+it("writes DASH single_file representations with valid inclusive byte ranges", async () => {
+  const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+  const source = { ...base, tracks: base.tracks.map(t => ({ ...t, samples: t.samples.map((s, i) => ({ ...s, isKeyframe: t.type === "audio" || i % 4 === 0 })) })) };
+  const vfs = createTestVfs({ "/in.mp4": serializeMp4(source) });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-single_file", "1", "-seg_duration", "1", "/out/play.mpd"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual([...vfs.store.keys()].filter(p => p.startsWith("/out/")).sort(), ["/out/play-stream0.mp4", "/out/play-stream1.mp4", "/out/play.mpd"]);
+  const manifest = new TextDecoder().decode(vfs.store.get("/out/play.mpd")!);
+  assert.ok(!manifest.includes("SegmentTemplate"), manifest);
+  const representations = manifest.split("<Representation ").slice(1);
+  for (const [index, representation] of representations.entries()) {
+    const bytes = vfs.store.get(`/out/play-stream${index}.mp4`)!;
+    assert.ok(representation.includes(`<BaseURL>play-stream${index}.mp4</BaseURL>`));
+    const range = (value: string) => value.split("-").map(Number);
+    const [initStart, initEnd] = range(representation.split('<Initialization range="')[1]!.split('"')[0]!);
+    assert.equal(initStart, 0);
+    assert.deepEqual(parseMp4Boxes(bytes.slice(initStart, initEnd! + 1)).map(b => b.type), ["ftyp", "moov"]);
+    let offset = initEnd! + 1;
+    const segments = representation.split("<SegmentURL ").slice(1);
+    assert.ok(segments.length > 1);
+    for (const segment of segments) {
+      const [start, end] = range(segment.split('mediaRange="')[1]!.split('"')[0]!);
+      const [indexStart, indexEnd] = range(segment.split('indexRange="')[1]!.split('"')[0]!);
+      assert.equal(start, offset);
+      assert.equal(indexStart, start);
+      const boxes = parseMp4Boxes(bytes.slice(start, end! + 1));
+      assert.deepEqual(boxes.map(b => b.type), ["sidx", "moof", "mdat"]);
+      assert.equal(indexEnd! - indexStart! + 1, boxes[0]!.size);
+      const sidx = new DataView(bytes.buffer, bytes.byteOffset + indexStart!, indexEnd! - indexStart! + 1);
+      assert.equal(sidx.getUint32(40), end! - indexEnd!);
+      offset = end! + 1;
+    }
+    assert.equal(offset, bytes.length);
+    const parsed = parseMp4(bytes);
+    assert.deepEqual(parsed.tracks[0]!.samples.map(s => [s.dts, s.data]), source.tracks[index]!.samples.map(s => [s.dts, s.data]));
+  }
+});
+
+
+for (const value of ["2", "-1", "true", undefined]) {
+  it(`rejects invalid DASH single_file ${value}`, async () => {
+    const result = await runCmd(createFfmpegCommand(), ["-single_file", ...(value === undefined ? [] : [value])], createTestVfs({}));
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("invalid single_file"), result.stderr);
+  });
+}
+
+it("retains separate DASH resources with single_file disabled", async () => {
+  const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ frameCount: 4 }) });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-c", "copy", "-single_file", "0", "/out.mpd"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(vfs.store.has("/init-stream0.m4s"));
+  assert.ok(new TextDecoder().decode(vfs.store.get("/out.mpd")!).includes("SegmentTemplate"));
+});

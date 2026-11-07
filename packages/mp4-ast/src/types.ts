@@ -637,6 +637,10 @@ export interface ParseMediaOptions {
 export interface SerializeMediaOptions {
   /** Target DASH segment duration in seconds (default: 5); video cuts at keyframes. */
   readonly segmentDuration?: number | undefined;
+  /** DASH: combine each representation into one indexed MP4 resource. */
+  readonly singleFile?: boolean | undefined;
+  /** DASH single-file resource template; defaults to stream$RepresentationID$.mp4. */
+  readonly singleFileName?: string | undefined;
   /** Use DASH SegmentTemplate (default: true); false emits explicit SegmentList references. */
   readonly useTemplate?: boolean | undefined;
   /** Use DASH SegmentTimeline (default: true); false uses fixed-duration templates. */

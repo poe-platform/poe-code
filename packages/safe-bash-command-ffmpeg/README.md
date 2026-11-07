@@ -159,6 +159,7 @@ beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
 `-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names.
 Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retains `SegmentTemplate`.
 Use `-use_timeline 0` for fixed-duration templates without a timeline (`-seg_duration` defaults to 5 seconds); `1` retains the default timeline.
-DASH input supports a single Period with segment templates, timelines, or segment lists;
+Use `-single_file 1` to write `<manifest>-stream<N>.mp4` per representation and a `SegmentList` with initialization, media, and index byte ranges.
+DASH input supports a single Period with segment templates, timelines, or segment lists without byte ranges;
 HLS input requires an unencrypted media playlist without byte ranges.
 Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. `.ogg` output defaults to Vorbis; use `-c:a libopus` or a `.opus` filename for Opus, or `-c:a flac` for lossless Ogg FLAC.

@@ -84,7 +84,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes DASH segment duration validation before output creation.
   // Includes DASH resource naming templates and XML attribute escaping (measured 543,731 bytes).
   // Includes explicit DASH SegmentList output (measured 544,294 bytes).
-  assert.ok(otherCodeBytes < 545_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes single-file DASH assembly, segment indexes, and byte-range manifests (measured 547,396 bytes).
+  assert.ok(otherCodeBytes < 548_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -100,6 +101,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes DASH segment duration validation before output creation.
   // Includes DASH naming templates (measured 9,586,891 bytes).
   // Includes DASH SegmentList serialization and use_template validation.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_588_000,
+  // Includes single-file DASH segment indexes and byte-range manifests.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_592_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

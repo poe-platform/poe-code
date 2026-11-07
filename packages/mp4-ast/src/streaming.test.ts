@@ -196,3 +196,13 @@ it("serializes DASH SegmentList with escaped explicit filenames and bounded outp
   assert.throws(() => serializeDashDocument(source, { useTemplate: false, limits: { maxOutputBytes: total - 1 } }), MediaLimitExceededError);
   assert.ok(new TextDecoder().decode(serializeDashDocument(source).manifest).includes("<SegmentTemplate"));
 });
+
+it("bounds single-file DASH output and escapes its resource names", () => {
+  const options = { singleFile: true, singleFileName: "a&b-$RepresentationID$.mp4", segmentDuration: 0.5 };
+  const { manifest, resources } = serializeDashDocument(source, options);
+  assert.equal(resources.size, source.tracks.length);
+  assert.ok(new TextDecoder().decode(manifest).includes("<BaseURL>a&amp;b-0.mp4</BaseURL>"));
+  const total = manifest.length + [...resources.values()].reduce((sum, bytes) => sum + bytes.length, 0);
+  assert.throws(() => serializeDashDocument(source, { ...options, limits: { maxOutputBytes: total - 1 } }), MediaLimitExceededError);
+  assert.equal(serializeDashDocument(source, { ...options, limits: { maxOutputBytes: total } }).manifest.length, manifest.length);
+});

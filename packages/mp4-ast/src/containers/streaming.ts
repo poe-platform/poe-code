@@ -275,9 +275,26 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         trackBytes += moof.offset;
         totalBytes += moof.offset;
       }
-      const media = bytes.slice(moof.offset);
+      let media: Uint8Array = bytes.slice(moof.offset);
       // mfhd is the first moof child; sequence numbers increase per representation.
       new DataView(media.buffer, media.byteOffset, media.byteLength).setUint32(20, segment + 1);
+      if (options.singleFile) {
+        // Version 1 sidx: one reference to the immediately following moof/mdat.
+        const indexBytes = new Uint8Array(52);
+        const view = new DataView(indexBytes.buffer);
+        view.setUint32(0, indexBytes.length);
+        indexBytes.set(encodeUtf8("sidx"), 4);
+        view.setUint8(8, 1);
+        view.setUint32(12, track.id);
+        view.setUint32(16, track.timescale);
+        view.setBigUint64(20, BigInt(samples.reduce((earliest, sample) => Math.min(earliest, Math.max(0, sample.pts)), Math.max(0, samples[0]?.pts ?? 0))));
+        view.setUint16(38, 1);
+        view.setUint32(40, media.length);
+        const last = samples.at(-1);
+        view.setUint32(44, last ? last.dts + last.duration - samples[0]!.dts : track.duration);
+        view.setUint32(48, samples[0]?.isKeyframe ? 0x90000000 : 0);
+        media = concatBytes([indexBytes, media]);
+      }
       segments.push({ time: samples[0]?.dts ?? 0, bytes: media });
       trackBytes += media.length;
       totalBytes += media.length;
@@ -292,9 +309,24 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const bandwidth = String(Number(streams[index]?.bit_rate) > 0 ? streams[index]!.bit_rate : Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001))));
     const initializationUri = templateUri(initName, String(index), 0, 0, bandwidth);
     const mediaUris = segments.map((media, segment) => templateUri(mediaName, String(index), segment + 1, media.time, bandwidth));
-    resources.set(initializationUri, initialization);
-    for (const [segment, media] of segments.entries()) {
-      resources.set(mediaUris[segment]!, media.bytes);
+    const segmentTimeline = `<SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline>`;
+    let singleFileList = "";
+    if (options.singleFile) {
+      const uri = templateUri(options.singleFileName ?? "stream$RepresentationID$.mp4", String(index), 0, 0, bandwidth);
+      let offset = initialization.length;
+      singleFileList = segments.map(segment => {
+        const start = offset;
+        offset += segment.bytes.length;
+        const indexSize = new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
+        return `<SegmentURL mediaRange="${start}-${offset - 1}" indexRange="${start}-${start + indexSize - 1}"/>`;
+      }).join("");
+      resources.set(uri, concatBytes([initialization, ...segments.map(s => s.bytes)]));
+      singleFileList = `<BaseURL>${uri.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</BaseURL><SegmentList timescale="${track.timescale}"><Initialization range="0-${initialization.length - 1}"/>${segmentTimeline}${singleFileList}</SegmentList>`;
+    } else {
+      resources.set(initializationUri, initialization);
+      for (const [segment, media] of segments.entries()) {
+        resources.set(mediaUris[segment]!, media.bytes);
+      }
     }
     const description = track.codecDescriptions[0];
     let codec = description?.formatFourCC ?? "";
@@ -325,14 +357,13 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const dimensions = track.type === "video" ? ` width="${track.width}" height="${track.height}"${sampleAspectRatio}` : ` audioSamplingRate="${description?.sampleRate ?? track.timescale}"`;
     const language = track.language && track.language !== "und"
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
-    const segmentTimeline = `<SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline>`;
     lines.push(
       `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}>`,
       `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
       ...(track.type === "audio" && description?.channels ? [
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
       ] : []),
-      options.useTemplate === false
+      options.singleFile ? singleFileList : options.useTemplate === false
         ? `<SegmentList timescale="${track.timescale}"><Initialization sourceURL="${initializationUri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>${segmentTimeline}${mediaUris.map(uri => `<SegmentURL media="${uri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`).join("")}</SegmentList>`
         : options.useTimeline === false
           ? `<SegmentTemplate timescale="1000000" duration="${Math.round(segmentDuration * 1_000_000)}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"/>`

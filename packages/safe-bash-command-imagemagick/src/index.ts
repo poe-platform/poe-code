@@ -7459,6 +7459,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     let outFormatExt: string | undefined;
     let outDir: string | undefined;
     const opTokens: string[] = [];
+    const writeTokens: string[] = [];
     const readSettings: string[] = [];
     const flagsWithOneArg = new Set([
         "-resample",
@@ -7592,11 +7593,12 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             outDir = argv[++i]!;
         }
         else if (option) {
-            (readFlags.has(t) ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
+            (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
             i += count;
         }
         else {
-            const before = [...readSettings], after = [...opTokens];
+            // Mogrify writes snapshots after all operations for the current input.
+            const before = [...readSettings], after = [...opTokens, ...writeTokens];
             const directory = outDir, format = outFormatExt;
             plans.push({ target: t, args(target) {
                 const baseName = target.slice(target.lastIndexOf("/") + 1);

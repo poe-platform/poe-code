@@ -66,3 +66,66 @@ it.each(["bmp", "gif"] as const)("preserves extensionless %s conversion behavior
     expect(await runMogrifyCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runMogrifyCli(args, files));
     expect(decodeImage(await fs.readFile("/input"))).toEqual(decodeImage(files.get("input")!));
 });
+
+for (const entry of ["sdk", "magick-sdk", "command", "magick-command"] as const)
+for (const firstTarget of [false, true])
+it(`replaces the mogrify symlink entry via ${entry}, target first=${firstTarget}`, async () => {
+    const fs = new MemoryFileSystem();
+    const bytes = await sharp(new Uint8Array([255, 0, 0, 0, 255, 0]), { raw: { width: 2, height: 1, channels: 3 } }).png().toBuffer();
+    await fs.writeFile("/a.png", bytes);
+    await fs.symlink("a.png", "/link.png");
+    expect(await fs.readlink("/link.png")).toBe("a.png");
+    const args = ["-negate", ...(firstTarget ? ["a.png"] : []), "link.png"];
+    if (entry === "sdk" || entry === "magick-sdk") {
+        const runner = entry === "sdk" ? runMogrifyCli : runMagickCli;
+        expect((await runner(entry === "sdk" ? args : ["mogrify", ...args], { filesystem: fs, cwd: "/" })).exitCode).toBe(0);
+    } else {
+        const command = entry === "command" ? createMogrifyCommand() : createMagickCommand();
+        const arguments_ = createCommandArguments(entry === "command" ? args : ["mogrify", ...args]);
+        const sink = { async write() {} };
+        expect(await command.execute({ command: command.name, args: arguments_.args, argumentValues: arguments_, cwd: "/", env: {}, fs, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: sink, stderr: sink } as CommandContext)).toEqual({ exitCode: 0 });
+    }
+    expect((await fs.lstat("/link.png")).type).toBe("file");
+    await expect(fs.readlink("/link.png")).rejects.toMatchObject({ code: "EINVAL" });
+    const original = decodeImage(bytes);
+    const negated = { ...original, data: new Uint8Array([0, 255, 255, 255, 255, 0, 255, 255]) };
+    expect(decodeImage(await fs.readFile("/a.png"))).toEqual(firstTarget ? negated : original);
+    if (!firstTarget) expect(await fs.readFile("/a.png")).toEqual(bytes);
+    expect(decodeImage(await fs.readFile("/link.png"))).toEqual(firstTarget ? original : negated);
+    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["a.png", "link.png"]);
+});
+
+for (const failure of ["conversion", "budget", "rename"] as const)
+it(`preserves the symlink and cleans staging on ${failure} failure`, async () => {
+    const fs = new MemoryFileSystem();
+    const bytes = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
+    await fs.writeFile("/a.png", bytes);
+    await fs.symlink("a.png", "/link.png");
+    const filesystem = new Proxy(fs, { get(target, key) {
+        if (failure === "rename" && key === "rename") return () => { throw new Error("rename failed"); };
+        const value = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const operation = runMogrifyCli([failure === "conversion" ? "-invalid-option" : "-negate", "link.png"], {
+        filesystem, cwd: "/", inputBudget: { check() { if (failure === "budget") throw new Error("budget failed"); } }
+    });
+    if (failure === "conversion") expect((await operation).exitCode).toBe(1);
+    else await expect(operation).rejects.toThrow(`${failure} failed`);
+    expect((await fs.lstat("/link.png")).type).toBe("symlink");
+    expect(await fs.readlink("/link.png")).toBe("a.png");
+    expect(await fs.readFile("/a.png")).toEqual(bytes);
+    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["a.png", "link.png"]);
+});
+
+it("keeps the input symlink when mogrify writes to a separate directory", async () => {
+    const fs = new MemoryFileSystem();
+    const bytes = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
+    await fs.writeFile("/a.png", bytes);
+    await fs.symlink("a.png", "/link.png");
+    await fs.mkdir("/result");
+    expect((await runMogrifyCli(["-path", "result", "-negate", "link.png"], { filesystem: fs, cwd: "/" })).exitCode).toBe(0);
+    expect((await fs.lstat("/link.png")).type).toBe("symlink");
+    expect(await fs.readlink("/link.png")).toBe("a.png");
+    expect(await fs.readFile("/a.png")).toEqual(bytes);
+    expect(Array.from(decodeImage(await fs.readFile("/result/link.png")).data)).toEqual([0, 255, 255, 255, 0, 255, 255, 255]);
+});

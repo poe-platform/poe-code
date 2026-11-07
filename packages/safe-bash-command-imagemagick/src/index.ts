@@ -7626,9 +7626,21 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
             return { exitCode: 1, stdout: "", stderr: files.stderr ? "" : stderr };
         }
         let current = 0;
-        const result = await runConvertCli(plan.args, { ...files, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
-        accounted += current;
-        if (result.exitCode !== 0) return result;
+        const target = resolvePath(files.cwd, plan.target);
+        const replaceLink = resolvePath(files.cwd, plan.args.at(-1)!) === target && (await files.filesystem.lstat(target, { signal: active })).type === "symlink";
+        // Encode beside the link, then replace its directory entry only on success.
+        const staging = replaceLink ? `${target.slice(0, target.lastIndexOf("/"))}/.mogrify-${crypto.randomUUID()}` : undefined;
+        if (staging) await files.filesystem.mkdir(staging, { signal: active, mode: 0o700 });
+        try {
+            const output = staging ? `${staging}/${target.slice(target.lastIndexOf("/") + 1)}` : undefined;
+            const args = output ? [...plan.args.slice(0, -1), output] : plan.args;
+            const result = await runConvertCli(args, { ...files, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
+            accounted += current;
+            if (result.exitCode !== 0) return result;
+            if (output) await files.filesystem.rename(output, target, { signal: active });
+        } finally {
+            if (staging) await files.filesystem.rm(staging, { recursive: true, force: true });
+        }
     }
     return { exitCode: 0, stdout: "", stderr: "" };
 }

@@ -2612,7 +2612,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
 }
 
 function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: string) {
-    const g = parseMagickGeometry(geometry), opacity = Math.max(0, Math.min(100, g.width ?? 0)) / 100, sigma = Math.max(0, g.height ?? 1);
+    const g = parseMagickGeometry(geometry), opacity = Math.max(0, g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
     if (![...geometry].every(char => "0123456789.eExX+- %!<>^@".includes(char)) ||
         (!Number.isFinite(g.width) && !Number.isFinite(g.height))) {
         throw new Error(`invalid argument for option '-shadow': ${geometry}`);

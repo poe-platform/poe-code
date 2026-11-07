@@ -2041,6 +2041,11 @@ export function buildProbeResultFromDoc(
     }
   }
 
+  if (doc.containerFormat === "matroska" || doc.containerFormat === "webm") {
+    // Tracks store samples separately; block positions recover demux order, even with reordered timestamps.
+    packets.sort((a, b) => Number(a.pos) - Number(b.pos));
+  }
+
   const formatTags: Record<string, string> = {};
   if (doc.majorBrand) formatTags.major_brand = doc.majorBrand;
   if (doc.minorVersion !== undefined) formatTags.minor_version = String(doc.minorVersion);

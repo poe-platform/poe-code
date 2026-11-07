@@ -38,6 +38,8 @@ retained reads, source-version validation and handle cleanup to a supplied files
 
 ICO and CUR inputs decode PNG entries and uncompressed 1/4/8/24/32-bit DIB entries with transparency. Set `page` to select a directory entry; metadata reports the directory count as `pages`.
 
+ICO output supports 1–256 pixel dimensions and preserves RGBA transparency in 32-bit DIB entries. `encodeImage` accepts `icoPages` for multiple entries; `encodeStoredImage` accepts `storedIcoPages` and streams rows from caller storage.
+
 `decodePngToStorage(source, storage, signal)` decodes PNGs through reads and writes
 of at most 4 KiB, including wide scanlines and Adam7 interlacing. Supply a
 retained byte-range source and backing storage with `allocate`, `read`, and

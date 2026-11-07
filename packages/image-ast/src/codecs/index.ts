@@ -1,3 +1,4 @@
+import {encodeIcoImage} from "./ico-output.js";
 import { isIcoBytes, readIcoEntry, decodeIcoImage } from "./ico-input.js";
 import { isMngBytes, readMngLayout, decodeMngImage } from "./mng-input.js";
 import { encodeMngImage } from "./mng.js";
@@ -426,6 +427,8 @@ export function encodeImage(
   const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {
+    case "ico":
+    case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };
     case "mng": return { data: encodeMngImage(img, options), format: "mng", channels: 4 };
     case "apng": return { data: encodeApngImage(img, options), format: "apng", channels: 4 };
     case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };

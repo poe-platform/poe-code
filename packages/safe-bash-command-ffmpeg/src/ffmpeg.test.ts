@@ -3493,6 +3493,44 @@ it("extracts gapped MKV subtitles with their explicit end timestamps", async () 
   assert.ok(text.includes("00:00:03,000 --> 00:00:04,500"), text);
 });
 
+describe("DASH segment duration", () => {
+  const input = createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true });
+  for (const value of ["oops", "1oops", "", "NaN", "Infinity", "-1", "1e2", "999999999999999999999"]) {
+    it(`rejects ${JSON.stringify(value)} without changing files`, async () => {
+      for (const existing of [false, true]) {
+        const vfs = createTestVfs({ "/in.mp4": input,
+          ...(existing ? { "/play.mpd": "original manifest", "/init-stream0.m4s": "original init", "/chunk-stream0-00001.m4s": "original segment" } : {}) });
+        const before = new Map(vfs.store);
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-seg_duration", value, "/play.mpd"
+        ], vfs);
+        assert.equal(result.exitCode, 234);
+        assert.ok(result.stderr.includes("invalid seg_duration"), result.stderr);
+        assert.deepEqual(vfs.store, before);
+      }
+    });
+  }
+  it("rejects a missing value without writing output", async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), ["-seg_duration"], vfs);
+    assert.equal(result.exitCode, 234);
+    assert.ok(result.stderr.includes("invalid seg_duration"), result.stderr);
+    assert.equal(vfs.store.size, 0);
+  });
+  for (const value of ["1", "1s", "1000ms", "1000000us", "00:00:01"]) {
+    it(`accepts ${value}`, async () => {
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.mp4", "-c", "copy", "-f", "dash", "-seg_duration", value, "/play.mpd"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(vfs.store.has("/play.mpd"));
+      assert.ok(vfs.store.has("/init-stream0.m4s"));
+      assert.ok(vfs.store.has("/chunk-stream0-00001.m4s"));
+    });
+  }
+});
+
 for (const format of ["hls", "dash"]) {
   it(`probes and remuxes actual ${format} segments without inventing streams`, async () => {
     const source = createSyntheticMp4({ width: 128, height: 96, fps: 25, frameCount: 50, includeAudio: false });

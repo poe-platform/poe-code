@@ -2073,10 +2073,10 @@ export function buildProbeResultFromDoc(
     },
     chapters: (doc.chapters ?? []).map((ch: Mp4Chapter) => ({
       id: ch.id,
-      time_base: "1/1000",
-      start: Math.round(ch.startTimeSeconds * 1000),
+      time_base: `1/${ch.timescale ?? 1000}`,
+      start: Math.round(ch.startTimeSeconds * (ch.timescale ?? 1000)),
       start_time: ch.startTimeSeconds.toFixed(6),
-      end: Math.round(ch.endTimeSeconds * 1000),
+      end: Math.round(ch.endTimeSeconds * (ch.timescale ?? 1000)),
       end_time: ch.endTimeSeconds.toFixed(6),
       tags: { title: ch.title }
     })),

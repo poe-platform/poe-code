@@ -122,6 +122,13 @@ interface MkvTrackInfo {
   defaultDuration?: number;
 }
 
+interface MkvChapter {
+  id: number;
+  start: number;
+  end: number;
+  title?: string;
+}
+
 export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.byteLength);
@@ -138,8 +145,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const trackMap = new Map<number, MkvTrackInfo>();
   const samplesByTrack = new Map<number, MediaSample[]>();
   const tagsRecord: Record<string, string> = {};
+  const chapters: MkvChapter[] = [];
 
-  function parseElements(start: number, end: number, depth: number): void {
+  function parseElements(start: number, end: number, depth: number, chapter?: MkvChapter): void {
     budget.checkBoxDepth(depth);
     let pos = start;
     while (pos < end) {
@@ -155,6 +163,39 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const payload = bytes.subarray(pos, elemEnd);
 
       switch (idVint.value) {
+        case 0x1043a770: // Chapters
+        case 0x45b9: // EditionEntry
+          parseElements(pos, elemEnd, depth + 1);
+          break;
+
+        case 0xb6: { // ffprobe exposes only top-level ChapterAtoms from each edition.
+          if (chapter) break;
+          const entry: MkvChapter = { id: 0, start: 0, end: 0 };
+          chapters.push(entry);
+          parseElements(pos, elemEnd, depth + 1, entry);
+          break;
+        }
+
+        case 0x73c4: // ChapterUID
+          if (chapter) chapter.id = readEbmlUint(payload);
+          break;
+
+        case 0x91: // ChapterTimeStart (always nanoseconds, independent of TimecodeScale)
+          if (chapter) chapter.start = readEbmlUint(payload);
+          break;
+
+        case 0x92: // ChapterTimeEnd
+          if (chapter) chapter.end = readEbmlUint(payload);
+          break;
+
+        case 0x80: // ChapterDisplay
+          if (chapter) parseElements(pos, elemEnd, depth + 1, chapter);
+          break;
+
+        case 0x85: // ChapString
+          if (chapter && chapter.title === undefined) chapter.title = decodeUtf8(payload).split("\0", 1)[0]!;
+          break;
+
         case 0x1a45dfa3: // EBML Header
         case 0x18538067: // Segment
         case 0x1549a966: // Info
@@ -517,6 +558,13 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     durationSeconds: maxDurationSec,
     tracks,
     metadata,
+    chapters: chapters.map(chapter => ({
+      id: chapter.id,
+      timescale: 1_000_000_000,
+      startTimeSeconds: chapter.start / 1_000_000_000,
+      endTimeSeconds: chapter.end / 1_000_000_000,
+      title: chapter.title ?? ""
+    })),
     byteLength: bytes.byteLength
   };
 }

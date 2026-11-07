@@ -234,6 +234,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
 export function encodePngImage(
   img: RgbaImage,
   options?: {
+    readonly synthesizeExif?: boolean;
     readonly compressionLevel?: number;
     readonly density?: number;
     readonly orientation?: number;
@@ -401,9 +402,9 @@ export function encodePngImage(
   phys[8] = resolution?.unit === "unknown" ? 0 : 1; // meter
 
   const orientation = options?.orientation ?? img.orientation;
-  const exifChunk = img.exif || orientation !== undefined
+  const exifChunk = img.exif || (options?.synthesizeExif !== false && orientation !== undefined)
     ? [makeChunk("eXIf", buildExifApp1Segment({ exif: img.exif, orientation, density, resolution }).subarray(6))]
-    : [];
+    : orientation !== undefined ? [makeChunk("orNT", Uint8Array.of(orientation))] : [];
   const chunks = [
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),

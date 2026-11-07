@@ -10,7 +10,7 @@ export function isRawCoder(format: string | undefined): format is RawCoder {
 
 export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
     const format = options.format;
-    if (!isRawCoder(format)) return encodeRaster(image, { ...options, format });
+    if (!isRawCoder(format)) return encodeRaster(image, { ...options, format, synthesizeExif: false });
     const channels = format === "gray" ? 1 : format.endsWith("a") ? 4 : 3;
     const depth = (image.bitsPerSample ?? 8) > 8 ? 16 : 8;
     const data = new Uint8Array(image.width * image.height * channels * depth / 8);
@@ -33,7 +33,7 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
 }
 
 export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
-    if (!isRawCoder(options.format)) return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format });
+    if (!isRawCoder(options.format)) return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, synthesizeExif: false });
     let size = 0, channels = 0;
     for (let pixel = 0; pixel < image.width * image.height; pixel += 4096) {
         await yieldTurn(signal);

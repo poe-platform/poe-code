@@ -458,6 +458,8 @@ export type ImageAstNode =
     };
 
 export interface OutputEncodeOptions {
+  /** Preserve existing EXIF only when false; PNG stores standalone orientation in orNT. */
+  readonly synthesizeExif?: boolean;
   readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
   readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
   readonly forceOpaque?: boolean;

@@ -817,6 +817,7 @@ function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
 export function createJpegEncoder(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"exif"|"icc"|"properties">,
   options?: {
+    readonly synthesizeExif?: boolean;
     readonly quality?: number;
     readonly samplingFactor?: string;
     readonly chromaSubsampling?: "4:2:0" | "4:4:4";
@@ -893,7 +894,7 @@ export function createJpegEncoder(
   }
 
   // Optional APP1 Exif
-  if (img.exif || (orientation !== undefined && orientation >= 1 && orientation <= 8)) {
+  if (img.exif || (options?.synthesizeExif !== false && orientation !== undefined && orientation >= 1 && orientation <= 8)) {
     writeSegment(0xe1, buildExifApp1Segment({ exif: img.exif, orientation, density, resolution }));
   }
 

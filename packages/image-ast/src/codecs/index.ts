@@ -410,6 +410,7 @@ export function encodeImage(
     case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };
     case "png": {
       const data = encodePngImage(img, {
+        ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),
         ...(options.palette === undefined ? {} : { palette: options.palette }),
         pngCoder: options.pngCoder,
         pngColorType: options.pngColorType,
@@ -428,6 +429,7 @@ export function encodeImage(
     }
     case "jpeg": {
       const data = encodeJpegImage(img, {
+        ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),
         quality: options.quality ?? 85,
         ...(options.samplingFactor === undefined ? {} : { samplingFactor: options.samplingFactor }),
         ...(options.chromaSubsampling === undefined ? {} : { chromaSubsampling: options.chromaSubsampling }),

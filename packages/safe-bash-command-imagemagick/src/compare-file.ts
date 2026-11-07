@@ -60,7 +60,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
         const publishImage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, snapshot?: NonNullable<import("@poe-code/image-ast/portable").StoredImageFileInput["encoded"]>, retire = true): Promise<Uint8Array | undefined> => {
                 try {
                 if (path !== "-" || snapshot) {
-                    const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, { ...encoding, format: isRawCoder(encoding.format) ? "raw" : encoding.format });
+                    const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, { ...encoding, synthesizeExif: false, format: isRawCoder(encoding.format) ? "raw" : encoding.format });
                     if (info)
                         return;
                 }

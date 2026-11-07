@@ -243,9 +243,12 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
   const orientation = options.orientation ?? image.orientation;
-  if (image.exif || orientation !== undefined) {
+  if (image.exif || (options.synthesizeExif !== false && orientation !== undefined)) {
     const chunk = makeChunk("eXIf",buildExifApp1Segment({exif:image.exif,orientation,density,resolution}).subarray(6));
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
+  } else if (orientation !== undefined) {
+    signal.throwIfAborted();
+    yield makeChunk("orNT", Uint8Array.of(orientation));
   }
   const encoder = createByteCodec({direction:"encode",format:"zlib",chunkSize:4084,level:Math.max(0,Math.min(9,options.compressionLevel ?? 6))});
   try {

@@ -65,7 +65,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes MP3/AAC WAV decoding with bounded PCM assembly.
   // Includes AAC/MP3 WAV headers and compressed packet serialization.
   // Includes double-precision PCM32 storage and the float32 Ogg encoder boundary.
-  assert.ok(otherCodeBytes < 475_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes headerless PCM muxers and G.711 encoding tables.
+  assert.ok(otherCodeBytes < 478_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

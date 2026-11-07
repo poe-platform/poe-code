@@ -2033,10 +2033,10 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       section = "other";
       continue;
     }
-    const eq = line.indexOf("=");
+    const eq = rawLine.indexOf("=");
     if (eq < 0) continue;
-    const key = line.slice(0, eq).trim();
-    const val = line.slice(eq + 1).trim();
+    const key = rawLine.slice(0, eq).trim();
+    const val = rawLine.slice(eq + 1);
     if (section === "chapter") {
       const kUp = key.toUpperCase();
       if (kUp === "TIMEBASE") {

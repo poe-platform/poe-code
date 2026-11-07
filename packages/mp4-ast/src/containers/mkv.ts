@@ -419,6 +419,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 let bgPos = cPos;
                 while (bgPos < cEnd) {
                   const bid = readVint(bytes, bgPos, false);
+              let discardPaddingNs: number | undefined;
                   if (!bid) break;
                   bgPos += bid.length;
                   const bsz = readVint(bytes, bgPos, true);
@@ -431,6 +432,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                     blockDuration = readEbmlUint(bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value)));
                   }
                   bgPos += bsz.value;
+                  } else if (bid.value === 0x75a2) {
+                    const payload = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
+                    let value = (payload[0]! & 0x80) ? -1 : 0;
+                    for (const byte of payload) value = value * 256 + byte;
+                    discardPaddingNs = value;
                 }
               }
 
@@ -463,6 +469,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   isKeyframe,
                   sampleDescriptionIndex: 1
                 });
+                  ...(discardPaddingNs === undefined ? {} : { discardPaddingNs }),
               }
             }
             cPos = cEnd;
@@ -698,7 +705,7 @@ export function serializeMkv(
 
   // Prepare tracks and millisecond-normalized samples
   const trackEntries: Uint8Array[] = [];
-  const allBlocks: { orderMs: number; ptsMs: number; durationMs: number; isSubtitle: boolean; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
+  const allBlocks: { orderMs: number; ptsMs: number; durationMs: number; discardPaddingNs: number | undefined; isSubtitle: boolean; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
   let maxDurationMs = Math.round(doc.durationSeconds * 1000);
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
@@ -871,6 +878,7 @@ export function serializeMkv(
 
   allBlocks.sort((a, b) => a.orderMs - b.orderMs || a.trackNum - b.trackNum);
 
+        discardPaddingNs: s.discardPaddingNs,
   // Info element
   const mergedMeta: Mp4MetadataTags = {
     ...doc.metadata,
@@ -942,12 +950,18 @@ export function serializeMkv(
     const sbWriter = new BinaryWriter(4 + blk.data.byteLength);
     sbWriter.writeU8(0x80 | (blk.trackNum & 0x7f));
     sbWriter.writeI16BE(relTime);
-    if (blk.isSubtitle) {
+    if (blk.isSubtitle || blk.discardPaddingNs !== undefined) {
       sbWriter.writeU8(0x00);
       sbWriter.writeBytes(blk.data);
       const blockElem = makeEbmlElement(0xa1, sbWriter.toUint8Array());
-      const durElem = makeEbmlUint(0x9b, blk.durationMs);
-      currentClusterBlocks.push(makeEbmlElement(0xa0, concatBytes([blockElem, durElem])));
+      const elements = [blockElem];
+      if (blk.isSubtitle) elements.push(makeEbmlUint(0x9b, blk.durationMs));
+      if (blk.discardPaddingNs !== undefined) {
+        const padding = new Uint8Array(8);
+        new DataView(padding.buffer).setBigInt64(0, BigInt(blk.discardPaddingNs), false);
+        elements.push(makeEbmlElement(0x75a2, padding));
+      }
+      currentClusterBlocks.push(makeEbmlElement(0xa0, concatBytes(elements)));
     } else {
       sbWriter.writeU8(blk.isKeyframe ? 0x80 : 0x00);
       sbWriter.writeBytes(blk.data);

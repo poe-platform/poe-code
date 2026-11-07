@@ -215,6 +215,8 @@ export interface MediaSample {
   /** Decoder priming and trailing padding, in PCM samples per channel. */
   readonly skipSamples?: number;
   readonly discardPadding?: number;
+  /** Matroska DiscardPadding in nanoseconds; negative values trim the beginning. */
+  readonly discardPaddingNs?: number;
   /** Absolute source file offset when the sample was parsed from a container. */
   readonly offset?: number;
   readonly data: Uint8Array;

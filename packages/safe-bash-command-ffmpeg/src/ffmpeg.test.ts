@@ -17,6 +17,25 @@ import {
 } from "./index.js";
 
 for (const sync of [false, true]) {
+  for (const layout of ["mono", "surround"]) {
+    it(`${sync ? "sync" : "async"} stream copy preserves ${layout} Opus discard padding`, async () => {
+      const input = readFileSync(new URL(`../../mp4-ast/src/fixtures/opus-padding-${layout}.webm`, import.meta.url));
+      const vfs = createTestVfs({ "/in.webm": input });
+      const args = ["-i", "/in.webm", ...(sync ? [] : ["-map", "0"]), "-c", "copy", "/out.webm"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const audio = parseMkv(vfs.store.get("/out.webm")!).tracks.find(track => track.type === "audio")!;
+      assert.equal(audio.samples.at(-1)!.discardPaddingNs, 13_500_000);
+      assert.deepEqual(audio.samples.map(sample => Buffer.from(sample.data)),
+        parseMkv(input).tracks.find(track => track.type === "audio")!.samples.map(sample => Buffer.from(sample.data)));
+    });
+  }
+
   it(`${sync ? "sync" : "async"} stream copy preserves H.264 B-frame decode order`, async () => {
     const input = readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mkv", import.meta.url));
     const vfs = createTestVfs({ "/meeting.mkv": input });

@@ -5396,3 +5396,45 @@ it("DASH hls_playlist resources follow remove_at_exit", async () => {
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual([...vfs.store.keys()].sort(), ["/in.mp4", "/out/keep"]);
 });
+
+for (const segmentDuration of [1, 5]) {
+  for (const fragmentType of ["none", "every_frame"]) {
+    it(`writes DASH ${fragmentType} fragments inside ${segmentDuration}s segments`, async () => {
+      const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+      const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({ ...track,
+        samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: track.type === "audio" || index % 4 === 0 }))
+      })) });
+      const source = parseMp4(input);
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash",
+        "-seg_duration", String(segmentDuration), "-frag_type", fragmentType, "/out.mpd"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal([...vfs.store.keys()].filter(path => path.startsWith("/chunk-stream0-")).length, 5 / segmentDuration);
+      for (const [index, track] of source.tracks.entries()) {
+        const chunks = [...vfs.store.keys()].filter(path => path.startsWith(`/chunk-stream${index}-`)).sort().map(path => vfs.store.get(path)!);
+        let sequence = 0;
+        for (const chunk of chunks) {
+          const moofs = parseMp4Boxes(chunk).filter(box => box.type === "moof");
+          if (fragmentType === "none") assert.equal(moofs.length, 1);
+          else if (track.type === "video") assert.equal(moofs.length, segmentDuration * 4);
+          for (const moof of moofs) assert.equal(new DataView(chunk.buffer, chunk.byteOffset).getUint32(moof.offset + 20), ++sequence);
+        }
+        const output = parseMp4(concatBytes([vfs.store.get(`/init-stream${index}.m4s`)!, ...chunks]));
+        assert.deepEqual(output.tracks[0]!.samples.map(s => [s.dts, s.pts, s.duration, s.isKeyframe, s.data]),
+          track.samples.map(s => [s.dts, s.pts, s.duration, s.isKeyframe, s.data]));
+        if (fragmentType === "every_frame") assert.equal(sequence, track.samples.length);
+      }
+    });
+  }
+}
+
+
+for (const value of [undefined, "unsupported", "duration"]) {
+  it(`rejects unsupported DASH frag_type ${value}`, async () => {
+    const vfs = createTestVfs({});
+    const result = await runCmd(createFfmpegCommand(), ["-frag_type", ...(value === undefined ? [] : [value])], vfs);
+    assert.equal(result.exitCode, 234);
+    assert.ok(result.stderr.includes("unsupported frag_type"), result.stderr);
+    assert.equal(vfs.store.size, 0);
+  });
+}

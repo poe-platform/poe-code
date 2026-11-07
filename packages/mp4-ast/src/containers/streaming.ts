@@ -307,21 +307,31 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     let trackBytes = 0;
     let initialization = new Uint8Array();
     const segments: { time: number; duration: number; bytes: Uint8Array }[] = [];
+    let sequence = 0;
     for (let segment = 0; segment < starts.length; segment++) {
       const samples = track.samples.slice(starts[segment], starts[segment + 1]);
-      const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples }] }, { ...options, budget, fragmented: true });
-      const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
-      if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
-      if (segment === 0) {
-        initialization = bytes.slice(0, moof.offset);
-        trackBytes += moof.offset;
-        totalBytes += moof.offset;
+      const fragments: Uint8Array[] = [];
+      const fragmentSize = options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
+      let mediaBytes = 0;
+      for (let start = 0; start < Math.max(1, samples.length); start += fragmentSize) {
+        const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, start + fragmentSize) }] }, { ...options, budget, fragmented: true });
+        const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
+        if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
+        if (segment === 0 && start === 0) {
+          initialization = bytes.slice(0, moof.offset);
+          trackBytes += moof.offset;
+          totalBytes += moof.offset;
+        }
+        const fragment = bytes.slice(moof.offset);
+        // mfhd is the first moof child; sequence numbers increase per representation.
+        new DataView(fragment.buffer, fragment.byteOffset, fragment.byteLength).setUint32(20, ++sequence);
+        mediaBytes += fragment.length;
+        budget.checkOutputBytes(totalBytes + mediaBytes);
+        fragments.push(fragment);
       }
-      let media: Uint8Array = bytes.slice(moof.offset);
-      // mfhd is the first moof child; sequence numbers increase per representation.
-      new DataView(media.buffer, media.byteOffset, media.byteLength).setUint32(20, segment + 1);
+      let media = concatBytes(fragments);
       if (options.singleFile) {
-        // Version 1 sidx: one reference to the immediately following moof/mdat.
+        // Version 1 sidx: one reference to all fragments in this media segment.
         const indexBytes = new Uint8Array(52);
         const view = new DataView(indexBytes.buffer);
         view.setUint32(0, indexBytes.length);

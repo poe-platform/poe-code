@@ -1676,6 +1676,7 @@ export function evalSyncFfmpeg(
     let writeXing = true;
     let sampleFormat: string | undefined;
     let compressionLevel: number | undefined;
+    let writePeak: "off" | "on" | "only" | undefined;
     let rf64: "always" | "auto" | "never" | undefined;
     let faststart = true;
     let fragmented = false;
@@ -1836,6 +1837,13 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_xing value");
         writeXing = value === "1";
+      } else if (arg === "-write_peak") {
+        const value = args[++i];
+        const mode = value === "0" ? "off" : value === "1" ? "on" : value === "2" ? "only" : value;
+        if (mode !== "off" && mode !== "on" && mode !== "only") {
+          throw new Error("Invalid write_peak value: expected off, on or only");
+        }
+        writePeak = mode;
       } else if (arg === "-rf64") {
         const value = args[++i];
         if (value !== "always" && value !== "auto" && value !== "never") {
@@ -1998,7 +2006,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { rf64, audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { rf64, writePeak, audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2239,6 +2247,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeXing = true;
         let sampleFormat: string | undefined;
         let compressionLevel: number | undefined;
+        let writePeak: "off" | "on" | "only" | undefined;
         let rf64: "always" | "auto" | "never" | undefined;
         let faststart = true;
         let fragmented = false;
@@ -2704,6 +2713,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             writeXing = value === "1";
+          } else if (arg === "-write_peak") {
+            const value = args[++i];
+            const mode = value === "0" ? "off" : value === "1" ? "on" : value === "2" ? "only" : value;
+            if (mode !== "off" && mode !== "on" && mode !== "only") {
+              throw new Error("Invalid write_peak value: expected off, on or only");
+            }
+            writePeak = mode;
           } else if (arg === "-rf64") {
             const value = args[++i];
             if (value !== "always" && value !== "auto" && value !== "never") {
@@ -4562,7 +4578,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { rf64, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { rf64, writePeak, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -4887,6 +4903,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               rf64,
+              writePeak,
               audioCodec,
               audioBitrate,
               compressionLevel,

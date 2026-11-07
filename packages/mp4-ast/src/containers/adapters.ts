@@ -716,13 +716,26 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   const extensible = channelMask !== undefined || channels > 2;
   const fmtSize = formatBytes?.length ?? (extensible ? 40 : formatTag === 6 || formatTag === 7 ? 18 : 16);
   const wave64 = format === "w64";
+  const writePeak = !wave64 && options.writePeak !== undefined && options.writePeak !== "off";
+  const peakOnly = writePeak && options.writePeak === "only";
+  const pcmFormat = formatBytes ? new DataView(formatBytes.buffer, formatBytes.byteOffset, formatBytes.byteLength) : undefined;
+  if (writePeak && ((pcmFormat?.getUint16(0, true) ?? formatTag) !== 1 ||
+    (pcmFormat?.getUint16(14, true) ?? bitsPerSample) !== 16)) {
+    throw new Error("Peak envelope requires 16-bit PCM audio");
+  }
+  const frames = pcmBytes.length / (channels * 2);
+  // FFmpeg emits the envelope only after at least one complete 256-frame block.
+  const peakFrames = writePeak && frames >= 256 ? Math.ceil(frames / 256) : 0;
+  const peakSize = peakFrames ? 120 + peakFrames * channels * 4 : 0;
   const alignment = wave64 ? 8 : 2;
   const pad = (size: number) => (alignment - size % alignment) % alignment;
   const fmtPadding = pad(fmtSize);
   const factSize = factBytes ? (wave64 ? 24 : 8) + factBytes.length + pad(factBytes.length) : 0;
   const padding = pad(pcmBytes.byteLength);
   const reserveDs64 = !wave64 && (options.rf64 === "always" || options.rf64 === "auto");
-  const size = (wave64 ? 88 : 28) + (reserveDs64 ? 36 : 0) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding;
+  const size = (reserveDs64 ? 36 : 0) +
+    (peakOnly ? 12 : (wave64 ? 88 : 28) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding) +
+    (peakSize ? 8 + peakSize : 0);
   const rf64 = reserveDs64 && (options.rf64 === "always" || size - 8 > 0xffffffff);
   options.budget?.checkOutputBytes(size);
   const writer = new BinaryWriter(size);
@@ -758,34 +771,62 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       writer.writeBytes(ds64);
     }
   }
-  chunk("fmt ", fmtSize);
-  if (formatBytes) {
-    writer.writeBytes(formatBytes);
-  } else {
-    writer.writeU16LE(extensible ? 0xfffe : formatTag);
-    writer.writeU16LE(channels);
-    writer.writeU32LE(sampleRate);
-    writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
-    writer.writeU16LE(channels * (bitsPerSample >>> 3));
-    writer.writeU16LE(bitsPerSample);
-    if (!extensible && (formatTag === 6 || formatTag === 7)) writer.writeU16LE(0);
-    if (extensible) {
-      writer.writeU16LE(22);
+  if (!peakOnly) {
+    chunk("fmt ", fmtSize);
+    if (formatBytes) {
+      writer.writeBytes(formatBytes);
+    } else {
+      writer.writeU16LE(extensible ? 0xfffe : formatTag);
+      writer.writeU16LE(channels);
+      writer.writeU32LE(sampleRate);
+      writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
+      writer.writeU16LE(channels * (bitsPerSample >>> 3));
       writer.writeU16LE(bitsPerSample);
-      writer.writeU32LE(channelMask ?? 0);
-      writer.writeU32LE(formatTag);
-      writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
+      if (!extensible && (formatTag === 6 || formatTag === 7)) writer.writeU16LE(0);
+      if (extensible) {
+        writer.writeU16LE(22);
+        writer.writeU16LE(bitsPerSample);
+        writer.writeU32LE(channelMask ?? 0);
+        writer.writeU32LE(formatTag);
+        writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
+      }
+    }
+    if (fmtPadding) writer.writeBytes(new Uint8Array(fmtPadding));
+    if (factBytes) {
+      chunk("fact", factBytes.length);
+      writer.writeBytes(factBytes);
+      if (pad(factBytes.length)) writer.writeBytes(new Uint8Array(pad(factBytes.length)));
     }
   }
-  if (fmtPadding) writer.writeBytes(new Uint8Array(fmtPadding));
-  if (factBytes) {
-    chunk("fact", factBytes.length);
-    writer.writeBytes(factBytes);
-    if (pad(factBytes.length)) writer.writeBytes(new Uint8Array(pad(factBytes.length)));
+  if (!peakOnly) {
+    chunk("data", rf64 ? 0xffffffff : pcmBytes.byteLength);
+    writer.writeBytes(pcmBytes);
+    if (padding) writer.writeBytes(new Uint8Array(padding));
   }
-  chunk("data", rf64 ? 0xffffffff : pcmBytes.byteLength);
-  writer.writeBytes(pcmBytes);
-  if (padding) writer.writeBytes(new Uint8Array(padding));
+  if (peakSize) {
+    chunk("levl", peakSize);
+    for (const value of [1, 2, 2, 256, channels, peakFrames, 0xffffffff, 128]) writer.writeU32LE(value);
+    const timestamp = new Uint8Array(28);
+    const now = new Date();
+    timestamp.set(new TextEncoder().encode([
+      now.getFullYear(), now.getMonth() + 1, now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()
+    ].map((value, index) => String(value).padStart(index === 0 ? 4 : 2, "0")).join(":") + ":" + String(now.getMilliseconds()).padStart(3, "0")));
+    writer.writeBytes(timestamp);
+    writer.writeBytes(new Uint8Array(60));
+    const pcm = new DataView(pcmBytes.buffer, pcmBytes.byteOffset, pcmBytes.byteLength);
+    for (let block = 0; block < peakFrames; block++) {
+      for (let channel = 0; channel < channels; channel++) {
+        let positive = 0, negative = 0;
+        for (let frame = block * 256; frame < Math.min(frames, (block + 1) * 256); frame++) {
+          const sample = pcm.getInt16((frame * channels + channel) * 2, true);
+          positive = Math.max(positive, sample);
+          negative = Math.min(negative, sample);
+        }
+        writer.writeU16LE(positive);
+        writer.writeU16LE(-negative);
+      }
+    }
+  }
   return writer.toUint8Array();
 }
 

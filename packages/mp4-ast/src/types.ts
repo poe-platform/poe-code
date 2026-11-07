@@ -640,6 +640,8 @@ export interface ParseMediaOptions {
 export interface SerializeMediaOptions {
   /** WAV RF64 mode (default: never); auto reserves space for the ds64 chunk. */
   readonly rf64?: "always" | "auto" | "never" | undefined;
+  /** Write a WAV peak envelope from 16-bit PCM (default: off). */
+  readonly writePeak?: "off" | "on" | "only" | undefined;
   /** First Ogg logical stream serial number (0 through 2147483647). */
   readonly serialOffset?: number | undefined;
   /** Ogg Opus copy and Opus/Vorbis encoding page target in microseconds (default: 1000000). */

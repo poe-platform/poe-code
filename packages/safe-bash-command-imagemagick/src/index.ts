@@ -1296,7 +1296,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const lines: string[] = [];
-    for (const [key, cnt] of counts.entries()) {
+    for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => typeof a === "number" && typeof b === "number" ? a - b : 0)) {
         if (++work % 16384 === 0)
             yield;
         lines.push(typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha));

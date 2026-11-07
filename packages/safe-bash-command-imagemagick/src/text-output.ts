@@ -1,3 +1,4 @@
+import { histogramColorNames } from "./histogram-color-names.js";
 import { hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import type { StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
@@ -11,7 +12,7 @@ export function histogramLine(key: number, count: number, hasAlpha: boolean): st
     const r = (key >>> 24) & 255, g = (key >>> 16) & 255, b = (key >>> 8) & 255;
     const a = key & 255;
     if (hasAlpha) return `  ${count}: (${r},${g},${b},${a}) #${hex(r)}${hex(g)}${hex(b)}${hex(a)} srgba(${r},${g},${b},${Number((a / 255).toPrecision(6))})`;
-    return `  ${count}: (${r},${g},${b}) #${hex(r)}${hex(g)}${hex(b)} srgb(${r},${g},${b})`;
+    return `${String(count).padStart(14)}: (${r},${g},${b}) #${hex(r)}${hex(g)}${hex(b)} ${histogramColorNames[key >>> 8] ?? `srgb(${r},${g},${b})`}`;
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
     yield (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,srgba\n`;
@@ -50,6 +51,15 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
             }
             await counts.set(key, (count ?? 0n) + 1n);
         }
+    }
+    if (!["HSL", "HSB", "HWB", "XYZ", "YCbCr", "YUV"].includes(image.magickColorspace ?? "")) {
+        let index = 0;
+        for await (const [key, count] of counts.entries()) {
+            if (index++ % 128 === 0) await yieldTurn(signal);
+            yield histogramLine(Number(key), Number(count), image.hasAlpha) + "\n";
+        }
+        if (!unique) yield "\n";
+        return;
     }
     for (let index = 0; index < unique; index++) {
         if (index % 128 === 0) await yieldTurn(signal);

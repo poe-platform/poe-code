@@ -1,4 +1,4 @@
-import { readOgg, normalizeVorbisCommentKey } from "@poe-code/audio-ast";
+import { readOgg, normalizeVorbisCommentKey, writeAudioMetadata } from "@poe-code/audio-ast";
 import { encodeOggAudio } from "@poe-code/media-codecs";
 import { concatBytes } from "../binary.js";
 import type { MediaDocument, MediaProbeSource, MediaSample, MediaTrack, SerializeMediaOptions } from "../types.js";
@@ -91,6 +91,11 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
   const codec = options.audioCodec ?? (options.format === "opus" ? "opus" : "vorbis");
   if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel, options.sampleFormat);
   if (codec === "copy") {
+    const track = doc.tracks[0];
+    if (doc.tracks.length === 1 && track?.codecDescriptions[0]?.codecName === "vorbis" && !track.codecDescriptions[0].extraData) {
+      const tags = Object.fromEntries(Object.entries(track.metadata ?? doc.metadata).filter(([, value]) => typeof value === "string"));
+      return writeAudioMetadata(concatBytes(track.samples.map(sample => sample.data)), tags);
+    }
     const headers: Uint8Array[] = [], bodies: Uint8Array[] = [];
     for (const [index, track] of doc.tracks.entries()) {
       const description = track.codecDescriptions[0];
@@ -109,7 +114,7 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
       headers.push(page(tags, 1, 0, 0, serial));
       let granule = 0;
       for (const [sampleIndex, sample] of track.samples.entries()) {
-        granule += Math.round(sample.duration * 48000 / track.timescale);
+        granule += opusPacketDuration(sample.data) - Math.round((sample.discardPaddingNs ?? 0) * 48000 / 1e9);
         bodies.push(page(sample.data, sampleIndex + 2, sampleIndex === track.samples.length - 1 ? 4 : 0, granule, serial));
       }
     }
@@ -188,6 +193,18 @@ export async function readOggFlacHeader(source: MediaProbeSource, options: { sig
   return { header: identification.subarray(9), size: payloadSize - 9 };
 }
 
+function opusPacketDuration(data: Uint8Array): number {
+  const toc = data[0];
+  if (toc === undefined) throw new Error("Empty Opus packet");
+  const config = toc >>> 3;
+  const frameSamples = config >= 16 ? 120 * 2 ** (config & 3)
+    : config >= 12 ? 480 * 2 ** (config & 1) : [480, 960, 1920, 2880][config & 3]!;
+  const frames = (toc & 3) === 0 ? 1 : (toc & 3) === 3 ? (data[1] ?? 0) & 63 : 2;
+  const duration = frames * frameSamples;
+  if (!duration || duration > 5760) throw new Error("Invalid Opus packet duration");
+  return duration;
+}
+
 /** Keep simultaneous logical streams separate and join compatible sequential links. */
 export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument): MediaDocument {
   const { packets } = readOgg(bytes);
@@ -230,14 +247,7 @@ export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument): MediaDocume
       }
       if (packet.serial !== serial) throw new Error("Unsupported multiplexed Ogg Opus streams");
       if (headerIndex++ < 2) continue;
-      const data = packet.data, toc = data[0];
-      if (toc === undefined) throw new Error("Empty Opus packet");
-      const config = toc >>> 3;
-      const frameSamples = config >= 16 ? 120 * 2 ** (config & 3)
-        : config >= 12 ? 480 * 2 ** (config & 1) : [480, 960, 1920, 2880][config & 3]!;
-      const frames = (toc & 3) === 0 ? 1 : (toc & 3) === 3 ? (data[1] ?? 0) & 63 : 2;
-      const duration = frames * frameSamples;
-      if (!duration || duration > 5760) throw new Error("Invalid Opus packet duration");
+      const data = packet.data, duration = opusPacketDuration(data);
       position += duration;
       const padding = packet.eos ? position - Number(packet.granule) : 0;
       if (padding < 0 || padding > duration) throw new Error("Invalid Opus final granule");

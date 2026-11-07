@@ -1171,7 +1171,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
 function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, void> {
     let work = 0;
     const lines: string[] = [
-        (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},255,srgba`
+        (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,srgba`
     ];
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)

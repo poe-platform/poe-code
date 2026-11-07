@@ -20,10 +20,10 @@ it.each([false, true].flatMap(retained =>
         expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
         return;
     }
-    const lines = new TextDecoder("utf-8", { fatal: true }).decode(bytes).trimEnd().split("\n");
-    expect(lines).toHaveLength(3);
-    expect(lines[0]).toContain("# ImageMagick pixel enumeration: 2,1,");
-    // Coordinates, channels and hex colors independently verified with native txt:-.
-    expect(lines[1]).toContain("0,0: (18,52,86,128)  #12345680");
-    expect(lines[2]).toContain("1,0: (171,205,239,64)  #ABCDEF40");
+    // Exact native Q16 TXT bytes, including offset and six-significant-digit alpha.
+    expect(new TextDecoder("utf-8", { fatal: true }).decode(bytes)).toBe(
+        "# ImageMagick pixel enumeration: 2,1,0,255,srgba\n" +
+        "0,0: (18,52,86,128)  #12345680  srgba(18,52,86,0.501961)\n" +
+        "1,0: (171,205,239,64)  #ABCDEF40  srgba(171,205,239,0.25098)\n"
+    );
 });

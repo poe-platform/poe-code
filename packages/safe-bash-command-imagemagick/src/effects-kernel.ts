@@ -34,11 +34,16 @@ export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "vir
     const width = source.virtualCanvas?.width || source.width, height = source.virtualCanvas?.height || source.height;
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
 }
-export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
+export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source, cx = width / 2, cy = height / 2;
     const canvas = vignetteLayout(source), offsetX = source.virtualCanvas?.x ?? 0, offsetY = source.virtualCanvas?.y ?? 0;
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1;
+    if (source.space === "b-w" || source.space === "grey16") {
+        // Native converts the canvas background to the source's gray colorspace.
+        const gray = 0.212656 * background.r + 0.715158 * background.g + 0.072186 * background.b;
+        background = { r: gray, g: gray, b: gray, a: background.a };
+    }
     // Fill the virtual canvas, then paint only the visible portion of the vignette.
     for (let position = 0; position < canvas.width * canvas.height * 4; position += 4096) {
         yield;

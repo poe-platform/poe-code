@@ -6225,7 +6225,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const lut = stack[stack.length - 1]!;
                 const mapped = yield* mapSteps(stack.slice(0, -1), function* (im) {
-                    return yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, state.channels.a]), signal, im, [im, lut]);
+                    return yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, state.channels.a || (t === "-clut" && !state.channelExplicit && im.hasAlpha)]), signal, im, [im, lut]);
                 });
                 stack = mapped;
             }
@@ -7145,10 +7145,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) return stack;
-                    const lut = (await stack.get(stack.length - 1))!, mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
+                    const lut = (await stack.get(stack.length - 1))!;
                     stack.length--;
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
+                        const mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a || (token === "-clut" && !settings.channelExplicit && image.hasAlpha)];
                         await stack.set(index, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask), signal, image, [image, lut]));
                     }
                 } else if (token === "-separate") {

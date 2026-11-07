@@ -58,3 +58,25 @@ it(`${mode}: preserves color added by CLUT to a grayscale PNG (${lookup})`, asyn
   expect(decodeImage(bytes).data).toEqual(Uint8Array.from({ length: 64 }, (_, index) => expected[index % 4]!));
   expect([2, 3, 6]).toContain(bytes[25]);
 });
+
+for (const retained of [false, true])
+it.each([
+  { channels: 4, selection: [], expected: [191, 0, 192, 64] },
+  { channels: 3, selection: [], expected: [191, 0, 192, 255] },
+  { channels: 4, selection: ["-channel", "RGB"], expected: [191, 0, 192, 128] },
+  { channels: 4, selection: ["-channel", "A"], expected: [64, 128, 192, 64] },
+] as const)(`maps CLUT alpha only for active channels, retained=${retained}: $channels/$selection`, async ({ channels, selection, expected }) => {
+  const files = new Map<string, Uint8Array>([
+    ["/base.png", await sharp(Uint8Array.from([64, 128, 192, 128].slice(0, channels)), {
+      raw: { width: 1, height: 1, channels },
+    }).png().toBuffer()],
+    ["/lut.png", await sharp(Uint8Array.of(255, 0, 0, 64, 0, 0, 255, 64), {
+      raw: { width: 2, height: 1, channels: 4 },
+    }).png().toBuffer()],
+  ]);
+  const fs = new MemoryFileSystem();
+  for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+  expect(await runConvertCli(["/base.png", "/lut.png", ...selection, "-clut", "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files))
+    .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+  expect(decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!).data).toEqual(Uint8Array.from(expected));
+});

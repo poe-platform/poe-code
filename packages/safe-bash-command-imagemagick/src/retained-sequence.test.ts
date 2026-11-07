@@ -23,8 +23,9 @@ it(`retains ${operation.join(" ")} via ${magick ? "magick" : "convert"}`, async 
     const args = ["f0", "f1", "f2", "f3", ...operation, "out.png"], expected = await runConvertCli(args, files);
     expect(expected.exitCode).toBe(0);
     expect(await (magick ? runMagickCli : runConvertCli)(magick ? ["convert", ...args] : args, { filesystem, cwd: "/" })).toEqual(expected);
-    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
-    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["f0", "f1", "f2", "f3", "out.png"]);
+    const outputs = [...files.keys()].filter(path => path.startsWith("out"));
+    for (const path of outputs) expect(decodeImage(await fs.readFile(`/${path}`))).toEqual(decodeImage(files.get(path)!));
+    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["f0", "f1", "f2", "f3", ...outputs].sort());
 });
 
 it("preserves stable median ordering after frame metadata eviction", async () => {

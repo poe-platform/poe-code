@@ -6332,7 +6332,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-trim") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground));
+                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground, analysis));
             }));
         }
         else if (t === "-rotate") {
@@ -7767,7 +7767,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-trim") {
             const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground;
-            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground) : undefined);
+            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis) : undefined);
         } else if (!operandsOnly && token === "-median") {
             const rows = magickMedianRows(tokens[++i] ?? "3");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);

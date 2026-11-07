@@ -95,7 +95,7 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
     return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
-export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number): Generator<void, RgbaImage, void> {
+export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     const pixels = image.data16 ?? image.data;
     const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1, edges, minSize, percentBackground);
     let next = steps.next();
@@ -123,13 +123,14 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
     }
+    if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     // ImageMagick represents an empty trim with one transparent white pixel.
     const { data16: ignored, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, data: new Uint8Array([255, 255, 255, 0]), channels: 4, hasAlpha: true,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
-export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number): Promise<StoredRgbaImage> {
+export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }): Promise<StoredRgbaImage> {
     const sampleBytes = image.storedData16 ? 2 : 1;
     const position = image.storedData16?.position ?? image.position;
     const steps = trimBounds(image.width, image.height, fuzz, image.storedData16 ? 257 : 1, edges, minSize, percentBackground);
@@ -147,6 +148,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
         ...await transformStoredImage(image, storage, { kind: "extract", ...next.value }, signal),
         virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
     };
+    if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     const emptyPosition = storage.allocate(4);
     await storage.write(emptyPosition, new Uint8Array([255, 255, 255, 0]), { signal });
     const { storedData16: ignored, ...metadata } = image;

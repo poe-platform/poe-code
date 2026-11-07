@@ -1352,6 +1352,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     if (box.y + anchor.top > outH) throw new Error("pixels are not authentic");
     const sy = Math.max(0, Math.min(img.height, box.y + anchor.top));
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
+    const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const background = [bg.r, bg.g, bg.b, bg.a].map(value => Math.round(value * 257));
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1360,10 +1362,11 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 yield;
             const dstIdx = (y * outW + x) * 4;
             if ((x >= sx && x < sx + sw) || (y >= sy && y < sy + sh)) {
-                out[dstIdx] = bg.r;
-                out[dstIdx + 1] = bg.g;
-                out[dstIdx + 2] = bg.b;
-                out[dstIdx + 3] = bg.a;
+                out[dstIdx] = Math.round(bg.r);
+                out[dstIdx + 1] = Math.round(bg.g);
+                out[dstIdx + 2] = Math.round(bg.b);
+                out[dstIdx + 3] = Math.round(bg.a);
+                if (data16) data16.set(background, dstIdx);
             }
             else {
                 const origX = Math.min(img.width - 1, x < sx ? x : x - sw);
@@ -1373,10 +1376,11 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 1] = img.data[srcIdx + 1]!;
                 out[dstIdx + 2] = img.data[srcIdx + 2]!;
                 out[dstIdx + 3] = img.data[srcIdx + 3]!;
+                if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
             }
         }
     }
-    return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
+    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
 }
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -5680,7 +5684,7 @@ if (t === "-seed") {
             delete state.virtualPixel;
         }
         else if (t === "-background") {
-            state.background = parseColor(tokens[++i] ?? "#ffffff");
+            state.background = parseColor(tokens[++i] ?? "#ffffff", true);
             state.backgroundExplicit = true;
         }
         else if (t === "-fill") {
@@ -6931,10 +6935,11 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     const position = token === "-splice" ? (await createStoredCanvas(width, height, state.background, backend, signal)).position : backend.storage.allocate(width * height * 4);
     const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
     if (storedData16 && token === "-splice") {
+        const color = [state.background.r, state.background.g, state.background.b, state.background.a].map(value => Math.round(value * 257));
         for (let offset = 0; offset < storedData16.length; offset += 16384) {
             await yieldTurn(signal);
-            const bytes = await backend.storage.read(position + offset, Math.min(16384, storedData16.length - offset));
-            const samples = Uint16Array.from(bytes, value => value * 257);
+            const samples = new Uint16Array(Math.min(16384, storedData16.length - offset));
+            for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(samples.buffer));
         }
     }

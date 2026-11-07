@@ -1,17 +1,17 @@
-import { readOgg } from "@poe-code/audio-ast";
+import { readOgg, normalizeVorbisCommentKey } from "@poe-code/audio-ast";
 import { encodeOggAudio } from "@poe-code/media-codecs";
 import { concatBytes } from "../binary.js";
-import type { MediaDocument, MediaProbeSource, MediaSample, SerializeMediaOptions } from "../types.js";
+import type { MediaDocument, MediaProbeSource, MediaSample, MediaTrack, SerializeMediaOptions } from "../types.js";
 import { encodeFlacPackets } from "./flac.js";
 
-function page(packet: Uint8Array, sequence: number, flags: number, granule: number): Uint8Array {
+function page(packet: Uint8Array, sequence: number, flags: number, granule: number, serial = 1): Uint8Array {
   const segments = Math.floor(packet.length / 255) + 1;
   if (segments > 255) throw new Error("Ogg packet exceeds one-page encoder limit");
   const bytes = new Uint8Array(27 + segments + packet.length);
   bytes.set([79, 103, 103, 83, 0, flags]);
   const view = new DataView(bytes.buffer);
   view.setBigUint64(6, BigInt(granule), true);
-  view.setUint32(14, 1, true);
+  view.setUint32(14, serial, true);
   view.setUint32(18, sequence, true);
   bytes[26] = segments;
   bytes.fill(255, 27, 27 + segments - 1);
@@ -90,6 +90,32 @@ export function extractOggFlac(bytes: Uint8Array): Uint8Array | undefined {
 export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const codec = options.audioCodec ?? (options.format === "opus" ? "opus" : "vorbis");
   if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel, options.sampleFormat);
+  if (codec === "copy") {
+    const headers: Uint8Array[] = [], bodies: Uint8Array[] = [];
+    for (const [index, track] of doc.tracks.entries()) {
+      const description = track.codecDescriptions[0];
+      if (description?.codecName !== "opus" || !description.extraData) throw new Error("Ogg stream copy requires Opus packets");
+      const serial = index + 1;
+      headers.push(page(description.extraData, 0, 2, 0, serial));
+      const comments = Object.entries(track.metadata ?? doc.metadata).map(([key, value]) => new TextEncoder().encode(`${key}=${value}`));
+      const tags = new Uint8Array(16 + comments.reduce((size, comment) => size + 4 + comment.length, 0));
+      tags.set(new TextEncoder().encode("OpusTags"));
+      const view = new DataView(tags.buffer);
+      view.setUint32(12, comments.length, true);
+      let offset = 16;
+      for (const comment of comments) {
+        view.setUint32(offset, comment.length, true); tags.set(comment, offset + 4); offset += 4 + comment.length;
+      }
+      headers.push(page(tags, 1, 0, 0, serial));
+      let granule = 0;
+      for (const [sampleIndex, sample] of track.samples.entries()) {
+        granule += Math.round(sample.duration * 48000 / track.timescale);
+        bodies.push(page(sample.data, sampleIndex + 2, sampleIndex === track.samples.length - 1 ? 4 : 0, granule, serial));
+      }
+    }
+    // All identification pages must precede the remaining headers and audio.
+    return concatBytes([...headers.filter((_, index) => index % 2 === 0), ...headers.filter((_, index) => index % 2 === 1), ...bodies]);
+  }
   const audio = doc.tracks.find(track => track.type === "audio")?.decodedAudio;
   if (!audio) throw new Error("Ogg encoding requires decoded PCM audio");
   if (codec !== "vorbis" && codec !== "libvorbis" && codec !== "opus" && codec !== "libopus") {
@@ -162,45 +188,70 @@ export async function readOggFlacHeader(source: MediaProbeSource, options: { sig
   return { header: identification.subarray(9), size: payloadSize - 9 };
 }
 
-/** Demux compatible sequential Opus links into one packet timeline. */
+/** Keep simultaneous logical streams separate and join compatible sequential links. */
 export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument): MediaDocument {
   const { packets } = readOgg(bytes);
-  const head = packets[0]!.data;
-  const preSkip = new DataView(head.buffer, head.byteOffset, head.byteLength).getUint16(10, true);
-  const samples: MediaSample[] = [];
-  let serial: number | undefined, ended = true, headerIndex = 0, position = 0, pts = -preSkip;
+  const lanes: typeof packets[] = [];
+  const serialLanes = new Map<number, number>();
+  const active = new Set<number>();
+  const tracks: MediaTrack[] = [];
+  let ordinal = 0, streamIndex = 0;
   for (const packet of packets) {
     if (packet.bos) {
-      if (!ended || packet.data.length !== head.length || packet.data.some((byte, index) => byte !== head[index])) {
-        throw new Error("Unsupported multiplexed or incompatible chained Ogg Opus streams");
+      if (!active.size) ordinal = 0;
+      const lane = ordinal++;
+      serialLanes.set(packet.serial, lane);
+      active.add(packet.serial);
+      if (!lanes[lane]) {
+        lanes[lane] = [];
+        tracks[lane] = doc.tracks[streamIndex]!;
+      } else {
+        tracks[lane] = { ...tracks[lane]!, duration: tracks[lane]!.duration + doc.tracks[streamIndex]!.duration };
       }
-      serial = packet.serial;
-      ended = false;
-      headerIndex = 0;
-      position = 0;
+      streamIndex++;
     }
-    if (packet.serial !== serial) throw new Error("Unsupported multiplexed Ogg Opus streams");
-    if (headerIndex++ < 2) continue;
-    const data = packet.data, toc = data[0];
-    if (toc === undefined) throw new Error("Empty Opus packet");
-    const config = toc >>> 3;
-    const frameSamples = config >= 16 ? 120 * 2 ** (config & 3)
-      : config >= 12 ? 480 * 2 ** (config & 1) : [480, 960, 1920, 2880][config & 3]!;
-    const frames = (toc & 3) === 0 ? 1 : (toc & 3) === 3 ? (data[1] ?? 0) & 63 : 2;
-    const duration = frames * frameSamples;
-    if (!duration || duration > 5760) throw new Error("Invalid Opus packet duration");
-    position += duration;
-    const padding = packet.eos ? position - Number(packet.granule) : 0;
-    if (padding < 0 || padding > duration) throw new Error("Invalid Opus final granule");
-    samples.push({ data, pts, dts: pts, cts: 0, duration: duration - padding,
-      size: data.length, isKeyframe: true, sampleDescriptionIndex: 1,
-      ...(padding ? { discardPaddingNs: Math.round(padding * 1e9 / 48000) } : {}) });
-    pts += duration - padding;
-    ended = packet.eos;
+    lanes[serialLanes.get(packet.serial)!]!.push(packet);
+    if (packet.eos) active.delete(packet.serial);
   }
-  const track = doc.tracks[0]!;
-  return { ...doc, tracks: [{ ...track, samples, duration: doc.duration,
-    codecDelayNs: preSkip * 1e9 / 48000, seekPreRollNs: 80_000_000,
-    codecDescriptions: [{ ...track.codecDescriptions[0]!, extraData: head }]
-  }] };
+  return { ...doc, tracks: lanes.map((packets, index) => {
+    const head = packets[0]!.data;
+    const preSkip = new DataView(head.buffer, head.byteOffset, head.byteLength).getUint16(10, true);
+    const samples: MediaSample[] = [];
+    let serial: number | undefined, ended = true, headerIndex = 0, position = 0, pts = -preSkip;
+    for (const packet of packets) {
+      if (packet.bos) {
+        if (!ended || packet.data.length !== head.length || packet.data.some((byte, index) => byte !== head[index])) {
+          throw new Error("Unsupported multiplexed or incompatible chained Ogg Opus streams");
+        }
+        serial = packet.serial;
+        ended = false;
+        headerIndex = 0;
+        position = 0;
+      }
+      if (packet.serial !== serial) throw new Error("Unsupported multiplexed Ogg Opus streams");
+      if (headerIndex++ < 2) continue;
+      const data = packet.data, toc = data[0];
+      if (toc === undefined) throw new Error("Empty Opus packet");
+      const config = toc >>> 3;
+      const frameSamples = config >= 16 ? 120 * 2 ** (config & 3)
+        : config >= 12 ? 480 * 2 ** (config & 1) : [480, 960, 1920, 2880][config & 3]!;
+      const frames = (toc & 3) === 0 ? 1 : (toc & 3) === 3 ? (data[1] ?? 0) & 63 : 2;
+      const duration = frames * frameSamples;
+      if (!duration || duration > 5760) throw new Error("Invalid Opus packet duration");
+      position += duration;
+      const padding = packet.eos ? position - Number(packet.granule) : 0;
+      if (padding < 0 || padding > duration) throw new Error("Invalid Opus final granule");
+      samples.push({ data, pts, dts: pts, cts: 0, duration: duration - padding,
+        size: data.length, isKeyframe: true, sampleDescriptionIndex: 1,
+        ...(padding ? { discardPaddingNs: Math.round(padding * 1e9 / 48000) } : {}) });
+      pts += duration - padding;
+      ended = packet.eos;
+    }
+    const track = tracks[index]!;
+    return { ...track, id: index + 1, samples,
+      metadata: Object.fromEntries(Object.entries(track.metadata ?? {}).map(([key, value]) => [normalizeVorbisCommentKey(key), value])),
+      codecDelayNs: preSkip * 1e9 / 48000, seekPreRollNs: 80_000_000,
+      codecDescriptions: [{ ...track.codecDescriptions[0]!, extraData: head }]
+    };
+  }) };
 }

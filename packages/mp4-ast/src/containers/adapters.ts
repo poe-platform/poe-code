@@ -1345,7 +1345,10 @@ export function oggAst(): MediaAstPlugin {
       const doc = { ...oggDocument(stream, bytes.byteLength, bytes),
         duration: Math.round(parsed.duration * stream.sampleRate), durationSeconds: parsed.duration,
         metadata: stream.tags ?? parsed.tags };
-      return stream.codec === "opus" ? demuxOggOpus(bytes, doc) : doc;
+      return stream.codec === "opus" ? demuxOggOpus(bytes, { ...doc,
+        tracks: parsed.streams.map((stream, index) => ({ ...oggDocument(stream, bytes.length).tracks[0]!,
+          id: index + 1, metadata: stream.tags }))
+      }) : doc;
     },
     serialize: serializeOgg,
     probe(bytes, options) {

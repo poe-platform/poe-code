@@ -5,21 +5,47 @@ import { concatBytes } from "../binary.js";
 import type { MediaDocument, MediaProbeSource, MediaSample, MediaTrack, SerializeMediaOptions } from "../types.js";
 import { encodeFlacPackets } from "./flac.js";
 
-function page(packet: Uint8Array, sequence: number, flags: number, granule: number, serial = 1): Uint8Array {
-  const segments = Math.floor(packet.length / 255) + 1;
+function page(packets: readonly Uint8Array[], sequence: number, flags: number, granule: number, serial = 1): Uint8Array {
+  const segments = packets.reduce((sum, packet) => sum + Math.floor(packet.length / 255) + 1, 0);
   if (segments > 255) throw new Error("Ogg packet exceeds one-page encoder limit");
-  const bytes = new Uint8Array(27 + segments + packet.length);
+  const bytes = new Uint8Array(27 + segments + packets.reduce((sum, packet) => sum + packet.length, 0));
   bytes.set([79, 103, 103, 83, 0, flags]);
   const view = new DataView(bytes.buffer);
   view.setBigUint64(6, BigInt(granule), true);
   view.setUint32(14, serial, true);
   view.setUint32(18, sequence, true);
   bytes[26] = segments;
-  bytes.fill(255, 27, 27 + segments - 1);
-  bytes[27 + segments - 1] = packet.length % 255;
-  bytes.set(packet, 27 + segments);
+  let lace = 27, offset = 27 + segments;
+  for (const packet of packets) {
+    for (let i = 0; i < Math.floor(packet.length / 255); i++) bytes[lace++] = 255;
+    bytes[lace++] = packet.length % 255;
+    bytes.set(packet, offset);
+    offset += packet.length;
+  }
   view.setUint32(22, oggCrc(bytes), true);
   return bytes;
+}
+
+/** Flush whole packets at the duration target or the Ogg lacing limit. */
+function audioPages(packets: readonly { data: Uint8Array; granule: number }[], sequence: number,
+  sampleRate: number, pageDuration = 1_000_000, serial = 1): Uint8Array[] {
+  const pages: Uint8Array[] = [];
+  let group: Uint8Array[] = [], segments = 0, start = 0, granule = 0;
+  for (const [index, packet] of packets.entries()) {
+    const count = Math.floor(packet.data.length / 255) + 1;
+    if (segments + count > 255 && group.length) {
+      pages.push(page(group, sequence++, 0, granule, serial));
+      group = []; segments = 0; start = granule;
+    }
+    group.push(packet.data); segments += count; granule = packet.granule;
+    const last = index === packets.length - 1;
+    // Keep the Vorbis priming packet on its own page so its zero granule survives.
+    if (last || granule === 0 || (pageDuration > 0 && (granule - start) * 1_000_000 >= pageDuration * sampleRate)) {
+      pages.push(page(group, sequence++, last ? 4 : 0, granule, serial));
+      group = []; segments = 0; start = granule;
+    }
+  }
+  return pages;
 }
 
 /** Ogg FLAC mapping version 1.0: preserve PCM without introducing a lossy codec. */
@@ -31,10 +57,10 @@ export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number, 
   identification.set(header, 9);
   identification[13] = 0; // STREAMINFO is followed by VORBIS_COMMENT
   const comments = new Uint8Array([0x84, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0]);
-  const pages = [page(identification, 0, 2, 0), page(comments, 1, 0, 0)];
+  const pages = [page([identification], 0, 2, 0), page([comments], 1, 0, 0)];
   const total = Number(new DataView(header.buffer, header.byteOffset + 18, 8).getBigUint64(0) & 0xfffffffffn);
   for (let i = 0; i < frames.length; i++) {
-    pages.push(page(frames[i]!, i + 2, i === frames.length - 1 ? 4 : 0, Math.min(total, (i + 1) * 2048)));
+    pages.push(page([frames[i]!], i + 2, i === frames.length - 1 ? 4 : 0, Math.min(total, (i + 1) * 2048)));
   }
   return concatBytes(pages);
 }
@@ -102,7 +128,7 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
       const description = track.codecDescriptions[0];
       if (description?.codecName !== "opus" || !description.extraData) throw new Error("Ogg stream copy requires Opus packets");
       const serial = index + 1;
-      headers.push(page(description.extraData, 0, 2, 0, serial));
+      headers.push(page([description.extraData], 0, 2, 0, serial));
       const comments = Object.entries(track.metadata ?? doc.metadata).map(([key, value]) => new TextEncoder().encode(`${key}=${value}`));
       const tags = new Uint8Array(16 + comments.reduce((size, comment) => size + 4 + comment.length, 0));
       tags.set(new TextEncoder().encode("OpusTags"));
@@ -112,12 +138,12 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
       for (const comment of comments) {
         view.setUint32(offset, comment.length, true); tags.set(comment, offset + 4); offset += 4 + comment.length;
       }
-      headers.push(page(tags, 1, 0, 0, serial));
+      headers.push(page([tags], 1, 0, 0, serial));
       let granule = 0;
-      for (const [sampleIndex, sample] of track.samples.entries()) {
+      bodies.push(...audioPages(track.samples.map(sample => {
         granule += opusPacketDuration(sample.data) - Math.round((sample.discardPaddingNs ?? 0) * 48000 / 1e9);
-        bodies.push(page(sample.data, sampleIndex + 2, sampleIndex === track.samples.length - 1 ? 4 : 0, granule, serial));
-      }
+        return { data: sample.data, granule };
+      }), 2, 48000, options.pageDuration, serial));
     }
     // All identification pages must precede the remaining headers and audio.
     return concatBytes([...headers.filter((_, index) => index % 2 === 0), ...headers.filter((_, index) => index % 2 === 1), ...bodies]);
@@ -129,11 +155,9 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
   }
   const encoded = encodeOggAudio(codec === "opus" || codec === "libopus" ? "opus" : "vorbis", audio.sampleRate,
     audio.channelData.map(channel => channel instanceof Float32Array ? channel : Float32Array.from(channel)), options.audioBitrate);
-  const pages = encoded.headers.map((header, index) => page(header, index, index === 0 ? 2 : 0, 0));
-  for (let index = 0; index < encoded.packets.length; index++) {
-    const packet = encoded.packets[index]!;
-    pages.push(page(packet.data, index + encoded.headers.length, index === encoded.packets.length - 1 ? 4 : 0, packet.granule));
-  }
+  const pages = encoded.headers.map((header, index) => page([header], index, index === 0 ? 2 : 0, 0));
+  pages.push(...audioPages(encoded.packets, encoded.headers.length,
+    codec === "opus" || codec === "libopus" ? 48000 : audio.sampleRate, options.pageDuration));
   const tags = Object.fromEntries(Object.entries(options.metadata ?? doc.metadata).filter(([, value]) => typeof value === "string"));
   const bytes = concatBytes(pages);
   return Object.keys(tags).length ? writeAudioMetadata(bytes, tags) : bytes;

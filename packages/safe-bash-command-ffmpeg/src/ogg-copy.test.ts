@@ -5,12 +5,12 @@ import { Volume } from "memfs";
 import { parseAudio, readOgg } from "@poe-code/audio-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
-for (const fixture of ["tone-opus", "vorbis"]) for (const extension of ["ogg", "opus"]) for (const sync of [false, true]) {
-  it(`${sync ? "sync" : "async"} copies ${fixture} packets and granules to .${extension}`, async () => {
+for (const fixture of ["tone-opus", "vorbis"]) for (const extension of ["ogg", "opus"]) for (const sync of [false, true]) for (const pageDuration of fixture === "tone-opus" ? [undefined, 20000, 100000, 0] : [undefined]) {
+  it(`${sync ? "sync" : "async"} copies ${fixture} packets and granules to .${extension} (page_duration=${pageDuration})`, async () => {
     const input = readFileSync(new URL(`./fixtures/${fixture}.ogg`, import.meta.url));
     const volume = Volume.fromJSON({ "/in.ogg": input });
     const output = `/out.${extension}`;
-    const args = ["-y", "-v", "error", "-i", "/in.ogg", "-c", "copy", output];
+    const args = ["-y", "-v", "error", "-i", "/in.ogg", "-c", "copy", ...(pageDuration === undefined ? [] : ["-page_duration", String(pageDuration)]), output];
     if (sync) {
       assert.equal(evalSyncFfmpeg(args, undefined,
         path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
@@ -30,6 +30,12 @@ for (const fixture of ["tone-opus", "vorbis"]) for (const extension of ["ogg", "
       assert.equal(result.exitCode, 0, stderr);
     }
     const bytes = new Uint8Array(volume.readFileSync(output) as Buffer);
+    if (fixture === "tone-opus") {
+      const pages = readOgg(bytes).nodes;
+      assert.equal(pages.length, pageDuration === 20000 ? 40 : pageDuration === 100000 ? 10 : 3);
+      assert.equal(pages[0]!.fields!.flags, 2);
+      assert.equal(pages.at(-1)!.fields!.flags, 4);
+    }
     const headers = fixture === "vorbis" ? 3 : 2;
     assert.deepEqual(readOgg(bytes).packets.slice(headers).map(packet => packet.data), readOgg(input).packets.slice(headers).map(packet => packet.data));
     assert.equal(readOgg(bytes).packets.at(-1)!.granule, readOgg(input).packets.at(-1)!.granule);

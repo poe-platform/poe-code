@@ -2,7 +2,7 @@ import type { ResizeKernel } from "@poe-code/image-ast/portable";
 import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export type MagickResizeKernel = ResizeKernel | "box" | "bartlett" | "blackman" | "bohman" | "cosine" | "hamming" | "hann" | "kaiser" | "parzen" | "welch";
+export type MagickResizeKernel = ResizeKernel | "box" | "catrom" | "cubicspline" | "hermite" | "quadratic" | "robidoux" | "robidouxsharp" | "bartlett" | "blackman" | "bohman" | "cosine" | "hamming" | "hann" | "kaiser" | "parzen" | "welch";
 
 function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
@@ -72,12 +72,15 @@ function contributions(index: number, source: number, target: number, blur: numb
         const end = Math.min(source, Math.floor(center + support + 0.5 + 1e-12));
         return { first, weights: new Float64Array(end - first).fill(1 / (end - first)) };
     }
-    const radius = kernel === "linear" || kernel === "bilinear" ? 1 : kernel === "cubic" || kernel === "mitchell" || kernel === "lanczos2" ? 2
+    const radius = kernel === "linear" || kernel === "bilinear" || kernel === "hermite" ? 1 : kernel === "quadratic" ? 1.5 : kernel === "catrom" || kernel === "cubicspline" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "cubic" || kernel === "mitchell" || kernel === "lanczos2" ? 2
         : kernel === "lanczos3" || kernel === "cosine" || kernel === "welch" ? 3 : 4;
     const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
     const support = radius * scale;
     const first = Math.max(0, Math.ceil(center - support)), last = Math.min(source - 1, Math.floor(center + support));
     const weights = new Float64Array(last - first + 1);
+    // ImageMagick BC cubic parameters; Cubic/Spline use the B-spline, Catrom interpolates.
+    const b = kernel === "cubic" ? 1 : kernel === "robidoux" ? 0.3782157550939987 : kernel === "robidouxsharp" ? 0.2620145123990142 : 0;
+    const c = kernel === "catrom" ? 0.5 : kernel === "robidoux" ? 0.3108921224530007 : kernel === "robidouxsharp" ? 0.3689927438004929 : 0;
     let sum = 0;
     for (let i = 0; i < weights.length; i++) {
         const distance = (first + i - center) / scale;
@@ -85,7 +88,12 @@ function contributions(index: number, source: number, target: number, blur: numb
         weights[i] = kernel === "mitchell"
             ? (x < 1 ? (7 * x * x * x - 12 * x * x + 16 / 3) / 6 : (-7 / 3 * x * x * x + 12 * x * x - 20 * x + 32 / 3) / 6)
             : kernel === "linear" || kernel === "bilinear" ? Math.max(0, 1 - x)
-            : kernel === "cubic" ? (x < 1 ? 1.5 * x * x * x - 2.5 * x * x + 1 : -0.5 * x * x * x + 2.5 * x * x - 4 * x + 2)
+            : kernel === "hermite" ? (2 * x - 3) * x * x + 1
+            : kernel === "quadratic" ? (x < 0.5 ? 0.75 - x * x : 0.5 * (x - 1.5) ** 2)
+            : kernel === "cubicspline" ? (x < 1 ? ((x - 9 / 5) * x - 1 / 5) * x + 1 : ((-(x - 1) / 3 + 4 / 5) * (x - 1) - 7 / 15) * (x - 1))
+            : kernel === "cubic" || kernel === "catrom" || kernel === "robidoux" || kernel === "robidouxsharp"
+                ? (x < 1 ? ((12 - 9 * b - 6 * c) * x ** 3 + (-18 + 12 * b + 6 * c) * x * x + 6 - 2 * b) / 6
+                    : ((-b - 6 * c) * x ** 3 + (6 * b + 30 * c) * x * x + (-12 * b - 48 * c) * x + 8 * b + 24 * c) / 6)
             : sinc(distance) * windowWeight(kernel, x / radius);
         sum += weights[i]!;
     }

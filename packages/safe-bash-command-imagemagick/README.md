@@ -2,7 +2,7 @@
 
 ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`.
 
-Use `-filter` to select a resize filter; `+filter` clears that selection and restores automatic default filtering.
+Use `-filter` to select a resize filter; `+filter` clears that selection and restores automatic default filtering. Cubic-family filters include `Catrom`, `Cubic` (also `Spline`), `CubicSpline`, `Hermite`, `Quadratic`, `Robidoux` and `RobidouxSharp`, each using its native resize weights.
 
 Montage defaults to centered tiles in 120×120 cells, shrinking oversized images without enlarging smaller ones, with 4-pixel horizontal and 3-pixel vertical padding. Use `-geometry` to override the tile dimensions and spacing. `-frame 2x2+1+1` sets frame dimensions and bevels, and `+frame` removes frames. `-mode Frame` adds beveled frames and soft shadows; `-mattecolor` sets the frame color, and `-mode Unframe` restores ordinary tiles. Use `-shadow` to add shadows without frames and `+shadow` to disable them. Montage supports `-label` for subsequent images and `-set label` for images already read. Labels and titles use bundled bitmap glyphs. Explicit `-font` selections return an unsupported-font error because host fonts and custom font files are unavailable.
 

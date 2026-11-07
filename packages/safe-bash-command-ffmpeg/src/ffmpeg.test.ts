@@ -2147,17 +2147,93 @@ describe("HLS filename templates", () => {
       });
     }
   }
-  it("rejects unsupported single_file mode before writing output", async () => {
-    const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: false }) });
-    const before = new Map(vfs.store);
-    const result = await runCmd(createFfmpegCommand(), [
-      "-y", "-i", "/in.mp4", "-c", "copy", "-hls_flags", "single_file",
-      "-hls_segment_filename", "fixed.ts", "/out.m3u8"
-    ], vfs);
+});
+
+describe("HLS single_file", () => {
+  for (const overwrite of [[], ["-n"], ["-y"]]) {
+    it(`protects an existing media object (${overwrite.join(" ") || "default"})`, async () => {
+      const vfs = createTestVfs({
+        "/in.mp4": createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: false }),
+        "/out.ts": "original media"
+      });
+      const before = new Map(vfs.store);
+      const result = await runCmd(createFfmpegCommand(), [
+        ...overwrite, "-i", "/in.mp4", "-c", "copy", "-hls_flags", "single_file", "/out.m3u8"
+      ], vfs);
+      if (overwrite.includes("-y")) {
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.ok(vfs.store.has("/out.m3u8"));
+        assert.notDeepEqual(vfs.store.get("/out.ts"), before.get("/out.ts"));
+      } else {
+        assert.equal(result.exitCode, 1);
+        assert.ok(result.stderr.includes("already exists"), result.stderr);
+        assert.deepEqual(vfs.store, before);
+      }
+    });
+  }
+  it("enforces the output limit on the complete media object", async () => {
+    const source = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: false }));
+    const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
+      ...track, samples: track.samples.map(sample => ({ ...sample, isKeyframe: true }))
+    })) });
+    const args = ["-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_flags", "single_file", "/out.m3u8"];
+    const vfs = createTestVfs({ "/in.mp4": input });
+    assert.equal((await runCmd(createFfmpegCommand(), args, vfs)).exitCode, 0);
+    const limited = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand({ limits: { maxOutputBytes: vfs.store.get("/out.ts")!.length - 1 } }), args, limited);
     assert.equal(result.exitCode, 1);
-    assert.ok(result.stderr.includes("single_file is not supported"), result.stderr);
-    assert.deepEqual(vfs.store, before);
+    assert.ok(result.stderr.includes("maxOutputBytes"), result.stderr);
+    assert.deepEqual([...limited.store.keys()], ["/in.mp4"]);
   });
+  for (const type of ["mpegts", "fmp4"]) {
+    for (const windowed of [false, true]) {
+      for (const custom of [false, true]) {
+        it(`writes valid byte ranges for ${type} (window=${windowed}, custom=${custom})`, async () => {
+          const source = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: true }));
+          const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
+            ...track, samples: track.samples.map(sample => ({ ...sample, isKeyframe: true }))
+          })) });
+          const vfs = createTestVfs({ "/in.mp4": input });
+          const name = custom ? "fixed%03d.bin" : `out.${type === "fmp4" ? "m4s" : "ts"}`;
+          const result = await runCmd(createFfmpegCommand(), [
+            "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type,
+            "-hls_flags", "single_file+delete_segments", "-hls_list_size", windowed ? "1" : "0",
+            ...(custom ? ["-hls_segment_filename", `/hls/${name}`] : []), "/hls/out.m3u8"
+          ], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.deepEqual([...vfs.store.keys()].sort(), ["/in.mp4", "/hls/out.m3u8", `/hls/${name}`].sort());
+          const media = vfs.store.get(`/hls/${name}`)!;
+          const lines = new TextDecoder().decode(vfs.store.get("/hls/out.m3u8")).split("\n");
+          assert.ok(lines.includes(`#EXT-X-VERSION:${type === "fmp4" ? 7 : 4}`));
+          let init = new Uint8Array();
+          if (type === "fmp4") {
+            const map = lines.find(line => line.startsWith("#EXT-X-MAP:"))!;
+            const length = Number(map.split('BYTERANGE="')[1]!.split("@")[0]);
+            assert.equal(map, `#EXT-X-MAP:URI="${name}",BYTERANGE="${length}@0"`);
+            init = media.slice(0, length);
+            assert.deepEqual(parseMp4Boxes(init).map(box => box.type), ["ftyp", "moov"]);
+          }
+          const ranges = lines.filter(line => line.startsWith("#EXT-X-BYTERANGE:"));
+          assert.equal(ranges.length, windowed ? 1 : 3);
+          let end = init.length;
+          for (const [i, range] of ranges.entries()) {
+            const [length, offset] = range.slice("#EXT-X-BYTERANGE:".length).split("@").map(Number) as [number, number];
+            if (!windowed) assert.equal(offset, end);
+            else assert.ok(offset > end);
+            assert.ok(length > 0);
+            assert.equal(lines[lines.indexOf(range) + 1], name);
+            const bytes = media.subarray(offset, offset + length);
+            const doc = type === "fmp4" ? parseMp4(concatBytes([init, bytes])) : parseMpegTs(bytes);
+            const video = doc.tracks.find(track => track.type === "video")!;
+            assert.equal(video.samples.length, 1);
+            assert.deepEqual(video.samples[0]!.data, source.tracks[0]!.samples[windowed ? 2 : i]!.data);
+            end = offset + length;
+          }
+          assert.equal(end, media.length);
+        });
+      }
+    }
+  }
 });
 
 describe("HLS start_number", () => {

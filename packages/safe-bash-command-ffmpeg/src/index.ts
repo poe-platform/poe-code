@@ -3895,10 +3895,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 : "/";
               const isFmp4 = hlsSegmentType === "fmp4";
               const segExt = isFmp4 ? "m4s" : "ts";
-              if (hlsSingleFile) throw new Error("HLS single_file is not supported");
               const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
-              const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}%d.${segExt}`;
-              if (formatImageSequence(segPattern, outputStartNumber ?? 0) === undefined) {
+              const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}${hlsSingleFile ? "" : "%d"}.${segExt}`;
+              if (!hlsSingleFile && formatImageSequence(segPattern, outputStartNumber ?? 0) === undefined) {
                 throw new Error(`Invalid segment filename template '${segPattern}'`);
               }
               const segPlugin = registry.findByFormatName(isFmp4 ? "mp4" : "mpegts");
@@ -3934,14 +3933,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }));
               const playlistLines: string[] = [
                 "#EXTM3U",
-                isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : "#EXT-X-VERSION:3",
+                isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile ? "#EXT-X-VERSION:4" : "#EXT-X-VERSION:3",
                 `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
                 `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
               ];
 
               if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
-              if (isFmp4) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
+              if (isFmp4 && !hlsSingleFile) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
 
+              const singleFileChunks: Uint8Array[] = [];
+              let singleFileSize = 0;
+              let singleFilePath = "";
               const retainedSegments: { path: string; duration: number }[] = [];
               for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
                 const st = boundaries[sIdx]!;
@@ -3961,28 +3963,46 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget
                 });
 
-                if (isFmp4) {
-                  const moof = parseMp4Boxes(segBytes, 0, 0, budget).find(box => box.type === "moof");
-                  if (!moof) throw new Error("HLS fMP4 output requires fragmented MP4 samples");
-                  if (sIdx === 0) {
-                    await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-                    await writeFileOutput(context, segBytes.subarray(0, moof.offset), data =>
-                      context.fs.writeFile(resolvePath(outDir, "init.mp4"), data, { signal: context.signal }));
-                  }
-                  segBytes = segBytes.subarray(moof.offset);
-                }
-
-                const formattedSeg = formatImageSequence(segPattern, sIdx + (outputStartNumber ?? 0))!;
+                const formattedSeg = hlsSingleFile ? segPattern : formatImageSequence(segPattern, sIdx + (outputStartNumber ?? 0))!;
                 const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
                 const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
                   ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
                   : formattedSeg;
 
-                budget.checkOutputBytes(segBytes.byteLength);
-                await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
-                await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
-                if (sIdx >= firstSegment) playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
-                if (hlsDeleteSegments && hlsListSize > 0) {
+                if (isFmp4) {
+                  const moof = parseMp4Boxes(segBytes, 0, 0, budget).find(box => box.type === "moof");
+                  if (!moof) throw new Error("HLS fMP4 output requires fragmented MP4 samples");
+                  if (sIdx === 0) {
+                    const init = segBytes.subarray(0, moof.offset);
+                    if (hlsSingleFile) {
+                      singleFileChunks.push(init);
+                      singleFileSize = init.byteLength;
+                      playlistLines.push(`#EXT-X-MAP:URI="${relSegName}",BYTERANGE="${singleFileSize}@0"`);
+                    } else {
+                      await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
+                      await writeFileOutput(context, init, data =>
+                        context.fs.writeFile(resolvePath(outDir, "init.mp4"), data, { signal: context.signal }));
+                    }
+                  }
+                  segBytes = segBytes.subarray(moof.offset);
+                }
+
+                if (hlsSingleFile) {
+                  budget.checkOutputBytes(singleFileSize + segBytes.byteLength);
+                  singleFilePath = fullSegPath;
+                  singleFileChunks.push(segBytes);
+                } else {
+                  budget.checkOutputBytes(segBytes.byteLength);
+                  await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
+                  await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
+                }
+                if (sIdx >= firstSegment) {
+                  playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`);
+                  if (hlsSingleFile) playlistLines.push(`#EXT-X-BYTERANGE:${segBytes.byteLength}@${singleFileSize}`);
+                  playlistLines.push(relSegName);
+                }
+                if (hlsSingleFile) singleFileSize += segBytes.byteLength;
+                if (!hlsSingleFile && hlsDeleteSegments && hlsListSize > 0) {
                   retainedSegments.push({ path: fullSegPath, duration: actualDur });
                   const expiredCount = retainedSegments.length - hlsListSize;
                   if (expiredCount > 0) {
@@ -4002,6 +4022,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
                 }
+              }
+
+              if (hlsSingleFile) {
+                if (!overwrite) {
+                  try {
+                    await context.fs.stat(singleFilePath, { signal: context.signal });
+                    throw new Error(`File '${singleFilePath}' already exists. Exiting.`);
+                  } catch (error) {
+                    rethrowRuntimeError(context, error);
+                    if ((error as { code?: string }).code !== "ENOENT") throw error;
+                  }
+                }
+                const bytes = concatBytes(singleFileChunks);
+                await context.fs.mkdir(singleFilePath.slice(0, singleFilePath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
+                await writeFileOutput(context, bytes, data => context.fs.writeFile(singleFilePath, data, { signal: context.signal }));
               }
 
               if (!hlsOmitEndlist) playlistLines.push("#EXT-X-ENDLIST");

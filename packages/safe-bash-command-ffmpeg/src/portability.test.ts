@@ -79,7 +79,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes stereo mute, phase inversion, and mid/side channel conversions.
   // Includes aformat mono layout negotiation and the current audio filters.
   // Includes per-sample aeval expressions and channel selection (measured 536,625 bytes).
-  assert.ok(otherCodeBytes < 540_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes single-file HLS assembly and byte-range playlists (about 1 KB).
+  assert.ok(otherCodeBytes < 541_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

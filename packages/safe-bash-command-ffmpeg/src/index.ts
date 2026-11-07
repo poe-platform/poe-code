@@ -329,6 +329,41 @@ function detachBytesBuffer(bytes: Uint8Array | undefined): void {
   }
 }
 
+function encodeIcoFrames(frames: readonly MediaVideoFrame[], budget: MediaBudgetTracker): Uint8Array {
+  if (frames.length < 1 || frames.length > 65535) throw new Error("ICO requires between 1 and 65535 images");
+  budget.checkSamples(frames.length);
+  let size = 6 + frames.length * 16;
+  const payloads = frames.map(frame => {
+    if (!Number.isInteger(frame.width) || !Number.isInteger(frame.height) || frame.width < 1 || frame.height < 1 || frame.width > 256 || frame.height > 256) {
+      throw new Error("ICO dimensions must be between 1 and 256");
+    }
+    budget.checkCpu();
+    const png = encodeImage(makeRgbaImg(frame.width, frame.height, frame.data), { format: "png" }).data;
+    size += png.length;
+    if (size > 0xffffffff) throw new Error("ICO output exceeds 32-bit offsets");
+    budget.checkOutputBytes(size);
+    return png;
+  });
+  const bytes = new Uint8Array(size);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(2, 1, true);
+  view.setUint16(4, frames.length, true);
+  let offset = 6 + frames.length * 16;
+  frames.forEach((frame, i) => {
+    const p = 6 + i * 16;
+    const png = payloads[i]!;
+    bytes[p] = frame.width % 256;
+    bytes[p + 1] = frame.height % 256;
+    view.setUint16(p + 4, 1, true);
+    view.setUint16(p + 6, 32, true);
+    view.setUint32(p + 8, png.length, true);
+    view.setUint32(p + 12, offset, true);
+    bytes.set(png, offset);
+    offset += png.length;
+  });
+  return bytes;
+}
+
 function encodeApngFrames(frames: readonly MediaVideoFrame[], plays: number, budget: MediaBudgetTracker): Uint8Array {
   const first = frames[0];
   if (!first) throw new Error("No video frame in the requested presentation interval");
@@ -2389,6 +2424,13 @@ export function evalSyncFfmpeg(
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
+    if ((outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "ico") {
+      if (videoCodec !== "png" || isStdout(outputTarget)) return undefined;
+      if (maxVideoFrames === 0) return "";
+      if (workingDoc.tracks.some(track => track.type !== "video" || !track.decodedVideoFrames?.length || track.editList?.length)) return undefined;
+      const bytes = encodeIcoFrames(workingDoc.tracks.map(track => track.decodedVideoFrames![0]!), budget);
+      return writeFileSync(outputTarget, bytes) ? "" : undefined;
+    }
     if ((outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "apng") {
       if (videoCodec === "copy" || isStdout(outputTarget)) return undefined;
       if (maxVideoFrames === 0) return "";
@@ -5490,6 +5532,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames?.length)) {
               throw new Error("No video frame in the requested presentation interval");
+            }
+
+            if ((outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "ico") {
+              if (videoCodec !== "png") throw new Error("ICO output requires -c:v png");
+              if (maxVideoFrames === 0) return { exitCode: decodeExitCode };
+              const frames: MediaVideoFrame[] = [];
+              for (const track of workingDoc.tracks) {
+                if (track.type !== "video") throw new Error("ICO output supports only video streams");
+                const frame = (await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, 1))[0];
+                if (!frame) throw new Error("No video frame in the requested presentation interval");
+                frames.push(frame);
+              }
+              const bytes = encodeIcoFrames(frames, budget);
+              context.signal?.throwIfAborted();
+              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+              else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: decodeExitCode };
             }
 
             if ((outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "apng") {

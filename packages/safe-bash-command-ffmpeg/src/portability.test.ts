@@ -98,7 +98,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes Opus logical-stream demuxing and packet-preserving Ogg output (measured 588,349 bytes).
   // Includes Opus PCM assembly and granule trimming (measured 590,067 bytes).
   // Includes ordered AVI stream headers, PCM/MJPEG copying and per-stream indexes (measured 592,472 bytes).
-  assert.ok(otherCodeBytes < 593_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes nonuniform AVI packet clocks and bounded empty timing chunks (measured 593,162 bytes).
+  assert.ok(otherCodeBytes < 594_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -124,6 +125,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes Opus logical-stream demuxing and Ogg packet serialization (measured 9,631,709 bytes).
   // Includes the libopus decoder and PCM integration (measured 9,737,674 bytes).
   // Includes AVI multi-track copying (measured 9,740,081 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_741_000,
+  // Includes nonuniform AVI timing and its sample-budget check.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_742_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

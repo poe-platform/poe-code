@@ -260,7 +260,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         type: "video",
         handlerType: "vide",
         timescale,
-        duration: convertedSamples.length * frameDur,
+        duration: curDts,
         language: "und",
         enabled: true,
         width: w,
@@ -367,28 +367,15 @@ function makeRiffList(listType: string, children: readonly Uint8Array[]): Uint8A
 }
 
 export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
-  void options;
+  const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const tracks = doc.tracks.filter((track) => track.type === "video" || track.type === "audio");
   if (tracks.length > 100) throw new Error("AVI supports at most 100 streams");
   const videoTrack = tracks.find((track) => track.type === "video");
   const width = videoTrack?.width ?? 320;
   const height = videoTrack?.height ?? 240;
-  const frameCount = videoTrack?.samples.length || videoTrack?.decodedVideoFrames?.length || 0;
-  const fps = frameCount > 0 && videoTrack && videoTrack.duration > 0 && videoTrack.timescale > 0
+  let frameCount = videoTrack?.samples.length || videoTrack?.decodedVideoFrames?.length || 0;
+  let fps = frameCount > 0 && videoTrack && videoTrack.duration > 0 && videoTrack.timescale > 0
     ? frameCount * videoTrack.timescale / videoTrack.duration : 30;
-
-  const avih = new BinaryWriter(56);
-  avih.writeU32LE(Math.round(1_000_000 / fps));
-  avih.writeU32LE(100000);
-  avih.writeU32LE(0);
-  avih.writeU32LE(0x10); // AVIF_HASINDEX
-  avih.writeU32LE(frameCount);
-  avih.writeU32LE(0);
-  avih.writeU32LE(tracks.length);
-  avih.writeU32LE(width * height * 3);
-  avih.writeU32LE(width);
-  avih.writeU32LE(height);
-  avih.writeZeros(16);
 
   const strlLists: Uint8Array[] = [];
   const moviChunks: Uint8Array[] = [];
@@ -401,6 +388,8 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
     const strf = new BinaryWriter();
     let samples = track.samples;
     let payloads: Uint8Array[];
+    let slotTicks = 0;
+    let slotCount = samples.length;
     const chunkId = `${String(streamIndex).padStart(2, "0")}${track.type === "video" ? "dc" : "wb"}`;
 
     if (track.type === "video") {
@@ -414,11 +403,21 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
         });
       }
       const timed = samples.length > 0 && track.duration > 0 && track.timescale > 0;
-      const ticks = timed ? track.duration : 1;
-      const frames = timed ? samples.length * track.timescale : Math.max(1, Math.round(fps));
+      // AVI advances one clock tick per chunk, including empty dropped-frame chunks.
+      slotTicks = timed ? samples.reduce((ticks, sample) =>
+        gcd(gcd(ticks, sample.duration), sample.dts - samples[0]!.dts), track.duration) : 0;
+      const ticks = timed ? Math.max(1, slotTicks) : 1;
+      const frames = timed ? track.timescale : Math.max(1, Math.round(fps));
+      slotTicks = timed ? ticks : 0;
+      slotCount = timed ? Math.max(samples.length, Math.ceil(track.duration / ticks)) : samples.length;
+      budget.checkSamples(slotCount);
       const divisor = gcd(frames, ticks);
       const rate = frames / divisor;
       const scale = ticks / divisor;
+      if (track === videoTrack) {
+        fps = rate / scale;
+        frameCount = slotCount;
+      }
       const codec = desc?.codecName === "mjpeg" ? "MJPG" : desc?.codecName === "mpeg4" ? "FMP4" : "H264";
       strh.writeFourCC("vids");
       strh.writeFourCC(codec);
@@ -429,7 +428,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strh.writeU32LE(scale);
       strh.writeU32LE(rate);
       strh.writeU32LE(0);
-      strh.writeU32LE(samples.length);
+      strh.writeU32LE(slotCount);
       strh.writeU32LE(w * h * 3);
       strh.writeU32LE(0xffffffff);
       strh.writeU32LE(0);
@@ -492,22 +491,41 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strf.writeU16LE(bits);
       strf.writeU16LE(0);
       payloads = samples.map(sample => sample.data);
+      slotCount = samples.length;
     }
 
     strlLists.push(makeRiffList("strl", [
       makeRiffChunk("strh", strh.toUint8Array()),
       makeRiffChunk("strf", strf.toUint8Array())
     ]));
-    for (const [index, data] of payloads.entries()) {
+    let sampleIndex = 0;
+    for (let slot = 0; slot < slotCount; slot++) {
+      const sample = samples[sampleIndex];
+      const occupied = sample !== undefined && (slotTicks === 0 ||
+        slot >= Math.round((sample.dts - samples[0]!.dts) / slotTicks));
+      const data = occupied ? payloads[sampleIndex++]! : new Uint8Array(0);
       const chunk = makeRiffChunk(chunkId, data);
       moviChunks.push(chunk);
       idx1Writer.writeFourCC(chunkId);
-      idx1Writer.writeU32LE(samples[index]!.isKeyframe ? 0x10 : 0x00);
+      idx1Writer.writeU32LE(occupied && sample.isKeyframe ? 0x10 : 0x00);
       idx1Writer.writeU32LE(moviOffset);
       idx1Writer.writeU32LE(data.byteLength);
       moviOffset += chunk.byteLength;
     }
   }
+
+  const avih = new BinaryWriter(56);
+  avih.writeU32LE(Math.round(1_000_000 / fps));
+  avih.writeU32LE(100000);
+  avih.writeU32LE(0);
+  avih.writeU32LE(0x10); // AVIF_HASINDEX
+  avih.writeU32LE(frameCount);
+  avih.writeU32LE(0);
+  avih.writeU32LE(tracks.length);
+  avih.writeU32LE(width * height * 3);
+  avih.writeU32LE(width);
+  avih.writeU32LE(height);
+  avih.writeZeros(16);
 
   const hdrlList = makeRiffList("hdrl", [
     makeRiffChunk("avih", avih.toUint8Array()),

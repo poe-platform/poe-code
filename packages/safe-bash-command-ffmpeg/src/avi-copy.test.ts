@@ -52,3 +52,29 @@ for (const [maps, order] of [
     }
   });
 }
+
+// Native FFmpeg: testsrc2 at 10 fps, select frames 0, 1, 2, 8, 9; H.264 without B-frames.
+it("MP4 to AVI copy preserves all five nonuniform packet times", async () => {
+    const files = new Map<string, Uint8Array>([["/in.mp4", new Uint8Array(readFileSync(new URL("../../mp4-ast/src/fixtures/nonuniform.mp4", import.meta.url)))]]);
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-i", "/in.mp4", "-map", "0", "-c", "copy", "/out.avi"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return files.get(path)!; },
+        async writeFile(path: string, bytes: Uint8Array) { files.set(path, bytes); },
+        async stat(path: string) {
+          if (!files.has(path)) throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+          return { type: "file", size: files.get(path)!.length, mode: 0o644, mtimeMs: 0 };
+        }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    const actual = parseAvi(files.get("/out.avi")!);
+    const track = actual.tracks[0]!;
+    assert.deepEqual(track.samples.map(sample => sample.dts / track.timescale), [0, 0.1, 0.2, 0.8, 0.9]);
+    assert.equal(actual.durationSeconds, 1);
+});

@@ -87,3 +87,34 @@ for (const audioTail of [false, true]) {
     });
   }
 }
+
+it("preserves each nonuniform packet time using empty AVI chunks", () => {
+  const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 5 }));
+  const times = [0, 1, 2, 8, 9];
+  const track = source.tracks[0]!;
+  const samples = track.samples.map((sample, index) => ({ ...sample,
+    dts: times[index]!, pts: times[index]!, duration: (times[index + 1] ?? 10) - times[index]!
+  }));
+  const doc = { ...source, tracks: [{ ...track, timescale: 10, duration: 10, samples }] };
+  assert.throws(() => serializeAvi(doc, { limits: { maxSamplesPerTrack: 9 } }), /maxSamplesPerTrack/);
+  const bytes = Buffer.from(serializeAvi(doc));
+  const actual = parseAvi(bytes);
+  assert.deepEqual(actual.tracks[0]!.samples.map(sample => sample.dts / actual.tracks[0]!.timescale),
+    [0, 0.1, 0.2, 0.8, 0.9]);
+  assert.equal(actual.durationSeconds, 1);
+  const strh = bytes.indexOf("strh");
+  assert.equal(bytes.readUInt32LE(strh + 28), 1);
+  assert.equal(bytes.readUInt32LE(strh + 32), 10);
+  assert.equal(bytes.readUInt32LE(strh + 40), 10);
+  assert.equal(bytes.readUInt32LE(bytes.indexOf("avih") + 24), 10);
+  const movi = bytes.indexOf("movi");
+  const idx1 = bytes.indexOf("idx1");
+  const codedSlots: number[] = [];
+  for (let pos = idx1 + 8, slot = 0; pos < bytes.length; pos += 16, slot++) {
+    const offset = bytes.readUInt32LE(pos + 8);
+    const size = bytes.readUInt32LE(pos + 12);
+    assert.equal(bytes.readUInt32LE(movi + offset + 4), size);
+    if (size > 0) codedSlots.push(slot);
+  }
+  assert.deepEqual(codedSlots, times);
+});

@@ -118,7 +118,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes input/output timestamp offsets and the current subtitle command graph.
   // Includes ashowinfo and the current subtitle parser dependencies (823,959 bytes).
   // Includes APNG frame assembly, play counts, and both command execution paths (830,166 bytes).
-  assert.ok(otherCodeBytes < 831_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes selectable ICO/CUR streams and the current icon container command graph (833,464 bytes).
+  assert.ok(otherCodeBytes < 835_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -157,6 +158,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes two-input PCM cross-correlation (9,822,359 bytes).
   // Includes the current parser graph and PCM frame diagnostics (9,993,584 bytes).
   // Includes APNG output and the current animation decoder graph (10,012,811 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_020_000,
+  // Includes ICO/CUR entries and the shared icon codec graph (10,021,895 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_025_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

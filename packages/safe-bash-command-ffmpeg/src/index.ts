@@ -1720,11 +1720,17 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
   return tracks;
 }
 
-function selectAutomaticAudio(documents: readonly MediaDocument[]): MediaDocument[] {
+function selectAutomaticStreams(documents: readonly MediaDocument[]): MediaDocument[] {
   let selected: MediaTrack | undefined;
   let bestScore = -1;
+  let video: MediaTrack | undefined;
+  let bestArea = -1;
   for (const document of documents) {
     for (const track of document.tracks) {
+      if (track.type === "video") {
+        const area = (track.width ?? 0) * (track.height ?? 0);
+        if (area > bestArea) { video = track; bestArea = area; }
+      }
       if (track.type !== "audio") continue;
       // FFmpeg prefers default audio, then channel count, then input order.
       const score = ((track.disposition?.default ?? track.enabled) ? 1 << 22 : 0)
@@ -1738,7 +1744,7 @@ function selectAutomaticAudio(documents: readonly MediaDocument[]): MediaDocumen
   return documents.map(document => ({
     ...document,
     attachments: [],
-    tracks: document.tracks.filter(track => track.type !== "audio" || track === selected)
+    tracks: document.tracks.filter(track => track.type === "video" ? track === video : track.type !== "audio" || track === selected)
   }));
 }
 
@@ -2316,7 +2322,7 @@ export function evalSyncFfmpeg(
     const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
     // MP4/MOV have no default subtitle encoder for automatic stream selection.
     if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
-    let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
+    let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
@@ -4010,7 +4016,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const attachments = streams.filter((stream): stream is MediaAttachment => !("samples" in stream));
               if (!mapped) {
                 // Ignored optional maps leave automatic video/audio selection enabled.
-                const tracks = selectAutomaticAudio(loadedDocs).flatMap(doc => doc.tracks);
+                const tracks = selectAutomaticStreams(loadedDocs).flatMap(doc => doc.tracks);
                 for (const type of ["video", "audio"] as const) {
                   const track = tracks.find(track => track.type === type);
                   if (track) filteredTracks.push(track);
@@ -4024,7 +4030,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               // Explicit maps retain their requested streams.
               if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
-              workingDoc = await muxMp4Cooperatively(selectAutomaticAudio(loadedDocs), {
+              workingDoc = await muxMp4Cooperatively(selectAutomaticStreams(loadedDocs), {
                 stripAudio,
                 stripVideo,
                 stripSubtitles,

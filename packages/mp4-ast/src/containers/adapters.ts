@@ -1,3 +1,5 @@
+import { icoAst } from "./ico.js";
+export { icoAst } from "./ico.js";
 import { apngAst } from "./apng.js";
 export { apngAst } from "./apng.js";
 import { pjsAst } from "./pjs.js";
@@ -2491,6 +2493,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     oggAst(),
     gifAst(),
     apngAst(),
+    icoAst(),
     image2Ast(),
     srtAst(),
     ttmlAst(),

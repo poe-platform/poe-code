@@ -6212,3 +6212,75 @@ describe("APNG output", () => {
     assert.equal(new TextDecoder().decode(vfs.store.get("/out.apng")), "keep");
   });
 });
+
+// Construct the directory and DIB directly, independently of the ICO encoder.
+describe("ICO video streams", () => {
+  async function icon(kind: number, png: boolean) {
+    const { encodeImage } = await import("@poe-code/image-ast/portable");
+    const sizes = [16, 32, 64];
+    const payloads = sizes.map((size, index) => {
+      const data = new Uint8Array(size * size * 4);
+      for (let p = 0; p < data.length; p += 4) { data[p + index] = 255; data[p + 3] = p ? 255 : 0; }
+      if (png) return encodeImage({ width: size, height: size, data, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+      const stride = Math.ceil(size / 32) * 4;
+      const dib = new Uint8Array(40 + data.length + stride * size), view = new DataView(dib.buffer);
+      view.setUint32(0, 40, true); view.setInt32(4, size, true); view.setInt32(8, size * 2, true);
+      view.setUint16(12, 1, true); view.setUint16(14, 32, true);
+      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        const source = (y * size + x) * 4, target = 40 + ((size - y - 1) * size + x) * 4;
+        dib.set([data[source + 2]!, data[source + 1]!, data[source]!, data[source + 3]!], target);
+      }
+      dib[40 + data.length + (size - 1) * stride] = 128;
+      return dib;
+    });
+    const bytes = new Uint8Array(54 + payloads.reduce((sum, p) => sum + p.length, 0)), view = new DataView(bytes.buffer);
+    view.setUint16(2, kind, true); view.setUint16(4, 3, true);
+    let offset = 54;
+    payloads.forEach((payload, index) => {
+      const entry = 6 + index * 16;
+      bytes[entry] = sizes[index]!; bytes[entry + 1] = sizes[index]!;
+      view.setUint16(entry + 4, kind === 1 ? 1 : 3, true); view.setUint16(entry + 6, kind === 1 ? 32 : 7, true);
+      view.setUint32(entry + 8, payload.length, true); view.setUint32(entry + 12, offset, true);
+      bytes.set(payload, offset); offset += payload.length;
+    });
+    return bytes;
+  }
+  for (const kind of [1, 2]) for (const png of [true, false]) {
+    for (const map of [undefined, "0:v:0", "0:v:1", "0:v:2", "0:1"]) {
+      it(`selects ${map ?? "largest"} from ${png ? "PNG" : "DIB"} ${kind === 1 ? "ICO" : "CUR"}`, async () => {
+        const { decodeImage } = await import("@poe-code/image-ast/portable");
+        const vfs = createTestVfs({ "/input.bin": await icon(kind, png) });
+        const result = await runCmd(createFfmpegCommand(), ["-i", "/input.bin", ...(map ? ["-map", map] : []), "/out.png"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const page = map ? Number(map.split(":").at(-1)) : 2;
+        const image = decodeImage(vfs.store.get("/out.png")!);
+        assert.equal(image.width, [16, 32, 64][page]); assert.equal(image.height, image.width);
+        assert.equal(image.data[3], 0);
+        assert.deepEqual([...image.data.slice(4, 8)], [page === 0 ? 255 : 0, page === 1 ? 255 : 0, page === 2 ? 255 : 0, 255]);
+      });
+    }
+  }
+  it("probes entries in directory order with their dimensions", async () => {
+    const vfs = createTestVfs({ "/in.ico": await icon(1, true) });
+    const result = await runCmd(createFfprobeCommand(), ["-show_streams", "-of", "json", "/in.ico"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const probe = JSON.parse(result.stdout);
+    assert.deepEqual(probe.streams.map((stream: { width: number; height: number }) => [stream.width, stream.height]), [[16, 16], [32, 32], [64, 64]]);
+  });
+  for (const limits of [{ maxStreams: 2 }, { maxFrames: 2 }, { maxPixelsPerFrame: 1024 }, { maxMemoryBytes: 4096 }]) {
+    it(`bounds icon decoding with ${JSON.stringify(limits)}`, async () => {
+      const vfs = createTestVfs({ "/in.ico": await icon(1, false), "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand({ limits }), ["-y", "-i", "/in.ico", "/out.png"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    });
+  }
+  it("rejects malformed directories and missing streams without replacing output", async () => {
+    const bytes = await icon(1, true);
+    for (const [input, map] of [[bytes.slice(0, -1), "0:v:1"], [bytes, "0:v:3"]] as const) {
+      const vfs = createTestVfs({ "/in.ico": input, "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.ico", "-map", map, "/out.png"], vfs);
+      assert.notEqual(result.exitCode, 0); assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    }
+  });
+});

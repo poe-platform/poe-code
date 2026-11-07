@@ -1,3 +1,4 @@
+import { tremoloAudio } from "./audio-tremolo.js";
 import { phaseAudio } from "./audio-aphaser.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
@@ -4406,6 +4407,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
                         stretched = await phaseAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                      } else if (trimmed === "tremolo" || trimmed.startsWith("tremolo=")) {
+                        stretched = await tremoloAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
                         stretched = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;

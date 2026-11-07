@@ -3,6 +3,7 @@ import { readVint, writeVintSize } from "./ebml.js";
 import {
   BinaryWriter,
   concatBytes,
+  gcd,
   decodeUtf8,
   encodeUtf8
 } from "../binary.js";
@@ -820,15 +821,18 @@ export function serializeMkv(
     }
 
     if (trk.type === "video") {
-      entryParts.push(
-        makeEbmlElement(
-          0xe0,
-          concatBytes([
-            makeEbmlUint(0xb0, trk.width ?? desc?.width ?? 320),
-            makeEbmlUint(0xba, trk.height ?? desc?.height ?? 240)
-          ])
-        )
-      );
+      const width = trk.width ?? desc?.width ?? 320;
+      const height = trk.height ?? desc?.height ?? 240;
+      const videoParts = [makeEbmlUint(0xb0, width), makeEbmlUint(0xba, height)];
+      if (desc?.sarWidth && desc.sarHeight && desc.sarWidth !== desc.sarHeight) {
+        const divisor = gcd(desc.sarWidth, desc.sarHeight);
+        // Pixel display units also work in WebM; scale both axes to retain exact ratios.
+        videoParts.push(
+          makeEbmlUint(0x54b0, width * (desc.sarWidth / divisor)),
+          makeEbmlUint(0x54ba, height * (desc.sarHeight / divisor))
+        );
+      }
+      entryParts.push(makeEbmlElement(0xe0, concatBytes(videoParts)));
     } else if (trk.type === "audio") {
       entryParts.push(
         makeEbmlElement(

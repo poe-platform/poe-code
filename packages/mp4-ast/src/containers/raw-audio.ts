@@ -1,4 +1,5 @@
-import type { MediaAstPlugin } from "../types.js";
+import { MediaBudgetTracker, type MediaDocument, type ParseMediaOptions, type MediaAstPlugin } from "../types.js";
+import { buildProbeResultFromDoc } from "../mp4.js";
 import { concatBytes } from "../binary.js";
 import { decodeAacTrack } from "../aac.js";
 import { decodeMp3Track } from "../mp3.js";
@@ -31,7 +32,68 @@ function compandingTable(alaw: boolean): Uint8Array {
 const mulawTable = compandingTable(false);
 const alawTable = compandingTable(true);
 
-/** Output-only muxers: raw audio has no signature or self-describing stream metadata. */
+function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOptions = {}): MediaDocument {
+  const sampleRate = options.sampleRate ?? 44100;
+  const channels = options.channels ?? 1;
+  if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0 || sampleRate > 0xffffffff ||
+      !Number.isSafeInteger(channels) || channels <= 0 || channels > 65535) {
+    throw new Error("Invalid raw audio sample rate or channel count");
+  }
+  const bits = format === "mulaw" || format === "alaw" ? 8 : Number.parseInt(format.slice(1), 10);
+  const width = bits / 8;
+  if (bytes.length % (width * channels) !== 0) throw new Error("Incomplete raw audio sample frame");
+  const frames = bytes.length / (width * channels);
+  const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+  budget.checkInputBytes(bytes.length);
+  budget.checkStreams(1);
+  budget.checkDuration(frames / sampleRate);
+  budget.checkSamples(frames === 0 ? 0 : 1);
+  let channelData: Float64Array[] | undefined;
+  if (options.decodeAudio !== false) {
+    budget.allocateMemory(frames * channels * 8);
+    channelData = Array.from({ length: channels }, () => new Float64Array(frames));
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const le = format.endsWith("le");
+    for (let frame = 0; frame < frames; frame++) {
+      if (frame % 4096 === 0) budget.checkCpu();
+      for (let ch = 0; ch < channels; ch++) {
+        const offset = (frame * channels + ch) * width;
+        let value: number;
+        if (format.startsWith("f")) value = bits === 32 ? view.getFloat32(offset, le) : view.getFloat64(offset, le);
+        else if (format === "mulaw") {
+          const code = bytes[offset]! ^ 255;
+          const magnitude = ((code & 15) * 8 + 132) * 2 ** ((code >> 4) & 7) - 132;
+          value = (code & 128 ? -magnitude : magnitude) / 32768;
+        } else if (format === "alaw") {
+          const code = bytes[offset]! ^ 85;
+          const exponent = (code >> 4) & 7;
+          const magnitude = exponent === 0 ? (code & 15) * 16 + 8 : ((code & 15) * 16 + 264) * 2 ** (exponent - 1);
+          value = (code & 128 ? magnitude : -magnitude) / 32768;
+        } else if (bits === 8) value = format === "u8" ? (bytes[offset]! - 128) / 128 : view.getInt8(offset) / 128;
+        else if (bits === 16) value = view.getInt16(offset, le) / 32768;
+        else if (bits === 24) {
+          const packed = le ? bytes[offset]! | bytes[offset + 1]! << 8 | bytes[offset + 2]! << 16
+            : bytes[offset + 2]! | bytes[offset + 1]! << 8 | bytes[offset]! << 16;
+          value = (packed << 8 >> 8) / 8388608;
+        } else value = view.getInt32(offset, le) / 2147483648;
+        if (!Number.isFinite(value)) throw new Error("Non-finite raw audio sample");
+        channelData[ch]![frame] = value;
+      }
+    }
+  }
+  return {
+    containerFormat: format, timescale: sampleRate, duration: frames, durationSeconds: frames / sampleRate,
+    metadata: {}, byteLength: bytes.length,
+    tracks: [{
+      id: 1, type: "audio", handlerType: "soun", timescale: sampleRate, duration: frames, language: "und", enabled: true,
+      codecDescriptions: [{ formatFourCC: "raw ", codecName: `pcm_${format}`, sampleRate, channels, bitsPerSample: bits }],
+      samples: frames === 0 ? [] : [{ data: bytes, size: bytes.length, dts: 0, pts: 0, cts: 0, duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 }],
+      ...(channelData ? { decodedAudio: { sampleRate, channels, channelData } } : {})
+    }]
+  };
+}
+
+/** Headerless audio requires an explicit format; it cannot be detected from bytes. */
 export function rawAudioAsts(): MediaAstPlugin[] {
   return formats.map(format => ({
     id: format,
@@ -39,13 +101,15 @@ export function rawAudioAsts(): MediaAstPlugin[] {
     formatLongName: `Raw ${format} audio`,
     extensions: [],
     mimeTypes: [],
-    canDemux: false,
+    canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
     supportedAudioCodecs: [`pcm_${format}`],
     detect: () => false,
-    parse() { throw new Error("Raw audio input requires explicit stream parameters"); },
-    probe() { throw new Error("Raw audio has no stream metadata"); },
+    parse(bytes, options) { return parseRawAudio(bytes, format, options); },
+    probe(bytes, options = {}) {
+      return buildProbeResultFromDoc(parseRawAudio(bytes, format, options), bytes.length, options.filename, { ...options, formatName: format });
+    },
     serialize(doc, options = {}) {
       const track = doc.tracks.find(t => t.type === "audio");
       if (!track) throw new Error("Raw audio output requires an audio stream");

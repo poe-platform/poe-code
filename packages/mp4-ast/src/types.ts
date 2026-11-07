@@ -590,6 +590,9 @@ export interface MediaSourceProbeOptions extends ParseMediaOptions {
 }
 
 export interface ParseMediaOptions {
+  /** Stream parameters for explicitly selected headerless audio formats. */
+  readonly sampleRate?: number | undefined;
+  readonly channels?: number | undefined;
   /** Resolve a manifest-relative segment URI synchronously from caller-owned storage. */
   readonly resolveResource?: ((uri: string) => Uint8Array) | undefined;
   readonly filename?: string | undefined;

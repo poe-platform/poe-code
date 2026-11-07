@@ -24,6 +24,8 @@ Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example
 `ffmpeg -i input.wav -f s16le output.pcm`.
+Read headerless samples with input format, rate, and channel options:
+`ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
 
 WAV extraction decodes Ogg Vorbis, AAC and CBR/VBR MP3 in memory, honoring MP4 edit timing
 and MP3 encoder delay and padding:

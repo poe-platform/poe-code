@@ -1476,6 +1476,8 @@ export function evalSyncFfmpeg(
         inputs.push({
           path: args[++i] ?? "",
           format: pendingFormat,
+          sampleRate: audioRate,
+          channels: audioChannels,
           startSeconds: pendingSs,
           endSeconds: pendingTo,
           durationSeconds: pendingDuration,
@@ -1483,6 +1485,7 @@ export function evalSyncFfmpeg(
           fps: pendingFps,
           startNumber: pendingStartNumber,
         });
+        audioRate = undefined; audioChannels = undefined;
         pendingFormat = undefined; pendingSs = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
@@ -1557,7 +1560,7 @@ export function evalSyncFfmpeg(
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
-        doc = plugin.parse(rawBytes, { filename: inp.path, budget });
+        doc = plugin.parse(rawBytes, { filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
@@ -1736,6 +1739,8 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
 }
 
 interface InputSpec {
+  readonly sampleRate?: number | undefined;
+  readonly channels?: number | undefined;
   readonly path: string;
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
@@ -2048,6 +2053,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             inputs.push({
               path,
               format: pendingFormat,
+              sampleRate: audioRate,
+              channels: audioChannels,
               safe: pendingSafe,
               startSeconds: pendingSs,
               endSeconds: pendingTo,
@@ -2059,6 +2066,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               patternType: pendingPatternType,
               startNumberRange: pendingStartNumberRange
             });
+            audioRate = undefined;
+            audioChannels = undefined;
             pendingFormat = undefined;
             pendingSafe = undefined;
             pendingSs = undefined;
@@ -2489,6 +2498,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget);
               return plugin.parse(rawBytes, {
                 resolveResource,
+                sampleRate: input?.sampleRate,
+                channels: input?.channels,
                 filename: filePath,
                 limits: options.limits,
                 budget

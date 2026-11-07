@@ -444,7 +444,11 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     for (let i = 0; i < totalPcmSamples; i++) {
       for (let ch = 0; ch < channels; ch++) {
         const byteOff = (i * channels + ch) * (bitsPerSample >>> 3);
-        if (formatTag === 3 && bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
+        if (bitsPerSample === 64 && byteOff + 8 <= pcmData.byteLength) {
+          channelData[ch]![i] = formatTag === 3
+            ? pcmView.getFloat64(byteOff, true)
+            : Number(pcmView.getBigInt64(byteOff, true)) / 2 ** 63;
+        } else if (formatTag === 3 && bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
           channelData[ch]![i] = pcmView.getFloat32(byteOff, true);
         } else if (bitsPerSample === 24 && byteOff + 3 <= pcmData.byteLength) {
           const value = pcmData[byteOff]! | (pcmData[byteOff + 1]! << 8) | (pcmData[byteOff + 2]! << 16);
@@ -567,8 +571,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);
     const bytesPerSample = bitsPerSample >>> 3;
-    // FFmpeg packs PCM24 from the high three bytes of signed PCM32.
-    const scale = 2 ** ((bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
+    // FFmpeg packs PCM8/PCM24 from the high bytes of signed PCM16/PCM32.
+    const scale = 2 ** ((bitsPerSample === 8 ? 16 : bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
     pcmBytes = new Uint8Array(numSamples * channels * bytesPerSample);
     const pView = new DataView(pcmBytes.buffer);
     for (let i = 0; i < numSamples; i++) {
@@ -584,7 +588,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
         // FFmpeg rounds halfway PCM values to the nearest even integer.
         const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
         const sample = Math.min(scale - 1, rounded);
-        if (bitsPerSample === 8) pView.setUint8(offset, sample + 128);
+        if (bitsPerSample === 8) pView.setUint8(offset, (sample >> 8) + 128);
         else if (bitsPerSample === 16) pView.setInt16(offset, sample, true);
         else if (bitsPerSample === 24) {
           pcmBytes[offset] = (sample >> 8) & 255;

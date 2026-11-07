@@ -1,3 +1,4 @@
+import { serializeFrameChecksum } from "./frame-checksum.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
@@ -3458,7 +3459,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: decodeExitCode };
             }
 
-            const checksumOutput = outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
+            const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
+            const checksumOutput = frameChecksumOutput || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
             if (!checksumOutput && (!outPlugin || !outPlugin.canMux)) {
               const fmtDesc = outputFormat ?? outputTarget;
               throw new Error(
@@ -3471,7 +3473,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin?.id ?? outputFormat!);
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             const serializedBytes = checksumOutput
-              ? serializeAudioChecksum(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)
+              ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)
               : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               audioCodec,

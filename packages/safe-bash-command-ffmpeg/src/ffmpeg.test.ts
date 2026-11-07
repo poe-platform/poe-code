@@ -14,6 +14,68 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("per-frame audio checksums", () => {
+  it("supports explicit hashes, stereo PCM encoding, stream copy, and empty streams", async () => {
+    for (const frames of [0, 515]) {
+      const input = encodeWav({ sampleRate: 8000,
+        channels: [Float64Array.from({ length: frames }, (_, i) => i / 32768), new Float64Array(frames)] });
+      const packets = parseWav(input).tracks[0]!.samples;
+      for (const codec of ["pcm_s16le", "copy"]) {
+        const vfs = createTestVfs({ "/i.wav": input });
+        const result = await runCmd(createFfmpegCommand(), ["-i", "/i.wav", "-c:a", codec, "-f", "framehash", "-hash", "sha512", "-"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.ok(result.stdout.includes("#hash: SHA512\n"));
+        const rows = result.stdout.split("\n").filter(line => line && !line.startsWith("#"));
+        assert.equal(rows.length, packets.length);
+        for (const [i, row] of rows.entries()) {
+          const packet = packets[i]!;
+          assert.deepEqual(row.split(",").map(field => field.trim()), ["0", String(packet.dts), String(packet.pts),
+            String(packet.duration), String(packet.data.length), createHash("sha512").update(packet.data).digest("hex")]);
+        }
+      }
+    }
+  });
+  it("rejects an unknown frame hash without replacing output", async () => {
+    const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(512)] }), "/frames.txt": "keep" });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", "framehash", "-hash", "invalid", "/frames.txt"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "keep");
+  });
+  for (const format of ["framemd5", "framehash", "framecrc"]) {
+    for (const target of ["-", "/frames.txt"]) {
+      it(`${format} to ${target} preserves PCM packet boundaries and the final short packet`, async () => {
+        const frames = 4101;
+        const pcm = new Uint8Array(frames * 2);
+        for (let i = 0; i < frames; i++) new DataView(pcm.buffer).setInt16(i * 2, i - 2048, true);
+        const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
+          channels: [Float64Array.from({ length: frames }, (_, i) => (i - 2048) / 32768)] }) });
+        const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/i.wav", "-f", format, target], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = target === "-" ? result.stdout : new TextDecoder().decode(vfs.store.get(target));
+        assert.ok(output.includes("#tb 0: 1/8000\n"));
+        const rows = output.split("\n").filter(line => line && !line.startsWith("#"));
+        assert.equal(rows.length, 9);
+        for (const [i, row] of rows.entries()) {
+          const payload = pcm.subarray(i * 1024, (i + 1) * 1024);
+          let checksum: string;
+          if (format === "framecrc") {
+            // Native framecrc uses Adler-32 with a zero initial state.
+            let a = 0, b = 0;
+            for (const byte of payload) { a = (a + byte) % 65521; b = (b + a) % 65521; }
+            checksum = `0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}`;
+          } else checksum = createHash(format === "framemd5" ? "md5" : "sha256").update(payload).digest("hex");
+          assert.deepEqual(row.split(",").map(field => field.trim()),
+            ["0", String(i * 512), String(i * 512), String(payload.length / 2), String(payload.length), checksum]);
+        }
+        if (format === "framemd5") {
+          assert.ok(rows[0]!.endsWith("9b29af00d6f8da690f22b3868c730e5a"));
+          assert.ok(rows[7]!.endsWith("15e17ee991df91c85b4e37406dec941b"));
+        }
+      });
+    }
+  }
+});
+
 describe("whole-output audio checksums", () => {
   const channels = [Float64Array.from({ length: 4096 }, (_, i) => (i - 2048) / 32768)];
   const pcm = new Uint8Array(8192);

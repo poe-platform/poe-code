@@ -222,6 +222,18 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(bytes.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
                 }
             }
+        } else if (["sin", "sine", "cos", "cosine"].includes(operation)) {
+            const values = Float64Array.from(data, value => value * 257);
+            const wave = operation === "sin" || operation === "sine" ? Math.sin : Math.cos;
+            for (let image = 1; image < frames; image++) {
+                if (++work % 64 === 0) yield;
+                const bytes = yield* read(image, position, length);
+                // Native uses the accumulated Q16 quantum as the incoming sample's frequency.
+                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * (0.5 + 0.5 * wave(2 * Math.PI * (1 / 65535) * (bytes[offset]! * 257) * values[offset]!));
+            }
+            for (let offset = 0; offset < length; offset++) {
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+            }
         } else if (operation === "exp" || operation === "exponential") {
             const values = Float64Array.from(data, value => value * 257);
             for (let image = 1; image < frames; image++) {

@@ -1,3 +1,6 @@
+import { md5, sha1 } from "@noble/hashes/legacy.js";
+import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import { createFfprobeCommand } from "safe-bash-command-ffprobe";
 export { createFfprobeCommand } from "safe-bash-command-ffprobe";
 export { evalSyncFfprobe } from "safe-bash-command-ffprobe/media";
@@ -87,6 +90,41 @@ export {
   type MediaResourceLimits,
   type MediaResourceLimits as FfmpegLimits
 };
+
+function serializeAudioChecksum(
+  doc: MediaDocument,
+  format: string,
+  algorithm: string,
+  audioCodec: string | undefined,
+  rawAudio: MediaAstPlugin | undefined,
+  budget: MediaBudgetTracker
+): Uint8Array {
+  if (doc.tracks.length !== 1 || doc.tracks[0]!.type !== "audio") {
+    throw new Error("Checksum output requires a single audio stream");
+  }
+  if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
+  const payload = rawAudio.serialize(doc, { audioCodec, budget });
+  if (format === "crc") {
+    // FFmpeg's crc muxer uses Adler-32 rather than a CRC polynomial.
+    let a = 1;
+    let b = 0;
+    for (let i = 0; i < payload.length; i++) {
+      if (i % 4096 === 0) budget.checkCpu();
+      a = (a + payload[i]!) % 65521;
+      b = (b + a) % 65521;
+    }
+    return encodeUtf8(`CRC=0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}\n`);
+  }
+  const name = format === "md5" ? "md5" : algorithm.toLowerCase();
+  const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
+  if (!Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
+  const hash = hashes[name as keyof typeof hashes].create();
+  for (let offset = 0; offset < payload.length; offset += 65536) {
+    budget.checkCpu();
+    hash.update(payload.subarray(offset, offset + 65536));
+  }
+  return encodeUtf8(`${name.toUpperCase()}=${bytesToHex(hash.digest())}\n`);
+}
 
 function parseFrameRate(value: string): number | undefined {
   switch (value) {
@@ -1842,6 +1880,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let framePts = false;
 
         let outputFormat: string | undefined;
+        let hashAlgorithm = "sha256";
         let outputSs: number | undefined;
         let outputTo: number | undefined;
         let outputDuration: number | undefined;
@@ -1899,6 +1938,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSafe = value === "1";
           } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
             i++;
+          } else if (arg === "-hash") {
+            hashAlgorithm = args[++i] ?? "";
           } else if (arg === "-update") {
             updateImage = args[++i] === "1";
           } else if (arg === "-vsync" || arg === "-fps_mode") {
@@ -3417,7 +3458,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: decodeExitCode };
             }
 
-            if (!outPlugin || !outPlugin.canMux) {
+            const checksumOutput = outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
+            if (!checksumOutput && (!outPlugin || !outPlugin.canMux)) {
               const fmtDesc = outputFormat ?? outputTarget;
               throw new Error(
                 `Unable to find a suitable output format for '${fmtDesc}' (format AST not registered)`
@@ -3426,9 +3468,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
             const outExt = outputTarget.split(".").pop()?.toLowerCase();
-            if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin.id);
-            validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-            const serializedBytes = outPlugin.serialize(workingDoc, {
+            if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin?.id ?? outputFormat!);
+            validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
+            const serializedBytes = checksumOutput
+              ? serializeAudioChecksum(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)
+              : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               audioCodec,
               faststart,

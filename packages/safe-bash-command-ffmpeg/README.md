@@ -24,6 +24,12 @@ Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example
 `ffmpeg -i input.wav -f s16le output.pcm`.
+Verify a single audio stream with `-f hash -` (SHA256), `-f md5 -`, or
+`-f crc -` (Adler-32). These hash decoded PCM16 samples, without container
+headers; `-f hash -hash sha512 digest.txt` selects another digest and writes a file.
+Hash selection supports MD5, SHA160, SHA224, SHA256, SHA384, and SHA512.
+Audio filters and explicit PCM encoders apply before hashing; `-c:a copy` hashes
+the encoded audio packets. Use `-vn` to exclude video.
 Read headerless samples with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
 

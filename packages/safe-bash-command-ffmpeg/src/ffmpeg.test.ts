@@ -14,6 +14,58 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("whole-output audio checksums", () => {
+  const channels = [Float64Array.from({ length: 4096 }, (_, i) => (i - 2048) / 32768)];
+  const pcm = new Uint8Array(8192);
+  for (let i = 0; i < 4096; i++) new DataView(pcm.buffer).setInt16(i * 2, i - 2048, true);
+  for (const [format, extra, expected] of [
+    ["hash", [], "SHA256=4d03c1071bbb0168f05cfdcf859053a7bfe695a3204039925404b9037f51395c\n"],
+    ["md5", [], "MD5=a258820e1cb3e7b24776b047836fcfb4\n"],
+    ["crc", [], "CRC=0xd2a9f0e2\n"],
+    ["hash", ["-hash", "sha160"], `SHA160=${createHash("sha1").update(pcm).digest("hex")}\n`],
+    ["hash", ["-hash", "sha224"], `SHA224=${createHash("sha224").update(pcm).digest("hex")}\n`],
+    ["hash", ["-hash", "sha384"], `SHA384=${createHash("sha384").update(pcm).digest("hex")}\n`],
+    ["hash", ["-hash", "sha512"], `SHA512=${createHash("sha512").update(pcm).digest("hex")}\n`]
+  ] as const) {
+    for (const target of ["-", "/digest.txt"]) {
+      it(`${format} ${extra.join(" ")} to ${target} hashes decoded PCM without headers`, async () => {
+        // Floating-point input must be converted to the muxer's default PCM16.
+        const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels }, { float: true, bitsPerSample: 32 }) });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/i.wav", "-f", format, ...extra, target], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(target === "-" ? result.stdout : new TextDecoder().decode(vfs.store.get(target)), expected);
+        if (target !== "-") assert.equal(result.stdout, "");
+      });
+    }
+  }
+  for (const codec of [undefined, "pcm_s16be", "copy"]) {
+    it(`hashes integer WAV with encoder ${codec ?? "default"}`, async () => {
+      const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels }) });
+      const payload = pcm.slice();
+      if (codec === "pcm_s16be") {
+        for (let i = 0; i < payload.length; i += 2) [payload[i], payload[i + 1]] = [payload[i + 1]!, payload[i]!];
+      }
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/i.wav", ...(codec ? ["-c", codec] : []), "-f", "hash", "-"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, `SHA256=${createHash("sha256").update(payload).digest("hex")}\n`);
+    });
+  }
+  it("hashes filtered audio and keeps digest options local to each output", async () => {
+    const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/i.wav", "-af", "volume=0", "-f", "hash", "-hash", "md5", "/silent.txt", "-f", "hash", "-"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/silent.txt")), `MD5=${createHash("md5").update(new Uint8Array(8192)).digest("hex")}\n`);
+    assert.equal(result.stdout, `SHA256=${createHash("sha256").update(pcm).digest("hex")}\n`);
+  });
+  it("rejects unknown digest algorithms without replacing a file", async () => {
+    const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels }), "/digest.txt": "keep" });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", "hash", "-hash", "invalid", "/digest.txt"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")), "keep");
+  });
+});
+
 describe("truncated PCM decoding", () => {
   for (const output of [["-f", "null", "-"], ["/out.wav"]]) {
     for (const [name, frames, remove, expectedFrames, exitCode] of [

@@ -26,7 +26,9 @@
     "test": "node --import tsx --test --test-concurrency=1 src/*.test.ts",
     "test:unit": "node --import tsx --test --test-concurrency=1 src/*.test.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
+  },
   "devDependencies": {
     "@poe-code/mp4-ast": "*",
     "@poe-code/image-ast": "*",

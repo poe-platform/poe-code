@@ -69,6 +69,7 @@ import {
   type MediaAstPlugin,
   type MediaAudioData,
   type MediaDocument,
+  type MediaAttachment,
   type MediaFeatureOptions,
   type MediaResourceLimits,
   type MediaTrack,
@@ -1303,6 +1304,7 @@ function selectAutomaticAudio(documents: readonly MediaDocument[]): MediaDocumen
   }
   return documents.map(document => ({
     ...document,
+    attachments: [],
     tracks: document.tracks.filter(track => track.type !== "audio" || track === selected)
   }));
 }
@@ -2887,7 +2889,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (cleanedComplex) vfFilters.push(cleanedComplex);
               }
             } else if (maps.length > 0) {
-              let selectedTracks: { input: number; track: MediaTrack }[] = [];
+              let selectedTracks: { input: number; track: MediaTrack | MediaAttachment }[] = [];
               let mapped = false;
               for (const map of maps) {
                 const exclude = map.startsWith("-");
@@ -2904,14 +2906,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   return { exitCode: 234 };
                 }
                 const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
-                let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
-                const streamSpecifier = type ? specifier.slice(1) : specifier;
+                let matches: readonly (MediaTrack | MediaAttachment)[] = type ? srcDoc.tracks.filter(t => t.type === type)
+                  : selector === "t" ? srcDoc.attachments ?? [] : [...srcDoc.tracks, ...srcDoc.attachments ?? []];
+                const streamSpecifier = type || selector === "t" ? specifier.slice(1) : specifier;
                 const [index, key, ...valueParts] = streamSpecifier;
                 if (index?.startsWith("#")) {
-                  matches = matches.filter(track => track.id === Number(index.slice(1)));
+                  matches = matches.filter(track => "id" in track && track.id === Number(index.slice(1)));
                 } else if (index === "m") {
                   const value = valueParts.length ? valueParts.join(":") : undefined;
-                  matches = matches.filter(track => key === "language" &&
+                  matches = matches.filter(track => "samples" in track && key === "language" &&
                     (value === undefined || track.language === value));
                 } else if (index !== undefined) {
                   matches = matches.filter((_, i) => i === Number(index));
@@ -2927,7 +2930,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
                 }
               }
-              const filteredTracks = selectedTracks.map(entry => entry.track);
+              const streams = selectedTracks.map(entry => entry.track);
+              const filteredTracks = streams.filter((stream): stream is MediaTrack => "samples" in stream);
+              const attachments = streams.filter((stream): stream is MediaAttachment => !("samples" in stream));
               if (!mapped) {
                 // Ignored optional maps leave automatic video/audio selection enabled.
                 const tracks = selectAutomaticAudio(loadedDocs).flatMap(doc => doc.tracks);
@@ -2938,7 +2943,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               workingDoc = await muxMp4Cooperatively(
-                [{ ...loadedDocs[0]!, tracks: filteredTracks }],
+                [{ ...loadedDocs[0]!, tracks: filteredTracks, attachments }],
                 { stripAudio, stripVideo, stripSubtitles, shortest, rotation }
               , context.signal);
             } else {
@@ -2953,7 +2958,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }, context.signal);
             }
 
-            if (workingDoc.tracks.length === 0) {
+            if (workingDoc.tracks.length === 0 && !workingDoc.attachments?.length) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
               return { exitCode: 234 };
             }

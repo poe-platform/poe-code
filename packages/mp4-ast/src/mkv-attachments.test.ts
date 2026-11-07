@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { parseMkv, probeMkv } from "./containers/mkv.js";
+import { parseMkv, probeMkv, serializeMkv } from "./containers/mkv.js";
 import { writeVintSize } from "./containers/ebml.js";
 
 function element(id: number[], ...children: Uint8Array[]): Uint8Array {
@@ -29,6 +29,9 @@ it("retains multiple attachment names, MIME types and descriptions before tracks
   ]);
   const doc = parseMkv(bytes);
   assert.equal(doc.tracks.length, 1);
+  const copied = parseMkv(serializeMkv(doc));
+  assert.deepEqual(copied.attachments.map(file => file.tags), doc.attachments.map(file => file.tags));
+  assert.deepEqual(copied.attachments.map(file => Buffer.from(file.data).toString()), ["notes", "data"]);
   const probe = probeMkv(bytes, { showPackets: true, showFrames: true });
   assert.equal(probe.format.nb_streams, 3);
   assert.deepEqual(probe.streams.map(stream => [stream.index, stream.codec_type]), [[0, "subtitle"], [1, "attachment"], [2, "attachment"]]);

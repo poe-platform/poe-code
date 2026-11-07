@@ -153,6 +153,7 @@ interface MkvChapter {
 interface MkvAttachment {
   tags: Record<string, string>;
   size: number;
+  data: Uint8Array;
 }
 
 export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument & { attachments: readonly MkvAttachment[] } {
@@ -196,7 +197,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           break;
 
         case 0x61a7: { // AttachedFile
-          const entry: MkvAttachment = { tags: {}, size: 0 };
+          const entry: MkvAttachment = { tags: {}, size: 0, data: new Uint8Array() };
           parseElements(pos, elemEnd, depth + 1, undefined, undefined, entry);
           if (entry.size > 0 && entry.tags.filename && entry.tags.mimetype) attachments.push(entry);
           break;
@@ -212,7 +213,10 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           break;
 
         case 0x465c: // FileData: attachments are extradata, never playable samples.
-          if (attachment) attachment.size = payload.byteLength;
+          if (attachment) {
+            attachment.size = payload.byteLength;
+            attachment.data = payload;
+          }
           break;
 
         case 0x1043a770: // Chapters
@@ -941,6 +945,17 @@ export function serializeMkv(
   flushCluster();
 
   const segmentChildren: Uint8Array[] = [infoElem, tracksElem];
+  if (doc.attachments?.length) {
+    segmentChildren.push(makeEbmlElement(0x1941a469, concatBytes(doc.attachments.map((file, index) =>
+      makeEbmlElement(0x61a7, concatBytes([
+        makeEbmlUint(0x46ae, index + 1), // FileUID
+        makeEbmlString(0x466e, file.tags.filename ?? ""),
+        makeEbmlString(0x4660, file.tags.mimetype ?? ""),
+        ...(file.tags.title === undefined ? [] : [makeEbmlString(0x467e, file.tags.title)]),
+        makeEbmlElement(0x465c, file.data)
+      ]))
+    ))));
+  }
   if (doc.chapters?.length) {
     segmentChildren.push(makeEbmlElement(0x1043a770, // Chapters
       makeEbmlElement(0x45b9, concatBytes(doc.chapters.map(chapter => // EditionEntry

@@ -16,6 +16,7 @@ export interface CompareOptions {
     readonly compose?: (reference: Uint8Array, overlay: Uint8Array) => Generator<void, Uint8Array, void>;
     readonly diff: boolean;
     readonly subimageSearch?: boolean;
+    readonly similarityThreshold?: number;
     readonly offset?: { x: number; y: number };
 }
 export type CompareRequest = {
@@ -333,6 +334,22 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
                 best = result;
                 offset = { x, y };
                 if (!options.diff && (options.metric === "psnr" ? result.distortion === 1 : result.distortion === 0)) break search;
+            }
+        }
+        // Native search finishes the whole row before checking this threshold.
+        const threshold = options.similarityThreshold ?? -1;
+        if (best && threshold !== -1) {
+            const correlation = ["ssim", "ncc", "dpc", "phase"].includes(options.metric);
+            const score = correlation ? 1 - 2 * best.distortion : best.distortion;
+            if (correlation || options.metric === "psnr" ? score >= threshold : score < threshold) {
+                // Unsearched rows in the native similarity map remain opaque black.
+                if (options.diff) for (let position = (y + 1) * imgA.width * 4; position < imgA.width * imgA.height * 4;) {
+                    const data = new Uint8Array(Math.min(65536, imgA.width * imgA.height * 4 - position));
+                    for (let i = 3; i < data.length; i += 4) data[i] = 255;
+                    yield { kind: "similarity", position, data };
+                    position += data.length;
+                }
+                break;
             }
         }
     }

@@ -7820,6 +7820,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let precision = 6;
     let metricExplicit = false;
     let subimageSearch = false;
+    let similarityThreshold = -1;
     let dissimilarityThreshold = 0.2;
     let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
@@ -7925,13 +7926,15 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             compose = cm;
         }
-        else if (t === "-dissimilarity-threshold") {
+        else if (t === "-dissimilarity-threshold" || t === "-similarity-threshold") {
             const rawThreshold = argv[++i] ?? "";
             const value = rawThreshold.endsWith("%") ? rawThreshold.slice(0, -1) : rawThreshold;
             if (value.trim() === "" || !Number.isFinite(Number(value))) {
-                return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-dissimilarity-threshold': ${rawThreshold}\n` };
+                return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '${t}': ${rawThreshold}\n` };
             }
-            dissimilarityThreshold = Number(value) / (rawThreshold.endsWith("%") ? 100 : 1);
+            const threshold = Number(value) / (rawThreshold.endsWith("%") ? 100 : 1);
+            if (t === "-similarity-threshold") similarityThreshold = threshold;
+            else dissimilarityThreshold = threshold;
         }
         else if (t === "-density") {
             const g = parseMagickGeometry(argv[++i] ?? "72");
@@ -8001,7 +8004,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const similarityPosition = backend && diff && subimageSearch ? backend.storage.allocate(width * height * 4) : undefined;
     const similarityData = !backend && diff && subimageSearch ? new Uint8Array(width * height * 4) : undefined;
     const composeSrc = ["src", "source", "copy"].includes(compose);
-    const comparison=compareImageSteps(imgA,imgB,{metric,precision,...(channels ? { channels } : {}),subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
+    const comparison=compareImageSteps(imgA,imgB,{metric,precision,...(channels ? { channels } : {}),subimageSearch,similarityThreshold,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
         ...(!composeSrc && compose !== "over" && compose !== "srcover" ? { compose: function* (reference: Uint8Array, overlay: Uint8Array) {
             const canvas: RgbaImage = { width: reference.length / 4, height: 1, format: "png", channels: 4, depth: "uchar", density: state.density, space: "srgb", hasAlpha: true, data: new Uint8Array(reference.length).fill(255) };
             // Compare first composites the reference onto white, then makes that

@@ -1,3 +1,4 @@
+import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { limitAudio } from "./audio-alimiter.js";
 import { compressAudio } from "./audio-acompressor.js";
@@ -1034,6 +1035,14 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         return { track: { ...track, timescale: audio.sampleRate, duration: length, samples: [], editList: undefined,
           decodedAudio: { ...audio, channelData: audio.channelData.map(channel => channel.subarray(0, length)) } },
           expression: filters.slice(1).join(",") || "anull" };
+      }
+      if (filters[0] === "axcorrelate" || filters[0]?.startsWith("axcorrelate=")) {
+        if (sources.length !== 2) throw new Error("axcorrelate requires two inputs");
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("axcorrelate does not support preceding single-input filters");
+        }
+        const track = await correlateAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
+        return { track, expression: filters.slice(1).join(",") || "anull" };
       }
       if (filters[0] === "amix" || filters[0]?.startsWith("amix=")) {
         if (sources.length !== 2) throw new Error("amix requires two inputs");

@@ -2019,7 +2019,7 @@ export function buildProbeResultFromDoc(
             ...(["gif", "mp4", "mov"].includes(doc.containerFormat)
               ? { duration: s.duration, duration_time: durTime }
               : { pkt_duration: s.duration, pkt_duration_time: durTime }),
-            ...(["wav", "w64"].includes(doc.containerFormat) ? { duration: s.duration, duration_time: durTime } : {}),
+            ...(["wav", "w64", "matroska"].includes(doc.containerFormat) ? { duration: s.duration, duration_time: durTime } : {}),
             pkt_size: String(s.size),
             ...(["mp4", "mov", "wav", "w64", "matroska", "webm"].includes(doc.containerFormat) ? { pkt_pos: String(s.offset ?? -1) } : {}),
             width: w,
@@ -2027,7 +2027,11 @@ export function buildProbeResultFromDoc(
             pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,
             pict_type: undefined,
             sample_fmt: sampleFormat,
-            nb_samples: track.type === "audio" ? s.duration : undefined,
+            nb_samples: track.type === "audio"
+              ? doc.containerFormat === "matroska" && desc?.codecName?.startsWith("pcm_") && (desc.channels ?? 0) > 0 && (desc.bitsPerSample ?? 0) > 0
+                ? Math.floor(s.size / (desc.channels! * Math.ceil(desc.bitsPerSample! / 8)))
+                : s.duration
+              : undefined,
             channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined,
             ...(["mp4", "mov"].includes(doc.containerFormat) ? { channel_layout: stream.channel_layout } : {})
           });

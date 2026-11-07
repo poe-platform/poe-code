@@ -14,6 +14,34 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("SRT input validation", () => {
+  for (const [name, input] of [
+    ["junk", "bad text only\n"],
+    ["empty", ""],
+    ["missing first cue index", "00:00:01,000 --> 00:00:02,000\nHello\n\n2\n00:00:05,000 --> 00:00:06,000\nthere\n"]
+  ]) {
+    it(`rejects ${name} without writing output`, async () => {
+      const vfs = createTestVfs({ "/i.srt": input! });
+      const args = ["-y", "-v", "error", "-i", "/i.srt", "/out.vtt"];
+      const sync = evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; });
+      assert.notEqual(sync, "");
+      assert.equal(vfs.store.has("/out.vtt"), false);
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(vfs.store.has("/out.vtt"), false);
+    });
+  }
+
+  it("converts UTF-8 BOM and CRLF SRT input", async () => {
+    const vfs = createTestVfs({ "/i.srt": "\uFEFF1\r\n00:00:01,000 --> 00:00:02,000\r\nHello\r\n" });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/i.srt", "/out.vtt"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
+      "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello\n");
+  });
+});
+
 it("converts short SRT millisecond fields to exact WebVTT cue timestamps", async () => {
   const vfs = createTestVfs({ "/i.srt": "1\n00:00:01,2 --> 00:00:02,25\nHello\n\n2\n00:00:05,000 --> 00:00:06,750\nthere\n" });
   const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/i.srt", "/out.vtt"], vfs);

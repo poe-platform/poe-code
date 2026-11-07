@@ -1430,11 +1430,10 @@ function formatSubtitleTimecode(ms: number, sep: "," | "."): string {
   );
 }
 
-export function isSrtSignature(bytes: Uint8Array, filename?: string): boolean {
-  if (filename && filename.toLowerCase().endsWith(".srt")) return true;
+export function isSrtSignature(bytes: Uint8Array, _filename?: string): boolean {
   if (bytes.byteLength < 15) return false;
   const head = decodeUtf8(bytes.subarray(0, Math.min(256, bytes.byteLength))).trimStart();
-  return /^\d+\r?\n\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}/.test(head);
+  return /^\d+\r?\n\d{2}:\d{2}:\d{2}[,.]\d+\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d+/.test(head);
 }
 
 export function isWebVttSignature(bytes: Uint8Array, filename?: string): boolean {
@@ -1448,6 +1447,9 @@ export function parseSubtitleDocument(
   bytes: Uint8Array,
   format: "srt" | "webvtt"
 ): MediaDocument {
+  if (format === "srt" && !isSrtSignature(bytes)) {
+    throw new Error("Invalid SubRip input");
+  }
   const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
   const blocks = text.split(/\n\s*\n/);
   const samples: MediaSample[] = [];

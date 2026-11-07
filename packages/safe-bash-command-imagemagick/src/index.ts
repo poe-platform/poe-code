@@ -23,7 +23,7 @@ import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
 import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
-import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps } from "./resize-kernel.js";
+import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
@@ -66,7 +66,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
 type RgbaImage = BaseRgbaImage & HueMetadata & { evaluateSamples?: Float64Array | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
@@ -2920,7 +2920,8 @@ function parseGravity(raw: string): GravityPosition {
 
 function parseKernel(raw: string): ResizeKernel {
   const norm = raw.toLowerCase();
-  if (norm === "point" || norm === "nearest" || norm === "box") return "nearest";
+  if (norm === "box") return "box";
+  if (norm === "point" || norm === "nearest") return "nearest";
   if (norm === "triangle" || norm === "bilinear" || norm === "linear" || norm === "hermite") return "bilinear";
   if (norm === "cubic" || norm === "catrom" || norm === "spline") return "cubic";
   if (norm === "mitchell") return "mitchell";
@@ -3570,7 +3571,7 @@ function createLabelSvg(text: string, state: MagickState): string {
   return svg;
 }
 
-function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geomStr:string,kernel:ResizeKernel | undefined):Parameters<typeof resizeImageSteps>[1]|undefined {
+function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geomStr:string,kernel:ResizeKernel | undefined): (Omit<Parameters<typeof resizeImageSteps>[1], "kernel"> & { kernel: ResizeKernel }) | undefined {
     const g = parseMagickGeometry(geomStr);
     const srcW = img.width;
     const srcH = img.height;
@@ -3672,8 +3673,8 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
-    let resized = !img.data16 && !scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "bilinear" && kernel !== "nearest"
-        ? yield* resizeImageSteps(img, options)
+    let resized = !img.data16 && !scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "bilinear" && kernel !== "nearest" && kernel !== "box"
+        ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16), undefined, { ...img, width, height });
     if (!scale && kernel === "nearest" && img.data16) {
         const source = new Uint8Array(img.data16.buffer, img.data16.byteOffset, img.data16.byteLength);
@@ -3695,8 +3696,8 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false): Promise<StoredRgbaImage> {
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
-    let resized = !image.storedData16 && !scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "bilinear" && options.kernel !== "nearest"
-        ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options }, signal)
+    let resized = !image.storedData16 && !scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "bilinear" && options.kernel !== "nearest" && options.kernel !== "box"
+        ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16), signal, { ...image, width, height });
     if (!scale && options.kernel === "nearest" && image.storedData16) {
         const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };

@@ -2,7 +2,7 @@ import { mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawRgbInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan } from "./deskew.js";
-import { compareLayerBounds } from "./compare-layers.js";
+import { compareLayerBounds, optimizeTransparencyPixels } from "./compare-layers.js";
 import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
@@ -5819,6 +5819,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = frames;
         }
+        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizetransparency") {
+            i++;
+            // Work backwards so comparison always uses the original preceding frame.
+            for (let n = stack.length - 1; n > 0; n--) {
+                const current = stack[n]!, previous = stack[n - 1]!;
+                if (typeof previous.disposal === "number" && previous.disposal >= 2) continue;
+                stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(previous, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, previous]);
+            }
+        }
         else if (t === "-coalesce") {
             if (stack.length) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
@@ -7112,6 +7121,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     previous = current;
                 }
                 return frames;
+            });
+            continue;
+        }
+        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizetransparency") {
+            i++;
+            const fuzz = state.fuzz;
+            stackStep(async (stack, backend) => {
+                for (let n = stack.length - 1; n > 0; n--) {
+                    const current = (await stack.get(n))!, previous = (await stack.get(n - 1))!;
+                    if (typeof previous.disposal === "number" && previous.disposal >= 2) continue;
+                    await stack.set(n, await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(previous, current, fuzz), signal, { ...current, hasAlpha: true }, [current, previous]));
+                }
+                return stack;
             });
             continue;
         }

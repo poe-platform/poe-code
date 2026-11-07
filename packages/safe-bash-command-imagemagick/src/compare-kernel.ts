@@ -22,7 +22,7 @@ export type CompareRequest = {
     readonly position: number;
     readonly length: number;
 } | {
-    readonly kind: "write";
+    readonly kind: "write" | "similarity";
     readonly position: number;
     readonly data: Uint8Array;
 };
@@ -291,8 +291,8 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
 function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
     let best: CompareResult | undefined;
     let offset = { x: 0, y: 0 };
-    search: for (let y = 0; y <= imgA.height - imgB.height; y++) {
-        for (let x = 0; x <= imgA.width - imgB.width; x++) {
+    search: for (let y = 0; y < (options.diff ? imgA.height : imgA.height - imgB.height + 1); y++) {
+        for (let x = 0; x < (options.diff ? imgA.width : imgA.width - imgB.width + 1); x++) {
             yield;
             const comparison = compareImageSteps({ ...imgA, width: imgB.width, height: imgB.height }, imgB, { ...options, subimageSearch: false, diff: false });
             let next = comparison.next();
@@ -301,15 +301,31 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
                     const request = next.value;
                     if (request?.kind === "read" && request.image === 0) {
                         const pixel = request.position / 4;
-                        next = comparison.next(yield { ...request, position: ((y + Math.floor(pixel / imgB.width)) * imgA.width + x + pixel % imgB.width) * 4 });
+                        const row = Math.min(y + Math.floor(pixel / imgB.width), imgA.height - 1);
+                        const left = Math.min(x + pixel % imgB.width, imgA.width - 1);
+                        const length = Math.min(request.length, (imgA.width - left) * 4);
+                        const bytes = yield { ...request, position: (row * imgA.width + left) * 4, length };
+                        if (!bytes || bytes.length !== length) throw new Error("Truncated comparison pixels");
+                        if (length === request.length) next = comparison.next(bytes);
+                        else {
+                            const extended = new Uint8Array(request.length);
+                            extended.set(bytes);
+                            for (let i = length; i < extended.length; i += 4) extended.set(bytes.subarray(length - 4), i);
+                            next = comparison.next(extended);
+                        }
                     } else next = comparison.next(yield request);
                 }
             } finally { comparison.return(undefined as never); }
             const result = next.value;
-            if (!best || (options.metric === "psnr" ? result.distortion > best.distortion : result.distortion < best.distortion)) {
+            if (options.diff) {
+                const similarity = ["ssim", "ncc", "dpc", "phase"].includes(options.metric) ? 1 - 2 * result.distortion : options.metric === "psnr" ? result.distortion : 1 - result.distortion;
+                const value = Math.round(255 * Math.max(0, Math.min(1, similarity)));
+                yield { kind: "similarity", position: (y * imgA.width + x) * 4, data: new Uint8Array([value, value, value, 255]) };
+            }
+            if (x <= imgA.width - imgB.width && y <= imgA.height - imgB.height && (!best || (options.metric === "psnr" ? result.distortion > best.distortion : result.distortion < best.distortion))) {
                 best = result;
                 offset = { x, y };
-                if (options.metric === "psnr" ? result.distortion === 1 : result.distortion === 0) break search;
+                if (!options.diff && (options.metric === "psnr" ? result.distortion === 1 : result.distortion === 0)) break search;
             }
         }
     }

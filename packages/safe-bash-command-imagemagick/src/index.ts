@@ -7953,6 +7953,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
     const diff=outSpec.toLowerCase()!=="null:",diffPosition=backend&&diff?backend.storage.allocate(width*height*4):undefined;
     const diffData=!backend&&diff?new Uint8Array(width*height*4):undefined;
+    const similarityPosition = backend && diff && subimageSearch ? backend.storage.allocate(width * height * 4) : undefined;
+    const similarityData = !backend && diff && subimageSearch ? new Uint8Array(width * height * 4) : undefined;
     const composeSrc = ["src", "source", "copy"].includes(compose);
     const comparison=compareImageSteps(imgA,imgB,{metric,subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
         ...(!composeSrc && compose !== "over" && compose !== "srcover" ? { compose: function* (reference: Uint8Array, overlay: Uint8Array) {
@@ -7968,7 +7970,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}
       else if(request.kind==="read"){const image=request.image===0?imgA:imgB;let bytes:Uint8Array;if("data" in image)bytes=image.data.subarray(request.position,request.position+request.length);else {yield {async run(){bytes=await backend!.storage.read(image.position+request.position,request.length);}};}compared=comparison.next(bytes!);}
-      else{if(backend)yield {async run(){await backend.storage.write(diffPosition!+request.position,request.data);}};else diffData!.set(request.data,request.position);compared=comparison.next();}
+      else {
+          const position = request.kind === "similarity" ? similarityPosition : diffPosition;
+          const data = request.kind === "similarity" ? similarityData : diffData;
+          if (backend) yield { async run() { await backend.storage.write(position! + request.position, request.data); } };
+          else data!.set(request.data, request.position);
+          compared = comparison.next();
+      }
     }}finally{comparison.return(undefined as never);}
     const {metric:metricStr}=compared.value;
     const exitCode = inputErrors ? 2 : compared.value.exitCode;
@@ -7977,31 +7985,59 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const comparisonStderr = inputErrors + `${metricStr}\n` + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
-    if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,chromaSubsampling:state.quality < 90 ? "4:2:0" : "4:4:4",quality:state.quality});}};return {exitCode,stdout:"",stderr:comparisonStderr,...(stdoutBytes?{stdoutBytes}:{})};}
-    if (diffData) {
-        const diffImg: RgbaImage = {
-            width,
-            height,
-            format: "png",
-            channels: 4,
-            depth: "uchar",
-            density: state.density,
-            space: "srgb",
-            hasAlpha: true,
-            data: diffData
-        };
-        const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-        const { data: encoded } = encodeImage(diffImg, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, consumeInput: true } as any);
-        detachRgbaBuffer(diffData);
-        if (outPath === "-" || outSpec.endsWith(":-")) {
-            return {
-                exitCode,
-                stdout: "",
-                stderr: comparisonStderr,
-                stdoutBytes: encoded
-            };
+    if (diff) {
+        const { format, path } = inferOutputFormat(outSpec, "png");
+        const metadata = { width, height, format: "png" as const, channels: 4 as const, depth: "uchar" as const, density: state.density, space: "srgb" as const, hasAlpha: true };
+        const encoding = { format, chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, quality: state.quality };
+        const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
+        let stdoutBytes: Uint8Array | undefined;
+        const stdoutChunks: Uint8Array[] = [];
+        if (backend) yield { async run() {
+            const active = signal ?? new AbortController().signal;
+            const stack = new StoredImageStack(backend.storage, active);
+            await stack.push({ ...metadata, position: diffPosition! });
+            if (similarityPosition !== undefined) await stack.push({ ...metadata, position: similarityPosition });
+            if (split) {
+                for (let index = 0; index < stack.length; index++) {
+                    const bytes = await backend.stage((await stack.get(index))!, path === "-" ? path : formatSceneOutputPath(path, index), encoding);
+                    if (bytes) stdoutChunks.push(bytes);
+                }
+                await backend.publishPending();
+            } else {
+                let image = (await stack.get(0))!;
+                if (subimageSearch && format === "miff") image = prepareStoredMiffPages(stack, image, backend, active);
+                if (subimageSearch && format === "tiff") image = prepareStoredTiffPages(stack, image, backend, active);
+                if (subimageSearch && format === "gif") image = await prepareStoredGifFrames(stack, backend, active);
+                stdoutBytes = await backend.publish(image, path, { ...encoding, ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }) });
+            }
+        } };
+        else {
+            const stack: RgbaImage[] = [{ ...metadata, data: diffData! }];
+            if (similarityData) stack.push({ ...metadata, data: similarityData });
+            if (split) {
+                for (let index = 0; index < stack.length; index++) {
+                    const { data } = encodeImage(stack[index]!, encoding);
+                    if (path === "-") stdoutChunks.push(data);
+                    else files.set(formatSceneOutputPath(path, index), data);
+                }
+            } else {
+                let image = stack[0]!;
+                if (subimageSearch && format === "miff") image = yield* prepareMiffPages(stack);
+                if (subimageSearch && format === "tiff") image = yield* prepareTiffPages(stack);
+                if (subimageSearch && format === "gif") image = yield* prepareGifFrames(stack);
+                const { data } = encodeImage(image, { ...encoding, ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }) });
+                if (path === "-") stdoutBytes = data;
+                else files.set(path, data);
+                detachRgbaBuffer(image.data);
+            }
+            for (const image of stack) detachRgbaBuffer(image.data);
         }
-        files.set(outPath, encoded);
+        if (stdoutChunks.length) {
+            stdoutBytes = new Uint8Array(stdoutChunks.reduce((sum, bytes) => sum + bytes.length, 0));
+            let position = 0;
+            for (const bytes of stdoutChunks) { stdoutBytes.set(bytes, position); position += bytes.length; }
+        }
+        return { exitCode, stdout: "", stderr: comparisonStderr, ...(stdoutBytes ? { stdoutBytes } : {}) };
     }
     return {
         exitCode,

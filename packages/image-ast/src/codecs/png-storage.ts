@@ -193,7 +193,8 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     return new Uint8Array(bytes);
   };
   const coder = options.pngCoder;
-  const palette = coder === "png8" ? new GifPalette() : undefined;
+  const requestedColor = coder ? undefined : options.pngColorType;
+  const palette = (coder === "png8" || requestedColor === 3) ? new GifPalette() : undefined;
   if (palette) {
     for (let offset = 0; offset < width * height * 4; offset += 4096) {
       const bytes = await read(position + offset, Math.min(4096, width * height * 4 - offset));
@@ -203,17 +204,17 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     palette.bytes.set([255, 255, 255], 255 * 3);
   }
   let alpha = Boolean(image.hasAlpha || image.channels === 4 || image.channels === 2);
-  if (coder === "png24" || coder === "png48" || options.forceOpaque) alpha = false;
+  if (requestedColor === 0 || requestedColor === 2 || coder === "png24" || coder === "png48" || options.forceOpaque) alpha = false;
   else if (!alpha) {
     for (let offset = 0; offset < width * height * 4 && !alpha; offset += 4096) {
       const bytes = await read(position + offset, Math.min(4096, width * height * 4 - offset));
       for (let index = 3; index < bytes.length; index += 4) if (bytes[index]! < 255) {alpha = true; break;}
     }
   }
-  if (coder === "png32" || coder === "png64") alpha = true;
-  const gray = !coder && (image.space === "b-w" || image.channels === 1 || image.channels === 2);
+  if (requestedColor === 4 || requestedColor === 6 || coder === "png32" || coder === "png64") alpha = true;
+  const gray = !coder && requestedColor !== 2 && requestedColor !== 3 && requestedColor !== 6 && (image.space === "b-w" || image.channels === 1 || image.channels === 2);
   const channels = gray ? alpha ? [0,3] : [0] : alpha ? [0,1,2,3] : [0,1,2];
-  const sampleBytes = !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
+  const sampleBytes = palette ? 1 : !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
   const source16 = sampleBytes === 2 ? image.storedData16 : undefined;
   const sourceBytes = source16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);

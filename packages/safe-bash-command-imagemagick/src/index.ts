@@ -512,6 +512,7 @@ interface MagickState {
   quality: number;
   samplingFactor?: string;
   pngBitDepth?: 8 | 16;
+  pngColorType?: string;
   omitPngResolution?: boolean;
   delay?: number;
   disposal?: number;
@@ -4125,6 +4126,14 @@ function expandFilenameProperties(spec: string, state: MagickState): string {
     return output;
 }
 
+function pngOutputColorType(value: string | undefined, format: ImageFormat, analysis: { warnings: string }): 0 | 2 | 3 | 4 | 6 | undefined {
+    if (format !== "png" || value === undefined) return undefined;
+    const color = Number(value);
+    if (value.trim() !== "" && (color === 0 || color === 2 || color === 3 || color === 4 || color === 6)) return color;
+    analysis.warnings += `magick: ignoring invalid defined png:color-type =${value}\n`;
+    return undefined;
+}
+
 function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { format: ImageFormat; path: string; pngCoder?: "png8" | "png24" | "png32" | "png48" | "png64" } {
   const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(spec);
   if (prefixMatch) {
@@ -5630,6 +5639,7 @@ if (t === "-seed") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("png:color-type=")) state.pngColorType = defStr.slice("png:color-type=".length);
             if (defStr.toLowerCase().startsWith("png:bit-depth=")) {
                 const depth = Number(defStr.slice("png:bit-depth=".length));
                 if (depth === 8 || depth === 16) state.pngBitDepth = depth;
@@ -5825,13 +5835,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         if (++cooperativeWork % 65536 === 0)
                             yield;
                         const framePath = formatSceneOutputPath(path, state.scene + idx);
-                        const { data: frameBytes } = encodeImage(yield* prepareMagickOutput(stack[idx]!, format), { format, pngCoder, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                        const { data: frameBytes } = encodeImage(yield* prepareMagickOutput(stack[idx]!, format), { format, pngCoder, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                         files.set(framePath, frameBytes);
                     }
                 }
                 else {
                     const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareMagickOutput(top, format);
-                    const { data: encoded } = encodeImage(image, { format, pngCoder, ...(stack.length > 1 && format === "gif" ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                    const { data: encoded } = encodeImage(image, { format, pngCoder, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(stack.length > 1 && format === "gif" ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     if (path === "-") analysis.bytes.push(encoded);
                     else files.set(path, encoded);
                 }
@@ -6634,7 +6644,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const framePath = formatSceneOutputPath(outPath, state.scene + idx);
-                const { data: frameBytes } = encodeImage(yield* prepareMagickOutput(stack[idx]!, format), { format, pngCoder, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                const { data: frameBytes } = encodeImage(yield* prepareMagickOutput(stack[idx]!, format), { format, pngCoder, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                 files.set(framePath, frameBytes);
             }
             return { exitCode: 0, stdout: "", stderr: "" };
@@ -6647,7 +6657,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         }
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Collection is best-effort. */ } }
         const { data: encoded } = encodeImage(toEncode, {
-            format, pngCoder,
+            format, pngCoder, pngColorType: pngOutputColorType(state.pngColorType, format, analysis),
             netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality,
             ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : { delay: toEncode.delay?.[(finalImg as MagickImage)[magickInput]?.sceneIdx ?? 0] }),
             ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}),
@@ -7354,7 +7364,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stackStep(async () => { throw new Error(`missing argument '${token}'`); });
                 break;
             }
-            const path = expandFilenameProperties(tokens[++i] ?? "", state), endian = state.inputEndian, quality = state.quality, pngBitDepth = state.pngBitDepth, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth === undefined ? undefined : Math.min(16, state.inputDepth), adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
+            const path = expandFilenameProperties(tokens[++i] ?? "", state), endian = state.inputEndian, quality = state.quality, pngBitDepth = state.pngBitDepth, pngColorType = state.pngColorType, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth === undefined ? undefined : Math.min(16, state.inputDepth), adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
@@ -7369,10 +7379,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
                     if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
-                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, pngCoder: output.pngCoder, endian, pngBitDepth, omitPngResolution, netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
+                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, pngCoder: output.pngCoder, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), endian, pngBitDepth, omitPngResolution, netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
                         const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredMagickOutput(image, output.format, backend, signal);
-                        const bytes = await backend.stage(frames, output.path, { format: output.format, pngCoder: output.pngCoder, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), endian, pngBitDepth, omitPngResolution, netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
+                        const bytes = await backend.stage(frames, output.path, { format: output.format, pngCoder: output.pngCoder, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), endian, pngBitDepth, omitPngResolution, netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
                         if (bytes) analysis.bytes.push(bytes);
                     }
                 }
@@ -7713,7 +7723,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!state.adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
-                await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, state.scene + index), { format: output.format, pngCoder: output.pngCoder, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, state.scene + index), { format: output.format, pngCoder: output.pngCoder, pngColorType: pngOutputColorType(state.pngColorType, output.format, analysis), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
             }
             await backend.publishPending();
             return { exitCode: 0, stdout: "", stderr: "" };
@@ -7727,7 +7737,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const scene = pageHeight === undefined ? (await stack.get(0))![magickInput]?.sceneIdx ?? 0 : 0;
         const delay = pageHeight === undefined ? await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] : undefined;
-        const stdoutBytes = await backend.publish(await prepareStoredMagickOutput(image, output.format, backend, signal), output.path, { format: output.format, pngCoder: output.pngCoder, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}) });
+        const stdoutBytes = await backend.publish(await prepareStoredMagickOutput(image, output.format, backend, signal), output.path, { format: output.format, pngCoder: output.pngCoder, pngColorType: pngOutputColorType(state.pngColorType, output.format, analysis), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }
@@ -8195,7 +8205,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const state = createDefaultState();
     state.fuzz = 0;
-    let pngColorType: number | undefined;
+    let pngColorType: string | undefined;
     let channels: number[] | undefined;
     let metric = "rmse";
     let precision = 6;
@@ -8232,7 +8242,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const definition = argv[++i];
             if (definition === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-define'\n" };
             const [key, value] = definition.split("=");
-            if (key?.toLowerCase() === "png:color-type") pngColorType = Number(value);
+            if (key?.toLowerCase() === "png:color-type") pngColorType = value;
         }
         else if (t === "-format") {
             state.formatStr = argv[++i];
@@ -8440,9 +8450,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
     if (diff) {
         const { format, path, pngCoder } = inferOutputFormat(outSpec, "png");
-        const opaque = format === "png" && pngColorType === 2;
+        const pngWarnings = { warnings: "" };
+        const colorType = pngOutputColorType(pngColorType, format, pngWarnings);
+        const opaque = colorType === 0 || colorType === 2;
         const metadata = { width, height, format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: state.density, space: "srgb" as const, hasAlpha: !opaque };
-        const encoding = { format, pngCoder, ...(opaque ? { forceOpaque: true } : {}), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, quality: state.quality };
+        const encoding = { format, pngCoder, pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, quality: state.quality };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;
         const stdoutChunks: Uint8Array[] = [];
@@ -8491,7 +8503,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             let position = 0;
             for (const bytes of stdoutChunks) { stdoutBytes.set(bytes, position); position += bytes.length; }
         }
-        return { exitCode, stdout, stderr: comparisonStderr, ...(stdoutBytes ? { stdoutBytes } : {}) };
+        return { exitCode: regardWarnings && pngWarnings.warnings ? 2 : exitCode, stdout, stderr: comparisonStderr + (quiet ? "" : pngWarnings.warnings), ...(stdoutBytes ? { stdoutBytes } : {}) };
     }
     return {
         exitCode,

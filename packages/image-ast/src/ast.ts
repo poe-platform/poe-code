@@ -456,6 +456,7 @@ export type ImageAstNode =
     };
 
 export interface OutputEncodeOptions {
+  readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
   readonly pngCoder?: "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
   readonly forceOpaque?: boolean;
   readonly omitPngResolution?: boolean;

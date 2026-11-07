@@ -411,6 +411,7 @@ export function encodeImage(
     case "png": {
       const data = encodePngImage(img, {
         pngCoder: options.pngCoder,
+        pngColorType: options.pngColorType,
         pngBitDepth: options.pngBitDepth,
         ...(options.forceOpaque ? { forceOpaque: true } : {}),
         ...(options.omitPngResolution ? { omitPngResolution: true } : {}),
@@ -421,9 +422,7 @@ export function encodeImage(
         ...(options.density === undefined ? {} : {density: options.density}),
         ...(options.orientation !== undefined ? { orientation: options.orientation } : img.orientation !== undefined ? { orientation: img.orientation } : {})
       });
-      const isBw = !options.pngCoder && (img.space === "b-w" || img.channels === 1 || img.channels === 2);
-      const hasAlpha = options.pngCoder === "png32" || options.pngCoder === "png64" || (!options.forceOpaque && options.pngCoder !== "png24" && options.pngCoder !== "png48" && img.hasAlpha);
-      const outChannels = isBw ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
+      const outChannels = data[25] === 0 ? 1 : data[25] === 4 ? 2 : data[25] === 6 ? 4 : 3;
       return { data, format: "png", channels: outChannels };
     }
     case "jpeg": {

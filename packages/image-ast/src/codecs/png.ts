@@ -237,6 +237,7 @@ export function encodePngImage(
     readonly orientation?: number;
     readonly omitPngResolution?: boolean;
     readonly pngBitDepth?: 8 | 16 | undefined;
+    readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
     readonly pngCoder?: "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
     readonly forceOpaque?: boolean;
     readonly consumeInput?: boolean;
@@ -244,9 +245,10 @@ export function encodePngImage(
 ): Uint8Array {
   const { width, height, data } = img;
   const coder = options?.pngCoder;
-  const bitDepth = coder === "png48" || coder === "png64" ? 16 : coder ? 8 : options?.pngBitDepth;
+  const requestedColor = coder ? undefined : options?.pngColorType;
+  const bitDepth = requestedColor === 3 ? 8 : coder === "png48" || coder === "png64" ? 16 : coder ? 8 : options?.pngBitDepth;
   const data16 = bitDepth === 16 ? img.data16 ?? Uint16Array.from(data, value => value * 257) : bitDepth === 8 ? undefined : img.data16;
-  const palette = coder === "png8" ? new GifPalette() : undefined;
+  const palette = (coder === "png8" || requestedColor === 3) ? new GifPalette() : undefined;
   if (palette) {
     for (let i = 0; i < data.length; i += 4) palette.add(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!);
     palette.finish();
@@ -256,7 +258,7 @@ export function encodePngImage(
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
   let hasAlpha = Boolean(img.hasAlpha || img.channels === 4 || img.channels === 2);
-  if (coder === "png24" || coder === "png48" || options?.forceOpaque) {
+  if (requestedColor === 0 || requestedColor === 2 || coder === "png24" || coder === "png48" || options?.forceOpaque) {
     hasAlpha = false;
   } else if (!hasAlpha) {
     for (let i = 3; i < data.length; i += 4) {
@@ -267,8 +269,8 @@ export function encodePngImage(
     }
   }
 
-  if (coder === "png32" || coder === "png64") hasAlpha = true;
-  const isBw = !coder && (img.space === "b-w" || img.channels === 1 || img.channels === 2);
+  if (requestedColor === 4 || requestedColor === 6 || coder === "png32" || coder === "png64") hasAlpha = true;
+  const isBw = !coder && requestedColor !== 2 && requestedColor !== 3 && requestedColor !== 6 && (img.space === "b-w" || img.channels === 1 || img.channels === 2);
   const colorType = palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const channels = isBw ? (hasAlpha ? [0, 3] : [0]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2]);
   const bpp = palette ? 1 : channels.length * (data16 ? 2 : 1);

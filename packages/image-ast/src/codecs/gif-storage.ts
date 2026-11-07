@@ -2,6 +2,7 @@ import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { Pixels } from "../ops/storage-raster.js";
 import {
   GifCodes,
+  gifRows,
   GifPalette,
   gifLayout,
   gifHeader,
@@ -102,14 +103,17 @@ export async function* encodeGifFromStorage(
     yield gifFrameHeader(image, options, layout, frame, transparent, frameDelay, disposal, { left, top, width, height });
     const codes = new GifCodes();
     codes.code(256);
-    for (let i = 0; i < width * height; i++) {
-      if (i > 0 && i % 120 === 0) {
+    let emitted = 0;
+    for (const row of gifRows(height, options.gifInterlace)) for (let x = 0; x < width; x++) {
+      const i = row * width + x;
+      if (emitted > 0 && emitted % 120 === 0) {
         const chunk = codes.code(256);
         if (chunk) {
           signal.throwIfAborted();
           yield chunk;
         }
       }
+      emitted++;
       const p = await pixels.pixel(cropped ? start + (top + Math.floor(i / width)) * layout.width + left + i % width : pixel(i)),
         chunk = codes.code(palette.index(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24));
       if (chunk) {

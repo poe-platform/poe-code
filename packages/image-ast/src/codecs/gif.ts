@@ -1,4 +1,4 @@
-import {GifCodes,GifPalette,gifLayout,gifHeader,gifFrameHeader,type GifOptions} from "./gif-output-parts.js";
+import {GifCodes,GifPalette,gifRows,gifLayout,gifHeader,gifFrameHeader,type GifOptions} from "./gif-output-parts.js";
 import { checkLimitInputPixels } from "../limits.js";
 import type { SharpInputOptions, ImageMetadata, RgbaImage } from "../ast.js";
 
@@ -337,8 +337,11 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
   }
   const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : undefined;
   chunks.push(gifFrameHeader(img,options,layout,frame,transparent,undefined,disposal,{left,top,width,height}));const codes=new GifCodes();codes.code(256);
-  for(let i=0;i<width*height;i++){
-   if(i>0&&i%120===0){const chunk=codes.code(256);if(chunk)chunks.push(chunk);}
+  let emitted = 0;
+  for (const row of gifRows(height, options.gifInterlace)) for (let x = 0; x < width; x++) {
+   const i = row * width + x;
+   if(emitted>0&&emitted%120===0){const chunk=codes.code(256);if(chunk)chunks.push(chunk);}
+   emitted++;
    const at=(cropped?start+(top+Math.floor(i/width))*layout.width+left+i%width:pixel(i))*4,chunk=codes.code(palette.index(data[at]!,data[at+1]!,data[at+2]!,data[at+3]!));if(chunk)chunks.push(chunk);
   }
   chunks.push(...codes.finish());

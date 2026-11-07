@@ -111,7 +111,7 @@ raw channel/depth conversion and original high-depth samples in caller storage. 
 pixel caches and pull-driven owned data subblocks, including animated frames.
 `decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller
 storage, including page selection, interlacing and disposal. Async GIF output reads
-those retained delays without a frame-count-sized array. GIF encoding accepts
+those retained delays without a frame-count-sized array. GIF encoding accepts `gifInterlace: true` for four-pass interlaced frames and
 `transparentColor: { r, g, b }` to select the transparent palette color without changing opacity.
 `decodeWebpToStorage` retains RIFF metadata, VP8L pixels, transforms and Huffman groups
 in caller storage with fixed input and word caches.

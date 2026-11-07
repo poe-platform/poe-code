@@ -1,6 +1,7 @@
 import { quantizeGif } from "./gif-quantization.js";
 import type { RgbaImage } from "../ast.js";
 export interface GifOptions {
+  readonly gifInterlace?: boolean | undefined;
   readonly pageHeight?: number;
   readonly delay?: number | readonly number[];
   readonly loop?: number;
@@ -195,7 +196,7 @@ export function gifFrameHeader(
       0
     ]);
   out.set(
-    [44, left & 255, left >>> 8, top & 255, top >>> 8, width & 255, width >>> 8, height & 255, height >>> 8, 0, 8],
+    [44, left & 255, left >>> 8, top & 255, top >>> 8, width & 255, width >>> 8, height & 255, height >>> 8, options.gifInterlace ? 64 : 0, 8],
     gce ? 8 : 0
   );
   return out;
@@ -232,5 +233,13 @@ export class GifCodes {
       yield this.bytes.slice(0, this.used);
     }
     yield Uint8Array.of(0);
+  }
+}
+
+/** GIF stores interlaced rows in four passes, relative to each frame rectangle. */
+export function* gifRows(height: number, interlace: boolean | undefined) {
+  const passes = interlace ? [[0, 8], [4, 8], [2, 4], [1, 2]] : [[0, 1]];
+  for (const [start, step] of passes) {
+    for (let row = start!; row < height; row += step!) yield row;
   }
 }

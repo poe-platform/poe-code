@@ -1299,7 +1299,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     for (const [key, cnt] of counts.entries()) {
         if (++work % 16384 === 0)
             yield;
-        lines.push(typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt));
+        lines.push(typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha));
     }
     return lines.join("\n") + "\n";
 }

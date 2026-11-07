@@ -4939,8 +4939,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "extract") {
+            highDepth = true;
             apply = function* (im) {
-                return (yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3));
+                const mask = yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3);
+                if (im.data16) {
+                    const data16 = new Uint16Array(im.data16.length);
+                    for (let idx = 0; idx < data16.length; idx += 4) {
+                        if (idx % 65536 === 0) yield;
+                        const alpha = im.hasAlpha ? im.data16[idx + 3]! : 65535;
+                        data16[idx] = data16[idx + 1] = data16[idx + 2] = alpha;
+                        data16[idx + 3] = 65535;
+                    }
+                    return { ...mask, data16 };
+                }
+                return mask;
             };
         }
         else { throw new Error(`Unsupported alpha mode: ${mode}`); }

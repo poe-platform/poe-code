@@ -3,8 +3,26 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 const byte = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
 
 export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false): Steps {
+    // Native CLUT samples the diagonal, scaling each axis independently.
+    function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+        const x = value * (lut.width - 1), y = value * (lut.height - 1);
+        const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
+        const values = [0, 0, 0, 0];
+        for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
+            const weight = (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
+            if (!weight) continue;
+            const bytes = (yield { kind: "read", highDepth, image: 1, position: ((top + row) * lut.width + left + column) * 4, length: 4 })!;
+            const pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            const alpha = pixel[3]! * weight;
+            for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * alpha;
+            values[3]! += alpha;
+        }
+        // Interpolate premultiplied colors so transparent entries cannot leak hidden RGB.
+        for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : Math.round(values[channel]! / values[3]!);
+        values[3] = Math.round(values[3]!);
+        return values;
+    }
     if (highDepth) {
-        const horizontal = lut.width >= lut.height, length = Math.max(lut.width, lut.height);
         for (let position = 0; position < size; position += 4096) {
             yield;
             const bytes = (yield { kind: "read", highDepth, position, length: Math.min(4096, size - position) })!;
@@ -12,28 +30,16 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
             for (let offset = 0; offset < data.length; offset++) {
                 if (offset % 256 === 0) yield;
                 const channel = offset % 4;
-                if (!mask[channel]) continue;
-                const sample = data[offset]! / 65535 * (length - 1), lower = Math.floor(sample), upper = Math.ceil(sample);
-                const a = (yield { kind: "read", highDepth, image: 1, position: (horizontal ? lower : lower * lut.width) * 4, length: 4 })!;
-                const b = upper === lower ? a : (yield { kind: "read", highDepth, image: 1, position: (horizontal ? upper : upper * lut.width) * 4, length: 4 })!;
-                const av = new Uint16Array(a.slice().buffer), bv = new Uint16Array(b.slice().buffer), fraction = sample - lower;
-                const aWeight = av[3]! * (1 - fraction), bWeight = bv[3]! * fraction, alpha = aWeight + bWeight;
-                data[offset] = channel === 3 ? Math.round(alpha) : alpha === 0 ? 0 : Math.round((av[channel]! * aWeight + bv[channel]! * bWeight) / alpha);
+                if (mask[channel]) data[offset] = (yield* sample(data[offset]! / 65535))[channel]!;
             }
             yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
         }
         return;
     }
-    const horizontal = lut.width >= lut.height, length = Math.max(1, horizontal ? lut.width : lut.height), table = new Uint8Array(1024);
+    const table = new Uint8Array(1024);
     for (let value = 0; value < 256; value++) {
         if (value % 64 === 0) yield;
-        const sample = value / 255 * (length - 1), lower = Math.floor(sample), upper = Math.ceil(sample), fraction = sample - lower;
-        const a = (yield { kind: "read", image: 1, position: (horizontal ? lower : lower * lut.width) * 4, length: 4 })!;
-        const b = upper === lower ? a : (yield { kind: "read", image: 1, position: (horizontal ? upper : upper * lut.width) * 4, length: 4 })!;
-        const aWeight = a[3]! * (1 - fraction), bWeight = b[3]! * fraction, alpha = aWeight + bWeight;
-        // Interpolate premultiplied colors so transparent entries cannot leak hidden RGB.
-        for (let channel = 0; channel < 3; channel++) table[value * 4 + channel] = alpha === 0 ? 0 : byte((a[channel]! * aWeight + b[channel]! * bWeight) / alpha);
-        table[value * 4 + 3] = byte(alpha);
+        table.set(yield* sample(value / 255), value * 4);
     }
     for (let position = 0; position < size; position += 16384) {
         yield;

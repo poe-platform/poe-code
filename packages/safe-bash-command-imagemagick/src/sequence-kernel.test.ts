@@ -41,8 +41,8 @@ it.each(["mean", "average", "median", "min", "max", "add", "multiply", "unknown"
     expect(actual).toEqual(expected);
 });
 
-it.each([false, true])("uses the selected LUT axis and channel mask, vertical=%s", vertical => {
-    const width = vertical ? 3 : 10001, height = vertical ? 10001 : 3, size = 4201 * 4;
+it.each([false, true])("uses one-dimensional LUTs and channel mask, vertical=%s", vertical => {
+    const width = vertical ? 1 : 10001, height = vertical ? 10001 : 1, size = 4201 * 4;
     const source = Uint8Array.from({ length: size }, (_, i) => i % 256), lut = Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 59 % 256);
     const expected = Uint8Array.from(source, (value, index) => {
         if (index % 4 !== 1 && index % 4 !== 3) return value;

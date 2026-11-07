@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import sharp, { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createConvertCommand, runConvertCli } from "./index.js";
@@ -111,4 +111,23 @@ it.each([
   expect(await runConvertCli(["/base.png", "/lut.png", ...selection, "-clut", "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files))
     .toEqual({ exitCode: 0, stdout: "", stderr: "" });
   expect(decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!).data).toEqual(Uint8Array.from(expected));
+});
+
+for (const retained of [false, true])
+for (const highDepth of [false, true])
+it(`samples both CLUT dimensions, retained=${retained}, highDepth=${highDepth}`, async () => {
+  const metadata = { format: "png" as const, space: "srgb" as const, channels: 4 as const, density: 72, hasAlpha: true };
+  const source = Uint8Array.of(0, 0, 0, 255, 128, 128, 128, 255, 255, 255, 255, 255);
+  const base = encodeImage({ ...metadata, width: 3, height: 1, depth: highDepth ? "ushort" : "uchar", data: source,
+    ...(highDepth ? { data16: Uint16Array.from(source, value => value * 257) } : {}) }, { format: "png" }).data;
+  const lut = encodeImage({ ...metadata, width: 2, height: 2, depth: "uchar",
+    data: Uint8Array.of(0, 0, 0, 255, 255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255) }, { format: "png" }).data;
+  const files = new Map([["/base.png", base], ["/lut.png", lut]]), fs = new MemoryFileSystem();
+  for (const [path, data] of files) await fs.writeFile(path, data);
+  expect(await runConvertCli(["/base.png", "/lut.png", "-clut", "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files))
+    .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+  const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!);
+  // Native ImageMagick: black, neutral midpoint (404040), blue.
+  if (!highDepth) expect(output.data).toEqual(Uint8Array.of(0, 0, 0, 255, 64, 64, 64, 255, 0, 0, 255, 255));
+  if (highDepth) expect(output.data16).toEqual(Uint16Array.of(0, 0, 0, 65535, 16383, 16383, 16513, 65535, 0, 0, 65535, 65535));
 });

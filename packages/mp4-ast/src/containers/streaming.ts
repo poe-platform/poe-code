@@ -287,10 +287,12 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     if (description?.avcC) {
       const avc = description.avcC;
       codec = `avc1.${[avc.profileIdc, avc.profileCompatibility, avc.levelIdc].map(v => v.toString(16).padStart(2, "0")).join("")}`;
-    } else if (description?.codecName === "aac") codec = "mp4a.40.2";
+    } else if (description?.codecName === "aac") codec = `mp4a.40.${description.esds?.audioObjectType ?? 2}`;
     const dimensions = track.type === "video" ? ` width="${track.width}" height="${track.height}"` : ` audioSamplingRate="${description?.sampleRate ?? track.timescale}"`;
+    const language = track.language && track.language !== "und"
+      ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
     lines.push(
-      `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true">`,
+      `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}>`,
       `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
       `<SegmentTemplate timescale="${track.timescale}" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"><SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline></SegmentTemplate>`,
       '</Representation></AdaptationSet>'

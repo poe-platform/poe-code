@@ -1,9 +1,31 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { buildAudioSpecificConfig, buildEsdsBox } from "./codecs.js";
 import { createSyntheticMp4, parseMp4, serializeMp4, parseMp4Boxes, hlsAst, dashAst, parseStreamingManifest, serializeDashDocument, MediaLimitExceededError } from "./index.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 const source = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 25, frameCount: 50, includeAudio: true }));
+
+for (const audioObjectType of [1, 2, 3]) {
+  it(`advertises the copied AAC object type ${audioObjectType} in DASH`, () => {
+    const track = source.tracks.find(t => t.type === "audio")!;
+    const description = track.codecDescriptions[0]!;
+    const config = description.esds!;
+    const asc = buildAudioSpecificConfig(config.sampleRate, config.channelCount, audioObjectType);
+    const input = parseMp4(serializeMp4({ ...source, tracks: [{ ...track, codecDescriptions: [{
+      ...description,
+      rawStsdEntryBytes: undefined,
+      esds: { ...config, audioObjectType, decoderSpecificInfo: asc,
+        rawEsdsBytes: buildEsdsBox(config.sampleRate, config.channelCount, config.avgBitrate, asc).subarray(8) }
+    }] }] }));
+    assert.equal(input.tracks[0]!.codecDescriptions[0]!.esds!.audioObjectType, audioObjectType);
+    const { manifest, resources } = serializeDashDocument(input);
+    assert.ok(new TextDecoder().decode(manifest).includes(`codecs="mp4a.40.${audioObjectType}"`));
+    const output = dashAst().parse(manifest, { resolveResource: uri => resources.get(uri)! });
+    assert.deepEqual(output.tracks[0]!.codecDescriptions[0]!.esds!.decoderSpecificInfo, asc);
+    assert.deepEqual(output.tracks[0]!.samples.map(s => s.data), input.tracks[0]!.samples.map(s => s.data));
+  });
+}
 
 it("resolves HLS initialization files and preserves multiple fragments and packet payloads", () => {
   const resources = new Map<string, Uint8Array>();

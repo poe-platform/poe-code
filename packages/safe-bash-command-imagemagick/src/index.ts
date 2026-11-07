@@ -30,7 +30,7 @@ import { connectedComponentsSteps, connectedComponentsStored } from "./connected
 import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
-import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
+import { gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
@@ -1265,9 +1265,10 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
 }
 
 function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, void> {
+    const gray16 = (img.space === "b-w" || img.space === "grey16") && img.data16 !== undefined;
     let work = 0;
     const lines: string[] = [
-        (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,srgba`
+        gray16 ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,gray${img.hasAlpha ? "a" : ""}` : (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,srgba`
     ];
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)
@@ -1276,6 +1277,10 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
             if (++work % 16384 === 0)
                 yield;
             const idx = (y * img.width + x) * 4;
+            if (gray16) {
+                lines.push(gray16EnumerationLine(x, y, img.data16![idx]!, img.hasAlpha ? img.data16![idx + 3]! : undefined));
+                continue;
+            }
             const r = img.data[idx]!;
             const g = img.data[idx + 1]!;
             const b = img.data[idx + 2]!;

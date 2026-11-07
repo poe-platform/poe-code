@@ -8,10 +8,14 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 for (const sync of [false, true]) {
   for (const inputOption of [false, true]) {
     for (const option of ["-ss", "-t", "-to"]) {
-      for (const value of ["0.253garbage", "253garbagems", "00:00:00.253garbage", "",
-        "0.253", "253ms", "253000us", "0.253s", "00:00:00.253"]) {
+      for (const [value, boundary] of [
+        ["0.253garbage", undefined], ["253garbagems", undefined], ["00:00:00.253garbage", undefined], ["", undefined],
+        ["0.000187", 1], ["0.0001879", 1], ["0.000188", 2], ["0.0003125", 2], ["0.000313", 3],
+        ["00:00:00.0001879", 1], ["0.1879ms", 1], ["187.9us", 1], ["0.0001879s", 1],
+        ["0.253", 2024], ["253ms", 2024], ["253000us", 2024], ["0.253s", 2024], ["00:00:00.253", 2024]
+      ] as const) {
         it(`${sync ? "sync" : "async"} ${inputOption ? "input" : "output"} ${option} ${JSON.stringify(value)} validates the complete duration`, async () => {
-          const valid = value !== "" && !value.includes("garbage");
+          const valid = boundary !== undefined;
           const volume = Volume.fromJSON({});
           const samples = Float64Array.from({ length: 16000 }, (_, index) => index / 32768);
           volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [samples] }));
@@ -40,7 +44,7 @@ for (const sync of [false, true]) {
           assert.equal(volume.existsSync("/out.wav"), valid);
           if (valid) {
             const actual = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
-            assert.deepEqual(Array.from(actual), Array.from(option === "-ss" ? samples.subarray(2024) : samples.subarray(0, 2024)));
+            assert.deepEqual(Array.from(actual), Array.from(option === "-ss" ? samples.subarray(boundary) : samples.subarray(0, boundary)));
           } else {
             if (!sync) assert.ok(Buffer.concat(errors).toString().includes(option));
             volume.writeFileSync("/out.wav", "keep");

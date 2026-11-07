@@ -231,16 +231,19 @@ function parseHlsDuration(spec: string): number {
   if (negative || value.startsWith("+")) value = value.slice(1);
   const parts = value.split(":");
   if (parts.length > 3) return NaN;
-  let seconds = 0;
+  let microseconds = 0;
   for (const [index, part] of parts.entries()) {
     const fields = part.split(".");
     if (fields.length > 2 || (fields.length === 2 && index !== parts.length - 1)
       || !fields[0] || Array.from(fields.join("")).some(char => char < "0" || char > "9")) return NaN;
     const number = Number(part);
     if (parts.length > 1 && (index > 0 || parts.length === 2) && number >= 60) return NaN;
-    seconds = seconds * 60 + number;
+    // FFmpeg reads at most six fractional digits, then truncates unit scaling.
+    microseconds = microseconds * 60 + Number(fields[0]) * 1_000_000
+      + Number((fields[1] ?? "").slice(0, 6).padEnd(6, "0"));
   }
-  return (negative ? -seconds : seconds) / scale;
+  const seconds = Math.trunc(microseconds / scale) / 1_000_000;
+  return negative ? -seconds : seconds;
 }
 
 function parseColorRgba(colorStr: string): [number, number, number, number] {

@@ -15,7 +15,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  const metadata=readBmpMetadata(header),view=new DataView(header.buffer),{width,height}=metadata;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid BMP dimensions");
  checkLimitInputPixels(width,height,options);
- const dataOffset=view.getUint32(10,true),dibHeaderSize=view.getUint32(14,true),topDown=view.getInt32(22,true)<0,bpp=view.getUint16(28,true),rowStride=Math.floor((width*bpp+31)/32)*4;
+ const dataOffset=view.getUint32(10,true),dibHeaderSize=view.getUint32(14,true),topDown=dibHeaderSize!==12&&view.getInt32(22,true)<0,bpp=view.getUint16(dibHeaderSize===12?24:28,true),rowStride=Math.floor((width*bpp+31)/32)*4;
  const palette=new Uint8Array(bpp<=8?(bpp===8?256:bpp===4?16:bpp===1?2:1)*3:0),paletteOffset=14+dibHeaderSize,paletteStep=dibHeaderSize===12?3:4;
  for(let i=0;i<palette.length/3;i++) for(let c=0;c<3;c++) palette[i*3+c]=await reader.at(paletteOffset+i*paletteStep+c)??0;
  const {size:ignoredSize,...raster}=metadata;

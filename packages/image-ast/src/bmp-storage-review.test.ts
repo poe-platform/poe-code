@@ -55,6 +55,18 @@ const vectors:{spec:Parameters<typeof fixture>[0];expected:Omit<RgbaImage,"data"
 function backing(){const memory=new Uint8Array(1024*1024),borrowed=new Uint8Array(4096);let end=8;return {memory,storage:{allocate:vi.fn((length:number)=>{const position=end;end+=length;if(end>memory.length)throw new Error("fixture exhausted");return position;}),write:vi.fn(async(position:number,bytes:Uint8Array)=>{if(position<8||position+bytes.length>end||bytes.length>4096)throw new Error("invalid storage write");memory.set(bytes,position);}),read:vi.fn(async(position:number,length:number)=>{if(length>4096||position<8||position+length>end)throw new Error("invalid backing read");borrowed.fill(37);borrowed.set(memory.subarray(position,position+length));return borrowed.subarray(0,length);})}};}
 function source(bytes:Uint8Array){const borrowed=new Uint8Array(4096);return {size:bytes.length,read:vi.fn(async(position:number,length:number)=>{if(length>4096||position+length>bytes.length)throw new Error("invalid source read");borrowed.fill(39);borrowed.set(bytes.subarray(position,position+length));return borrowed.subarray(0,length);})};}
 const digest=(bytes:Uint8Array)=>createHash("sha256").update(bytes).digest("hex");
+it.each([1,4,8,24])("decodes %i-bit CORE headers with bounded raster allocation",async bpp=>{
+ const windows=fixture({bpp,topDown:false,truncated:0,density:0}),expected=decodeBmpImage(windows),paletteCount=bpp<=8?1<<bpp:0,offset=26+paletteCount*3;
+ const bytes=new Uint8Array(windows.length-28-paletteCount),view=new DataView(bytes.buffer);
+ bytes.set(windows.subarray(0,14));view.setUint32(2,bytes.length,true);view.setUint32(10,offset,true);view.setUint32(14,12,true);view.setUint16(18,9,true);view.setUint16(20,3,true);view.setUint16(22,1,true);view.setUint16(24,bpp,true);
+ for(let i=0;i<paletteCount;i++)bytes.set(windows.subarray(54+i*4,57+i*4),26+i*3);
+ bytes.set(windows.subarray(54+paletteCount*4),offset);
+ const {storage,memory}=backing();
+ const actual=await decodeBmpToStorage(source(bytes),storage,new AbortController().signal,{limitInputPixels:27});
+ expect(storage.allocate).toHaveBeenCalledExactlyOnceWith(108);
+ expect(memory.subarray(actual.position,actual.position+108)).toEqual(expected.data);
+ expect(decodeBmpImage(bytes)).toEqual(expected);
+});
 it.each(vectors)("preserves BMP bpp=$spec.bpp topDown=$spec.topDown truncated=$spec.truncated",async vector=>{
  const bytes=fixture(vector.spec),copy=new Uint8Array(bytes),{storage,memory}=backing(),signal=new AbortController().signal,actual=await decodeBmpToStorage(source(bytes),storage,signal),buffered=decodeBmpImage(bytes);
  expect({...actual,position:undefined}).toEqual(vector.expected);expect({...buffered,data:undefined}).toEqual(vector.expected);expect(digest(buffered.data)).toBe(vector.hash);expect(digest(memory.subarray(actual.position,actual.position+actual.width*actual.height*4))).toBe(vector.hash);expect(digest(encodeBmpImage(buffered))).toBe(vector.encoded);

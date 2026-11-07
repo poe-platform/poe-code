@@ -2117,6 +2117,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsIndependentSegments = false;
         let hlsSplitByTime = false;
         let hlsDeleteThreshold = 1;
+        let hlsBaseUrl = "";
         let hlsSegmentFilename: string | undefined;
         let hlsSingleFile = false;
         let hlsSegmentType: string | undefined;
@@ -2210,6 +2211,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-seg_duration") {
             hlsTime = parseFloat(args[++i] ?? "2") || 2;
+          } else if (arg === "-hls_base_url") {
+            const value = args[++i];
+            if (value === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing hls_base_url\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            hlsBaseUrl = value;
           } else if (arg === "-hls_segment_filename") {
             hlsSegmentFilename = args[++i];
           } else if (arg === "-hls_segment_type") {
@@ -4008,7 +4016,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (sIdx >= firstSegment) {
                   playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`);
                   if (hlsSingleFile) playlistLines.push(`#EXT-X-BYTERANGE:${segBytes.byteLength}@${singleFileSize}`);
-                  playlistLines.push(relSegName);
+                  playlistLines.push(hlsBaseUrl + relSegName);
                 }
                 if (hlsSingleFile) singleFileSize += segBytes.byteLength;
                 if (!hlsSingleFile && hlsDeleteSegments && hlsListSize > 0) {

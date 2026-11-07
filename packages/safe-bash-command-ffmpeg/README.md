@@ -146,6 +146,8 @@ WAV segment output (`-c copy -f segment part%02d.wav`) writes numbered files at 
 
 Multi-file HLS filename templates must contain a numbered placeholder such as `%d` or `%03d`; `%%` produces a literal percent sign. Invalid templates are rejected before writing output. `-hls_flags` accepts `delete_segments`, `omit_endlist`, `split_by_time`, and `independent_segments`, including `+`/`-` combinations. Unrecognized flags fail before writing output. `-hls_flags single_file` writes one media file with playlist byte ranges computed from the muxed bytes (MPEG-TS or fMP4, including an initialization range). Its default filename is the playlist basename with `.ts` or `.m4s`; an explicit segment filename is used literally without numbered expansion. Playlist windows retain the complete media file even with `delete_segments`.
 
+`-hls_base_url` prepends its value verbatim to media segment URIs in the playlist without changing local output paths or initialization map URIs.
+
 Explicit `-hls_segment_filename` paths resolve from the working directory; default segments are written beside the playlist. Missing HLS parent directories are created. Existing outputs are preserved with exit status 1 unless `-y` is specified; `-n` explicitly requests preservation.
 
 

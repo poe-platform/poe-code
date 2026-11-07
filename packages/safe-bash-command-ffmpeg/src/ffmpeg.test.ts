@@ -2085,6 +2085,41 @@ describe("HLS independent_segments", () => {
   });
 });
 
+describe("HLS base URL", () => {
+  for (const type of ["mpegts", "fmp4"]) {
+    for (const singleFile of [false, true]) {
+      for (const baseUrl of ["", "media/", "https://cdn.example/video?segment="]) {
+        it(`prefixes only media URIs (${type}, single=${singleFile}, base=${baseUrl})`, async () => {
+          const input = createSyntheticMp4({ width: 32, height: 32, fps: 2, frameCount: 4 });
+          const control = createTestVfs({ "/in.mp4": input });
+          const actual = createTestVfs({ "/in.mp4": input });
+          const args = ["-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type,
+            ...(singleFile ? ["-hls_flags", "single_file"] : []), "/hls/out.m3u8"];
+          const baseline = await runCmd(createFfmpegCommand(), args, control);
+          assert.equal(baseline.exitCode, 0, baseline.stderr);
+          const result = await runCmd(createFfmpegCommand(), ["-hls_base_url", baseUrl, ...args], actual);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.deepEqual([...actual.store.keys()], [...control.store.keys()]);
+          for (const [path, bytes] of control.store) {
+            if (path === "/hls/out.m3u8") {
+              const expected = new TextDecoder().decode(bytes).split("\n")
+                .map(line => line && !line.startsWith("#") ? baseUrl + line : line).join("\n");
+              assert.equal(new TextDecoder().decode(actual.store.get(path)), expected);
+            } else assert.deepEqual(actual.store.get(path), bytes);
+          }
+        });
+      }
+    }
+  }
+  it("rejects a missing base URL before writing output", async () => {
+    const vfs = createTestVfs({});
+    const result = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", "color=s=16x16:d=1", "-hls_base_url"], vfs);
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("hls_base_url"), result.stderr);
+    assert.equal(vfs.store.size, 0);
+  });
+});
+
 describe("HLS fMP4 initialization", () => {
   for (const includeAudio of [false, true]) {
     it(`writes an initialization map and continuous fragments (audio=${includeAudio})`, async () => {

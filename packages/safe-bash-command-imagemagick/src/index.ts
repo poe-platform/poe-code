@@ -5292,8 +5292,8 @@ function* prepareGifFrames(stack: readonly MagickImage[]): Generator<void, RgbaI
     for (let idx = 0; idx < stack.length; idx++) {
         if (++cooperativeWork % 64 === 0) yield;
         const outputFrame = yield* prepareMagickOutput(stack[idx]!, "gif");
-        disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 1);
-        delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
+        disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 0);
+        delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0);
         for (let y = 0; y < outputFrame.height; y++) {
             if (++cooperativeWork % 64 === 0) yield;
             combined.set(outputFrame.data.subarray(y * outputFrame.width * 4, (y + 1) * outputFrame.width * 4), (idx * fw * fh + y * fw) * 4);
@@ -5337,12 +5337,12 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
         } },
         storedDisposal: { length: stack.length, async at(index) {
             const frame = (await stack.get(index))!;
-            return typeof frame.disposal === "number" ? frame.disposal : 1;
+            return typeof frame.disposal === "number" ? frame.disposal : 0;
         } },
         storedDelay: { length: stack.length, async at(index) {
             const frame = (await stack.get(index))!;
             const scene = frame[magickInput]?.sceneIdx ?? 0;
-            return await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 100;
+            return await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 0;
         } }
     };
 }

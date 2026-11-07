@@ -18,7 +18,8 @@ for (const mixed of [false, true]) it(`omits unknown MP4 picture types, mixed=${
     stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
   });
   expect(result.exitCode, diagnostic).toBe(0);
-  const frames = JSON.parse(output).frames;
+  const parsed = JSON.parse(output);
+  const frames = mixed ? parsed.packets_and_frames.filter((row: { type: string }) => row.type === 'frame') : parsed.frames;
   expect(frames).toHaveLength(5);
   expect(frames.filter((frame: { key_frame: number }) => frame.key_frame === 1)).toHaveLength(1);
   for (const frame of frames) {

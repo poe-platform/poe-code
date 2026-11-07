@@ -42,7 +42,8 @@ it.each(['v:0', 'a:0'])('filters command records for %s', async selector => {
     stderr: { async write() { throw new Error('unexpected diagnostic'); } }
   });
   expect(result.exitCode).toBe(0);
-  const records = JSON.parse(output);
+  const rows = JSON.parse(output).packets_and_frames;
+  const records = { packets: rows.filter((row: { type: string }) => row.type === "packet"), frames: rows.filter((row: { type: string }) => row.type === "frame") };
   const video = selector === 'v:0';
   expect(records.packets).toHaveLength(video ? 5 : 9);
   expect(records.frames).toHaveLength(video ? 5 : 8);

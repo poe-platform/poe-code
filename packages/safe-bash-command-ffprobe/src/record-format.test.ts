@@ -9,7 +9,7 @@ for (const printFormat of ["ini", "json", "json=c=1", "json:compact=1", "csv", "
   it(`preserves ${printFormat} output with one-shot packet/frame iterators`, () => {
     const opts = { printFormat, showFormat: true, showStreams: true, showPackets: true, showFrames: true, showChapters: true, showPrograms: true };
     const expected = printFormat.startsWith("json")
-      ? JSON.stringify({ programs: [], packets: probe.packets, frames: probe.frames, streams: probe.streams, chapters: probe.chapters, format: probe.format }, null, printFormat === "json" ? 2 : undefined) + "\n"
+      ? JSON.stringify({ programs: [], packets_and_frames: probe.packets!.flatMap((packet, index) => [{ type: "packet", ...packet }, { type: "frame", ...probe.frames![index] }]), streams: probe.streams, chapters: probe.chapters, format: probe.format }, null, printFormat === "json" ? 2 : undefined) + "\n"
       : formatFfprobeResult(probe, opts);
     const records = { ...probe, packets: (function* () { yield* probe.packets!; })(), frames: (function* () { yield* probe.frames!; })() };
     const parts = [...formatFfprobeResultChunks(records, opts)];
@@ -38,4 +38,25 @@ it("does not swallow consumer errors while yielding the qualified audio schema",
   parts.next();
   const reason = new Error("consumer failed");
   expect(() => parts.throw(reason)).toThrow(reason);
+});
+
+it("closes both combined record sources when the consumer stops", async () => {
+  const { formatFfprobeSourceChunks } = await import("./media.js");
+  for (const asynchronous of [false, true]) {
+    let packetsClosed = 0, framesClosed = 0, packetsRead = 0, framesRead = 0;
+    function* packets() {
+      try { for (const packet of probe.packets!) { packetsRead++; yield packet; } }
+      finally { packetsClosed++; }
+    }
+    function* frames() {
+      try { for (const frame of probe.frames!) { framesRead++; yield frame; } }
+      finally { framesClosed++; }
+    }
+    const records = { ...probe, packets: packets(), frames: frames() };
+    const opts = { printFormat: "json", showFormat: false, showStreams: false, showPackets: true, showFrames: true, showChapters: false, showPrograms: false };
+    const chunks = asynchronous ? formatFfprobeSourceChunks(records, opts) : formatFfprobeResultChunks(records, opts);
+    for await (const chunk of chunks) if (chunk.includes('"frame"')) break;
+    expect(packetsRead).toBe(1); expect(framesRead).toBe(1);
+    expect(packetsClosed).toBe(1); expect(framesClosed).toBe(1);
+  }
 });

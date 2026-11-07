@@ -1,3 +1,4 @@
+import { interleaveProbeRecords } from "./interleave-records.js";
 import { parseReadIntervals, readPacketIntervals } from "./read-intervals.js";
 import { formatProbeText, iniSection, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
 import { PagedStorage, IntegerTable } from "@poe-code/safe-fs/storage";
@@ -483,8 +484,12 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     const sections: { name: string; rows?: Iterable<unknown> | AsyncIterable<unknown>; value?: unknown }[] = [];
     if (includePrograms || includesEntries("stream")) sections.push({ name: "programs", rows: [] });
     if (includesEntries("stream")) sections.push({ name: "stream_groups", rows: [] });
-    if (includePackets && probe.packets) sections.push({ name: "packets", rows: probe.packets });
-    if (includeFrames && probe.frames) sections.push({ name: "frames", rows: probe.frames });
+    if (includePackets && includeFrames) {
+      sections.push({ name: "packets_and_frames", rows: interleaveProbeRecords(probe.packets ?? [], probe.frames ?? []) });
+    } else {
+      if (includePackets && probe.packets) sections.push({ name: "packets", rows: probe.packets });
+      if (includeFrames && probe.frames) sections.push({ name: "frames", rows: probe.frames });
+    }
     if (includeStreams) sections.push({ name: "streams", rows: streams });
     if (includeChapters) sections.push({ name: "chapters", rows: probe.chapters });
     if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
@@ -499,6 +504,12 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         let firstRow = true;
         yield { rows: section.rows, *render(row) {
           if (section.name === "streams") { row = selectedIndices ? row : prepareStream(row); if (row === undefined) return; }
+          else if (section.name === "packets_and_frames") {
+            const { type, record } = row as { type: string; record: unknown };
+            row = prepareRecord(record, type);
+            if (row === undefined) return;
+            row = { type, ...row as Record<string, unknown> };
+          }
           else if (section.name === "packets" || section.name === "frames") {
             row = prepareRecord(row, section.name === "packets" ? "packet" : "frame");
             if (row === undefined) return;

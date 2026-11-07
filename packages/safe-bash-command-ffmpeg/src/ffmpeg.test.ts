@@ -16,6 +16,48 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("aloop", () => {
+  for (const [filter, repeats, size] of [
+    ["aloop=loop=2:size=8:start=0", 2, 8],
+    ["aloop=2:8:0", 2, 8],
+    ["aloop=loop=0:size=8:start=10", 0, 8],
+    ["aloop", 0, 0],
+    ["aloop=2:0", 0, 0],
+    ["aloop=2:3000", 2, 2300],
+  ] as const) {
+    it(`preserves stereo sample order and length for ${filter}`, async () => {
+      const channels = [1, -1].map(sign => Float64Array.from({ length: 2300 }, (_, i) => sign * i / 32768));
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData;
+      for (let c = 0; c < channels.length; c++) {
+        const input = Array.from(channels[c]!, value => value || 0);
+        const expected = [...Array.from({ length: repeats }, () => input.slice(0, size)).flat(), ...input];
+        assert.deepEqual(Array.from(output[c]!), expected);
+      }
+    });
+  }
+  for (const filter of ["aloop=-1:8", "aloop=1.5:8", "aloop=2:-8", "aloop=2:8:10", "aloop=loop=", "aloop=wat=1"]) {
+    it(`rejects unsupported or invalid ${filter} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", filter, "/out.wav"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /aloop:/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+  for (const limits of [{ maxDurationSeconds: 1 }, { maxMemoryBytes: 65536 }]) {
+    it(`bounds repeated output with ${JSON.stringify(limits)}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand({ limits }), ["-y", "-i", "/in.wav", "-af", "aloop=100000:8", "/out.wav"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.doesNotMatch(result.stderr, /Unsupported audio filter/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});
+
 describe("aselect", () => {
   for (const [filter, ranges] of [
     ["aselect='not(mod(n,2))'", [[0, 512], [1024, 1536], [2048, 2300]]],

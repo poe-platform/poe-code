@@ -4416,6 +4416,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = output;
+                      } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {
+                        const values: Record<string, number> = { loop: 0, size: 0, start: 0 };
+                        const argument = trimmed.slice("aloop=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["loop", "size", "start"][index] : option.slice(0, separator).trim();
+                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
+                          const number = Number(value);
+                          if (!value || !Number.isSafeInteger(number) || number < 0) throw new Error(`aloop: invalid ${key}; finite nonnegative integers required`);
+                          values[key] = number;
+                        }
+                        const { loop, size, start } = values;
+                        if (loop! > 0 && size! > 0) {
+                          if (start !== 0) throw new Error("aloop: active loops require start=0");
+                          const inputLength = stretched[0]?.length ?? 0;
+                          const regionLength = Math.min(size!, inputLength);
+                          const repeatedLength = regionLength * loop!;
+                          const length = inputLength + repeatedLength;
+                          if (!Number.isSafeInteger(length)) throw new Error("aloop: output sample count is too large");
+                          budget.checkDuration(length / origRate);
+                          budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                          stretched = await mapWork(stretched, async channel => {
+                            const output = new Float32Array(length);
+                            for (let offset = 0; offset < length; offset += 16384) {
+                              await yieldTurn(context.signal);
+                              context.signal?.throwIfAborted();
+                              budget.checkCpu();
+                              const end = Math.min(length, offset + 16384);
+                              for (let i = offset; i < end; i++) {
+                                output[i] = channel[i < repeatedLength ? i % regionLength : i - repeatedLength]!;
+                              }
+                            }
+                            return output;
+                          }, context.signal);
+                        }
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
                         let padding: number | undefined;
                         let minimum: number | undefined;

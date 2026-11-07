@@ -8,7 +8,8 @@ const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAECAYAAABGM/VAAAAAIGNIU
 
 it.each(["buffered", "retained", "sync"])("inherits PNG shadow background and honors overrides (%s)", async mode => {
     expect(decodeImage(input).backgroundColor).toEqual({ r: 0, g: 255, b: 0, a: 255 });
-    const withoutBackground = encodeImage({ ...decodeImage(input), backgroundColor: undefined }, { format: "png" }).data;
+    const { backgroundColor: ignoredBackgroundColor, ...withoutBackgroundImage } = decodeImage(input);
+    const withoutBackground = encodeImage(withoutBackgroundImage, { format: "png" }).data;
     for (const { bytes, options, color } of [
         { bytes: input, options: [], color: [0, 255, 0] },
         { bytes: input, options: ["-background", "blue"], color: [0, 0, 255] },

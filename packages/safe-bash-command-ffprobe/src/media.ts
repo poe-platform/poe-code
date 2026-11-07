@@ -720,11 +720,19 @@ function parseProbeArguments(args: readonly string[]) {
   const [head = "default", ...parameters] = printFormat.split(":");
   const equals = head.indexOf("=");
   const writer = (equals < 0 ? head : head.slice(0, equals)).toLowerCase();
-  if (!["json", "compact", "csv", "default", "flat", "ini"].includes(writer)) throw new Error(`Unknown output format ${writer}`);
+  const writerOptions: Record<string, readonly string[]> = {
+    json: ["c", "compact"],
+    default: ["nokey", "nk", "noprint_wrappers", "nw"],
+    compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
+    csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
+    flat: [],
+    ini: ["h", "hierarchical"]
+  };
+  if (!Object.hasOwn(writerOptions, writer)) throw new Error(`Unknown output format ${writer}`);
   if (equals >= 0) parameters.unshift(head.slice(equals + 1));
   for (const parameter of parameters) {
     const key = parameter.split("=")[0]!;
-    if (!(writer === "ini" && ["h", "hierarchical"].includes(key)) && !["c", "compact", "nokey", "nk", "noprint_wrappers", "nw", "print_section", "p", "item_sep", "s"].includes(key))
+    if (!writerOptions[writer]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
   }
   const entryFilter = parseEntryFilter(showEntries);

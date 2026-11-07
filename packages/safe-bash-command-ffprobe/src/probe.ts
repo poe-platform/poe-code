@@ -78,12 +78,16 @@ export function parseArguments(args: readonly string[]) {
       return [k, v];
     })
   );
+  const writerOptions: Record<string, readonly string[]> = {
+    json: [],
+    default: ["nokey", "nk", "noprint_wrappers", "nw"],
+    compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
+    csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
+    flat: [],
+    ini: ["h", "hierarchical"]
+  };
   for (const key of settings.keys())
-    if (
-      !(format === "ini" && ["h", "hierarchical"].includes(key)) && !["nokey", "nk", "noprint_wrappers", "nw", "print_section", "p", "item_sep", "s"].includes(
-        key
-      )
-    )
+    if (!writerOptions[format!]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
   return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal };
 }

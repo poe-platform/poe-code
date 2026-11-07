@@ -151,6 +151,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
 }
 
 export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & { storedData16?: unknown }, borderWidth: number, borderHeight: number, raised: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    if (2 * borderWidth >= image.width || 2 * borderHeight >= image.height) throw new Error("size must exceed bevel width");
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     const size = image.width * image.height * 4;
     for (let position = 0; position < size; position += 16384) {

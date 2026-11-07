@@ -3,7 +3,7 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
-for (const options of [["-transpose"], ["-transverse"], ["-raise", "3"], ["+raise", "2x7"], ["-raise", "100"], ["-deskew", "40%"], ["-tile", "2x3"], ...["merge", "flatten", "mosaic"].map(mode => ["-layers", mode])])
+for (const options of [["-transpose"], ["-transverse"], ["-raise", "3"], ["+raise", "2x6"], ["-deskew", "40%"], ["-tile", "2x3"], ...["merge", "flatten", "mosaic"].map(mode => ["-layers", mode])])
 it(`retains conversion options ${options.join(" ")}`, async () => {
     const fs = new MemoryFileSystem(), bytes = await sharp(Uint8Array.from({ length: 19 * 13 * 4 }, (_, i) => i * 73 % 256), { raw: { width: 19, height: 13, channels: 4 } }).png().toBuffer();
     await fs.writeFile("/input", bytes);
@@ -46,7 +46,7 @@ it.each([true, false])("matches native ImageMagick raised-border pixels with rai
 it("preserves wide image transforms across bounded spans", async () => {
     const fs = new MemoryFileSystem(), bytes = await sharp(Uint8Array.from({ length: 12001 * 3 * 4 }, (_, i) => i * 73 % 256), { raw: { width: 12001, height: 3, channels: 4 } }).png().toBuffer();
     await fs.writeFile("/input", bytes);
-    const args = ["input", "-raise", "2", "-transpose", "+raise", "1", "-transverse", "out.png"], files = new Map([["input", bytes]]);
+    const args = ["input", "-raise", "2x1", "-transpose", "+raise", "1", "-transverse", "out.png"], files = new Map([["input", bytes]]);
     expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, files));
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
 });

@@ -1,3 +1,4 @@
+import { isMngBytes, readMngLayout, decodeMngImage } from "./mng-input.js";
 import { encodeMngImage } from "./mng.js";
 import { encodeApngImage } from "./apng-output.js";
 import {netpbmFormat} from "./netpbm-format.js";
@@ -53,6 +54,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isMngBytes(bytes)) return "mng";
   if (isPngBytes(bytes)) return "png";
   if (isJpegBytes(bytes)) return "jpeg";
   if (isWebpBytes(bytes)) return "webp";
@@ -141,6 +143,9 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "mng":
+      meta = readMngLayout(bytes).metadata;
+      break;
     case "png":
       meta = readPngMetadata(bytes);
       break;
@@ -360,6 +365,9 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "mng":
+      decoded = decodeMngImage(bytes, options);
+      break;
     case "png":
       decoded = decodePngImage(bytes);
       break;

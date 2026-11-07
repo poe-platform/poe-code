@@ -2625,7 +2625,7 @@ Object.assign(sharp, {
     vertexSplitQuadraticBasisSpline: "vsqbs"
   },
   format: Object.fromEntries(
-    (["jpeg", "png", "webp", "tiff", "heif", "heic", "avif", "gif", "svg", "pdf", "pam", "ppm", "pgm", "pbm", "bmp", "raw"] as const).map(
+    (["jpeg", "png", "webp", "tiff", "heif", "heic", "avif", "gif", "mng", "svg", "pdf", "pam", "ppm", "pgm", "pbm", "bmp", "raw"] as const).map(
       id => [
         id,
         {
@@ -2636,7 +2636,7 @@ Object.assign(sharp, {
       ]
     )
   ) as Record<
-    "jpeg" | "png" | "webp" | "tiff" | "heif" | "heic" | "avif" | "gif" | "svg" | "pdf" | "pam" | "ppm" | "pgm" | "pbm" | "bmp" | "raw",
+    "jpeg" | "png" | "webp" | "tiff" | "heif" | "heic" | "avif" | "gif" | "mng" | "svg" | "pdf" | "pam" | "ppm" | "pgm" | "pbm" | "bmp" | "raw",
     { readonly id: string; readonly input: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean }; readonly output: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean } }
   >,
   cache: (() => {

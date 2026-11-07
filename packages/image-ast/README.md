@@ -95,6 +95,7 @@ previously cached files also use this retained output path; cached resource
 snapshots remain valid. Symlink destinations stream through guarded retained staging when supported, preserving the link and target hardlink aliases and rejecting concurrent retargeting. Joined file, byte and generated inputs use caller backing for
 file output, statistics and metadata, preserving alignment, spacing and animation layout. Generated text and color/noise images
 use the same retained output path, and text metadata avoids rendering a pixel canvas.
+MNG input reads full-canvas PNG frames, frame delays, terminal delay and loop counts, including page selection. Object operations and partial-frame MNG animations return an unsupported-format error.
 These input formats also support
 streaming TIFF, GIF, JPEG, WebP, PDF and raw output. PDF output streams compressed RGB and transparency from caller-backed pixels. `encodeRawFromStorage` preserves
 raw channel/depth conversion and original high-depth samples in caller storage. `encodeGifFromStorage` uses a source-derived palette with a bounded 32K-bin color histogram, bounded

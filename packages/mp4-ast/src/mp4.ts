@@ -2006,7 +2006,20 @@ export function buildProbeResultFromDoc(
         }
         firstPacket = false;
         if (options.showFrames && !(aacMediaStart !== undefined && s.pts + s.duration <= firstPts)) {
-          frames.push({
+          // AVSubtitle uses microsecond PTS and millisecond display bounds.
+          if (track.type === "subtitle" && (doc.containerFormat === "matroska" || doc.containerFormat === "webm")) {
+            frames.push({
+              media_type: "subtitle",
+              stream_index: idx,
+              pkt_dts: s.dts,
+              pts: Math.round(s.pts * 1_000_000 / Math.max(1, track.timescale)),
+              pts_time: ptsTime,
+              format: 1,
+              start_display_time: 0,
+              end_display_time: Math.floor(s.duration * 1000 / Math.max(1, track.timescale)),
+              num_rects: s.size > 0 ? 1 : 0
+            });
+          } else frames.push({
             media_type: track.type,
             stream_index: idx,
             key_frame: s.isKeyframe ? 1 : 0,

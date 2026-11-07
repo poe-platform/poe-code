@@ -32,8 +32,8 @@ for (const route of ["file", "stdin", "sync"]) {
         expect(records.every((record: { stream_index: number }) => record.stream_index === 1)).toBe(true);
       } else {
         expect(records).toHaveLength(1);
-        expect(records[0].stream_index).toBe(2);
-        if (section === "packet") expect(records[0].pts).toBe(100);
+        if (section === "packet") expect(records[0]).toEqual({ stream_index: 2, pts: 100 });
+        else expect(records[0]).toEqual({ pts: 100000 });
       }
     });
   }

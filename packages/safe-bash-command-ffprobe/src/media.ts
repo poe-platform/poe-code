@@ -483,6 +483,12 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
           record[key] = `${value} ${key === "size" ? "byte" : "s"}`;
       }
     }
+    if (section === "frame" && record.media_type === "subtitle" && record.format !== undefined) {
+      // Keep stream identity and packet DTS internally for selection and interleaving.
+      record = { ...record };
+      delete record.stream_index;
+      delete record.pkt_dts;
+    }
     return filterObject(record, section);
   };
   const format: Record<string, unknown> = { ...probe.format };

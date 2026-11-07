@@ -521,18 +521,22 @@ export interface MediaProbePacket {
 export interface MediaProbeFrame {
   readonly media_type: MediaTrackType;
   readonly stream_index: number;
-  readonly key_frame: number;
+  readonly key_frame?: number;
   readonly pts: number;
   readonly pts_time: string;
   readonly pkt_dts?: number;
   readonly pkt_dts_time?: string;
-  readonly best_effort_timestamp: number;
-  readonly best_effort_timestamp_time: string;
+  readonly best_effort_timestamp?: number;
+  readonly best_effort_timestamp_time?: string;
   readonly duration?: number;
   readonly duration_time?: string;
   readonly pkt_duration?: number;
   readonly pkt_duration_time?: string;
-  readonly pkt_size: string;
+  readonly pkt_size?: string;
+  readonly format?: number;
+  readonly start_display_time?: number;
+  readonly end_display_time?: number;
+  readonly num_rects?: number;
   readonly pkt_pos?: string;
   readonly width?: number | undefined;
   readonly height?: number | undefined;

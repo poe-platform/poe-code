@@ -3,7 +3,7 @@ import type { CompareImage, CompareRequest, CompareSamples } from "./compare-ker
 // ImageMagick's default PHASH: seven Hu invariants in xyY and HSB after
 // a separable sigma=1 blur. Keep only a bounded halo, repeating reads for
 // the centroid and central-moment passes instead of retaining whole images.
-export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected: readonly number[] = [0, 1, 2, 3]): Generator<CompareRequest | undefined, number[], CompareSamples | undefined> {
+export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected: readonly number[] = [0, 1, 2, 3], colorspaces: readonly string[] = ["xyy", "hsb"]): Generator<CompareRequest | undefined, number[], CompareSamples | undefined> {
     const weights = Array.from({ length: 9 }, (_, i) => {
         let sum = 0;
         for (let sub = -1; sub <= 1; sub++) sum += Math.exp(-((3 * (i - 4) + sub) ** 2) / 18);
@@ -12,7 +12,7 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected:
     const total = weights.reduce((sum, value) => sum + value, 0);
     for (let i = 0; i < weights.length; i++) weights[i]! /= total;
     // Native RGBA PHASH compares color moments only; alpha still weights the blur.
-    const moments = Array.from({ length: 6 }, () => ({ mass: 0, x: 0, y: 0, m11: 0, m20: 0, m02: 0, m21: 0, m12: 0, m30: 0, m03: 0 }));
+    const moments = Array.from({ length: colorspaces.length * 3 }, () => ({ mass: 0, x: 0, y: 0, m11: 0, m20: 0, m02: 0, m21: 0, m12: 0, m30: 0, m03: 0 }));
     for (let pass = 0; pass < 2; pass++) {
         for (let y = 0; y < info.height; y++) {
             for (let left = 0; left < info.width; left += 1016) {
@@ -59,7 +59,14 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected:
                     const max = Math.max(r, g, b), delta = max - Math.min(r, g, b);
                     let hue = delta === 0 ? 0 : (max === r ? (g - b) / delta : max === g ? 2 + (b - r) / delta : 4 + (r - g) / delta) / 6;
                     if (hue < 0) hue++;
-                    const values = [X / Math.max(X + Y + Z, 1e-12), Y / Math.max(X + Y + Z, 1e-12), Y, hue, max === 0 ? 0 : delta / max, max];
+                    const values = colorspaces.flatMap(space => {
+                        switch (space) {
+                            case "rgb": return linear;
+                            case "srgb": return [r, g, b];
+                            case "hsb": return [hue, max === 0 ? 0 : delta / max, max];
+                            default: return [X / Math.max(X + Y + Z, 1e-12), Y / Math.max(X + Y + Z, 1e-12), Y];
+                        }
+                    });
                     for (let c = 0; c < moments.length; c++) {
                         const quantum = Math.fround(values[c]! * 65535), value = (1 / 65535) * quantum, m = moments[c]!;
                         if (pass === 0) {

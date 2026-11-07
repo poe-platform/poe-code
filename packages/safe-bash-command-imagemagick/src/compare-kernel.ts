@@ -8,6 +8,8 @@ export interface CompareImage {
     readonly hasAlpha: boolean;
 }
 export interface CompareOptions {
+    readonly phashColorspaces?: readonly string[];
+    readonly phashNormalize?: boolean;
     readonly precision?: number;
     readonly channels?: readonly number[];
     readonly metric: string;
@@ -207,13 +209,14 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let exitCode = rmseNorm > 1e-6 ? 1 : 0;
     switch (metric) {
         case "phash": {
-            const a = yield* perceptualHashSteps(imgA, 0, selected);
-            const b = yield* perceptualHashSteps(imgB, 1, selected);
+            const a = yield* perceptualHashSteps(imgA, 0, selected, options.phashColorspaces);
+            const b = yield* perceptualHashSteps(imgB, 1, selected, options.phashColorspaces);
             const channels = Math.max(1, sharedChannels.length);
             distortion = 0;
             for (let i = 0; i < Math.min(a.length, b.length); i++)
                 if (selected.includes(Math.floor(i / 7) % 3)) distortion += (a[i]! - b[i]!) ** 2;
             distortion /= channels;
+            if (options.phashNormalize) distortion = Math.sqrt(distortion / (a.length / 21));
             metricStr = `${formatSignificantMetric(distortion, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;

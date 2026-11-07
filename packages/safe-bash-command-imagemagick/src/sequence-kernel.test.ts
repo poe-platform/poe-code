@@ -23,7 +23,7 @@ function run(steps: Generator<ConvolveRequest | undefined, void, Uint8Array | un
 
 it.each(["mean", "median", "min", "max", "add", "multiply"])("matches independent sequence reference for %s, including stable intensity ties", operation => {
     const size = 1031 * 4, frames = Array.from({ length: 75 }, (_, frame) => Uint8Array.from({ length: size }, (_, index) => index < 8 ? index % 4 === 0 ? frame : index % 4 === 1 ? 255 - frame : 0 : (index * 73 + frame * 31) % 256));
-    const actual = run(evaluateSequencePixelSteps(size, frames.length, operation, true), frames, size), expected = new Uint8Array(size);
+    const actual = run(evaluateSequencePixelSteps(size, frames.map(() => true), operation), frames, size), expected = new Uint8Array(size);
     for (let pixel = 0; pixel < size; pixel += 4) {
         const ranked = frames.map((data, index) => ({ data, index, sum: data.slice(pixel, pixel + 4).reduce((a, b) => a + b, 0) })).sort((a, b) => a.sum - b.sum || a.index - b.index);
         for (let channel = 0; channel < 4; channel++) {
@@ -91,5 +91,5 @@ it.each([
     { pixels: [255, 0, 255], expected: 255 },
 ])("uses native Divide zero-divisor handling for $pixels", ({ pixels, expected }) => {
     const frames = pixels.map(value => Uint8Array.of(value, value, value, value));
-    expect(run(evaluateSequencePixelSteps(4, frames.length, "Divide", true), frames, 4)).toEqual(Uint8Array.of(expected, expected, expected, expected));
+    expect(run(evaluateSequencePixelSteps(4, frames.map(() => true), "Divide"), frames, 4)).toEqual(Uint8Array.of(expected, expected, expected, expected));
 });

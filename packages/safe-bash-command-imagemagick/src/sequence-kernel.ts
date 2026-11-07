@@ -121,7 +121,16 @@ export function* combinePixelSteps(size: number, lengths: readonly number[]): St
 }
 
 /** Median ranks RGBA sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, frames: number, raw: string, hasAlpha: boolean, channels?: readonly boolean[]): Steps {
+export function* evaluateSequencePixelSteps(size: number, frameAlpha: readonly boolean[], raw: string, channels?: readonly boolean[]): Steps {
+    const frames = frameAlpha.length, hasAlpha = frameAlpha.some(Boolean);
+    function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
+        const bytes = (yield { kind: "read", image, position, length })!;
+        if (!hasAlpha || frameAlpha[image]) return bytes;
+        // ImageMagick contributes zero for a channel absent from an input.
+        const data = new Uint8Array(bytes);
+        for (let offset = 3; offset < length; offset += 4) data[offset] = 0;
+        return data;
+    }
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
         "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
@@ -134,11 +143,11 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
     let work = 0;
     for (let position = 0; position < size; position += window) {
         if (position % 16384 === 0) yield;
-        const length = Math.min(window, size - position), data = new Uint8Array((yield { kind: "read", position, length })!);
+        const length = Math.min(window, size - position), data = new Uint8Array(yield* read(0, position, length));
         if (["and", "or", "xor"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
-                const bytes = (yield { kind: "read", image, position, length })!;
+                const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
                     if (operation === "and") data[offset] = data[offset]! & bytes[offset]!;
                     else if (operation === "or") data[offset] = data[offset]! | bytes[offset]!;
@@ -153,7 +162,7 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
                 histogram.fill(0);
                 for (let image = 0; image < frames; image++) {
                     if (++work % 64 === 0) yield;
-                    const bytes = (yield { kind: "read", image, position, length })!;
+                    const bytes = yield* read(image, position, length);
                     for (let pixel = 0; pixel < pixels; pixel++) {
                         const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
                         if (shift === 5 || (sum >> 5) === (sums[pixel]! >> 5)) histogram[pixel * 32 + ((sum >> shift) & 31)]!++;
@@ -167,7 +176,7 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
             }
             for (let image = 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
-                const bytes = (yield { kind: "read", image, position, length })!;
+                const bytes = yield* read(image, position, length);
                 for (let pixel = 0; pixel < pixels; pixel++) {
                     const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
                     if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(bytes.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
@@ -178,7 +187,7 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
             const values = Float64Array.from(data, value => value * 257);
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
-                const bytes = (yield { kind: "read", image, position, length })!;
+                const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) values[offset]! += (bytes[offset]! * 257) ** 2;
             }
             for (let offset = 0; offset < length; offset++) {
@@ -192,7 +201,7 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
             if (operation === "divide") for (let offset = 0; offset < length; offset++) values[offset]! *= 257;
             for (let image = ordered ? 1 : 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
-                const bytes = (yield { kind: "read", image, position, length })!;
+                const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
                     if (addition) values[offset]! += bytes[offset]!;
                     else if (multiplication) values[offset]! *= bytes[offset]! / 255;

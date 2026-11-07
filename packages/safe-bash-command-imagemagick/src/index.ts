@@ -783,7 +783,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
         if (im.width === w && im.height === h) return im;
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h), signal, { ...im, width: w, height: h });
     }));
-    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw, base.hasAlpha, channels), signal, { ...base, width: w, height: h }, normalized);
+    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.map(image => image.hasAlpha), opRaw, channels), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized);
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -7237,9 +7237,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await result.push((await stack.get(stack.length - 1))!); return result;
                 } else if (stack.length > 0) {
                     let width = 0, height = 0;
+                    const frameAlpha: boolean[] = [];
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         width = Math.max(width, image.width); height = Math.max(height, image.height);
+                        frameAlpha.push(image.hasAlpha);
                     }
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
@@ -7247,7 +7249,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await stack.set(index, await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height), signal, { ...image, width, height }));
                     }
                     const base = (await stack.get(0))!;
-                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, stack.length, argument, base.hasAlpha, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined), signal, base, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frameAlpha, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined), signal, { ...base, hasAlpha: frameAlpha.some(Boolean) }, async index => (await stack.get(index))!);
                     stack.length = 0; await stack.push(result);
                 }
                 return stack;

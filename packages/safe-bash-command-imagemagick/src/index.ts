@@ -1,3 +1,4 @@
+import { writeMaskPixelSteps } from "./write-mask.js";
 import { mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawRgbInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
@@ -55,8 +56,8 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
-type RgbaImage = BaseRgbaImage & HueMetadata & { readMask?: ReadMask | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { readMask?: ReadMask | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { readMask?: ReadMask | undefined; storedWriteMask?: Pick<BaseStoredRgbaImage, "width" | "height" | "position" | "hasAlpha"> | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -5748,26 +5749,26 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-orient") {
             const orientation = state.orientation = parseMagickOrientation(tokens[++i] ?? "");
-            stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, orientation }; });
+            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, orientation }; });
             i++;
             continue;
         }
         if (t === "-units") {
             const units = state.units = parseMagickUnits(tokens[++i] ?? "");
-            stack = yield* mapSteps(stack, function* (image) { yield; return applyMagickUnits(image, units); });
+            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickUnits(image, units); });
             i++;
             continue;
         }
         if (t === "-density") {
             const value = tokens[++i] ?? "72";
             state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
-            stack = yield* mapSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
+            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
             i++;
             continue;
         }
         if (t === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
             const delay = Number(tokens[i + 2] ?? 0) * 10;
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
                 return { ...image, delay: Array(image.delay?.length ?? 1).fill(delay) };
             });
@@ -5776,7 +5777,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-set" && tokens[i + 1]?.toLowerCase() === "dispose") {
             const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
                 return { ...image, disposal };
             });
@@ -5785,7 +5786,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("filename:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, (image as MagickImage)[magickInput]);
                 return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: { ...image.properties, [key]: expanded } };
             });
@@ -5794,12 +5795,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "+set") {
             const key = tokens[++i] ?? "";
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
                 const properties = { ...image.properties };
                 delete properties[key];
                 return { ...image, properties };
             });
+            i++;
+            continue;
+        }
+        if (t === "-write-mask" || t === "+write-mask") {
+            const path = t === "-write-mask" ? tokens[++i] : undefined;
+            if (t === "-write-mask" && !path) throw new Error("missing argument '-write-mask'");
+            const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes) : undefined;
+            if (path && !mask) throw new Error(`unable to open image '${path}'`);
+            stack = stack.map(image => ({ ...image, writeMask: mask }));
             i++;
             continue;
         }
@@ -5810,7 +5820,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (setting !== undefined) { i = setting; }
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, state, i++);
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const result = yield* connectedComponentsSteps(image, connectivity, state.connectedVerbose ?? false);
                 analysis.text += result.text;
                 return result.image;
@@ -5818,7 +5828,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (analysisOperation) {
             i = analysisOperation.end;
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram);
                 return yield* analysisOperation.transform(histogram, image)(image);
@@ -5826,21 +5836,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-colors") {
             const colors = Number(tokens[++i]);
-            stack = yield* mapSteps(stack, image => {
+            stack = yield* mapMagickImagesSteps(stack, image => {
                 const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
                 return applyMagickRasterSteps(pixels, quantizePixelSteps(image.data.length, colors, state.quantizeGray), signal);
             });
         }
         else if (pixelOperation) {
             i = pixelOperation.end;
-            stack = yield* mapSteps(stack, image => {
+            stack = yield* mapMagickImagesSteps(stack, image => {
                 const { data16: ignored, ...pixels } = image;
                 return pixelOperation.apply(pixelOperation.highDepth ? image : pixels);
             });
         }
         else if (warpOperation) {
             i = warpOperation.end;
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const plan = warpOperation.plan(image);
                 if (!plan) return image;
                 const output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
@@ -6019,19 +6029,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-splice") {
             const geom = tokens[++i] ?? "0x0";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickSpliceSteps(im, geom, state.background, state.gravity, signal));
             });
         }
         else if (t === "-chop") {
             const geom = tokens[++i] ?? "0x0";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickChopSteps(im, geom, state.gravity, signal));
             });
         }
         else if (t === "-roll") {
             const geom = tokens[++i] ?? "+0+0";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRollSteps(im, geom, signal));
             });
         }
@@ -6052,7 +6062,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     // Optional target color omitted
                 }
             }
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.fuzz, signal));
             });
         }
@@ -6065,7 +6075,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-convolve") {
             const kSpec = tokens[++i] ?? "1";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickCustomConvolveSteps(im, kSpec, signal));
             });
         }
@@ -6081,7 +6091,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const palSpec = tokens[++i] ?? "";
             const palImg = (yield* parseInputOperandSteps(palSpec, files, state, stdinBytes));
             if (palImg) {
-                stack = yield* mapSteps(stack, function* (im) {
+                stack = yield* mapMagickImagesSteps(stack, function* (im) {
                     return (yield* applyMagickRemapSteps(im, palImg, state.dither, signal));
                 });
             }
@@ -6104,13 +6114,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-shadow") {
             const geom = tokens[++i] ?? "80x3+5+5";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickShadowSteps(im, geom, state.background, signal));
             });
         }
         else if (t === "-vignette") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background, geometry), signal, { ...im, hasAlpha: true });
             });
         }
@@ -6125,44 +6135,44 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-canny") {
             const spec = tokens[++i] ?? "0x1+10%+30%";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, cannyPixelSteps(im, spec), signal, { ...im, hasAlpha: false });
             });
         }
         else if (t === "-edge") {
             const radius = Number(tokens[++i] ?? 0);
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRasterSteps(im, edgePixelSteps(im, radius, state.channelExplicit ? state.channels : undefined), signal));
             });
         }
         else if (t === "-emboss") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry), signal));
             });
         }
         else if (t === "-charcoal") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const edges = yield* applyMagickRasterSteps(im, edgePixelSteps(im, geometry.width ?? 0), signal, { ...im, hasAlpha: false });
                 return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry), signal);
             });
         }
         else if (t === "-sketch") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0;
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, sketchPixelSteps(im, geometry, seed), signal);
             });
         }
         else if (t === "+repage" || t === "-repage") {
             if (t === "-repage") {
                 const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
-                stack = yield* mapSteps(stack, function* (image) {
+                stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
                     return { ...image, virtualCanvas: magickRepageCanvas(image, geometry) };
                 });
             }
-            else stack = yield* mapSteps(stack, function* (image) {
+            else stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
                 const { virtualCanvas: ignoredCanvas, ...reset } = image;
                 return reset;
@@ -6170,7 +6180,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-resample") {
             const value = tokens[++i] ?? "72";
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel);
                 return applyMagickDensity(resized, value);
             });
@@ -6178,7 +6188,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
             const geom = tokens[++i] ?? "100%";
             const k = t === "-sample" ? "nearest" : state.kernel;
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickResizeSteps(im, geom, k, t === "-thumbnail", t === "-sample", t === "-scale"));
             }));
         }
@@ -6194,7 +6204,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-extent") {
             const geom = tokens[++i] ?? "100%";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickExtentSteps(im, geom, state, signal));
             });
         }
@@ -6202,7 +6212,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(tokens[++i] ?? "0x0");
             const bw = Math.max(0, Math.round(g.width ?? 0));
             const bh = Math.max(0, Math.round(g.height ?? bw));
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const canvas = yield* createSolidRgbaImageSteps(im.width + bw * 2, im.height + bh * 2, state.borderColor);
                 yield* blitOverRgbaInPlaceSteps(canvas, im, bw, bh);
                 return { ...canvas, virtualCanvas: magickBorderCanvas(im, bw, bh) };
@@ -6213,7 +6223,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(geometry);
             const sw = Math.max(0, Math.round(g.width ?? 0));
             const sh = Math.max(0, Math.round(g.height ?? sw));
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 if (sw * 2 >= im.width || sh * 2 >= im.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return im;
@@ -6227,38 +6237,38 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-trim") {
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* trimMagickSteps(im, state.alphaFuzz));
             }));
         }
         else if (t === "-rotate") {
             const deg = Number(tokens[++i] ?? 0);
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
         else if (t === "-flip") {
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flipImageSteps(im), virtualCanvas: magickMirrorCanvas(im, "flip") };
             }));
         }
         else if (t === "-flop") {
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flopImageSteps(im), virtualCanvas: magickMirrorCanvas(im, "flop") };
             }));
         }
         else if (t === "-transpose") {
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background), virtualCanvas: magickTransposeCanvas(im, false) };
             }));
         }
         else if (t === "-transverse") {
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background), virtualCanvas: magickTransposeCanvas(im, true) };
             }));
         }
         else if (t === "-auto-orient") {
-            stack = (yield* mapSteps(stack, function* (im) {
+            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyExifOrientationSteps(im));
             }));
         }
@@ -6266,7 +6276,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(tokens[++i] ?? "4");
             const bw = Math.max(1, Math.round(g.width ?? 4));
             const raised = t === "-raise";
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, raised), signal);
             });
         }
@@ -6274,7 +6284,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(tokens[++i] ?? "4x4");
             const fw = Math.max(0, Math.round(g.width ?? 4));
             const fh = Math.max(0, Math.round(g.height ?? fw));
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
                 return yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y), signal,
                     { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 });
@@ -6282,32 +6292,32 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-deskew") {
             const spec = tokens[++i] ?? "";
-            stack = yield* mapSteps(stack, function* (image) {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec));
                 return { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, state.background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas };
             });
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
             });
         }
         else if (t === "-sharpen") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry), signal);
             });
         }
         else if (t === "-unsharp") {
             const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1");
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry), signal);
             });
         }
         else if (t === "-median") {
             const rows = magickMedianRows(tokens[++i] ?? "3");
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, morphologyPixelSteps(im, rows, "median"), signal);
             });
         }
@@ -6319,12 +6329,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             if (method.includes("convolve") || method.includes("correlate")) {
                 const kernel = parseMagickConvolveKernel(kernelSpec, false, method.includes("convolve"));
-                stack = yield* mapSteps(stack, function* (im) {
+                stack = yield* mapMagickImagesSteps(stack, function* (im) {
                     return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal) : im;
                 });
             }
             else {
-                stack = yield* mapSteps(stack, function* (im) {
+                stack = yield* mapMagickImagesSteps(stack, function* (im) {
                     return (yield* applyMagickMorphology4ChSteps(im, method, kernelSpec, signal));
                 });
             }
@@ -6332,7 +6342,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-statistic") {
             const statType = (tokens[++i] ?? "median").toLowerCase();
             const geom = tokens[++i] ?? "3x3";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal));
             });
         }
@@ -6370,7 +6380,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 for (const step of magickDrawSteps(im, drawSpec, state)) {
                     if (!step) { yield; continue; }
                     if ((im.space === "b-w" || im.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
@@ -6391,7 +6401,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const hasExplicitOffset = hasAnnotationOffset(offsetOrText);
             const offset = hasExplicitOffset ? offsetOrText : "+0+0";
             const text = hasExplicitOffset ? (tokens[++i] ?? "") : offsetOrText;
-            stack = yield* mapSteps(stack, function* (im) {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRasterSteps(im, annotatePixelSteps(im, offset, text, state), signal));
             });
         }
@@ -7093,6 +7103,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && (token === "-write-mask" || token === "+write-mask")) {
+            const path = token === "-write-mask" ? tokens[++i] : undefined, settings = { ...state };
+            if (token === "-write-mask" && !path) throw new Error("missing argument '-write-mask'");
+            stackStep(async (stack, backend) => {
+                const mask = path ? await parseStoredCompareInput(path, settings, backend, signal) : undefined;
+                if (path && !mask) throw new Error(`unable to open image '${path}'`);
+                const storedWriteMask = mask ? { width: mask.width, height: mask.height, position: mask.position, hasAlpha: mask.hasAlpha } : undefined;
+                for (let n = 0; n < stack.length; n++) await stack.set(n, { ...(await stack.get(n))!, storedWriteMask } as StoredRgbaImage);
+                return stack;
+            });
+            continue;
+        }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) { i = setting; continue; }
         const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i);
@@ -7728,7 +7750,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             for (const step of steps) {
                 signal.throwIfAborted();
                 if (typeof step !== "function") stack = await step.runStack(stack, backend, parents);
-                else for (let n = 0; n < stack.length; n++) { const result = await step(await stack.get(n), backend); if (result) await stack.set(n, result); }
+                else for (let n = 0; n < stack.length; n++) {
+                    const original = (await stack.get(n))! as StoredRgbaImage;
+                    let result = await step(original, backend);
+                    if (result && original.storedWriteMask && result.position !== original.position && result.width === original.width && result.height === original.height) {
+                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
+                    }
+                    if (result) await stack.set(n, result);
+                }
             }
             while (parents.length) { const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); stack = parent; }
             image = await stack.get(stack.length - 1);
@@ -7923,7 +7952,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-canny",
         "-emboss",
         "-charcoal",
-        "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
+        "-write-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-dispose", "-morph", "-repage", "-raise", "+raise",
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-connected-components", "+connected-components"
@@ -7936,7 +7965,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
-        "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
+        "+write-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
         "+read-mask",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
@@ -9595,6 +9624,14 @@ export function createImagemagickCommands(options: ImagemagickCommandsOptions = 
 }
 
 
+
+function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>): Generator<void, RgbaImage[], void> {
+    return yield* mapSteps(images, function* (original) {
+        const result = yield* transform(original);
+        if (!original.writeMask || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
+        return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask), undefined, result, [result, original, original.writeMask]);
+    });
+}
 
 function* mapSteps<T, U>(values: readonly T[], mapper: (value: T) => Generator<void, U, void>): Generator<void, U[], void> {
   const result: U[] = new Array(values.length);

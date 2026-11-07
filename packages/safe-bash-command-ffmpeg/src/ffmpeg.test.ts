@@ -5852,3 +5852,65 @@ describe("WAV Broadcast Wave metadata", () => {
     });
   }
 });
+
+
+describe("input -itsscale", () => {
+  const subtitle = "1\n00:00:01,000 --> 00:00:03,500\nCafé costs €2\n\n2\n00:00:02,250 --> 00:00:05,000\nSecond line\n\n";
+  for (const sync of [false, true]) {
+    for (const [flags, times] of [
+      [[], [[1000, 3500], [2250, 5000]]],
+      [["-itsscale", "2"], [[2000, 4500], [4500, 7250]]],
+      [["-itsscale:s:0", "0.5"], [[500, 3000], [1125, 3875]]],
+      [["-itsscale", "3", "-itsscale:s", "2"], [[2000, 4500], [4500, 7250]]],
+    ] as const) {
+      it(`${sync ? "sync" : "async"} preserves subtitle text and durations: ${flags.join(" ")}`, async () => {
+        const vfs = createTestVfs({ "/in.srt": subtitle });
+        const args = [...flags, "-i", "/in.srt", "/out.vtt"];
+        if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const doc = allMediaAsts().find(ast => ast.id === "webvtt")!.parse(vfs.store.get("/out.vtt")!);
+        const track = doc.tracks[0]!;
+        assert.deepEqual(track.samples.map(sample => [sample.pts * 1000 / track.timescale,
+          (sample.pts + sample.duration) * 1000 / track.timescale]), times);
+        assert.deepEqual(track.samples.map(sample => new TextDecoder().decode(sample.data)), ["Café costs €2", "Second line"]);
+      });
+    }
+    it(`${sync ? "sync" : "async"} scales only video packets in MP4`, async () => {
+      const input = createSyntheticMp4({ fps: 5, frameCount: 5, includeAudio: true });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const args = ["-itsscale:v", "2", "-i", "/in.mp4", "-c", "copy", "/out.mp4"];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const before = parseMp4(input), after = parseMp4(vfs.store.get("/out.mp4")!);
+      for (const track of before.tracks) {
+        const output = after.tracks.find(candidate => candidate.type === track.type)!;
+        const factor = track.type === "video" ? 2 : 1;
+        assert.deepEqual(output.samples.map(sample => sample.pts / output.timescale),
+          track.samples.map(sample => factor * sample.pts / track.timescale));
+        assert.deepEqual(output.samples.map(sample => sample.data), track.samples.map(sample => sample.data));
+      }
+    });
+  }
+  it("resets scaling for the next input", async () => {
+    const vfs = createTestVfs({ "/in.srt": subtitle });
+    const result = await runCmd(createFfmpegCommand(), ["-itsscale", "2", "-i", "/in.srt", "-i", "/in.srt", "-map", "1:s", "/out.srt"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.srt")), subtitle);
+  });
+  for (const flags of [["-itsscale"], ["-itsscale", "NaN"], ["-itsscale", "Infinity"], ["-itsscale", ""], ["-itsscale:bogus", "2"]]) {
+    it(`rejects invalid scaling without writing output: ${flags.join(" ")}`, async () => {
+      const vfs = createTestVfs({ "/out.vtt": "keep" });
+      const result = await runCmd(createFfmpegCommand(), [...flags, "-i", "/in.srt", "/out.vtt"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")), "keep");
+    });
+  }
+});

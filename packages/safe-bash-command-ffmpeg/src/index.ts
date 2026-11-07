@@ -1799,51 +1799,66 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
   };
 }
 
+function parseTimestampScale(option: string, value: string | undefined): [string, number] {
+  const specifier = option === "-itsscale" ? "" : option.slice("-itsscale:".length);
+  const parts = specifier.split(":");
+  if (["v", "a", "s"].includes(parts[0]!)) parts.shift();
+  if (parts.length > 1 || (parts[0] && !Array.from(parts[0]).every(char => char >= "0" && char <= "9"))) {
+    throw new Error(`Invalid -itsscale stream specifier: ${specifier}`);
+  }
+  const scale = value?.trim() ? Number(value) : NaN;
+  if (!Number.isFinite(scale)) throw new Error("Invalid -itsscale value");
+  return [specifier, scale];
+}
+
+function scaleInputTimestamps(doc: MediaDocument, scales: readonly [string, number][], budget: MediaBudgetTracker): MediaDocument {
+  if (!scales.length) return doc;
+  const tracks = doc.tracks.map((track, trackIndex) => {
+    let scale = 1;
+    for (const [specifier, value] of scales) {
+      const [selector, ordinal] = specifier.split(":");
+      const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
+      const index = type ? ordinal : selector;
+      if (type && type !== track.type) continue;
+      const current = type ? doc.tracks.slice(0, trackIndex).filter(candidate => candidate.type === type).length : trackIndex;
+      if (index && current !== Number(index)) continue;
+      scale = value;
+    }
+    if (scale === 1) return track;
+    let duration = 0;
+    const samples = track.samples.map(sample => {
+      budget.checkCpu();
+      const pts = Math.trunc(sample.pts * scale);
+      const dts = Math.trunc(sample.dts * scale);
+      if (!Number.isSafeInteger(pts) || !Number.isSafeInteger(dts)) throw new Error("Invalid -itsscale timestamp");
+      duration = Math.max(duration, pts + sample.duration);
+      return { ...sample, pts, dts, cts: pts - dts };
+    });
+    const decodedVideoFrames = track.decodedVideoFrames?.map(frame => {
+      budget.checkCpu();
+      const ptsSeconds = Math.trunc(frame.ptsSeconds * track.timescale * scale) / track.timescale;
+      duration = Math.max(duration, Math.round((ptsSeconds + frame.durationSeconds) * track.timescale));
+      return { ...frame, ptsSeconds };
+    });
+    const editList = track.editList?.map(edit => {
+      const mediaTime = edit.mediaTime < 0 ? -1 : Math.trunc(edit.mediaTime * scale);
+      return { ...edit, mediaTime, segmentDuration: edit.mediaTime < 0
+        ? Math.trunc(edit.segmentDuration * scale)
+        : Math.round(Math.max(0, duration - mediaTime) * doc.timescale / track.timescale) };
+    });
+    return { ...track, samples, duration, editList, ...(decodedVideoFrames ? { decodedVideoFrames } : {}) };
+  });
+  const durationSeconds = Math.max(0, ...tracks.map(track => track.duration / track.timescale));
+  budget.checkDuration(durationSeconds);
+  return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
+}
+
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
   const name = codec === "libopus" ? "opus" : codec === "libvorbis" ? "vorbis" : codec === "libmp3lame" ? "mp3" : codec;
   if (!plugins.some(plugin => plugin.canMux && plugin.supportedAudioCodecs.includes(name))) {
     throw new Error(`Unknown encoder '${codec}'`);
   }
-}
-
-function shiftTimestamps(doc: MediaDocument, seconds: number, budget: MediaBudgetTracker): MediaDocument {
-  if (seconds === 0) return doc;
-  const durationSeconds = Math.max(0, doc.durationSeconds + seconds);
-  budget.checkDuration(durationSeconds);
-  return { ...doc, durationSeconds, duration: Math.round(durationSeconds * doc.timescale),
-    tracks: doc.tracks.map(track => {
-      budget.checkCpu();
-      const shift = Math.round(seconds * track.timescale);
-      const duration = Math.max(0, track.duration + shift);
-      if (track.editList?.length) {
-        // Move the presentation timeline, retaining compressed priming packets.
-        const firstMedia = track.editList.findIndex(edit => edit.mediaTime >= 0);
-        if (firstMedia >= 0) {
-          const edit = track.editList[firstMedia]!;
-          const delay = track.editList.slice(0, firstMedia).reduce((sum, entry) => sum + entry.segmentDuration, 0);
-          // Video composition delay remains an edit; audio priming becomes
-          // ordinary packets when a positive offset moves it after time zero.
-          const origin = track.type === "video" ? edit.mediaTime : 0;
-          const start = delay / doc.timescale - (edit.mediaTime - origin) / track.timescale + seconds;
-          const mediaTime = origin + Math.max(0, Math.round(-start * track.timescale));
-          const emptyDuration = Math.max(0, Math.floor(start * doc.timescale));
-          return { ...track, duration, editList: [
-            ...(emptyDuration ? [{ ...edit, segmentDuration: emptyDuration, mediaTime: -1 }] : []),
-            { ...edit, mediaTime, segmentDuration: Math.max(0, edit.segmentDuration + Math.round((edit.mediaTime - mediaTime) * doc.timescale / track.timescale)) },
-            ...track.editList.slice(firstMedia + 1)
-          ] };
-        }
-      }
-      return { ...track, duration,
-        samples: track.samples.map(sample => {
-          budget.checkCpu();
-          return { ...sample, pts: sample.pts + shift, dts: sample.dts + shift };
-        }),
-        ...(track.decodedVideoFrames ? { decodedVideoFrames: track.decodedVideoFrames.map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds + seconds })) } : {})
-      };
-    })
-  };
 }
 
 export function evalSyncFfmpeg(
@@ -1881,8 +1896,8 @@ export function evalSyncFfmpeg(
     const inputs: InputSpec[] = [];
     let pendingFormat: string | undefined;
     let pendingAudioDecoder: string | undefined;
-    let pendingTimestampOffset = 0;
     let pendingSs: number | undefined;
+    let pendingTimestampScales: [string, number][] = [];
     let pendingSseof: number | undefined;
     let pendingTo: number | undefined;
     let pendingDuration: number | undefined;
@@ -1891,7 +1906,6 @@ export function evalSyncFfmpeg(
     let pendingStartNumber: number | undefined;
     let outputStartNumber: number | undefined;
     let outputFormat: string | undefined;
-    let outputTimestampOffset = 0;
     let outputSs: number | undefined;
     let outputTo: number | undefined;
     let outputDuration: number | undefined;
@@ -1967,12 +1981,10 @@ export function evalSyncFfmpeg(
         const val = args[++i];
         if (inputs.length === 0 || (i + 1 < args.length && args.slice(i + 1).includes("-i"))) pendingFormat = val;
         else outputFormat = val;
-      } else if (arg === "-itsoffset" || arg === "-output_ts_offset") {
-        const value = parseHlsDuration(args[++i] ?? "");
-        const beforeInput = args.slice(i + 1).includes("-i");
-        if (!Number.isFinite(value) || (arg === "-itsoffset" ? !beforeInput : beforeInput)) return undefined;
-        if (arg === "-itsoffset") pendingTimestampOffset = value;
-        else outputTimestampOffset = value;
+      } else if (arg === "-itsscale" || arg.startsWith("-itsscale:")) {
+        const value = args[++i];
+        if (!args.slice(i + 1).includes("-i")) return undefined;
+        pendingTimestampScales.push(parseTimestampScale(arg, value));
       } else if (arg === "-sseof") {
         const val = parseHlsDuration(args[++i] ?? "");
         if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) return undefined;
@@ -2007,9 +2019,9 @@ export function evalSyncFfmpeg(
           format: pendingFormat,
           sampleRate: audioRate,
           channels: audioChannels,
-          timestampOffset: pendingTimestampOffset,
           startSeconds: pendingSs,
           endRelativeSeconds: pendingSseof,
+          timestampScales: pendingTimestampScales,
           endSeconds: pendingTo,
           durationSeconds: pendingDuration,
           streamLoop: pendingLoop,
@@ -2017,7 +2029,7 @@ export function evalSyncFfmpeg(
           startNumber: pendingStartNumber,
         });
         audioRate = undefined; audioChannels = undefined;
-        pendingTimestampOffset = 0;
+        pendingTimestampScales = [];
         pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
@@ -2158,6 +2170,7 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
+      doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
@@ -2168,7 +2181,7 @@ export function evalSyncFfmpeg(
       } else if (inp.streamLoop && inp.streamLoop > 0) {
         doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
       }
-      loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
+      loadedDocs.push(doc);
     }
 
     const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
@@ -2230,7 +2243,6 @@ export function evalSyncFfmpeg(
       encoder: outPlugin?.id === "ffmetadata" ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions) };
-    workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -2346,9 +2358,9 @@ interface InputSpec {
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
-  readonly timestampOffset?: number | undefined;
   readonly startSeconds?: number | undefined;
   readonly endRelativeSeconds?: number | undefined;
+  readonly timestampScales: readonly [string, number][];
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
@@ -2413,8 +2425,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
-      let pendingTimestampOffset = 0;
       let pendingSs: number | undefined;
+      let pendingTimestampScales: [string, number][] = [];
       let pendingSseof: number | undefined;
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
@@ -2454,7 +2466,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         let outputFormat: string | undefined;
         let hashAlgorithm = "sha256";
-        let outputTimestampOffset = 0;
         let outputSs: number | undefined;
         let outputTo: number | undefined;
         let outputDuration: number | undefined;
@@ -2774,15 +2785,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputFormat = val;
             }
-          } else if (arg === "-itsoffset" || arg === "-output_ts_offset") {
-            const value = parseHlsDuration(args[++i] ?? "");
-            const beforeInput = args.slice(i + 1).includes("-i");
-            if (!Number.isFinite(value) || (arg === "-itsoffset" ? !beforeInput : beforeInput)) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg} duration or placement\n`), context.signal);
+          } else if (arg === "-itsscale" || arg.startsWith("-itsscale:")) {
+            const value = args[++i];
+            try {
+              if (!args.slice(i + 1).includes("-i")) throw new Error("-itsscale must precede an input");
+              pendingTimestampScales.push(parseTimestampScale(arg, value));
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
-            if (arg === "-itsoffset") pendingTimestampOffset = value;
-            else outputTimestampOffset = value;
           } else if (arg === "-sseof") {
             const val = parseHlsDuration(args[++i] ?? "");
             if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) {
@@ -2866,9 +2877,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               channels: audioChannels,
               safe: pendingSafe,
               allowedExtensions: pendingAllowedExtensions,
-              timestampOffset: pendingTimestampOffset,
               startSeconds: pendingSs,
               endRelativeSeconds: pendingSseof,
+              timestampScales: pendingTimestampScales,
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
@@ -2883,9 +2894,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingFormat = undefined;
             pendingSafe = undefined;
             pendingAllowedExtensions = undefined;
-            pendingTimestampOffset = 0;
             pendingSs = undefined;
             pendingSseof = undefined;
+            pendingTimestampScales = [];
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
@@ -3499,6 +3510,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
+              doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
               if (
@@ -3518,7 +3530,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
                 doc = concatMp4(copies, { limits: options.limits, budget });
               }
-              loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
+              loadedDocs.push(doc);
             }
 
             // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
@@ -4791,7 +4803,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Count processed media, not container headers or checksum text.
-            workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
             hasOutputFrames ||= workingDoc.tracks.some(track =>
               track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)
                 : track.decodedVideoFrames ? track.decodedVideoFrames.length > 0

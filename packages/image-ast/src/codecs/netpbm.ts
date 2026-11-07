@@ -1,3 +1,4 @@
+import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader} from "./bmp-header.js";
@@ -455,6 +456,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let width = 0;
   let height = 0;
   let bitsPerSample = 8;
+  let sampleFormat = 1;
   let compression = 1;
   let photometric = 2;
   let stripOffsets: number[] = [8];
@@ -499,6 +501,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 324 && vals.length > 0) tileOffsets = vals;
     else if (tag === 325 && vals.length > 0) tileByteCounts = vals;
     else if (tag === 338) extraSample = first;
+    else if (tag === 339) sampleFormat = first;
     else if (tag === 347) {
       const count = view.getUint32(p + 4, le);
       const valOff = count <= 4 ? p + 8 : view.getUint32(p + 8, le);
@@ -642,8 +645,10 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     }
   }
 
+  const sampleView = new DataView(combined.buffer, combined.byteOffset, combined.byteLength);
   const readSample8 = (pixelIdx: number, ch: number): number => {
     const base = planar ? ch * planeBytes + pixelIdx * bytesPerSample : (pixelIdx * samplesPerPixel + ch) * bytesPerSample;
+    if (sampleFormat === 3) return readTiffFloat8(sampleView, base, bitsPerSample, le);
     if (bytesPerSample === 2) {
       return le ? (combined[base + 1] ?? 0) : (combined[base] ?? 0);
     }

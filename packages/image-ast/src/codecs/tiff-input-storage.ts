@@ -1,3 +1,4 @@
+import {readTiffFloat8} from "./tiff-float.js";
 import {BackingArena} from "./backing-arena.js";
 import {createByteCodec,defaultRuntime} from "@poe-code/compression";
 import type {SharpInputOptions} from "../ast.js";
@@ -70,6 +71,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const ifd=await number(4,4),count=await number(ifd,2);
  let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
  let planar=false;
+ let sampleFormat=1;
  let extraSample:number|undefined;
  let properties: Record<string,string> | undefined;
  let jpegTables:{start:number;length:number}|undefined;
@@ -94,6 +96,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===317&&first>0)predictor=first;else if(tag===322&&first>0)tileWidth=first;
   else if(tag===323&&first>0)tileHeight=first;else if(tag===324&&available)tileOffsets=values;else if(tag===325&&available)tileCounts=values;
   else if(tag===338)extraSample=first;
+  else if(tag===339)sampleFormat=first;
   else if(tag===347){const offset=n<=4?p+8:await number(p+8,4);if(offset+n<=source.size)jpegTables={start:offset,length:n};}
  }
  const sampleBytes=Math.max(1,bits>>>3),chunkSamples=planar?1:samples,pixelBytes=chunkSamples*sampleBytes,stride=width*pixelBytes,planeBytes=height*stride,total=planeBytes*(planar?samples:1);
@@ -187,11 +190,18 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const hasAlpha=(samples===2||samples===4)&&(extraSample===undefined||extraSample===1||extraSample===2);
  const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha,...(orientation===undefined?{}:{orientation})};
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
- for(let i=0;i<width*height;i++){const base=i*pixelBytes+(sampleBytes===2&&le?1:0),channelStep=planar?planeBytes:sampleBytes,r=await raster.at(base);
-  const alpha=hasAlpha||(extraSample===undefined&&samples>=4)?await raster.at(base+channelStep*(samples<3?1:3)):255;
+ const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
+ const readSample=async(at:number)=>{
+  if(sampleFormat!==3)return raster.at(at+(sampleBytes===2&&le?1:0));
+  if(bits!==16&&bits!==32&&bits!==64)throw new Error(`Unsupported floating-point TIFF sample width: ${bits}`);
+  for(let byte=0;byte<sampleBytes;byte++)sampleBuffer[byte]=await raster.at(at+byte);
+  return readTiffFloat8(sampleView,0,bits,le);
+ };
+ for(let i=0;i<width*height;i++){const base=i*pixelBytes,channelStep=planar?planeBytes:sampleBytes,r=await readSample(base);
+  const alpha=hasAlpha||(extraSample===undefined&&samples>=4)?await readSample(base+channelStep*(samples<3?1:3)):255;
   const straight=(value:number)=>hasAlpha&&extraSample===1?Math.min(255,Math.round(value*255/Math.max(alpha,Number.EPSILON))):value;
   if(samples<3){const gray=straight(photometric===0?255-r:r);await output.pixel(gray,gray,gray,alpha);}
-  else await output.pixel(straight(r),straight(await raster.at(base+channelStep)),straight(await raster.at(base+channelStep*2)),alpha);
+  else await output.pixel(straight(r),straight(await readSample(base+channelStep)),straight(await readSample(base+channelStep*2)),alpha);
  }
  return output.finish();
 }

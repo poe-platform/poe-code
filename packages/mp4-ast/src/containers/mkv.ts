@@ -529,6 +529,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           height = height ?? sps.height;
         }
       }
+    } else if (info.codecId === "V_FFV1") {
+      codecName = "ffv1";
+      formatFourCC = "FFV1";
     } else if (info.codecId.includes("V_MPEGH/ISO/HEVC")) {
       codecName = "hevc";
       formatFourCC = "hvc1";
@@ -765,7 +768,8 @@ export function serializeMkv(
     let codecPrivate: Uint8Array | undefined = desc?.extraData;
 
     if (trk.type === "video") {
-      if (desc?.codecName === "vp9") codecId = "V_VP9";
+      if (desc?.codecName === "ffv1") codecId = "V_FFV1";
+      else if (desc?.codecName === "vp9") codecId = "V_VP9";
       else if (desc?.codecName === "vp8") codecId = "V_VP8";
       else if (desc?.codecName === "av1") codecId = "V_AV1";
       else if (desc?.codecName === "hevc") codecId = "V_MPEGH/ISO/HEVC";

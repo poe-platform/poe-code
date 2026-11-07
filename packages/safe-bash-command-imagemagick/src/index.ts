@@ -3486,9 +3486,22 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
-    const resized = !scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "nearest"
+    let resized = !scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "nearest"
         ? yield* resizeImageSteps(img, options)
         : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel === "mitchell" ? "mitchell" : "lanczos3"), undefined, { ...img, width, height });
+    if (!scale && kernel === "nearest" && img.data16) {
+        const source = new Uint8Array(img.data16.buffer, img.data16.byteOffset, img.data16.byteLength);
+        const data16 = new Uint16Array(width * height * 4), bytes = new Uint8Array(data16.buffer);
+        const steps = pointResizePixelSteps(img, width, height, sample, 8);
+        let next = steps.next();
+        while (!next.done) {
+            const request = next.value;
+            if (!request) { yield; next = steps.next(); }
+            else if (request.kind === "read") next = steps.next(source.subarray(request.position, request.position + request.length));
+            else { bytes.set(request.data, request.position); next = steps.next(); }
+        }
+        resized = { ...resized, data16 };
+    }
     const virtualCanvas = thumbnail ? undefined : magickResizeCanvas(img, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
@@ -3496,9 +3509,22 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false): Promise<StoredRgbaImage> {
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
-    const resized = !scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "nearest"
+    let resized = !scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "nearest"
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options }, signal)
         : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel === "mitchell" ? "mitchell" : "lanczos3"), signal, { ...image, width, height });
+    if (!scale && options.kernel === "nearest" && image.storedData16) {
+        const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
+        const steps = pointResizePixelSteps(image, width, height, sample, 8);
+        let next = steps.next();
+        while (!next.done) {
+            signal.throwIfAborted();
+            const request = next.value;
+            if (!request) { await yieldTurn(signal); next = steps.next(); }
+            else if (request.kind === "read") next = steps.next(await backend.storage.read(image.storedData16.position + request.position, request.length));
+            else { await backend.storage.write(storedData16.position + request.position, request.data); next = steps.next(); }
+        }
+        resized = { ...resized, storedData16 };
+    }
     const virtualCanvas = thumbnail ? undefined : magickResizeCanvas(image, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
+import { createHash } from "node:crypto";
 import { encodeWav, parseAudio } from "@poe-code/audio-ast";
 import { flacAst } from "@poe-code/mp4-ast";
 import { Volume } from "memfs";
@@ -38,6 +39,14 @@ for (const bits of [16, 24]) for (const sync of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
       }
       const output = volume.readFileSync("/out.flac") as Buffer;
+      if (mode === "encode") {
+        const decoded = flacAst().parse(output).tracks[0]!.decodedAudio!;
+        const pcm = Buffer.alloc(decoded.channelData[0]!.length * decoded.channels * bits / 8);
+        for (let i = 0; i < decoded.channelData[0]!.length; i++) for (let channel = 0; channel < decoded.channels; channel++) {
+          pcm.writeIntLE(decoded.channelData[channel]![i]! * 2 ** (bits - 1), (i * decoded.channels + channel) * bits / 8, bits / 8);
+        }
+        assert.deepEqual(output.subarray(26, 42), createHash("md5").update(pcm).digest());
+      }
       const parsed = parseAudio(output);
       assert.equal(parsed.tags.title, mode === "remove" || mode === "delete-title" ? undefined : mode === "preserve" ? "Meeting" : "Réview");
       assert.equal(parsed.tags.artist, mode === "remove" || mode === "encode" ? undefined : "Alice");

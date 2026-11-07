@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
+import { createHash } from "node:crypto";
 import { flacAst } from "@poe-code/mp4-ast";
 import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
@@ -33,6 +34,14 @@ for (const bits of [16, 24]) for (const sync of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
       }
       const output = volume.readFileSync("/out.flac") as Buffer;
+      if (mode === "trim") {
+        const decoded = flacAst().parse(output).tracks[0]!.decodedAudio!;
+        const pcm = Buffer.alloc(decoded.channelData[0]!.length * decoded.channels * bits / 8);
+        for (let i = 0; i < decoded.channelData[0]!.length; i++) for (let channel = 0; channel < decoded.channels; channel++) {
+          pcm.writeIntLE(decoded.channelData[channel]![i]! * 2 ** (bits - 1), (i * decoded.channels + channel) * bits / 8, bits / 8);
+        }
+        assert.deepEqual(output.subarray(26, 42), createHash("md5").update(pcm).digest());
+      }
       const source = flacAst().probe(input, { showPackets: true }).packets!;
       const packets = flacAst().probe(output, { showPackets: true }).packets!;
       const selected = mode === "frame-copy" ? source.slice(0, 1) : source.filter(p => Number(p.pts) < 6400);

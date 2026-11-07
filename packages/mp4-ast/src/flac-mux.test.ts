@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { createHash } from "node:crypto";
 import { flacAst, oggAst } from "./containers/adapters.js";
 import { createSyntheticMp4, parseMp4 } from "./mp4.js";
 
@@ -57,3 +58,25 @@ it("rejects corrupted Ogg audio page checksums", () => {
   bytes[bytes.length - 1] = bytes[bytes.length - 1]! ^ 1;
   assert.throws(() => oggAst().parse(bytes), /CRC mismatch/);
 });
+
+for (const bits of [16, 24]) for (const channels of [1, 2, 8]) {
+  it(`checksums interleaved ${bits}-bit PCM with ${channels} channels across frames`, () => {
+    const base = parseMp4(createSyntheticMp4({ includeAudio: true, frameCount: 1 }));
+    const track = base.tracks.find(track => track.type === "audio")!;
+    const integers = [-(2 ** (bits - 1)), -1, 0, 1, 2 ** (bits - 1) - 1];
+    const count = 4097;
+    const pcm = Buffer.alloc(count * channels * bits / 8);
+    const channelData = Array.from({ length: channels }, (_, channel) =>
+      Float64Array.from({ length: count }, (_, i) => {
+        const value = integers[(i + channel) % integers.length]!;
+        pcm.writeIntLE(value, (i * channels + channel) * bits / 8, bits / 8);
+        return value / 2 ** (bits - 1);
+      }));
+    const bytes = flacAst().serialize({ ...base, tracks: [{ ...track,
+      codecDescriptions: [{ ...track.codecDescriptions[0]!, bitsPerSample: bits }],
+      decodedAudio: { sampleRate: 16000, channels, channelData }
+    }] });
+    assert.deepEqual(bytes.subarray(26, 42), new Uint8Array(createHash("md5").update(pcm).digest()));
+    assert.deepEqual(flacAst().parse(bytes).tracks[0]!.decodedAudio!.channelData, channelData);
+  });
+}

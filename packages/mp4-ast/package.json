@@ -25,7 +25,8 @@
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
   "dependencies": {
-    "@noble/ciphers": "2.4.0"
+    "@noble/ciphers": "2.4.0",
+    "@noble/hashes": "2.4.0"
   },
   "devDependencies": {
     "@poe-code/audio-ast": "*",

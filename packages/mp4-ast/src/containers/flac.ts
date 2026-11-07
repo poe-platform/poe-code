@@ -1,3 +1,4 @@
+import { md5 } from "@noble/hashes/legacy.js";
 import { frameHeader } from "./flac-probe.js";
 import { MediaBudgetTracker, type ParseMediaOptions, type MediaAudioData, type MediaTrack, type MediaDocument } from "../types.js";
 
@@ -55,7 +56,8 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false): Uint8Array[
   view.setUint16(8, blockSize);
   view.setUint16(10, blockSize);
   view.setBigUint64(18, BigInt(sampleRate) << 44n | BigInt(channels - 1) << 41n | BigInt(bits - 1) << 36n | BigInt(count));
-  // An all-zero MD5 means the checksum is unavailable (RFC 9639).
+  const checksum = md5.create();
+  const pcm = new Uint8Array(blockSize * channels * width);
   const frames: Uint8Array[] = [header];
   for (let offset = 0, index = 0; offset < count; offset += blockSize, index++) {
     const length = Math.min(blockSize, count - offset);
@@ -66,19 +68,26 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false): Uint8Array[
     frame[prefix.length] = crc(prefix, 8, 0x07);
     const frameView = new DataView(frame.buffer);
     let pos = prefix.length + 1;
-    for (const data of channelData) {
+    for (const [channel, data] of channelData.entries()) {
       frame[pos++] = 2; // VERBATIM, no wasted bits
       for (let i = offset; i < offset + length; i++) {
         const value = data[i]!;
         if (!Number.isFinite(value)) throw new Error("FLAC PCM sample must be finite");
         const scale = 2 ** (bits - 1);
         const integer = Math.max(-scale, Math.min(scale - 1, Math.round(value * scale)));
-        for (let byte = width - 1; byte >= 0; byte--) frame[pos++] = (integer >> (byte * 8)) & 255;
+        const pcmOffset = ((i - offset) * channels + channel) * width;
+        for (let byte = width - 1; byte >= 0; byte--) {
+          const value = (integer >> (byte * 8)) & 255;
+          frame[pos++] = value;
+          pcm[pcmOffset + byte] = value; // MD5 uses interleaved little-endian PCM.
+        }
       }
     }
+    checksum.update(pcm.subarray(0, length * channels * width));
     frameView.setUint16(pos, crc(frame.subarray(0, pos), 16, 0x8005));
     frames.push(frame);
   }
+  header.set(checksum.digest(), 26);
   return frames;
 }
 

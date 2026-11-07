@@ -88,16 +88,20 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
     }
 }
 
-export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[]): Steps {
+export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[], highDepth = false): Steps {
+    const range = highDepth ? 65535 : 255;
     for (let position = 0; position < size; position += 16384) {
         yield;
-        const length = Math.min(16384, size - position), data = new Uint8Array((yield { kind: "read", position, length })!);
-        const other = (yield { kind: "read", image: 1, position, length })!;
+        const length = Math.min(16384, size - position);
+        const bytes = (yield { kind: "read", highDepth, position, length })!;
+        const otherBytes = (yield { kind: "read", highDepth, image: 1, position, length })!;
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        const other = highDepth ? new Uint16Array(otherBytes.slice().buffer) : otherBytes;
         for (let offset = 0; offset < length; offset++) {
             if (offset % 4 === 3 && !blendAlpha) continue;
-            data[offset] = channels && !channels[offset % 4] ? other[offset]! : byte(data[offset]! * (1 - fraction) + other[offset]! * fraction);
+            data[offset] = channels && !channels[offset % 4] ? other[offset]! : Math.max(0, Math.min(range, Math.round(data[offset]! * (1 - fraction) + other[offset]! * fraction)));
         }
-        yield { kind: "write", position, data };
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }
 

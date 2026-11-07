@@ -54,7 +54,8 @@ type ResizeImage = { width: number; height: number; hasAlpha: boolean };
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
-function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: "lanczos3" | "mitchell"): ResizeSamples {
+function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: "lanczos3" | "mitchell", highDepth = false): ResizeSamples {
+    const range = highDepth ? 65535 : 255;
     const blur = thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1;
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
     for (let left = 0; left < width; left += 256) {
@@ -74,14 +75,15 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
                     for (let start = first; start < end; start += 1024) {
                         if (start > first) yield;
                         const length = Math.min(1024, end - start);
-                        const bytes = yield { kind: "read", position: (sy * image.width + start) * 4, length: length * 4 };
-                        if (!bytes || bytes.length !== length * 4) throw new Error("Truncated resize pixels");
+                        const bytes = yield { kind: "read", highDepth, position: (sy * image.width + start) * 4, length: length * 4 };
+                        if (!bytes || bytes.length !== length * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated resize pixels");
+                        const pixels = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
                         for (let x = 0; x < count; x++) {
                             const contribution = horizontal[x]!;
                             for (let sx = Math.max(start, contribution.first); sx < Math.min(start + length, contribution.first + contribution.weights.length); sx++) {
                                 const i = sx - start, weight = contribution.weights[sx - contribution.first]!;
-                                const alpha = image.hasAlpha ? bytes[i * 4 + 3]! / 255 : 1;
-                                for (let channel = 0; channel < 3; channel++) row[x * 4 + channel]! += bytes[i * 4 + channel]! * alpha * weight;
+                                const alpha = image.hasAlpha ? pixels[i * 4 + 3]! / range : 1;
+                                for (let channel = 0; channel < 3; channel++) row[x * 4 + channel]! += pixels[i * 4 + channel]! * alpha * weight;
                                 row[x * 4 + 3]! += alpha * weight;
                             }
                         }
@@ -94,7 +96,7 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
                 for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel] = Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha;
-                sums[x * 4 + 3] = alpha * 255;
+                sums[x * 4 + 3] = alpha * range;
             }
             yield { kind: "samples", position: (y * width + left) * 4, data: sums };
         }
@@ -117,16 +119,16 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
     }
 }
 
-export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // ImageMagick retains the first image's alpha unless both alpha channels are active.
     const blendAlpha = a.hasAlpha && b.hasAlpha;
     if (a.width === width && a.height === height && b.width === width && b.height === height) {
-        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels);
+        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth);
         return;
     }
     const sources = [a, b].map(image => resizeSamples(image, width, height, false,
         image.width === width && image.height === height,
-        image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"));
+        image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3", highDepth));
     while (true) {
         let blended: Float64Array | undefined, position = 0;
         for (let image = 0; image < sources.length; image++) {
@@ -147,7 +149,10 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
                 else blended[i]! += samples.data[i]! * fraction;
             }
         }
-        yield { kind: "write", position, data: Uint8Array.from(blended!, value => Math.round(Math.max(0, Math.min(255, value)))) };
+        const range = highDepth ? 65535 : 255;
+        const rounded = blended!.map(value => Math.round(Math.max(0, Math.min(range, value))));
+        const data = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }
 

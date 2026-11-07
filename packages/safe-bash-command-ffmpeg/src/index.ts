@@ -214,8 +214,7 @@ export function parseFfmpegTimestamp(spec: string): number {
   return parseFloat(trimmed) || 0;
 }
 
-// HLS duration options require complete FFmpeg duration strings, unlike the
-// permissive timestamp parser used by filters and input seeking.
+// CLI duration options require complete FFmpeg duration strings.
 function parseHlsDuration(spec: string): number {
   let value = spec.trimStart();
   let scale = 1;
@@ -1734,16 +1733,18 @@ export function evalSyncFfmpeg(
         if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) return undefined;
         pendingSseof = val;
       } else if (arg === "-ss") {
-        const val = parseFfmpegTimestamp(args[++i] ?? "0");
+        const val = parseHlsDuration(args[++i] ?? "");
+        if (!Number.isFinite(val)) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingSs = val;
         else outputSs = val;
       } else if (arg === "-to") {
-        const val = parseFfmpegTimestamp(args[++i] ?? "0");
+        const val = parseHlsDuration(args[++i] ?? "");
+        if (!Number.isFinite(val)) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingTo = val;
         else outputTo = val;
       } else if (arg === "-t") {
-        const val = parseFfmpegTimestamp(args[++i] ?? "0");
-        if (val < 0) return undefined;
+        const val = parseHlsDuration(args[++i] ?? "");
+        if (!Number.isFinite(val) || val < 0) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingDuration = val;
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
@@ -2501,22 +2502,30 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             pendingSseof = val;
           } else if (arg === "-ss") {
-            const val = parseFfmpegTimestamp(args[++i] ?? "0");
+            const val = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(val)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid -ss duration\n"), context.signal);
+              return { exitCode: 1 };
+            }
             if (args.slice(i + 1).includes("-i")) {
               pendingSs = val;
             } else {
               outputSs = val;
             }
           } else if (arg === "-to") {
-            const val = parseFfmpegTimestamp(args[++i] ?? "0");
+            const val = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(val)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid -to duration\n"), context.signal);
+              return { exitCode: 1 };
+            }
             if (args.slice(i + 1).includes("-i")) {
               pendingTo = val;
             } else {
               outputTo = val;
             }
           } else if (arg === "-t") {
-            const val = parseFfmpegTimestamp(args[++i] ?? "0");
-            if (val < 0) {
+            const val = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(val) || val < 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -t duration must be nonnegative\n"), context.signal);
               return { exitCode: 1 };
             }

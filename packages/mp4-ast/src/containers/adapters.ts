@@ -1221,8 +1221,30 @@ export function flacAst(): MediaAstPlugin {
       const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
       const parsed = parseAudio(bytes);
-      if (Object.keys(tags).length === 0 && !parsed.nodes.some(node => node.type === "VORBIS_COMMENT")) return bytes;
-      return writeAudioMetadata({ ...parsed, tags: {} }, tags);
+      const output = Object.keys(tags).length === 0 && !parsed.nodes.some(node => node.type === "VORBIS_COMMENT")
+        ? bytes : writeAudioMetadata({ ...parsed, tags: {} }, tags);
+      const padding = options?.metadataHeaderPadding;
+      if (padding === undefined) return output;
+      if (!Number.isInteger(padding) || padding < -1 || padding > 2147483647) {
+        throw new Error("Invalid metadata_header_padding: expected an integer from -1 to 2147483647");
+      }
+      const size = padding < 0 ? 8192 : Math.min(padding, 0xffffff);
+      const nodes = parseAudio(output).nodes;
+      const blocks = nodes.filter(node => node.type !== "FRAMES" && node.type !== "PADDING")
+        .map(node => output.slice(node.offset, node.offset + node.size));
+      const budget = options?.budget ?? new MediaBudgetTracker(options?.limits);
+      budget.allocateMemory(size + 4);
+      if (size > 0) {
+        const block = new Uint8Array(size + 4);
+        block.set([1, size >>> 16, (size >>> 8) & 255, size & 255]);
+        blocks.push(block);
+      }
+      for (const [index, block] of blocks.entries()) block[0] = (block[0]! & 127) | (index === blocks.length - 1 ? 128 : 0);
+      const parts = [output.subarray(0, 4), ...blocks, ...nodes.filter(node => node.type === "FRAMES").map(node => node.data)];
+      const length = parts.reduce((sum, part) => sum + part.length, 0);
+      budget.checkOutputBytes(length);
+      budget.allocateMemory(length);
+      return concatBytes(parts);
     },
     probe(bytes, options) {
       const scanner = new FlacFrameScanner();

@@ -665,6 +665,8 @@ export interface SerializeMediaOptions {
   readonly fragmented?: boolean | undefined;
   readonly id3v2Version?: 0 | 3 | 4 | undefined;
   readonly writeId3v1?: boolean | undefined;
+  /** FLAC metadata padding bytes; -1 selects 8192, zero disables padding. */
+  readonly metadataHeaderPadding?: number | undefined;
   readonly majorBrand?: string | undefined;
   readonly compatibleBrands?: readonly string[] | undefined;
   readonly metadata?: Mp4MetadataTags | undefined;

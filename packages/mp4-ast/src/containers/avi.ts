@@ -756,7 +756,7 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           const asc = parseAudioSpecificConfig(payload);
           audioDescription = {
             ...audioDescription, sampleRate: asc.sampleRate, channels: asc.channelCount,
-            esds: parseEsds(buildEsdsBox(asc.sampleRate, asc.channelCount, 0, payload))
+            esds: parseEsds(buildEsdsBox(asc.sampleRate, asc.channelCount, 0, payload).subarray(8))
           };
         } else if (aacPacketType === 1 && payload.byteLength > 0) {
           audioSamples.push({

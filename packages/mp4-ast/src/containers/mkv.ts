@@ -698,7 +698,7 @@ export function serializeMkv(
 
   // Prepare tracks and millisecond-normalized samples
   const trackEntries: Uint8Array[] = [];
-  const allBlocks: { ptsMs: number; durationMs: number; isSubtitle: boolean; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
+  const allBlocks: { orderMs: number; ptsMs: number; durationMs: number; isSubtitle: boolean; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
   let maxDurationMs = Math.round(doc.durationSeconds * 1000);
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
@@ -848,12 +848,17 @@ export function serializeMkv(
 
     trackEntries.push(makeEbmlElement(0xae, concatBytes(entryParts)));
 
+    let orderMs = -Infinity;
     for (const s of samples) {
+      // Samples are in decode order. Matroska has no DTS, so parsed DTS can
+      // follow non-monotonic PTS; never let interleaving reorder a track.
+      orderMs = Math.max(orderMs, (s.dts / ts) * 1000);
       const ptsMs = Math.max(0, Math.round((s.pts / ts) * 1000));
       const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
       if (endMs > maxDurationMs) maxDurationMs = endMs;
       const durationMs = Math.max(1, Math.round((s.duration / ts) * 1000));
       allBlocks.push({
+        orderMs,
         ptsMs,
         durationMs,
         isSubtitle: trk.type === "subtitle",
@@ -864,7 +869,7 @@ export function serializeMkv(
     }
   }
 
-  allBlocks.sort((a, b) => a.ptsMs - b.ptsMs || a.trackNum - b.trackNum);
+  allBlocks.sort((a, b) => a.orderMs - b.orderMs || a.trackNum - b.trackNum);
 
   // Info element
   const mergedMeta: Mp4MetadataTags = {
@@ -912,7 +917,7 @@ export function serializeMkv(
         )
       : undefined;
 
-  // Build Clusters (group up to 5 seconds per Cluster so Int16 relative timecodes never overflow)
+  // Keep relative presentation timestamps within the signed 16-bit block range.
   const clusters: Uint8Array[] = [];
   let clusterStartMs = allBlocks[0]?.ptsMs ?? 0;
   let currentClusterBlocks: Uint8Array[] = [];
@@ -929,11 +934,11 @@ export function serializeMkv(
   };
 
   for (const blk of allBlocks) {
-    if (blk.ptsMs - clusterStartMs > 30000 && currentClusterBlocks.length > 0) {
+    if ((blk.ptsMs - clusterStartMs > 30000 || blk.ptsMs - clusterStartMs < -32768) && currentClusterBlocks.length > 0) {
       flushCluster();
       clusterStartMs = blk.ptsMs;
     }
-    const relTime = Math.max(-32768, Math.min(32767, blk.ptsMs - clusterStartMs));
+    const relTime = blk.ptsMs - clusterStartMs;
     const sbWriter = new BinaryWriter(4 + blk.data.byteLength);
     sbWriter.writeU8(0x80 | (blk.trackNum & 0x7f));
     sbWriter.writeI16BE(relTime);

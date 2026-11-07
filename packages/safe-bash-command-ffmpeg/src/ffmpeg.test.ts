@@ -17,6 +17,23 @@ import {
 } from "./index.js";
 
 for (const sync of [false, true]) {
+  it(`${sync ? "sync" : "async"} stream copy preserves H.264 B-frame decode order`, async () => {
+    const input = readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mkv", import.meta.url));
+    const vfs = createTestVfs({ "/meeting.mkv": input });
+    const args = ["-i", "/meeting.mkv", ...(sync ? [] : ["-map", "0"]), "-c", "copy", "/out.mkv"];
+    if (sync) {
+      assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+    } else {
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    const packets = (bytes: Uint8Array) => parseMkv(bytes).tracks[0]!.samples.map(sample => ({
+      pts: sample.pts, data: Buffer.from(sample.data)
+    }));
+    assert.deepEqual(packets(vfs.store.get("/out.mkv")!), packets(input));
+  });
+
   it(`${sync ? "sync" : "async"} copies the Matroska title without an overriding uppercase tag`, async () => {
     const input = serializeMkv(parseMp4(createSyntheticMp4({
       frameCount: 1,

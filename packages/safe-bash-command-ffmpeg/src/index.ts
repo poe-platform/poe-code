@@ -2636,6 +2636,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let rotation: number | undefined;
         const maps: string[] = [];
         const vfFilters: string[] = [];
+        let logLevel = 32;
         const afFilters: { ordinal: number | undefined; expression: string }[] = [];
         let chapterSource: number | undefined;
         let metadataSource: number | undefined;
@@ -2686,7 +2687,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSafe = value === "1";
-          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
+          } else if (arg === "-v" || arg === "-loglevel") {
+            const value = args[++i]?.split("+").at(-1) ?? "";
+            const levels: Record<string, number> = { quiet: -8, panic: 0, fatal: 8, error: 16, warning: 24, info: 32, verbose: 40, debug: 48, trace: 56 };
+            logLevel = levels[value] ?? Number(value);
+          } else if (arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-b:a") {
             audioBitrate = parseAudioBitrate(args[++i]);
@@ -4150,7 +4155,46 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
+                      if (trimmed === "ashowinfo") {
+                        if (logLevel < 32) continue;
+                        const codec = t.codecDescriptions[0]?.codecName;
+                        const format = codec === "pcm_s16le" ? "s16" : codec === "pcm_s32le" ? "s32"
+                          : codec === "pcm_f32le" ? "flt" : "dbl";
+                        const bytesPerSample = format === "s16" ? 2 : format === "dbl" ? 8 : 4;
+                        const sample = new DataView(new ArrayBuffer(bytesPerSample));
+                        const length = stretched[0]?.length ?? 0;
+                        const channels = stretched.length;
+                        const layout = channels === 1 ? "mono" : channels === 2 ? "stereo" : `${channels} channels`;
+                        for (let start = 0, n = 0; start < length; n++) {
+                          budget.checkCpu();
+                          await yieldTurn(context.signal);
+                          context.signal?.throwIfAborted();
+                          const packet = t.samples[n];
+                          const timestamp = audioTimestamps?.[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const end = Math.min(length, start + count);
+                          const pts = timestamp?.pts ?? audioStartSample + start;
+                          let a = 0, b = 0;
+                          for (let i = start; i < end; i++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            for (const channel of stretched) {
+                              const value = channel[i]!;
+                              if (format === "s16") sample.setInt16(0, Math.max(-32768, Math.min(32767, Math.round(value * 32768))), true);
+                              else if (format === "s32") sample.setInt32(0, Math.max(-2147483648, Math.min(2147483647, Math.round(value * 2147483648))), true);
+                              else if (format === "flt") sample.setFloat32(0, value, true);
+                              else sample.setFloat64(0, value, true);
+                              for (let byte = 0; byte < bytesPerSample; byte++) {
+                                a = (a + sample.getUint8(byte)) % 65521;
+                                b = (b + a) % 65521;
+                              }
+                            }
+                          }
+                          const checksum = ((b * 65536 + a) >>> 0).toString(16).padStart(8, "0").toUpperCase();
+                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${pts} pts_time:${Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${checksum} ]\n`), context.signal);
+                          start = end;
+                        }
+                      } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
                         stretched = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {

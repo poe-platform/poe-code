@@ -16,6 +16,40 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("ashowinfo", () => {
+  it("reports timestamps produced by an earlier asetpts filter", async () => {
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(600)] }) });
+    const result = await runCmd(createFfmpegCommand(),
+      ["-i", "/in.wav", "-af", "asetpts=PTS+8000,ashowinfo", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stderr.includes("n:0 pts:8000 pts_time:1 pos:"), result.stderr);
+    assert.ok(result.stderr.includes("n:1 pts:8512 pts_time:1.064 pos:"), result.stderr);
+    assert.ok(result.stderr.includes("fmt:s16 channels:1 chlayout:mono rate:8000 nb_samples:512 checksum:00000000"), result.stderr);
+  });
+  for (const level of ["info", "warning", "quiet", "32"]) {
+    it(`reports PCM frames at ${level} without changing samples`, async () => {
+      const channels = [1, -1].map(sign => Float64Array.from({ length: 2300 }, (_, i) => (sign * i / 32768) || 0));
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+      const result = await runCmd(createFfmpegCommand(),
+        ["-hide_banner", "-loglevel", level, "-y", "-i", "/in.wav", "-af", "ashowinfo", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData;
+      assert.deepEqual(output.map(channel => Array.from(channel)), channels.map(channel => Array.from(channel)));
+      const lines = result.stderr.trim().split("\n");
+      if (level === "warning" || level === "quiet") {
+        assert.equal(result.stderr, "");
+      } else {
+        assert.equal(lines.length, 5);
+        const checksums = ["0365FB2F", "08DDFC2F", "10DDFC2F", "18DDFC2F", "AB63F614"];
+        for (const [n, checksum] of checksums.entries()) {
+          assert.ok(lines[n]!.includes(`n:${n} pts:${n * 512} pts_time:${n * 512 / 8000} pos:`), lines[n]);
+          assert.ok(lines[n]!.includes(`fmt:s16 channels:2 chlayout:stereo rate:8000 nb_samples:${n === 4 ? 252 : 512} checksum:${checksum} plane_checksums: [ ${checksum} ]`), lines[n]);
+        }
+      }
+    });
+  }
+});
+
 describe("input -sseof", () => {
   for (const sync of [false, true]) {
     for (const [seek, start, count] of [

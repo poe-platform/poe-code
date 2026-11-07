@@ -24,6 +24,8 @@ Use `-comment text` or `-label text` before an input to set its text metadata wh
 
 Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.
 
+PNG output coders select indexed 8-bit (`PNG8:`), 8-bit RGB/RGBA (`PNG24:`/`PNG32:`), or 16-bit RGB/RGBA (`PNG48:`/`PNG64:`). `PNG00:` retains the image depth and color mode. Prefixes select the encoder and are removed from the destination filename, including `-write` and stdout destinations.
+
 PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach an ICC profile to an untagged image, `+profile icc` to remove it, or `+profile '*'` to remove profiles while keeping text properties. `-strip` removes both profiles and text properties. Converting between different ICC profiles is unsupported and returns an error.
 
 `-wave` preserves native grayscale background handling, including PNG background metadata. Use `-virtual-pixel background` to retain a colored `-background` on grayscale input.

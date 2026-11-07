@@ -1,3 +1,4 @@
+import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
 import {PNG_SIGNATURE, makeChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
@@ -236,17 +237,26 @@ export function encodePngImage(
     readonly orientation?: number;
     readonly omitPngResolution?: boolean;
     readonly pngBitDepth?: 8 | 16 | undefined;
+    readonly pngCoder?: "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
     readonly forceOpaque?: boolean;
     readonly consumeInput?: boolean;
   }
 ): Uint8Array {
   const { width, height, data } = img;
-  const data16 = options?.pngBitDepth === 16 ? img.data16 ?? Uint16Array.from(data, value => value * 257) : options?.pngBitDepth === 8 ? undefined : img.data16;
+  const coder = options?.pngCoder;
+  const bitDepth = coder === "png48" || coder === "png64" ? 16 : coder ? 8 : options?.pngBitDepth;
+  const data16 = bitDepth === 16 ? img.data16 ?? Uint16Array.from(data, value => value * 257) : bitDepth === 8 ? undefined : img.data16;
+  const palette = coder === "png8" ? new GifPalette() : undefined;
+  if (palette) {
+    for (let i = 0; i < data.length; i += 4) palette.add(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!);
+    palette.finish();
+    palette.bytes.set([255, 255, 255], 255 * 3);
+  }
   const density = options?.density ?? img.density ?? 72;
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
   let hasAlpha = Boolean(img.hasAlpha || img.channels === 4 || img.channels === 2);
-  if (options?.forceOpaque) {
+  if (coder === "png24" || coder === "png48" || options?.forceOpaque) {
     hasAlpha = false;
   } else if (!hasAlpha) {
     for (let i = 3; i < data.length; i += 4) {
@@ -257,10 +267,11 @@ export function encodePngImage(
     }
   }
 
-  const isBw = img.space === "b-w" || img.channels === 1 || img.channels === 2;
-  const colorType = isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
+  if (coder === "png32" || coder === "png64") hasAlpha = true;
+  const isBw = !coder && (img.space === "b-w" || img.channels === 1 || img.channels === 2);
+  const colorType = palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const channels = isBw ? (hasAlpha ? [0, 3] : [0]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2]);
-  const bpp = channels.length * (data16 ? 2 : 1);
+  const bpp = palette ? 1 : channels.length * (data16 ? 2 : 1);
   const rowBytes = width * bpp;
   let activeData = data;
   const totalScanlineBytes = height * (rowBytes + 1);
@@ -303,7 +314,11 @@ export function encodePngImage(
       const srcIdx = rowBase + x * 4;
       const prevIdx = x > 0 ? rowBase + (x - 1) * 4 : -1;
       const outCol = dstRow + 1 + x * bpp;
-      if (data16) {
+      if (palette) {
+        const value = palette.index(srcRowData[srcIdx]!, srcRowData[srcIdx + 1]!, srcRowData[srcIdx + 2]!, srcRowData[srcIdx + 3]!);
+        const previous = prevIdx < 0 ? 0 : palette.index(srcRowData[prevIdx]!, srcRowData[prevIdx + 1]!, srcRowData[prevIdx + 2]!, srcRowData[prevIdx + 3]!);
+        raw[outCol] = (value - previous) & 255;
+      } else if (data16) {
         for (let channel = 0; channel < channels.length; channel++) {
           const value = data16[srcIdx + channels[channel]!]!;
           const previous = prevIdx >= 0 ? data16[prevIdx + channels[channel]!]! : 0;
@@ -381,6 +396,7 @@ export function encodePngImage(
   const chunks = [
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),
+    ...(palette ? [makeChunk("PLTE", palette.bytes), makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255))] : []),
     ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
     ...exifChunk,
     ...textChunks(img.properties),

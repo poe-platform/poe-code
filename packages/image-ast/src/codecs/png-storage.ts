@@ -1,3 +1,4 @@
+import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
 import {PNG_SIGNATURE, makeChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
@@ -191,23 +192,35 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     if (bytes.length !== length) throw new Error("Truncated PNG backing storage");
     return new Uint8Array(bytes);
   };
+  const coder = options.pngCoder;
+  const palette = coder === "png8" ? new GifPalette() : undefined;
+  if (palette) {
+    for (let offset = 0; offset < width * height * 4; offset += 4096) {
+      const bytes = await read(position + offset, Math.min(4096, width * height * 4 - offset));
+      for (let i = 0; i < bytes.length; i += 4) palette.add(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!, bytes[i + 3]!);
+    }
+    palette.finish();
+    palette.bytes.set([255, 255, 255], 255 * 3);
+  }
   let alpha = Boolean(image.hasAlpha || image.channels === 4 || image.channels === 2);
-  if (options.forceOpaque) alpha = false;
+  if (coder === "png24" || coder === "png48" || options.forceOpaque) alpha = false;
   else if (!alpha) {
     for (let offset = 0; offset < width * height * 4 && !alpha; offset += 4096) {
       const bytes = await read(position + offset, Math.min(4096, width * height * 4 - offset));
       for (let index = 3; index < bytes.length; index += 4) if (bytes[index]! < 255) {alpha = true; break;}
     }
   }
-  const gray = image.space === "b-w" || image.channels === 1 || image.channels === 2;
+  if (coder === "png32" || coder === "png64") alpha = true;
+  const gray = !coder && (image.space === "b-w" || image.channels === 1 || image.channels === 2);
   const channels = gray ? alpha ? [0,3] : [0] : alpha ? [0,1,2,3] : [0,1,2];
-  const sampleBytes = options.pngBitDepth ? options.pngBitDepth / 8 : image.storedData16 ? 2 : 1;
+  const sampleBytes = !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
   const source16 = sampleBytes === 2 ? image.storedData16 : undefined;
   const sourceBytes = source16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);
-  view.setUint32(0,width); view.setUint32(4,height); header[8] = sampleBytes * 8; header[9] = gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
+  view.setUint32(0,width); view.setUint32(4,height); header[8] = sampleBytes * 8; header[9] = palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
+  if (palette) { yield makeChunk("PLTE", palette.bytes); yield makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255)); }
   const density = options.density ?? image.density ?? 72;
   const resolution = options.density === undefined ? image.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
@@ -235,7 +248,14 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
         const count = Math.min(chunkPixels,width-x);
         const pixels = await read((source16?.position ?? position) + (y * width + x) * 4 * sourceBytes,count * 4 * sourceBytes);
         const samples16 = source16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;
-        const raw = new Uint8Array(count * channels.length * sampleBytes);
+        const raw = new Uint8Array(palette ? count : count * channels.length * sampleBytes);
+        if (palette) {
+          for (let index = 0; index < count; index++) {
+            const value = palette.index(pixels[index * 4]!, pixels[index * 4 + 1]!, pixels[index * 4 + 2]!, pixels[index * 4 + 3]!);
+            raw[index] = (value - previous[0]!) & 255;
+            previous[0] = value;
+          }
+        } else
         for(let index=0;index<count;index++) for(let channel=0;channel<channels.length;channel++) {
           const value=(samples16 ?? pixels)[index*4+channels[channel]!]! * (!samples16 && sampleBytes === 2 ? 257 : 1);
           for (let byte=0;byte<sampleBytes;byte++) {

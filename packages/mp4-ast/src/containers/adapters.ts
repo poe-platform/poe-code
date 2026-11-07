@@ -1872,12 +1872,19 @@ export function parseSubtitleDocument(
   bytes: Uint8Array,
   format: "srt" | "webvtt"
 ): MediaDocument {
-  if (format === "srt" && !isSrtSignature(bytes)) {
-    throw new Error("Invalid SubRip input");
+  // Keep SubRip packet bytes intact until the subtitle decoder runs. Demuxing
+  // must not turn invalid UTF-8 into valid replacement characters.
+  let text: string;
+  if (format === "srt") {
+    const utf16 = (bytes[0] === 0xff && bytes[1] === 0xfe) || (bytes[0] === 0xfe && bytes[1] === 0xff);
+    const payload = utf16 ? encodeUtf8(decodeSubRip(bytes))
+      : bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf ? bytes.subarray(3) : bytes;
+    text = Array.from(payload, byte => String.fromCharCode(byte)).join("").replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  } else {
+    text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replaceAll("\r\n", "\n");
   }
-  const text = (format === "srt" ? decodeSubRip(bytes) : decodeUtf8(bytes)).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
   // Native WebVTT demuxing produces no cues when the header is missing.
-  const blocks = format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n\s*\n/);
+  const blocks = format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n[ \t\n]*\n/);
   const samples: MediaSample[] = [];
   const seenSubRipCues = new Set<string>();
   let maxEndMs = 0;
@@ -1885,7 +1892,7 @@ export function parseSubtitleDocument(
   for (const rawBlock of blocks) {
     const lines = rawBlock
       .split("\n")
-      .map((l) => l.trimEnd())
+      .map((l) => format === "srt" ? l.replace(/[ \t]+$/, "") : l.trimEnd())
       .filter((l) => l.length > 0);
     if (lines.length === 0) continue;
     if (lines[0]!.startsWith("WEBVTT") || lines[0]!.startsWith("NOTE")) continue;
@@ -1904,7 +1911,8 @@ export function parseSubtitleDocument(
     const startMs = parseSubtitleTimecodeMs(leftRaw ?? "0", format);
     const parsedEndMs = parseSubtitleTimecodeMs(rightRaw, format);
     const endMs = format === "srt" ? parsedEndMs : Math.max(startMs + 1, parsedEndMs);
-    const cueText = lines.slice(arrowLineIdx + 1).join("\n").trim();
+    const cueLines = lines.slice(arrowLineIdx + 1).join("\n");
+    const cueText = format === "srt" ? cueLines.replace(/^[ \t\n]+|[ \t\n]+$/g, "") : cueLines.trim();
     if (!cueText) continue;
 
     if (format === "srt") {
@@ -1913,7 +1921,7 @@ export function parseSubtitleDocument(
       seenSubRipCues.add(key);
     }
 
-    const payload = encodeUtf8(cueText);
+    const payload = format === "srt" ? Uint8Array.from(cueText, char => char.charCodeAt(0)) : encodeUtf8(cueText);
     const duration = endMs - startMs;
     if (endMs > maxEndMs) maxEndMs = endMs;
 
@@ -2458,9 +2466,11 @@ export function createMediaAstRegistry(plugins: readonly MediaAstPlugin[]): Medi
           return p;
         }
       }
-      // Finally fall back to extension match if registered
+      // SubRip requires a numbered cue signature for automatic detection;
+      // unnumbered cues are accepted only when the input format is explicit.
       if (filename) {
-        return this.findByFilename(filename);
+        const byExt = this.findByFilename(filename);
+        if (byExt?.id !== "srt") return byExt;
       }
       return undefined;
     }

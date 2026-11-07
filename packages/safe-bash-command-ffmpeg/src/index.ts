@@ -1753,9 +1753,18 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
 function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined): MediaDocument {
   return {
     ...doc,
-    tracks: doc.tracks.map(track => track.type !== "subtitle" ? track : {
-      ...track,
-      samples: track.samples.map(sample => {
+    tracks: doc.tracks.map(track => {
+      if (track.type !== "subtitle") return track;
+      const decodeErrors = [...(track.decodeErrors ?? [])];
+      const samples = track.samples.filter(sample => {
+        const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
+        if (codec !== "subrip" && codec !== "webvtt") return true;
+        try { new TextDecoder("utf-8", { fatal: true }).decode(sample.data); return true; }
+        catch {
+          decodeErrors.push("Invalid UTF-8 in decoded subtitles text");
+          return false;
+        }
+      }).map(sample => {
         const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
         if (codec !== "webvtt" && (codec !== "subrip" || outputFormat !== "webvtt")) return { ...sample, webvtt: undefined };
         const text = decodeUtf8(sample.data);
@@ -1784,7 +1793,8 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         parts.push(text.slice(position));
         const data = encodeUtf8(parts.join(""));
         return { ...sample, data, size: data.byteLength, webvtt: undefined };
-      })
+      });
+      return { ...track, samples, decodeErrors };
     })
   };
 }
@@ -2192,6 +2202,7 @@ export function evalSyncFfmpeg(
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
+    if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
     const serializedBytes = outPlugin.serialize(workingDoc, { writeBext, rf64, writePeak, audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
@@ -4698,21 +4709,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             };
 
             let decodeExitCode = demuxExitCode;
-            if (audioCodec !== "copy") {
-              for (const track of workingDoc.tracks) {
-                for (const error of track.decodeErrors ?? []) {
-                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${error}\n`), context.signal);
-                }
-                const errors = track.decodeErrors?.length ?? 0;
-                const frames = track.samples.filter(sample => sample.duration > 0).length;
-                // FFmpeg 7.0.2 divides integer counters per decoder, truncating partial rates.
-                const rate = errors || frames ? Math.floor(errors / (errors + frames)) : 0;
-                if (exitOnError && errors) {
-                  decodeExitCode = 183;
-                } else if (rate > maxErrorRate && decodeExitCode !== 183) {
-                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Decode error rate ${rate} exceeds maximum ${maxErrorRate}\n`), context.signal);
-                  decodeExitCode = 69;
-                }
+            for (const track of workingDoc.tracks) {
+              if ((track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy") continue;
+              for (const error of track.decodeErrors ?? []) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${error}\n`), context.signal);
+              }
+              const errors = track.decodeErrors?.length ?? 0;
+              const frames = track.samples.filter(sample => sample.duration > 0).length;
+              // FFmpeg 7.0.2 divides integer counters per decoder, truncating partial rates.
+              const rate = errors || frames ? Math.floor(errors / (errors + frames)) : 0;
+              if (exitOnError && errors) {
+                decodeExitCode = 183;
+              } else if (rate > maxErrorRate && decodeExitCode !== 183) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Decode error rate ${rate} exceeds maximum ${maxErrorRate}\n`), context.signal);
+                decodeExitCode = 69;
               }
             }
 

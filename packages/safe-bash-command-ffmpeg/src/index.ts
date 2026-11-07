@@ -3365,6 +3365,41 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = tempo === 1
                           ? await filterUnityTempo(stretched, origRate, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
                           : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
+                      } else if (trimmed === "extrastereo" || trimmed.startsWith("extrastereo=")) {
+                        let multiplier = 2.5;
+                        let clip = true;
+                        const argument = trimmed.slice("extrastereo".length + 1);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["m", "c"][index] : option.slice(0, separator).trim();
+                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          if (key === "m") {
+                            multiplier = Math.fround(parseFilterExpression(value, "extrastereo", {}));
+                            if (!Number.isFinite(multiplier) || multiplier < -10 || multiplier > 10) {
+                              throw new Error("extrastereo: m must be in the range [-10, 10]");
+                            }
+                          } else if (key === "c") {
+                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
+                              throw new Error("extrastereo: invalid clipping option");
+                            }
+                            clip = ["1", "true", "yes", "on"].includes(value);
+                          } else throw new Error(`extrastereo: unsupported option ${key}`);
+                        }
+                        if (stretched.length !== 2) throw new Error("extrastereo: stereo input required");
+                        const output = stretched.map(channel => new Float32Array(channel.length));
+                        for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (i % 4096 === 0) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                          }
+                          const average = Math.fround(Math.fround(stretched[0]![i]! + stretched[1]![i]!) / 2);
+                          for (let c = 0; c < 2; c++) {
+                            const value = Math.fround(average + Math.fround(multiplier * Math.fround(stretched[c]![i]! - average)));
+                            output[c]![i] = clip ? Math.max(-1, Math.min(1, value)) : value;
+                          }
+                        }
+                        stretched = output;
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, budget, context.signal);
                         stretched = panned.channels;

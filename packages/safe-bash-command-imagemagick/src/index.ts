@@ -30,7 +30,7 @@ import { connectedComponentsSteps, connectedComponentsStored } from "./connected
 import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
-import { gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
+import { gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
@@ -7141,10 +7141,18 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             }
             return { exitCode: 0, stdout: result, stderr: "" };
         }
-        if (outLower.startsWith("txt:") || (outLower.endsWith(".txt") && !outSpec.includes(":"))) {
+        if (outLower.startsWith("sparse-color:") || outLower.startsWith("txt:") || (outLower.endsWith(".txt") && !outSpec.includes(":"))) {
             let txt = "";
-            for (const frame of stack) txt += yield* formatTxtEnumerationSteps(frame);
-            const target = outLower.startsWith("txt:") ? outSpec.slice(4) : outSpec;
+            for (const frame of stack) {
+                if (outLower.startsWith("sparse-color:")) {
+                    const data = frame.data16 ?? frame.data;
+                    for (let start = 0; start < data.length; start += 16384) {
+                        yield;
+                        for (const point of sparseColorPoints(frame, data.subarray(start, start + 16384), start / 4)) txt += point;
+                    }
+                } else txt += yield* formatTxtEnumerationSteps(frame);
+            }
+            const target = outLower.startsWith("sparse-color:") ? outSpec.slice(13) : outLower.startsWith("txt:") ? outSpec.slice(4) : outSpec;
             if (!target || target === "-") {
                 return { exitCode: 0, stdout: txt, stderr: "" };
             }
@@ -8387,13 +8395,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         output = inferOutputFormat(outSpec, "png");
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower.startsWith("info:");
-        const text = lower.startsWith("txt:") || (lower.endsWith(".txt") && !outSpec.includes(":"));
+        const sparse = lower.startsWith("sparse-color:");
+        const text = sparse || lower.startsWith("txt:") || (lower.endsWith(".txt") && !outSpec.includes(":"));
         if (info || text || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {
                 let last = "";
                 for (let index = 0; index < stack.length; index++) {
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
+                    if (sparse) { yield* storedSparseColor(frame, backend.storage, signal); continue; }
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
@@ -8404,7 +8414,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!text && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
             }
             const parts = info || text ? information() : storedHistogram(image, backend.storage, signal);
-            const chunks = encodeText(parts, signal), target = info ? outSpec.slice(5) : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
+            const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info ? outSpec.slice(5) : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
             if (target && target !== "-") {
                 await backend.publishText(image, target, chunks);
                 return { exitCode: 0, stdout: "", stderr: "" };

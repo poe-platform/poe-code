@@ -1,6 +1,6 @@
 import { histogramColorNames } from "./histogram-color-names.js";
 import { hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
-import type { StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
@@ -24,6 +24,28 @@ export function histogramLine(key: number | bigint, count: number, hasAlpha: boo
     const a = key & 255;
     if (hasAlpha) return `  ${count}: (${r},${g},${b},${a}) #${hex(r)}${hex(g)}${hex(b)}${hex(a)} srgba(${r},${g},${b},${Number((a / 255).toPrecision(6))})`;
     return `${String(count).padStart(14)}: (${r},${g},${b}) #${hex(r)}${hex(g)}${hex(b)} ${histogramColorNames[key >>> 8] ?? `srgb(${r},${g},${b})`}`;
+}
+export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "hasAlpha">, data: Uint8Array | Uint16Array, start = 0): Generator<string> {
+    const highDepth = data instanceof Uint16Array, opaque = highDepth ? 65535 : 255;
+    const gray = image.space === "b-w" || image.space === "grey16";
+    for (let offset = 0; offset < data.length; offset += 4) {
+        if (image.hasAlpha && data[offset + 3] !== opaque) continue;
+        const pixel = start + offset / 4;
+        const channels = data.subarray(offset, offset + (gray ? 1 : 3));
+        const percent = highDepth && channels.some(value => value % 257 !== 0);
+        const samples = Array.from(channels, value => percent ? `${Number((value * 100 / 65535).toPrecision(6))}%` : String(value / (highDepth ? 257 : 1)));
+        if (image.hasAlpha) samples.push("1");
+        yield `${pixel % image.width},${Math.floor(pixel / image.width)},${gray ? "gray" : "srgb"}${image.hasAlpha ? "a" : ""}(${samples.join(",")}) `;
+    }
+}
+export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
+    const size = image.width * image.height * 4, highDepth = image.storedData16 !== undefined;
+    for (let start = 0; start < size; start += 16384) {
+        await yieldTurn(signal);
+        const bytes = await storage.read((image.storedData16?.position ?? image.position) + start * (highDepth ? 2 : 1), Math.min(16384, size - start) * (highDepth ? 2 : 1));
+        const data = highDepth ? new Uint16Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)) : bytes;
+        yield* sparseColorPoints(image, data, start / 4);
+    }
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined;

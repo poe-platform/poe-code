@@ -1750,21 +1750,6 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
   }
 }
 
-function fixSubtitleDurations(doc: MediaDocument): MediaDocument {
-  const tracks = doc.tracks.map(track => {
-    if (track.type !== "subtitle") return track;
-    // Decoding buffers one event until the next arrives; EOF does not flush it.
-    const samples = track.samples.slice(0, -1).flatMap((sample, index) => {
-      const duration = Math.min(sample.duration, track.samples[index + 1]!.pts - sample.pts);
-      return duration > 0 ? [{ ...sample, duration }] : [];
-    });
-    const duration = samples.reduce((end, sample) => Math.max(end, sample.pts + sample.duration), 0);
-    return { ...track, samples, duration };
-  });
-  const durationSeconds = Math.max(0, ...tracks.map(track => track.duration / track.timescale));
-  return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
-}
-
 function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined): MediaDocument {
   return {
     ...doc,
@@ -1822,6 +1807,45 @@ function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plu
   }
 }
 
+function shiftTimestamps(doc: MediaDocument, seconds: number, budget: MediaBudgetTracker): MediaDocument {
+  if (seconds === 0) return doc;
+  const durationSeconds = Math.max(0, doc.durationSeconds + seconds);
+  budget.checkDuration(durationSeconds);
+  return { ...doc, durationSeconds, duration: Math.round(durationSeconds * doc.timescale),
+    tracks: doc.tracks.map(track => {
+      budget.checkCpu();
+      const shift = Math.round(seconds * track.timescale);
+      const duration = Math.max(0, track.duration + shift);
+      if (track.editList?.length) {
+        // Move the presentation timeline, retaining compressed priming packets.
+        const firstMedia = track.editList.findIndex(edit => edit.mediaTime >= 0);
+        if (firstMedia >= 0) {
+          const edit = track.editList[firstMedia]!;
+          const delay = track.editList.slice(0, firstMedia).reduce((sum, entry) => sum + entry.segmentDuration, 0);
+          // Video composition delay remains an edit; audio priming becomes
+          // ordinary packets when a positive offset moves it after time zero.
+          const origin = track.type === "video" ? edit.mediaTime : 0;
+          const start = delay / doc.timescale - (edit.mediaTime - origin) / track.timescale + seconds;
+          const mediaTime = origin + Math.max(0, Math.round(-start * track.timescale));
+          const emptyDuration = Math.max(0, Math.floor(start * doc.timescale));
+          return { ...track, duration, editList: [
+            ...(emptyDuration ? [{ ...edit, segmentDuration: emptyDuration, mediaTime: -1 }] : []),
+            { ...edit, mediaTime, segmentDuration: Math.max(0, edit.segmentDuration + Math.round((edit.mediaTime - mediaTime) * doc.timescale / track.timescale)) },
+            ...track.editList.slice(firstMedia + 1)
+          ] };
+        }
+      }
+      return { ...track, duration,
+        samples: track.samples.map(sample => {
+          budget.checkCpu();
+          return { ...sample, pts: sample.pts + shift, dts: sample.dts + shift };
+        }),
+        ...(track.decodedVideoFrames ? { decodedVideoFrames: track.decodedVideoFrames.map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds + seconds })) } : {})
+      };
+    })
+  };
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -1857,7 +1881,7 @@ export function evalSyncFfmpeg(
     const inputs: InputSpec[] = [];
     let pendingFormat: string | undefined;
     let pendingAudioDecoder: string | undefined;
-    let pendingFixSubDuration = false;
+    let pendingTimestampOffset = 0;
     let pendingSs: number | undefined;
     let pendingSseof: number | undefined;
     let pendingTo: number | undefined;
@@ -1867,6 +1891,7 @@ export function evalSyncFfmpeg(
     let pendingStartNumber: number | undefined;
     let outputStartNumber: number | undefined;
     let outputFormat: string | undefined;
+    let outputTimestampOffset = 0;
     let outputSs: number | undefined;
     let outputTo: number | undefined;
     let outputDuration: number | undefined;
@@ -1942,6 +1967,12 @@ export function evalSyncFfmpeg(
         const val = args[++i];
         if (inputs.length === 0 || (i + 1 < args.length && args.slice(i + 1).includes("-i"))) pendingFormat = val;
         else outputFormat = val;
+      } else if (arg === "-itsoffset" || arg === "-output_ts_offset") {
+        const value = parseHlsDuration(args[++i] ?? "");
+        const beforeInput = args.slice(i + 1).includes("-i");
+        if (!Number.isFinite(value) || (arg === "-itsoffset" ? !beforeInput : beforeInput)) return undefined;
+        if (arg === "-itsoffset") pendingTimestampOffset = value;
+        else outputTimestampOffset = value;
       } else if (arg === "-sseof") {
         const val = parseHlsDuration(args[++i] ?? "");
         if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) return undefined;
@@ -1968,10 +1999,7 @@ export function evalSyncFfmpeg(
         if (args.slice(i + 1).includes("-i")) pendingFps = val;
         else outputFps = val;
       } else if (arg === "-s") outputSize = args[++i];
-      else if (arg === "-fix_sub_duration") {
-        if (!args.slice(i + 1).includes("-i")) return undefined;
-        pendingFixSubDuration = true;
-      } else if (arg === "-i") {
+      else if (arg === "-i") {
         if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) return undefined;
         pendingAudioDecoder = undefined;
         inputs.push({
@@ -1979,7 +2007,7 @@ export function evalSyncFfmpeg(
           format: pendingFormat,
           sampleRate: audioRate,
           channels: audioChannels,
-          fixSubDuration: pendingFixSubDuration,
+          timestampOffset: pendingTimestampOffset,
           startSeconds: pendingSs,
           endRelativeSeconds: pendingSseof,
           endSeconds: pendingTo,
@@ -1989,7 +2017,7 @@ export function evalSyncFfmpeg(
           startNumber: pendingStartNumber,
         });
         audioRate = undefined; audioChannels = undefined;
-        pendingFixSubDuration = false;
+        pendingTimestampOffset = 0;
         pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
@@ -2130,7 +2158,6 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
-      if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
@@ -2141,7 +2168,7 @@ export function evalSyncFfmpeg(
       } else if (inp.streamLoop && inp.streamLoop > 0) {
         doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
       }
-      loadedDocs.push(doc);
+      loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
     }
 
     const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
@@ -2203,6 +2230,7 @@ export function evalSyncFfmpeg(
       encoder: outPlugin?.id === "ffmetadata" ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions) };
+    workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -2318,7 +2346,7 @@ interface InputSpec {
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
-  readonly fixSubDuration?: boolean | undefined;
+  readonly timestampOffset?: number | undefined;
   readonly startSeconds?: number | undefined;
   readonly endRelativeSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
@@ -2385,7 +2413,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
-      let pendingFixSubDuration = false;
+      let pendingTimestampOffset = 0;
       let pendingSs: number | undefined;
       let pendingSseof: number | undefined;
       let pendingTo: number | undefined;
@@ -2426,6 +2454,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         let outputFormat: string | undefined;
         let hashAlgorithm = "sha256";
+        let outputTimestampOffset = 0;
         let outputSs: number | undefined;
         let outputTo: number | undefined;
         let outputDuration: number | undefined;
@@ -2745,6 +2774,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputFormat = val;
             }
+          } else if (arg === "-itsoffset" || arg === "-output_ts_offset") {
+            const value = parseHlsDuration(args[++i] ?? "");
+            const beforeInput = args.slice(i + 1).includes("-i");
+            if (!Number.isFinite(value) || (arg === "-itsoffset" ? !beforeInput : beforeInput)) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg} duration or placement\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            if (arg === "-itsoffset") pendingTimestampOffset = value;
+            else outputTimestampOffset = value;
           } else if (arg === "-sseof") {
             const val = parseHlsDuration(args[++i] ?? "");
             if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) {
@@ -2814,12 +2852,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-s") {
             outputSize = args[++i];
-          } else if (arg === "-fix_sub_duration") {
-            if (!args.slice(i + 1).includes("-i")) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -fix_sub_duration must precede an input\n"), context.signal);
-              return { exitCode: 1 };
-            }
-            pendingFixSubDuration = true;
           } else if (arg === "-i") {
             if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown decoder '${pendingAudioDecoder}'\n`), context.signal);
@@ -2832,9 +2864,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               format: pendingFormat,
               sampleRate: audioRate,
               channels: audioChannels,
-              fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               allowedExtensions: pendingAllowedExtensions,
+              timestampOffset: pendingTimestampOffset,
               startSeconds: pendingSs,
               endRelativeSeconds: pendingSseof,
               endSeconds: pendingTo,
@@ -2851,7 +2883,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingFormat = undefined;
             pendingSafe = undefined;
             pendingAllowedExtensions = undefined;
-            pendingFixSubDuration = false;
+            pendingTimestampOffset = 0;
             pendingSs = undefined;
             pendingSseof = undefined;
             pendingTo = undefined;
@@ -3467,7 +3499,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
-              if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
               if (
@@ -3487,7 +3518,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
                 doc = concatMp4(copies, { limits: options.limits, budget });
               }
-              loadedDocs.push(doc);
+              loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
             }
 
             // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
@@ -4760,6 +4791,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Count processed media, not container headers or checksum text.
+            workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
             hasOutputFrames ||= workingDoc.tracks.some(track =>
               track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)
                 : track.decodedVideoFrames ? track.decodedVideoFrames.length > 0

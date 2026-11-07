@@ -45,7 +45,10 @@ for BMP inputs and standard 24-bit BMP output.
 including uncompressed, DEFLATE, LZW, PackBits and JPEG data and horizontal prediction.
 Shared JPEG tables and strip/tile data are read through bounded logical ranges.
 `encodeTiffFromStorage` and `encodeImage` accept `tiffRowsPerStrip` to control TIFF strip height. `encodeTiffFromStorage` streams TIFF pixels with a header and strip directory
-state, preserving density and orientation.
+state, preserving density and orientation. TIFF output supports `none` (default),
+`lzw`, `deflate`, `packbits`, and `jpeg`: use `.tiff({compression: "lzw"})`
+or `tiffCompression` on encode options. Compressed file output uses caller-backed
+scratch storage. JPEG TIFF uses three color channels and discards alpha.
 `decodeHeifToStorage`, `encodeHeifFromStorage`, and `readHeifMetadataFromSource`
 use 4 KiB pages and the shared zlib codec for the existing HEIC/HEIF/AVIF
 container contract. File inputs, composite sources, metadata and outputs use the

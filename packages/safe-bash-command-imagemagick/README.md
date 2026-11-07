@@ -80,6 +80,8 @@ only when requested. `%q` reports the compatible ImageMagick quantum depth (`16`
 while `%z` reports source bit depth and `%[bit-depth]` reports effective pixel depth.
 Statistics use the command's 0–255 RGB sample scale.
 
+TIFF output accepts `-compress None|LZW|Zip|RLE|JPEG`, including intermediate `-write` outputs. `+compress` restores uncompressed output. JPEG compression discards alpha; the other methods preserve pixels.
+
 MIFF output (`out.miff` or `MIFF:out.bin`) preserves the image list as uncompressed 8-bit RGBA frames.
 
 ## Available Commands

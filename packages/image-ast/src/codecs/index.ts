@@ -497,10 +497,12 @@ export function encodeImage(
       const orientation = options.orientation ?? img.orientation;
       const data = encodeTiffImage(img, {
         ...(options.tiffRowsPerStrip === undefined ? {} : {tiffRowsPerStrip: options.tiffRowsPerStrip}),
+        ...(options.tiffCompression === undefined ? {} : {tiffCompression: options.tiffCompression}),
+        ...(options.quality === undefined ? {} : {quality: options.quality}),
         ...(options.density === undefined ? {} : {density: options.density}),
         ...(orientation !== undefined ? { orientation } : {})
       });
-      return { data, format: "tiff", channels: tiffChannels(img) };
+      return { data, format: "tiff", channels: options.tiffCompression === "jpeg" ? 3 : tiffChannels(img) };
     }
     case "pdf": {
       const data = encodePdfImage(img);

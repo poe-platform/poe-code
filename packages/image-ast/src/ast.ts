@@ -471,6 +471,7 @@ export interface OutputEncodeOptions {
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
   readonly tiffRowsPerStrip?: number;
+  readonly tiffCompression?: "none" | "lzw" | "deflate" | "packbits" | "jpeg";
   readonly quality?: number;
   readonly samplingFactor?: string;
   readonly chromaSubsampling?: "4:2:0" | "4:4:4";

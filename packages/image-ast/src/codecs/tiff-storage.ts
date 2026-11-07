@@ -1,4 +1,7 @@
 import type {ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
+import {BackingArena} from "./backing-arena.js";
+import {createTiffCompressor} from "./tiff-compression.js";
+import {encodeJpegFromStorage} from "./jpeg-storage.js";
 import {createTiffLayout} from "./tiff-layout.js";
 import {defaultRuntime} from "@poe-code/compression";
 export type StoredTiffEncodeOptions=NonNullable<Parameters<typeof createTiffLayout>[1]>;
@@ -6,18 +9,18 @@ export type StoredTiffEncodeOptions=NonNullable<Parameters<typeof createTiffLayo
 export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,options:StoredTiffEncodeOptions={}):AsyncGenerator<Uint8Array> {
  signal.throwIfAborted();
  let end=0;
+ const scratch=new BackingArena(storage);
  const count=image.storedTiffPages?.length ?? 1;
  for(let index=0;index<count;index++) {
  const page=image.storedTiffPages ? await image.storedTiffPages.at(index) : image;
  signal.throwIfAborted();
  const {width,height,position}=page,length=width*height*4;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(length)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+length)) throw new RangeError("Invalid TIFF backing dimensions");
- const {header,directory,channels,padding,end: nextEnd}=createTiffLayout(page,options,end,index+1<count);
- end=nextEnd;
- yield index===0 ? header : directory;
- for(let offset=0;offset<length;offset+=4096) {
+ const channels=createTiffLayout(page,options).channels;
+ async function* pixels(start=0,end=length) {
+ for(let offset=start;offset<end;offset+=4096) {
   signal.throwIfAborted();if(offset%65536===0) await defaultRuntime.yieldTurn(signal);
-  const size=Math.min(4096,length-offset),bytes=await storage.read(position+offset,size,{signal});signal.throwIfAborted();
+  const size=Math.min(4096,end-offset),bytes=await storage.read(position+offset,size,{signal});signal.throwIfAborted();
   if(!(bytes instanceof Uint8Array)||bytes.length!==size) throw new Error("Truncated TIFF backing storage");
   const output=new Uint8Array(size/4*channels);
   if(channels===4) output.set(bytes);
@@ -27,6 +30,39 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
    if(channels===3) { output[dst++]=bytes[src+1]!;output[dst++]=bytes[src+2]!; }
   }
   yield output;
+ }
+ }
+ const compressed=options.tiffCompression !== undefined && options.tiffCompression !== "none";
+ let encodedBytes:number|undefined;
+ let stripSizes:number[]|undefined;
+ if(compressed) {
+  scratch.reset();encodedBytes=0;stripSizes=[];
+  const rows=options.tiffRowsPerStrip ?? height;
+  for(let row=0;row<height;row+=rows) {
+  const stripHeight=Math.min(rows,height-row),start=encodedBytes;
+  async function* encode() {
+   if(options.tiffCompression === "jpeg") {yield* encodeJpegFromStorage({...page,height:stripHeight,position:position+row*width*4},storage,signal,{...options,chromaSubsampling:"4:4:4"});return;}
+   const compressor=createTiffCompressor(options.tiffCompression,width*channels);
+   try {
+    for await(const raw of pixels(row*width*4,(row+stripHeight)*width*4)) yield* compressor.push(raw);
+    yield* compressor.push(new Uint8Array(),true);
+   } finally {compressor.close();}
+  }
+  for await(const bytes of encode()) {
+   for(let at=0;at<bytes.length;at+=4096) {
+    signal.throwIfAborted();const part=bytes.subarray(at,at+4096);
+    await scratch.write(scratch.allocate(part.length),part,{signal});encodedBytes+=part.length;
+   }
+  }
+  stripSizes.push(encodedBytes-start);
+  }
+ }
+ const {header,directory,padding,end:nextEnd}=createTiffLayout(page,options,end,index+1<count,stripSizes);
+ end=nextEnd;
+ yield index===0 ? header : directory;
+ if(encodedBytes === undefined) yield* pixels();
+ else for(let at=0;at<encodedBytes;at+=4096) {
+  signal.throwIfAborted();yield await scratch.read(at,Math.min(4096,encodedBytes-at),{signal});
  }
  signal.throwIfAborted();
  if(padding) yield new Uint8Array(padding);

@@ -1,19 +1,20 @@
-import type {RgbaImage} from "../ast.js";
+import type {OutputEncodeOptions, RgbaImage} from "../ast.js";
 export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3 | 4 {
   return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : img.hasAlpha ? 4 : 3;
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
-  options?: { readonly density?: number; readonly orientation?: number; readonly tiffRowsPerStrip?: number },
-  offset = 0, hasNext = false
+  options?: Pick<OutputEncodeOptions, "density" | "orientation" | "tiffCompression" | "quality" | "tiffRowsPerStrip">,
+  offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
-  const channels = tiffChannels(img), hasAlpha = img.hasAlpha;
+  const jpeg = options?.tiffCompression === "jpeg";
+  const channels = jpeg ? 3 : tiffChannels(img), hasAlpha = !jpeg && img.hasAlpha;
   const rowsPerStrip = options?.tiffRowsPerStrip ?? height;
   if (!Number.isSafeInteger(rowsPerStrip) || rowsPerStrip <= 0 || rowsPerStrip > 0xffffffff) throw new RangeError("Invalid TIFF rows per strip");
   const stripCount = Math.ceil(height / rowsPerStrip);
   const stripArraySize = stripCount > 1 ? stripCount * 8 : 0;
-  const pixelBytes = width * height * channels;
+  const pixelBytes = stripSizes?.reduce((sum,size)=>sum+size,0) ?? width * height * channels;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "meter" ? 100 : 1;
@@ -25,7 +26,7 @@ export function createTiffLayout(
   const padding = pixelBytes % 2;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? comment.length + comment.length % 2 : 0;
-  const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0);
+  const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0) + (jpeg ? 1 : 0);
   const directorySize = 2 + numEntries * 12 + 4 + 24 + commentSize + stripArraySize;
   const pixelOffset = offset === 0 ? 8 : offset + directorySize;
   const ifdOffset = offset === 0 ? pixelOffset + pixelBytes + padding : offset;
@@ -57,8 +58,8 @@ export function createTiffLayout(
   writeEntry(0, 256, 4, 1, width); // ImageWidth
   writeEntry(1, 257, 4, 1, height); // ImageLength
   writeEntry(2, 258, 3, channels, channels === 1 ? 8 : channels === 2 ? 0x00080008 : bpsOffset); // BitsPerSample
-  writeEntry(3, 259, 3, 1, 1); // Compression = None
-  writeEntry(4, 262, 3, 1, channels < 3 ? 1 : 2); // BlackIsZero or RGB
+  writeEntry(3, 259, 3, 1, ({ none: 1, lzw: 5, deflate: 8, packbits: 32773, jpeg: 7 })[options?.tiffCompression ?? "none"]);
+  writeEntry(4, 262, 3, 1, jpeg ? 6 : channels < 3 ? 1 : 2); // YCbCr, BlackIsZero or RGB
   writeEntry(5, 273, 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize); // StripOffsets
   writeEntry(6, 274, 3, 1, orientation); // Orientation
   writeEntry(7, 277, 3, 1, channels); // SamplesPerPixel
@@ -68,6 +69,7 @@ export function createTiffLayout(
   writeEntry(11, 283, 5, 1, yResOffset); // YResolution
   writeEntry(12, 284, 3, 1, 1); // PlanarConfiguration = Chunky
   writeEntry(13, 296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2); // ResolutionUnit
+  if (jpeg) writeEntry(14, 530, 3, 2, 0x00010001); // YCbCrSubSampling
   if (hasAlpha) writeEntry(14, 338, 3, 1, 2); // ExtraSamples = Unassociated Alpha
   if (comment) {
     writeEntry(5, 270, 2, comment.length, comment.length <= 4 ? 0 : yResOffset + 8);
@@ -76,7 +78,7 @@ export function createTiffLayout(
   if (stripCount > 1) {
     let stripOffset = pixelOffset;
     for (let strip = 0; strip < stripCount; strip++) {
-      const size = width * channels * Math.min(rowsPerStrip, height - strip * rowsPerStrip);
+      const size = stripSizes?.[strip] ?? width * channels * Math.min(rowsPerStrip, height - strip * rowsPerStrip);
       view.setUint32(yResOffset + 8 + commentSize - ifdOffset + strip * 4, stripOffset, true);
       view.setUint32(yResOffset + 8 + commentSize - ifdOffset + (stripCount + strip) * 4, size, true);
       stripOffset += size;

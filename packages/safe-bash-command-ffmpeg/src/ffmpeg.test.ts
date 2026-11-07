@@ -22,6 +22,18 @@ it("converts short SRT millisecond fields to exact WebVTT cue timestamps", async
     "WEBVTT\n\n00:00:01.002 --> 00:00:02.025\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n");
 });
 
+for (const [start, end, expectedEnd] of [
+  ["01,000", "01,000", "01.000"],
+  ["03,500", "01,250", "05.000"]] as const) {
+  it(`converts SRT interval ${start}–${end} with native cue timing`, async () => {
+    const vfs = createTestVfs({ "/i.srt": `1\n00:00:${start} --> 00:00:${end}\nHello\n\n2\n00:00:05,000 --> 00:00:06,750\nthere\n` });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/i.srt", "/out.vtt"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
+      `WEBVTT\n\n00:00:${start.replace(",", ".")} --> 00:00:${expectedEnd}\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n`);
+  });
+}
+
 describe("volume timeline enable", () => {
   for (const [expression, start, end] of [
     ["0", 8000, 8000],

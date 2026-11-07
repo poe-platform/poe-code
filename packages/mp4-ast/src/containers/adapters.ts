@@ -1473,12 +1473,13 @@ export function parseSubtitleDocument(
     const [leftRaw, rightWithSettings] = timingLine.split("-->");
     const rightRaw = (rightWithSettings ?? "").trim().split(/\s+/)[0] ?? "0";
     const startMs = parseSubtitleTimecodeMs(leftRaw ?? "0", format);
-    const endMs = Math.max(startMs + 1, parseSubtitleTimecodeMs(rightRaw, format));
+    const parsedEndMs = parseSubtitleTimecodeMs(rightRaw, format);
+    const endMs = format === "srt" ? parsedEndMs : Math.max(startMs + 1, parsedEndMs);
     const cueText = lines.slice(arrowLineIdx + 1).join("\n").trim();
     if (!cueText) continue;
 
     const payload = encodeUtf8(cueText);
-    const duration = Math.max(1, endMs - startMs);
+    const duration = endMs - startMs;
     if (endMs > maxEndMs) maxEndMs = endMs;
 
     samples.push({
@@ -1497,7 +1498,16 @@ export function parseSubtitleDocument(
     });
   }
 
-  if (format === "srt") samples.sort((a, b) => a.pts - b.pts);
+  if (format === "srt") {
+    samples.sort((a, b) => a.pts - b.pts);
+    for (let i = 0; i < samples.length; i++) {
+      const sample = samples[i]!;
+      const next = samples[i + 1];
+      // SubRip treats a negative duration as unknown, inferred from the next cue.
+      if (sample.duration < 0 && next) samples[i] = { ...sample, duration: next.pts - sample.pts };
+      maxEndMs = Math.max(maxEndMs, sample.pts + samples[i]!.duration);
+    }
+  }
 
   const codecName = format === "webvtt" ? "webvtt" : "subrip";
   const formatFourCC = format === "webvtt" ? "wvtt" : "tx3g";

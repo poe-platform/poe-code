@@ -13,3 +13,16 @@ it("orders SRT cues by timestamp while preserving text, overlaps and equal-time 
   assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")),
     "WEBVTT\n\n00:00:01.000 --> 00:00:07.000\nthere\nagain\n\n00:00:01.000 --> 00:00:02.000\nTogether\n\n00:00:05.000 --> 00:00:06.000\nHello\n");
 });
+
+for (const [start, end, pts, duration] of [
+  ["01,000", "01,000", 1000, 0],
+  ["03,500", "01,250", 3500, 1500]
+] as const) {
+  it(`preserves or infers SRT duration for ${start}–${end}`, () => {
+    const input = `1\n00:00:${start} --> 00:00:${end}\nHello\n\n2\n00:00:05,000 --> 00:00:06,750\nthere\n`;
+    const doc = parseSubtitleDocument(new TextEncoder().encode(input), "srt");
+    assert.deepEqual(doc.tracks[0]!.samples.map(sample => [sample.pts, sample.duration]), [[pts, duration], [5000, 1750]]);
+    assert.equal(doc.duration, 6750);
+    assert.equal(doc.tracks[0]!.duration, 6750);
+  });
+}

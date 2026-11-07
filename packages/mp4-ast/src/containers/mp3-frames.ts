@@ -1,5 +1,37 @@
 import { mpegFrame } from "@poe-code/audio-ast";
-import type { MediaProbeSource } from "../types.js";
+import type { MediaProbeSource, MediaSample } from "../types.js";
+import { concatBytes, encodeUtf8 } from "../binary.js";
+
+/** Mux packet bytes unchanged, with a fresh Xing header for the selected packets. */
+export function writeMp3Frames(samples: readonly Pick<MediaSample, "data" | "skipSamples" | "discardPadding">[]): Uint8Array {
+  if (!samples.length) return new Uint8Array();
+  const first = samples[0]!.data;
+  const original = new DataView(first.buffer, first.byteOffset, first.byteLength).getUint32(0);
+  // Keep MPEG version, rate and channel mode; use an unprotected, unpadded
+  // metadata frame with enough room for Xing and the gapless encoder fields.
+  const header = ((original & ~0xf200) | 0x19000) >>> 0;
+  const frame = mpegFrame(header, 0, Infinity);
+  const metadata = new Uint8Array(frame.frameSize);
+  const view = new DataView(metadata.buffer);
+  view.setUint32(0, header);
+  const xing = 4 + (frame.version === 1 ? (frame.channels === 1 ? 17 : 32) : frame.channels === 1 ? 9 : 17);
+  metadata.set(encodeUtf8("Xing"), xing);
+  view.setUint32(xing + 4, 3); // frame and byte counts
+  view.setUint32(xing + 8, samples.length);
+  view.setUint32(xing + 12, metadata.length + samples.reduce((sum, sample) => sum + sample.data.length, 0));
+  const skip = samples.reduce((sum, sample) => sum + (sample.skipSamples ?? 0), 0);
+  const discard = samples.reduce((sum, sample) => sum + (sample.discardPadding ?? 0), 0);
+  if (skip || discard) {
+    const delay = Math.max(0, skip - 529), padding = discard + 529;
+    if (delay > 4095 || padding > 4095) throw new Error("MP3 gapless timing exceeds encoder tag limits");
+    const encoder = xing + 16;
+    metadata.set(encodeUtf8("Lavf"), encoder);
+    metadata[encoder + 21] = delay >>> 4;
+    metadata[encoder + 22] = ((delay & 15) << 4) | (padding >>> 8);
+    metadata[encoder + 23] = padding & 255;
+  }
+  return concatBytes([metadata, ...samples.map(sample => sample.data)]);
+}
 
 export interface Mp3Frame {
   offset: number;

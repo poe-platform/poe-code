@@ -1712,7 +1712,10 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     const useEditList = (options.useEditList ?? true) && !track.decodedAudio;
     const materialized = materializeTrackSamples(track);
     const ts = track.timescale || 1000;
-    const sourceOrigin = Math.max(0, track.editList?.[0]?.mediaTime ?? 0);
+    // Packet timestamps include encoder delay; requested times start at audible audio.
+    const encoderDelay = (track.samples[0]?.skipSamples ?? 0) * ts /
+      (track.codecDescriptions[0]?.sampleRate ?? ts);
+    const sourceOrigin = Math.max(0, track.editList?.[0]?.mediaTime ?? encoderDelay);
     const startTick = sourceOrigin + Math.round(startSec * ts);
     const endTick = sourceOrigin + Math.round(Math.min(endSec, track.duration / ts) * ts);
 

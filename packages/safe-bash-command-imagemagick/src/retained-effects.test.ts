@@ -6,7 +6,7 @@ import { runConvertCli } from "./index.js";
 const operators = [
     ["-shadow", "80x3+5+5"], ["-shadow", "35x0.5-2+3"], ["-shadow", "0x1"], ["-shadow", "120x2"],
     ["-background", "#12345600", "-shadow", "80x1-3-2"],
-    ["-vignette", "0x2"], ["-vignette", "ignored"], ["-background", "#12345680", "-vignette", "2x3"],
+    ["-vignette", "0x2"], ["-vignette", "0x1"], ["-background", "#12345680", "-vignette", "2x3"],
     ["-colorspace", "gray", "-background", "red", "-shadow", "80x1+1+1"],
     ["-colorspace", "gray", "-background", "red", "-vignette", "0x2"]
 ];

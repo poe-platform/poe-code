@@ -423,7 +423,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       }
       const type = spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : undefined;
       if ((spec === "v" || spec === "a" || spec === "s") && stream.codec_type !== type) return;
-      if (spec.startsWith("v:") || spec.startsWith("a:")) {
+      if (spec.startsWith("v:") || spec.startsWith("a:") || spec.startsWith("s:")) {
         if (stream.codec_type !== type) return;
         if (typeOrdinal++ !== (parseInt(spec.slice(2), 10) || 0)) return;
       } else if ([...spec].every(c => c >= "0" && c <= "9") && stream.index !== parseInt(spec, 10)) return;
@@ -680,6 +680,15 @@ function parseProbeArguments(args: readonly string[]) {
     }
   }
   if (!inputTarget) throw new Error("must specify an input file");
+  if (selectStreams) {
+    const [kind, ...parts] = selectStreams.split(":");
+    const index = parts.length === 0 ? kind! : parts[0]!;
+    const numeric = index.length > 0 && [...index].every(c => c >= "0" && c <= "9");
+    const valid = kind === "m" && parts.length > 0
+      || ["v", "a", "s"].includes(kind!) && (parts.length === 0 || parts.length === 1 && numeric)
+      || parts.length === 0 && numeric;
+    if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);
+  }
   const [head = "default", ...parameters] = printFormat.split(":");
   const equals = head.indexOf("=");
   const writer = (equals < 0 ? head : head.slice(0, equals)).toLowerCase();

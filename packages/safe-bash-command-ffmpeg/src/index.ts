@@ -3649,7 +3649,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "volume" || trimmed.startsWith("volume=")) {
+                      if (trimmed === "volumedetect") {
+                        let count = 0;
+                        let sumSquares = 0;
+                        let peak = 0;
+                        // FFmpeg measures signed 16-bit samples, including every channel.
+                        for (const channel of stretched) {
+                          for (const value of channel) {
+                            if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const sample = Math.max(-32768, Math.min(32767, Math.round(value * 32768)));
+                            count++;
+                            sumSquares += sample * sample;
+                            peak = Math.max(peak, Math.abs(sample));
+                          }
+                        }
+                        let report = `n_samples: ${count}\n`;
+                        if (count > 0) {
+                          const meanSquare = Math.round(sumSquares / count);
+                          const meanDb = meanSquare === 0 ? -91 : 10 * Math.log10(meanSquare / (32768 * 32768));
+                          const peakDb = peak === 0 ? -91 : 10 * Math.log10(peak * peak / (32768 * 32768));
+                          report += `mean_volume: ${meanDb.toFixed(1)} dB\nmax_volume: ${peakDb.toFixed(1)} dB\n`;
+                        }
+                        await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                      } else if (trimmed === "volume" || trimmed.startsWith("volume=")) {
                         const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
                         let volSpec = "1";
                         let precision = "float";

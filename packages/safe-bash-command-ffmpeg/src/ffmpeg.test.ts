@@ -5480,3 +5480,36 @@ it("probes DASH manifest language and preserves it when copying to MP4", async (
   assert.deepEqual(output.tracks.map(track => track.samples.map(sample => sample.data)),
     base.tracks.map(track => (track.type === "audio" ? track.samples.slice(0, 6) : track.samples).map(sample => sample.data)));
 });
+
+
+describe("volumedetect", () => {
+  for (const [filter, control, mean, peak] of [
+    ["volumedetect", "anull", "-12.0", "-6.0"],
+    ["volume=0.5,volumedetect", "volume=0.5", "-18.1", "-12.0"],
+    ["volumedetect,volume=0.5", "volume=0.5", "-12.0", "-6.0"],
+    ["volume=0,volumedetect@silent", "volume=0", "-91.0", "-91.0"]
+  ]) {
+    it(`reports native levels and preserves PCM for ${filter}`, async () => {
+      const channels = [new Float64Array(96000), new Float64Array(96000)];
+      for (let i = 0; i < 96000; i++) {
+        const sign = i % 48 < 24 ? 1 : -1;
+        channels[0]![i] = i >= 24000 && i < 72000 ? sign / 4 : 0;
+        channels[1]![i] = i >= 48000 && i < 84000 ? sign / 2 : 0;
+      }
+      const input = encodeWav({ sampleRate: 48000, channels });
+      const vfs = createTestVfs({ "/levels.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-loglevel", "info",
+        "-i", "/levels.wav", "-af", filter!, "-c:a", "pcm_s16le", "-y", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      for (const line of ["n_samples: 192000", `mean_volume: ${mean} dB`, `max_volume: ${peak} dB`]) {
+        assert.ok(result.stderr.includes(line), result.stderr);
+      }
+      const reference = await runCmd(createFfmpegCommand(), ["-i", "/levels.wav", "-af", control!,
+        "-c:a", "pcm_s16le", "/control.wav"], vfs);
+      assert.equal(reference.exitCode, 0, reference.stderr);
+      const pcm = (bytes: Uint8Array) => parseWav(bytes).tracks[0]!.decodedAudio!.channelData;
+      assert.deepEqual(pcm(vfs.store.get("/out.wav")!), pcm(vfs.store.get("/control.wav")!));
+      if (control === "anull") assert.deepEqual(pcm(vfs.store.get("/out.wav")!), pcm(input));
+    });
+  }
+});

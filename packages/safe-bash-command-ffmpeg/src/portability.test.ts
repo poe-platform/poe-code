@@ -162,6 +162,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes APNG output and the current animation decoder graph (10,012,811 bytes).
   // Includes ICO/CUR entries and the shared icon codec graph (10,021,895 bytes).
   // Includes HQX and the current pixel-art filter graph (10,038,858 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_045_000,
+  // Includes compensation delay and the current audio filter graph (10,045,564 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_050_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

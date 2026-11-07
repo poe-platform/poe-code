@@ -39,3 +39,5 @@ export { aiffAst, parseAiff, serializeAiff } from "./containers/aiff.js";
 export { auAst } from "./containers/au.js";
 
 export { cafAst } from "./containers/caf.js";
+
+export { microdvdAst } from "./containers/microdvd.js";

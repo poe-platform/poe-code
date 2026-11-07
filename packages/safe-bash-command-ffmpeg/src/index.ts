@@ -66,6 +66,7 @@ import {
   parseSubtitleDocument,
   serializeDashDocument,
   srtAst,
+  microdvdAst,
   assAst,
   webvttAst,
   ffmetadataAst,
@@ -94,6 +95,7 @@ export {
   allMediaAsts,
   cloudflareWorkerLimits,
   srtAst,
+  microdvdAst,
   assAst,
   webvttAst,
   ffmetadataAst,
@@ -1781,6 +1783,10 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         }
       }).map(sample => {
         const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
+        if (codec === "microdvd") {
+          const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("|", "\n"));
+          return { ...sample, data, size: data.byteLength };
+        }
         if (codec !== "webvtt" && (codec !== "subrip" || outputFormat !== "webvtt")) return { ...sample, webvtt: undefined };
         const text = decodeUtf8(sample.data);
         const parts: string[] = [];

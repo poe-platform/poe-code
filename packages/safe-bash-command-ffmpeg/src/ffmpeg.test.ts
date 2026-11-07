@@ -5947,3 +5947,30 @@ describe("subtitle -frames:s", () => {
     });
   }
 });
+
+describe("MicroDVD subtitles", () => {
+  for (const sync of [false, true]) {
+    for (const explicit of [false, true]) {
+      for (const copy of [false, true]) {
+        it(`${sync ? "sync" : "async"} ${explicit ? "explicit" : "detected"} ${copy ? "copies frames" : "decodes declared fps"}`, async () => {
+          const input = "{1}{1}25.000\n{31}{70}First line|continuation\n{85}{125}Last & final\n";
+          const vfs = createTestVfs({ "/in.sub": input });
+          const output = copy ? "/out.sub" : "/out.vtt";
+          const args = ["-v", "error", "-y", ...(explicit ? ["-f", "microdvd"] : []), "-i", "/in.sub",
+            ...(copy ? ["-c:s", "copy", "-f", "microdvd"] : []), output];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          assert.equal(new TextDecoder().decode(vfs.store.get(output)), copy
+            ? "{31}{70}First line|continuation\n{85}{125}Last & final\n"
+            : "WEBVTT\n\n00:01.240 --> 00:02.800\nFirst line\ncontinuation\n\n00:03.400 --> 00:05.000\nLast & final\n");
+          assert.equal(new TextDecoder().decode(vfs.store.get("/in.sub")), input);
+        });
+      }
+    }
+  }
+});

@@ -1,3 +1,4 @@
+import {BmpPalette} from "./bmp-palette.js";
 import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import {tiffLabToRgb} from "./tiff-lab.js";
 import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
@@ -304,7 +305,11 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
 
 export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof createBmpHeader>[1]): Uint8Array {
   const { width, height, data } = img;
-  const {data:header,rowStride,pixelSize,bytesPerPixel}=createBmpHeader(img,options);
+  let palette = BmpPalette.forImage(img);
+  if (palette) for(let i=0;i<data.length;i+=4) {
+    if(!palette.add(data[i]!,data[i+1]!,data[i+2]!,data[i+3]!)){palette=undefined;break;}
+  }
+  const {data:header,rowStride,pixelSize,bytesPerPixel,bitDepth}=createBmpHeader(img,options,palette);
   const out=new Uint8Array(header.length+pixelSize);
   out.set(header);
 
@@ -312,6 +317,11 @@ export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof creat
     const dstRow = header.length + (height - 1 - y) * rowStride;
     for (let x = 0; x < width; x++) {
       const srcIdx = (y * width + x) * 4;
+      if(palette) {
+        const bit=x*bitDepth, offset=dstRow+(bit>>>3);
+        out[offset]=out[offset]! | palette.index(data[srcIdx]!,data[srcIdx+1]!,data[srcIdx+2]!) << (8-bitDepth-bit%8);
+        continue;
+      }
       out[dstRow + x * bytesPerPixel] = data[srcIdx + 2]!;
       out[dstRow + x * bytesPerPixel + 1] = data[srcIdx + 1]!;
       out[dstRow + x * bytesPerPixel + 2] = data[srcIdx]!;

@@ -1,23 +1,27 @@
+import type {BmpPalette} from "./bmp-palette.js";
 import type {RgbaImage, OutputEncodeOptions} from "../ast.js";
-export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha">) {
+export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha">, palette?: BmpPalette) {
  const {width,height}=img;
  const version = options?.bmpFormat ?? "bmp3";
  const dibSize = version === "bmp2" ? 12 : version === "bmp3" ? 40 : 124;
  if (dibSize === 12 && (width > 65535 || height > 65535)) throw new RangeError("BMP2 dimensions exceed 65535");
  const bytesPerPixel = img.hasAlpha && (dibSize === 124 || (version === "bmp3" && options?.bmp3Alpha === true)) ? 4 : 3;
- const rowStride = Math.ceil(width * bytesPerPixel / 4) * 4, pixelSize = rowStride * height;
- const out = new Uint8Array(14 + dibSize), view = new DataView(out.buffer);
+ const bitDepth = palette?.depth ?? bytesPerPixel * 8;
+ const rowStride = Math.ceil(width * bitDepth / 32) * 4, pixelSize = rowStride * height;
+ const paletteBytes = palette?.bytes(dibSize === 12 ? 3 : 4);
+ const out = new Uint8Array(14 + dibSize + (paletteBytes?.length ?? 0)), view = new DataView(out.buffer);
  out[0] = 0x42; out[1] = 0x4d;
  view.setUint32(2, out.length + pixelSize, true);
  view.setUint32(10, out.length, true);
  view.setUint32(14, dibSize, true);
  if (dibSize === 12) {
   view.setUint16(18, width, true); view.setUint16(20, height, true);
-  view.setUint16(22, 1, true); view.setUint16(24, 24, true);
+  view.setUint16(22, 1, true); view.setUint16(24, bitDepth, true);
  } else {
   view.setInt32(18, width, true); view.setInt32(22, height, true);
-  view.setUint16(26, 1, true); view.setUint16(28, bytesPerPixel * 8, true);
+  view.setUint16(26, 1, true); view.setUint16(28, bitDepth, true);
   view.setUint32(34, pixelSize, true);
+  if (palette) view.setUint32(46, 2 ** bitDepth, true);
   const ppm = Math.round((img.density ?? 72) / 0.0254);
   view.setInt32(38, ppm, true); view.setInt32(42, ppm, true);
   if (dibSize === 124) {
@@ -30,7 +34,8 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"h
    view.setUint32(122, 4, true); // Perceptual rendering intent
   }
  }
- return {data:out,rowStride,pixelSize,bytesPerPixel};
+ if (paletteBytes) out.set(paletteBytes, 14 + dibSize);
+ return {data:out,rowStride,pixelSize,bytesPerPixel,bitDepth};
 }
 
 /** BI_BITFIELDS masks follow the 40-byte header or occupy the same slots in extended headers. */

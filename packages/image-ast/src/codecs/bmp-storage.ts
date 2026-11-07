@@ -1,3 +1,4 @@
+import {BmpPalette} from "./bmp-palette.js";
 import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
@@ -86,15 +87,30 @@ export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageB
  signal.throwIfAborted();
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid BMP backing dimensions");
- const {data:header,rowStride,bytesPerPixel}=createBmpHeader(image,options);
+ const pixels=new Pixels(image,storage,signal);
+ let palette=BmpPalette.forImage(image);
+ if(palette) for(let i=0;i<width*height;i++) {
+  const value=await pixels.pixel(i);
+  if(!palette.add(value&255,value>>>8&255,value>>>16&255,value>>>24)){palette=undefined;break;}
+ }
+ const {data:header,rowStride,bytesPerPixel,bitDepth}=createBmpHeader(image,options,palette);
  yield header;
- const pixels=new Pixels(image,storage,signal),buffer=new Uint8Array(4096);let used=0;
+ const buffer=new Uint8Array(4096);let used=0;
  for(let y=height-1;y>=0;y--) {
+  let packed=0;
   for(let x=0;x<width;x++) {
    const value=await pixels.pixel(y*width+x);
+   if(palette) {
+    packed |= palette.index(value&255,value>>>8&255,value>>>16&255) << (8-bitDepth-x*bitDepth%8);
+    if((x+1)*bitDepth%8===0 || x===width-1) {
+     buffer[used++]=packed;packed=0;
+     if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
+    }
+    continue;
+   }
    for(const byte of bytesPerPixel===4 ? [value>>>16&255,value>>>8&255,value&255,value>>>24] : [value>>>16&255,value>>>8&255,value&255]) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
   }
-  for(let i=width*bytesPerPixel;i<rowStride;i++){buffer[used++]=0;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
+  for(let i=Math.ceil(width*bitDepth/8);i<rowStride;i++){buffer[used++]=0;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
  }
  signal.throwIfAborted();if(used) yield new Uint8Array(buffer.subarray(0,used));
 }

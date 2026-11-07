@@ -1,6 +1,7 @@
 import { inflateSync } from "node:zlib";
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { decodeImage } from "@poe-code/image-ast/portable";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCliSync } from "./index.js";
 
@@ -8,6 +9,10 @@ function pixels(bytes: Uint8Array, width = 2): string {
     const png = Buffer.from(bytes), chunks: Buffer[] = [];
     expect(png.readUInt32BE(16)).toBe(width);
     expect(png.readUInt32BE(20)).toBe(1);
+    if (png[25] === 3) {
+        const image = decodeImage(bytes);
+        return Buffer.from(image.data.filter((_, index) => index % 4 !== 3)).toString("hex");
+    }
     expect(png[25]).toBe(2);
     for (let offset = 8; offset < png.length;) {
         const length = png.readUInt32BE(offset);

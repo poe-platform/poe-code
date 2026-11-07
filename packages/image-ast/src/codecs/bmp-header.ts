@@ -21,3 +21,20 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density">) 
 
  return {data:out,rowStride,pixelSize};
 }
+
+/** BI_BITFIELDS masks follow the 40-byte header or occupy the same slots in extended headers. */
+export function readBmpMasks(view: DataView): number[] | undefined {
+ const dibSize = view.getUint32(14, true);
+ if (dibSize < 40) return;
+ const bpp = view.getUint16(28, true), compression = view.getUint32(30, true);
+ if (bpp === 16 && compression === 0) return [0x7c00, 0x03e0, 0x001f, 0];
+ if ((bpp !== 16 && bpp !== 32) || compression !== 3) return;
+ if (view.byteLength < 66 || view.getUint32(10, true) < 66) throw new Error("Truncated BMP channel masks");
+ return [view.getUint32(54, true), view.getUint32(58, true), view.getUint32(62, true), bpp === 32 && dibSize >= 56 ? view.getUint32(66, true) : 0];
+}
+
+export function bmpMaskedChannel(pixel: number, mask: number): number {
+ if (mask === 0) return 255;
+ // Dividing by the unsigned mask also removes the channel's bit offset.
+ return Math.round(((pixel & mask) >>> 0) / mask * 255);
+}

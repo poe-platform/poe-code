@@ -3,7 +3,7 @@ import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
-import {createBmpHeader} from "./bmp-header.js";
+import {createBmpHeader,readBmpMasks,bmpMaskedChannel} from "./bmp-header.js";
 import {parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
@@ -199,15 +199,16 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
   const bpp = view.getUint16(core ? 24 : 28, true);
   const ppmX = core ? 0 : view.getInt32(38, true);
   const density = ppmX > 0 ? Math.max(1, Math.round(ppmX * 0.0254)) : 72;
+  const hasAlpha = bpp === 32 && (core || view.getUint32(30, true) !== 3 || (view.getUint32(14, true) >= 56 && view.byteLength >= 70 && view.getUint32(66, true) !== 0));
   return {
     format: "bmp",
     width,
     height,
     space: "srgb",
-    channels: bpp === 32 ? 4 : 3,
+    channels: hasAlpha ? 4 : 3,
     depth: "uchar",
     density,
-    hasAlpha: bpp === 32,
+    hasAlpha,
     size: bytes.byteLength
   };
 }
@@ -220,9 +221,18 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const topDown = dibHeaderSize !== 12 && view.getInt32(22, true) < 0;
   const bpp = view.getUint16(dibHeaderSize === 12 ? 24 : 28, true);
   const rowStride = Math.floor((meta.width * bpp + 31) / 32) * 4;
+  const bitfieldMasks = readBmpMasks(view);
   const rgba = new Uint8Array(meta.width * meta.height * 4);
   const paletteOffset = 14 + dibHeaderSize;
   const paletteStep = dibHeaderSize === 12 ? 3 : 4;
+
+  // Legacy BI_RGB writers leave the reserved fourth byte zero in every pixel.
+  let opaqueReserved = bpp === 32 && dibHeaderSize >= 40 && view.getUint32(30, true) === 0;
+  if (opaqueReserved) {
+    for (let offset = dataOffset + 3; offset < dataOffset + rowStride * meta.height; offset += 4) {
+      if ((bytes[offset] ?? 255) !== 0) { opaqueReserved = false; break; }
+    }
+  }
 
   for (let y = 0; y < meta.height; y++) {
     const srcY = topDown ? y : meta.height - 1 - y;
@@ -248,10 +258,15 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
       } else {
         const bytesPerPixel = bpp >>> 3;
         const srcIdx = rowStart + x * bytesPerPixel;
+        if (bitfieldMasks) {
+          const pixel = bpp === 16 ? (bytes[srcIdx] ?? 0) | ((bytes[srcIdx + 1] ?? 0) << 8) : view.getUint32(srcIdx, true);
+          for (let c = 0; c < 4; c++) rgba[dstIdx + c] = bmpMaskedChannel(pixel, bitfieldMasks[c]!);
+          continue;
+        }
         rgba[dstIdx] = bytes[srcIdx + 2] ?? 0;
         rgba[dstIdx + 1] = bytes[srcIdx + 1] ?? 0;
         rgba[dstIdx + 2] = bytes[srcIdx] ?? 0;
-        rgba[dstIdx + 3] = bytesPerPixel === 4 ? (bytes[srcIdx + 3] ?? 255) : 255;
+        rgba[dstIdx + 3] = bytesPerPixel === 4 && !opaqueReserved ? (bytes[srcIdx + 3] ?? 255) : 255;
       }
     }
   }

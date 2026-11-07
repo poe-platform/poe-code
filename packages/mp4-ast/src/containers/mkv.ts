@@ -1,3 +1,4 @@
+import { demuxVorbisTrack } from "../vorbis.js";
 import { decodeH264Samples } from "../h264.js";
 import { readVint, writeVintSize } from "./ebml.js";
 import {
@@ -729,7 +730,9 @@ export function serializeMkv(
   let maxDurationMs = Math.round(doc.durationSeconds * 1000);
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
-    const trk = doc.tracks[idx]!;
+    const sourceTrack = doc.tracks[idx]!;
+    const trk = sourceTrack.codecDescriptions[0]?.codecName === "vorbis" && !sourceTrack.codecDescriptions[0].extraData
+      ? demuxVorbisTrack(sourceTrack) : sourceTrack;
     const trackNum = idx + 1;
     const ts = trk.timescale || 1000;
 

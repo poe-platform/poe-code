@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Volume } from "memfs";
+import { readOgg } from "@poe-code/audio-ast";
 import { parseMkv } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
@@ -45,7 +46,28 @@ for (const sync of [false, true]) {
           }
         }
         assert.equal(volume.existsSync(target), accepted);
-        if (accepted) assert.ok(parseMkv(new Uint8Array(volume.readFileSync(target) as Buffer)).tracks.length > 0);
+        if (accepted) {
+          const track = parseMkv(new Uint8Array(volume.readFileSync(target) as Buffer)).tracks[0]!;
+          assert.ok(track);
+          if (input === "vorbis.ogg") {
+            const { packets } = readOgg(bytes);
+            const extra = track.codecDescriptions[0]!.extraData!;
+            assert.ok(extra, "Vorbis decoder headers must survive stream copy");
+            assert.equal(extra[0], 2);
+            let cursor = 1;
+            const lengths = [0, 0];
+            for (let i = 0; i < 2; i++) {
+              let size: number;
+              do { size = extra[cursor++]!; lengths[i]! += size; } while (size === 255);
+            }
+            lengths.push(extra.length - cursor - lengths[0]! - lengths[1]!);
+            for (const [index, length] of lengths.entries()) {
+              assert.deepEqual(extra.slice(cursor, cursor + length), packets[index]!.data);
+              cursor += length;
+            }
+            assert.deepEqual(track.samples.map(sample => sample.data), packets.slice(3).map(packet => packet.data));
+          }
+        }
       });
     }
   }

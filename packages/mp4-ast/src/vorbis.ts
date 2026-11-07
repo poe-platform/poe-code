@@ -1,10 +1,9 @@
 import { readOgg } from "@poe-code/audio-ast";
 import { decodeAudio } from "@poe-code/media-codecs";
 import { concatBytes } from "./binary.js";
-import type { MediaAudioData, MediaTrack } from "./types.js";
+import type { MediaAudioData, MediaSample, MediaTrack } from "./types.js";
 
-/** Decode overlap windows before applying Ogg page granules and final padding. */
-export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
+function readVorbisTrack(track: MediaTrack) {
   const { packets } = readOgg(concatBytes(track.samples.map(sample => sample.data)));
   const [identification, comments, setup] = packets;
   if (!identification || !comments || !setup || identification.data[0] !== 1 ||
@@ -19,6 +18,12 @@ export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
     lacing.push(length);
   }
   const extra = concatBytes([Uint8Array.from(lacing), identification.data, comments.data, setup.data]);
+  return { packets, extra };
+}
+
+/** Decode overlap windows before applying Ogg page granules and final padding. */
+export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
+  const { packets, extra } = readVorbisTrack(track);
   const { sampleRate, channels } = track.codecDescriptions[0]!;
   const frames: Float32Array[][] = [];
   let count = 0;
@@ -58,4 +63,36 @@ export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
     return data;
   });
   return { sampleRate: sampleRate!, channels: channels!, channelData };
+}
+
+/** Preserve compressed packets, using decoder overlap lengths for their timeline. */
+export function demuxVorbisTrack(track: MediaTrack): MediaTrack {
+  const { packets, extra } = readVorbisTrack(track);
+  const audio = packets.slice(3);
+  const samples: MediaSample[] = audio.map(packet => ({
+    data: packet.data, pts: 0, dts: 0, cts: 0, duration: 0,
+    size: packet.data.length, isKeyframe: true, sampleDescriptionIndex: 1
+  }));
+  let index = 1, position: number | undefined;
+  for (const frame of decodeAudio("Vorbis", samples, extra)) {
+    const sample = samples[index]!, packet = audio[index]!;
+    position ??= audio[0]!.granule !== 0xffffffffffffffffn ? Number(audio[0]!.granule) : frame.pts;
+    let duration = frame.channelData[0]!.length;
+    const pts = position;
+    let discardPaddingNs: number | undefined;
+    position += duration;
+    if (packet.granule !== 0xffffffffffffffffn) {
+      const granule = Number(packet.granule);
+      if (!Number.isSafeInteger(granule)) throw new Error("Invalid Vorbis granule");
+      if (packet.eos) {
+        const padding = position - granule;
+        if (padding > 0 && padding <= duration) {
+          duration -= padding;
+          discardPaddingNs = Math.round(padding * 1e9 / track.timescale);
+        }
+      } else position = granule;
+    }
+    samples[index++] = { ...sample, pts, dts: pts, duration, ...(discardPaddingNs === undefined ? {} : { discardPaddingNs }) };
+  }
+  return { ...track, samples, codecDescriptions: [{ ...track.codecDescriptions[0]!, extraData: extra }] };
 }

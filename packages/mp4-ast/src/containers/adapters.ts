@@ -548,6 +548,9 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
 }
 
 export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
+  if (options.audioCodec?.startsWith("pcm_") && options.audioCodec.endsWith("be")) {
+    throw new Error(`Codec ${options.audioCodec} not supported in WAVE format`);
+  }
   const audioTrack = doc.tracks.find((t) => t.type === "audio");
   const sampleRate = audioTrack?.codecDescriptions[0]?.sampleRate ?? audioTrack?.timescale ?? 44100;
   const channels = audioTrack?.codecDescriptions[0]?.channels ?? 2;

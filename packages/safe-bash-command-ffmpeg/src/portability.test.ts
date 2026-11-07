@@ -111,7 +111,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes Broadcast Wave metadata serialization and the current WAV option graph (625,322 bytes).
   // Includes PCM afade timing, gain curves, and endpoint validation (627,348 bytes).
   // Includes compand transfer curves and the current audio filter graph (632,698 bytes).
-  assert.ok(otherCodeBytes < 635_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes dynamic/speech normalization and bounded lookahead peak limiting.
+  assert.ok(otherCodeBytes < 642_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -145,6 +146,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes RF64 output and the current audio/container graph (9,789,404 bytes).
   // Includes Broadcast Wave output and metadata option handling (9,792,078 bytes).
   // Includes compand and the current audio filter graph (9,802,088 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_805_000,
+  // Includes dynamic/speech normalization and bounded lookahead peak limiting.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_812_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

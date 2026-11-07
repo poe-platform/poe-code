@@ -1,3 +1,4 @@
+import { limitAudio } from "./audio-alimiter.js";
 import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
 import { normalizeAudio } from "./audio-dynaudnorm.js";
@@ -3765,7 +3766,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
+                      if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
+                        stretched = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
+                        statsScale = 1;
+                      } else if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
                         stretched = await normalizeSpeech(stretched, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "acompressor" || trimmed.startsWith("acompressor=")) {

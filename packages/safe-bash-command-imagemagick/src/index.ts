@@ -6520,10 +6520,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-raise" || t === "+raise") {
             const g = parseMagickGeometry(tokens[++i] ?? "4");
-            const bw = Math.max(1, Math.round(g.width ?? 4));
+            const bw = Math.max(0, Math.round(g.width ?? 4));
+            const bh = Math.max(0, Math.round(g.height ?? bw));
             const raised = t === "-raise";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, raised), signal);
+                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised), signal);
             });
         }
         else if (t === "-frame") {
@@ -7844,8 +7845,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stack.length = 0; await stack.push(result); return stack;
             });
         } else if (!operandsOnly && (token === "-raise" || token === "+raise")) {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "4"), border = Math.max(1, Math.round(geometry.width ?? 4)), raised = token === "-raise";
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, raisePixelSteps(image, border, raised), signal) : undefined);
+            const geometry = parseMagickGeometry(tokens[++i] ?? "4"), border = Math.max(0, Math.round(geometry.width ?? 4)), borderHeight = Math.max(0, Math.round(geometry.height ?? border)), raised = token === "-raise";
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, raisePixelSteps(image, border, borderHeight, raised), signal) : undefined);
         } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
             steps.push(async (image, backend) => image ? { ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal), virtualCanvas: magickTransposeCanvas(image, kind === "flop") } : undefined);

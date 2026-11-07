@@ -150,28 +150,30 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     }
 }
 
-export function* raisePixelSteps(image: { width: number; height: number }, border: number, raised: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & { storedData16?: unknown }, borderWidth: number, borderHeight: number, raised: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     const size = image.width * image.height * 4;
     for (let position = 0; position < size; position += 16384) {
         yield;
-        const data = new Uint8Array((yield { kind: "read", position, length: Math.min(16384, size - position) })!);
+        const bytes = (yield { kind: "read", highDepth, position, length: Math.min(16384, size - position) })!;
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
         for (let offset = 0; offset < data.length; offset += 4) {
             const pixel = (position + offset) / 4, x = pixel % image.width, y = Math.floor(pixel / image.width);
             // ImageMagick uses stronger top/bottom blends and diagonal corner boundaries.
             let factor = 190, foreground: boolean;
-            if (y < border) {
+            if (y < borderHeight) {
                 foreground = x < image.width - y;
                 if (x >= y && foreground) factor = 135;
-            } else if (y >= image.height - border) {
+            } else if (y >= image.height - borderHeight) {
                 foreground = x < image.height - y;
                 if (!foreground && x < image.width - (image.height - y)) factor = 135;
             } else {
-                if (x >= border && x < image.width - border) continue;
-                foreground = x < border;
+                if (x >= borderWidth && x < image.width - borderWidth) continue;
+                foreground = x < borderWidth;
             }
-            const target = foreground === raised ? 255 : 0;
+            const target = foreground === raised ? maximum : 0;
             for (let channel = 0; channel < 3; channel++) data[offset + channel] = Math.round((data[offset + channel]! * factor + target * (255 - factor)) / 255);
         }
-        yield { kind: "write", position, data };
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }

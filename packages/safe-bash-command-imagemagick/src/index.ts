@@ -317,6 +317,7 @@ export interface MagickGeometry {
   readonly x: number;
   readonly y: number;
   readonly hasOffset: boolean;
+  readonly hasYOffset: boolean;
   readonly forceExact: boolean;
   readonly shrinkOnly: boolean;
   readonly enlargeOnly: boolean;
@@ -366,12 +367,14 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   let x = 0;
   let y = 0;
   let hasOffset = false;
+  let hasYOffset = false;
   const offsetMatch = /^([^+-]*)([+-]\d+(?:\.\d+)?)(?:([+-]\d+(?:\.\d+)?))?$/.exec(s);
   if (offsetMatch) {
     s = offsetMatch[1]!;
     x = Number(offsetMatch[2]!);
     y = offsetMatch[3] !== undefined ? Number(offsetMatch[3]!) : 0;
     hasOffset = true;
+    hasYOffset = offsetMatch[3] !== undefined;
   }
 
   while (s.length > 0) {
@@ -403,7 +406,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
     const parts = s.split(":");
     const ratio = Number(parts[0]) / Number(parts[1]);
     if (parts.length === 2 && Number(parts[0]) > 0 && Number(parts[1]) > 0 && Number.isFinite(ratio)) {
-      return { aspectRatio: ratio, x, y, hasOffset, forceExact, shrinkOnly, enlargeOnly, fillArea, isPercent: false };
+      return { aspectRatio: ratio, x, y, hasOffset, hasYOffset, forceExact, shrinkOnly, enlargeOnly, fillArea, isPercent: false };
     }
   }
 
@@ -416,6 +419,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
         x,
         y,
         hasOffset,
+        hasYOffset,
         forceExact,
         shrinkOnly,
         enlargeOnly,
@@ -430,6 +434,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
       x,
       y,
       hasOffset,
+      hasYOffset,
       forceExact,
       shrinkOnly,
       enlargeOnly,
@@ -467,6 +472,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
       x,
       y,
       hasOffset,
+      hasYOffset,
       forceExact,
       shrinkOnly,
       enlargeOnly,
@@ -481,6 +487,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
     x,
     y,
     hasOffset,
+    hasYOffset,
     forceExact,
     shrinkOnly,
     enlargeOnly,

@@ -35,7 +35,7 @@ export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "vir
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
 }
 export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
-    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source, cx = width / 2, cy = height / 2;
     const canvas = vignetteLayout(source), offsetX = source.virtualCanvas?.x ?? 0, offsetY = source.virtualCanvas?.y ?? 0;
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1;
@@ -55,7 +55,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
-    const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasOffset ? geometry.y : height * 0.1;
+    const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasYOffset ? geometry.y : height * 0.1;
     const rx = cx - Math.ceil(insetX * (geometry.isPercent ? width / 100 : 1) - 0.5);
     const ry = cy - Math.ceil(insetY * (geometry.isPercent ? height / 100 : 1) - 0.5);
     const sigma = Math.abs(geometry.height ?? 1), radius = geometry.width ?? 0;

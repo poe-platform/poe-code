@@ -32,6 +32,8 @@ Output parent directories must already exist, including directories selected wit
 
 Conversion accepts `-quiet` to suppress subsequent warnings and `+quiet` to restore them; errors remain visible. `-regard-warnings` and `+regard-warnings` are accepted, and an empty `-trim` still writes its 1×1 output and succeeds.
 
+Use `ftxt:out.dat` or `out.ftxt` for plain pixel channel rows with Q16 values, or `ftxt:-` for stdout. Customize rows with `-define 'ftxt:format=\x/\y=\c\n'`; `+define ftxt:format` restores the default `x,y:channels` lines.
+
 Use `-comment text` or `-label text` before an input to set its text metadata when it is read; settings after an input leave that image unchanged. Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`.
 
 Use `identify -format '%#' image.png` or `magick image.png -format '%[signature]' info:` to compute the ImageMagick pixel signature. Both tokens produce the same SHA-256 digest, independent of comments and page metadata.

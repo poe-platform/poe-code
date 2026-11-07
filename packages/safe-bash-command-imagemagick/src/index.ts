@@ -1,3 +1,4 @@
+import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
@@ -510,6 +511,7 @@ function parseDelay(value: string): number {
 }
 
 interface MagickState {
+  ftxtFormat?: string;
   comment?: string;
   label?: string;
   filenameProperties?: Record<string, string>;
@@ -5942,6 +5944,7 @@ if (t === "-seed") {
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
+            if (key === "ftxt:format") delete state.ftxtFormat;
             if (key === "icon:auto-resize") delete state.iconAutoResize;
             if (key === "bmp:format") delete state.bmpFormat;
             if (key === "bmp:subtype") delete state.bmpSubtype;
@@ -5969,6 +5972,7 @@ if (t === "-seed") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("ftxt:format=")) state.ftxtFormat = defStr.slice("ftxt:format=".length);
             if (defStr.toLowerCase() === "icon:auto-resize" || defStr.toLowerCase().startsWith("icon:auto-resize=")) {
                 const value = defStr.slice("icon:auto-resize".length + 1);
                 const sizes = value ? value.split(",").map(Number) : [256, 192, 128, 96, 64, 48, 40, 32, 24, 16];
@@ -7140,6 +7144,17 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 return { exitCode: 0, stdout: "", stderr: "" };
             }
             return { exitCode: 0, stdout: result, stderr: "" };
+        }
+        if (outLower.startsWith("ftxt:") || (outLower.endsWith(".ftxt") && !outSpec.includes(":"))) {
+            let text = "", work = 0;
+            for (const frame of stack) for (const row of ftxtPixels(frame, state.ftxtFormat)) {
+                if (++work % 4096 === 0) yield;
+                text += row;
+            }
+            const target = outLower.startsWith("ftxt:") ? outSpec.slice(5) : outSpec;
+            if (!target || target === "-") return { exitCode: 0, stdout: text, stderr: "" };
+            files.set(target, new TextEncoder().encode(text));
+            return { exitCode: 0, stdout: "", stderr: "" };
         }
         if (outLower.startsWith("sparse-color:") || outLower.startsWith("txt:") || (outLower.endsWith(".txt") && !outSpec.includes(":"))) {
             let txt = "";
@@ -8395,15 +8410,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         output = inferOutputFormat(outSpec, "png");
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower.startsWith("info:");
+        const ftxt = lower.startsWith("ftxt:") || (lower.endsWith(".ftxt") && !outSpec.includes(":"));
         const sparse = lower.startsWith("sparse-color:");
         const text = sparse || lower.startsWith("txt:") || (lower.endsWith(".txt") && !outSpec.includes(":"));
-        if (info || text || lower.startsWith("histogram:")) {
+        if (info || text || ftxt || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {
                 let last = "";
                 for (let index = 0; index < stack.length; index++) {
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
                     if (sparse) { yield* storedSparseColor(frame, backend.storage, signal); continue; }
+                    if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat); continue; }
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
@@ -8411,10 +8428,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }
-                if (!text && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
+                if (!text && !ftxt && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
             }
-            const parts = info || text ? information() : storedHistogram(image, backend.storage, signal);
-            const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info ? outSpec.slice(5) : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
+            const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);
+            const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
             if (target && target !== "-") {
                 await backend.publishText(image, target, chunks);
                 return { exitCode: 0, stdout: "", stderr: "" };

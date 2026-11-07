@@ -682,6 +682,29 @@ export function getDefaultMediaRegistry(): { astPlugins: readonly MediaAstPlugin
   return { astPlugins: defaultAstPluginsCache, registry: defaultRegistryCache };
 }
 
+// Section names and unique names accepted by native ffprobe -sections.
+const probeSections = new Set([
+  "root", "chapters", "chapter", "tags",
+  "chapter_tags", "format", "format_tags", "frames",
+  "frame", "frame_tags", "side_data_list", "frame_side_data_list",
+  "side_data", "frame_side_data", "timecodes", "timecode",
+  "components", "frame_side_data_components", "component", "frame_side_data_component",
+  "pieces", "frame_side_data_pieces", "piece", "frame_side_data_piece",
+  "logs", "log", "subtitle", "programs",
+  "program", "program_tags", "streams", "program_streams",
+  "stream", "program_stream", "disposition", "program_stream_disposition",
+  "program_stream_tags", "stream_groups", "stream_group", "stream_group_tags",
+  "stream_group_disposition", "stream_group_components", "stream_group_component", "stream_group_side_data_list",
+  "stream_group_side_data", "subcomponents", "subcomponent", "stream_group_pieces",
+  "stream_group_piece", "subpieces", "subpiece", "blocks",
+  "block", "stream_group_streams", "stream_group_stream", "stream_group_stream_disposition",
+  "stream_group_stream_tags", "stream_disposition", "stream_tags", "stream_side_data_list",
+  "stream_side_data", "packets", "packet", "packet_tags",
+  "packet_side_data_list", "packet_side_data", "error", "program_version",
+  "library_versions", "library_version", "pixel_formats", "pixel_format",
+  "flags", "pixel_format_flags", "pixel_format_components",
+]);
+
 function parseProbeArguments(args: readonly string[]) {
   let printFormat = "default", showError = false, showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
@@ -718,6 +741,12 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-select_streams") selectStreams = value();
     else if (arg === "-show_entries") {
       const entries = value();
+      for (const entry of entries.split(":")) {
+        if (!entry) continue;
+        const section = entry.split("=", 1)[0]!;
+        if (!probeSections.has(section))
+          throw new Error(`No match for section '${section}'\nFailed to set value '${entries}' for option 'show_entries': Invalid argument`);
+      }
       showEntries = showEntries === undefined ? entries : `${showEntries}:${entries}`;
     }
     else if (arg === "-read_intervals") readIntervals = parseReadIntervals(value());

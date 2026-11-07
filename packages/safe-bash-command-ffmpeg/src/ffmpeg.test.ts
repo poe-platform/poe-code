@@ -2273,6 +2273,42 @@ describe("HLS expired segment deletion", () => {
   }
 });
 
+describe("HLS split_by_time", () => {
+  for (const type of ["mpegts", "fmp4"]) {
+    for (const [flags, durations] of [
+      [[], [2, 2, 1]],
+      [["split_by_time"], [1, 1, 1, 1, 1]],
+      [["independent_segments", "+split_by_time"], [1, 1, 1, 1, 1]],
+      [["split_by_time", "-split_by_time"], [2, 2, 1]],
+      [["split_by_time", "independent_segments"], [2, 2, 1]]
+    ] as const) {
+      it(`segments ${type} with flags ${flags.join(",")}`, async () => {
+        const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 4, frameCount: 20, includeAudio: true }));
+        const input = serializeMp4({ ...source, tracks: source.tracks.map(track => track.type === "video" ? {
+          ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: index % 8 === 0 }))
+        } : track) });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.mp4", "-c", "copy", "-f", "hls", "-hls_time", "1", "-hls_list_size", "0",
+          "-hls_segment_type", type, ...flags.flatMap(flag => ["-hls_flags", flag]), "/out.m3u8"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const lines = new TextDecoder().decode(vfs.store.get("/out.m3u8")).split("\n");
+        assert.deepEqual(lines.filter(line => line.startsWith("#EXTINF:")), durations.map(duration => `#EXTINF:${duration.toFixed(6)},`));
+        if (durations.length === 5) assert.ok(!lines.includes("#EXT-X-INDEPENDENT-SEGMENTS"));
+        const segments = lines.filter(line => line && !line.startsWith("#")).map(name => {
+          const bytes = vfs.store.get(`/${name}`)!;
+          return type === "fmp4" ? parseMp4(concatBytes([vfs.store.get("/init.mp4")!, bytes])) : parseMpegTs(bytes);
+        });
+        for (const track of parseMp4(input).tracks) {
+          const samples = segments.flatMap(segment => segment.tracks.find(item => item.type === track.type)!.samples);
+          assert.deepEqual(samples.map(sample => sample.data), track.samples.map(sample => sample.data));
+        }
+      });
+    }
+  }
+});
+
 it("HLS copies each video sample once and cuts at keyframes", async () => {
   const doc = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 10, frameCount: 20, includeAudio: true }));
   const bytes = serializeMp4({ ...doc, tracks: doc.tracks.map(t => t.type === "video" ? {

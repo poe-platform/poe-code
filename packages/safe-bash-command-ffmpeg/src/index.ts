@@ -2114,6 +2114,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsDeleteSegments = false;
         let hlsOmitEndlist = false;
         let hlsIndependentSegments = false;
+        let hlsSplitByTime = false;
         let hlsDeleteThreshold = 1;
         let hlsSegmentFilename: string | undefined;
         let hlsSingleFile = false;
@@ -2230,6 +2231,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsSingleFile = false;
               hlsOmitEndlist = false;
               hlsIndependentSegments = false;
+              hlsSplitByTime = false;
             }
             for (const flag of value.replaceAll("-", "+-").split("+")) {
               if (!flag) continue;
@@ -2238,6 +2240,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (name === "single_file") hlsSingleFile = enabled;
               else if (name === "delete_segments") hlsDeleteSegments = enabled;
               else if (name === "independent_segments") hlsIndependentSegments = enabled;
+              else if (name === "split_by_time") hlsSplitByTime = enabled;
               else if (name === "omit_endlist") hlsOmitEndlist = enabled;
               else {
                 await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
@@ -3912,7 +3915,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (vTrk?.samples.length) {
                 for (const sample of vTrk.samples) {
                   const seconds = sample.dts / vTrk.timescale;
-                  if (sample.isKeyframe && seconds >= boundaries[boundaries.length - 1]! + segDur - 1e-6 && seconds < totalSec) {
+                  if ((hlsSplitByTime || sample.isKeyframe) && seconds >= boundaries[boundaries.length - 1]! + segDur - 1e-6 && seconds < totalSec) {
                     boundaries.push(seconds);
                   }
                 }
@@ -3923,7 +3926,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               let targetDuration = 0;
               for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
               const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
-              const independentSegments = hlsIndependentSegments && !!vTrk && workingDoc.tracks
+              const independentSegments = hlsIndependentSegments && !hlsSplitByTime && !!vTrk && workingDoc.tracks
                 .filter(track => track.type === "video")
                 .every(track => boundaries.slice(firstSegment, -1).every((start, index) => {
                   const first = track.samples.find(sample => sample.dts >= start * track.timescale);

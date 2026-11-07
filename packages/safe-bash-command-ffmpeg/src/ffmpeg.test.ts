@@ -3737,3 +3737,36 @@ describe("WebVTT cue side data", () => {
     }
   }
 });
+
+
+describe("subtitle markup conversion", () => {
+  for (const sync of [false, true]) {
+    for (const source of ["srt", "vtt"]) {
+      for (const mode of ["transcode", "copy", "same-format"]) {
+        const copy = mode === "copy";
+        it(`${sync ? "sync" : "async"} ${source} ${mode}`, async () => {
+          const payload = source === "srt"
+            ? '<b>bold</b> <i>ital</i> <u>under</u>\n<font color="red">red</font>'
+            : '<v Alex><b>test</b></v><c.red>Hello</c> <i>ital</i> <u>under</u>';
+          const expected = copy || (mode === "same-format" && source === "srt") ? payload : source === "srt"
+            ? '<b>bold</b> <i>ital</i> <u>under</u>\nred'
+            : '<b>test</b>Hello <i>ital</i> <u>under</u>';
+          const destination = mode !== "transcode" ? source : source === "srt" ? "vtt" : "srt";
+          const document = (format: string, text: string) => format === "srt"
+            ? `1\n00:00:01,250 --> 00:00:03,500\n${text}\n`
+            : `WEBVTT\n\n00:00:01.250 --> 00:00:03.500\n${text}\n`;
+          const vfs = createTestVfs({ [`/in.${source}`]: document(source, payload) });
+          const args = ["-y", "-v", "error", "-i", `/in.${source}`, ...(copy ? ["-c:s", "copy"] : []), `/out.${destination}`];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          assert.equal(new TextDecoder().decode(vfs.store.get(`/out.${destination}`)), document(destination, expected));
+        });
+      }
+    }
+  }
+});

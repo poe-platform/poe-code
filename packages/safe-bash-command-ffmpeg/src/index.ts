@@ -1270,12 +1270,31 @@ function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDoc
   };
 }
 
-function discardSubtitleSideData(doc: MediaDocument): MediaDocument {
+function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined): MediaDocument {
   return {
     ...doc,
     tracks: doc.tracks.map(track => track.type !== "subtitle" ? track : {
       ...track,
-      samples: track.samples.map(sample => ({ ...sample, webvtt: undefined }))
+      samples: track.samples.map(sample => {
+        const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
+        if (codec !== "webvtt" && (codec !== "subrip" || outputFormat !== "webvtt")) return { ...sample, webvtt: undefined };
+        const text = decodeUtf8(sample.data);
+        const parts: string[] = [];
+        let position = 0;
+        while (position < text.length) {
+          const start = text.indexOf("<", position);
+          if (start < 0) break;
+          const end = text.indexOf(">", start + 1);
+          if (end < 0) break;
+          parts.push(text.slice(position, start));
+          const tag = text.slice(start + 1, end);
+          if (["b", "/b", "i", "/i", "u", "/u"].includes(tag)) parts.push(`<${tag}>`);
+          position = end + 1;
+        }
+        parts.push(text.slice(position));
+        const data = encodeUtf8(parts.join(""));
+        return { ...sample, data, size: data.byteLength, webvtt: undefined };
+      })
     })
   };
 }
@@ -1513,7 +1532,8 @@ export function evalSyncFfmpeg(
 
     let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
-    if (subtitleCodec !== "copy") workingDoc = discardSubtitleSideData(workingDoc);
+    if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
+      (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
@@ -2780,7 +2800,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
-            if (subtitleCodec !== "copy") workingDoc = discardSubtitleSideData(workingDoc);
+            if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
+              (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id);
 
             const audioTrackCount = workingDoc.tracks.filter(track => track.type === "audio").length;
             if (audioCodec === "copy" && audioTrackCount > 0 && afFilters.some(filter => filter.ordinal === undefined || filter.ordinal < audioTrackCount)) {

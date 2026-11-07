@@ -439,7 +439,20 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         } else if (bitsPerSample === 16 && byteOff + 2 <= pcmData.byteLength) {
           channelData[ch]![i] = pcmView.getInt16(byteOff, true) / 32768;
         } else if (bitsPerSample === 8 && byteOff < pcmData.byteLength) {
-          channelData[ch]![i] = (pcmData[byteOff]! - 128) / 128;
+          const byte = pcmData[byteOff]!;
+          if (formatTag === 6) {
+            const value = byte ^ 0x55;
+            const exponent = (value >>> 4) & 7;
+            const magnitude = exponent === 0 ? ((value & 15) << 4) + 8 :
+              (((value & 15) << 4) + 264) << (exponent - 1);
+            channelData[ch]![i] = (value & 128 ? magnitude : -magnitude) / 32768;
+          } else if (formatTag === 7) {
+            const value = byte ^ 0xff;
+            const magnitude = ((((value & 15) << 3) + 132) << ((value >>> 4) & 7)) - 132;
+            channelData[ch]![i] = (value & 128 ? -magnitude : magnitude) / 32768;
+          } else {
+            channelData[ch]![i] = (byte - 128) / 128;
+          }
         }
       }
     }
@@ -488,7 +501,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
+            codecName: formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
             sampleRate,
             channels,
             bitsPerSample

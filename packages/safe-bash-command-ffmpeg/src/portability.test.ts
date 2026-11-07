@@ -58,7 +58,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes SRT override decoding and SubRip/WebVTT input header validation.
   // Includes subtitle encoder validation and exact output format selection.
   // Includes ASS parsing, serialization, and codec selection (about 3 KB).
-  assert.ok(otherCodeBytes < 467_750, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes G.711 A-law and mu-law sample expansion and codec identification.
+  assert.ok(otherCodeBytes < 468_100, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -66,5 +67,5 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
   // Include independent concat timeline offsets while preserving PCM samples.
   // Current dependency graph plus subtitle packet selection and duration handling.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_036_250);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_036_600);
 });

@@ -165,6 +165,22 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     else data[offset] = data[offset]! ^ bytes[offset]!;
                 }
             }
+        } else if (operation === "leftshift" || operation === "rightshift") {
+            const values = Float64Array.from(data, value => value * 257);
+            for (let image = 1; image < frames; image++) {
+                if (++work % 64 === 0) yield;
+                const bytes = yield* read(image, position, length);
+                for (let offset = 0; offset < length; offset++) {
+                    // Native Q16 shifts the incoming sample by the accumulated quantum.
+                    // The reference's signed 64-bit conversion skips overflowing counts.
+                    const count = values[offset]! < 2 ** 63 ? Math.trunc(values[offset]!) : 0;
+                    const sample = bytes[offset]! * 257;
+                    values[offset] = sample === 0 ? 0 : sample * 2 ** (operation === "leftshift" ? count : -count);
+                }
+            }
+            for (let offset = 0; offset < length; offset++) {
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+            }
         } else if (["threshold", "thresholdblack", "thresholdwhite"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
@@ -217,12 +233,13 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             for (let offset = 0; offset < length; offset++) {
                 if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(Math.sqrt(values[offset]! / frames) / 257);
             }
-        } else if (["mean", "min", "max", "add", "addmodulus", "sum", "abs", "subtract", "divide", "multiply"].includes(operation)) {
+        } else if (["mean", "min", "max", "add", "addmodulus", "sum", "abs", "subtract", "divide", "multiply", "pow"].includes(operation)) {
             const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "add", "addmodulus", "sum", "abs"].includes(operation);
-            const ordered = operation === "subtract" || operation === "divide";
+            const quantum = operation === "divide" || operation === "pow";
+            const ordered = operation === "subtract" || quantum;
             if (multiplication) values.fill(1);
             else if (!addition) values.set(data);
-            if (operation === "divide") for (let offset = 0; offset < length; offset++) values[offset]! *= 257;
+            if (quantum) for (let offset = 0; offset < length; offset++) values[offset]! *= 257;
             for (let image = ordered ? 1 : 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
@@ -235,6 +252,8 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     // Native sequence evaluation applies each incoming sample to the accumulator.
                     else if (operation === "subtract") values[offset] = bytes[offset]! - values[offset]!;
                     else if (operation === "divide") values[offset] = bytes[offset]! * 257 / (values[offset]! || 1);
+                    // Native Pow treats a near-zero quantum exponent as zero output.
+                    else if (operation === "pow") values[offset] = values[offset]! <= 1e-12 ? 0 : 65535 * (bytes[offset]! / 255) ** values[offset]!;
                     else if (operation === "min") values[offset] = Math.min(values[offset]!, bytes[offset]!);
                     else values[offset] = Math.max(values[offset]!, bytes[offset]!);
                 }
@@ -244,7 +263,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             for (let offset = 0; offset < length; offset++) {
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
                 else if (highDepth && average && (offset % 4 !== 3 || hasAlpha)) data[offset] = Math.round(values[offset]! / frames);
-                else if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : operation === "divide" ? values[offset]! / 257 : values[offset]!);
+                else if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : quantum ? values[offset]! / 257 : values[offset]!);
             }
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };

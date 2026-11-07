@@ -1,0 +1,54 @@
+import { expect, it } from "vitest";
+import sharp from "@poe-code/image-ast";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { runConvertCli } from "./index.js";
+
+it.each([false, true])("writes the native RGB histogram chart (retained=%s)", async retained => {
+    const pixels = new Uint8Array([255, 0, 0, 255, 0, 0, 255, 0, 0, 0, 255, 0, 0, 255, 0, 0, 0, 255]);
+    const input = await sharp(pixels, { raw: { width: 6, height: 1, channels: 3 } }).png().toBuffer();
+    const files = new Map([["rgb.png", input]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/rgb.png", input);
+    const result = await runConvertCli(["rgb.png", "histogram:out.png"], retained ? { filesystem, cwd: "/" } : files);
+    expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    const bytes = retained ? await filesystem.readFile("/out.png") : files.get("out.png");
+    expect(bytes).toBeDefined();
+    const { data, info } = await sharp(bytes!).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    expect([info.width, info.height, info.channels]).toEqual([256, 200, 3]);
+    const counts: Record<string, number> = {};
+    let mismatchedPixels = 0;
+    for (let i = 0; i < data.length; i += 3) {
+        const color = [...data.subarray(i, i + 3)].join(",");
+        counts[color] = (counts[color] ?? 0) + 1;
+        const x = i / 3 % 256, y = Math.floor(i / 3 / 256);
+        const heights = x === 0 ? [120, 160, 200] : x === 255 ? [120, 80, 40] : [0, 0, 0];
+        if (heights.some((height, channel) => data[i + channel] !== (y >= 200 - height ? 255 : 0))) mismatchedPixels++;
+    }
+    expect(mismatchedPixels).toBe(0);
+    expect(counts).toEqual({ "0,0,0": 50880, "255,255,255": 160, "0,255,255": 40, "255,0,0": 40, "255,255,0": 40, "0,0,255": 40 });
+});
+
+it("streams an explicitly encoded histogram to stdout", async () => {
+    const filesystem = new MemoryFileSystem(), chunks: Uint8Array[] = [];
+    const result = await runConvertCli(["xc:red", "histogram:png:-"], { filesystem, cwd: "/", stdout: { async write(bytes) { chunks.push(bytes.slice()); } } });
+    expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    const bytes = Buffer.concat(chunks);
+    expect(await sharp(bytes).metadata()).toMatchObject({ format: "png", width: 256, height: 200 });
+    expect(await filesystem.readdir("/")).toEqual([]);
+});
+
+it("preserves the previous histogram file when publication is cancelled", async () => {
+    const fs = new MemoryFileSystem(), controller = new AbortController(), reason = new Error("cancel histogram publication");
+    const previous = new TextEncoder().encode("previous contents");
+    await fs.writeFile("/out.png", previous);
+    const filesystem = new Proxy(fs, { get(target, key) {
+        if (key === "createStagedFile") return async (...args: Parameters<typeof fs.createStagedFile>) => {
+            const staged = await fs.createStagedFile(...args), writer = staged.writer!;
+            return { ...staged, writer: { ...writer, async write(...args: Parameters<typeof writer.write>) { await writer.write(...args); controller.abort(reason); }, finish: writer.finish.bind(writer) } };
+        };
+        const value = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+    } });
+    await expect(runConvertCli(["xc:red", "histogram:out.png"], { filesystem, cwd: "/" }, undefined, controller.signal)).rejects.toBe(reason);
+    expect(await fs.readFile("/out.png")).toEqual(previous);
+    expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["out.png"]);
+});

@@ -12,6 +12,7 @@ import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
+import { histogramPixelSteps } from "./histogram-kernel.js";
 import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
@@ -7099,6 +7100,13 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             };
         }
         outSpec = expandFilenameProperties(outSpec, state);
+        if (outSpec.toLowerCase().startsWith("histogram:") && !["", "-", "info:", "info:-"].includes(outSpec.slice(10).toLowerCase())) {
+            outSpec = outSpec.slice(10);
+            for (let index = 0; index < stack.length; index++) {
+                const source = stack[index]!;
+                stack[index] = yield* applyMagickRasterSteps({ ...source, space: "srgb", channels: 3 }, histogramPixelSteps(source.width * source.height), signal, { width: 256, height: 200, hasAlpha: false });
+            }
+        }
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
         if (outLower === "null:" || outLower.startsWith("mpr:")) return { exitCode: 0, stdout: "", stderr: "" };
@@ -8344,6 +8352,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);
         outSpec = expandFilenameProperties(outSpec, state);
+        if (outSpec.toLowerCase().startsWith("histogram:") && !["", "-", "info:", "info:-"].includes(outSpec.slice(10).toLowerCase())) {
+            outSpec = outSpec.slice(10);
+            for (let index = 0; index < stack.length; index++) {
+                const source = (await stack.get(index))!;
+                await stack.set(index, await transformStoredMagickRaster({ ...source, space: "srgb", channels: 3 }, backend, histogramPixelSteps(source.width * source.height), signal, { width: 256, height: 200, hasAlpha: false }));
+            }
+            image = (await stack.get(stack.length - 1))!;
+        }
         output = inferOutputFormat(outSpec, "png");
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower === "info:" || lower === "info:-";

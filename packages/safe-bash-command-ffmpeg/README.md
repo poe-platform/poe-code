@@ -294,6 +294,4 @@ Use `-fix_sub_duration` before an input to shorten overlapping subtitle events d
 
 `asetnsamples=n=300:p=1` groups audio into 300-sample frames and pads the final frame with silence. Use `p=0` to keep a short final frame. Defaults are `n=1024:p=1`; `nb_out_samples` and `pad` are aliases. Frame boundaries are honored by `ashowinfo`, `asetpts`, `volume`, `aselect`, and `-frames:a`. For example, `asetnsamples=n=1:p=0,aselect='mod(n,2)'` keeps odd-numbered samples.
 
-ICO output (`out.ico` or `-f ico`) with `-c:v png` writes one PNG-backed entry per mapped video stream, in mapping order. Each entry uses the first frame and must be between 1 and 256 pixels in each dimension. For example: `ffmpeg -i small.png -i large.png -map 0:v -map 1:v -c:v png out.ico`.
-
 APNG output (`out.apng` or `-f apng`) writes all video frames into one animation. Use `-plays N` to set the play count (default `1`, `0` loops forever). Frame delays follow presentation timestamps; the final frame repeats the preceding interval.

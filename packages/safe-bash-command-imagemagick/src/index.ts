@@ -6189,7 +6189,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-strip") {
             state.strip = true;
-            for (let index = 0; index < stack.length; index++) { const {icc: ignored, orientation: ignoredOrientation, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
+            for (let index = 0; index < stack.length; index++) { const {icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
@@ -7256,11 +7256,15 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     return { ...base, position, hasAlpha, channels: hasAlpha ? base.channels : base.channels <= 2 ? 1 : 3 };
 }
 
-function applyMagickProfile<T extends { readonly icc?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {
+function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {
     if (profile) {
         if (profile.length < 128 || String.fromCharCode(...profile.subarray(36, 40)) !== "acsp") throw new Error(`invalid ICC profile '${name}'`);
         if (image.icc && (image.icc.length !== profile.length || image.icc.some((byte, index) => byte !== profile[index]))) throw new Error("ICC color conversion is unsupported");
         return { ...image, icc: profile };
+    }
+    if (["exif", "*"].includes(name.toLowerCase())) {
+        const { exif: ignored, ...rest } = image;
+        image = rest as T;
     }
     if (["icc", "icm", "*"].includes(name.toLowerCase())) {
         const { icc: ignored, ...rest } = image;
@@ -7832,7 +7836,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-strip") {
             state.strip = true;
-            steps.push(async image => { if (!image) return image; const {icc: ignored, orientation: ignoredOrientation, properties: ignoredProperties, ...rest} = image; return rest; });
+            steps.push(async image => { if (!image) return image; const {icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...rest} = image; return rest; });
             continue;
         }
         if (!operandsOnly && token === "+repage") {

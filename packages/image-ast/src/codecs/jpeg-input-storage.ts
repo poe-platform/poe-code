@@ -240,6 +240,7 @@ export async function readJpegMetadataFromSource(source:ImageByteSource,signal:A
   return {
     ...(state.properties === undefined ? {} : {properties: state.properties}),
     ...(state.icc === undefined ? {} : {icc: state.icc}),
+    ...(state.exif === undefined ? {} : {exif: state.exif}),
     format: "jpeg",
     ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
     width,
@@ -550,6 +551,7 @@ export async function decodeJpegToStorage(
       hasAlpha: false,
       ...(meta.properties === undefined ? {} : {properties: meta.properties}),
       ...(meta.icc === undefined ? {} : {icc: meta.icc}),
+      ...(meta.exif === undefined ? {} : {exif: meta.exif}),
       ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
       ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
     };
@@ -660,6 +662,7 @@ export async function decodeJpegToStorage(
     hasAlpha: false,
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
+    ...(meta.exif === undefined ? {} : {exif: meta.exif}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
   };

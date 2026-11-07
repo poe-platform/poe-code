@@ -117,7 +117,7 @@ synchronous statistics require an explicit buffered input.
 `readImageMetadataFromSource(source, signal, options, storage?)` inspects PNG, JPEG, WebP, BMP,
 Netpbm and raw metadata without rendering pixels. GIF metadata retains frame delays
 in caller storage, available through `storedDelay.length` and asynchronous `storedDelay.at(index)`. The PNG, JPEG and WebP readers are
-also available individually. PNG metadata and decoded images expose an optional `backgroundColor` from the file's `bKGD` chunk as 8-bit RGBA. TIFF inspection uses the optional caller backing storage
+also available individually. JPEG and PNG rewrites retain EXIF profiles, including camera, author and date tags, while updating orientation and resolution. PNG metadata and decoded images expose an optional `backgroundColor` from the file's `bKGD` chunk as 8-bit RGBA. TIFF inspection uses the optional caller backing storage
 to preserve full decode validation with bounded memory. File `.metadata()` for these formats
 uses retained reads and caller-backed transforms, including source version checks
 and handle cleanup. PDF metadata uses caller-backed input and indexes without rasterizing pages; `tryPdfMetadata` backs selected source resource values in supplied storage, or owns a four-page cache on the injected filesystem when storage is omitted. Backends with only retained staging and reads use immutable merged page runs, preserving their existing filesystem authority and bounded caches. PDF decoding uses its supplied pixel storage for these values; the same adapter serves Sips and identify queries. Raw metadata needs only the retained file size. These reads do

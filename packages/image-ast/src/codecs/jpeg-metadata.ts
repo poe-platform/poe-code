@@ -4,6 +4,7 @@ import { parseExifBuffer } from "./exif.js";
 export interface JpegMetadataState {
   properties?: Record<string, string>;
   icc?: Uint8Array;
+  exif?: Uint8Array;
   iccParts?: Map<number, Uint8Array>;
   iccCount?: number;
   jpegSamplingFactor?: string;
@@ -66,6 +67,7 @@ export function applyJpegMetadata(
     }
   } else if (marker === 0xe1 && payload.length >= 8) {
     // EXIF APP1
+    if (payload[0] === 69 && payload[1] === 120 && payload[2] === 105 && payload[3] === 102 && payload[4] === 0 && payload[5] === 0) state.exif = payload.slice(6);
     const exif = parseExifBuffer(payload);
     if (exif.orientation !== undefined) orientation = exif.orientation;
     if (exif.resolution !== undefined) state.resolution = exif.resolution;

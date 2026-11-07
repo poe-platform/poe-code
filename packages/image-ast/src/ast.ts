@@ -59,6 +59,7 @@ export interface RgbaImage {
   readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
   readonly properties?: Readonly<Record<string, string>>;
   readonly icc?: Uint8Array;
+  readonly exif?: Uint8Array;
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;
@@ -93,6 +94,7 @@ export interface ImageMetadata {
   readonly virtualCanvas?: { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
   readonly properties?: Readonly<Record<string, string>>;
   readonly icc?: Uint8Array;
+  readonly exif?: Uint8Array;
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;

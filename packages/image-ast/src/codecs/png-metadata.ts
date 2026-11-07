@@ -19,6 +19,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let virtualCanvas: ImageMetadata["virtualCanvas"];
   const properties: Record<string, string> = Object.create(null);
   let icc: Uint8Array | undefined;
+  let exifProfile: Uint8Array | undefined;
   let orientation: number | undefined;
   let backgroundColor: ImageMetadata["backgroundColor"];
   let palette: Uint8Array | undefined;
@@ -127,6 +128,12 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       const chunk = yield {position:dataStart,length:1};
       if (chunk[0]! <= 8) orientation = chunk[0]!;
     } else if (type === "eXIf" && len >= 8) {
+      if (len > 16 * 1024 * 1024) throw new Error("EXIF profile exceeds 16 MiB");
+      exifProfile = new Uint8Array(len);
+      for (let offset = 0; offset < len; offset += 4096) {
+        exifProfile.set(yield {position:dataStart + offset,length:Math.min(4096,len - offset)}, offset);
+      }
+      if (exifProfile[0] === 69 && exifProfile[1] === 120 && exifProfile[2] === 105 && exifProfile[3] === 102 && exifProfile[4] === 0 && exifProfile[5] === 0) exifProfile = exifProfile.subarray(6);
       const exif = yield* exifMetadataSteps(len,dataStart);
       if (exif.orientation !== undefined) orientation = exif.orientation;
       if (exif.density !== undefined) density = exif.density;
@@ -168,6 +175,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   return {
     ...(Object.keys(properties).length ? {properties} : {}),
     ...(icc === undefined ? {} : {icc}),
+    ...(exifProfile === undefined ? {} : {exif: exifProfile}),
     format: "png",
     ...(colorType === 3 ? {isPalette: true} : {}),
     width,

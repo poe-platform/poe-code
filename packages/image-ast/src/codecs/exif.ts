@@ -9,7 +9,8 @@ export function parseExifBuffer(raw:Uint8Array):ExifMetadata {
 }
 
 export function buildExifApp1Segment(options: {
-  readonly orientation?: number;
+  readonly exif?: Uint8Array | undefined;
+  readonly orientation?: number | undefined;
   readonly density?: number;
   readonly resolution?: ImageMetadata["resolution"];
 }): Uint8Array {
@@ -19,6 +20,49 @@ export function buildExifApp1Segment(options: {
   const scale = resolution?.unit === "meter" ? 100 : 1;
   const x = resolution ? resolution.x / scale : density, y = resolution ? resolution.y / scale : density;
   const denominator = Number.isInteger(x) && Number.isInteger(y) ? 1 : 10000;
+  if (options.exif) {
+    const raw = options.exif;
+    const little = raw[0] === 73 && raw[1] === 73;
+    const big = raw[0] === 77 && raw[1] === 77;
+    const source = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+    if (raw.length < 8 || (!little && !big) || source.getUint16(2, little) !== 42) throw new Error("Invalid EXIF header");
+    const ifd = source.getUint32(4, little);
+    if (ifd + 2 > raw.length) throw new Error("Invalid EXIF directory");
+    const count = source.getUint16(ifd, little), end = ifd + 2 + count * 12;
+    if (end + 4 > raw.length) throw new Error("Truncated EXIF directory");
+    let hasOrientation = false;
+    for (let entry = ifd + 2; entry < end; entry += 12) if (source.getUint16(entry, little) === 0x0112) hasOrientation = true;
+    const addOrientation = !hasOrientation && options.orientation !== undefined;
+    const directory = (raw.length + 1) & ~1;
+    const payload = new Uint8Array(6 + (addOrientation ? directory + 2 + (count + 1) * 12 + 4 : raw.length));
+    payload.set([69, 120, 105, 102, 0, 0]); payload.set(raw, 6);
+    const view = new DataView(payload.buffer, 6);
+    for (let entry = ifd + 2; entry < end; entry += 12) {
+      const tag = view.getUint16(entry, little), type = view.getUint16(entry + 2, little);
+      if (tag === 0x0112 && options.orientation !== undefined) {
+        view.setUint16(entry + 2, 3, little); view.setUint32(entry + 4, 1, little);
+        view.setUint32(entry + 8, 0, little); view.setUint16(entry + 8, orientation, little);
+      } else if ((tag === 0x011a || tag === 0x011b) && type === 5 && view.getUint32(entry + 4, little) === 1) {
+        const offset = view.getUint32(entry + 8, little);
+        if (offset + 8 <= raw.length) {
+          view.setUint32(offset, Math.round((tag === 0x011a ? x : y) * denominator), little);
+          view.setUint32(offset + 4, denominator, little);
+        }
+      } else if (tag === 0x0128 && type === 3 && view.getUint32(entry + 4, little) === 1) {
+        view.setUint16(entry + 8, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2, little);
+      }
+    }
+    // Relocate only the directory when adding orientation; all profile offsets stay valid.
+    if (addOrientation) {
+      view.setUint32(4, directory, little); view.setUint16(directory, count + 1, little);
+      payload.copyWithin(6 + directory + 2, 6 + ifd + 2, 6 + end);
+      const entry = directory + 2 + count * 12;
+      view.setUint16(entry, 0x0112, little); view.setUint16(entry + 2, 3, little);
+      view.setUint32(entry + 4, 1, little); view.setUint16(entry + 8, orientation, little);
+      view.setUint32(entry + 12, source.getUint32(end, little), little);
+    }
+    return payload;
+  }
   // Exif\0\0 (6) + TIFF header (8) + count (2) + 4 entries (48) + nextIFD (4) + 2 rationals (16) = 84 bytes
   const payload = new Uint8Array(84);
   const view = new DataView(payload.buffer);

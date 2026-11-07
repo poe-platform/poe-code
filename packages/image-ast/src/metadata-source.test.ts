@@ -23,14 +23,14 @@ function png(depth:number,color:number,trns:boolean,interlace:number):Uint8Array
 for(const depth of [1,2,4,8,16]) for(const color of [0,2,3,4,6]) for(const trns of [false,true]) {
  it(`preserves PNG metadata ${depth}/${color}/${trns}`,async()=>{
   const bytes=png(depth,color,trns,depth%2),expected=readPngMetadata(bytes);
-  expect(expected).toMatchSnapshot();
+  expect(expected).toMatchSnapshot({exif: expect.any(Uint8Array)});
   expect(await readPngMetadataFromSource(source(bytes),new AbortController().signal)).toEqual(expected);
  });
 }
 for(const length of [0,8,23,24,28,29,32,33,45,76,128]) it(`preserves truncated PNG metadata at ${length}`,async()=>{
  const input=png(8,6,false,0).subarray(0,length);
  let result:unknown;try {result=readPngMetadata(input);}catch(error){result=(error as Error).message;}
- expect(result).toMatchSnapshot();
+ expect(result).toMatchSnapshot(typeof result === "object" && result !== null && "exif" in result ? {exif: expect.any(Uint8Array)} : undefined);
  let actual:unknown;try{actual=await readPngMetadataFromSource(source(input),new AbortController().signal);}catch(error){actual=(error as Error).message;}
  expect(actual).toEqual(result);
 });
@@ -180,7 +180,7 @@ describe("externally retained metadata in Workerd",()=>{
    expect(response.status).toBe(200);
    const result=await response.json() as {metadata:unknown;reads:number;closed:number;scratchClosed:number;scratchWrites:number;largestAllocation:number;nodeGlobals:boolean};
    if(id>=6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThanOrEqual(id===8?64:65);}else expect(result.scratchClosed).toBe(0);
-   expect(result.metadata).toEqual(expected[id]);expect(result.closed).toBe(sample.stream?0:1);expect(result.nodeGlobals).toBe(false);
+   expect(result.metadata).toEqual(JSON.parse(JSON.stringify(expected[id])));expect(result.closed).toBe(sample.stream?0:1);expect(result.nodeGlobals).toBe(false);
    expect(result.largestAllocation).toBeLessThanOrEqual(id===5?4096:65536);if(id===2)expect(result.reads).toBe(0);else expect(result.reads).toBeGreaterThan(0);
  },15000);
 });

@@ -224,6 +224,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     ...(meta.virtualCanvas === undefined ? {} : {virtualCanvas: meta.virtualCanvas}),
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
+    ...(meta.exif === undefined ? {} : {exif: meta.exif}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
   };
@@ -400,8 +401,8 @@ export function encodePngImage(
   phys[8] = resolution?.unit === "unknown" ? 0 : 1; // meter
 
   const orientation = options?.orientation ?? img.orientation;
-  const exifChunk = orientation !== undefined
-    ? [makeChunk("eXIf", buildExifApp1Segment({ orientation, density, resolution }).subarray(6))]
+  const exifChunk = img.exif || orientation !== undefined
+    ? [makeChunk("eXIf", buildExifApp1Segment({ exif: img.exif, orientation, density, resolution }).subarray(6))]
     : [];
   const chunks = [
     PNG_SIGNATURE,

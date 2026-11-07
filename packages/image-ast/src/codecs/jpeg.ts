@@ -127,6 +127,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
   return {
     ...(state.properties === undefined ? {} : {properties: state.properties}),
     ...(state.icc === undefined ? {} : {icc: state.icc}),
+    ...(state.exif === undefined ? {} : {exif: state.exif}),
     format: "jpeg",
     ...(state.jpegSamplingFactor === undefined ? {} : { jpegSamplingFactor: state.jpegSamplingFactor }),
     width,
@@ -611,6 +612,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       hasAlpha: false,
       ...(meta.properties === undefined ? {} : {properties: meta.properties}),
       ...(meta.icc === undefined ? {} : {icc: meta.icc}),
+      ...(meta.exif === undefined ? {} : {exif: meta.exif}),
       ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
       ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
     };
@@ -714,6 +716,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
     hasAlpha: false,
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
+    ...(meta.exif === undefined ? {} : {exif: meta.exif}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
   };
@@ -812,7 +815,7 @@ function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
 }
 
 export function createJpegEncoder(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"icc"|"properties">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"exif"|"icc"|"properties">,
   options?: {
     readonly quality?: number;
     readonly samplingFactor?: string;
@@ -849,6 +852,7 @@ export function createJpegEncoder(
     bytes.push((v >>> 8) & 0xff, v & 0xff);
   };
   const writeSegment = (marker: number, payload: Uint8Array) => {
+    if (payload.length > 65533) throw new Error("JPEG segment exceeds 65533 bytes");
     bytes.push(0xff, marker);
     writeU16(payload.length + 2);
     for (let i = 0; i < payload.length; i++) bytes.push(payload[i]!);
@@ -889,8 +893,8 @@ export function createJpegEncoder(
   }
 
   // Optional APP1 Exif
-  if (orientation !== undefined && orientation >= 1 && orientation <= 8) {
-    writeSegment(0xe1, buildExifApp1Segment({ orientation, density, resolution }));
+  if (img.exif || (orientation !== undefined && orientation >= 1 && orientation <= 8)) {
+    writeSegment(0xe1, buildExifApp1Segment({ exif: img.exif, orientation, density, resolution }));
   }
 
   // DQT

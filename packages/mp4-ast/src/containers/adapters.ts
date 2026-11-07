@@ -412,7 +412,7 @@ export function aacAst(): MediaAstPlugin {
 export function isWavSignature(bytes: Uint8Array): boolean {
   return (
     bytes.byteLength >= 12 &&
-    decodeFourCC(bytes, 0) === "RIFF" &&
+    (decodeFourCC(bytes, 0) === "RIFF" || decodeFourCC(bytes, 0) === "RF64") &&
     decodeFourCC(bytes, 8) === "WAVE"
   );
 }

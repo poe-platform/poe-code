@@ -43,6 +43,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
   if (byteLength < 12) throw new Error("Invalid WAV file: missing RIFF WAVE signature");
   const signature = yield { offset: 0, length: 12 };
   if (signature.end !== undefined) byteLength = signature.end;
+  const rf64 = decodeFourCC(signature.bytes, 0) === "RF64";
   const wave64 = decodeFourCC(signature.bytes, 0) === "riff";
   if (wave64) {
     const read = yield { offset: 12, length: 28 };
@@ -54,27 +55,64 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     const size = Number(new DataView(bytes.buffer).getBigUint64(16, true));
     if (!Number.isSafeInteger(size) || size < 40 || size > byteLength) throw new Error("Invalid Wave64 file size");
     byteLength = size;
-  } else if (signature.bytes.length < 12 || decodeFourCC(signature.bytes, 0) !== "RIFF" || decodeFourCC(signature.bytes, 8) !== "WAVE") {
+  } else if (signature.bytes.length < 12 || (!rf64 && decodeFourCC(signature.bytes, 0) !== "RIFF") || decodeFourCC(signature.bytes, 8) !== "WAVE") {
     throw new Error("Invalid WAV file: missing RIFF WAVE signature");
   }
-  const header: WavHeader = { byteLength, containerFormat: wave64 ? "w64" : "wav", formatTag: 1, channels: 2, sampleRate: 44100, bitsPerSample: 16, blockAlign: 4, dataOffset: 0, dataSize: 0 };
+  let riffEnd = Infinity, rf64DataSize: number | undefined;
+  const sizes: { id: string; size: number }[] = [];
+  let pos = wave64 ? 40 : 12;
+  if (rf64) {
+    const chunk = yield { offset: 12, length: 8 };
+    if (chunk.bytes.length !== 8 || decodeFourCC(chunk.bytes, 0) !== "ds64") throw new Error("RF64 requires ds64 chunk");
+    const size = new DataView(chunk.bytes.buffer, chunk.bytes.byteOffset, 8).getUint32(4, true);
+    if (size < 28 || size > byteLength - 20) throw new Error("Invalid RF64 ds64 size");
+    const read = yield { offset: 20, length: 28 };
+    if (read.bytes.length !== 28) throw new Error("Truncated RF64 ds64 chunk");
+    const ds64 = new DataView(read.bytes.buffer, read.bytes.byteOffset, 28);
+    riffEnd = Number(ds64.getBigUint64(0, true)) + 8;
+    rf64DataSize = Number(ds64.getBigUint64(8, true));
+    pos = 20 + size + (size & 1);
+    if (!Number.isSafeInteger(riffEnd) || riffEnd < pos || riffEnd > byteLength || !Number.isSafeInteger(rf64DataSize))
+      throw new Error("Invalid RF64 file or data size");
+    const count = ds64.getUint32(24, true);
+    if (count > Math.floor((size - 28) / 12)) throw new Error("Invalid RF64 ds64 table size");
+    for (let index = 0; index < count; index++) {
+      const entry = yield { offset: 48 + index * 12, length: 12 };
+      if (entry.bytes.length !== 12) throw new Error("Truncated RF64 ds64 table");
+      const size = Number(new DataView(entry.bytes.buffer, entry.bytes.byteOffset, 12).getBigUint64(4, true));
+      if (!Number.isSafeInteger(size)) throw new Error("Invalid RF64 chunk size");
+      sizes.push({ id: decodeFourCC(entry.bytes, 0), size });
+    }
+  }
+  const header: WavHeader = { byteLength: Math.min(byteLength, riffEnd), containerFormat: wave64 ? "w64" : "wav", formatTag: 1, channels: 2, sampleRate: 44100, bitsPerSample: 16, blockAlign: 4, dataOffset: 0, dataSize: 0 };
   const acceptEnd = (end: number | undefined) => {
     if (end === undefined) return;
+    if (rf64 && end < riffEnd) throw new Error("Truncated RF64 stream");
     byteLength = end;
-    header.byteLength = end;
+    header.byteLength = Math.min(end, riffEnd);
     header.dataSize = Math.min(header.dataSize, Math.max(0, end - header.dataOffset));
   };
   const labels = new Map<number, string>();
   const chunkHeader = wave64 ? 24 : 8;
-  let pos = wave64 ? 40 : 12;
-  while (pos + chunkHeader <= byteLength) {
+  while (pos + chunkHeader <= Math.min(byteLength, riffEnd)) {
     const read = yield { offset: pos, length: chunkHeader };
     acceptEnd(read.end);
     if (pos + chunkHeader > byteLength) break;
     const chunk = read.bytes;
     let id = decodeFourCC(chunk, 0);
     const view = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-    const size = wave64 ? Number(view.getBigUint64(16, true)) - 24 : view.getUint32(4, true);
+    let size = wave64 ? Number(view.getBigUint64(16, true)) - 24 : view.getUint32(4, true);
+    if (rf64 && size === 0xffffffff) {
+      if (id === "data" && rf64DataSize !== undefined) {
+        size = rf64DataSize;
+        rf64DataSize = undefined;
+      } else {
+        const index = sizes.findIndex(entry => entry.id === id);
+        if (index < 0) throw new Error("Missing RF64 chunk size");
+        size = sizes.splice(index, 1)[0]!.size;
+      }
+    }
+    if (rf64 && size + (size % 2) > riffEnd - pos - chunkHeader) throw new Error("Invalid RF64 chunk bounds");
     if (wave64 && (!Number.isSafeInteger(size) || size < 0 || pos + chunkHeader + size > byteLength)) {
       throw new Error("Invalid Wave64 chunk size");
     }
@@ -144,6 +182,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     }
     pos = end + (wave64 ? (8 - size % 8) % 8 : size & 1);
   }
+  if (rf64 && (pos !== riffEnd || header.formatOffset === undefined || !header.dataOffset)) throw new Error("Invalid RF64 chunks");
   if (wave64 && (header.formatOffset === undefined || !header.dataOffset)) throw new Error("Missing Wave64 fmt or data chunk");
   for (const cue of header.cues ?? []) cue.title = labels.get(cue.id) ?? "";
   return header;
@@ -219,6 +258,6 @@ export async function readWavStreamHeader(source: AsyncIterable<Uint8Array>, sig
   if (failure) throw failure.error;
   if (!step.done) step = scan.next({ bytes: bytes.subarray(0, filled), end: size });
   if (!step.done) throw new Error("Unexpected WAV header request after end of source");
-  if (step.value.containerFormat === "w64" && step.value.byteLength > size) throw new Error("Truncated Wave64 stream");
+  if (step.value.byteLength > size) throw new Error("Truncated Wave64 or RF64 stream");
   return step.value;
 }

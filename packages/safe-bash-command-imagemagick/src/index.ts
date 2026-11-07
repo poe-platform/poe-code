@@ -7815,6 +7815,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const state = createDefaultState();
     state.fuzz = 0;
     let metric = "rmse";
+    let metricExplicit = false;
     let subimageSearch = false;
     let dissimilarityThreshold = 0.2;
     let highlightColor: RgbaColor | undefined;
@@ -7837,6 +7838,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
+            metricExplicit = true;
             metric = rawMetric.toLowerCase();
             if (!["ae", "mae", "mepp", "mse", "rmse", "fuzz", "pae", "psnr", "ssim", "dssim", "ncc", "dpc", "pdc", "phase", "phash"].includes(metric)) {
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized metric type '${rawMetric}'\n` };
@@ -7971,7 +7973,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const {metric:metricStr}=compared.value;
     const exitCode = inputErrors ? 2 : compared.value.exitCode;
     const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" || metric === "phase" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
-    const comparisonStderr = inputErrors + `${metricStr}\n` + (subimageSearch && searchScore > dissimilarityThreshold
+    // Native UndefinedErrorMetric prints RMSE but uses the opposite warning comparison.
+    const comparisonStderr = inputErrors + `${metricStr}\n` + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
     if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,chromaSubsampling:state.quality < 90 ? "4:2:0" : "4:4:4",quality:state.quality});}};return {exitCode,stdout:"",stderr:comparisonStderr,...(stdoutBytes?{stdoutBytes}:{})};}

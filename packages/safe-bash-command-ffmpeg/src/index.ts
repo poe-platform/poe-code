@@ -3638,6 +3638,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let filteredChannelMask = audio.channelMask;
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
+                  let audioStartSample = 0;
                   // astats normalizes integer PCM against its maximum positive value.
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
@@ -4039,6 +4040,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const channel = selected[0] === "FL" ? 0 : 1;
                         stretched = [stretched[channel]!];
                         filteredChannelMask = 1 << channel;
+                      } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
+                        let start = Infinity;
+                        let end = -Infinity;
+                        const argument = trimmed.slice("atrim=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["start", "end"][index] : option.slice(0, separator).trim();
+                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          const samples = key === "start_sample" || key === "end_sample";
+                          if (!samples && key !== "start" && key !== "end") {
+                            throw new Error(`atrim: unsupported option ${key}`);
+                          }
+                          const number = samples ? Number(value) : parseHlsDuration(value);
+                          const frame = samples ? number : Math.round(number * origRate) - audioStartSample;
+                          if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < 0)) {
+                            throw new Error(`atrim: invalid ${key}`);
+                          }
+                          if (key === "start" || key === "start_sample") start = Math.min(start, frame);
+                          else end = Math.max(end, frame);
+                        }
+                        const length = stretched[0]?.length ?? 0;
+                        start = start === Infinity ? 0 : Math.max(0, Math.min(length, start));
+                        end = end === -Infinity ? length : Math.max(start, Math.min(length, end));
+                        stretched = stretched.map(channel => channel.subarray(start, end));
+                        audioStartSample += start;
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                       } else {

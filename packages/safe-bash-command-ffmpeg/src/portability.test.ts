@@ -102,7 +102,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FLV title metadata, MP3 audio, and FLV1 video copying (measured 596,083 bytes).
   // Includes FFmetadata chapter time bases and the current metadata parser graph (600,134 bytes).
   // Includes volumedetect sample statistics and the current filter graph (603,125 bytes).
-  assert.ok(otherCodeBytes < 604_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes sample-accurate atrim bounds and the current audio filter graph (608,622 bytes).
+  assert.ok(otherCodeBytes < 610_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -132,6 +133,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes the FLV metadata and legacy codec container support.
   // Includes FFmetadata chapter timing and the current metadata graph (9,747,743 bytes).
   // Includes volumedetect sample statistics and the current filter graph.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_752_000,
+  // Includes sample-accurate atrim bounds and the current audio filter graph (9,756,236 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_758_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

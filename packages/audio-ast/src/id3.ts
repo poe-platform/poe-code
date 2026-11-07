@@ -112,7 +112,11 @@ export function parseId3(bytes: Uint8Array): Id3Result {
       data = data.subarray(prefix);
       if (id.startsWith("T") && id !== "TXXX" && id !== "TXX")
         tags[id3TagName(id)] = text(data.subarray(1), data[0]!);
-      else if (id === "COMM" || id === "COM") {
+      else if (id === "TXXX" || id === "TXX") {
+        const encoding = data[0]!, end = terminated(data, 1, encoding),
+          width = encoding === 1 || encoding === 2 ? 2 : 1;
+        tags[text(data.subarray(1, end), encoding)] = text(data.subarray(end + width), encoding);
+      } else if (id === "COMM" || id === "COM") {
         const encoding = data[0]!,
           end = terminated(data, 4, encoding),
           width = encoding === 1 || encoding === 2 ? 2 : 1;
@@ -168,7 +172,7 @@ export function encodeId3(
       node.type === "APIC" ||
       node.type === "PIC" ||
       names[node.type] ||
-      (node.type.startsWith("T") && node.type !== "TXXX" && node.type !== "TXX") ||
+      node.type.startsWith("T") ||
       node.type === "COMM" ||
       node.type === "COM"
     )
@@ -190,8 +194,10 @@ export function encodeId3(
         ])
       );
     else {
-      if (id.length !== 4 || !id.startsWith("T")) throw new Error(`Unsupported ID3 tag ${name}`);
-      frame(id, join([new Uint8Array([3]), new TextEncoder().encode(value)]));
+      if (id.length === 4 && id.startsWith("T") && id !== "TXXX")
+        frame(id, join([new Uint8Array([3]), new TextEncoder().encode(value)]));
+      else frame("TXXX", join([new Uint8Array([3]), new TextEncoder().encode(name),
+        new Uint8Array(1), new TextEncoder().encode(value)]));
     }
   }
   for (const picture of pictures)

@@ -1,3 +1,4 @@
+export { encodeId3 } from "./id3.js";
 export { readOgg } from "./ogg.js";
 export { mpegFrame } from "./mpeg.js";
 export { probeOggStreamSource, type OggCommentSpan } from "./ogg-stream-source.js";

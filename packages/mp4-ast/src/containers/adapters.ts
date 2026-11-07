@@ -1017,13 +1017,13 @@ export function mp3Ast(): MediaAstPlugin {
       });
       if (options.audioCodec === "copy") {
         if (codec !== "mp3") throw new Error(`Cannot copy ${codec} to MP3`);
-        return writeAudioMetadata(writeMp3Frames(track.samples), tags, { pictures });
+        return concatBytes([encodeId3(tags, [], pictures), writeMp3Frames(track.samples)]);
       }
       const audio = track.decodedAudio ?? (codec === "mp3" ? decodeMp3Track(track)
         : codec === "aac" ? decodeAacTrack(doc, track)
           : codec === "vorbis" ? decodeVorbisTrack(track) : undefined);
       if (!audio) throw new Error(`Cannot decode ${codec} for MP3 encoding`);
-      return writeAudioMetadata(encodeMp3(audio), tags, { pictures });
+      return concatBytes([encodeId3(tags, [], pictures), encodeMp3(audio)]);
     },
     probe(bytes, options = {}) {
       const result = mp3Records(bytes.length, readMp3Frames(bytes), options);

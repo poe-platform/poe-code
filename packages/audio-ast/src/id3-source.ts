@@ -128,6 +128,14 @@ export async function probeId3Source(source: AudioProbeSource, options: SourceOp
     let key: string | undefined, encoding: number | undefined;
     if (id.startsWith("T") && id !== "TXXX" && id !== "TXX") {
       key = id3TagName(id); encoding = (await frame.read(1, true))[0];
+    } else if (id === "TXXX" || id === "TXX") {
+      encoding = (await frame.read(1, true))[0]!;
+      const offset = frame.position;
+      await frame.terminated(0, encoding);
+      key = "";
+      for await (const part of readId3Text(source, { key, offset, length: frame.position - offset,
+        unsynchronized: frame.unsynchronized, encoding }, options)) key += part;
+      key = cleanText(key);
     } else if (id === "COMM" || id === "COM") {
       encoding = (await frame.read(1, true))[0];
       await frame.terminated(3, encoding!); key = "comment";

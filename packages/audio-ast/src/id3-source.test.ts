@@ -82,3 +82,21 @@ it("keeps replay cancellation and read failures observable after a successful sc
   const failed=readId3Text({size:bytes.length,async read(){throw new Error("replay read failed");}},spans[0]!);
   await expect(failed.next()).rejects.toThrow("replay read failed");
 });
+
+it("reads user text descriptions as tag names in all ID3 versions and encodings", async () => {
+  for (const version of [2, 3, 4]) {
+    for (const encoding of [0, 1, 2, 3]) {
+      const text = (value: string) => encoding === 1
+        ? [255, 254, ...Array.from(value).flatMap(char => [char.charCodeAt(0), 0])]
+        : encoding === 2 ? Array.from(value).flatMap(char => [0, char.charCodeAt(0)])
+          : Array.from(new TextEncoder().encode(value));
+      const data = [encoding, ...text("comment"), ...(encoding === 1 || encoding === 2 ? [0, 0] : [0]), ...text("Draft")];
+      const bytes = fixture(version, 0, frame(version, version === 2 ? "TXX" : "TXXX", data));
+      expect(parseId3(bytes).tags).toEqual({ comment: "Draft" });
+      await compare(bytes);
+      expect(parseId3(encodeId3({ comment: "Review", custom: "Value" }, parseId3(bytes).nodes)).tags)
+        .toEqual({ comment: "Review", custom: "Value" });
+      expect(parseId3(encodeId3({}, parseId3(bytes).nodes)).tags).toEqual({});
+    }
+  }
+});

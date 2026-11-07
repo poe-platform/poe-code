@@ -109,6 +109,8 @@ function readEbmlFloat(payload: Uint8Array): number {
 
 interface MkvTrackInfo {
   trackNumber: number;
+  uid?: bigint;
+  name?: string;
   trackType: number; // 1 = video, 2 = audio, 17 = subtitle
   codecId: string;
   codecPrivate?: Uint8Array;
@@ -120,6 +122,18 @@ interface MkvTrackInfo {
   bitDepth?: number;
   language?: string;
   defaultDuration?: number;
+}
+
+interface MkvTag {
+  tracks: bigint[];
+  otherTarget: boolean;
+  values: Record<string, string>;
+}
+
+function readEbmlUid(payload: Uint8Array): bigint {
+  let value = 0n;
+  for (const byte of payload) value = (value << 8n) | BigInt(byte);
+  return value;
 }
 
 interface MkvChapter {
@@ -146,8 +160,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const samplesByTrack = new Map<number, MediaSample[]>();
   const tagsRecord: Record<string, string> = {};
   const chapters: MkvChapter[] = [];
+  const tags: MkvTag[] = [];
 
-  function parseElements(start: number, end: number, depth: number, chapter?: MkvChapter): void {
+  function parseElements(start: number, end: number, depth: number, chapter?: MkvChapter, tag?: MkvTag): void {
     budget.checkBoxDepth(depth);
     let pos = start;
     while (pos < end) {
@@ -201,8 +216,28 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         case 0x1549a966: // Info
         case 0x1654ae6b: // Tracks
         case 0x1254c367: // Tags
-        case 0x7373: // Tag
           parseElements(pos, elemEnd, depth + 1);
+          break;
+
+        case 0x7373: { // Tag: targets can appear before or after SimpleTag elements.
+          const entry: MkvTag = { tracks: [], otherTarget: false, values: {} };
+          tags.push(entry);
+          parseElements(pos, elemEnd, depth + 1, undefined, entry);
+          break;
+        }
+
+        case 0x63c0: // Targets
+          if (tag) parseElements(pos, elemEnd, depth + 1, undefined, tag);
+          break;
+
+        case 0x63c5: // TagTrackUID (64-bit, independent of TrackNumber)
+          if (tag) tag.tracks.push(readEbmlUid(payload));
+          break;
+
+        case 0x63c4: // TagChapterUID
+        case 0x63c6: // TagAttachmentUID
+        case 0x63c9: // TagEditionUID
+          if (tag) tag.otherTarget = true;
           break;
 
         case 0x4282: // DocType
@@ -242,8 +277,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             else if (tid.value === 0x4487) tagValue = decodeUtf8(tPay).replace(/\0+$/, "");
             tPos += tsz.value;
           }
-          if (tagName && tagValue) {
-            tagsRecord[tagName.toUpperCase()] = tagValue;
+          if (tag && tagName && tagValue) {
+            tag.values[tagName] = tagValue;
           }
           break;
         }
@@ -267,6 +302,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             const tPay = bytes.subarray(tPos, tEnd);
 
             if (tid.value === 0xd7) info.trackNumber = readEbmlUint(tPay);
+            else if (tid.value === 0x73c5) info.uid = readEbmlUid(tPay);
+            else if (tid.value === 0x536e) info.name = decodeUtf8(tPay).split("\0", 1)[0]!;
             else if (tid.value === 0x23e383) info.defaultDuration = readEbmlUint(tPay);
             else if (tid.value === 0x83) info.trackType = readEbmlUint(tPay);
             else if (tid.value === 0x86) info.codecId = decodeUtf8(tPay).replace(/\0+$/, "");
@@ -395,6 +432,12 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   }
 
   parseElements(0, bytes.byteLength, 0);
+
+  for (const tag of tags) {
+    if (!tag.otherTarget && tag.tracks.length === 0) {
+      for (const [name, value] of Object.entries(tag.values)) tagsRecord[name.toUpperCase()] = value;
+    }
+  }
 
   const timescale = Math.max(1, Math.round(1_000_000_000 / timecodeScale));
   const tracks: MediaTrack[] = [];
@@ -525,7 +568,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       handlerType: type === "video" ? "vide" : type === "audio" ? "soun" : "sbtl",
       timescale,
       duration: totalTrackDur,
-      language: info.language ?? "und",
+      language: info.language ?? "eng",
+      metadata: Object.assign(
+        info.name ? { title: info.name } : {},
+        ...tags.filter(tag => !tag.otherTarget && tag.tracks.some(uid => uid === 0n || uid === info.uid)).map(tag => tag.values)
+      ),
       enabled: true,
       width,
       height,

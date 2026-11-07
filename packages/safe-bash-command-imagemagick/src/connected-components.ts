@@ -14,13 +14,13 @@ function* pixelSteps(index: number): Generator<Request, number[], number> {
 
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
-function* labelSteps(width: number, height: number, connectivity: number): Generator<Request | undefined, Component[], number> {
+function* labelSteps(width: number, height: number, connectivity: number, fuzz: number): Generator<Request | undefined, Component[], number> {
  const components: Component[] = [];
  for (let seed = 0; seed < width * height; seed++) {
   if (seed % 1024 === 0) yield;
   if (yield { region: "labels", index: seed }) continue;
   if (components.length === 65536) throw new Error("connected-components: too many objects (maximum 65536)");
-  const id = components.length, color = yield* pixelSteps(seed);
+  const id = components.length;
   const component: Component = { id, area: 0, x: 0, y: 0, left: width, top: height, right: 0, bottom: 0, color: [0, 0, 0, 0] };
   let head = 0, tail = 1;
   yield { region: "labels", index: seed, value: id + 1 };
@@ -38,7 +38,12 @@ function* labelSteps(width: number, height: number, connectivity: number): Gener
     const next = (y + dy) * width + x + dx;
     if (yield { region: "labels", index: next }) continue;
     const neighbor = yield* pixelSteps(next);
-    if ((neighbor[3] !== 0 || color[3] !== 0) && neighbor.some((value, channel) => value !== color[channel])) continue;
+    // Match adjacent pixels so similarity remains transitive across a region.
+    const distance = (neighbor[3]! - pixel[3]!) ** 2
+     + ((neighbor[0]! - pixel[0]!) ** 2 + (neighbor[1]! - pixel[1]!) ** 2 + (neighbor[2]! - pixel[2]!) ** 2)
+      * (neighbor[3]! / 255) * (pixel[3]! / 255) / 3;
+    // Native pixel equivalence adds the squared fuzz of both pixels.
+    if (distance > 2 * fuzz ** 2) continue;
     yield { region: "labels", index: next, value: id + 1 };
     yield { region: "queue", index: tail++, value: next };
    }
@@ -73,9 +78,9 @@ function* reportSteps(components: Component[]): Generator<void, string, void> {
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, verbose: boolean, meanColor = false): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
- const steps = labelSteps(image.width, image.height, connectivity);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
@@ -95,10 +100,10 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, verbose: boolean, signal: AbortSignal, meanColor = false): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
- const steps = labelSteps(image.width, image.height, connectivity);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;

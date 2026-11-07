@@ -4814,11 +4814,10 @@ function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<v
     const { data16: ignored, ...metadata } = image;
     return { ...metadata, data };
 }
-function parseConnectedComponents(tokens: readonly string[], state: MagickState, start: number): number {
+function parseConnectedComponents(tokens: readonly string[], start: number): number {
     const value = tokens[start + 1];
     if (tokens[start] !== "-connected-components") throw new Error(`Unsupported option: ${tokens[start]}`);
     if (value !== "4" && value !== "8") throw new Error("connected-components: connectivity must be 4 or 8");
-    if (state.alphaFuzz !== 0) throw new Error("connected-components: nonzero fuzz is unsupported");
     return Number(value);
 }
 
@@ -5978,9 +5977,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) { i = setting; }
         else if (t === "-connected-components" || t === "+connected-components") {
-            const connectivity = parseConnectedComponents(tokens, state, i++);
+            const connectivity = parseConnectedComponents(tokens, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* connectedComponentsSteps(image, connectivity, state.connectedVerbose ?? false, state.connectedMeanColor ?? false);
+                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false);
                 analysis.text += result.text;
                 return result.image;
             });
@@ -7384,10 +7383,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
-            const connectivity = parseConnectedComponents(tokens, state, i++), verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false;
+            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const result = await connectedComponentsStored(image, backend.storage, connectivity, verbose, signal, meanColor);
+                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor);
                 if (input.stdout) await writeIdentifyText(input.stdout, result.text, signal);
                 else analysis.text += result.text;
                 return result.image;

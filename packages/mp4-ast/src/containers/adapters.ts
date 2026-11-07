@@ -493,6 +493,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     const byteEnd = formatTag === 17 ? Math.min(pcmData.length, byteStart + header.blockAlign) : compressed && offsetSample + count === totalPcmSamples ? pcmData.byteLength : (offsetSample + count) * bytesPerFrame;
     samples.push({
       data: pcmData.subarray(byteStart, byteEnd),
+      offset: header.dataOffset + byteStart,
       dts: offsetSample,
       pts: offsetSample,
       cts: 0,
@@ -504,7 +505,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   }
 
   if (compressed && samples.length === 0 && pcmData.length > 0) {
-    samples.push({ data: pcmData, dts: 0, pts: 0, cts: 0, duration: 0,
+    samples.push({ data: pcmData, offset: header.dataOffset, dts: 0, pts: 0, cts: 0, duration: 0,
       size: pcmData.length, isKeyframe: true, sampleDescriptionIndex: 1 });
   }
   let doc = wavDocument(header, samples, decodedAudio, bytes);
@@ -780,7 +781,7 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
       const count = Math.min(chunkFrames, samples - pts);
       const pos = header.formatTag === 17 ? pts / chunkFrames * header.blockAlign : pts * bytesPerFrame;
       const size = header.formatTag === 17 ? Math.min(header.blockAlign, header.dataSize - pos) : count * bytesPerFrame;
-      yield { pts, count, pos, size: String(size), time: (pts / rate).toFixed(6), duration: (count / rate).toFixed(6) };
+      yield { pts, count, pos: header.dataOffset + pos, size: String(size), time: (pts / rate).toFixed(6), duration: (count / rate).toFixed(6) };
     }
     options.signal?.throwIfAborted();
   }
@@ -794,7 +795,7 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
       for (const s of spans()) yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,
         pts: s.pts, pts_time: s.time, pkt_dts: s.pts, pkt_dts_time: s.time,
         best_effort_timestamp: s.pts, best_effort_timestamp_time: s.time, pkt_duration: s.count,
-        pkt_duration_time: s.duration, pkt_size: s.size, width: undefined, height: undefined,
+        pkt_duration_time: s.duration, pkt_size: s.size, pkt_pos: String(s.pos), width: undefined, height: undefined,
         pix_fmt: undefined, pict_type: undefined, sample_fmt: stream.sample_fmt, nb_samples: s.count, channels: header.channels };
     } } : undefined
   };

@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { encodeWav } from "@poe-code/audio-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
-import { createFfprobeCommand } from "./media.js";
+import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
 it.each(["file", "stdin", "count-only"])("reports native WAV packets and counted records for %s", async route => {
   const bytes = encodeWav({ sampleRate: 44100, channels: [new Float64Array(44100)] });
@@ -28,3 +28,26 @@ it.each(["file", "stdin", "count-only"])("reports native WAV packets and counted
     streams: [{ nb_read_packets: "11", nb_read_frames: "11" }]
   });
 });
+
+for (const section of ["packet", "frame"]) {
+  it(`reports the physical WAV ${section} position through async and sync commands`, async () => {
+    const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] });
+    const args = ["-v", "error", "-of", "json", "-show_entries",
+      section === "packet" ? "packet=flags,pos,size,stream_index,pts,dts,duration" : "frame=pkt_pos,pkt_size", "/input.wav"];
+    const expected = section === "packet"
+      ? [{ flags: "K__", pos: "44", size: "32", stream_index: 0, pts: 0, dts: 0, duration: 16 }]
+      : [{ pkt_pos: "44", pkt_size: "32" }];
+    const fs = new MemoryFileSystem(); await fs.writeFile("/input.wav", bytes);
+    let output = "";
+    const result = await createFfprobeCommand().execute({
+      command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
+      signal: new AbortController().signal,
+      stdin: { async *[Symbol.asyncIterator]() {} },
+      stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+      stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } }
+    });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(output)[`${section}s`]).toEqual(expected);
+    expect(JSON.parse(evalSyncFfprobe(undefined, args, () => bytes)!)[`${section}s`]).toEqual(expected);
+  });
+}

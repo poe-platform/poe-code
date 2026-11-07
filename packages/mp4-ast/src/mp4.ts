@@ -2020,7 +2020,7 @@ export function buildProbeResultFromDoc(
               ? { duration: s.duration, duration_time: durTime }
               : { pkt_duration: s.duration, pkt_duration_time: durTime }),
             pkt_size: String(s.size),
-            ...(["mp4", "mov"].includes(doc.containerFormat) ? { pkt_pos: String(s.offset ?? -1) } : {}),
+            ...(["mp4", "mov", "wav", "w64"].includes(doc.containerFormat) ? { pkt_pos: String(s.offset ?? -1) } : {}),
             width: w,
             height: h,
             pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,

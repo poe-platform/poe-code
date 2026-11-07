@@ -77,3 +77,27 @@ for (const [rate, channels, bits, packetSamples] of [[44100, 1, 16, 4096], [8000
     assert.equal(wavAst().probe(bytes).streams[0]!.nb_frames, undefined);
   });
 }
+
+for (const padding of [0, 10]) {
+  it(`reports physical WAV positions with ${padding} extra header bytes`, async () => {
+    const bytes = new Uint8Array(44 + padding + 2080);
+    bytes.set(fixture(44 + 2080));
+    if (padding) {
+      bytes.set(bytes.slice(36, 44), 36 + padding);
+      bytes.set(new TextEncoder().encode("JUNK"), 36);
+      new DataView(bytes.buffer).setUint32(40, 1, true);
+    }
+    new DataView(bytes.buffer).setUint32(4, bytes.length - 8, true);
+    const options = { showPackets: true, showFrames: true };
+    async function* chunks() {
+      for (let offset = 0; offset < bytes.length; offset += 7) yield bytes.subarray(offset, offset + 7);
+    }
+    const results = [wavAst().probe(bytes, options),
+      await probeWavSource({ size: bytes.length, read: async (offset, length) => bytes.slice(offset, offset + length) }, options),
+      await probeWavStream(chunks(), options)];
+    for (const result of results) {
+      assert.deepEqual([...result.packets!].map(p => [p.pos, p.size]), [[String(44 + padding), "2048"], [String(2092 + padding), "32"]]);
+      assert.deepEqual([...result.frames!].map(f => [f.pkt_pos, f.pkt_size]), [[String(44 + padding), "2048"], [String(2092 + padding), "32"]]);
+    }
+  });
+}

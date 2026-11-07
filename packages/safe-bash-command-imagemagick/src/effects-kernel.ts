@@ -31,7 +31,7 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
     }
 }
 export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
-    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; isPercent: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source, cx = width / 2, cy = height / 2;
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1;
     const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasOffset ? geometry.y : height * 0.1;
@@ -118,9 +118,10 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 const foreground = coverage[x]!, back = (1 - foreground) * background.a / 255, alpha = foreground + back;
                 for (let channel = 0; channel < 3; channel++) {
                     const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
-                    data[x * 4 + channel] = alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
+                    const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channels.b);
+                    data[x * 4 + channel] = !selected ? Math.round(color * scale) : alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
                 }
-                data[x * 4 + 3] = Math.round(alpha * 255 * scale);
+                data[x * 4 + 3] = Math.round((!channels || channels.a ? alpha * 255 : background.a) * scale);
             }
             yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
         }

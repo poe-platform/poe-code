@@ -6352,7 +6352,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-vignette") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background, geometry), signal, { ...im, hasAlpha: true });
+                return yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background, geometry, state.channelExplicit ? state.channels : undefined), signal, { ...im, hasAlpha: true });
             });
         }
         else if (t === "-dither" || t === "+dither") {
@@ -7836,8 +7836,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? { ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal), virtualCanvas: magickTransposeCanvas(image, kind === "flop") } : undefined);
         } else if (!operandsOnly && token === "-vignette") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            const background = state.background;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background, geometry), signal, { ...image, hasAlpha: true }) : undefined);
+            const background = state.background, channels = state.channelExplicit ? { ...state.channels } : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background, geometry, channels), signal, { ...image, hasAlpha: true }) : undefined);
         } else if (!operandsOnly && token === "-shadow") {
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit;
             steps.push(async (image, backend) => {

@@ -64,22 +64,26 @@ it("rejects stream counts that cannot fit AVI chunk identifiers", () => {
     /at most 100 streams/);
 });
 
-for (const [rate, scale] of [[5, 2], [30000, 1001], [25, 1], [1, 2]] as const) {
-  it(`preserves AVI video timing at ${rate}/${scale} fps`, () => {
-    const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 12 }));
-    const track = source.tracks[0]!;
-    const samples = track.samples.map((sample, index) => ({
-      ...sample, dts: index * scale, pts: index * scale, cts: 0, duration: scale
-    }));
-    const duration = samples.length * scale;
-    const bytes = Buffer.from(serializeAvi({
-      ...source, durationSeconds: duration / rate,
-      tracks: [{ ...track, timescale: rate, duration, samples }]
-    }));
-    const strh = bytes.indexOf("strh");
-    assert.equal(bytes.readUInt32LE(strh + 28), scale);
-    assert.equal(bytes.readUInt32LE(strh + 32), rate);
-    assert.equal(bytes.readUInt32LE(strh + 40), samples.length);
-    assert.equal(bytes.readUInt32LE(bytes.indexOf("avih") + 8), Math.round(1_000_000 * scale / rate));
-  });
+for (const audioTail of [false, true]) {
+  for (const [rate, scale] of [[5, 2], [30000, 1001], [25, 1], [1, 2]] as const) {
+    it(`preserves AVI video timing at ${rate}/${scale} fps with audio tail ${audioTail}`, () => {
+      const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 12 }));
+      const track = source.tracks[0]!;
+      const samples = track.samples.map((sample, index) => ({
+        ...sample, dts: index * scale, pts: index * scale, cts: 0, duration: scale
+      }));
+      const duration = samples.length * scale;
+      const bytes = Buffer.from(serializeAvi({
+        ...source, durationSeconds: duration / rate + (audioTail ? 2 : 0),
+        tracks: [{ ...track, timescale: rate, duration, samples },
+          ...(audioTail ? [{ ...input.tracks[1]!,
+            duration: (duration / rate + 2) * input.tracks[1]!.timescale }] : [])]
+      }));
+      const strh = bytes.indexOf("strh");
+      assert.equal(bytes.readUInt32LE(strh + 28), scale);
+      assert.equal(bytes.readUInt32LE(strh + 32), rate);
+      assert.equal(bytes.readUInt32LE(strh + 40), samples.length);
+      assert.equal(bytes.readUInt32LE(bytes.indexOf("avih") + 8), Math.round(1_000_000 * scale / rate));
+    });
+  }
 }

@@ -374,8 +374,8 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
   const width = videoTrack?.width ?? 320;
   const height = videoTrack?.height ?? 240;
   const frameCount = videoTrack?.samples.length || videoTrack?.decodedVideoFrames?.length || 0;
-  const fps = frameCount > 0 && doc.durationSeconds > 0
-    ? frameCount / doc.durationSeconds : 30;
+  const fps = frameCount > 0 && videoTrack && videoTrack.duration > 0 && videoTrack.timescale > 0
+    ? frameCount * videoTrack.timescale / videoTrack.duration : 30;
 
   const avih = new BinaryWriter(56);
   avih.writeU32LE(Math.round(1_000_000 / fps));

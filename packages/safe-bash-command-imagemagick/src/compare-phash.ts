@@ -1,9 +1,9 @@
-import type { CompareImage, CompareRequest } from "./compare-kernel.js";
+import type { CompareImage, CompareRequest, CompareSamples } from "./compare-kernel.js";
 
 // ImageMagick's default PHASH: seven Hu invariants in xyY and HSB after
 // a separable sigma=1 blur. Keep only a bounded halo, repeating reads for
 // the centroid and central-moment passes instead of retaining whole images.
-export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected: readonly number[] = [0, 1, 2, 3]): Generator<CompareRequest | undefined, number[], Uint8Array | undefined> {
+export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected: readonly number[] = [0, 1, 2, 3]): Generator<CompareRequest | undefined, number[], CompareSamples | undefined> {
     const weights = Array.from({ length: 9 }, (_, i) => {
         let sum = 0;
         for (let sub = -1; sub <= 1; sub++) sum += Math.exp(-((3 * (i - 4) + sub) ** 2) / 18);
@@ -24,7 +24,7 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected:
                     const row = Math.max(0, Math.min(info.height - 1, y + v));
                     const length = (end - start) * 4;
                     const data = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
-                    if (!(data instanceof Uint8Array) || data.length !== length) throw new Error("Truncated comparison pixels");
+                    if (!data || data.length !== length) throw new Error("Truncated comparison pixels");
                     const blurred = new Float32Array(count * 4);
                     for (let x = 0; x < count; x++) {
                         let alpha = 0;

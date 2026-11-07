@@ -1,5 +1,7 @@
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import { perceptualHashSteps } from "./compare-phash.js";
+// Samples retain the kernel's 0..255 scale without rounding high-depth input.
+export type CompareSamples = Uint8Array | Float64Array;
 export interface CompareImage {
     readonly width: number;
     readonly height: number;
@@ -37,7 +39,7 @@ export interface CompareResult {
     readonly distortion: number;
 }
 /** Borrow input ranges until the next request; output chunks are owned by the receiver. */
-export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
+export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, CompareSamples | undefined> {
     if (options.subimageSearch) return yield* searchSubimageSteps(imgA, imgB, options);
     const { metric, fuzz, highlightColor, lowlightColor = { r: 255, g: 255, b: 255, a: 204 }, composeSrc } = options;
     // ImageMagick adds the squared fuzz of both inputs for channel metrics.
@@ -74,24 +76,24 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             const lengthA = Math.min(count, imgA.width - leftA) * 4;
             const lengthB = Math.min(count, imgB.width - leftB) * 4;
             let dataA = yield { kind: "read", image: 0, position: (Math.min(y, imgA.height - 1) * imgA.width + leftA) * 4, length: lengthA };
-            if (!(dataA instanceof Uint8Array) || dataA.length !== lengthA)
+            if (!dataA || dataA.length !== lengthA)
                 throw new Error("Truncated comparison pixels");
             dataA = dataA.slice();
-            let dataB: Uint8Array | undefined;
+            let dataB: CompareSamples | undefined;
             if (options.offset) {
-                dataB = dataA.slice();
+                dataB = Float64Array.from(dataA);
                 const row = y - options.offset.y;
                 const start = Math.max(left, options.offset.x);
                 const end = Math.min(left + count, options.offset.x + imgB.width);
                 if (row >= 0 && row < imgB.height && start < end) {
                     const bytes = yield { kind: "read", image: 1, position: (row * imgB.width + start - options.offset.x) * 4, length: (end - start) * 4 };
-                    if (!(bytes instanceof Uint8Array) || bytes.length !== (end - start) * 4)
+                    if (!bytes || bytes.length !== (end - start) * 4)
                         throw new Error("Truncated comparison pixels");
                     dataB.set(bytes, (start - left) * 4);
                 }
             } else {
                 dataB = yield { kind: "read", image: 1, position: (Math.min(y, imgB.height - 1) * imgB.width + leftB) * 4, length: lengthB };
-                if (!(dataB instanceof Uint8Array) || dataB.length !== lengthB)
+                if (!dataB || dataB.length !== lengthB)
                     throw new Error("Truncated comparison pixels");
             }
             const diffData = options.diff ? new Uint8Array(count * 4) : undefined;
@@ -296,7 +298,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
 }
 // Reuse the metric kernel on a virtual crop; translate bounded reads back to
 // the reference image so filesystem-backed searches never materialize a crop.
-function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, Uint8Array | undefined> {
+function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, CompareSamples | undefined> {
     let best: CompareResult | undefined;
     let offset = { x: 0, y: 0 };
     search: for (let y = 0; y < (options.diff ? imgA.height : imgA.height - imgB.height + 1); y++) {
@@ -316,7 +318,7 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
                         if (!bytes || bytes.length !== length) throw new Error("Truncated comparison pixels");
                         if (length === request.length) next = comparison.next(bytes);
                         else {
-                            const extended = new Uint8Array(request.length);
+                            const extended = bytes instanceof Float64Array ? new Float64Array(request.length) : new Uint8Array(request.length);
                             extended.set(bytes);
                             for (let i = length; i < extended.length; i += 4) extended.set(bytes.subarray(length - 4), i);
                             next = comparison.next(extended);
@@ -390,7 +392,7 @@ function formatSignificantMetric(n: number, precision = 6): string {
 
 // ImageMagick uses an 11x11 Gaussian window (sigma 1.5), edge virtual
 // pixels, and independent channel statistics before averaging the similarity.
-function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, CompareSamples | undefined> {
     if (selected.length === 0) return 0;
     const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
     const weights = Array.from({ length: 11 }, (_, i) => Math.exp(-((i - 5) ** 2) / (2 * 1.5 ** 2)));
@@ -404,7 +406,7 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
         for (let left = 0; left < width; left += 1014) {
             yield;
             const count = Math.min(1014, width - left);
-            const rows: Uint8Array[][] = [[], []];
+            const rows: CompareSamples[][] = [[], []];
             const starts: number[] = [];
             for (const image of [0, 1] as const) {
                 const info = image === 0 ? imgA : imgB;
@@ -415,7 +417,7 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
                     const row = Math.max(0, Math.min(info.height - 1, y + v));
                     const length = (end - start) * 4;
                     const data = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
-                    if (!(data instanceof Uint8Array) || data.length !== length)
+                    if (!data || data.length !== length)
                         throw new Error("Truncated comparison pixels");
                     rows[image]!.push(data.slice());
                 }
@@ -448,7 +450,7 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
 
 // PHASE correlates LoG:0,1 edge surfaces per channel. Keep signed HDRI
 // values: rounding or clamping the convolution changes the metric.
-function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, CompareSamples | undefined> {
     if (selected.length === 0) return 0;
     const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
     const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
@@ -474,7 +476,7 @@ function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: re
                 const row = Math.max(0, Math.min(info.height - 1, Math.min(y, info.height - 1) + v));
                 const length = (end - start) * 4;
                 const bytes = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
-                if (!(bytes instanceof Uint8Array) || bytes.length !== length) throw new Error("Truncated comparison pixels");
+                if (!bytes || bytes.length !== length) throw new Error("Truncated comparison pixels");
                 for (let x = 0; x < count; x++) for (let u = -4; u <= 4; u++) {
                     const column = Math.max(0, Math.min(info.width - 1, Math.min(left + x, info.width - 1) + u));
                     const offset = (column - start) * 4;

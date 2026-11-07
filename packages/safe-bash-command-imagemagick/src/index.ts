@@ -9200,7 +9200,21 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let compared=comparison.next();
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}
-      else if(request.kind==="read"){const image=request.image===0?imgA:imgB;let bytes:Uint8Array;if("data" in image)bytes=image.data.subarray(request.position,request.position+request.length);else {yield {async run(){bytes=await backend!.storage.read(image.position+request.position,request.length);}};}compared=comparison.next(bytes!);}
+      else if (request.kind === "read") {
+          const image = request.image === 0 ? imgA : imgB;
+          let samples!: Uint8Array | Float64Array;
+          if ("data" in image) {
+              samples = image.data16
+                  ? Float64Array.from(image.data16.subarray(request.position, request.position + request.length), value => value / 257)
+                  : image.data.subarray(request.position, request.position + request.length);
+          } else yield { async run() {
+              if (image.storedData16) {
+                  const bytes = await backend!.storage.read(image.storedData16.position + request.position * 2, request.length * 2);
+                  samples = Float64Array.from(new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2), value => value / 257);
+              } else samples = await backend!.storage.read(image.position + request.position, request.length);
+          } };
+          compared = comparison.next(samples);
+      }
       else {
           const position = request.kind === "similarity" ? similarityPosition : diffPosition;
           const data = request.kind === "similarity" ? similarityData : diffData;

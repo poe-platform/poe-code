@@ -2,7 +2,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export async function resampleAudio(
-  channels: readonly Float32Array[], outputLength: number, rateRatio: number,
+  channels: readonly (Float32Array | Float64Array)[], outputLength: number, rateRatio: number,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float32Array[]> {
   const length = channels[0]?.length ?? 0;

@@ -2610,8 +2610,13 @@ it("matches native lavfi sine waveform amplitude", async () => {
   assert.equal(audio.channelData.length, 1);
   const samples = audio.channelData[0]!;
   assert.equal(samples.length, 1600);
-  const peak = samples.reduce((value, sample) => Math.max(value, Math.abs(sample)), 0);
-  const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
+  let peak = 0;
+  let sumSquares = 0;
+  for (const sample of samples) {
+    peak = Math.max(peak, Math.abs(sample));
+    sumSquares += sample * sample;
+  }
+  const rms = Math.sqrt(sumSquares / samples.length);
   // Native FFmpeg pcm_s16le output for this source; allow two PCM quantization steps.
   const tolerance = 2 / 32768;
   assert.ok(Math.abs(peak - 0.124969482421875) <= tolerance, `peak: ${peak}`);
@@ -2918,7 +2923,9 @@ for (const [sourceRate, targetRate] of [[16000, 8000], [44100, 16000]] as const)
     for (const [c, samples] of audio.channelData.entries()) {
       assert.equal(samples.length, targetRate);
       const middle = samples.subarray(Math.floor(targetRate * 0.2), Math.floor(targetRate * 0.8));
-      const rms = Math.sqrt(middle.reduce((sum, sample) => sum + sample * sample, 0) / middle.length);
+      let sumSquares = 0;
+      for (const sample of middle) sumSquares += sample * sample;
+      const rms = Math.sqrt(sumSquares / middle.length);
       if (c === 0) assert.ok(Math.abs(rms - 0.125 / Math.SQRT2) < 0.001, `passband RMS: ${rms}`);
       else assert.ok(rms < 0.0001, `aliased RMS: ${rms}`);
     }

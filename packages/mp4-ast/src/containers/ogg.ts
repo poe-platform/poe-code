@@ -94,7 +94,8 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
   if (codec !== "vorbis" && codec !== "libvorbis" && codec !== "opus" && codec !== "libopus") {
     throw new Error(`Unsupported Ogg audio codec: ${codec}`);
   }
-  const encoded = encodeOggAudio(codec === "opus" || codec === "libopus" ? "opus" : "vorbis", audio.sampleRate, audio.channelData);
+  const encoded = encodeOggAudio(codec === "opus" || codec === "libopus" ? "opus" : "vorbis", audio.sampleRate,
+    audio.channelData.map(channel => channel instanceof Float32Array ? channel : Float32Array.from(channel)));
   const pages = encoded.headers.map((header, index) => page(header, index, index === 0 ? 2 : 0, 0));
   for (let index = 0; index < encoded.packets.length; index++) {
     const packet = encoded.packets[index]!;

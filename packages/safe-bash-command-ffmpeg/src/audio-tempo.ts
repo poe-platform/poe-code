@@ -4,7 +4,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 // Even at unity tempo, FFmpeg aligns overlapping windows and feathers them
 // with a Hann window. Alignment can change the number of emitted samples.
 export async function filterUnityTempo(
-  channels: readonly Float32Array[], sampleRate: number, pcm16: boolean,
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, pcm16: boolean,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<readonly Float32Array[]> {
   const length = channels[0]?.length ?? 0;
@@ -70,9 +70,9 @@ export async function filterUnityTempo(
 // Waveform-similarity overlap-add: move whole PCM windows along the input
 // timeline, aligning their overlap instead of changing the playback rate.
 export async function stretchAudio(
-  channels: readonly Float32Array[], sampleRate: number, tempo: number,
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, tempo: number,
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<readonly Float32Array[]> {
+): Promise<readonly (Float32Array | Float64Array)[]> {
   const length = channels[0]?.length ?? 0;
   if (tempo === 1 || length === 0) return channels;
   const outputLength = Math.max(1, Math.round(length / tempo));

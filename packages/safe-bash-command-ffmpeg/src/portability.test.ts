@@ -62,7 +62,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes G.711 A-law and mu-law sample expansion and codec identification.
   // Includes IMA ADPCM block decoding, packet framing and metadata (about 2.6 KB).
   // Includes MP3/AAC WAV decoding with bounded PCM assembly.
-  assert.ok(otherCodeBytes < 472_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes double-precision PCM32 storage and the float32 Ogg encoder boundary.
+  assert.ok(otherCodeBytes < 472_150, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -70,5 +71,5 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
   // Include independent concat timeline offsets while preserving PCM samples.
   // Current dependency graph plus subtitle packet selection and duration handling.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_040_600);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_040_750);
 });

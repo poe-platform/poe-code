@@ -3012,7 +3012,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
                   const volFactor = t.volume ?? 1.0;
-                  let stretched: readonly Float32Array[] = audio.channelData;
+                  let stretched: typeof audio.channelData = audio.channelData;
                   if (filter) {
                     for (const item of parseFilterChain(filter.expression)) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }

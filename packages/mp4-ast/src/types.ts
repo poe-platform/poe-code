@@ -205,7 +205,7 @@ export interface MediaAudioData {
   readonly channelMask?: number | undefined;
   readonly sampleRate: number;
   readonly channels: number;
-  readonly channelData: readonly Float32Array[];
+  readonly channelData: readonly (Float32Array | Float64Array)[];
   readonly startSeconds?: number | undefined;
 }
 

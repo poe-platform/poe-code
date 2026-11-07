@@ -438,7 +438,9 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   } else if (options.decodeAudio !== false && formatTag === 17) {
     decodedAudio = { sampleRate, channels, channelData: decodeImaWav(pcmData, channels, header.blockAlign, totalPcmSamples) };
   } else if (options.decodeAudio !== false) {
-    const channelData = Array.from({ length: channels }, () => new Float32Array(totalPcmSamples));
+    // Float32 cannot retain all significant bits of normalized signed PCM32.
+    const SampleArray = (formatTag === 1 || formatTag === 0xfffe) && bitsPerSample === 32 ? Float64Array : Float32Array;
+    const channelData = Array.from({ length: channels }, () => new SampleArray(totalPcmSamples));
     const pcmView = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
 
     for (let i = 0; i < totalPcmSamples; i++) {

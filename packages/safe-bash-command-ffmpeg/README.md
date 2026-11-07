@@ -92,6 +92,12 @@ other layouts, and implicit channel selection are rejected.
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,
 average/maximum channel linking, upward/downward modes, input gain, makeup and wet/dry mix.
+
+`sidechaincompress` uses a second audio input to control compression of the first,
+for example `[0:a][1:a]sidechaincompress=threshold=0.05:ratio=8:attack=1:release=20[mix]`.
+Output retains the first input’s channels and ends with the shorter input. Inputs
+must have matching sample rates; preceding filters other than `anull` are unsupported.
+
 `dynaudnorm=f=100:g=5:p=0.5` normalizes changing PCM levels with smoothed frame gains and coupled channels. Supports frame length (`f`/`framelen`), Gaussian window (`g`/`gausssize`), peak (`p`/`peak`), and maximum gain (`m`/`maxgain`); other options fail explicitly.
 
 `afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.

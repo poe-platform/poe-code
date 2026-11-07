@@ -971,6 +971,20 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
           decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
       }
+      if (filters[0] === "sidechaincompress" || filters[0]?.startsWith("sidechaincompress=")) {
+        if (sources.length !== 2) throw new Error("sidechaincompress requires two inputs");
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("sidechaincompress does not support preceding single-input filters");
+        }
+        const first = sources[0]!.track;
+        const a = first.decodedAudio;
+        const b = sources[1]!.track.decodedAudio;
+        if (!a || !b) throw new Error("sidechaincompress requires decoded PCM audio");
+        if (a.sampleRate !== b.sampleRate) throw new Error("sidechaincompress requires matching sample rates");
+        const channelData = await compressAudio(a.channelData, a.sampleRate, filters[0]!, budget, signal, b.channelData);
+        return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
+          decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
+      }
       if (filters[0] === "amix" || filters[0]?.startsWith("amix=")) {
         if (sources.length !== 2) throw new Error("amix requires two inputs");
         if (sources.some(source => source.expression && source.expression !== "anull")) {

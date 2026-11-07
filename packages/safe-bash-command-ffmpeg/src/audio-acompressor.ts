@@ -2,8 +2,10 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function compressAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  sidechain?: readonly (Float32Array | Float64Array)[]
 ): Promise<Float64Array[]> {
+  const name = sidechain ? "sidechaincompress" : "acompressor";
   const options: Record<string, string> = {
     level_in: "1", mode: "downward", threshold: "0.125", ratio: "2", attack: "20", release: "250",
     makeup: "1", knee: "2.82843", link: "average", detection: "rms", level_sc: "1", mix: "1"
@@ -13,12 +15,12 @@ export async function compressAudio(
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`acompressor: unsupported option ${key}`);
+    if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const number = (key: string, min: number, max: number): number => {
     const value = Number(options[key]);
-    if (!options[key] || !Number.isFinite(value) || value < min || value > max) throw new Error(`acompressor: invalid ${key}`);
+    if (!options[key] || !Number.isFinite(value) || value < min || value > max) throw new Error(`${name}: invalid ${key}`);
     return value;
   };
   const choice = (key: string, values: readonly string[]): number => {
@@ -26,7 +28,7 @@ export async function compressAudio(
     const index = values.indexOf(value);
     if (index >= 0) return index;
     if (value === "0" || value === "1") return Number(value);
-    throw new Error(`acompressor: invalid ${key}`);
+    throw new Error(`${name}: invalid ${key}`);
   };
   const level = number("level_in", 0.015625, 64);
   const upward = choice("mode", ["downward", "upward"]) === 1;
@@ -39,20 +41,24 @@ export async function compressAudio(
   const maximum = choice("link", ["average", "maximum"]) === 1;
   const rms = choice("detection", ["peak", "rms"]) === 1;
   // FFmpeg exposes level_sc on acompressor but uses level_in for its detector.
-  number("level_sc", 0.015625, 64);
+  const sidechainLevel = number("level_sc", 0.015625, 64);
+  const detector = sidechain ?? channels;
+  const detectorLevel = sidechain ? sidechainLevel : level;
   const mix = number("mix", 0, 1);
-  const length = channels[0]?.length ?? 0;
+  const length = Math.min(channels[0]?.length ?? 0, detector[0]?.length ?? 0);
+  budget.checkSamples(length);
+  budget.checkDuration(length / sampleRate);
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let envelope = 0;
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     let detected = 0;
-    for (const channel of channels) {
-      const value = Math.abs(channel[i]! * level);
+    for (const channel of detector) {
+      const value = Math.abs(channel[i]! * detectorLevel);
       detected = maximum ? Math.max(detected, value) : detected + value;
     }
-    if (!maximum) detected /= channels.length;
+    if (!maximum) detected /= detector.length;
     if (rms) detected *= detected;
     envelope += (detected - envelope) * (detected > envelope ? attack : release);
     let gain = 1;

@@ -121,17 +121,19 @@ export function* combinePixelSteps(size: number, lengths: readonly number[]): St
 }
 
 /** Median ranks RGBA sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, frameAlpha: readonly boolean[], raw: string, channels?: readonly boolean[]): Steps {
+export function* evaluateSequencePixelSteps(size: number, frameAlpha: readonly boolean[], raw: string, channels?: readonly boolean[], highDepth = false): Steps {
     const frames = frameAlpha.length, hasAlpha = frameAlpha.some(Boolean);
-    function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
-        const bytes = (yield { kind: "read", image, position, length })!;
+    function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array, Uint8Array | undefined> {
+        const input = (yield { kind: "read", highDepth, image, position, length })!;
+        const bytes = highDepth ? new Uint16Array(input.slice().buffer) : input;
         if (!hasAlpha || frameAlpha[image]) return bytes;
         // ImageMagick contributes zero for a channel absent from an input.
-        const data = new Uint8Array(bytes);
+        const data = bytes.slice();
         for (let offset = 3; offset < length; offset += 4) data[offset] = 0;
         return data;
     }
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
+    highDepth &&= operation === "mean";
     if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
         "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
         "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
@@ -143,7 +145,7 @@ export function* evaluateSequencePixelSteps(size: number, frameAlpha: readonly b
     let work = 0;
     for (let position = 0; position < size; position += window) {
         if (position % 16384 === 0) yield;
-        const length = Math.min(window, size - position), data = new Uint8Array(yield* read(0, position, length));
+        const length = Math.min(window, size - position), data = (yield* read(0, position, length)).slice();
         if (["and", "or", "xor"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
@@ -215,9 +217,10 @@ export function* evaluateSequencePixelSteps(size: number, frameAlpha: readonly b
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
+                else if (highDepth && average && (offset % 4 !== 3 || hasAlpha)) data[offset] = Math.round(values[offset]! / frames);
                 else if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : operation === "divide" ? values[offset]! / 257 : values[offset]!);
             }
         }
-        yield { kind: "write", position, data };
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }

@@ -7453,9 +7453,10 @@ export function runConvertCliSync(argv: readonly string[], files: Map<string, Ui
     return next.value;
 }
 
-function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target: string; args: (target: string) => string[] } | ImageMagickCliResult)[], void> {
-    const plans: ({ target: string; args: (target: string) => string[] } | ImageMagickCliResult)[] = [];
+function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target: string; identify: boolean; verbose: boolean; regardWarnings: boolean; args: (target: string) => string[] } | ImageMagickCliResult)[], void> {
+    const plans: ({ target: string; identify: boolean; verbose: boolean; regardWarnings: boolean; args: (target: string) => string[] } | ImageMagickCliResult)[] = [];
     let cooperativeWork = 63;
+    let identify = false, verbose = false, regardWarnings = false;
     let outFormatExt: string | undefined;
     let outDir: string | undefined;
     const opTokens: string[] = [];
@@ -7559,6 +7560,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
+        "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
@@ -7581,7 +7583,10 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             plans.push({ exitCode: 1, stdout: "", stderr: `mogrify: missing argument '${t}'\n` });
             break;
         }
-        if (t === "-format") {
+        if (t === "-identify" || t === "+identify") identify = t === "-identify";
+        else if (t === "-verbose" || t === "+verbose") verbose = t === "-verbose";
+        else if (t === "-regard-warnings" || t === "+regard-warnings") regardWarnings = t === "-regard-warnings";
+        else if (t === "-format") {
             const format = argv[++i]!;
             if (!extToImageFormat(format)) {
                 plans.push({ exitCode: 1, stdout: "", stderr: `mogrify: unrecognized image format '${format}'\n` });
@@ -7600,7 +7605,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             // Mogrify writes snapshots after all operations for the current input.
             const before = [...readSettings], after = [...opTokens, ...writeTokens];
             const directory = outDir, format = outFormatExt;
-            plans.push({ target: t, args(target) {
+            plans.push({ target: t, identify, verbose, regardWarnings, args(target) {
                 const baseName = target.slice(target.lastIndexOf("/") + 1);
                 const dot = baseName.lastIndexOf(".");
                 const stem = dot < 0 || dot === baseName.length - 1 ? baseName : baseName.slice(0, dot);
@@ -7613,25 +7618,34 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     return plans;
 }
 function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    const combined = { exitCode: 0, stdout: "", stderr: "" };
     for (const plan of yield* parseMogrifySteps(argv)) {
-        if ("exitCode" in plan) return plan;
+        if ("exitCode" in plan) return { ...plan, stdout: combined.stdout + plan.stdout, stderr: combined.stderr + plan.stderr };
         for (const target of yield* mogrifyTargets(plan.target, files.keys())) {
-            if (!files.has(target)) return { exitCode: 1, stdout: "", stderr: `mogrify: unable to open image '${target}': No such file or directory\n` };
-            const result = yield* runConvertCliSteps(plan.args(target), files, undefined, signal);
-            if (result.exitCode !== 0) return result;
+            if (!files.has(target)) return { ...combined, exitCode: 1, stderr: combined.stderr + `mogrify: unable to open image '${target}': No such file or directory\n` };
+            const args = plan.args(target);
+            if (plan.verbose) combined.stderr += runIdentifyCliSync([target], files, undefined, signal).stdout;
+            const result = yield* runConvertCliSteps(args, files, undefined, signal);
+            combined.stdout += result.stdout;
+            combined.stderr += result.stderr;
+            if (result.exitCode !== 0) return { ...combined, exitCode: result.exitCode };
+            if (plan.identify || plan.verbose) combined.stdout += runIdentifyCliSync([args.at(-1)!], files, undefined, signal).stdout;
+            if (plan.regardWarnings && result.stderr) combined.exitCode = 1;
         }
     }
-    return { exitCode: 0, stdout: "", stderr: "" };
+    return combined;
 }
 export async function runMogrifyCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, _stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
     if (files instanceof Map) return drainSteps(runMogrifyCliSteps(argv, files, _stdinBytes, signal), signal);
     const active = signal ?? new AbortController().signal;
+    const { stderr: errorSink, ...conversionInput } = files;
     let accounted = 0;
+    const combined = { exitCode: 0, stdout: "", stderr: "" };
     for (const plan of await drainSteps(parseMogrifySteps(argv), active)) {
         active.throwIfAborted();
         if ("exitCode" in plan) {
             if (files.stderr) await writeIdentifyText(files.stderr, plan.stderr, active);
-            return files.stderr ? { ...plan, stderr: "" } : plan;
+            return { ...combined, exitCode: plan.exitCode, stderr: combined.stderr + (files.stderr ? "" : plan.stderr) };
         }
         for (const name of await mogrifyFileTargets(plan.target, files.filesystem, files.cwd, active)) {
             const args = plan.args(name);
@@ -7644,7 +7658,11 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
             if (!exists) {
                 const stderr = `mogrify: unable to open image '${name}': No such file or directory\n`;
                 if (files.stderr) await writeIdentifyText(files.stderr, stderr, active);
-                return { exitCode: 1, stdout: "", stderr: files.stderr ? "" : stderr };
+                return { ...combined, exitCode: 1, stderr: combined.stderr + (files.stderr ? "" : stderr) };
+            }
+            if (plan.verbose) {
+                const report = await runIdentifyCli([name], { filesystem: files.filesystem, cwd: files.cwd, ...(files.stderr ? { stdout: files.stderr } : {}) }, undefined, active);
+                combined.stderr += report.stdout + report.stderr;
             }
             let current = 0;
             const target = resolvePath(files.cwd, name);
@@ -7655,16 +7673,25 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
             try {
                 const output = staging ? `${staging}/${target.slice(target.lastIndexOf("/") + 1)}` : undefined;
                 const conversionArgs = output ? [...args.slice(0, -1), output] : args;
-                const result = await runConvertCli(conversionArgs, { ...files, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
+                const result = await runConvertCli(conversionArgs, { ...conversionInput, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
                 accounted += current;
-                if (result.exitCode !== 0) return result;
+                combined.stdout += result.stdout;
+                if (files.stderr) await writeIdentifyText(files.stderr, result.stderr, active);
+                else combined.stderr += result.stderr;
+                if (result.exitCode !== 0) return { ...combined, exitCode: result.exitCode };
                 if (output) await files.filesystem.rename(output, target, { signal: active });
+                if (plan.identify || plan.verbose) {
+                    const report = await runIdentifyCli([args.at(-1)!], { filesystem: files.filesystem, cwd: files.cwd, ...(files.stdout ? { stdout: files.stdout } : {}), ...(errorSink ? { stderr: errorSink } : {}) }, undefined, active);
+                    combined.stdout += report.stdout;
+                    combined.stderr += report.stderr;
+                }
+                if (plan.regardWarnings && result.stderr) combined.exitCode = 1;
             } finally {
                 if (staging) await files.filesystem.rm(staging, { recursive: true, force: true });
             }
         }
     }
-    return { exitCode: 0, stdout: "", stderr: "" };
+    return combined;
 }
 export function runMogrifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runMogrifyCliSteps(argv, files, _stdinBytes, signal);

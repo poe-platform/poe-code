@@ -1391,12 +1391,17 @@ export function image2Ast(): MediaAstPlugin {
 
 // --- 9. SubRip (.srt) & WebVTT (.vtt) Subtitle ASTs ---
 
-function parseSubtitleTimecodeMs(raw: string): number {
+function parseSubtitleTimecodeMs(raw: string, format: "srt" | "webvtt"): number {
   const clean = raw.trim().replace(",", ".");
   const parts = clean.split(":");
   if (parts.length === 3) {
     const h = parseInt(parts[0] ?? "0", 10) || 0;
     const m = parseInt(parts[1] ?? "0", 10) || 0;
+    if (format === "srt") {
+      const [seconds, milliseconds] = (parts[2] ?? "0").split(".");
+      return (h * 3600 + m * 60 + (parseInt(seconds ?? "0", 10) || 0)) * 1000
+        + (parseInt(milliseconds ?? "0", 10) || 0);
+    }
     const sec = parseFloat(parts[2] ?? "0") || 0;
     return Math.round((h * 3600 + m * 60 + sec) * 1000);
   }
@@ -1467,8 +1472,8 @@ export function parseSubtitleDocument(
     const timingLine = lines[arrowLineIdx]!;
     const [leftRaw, rightWithSettings] = timingLine.split("-->");
     const rightRaw = (rightWithSettings ?? "").trim().split(/\s+/)[0] ?? "0";
-    const startMs = parseSubtitleTimecodeMs(leftRaw ?? "0");
-    const endMs = Math.max(startMs + 1, parseSubtitleTimecodeMs(rightRaw));
+    const startMs = parseSubtitleTimecodeMs(leftRaw ?? "0", format);
+    const endMs = Math.max(startMs + 1, parseSubtitleTimecodeMs(rightRaw, format));
     const cueText = lines.slice(arrowLineIdx + 1).join("\n").trim();
     if (!cueText) continue;
 

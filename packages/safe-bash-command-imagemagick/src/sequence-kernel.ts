@@ -55,8 +55,9 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear"): Steps {
+export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear"): Steps {
     const range = highDepth ? 65535 : 255;
+    const gray = lut.space === "b-w" || lut.space === "grey16";
     const level = Math.max(1, Math.floor(Math.cbrt(Math.min(lut.width, lut.height)))), edge = level * level;
     for (let position = 0; position < size; position += 16384) {
         yield;
@@ -64,7 +65,9 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
         const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
         for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 256 === 0) yield;
-            const red = data[offset]! / range * (edge - 1), green = data[offset + 1]! / range * (edge - 1), blue = data[offset + 2]! / range * (edge - 1);
+            // Native adopts the lookup colorspace without a luminance conversion:
+            // grayscale aliases all three input channels to the red sample.
+            const red = data[offset]! / range * (edge - 1), green = gray ? red : data[offset + 1]! / range * (edge - 1), blue = gray ? red : data[offset + 2]! / range * (edge - 1);
             const g = Math.floor(green), b = Math.floor(blue), values = [0, 0, 0, 0];
             const dy = interpolation === "nearest" ? Math.round(green - g) : green - g;
             const dz = interpolation === "nearest" ? Math.round(blue - b) : blue - b;

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createConvertCommand, runConvertCli } from "./index.js";
@@ -9,13 +9,24 @@ const base = "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAFElEQVQI12N0aDjAAA
 const identity = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAMAAADz0U65AAAAwFBMVEUAAABVAACqAAD/AAAAVQBVVQCqVQD/VQAAqgBVqgCqqgD/qgAA/wBV/wCq/wD//wAAAFVVAFWqAFX/AFUAVVVVVVWqVVX/VVUAqlVVqlWqqlX/qlUA/1VV/1Wq/1X//1UAAKpVAKqqAKr/AKoAVapVVaqqVar/VaoAqqpVqqqqqqr/qqoA/6pV/6qq/6r//6oAAP9VAP+qAP//AP8AVf9VVf+qVf//Vf8Aqv9Vqv+qqv//qv8A//9V//+q///////UZ2WPAAAAUElEQVQI12NgYGRiZmFlY2fg4OTi5uHl42cQEBQSFhEVE2eQkJSSlpGVk2dQUFRSVlFVU2fQ0NTS1tHV02cwMDQyNjE1M2ewsLSytrG1swcAu/gH4YyumyAAAAAASUVORK5CYII=";
 const changed = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAMAAADz0U65AAAAwFBMVEX///+q//9V//8A////qv+qqv9Vqv8Aqv//Vf+qVf9VVf8AVf//AP+qAP9VAP8AAP///6qq/6pV/6oA/6r/qqqqqqpVqqoAqqr/VaqqVapVVaoAVar/AKqqAKpVAKoAAKr//1Wq/1VV/1UA/1X/qlWqqlVVqlUAqlX/VVWqVVVVVVUAVVX/AFWqAFVVAFUAAFX//wCq/wBV/wAA/wD/qgCqqgBVqgAAqgD/VQCqVQBVVQAAVQD/AACqAABVAAAAAABVk+MwAAAAUElEQVQI12NgYGRiZmFlY2fg4OTi5uHl42cQEBQSFhEVE2eQkJSSlpGVk2dQUFRSVlFVU2fQ0NTS1tHV02cwMDQyNjE1M2ewsLSytrG1swcAu/gH4YyumyAAAAAASUVORK5CYII=";
 
+// The same thresholded hald:2 pixels encoded as one-bit gray and PNG24 RGB.
+const grayTable = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQAAAADsdIMmAAAAFElEQVQI12NgYKhnYGD4D8aMDP8BFXcDfoi7yFgAAAAASUVORK5CYII=";
+const rgbTable = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAIUlEQVQI12NgwAEYGRgY/v//z0A8YCRNOek6/v//j1MHAN20DvbpW93hAAAAAElFTkSuQmCC";
+
+for (const highDepth of [false, true])
 for (const mode of ["map", "command"] as const)
 it.each([
+  { lut: grayTable, channels: [], expected: [0, 0, 0, 255] },
+  { lut: rgbTable, channels: [], expected: [129, 129, 129, 255] },
   { lut: identity, channels: [], expected: [64, 128, 192, 255] },
   { lut: changed, channels: [], expected: [191, 127, 63, 255] },
   { lut: changed, channels: ["-channel", "R"], expected: [191, 128, 192, 255] },
-])(`${mode}: applies a 3D Hald lookup $expected`, async ({ lut, channels, expected }) => {
+])(`${mode}, highDepth=${highDepth}: applies a 3D Hald lookup $expected`, async ({ lut, channels, expected }) => {
   const files = new Map([["/base.png", Buffer.from(base, "base64")], ["/lut.png", Buffer.from(lut, "base64")]]);
+  if (highDepth) {
+    const image = decodeImage(files.get("/base.png")!);
+    files.set("/base.png", Buffer.from(encodeImage({ ...image, depth: "ushort", data16: Uint16Array.from(image.data, value => value * 257) }, { format: "png" }).data));
+  }
   const fs = new MemoryFileSystem();
   for (const [path, bytes] of files) await fs.writeFile(path, bytes);
   const args = ["/base.png", "/lut.png", ...channels, "-hald-clut", "/out.png"];

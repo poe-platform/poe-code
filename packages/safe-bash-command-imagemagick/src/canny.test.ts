@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import sharp, { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
@@ -39,5 +39,61 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             const value = Number(bit) * 255;
             return [value, value, value, 255];
         }));
+    });
+}
+
+// ImageMagick Q16-HDRI: line 2,5 29,5 and rectangle 8,10 21,19,
+// without antialiasing, gray 0x4020 on 0x4000, produce 138 white pixels.
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it(`detects sub-8-bit Canny contrast via ${mode}`, async () => {
+        const width = 32, height = 24;
+        const data16 = new Uint16Array(width * height * 4);
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+            const edge = y === 5 && x >= 2 && x <= 29
+                || (y === 10 || y === 19) && x >= 8 && x <= 21
+                || (x === 8 || x === 21) && y >= 10 && y <= 19;
+            const offset = (y * width + x) * 4;
+            data16.fill(edge ? 0x4020 : 0x4000, offset, offset + 3);
+            data16[offset + 3] = 65535;
+        }
+        const input = encodeImage({ width, height, data16, data: Uint8Array.from(data16, value => Math.round(value / 257)),
+            format: "png", density: 72, channels: 3, hasAlpha: false, space: "srgb", depth: "ushort" }, { format: "png" }).data;
+        expect(decodeImage(input).data16).toEqual(data16);
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["input.png", "-canny", "0x1+10%+30%", "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0 });
+        const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!).data;
+        const rows = [
+            "00000000000000000000000000000000",
+            "00000000000000000000000000000000",
+            "00000000000000000000000000000000",
+            "00111111111111111111111111111000",
+            "01000000000000000000000000000100",
+            "01000000000000000000000000000100",
+            "00111111111111111111111111111000",
+            "00000000000000000000000000000000",
+            "00000000011111111111000000000000",
+            "00000001100000000000110000000000",
+            "00000001000000000000010000000000",
+            "00000010011111111111001000000000",
+            "00000010010000000001001000000000",
+            "00000010010000000001001000000000",
+            "00000010010000000001001000000000",
+            "00000010010000000001001000000000",
+            "00000010010000000001001000000000",
+            "00000010011111111111001000000000",
+            "00000001000000000000010000000000",
+            "00000001100000000000110000000000",
+            "00000000011111111111000000000000",
+            "00000000000000000000000000000000",
+            "00000000000000000000000000000000",
+            "00000000000000000000000000000000",
+        ];
+        expect([...output]).toEqual([...rows.join("")].flatMap(bit => [Number(bit) * 255, Number(bit) * 255, Number(bit) * 255, 255]));
+        expect(Array.from(output).filter((value, i) => i % 4 === 0 && value === 255)).toHaveLength(138);
+        expect(Array.from(output).filter((value, i) => i % 4 === 0 && value === 0)).toHaveLength(630);
     });
 }

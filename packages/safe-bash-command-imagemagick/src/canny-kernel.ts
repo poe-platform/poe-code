@@ -33,9 +33,11 @@ export function* cannyPixelSteps(image: { width: number; height: number }, spec:
     for (let position = 0; position < size; position += 1024) {
         yield;
         const count = Math.min(1024, size - position);
-        const bytes = yield { kind: "read", position: position * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated Canny pixels");
-        for (let i = 0; i < count; i++) values[position + i] = 0.212656 * bytes[i * 4]! + 0.715158 * bytes[i * 4 + 1]! + 0.072186 * bytes[i * 4 + 2]!;
+        const bytes = yield { kind: "read", highDepth: true, position: position * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 8) throw new Error("Truncated Canny pixels");
+        const samples = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
+        // Preserve sub-8-bit contrast while keeping the existing gradient scale.
+        for (let i = 0; i < count; i++) values[position + i] = 0.212656 * (samples[i * 4]! / 257) + 0.715158 * (samples[i * 4 + 1]! / 257) + 0.072186 * (samples[i * 4 + 2]! / 257);
     }
     for (const vertical of [false, true]) {
         for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {

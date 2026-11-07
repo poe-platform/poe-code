@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { encodeWav } from "@poe-code/audio-ast";
 import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
-import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, parseMp4Boxes, concatBytes, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, parseMp4Boxes, concatBytes, parseMkv, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
   cloudflareWorkerLimits,
@@ -13,6 +14,26 @@ import {
   createFfprobeCommand,
   type FfmpegCommandsOptions
 } from "./index.js";
+
+it("copies Matroska PCM audio without changing its codec or packets", async () => {
+  const input = readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url));
+  const original = parseMkv(input).tracks.filter(track => track.type === "audio");
+  for (const map of ["0:a", "0"]) {
+    const vfs = createTestVfs({ "/input.mkv": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.mkv", "-map", map, "-c", "copy", "/out.mkv"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const copied = parseMkv(vfs.store.get("/out.mkv")!).tracks.filter(track => track.type === "audio");
+    assert.equal(copied.length, 2);
+    for (const [index, track] of copied.entries()) {
+      assert.equal(track.codecDescriptions[0]!.codecName, "pcm_s16le");
+      for (const key of ["sampleRate", "channels", "bitsPerSample"] as const) {
+        assert.equal(track.codecDescriptions[0]![key], original[index]!.codecDescriptions[0]![key]);
+      }
+      assert.deepEqual(track.samples.map(sample => Buffer.from(sample.data)),
+        original[index]!.samples.map(sample => Buffer.from(sample.data)));
+    }
+  }
+});
 
 describe("-abort_on empty_output", () => {
   for (const output of [["-f", "null", "-"], ["/out.wav"]]) {

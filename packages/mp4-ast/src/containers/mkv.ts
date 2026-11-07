@@ -563,8 +563,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       codecName = "flac";
       formatFourCC = "fLaC";
     } else if (info.codecId.includes("A_PCM")) {
-      codecName = "pcm_s16le";
-      formatFourCC = "sowt";
+      const floating = info.codecId === "A_PCM/FLOAT/IEEE";
+      const bigEndian = info.codecId === "A_PCM/INT/BIG";
+      const bits = info.bitDepth ?? 16;
+      codecName = `pcm_${floating ? "f" : "s"}${bits}${bits === 8 ? "" : bigEndian ? "be" : "le"}`;
+      formatFourCC = floating ? (bits === 64 ? "fl64" : "fl32") : bigEndian ? "twos" : "sowt";
     } else if (info.trackType === 17 || info.codecId.startsWith("S_TEXT")) {
       codecName = info.codecId.includes("WEBVTT") ? "webvtt" : "subrip";
       formatFourCC = codecName === "webvtt" ? "wvtt" : "tx3g";
@@ -780,7 +783,10 @@ export function serializeMkv(
       else if (desc?.codecName === "vorbis") codecId = "A_VORBIS";
       else if (desc?.codecName === "mp3") codecId = "A_MPEG/L3";
       else if (desc?.codecName === "flac") codecId = "A_FLAC";
-      else {
+      else if (desc?.codecName.startsWith("pcm_")) {
+        codecId = desc.codecName.startsWith("pcm_f") ? "A_PCM/FLOAT/IEEE"
+          : desc.codecName.endsWith("be") ? "A_PCM/INT/BIG" : "A_PCM/INT/LIT";
+      } else {
         codecId = "A_AAC";
         codecPrivate =
           desc?.esds?.decoderSpecificInfo ??

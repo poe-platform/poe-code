@@ -1,3 +1,4 @@
+import { pjsAst } from "./pjs.js";
 import { samiAst } from "./sami.js";
 import { lrcAst } from "./lrc.js";
 import { mpl2Ast } from "./mpl2.js";
@@ -2494,6 +2495,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     subviewerAst(),
     microdvdAst(),
     mpl2Ast(),
+    pjsAst(),
     assAst(),
     webvttAst(),
     ffmetadataAst(),

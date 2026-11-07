@@ -208,6 +208,7 @@ SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and
 LRC lyrics support explicit `-f lrc` and automatic detection, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp.
 
 TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text.
+PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing.
 MPL2 input (`-f mpl2`) reads decisecond cue timing and converts `|` to line breaks.
 
 SubViewer input (`-f subviewer` or detected `.sub` timecodes) preserves centisecond timing, skips information headers, and converts `[br]` to line breaks.

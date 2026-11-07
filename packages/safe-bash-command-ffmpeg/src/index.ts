@@ -946,6 +946,41 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
         return { track, expression: filters.slice(1).join(",") || "anull" };
       }
+      if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
+        const argument = filters[0].slice("amerge=".length);
+        const count = argument.startsWith("inputs=") ? argument.slice("inputs=".length) : argument;
+        if ((argument && Number(count) !== 2) || sources.length !== 2) {
+          throw new Error("amerge requires two inputs (inputs=2)");
+        }
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("amerge does not support preceding single-input filters");
+        }
+        const first = sources[0]!.track;
+        const a = first.decodedAudio;
+        const b = sources[1]!.track.decodedAudio;
+        if (!a || !b) throw new Error("amerge requires decoded PCM audio");
+        if (a.channels !== 1 || b.channels !== 1 ||
+          (a.channelMask !== undefined && a.channelMask !== 0 && a.channelMask !== 4) ||
+          (b.channelMask !== undefined && b.channelMask !== 0 && b.channelMask !== 4) ||
+          a.sampleRate !== b.sampleRate) {
+          throw new Error("amerge requires mono inputs with matching sample rates");
+        }
+        const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
+        budget.checkSamples(length);
+        budget.checkDuration(length / a.sampleRate);
+        budget.allocateMemory(length * 2 * 8);
+        const channelData = [new Float64Array(length), new Float64Array(length)];
+        for (let offset = 0; offset < length; offset += 4096) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+          channelData[0]!.set(a.channelData[0]!.subarray(offset, Math.min(offset + 4096, length)), offset);
+          channelData[1]!.set(b.channelData[0]!.subarray(offset, Math.min(offset + 4096, length)), offset);
+        }
+        return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+          decodedAudio: { ...a, channels: 2, channelMask: 3, channelData } },
+          expression: filters.slice(1).join(",") || "anull" };
+      }
       if (sources.length !== 1) throw new Error("Audio filter requires one input");
       const source = sources[0]!;
       return { track: source.track, expression: [source.expression, node.expression].filter(Boolean).join(",") };

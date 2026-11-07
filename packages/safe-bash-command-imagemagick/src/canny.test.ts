@@ -97,3 +97,30 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(Array.from(output).filter((value, i) => i % 4 === 0 && value === 0)).toHaveLength(630);
     });
 }
+
+// ImageMagick 7.1.2-31 Q16-HDRI: constant RGB with an opaque line on
+// transparent pixels yields white rows 0 and 9; disabling alpha yields all white.
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([false, true])(`includes active alpha in Canny smoothing via ${mode} (alpha off: %s)`, async (alphaOff) => {
+        const width = 32, height = 24;
+        const pixels = new Uint8Array(width * height * 4);
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+            const offset = (y * width + x) * 4;
+            pixels.fill(32, offset, offset + 3);
+            pixels[offset + 3] = y === 5 && x >= 2 && x <= 29 ? 255 : 0;
+        }
+        const input = await sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["input.png", ...(alphaOff ? ["-alpha", "off"] : []), "-canny", "0x1+10%+30%", "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0 });
+        const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!).data;
+        const expected = Array.from({ length: width * height }, (_, i) => {
+            const y = Math.floor(i / width), value = alphaOff || y === 0 || y === 9 ? 255 : 0;
+            return [value, value, value, 255];
+        }).flat();
+        expect([...output]).toEqual(expected);
+    });
+}

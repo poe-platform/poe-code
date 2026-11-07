@@ -1,7 +1,7 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Canny smoothing, directional suppression and connected hysteresis edges. */
-export function* cannyPixelSteps(image: { width: number; height: number }, spec: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* cannyPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, spec: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const [blur = "0x1", low = "10", high = "30"] = spec.split("+");
     const [radiusText = "0", sigmaText = "1"] = blur.split("x");
     const radius = Number(radiusText), sigma = Math.abs(Number(sigmaText));
@@ -30,6 +30,8 @@ export function* cannyPixelSteps(image: { width: number; height: number }, spec:
     for (let k = 0; k < weights.length; k++) weights[k]! /= total;
     const { width, height } = image, size = width * height;
     let values = new Float64Array(size), scratch = new Float64Array(size);
+    let alpha = image.hasAlpha ? new Float64Array(size) : undefined;
+    let alphaScratch = image.hasAlpha ? new Float64Array(size) : undefined;
     for (let position = 0; position < size; position += 1024) {
         yield;
         const count = Math.min(1024, size - position);
@@ -38,21 +40,28 @@ export function* cannyPixelSteps(image: { width: number; height: number }, spec:
         const samples = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
         // Preserve sub-8-bit contrast while keeping the existing gradient scale.
         for (let i = 0; i < count; i++) values[position + i] = 0.212656 * (samples[i * 4]! / 257) + 0.715158 * (samples[i * 4 + 1]! / 257) + 0.072186 * (samples[i * 4 + 2]! / 257);
+        if (alpha) for (let i = 0; i < count; i++) alpha[position + i] = samples[i * 4 + 3]! / 65535;
     }
+    // Opaque inputs retain the original smoothing arithmetic.
+    if (alpha?.every(value => value === 1)) alpha = alphaScratch = undefined;
     for (const vertical of [false, true]) {
         for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
             yield;
             for (let x = left; x < Math.min(width, left + 1024); x++) {
-                let sum = 0;
+                let sum = 0, coverage = 0;
                 for (let k = -half; k <= half; k++) {
                     const sx = vertical ? x : Math.max(0, Math.min(width - 1, x + k));
                     const sy = vertical ? Math.max(0, Math.min(height - 1, y + k)) : y;
-                    sum += values[sy * width + sx]! * weights[k + half]!;
+                    const index = sy * width + sx, weight = weights[k + half]! * (alpha ? alpha[index]! : 1);
+                    sum += values[index]! * weight;
+                    coverage += weight;
                 }
-                scratch[y * width + x] = sum;
+                scratch[y * width + x] = alpha ? sum / (Math.abs(coverage) < 1e-12 ? 1e-12 : coverage) : sum;
+                if (alphaScratch) alphaScratch[y * width + x] = coverage;
             }
         }
         [values, scratch] = [scratch, values];
+        [alpha, alphaScratch] = [alphaScratch, alpha];
     }
     const directions = new Uint8Array(size);
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {

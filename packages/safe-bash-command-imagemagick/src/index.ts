@@ -552,6 +552,7 @@ interface MagickState {
   connectedExcludeIds?: boolean;
   connectedMeanColor?: boolean;
   connectedAreaThreshold?: number;
+  connectedBackgroundId?: number;
   connectedKeep?: number[][];
   connectedRemove?: number[][];
   connectedRemoveColors?: RgbaColor[];
@@ -5811,6 +5812,7 @@ if (t === "-seed") {
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
             if (key === "trim:minsize") delete state.trimMinSize;
+            if (key === "connected-components:background-id") delete state.connectedBackgroundId;
             if (key === "connected-components:area-threshold") delete state.connectedAreaThreshold;
             if (key === "connected-components:keep-top") delete state.connectedKeepTop;
             if (key === "connected-components:sort") delete state.connectedSort;
@@ -5858,6 +5860,10 @@ if (t === "-seed") {
                     const ranges = parseMagickIndices(value);
                     if (key === "connected-components:keep") state.connectedKeep = ranges;
                     else state.connectedRemove = ranges;
+                } else if (key === "connected-components:background-id") {
+                    const id = Number(value);
+                    if (extra !== undefined || !value?.trim() || !Number.isSafeInteger(id) || id < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    state.connectedBackgroundId = id;
                 } else if (key === "connected-components:area-threshold") {
                     const threshold = Number(value);
                     if (extra !== undefined || !value?.trim() || !Number.isFinite(threshold) || threshold < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
@@ -6024,7 +6030,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedSort, state.connectedPerimeterThreshold, state.connectedExcludeHeader, state.connectedExcludeIds);
+                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedSort, state.connectedPerimeterThreshold, state.connectedExcludeHeader, state.connectedExcludeIds, state.connectedBackgroundId);
                 analysis.text += result.text;
                 return result.image;
             });
@@ -6503,7 +6509,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec));
-                return { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, state.background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                return { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, state.background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas };
             });
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
@@ -7428,10 +7434,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
-            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, sort = state.connectedSort, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, excludeIds = state.connectedExcludeIds;
+            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, sort = state.connectedSort, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, backgroundId = state.connectedBackgroundId, excludeIds = state.connectedExcludeIds;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold, keep, remove, removeColors, keepTop, sort, perimeterThreshold, excludeHeader, excludeIds);
+                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold, keep, remove, removeColors, keepTop, sort, perimeterThreshold, excludeHeader, excludeIds, backgroundId);
                 if (input.stdout) await writeIdentifyText(input.stdout, result.text, signal);
                 else analysis.text += result.text;
                 return result.image;
@@ -7881,7 +7887,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal));
-                return { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                return { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-rotate") {
             const angle = Number(tokens[++i] ?? 0), background = state.background;

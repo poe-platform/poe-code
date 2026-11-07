@@ -8238,7 +8238,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 
 interface MontageArguments {
     concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; defaultGeometry: boolean; thumbnail: string | undefined; title: string | undefined;
+    frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
@@ -8248,7 +8248,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let tileRows: number | undefined;
     let cellW: number | undefined = 120;
     let cellH: number | undefined = 120;
-    let defaultGeometry = true;
+    let geometry = "120x120>";
     let concatenate = false;
     let thumbnail: string | undefined;
     let title: string | undefined;
@@ -8273,8 +8273,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             thumbnail = argv[++i];
         }
         else if (t === "-geometry") {
-            defaultGeometry = false;
-            const g = parseMagickGeometry(argv[++i] ?? "+2+2");
+            geometry = argv[++i] ?? "+2+2";
+            const g = parseMagickGeometry(geometry);
             cellW = g.width;
             cellH = g.height;
             if (cellW !== undefined || cellH !== undefined) concatenate = false;
@@ -8331,7 +8331,6 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 state.gravity = "northwest";
                 cellW = cellH = undefined;
                 padX = padY = borderW = 0;
-                defaultGeometry = false;
             }
         }
         else if (t === "-title") {
@@ -8351,7 +8350,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title };
+    return { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -8366,7 +8365,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const parsed = yield* parseMontageArguments(argv);
     if ("exitCode" in parsed) return parsed;
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = parsed;
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
@@ -8538,8 +8537,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 if (cellW !== undefined || cellH !== undefined) {
                     const previous = thumb;
-                    const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`;
-                    thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel, true));
+                    thumb = (yield* applyMagickResizeSteps(thumb, geometry, state.kernel, true));
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
                 if (!frame && borderW > 0) {
@@ -8631,7 +8629,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
     if ("exitCode" in parsed) return parsed;
-    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, defaultGeometry, thumbnail, frame, matte, title } = parsed;
+    const { concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
@@ -8698,7 +8696,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true);
                         }
                         if (cellW !== undefined || cellH !== undefined) {
-                            const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}${defaultGeometry ? ">" : ""}`, state.kernel ?? "lanczos3");
+                            const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczos3");
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true);
                         }
                         if (!frame && borderW > 0) {

@@ -107,3 +107,33 @@ it.each([
     expect(Buffer.from(actual.data).equals(native.data)).toBe(true);
   }
 });
+
+for (const mode of ["buffered", "retained", "sync"] as const)
+it.each([
+  { modifier: ">", left: 1, top: 1, width: 2, height: 1 },
+  { modifier: "!", left: 0, top: 0, width: 4, height: 4 },
+  { modifier: "", left: 0, top: 1, width: 4, height: 2 },
+])(`preserves explicit tile resize modifiers via ${mode}: $modifier`, async ({ modifier, left, top, width, height }) => {
+  const bytes = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
+  const files = new Map([["input.png", bytes]]);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.png", bytes);
+  const options = ["-geometry", "+0+0", "-geometry", `4x4+0+0${modifier}`];
+  const args = [...options, "input.png", "png:-"];
+  const result = mode === "sync" ? runMontageCliSync(args, files)
+    : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+  expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+  const actual = decodeImage(result.stdoutBytes!);
+  expect([actual.width, actual.height]).toEqual([4, 4]);
+  const expected = new Uint8Array(4 * 4 * 4).fill(255);
+  for (let y = top; y < top + height; y++) for (let x = left; x < left + width; x++) expected.set([255, 0, 0, 255], (y * 4 + x) * 4);
+  expect(Array.from(actual.data)).toEqual(Array.from(expected));
+  if (nativeAvailable) {
+    const reference = spawnSync("magick", ["montage", "-font", font, ...options,
+      `inline:data:image/png;base64,${Buffer.from(bytes).toString("base64")}`, "png:-"]);
+    expect(reference.status, reference.stderr.toString()).toBe(0);
+    const native = decodeImage(reference.stdout);
+    expect([native.width, native.height]).toEqual([4, 4]);
+    expect(Array.from(native.data)).toEqual(Array.from(expected));
+  }
+});

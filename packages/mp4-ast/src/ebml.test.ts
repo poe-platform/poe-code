@@ -55,7 +55,19 @@ it("Matroska applies nanosecond DefaultDuration and BlockDuration in segment tic
       assert.equal(doc.tracks[0]!.timescale, 500);
       assert.equal(doc.tracks[0]!.samples[0]!.duration, blockDuration ?? 20);
       assert.equal(doc.durationSeconds, 0.1);
+      assert.equal(doc.tracks[0]!.defaultDurationNs, 40000000);
+      assert.equal(parseMkv(serializeMkv(doc)).tracks[0]!.defaultDurationNs, 40000000);
     }
+  }
+});
+
+it("Matroska preserves encoded default duration without inferring or rounding it", () => {
+  const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 2 }));
+  for (const defaultDurationNs of [undefined, 200000000, 33366667]) {
+    const tracks = source.tracks.map(track => ({ ...track, defaultDurationNs }));
+    const copied = parseMkv(serializeMkv({ ...source, tracks })).tracks[0]!;
+    assert.equal(copied.defaultDurationNs, defaultDurationNs);
+    assert.deepEqual(copied.samples.map(sample => sample.pts), [0, 200]);
   }
 });
 

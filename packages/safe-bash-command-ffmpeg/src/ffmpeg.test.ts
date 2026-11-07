@@ -17,7 +17,7 @@ import {
 } from "./index.js";
 
 for (const sync of [false, true]) {
-  it(`${sync ? "sync" : "async"} stream copy preserves VP9 alpha`, async () => {
+  it(`${sync ? "sync" : "async"} stream copy preserves VP9 alpha and default duration`, async () => {
     // Native FFmpeg: color=red@0.25:s=16x16:r=2:d=1,format=yuva420p,
     // -c:v libvpx-vp9 -threads 1. Decoded alpha: 63 (approximately 25% opacity).
     const input = new Uint8Array(readFileSync(new URL("../../mp4-ast/src/fixtures/vp9-alpha.webm", import.meta.url)));
@@ -32,6 +32,9 @@ for (const sync of [false, true]) {
     }
     const source = parseMkv(input).tracks[0]!;
     const copied = parseMkv(vfs.store.get("/out.webm")!).tracks[0]!;
+    assert.equal(copied.defaultDurationNs, 500_000_000);
+    assert.deepEqual(copied.samples.map(sample => sample.pts), [0, 500]);
+    assert.deepEqual(copied.samples.map(sample => sample.duration), [500, 500]);
     assert.equal(copied.codecDescriptions[0]!.alphaMode, 1);
     assert.equal(source.samples.length, 2);
     for (const [index, sample] of source.samples.entries()) {

@@ -130,7 +130,6 @@ interface MkvTrackInfo {
   channels?: number;
   bitDepth?: number;
   language?: string;
-  defaultDuration?: number;
   codecDelayNs?: number;
   seekPreRollNs?: number;
 }
@@ -351,7 +350,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             else if (tid.value === 0xd7) info.trackNumber = readEbmlUint(tPay);
             else if (tid.value === 0x73c5) info.uid = readEbmlUid(tPay);
             else if (tid.value === 0x536e) info.name = decodeUtf8(tPay).split("\0", 1)[0]!;
-            else if (tid.value === 0x23e383) info.defaultDuration = readEbmlUint(tPay);
+            else if (tid.value === 0x23e383) info.defaultDurationNs = readEbmlUint(tPay);
             else if (tid.value === 0x56aa) info.codecDelayNs = readEbmlUint(tPay);
             else if (tid.value === 0x56bb) info.seekPreRollNs = readEbmlUint(tPay);
             else if (tid.value === 0x83) info.trackType = readEbmlUint(tPay);
@@ -512,7 +511,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     for (let i = 0; i < rawSamples.length; i++) {
       const cur = rawSamples[i]!;
       const next = rawSamples[i + 1];
-      const defaultTicks = (info.defaultDuration ?? 0) / timecodeScale;
+      const defaultTicks = (info.defaultDurationNs ?? 0) / timecodeScale;
       const previous = rawSamples[i - 1];
       const inferred = next && next.dts > cur.dts ? next.dts - cur.dts
         : defaultTicks || previous?.duration || Math.max(1, timescale / (info.trackType === 1 ? 30 : 44100 / 1024));
@@ -644,6 +643,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       handlerType: type === "video" ? "vide" : type === "audio" ? "soun" : "sbtl",
       timescale,
       duration: totalTrackDur,
+      defaultDurationNs: info.defaultDurationNs,
       codecDelayNs: info.codecDelayNs,
       seekPreRollNs: info.seekPreRollNs,
       language: info.language ?? "eng",
@@ -831,6 +831,7 @@ export function serializeMkv(
       makeEbmlString(0x22b59c, trk.language || "und") // Language
     ];
     if (trk.metadata?.title) entryParts.push(makeEbmlString(0x536e, trk.metadata.title)); // Name
+    if (trk.defaultDurationNs !== undefined) entryParts.push(makeEbmlUint(0x23e383, trk.defaultDurationNs));
     if (trk.codecDelayNs !== undefined) entryParts.push(makeEbmlUint(0x56aa, trk.codecDelayNs));
     if (trk.seekPreRollNs !== undefined) entryParts.push(makeEbmlUint(0x56bb, trk.seekPreRollNs));
 

@@ -365,6 +365,8 @@ export interface MediaTrack {
   readonly duration: number; // in track timescale
   /** Matroska decoder delay and seek preroll, in nanoseconds. */
   readonly codecDelayNs?: number | undefined;
+  /** Matroska encoded default frame duration, in nanoseconds. */
+  readonly defaultDurationNs?: number | undefined;
   readonly seekPreRollNs?: number | undefined;
   readonly language: string; // e.g. 'und', 'eng'
   readonly enabled: boolean;

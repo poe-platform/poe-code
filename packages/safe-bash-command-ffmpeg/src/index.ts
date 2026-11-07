@@ -4042,6 +4042,43 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
+                      } else if (trimmed === "stereowiden" || trimmed.startsWith("stereowiden=")) {
+                        if (stretched.length !== 2) throw new Error("stereowiden: stereo input required");
+                        const options = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };
+                        const argument = trimmed.slice("stereowiden=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["delay", "feedback", "crossfeed", "drymix"][index] : option.slice(0, separator).trim();
+                          if (key !== "delay" && key !== "feedback" && key !== "crossfeed" && key !== "drymix") {
+                            throw new Error(`stereowiden: unsupported option ${key}`);
+                          }
+                          const value = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "stereowiden", {});
+                          const min = key === "delay" ? 1 : 0;
+                          const max = key === "delay" ? 100 : key === "feedback" ? 0.9 : key === "crossfeed" ? 0.8 : 1;
+                          if (!Number.isFinite(value) || value < min || value > max) {
+                            throw new Error(`stereowiden: ${key} must be in the range [${min}, ${max}]`);
+                          }
+                          options[key] = value;
+                        }
+                        const delay = Math.floor(origRate * Math.fround(options.delay) / 1000);
+                        const feedback = Math.fround(options.feedback);
+                        const crossfeed = Math.fround(options.crossfeed);
+                        const drymix = Math.fround(options.drymix);
+                        const output = stretched.map(channel => new Float32Array(channel.length));
+                        for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (i % 4096 === 0) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                          }
+                          for (let c = 0; c < 2; c++) {
+                            const opposite = stretched[1 - c]!;
+                            output[c]![i] = Math.fround(Math.fround(drymix * Math.fround(stretched[c]![i]!))
+                              - Math.fround(crossfeed * Math.fround(opposite[i]!)))
+                              - Math.fround(feedback * Math.fround(i >= delay ? opposite[i - delay]! : 0));
+                          }
+                        }
+                        stretched = output;
                       } else if (trimmed === "stereotools" || trimmed.startsWith("stereotools=")) {
                         if (stretched.length !== 2) throw new Error("stereotools: stereo input required");
                         const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];

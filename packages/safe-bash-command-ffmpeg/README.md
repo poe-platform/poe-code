@@ -89,6 +89,10 @@ The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 (`phasel`, `phaser`), and all `mode` channel conversions, including `lr>ms` and
 `ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
 Other stereotools options are rejected.
+`stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
+with delayed cross-channel subtraction. Delay is in milliseconds (1–100, default 20);
+feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.
+Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
 
 Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
 Numeric channel maps support mono/stereo output and reject unavailable input channels.

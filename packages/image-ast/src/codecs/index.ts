@@ -410,6 +410,7 @@ export function encodeImage(
     case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };
     case "png": {
       const data = encodePngImage(img, {
+        pngBitDepth: options.pngBitDepth,
         ...(options.forceOpaque ? { forceOpaque: true } : {}),
         ...(options.omitPngResolution ? { omitPngResolution: true } : {}),
         ...(options.compressionLevel !== undefined

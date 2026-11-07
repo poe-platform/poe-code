@@ -201,7 +201,9 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   }
   const gray = image.space === "b-w" || image.channels === 1 || image.channels === 2;
   const channels = gray ? alpha ? [0,3] : [0] : alpha ? [0,1,2,3] : [0,1,2];
-  const sampleBytes = image.storedData16 ? 2 : 1;
+  const sampleBytes = options.pngBitDepth ? options.pngBitDepth / 8 : image.storedData16 ? 2 : 1;
+  const source16 = sampleBytes === 2 ? image.storedData16 : undefined;
+  const sourceBytes = source16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);
   view.setUint32(0,width); view.setUint32(4,height); header[8] = sampleBytes * 8; header[9] = gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
   yield new Uint8Array(PNG_SIGNATURE);
@@ -231,11 +233,11 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
       const chunkPixels = 1024 / sampleBytes;
       for (let x=0;x<width;x+=chunkPixels) {
         const count = Math.min(chunkPixels,width-x);
-        const pixels = await read((image.storedData16?.position ?? position) + (y * width + x) * 4 * sampleBytes,count * 4 * sampleBytes);
-        const samples16 = image.storedData16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;
+        const pixels = await read((source16?.position ?? position) + (y * width + x) * 4 * sourceBytes,count * 4 * sourceBytes);
+        const samples16 = source16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;
         const raw = new Uint8Array(count * channels.length * sampleBytes);
         for(let index=0;index<count;index++) for(let channel=0;channel<channels.length;channel++) {
-          const value=(samples16 ?? pixels)[index*4+channels[channel]!]!;
+          const value=(samples16 ?? pixels)[index*4+channels[channel]!]! * (!samples16 && sampleBytes === 2 ? 257 : 1);
           for (let byte=0;byte<sampleBytes;byte++) {
             const offset = channel * sampleBytes + byte;
             const part = (value >>> ((sampleBytes - byte - 1) * 8)) & 255;

@@ -458,6 +458,7 @@ export type ImageAstNode =
 export interface OutputEncodeOptions {
   readonly forceOpaque?: boolean;
   readonly omitPngResolution?: boolean;
+  readonly pngBitDepth?: 8 | 16 | undefined;
   readonly consumeInput?: boolean;
   readonly format?: ImageFormat;
   readonly rawDepth?: string;

@@ -235,11 +235,13 @@ export function encodePngImage(
     readonly density?: number;
     readonly orientation?: number;
     readonly omitPngResolution?: boolean;
+    readonly pngBitDepth?: 8 | 16 | undefined;
     readonly forceOpaque?: boolean;
     readonly consumeInput?: boolean;
   }
 ): Uint8Array {
-  const { width, height, data, data16 } = img;
+  const { width, height, data } = img;
+  const data16 = options?.pngBitDepth === 16 ? img.data16 ?? Uint16Array.from(data, value => value * 257) : options?.pngBitDepth === 8 ? undefined : img.data16;
   const density = options?.density ?? img.density ?? 72;
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;

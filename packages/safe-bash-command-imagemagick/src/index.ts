@@ -8997,6 +8997,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let subimageSearch = false;
     let similarityThreshold = -1;
     let dissimilarityThreshold = 0.2;
+    let ssimRadius = 5;
+    let ssimSigma = 1.5;
     let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
     let colorWarnings = "";
@@ -9027,6 +9029,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (definition === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-define'\n" };
             const [key, value] = definition.split("=");
             if (key?.toLowerCase() === "png:color-type") pngColorType = value;
+            else if (key?.toLowerCase() === "compare:ssim-radius") ssimRadius = Number.parseFloat(value ?? "") || 0;
+            else if (key?.toLowerCase() === "compare:ssim-sigma") ssimSigma = Number.parseFloat(value ?? "") || 0;
             else if (key?.toLowerCase() === "phash:normalize") phashNormalize = ["true", "yes", "on", "1"].includes(value?.toLowerCase() ?? "");
             else if (key?.toLowerCase() === "phash:colorspaces") {
                 phashColorspaces = (value ?? "").toLowerCase().split(",").slice(0, 6).map(space => space.trim());
@@ -9195,7 +9199,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const similarityPosition = backend && diff && subimageSearch ? backend.storage.allocate(width * height * 4) : undefined;
     const similarityData = !backend && diff && subimageSearch ? new Uint8Array(width * height * 4) : undefined;
     const composeSrc = ["src", "source", "copy"].includes(compose);
-    const comparison=compareImageSteps(imgA,imgB,{metric,precision,phashColorspaces,phashNormalize,...(channels ? { channels } : {}),subimageSearch,similarityThreshold,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
+    const comparison=compareImageSteps(imgA,imgB,{metric,precision,ssimRadius,ssimSigma,phashColorspaces,phashNormalize,...(channels ? { channels } : {}),subimageSearch,similarityThreshold,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
         ...(!composeSrc && compose !== "over" && compose !== "srcover" ? { compose: function* (reference: Uint8Array, overlay: Uint8Array) {
             const canvas: RgbaImage = { width: reference.length / 4, height: 1, format: "png", channels: 4, depth: "uchar", density: state.density, space: "srgb", hasAlpha: true, data: new Uint8Array(reference.length).fill(255) };
             // Compare first composites the reference onto white, then makes that

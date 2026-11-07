@@ -11,6 +11,8 @@ export interface CompareOptions {
     readonly phashColorspaces?: readonly string[];
     readonly phashNormalize?: boolean;
     readonly precision?: number;
+    readonly ssimRadius?: number;
+    readonly ssimSigma?: number;
     readonly channels?: readonly number[];
     readonly metric: string;
     readonly fuzz: number;
@@ -270,7 +272,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             break;
         case "dssim":
         case "ssim": {
-            distortion = yield* compareSsimSteps(imgA, imgB, sharedChannels);
+            distortion = yield* compareSsimSteps(imgA, imgB, sharedChannels, options.ssimRadius, options.ssimSigma);
             metricStr = `${formatSignificantMetric(distortion * 65535, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
@@ -393,30 +395,46 @@ function formatSignificantMetric(n: number, precision = 6): string {
     return fixed.includes(".") ? fixed.replace(/\.?0+$/, "") : fixed;
 }
 
-// ImageMagick uses an 11x11 Gaussian window (sigma 1.5), edge virtual
+// ImageMagick defaults to an 11x11 Gaussian window (sigma 1.5), edge virtual
 // pixels, and independent channel statistics before averaging the similarity.
-function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, CompareSamples | undefined> {
+function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[], radius = 5, sigma = 1.5): Generator<CompareRequest | undefined, number, CompareSamples | undefined> {
     if (selected.length === 0) return 0;
     const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
-    const weights = Array.from({ length: 11 }, (_, i) => Math.exp(-((i - 5) ** 2) / (2 * 1.5 ** 2)));
+    sigma = Math.abs(sigma);
+    let half = radius >= 1 ? Math.floor(radius) : radius > 1e-12 ? Math.ceil(radius) : 1;
+    if (!Number.isFinite(radius) || !Number.isFinite(sigma)) throw new Error("Invalid SSIM window");
+    if (radius <= 1e-12 && sigma > 1e-12) {
+        let sum = 1 + 2 * Math.exp(-1 / (2 * sigma * sigma));
+        for (half = 2; half < 512; half++) {
+            yield;
+            const edge = Math.exp(-half * half / (2 * sigma * sigma));
+            sum += 2 * edge;
+            if (edge / (sum * sum) < 1 / 65535) { half--; break; }
+        }
+    }
+    // Leave room for at least two output pixels within each bounded read.
+    if (half > 511) throw new Error("SSIM radius exceeds 511");
+    const size = half * 2 + 1, chunk = 1024 - half * 2;
+    const weights = Array.from({ length: size }, (_, i) => sigma <= 1e-12
+        ? (i === half ? 1 : 0) : Math.exp(-((i - half) ** 2) / (2 * sigma ** 2)));
     const weightSum = weights.reduce((sum, value) => sum + value, 0);
     for (let i = 0; i < weights.length; i++)
         weights[i] = weights[i]! / weightSum;
     let similarity = 0;
     for (let y = 0; y < height; y++) {
         // Include the halo in the 1024-pixel read limit. Copy borrowed reads
-        // because all eleven rows must remain available across requests.
-        for (let left = 0; left < width; left += 1014) {
+        // because all window rows must remain available across requests.
+        for (let left = 0; left < width; left += chunk) {
             yield;
-            const count = Math.min(1014, width - left);
+            const count = Math.min(chunk, width - left);
             const rows: CompareSamples[][] = [[], []];
             const starts: number[] = [];
             for (const image of [0, 1] as const) {
                 const info = image === 0 ? imgA : imgB;
-                const start = Math.min(info.width - 1, Math.max(0, left - 5));
-                const end = Math.min(info.width, left + count + 5);
+                const start = Math.min(info.width - 1, Math.max(0, left - half));
+                const end = Math.min(info.width, left + count + half);
                 starts[image] = start;
-                for (let v = -5; v <= 5; v++) {
+                for (let v = -half; v <= half; v++) {
                     const row = Math.max(0, Math.min(info.height - 1, y + v));
                     const length = (end - start) * 4;
                     const data = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
@@ -426,12 +444,13 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
                 }
             }
             for (let x = left; x < left + count; x++) {
+                yield;
                 for (const channel of selected) {
                     let muA = 0, muB = 0, squareA = 0, squareB = 0, product = 0;
-                    for (let v = 0; v < 11; v++) {
-                        for (let u = 0; u < 11; u++) {
-                            const offsetA = (Math.max(0, Math.min(imgA.width - 1, x + u - 5)) - starts[0]!) * 4 + channel;
-                            const offsetB = (Math.max(0, Math.min(imgB.width - 1, x + u - 5)) - starts[1]!) * 4 + channel;
+                    for (let v = 0; v < size; v++) {
+                        for (let u = 0; u < size; u++) {
+                            const offsetA = (Math.max(0, Math.min(imgA.width - 1, x + u - half)) - starts[0]!) * 4 + channel;
+                            const offsetB = (Math.max(0, Math.min(imgB.width - 1, x + u - half)) - starts[1]!) * 4 + channel;
                             const a = rows[0]![v]![offsetA]! / 255, b = rows[1]![v]![offsetB]! / 255;
                             const weight = weights[u]! * weights[v]!;
                             muA += weight * a;

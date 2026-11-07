@@ -635,6 +635,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Maximum DASH timeline/list segments per representation; 0 retains all (default). */
+  readonly windowSize?: number | undefined;
   /** Target DASH segment duration in seconds (default: 5); video cuts at keyframes. */
   readonly segmentDuration?: number | undefined;
   /** DASH: combine each representation into one indexed MP4 resource. */

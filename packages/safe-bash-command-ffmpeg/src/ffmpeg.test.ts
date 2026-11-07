@@ -5299,3 +5299,62 @@ for (const value of [undefined, "", "2", "-1", "nope"]) {
     assert.equal(new TextDecoder().decode(vfs.store.get("/out/play.mpd")), "existing");
   });
 }
+
+it("keeps DASH window byte ranges aligned and fixed-duration templates unchanged", async () => {
+  const { serializeDashDocument } = await import("@poe-code/mp4-ast");
+  const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: false }));
+  const source = { ...base, tracks: base.tracks.map(t => ({ ...t, samples: t.samples.map((s, i) => ({ ...s, isKeyframe: i % 4 === 0 })) })) };
+  const full = serializeDashDocument(source, { segmentDuration: 1, singleFile: true });
+  const window = serializeDashDocument(source, { segmentDuration: 1, singleFile: true, windowSize: 2 });
+  const text = new TextDecoder().decode(window.manifest);
+  const all = new TextDecoder().decode(full.manifest);
+  const urls = (manifest: string) => manifest.split("<SegmentURL ").slice(1).map(s => s.split("/>")[0]);
+  assert.deepEqual(urls(text), urls(all).slice(-2));
+  assert.ok(text.includes(`<S t="${3 * source.tracks[0]!.timescale}" d="${source.tracks[0]!.timescale}" r="1"/>`), text);
+  assert.deepEqual(window.resources, full.resources);
+  const fixed = serializeDashDocument(source, { segmentDuration: 1, useTimeline: false, windowSize: 2 });
+  assert.ok(new TextDecoder().decode(fixed.manifest).includes('startNumber="1"/>'));
+  for (const windowSize of [-1, 1.5, NaN, Infinity, 2_147_483_648]) {
+    assert.throws(() => serializeDashDocument(source, { windowSize }), /Invalid DASH window size/);
+  }
+});
+
+for (const windowSize of [0, 1, 2, 20]) {
+  for (const useTemplate of ["0", "1"]) {
+    it(`bounds DASH manifest windows to ${windowSize} segments with use_template ${useTemplate}`, async () => {
+      const { parseStreamingManifest } = await import("@poe-code/mp4-ast");
+      const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+      const source = { ...base, tracks: base.tracks.map(t => ({ ...t,
+        timescale: t.type === "audio" ? t.timescale / 2 : t.timescale,
+        samples: t.samples.map((s, i) => ({ ...s, isKeyframe: t.type === "audio" || i % 4 === 0 }))
+      })) };
+      const vfs = createTestVfs({ "/in.mp4": serializeMp4(source) });
+      const args = ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-seg_duration", "1", "-use_template", useTemplate];
+      const full = await runCmd(createFfmpegCommand(), [...args, "/full.mpd"], vfs);
+      assert.equal(full.exitCode, 0, full.stderr);
+      const all = parseStreamingManifest(vfs.store.get("/full.mpd")!, "dash");
+      assert.notEqual(all.sequences[0]!.length, all.sequences[1]!.length);
+      const result = await runCmd(createFfmpegCommand(), [...args, "-window_size", String(windowSize), "/window.mpd"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const window = parseStreamingManifest(vfs.store.get("/window.mpd")!, "dash");
+      assert.deepEqual(window.sequences, all.sequences.map(sequence => windowSize ? sequence.slice(-windowSize) : sequence));
+      for (const sequence of window.sequences) {
+        for (const segment of sequence) {
+          assert.ok(vfs.store.has(`/${segment.initialization}`));
+          assert.ok(vfs.store.has(`/${segment.uri}`));
+        }
+      }
+    });
+  }
+}
+
+for (const value of ["-1", "1.5", "no", "2147483648", ""]) {
+  it(`rejects invalid DASH window_size ${value}`, async () => {
+    const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4() });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-c", "copy", "-window_size", value, "/out.mpd"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("window_size"), result.stderr);
+    assert.equal(vfs.store.has("/out.mpd"), false);
+  });
+}
+

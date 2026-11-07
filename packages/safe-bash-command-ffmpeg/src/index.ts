@@ -2112,6 +2112,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsTime = 2;
         let dashAdaptationSets: string | undefined;
         let dashSegmentDuration = 5;
+        let dashWindowSize = 0;
         let dashUseTemplate = true;
         let dashSingleFile = false;
         let dashRemoveAtExit = false;
@@ -2244,6 +2245,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             else if (arg === "-use_timeline") dashUseTimeline = value === "1";
             else if (arg === "-single_file") dashSingleFile = value === "1";
             else dashRemoveAtExit = value === "1";
+          } else if (arg === "-window_size") {
+            const value = args[++i] ?? "";
+            dashWindowSize = Number(value);
+            if (!value.trim() || !Number.isInteger(dashWindowSize) || dashWindowSize < 0 || dashWindowSize > 2_147_483_647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid window_size\n"), context.signal);
+              return { exitCode: 234 };
+            }
           } else if (arg === "-seg_duration") {
             dashSegmentDuration = parseHlsDuration(args[++i] ?? "");
             if (!Number.isFinite(dashSegmentDuration) || dashSegmentDuration < 0 || dashSegmentDuration > 9_223_372_036_854.775) {
@@ -3942,7 +3950,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { manifest, resources } = serializeDashDocument(workingDoc, { adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.mp4", segmentDuration: dashSegmentDuration, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
+              const { manifest, resources } = serializeDashDocument(workingDoc, { adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.mp4", segmentDuration: dashSegmentDuration, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               for (const [uri, bytes] of resources) {
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));

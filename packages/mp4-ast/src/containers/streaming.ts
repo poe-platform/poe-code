@@ -278,6 +278,8 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   const mediaName = options.mediaSegmentName ?? "chunk-stream$RepresentationID$-$Number%05d$.m4s";
   const [initAttribute, mediaAttribute] = [initName, mediaName].map(name =>
     name.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+  const windowSize = options.windowSize ?? 0;
+  if (!Number.isInteger(windowSize) || windowSize < 0 || windowSize > 2_147_483_647) throw new Error("Invalid DASH window size");
   const segmentDuration = options.segmentDuration ?? 5;
   if (!Number.isFinite(segmentDuration) || segmentDuration < 0) throw new Error("Invalid DASH segment duration");
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -299,6 +301,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       if ((track.type === "audio" || sample.isKeyframe) &&
           sample.dts - origin >= starts.length * segmentDuration * track.timescale) starts.push(i);
     }
+    const firstSegment = windowSize ? Math.max(0, starts.length - windowSize) : 0;
     const timeline: { time: number; duration: number; repeat: number }[] = [];
     let trackBytes = 0;
     let initialization = new Uint8Array();
@@ -340,6 +343,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const time = samples[0]?.dts ?? 0;
       const last = samples.at(-1);
       const duration = last ? last.dts + last.duration - time : track.duration;
+      if (segment < firstSegment) continue;
       const previous = timeline.at(-1);
       if (previous && previous.duration === duration && previous.time + previous.duration * (previous.repeat + 1) === time) previous.repeat++;
       else timeline.push({ time, duration, repeat: 0 });
@@ -352,9 +356,10 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     if (options.singleFile) {
       const uri = templateUri(options.singleFileName ?? "stream$RepresentationID$.mp4", String(index), 0, 0, bandwidth);
       let offset = initialization.length;
-      singleFileList = segments.map(segment => {
+      singleFileList = segments.map((segment, index) => {
         const start = offset;
         offset += segment.bytes.length;
+        if (index < firstSegment) return "";
         const indexSize = new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
         return `<SegmentURL mediaRange="${start}-${offset - 1}" indexRange="${start}-${start + indexSize - 1}"/>`;
       }).join("");
@@ -402,10 +407,10 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
       ] : []),
       options.singleFile ? singleFileList : options.useTemplate === false
-        ? `<SegmentList timescale="${track.timescale}"><Initialization sourceURL="${initializationUri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>${segmentTimeline}${mediaUris.map(uri => `<SegmentURL media="${uri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`).join("")}</SegmentList>`
+        ? `<SegmentList timescale="${track.timescale}"><Initialization sourceURL="${initializationUri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>${segmentTimeline}${mediaUris.slice(firstSegment).map(uri => `<SegmentURL media="${uri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`).join("")}</SegmentList>`
         : options.useTimeline === false
           ? `<SegmentTemplate timescale="1000000" duration="${Math.round(segmentDuration * 1_000_000)}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"/>`
-          : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1">${segmentTimeline}</SegmentTemplate>`,
+          : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="${firstSegment + 1}">${segmentTimeline}</SegmentTemplate>`,
       '</Representation>'
     ];
   }

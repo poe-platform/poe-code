@@ -89,3 +89,48 @@ it(`${mode}: preserves sub-byte contrast in 16-bit edge convolution`, async () =
     expect(samples.filter((value, i) => i % 4 === 0 && value > 0)).toHaveLength(72);
     expect(samples.filter((_, i) => i % 4 === 3).every(value => value === 65535)).toBe(true);
 });
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+for (const highDepth of [false, true])
+for (const virtualPixel of ["black", "white", "edge", "tile", "mirror", "background", "transparent"])
+it(`${mode}: edge uses ${virtualPixel} virtual pixels (highDepth=${highDepth})`, async () => {
+    const width = 32, height = 24, data = new Uint8Array(width * height * 4).fill(255);
+    const input = encodeImage({ width, height, data, ...(highDepth ? { data16: new Uint16Array(data.length).fill(65535) } : {}),
+        format: "png", density: 72, channels: 3, hasAlpha: false, space: "srgb", depth: highDepth ? "ushort" : "uchar" }, { format: "png" }).data;
+    const files = new Map([["/input.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const args = ["/input.png", "-background", "black", "-virtual-pixel", virtualPixel, "-edge", "1", "/out.png"];
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!);
+    const contrast = ["black", "background", "transparent"].includes(virtualPixel);
+    expect(output.data).toEqual(Uint8Array.from(data, (_, i) => {
+        if (i % 4 === 3) return 255;
+        const x = Math.floor(i / 4) % width, y = Math.floor(i / 4 / width);
+        return contrast && (x === 0 || x === width - 1 || y === 0 || y === height - 1) ? 255 : 0;
+    }));
+});
+
+// Native ImageMagick 7.1.2 Q16-HDRI, opaque 3x3 ramp, -edge 1.
+for (const retained of [false, true])
+it.each([
+    ["tile", [0, 0, 0, 0, 0, 90, 180, 255, 255]],
+    ["mirror", [0, 0, 0, 0, 0, 30, 60, 90, 120]],
+    ["gray", [0, 0, 0, 0, 0, 0, 0, 0, 0]],
+    ["background", [0, 0, 0, 0, 0, 114, 230, 234, 255]],
+] as const)(`edge matches native %s boundaries (retained=${retained})`, async (method, expected) => {
+    const data = Uint8Array.from({ length: 36 }, (_, i) => i % 4 === 3 ? 255 : (Math.floor(i / 4) + 1) * 10);
+    const input = encodeImage({ width: 3, height: 3, data, format: "png", density: 72, channels: 3,
+        hasAlpha: false, space: "srgb", depth: "uchar" }, { format: "png" }).data;
+    const files = new Map([["/input.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const result = await runMagickCli(["/input.png", "-background", "#202020", "-virtual-pixel", method, "-edge", "1", "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!);
+    expect([...output.data.filter((_, i) => i % 4 === 0)]).toEqual(expected);
+});

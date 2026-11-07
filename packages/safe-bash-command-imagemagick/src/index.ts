@@ -8455,7 +8455,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 rowHeights[row] = Math.max(rowHeights[row] ?? 0, image.height + padY * 2);
             }
             const pageSize = Math.min(n - pageStart, cols * rows);
-            if (variableCells && n > cols * rows && pageSize % cols) {
+            if (variableCells && pageSize % cols) {
                 rowWidths[Math.floor(pageSize / cols)]! += (cols - pageSize % cols) * (fastMetaDims[pageStart + pageSize - 1]!.width + padX * 2);
             }
             const canvasW = Math.max(1, variableCells ? Math.max(0, ...rowWidths) : cols * slotW);
@@ -8590,7 +8590,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 rowHeights[row] = Math.max(rowHeights[row] ?? 0, image.height + padY * 2);
             }
             const pageSize = Math.min(n - pageStart, cols * rows);
-            if (variableCells && n > cols * rows && pageSize % cols) {
+            if (variableCells && pageSize % cols) {
                 rowWidths[Math.floor(pageSize / cols)]! += (cols - pageSize % cols) * (images[pageStart + pageSize - 1]!.width + padX * 2);
             }
             const canvasW = Math.max(1, variableCells ? Math.max(0, ...rowWidths) : cols * slotW + (frame ? 4 : 0));
@@ -8755,7 +8755,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     rowHeight = Math.max(rowHeight, height + padY * 2);
                     if (index % cols === cols - 1 || index === pageSize - 1) {
                         await rowHeights.set(BigInt(Math.floor(index / cols)), BigInt(rowHeight));
-                        if (n > cols * rows && index === pageSize - 1) rowWidth += (cols - 1 - index % cols) * (width + padX * 2);
+                        if (index === pageSize - 1) rowWidth += (cols - 1 - index % cols) * (width + padX * 2);
                         canvasWidth = Math.max(canvasWidth, rowWidth);
                         canvasHeight += rowHeight;
                         rowWidth = rowHeight = 0;

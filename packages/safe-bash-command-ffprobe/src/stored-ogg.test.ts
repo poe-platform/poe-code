@@ -1,8 +1,9 @@
-import { oggAst, parseMp4, createSyntheticMp4 } from "@poe-code/mp4-ast";
+import { oggAst, probeOggStreamMetadata, probeOggFlacSource, parseMp4, createSyntheticMp4 } from "@poe-code/mp4-ast";
+import { parseAudio } from "@poe-code/audio-ast";
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
-import { createFfprobeCommand, formatFfprobeResult } from "./media.js";
+import { createFfprobeCommand, formatFfprobeResultChunks } from "./media.js";
 import { probe } from "./probe.js";
 
 const encoder=new TextEncoder();
@@ -34,7 +35,7 @@ async function run(bytes:Uint8Array,route:'retained'|'stream'|'stdin',writer='js
   const args=['-of',writer,'-show_streams','-show_format',...extra,route==='stdin'?'-':'/input.ogg'];
   const result=await createFfprobeCommand({limits:{maxOutputBytes:4000000}}).execute({command:'ffprobe',...createCommandArguments(args),cwd:'/',env:{},fs,signal:new AbortController().signal,stdin:route==='stdin'?chunks():{async *[Symbol.asyncIterator](){}},stdout:{async write(chunk){expect(closed).toBe(true);expect(opened-retired).toBeLessThanOrEqual(1);output+=decoder.decode(chunk,{stream:true});}},stderr:{async write(chunk){diagnostic+=new TextDecoder().decode(chunk);}}});
   output+=decoder.decode();expect(retired).toBe(opened);expect(await base.readdir('/')).toEqual([{name:'input.ogg',type:'file'}]);
-  if(invalid){expect(result.exitCode).toBe(1);expect(output).toBe('');}else{expect(result.exitCode,diagnostic).toBe(0);expect(output).toBe(general ? formatFfprobeResult(oggAst().probe(bytes,{filename:route==='stdin'?'-':'/input.ogg',showPackets:extra.includes('-show_packets'),showFrames:extra.includes('-show_frames')}),{printFormat:writer,showFormat:true,showStreams:true,showPackets:extra.includes('-show_packets'),showFrames:extra.includes('-show_frames'),showChapters:false,showPrograms:false,countFrames:extra.includes('-count_frames'),countPackets:extra.includes('-count_packets')}) : probe(bytes,args));}
+  if(invalid){expect(result.exitCode).toBe(1);expect(output).toBe('');}else{expect(result.exitCode,diagnostic).toBe(0);expect(output).toBe(general ? Array.from(formatFfprobeResultChunks(await probeOggFlacSource({ size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } }, {filename:route==='stdin'?'-':'/input.ogg',showPackets:extra.includes('-show_packets'),showFrames:extra.includes('-show_frames')}) ?? probeOggStreamMetadata(parseAudio(bytes).streams[0]!, bytes.length,{filename:route==='stdin'?'-':'/input.ogg',showPackets:extra.includes('-show_packets'),showFrames:extra.includes('-show_frames')}),{printFormat:writer,showFormat:true,showStreams:true,showPackets:extra.includes('-show_packets'),showFrames:extra.includes('-show_frames'),showChapters:false,showPrograms:false,countFrames:extra.includes('-count_frames'),countPackets:extra.includes('-count_packets')})).join('') : probe(bytes,args));}
 }
 for(const route of ['retained','stdin','stream'] as const)for(const writer of ['json','default','flat','compact','csv'])it(`streams Ogg metadata via ${route}/${writer}`,async()=>{
   await run(join(stream(7,['title='+ 'é😀,"x"\n'.repeat(11000),'title=','TITLE=other','artist=Alice','2=numeric'])),route,writer);

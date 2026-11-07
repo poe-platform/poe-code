@@ -1994,6 +1994,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
   const lines = text.split("\n");
   const tags: Record<string, string> = {};
+  const custom = new Map<string, string>();
   const chapters: Mp4Chapter[] = [];
 
   let section: "global" | "chapter" | "other" = "global";
@@ -2051,7 +2052,12 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         curTitle = val;
       }
     } else if (section === "global") {
-      tags[key.toLowerCase()] = val;
+      const normalizedKey = key.toLowerCase();
+      if (["title", "artist", "album", "date", "year", "comment", "genre", "encoder"].includes(normalizedKey)) {
+        tags[normalizedKey] = val;
+      } else {
+        custom.set(key, val);
+      }
     }
   }
   flushChapter();
@@ -2069,7 +2075,8 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       date: tags.date ?? tags.year,
       comment: tags.comment,
       genre: tags.genre,
-      encoder: tags.encoder
+      encoder: tags.encoder,
+      ...(custom.size > 0 ? { custom: Object.fromEntries(custom) } : {})
     },
     chapters: chapters.length > 0 ? chapters : undefined,
     byteLength: bytes.byteLength
@@ -2086,6 +2093,9 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   if (m.comment) lines.push(`comment=${m.comment}`);
   if (m.genre) lines.push(`genre=${m.genre}`);
   if (m.encoder) lines.push(`encoder=${m.encoder}`);
+  for (const [key, value] of Object.entries(m.custom ?? {})) {
+    lines.push(`${key}=${value}`);
+  }
 
   if (doc.chapters && doc.chapters.length > 0) {
     for (const ch of doc.chapters) {

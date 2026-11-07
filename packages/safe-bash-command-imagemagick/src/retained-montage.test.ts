@@ -27,8 +27,9 @@ it(`retains montage via ${entry} ${settings.join(" ")}`, async () => {
         const sink = { async write() {} };
         expect(await command.execute({ command: command.name, args: arguments_.args, argumentValues: arguments_, cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: sink, stderr: sink } as CommandContext)).toEqual({ exitCode: 0 });
     }
-    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
-    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["a", "b", "c", "out.png"]);
+    const outputs = settings.includes("-tile") ? ["out-0.png", "out-1.png"] : ["out.png"];
+    for (const output of outputs) expect(decodeImage(await fs.readFile("/" + output))).toEqual(decodeImage(files.get(output)!));
+    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["a", "b", "c", ...outputs]);
 });
 
 it.each([[], ["-geometry", "11x7+0+0"], ["-tile", "2x1", "-border", "2"]].map(settings => [settings]))("preserves animated input selections and generated operands: %j", async settings => {
@@ -37,8 +38,9 @@ it.each([[], ["-geometry", "11x7+0+0"], ["-tile", "2x1", "-border", "2"]].map(se
     await fs.writeFile("/input.gif", bytes);
     const files = new Map([["input.gif", bytes]]), args = [...settings, "input.gif[1,0]", "xc:red", "out.png"];
     expect(await runMontageCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runMontageCli(args, files));
-    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
-    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.gif", "out.png"]);
+    const outputs = settings.includes("-tile") ? ["out-0.png", "out-1.png"] : ["out.png"];
+    for (const output of outputs) expect(decodeImage(await fs.readFile("/" + output))).toEqual(decodeImage(files.get(output)!));
+    expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.gif", ...outputs]);
 });
 
 it("evicts layout and frame metadata while preserving every tile", async () => {

@@ -8400,6 +8400,32 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
     }
 
+    const stdoutChunks: Uint8Array[] = [];
+    function* writePage(canvas: RgbaImage, page: number, multiple: boolean): Generator<void, void, void> {
+        if (title !== undefined) {
+            const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
+            const caption = decodeImage(new TextEncoder().encode(svg));
+            const previous = canvas;
+            canvas = yield* extendImageSteps(canvas, { top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" });
+            detachRgbaBuffer(previous.data);
+            yield* blitOverRgbaInPlaceSteps(canvas, caption, 0, 0);
+            detachRgbaBuffer(caption.data);
+        }
+        if (!anyTransparent) {
+            (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
+            (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
+        }
+        const { format, path } = inferOutputFormat(outSpec, "png");
+        const outPath = path === "-" ? path : multiple || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path;
+        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
+        const { data: encoded } = encodeImage(canvas, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, consumeInput: true } as any);
+        detachRgbaBuffer(canvas.data);
+        if (outPath === "-" || outSpec.endsWith(":-")) {
+            stdoutChunks.push(encoded);
+            return;
+        }
+        files.set(outPath, encoded);
+    }
     let canvas: RgbaImage;
     let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
 
@@ -8411,68 +8437,74 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const maxThumbH = Math.max(0, ...fastMetaDims.map((d) => d.height));
         const slotW = maxThumbW + padX * 2;
         const slotH = maxThumbH + padY * 2;
-        const rowWidths: number[] = [], rowHeights: number[] = [];
-        if (variableCells) for (let index = 0; index < Math.min(fastMetaDims.length, cols * rows); index++) {
-            if (++cooperativeWork % 64 === 0) yield;
-            const row = Math.floor(index / cols), image = fastMetaDims[index]!;
-            rowWidths[row] = (rowWidths[row] ?? 0) + image.width + padX * 2;
-            rowHeights[row] = Math.max(rowHeights[row] ?? 0, image.height + padY * 2);
-        }
-        const canvasW = Math.max(1, variableCells ? Math.max(0, ...rowWidths) : cols * slotW);
-        const canvasH = Math.max(1, variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
-        let tileX = 0, tileY = 0;
-            if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
-        canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
-        for (let idx = 0; idx < inPaths.length; idx++) {
-            const col = idx % cols;
-            const row = Math.floor(idx / cols);
-            if (row >= rows) break;
-            const p = inPaths[idx]!;
-            const effW = fastMetaDims[idx]!.width;
-            const effH = fastMetaDims[idx]!.height;
-            if (variableCells && col === 0) {
-                tileX = 0;
-                if (row > 0) tileY += rowHeights[row - 1]!;
+        for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
+            const rowWidths: number[] = [], rowHeights: number[] = [];
+            if (variableCells) for (let index = 0; index < Math.min(n - pageStart, cols * rows); index++) {
+                if (++cooperativeWork % 64 === 0) yield;
+                const row = Math.floor(index / cols), image = fastMetaDims[pageStart + index]!;
+                rowWidths[row] = (rowWidths[row] ?? 0) + image.width + padX * 2;
+                rowHeights[row] = Math.max(rowHeights[row] ?? 0, image.height + padY * 2);
             }
-            const cellX = (variableCells ? tileX : col * slotW) + padX;
-            const cellY = (variableCells ? tileY : row * slotH) + padY;
-            const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - effW, (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - effH, state.gravity);
-            tileX += effW + padX * 2;
-            const dstX = cellX + off.left;
-            const dstY = cellY + off.top;
-            const rawTileBytes = files.get(p);
-            const directPng = rawTileBytes ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
-            if (directPng) {
-                if (directPng.anyTransparent) anyTransparent = true;
-                continue;
+            const pageSize = Math.min(n - pageStart, cols * rows);
+            if (variableCells && n > cols * rows && pageSize % cols) {
+                rowWidths[Math.floor(pageSize / cols)]! += (cols - pageSize % cols) * (fastMetaDims[pageStart + pageSize - 1]!.width + padX * 2);
             }
-            let loadedList: RgbaImage[] | undefined;
-            try {
-                loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
-            } catch (err) {
-                detachRgbaBuffer(canvas.data);
-                return {
-                    exitCode: 1,
-                    stdout: "",
-                    stderr: `montage: improper image header '${p}': ${(err as Error).message}\n`
-                };
-            }
-            const im = loadedList?.[0];
-            if (!im) {
-                detachRgbaBuffer(canvas.data);
-                return {
-                    exitCode: 1,
-                    stdout: "",
-                    stderr: `montage: unable to open image '${p}': No such file or directory\n`
-                };
-            }
-            if (!anyTransparent) {
-                for (let k = 3; k < im.data.length; k += 4) {
-                    if (im.data[k]! < 255) { anyTransparent = true; break; }
+            const canvasW = Math.max(1, variableCells ? Math.max(0, ...rowWidths) : cols * slotW);
+            const canvasH = Math.max(1, variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
+            let tileX = 0, tileY = 0;
+                if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
+            canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+            for (let idx = pageStart; idx < pageStart + pageSize; idx++) {
+                const col = (idx - pageStart) % cols;
+                const row = Math.floor((idx - pageStart) / cols);
+                const p = inPaths[idx]!;
+                const effW = fastMetaDims[idx]!.width;
+                const effH = fastMetaDims[idx]!.height;
+                if (variableCells && col === 0) {
+                    tileX = 0;
+                    if (row > 0) tileY += rowHeights[row - 1]!;
                 }
+                const cellX = (variableCells ? tileX : col * slotW) + padX;
+                const cellY = (variableCells ? tileY : row * slotH) + padY;
+                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - effW, (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - effH, state.gravity);
+                tileX += effW + padX * 2;
+                const dstX = cellX + off.left;
+                const dstY = cellY + off.top;
+                const rawTileBytes = files.get(p);
+                const directPng = rawTileBytes ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
+                if (directPng) {
+                    if (directPng.anyTransparent) anyTransparent = true;
+                    continue;
+                }
+                let loadedList: RgbaImage[] | undefined;
+                try {
+                    loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
+                } catch (err) {
+                    detachRgbaBuffer(canvas.data);
+                    return {
+                        exitCode: 1,
+                        stdout: "",
+                        stderr: `montage: improper image header '${p}': ${(err as Error).message}\n`
+                    };
+                }
+                const im = loadedList?.[0];
+                if (!im) {
+                    detachRgbaBuffer(canvas.data);
+                    return {
+                        exitCode: 1,
+                        stdout: "",
+                        stderr: `montage: unable to open image '${p}': No such file or directory\n`
+                    };
+                }
+                if (!anyTransparent) {
+                    for (let k = 3; k < im.data.length; k += 4) {
+                        if (im.data[k]! < 255) { anyTransparent = true; break; }
+                    }
+                }
+                yield* blitOverRgbaInPlaceSteps(canvas, im, dstX + borderW, dstY + borderW);
+                detachRgbaBuffer(im.data);
             }
-            yield* blitOverRgbaInPlaceSteps(canvas, im, dstX + borderW, dstY + borderW);
-            detachRgbaBuffer(im.data);
+            yield* writePage(canvas, pageStart / (cols * rows), n > cols * rows);
         }
     } else {
         const images: RgbaImage[] = [];
@@ -8536,78 +8568,65 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
         const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0);
         const slotH = maxThumbH + padY * 2 + (frame ? 34 : 0);
-        const rowWidths: number[] = [], rowHeights: number[] = [];
-        if (variableCells) for (let index = 0; index < Math.min(images.length, cols * rows); index++) {
-            if (++cooperativeWork % 64 === 0) yield;
-            const row = Math.floor(index / cols), image = images[index]!;
-            rowWidths[row] = (rowWidths[row] ?? 0) + image.width + padX * 2;
-            rowHeights[row] = Math.max(rowHeights[row] ?? 0, image.height + padY * 2);
-        }
-        const canvasW = Math.max(1, variableCells ? Math.max(0, ...rowWidths) : cols * slotW + (frame ? 4 : 0));
-        const canvasH = Math.max(1, variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
-        let tileX = 0, tileY = 0;
-        canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
-        for (let idx = 0; idx < images.length; idx++) {
-            if (++cooperativeWork % 64 === 0)
-                yield;
-            const col = idx % cols;
-            const row = Math.floor(idx / cols);
-            if (row >= rows)
-                break;
-            let im = images[idx]!;
-            images[idx] = undefined as unknown as RgbaImage;
-            if (!anyTransparent) {
-                for (let k = 3; k < im.data.length; k += 4) {
-                    if (im.data[k]! < 255) { anyTransparent = true; break; }
+        for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
+            const rowWidths: number[] = [], rowHeights: number[] = [];
+            if (variableCells) for (let index = 0; index < Math.min(n - pageStart, cols * rows); index++) {
+                if (++cooperativeWork % 64 === 0) yield;
+                const row = Math.floor(index / cols), image = images[pageStart + index]!;
+                rowWidths[row] = (rowWidths[row] ?? 0) + image.width + padX * 2;
+                rowHeights[row] = Math.max(rowHeights[row] ?? 0, image.height + padY * 2);
+            }
+            const pageSize = Math.min(n - pageStart, cols * rows);
+            if (variableCells && n > cols * rows && pageSize % cols) {
+                rowWidths[Math.floor(pageSize / cols)]! += (cols - pageSize % cols) * (images[pageStart + pageSize - 1]!.width + padX * 2);
+            }
+            const canvasW = Math.max(1, variableCells ? Math.max(0, ...rowWidths) : cols * slotW + (frame ? 4 : 0));
+            const canvasH = Math.max(1, variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
+            let tileX = 0, tileY = 0;
+            canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+            for (let idx = pageStart; idx < pageStart + pageSize; idx++) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const col = (idx - pageStart) % cols;
+                const row = Math.floor((idx - pageStart) / cols);
+                let im = images[idx]!;
+                images[idx] = undefined as unknown as RgbaImage;
+                if (!anyTransparent) {
+                    for (let k = 3; k < im.data.length; k += 4) {
+                        if (im.data[k]! < 255) { anyTransparent = true; break; }
+                    }
                 }
-            }
-            if (variableCells && col === 0) {
-                tileX = 0;
-                if (row > 0) tileY += rowHeights[row - 1]!;
-            }
-            const cellX = (variableCells ? tileX : col * slotW) + padX;
-            const cellY = (variableCells ? tileY : row * slotH) + padY;
-            if (frame) {
-                const previous = im;
-                im = yield* applyMagickRasterSteps(im, magickFramePixels(im, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte, 15, 15, 3, 3), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
-                detachRgbaBuffer(previous.data);
-                const shadow = yield* applyMagickRasterSteps(im, montageShadowPixels(im), signal, { width: im.width + 20, height: im.height + 20, hasAlpha: true });
-                yield* blitOverRgbaInPlaceSteps(shadow, im, 0, 0);
+                if (variableCells && col === 0) {
+                    tileX = 0;
+                    if (row > 0) tileY += rowHeights[row - 1]!;
+                }
+                const cellX = (variableCells ? tileX : col * slotW) + padX;
+                const cellY = (variableCells ? tileY : row * slotH) + padY;
+                if (frame) {
+                    const previous = im;
+                    im = yield* applyMagickRasterSteps(im, magickFramePixels(im, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte, 15, 15, 3, 3), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
+                    detachRgbaBuffer(previous.data);
+                    const shadow = yield* applyMagickRasterSteps(im, montageShadowPixels(im), signal, { width: im.width + 20, height: im.height + 20, hasAlpha: true });
+                    yield* blitOverRgbaInPlaceSteps(shadow, im, 0, 0);
+                    detachRgbaBuffer(im.data);
+                    yield* blitOverRgbaInPlaceSteps(canvas, shadow, cellX, cellY);
+                    detachRgbaBuffer(shadow.data);
+                    continue;
+                }
+                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - im.width, (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - im.height, state.gravity);
+                tileX += im.width + padX * 2;
+                // Concatenate offsets bordered tiles without enlarging the canvas.
+                yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
                 detachRgbaBuffer(im.data);
-                yield* blitOverRgbaInPlaceSteps(canvas, shadow, cellX, cellY);
-                detachRgbaBuffer(shadow.data);
-                continue;
             }
-            const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - im.width, (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - im.height, state.gravity);
-            tileX += im.width + padX * 2;
-            // Concatenate offsets bordered tiles without enlarging the canvas.
-            yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
-            detachRgbaBuffer(im.data);
+            yield* writePage(canvas, pageStart / (cols * rows), n > cols * rows);
         }
         images.length = 0;
     }
-    if (title !== undefined) {
-        const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
-        const caption = decodeImage(new TextEncoder().encode(svg));
-        const previous = canvas;
-        canvas = yield* extendImageSteps(canvas, { top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" });
-        detachRgbaBuffer(previous.data);
-        yield* blitOverRgbaInPlaceSteps(canvas, caption, 0, 0);
-        detachRgbaBuffer(caption.data);
-    }
-    if (!anyTransparent) {
-        (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
-        (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
-    }
-    const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-    if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
-    const { data: encoded } = encodeImage(canvas, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, consumeInput: true } as any);
-    detachRgbaBuffer(canvas.data);
-    if (outPath === "-" || outSpec.endsWith(":-")) {
-        return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encoded };
-    }
-    files.set(outPath, encoded);
-    return { exitCode: 0, stdout: "", stderr: "" };
+    const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
+    let offset = 0;
+    for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
+    return { exitCode: 0, stdout: "", stderr: "", ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
@@ -8705,77 +8724,89 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         }
         const n = fast ? paths.length : images.length, cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0), slotH = maxThumbH + padY * 2 + (frame ? 34 : 0);
-        const rowHeights = new IntegerTable(backend.storage, 128);
-        let canvasWidth = cols * slotW + (frame ? 4 : 0), canvasHeight = rows * slotH;
-        if (variableCells) {
-            canvasWidth = canvasHeight = 0;
-            let rowWidth = 0, rowHeight = 0;
-            for (let index = 0; index < Math.min(n, cols * rows); index++) {
-                await yieldTurn(signal);
-                const image = fast ? undefined : (await images.get(index))!;
-                const width = image ? image.width : Number(await sources.get(BigInt(index * 5 + 2)));
-                const height = image ? image.height : Number(await sources.get(BigInt(index * 5 + 3)));
-                rowWidth += width + padX * 2;
-                rowHeight = Math.max(rowHeight, height + padY * 2);
-                if (index % cols === cols - 1 || index === n - 1) {
-                    await rowHeights.set(BigInt(Math.floor(index / cols)), BigInt(rowHeight));
-                    canvasWidth = Math.max(canvasWidth, rowWidth);
-                    canvasHeight += rowHeight;
-                    rowWidth = rowHeight = 0;
+        const stdoutChunks: Uint8Array[] = [];
+        for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
+            const pageSize = Math.min(n - pageStart, cols * rows);
+            const rowHeights = new IntegerTable(backend.storage, 128);
+            let canvasWidth = cols * slotW + (frame ? 4 : 0), canvasHeight = rows * slotH;
+            if (variableCells) {
+                canvasWidth = canvasHeight = 0;
+                let rowWidth = 0, rowHeight = 0;
+                for (let index = 0; index < pageSize; index++) {
+                    await yieldTurn(signal);
+                    const image = fast ? undefined : (await images.get(pageStart + index))!;
+                    const width = image ? image.width : Number(await sources.get(BigInt((pageStart + index) * 5 + 2)));
+                    const height = image ? image.height : Number(await sources.get(BigInt((pageStart + index) * 5 + 3)));
+                    rowWidth += width + padX * 2;
+                    rowHeight = Math.max(rowHeight, height + padY * 2);
+                    if (index % cols === cols - 1 || index === pageSize - 1) {
+                        await rowHeights.set(BigInt(Math.floor(index / cols)), BigInt(rowHeight));
+                        if (n > cols * rows && index === pageSize - 1) rowWidth += (cols - 1 - index % cols) * (width + padX * 2);
+                        canvasWidth = Math.max(canvasWidth, rowWidth);
+                        canvasHeight += rowHeight;
+                        rowWidth = rowHeight = 0;
+                    }
                 }
             }
-        }
-        let tileX = 0, tileY = 0;
-        let canvas = await createStoredCanvas(Math.max(1, canvasWidth), Math.max(1, canvasHeight), state.background, backend, signal);
-        let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
-        for (let index = 0; index < n; index++) {
-            await yieldTurn(signal);
-            const col = index % cols, row = Math.floor(index / cols); if (row >= rows) break;
-            let image: StoredRgbaImage | undefined, directPng = false;
-            if (fast) {
-                const path = paths[index]!;
-                try { image = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index) }); }
-                catch (error) {
-                    signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
-                    return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${path}': ${(error as Error).message}\n` };
-                }
-                if (!image) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };
-                directPng = await sources.get(BigInt(index * 5 + 4)) === 1n;
-            } else image = (await images.get(index))!;
-            if (frame) {
-                image = await transformStoredMagickRaster(image, backend, magickFramePixels(image, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte, 15, 15, 3, 3), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
-                let shadow = await transformStoredMagickRaster(image, backend, montageShadowPixels(image), signal, { width: image.width + 20, height: image.height + 20, hasAlpha: true });
-                shadow = await compositeStoredMagick(shadow, image, backend, signal, 0, 0, "over", undefined, false, true);
-                canvas = await compositeStoredMagick(canvas, shadow, backend, signal, col * slotW + padX, row * slotH + padY, "over", undefined, false, true);
-                continue;
-            }
-            const width = fast ? Number(await sources.get(BigInt(index * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt(index * 5 + 3))) : image.height;
-            if (variableCells && col === 0) {
-                tileX = 0;
-                if (row > 0) tileY += Number(await rowHeights.get(BigInt(row - 1)));
-            }
-            const rowHeight = variableCells ? Number(await rowHeights.get(BigInt(row))) - padY * 2 : maxThumbH;
-            const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, rowHeight - height, state.gravity);
-            // Concatenate offsets bordered tiles without enlarging the canvas.
-            const x = (variableCells ? tileX : col * slotW) + (concatenate ? borderW : 0) + padX + offset.left, y = (variableCells ? tileY : row * slotH) + (concatenate ? borderW : 0) + padY + offset.top;
-            tileX += width + padX * 2;
-            if (!anyTransparent) for (let start = 0; start < image.width * image.height * 4; start += 16384) {
+            let tileX = 0, tileY = 0;
+            let canvas = await createStoredCanvas(Math.max(1, canvasWidth), Math.max(1, canvasHeight), state.background, backend, signal);
+            let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
+            for (let index = 0; index < pageSize; index++) {
                 await yieldTurn(signal);
-                const bytes = await backend.storage.read(image.position + start, Math.min(16384, image.width * image.height * 4 - start));
-                for (let k = 3; k < bytes.length; k += 4) if (bytes[k]! < 255) { anyTransparent = true; break; }
-                if (anyTransparent) break;
+                const col = index % cols, row = Math.floor(index / cols);
+                let image: StoredRgbaImage | undefined, directPng = false;
+                if (fast) {
+                    const path = paths[pageStart + index]!;
+                    try { image = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(pageStart + index) }); }
+                    catch (error) {
+                        signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
+                        return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${path}': ${(error as Error).message}\n` };
+                    }
+                    if (!image) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };
+                    directPng = await sources.get(BigInt((pageStart + index) * 5 + 4)) === 1n;
+                } else image = (await images.get(pageStart + index))!;
+                if (frame) {
+                    image = await transformStoredMagickRaster(image, backend, magickFramePixels(image, maxThumbW + 30, maxThumbH + 30, state.borderColor, matte, 15, 15, 3, 3), signal, { width: maxThumbW + 30, height: maxThumbH + 30, hasAlpha: true });
+                    let shadow = await transformStoredMagickRaster(image, backend, montageShadowPixels(image), signal, { width: image.width + 20, height: image.height + 20, hasAlpha: true });
+                    shadow = await compositeStoredMagick(shadow, image, backend, signal, 0, 0, "over", undefined, false, true);
+                    canvas = await compositeStoredMagick(canvas, shadow, backend, signal, col * slotW + padX, row * slotH + padY, "over", undefined, false, true);
+                    continue;
+                }
+                const width = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 3))) : image.height;
+                if (variableCells && col === 0) {
+                    tileX = 0;
+                    if (row > 0) tileY += Number(await rowHeights.get(BigInt(row - 1)));
+                }
+                const rowHeight = variableCells ? Number(await rowHeights.get(BigInt(row))) - padY * 2 : maxThumbH;
+                const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, rowHeight - height, state.gravity);
+                // Concatenate offsets bordered tiles without enlarging the canvas.
+                const x = (variableCells ? tileX : col * slotW) + (concatenate ? borderW : 0) + padX + offset.left, y = (variableCells ? tileY : row * slotH) + (concatenate ? borderW : 0) + padY + offset.top;
+                tileX += width + padX * 2;
+                if (!anyTransparent) for (let start = 0; start < image.width * image.height * 4; start += 16384) {
+                    await yieldTurn(signal);
+                    const bytes = await backend.storage.read(image.position + start, Math.min(16384, image.width * image.height * 4 - start));
+                    for (let k = 3; k < bytes.length; k += 4) if (bytes[k]! < 255) { anyTransparent = true; break; }
+                    if (anyTransparent) break;
+                }
+                canvas = await compositeStoredMagick(canvas, image, backend, signal, x + (fast ? borderW : 0), y + (fast ? borderW : 0), "over", undefined, false, true, directPng);
             }
-            canvas = await compositeStoredMagick(canvas, image, backend, signal, x + (fast ? borderW : 0), y + (fast ? borderW : 0), "over", undefined, false, true, directPng);
+            if (title !== undefined) {
+                const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
+                const caption = await decodeStoredMagickSvg(svg, 72, backend, signal);
+                canvas = await transformStoredImage(canvas, backend.storage, { kind: "extend", top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
+                canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
+            }
+            if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
+            const { format, path } = inferOutputFormat(outSpec, "png");
+            const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path;
+            const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+            if (stdoutBytes) stdoutChunks.push(stdoutBytes);
         }
-        if (title !== undefined) {
-            const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
-            const caption = await decodeStoredMagickSvg(svg, 72, backend, signal);
-            canvas = await transformStoredImage(canvas, backend.storage, { kind: "extend", top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
-            canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
-        }
-        if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
-        const { format, path } = inferOutputFormat(outSpec, "png"), stdoutBytes = await backend.publish(canvas, path, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
-        return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
+        if (n > cols * rows) await backend.publishPending();
+        const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
+        let offset = 0;
+        for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
+        return { exitCode: 0, stdout: "", stderr: "", ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

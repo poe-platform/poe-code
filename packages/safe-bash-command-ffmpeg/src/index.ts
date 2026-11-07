@@ -1554,6 +1554,7 @@ export function evalSyncFfmpeg(
     }
 
     let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
+    if (workingDoc.tracks.length === 0) return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
       (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id);
@@ -2796,10 +2797,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
               }
               const filteredTracks = selectedTracks.map(entry => entry.track);
-              if (mapped && filteredTracks.length === 0) {
-                await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
-                return { exitCode: 234 };
-              }
               if (!mapped) {
                 // Ignored optional maps leave automatic video/audio selection enabled.
                 const tracks = selectAutomaticAudio(loadedDocs).flatMap(doc => doc.tracks);
@@ -2823,6 +2820,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }, context.signal);
             }
 
+            if (workingDoc.tracks.length === 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
+              return { exitCode: 234 };
+            }
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
             if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
               (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id);

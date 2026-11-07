@@ -3356,6 +3356,51 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = output;
+                      } else if (trimmed === "adelay" || trimmed.startsWith("adelay=")) {
+                        let delays = "";
+                        let all = false;
+                        for (const [index, option] of trimmed.slice("adelay=".length).split(":").entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["delays", "all"][index] : option.slice(0, separator).trim();
+                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          if (key === "delays") delays = value;
+                          else if (key === "all") {
+                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
+                              throw new Error("adelay: invalid all option");
+                            }
+                            all = ["1", "true", "yes", "on"].includes(value);
+                          } else throw new Error(`adelay: unsupported option ${key}`);
+                        }
+                        const values = delays.split("|");
+                        const offsets = stretched.map((_, channel) => {
+                          const value = values[channel] ?? (all ? values.at(-1)! : "0");
+                          const samples = value.endsWith("S");
+                          const seconds = value.endsWith("s");
+                          const number = samples || seconds ? value.slice(0, -1) : value;
+                          const delay = Number(number);
+                          // Native recognizes unit suffixes after an integer; fractional
+                          // time values take the millisecond path with float arithmetic.
+                          const integer = [...number].every(char => char >= "0" && char <= "9");
+                          const offset = samples && integer ? delay
+                            : Math.trunc(Math.fround(Math.fround(Math.fround(delay) * origRate) / (seconds && integer ? 1 : 1000)));
+                          if (!number.trim() || !Number.isFinite(delay) || delay < 0 || !Number.isSafeInteger(offset)) {
+                            throw new Error(`adelay: invalid delay ${value}`);
+                          }
+                          return offset;
+                        });
+                        const length = (stretched[0]?.length ?? 0) + Math.max(0, ...offsets);
+                        budget.checkDuration(length / origRate);
+                        budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                        stretched = await mapWork(stretched, async (channel, c) => {
+                          const output = new Float32Array(length);
+                          for (let start = 0; start < channel.length; start += 16384) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                            output.set(channel.subarray(start, start + 16384), offsets[c]! + start);
+                          }
+                          return output;
+                        }, context.signal);
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
                         const tempo = parseFilterExpression(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument, "atempo", {});

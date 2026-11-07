@@ -16,6 +16,50 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("adelay", () => {
+  const left = [1000, 2000, 3000, 4000];
+  const right = [-4000, -3000, -2000, -1000];
+  for (const [argument, delays] of [
+    ["0S|1S", [0, 1]], ["1S:all=1", [1, 1]],
+    ["1S", [1, 0]], ["delays=2S|1S:all=0", [2, 1]],
+    ["0.125|0.25", [1, 2]], ["0.000125s|0S", [0, 0]], ["1s|0S", [8000, 0]],
+    ["0S|0S|100S", [0, 0]], ["0S|1S,volume=0.5", [0, 1]]
+  ] as const) {
+    it(`preserves samples and pads each channel for ${argument}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+        channels: [left, right].map(channel => Float64Array.from(channel, value => value / 32768)) }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", `adelay=${argument}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channelData.length, 2);
+      for (const [channel, samples] of [left, right].entries()) {
+        const expected = new Array<number>(4 + Math.max(...delays)).fill(0);
+        samples.forEach((value, index) => { expected[index + delays[channel]!] = value * (argument.includes("volume") ? 0.5 : 1); });
+        assert.deepEqual(Array.from(audio.channelData[channel]!, value => Math.round(value * 32768)), expected);
+      }
+    });
+  }
+  for (const argument of ["-1S", "NaNS", "Infinity", "1S:all=bogus", "1S:unknown=1"]) {
+    it(`rejects ${argument} without replacing output`, async () => {
+      const original = new Uint8Array([1, 2, 3]);
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }), "/out.wav": original });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `adelay=${argument}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.deepEqual(vfs.store.get("/out.wav"), original);
+    });
+  }
+  for (const limits of [{ maxDurationSeconds: 1 }, { maxMemoryBytes: 65536 }]) {
+    it(`bounds delay allocation with ${JSON.stringify(limits)}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }) });
+      const result = await runCmd(createFfmpegCommand({ limits }), ["-i", "/in.wav", "-af", "adelay=80000S", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("exceeds") || result.stderr.includes("limit"), result.stderr);
+      assert.equal(vfs.store.has("/out.wav"), false);
+    });
+  }
+});
+
 for (const sync of [false, true]) {
   it(`${sync ? "sync" : "async"} stream copy preserves VP9 alpha and default duration`, async () => {
     // Native FFmpeg: color=red@0.25:s=16x16:r=2:d=1,format=yuva420p,

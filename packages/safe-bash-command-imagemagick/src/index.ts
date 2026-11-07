@@ -1380,7 +1380,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
             }
         }
     }
-    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
+    const virtualCanvas = magickResizeCanvas(img, outW, outH);
+    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true, ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -6963,7 +6964,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             }
         }
     }
-    const virtualCanvas = token === "-chop" ? magickResizeCanvas(image, width, height) : undefined;
+    const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
     return { ...image, position, width, height, ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }

@@ -46,3 +46,4 @@ export { default } from "./sharp.js";
 export { decodePngToCanvas } from "./codecs/png.js";
 
 export {decodeTiffToStorage} from "./codecs/tiff-input-storage.js";
+export { apngSteps, blendApngPixels, type ApngFrame } from "./codecs/apng-input.js";

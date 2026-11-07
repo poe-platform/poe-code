@@ -1,3 +1,4 @@
+import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { regionPixelSteps, type Region } from "./region.js";
@@ -4514,6 +4515,16 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (lower === "null:") {
         return yield* applyMod([(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }))]);
     }
+    if (lower.startsWith("apng:")) {
+        const path = baseToken.slice(5), bytes = path === "-" ? stdinBytes : files.get(path);
+        if (!bytes) return undefined;
+        const frames = yield* decodeApngSteps(bytes), selected: RgbaImage[] = [];
+        for (const page of selectedInputPages(pageSpec, frames.length)) {
+            const frame = frames[page]!;
+            selected.push(Object.assign(frame, { [magickInput]: { filePath: path, byteLen: bytes.length, originalWidth: frame.width, originalHeight: frame.height, sceneIdx: page } }));
+        }
+        return yield* applyMod(selected);
+    }
     const rgb = lower.startsWith("rgb:");
     let cleanToken = rgb ? baseToken.slice(4) : baseToken;
     const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(cleanToken);
@@ -8769,6 +8780,23 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
   if(generated)image=await backend.retain(generated);
   else{
+   if (lower.startsWith("apng:")) {
+    const path = baseToken.slice(5);
+    const consume = async (source: ImageByteSource) => {
+     const frames: StoredRgbaImage[] = [];
+     await readApng(source, backend.storage, signal, async (frame, index) => {
+      frames.push(Object.assign(frame, { [magickInput]: { filePath: path, byteLen: source.size, originalWidth: frame.width, originalHeight: frame.height, sceneIdx: index } }));
+     });
+     for (const page of selectedInputPages(pageSpec, frames.length)) {
+      image = await finish(frames[page]!);
+      await readOptions.visit?.(image);
+      if (!readOptions.visit && !readOptions.lastPage) break;
+     }
+    };
+    if (readOptions.source) await consume(readOptions.source);
+    else if (readOptions.source !== null) await backend.read(path, consume);
+    return image;
+   }
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
    if(readOptions.visit){
     await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame,configured,metadata,byteLength)=>{image=await finish(Object.assign(frame,{[magickInput]:{filePath:path,byteLen:byteLength,originalWidth:metadata?.width??frame.width,originalHeight:metadata?.height??frame.height,sceneIdx:configured.page??0}}));await readOptions.visit!(image);},readOptions.source);

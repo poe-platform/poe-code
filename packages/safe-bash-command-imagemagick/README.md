@@ -20,6 +20,8 @@ console.log(info.stdout); // PNG 60x40
 
 BMP output defaults to a 124-byte header. Use `BMP2:out.bmp` or `BMP3:out.bmp` for 12-byte or 40-byte headers; `-define bmp:format=bmp2|bmp3|bmp4` also selects the version. Coder prefixes take precedence over the define. Use `-define bmp:subtype=RGB565|RGB555` for opaque 16-bit BMP output or `ARGB4444|ARGB1555` for 16-bit output with alpha. Indexed BMP output supports `-compress RLE` (8-bit BI_RLE8) and `-compress None`; BMP2 remains uncompressed.
 
+Use `APNG:input.apng` to read all animation frames with their delays, blending and disposal; for example, `magick APNG:input.apng out.gif` or `magick APNG:input.apng -append strip.png`. An unprefixed PNG input still reads only its default image.
+
 Output parent directories must already exist, including directories selected with `mogrify -path`. Mogrify expands quoted filename patterns (`*`, `?`, and character classes such as `[ab]`) against the command filesystem, including literal SDK arguments. Unmatched patterns fail; parent directory names remain literal.
 
 Conversion accepts `-quiet` to suppress subsequent warnings and `+quiet` to restore them; errors remain visible. `-regard-warnings` and `+regard-warnings` are accepted, and an empty `-trim` still writes its 1×1 output and succeeds.

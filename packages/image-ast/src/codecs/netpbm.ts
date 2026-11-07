@@ -433,6 +433,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let tileOffsets: number[] = [];
   let tileByteCounts: number[] = [];
   let samplesPerPixel = 4;
+  let extraSample: number | undefined;
   let planar = false;
   let rowsPerStrip = 0;
   let predictor = 1;
@@ -466,6 +467,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 323 && first > 0) tileLength = first;
     else if (tag === 324 && vals.length > 0) tileOffsets = vals;
     else if (tag === 325 && vals.length > 0) tileByteCounts = vals;
+    else if (tag === 338) extraSample = first;
     else if (tag === 347) {
       const count = view.getUint32(p + 4, le);
       const valOff = count <= 4 ? p + 8 : view.getUint32(p + 8, le);
@@ -617,6 +619,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     return combined[base] ?? 0;
   };
 
+  const hasAlpha = (samplesPerPixel === 2 || samplesPerPixel === 4) && (extraSample === undefined || extraSample === 1 || extraSample === 2);
   const rgba = new Uint8Array(width * height * 4);
   for (let i = 0; i < width * height; i++) {
     if (samplesPerPixel === 1) {
@@ -632,12 +635,16 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
       rgba[i * 4] = g;
       rgba[i * 4 + 1] = g;
       rgba[i * 4 + 2] = g;
-      rgba[i * 4 + 3] = readSample8(i, 1);
+      rgba[i * 4 + 3] = hasAlpha ? readSample8(i, 1) : 255;
     } else {
       rgba[i * 4] = readSample8(i, 0);
       rgba[i * 4 + 1] = readSample8(i, 1);
       rgba[i * 4 + 2] = readSample8(i, 2);
-      rgba[i * 4 + 3] = samplesPerPixel >= 4 ? readSample8(i, 3) : 255;
+      rgba[i * 4 + 3] = hasAlpha || (extraSample === undefined && samplesPerPixel >= 4) ? readSample8(i, 3) : 255;
+    }
+    if (hasAlpha && extraSample === 1) {
+      const alpha = rgba[i * 4 + 3]!;
+      for (let c = 0; c < 3; c++) rgba[i * 4 + c] = Math.min(255, Math.round(rgba[i * 4 + c]! * 255 / Math.max(alpha, Number.EPSILON)));
     }
   }
   const density = resUnit === 3 ? Math.max(1, Math.round(xRes * 2.54)) : Math.max(1, Math.round(xRes));
@@ -654,12 +661,12 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
         : bitsPerSample === 16
           ? "rgb16"
           : "srgb",
-    channels: samplesPerPixel === 4 ? 4 : samplesPerPixel === 1 ? 1 : samplesPerPixel === 2 ? 2 : 3,
+    channels: samplesPerPixel < 3 ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3,
     depth: bitsPerSample === 16 ? "ushort" : "uchar",
     bitsPerSample,
     density,
     resolution: {x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},
-    hasAlpha: samplesPerPixel === 2 || samplesPerPixel === 4,
+    hasAlpha,
     ...(properties ? {properties} : {}),
     ...(orientation !== undefined ? { orientation } : {})
   };

@@ -7598,10 +7598,8 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             const target = t;
             const baseName = target.split("/").pop() ?? target;
             const stem = baseName.replace(/\.[^.]+$/, "");
-            const origExt = baseName.includes(".") ? baseName.split(".").pop()! : "png";
-            const targetExt = outFormatExt ?? origExt;
             const destDir = outDir ? `${outDir.replace(/\/+$/, "")}/` : target.slice(0, target.lastIndexOf("/") + 1);
-            const destPath = outFormatExt || outDir ? `${destDir}${stem}.${targetExt}` : target;
+            const destPath = outFormatExt ? `${destDir}${stem}.${outFormatExt}` : outDir ? `${destDir}${baseName}` : target;
             plans.push({ target, args: [...readSettings, target, ...opTokens, destPath] });
         }
     }

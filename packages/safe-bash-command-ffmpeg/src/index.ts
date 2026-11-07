@@ -1813,6 +1813,7 @@ export function evalSyncFfmpeg(
         doc = plugin.parse(rawBytes, { filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
         if (doc.tracks.some(track => track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
+        if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
       if (inp.startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
@@ -3384,7 +3385,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
             // Output frame counts refer to displayed pictures, never encoded packets.
-            if (imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) {
+            if ((imageOutput || maxVideoFrames !== undefined) && videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async track => {
@@ -4217,6 +4218,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             if (imageOutput && maxVideoFrames === 0) {
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: decodeExitCode };
+            }
+
+            if (imageOutput && videoCodec === "copy") {
+              const track = workingDoc.tracks.find(track => track.type === "video");
+              const samples = track?.samples ?? [];
+              if (!samples.length) throw new Error("No video packet in the requested presentation interval");
+              const limit = Math.min(samples.length, maxVideoFrames ?? Infinity);
+              for (let index = 0; index < limit; index++) {
+                const number = framePts ? samples[index]!.pts : index + (outputStartNumber ?? 1);
+                const fileName = updateImage ? outputTarget : (formatImageSequence(outputTarget, number) ?? outputTarget);
+                if (index > 0 && fileName === outputTarget && !updateImage && !isStdout(outputTarget)) {
+                  throw new Error("Cannot write more than one file with the same name. Use a numbered pattern or -update 1.");
+                }
+                const bytes = samples[index]!.data;
+                budget.checkSamples(index + 1);
+                budget.checkOutputBytes(bytes.byteLength);
+                if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+                else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, fileName), data, { signal: context.signal }));
+              }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }

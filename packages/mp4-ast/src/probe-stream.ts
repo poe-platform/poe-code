@@ -34,6 +34,7 @@ const CODEC_LONG_NAMES: Record<string, string> = {
 export function buildProbeStream<T extends string | MediaProbeText>(track: ProbeStreamTrack<T>, desc: Mp4CodecMetadata | undefined, stats: ProbeSampleStats, idx: number, containerFormat: string): Omit<MediaProbeStream, 'tags'> & { tags: Record<string, string | T> } {
   const codecName = desc?.codecName ?? (track.type === "video" ? "h264" : "aac");
   const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
+  const matroska = containerFormat === "matroska" || containerFormat === "webm";
   // Matroska PCM uses a CodecID; the internal QuickTime alias is not a container tag.
   const matroskaPcm = containerFormat === "matroska" && codecName === "pcm_s16le";
   const rawTag = desc?.formatFourCC ?? (track.type === "video" ? "avc1" : "mp4a");
@@ -77,7 +78,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
 
   return {
     index: idx,
-    id: `0x${track.id.toString(16)}`,
+    id: matroska ? undefined : `0x${track.id.toString(16)}`,
     codec_name: codecName,
     mime_codec_string: desc?.mimeCodecString,
     codec_long_name: codecLongName,
@@ -125,12 +126,12 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     time_base: `1/${track.timescale}`,
     start_pts: stats.firstPts,
     start_time: ((stats.firstPts) / Math.max(1, track.timescale)).toFixed(6),
-    duration_ts: track.duration,
-    duration: durationSec.toFixed(6),
+    duration_ts: matroska ? undefined : track.duration,
+    duration: matroska ? undefined : durationSec.toFixed(6),
     bit_rate: bitRate,
-    nb_frames: containerFormat === "wav" || track.declaredSampleCount === 0
+    nb_frames: matroska || containerFormat === "wav" || track.declaredSampleCount === 0
       ? undefined : String(track.declaredSampleCount ?? nbFrames),
-    ...(track.declaredSampleCount === undefined ? {} : {
+    ...(!matroska && track.declaredSampleCount === undefined ? {} : {
       nb_read_packets: String(stats.count),
       nb_read_frames: String(stats.count)
     }),

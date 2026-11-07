@@ -477,8 +477,8 @@ export interface MediaProbeStream {
   readonly time_base: string;
   readonly start_pts: number;
   readonly start_time: string;
-  readonly duration_ts: number;
-  readonly duration: string;
+  readonly duration_ts?: number | undefined;
+  readonly duration?: string | undefined;
   readonly bit_rate?: string | undefined;
   readonly nb_frames?: string | undefined;
   readonly nb_read_packets?: string | undefined;

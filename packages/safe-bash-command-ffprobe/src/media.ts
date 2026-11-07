@@ -438,7 +438,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         if (typeOrdinal++ !== (parseInt(spec.slice(2), 10) || 0)) return;
       } else if ([...spec].every(c => c >= "0" && c <= "9") && stream.index !== parseInt(spec, 10)) return;
     }
-    const recordCount = probe.format?.format_name === "wav"
+    const recordCount = probe.format?.format_name === "wav" && stream.duration_ts !== undefined
       ? String(Math.ceil(stream.duration_ts / wavPacketFrames(Number(stream.sample_rate),
         Math.max(1, (stream.channels ?? 1) * (stream.bits_per_sample ?? 16) / 8))))
       : stream.nb_frames ?? "0";

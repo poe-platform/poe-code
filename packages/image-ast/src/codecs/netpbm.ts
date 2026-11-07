@@ -651,6 +651,8 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   const readSample8 = (pixelIdx: number, ch: number): number => {
     const base = planar ? ch * planeBytes + pixelIdx * bytesPerSample : (pixelIdx * samplesPerPixel + ch) * bytesPerSample;
     if (sampleFormat === 3) return readTiffFloat8(sampleView, base, bitsPerSample, le);
+    // ImageMagick imports both integer formats as unsigned bits into float Q16 samples.
+    if (bitsPerSample === 32) return Math.round(Math.fround(sampleView.getUint32(base, le) / 65537) / 257);
     if (bytesPerSample === 2) {
       return le ? (combined[base + 1] ?? 0) : (combined[base] ?? 0);
     }

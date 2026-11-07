@@ -192,9 +192,11 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
  const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
  const readSample=async(at:number)=>{
-  if(sampleFormat!==3)return raster.at(at+(sampleBytes===2&&le?1:0));
+  if(sampleFormat!==3&&bits!==32)return raster.at(at+(sampleBytes===2&&le?1:0));
   if(bits!==16&&bits!==32&&bits!==64)throw new Error(`Unsupported floating-point TIFF sample width: ${bits}`);
   for(let byte=0;byte<sampleBytes;byte++)sampleBuffer[byte]=await raster.at(at+byte);
+  // ImageMagick imports both integer formats as unsigned bits into float Q16 samples.
+  if(sampleFormat!==3)return Math.round(Math.fround(sampleView.getUint32(0,le)/65537)/257);
   return readTiffFloat8(sampleView,0,bits,le);
  };
  for(let i=0;i<width*height;i++){const base=i*pixelBytes,channelStep=planar?planeBytes:sampleBytes,r=await readSample(base);

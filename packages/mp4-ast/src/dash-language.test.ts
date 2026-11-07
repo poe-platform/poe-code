@@ -19,3 +19,28 @@ for (const language of ["fra", "eng", "und", ""]) {
       source.tracks.map(track => track.samples.map(sample => sample.data)));
   });
 }
+
+for (const addressing of ["SegmentTemplate", "SegmentList", "BaseURL"]) {
+  it(`imports AdaptationSet language with ${addressing} and preserves it in MP4`, () => {
+    const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, frameCount: 2, includeAudio: true }));
+    const resources = new Map(base.tracks.map((track, index) => [
+      `${index}.mp4`, serializeMp4({ ...base, tracks: [{ ...track, language: "eng" }] })
+    ]));
+    const sets = base.tracks.map((track, index) => {
+      const location = addressing === "SegmentTemplate"
+        ? `<SegmentTemplate media="${index}.mp4" duration="1"/>`
+        : addressing === "SegmentList"
+          ? `<SegmentList><SegmentURL media="${index}.mp4"/></SegmentList>`
+          : `<BaseURL>${index}.mp4</BaseURL>`;
+      return `<AdaptationSet${track.type === "audio" ? ' lang="fra"' : ""}><Representation id="${index}">${location}</Representation></AdaptationSet>`;
+    }).join("");
+    const manifest = new TextEncoder().encode(`<MPD mediaPresentationDuration="PT1S"><Period>${sets}</Period></MPD>`);
+    const output = dashAst().parse(manifest, { resolveResource: uri => resources.get(uri)! });
+    const expected = base.tracks.map(track => track.type === "audio" ? "fra" : "eng");
+    assert.deepEqual(output.tracks.map(track => track.language), expected);
+    assert.deepEqual(dashAst().probe(manifest, { resolveResource: uri => resources.get(uri)! }).streams.map(stream => stream.tags?.language), expected);
+    assert.deepEqual(parseMp4(serializeMp4(output)).tracks.map(track => track.language), expected);
+    assert.deepEqual(output.tracks.map(track => track.samples.map(sample => sample.data)),
+      base.tracks.map(track => track.samples.map(sample => sample.data)));
+  });
+}

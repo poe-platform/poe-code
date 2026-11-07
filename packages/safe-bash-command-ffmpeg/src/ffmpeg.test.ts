@@ -5459,3 +5459,23 @@ it("probes and maps every video representation in a DASH adaptation set", async 
     assert.deepEqual(output.tracks.map(t => t.samples.map(s => s.data)), expected.map(t => t.samples.map(s => s.data)));
   }
 });
+
+it("probes DASH manifest language and preserves it when copying to MP4", async () => {
+  const { serializeDashDocument } = await import("@poe-code/mp4-ast");
+  const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, frameCount: 2, includeAudio: true }));
+  // Keep initialization segments at und; only the MPD declares French audio.
+  const { resources } = serializeDashDocument(base);
+  const { manifest } = serializeDashDocument({ ...base, tracks: base.tracks.map(track => ({
+    ...track, language: track.type === "audio" ? "fra" : "und"
+  })) });
+  const vfs = createTestVfs({ "/in.mpd": manifest, ...Object.fromEntries([...resources].map(([uri, bytes]) => [`/${uri}`, bytes])) });
+  const probe = await runCmd(createFfprobeCommand(), ["-show_streams", "-of", "json", "/in.mpd"], vfs);
+  assert.equal(probe.exitCode, 0, probe.stderr);
+  assert.deepEqual(JSON.parse(probe.stdout).streams.map((stream: { tags: { language: string } }) => stream.tags.language), ["und", "fra"]);
+  const copy = await runCmd(createFfmpegCommand(), ["-i", "/in.mpd", "-map", "0", "-c", "copy", "/out.mp4"], vfs);
+  assert.equal(copy.exitCode, 0, copy.stderr);
+  const output = parseMp4(vfs.store.get("/out.mp4")!);
+  assert.deepEqual(output.tracks.map(track => track.language), ["und", "fra"]);
+  assert.deepEqual(output.tracks.map(track => track.samples.map(sample => sample.data)),
+    base.tracks.map(track => track.samples.map(sample => sample.data)));
+});

@@ -13,6 +13,8 @@ export interface StreamingManifest {
   readonly durationSeconds: number;
   /** One sequence per representation; sequences are muxed, not concatenated together. */
   readonly sequences: readonly (readonly StreamingSegment[])[];
+  /** DASH AdaptationSet language for each representation sequence. */
+  readonly sequenceLanguages?: readonly (string | undefined)[];
 }
 
 function attribute(node: XmlElement, name: string): string | undefined {
@@ -120,6 +122,7 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
   const period = periods[0]!;
   const periodDuration = durationSeconds(attribute(period, "duration")) || duration;
   const sequences: StreamingSegment[][] = [];
+  const sequenceLanguages: (string | undefined)[] = [];
   for (const adaptation of period.children.filter(n => n.localName === "AdaptationSet")) {
     for (const representation of adaptation.children.filter(n => n.localName === "Representation")) {
       budget.checkStreams(sequences.length + 1);
@@ -189,17 +192,18 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
       }
       if (!sequence.length) throw new Error("DASH representation has no segments");
       sequences.push(sequence);
+      sequenceLanguages.push(attribute(adaptation, "lang"));
     }
   }
   if (!sequences.length) throw new Error("DASH manifest has no representations");
-  return { format, durationSeconds: periodDuration, sequences };
+  return { format, durationSeconds: periodDuration, sequences, sequenceLanguages };
 }
 
 export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash", options: ParseMediaOptions = {}): MediaDocument {
   const manifest = parseStreamingManifest(bytes, format, options);
   const resolve = options.resolveResource;
   if (!resolve) throw new Error(`${format.toUpperCase()} parsing requires resolveResource for referenced segment files`);
-  const docs = manifest.sequences.map(sequence => {
+  const docs = manifest.sequences.map((sequence, index) => {
     // Parse an fMP4 sequence together so tfdt timestamps and initialization tables
     // remain authoritative across fragments (including audio encoder priming).
     const segments: MediaDocument[] = [];
@@ -226,7 +230,11 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
       }
     }
     flush();
-    return concatMp4(segments, { ...options, alignTrackDurations: false });
+    const document = concatMp4(segments, { ...options, alignTrackDurations: false });
+    const language = manifest.sequenceLanguages?.[index];
+    return language
+      ? { ...document, tracks: document.tracks.map(track => ({ ...track, language })) }
+      : document;
   });
   const document = docs.length === 1 ? docs[0]! : muxMp4(docs, options);
   const duration = manifest.durationSeconds || document.durationSeconds;

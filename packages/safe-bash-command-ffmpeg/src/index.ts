@@ -1476,7 +1476,7 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
     const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
     const index = type ? ordinal : selector;
     let enabled: boolean;
-    if (value === "0" || value === "-default") enabled = false;
+    if (value === "0" || value === "-default" || value === "attached_pic") enabled = false;
     else if (value === "1" || value === "default" || value === "+default") enabled = true;
     else throw new Error(`Unsupported disposition: ${value}`);
     let matched = 0;
@@ -1484,7 +1484,9 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
       if (type && track.type !== type) return track;
       const current = matched++;
       if (index && current !== Number(index)) return track;
-      return { ...track, enabled };
+      return { ...track, enabled,
+        ...(value === "attached_pic" ? { disposition: { attached_pic: 1 } }
+          : value === "0" ? { disposition: {} } : {}) };
     });
   }
   return tracks;

@@ -1227,7 +1227,7 @@ export function flacAst(): MediaAstPlugin {
       const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
       const parsed = parseAudio(bytes);
-      const pictures = doc.tracks.filter(track => track.type === "video").map(track => {
+      const pictures = doc.tracks.filter(track => track.type === "video" && track.disposition?.attached_pic === 1).map(track => {
         const codec = track.codecDescriptions[0]?.codecName;
         if (!["png", "mjpeg"].includes(codec ?? "") || track.samples.length !== 1) {
           throw new Error("FLAC cover art requires one PNG or JPEG packet per video stream");

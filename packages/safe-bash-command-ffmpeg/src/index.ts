@@ -3850,6 +3850,44 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = output;
+                      } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
+                        let padding: number | undefined;
+                        let minimum: number | undefined;
+                        const argument = trimmed.slice("apad=".length);
+                        for (const option of argument ? argument.split(":") : []) {
+                          const [key, value, extra] = option.split("=");
+                          if (!["pad_len", "whole_len", "pad_dur", "whole_dur"].includes(key!)) {
+                            throw new Error(`apad: unsupported option ${key}`);
+                          }
+                          const duration = key!.endsWith("_dur");
+                          const number = duration ? parseHlsDuration(value ?? "") : Number(value);
+                          const samples = duration ? Math.round(number * origRate) : number;
+                          if (!value?.trim() || extra !== undefined || number < 0 || !Number.isSafeInteger(samples)) {
+                            throw new Error(`apad: invalid ${key}`);
+                          }
+                          if (key!.startsWith("pad_")) padding = samples;
+                          else minimum = samples;
+                        }
+                        if (padding !== undefined && minimum !== undefined) {
+                          throw new Error("apad: padding and minimum length are mutually exclusive");
+                        }
+                        if (padding === undefined && minimum === undefined) {
+                          throw new Error("apad: a finite padding or minimum length is required");
+                        }
+                        const inputLength = stretched[0]?.length ?? 0;
+                        const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
+                        budget.checkDuration(length / origRate);
+                        budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                        stretched = await mapWork(stretched, async channel => {
+                          const output = new Float32Array(length);
+                          for (let start = 0; start < channel.length; start += 16384) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                            output.set(channel.subarray(start, start + 16384), start);
+                          }
+                          return output;
+                        }, context.signal);
                       } else if (trimmed === "adelay" || trimmed.startsWith("adelay=")) {
                         let delays = "";
                         let all = false;

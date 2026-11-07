@@ -5032,7 +5032,7 @@ describe("labeled audio filter graphs", () => {
         channels[source]!.map(sample => -sample * gain));
     });
   }
-  for (const graph of ["[0:a]apad=pad_len=4[out]", "[missing]volume=0.5[out]",
+  for (const graph of ["[0:a]no_filter_xyz[out]", "[missing]volume=0.5[out]",
     "[loop]volume=0.5[loop];[loop]anull[out]"]) {
     it("rejects " + graph + " without overwriting output", async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,

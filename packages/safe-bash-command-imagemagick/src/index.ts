@@ -11,6 +11,7 @@ import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
 import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
+import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps } from "./resize-kernel.js";
@@ -6384,6 +6385,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
             });
         }
+        else if (t === "-rotational-blur") {
+            const angle = Number(tokens[++i] ?? 0);
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
+            });
+        }
         else if (t === "-sharpen") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -7703,6 +7710,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);
+        } else if (!operandsOnly && token === "-rotational-blur") {
+            const angle = Number(tokens[++i] ?? 0), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-sharpen") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal) : undefined);
@@ -8018,6 +8028,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-colorize",
         "-blur",
         "-gaussian-blur",
+        "-rotational-blur",
         "-sharpen",
         "-unsharp",
         "-median",

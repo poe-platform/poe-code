@@ -233,6 +233,22 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             for (let offset = 0; offset < length; offset++) {
                 if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
             }
+        } else if (operation === "log" || operation === "inverselog") {
+            const values = Float64Array.from(data, value => value * 257);
+            for (let image = 1; image < frames; image++) {
+                if (++work % 64 === 0) yield;
+                const bytes = yield* read(image, position, length);
+                // The accumulated Q16 quantum is the next sample's logarithm parameter.
+                for (let offset = 0; offset < length; offset++) {
+                    const value = values[offset]!, sample = bytes[offset]! / 255;
+                    values[offset] = operation === "log"
+                        ? value <= 1e-12 ? 0 : 65535 * Math.log(1 + value * sample) / Math.log(1 + value)
+                        : 65535 * Math.pow(value + 1, sample - 1) / Math.max(value, 1e-12);
+                }
+            }
+            for (let offset = 0; offset < length; offset++) {
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+            }
         } else if (operation === "rootmeansquare" || operation === "rms") {
             // Native Q16 seeds the accumulator with the first unsquared quantum.
             const values = Float64Array.from(data, value => value * 257);

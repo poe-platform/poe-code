@@ -12,6 +12,25 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
   return { result, files, fs };
  }
+ for (const [colors, labels, rows] of [
+  ["blue", [0,0,0,2,2], "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n"],
+  ["rgb(0,0,255);green", [0,0,0,0,0], "  0: 5x1+0+0 2.0,0.0 5 srgb(255,0,0)\n"],
+ ] as const) it(`removes components by mean color ${colors} (${mode})`, async () => {
+  const bytes = readFileSync(new URL("./fixtures/component-stripes.png", import.meta.url));
+  const { result, files, fs } = await run(["input.png", "-define", `connected-components:remove-colors=${colors}`, "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"], bytes);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + rows });
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual(labels);
+ });
+ it(`matches component mean colors with fuzz (${mode})`, async () => {
+  const { result } = await run(["xc:red", "xc:red", "xc:red", "xc:rgb(0,0,240)", "xc:rgb(0,0,250)", "xc:green", "xc:green", "+append", "-fuzz", "3%", "-define", "connected-components:remove-colors=blue", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 5x1+0+0 2.0,0.0 5 srgb(255,0,0)\n  2: 2x1+5+0 5.5,0.0 2 srgb(0,128,0)\n" });
+ });
+ it(`clears component color removal (${mode})`, async () => {
+  const { result } = await run(["xc:red", "xc:blue", "+append", "-define", "connected-components:remove-colors=blue", "+define", "connected-components:remove-colors", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
+  expect(result.exitCode).toBe(0);
+  expect(result.stdout).toContain("  1: 1x1+1+0 1.0,0.0 1 srgb(0,0,255)");
+ });
  it(`matches native sticker component analysis (${mode})`, async () => {
   const bytes = readFileSync(new URL("./fixtures/sticker.png", import.meta.url));
   const { result, files, fs } = await run(["input.png", "-fill", "black", "+opaque", "white", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"], bytes);
@@ -90,6 +109,24 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   const image = decodeImage(output);
   expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,0,1,2,2]);
  });
+ for (const connectivity of [4, 8]) it(`merges regions below the area threshold (${connectivity}, ${mode})`, async () => {
+  const bytes = await sharp(Uint8Array.from([255,0,0,255,0,0,0,0,255,0,128,0,0,128,0]), { raw: { width: 5, height: 1, channels: 3 } }).png().toBuffer();
+  const { result, files, fs } = await run(["input.png", "-define", "connected-components:area-threshold=2", "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "out.png"], bytes);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n" });
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,0,0,2,2]);
+ });
+ it(`keeps the largest region and its color when all regions are below threshold (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:red", "xc:blue", "xc:green", "+append", "-define", "connected-components:area-threshold=9", "-define", "connected-components:mean-color=true", "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"]);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n" });
+  expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual([255,0,0,255,255,0,0,255,255,0,0,255]);
+ });
+ for (const reset of [["-define", "connected-components:area-threshold=0"], ["+define", "connected-components:area-threshold"]]) it(`clears area threshold using ${reset.join(" ")} (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:red", "xc:blue", "+append", "-define", "connected-components:area-threshold=9", ...reset, "-connected-components", "4", "out.png"]);
+  expect(result.exitCode).toBe(0);
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,1]);
+ });
  for (const connectivity of [4, 8]) it(`renders component mean colors with ${connectivity} connectivity (${mode})`, async () => {
   const pixels = [255,0,0,255,255,0,0,255,0,0,255,255,0,128,0,255,0,128,0,255];
   const bytes = await sharp(Uint8Array.from(pixels), { raw: { width: 5, height: 1, channels: 4 } }).png().toBuffer();
@@ -109,24 +146,6 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual([0,0,0,255]);
  });
  it(`preserves all 1100 component IDs (${mode})`, async () => {
- for (const connectivity of [4, 8]) it(`merges regions below the area threshold (${connectivity}, ${mode})`, async () => {
-  const bytes = await sharp(Uint8Array.from([255,0,0,255,0,0,0,0,255,0,128,0,0,128,0]), { raw: { width: 5, height: 1, channels: 3 } }).png().toBuffer();
-  const { result, files, fs } = await run(["input.png", "-define", "connected-components:area-threshold=2", "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "out.png"], bytes);
-  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n" });
-  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
-  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,0,0,2,2]);
- });
- it(`keeps the largest region and its color when all regions are below threshold (${mode})`, async () => {
-  const { result, files, fs } = await run(["xc:red", "xc:blue", "xc:green", "+append", "-define", "connected-components:area-threshold=9", "-define", "connected-components:mean-color=true", "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"]);
-  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n" });
-  expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual([255,0,0,255,255,0,0,255,255,0,0,255]);
- });
- for (const reset of [["-define", "connected-components:area-threshold=0"], ["+define", "connected-components:area-threshold"]]) it(`clears area threshold using ${reset.join(" ")} (${mode})`, async () => {
-  const { result, files, fs } = await run(["xc:red", "xc:blue", "+append", "-define", "connected-components:area-threshold=9", ...reset, "-connected-components", "4", "out.png"]);
-  expect(result.exitCode).toBe(0);
-  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
-  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,1]);
- });
   const bytes = await sharp(Uint8Array.from({ length: 1100 * 3 }, (_, i) => Math.floor(i / 3) % 2 * 255), { raw: { width: 1100, height: 1, channels: 3 } }).png().toBuffer();
   const { result, files, fs } = await run(["input.png", "-connected-components", "4", "out.png"], bytes);
   expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });

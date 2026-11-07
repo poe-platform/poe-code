@@ -7,12 +7,12 @@ type Read = { position: number; length: number };
 
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* trimBounds(width: number, height: number, fuzz: number): Generator<Read | undefined, Area | undefined, Uint8Array | undefined> {
-    const corners: Uint8Array[] = [];
+function* trimBounds(width: number, height: number, fuzz: number, scale: number): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
+    const corners: (Uint8Array | Uint16Array)[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         const bytes = yield { position: pixel * 4, length: 4 };
         if (!bytes || bytes.length !== 4) throw new Error("Truncated trim pixels");
-        corners.push(new Uint8Array(bytes));
+        corners.push(bytes.slice());
     }
     let left = width, top = height, right = 0, bottom = 0;
     for (let y = 0; y < height; y++) {
@@ -26,7 +26,7 @@ function* trimBounds(width: number, height: number, fuzz: number): Generator<Rea
                 const x = start + i / 4;
                 const matches = (corner: number) => {
                     const ref = corners[corner]!;
-                    return matchesAlphaFloodfill(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!, bytes[i + 3]!, ref[0]!, ref[1]!, ref[2]!, ref[3]!, fuzz);
+                    return matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, bytes[i + 3]! / scale, ref[0]! / scale, ref[1]! / scale, ref[2]! / scale, ref[3]! / scale, fuzz);
                 };
                 if ((x < left || y < top) && !matches(0)) { left = Math.min(left, x); top = Math.min(top, y); }
                 if (x > rowRight && !matches(1)) rowRight = x;
@@ -41,34 +41,58 @@ function* trimBounds(width: number, height: number, fuzz: number): Generator<Rea
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number): Generator<void, RgbaImage, void> {
-    const steps = trimBounds(image.width, image.height, fuzz);
+    const pixels = image.data16 ?? image.data;
+    const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
-        else { const { position, length } = next.value; next = steps.next(image.data.subarray(position, position + length)); }
+        else { const { position, length } = next.value; next = steps.next(pixels.subarray(position, position + length)); }
     }
-    if (next.value) return {
-        ...yield* extractImageSteps(image, next.value),
-        virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
-    };
+    if (next.value) {
+        const area = next.value;
+        let cropped = yield* extractImageSteps(image, area);
+        if (image.data16) {
+            const data16 = new Uint16Array(cropped.width * cropped.height * 4);
+            for (let y = 0; y < cropped.height; y++) {
+                const page = Math.floor(y / area.height), row = y % area.height;
+                const start = ((page * (image.pageHeight ?? image.height) + area.top + row) * image.width + area.left) * 4;
+                for (let offset = 0; offset < area.width * 4; offset += 4096) {
+                    yield;
+                    const length = Math.min(4096, area.width * 4 - offset);
+                    data16.set(image.data16.subarray(start + offset, start + offset + length), y * area.width * 4 + offset);
+                }
+            }
+            cropped = { ...cropped, data16 };
+        }
+        return { ...cropped,
+            virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
+        };
+    }
     // ImageMagick represents an empty trim with one transparent white pixel.
     const { data16: ignored, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, data: new Uint8Array([255, 255, 255, 0]), channels: 4, hasAlpha: true };
 }
 
 export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal): Promise<StoredRgbaImage> {
-    const steps = trimBounds(image.width, image.height, fuzz);
+    const sampleBytes = image.storedData16 ? 2 : 1;
+    const position = image.storedData16?.position ?? image.position;
+    const steps = trimBounds(image.width, image.height, fuzz, image.storedData16 ? 257 : 1);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }
-        else { const { position, length } = next.value; next = steps.next(await storage.read(image.position + position, length, { signal })); }
+        else {
+            const { position: offset, length } = next.value;
+            const bytes = await storage.read(position + offset * sampleBytes, length * sampleBytes, { signal });
+            if (bytes.length !== length * sampleBytes) throw new Error("Truncated trim pixels");
+            next = steps.next(image.storedData16 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
+        }
     }
     if (next.value) return {
         ...await transformStoredImage(image, storage, { kind: "extract", ...next.value }, signal),
         virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
     };
-    const position = storage.allocate(4);
-    await storage.write(position, new Uint8Array([255, 255, 255, 0]), { signal });
+    const emptyPosition = storage.allocate(4);
+    await storage.write(emptyPosition, new Uint8Array([255, 255, 255, 0]), { signal });
     const { storedData16: ignored, ...metadata } = image;
-    return { ...metadata, width: 1, height: 1, position, channels: 4, hasAlpha: true };
+    return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true };
 }

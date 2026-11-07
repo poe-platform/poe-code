@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import sharp, { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runMagickCli } from "./index.js";
 
@@ -64,4 +64,31 @@ for (const retained of [false, true]) {
             expect(output.data).toEqual(expected);
         });
     }
+}
+
+for (const retained of [false, true]) for (const fuzz of ["0%", "1%"]) {
+    it(`trims sub-byte Q16 differences (retained=${retained}, fuzz=${fuzz})`, async () => {
+        const data16 = new Uint16Array(9 * 7 * 4);
+        for (let y = 0; y < 7; y++) for (let x = 0; x < 9; x++) {
+            const value = x >= 2 && x <= 5 && y >= 1 && y <= 4 ? 0x4020 : 0x4000;
+            data16.set([value, value, value, 65535], (y * 9 + x) * 4);
+        }
+        const input = encodeImage({ width: 9, height: 7, data16,
+            data: Uint8Array.from(data16, value => Math.round(value / 257)),
+            format: "png", space: "srgb", channels: 3, depth: "ushort", density: 72, hasAlpha: false,
+        }, { format: "png" }).data;
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const backend = retained ? { filesystem, cwd: "/" } : files;
+        expect((await runConvertCli(["input.png", "-fuzz", fuzz, "-trim", "out.png"], backend)).exitCode).toBe(0);
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        if (fuzz === "0%") {
+            expect([output.width, output.height]).toEqual([4, 4]);
+            expect(output.data16).toEqual(Uint16Array.from(Array.from({ length: 16 }, () => [0x4020, 0x4020, 0x4020, 65535]).flat()));
+            expect((await runMagickCli(["identify", "-format", "%wx%h %X %Y %[page]", "out.png"], backend)).stdout).toBe("4x4 +2 +1 9x7");
+        } else {
+            expect([output.width, output.height]).toEqual([1, 1]);
+            expect(output.data).toEqual(new Uint8Array([255, 255, 255, 0]));
+        }
+    });
 }

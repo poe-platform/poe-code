@@ -1852,7 +1852,7 @@ function formatSubtitleTimecode(ms: number, sep: "," | "."): string {
 function decodeSubRip(bytes: Uint8Array): string {
   const encoding = bytes[0] === 0xff && bytes[1] === 0xfe ? "utf-16le"
     : bytes[0] === 0xfe && bytes[1] === 0xff ? "utf-16be" : "utf-8";
-  return new TextDecoder(encoding).decode(bytes);
+  return new TextDecoder(encoding).decode(bytes).replaceAll("\r\n", "\n").replaceAll("\r", "\n");
 }
 
 export function isSrtSignature(bytes: Uint8Array, _filename?: string): boolean {

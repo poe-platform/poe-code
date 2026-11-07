@@ -1535,6 +1535,7 @@ function validateStreamCopy(
       ? track.type === "video" ? ["vp8", "vp9", "av1"]
         : track.type === "audio" ? ["vorbis", "opus"]
           : track.type === "subtitle" ? ["webvtt"] : []
+      : outputFormat === "flv" && track.type === "video" ? ["h264", "flv1"]
       : track.type === "subtitle" && requiredSubtitleCodec ? [requiredSubtitleCodec] : undefined;
     if (allowed === undefined) continue;
     for (const description of track.codecDescriptions) {

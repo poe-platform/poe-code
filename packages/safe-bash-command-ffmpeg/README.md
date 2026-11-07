@@ -27,6 +27,8 @@ Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/
 Verify a single audio stream with `-f hash -` (SHA256), `-f md5 -`, or
 `-f crc -` (Adler-32). These hash decoded PCM16 samples, without container
 headers; `-f hash -hash sha512 digest.txt` selects another digest and writes a file.
+Use `-map 0:a -map 1:a -f streamhash -` for a separate digest per mapped audio
+stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
 Hash selection supports MD5, SHA160, SHA224, SHA256, SHA384, and SHA512.
 Audio filters and explicit PCM encoders apply before hashing; `-c:a copy` hashes
 the encoded audio packets. Use `-vn` to exclude video.

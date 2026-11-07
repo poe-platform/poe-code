@@ -76,6 +76,60 @@ describe("per-frame audio checksums", () => {
   }
 });
 
+describe("per-stream audio checksums", () => {
+  const pcm = new Uint8Array(8192);
+  for (let i = 0; i < 4096; i++) new DataView(pcm.buffer).setInt16(i * 2, i - 2048, true);
+  const wav = encodeWav({ sampleRate: 8000,
+    channels: [Float64Array.from({ length: 4096 }, (_, i) => (i - 2048) / 32768)] });
+  for (const target of ["-", "/digest.txt"]) {
+    for (const maps of [["0:a"], ["0:a", "1:a"], ["2:a", "0:a", "1:a"]]) {
+      it(`hashes mapped streams independently in output order: ${maps} to ${target}`, async () => {
+        const vfs = createTestVfs({ "/i.wav": wav,
+          "/silent.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4096)] }) });
+        const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/i.wav", "-i", "/i.wav",
+          "-i", "/silent.wav", ...maps.flatMap(map => ["-map", map]), "-f", "streamhash", target], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        const expected = maps.map((map, i) => `${i},a,SHA256=${map === "2:a"
+          ? createHash("sha256").update(new Uint8Array(8192)).digest("hex")
+          : "4d03c1071bbb0168f05cfdcf859053a7bfe695a3204039925404b9037f51395c"}\n`).join("");
+        assert.equal(target === "-" ? result.stdout : new TextDecoder().decode(vfs.store.get(target)), expected);
+        if (target !== "-") assert.equal(result.stdout, "");
+      });
+    }
+  }
+  it("applies per-stream filters and resets hash options for subsequent outputs", async () => {
+    const vfs = createTestVfs({ "/i.wav": wav });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/i.wav", "-map", "0:a", "-map", "0:a",
+      "-filter:a:0", "volume=0", "-f", "streamhash", "-hash", "md5", "/digest.txt", "-f", "streamhash", "-"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")),
+      `0,a,MD5=${createHash("md5").update(new Uint8Array(8192)).digest("hex")}\n1,a,MD5=${createHash("md5").update(pcm).digest("hex")}\n`);
+    assert.equal(result.stdout, `0,a,SHA256=${createHash("sha256").update(pcm).digest("hex")}\n`);
+  });
+  for (const codec of ["pcm_s16be", "copy"]) {
+    it(`hashes empty streams and uses the ${codec} output payload`, async () => {
+      const vfs = createTestVfs({ "/i.wav": wav,
+        "/empty.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array()] }) });
+      const payload = pcm.slice();
+      if (codec === "pcm_s16be") {
+        for (let i = 0; i < payload.length; i += 2) [payload[i], payload[i + 1]] = [payload[i + 1]!, payload[i]!];
+      }
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/i.wav", "-i", "/empty.wav",
+        "-map", "0:a", "-map", "1:a", "-c:a", codec, "-f", "streamhash", "-hash", "sha512", "-"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, [payload, new Uint8Array()].map((bytes, i) =>
+        `${i},a,SHA512=${createHash("sha512").update(bytes).digest("hex")}\n`).join(""));
+    });
+  }
+  it("rejects unknown algorithms without replacing output", async () => {
+    const vfs = createTestVfs({ "/i.wav": wav, "/digest.txt": "keep" });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", "streamhash", "-hash", "invalid", "/digest.txt"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")), "keep");
+  });
+});
+
 describe("whole-output audio checksums", () => {
   const channels = [Float64Array.from({ length: 4096 }, (_, i) => (i - 2048) / 32768)];
   const pcm = new Uint8Array(8192);

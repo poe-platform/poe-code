@@ -41,6 +41,7 @@ import {
 import {
   allMediaAsts,
   cloudflareWorkerLimits,
+  concatBytes,
   concatMp4,
   createMediaAstRegistry,
   createSyntheticMp4,
@@ -100,6 +101,12 @@ function serializeAudioChecksum(
   rawAudio: MediaAstPlugin | undefined,
   budget: MediaBudgetTracker
 ): Uint8Array {
+  if (format === "streamhash") {
+    return concatBytes(doc.tracks.map((track, index) => concatBytes([
+      encodeUtf8(`${index},a,`),
+      serializeAudioChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget)
+    ])));
+  }
   if (doc.tracks.length !== 1 || doc.tracks[0]!.type !== "audio") {
     throw new Error("Checksum output requires a single audio stream");
   }
@@ -3460,7 +3467,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
-            const checksumOutput = frameChecksumOutput || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
+            const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
             if (!checksumOutput && (!outPlugin || !outPlugin.canMux)) {
               const fmtDesc = outputFormat ?? outputTarget;
               throw new Error(

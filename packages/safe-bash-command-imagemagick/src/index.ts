@@ -5920,6 +5920,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (pixelOperation) {
+            if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
             i = pixelOperation.end;
             stack = yield* mapMagickImagesSteps(stack, image => {
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
@@ -7233,6 +7234,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
         if (pixelOperation) {
+            if (token === "-contrast" || token === "+contrast") analysis.warnings += `magick: option has been replaced '${token}', use "${token[0]}level"\n`;
             i = pixelOperation.end;
             steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined);
             continue;

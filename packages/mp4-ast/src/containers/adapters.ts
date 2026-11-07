@@ -1879,6 +1879,7 @@ export function parseSubtitleDocument(
   // Native WebVTT demuxing produces no cues when the header is missing.
   const blocks = format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n\s*\n/);
   const samples: MediaSample[] = [];
+  const seenSubRipCues = new Set<string>();
   let maxEndMs = 0;
 
   for (const rawBlock of blocks) {
@@ -1905,6 +1906,12 @@ export function parseSubtitleDocument(
     const endMs = format === "srt" ? parsedEndMs : Math.max(startMs + 1, parsedEndMs);
     const cueText = lines.slice(arrowLineIdx + 1).join("\n").trim();
     if (!cueText) continue;
+
+    if (format === "srt") {
+      const key = JSON.stringify([startMs, endMs, cueText]);
+      if (seenSubRipCues.has(key)) continue;
+      seenSubRipCues.add(key);
+    }
 
     const payload = encodeUtf8(cueText);
     const duration = endMs - startMs;

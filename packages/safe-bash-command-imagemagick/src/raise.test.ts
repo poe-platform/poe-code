@@ -25,7 +25,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         });
         for (const depth of [8, 16]) {
             it.skipIf(!nativeAvailable).each(["2x1", "1x3", "2", "2x2", "20x20%", "20x10%", "20%", "5%"])(`matches native ${option} %s at depth ${depth}, ${mode}`, async geometry => {
-                const input = spawnSync("magick", ["-size", "12x10", "xc:#406180", "-depth", String(depth), depth === 16 ? "PNG48:-" : "PNG24:-"]);
+                const input = spawnSync("magick", ["-size", "12x10", depth === 16 ? "xc:#401260348056" : "xc:#406180", "-depth", String(depth), depth === 16 ? "PNG48:-" : "PNG24:-"]);
                 expect(input.status).toBe(0);
                 const args = ["input.png", option, geometry, "out.png"];
                 const files = new Map([["input.png", new Uint8Array(input.stdout)]]), filesystem = new MemoryFileSystem();

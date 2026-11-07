@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { parseWav, buildProbeResultFromDoc } from "./index.js";
 
-for (const [tag, bits, codec, format] of [[1, 8, "pcm_u8", "u8"], [1, 16, "pcm_s16le", "s16"], [1, 24, "pcm_s24le", "s32"], [1, 32, "pcm_s32le", "s32"], [3, 32, "pcm_f32le", "flt"]] as const) {
+for (const [tag, bits, codec, format] of [[1, 8, "pcm_u8", "u8"], [1, 16, "pcm_s16le", "s16"], [1, 24, "pcm_s24le", "s32"], [1, 32, "pcm_s32le", "s32"], [3, 32, "pcm_f32le", "flt"], [1, 64, "pcm_s64le", "s64"], [3, 64, "pcm_f64le", "dbl"]] as const) {
   it(`probes ${codec} WAV stream and frame metadata`, () => {
     const bytes = new Uint8Array(44 + bits / 8);
     const view = new DataView(bytes.buffer);

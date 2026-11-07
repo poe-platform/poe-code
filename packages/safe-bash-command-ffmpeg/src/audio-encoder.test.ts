@@ -6,7 +6,7 @@ import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
-  for (const codec of ["a_not_real_encoder", "aac", "mp3", "pcm_s24le", "copy", undefined]) {
+  for (const codec of ["a_not_real_encoder", "aac", "mp3", "pcm_s24le", "pcm_s64le", "pcm_f64le", "copy", undefined]) {
     for (const option of ["-c:a", "-acodec", "-codec:a", "-c", "-codec"]) {
       it(`${sync ? "sync" : "async"} audio encoder ${option} ${codec ?? "default"}`, async () => {
         const volume = Volume.fromJSON({});
@@ -37,7 +37,7 @@ for (const sync of [false, true]) {
         assert.equal(volume.existsSync("/out.wav"), valid);
         if (valid) {
           const track = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!;
-          assert.equal(track.codecDescriptions[0]!.codecName, codec === "pcm_s24le" || codec === "aac" || codec === "mp3" ? codec : "pcm_s16le");
+          assert.equal(track.codecDescriptions[0]!.codecName, codec?.startsWith("pcm_") || codec === "aac" || codec === "mp3" ? codec : "pcm_s16le");
           const audio = track.decodedAudio!;
           assert.equal(audio.sampleRate, 8000);
           assert.equal(audio.channels, 1);

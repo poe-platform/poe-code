@@ -440,8 +440,8 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   } else if (options.decodeAudio !== false && formatTag === 17) {
     decodedAudio = { sampleRate, channels, channelData: decodeImaWav(pcmData, channels, header.blockAlign, totalPcmSamples) };
   } else if (options.decodeAudio !== false) {
-    // Float32 cannot retain all significant bits of normalized signed PCM32.
-    const SampleArray = (formatTag === 1 || formatTag === 0xfffe) && bitsPerSample === 32 ? Float64Array : Float32Array;
+    // Preserve precision for signed PCM32 and 64-bit samples.
+    const SampleArray = bitsPerSample === 64 || (formatTag === 1 || formatTag === 0xfffe) && bitsPerSample === 32 ? Float64Array : Float32Array;
     const channelData = Array.from({ length: channels }, () => new SampleArray(totalPcmSamples));
     const pcmView = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
 
@@ -605,6 +605,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       case "pcm_s24le": bitsPerSample = 24; break;
       case "pcm_s32le": bitsPerSample = 32; break;
       case "pcm_f32le": bitsPerSample = 32; formatTag = 3; break;
+      case "pcm_s64le": bitsPerSample = 64; break;
+      case "pcm_f64le": bitsPerSample = 64; formatTag = 3; break;
     }
     const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);
@@ -617,7 +619,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       for (let c = 0; c < channels; c++) {
         const offset = (i * channels + c) * bytesPerSample;
         if (formatTag === 3) {
-          pView.setFloat32(offset, chData[c]?.[i] ?? 0, true);
+          if (bitsPerSample === 64) pView.setFloat64(offset, chData[c]?.[i] ?? 0, true);
+          else pView.setFloat32(offset, chData[c]?.[i] ?? 0, true);
           continue;
         }
         const val = Math.max(-1, Math.min(1, chData[c]?.[i] ?? 0));
@@ -626,7 +629,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
         // FFmpeg rounds halfway PCM values to the nearest even integer.
         const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
         const sample = Math.min(scale - 1, rounded);
-        if (bitsPerSample === 8) pView.setUint8(offset, (sample >> 8) + 128);
+        if (bitsPerSample === 64) pView.setBigInt64(offset, val >= 1 ? (1n << 63n) - 1n : BigInt(sample), true);
+        else if (bitsPerSample === 8) pView.setUint8(offset, (sample >> 8) + 128);
         else if (bitsPerSample === 16) pView.setInt16(offset, sample, true);
         else if (bitsPerSample === 24) {
           pcmBytes[offset] = (sample >> 8) & 255;
@@ -768,7 +772,7 @@ export function wavAst(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
-    supportedAudioCodecs: ["pcm_s16le", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le"],
+    supportedAudioCodecs: ["pcm_s16le", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le"],
     detect(bytes, filename) {
       if (isWavSignature(bytes)) return true;
       if (filename && filename.toLowerCase().endsWith(".wav")) return isWavSignature(bytes);

@@ -1270,6 +1270,16 @@ function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDoc
   };
 }
 
+function discardSubtitleSideData(doc: MediaDocument): MediaDocument {
+  return {
+    ...doc,
+    tracks: doc.tracks.map(track => track.type !== "subtitle" ? track : {
+      ...track,
+      samples: track.samples.map(sample => ({ ...sample, webvtt: undefined }))
+    })
+  };
+}
+
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
   const name = codec === "libopus" ? "opus" : codec === "libvorbis" ? "vorbis" : codec;
@@ -1326,6 +1336,7 @@ export function evalSyncFfmpeg(
     let outputDuration: number | undefined;
     let videoCodec: string | undefined;
     let audioCodec: string | undefined;
+    let subtitleCodec: string | undefined;
     let audioRate: number | undefined;
     let audioChannels: number | undefined;
     let stripAudio = false;
@@ -1413,14 +1424,14 @@ export function evalSyncFfmpeg(
         });
         pendingFormat = undefined; pendingSs = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
-        const val = args[++i]; videoCodec = val; audioCodec = val;
+        const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
       } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") videoCodec = args[++i];
       else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
         const value = args[++i];
         if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;
         else audioCodec = value;
       }
-      else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") i++;
+      else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") subtitleCodec = args[++i];
       else if (arg === "-an") stripAudio = true;
       else if (arg === "-vn") stripVideo = true;
       else if (arg === "-sn") stripSubtitles = true;
@@ -1502,6 +1513,7 @@ export function evalSyncFfmpeg(
 
     let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
+    if (subtitleCodec !== "copy") workingDoc = discardSubtitleSideData(workingDoc);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
@@ -1761,6 +1773,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputDuration: number | undefined;
         let videoCodec: string | undefined;
         let audioCodec: string | undefined;
+        let subtitleCodec: string | undefined;
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
         let hlsTime = 2;
@@ -1994,6 +2007,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const val = args[++i];
             videoCodec = val;
             audioCodec = val;
+            subtitleCodec = val;
           } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") {
             videoCodec = args[++i];
           } else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
@@ -2001,7 +2015,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;
             else audioCodec = value;
           } else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") {
-            i++;
+            subtitleCodec = args[++i];
           } else if (arg === "-an") {
             stripAudio = true;
           } else if (arg === "-vn") {
@@ -2766,6 +2780,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
+            if (subtitleCodec !== "copy") workingDoc = discardSubtitleSideData(workingDoc);
 
             const audioTrackCount = workingDoc.tracks.filter(track => track.type === "audio").length;
             if (audioCodec === "copy" && audioTrackCount > 0 && afFilters.some(filter => filter.ordinal === undefined || filter.ordinal < audioTrackCount)) {

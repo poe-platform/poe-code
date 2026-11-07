@@ -3675,3 +3675,25 @@ describe("subtitle packet trimming (FFmpeg 7.0.2)", () => {
     }
   }
 });
+
+
+describe("WebVTT cue side data", () => {
+  for (const sync of [false, true]) {
+    for (const codec of [[], ["-c:s", "copy"], ["-c", "copy"], ["-codec:s", "copy"], ["-scodec", "copy"], ["-c", "copy", "-c:s", "webvtt"]]) {
+      it(`${sync ? "sync" : "async"} ${codec.join(" ") || "re-encode"}`, async () => {
+        const vfs = createTestVfs({ "/in.vtt": "WEBVTT\n\nname-1\n00:01.250 --> 00:03.500 align:start position:15%\nOne\nTwo\n\nname-2\n00:05.000 --> 00:06.750\nThree\n" });
+        const args = ["-y", "-v", "error", "-i", "/in.vtt", ...codec, "/out.vtt"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const copy = codec.at(-1) === "copy";
+        assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
+          `WEBVTT\n\n${copy ? "name-1\n" : ""}00:00:01.250 --> 00:00:03.500${copy ? " align:start position:15%" : ""}\nOne\nTwo\n\n${copy ? "name-2\n" : ""}00:00:05.000 --> 00:00:06.750\nThree\n`);
+      });
+    }
+  }
+});

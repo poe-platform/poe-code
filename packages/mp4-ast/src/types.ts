@@ -210,6 +210,8 @@ export interface MediaAudioData {
 }
 
 export interface MediaSample {
+  /** WebVTT packet side data, separate from the caption payload. */
+  readonly webvtt?: { readonly identifier: string; readonly settings: string } | undefined;
   /** Decoder priming and trailing padding, in PCM samples per channel. */
   readonly skipSamples?: number;
   readonly discardPadding?: number;

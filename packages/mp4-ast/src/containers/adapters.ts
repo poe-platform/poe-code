@@ -1478,6 +1478,10 @@ export function parseSubtitleDocument(
 
     samples.push({
       data: payload,
+      ...(format === "webvtt" ? { webvtt: {
+        identifier: arrowLineIdx > 0 ? lines[arrowLineIdx - 1]! : "",
+        settings: (rightWithSettings ?? "").trim().slice(rightRaw.length).trimStart()
+      } } : {}),
       dts: startMs,
       pts: startMs,
       cts: 0,
@@ -1542,7 +1546,9 @@ export function serializeSubtitleDocument(
     if (format === "srt") {
       lines.push(String(cueIndex));
     }
-    lines.push(`${formatSubtitleTimecode(startMs, sep)} --> ${formatSubtitleTimecode(endMs, sep)}`);
+    const cue = format === "webvtt" ? s.webvtt : undefined;
+    if (cue?.identifier) lines.push(cue.identifier);
+    lines.push(`${formatSubtitleTimecode(startMs, sep)} --> ${formatSubtitleTimecode(endMs, sep)}${cue?.settings ? " " + cue.settings : ""}`);
     lines.push(cueText, "");
     cueIndex++;
   }

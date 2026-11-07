@@ -2630,7 +2630,7 @@ function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: Rgba
     if ((image.space === "b-w" || image.space === "grey16") && (color.r !== color.g || color.g !== color.b))
         image = { ...image, space: "srgb", channels: 4 };
     const base = { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color), signal, layout), virtualCanvas: layout.virtualCanvas };
-    return layout.sigma === 0 ? base : yield* applyMagickRasterSteps(base, blurPixelSteps(base, { height: layout.sigma }, false), signal);
+    return layout.sigma === 0 ? base : yield* applyMagickRasterSteps(base, blurPixelSteps(base, { height: layout.sigma }, false, { r: false, g: false, b: false, a: true }), signal);
 }
 
 function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [number, number, number] {
@@ -7845,7 +7845,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = { ...image, space: "srgb", channels: 4 };
                 const base = { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background), signal, layout), virtualCanvas: layout.virtualCanvas };
-                return layout.sigma === 0 ? base : transformStoredMagickRaster(base, backend, blurPixelSteps(base, { height: layout.sigma }, false), signal);
+                return layout.sigma === 0 ? base : transformStoredMagickRaster(base, backend, blurPixelSteps(base, { height: layout.sigma }, false, { r: false, g: false, b: false, a: true }), signal);
             });
         } else if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
             const method = (tokens[++i] ?? (token === "-morphology" ? "dilate" : "median")).toLowerCase();

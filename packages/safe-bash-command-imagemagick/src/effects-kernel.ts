@@ -12,6 +12,9 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
     for (let y = 0; y < layout.height; y++) for (let left = 0; left < layout.width; left += 1024) {
         yield;
         const count = Math.min(1024, layout.width - left), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4), sy = y - layout.offsetY;
+        for (let offset = 0; offset < data.length; offset += 4) {
+            data[offset] = Math.round(color.r * scale); data[offset + 1] = Math.round(color.g * scale); data[offset + 2] = Math.round(color.b * scale);
+        }
         const first = Math.max(left, layout.offsetX), end = Math.min(left + count, layout.offsetX + source.width);
         if (sy >= 0 && sy < source.height && end > first) {
             const length = (end - first) * 4;
@@ -20,7 +23,6 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
             const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             for (let x = first; x < end; x++) {
                 const offset = (x - left) * 4;
-                data[offset] = Math.round(color.r * scale); data[offset + 1] = Math.round(color.g * scale); data[offset + 2] = Math.round(color.b * scale);
                 const value = samples[(x - first) * 4 + 3]! * layout.opacity;
                 data[offset + 3] = Number.isFinite(value) ? Math.max(0, Math.min(maximum, Math.round(value))) : 0;
             }

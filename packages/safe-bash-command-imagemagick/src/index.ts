@@ -5829,18 +5829,22 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(previous, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, previous]);
             }
         }
-        else if (t === "-coalesce") {
+        else if (t === "-coalesce" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose")) {
+            const dispose = t === "-layers";
+            if (dispose) i++;
             if (stack.length) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 };
+                const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 let canvas: RgbaImage = { ...first, width, height, data: (yield* createSolidRgbaImageSteps(width, height, background)).data, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
                 const frames: RgbaImage[] = [];
-                for (const frame of stack) {
+                for (const inputFrame of stack) {
+                    // Native DisposeImages repeats the first input, including its timing.
+                    const frame = dispose ? first : inputFrame;
                     const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                     canvas = yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(frame, x, y, "over")]);
                     let disposal = 1;
                     const prior = frames.at(-1), priorInput = stack[frames.length - 1];
-                    if (prior && priorInput) {
+                    if (!dispose && prior && priorInput) {
                         // Native clears the preceding frame only where pixels become transparent.
                         const left = Math.max(0, priorInput.virtualCanvas?.x ?? 0), top = Math.max(0, priorInput.virtualCanvas?.y ?? 0);
                         const right = Math.min(width, (priorInput.virtualCanvas?.x ?? 0) + priorInput.width), bottom = Math.min(height, (priorInput.virtualCanvas?.y ?? 0) + priorInput.height);
@@ -5853,7 +5857,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         }
                         frames[frames.length - 1] = { ...prior, disposal };
                     }
-                    frames.push({ ...frame, width, height, data: canvas.data, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
+                    if (!dispose) frames.push({ ...frame, width, height, data: canvas.data, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {
                         const data = new Uint8Array(canvas.data);
@@ -5863,6 +5867,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         }
                         canvas = { ...canvas, data, hasAlpha: true };
                     }
+                    if (dispose) frames.push({ ...first, width, height, data: canvas.data, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
                 }
                 stack = frames;
             }
@@ -7139,18 +7144,20 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-coalesce") {
+        if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose"))) {
+            const dispose = token === "-layers";
+            if (dispose) i++;
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 };
+                const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 let canvas = await createStoredCanvas(width, height, background, backend, signal);
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let index = 0; index < stack.length; index++) {
-                    const frame = (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+                    const frame = dispose ? first : (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                     canvas = await compositeStoredMagick(canvas, frame, backend, signal, x, y, "over", undefined, true);
                     let disposal = 1;
-                    if (index > 0) {
+                    if (!dispose && index > 0) {
                         const prior = (await frames.get(index - 1))!, priorInput = (await stack.get(index - 1))!;
                         const left = Math.max(0, priorInput.virtualCanvas?.x ?? 0), top = Math.max(0, priorInput.virtualCanvas?.y ?? 0);
                         const right = Math.min(width, (priorInput.virtualCanvas?.x ?? 0) + priorInput.width), bottom = Math.min(height, (priorInput.virtualCanvas?.y ?? 0) + priorInput.height);
@@ -7166,12 +7173,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         await frames.set(index - 1, { ...prior, disposal });
                     }
-                    await frames.push({ ...frame, width, height, position: canvas.position, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
+                    if (!dispose) await frames.push({ ...frame, width, height, position: canvas.position, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {
                         const clear = await createStoredCanvas(frame.width, frame.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
                         canvas = await compositeStoredMagick(canvas, clear, backend, signal, x, y, "source", undefined, true);
                     }
+                    if (dispose) await frames.push({ ...first, width, height, position: canvas.position, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
                 }
                 return frames;
             });

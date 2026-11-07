@@ -1323,14 +1323,23 @@ function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDoc
   };
 }
 
-function validateSubtitleCopy(doc: MediaDocument, outputFormat: string): void {
-  const requiredCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : outputFormat === "ass" ? "ass" : undefined;
-  if (requiredCodec === undefined) return;
+function validateStreamCopy(
+  doc: MediaDocument,
+  outputFormat: string,
+  codecs: Partial<Record<MediaTrack["type"], string | undefined>>
+): void {
+  const requiredSubtitleCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : outputFormat === "ass" ? "ass" : undefined;
   for (const track of doc.tracks) {
-    if (track.type !== "subtitle") continue;
+    if (codecs[track.type] !== "copy") continue;
+    const allowed = outputFormat === "webm"
+      ? track.type === "video" ? ["vp8", "vp9", "av1"]
+        : track.type === "audio" ? ["vorbis", "opus"]
+          : track.type === "subtitle" ? ["webvtt"] : []
+      : track.type === "subtitle" && requiredSubtitleCodec ? [requiredSubtitleCodec] : undefined;
+    if (allowed === undefined) continue;
     for (const description of track.codecDescriptions) {
-      if (description.codecName !== requiredCodec) {
-        throw new Error(`Cannot copy subtitle codec '${description.codecName}' to ${outputFormat}; use subtitle transcoding.`);
+      if (!allowed.includes(description.codecName)) {
+        throw new Error(`Cannot copy ${track.type} codec '${description.codecName}' to ${outputFormat}; use ${track.type} transcoding.`);
       }
     }
   }
@@ -1705,7 +1714,7 @@ export function evalSyncFfmpeg(
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
-    if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin.id);
+    validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
     const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
@@ -3557,7 +3566,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
             const outExt = outputTarget.split(".").pop()?.toLowerCase();
-            if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin?.id ?? outputFormat!);
+            validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
@@ -47,6 +48,17 @@ for (const count of [6720, 4800, 64]) {
     assert.equal(audio.channels, fixture ? 2 : 1);
     assert.equal(audio.channelData[0]!.length, count);
     if (!fixture) return;
+    // Native FFmpeg with -cpuflags 0 converting this decoder's pcm_f32le output
+    // to s16le. Using identical decoded floats isolates integer rounding from
+    // platform-dependent Vorbis transform precision (including halfway values).
+    const pcm = Buffer.alloc(count * audio.channels * 2);
+    for (let i = 0; i < count; i++) {
+      for (let channel = 0; channel < audio.channels; channel++) {
+        pcm.writeInt16LE(audio.channelData[channel]![i]! * 32768, (i * audio.channels + channel) * 2);
+      }
+    }
+    assert.equal(createHash("sha256").update(pcm).digest("hex"),
+      "303339b1cca791127c560a86315edbf501c95b3a71635d571b00f0132f2d0880");
     // Native FFmpeg 9.0.2, sampled from the decoded PCM16 output.
     const positions = [0, 1, 20, 100, 1000, 5000, 6719];
     const expected = [[-219, 334, 8899, -5105, 8582, -8626, 3], [-64, 486, 6602, 4608, -6751, -6562, -6]];

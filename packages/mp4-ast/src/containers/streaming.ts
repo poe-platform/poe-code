@@ -121,76 +121,75 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
   const periodDuration = durationSeconds(attribute(period, "duration")) || duration;
   const sequences: StreamingSegment[][] = [];
   for (const adaptation of period.children.filter(n => n.localName === "AdaptationSet")) {
-    // Alternative representations are alternatives of the same stream.
-    const representation = adaptation.children.find(n => n.localName === "Representation");
-    if (!representation) continue;
-    budget.checkStreams(sequences.length + 1);
-    const ancestors = [mpd, period, adaptation, representation];
-    const base = ancestors.map(n => n.children.find(c => c.localName === "BaseURL")?.text.trim() ?? "").join("");
-    const templates = ancestors.flatMap(n => n.children.filter(c => c.localName === "SegmentTemplate"));
-    const lists = ancestors.flatMap(n => n.children.filter(c => c.localName === "SegmentList"));
-    const sequence: StreamingSegment[] = [];
-    if (lists.length) {
-      const list = lists[lists.length - 1]!;
-      const initialization = list.children.find(n => n.localName === "Initialization");
-      if (initialization && attribute(initialization, "range")) throw new Error("DASH initialization byte ranges are not supported");
-      const initUri = initialization && attribute(initialization, "sourceURL");
-      for (const segment of list.children.filter(n => n.localName === "SegmentURL")) {
-        budget.checkConcatInputs(sequence.length + 1);
-        if (attribute(segment, "mediaRange")) throw new Error("DASH byte ranges are not supported");
-        const uri = attribute(segment, "media");
-        if (!uri) throw new Error("DASH SegmentURL requires media");
-        sequence.push({ uri: base + uri, initialization: initUri ? base + initUri : undefined });
-      }
-    } else if (templates.length) {
-      const attrs = new Map(templates.flatMap(n => n.attributes.map(a => [a.localName, a.value] as const)));
-      const media = attrs.get("media");
-      if (!media) throw new Error("DASH SegmentTemplate requires media");
-      const timescale = Number(attrs.get("timescale") ?? 1);
-      let number = Number(attrs.get("startNumber") ?? 1);
-      if (!Number.isSafeInteger(timescale) || timescale <= 0 || !Number.isSafeInteger(number) || number < 0) throw new Error("Invalid DASH segment numbering or timescale");
-      const id = attribute(representation, "id") ?? "0";
-      const bandwidth = attribute(representation, "bandwidth") ?? "0";
-      const init = attrs.get("initialization");
-      const initialization = init ? base + templateUri(init, id, number, 0, bandwidth) : undefined;
-      const add = (time: number) => {
-        budget.checkCpu();
-        budget.checkConcatInputs(sequence.length + 1);
-        sequence.push({ uri: base + templateUri(media, id, number++, time, bandwidth), initialization });
-      };
-      const timeline = templates.flatMap(n => n.children.filter(c => c.localName === "SegmentTimeline")).at(-1);
-      if (timeline) {
-        let time = 0;
-        const entries = timeline.children.filter(n => n.localName === "S");
-        for (let i = 0; i < entries.length; i++) {
-          const entry = entries[i]!;
-          time = Number(attribute(entry, "t") ?? time);
-          const d = Number(attribute(entry, "d"));
-          let repeat = Number(attribute(entry, "r") ?? 0);
-          if (!Number.isSafeInteger(time) || time < 0 || !Number.isSafeInteger(d) || d <= 0 || !Number.isSafeInteger(repeat) || repeat < -1) throw new Error("Invalid DASH SegmentTimeline");
-          if (repeat === -1) {
-            const next = entries[i + 1];
-            const end = next ? Number(attribute(next, "t")) : periodDuration * timescale;
-            if (!Number.isFinite(end) || end <= time) throw new Error("Unbounded DASH SegmentTimeline");
-            repeat = Math.ceil((end - time) / d) - 1;
-          }
-          if (!Number.isSafeInteger(repeat) || !Number.isSafeInteger(number + repeat + 1)) throw new Error("Invalid DASH repeat count");
-          budget.checkConcatInputs(sequence.length + repeat + 1);
-          for (let r = 0; r <= repeat; r++, time += d) add(time);
+    for (const representation of adaptation.children.filter(n => n.localName === "Representation")) {
+      budget.checkStreams(sequences.length + 1);
+      const ancestors = [mpd, period, adaptation, representation];
+      const base = ancestors.map(n => n.children.find(c => c.localName === "BaseURL")?.text.trim() ?? "").join("");
+      const templates = ancestors.flatMap(n => n.children.filter(c => c.localName === "SegmentTemplate"));
+      const lists = ancestors.flatMap(n => n.children.filter(c => c.localName === "SegmentList"));
+      const sequence: StreamingSegment[] = [];
+      if (lists.length) {
+        const list = lists[lists.length - 1]!;
+        const initialization = list.children.find(n => n.localName === "Initialization");
+        if (initialization && attribute(initialization, "range")) throw new Error("DASH initialization byte ranges are not supported");
+        const initUri = initialization && attribute(initialization, "sourceURL");
+        for (const segment of list.children.filter(n => n.localName === "SegmentURL")) {
+          budget.checkConcatInputs(sequence.length + 1);
+          if (attribute(segment, "mediaRange")) throw new Error("DASH byte ranges are not supported");
+          const uri = attribute(segment, "media");
+          if (!uri) throw new Error("DASH SegmentURL requires media");
+          sequence.push({ uri: base + uri, initialization: initUri ? base + initUri : undefined });
         }
-      } else {
-        const d = Number(attrs.get("duration"));
-        if (!(d > 0) || !Number.isFinite(d) || !(periodDuration > 0)) throw new Error("DASH requires a bounded segment duration or timeline");
-        const count = Math.ceil(periodDuration * timescale / d);
-        if (!Number.isSafeInteger(count) || !Number.isSafeInteger(number + count)) throw new Error("Invalid DASH segment count");
-        budget.checkConcatInputs(count);
-        for (let i = 0; i < count; i++) add(i * d);
+      } else if (templates.length) {
+        const attrs = new Map(templates.flatMap(n => n.attributes.map(a => [a.localName, a.value] as const)));
+        const media = attrs.get("media");
+        if (!media) throw new Error("DASH SegmentTemplate requires media");
+        const timescale = Number(attrs.get("timescale") ?? 1);
+        let number = Number(attrs.get("startNumber") ?? 1);
+        if (!Number.isSafeInteger(timescale) || timescale <= 0 || !Number.isSafeInteger(number) || number < 0) throw new Error("Invalid DASH segment numbering or timescale");
+        const id = attribute(representation, "id") ?? "0";
+        const bandwidth = attribute(representation, "bandwidth") ?? "0";
+        const init = attrs.get("initialization");
+        const initialization = init ? base + templateUri(init, id, number, 0, bandwidth) : undefined;
+        const add = (time: number) => {
+          budget.checkCpu();
+          budget.checkConcatInputs(sequence.length + 1);
+          sequence.push({ uri: base + templateUri(media, id, number++, time, bandwidth), initialization });
+        };
+        const timeline = templates.flatMap(n => n.children.filter(c => c.localName === "SegmentTimeline")).at(-1);
+        if (timeline) {
+          let time = 0;
+          const entries = timeline.children.filter(n => n.localName === "S");
+          for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i]!;
+            time = Number(attribute(entry, "t") ?? time);
+            const d = Number(attribute(entry, "d"));
+            let repeat = Number(attribute(entry, "r") ?? 0);
+            if (!Number.isSafeInteger(time) || time < 0 || !Number.isSafeInteger(d) || d <= 0 || !Number.isSafeInteger(repeat) || repeat < -1) throw new Error("Invalid DASH SegmentTimeline");
+            if (repeat === -1) {
+              const next = entries[i + 1];
+              const end = next ? Number(attribute(next, "t")) : periodDuration * timescale;
+              if (!Number.isFinite(end) || end <= time) throw new Error("Unbounded DASH SegmentTimeline");
+              repeat = Math.ceil((end - time) / d) - 1;
+            }
+            if (!Number.isSafeInteger(repeat) || !Number.isSafeInteger(number + repeat + 1)) throw new Error("Invalid DASH repeat count");
+            budget.checkConcatInputs(sequence.length + repeat + 1);
+            for (let r = 0; r <= repeat; r++, time += d) add(time);
+          }
+        } else {
+          const d = Number(attrs.get("duration"));
+          if (!(d > 0) || !Number.isFinite(d) || !(periodDuration > 0)) throw new Error("DASH requires a bounded segment duration or timeline");
+          const count = Math.ceil(periodDuration * timescale / d);
+          if (!Number.isSafeInteger(count) || !Number.isSafeInteger(number + count)) throw new Error("Invalid DASH segment count");
+          budget.checkConcatInputs(count);
+          for (let i = 0; i < count; i++) add(i * d);
+        }
+      } else if (base) {
+        sequence.push({ uri: base });
       }
-    } else if (base) {
-      sequence.push({ uri: base });
+      if (!sequence.length) throw new Error("DASH representation has no segments");
+      sequences.push(sequence);
     }
-    if (!sequence.length) throw new Error("DASH representation has no segments");
-    sequences.push(sequence);
   }
   if (!sequences.length) throw new Error("DASH manifest has no representations");
   return { format, durationSeconds: periodDuration, sequences };

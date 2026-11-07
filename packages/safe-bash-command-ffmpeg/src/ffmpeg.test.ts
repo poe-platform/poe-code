@@ -5438,3 +5438,24 @@ for (const value of [undefined, "unsupported", "duration"]) {
     assert.equal(vfs.store.size, 0);
   });
 }
+
+it("probes and maps every video representation in a DASH adaptation set", async () => {
+  const { serializeDashDocument } = await import("@poe-code/mp4-ast");
+  const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 12, includeAudio: true }));
+  const small = parseMp4(createSyntheticMp4({ width: 16, height: 12, fps: 4, frameCount: 12 }));
+  const tracks = [base.tracks[0]!, small.tracks[0]!, base.tracks[1]!];
+  const { manifest, resources } = serializeDashDocument({ ...base, tracks }, { adaptationSets: "id=0,streams=v id=1,streams=a", segmentDuration: 1 });
+  const vfs = createTestVfs({ "/in.mpd": manifest, ...Object.fromEntries([...resources].map(([uri, bytes]) => [`/${uri}`, bytes])) });
+  const probe = await runCmd(createFfprobeCommand(), ["-show_streams", "-of", "json", "/in.mpd"], vfs);
+  assert.equal(probe.exitCode, 0, probe.stderr);
+  const streams = JSON.parse(probe.stdout).streams;
+  assert.deepEqual(streams.map((s: { codec_type: string; width?: number; height?: number }) => [s.codec_type, s.width, s.height]), [["video", 32, 24], ["video", 16, 12], ["audio", undefined, undefined]]);
+  for (const mapping of ["0", "0:v:1"]) {
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.mpd", "-map", mapping, "-c", "copy", "/out.mp4"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = parseMp4(vfs.store.get("/out.mp4")!);
+    const expected = mapping === "0" ? tracks : [tracks[1]!];
+    assert.deepEqual(output.tracks.map(t => [t.type, t.width, t.height]), expected.map(t => [t.type, t.width, t.height]));
+    assert.deepEqual(output.tracks.map(t => t.samples.map(s => s.data)), expected.map(t => t.samples.map(s => s.data)));
+  }
+});

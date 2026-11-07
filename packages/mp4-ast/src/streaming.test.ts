@@ -206,3 +206,17 @@ it("bounds single-file DASH output and escapes its resource names", () => {
   assert.throws(() => serializeDashDocument(source, { ...options, limits: { maxOutputBytes: total - 1 } }), MediaLimitExceededError);
   assert.equal(serializeDashDocument(source, { ...options, limits: { maxOutputBytes: total } }).manifest.length, manifest.length);
 });
+
+for (const useTemplate of [true, false]) {
+  it(`preserves every DASH representation in one adaptation set with template=${useTemplate}`, () => {
+    const small = parseMp4(createSyntheticMp4({ width: 16, height: 12, fps: 25, frameCount: 50 }));
+    const input = { ...source, tracks: [source.tracks[0]!, small.tracks[0]!, source.tracks[1]!] };
+    const { manifest, resources } = serializeDashDocument(input, { adaptationSets: "id=0,streams=v id=1,streams=a", useTemplate });
+    const plan = parseStreamingManifest(manifest, "dash");
+    assert.equal(plan.sequences.length, 3);
+    assert.throws(() => parseStreamingManifest(manifest, "dash", { limits: { maxStreams: 2 } }), MediaLimitExceededError);
+    const output = dashAst().parse(manifest, { resolveResource: uri => resources.get(uri)! });
+    assert.deepEqual(output.tracks.map(t => [t.type, t.width, t.height]), input.tracks.map(t => [t.type, t.width, t.height]));
+    assert.deepEqual(output.tracks.map(t => t.samples.map(s => [s.dts, s.data])), input.tracks.map(t => t.samples.map(s => [s.dts, s.data])));
+  });
+}

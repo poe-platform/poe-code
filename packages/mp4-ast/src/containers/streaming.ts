@@ -1,6 +1,6 @@
 import { parseXml, type XmlElement } from "@poe-code/xml-ast";
 import { concatBytes, decodeUtf8, encodeUtf8, gcd } from "../binary.js";
-import { concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
+import { buildProbeResultFromDoc, concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
 import { parseMpegTs } from "./mpegts.js";
 import { MediaBudgetTracker, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
 
@@ -240,6 +240,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   if (!Number.isFinite(segmentDuration) || segmentDuration < 0) throw new Error("Invalid DASH segment duration");
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const resources = new Map<string, Uint8Array>();
+  const streams = buildProbeResultFromDoc(doc, 0).streams;
   let totalBytes = 0;
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
@@ -313,7 +314,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
     lines.push(
       `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}>`,
-      `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
+      `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Number(streams[index]?.bit_rate) > 0 ? streams[index]!.bit_rate : Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
       ...(track.type === "audio" && description?.channels ? [
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
       ] : []),

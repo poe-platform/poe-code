@@ -2146,7 +2146,7 @@ export function buildProbeResultFromDoc(
       start_time: ch.startTimeSeconds.toFixed(6),
       end: Math.round(ch.endTimeSeconds * (ch.timescale ?? 1000)),
       end_time: ch.endTimeSeconds.toFixed(6),
-      tags: { title: ch.title }
+      tags: ch.tags ?? { title: ch.title }
     })),
     packets: options.showPackets ? packets : undefined,
     frames: options.showFrames ? frames : undefined

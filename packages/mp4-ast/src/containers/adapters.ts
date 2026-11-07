@@ -2002,6 +2002,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   let tbDen = 1_000_000_000;
   let curStart = 0;
   let curEnd = 0;
+  let chapterTags = new Map<string, string>();
   let curTitle = "";
 
   const flushChapter = () => {
@@ -2012,7 +2013,8 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       timeBase: { numerator: tbNum, denominator: Math.max(1, tbDen) },
       startTimeSeconds: curStart * factor,
       endTimeSeconds: curEnd * factor,
-      title: curTitle || `Chapter ${chapters.length + 1}`
+      title: curTitle,
+      tags: Object.fromEntries(chapterTags)
     });
   };
 
@@ -2026,6 +2028,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       tbDen = 1_000_000_000;
       curStart = 0;
       curEnd = 0;
+      chapterTags = new Map();
       curTitle = "";
       continue;
     }
@@ -2048,8 +2051,9 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         curStart = parseInt(val, 10) || 0;
       } else if (kUp === "END") {
         curEnd = parseInt(val, 10) || 0;
-      } else if (kUp === "TITLE") {
-        curTitle = val;
+      } else {
+        chapterTags.set(key, val);
+        if (kUp === "TITLE") curTitle = val;
       }
     } else if (section === "global") {
       const normalizedKey = key.toLowerCase();
@@ -2104,7 +2108,9 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
       lines.push("", "[CHAPTER]", `TIMEBASE=${numerator}/${denominator}`);
       lines.push(`START=${Math.round(ch.startTimeSeconds / factor)}`);
       lines.push(`END=${Math.round(ch.endTimeSeconds / factor)}`);
-      lines.push(`title=${ch.title}`);
+      for (const [key, value] of Object.entries(ch.tags ?? { title: ch.title })) {
+        lines.push(`${key}=${value}`);
+      }
     }
   }
   lines.push("");

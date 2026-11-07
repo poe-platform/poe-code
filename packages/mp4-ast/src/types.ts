@@ -416,6 +416,8 @@ export interface Mp4MetadataTags {
 }
 
 export interface Mp4Chapter {
+  /** Original chapter tags, when available, including an explicitly empty title. */
+  readonly tags?: Readonly<Record<string, string>>;
   readonly timeBase?: { readonly numerator: number; readonly denominator: number };
   readonly id: number;
   readonly timescale?: number;

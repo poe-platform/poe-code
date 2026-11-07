@@ -12,7 +12,7 @@ it(`matches native zero-dimension raise: ${geometry}, ${raised}, ${depth}-bit, $
     const data = Uint8Array.from(Array.from({ length: 25 }, () => source).flat());
     const input = encodeImage({ width: 5, height: 5, data,
         ...(depth === 16 ? { data16: Uint16Array.from(data, value => value * 257) } : {}),
-        format: "png", space: "srgb", channels: 4, depth: depth === 16 ? "ushort" : "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+        format: "png", space: "srgb", channels: 3, depth: depth === 16 ? "ushort" : "uchar", density: 72, hasAlpha: false }, { format: "png" }).data;
     const files = new Map([["/input.png", input]]), filesystem = new MemoryFileSystem();
     await filesystem.writeFile("/input.png", input);
     const args = ["/input.png", raised ? "-raise" : "+raise", geometry, "/out.png"];

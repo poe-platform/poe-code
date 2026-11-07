@@ -150,7 +150,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     }
 }
 
-export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & { storedData16?: unknown }, borderWidth: number, borderHeight: number, raised: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha"> & { storedData16?: unknown }, borderWidth: number, borderHeight: number, raised: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (2 * borderWidth >= image.width || 2 * borderHeight >= image.height) throw new Error("size must exceed bevel width");
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     const size = image.width * image.height * 4;
@@ -173,7 +173,7 @@ export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "da
                 foreground = x < borderWidth;
             }
             const target = foreground === raised ? maximum : 0;
-            for (let channel = 0; channel < 3; channel++) data[offset + channel] = Math.round((data[offset + channel]! * factor + target * (255 - factor)) / 255);
+            for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) data[offset + channel] = Math.round((data[offset + channel]! * factor + target * (255 - factor)) / 255);
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }

@@ -33,7 +33,7 @@ it(`keeps query/missing-input semantics without whole-file I/O: ${args.join(" ")
 });
 
 it.each([true, false])("matches native ImageMagick raised-border pixels with raised=%s", async raised => {
-    const fs = new MemoryFileSystem(), source = Uint8Array.from({ length: 36 }, (_, i) => i % 4 === 3 ? 255 : 128), bytes = await sharp(source, { raw: { width: 3, height: 3, channels: 4 } }).png().toBuffer();
+    const fs = new MemoryFileSystem(), source = Uint8Array.from({ length: 36 }, (_, i) => i % 4 === 3 ? 255 : 128), bytes = await sharp(source, { raw: { width: 3, height: 3, channels: 4 } }).removeAlpha().png().toBuffer();
     await fs.writeFile("/input", bytes);
     expect((await runConvertCli(["input", raised ? "-raise" : "+raise", "1x1", "out.png"], { filesystem: fs, cwd: "/" })).exitCode).toBe(0);
     const files = new Map([["input", bytes]]);
@@ -53,7 +53,7 @@ it("preserves wide image transforms across bounded spans", async () => {
 
 it.each([true, false])("matches native two-pixel bevel corners on RGB with raised=%s", async raised => {
     const source = Uint8Array.from(Array.from({ length: 25 }, () => [20, 100, 220, 255]).flat());
-    const bytes = await sharp(source, { raw: { width: 5, height: 5, channels: 4 } }).png().toBuffer();
+    const bytes = await sharp(source, { raw: { width: 5, height: 5, channels: 4 } }).removeAlpha().png().toBuffer();
     const files = new Map([["input", bytes]]);
     expect((await runConvertCli(["input", raised ? "-raise" : "+raise", "2x2", "out.png"], files)).exitCode).toBe(0);
     // Native ImageMagick 7.1.2: top, left, center, right, and bottom shades.

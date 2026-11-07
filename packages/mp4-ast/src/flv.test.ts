@@ -1,6 +1,24 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { createSyntheticMp4, parseFlv, parseMp4, serializeFlv } from "./index.js";
+
+it("discovers and copies native FLV MP3 packets without AAC headers", () => {
+  // ffmpeg -f lavfi -i testsrc2=s=64x48:r=5:d=2 -f lavfi -i sine=f=880:r=44100:d=2
+  // -c:v flv1 -threads 1 -c:a libmp3lame mp3.flv
+  const source = new Uint8Array(readFileSync(new URL("./fixtures/mp3.flv", import.meta.url)));
+  const doc = parseFlv(source);
+  const audio = doc.tracks.find(track => track.type === "audio")!;
+  assert.ok(audio);
+  assert.equal(audio.codecDescriptions[0]!.codecName, "mp3");
+  assert.equal(audio.codecDescriptions[0]!.sampleRate, 44100);
+  assert.equal(audio.codecDescriptions[0]!.channels, 1);
+  assert.equal(audio.samples.length, 78);
+  assert.ok(Math.abs(audio.samples[0]!.duration - 1152 / 44100 * 1000) < 0.001);
+  const output = serializeFlv({ ...doc, tracks: [audio] });
+  assert.equal(output[24]! >>> 4, 2, "first audio tag is MP3, without a sequence header");
+  assert.deepEqual(parseFlv(output).tracks[0], { ...audio, id: 1 });
+});
 
 for (const streams of ["both", "video", "audio"] as const) {
   it(`writes ${streams} FLV tags in decode order without changing packets`, () => {

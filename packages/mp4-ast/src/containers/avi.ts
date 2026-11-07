@@ -1,3 +1,4 @@
+import { mpegFrame } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import {
   BinaryReader,
@@ -659,7 +660,9 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   reader.seek(dataOffset + 4); // skip PreviousTagSize0
 
   let avcC: ReturnType<typeof parseAvcC> | undefined;
-  let asc = { audioObjectType: 2, sampleRate: 44100, channelCount: 2 };
+  let audioDescription: MediaCodecDescription = {
+    formatFourCC: "mp4a", codecName: "aac", sampleRate: 44100, channels: 2, bitsPerSample: 16
+  };
   const videoSamples: MediaSample[] = [];
   const audioSamples: MediaSample[] = [];
   let width = 320;
@@ -718,7 +721,8 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         const aacPacketType = tagData[1]!;
         const payload = tagData.subarray(2);
         if (aacPacketType === 0 && payload.byteLength >= 2) {
-          asc = parseAudioSpecificConfig(payload);
+          const asc = parseAudioSpecificConfig(payload);
+          audioDescription = { ...audioDescription, sampleRate: asc.sampleRate, channels: asc.channelCount };
         } else if (aacPacketType === 1 && payload.byteLength > 0) {
           audioSamples.push({
             data: payload,
@@ -731,6 +735,19 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             sampleDescriptionIndex: 1
           });
         }
+      } else if ((soundFormat === 2 || soundFormat === 14) && tagData.byteLength >= 5) {
+        const payload = tagData.subarray(1);
+        const header = new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getUint32(0);
+        const frame = mpegFrame(header, 0, payload.byteLength);
+        audioDescription = {
+          formatFourCC: ".mp3", codecName: "mp3", sampleRate: frame.rate,
+          channels: frame.channels, bitsPerSample: 16
+        };
+        audioSamples.push({
+          data: payload, dts: timestampMs, pts: timestampMs, cts: 0,
+          duration: frame.count / frame.rate * 1000, size: payload.byteLength,
+          isKeyframe: true, sampleDescriptionIndex: 1
+        });
       }
     }
   }
@@ -781,15 +798,7 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       duration: totalDur,
       language: "und",
       enabled: true,
-      codecDescriptions: [
-        {
-          formatFourCC: "mp4a",
-          codecName: "aac",
-          sampleRate: asc.sampleRate,
-          channels: asc.channelCount,
-          bitsPerSample: 16
-        }
-      ],
+      codecDescriptions: [audioDescription],
       samples: audioSamples
     });
   }
@@ -900,7 +909,14 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
     videoSamples = samples;
   }
 
-  if (audioTrack) {
+  let audioHeader = 0xaf;
+  if (audioTrack?.codecDescriptions[0]?.codecName === "mp3") {
+    const desc = audioTrack.codecDescriptions[0];
+    const rate = desc.sampleRate ?? 44100;
+    const rateBits = rate >= 44100 ? 3 : rate >= 22050 ? 2 : rate >= 11025 ? 1 : 0;
+    audioHeader = ((rate === 8000 ? 14 : 2) << 4) | (rateBits << 2) | 2 | (desc.channels === 1 ? 0 : 1);
+    audioSamples = audioTrack.samples;
+  } else if (audioTrack) {
     const desc = audioTrack.codecDescriptions[0];
     const sr = desc?.sampleRate ?? 44100;
     const ch = desc?.channels ?? 2;
@@ -952,10 +968,11 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
       videoIndex++;
     } else if (audio) {
       const dtsMs = Math.round(audio.dts / audioTimescale * 1000);
-      const pkt = new Uint8Array(2 + audio.data.byteLength);
-      pkt[0] = 0xaf;
-      pkt[1] = 0x01; // AAC raw
-      pkt.set(audio.data, 2);
+      const headerSize = audioHeader >>> 4 === 10 ? 2 : 1;
+      const pkt = new Uint8Array(headerSize + audio.data.byteLength);
+      pkt[0] = audioHeader;
+      if (headerSize === 2) pkt[1] = 0x01; // AAC raw
+      pkt.set(audio.data, headerSize);
       writeFlvTag(8, dtsMs, pkt);
       lastTimestampMs = dtsMs;
       audioIndex++;

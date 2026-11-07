@@ -11,6 +11,7 @@ export interface CompareOptions {
     readonly highlightColor: RgbaColor;
     readonly lowlightColor?: RgbaColor;
     readonly composeSrc: boolean;
+    readonly compose?: (reference: Uint8Array, overlay: Uint8Array) => Generator<void, Uint8Array, void>;
     readonly diff: boolean;
     readonly subimageSearch?: boolean;
     readonly offset?: { x: number; y: number };
@@ -87,6 +88,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     throw new Error("Truncated comparison pixels");
             }
             const diffData = options.diff ? new Uint8Array(count * 4) : undefined;
+            const reference = diffData && options.compose ? new Uint8Array(count * 4) : undefined;
             for (let x = left; x < left + count; x++) {
                 const outOff = (x - left) * 4;
                 const offA = (Math.min(x, imgA.width - 1) - leftA) * 4;
@@ -152,11 +154,14 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     const color = maxDelta > fuzz ? highlightColor : lowlightColor;
                     // ImageMagick makes the reference opaque before compositing
                     // the highlight/lowlight overlay (80% opaque by default).
-                    const alpha = composeSrc ? 1 : color.a / 255;
+                    if (reference) {
+                        reference.set([rA, gA, bA, 255], outOff);
+                    }
+                    const alpha = composeSrc || options.compose ? 1 : color.a / 255;
                     diffData[outOff] = Math.round(color.r * alpha + rA * (1 - alpha));
                     diffData[outOff + 1] = Math.round(color.g * alpha + gA * (1 - alpha));
                     diffData[outOff + 2] = Math.round(color.b * alpha + bA * (1 - alpha));
-                    diffData[outOff + 3] = composeSrc ? color.a : 255;
+                    diffData[outOff + 3] = composeSrc || options.compose ? color.a : 255;
                 }
                 if (hasAlpha) {
                     sumAbs += pdr + pdg + pdb + da;
@@ -169,8 +174,18 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 if (maxDelta > maxAbs)
                     maxAbs = maxDelta;
             }
-            if (diffData)
-                yield { kind: "write", position: (y * width + left) * 4, data: diffData };
+            if (diffData) {
+                let output: Uint8Array = diffData;
+                if (reference) {
+                    const composition = options.compose!(reference, diffData);
+                    let step = composition.next();
+                    try {
+                        while (!step.done) { yield; step = composition.next(); }
+                        output = step.value;
+                    } finally { composition.return(undefined as never); }
+                }
+                yield { kind: "write", position: (y * width + left) * 4, data: output };
+            }
         }
     }
     const numCh = hasAlpha ? 4 : 3;

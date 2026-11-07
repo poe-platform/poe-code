@@ -3094,9 +3094,9 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             }
             if (norm === "dstout" || norm === "destout") {
                 const factor = da * (1 - sa);
-                out[dIdx] = dr;
-                out[dIdx + 1] = dg;
-                out[dIdx + 2] = db;
+                out[dIdx] = factor === 0 ? 0 : dr;
+                out[dIdx + 1] = factor === 0 ? 0 : dg;
+                out[dIdx + 2] = factor === 0 ? 0 : db;
                 out[dIdx + 3] = dst.hasAlpha ? clampByteVal(factor * 255) : daByte;
                 continue;
             }
@@ -7819,7 +7819,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let dissimilarityThreshold = 0.2;
     let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
-    let composeSrc = false;
+    let compose = "over";
     const operands: string[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
@@ -7876,8 +7876,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             ].includes(cm)) {
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized compose operator '${rawCompose}'\n` };
             }
-            if (cm === "src" || cm === "source" || cm === "copy")
-                composeSrc = true;
+            compose = cm;
         }
         else if (t === "-dissimilarity-threshold") {
             const rawThreshold = argv[++i] ?? "";
@@ -7952,7 +7951,17 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
     const diff=outSpec.toLowerCase()!=="null:",diffPosition=backend&&diff?backend.storage.allocate(width*height*4):undefined;
     const diffData=!backend&&diff?new Uint8Array(width*height*4):undefined;
-    const comparison=compareImageSteps(imgA,imgB,{metric,subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{})});
+    const composeSrc = ["src", "source", "copy"].includes(compose);
+    const comparison=compareImageSteps(imgA,imgB,{metric,subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
+        ...(!composeSrc && compose !== "over" && compose !== "srcover" ? { compose: function* (reference: Uint8Array, overlay: Uint8Array) {
+            const canvas: RgbaImage = { width: reference.length / 4, height: 1, format: "png", channels: 4, depth: "uchar", density: state.density, space: "srgb", hasAlpha: true, data: new Uint8Array(reference.length).fill(255) };
+            // Compare first composites the reference onto white, then makes that
+            // canvas opaque before applying the highlight/lowlight overlay.
+            const base = yield* applyMagickCompositeLayerSteps(canvas, { ...canvas, data: reference }, compose, 0, 0, undefined, signal);
+            for (let i = 3; i < base.data.length; i += 4) base.data[i] = 255;
+            return (yield* applyMagickCompositeLayerSteps(base, { ...canvas, data: overlay }, compose, 0, 0, undefined, signal)).data;
+        } } : {})
+    });
     let compared=comparison.next();
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}

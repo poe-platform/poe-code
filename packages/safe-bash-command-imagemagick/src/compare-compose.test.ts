@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
+import { decodeImage } from "@poe-code/image-ast/portable";
 import sharp from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runCompareCli, runCompareCliSync } from "./index.js";
@@ -39,3 +40,36 @@ it("keeps recognized compare compose operators and existing aliases", async () =
         expect(result, operator).toMatchObject({ exitCode: 0, stderr: "0 (0)\n" });
     }
 });
+
+// Native ImageMagick 7.1.2 Q16-HDRI, with one equal and one changed pixel.
+for (const retained of [false, true]) {
+    for (const [mode, expected] of [
+        ["Over", "cfd2d6ffda1d38ff"],
+        ["Src", "ffffffccf1001ecc"],
+        ["Clear", "0000000000000000"],
+        ["Multiply", "102030ff7a1d2fff"],
+        ["Dst", "ffffffffffffffff"],
+        ["Difference", "10203033726f4133"],
+        ["Xor", "0000003300000033"],
+        ["Screen", "ffffffffffffffff"],
+        ["SrcIn", "ccccccccc10018cc"],
+        ["DstOut", "0000003300000033"]
+    ]) {
+        it(`composes compare output with ${mode}, retained=${retained}`, async () => {
+            const files = new Map<string, Uint8Array>();
+            for (const [name, pixels] of [["a.png", "102030ff8090a0ff"], ["b.png", "102030ff8090f0ff"]]) {
+                files.set(name!, await sharp(Buffer.from(pixels!, "hex"), { raw: { width: 2, height: 1, channels: 4 } }).png().toBuffer());
+            }
+            const filesystem = new MemoryFileSystem();
+            for (const [name, bytes] of files) await filesystem.writeFile(`/${name}`, bytes);
+            const input = retained ? { filesystem, cwd: "/" } : files;
+            const baseline = await runCompareCli(["a.png", "b.png", "null:"], input);
+            expect(baseline).toEqual({ exitCode: 1, stdout: "", stderr: "7269.06 (0.110919)\n" });
+            const result = await runCompareCli(["-compose", "Src", "-compose", mode!, "a.png", "b.png", "out.png"], input);
+            expect(result).toEqual(baseline);
+            const output = retained ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+            const pixels = decodeImage(output).data;
+            expect(Buffer.from(pixels).toString("hex")).toBe(expected);
+        });
+    }
+}

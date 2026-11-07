@@ -6,6 +6,7 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
 const cases = [
+  { modes: ["DstOut", "DestOut"], base: "blue", source: "red", rgb: [0, 0, 0], alpha: 0 },
   { modes: ["SrcIn", "In"], base: "blue", source: "#ff000080", rgb: [128, 0, 0], alpha: 128 },
   { modes: ["DstIn", "DestIn"], base: "blue", source: "#ff000080", rgb: [0, 0, 255], alpha: 128 },
   { modes: ["SrcOut", "Out"], base: "blue", source: "#ff000080", rgb: [0, 0, 0], alpha: 0 },

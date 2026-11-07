@@ -7816,11 +7816,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     state.fuzz = 0;
     let channels: number[] | undefined;
     let metric = "rmse";
+    let precision = 6;
     let metricExplicit = false;
     let subimageSearch = false;
     let dissimilarityThreshold = 0.2;
     let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
+    let colorWarnings = "";
     let compose = "over";
     const operands: string[] = [];
     for (let i = 0; i < argv.length; i++) {
@@ -7858,6 +7860,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else if (t === "+channel") {
             channels = undefined;
+        }
+        else if (t === "-precision") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-precision'\n" };
+            const requested = Number(value);
+            if (value.trim() === "" || !Number.isFinite(requested)) return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-precision': ${value}\n` };
+            precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
@@ -7979,7 +7988,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const similarityPosition = backend && diff && subimageSearch ? backend.storage.allocate(width * height * 4) : undefined;
     const similarityData = !backend && diff && subimageSearch ? new Uint8Array(width * height * 4) : undefined;
     const composeSrc = ["src", "source", "copy"].includes(compose);
-    const comparison=compareImageSteps(imgA,imgB,{metric,...(channels ? { channels } : {}),subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
+    const comparison=compareImageSteps(imgA,imgB,{metric,precision,...(channels ? { channels } : {}),subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
         ...(!composeSrc && compose !== "over" && compose !== "srcover" ? { compose: function* (reference: Uint8Array, overlay: Uint8Array) {
             const canvas: RgbaImage = { width: reference.length / 4, height: 1, format: "png", channels: 4, depth: "uchar", density: state.density, space: "srgb", hasAlpha: true, data: new Uint8Array(reference.length).fill(255) };
             // Compare first composites the reference onto white, then makes that

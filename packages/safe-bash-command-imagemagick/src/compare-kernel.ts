@@ -6,6 +6,7 @@ export interface CompareImage {
     readonly hasAlpha: boolean;
 }
 export interface CompareOptions {
+    readonly precision?: number;
     readonly channels?: readonly number[];
     readonly metric: string;
     readonly fuzz: number;
@@ -210,61 +211,61 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             for (let i = 0; i < Math.min(a.length, b.length); i++)
                 if (selected.includes(Math.floor(i / 7) % 3)) distortion += (a[i]! - b[i]!) ** 2;
             distortion /= channels;
-            metricStr = `${formatSignificantMetric(distortion)} (${formatSignificantMetric(distortion)})`;
+            metricStr = `${formatSignificantMetric(distortion, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         }
         case "pdc":
             distortion = pdcCount / totalPixels;
-            metricStr = `${formatSignificantMetric(pdcCount)} (${formatSignificantMetric(distortion)})`;
+            metricStr = `${formatSignificantMetric(pdcCount, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = pdcCount > 0 ? 1 : 0;
             break;
         case "ae":
             distortion = aeMagnitude / (totalPixels * numCh * 255);
-            metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255))} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255))})`;
+            metricStr = `${formatSignificantMetric(aeMagnitude / (numCh * 255), options.precision)} (${formatSignificantMetric(aeMagnitude / (totalPixels * numCh * 255), options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "fuzz":
             distortion = fuzzChannels === 0 ? 0 : fuzzSq / (fuzzChannels * 255 * 255);
-            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            metricStr = `${formatSignificantMetric(distortion * 65535, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mepp":
             distortion = meppSum / (totalPixels * Math.max(1, sharedChannels.length) * 255);
-            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)}, ${formatSignificantMetric(meppPeak / 255)})`;
+            metricStr = `${formatSignificantMetric(distortion * 65535, options.precision)} (${formatSignificantMetric(distortion, options.precision)}, ${formatSignificantMetric(meppPeak / 255, options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mae":
             distortion = maeNorm;
-            metricStr = `${formatSignificantMetric(maeNorm * 65535)} (${formatSignificantMetric(maeNorm)})`;
+            metricStr = `${formatSignificantMetric(maeNorm * 65535, options.precision)} (${formatSignificantMetric(maeNorm, options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mse":
             distortion = mseNorm;
-            metricStr = `${formatSignificantMetric(mseNorm * 65535)} (${formatSignificantMetric(mseNorm)})`;
+            metricStr = `${formatSignificantMetric(mseNorm * 65535, options.precision)} (${formatSignificantMetric(mseNorm, options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "pae":
             distortion = paeNorm;
             exitCode = distortion > 1e-6 ? 1 : 0;
-            metricStr = `${formatSignificantMetric(paeNorm * 65535)} (${formatSignificantMetric(paeNorm)})`;
+            metricStr = `${formatSignificantMetric(paeNorm * 65535, options.precision)} (${formatSignificantMetric(paeNorm, options.precision)})`;
             break;
         case "psnr": {
             const psnr = mseNorm === 0 ? 120 : 10 * Math.log10(1 / mseNorm);
             distortion = psnr / 120;
             exitCode = distortion > 1e-6 ? 1 : 0;
-            metricStr = `${formatSignificantMetric(psnr)} (${formatSignificantMetric(psnr / 120)})`;
+            metricStr = `${formatSignificantMetric(psnr, options.precision)} (${formatSignificantMetric(psnr / 120, options.precision)})`;
             break;
         }
         case "phase":
             distortion = yield* comparePhaseSteps(imgA, imgB, sharedChannels);
-            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            metricStr = `${formatSignificantMetric(distortion * 65535, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
         case "dssim":
         case "ssim": {
             distortion = yield* compareSsimSteps(imgA, imgB, sharedChannels);
-            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            metricStr = `${formatSignificantMetric(distortion * 65535, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
         }
@@ -281,13 +282,13 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             const denominator = Math.sqrt(varianceA) * Math.sqrt(varianceB);
             const similarity = denominator === 0 ? 0 : covariance / denominator;
             distortion = Math.abs(1 - similarity) < 2e-12 ? 0 : (1 - similarity) / 2;
-            metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
+            metricStr = `${formatSignificantMetric(distortion * 65535, options.precision)} (${formatSignificantMetric(distortion, options.precision)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
         }
         case "rmse":
         default:
-            metricStr = `${formatSignificantMetric(rmseNorm * 65535)} (${formatSignificantMetric(rmseNorm)})`;
+            metricStr = `${formatSignificantMetric(rmseNorm * 65535, options.precision)} (${formatSignificantMetric(rmseNorm, options.precision)})`;
             break;
     }
     return { width, height, metric: metricStr, exitCode, distortion };
@@ -340,14 +341,14 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
     if (options.metric === "pdc") {
         const count = best.distortion * imgB.width * imgB.height;
         return { ...best, width: imgA.width, height: imgA.height, distortion: count,
-            metric: `${formatSignificantMetric(count)} (${formatSignificantMetric(count / (imgA.width * imgA.height))}) @ ${offset.x},${offset.y} [${formatSignificantMetric(count)}]` };
+            metric: `${formatSignificantMetric(count, options.precision)} (${formatSignificantMetric(count / (imgA.width * imgA.height), options.precision)}) @ ${offset.x},${offset.y} [${formatSignificantMetric(count, options.precision)}]` };
     }
-    const normalized = formatSignificantMetric(best.distortion);
+    const normalized = formatSignificantMetric(best.distortion, options.precision);
     const similarity = options.metric === "ssim" || options.metric === "ncc" || options.metric === "dpc" || options.metric === "phase" ? 1 - 2 * best.distortion : best.distortion;
     const metric = options.metric === "ae"
-        ? `${formatSignificantMetric(best.distortion * imgA.width * imgA.height)} (${normalized})`
-        : `${formatSignificantMetric(best.distortion * (options.metric === "psnr" ? 120 : options.metric === "phash" ? 1 : 65535))} (${normalized})`;
-    return { ...best, width: imgA.width, height: imgA.height, metric: `${metric} @ ${offset.x},${offset.y} [${formatSignificantMetric(similarity)}]` };
+        ? `${formatSignificantMetric(best.distortion * imgA.width * imgA.height, options.precision)} (${normalized})`
+        : `${formatSignificantMetric(best.distortion * (options.metric === "psnr" ? 120 : options.metric === "phash" ? 1 : 65535), options.precision)} (${normalized})`;
+    return { ...best, width: imgA.width, height: imgA.height, metric: `${metric} @ ${offset.x},${offset.y} [${formatSignificantMetric(similarity, options.precision)}]` };
 }
 export function formatMetricNum(n: number): string {
     if (!Number.isFinite(n))
@@ -358,12 +359,16 @@ export function formatMetricNum(n: number): string {
     return fixed === "-0" ? "0" : fixed;
 }
 
-function formatSignificantMetric(n: number): string {
-    const rounded = Number(n.toPrecision(6));
-    if (rounded === 0 || (rounded >= 0.0001 && rounded < 1000000))
-        return String(rounded);
-    const [mantissa, exponent] = rounded.toExponential().split("e");
-    return `${mantissa}e${exponent![0]}${exponent!.slice(1).padStart(2, "0")}`;
+function formatSignificantMetric(n: number, precision = 6): string {
+    if (!Number.isFinite(n)) return "inf";
+    if (n === 0) return "0";
+    const [mantissa, exponent] = n.toExponential(precision - 1).split("e");
+    const power = Number(exponent);
+    if (power < -4 || power >= precision) {
+        return `${Number(mantissa)}e${exponent![0]}${exponent!.slice(1).padStart(2, "0")}`;
+    }
+    const fixed = n.toFixed(Math.min(100, Math.max(0, precision - power - 1)));
+    return fixed.includes(".") ? fixed.replace(/\.?0+$/, "") : fixed;
 }
 
 // ImageMagick uses an 11x11 Gaussian window (sigma 1.5), edge virtual

@@ -1825,7 +1825,7 @@ export function evalSyncFfmpeg(
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
-        doc = plugin.parse(rawBytes, { filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
+        doc = plugin.parse(rawBytes, { decodeAudio: plugin.id !== "flac" || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
         if (doc.tracks.some(track => track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -2945,6 +2945,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);
               return plugin.parse(rawBytes, {
+                decodeAudio: plugin.id !== "flac" || audioCodec !== "copy",
                 resolveResource,
                 sampleRate: input?.sampleRate,
                 channels: input?.channels,

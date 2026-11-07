@@ -12,7 +12,7 @@ import { decodeAacTrack } from "../aac.js";
 import { isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
-import { encodeFlacPackets } from "./flac.js";
+import { decodeFlac, encodeFlacPackets } from "./flac.js";
 import { FlacFrameScanner } from "./flac-probe.js";
 
 import { parseStreamingDocument, serializeDashDocument } from "./streaming.js";
@@ -44,6 +44,7 @@ import {
   sliceMp4
 } from "../mp4.js";
 import {
+  MediaBudgetTracker,
   type MediaAstPlugin,
   type MediaAudioData,
   type MediaDocument,
@@ -1172,8 +1173,42 @@ export function flacAst(): MediaAstPlugin {
       }
       return false;
     },
-    parse(bytes) { return flacDocument(bytes, bytes.byteLength, bytes); },
-    serialize(doc) { return concatBytes(encodeFlacPackets(doc)); },
+    parse(bytes, options = {}) {
+      const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+      budget.checkInputBytes(bytes.length);
+      const stream = parseAudio(bytes).streams[0]!;
+      const scanner = new FlacFrameScanner();
+      scanner.push(bytes, true);
+      const doc = flacDocument(bytes, bytes.byteLength);
+      const blocks: Uint8Array[] = [bytes.subarray(0, 4)];
+      let offset = 4;
+      for (;;) {
+        const type = bytes[offset]! & 127;
+        const size = bytes[offset + 1]! * 65536 + bytes[offset + 2]! * 256 + bytes[offset + 3]!;
+        const block = Uint8Array.from(bytes.subarray(offset, offset + 4 + size));
+        // Seek tables and cue sheets refer to the original recording.
+        if (type !== 3 && type !== 5) { block[0] = type; blocks.push(block); }
+        const last = bytes[offset]! & 128;
+        offset += 4 + size;
+        if (last) break;
+      }
+      blocks[blocks.length - 1]![0]! |= 128;
+      const samples = scanner.packets.map(packet => ({
+        data: bytes.subarray(packet.pos, packet.pos + packet.size),
+        dts: packet.pts, pts: packet.pts, cts: 0, duration: packet.duration,
+        size: packet.size, isKeyframe: true, sampleDescriptionIndex: 1
+      }));
+      const duration = samples.reduce((sum, sample) => sum + sample.duration, 0);
+      budget.checkStreams(1);
+      budget.checkSamples(samples.length);
+      budget.checkDuration(duration / doc.timescale);
+      const track = { ...doc.tracks[0]!, duration, samples,
+        codecDescriptions: [{ ...doc.tracks[0]!.codecDescriptions[0]!,
+          bitsPerSample: stream.bitsPerSample, extraData: concatBytes(blocks) }] };
+      return { ...doc, duration, durationSeconds: duration / track.timescale,
+        tracks: [{ ...track, ...(options.decodeAudio === false ? {} : { decodedAudio: decodeFlac(track, { ...options, budget }) }) }] };
+    },
+    serialize(doc, options) { return concatBytes(encodeFlacPackets(doc, options?.audioCodec === "copy")); },
     probe(bytes, options) {
       const scanner = new FlacFrameScanner();
       scanner.push(bytes, true);
@@ -1265,7 +1300,7 @@ export function oggAst(): MediaAstPlugin {
     },
     parse(bytes) {
       const flac = extractOggFlac(bytes);
-      if (flac) return { ...flacAst().parse(flac), containerFormat: "ogg", byteLength: bytes.length };
+      if (flac) return { ...flacDocument(flac, flac.byteLength, flac), containerFormat: "ogg", byteLength: bytes.length };
 
       const parsed = parseAudio(bytes);
       const stream = parsed.streams[0];

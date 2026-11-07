@@ -5,7 +5,7 @@ function checksum(value: number, byte: number, width: number, polynomial: number
   return value & ((1 << width) - 1);
 }
 
-function frameHeader(bytes: Uint8Array, start: number): { duration: number; number: number; variable: boolean } | undefined {
+export function frameHeader(bytes: Uint8Array, start: number): { duration: number; number: number; variable: boolean; headerSize: number } | undefined {
   if (bytes[start] !== 255 || (bytes[start + 1]! & 254) !== 248 || (bytes[start + 3]! & 1)) return;
   const block = bytes[start + 2]! >>> 4, rate = bytes[start + 2]! & 15;
   if (!block || rate === 15 || bytes[start + 3]! >>> 4 > 10) return;
@@ -29,7 +29,7 @@ function frameHeader(bytes: Uint8Array, start: number): { duration: number; numb
   let crc = 0;
   for (let i = start; i <= pos; i++) crc = checksum(crc, bytes[i]!, 8, 7);
   if (crc) return;
-  return { duration, number, variable: !!(bytes[start + 1]! & 1) };
+  return { duration, number, headerSize: pos + 1 - start, variable: !!(bytes[start + 1]! & 1) };
 }
 
 export class FlacFrameScanner {

@@ -12,8 +12,9 @@ it("writes FLAC audio frames and accurate STREAMINFO for decoded PCM", () => {
     tracks: [{ ...audio, decodedAudio: { sampleRate: 44100, channels: 1, channelData: [samples] } }]
   });
   assert.ok(bytes.length > 42, "FLAC must include audio frames");
-  assert.equal(bytes[42], 0xff);
-  assert.equal(bytes[43]! & 0xfe, 0xf8);
+  const firstFrame = Number(flacAst().probe(bytes, { showPackets: true }).packets![0]!.pos);
+  assert.equal(bytes[firstFrame], 0xff);
+  assert.equal(bytes[firstFrame + 1]! & 0xfe, 0xf8);
   const packed = new DataView(bytes.buffer, bytes.byteOffset + 18, 8).getBigUint64(0);
   assert.equal(Number(packed >> 44n), 44100);
   assert.equal(Number((packed >> 41n) & 7n) + 1, 1);

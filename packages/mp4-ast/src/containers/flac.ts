@@ -1,4 +1,5 @@
-import type { MediaDocument } from "../types.js";
+import { frameHeader } from "./flac-probe.js";
+import { MediaBudgetTracker, type ParseMediaOptions, type MediaAudioData, type MediaTrack, type MediaDocument } from "../types.js";
 
 function crc(bytes: Uint8Array, width: number, polynomial: number): number {
   let value = 0;
@@ -22,13 +23,20 @@ function frameNumber(value: number): number[] {
   return [(0xff << (7 - tail.length)) & 255 | value, ...tail];
 }
 
-/** Encode 16-bit PCM using FLAC's lossless verbatim subframes. */
-export function encodeFlacPackets(doc: MediaDocument): Uint8Array[] {
+/** Encode 16-bit or 24-bit PCM using FLAC's lossless verbatim subframes. */
+export function encodeFlacPackets(doc: MediaDocument, copy = false): Uint8Array[] {
   const track = doc.tracks.find(track => track.type === "audio");
   const audio = track?.decodedAudio;
-  if (!audio) {
-    const data = track?.samples[0]?.data;
-    if (data && data[0] === 0x66 && data[1] === 0x4c && data[2] === 0x61 && data[3] === 0x43) return [data.slice()];
+  if (copy || !audio) {
+    const extra = track?.codecDescriptions[0]?.extraData;
+    if (extra && track?.codecDescriptions[0]?.codecName === "flac") {
+      const header = extra.slice();
+      const view = new DataView(header.buffer, header.byteOffset);
+      const count = track.samples.reduce((sum, sample) => sum + (frameHeader(sample.data, 0)?.duration ?? 0), 0);
+      view.setBigUint64(18, (view.getBigUint64(18) & ~0xfffffffffn) | BigInt(count));
+      header.fill(0, 26, 42); // The original recording checksum no longer applies.
+      return [header, ...track.samples.map(sample => sample.data)];
+    }
     throw new Error("FLAC encoding requires decoded PCM audio");
   }
   const { sampleRate, channels, channelData } = audio;
@@ -38,20 +46,22 @@ export function encodeFlacPackets(doc: MediaDocument): Uint8Array[] {
       channelData.length !== channels || channelData.some(data => data.length !== count) || count === 0) {
     throw new Error("Invalid FLAC PCM dimensions");
   }
+  const bits = track?.codecDescriptions[0]?.bitsPerSample === 24 ? 24 : 16;
+  const width = bits / 8;
   const blockSize = 2048;
   const header = new Uint8Array(42);
   header.set([0x66, 0x4c, 0x61, 0x43, 0x80, 0, 0, 34]);
   const view = new DataView(header.buffer);
   view.setUint16(8, blockSize);
   view.setUint16(10, blockSize);
-  view.setBigUint64(18, BigInt(sampleRate) << 44n | BigInt(channels - 1) << 41n | 15n << 36n | BigInt(count));
+  view.setBigUint64(18, BigInt(sampleRate) << 44n | BigInt(channels - 1) << 41n | BigInt(bits - 1) << 36n | BigInt(count));
   // An all-zero MD5 means the checksum is unavailable (RFC 9639).
   const frames: Uint8Array[] = [header];
   for (let offset = 0, index = 0; offset < count; offset += blockSize, index++) {
     const length = Math.min(blockSize, count - offset);
-    const prefix = Uint8Array.from([0xff, 0xf8, 0x70, ((channels - 1) << 4) | 8,
+    const prefix = Uint8Array.from([0xff, 0xf8, 0x70, ((channels - 1) << 4) | (bits === 24 ? 12 : 8),
       ...frameNumber(index), (length - 1) >>> 8, (length - 1) & 255]);
-    const frame = new Uint8Array(prefix.length + 1 + channels * (1 + length * 2) + 2);
+    const frame = new Uint8Array(prefix.length + 1 + channels * (1 + length * width) + 2);
     frame.set(prefix);
     frame[prefix.length] = crc(prefix, 8, 0x07);
     const frameView = new DataView(frame.buffer);
@@ -61,12 +71,100 @@ export function encodeFlacPackets(doc: MediaDocument): Uint8Array[] {
       for (let i = offset; i < offset + length; i++) {
         const value = data[i]!;
         if (!Number.isFinite(value)) throw new Error("FLAC PCM sample must be finite");
-        frameView.setInt16(pos, Math.max(-32768, Math.min(32767, Math.round(value * 32768))));
-        pos += 2;
+        const scale = 2 ** (bits - 1);
+        const integer = Math.max(-scale, Math.min(scale - 1, Math.round(value * scale)));
+        for (let byte = width - 1; byte >= 0; byte--) frame[pos++] = (integer >> (byte * 8)) & 255;
       }
     }
     frameView.setUint16(pos, crc(frame.subarray(0, pos), 16, 0x8005));
     frames.push(frame);
   }
   return frames;
+}
+
+/** Decode FLAC constant, verbatim, fixed and LPC subframes, including Rice residuals. */
+export function decodeFlac(track: MediaTrack, options: ParseMediaOptions): MediaAudioData {
+  const description = track.codecDescriptions[0]!;
+  const channels = description.channels!, bits = description.bitsPerSample!;
+  const count = track.samples.reduce((sum, sample) => sum + frameHeader(sample.data, 0)!.duration, 0);
+  const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+  budget.checkDuration(count / track.timescale);
+  budget.allocateMemory(count * channels * 8 + 65536 * channels * 8);
+  const channelData = Array.from({ length: channels }, () => new Float64Array(count));
+  let offset = 0;
+  for (const sample of track.samples) {
+    budget.checkCpu();
+    const bytes = sample.data, header = frameHeader(bytes, 0)!;
+    let position = header.headerSize * 8;
+    const read = (width: number): number => {
+      if (width < 0 || width > 33 || position + width > (bytes.length - 2) * 8) throw new Error("Invalid FLAC subframe");
+      let value = 0;
+      for (let i = 0; i < width; i++, position++) value = value * 2 + ((bytes[position >>> 3]! >>> (7 - (position & 7))) & 1);
+      return value;
+    };
+    const signed = (width: number): number => {
+      const value = read(width);
+      return width && value >= 2 ** (width - 1) ? value - 2 ** width : value;
+    };
+    const unary = (): number => {
+      let value = 0;
+      while (read(1) === 0) { if (++value % 4096 === 0) budget.checkCpu(); }
+      return value;
+    };
+    const assignment = bytes[3]! >>> 4;
+    if ((assignment < 8 ? assignment + 1 : 2) !== channels) throw new Error("Invalid FLAC channel assignment");
+    const decoded: Float64Array[] = [];
+    for (let channel = 0; channel < channels; channel++) {
+      if (read(1)) throw new Error("Invalid FLAC subframe padding");
+      const type = read(6), wasted = read(1) ? unary() + 1 : 0;
+      const width = bits + ((assignment === 8 && channel === 1) || (assignment === 9 && channel === 0) || (assignment === 10 && channel === 1) ? 1 : 0) - wasted;
+      if (width < 1) throw new Error("Invalid FLAC wasted bits");
+      const values = new Float64Array(header.duration);
+      if (type === 0) values.fill(signed(width));
+      else if (type === 1) {
+        for (let i = 0; i < values.length; i++) values[i] = signed(width);
+      } else {
+        const order = type >= 32 ? (type & 31) + 1 : type - 8;
+        if ((type < 32 && (order < 0 || order > 4)) || order > values.length) throw new Error("Invalid FLAC predictor");
+        for (let i = 0; i < order; i++) values[i] = signed(width);
+        let coefficients: number[], shift = 0;
+        if (type >= 32) {
+          const precision = read(4) + 1;
+          if (precision === 16) throw new Error("Invalid FLAC LPC precision");
+          shift = signed(5);
+          coefficients = Array.from({ length: order }, () => signed(precision));
+        } else coefficients = [[], [1], [2, -1], [3, -3, 1], [4, -6, 4, -1]][order]!;
+        const method = read(2);
+        if (method > 1) throw new Error("Invalid FLAC residual method");
+        const partitions = 2 ** read(4), partitionSize = values.length / partitions;
+        if (!Number.isInteger(partitionSize) || partitionSize < order) throw new Error("Invalid FLAC residual partition");
+        let index = order;
+        for (let partition = 0; partition < partitions; partition++) {
+          const parameter = read(method ? 5 : 4), escape = parameter === (method ? 31 : 15);
+          const rawWidth = escape ? read(5) : 0;
+          for (let i = partition === 0 ? order : 0; i < partitionSize; i++, index++) {
+            const encoded = escape ? 0 : unary() * 2 ** parameter + read(parameter);
+            const residual = escape ? signed(rawWidth) : encoded % 2 ? -(encoded + 1) / 2 : encoded / 2;
+            let predicted = 0;
+            for (let j = 0; j < order; j++) predicted += coefficients[j]! * values[index - j - 1]!;
+            values[index] = residual + Math.floor(predicted / 2 ** shift);
+          }
+        }
+      }
+      if (wasted) for (let i = 0; i < values.length; i++) values[i]! *= 2 ** wasted;
+      decoded.push(values);
+    }
+    for (let i = 0; i < header.duration; i++) {
+      if (assignment === 8) decoded[1]![i] = decoded[0]![i]! - decoded[1]![i]!;
+      if (assignment === 9) decoded[0]![i] = decoded[0]![i]! + decoded[1]![i]!;
+      if (assignment === 10) {
+        const side = decoded[1]![i]!, mid = decoded[0]![i]! * 2 + Math.abs(side % 2);
+        decoded[0]![i] = (mid + side) / 2;
+        decoded[1]![i] = (mid - side) / 2;
+      }
+      for (let channel = 0; channel < channels; channel++) channelData[channel]![offset + i] = decoded[channel]![i]! / 2 ** (bits - 1);
+    }
+    offset += header.duration;
+  }
+  return { sampleRate: track.timescale, channels, channelData };
 }

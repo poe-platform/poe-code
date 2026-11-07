@@ -1,3 +1,4 @@
+import { cbc } from "@noble/ciphers/aes.js";
 import { parseXml, type XmlElement } from "@poe-code/xml-ast";
 import { concatBytes, decodeUtf8, encodeUtf8, gcd } from "../binary.js";
 import { buildProbeResultFromDoc, concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
@@ -11,6 +12,7 @@ export interface StreamingByteRange {
 }
 
 export interface StreamingSegment {
+  readonly encryption?: { readonly uri: string; readonly iv: Uint8Array } | undefined;
   readonly uri: string;
   readonly initialization?: string | undefined;
   readonly byteRange?: StreamingByteRange | undefined;
@@ -123,17 +125,39 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
     let initialization: string | undefined;
     let initializationByteRange: StreamingByteRange | undefined;
     let pendingByteRange: string | undefined;
+    let key: { uri: string; iv?: Uint8Array } | undefined;
+    let mediaSequence = 0n;
     for (const raw of text.split("\n")) {
       budget.checkCpu();
       const line = raw.trim();
       if (line.startsWith("#EXTINF:")) duration += Number(line.slice(8).split(",")[0]);
       else if (line.startsWith("#EXT-X-MAP:")) {
+        if (key) throw new Error("Encrypted HLS initialization is not supported");
         const attrs = hlsAttributes(line.slice(11));
         initializationByteRange = attrs.has("BYTERANGE") ? hlsByteRange(attrs.get("BYTERANGE")!, 0) : undefined;
         initialization = attrs.get("URI");
         if (!initialization) throw new Error("HLS EXT-X-MAP requires URI");
-      } else if (line.startsWith("#EXT-X-KEY:") && hlsAttributes(line.slice(11)).get("METHOD") !== "NONE") {
-        throw new Error("Encrypted HLS segments are not supported");
+      } else if (line.startsWith("#EXT-X-MEDIA-SEQUENCE:")) {
+        const value = line.slice(22);
+        if (!value || !Array.from(value).every(c => c >= "0" && c <= "9") || value.length > 20) throw new Error("Invalid HLS media sequence");
+        mediaSequence = BigInt(value);
+        if (mediaSequence > 0xffffffffffffffffn) throw new Error("Invalid HLS media sequence");
+      } else if (line.startsWith("#EXT-X-KEY:")) {
+        const attrs = hlsAttributes(line.slice(11));
+        if (attrs.get("METHOD") === "NONE") key = undefined;
+        else {
+          if (attrs.get("METHOD") !== "AES-128" || (attrs.has("KEYFORMAT") && attrs.get("KEYFORMAT") !== "identity")) throw new Error("Unsupported HLS encryption");
+          const uri = attrs.get("URI");
+          if (!uri) throw new Error("HLS AES-128 requires a key URI");
+          key = { uri };
+          if (attrs.has("IV")) {
+            const value = attrs.get("IV")!;
+            const hex = value.slice(2);
+            if (!value.startsWith("0x") || !hex || hex.length > 32 || !Array.from(hex.toLowerCase()).every(c => "0123456789abcdef".includes(c))) throw new Error("Invalid HLS IV");
+            const padded = hex.padStart(32, "0");
+            key.iv = Uint8Array.from({ length: 16 }, (_, i) => Number.parseInt(padded.slice(i * 2, i * 2 + 2), 16));
+          }
+        }
       } else if (line.startsWith("#EXT-X-BYTERANGE:")) {
         if (pendingByteRange !== undefined) throw new Error("HLS byte range requires a segment URI");
         pendingByteRange = line.slice(17);
@@ -151,7 +175,14 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
         const implicitOffset = previous?.uri === line && previous.byteRange
           ? previous.byteRange.offset + previous.byteRange.length : undefined;
         const byteRange = pendingByteRange === undefined ? undefined : hlsByteRange(pendingByteRange, implicitOffset);
-        segments.push({ uri: line, initialization, byteRange, initializationByteRange });
+        let encryption: StreamingSegment["encryption"];
+        if (key) {
+          const iv = key.iv ?? new Uint8Array(16);
+          if (!key.iv) new DataView(iv.buffer).setBigUint64(8, mediaSequence);
+          encryption = { uri: key.uri, iv };
+        }
+        segments.push({ uri: line, initialization, byteRange, initializationByteRange, ...(encryption ? { encryption } : {}) });
+        mediaSequence++;
         pendingByteRange = undefined;
       }
     }
@@ -166,6 +197,7 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
       const relative = (uri: string) => uri.startsWith("/") || uri.includes(":") ? uri : directory + uri;
       return { ...child, sequences: child.sequences.map(sequence => sequence.map(segment => ({
         ...segment, uri: relative(segment.uri),
+        ...(segment.encryption ? { encryption: { ...segment.encryption, uri: relative(segment.encryption.uri) } } : {}),
         initialization: segment.initialization === undefined ? undefined : relative(segment.initialization)
       }))) };
     }
@@ -273,7 +305,7 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
   if (!resolve) throw new Error(`${format.toUpperCase()} parsing requires resolveResource for referenced segment files`);
   const read = (uri: string, range: StreamingByteRange | undefined): Uint8Array => {
     const data = resolve(uri);
-    if (!range) return data;
+    if (!range || data.length === 0) return data;
     if (range.offset + range.length > data.length) throw new Error(`HLS byte range exceeds resource: ${uri}`);
     return data.subarray(range.offset, range.offset + range.length);
   };
@@ -290,7 +322,13 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
     };
     for (const segment of sequence) {
       options.budget?.checkCpu();
-      if (resolve(segment.uri).length === 0) continue;
+      let data = read(segment.uri, segment.byteRange);
+      if (data.length === 0) continue;
+      if (segment.encryption) {
+        const key = resolve(segment.encryption.uri);
+        if (key.length !== 16) throw new Error("HLS AES-128 key must contain exactly 16 bytes");
+        data = cbc(key, segment.encryption.iv).decrypt(data);
+      }
       if (segment.initialization) {
         if (currentInit !== segment.initialization ||
             currentInitRange?.offset !== segment.initializationByteRange?.offset ||
@@ -300,12 +338,11 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
           currentInitRange = segment.initializationByteRange;
           fragments.push(read(currentInit, currentInitRange));
         }
-        fragments.push(read(segment.uri, segment.byteRange));
+        fragments.push(data);
       } else {
         flush();
         currentInit = undefined;
         currentInitRange = undefined;
-        const data = read(segment.uri, segment.byteRange);
         segments.push(data[0] === 0x47 ? parseMpegTs(data, options)
           : isAdtsSignature(data) ? parseAacAdts(data) : parseMp4(data, options));
       }

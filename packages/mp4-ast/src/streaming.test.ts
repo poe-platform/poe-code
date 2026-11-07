@@ -96,7 +96,7 @@ it("requires actual resources instead of returning synthetic playlist streams", 
   assert.throws(() => hlsAst().parse(encode('#EXTM3U\n#EXTINF:1,\npart.ts\n')), /resolveResource/);
   const { manifest } = serializeDashDocument(source);
   assert.throws(() => dashAst().parse(manifest), /resolveResource/);
-  assert.throws(() => parseStreamingManifest(encode('#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI="key"\npart.ts\n'), "hls"), /Encrypted HLS/);
+  assert.throws(() => parseStreamingManifest(encode('#EXTM3U\n#EXT-X-KEY:METHOD=SAMPLE-AES,URI="key"\npart.ts\n'), "hls"), /Unsupported HLS encryption/);
   assert.throws(() => parseStreamingManifest(encode('#EXTM3U\n#EXTINF:1,\none.ts\n#EXTINF:1,\ntwo.ts\n'), "hls", { limits: { maxConcatInputs: 1 } }), MediaLimitExceededError);
 });
 

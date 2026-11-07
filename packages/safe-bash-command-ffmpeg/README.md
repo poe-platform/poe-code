@@ -170,5 +170,5 @@ each stream must belong to exactly one set of the same media type.
 Use `-hls_playlist 1` with DASH output to write `master.m3u8` and per-stream `media_N.m3u8` playlists alongside the MPD, sharing its media resources.
 DASH input supports a single Period with segment templates, timelines, or segment lists without byte ranges.
 Stream copy preserves relative audio/video timing, including AAC priming, and follows native DASH packet scheduling through EOF;
-HLS input supports unencrypted media playlists with complete segment files or media and initialization byte ranges, including implicit offsets for consecutive ranges in the same media file.
+HLS input supports clear and AES-128 encrypted media playlists (local 16-byte keys admitted by `-allowed_extensions`, explicit or media-sequence IVs, and clear initialization segments) with complete segment files or media and initialization byte ranges, including implicit offsets for consecutive ranges in the same media file.
 Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. `.ogg` output defaults to Vorbis; use `-c:a libopus` or a `.opus` filename for Opus, or `-c:a flac` for lossless Ogg FLAC.

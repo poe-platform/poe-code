@@ -98,7 +98,7 @@ export async function loadManifestResources(
   }
   for (const sequence of manifest.sequences) {
     for (const segment of sequence) {
-      for (const uri of [segment.initialization, segment.uri]) {
+      for (const uri of [segment.encryption?.uri, segment.initialization, segment.uri]) {
         if (uri === undefined || resources.has(uri)) continue;
         if (uri.includes(":") && !uri.startsWith("file:")) throw new Error("Streaming media requires local segment files");
         if (plugin.id === "hls" && allowedExtensions !== "ALL") {
@@ -106,7 +106,7 @@ export async function loadManifestResources(
           const dot = name.lastIndexOf(".");
           const extension = dot < 0 ? undefined : name.slice(dot + 1).toLowerCase();
           if (extension === undefined || !allowedExtensions.toLowerCase().split(",").includes(extension)) {
-            if (uri === segment.initialization) throw new Error(`HLS resource has a disallowed extension: ${uri}`);
+            if (uri === segment.initialization || uri === segment.encryption?.uri) throw new Error(`HLS resource has a disallowed extension: ${uri}`);
             resources.set(uri, new Uint8Array());
             continue;
           }
@@ -114,7 +114,7 @@ export async function loadManifestResources(
         try {
           resources.set(uri, await readInput(resolvePath(directory, uri)));
         } catch (error) {
-          if (!segment.initialization || uri === segment.initialization ||
+          if (!segment.initialization || uri === segment.initialization || uri === segment.encryption?.uri ||
               typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error;
           // An absent media fragment contributes no bytes. Keep the init
           // and surviving fragments together so their tfdt timestamps retain gaps.

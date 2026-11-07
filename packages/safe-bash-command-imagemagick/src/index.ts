@@ -7825,6 +7825,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let highlightColor: RgbaColor | undefined;
     let lowlightColor: RgbaColor | undefined;
     let colorWarnings = "";
+    let quiet = false;
+    let verbose = false;
+    let regardWarnings = false;
     let compose = "over";
     const operands: string[] = [];
     for (let i = 0; i < argv.length; i++) {
@@ -7838,6 +7841,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 stderr: ""
             };
         }
+        else if (t === "-quiet" || t === "+quiet") quiet = t === "-quiet";
+        else if (t === "-verbose" || t === "+verbose") verbose = t === "-verbose";
+        else if (t === "-regard-warnings" || t === "+regard-warnings") regardWarnings = t === "-regard-warnings";
         else if (t === "-subimage-search" || t === "+subimage-search") {
             subimageSearch = t === "-subimage-search";
         }
@@ -7962,6 +7968,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let imgA: RgbaImage | StoredRgbaImage | undefined;
     let imgB: RgbaImage | StoredRgbaImage | undefined;
     let inputErrors = "";
+    let imageDetails = "";
     // Compare consumes the first two images in the combined input sequence.
     for (const operand of operands.slice(0, -1)) {
         try {
@@ -7969,6 +7976,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (backend) yield { async run() {
                 await parseStoredCompareInput(operand, state, backend, signal!, { visit: async image => {
                     found = true;
+                    if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     if (!imgA) imgA = image;
                     else if (!imgB) imgB = image;
                 } });
@@ -7977,6 +7985,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const images = yield* parseInputOperandsSteps(operand, files, state, stdinBytes);
                 found = Boolean(images?.length);
                 for (const image of images ?? []) {
+                    if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     if (!imgA) imgA = image;
                     else if (!imgB) imgB = image;
                 }
@@ -8027,10 +8036,15 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
       }
     }}finally{comparison.return(undefined as never);}
     const {metric:metricStr}=compared.value;
-    const exitCode = inputErrors ? 2 : compared.value.exitCode;
+    const exitCode = inputErrors || (regardWarnings && colorWarnings) ? 2 : compared.value.exitCode;
     const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" || metric === "phase" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
     // Native UndefinedErrorMetric prints RMSE but uses the opposite warning comparison.
-    const comparisonStderr = inputErrors + `${metricStr}\n` + colorWarnings + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
+    const diagnostics = verbose
+        ? imageDetails + `Image: ${refSpec}\n  Channel distortion: ${metricExplicit ? metric.toUpperCase() : "Undefined"}\n`
+            + (metricExplicit ? `    all: ${metricStr}\n` : "")
+            + `${refSpec}=>${outSpec} ${inferOutputFormat(outSpec, "png").format.toUpperCase()} ${width}x${height}\n`
+        : `${metricStr}\n`;
+    const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings) + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     let stdout = "";
     if (state.formatStr !== undefined) {

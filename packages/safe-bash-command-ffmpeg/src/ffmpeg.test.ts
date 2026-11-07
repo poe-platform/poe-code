@@ -182,6 +182,40 @@ describe("whole-output audio checksums", () => {
   });
 });
 
+describe("strict input validation", () => {
+  it("fails on decoder errors even without a truncated container", async () => {
+    const wav = encodeWav({ sampleRate: 8000, channels: [new Float64Array(4096)] }).slice(0, -1);
+    const view = new DataView(wav.buffer, wav.byteOffset, wav.byteLength);
+    view.setUint32(4, wav.length - 8, true);
+    view.setUint32(40, wav.length - 44, true);
+    const result = await runCmd(createFfmpegCommand(),
+      ["-xerror", "-i", "/i.wav", "-f", "null", "-"], createTestVfs({ "/i.wav": wav }));
+    assert.equal(result.exitCode, 183, result.stderr);
+    assert.match(result.stderr, /Invalid PCM packet/);
+  });
+  for (const remove of [0, 511, 512, 8191]) {
+    for (const output of [["-f", "null", "-"], ["/strict.wav"], ["-c:a", "copy", "/strict.wav"]]) {
+      it(`-xerror with ${remove} bytes missing to ${output.at(-1)}`, async () => {
+        const wav = encodeWav({ sampleRate: 8000, channels: [
+          Float64Array.from({ length: 4096 }, (_, i) => (i - 2048) / 32768)
+        ] });
+        const vfs = createTestVfs({ "/i.wav": wav.slice(0, wav.length - remove) });
+        const result = await runCmd(createFfmpegCommand(),
+          ["-y", "-v", "error", "-xerror", "-i", "/i.wav", ...output], vfs);
+        assert.equal(result.exitCode, remove ? 183 : 0, result.stderr);
+        assert.equal(result.stdout, "");
+        if (remove) assert.match(result.stderr, /corrupt input packet/);
+        else assert.equal(result.stderr, "");
+        if (output.at(-1) === "/strict.wav") {
+          const samples = parseWav(vfs.store.get("/strict.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+          const count = remove ? Math.floor((8192 - remove) / 1024) * 512 : 4096;
+          assert.deepEqual(Array.from(samples), Array.from({ length: count }, (_, i) => (i - 2048) / 32768));
+        }
+      });
+    }
+  }
+});
+
 describe("truncated PCM decoding", () => {
   for (const output of [["-f", "null", "-"], ["/out.wav"]]) {
     for (const [name, frames, remove, expectedFrames, exitCode] of [

@@ -16,6 +16,7 @@ export interface WavHeader {
   factSize?: number;
   dataOffset: number;
   dataSize: number;
+  declaredDataSize?: number;
 }
 
 // Sony Wave64 GUIDs store the four-character chunk ID followed by this suffix.
@@ -103,6 +104,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     } else if (id === "data") {
       header.dataOffset = start;
       header.dataSize = end - start;
+      header.declaredDataSize = size;
     }
     pos = end + (wave64 ? (8 - size % 8) % 8 : size & 1);
   }

@@ -373,6 +373,8 @@ export interface MediaTrack {
   // Decoded / high-level stream payloads when loaded from image/audio/synthetic ASTs
   readonly decodedVideoFrames?: readonly MediaVideoFrame[] | undefined;
   readonly decodedAudio?: MediaAudioData | undefined;
+  /** First demux failure and its timestamp in track ticks. */
+  readonly demuxError?: { readonly message: string; readonly timestamp: number };
   /** Recoverable errors encountered while decoding this track. */
   readonly decodeErrors?: readonly string[] | undefined;
 }

@@ -2559,10 +2559,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             // Load all inputs and apply per-input slicing / looping
             const loadedDocs: MediaDocument[] = [];
+            let demuxExitCode = 0;
             for (const inp of inputs) {
               await yieldTurn(context.signal);
               context.signal.throwIfAborted();
               let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
+              if (exitOnError) {
+                for (const track of doc.tracks) {
+                  if (!track.demuxError) continue;
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${track.demuxError.message}\n`), context.signal);
+                  demuxExitCode = 183;
+                  const end = track.demuxError.timestamp;
+                  doc = { ...doc, tracks: doc.tracks.map(candidate => candidate !== track ? candidate : {
+                    ...track, duration: end, decodeErrors: undefined,
+                    samples: track.samples.filter(sample => sample.dts < end),
+                    ...(track.decodedAudio ? { decodedAudio: { ...track.decodedAudio,
+                      channelData: track.decodedAudio.channelData.map(channel => channel.slice(0, end))
+                    } } : {})
+                  }) };
+                }
+              }
               if (inp.imageLoop) {
                 const fps = inp.fps ?? 25;
                 const endSeconds = Math.min(
@@ -3244,7 +3260,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions)
             };
 
-            let decodeExitCode = 0;
+            let decodeExitCode = demuxExitCode;
             if (audioCodec !== "copy") {
               for (const track of workingDoc.tracks) {
                 for (const error of track.decodeErrors ?? []) {
@@ -3252,8 +3268,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
               }
               if (workingDoc.tracks.some(track => track.decodeErrors?.length) &&
-                  !workingDoc.tracks.some(track => track.samples.some(sample => sample.duration > 0))) {
-                decodeExitCode = 69;
+                  (exitOnError || !workingDoc.tracks.some(track => track.samples.some(sample => sample.duration > 0)))) {
+                decodeExitCode = exitOnError ? 183 : 69;
               }
             }
 

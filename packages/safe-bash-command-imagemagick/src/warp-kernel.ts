@@ -61,47 +61,55 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             const x1 = virtualPixel ? x0 + 1 : Math.max(0, Math.min(width - 1, x0 + 1)), y1 = virtualPixel ? y0 + 1 : Math.max(0, Math.min(height - 1, y0 + 1));
             const fx = Math.max(0, Math.min(1, sx - x0)), fy = Math.max(0, Math.min(1, sy - y0));
             const derivatives = plan.derivatives?.(px, py);
-            const samples: Iterable<readonly [number, number, number] | undefined> = derivatives ? ellipseSamples(sx, sy, derivatives) : [
-                [x0, y0, (1 - fx) * (1 - fy)], [x1, y0, fx * (1 - fy)],
-                [x0, y1, (1 - fx) * fy], [x1, y1, fx * fy]
-            ];
-            let red = 0, green = 0, blue = 0, alpha = 0, total = 0, colorTotal = 0;
-            for (const sample of samples) {
-                if (!sample) { yield; continue; }
-                let [x, y, weight] = sample;
-                let pixel: ArrayLike<number> | undefined;
-                if (x < 0 || y < 0 || x >= width || y >= height) {
-                    if (virtualPixel === "tile" || virtualPixel === "mirror") {
-                        const period = virtualPixel === "mirror" ? 2 : 1;
-                        x = ((x % (width * period)) + width * period) % (width * period);
-                        y = ((y % (height * period)) + height * period) % (height * period);
-                        if (x >= width) x = width * 2 - x - 1;
-                        if (y >= height) y = height * 2 - y - 1;
-                    } else if (virtualPixel === "edge") {
-                        x = Math.max(0, Math.min(width - 1, x));
-                        y = Math.max(0, Math.min(height - 1, y));
-                    } else {
-                        const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
-                        pixel = virtualPixel === "background"
-                            ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale]
-                            : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum];
+            for (let filtered = !!derivatives; ; filtered = false) {
+                const samples: Iterable<readonly [number, number, number] | undefined> = filtered ? ellipseSamples(sx, sy, derivatives!) : [
+                    [x0, y0, (1 - fx) * (1 - fy)], [x1, y0, fx * (1 - fy)],
+                    [x0, y1, (1 - fx) * fy], [x1, y1, fx * fy]
+                ];
+                let red = 0, green = 0, blue = 0, alpha = 0, total = 0, colorTotal = 0;
+                for (const sample of samples) {
+                    if (!sample) { yield; continue; }
+                    let [x, y, weight] = sample;
+                    let pixel: ArrayLike<number> | undefined;
+                    if (x < 0 || y < 0 || x >= width || y >= height) {
+                        if (virtualPixel === "tile" || virtualPixel === "mirror") {
+                            const period = virtualPixel === "mirror" ? 2 : 1;
+                            x = ((x % (width * period)) + width * period) % (width * period);
+                            y = ((y % (height * period)) + height * period) % (height * period);
+                            if (x >= width) x = width * 2 - x - 1;
+                            if (y >= height) y = height * 2 - y - 1;
+                        } else if (virtualPixel === "edge") {
+                            x = Math.max(0, Math.min(width - 1, x));
+                            y = Math.max(0, Math.min(height - 1, y));
+                        } else {
+                            const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+                            pixel = virtualPixel === "background"
+                                ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale]
+                                : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum];
+                        }
                     }
+                    if (pixel === undefined) {
+                        const bytes = yield { kind: "read", highDepth, position: (y * width + x) * 4, length: 4 };
+                        if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
+                        pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                    }
+                    const opacity = pixel[3]!;
+                    alpha += opacity * weight; total += weight;
+                    if (derivatives) weight *= opacity / maximum;
+                    red += pixel[0]! * weight;
+                    green += pixel[1]! * weight;
+                    blue += pixel[2]! * weight;
+                    colorTotal += weight;
                 }
-                if (pixel === undefined) {
-                    const bytes = yield { kind: "read", highDepth, position: (y * width + x) * 4, length: 4 };
-                    if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
-                    pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
-                }
-                const opacity = pixel[3]!;
-                alpha += opacity * weight; total += weight;
-                if (derivatives) weight *= opacity / maximum;
-                red += pixel[0]! * weight;
-                green += pixel[1]! * weight;
-                blue += pixel[2]! * weight;
-                colorTotal += weight;
+                // Native EWA falls back to interpolation for nonpositive filter coverage.
+                if (filtered && (total <= 1e-12 || colorTotal <= 1e-12)) continue;
+                const colorScale = 1 / colorTotal, alphaScale = 1 / total;
+                const values = [red * colorScale, green * colorScale, blue * colorScale, alpha * alphaScale];
+                // Q16-HDRI stores float32 quantum samples before output-depth rounding.
+                const quantumScale = highDepth ? 1 : 257;
+                for (let c = 0; c < 4; c++) data[offset + c] = Math.max(0, Math.min(maximum, Math.round(Math.fround(values[c]! * quantumScale) / quantumScale)));
+                break;
             }
-            const values = [red / colorTotal, green / colorTotal, blue / colorTotal, alpha / total];
-            for (let c = 0; c < 4; c++) data[offset + c] = Math.max(0, Math.min(maximum, Math.round(values[c]!)));
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
     }

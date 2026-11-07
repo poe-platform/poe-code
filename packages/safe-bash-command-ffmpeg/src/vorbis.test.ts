@@ -2,9 +2,28 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { encodeWav } from "@poe-code/audio-ast";
+import { encodeWav, parseAudio } from "@poe-code/audio-ast";
 import { oggAst, parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
+
+it("writes requested Vorbis stream comments when encoding WAV", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/in.wav", encodeWav({ sampleRate: 48000,
+    channels: [Float64Array.from({ length: 4800 }, (_, i) => Math.sin(i * 0.1) * 0.4)] }));
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-i", "/in.wav", "-metadata", "title=Review", "-metadata", "artist=Renée", "/out.ogg"],
+    command: "ffmpeg", cwd: "/", env: {}, fs, signal: new AbortController().signal,
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+  });
+  assert.equal(result.exitCode, 0, stderr);
+  const output = parseAudio(await fs.readFile("/out.ogg"));
+  assert.equal(output.streams[0]!.codec, "vorbis");
+  assert.equal(output.streams[0]!.tags?.TITLE, "Review");
+  assert.equal(output.streams[0]!.tags?.ARTIST, "Renée");
+  assert.equal(output.duration, 0.1);
+});
 
 for (const count of [6720, 4800, 64]) {
   const fixture = count === 6720;

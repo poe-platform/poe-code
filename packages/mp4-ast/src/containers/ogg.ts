@@ -134,7 +134,9 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
     const packet = encoded.packets[index]!;
     pages.push(page(packet.data, index + encoded.headers.length, index === encoded.packets.length - 1 ? 4 : 0, packet.granule));
   }
-  return concatBytes(pages);
+  const tags = Object.fromEntries(Object.entries(options.metadata ?? doc.metadata).filter(([, value]) => typeof value === "string"));
+  const bytes = concatBytes(pages);
+  return Object.keys(tags).length ? writeAudioMetadata(bytes, tags) : bytes;
 }
 
 /** Read the existing FLAC mapping without retaining packets or encoded audio. */

@@ -784,7 +784,8 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
         if (im.width === w && im.height === h) return im;
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, state.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
-    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.map(image => image.hasAlpha), opRaw, channels, normalized.some(image => !!image.data16)), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized);
+    const virtualCanvas = magickResizeCanvas(base, w, h);
+    return { ...yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.map(image => image.hasAlpha), opRaw, channels, normalized.some(image => !!image.data16)), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -7248,8 +7249,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
-                        if (image.width !== width || image.height !== height)
-                            await stack.set(index, await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, settings.virtualPixel, settings.background), signal, { ...image, width, height }));
+                        if (image.width !== width || image.height !== height) {
+                            const virtualCanvas = magickResizeCanvas(image, width, height);
+                            await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, settings.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
+                        }
                     }
                     const base = (await stack.get(0))!;
                     const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frameAlpha, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth), signal, { ...base, hasAlpha: frameAlpha.some(Boolean) }, async index => (await stack.get(index))!);

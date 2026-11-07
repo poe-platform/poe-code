@@ -1572,6 +1572,16 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     const vFrequency = isPct ? (rawNum / 100) * 65536 : rawNum;
     const out = new Uint8Array(img.data);
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
+    if (op === "add" && img.data16) {
+        const data16 = new Uint16Array(img.data16);
+        for (let i = 0; i < data16.length; i++) {
+            if (i % 65536 === 0) { signal?.throwIfAborted(); yield; }
+            if (mask[i % 4]) data16[i] = Math.round(Math.max(0, Math.min(65535, data16[i]! + vFactor)));
+            out[i] = clampByteVal(data16[i]! / 257);
+        }
+        return { ...img, data: out, data16 };
+    }
+
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -4752,7 +4762,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
 type MagickPixelOperation = { highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
-    let i = start, apply: MagickPixelOperation["apply"];
+    let i = start, apply: MagickPixelOperation["apply"], highDepth = false;
     if (token === "-colorspace" || token === "-grayscale") {
         const space = (tokens[++i] ?? "gray").toLowerCase();
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
@@ -4934,6 +4944,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-evaluate") {
         const operationRaw = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
+        highDepth = operation === "add";
         if (!["add", "sum", "addmodulus", "mean", "median", "subtract", "multiply", "divide", "pow", "exp", "exponential", "log", "inverselog", "set", "min", "max",
             "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
             "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise", "poissonnoise"].includes(operation)) {
@@ -5068,29 +5079,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-negate" || token === "+negate") {
+        highDepth = true;
         const onlyGray = token === "+negate";
         const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
-            let pixelWork = 0;
             const out = new Uint8Array(im.data);
+            const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+            const samples = data16 ?? out, range = data16 ? 65535 : 255;
+            const mask = [ch.r, ch.g, ch.b, ch.a && im.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
-                if (++pixelWork % 16384 === 0)
-                    yield;
-                const r = out[idx]!;
-                const g = out[idx + 1]!;
-                const b = out[idx + 2]!;
-                if (onlyGray && !(r === g && g === b))
-                    continue;
-                if (ch.r)
-                    out[idx] = 255 - r;
-                if (ch.g)
-                    out[idx + 1] = 255 - g;
-                if (ch.b)
-                    out[idx + 2] = 255 - b;
-                if (ch.a && im.hasAlpha)
-                    out[idx + 3] = 255 - out[idx + 3]!;
+                if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
+                const gray = samples[idx] === samples[idx + 1] && samples[idx + 1] === samples[idx + 2];
+                for (let c = 0; c < 4; c++) {
+                    if ((!onlyGray || gray) && mask[c]) samples[idx + c] = range - samples[idx + c]!;
+                    if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
+                }
             }
-            return { ...im, data: out };
+            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-contrast" || token === "+contrast") {
@@ -5228,7 +5233,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, highDepth: token === "-colorspace" || token === "-grayscale" };
+    return { end: i, apply, highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {

@@ -1,6 +1,6 @@
 import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
-import {associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
+import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader} from "./bmp-header.js";
 import {parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
@@ -292,6 +292,7 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
  for(let index=0;index<pages.length;index++) {
   const page=pages[index]!,channels=createTiffLayout(page,options).channels,chunks:Uint8Array[]=[];
   const rows=options?.tiffTile?.height ?? options?.tiffRowsPerStrip ?? page.height,columns=options?.tiffTile?.width ?? page.width,stripSizes:number[]=[];
+  for(let plane=0;plane<(options?.tiffPlanar ? channels : 1);plane++) {
   for(let row=0;row<page.height;row+=rows) {
   for(let left=0;left<page.width;left+=columns) {
   const height=options?.tiffTile ? rows : Math.min(rows,page.height-row),start=chunks.length;
@@ -303,18 +304,19 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
   } else block={...page,height,data:page.data.subarray(row*page.width*4,(row+height)*page.width*4)};
   if(options?.tiffCompression === "jpeg") chunks.push(encodeJpegImage(block, {...options,chromaSubsampling:"4:4:4"}));
   else {
-   const compressor=createTiffCompressor(options?.tiffCompression,columns*channels);
+   const compressor=createTiffCompressor(options?.tiffCompression,columns*(options?.tiffPlanar ? 1 : channels));
    try {
     for(let offset=0;offset<block.data.length;offset+=4096) {
      const size=Math.min(4096,block.data.length-offset),raw=new Uint8Array(size/4*channels);
      for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=block.data[src]!;if(channels===2)raw[dst++]=block.data[src+3]!;if(channels>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}if(channels===4)raw[dst++]=block.data[src+3]!;}
      if (page.hasAlpha && options?.tiffAlpha === "associated") associateTiffSamples(raw, channels);
-     chunks.push(...compressor.push(raw));
+     chunks.push(...compressor.push(options?.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw));
     }
     chunks.push(...compressor.push(new Uint8Array(),true));
    } finally {compressor.close();}
   }
   stripSizes.push(chunks.slice(start).reduce((sum,chunk)=>sum+chunk.length,0));
+  }
   }
   }
   payloads.push(chunks);

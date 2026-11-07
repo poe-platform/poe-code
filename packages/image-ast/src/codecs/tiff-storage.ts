@@ -2,7 +2,7 @@ import type {ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
 import {BackingArena} from "./backing-arena.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {encodeJpegFromStorage} from "./jpeg-storage.js";
-import {associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
+import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {defaultRuntime} from "@poe-code/compression";
 export type StoredTiffEncodeOptions=NonNullable<Parameters<typeof createTiffLayout>[1]>;
 /** Pull-driven TIFF output with owned chunks and a strip directory. */
@@ -37,9 +37,10 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
  const compressed=options.tiffCompression !== undefined && options.tiffCompression !== "none";
  let encodedBytes:number|undefined;
  let stripSizes:number[]|undefined;
- if(compressed || options.tiffTile) {
+ if(compressed || options.tiffTile || options.tiffPlanar) {
   scratch.reset();encodedBytes=0;stripSizes=[];
   const rows=options.tiffTile?.height ?? options.tiffRowsPerStrip ?? height,columns=options.tiffTile?.width ?? width;
+  for(let plane=0;plane<(options.tiffPlanar ? channels : 1);plane++) {
   for(let row=0;row<height;row+=rows) {
   for(let left=0;left<width;left+=columns) {
   const stripHeight=options.tiffTile ? rows : Math.min(rows,height-row),start=encodedBytes;
@@ -73,9 +74,9 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   }
   async function* encode() {
    if(options.tiffCompression === "jpeg") {yield* encodeJpegFromStorage(block,blockStorage,signal,{...options,chromaSubsampling:"4:4:4"});return;}
-   const compressor=createTiffCompressor(options.tiffCompression,columns*channels);
+   const compressor=createTiffCompressor(options.tiffCompression,columns*(options.tiffPlanar ? 1 : channels));
    try {
-    for await(const raw of blockPixels()) yield* compressor.push(raw);
+    for await(const raw of blockPixels()) yield* compressor.push(options.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw);
     yield* compressor.push(new Uint8Array(),true);
    } finally {compressor.close();}
   }
@@ -86,6 +87,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
    }
   }
   stripSizes.push(encodedBytes-start);
+  }
   }
   }
  }

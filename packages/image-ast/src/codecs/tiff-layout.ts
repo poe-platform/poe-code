@@ -4,20 +4,23 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
-  options?: Pick<OutputEncodeOptions, "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
   const littleEndian = options?.tiffEndian !== "msb";
   const jpeg = options?.tiffCompression === "jpeg";
+  if (jpeg && options?.tiffPlanar) throw new Error("Planar TIFF does not support JPEG compression");
   const channels = jpeg ? 3 : tiffChannels(img), hasAlpha = !jpeg && img.hasAlpha;
   const rowsPerStrip = options?.tiffRowsPerStrip ?? height;
   if (!Number.isSafeInteger(rowsPerStrip) || rowsPerStrip <= 0 || rowsPerStrip > 0xffffffff) throw new RangeError("Invalid TIFF rows per strip");
   const tile = options?.tiffTile;
   if (tile && (!Number.isSafeInteger(tile.width) || !Number.isSafeInteger(tile.height) || tile.width <= 0 || tile.height <= 0 || tile.width % 16 !== 0 || tile.height % 16 !== 0)) throw new RangeError("Invalid TIFF tile dimensions");
-  const stripCount = tile ? Math.ceil(width / tile.width) * Math.ceil(height / tile.height) : Math.ceil(height / rowsPerStrip);
+  const stripsPerPlane = tile ? Math.ceil(width / tile.width) * Math.ceil(height / tile.height) : Math.ceil(height / rowsPerStrip);
+  const stripCount = stripsPerPlane * (options?.tiffPlanar ? channels : 1);
+  const chunkChannels = options?.tiffPlanar ? 1 : channels;
   const stripArraySize = stripCount > 1 ? stripCount * 8 : 0;
-  const pixelBytes = stripSizes?.reduce((sum, size) => sum + size, 0) ?? (tile ? stripCount * tile.width * tile.height : width * height) * channels;
+  const pixelBytes = stripSizes?.reduce((sum, size) => sum + size, 0) ?? (tile ? stripCount * tile.width * tile.height * chunkChannels : width * height * channels);
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "meter" ? 100 : 1;
@@ -60,7 +63,7 @@ export function createTiffLayout(
   if (!tile) entries.push([279, 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * 4]); // StripByteCounts
   entries.push([282, 5, 1, xResOffset]); // XResolution
   entries.push([283, 5, 1, yResOffset]); // YResolution
-  entries.push([284, 3, 1, 1]); // PlanarConfiguration = Chunky
+  entries.push([284, 3, 1, options?.tiffPlanar ? 2 : 1]); // PlanarConfiguration
   entries.push([296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2]); // ResolutionUnit
   if (tile) {
     entries.push([322, 4, 1, tile.width]);
@@ -83,7 +86,7 @@ export function createTiffLayout(
   if (stripCount > 1) {
     let stripOffset = pixelOffset;
     for (let strip = 0; strip < stripCount; strip++) {
-      const size = stripSizes?.[strip] ?? (tile ? tile.width * tile.height : width * Math.min(rowsPerStrip, height - strip * rowsPerStrip)) * channels;
+      const size = stripSizes?.[strip] ?? (tile ? tile.width * tile.height : width * Math.min(rowsPerStrip, height - (strip % stripsPerPlane) * rowsPerStrip)) * chunkChannels;
       view.setUint32(yResOffset + 8 + commentSize - ifdOffset + strip * 4, stripOffset, littleEndian);
       view.setUint32(yResOffset + 8 + commentSize - ifdOffset + (stripCount + strip) * 4, size, littleEndian);
       stripOffset += size;
@@ -109,4 +112,11 @@ export function associateTiffSamples(bytes: Uint8Array, channels: number): void 
     const alpha = bytes[offset + channels - 1]! / 255;
     for (let channel = 0; channel < channels; channel++) bytes[offset + channel] = Math.round(bytes[offset + channel]! * alpha);
   }
+}
+
+/** Extract one sample plane from a bounded chunk of packed samples. */
+export function tiffSamplePlane(bytes: Uint8Array, channels: number, plane: number): Uint8Array {
+  const output = new Uint8Array(bytes.length / channels);
+  for (let i = 0; i < output.length; i++) output[i] = bytes[i * channels + plane]!;
+  return output;
 }

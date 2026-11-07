@@ -5753,3 +5753,47 @@ describe("ebur128 edge cases", () => {
     });
   }
 });
+
+
+describe("WAV RF64 output", () => {
+  for (const sync of [false, true]) for (const copy of [false, true]) for (const mode of ["always", "auto", "never", undefined]) {
+    it(`${sync ? "sync" : "async"} ${copy ? "copies" : "encodes"} ${mode ?? "default"} headers and exact PCM`, async () => {
+      const values = [-32768, 32767, -12345, 23456, -1, 0, 1, 256];
+      const channels = [0, 1].map(channel => Float64Array.from({ length: 1024 },
+        (_, frame) => values[(frame * 2 + channel) % values.length]! / 32768));
+      const input = encodeWav({ sampleRate: 8000, channels });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const args = ["-i", "/in.wav", ...(mode ? ["-rf64", mode] : []), ...(copy ? ["-c:a", "copy"] : []), "/out.wav"];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const output = vfs.store.get("/out.wav")!;
+      const view = new DataView(output.buffer, output.byteOffset, output.byteLength);
+      const fourcc = (offset: number) => new TextDecoder().decode(output.subarray(offset, offset + 4));
+      assert.equal(fourcc(0), mode === "always" ? "RF64" : "RIFF");
+      assert.equal(view.getUint32(4, true), mode === "always" ? 0xffffffff : output.length - 8);
+      assert.equal(fourcc(12), mode === "always" ? "ds64" : mode === "auto" ? "JUNK" : "fmt ");
+      if (mode === "always") {
+        assert.equal(view.getUint32(16, true), 28);
+        assert.equal(view.getBigUint64(20, true), BigInt(output.length - 8));
+        assert.equal(view.getBigUint64(28, true), 4096n);
+        assert.equal(view.getBigUint64(36, true), 1024n);
+        assert.equal(view.getUint32(44, true), 0);
+      }
+      let offset = mode === "always" || mode === "auto" ? 48 : 12;
+      while (fourcc(offset) !== "data") offset += 8 + view.getUint32(offset + 4, true) + (view.getUint32(offset + 4, true) % 2);
+      assert.equal(view.getUint32(offset + 4, true), mode === "always" ? 0xffffffff : 4096);
+      for (let i = 0; i < 2048; i++) assert.equal(view.getInt16(offset + 8 + i * 2, true), values[i % 8]);
+    });
+  }
+  for (const value of ["invalid", ""]) it(`rejects invalid RF64 mode ${value}`, async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), ["-rf64", value, "/out.wav"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("rf64"));
+    assert.equal(vfs.store.size, 0);
+  });
+});

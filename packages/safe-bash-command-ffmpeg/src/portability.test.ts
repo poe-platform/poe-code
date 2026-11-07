@@ -107,7 +107,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes microsecond duration parsing and the current command graph (612,141 bytes).
   // Includes Haas stereo delays and the current audio filter graph (614,764 bytes).
   // Includes dialogue center extraction and its bounded FFT workspace (617,318 bytes).
-  assert.ok(otherCodeBytes < 619_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes RF64 output modes and the current WAV reader graph (620,059 bytes).
+  assert.ok(otherCodeBytes < 622_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -138,6 +139,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FFmetadata chapter timing and the current metadata graph (9,747,743 bytes).
   // Includes volumedetect sample statistics and the current filter graph.
   // Includes sample-accurate atrim bounds and the current audio filter graph (9,756,236 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_765_000,
+  // Includes RF64 output and the current audio/container graph (9,789,404 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_792_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

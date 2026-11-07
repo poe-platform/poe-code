@@ -1676,6 +1676,7 @@ export function evalSyncFfmpeg(
     let writeXing = true;
     let sampleFormat: string | undefined;
     let compressionLevel: number | undefined;
+    let rf64: "always" | "auto" | "never" | undefined;
     let faststart = true;
     let fragmented = false;
     let id3v2Version: 0 | 3 | 4 | undefined;
@@ -1835,6 +1836,12 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_xing value");
         writeXing = value === "1";
+      } else if (arg === "-rf64") {
+        const value = args[++i];
+        if (value !== "always" && value !== "auto" && value !== "never") {
+          throw new Error("Invalid rf64 value: expected always, auto or never");
+        }
+        rf64 = value;
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         if (flags.includes("faststart")) faststart = true;
@@ -1991,7 +1998,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { rf64, audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2232,6 +2239,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeXing = true;
         let sampleFormat: string | undefined;
         let compressionLevel: number | undefined;
+        let rf64: "always" | "auto" | "never" | undefined;
         let faststart = true;
         let fragmented = false;
         let id3v2Version: 0 | 3 | 4 | undefined;
@@ -2696,6 +2704,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             writeXing = value === "1";
+          } else if (arg === "-rf64") {
+            const value = args[++i];
+            if (value !== "always" && value !== "auto" && value !== "never") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid rf64 value: expected always, auto or never\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            rf64 = value;
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
             if (flags.includes("faststart")) faststart = true;
@@ -4547,7 +4562,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { rf64, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -4871,6 +4886,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)
               : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
+              rf64,
               audioCodec,
               audioBitrate,
               compressionLevel,

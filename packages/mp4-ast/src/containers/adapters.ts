@@ -721,7 +721,9 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   const fmtPadding = pad(fmtSize);
   const factSize = factBytes ? (wave64 ? 24 : 8) + factBytes.length + pad(factBytes.length) : 0;
   const padding = pad(pcmBytes.byteLength);
-  const size = (wave64 ? 88 : 28) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding;
+  const reserveDs64 = !wave64 && (options.rf64 === "always" || options.rf64 === "auto");
+  const size = (wave64 ? 88 : 28) + (reserveDs64 ? 36 : 0) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding;
+  const rf64 = reserveDs64 && (options.rf64 === "always" || size - 8 > 0xffffffff);
   options.budget?.checkOutputBytes(size);
   const writer = new BinaryWriter(size);
   const chunk = (id: string, length: number) => {
@@ -738,9 +740,23 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     chunk("riff", size - 24);
     writer.writeBytes(wave64Guid("wave"));
   } else {
-    writer.writeFourCC("RIFF");
-    writer.writeU32LE(size - 8);
+    writer.writeFourCC(rf64 ? "RF64" : "RIFF");
+    writer.writeU32LE(rf64 ? 0xffffffff : size - 8);
     writer.writeFourCC("WAVE");
+    if (reserveDs64) {
+      chunk(rf64 ? "ds64" : "JUNK", 28);
+      const ds64 = new Uint8Array(28);
+      if (rf64) {
+        const view = new DataView(ds64.buffer);
+        const frames = factBytes && factBytes.length >= 4
+          ? new DataView(factBytes.buffer, factBytes.byteOffset, factBytes.byteLength).getUint32(0, true)
+          : Math.round((audioTrack?.duration ?? 0) * sampleRate / (audioTrack?.timescale ?? sampleRate));
+        view.setBigUint64(0, BigInt(size - 8), true);
+        view.setBigUint64(8, BigInt(pcmBytes.byteLength), true);
+        view.setBigUint64(16, BigInt(frames), true);
+      }
+      writer.writeBytes(ds64);
+    }
   }
   chunk("fmt ", fmtSize);
   if (formatBytes) {
@@ -767,7 +783,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     writer.writeBytes(factBytes);
     if (pad(factBytes.length)) writer.writeBytes(new Uint8Array(pad(factBytes.length)));
   }
-  chunk("data", pcmBytes.byteLength);
+  chunk("data", rf64 ? 0xffffffff : pcmBytes.byteLength);
   writer.writeBytes(pcmBytes);
   if (padding) writer.writeBytes(new Uint8Array(padding));
   return writer.toUint8Array();

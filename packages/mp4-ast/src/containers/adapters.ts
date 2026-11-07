@@ -1869,9 +1869,23 @@ export function isWebVttSignature(bytes: Uint8Array, filename?: string): boolean
   return head.startsWith("WEBVTT");
 }
 
+function subviewerTiming(line: string): [number, number] | undefined {
+  const times = line.trim().split(",");
+  if (times.length !== 2) return undefined;
+  const values: number[] = [];
+  for (const time of times) {
+    if (time.length !== 11 || time[2] !== ":" || time[5] !== ":" || time[8] !== ".") return undefined;
+    const digits = time.slice(0, 2) + time.slice(3, 5) + time.slice(6, 8) + time.slice(9);
+    if (![...digits].every(char => char >= "0" && char <= "9")) return undefined;
+    values.push((Number(time.slice(0, 2)) * 3600 + Number(time.slice(3, 5)) * 60
+      + Number(time.slice(6, 8))) * 1000 + Number(time.slice(9)) * 10);
+  }
+  return [values[0]!, values[1]!];
+}
+
 export function parseSubtitleDocument(
   bytes: Uint8Array,
-  format: "srt" | "webvtt"
+  format: "srt" | "webvtt" | "subviewer"
 ): MediaDocument {
   // Keep SubRip packet bytes intact until the subtitle decoder runs. Demuxing
   // must not turn invalid UTF-8 into valid replacement characters.
@@ -1900,7 +1914,7 @@ export function parseSubtitleDocument(
 
     let arrowLineIdx = -1;
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i]!.includes("-->")) {
+      if (format === "subviewer" ? subviewerTiming(lines[i]!) !== undefined : lines[i]!.includes("-->")) {
         arrowLineIdx = i;
         break;
       }
@@ -1909,10 +1923,12 @@ export function parseSubtitleDocument(
     const timingLine = lines[arrowLineIdx]!;
     const [leftRaw, rightWithSettings] = timingLine.split("-->");
     const rightRaw = (rightWithSettings ?? "").trim().split(/\s+/)[0] ?? "0";
-    const startMs = parseSubtitleTimecodeMs(leftRaw ?? "0", format);
-    const parsedEndMs = parseSubtitleTimecodeMs(rightRaw, format);
+    const subviewerTimes = format === "subviewer" ? subviewerTiming(timingLine) : undefined;
+    const startMs = subviewerTimes ? subviewerTimes[0] : parseSubtitleTimecodeMs(leftRaw ?? "0", format === "srt" ? "srt" : "webvtt");
+    const parsedEndMs = subviewerTimes ? subviewerTimes[1] : parseSubtitleTimecodeMs(rightRaw, format === "srt" ? "srt" : "webvtt");
     const endMs = format === "srt" ? parsedEndMs : Math.max(startMs + 1, parsedEndMs);
-    const cueLines = lines.slice(arrowLineIdx + 1).join("\n");
+    const rawCueLines = lines.slice(arrowLineIdx + 1).join("\n");
+    const cueLines = format === "subviewer" ? rawCueLines.replaceAll("[br]", "\n") : rawCueLines;
     const cueText = format === "srt" ? cueLines.replace(/^[ \t\n]+|[ \t\n]+$/g, "") : cueLines.trim();
     if (!cueText) continue;
 
@@ -2051,6 +2067,37 @@ export function srtAst(): MediaAstPlugin {
     },
     slice(doc, options) {
       return sliceMp4(doc, options);
+    }
+  };
+}
+
+export function subviewerAst(): MediaAstPlugin {
+  return {
+    id: "subviewer",
+    formatName: "subviewer",
+    formatLongName: "SubViewer subtitle",
+    extensions: ["sub"],
+    mimeTypes: [],
+    canDemux: true,
+    canMux: false,
+    supportedVideoCodecs: [],
+    supportedAudioCodecs: [],
+    detect(bytes) {
+      return decodeUtf8(bytes.subarray(0, 4096)).split("\n").some(line => subviewerTiming(line) !== undefined);
+    },
+    parse(bytes) {
+      return parseSubtitleDocument(bytes, "subviewer");
+    },
+    serialize() {
+      throw new Error("SubViewer output is not supported");
+    },
+    probe(bytes, options) {
+      const doc = parseSubtitleDocument(bytes, "subviewer");
+      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.sub", {
+        ...options,
+        formatName: "subviewer",
+        formatLongName: "SubViewer subtitle"
+      });
     }
   };
 }
@@ -2407,6 +2454,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     gifAst(),
     image2Ast(),
     srtAst(),
+    subviewerAst(),
     microdvdAst(),
     assAst(),
     webvttAst(),
@@ -2470,9 +2518,10 @@ export function createMediaAstRegistry(plugins: readonly MediaAstPlugin[]): Medi
       }
       // SubRip requires a numbered cue signature for automatic detection;
       // unnumbered cues are accepted only when the input format is explicit.
+      // SubViewer shares .sub with MicroDVD, so its timecode signature is required.
       if (filename) {
         const byExt = this.findByFilename(filename);
-        if (byExt?.id !== "srt") return byExt;
+        if (byExt?.id !== "srt" && byExt?.id !== "subviewer") return byExt;
       }
       return undefined;
     }

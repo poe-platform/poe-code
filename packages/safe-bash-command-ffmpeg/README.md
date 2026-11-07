@@ -203,6 +203,7 @@ numbers are zero-based and the end frame is excluded. Unsupported trim options f
 without replacing output.
 Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
 MicroDVD input (`-f microdvd` or automatic detection) uses the declared frame rate and converts `|` to line breaks; `-c:s copy -f microdvd` preserves caption frame numbers and text.
+SubViewer input (`-f subviewer` or detected `.sub` timecodes) preserves centisecond timing, skips information headers, and converts `[br]` to line breaks.
 ASS and SRT conversion preserves cue text and timing; ASS output uses a default style and centisecond timestamps. ASS input decodes line breaks and removes positioning/style overrides.
 SRT-to-WebVTT conversion removes ASS override blocks and converts `\N` and `\n` to line breaks; `-c:s copy` preserves the original cue text.
 

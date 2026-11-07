@@ -5974,3 +5974,22 @@ describe("MicroDVD subtitles", () => {
     }
   }
 });
+
+for (const explicit of [false, true]) {
+  for (const sync of [false, true]) {
+    it(`reads SubViewer ${explicit ? "explicit" : "detected"} subtitles (${sync ? "sync" : "async"})`, async () => {
+      const input = "[INFORMATION]\n[TITLE]Fixture\n[END INFORMATION]\n[SUBTITLE]\n00:00:01.24,00:00:02.80\nFirst line[br]continuation\n\n00:00:03.40,00:00:05.00\nLast & final\n";
+      const vfs = createTestVfs({ "/subviewer.sub": input });
+      const args = ["-v", "error", "-y", ...(explicit ? ["-f", "subviewer"] : []), "-i", "/subviewer.sub", "/out.vtt"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
+        "WEBVTT\n\n00:01.240 --> 00:02.800\nFirst line\ncontinuation\n\n00:03.400 --> 00:05.000\nLast & final\n");
+    });
+  }
+}

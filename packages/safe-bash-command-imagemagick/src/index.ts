@@ -6345,7 +6345,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-shadow") {
             const geom = tokens[++i] ?? "80x3+5+5";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickShadowSteps(im, geom, state.background, signal));
+                return (yield* applyMagickShadowSteps(im, geom, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, signal));
             });
         }
         else if (t === "-vignette") {
@@ -7838,13 +7838,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const background = state.background;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background, geometry), signal, { ...image, hasAlpha: true }) : undefined);
         } else if (!operandsOnly && token === "-shadow") {
-            const geometry = tokens[++i] ?? "80x3+5+5", background = state.background;
+            const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const layout = magickShadowLayout(image, geometry);
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = { ...image, space: "srgb", channels: 4 };
-                const base = { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, background), signal, layout), virtualCanvas: layout.virtualCanvas };
+                const base = { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background), signal, layout), virtualCanvas: layout.virtualCanvas };
                 return layout.sigma === 0 ? base : transformStoredMagickRaster(base, backend, blurPixelSteps(base, { height: layout.sigma }, false), signal);
             });
         } else if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
